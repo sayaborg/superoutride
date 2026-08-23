@@ -1,0 +1,28 @@
+SUPER OUTRIDE M6.4 VALIDATION
+
+Milestone: Vehicle Physics Replaceability Boundary
+Validated implementation head: 91dca6f462b6f2ba78a5bf0a6dc1d91851681a58
+Pull request: #14
+GitHub Actions run: 32614662477
+Build job: 97133270292
+
+Result:
+139 tests
+139 pass
+0 fail
+
+Validated properties:
+- camera does not import concrete car physics
+- renderer does not import concrete car physics
+- dynamic vehicle sprite adapter does not import concrete car physics
+- rival input controller does not import concrete car physics
+- these consumers read only narrow vehicle-contract interfaces
+- a plain structural world-state object can drive camera, rival AI, dynamic sprite adaptation and renderer
+- the test object is not an M5CarState and is not mutated by these consumers
+- pseudo-depth remains chainage-only and player d remains D_cam
+- existing M0-M6.3 regression remains green
+
+Intentional exception:
+- recovery remains coupled to concrete mutable physics state because respawn resets velocities/steering/bank. It may be rewritten with a future physics model without affecting camera/renderer/race-progress contracts.
+
+Status: GO
