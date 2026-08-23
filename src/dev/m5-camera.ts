@@ -1,4 +1,9 @@
-import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
+import {
+  guideCoordinateCurve,
+  guideCoordinateToWorld,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
+import { sampleGuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle, wrapPositive } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
@@ -58,13 +63,14 @@ export function resetM5CameraRig(rig: M5CameraRig): void {
 /** Core §§34-39 camera rules, with M5 DEV LPF parameters. */
 export function updateM5Camera(
   rig: M5CameraRig,
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   vehicle: VehicleCameraReadState,
   profile: M5CameraProfile,
   dt: number,
 ): M5CameraState {
-  const guideAtCar = sampleGuideCurve(guide, vehicle.course.s);
+  const curve = guideCoordinateCurve(guide);
+  const guideAtCar = sampleGuideCurve(curve, vehicle.course.s);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
   const estimatedSDot = vehicle.longitudinalSpeed * Math.cos(vehicleGuideYawDelta)
     - vehicle.lateralSpeed * Math.sin(vehicleGuideYawDelta);
@@ -87,8 +93,8 @@ export function updateM5Camera(
   rig.lateral += (lTarget - rig.lateral) * latAlpha;
   rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
 
-  const sCamera = wrapPositive(vehicle.course.s - profile.dCam, guide.length);
-  const plan = guideCourseToWorld(guide, sCamera, rig.lateral);
+  const sCamera = wrapPositive(vehicle.course.s - profile.dCam, curve.length);
+  const plan = guideCoordinateToWorld(guide, sCamera, rig.lateral);
 
   // Extreme-spin presentation safety. Core §36 guarantees framing only inside the normal
   // yaw/lateral envelope and explicitly leaves extreme spin to a separate presentation mode.
@@ -134,7 +140,7 @@ export function updateM5Camera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
-    courseLength: guide.length,
+    courseLength: curve.length,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
