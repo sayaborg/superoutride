@@ -43,6 +43,12 @@ export type JunctionLateralClass =
   | 'SHOULDER'
   | 'OUTSIDE';
 
+interface JunctionScalarSection {
+  readonly phase: JunctionPhase;
+  readonly outerHalfWidth: number;
+  readonly medianHalfWidth: number;
+}
+
 const EPSILON = 1e-9;
 
 /**
@@ -66,30 +72,9 @@ export class JunctionCrossSectionProfile {
   }
 
   sample(s: number): JunctionCrossSection {
-    if (!Number.isFinite(s)) throw new RangeError('junction chainage must be finite');
+    const scalar = sampleScalarSection(this.authoring, s);
+    const { phase, outerHalfWidth, medianHalfWidth } = scalar;
     const a = this.authoring;
-    let phase: JunctionPhase;
-    let outerHalfWidth: number;
-    let medianHalfWidth = 0;
-
-    if (s < a.sWidenStart) {
-      phase = 'SINGLE';
-      outerHalfWidth = a.parentRoadWidth * 0.5;
-    } else if (s < a.sMedianStart) {
-      phase = 'WIDENING';
-      const t = unitInterval((s - a.sWidenStart) / (a.sMedianStart - a.sWidenStart));
-      outerHalfWidth = lerp(a.parentRoadWidth * 0.5, a.childRoadWidth, t);
-    } else if (s < a.sSeparatedStart) {
-      phase = 'MEDIAN_GROWTH';
-      const t = unitInterval((s - a.sMedianStart) / (a.sSeparatedStart - a.sMedianStart));
-      medianHalfWidth = lerp(0, a.finalMedianWidth * 0.5, t);
-      outerHalfWidth = a.childRoadWidth + medianHalfWidth;
-    } else {
-      phase = 'SEPARATED';
-      medianHalfWidth = a.finalMedianWidth * 0.5;
-      outerHalfWidth = a.childRoadWidth + medianHalfWidth;
-    }
-
     const asphaltBands: LateralInterval[] = medianHalfWidth <= EPSILON
       ? [{ min: -outerHalfWidth, max: outerHalfWidth }]
       : [
@@ -122,17 +107,35 @@ export class JunctionCrossSectionProfile {
     });
   }
 
+  /** Allocation-free lateral classification used by compiler and runtime SurfaceMap sampling. */
   classify(s: number, l: number): JunctionLateralClass {
     if (!Number.isFinite(l)) throw new RangeError('junction lateral coordinate must be finite');
-    const section = this.sample(s);
-    if (section.medianBand && contains(section.medianBand, l)) return 'MEDIAN';
-    if (section.asphaltBands.length === 1 && contains(section.asphaltBands[0]!, l)) return 'ASPHALT_SINGLE';
-    if (section.asphaltBands.length === 2) {
-      if (contains(section.asphaltBands[0]!, l)) return 'ASPHALT_LEFT';
-      if (contains(section.asphaltBands[1]!, l)) return 'ASPHALT_RIGHT';
+    const { outerHalfWidth, medianHalfWidth } = sampleScalarSection(this.authoring, s);
+    const shoulderWidth = this.authoring.shoulderWidth;
+
+    if (medianHalfWidth > EPSILON && Math.abs(l) <= medianHalfWidth + EPSILON) return 'MEDIAN';
+    if (medianHalfWidth <= EPSILON) {
+      if (Math.abs(l) <= outerHalfWidth + EPSILON) return 'ASPHALT_SINGLE';
+    } else {
+      if (l >= -outerHalfWidth - EPSILON && l <= -medianHalfWidth + EPSILON) return 'ASPHALT_LEFT';
+      if (l >= medianHalfWidth - EPSILON && l <= outerHalfWidth + EPSILON) return 'ASPHALT_RIGHT';
     }
-    if (section.shoulderBands.some((band) => contains(band, l))) return 'SHOULDER';
+    if (
+      (l >= -outerHalfWidth - shoulderWidth - EPSILON && l <= -outerHalfWidth + EPSILON)
+      || (l >= outerHalfWidth - EPSILON && l <= outerHalfWidth + shoulderWidth + EPSILON)
+    ) return 'SHOULDER';
     return 'OUTSIDE';
+  }
+
+  medianHalfWidthAt(s: number): number {
+    return sampleScalarSection(this.authoring, s).medianHalfWidth;
+  }
+
+  childCenterLAt(s: number, side: JunctionSide): number | null {
+    const medianHalfWidth = this.medianHalfWidthAt(s);
+    if (medianHalfWidth <= EPSILON) return null;
+    const magnitude = medianHalfWidth + this.authoring.childRoadWidth * 0.5;
+    return side === 'LEFT' ? -magnitude : magnitude;
   }
 
   /**
@@ -140,11 +143,40 @@ export class JunctionCrossSectionProfile {
    * A stage handoff must not use an interpolating center before the split is geometrically done.
    */
   separatedChildCenterL(side: JunctionSide): number {
-    const section = this.sample(this.authoring.sSeparatedStart);
-    const center = section.childCenterL?.[side];
-    if (center === undefined) throw new Error('separated junction has no child center');
+    const center = this.childCenterLAt(this.authoring.sSeparatedStart, side);
+    if (center === null) throw new Error('separated junction has no child center');
     return center;
   }
+}
+
+function sampleScalarSection(a: JunctionCrossSectionAuthoring, s: number): JunctionScalarSection {
+  if (!Number.isFinite(s)) throw new RangeError('junction chainage must be finite');
+  if (s < a.sWidenStart) {
+    return { phase: 'SINGLE', outerHalfWidth: a.parentRoadWidth * 0.5, medianHalfWidth: 0 };
+  }
+  if (s < a.sMedianStart) {
+    const t = unitInterval((s - a.sWidenStart) / (a.sMedianStart - a.sWidenStart));
+    return {
+      phase: 'WIDENING',
+      outerHalfWidth: lerp(a.parentRoadWidth * 0.5, a.childRoadWidth, t),
+      medianHalfWidth: 0,
+    };
+  }
+  if (s < a.sSeparatedStart) {
+    const t = unitInterval((s - a.sMedianStart) / (a.sSeparatedStart - a.sMedianStart));
+    const medianHalfWidth = lerp(0, a.finalMedianWidth * 0.5, t);
+    return {
+      phase: 'MEDIAN_GROWTH',
+      outerHalfWidth: a.childRoadWidth + medianHalfWidth,
+      medianHalfWidth,
+    };
+  }
+  const medianHalfWidth = a.finalMedianWidth * 0.5;
+  return {
+    phase: 'SEPARATED',
+    outerHalfWidth: a.childRoadWidth + medianHalfWidth,
+    medianHalfWidth,
+  };
 }
 
 function validateAuthoring(a: JunctionCrossSectionAuthoring): void {
@@ -160,10 +192,6 @@ function validateAuthoring(a: JunctionCrossSectionAuthoring): void {
   }
   if (!(a.finalMedianWidth > 0)) throw new RangeError('finalMedianWidth must be > 0');
   if (!(a.shoulderWidth >= 0)) throw new RangeError('shoulderWidth must be >= 0');
-}
-
-function contains(interval: LateralInterval, l: number): boolean {
-  return l >= interval.min - EPSILON && l <= interval.max + EPSILON;
 }
 
 function lerp(a: number, b: number, t: number): number {
