@@ -50,9 +50,9 @@ export function sampleGroundMapRuntime(
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
-  const checker = (Math.floor(sourceS / 3) + Math.floor(Math.abs(l) / 2)) & 1;
+  const checker = checkerAt(sourceS, l);
   if (profile.junction) {
-    const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, checker);
+    const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, sourceS);
     if (junctionColor !== null) return junctionColor;
   } else {
     const roadCenterL = profile.roadCenterL ?? 0;
@@ -71,13 +71,21 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile,
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
 }
 
-function sampleJunctionGroundMap(
-  s: number,
+/**
+ * Procedural junction paint shared by parent-source and stage-local adapters.
+ *
+ * `junctionS` selects cross-section geometry. `patternS` selects checker/asphalt/dash phase. They are
+ * separate so a stage-local chainage ruler can own its junction while still preserving an inherited
+ * GroundMap longitudinal phase across a handoff.
+ */
+export function sampleJunctionGroundMap(
+  junctionS: number,
   l: number,
   junction: JunctionCrossSectionProfile,
-  checker: number,
+  patternS = junctionS,
 ): number | null {
-  const lateralClass = junction.classify(s, l);
+  const checker = checkerAt(patternS, l);
+  const lateralClass = junction.classify(junctionS, l);
 
   if (lateralClass === 'MEDIAN') return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
   if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
@@ -86,19 +94,23 @@ function sampleJunctionGroundMap(
     || lateralClass === 'ASPHALT_LEFT'
     || lateralClass === 'ASPHALT_RIGHT'
   ) {
-    if (isDashOn(s)) {
+    if (isDashOn(patternS)) {
       if (lateralClass === 'ASPHALT_SINGLE') {
         if (Math.abs(l) <= 0.07) return GROUND_COLORS.marking;
       } else {
         const side = lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT';
-        const center = junction.childCenterLAt(s, side);
+        const center = junction.childCenterLAt(junctionS, side);
         if (center !== null && Math.abs(l - center) <= 0.07) return GROUND_COLORS.marking;
       }
     }
-    return asphaltColor(s);
+    return asphaltColor(patternS);
   }
 
   return null;
+}
+
+function checkerAt(s: number, l: number): number {
+  return (Math.floor(s / 3) + Math.floor(Math.abs(l) / 2)) & 1;
 }
 
 function asphaltColor(s: number): number {
