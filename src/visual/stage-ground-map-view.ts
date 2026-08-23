@@ -1,6 +1,11 @@
-import { stageRoadSourceLateral, type StageRoadView } from '../course/stage-road-view.js';
+import {
+  classifyStageRoadLocalL,
+  stageRoadSourceLateral,
+  type StageRoadView,
+} from '../course/stage-road-view.js';
 import type { BakedGroundMapSample } from './baked-ground-map.js';
 import {
+  GROUND_COLORS,
   sampleGroundMap,
   type GroundMapProfile,
 } from './ground-map.js';
@@ -8,8 +13,9 @@ import {
 /**
  * Stage-local GroundMap sampling without duplicating the baked parent asset.
  *
- * local l is translated once into the parent-authored source lateral coordinate. The runtime LOD
- * remains chainage-only and therefore unchanged by the stage view.
+ * ROAD/TERRAIN translate local l once into the parent-authored source coordinate. SHOULDER is a
+ * stage-local semantic override, so the median-facing edge of a committed child becomes a normal
+ * shoulder. Runtime LOD remains chainage-only and is unchanged by this lateral view.
  */
 export function sampleStageGroundMapRuntime(
   s: number,
@@ -19,6 +25,15 @@ export function sampleStageGroundMapRuntime(
   profile: GroundMapProfile,
   cliffSection = false,
 ): BakedGroundMapSample {
+  const localClass = classifyStageRoadLocalL(view, localL);
+  if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
+  if (localClass === 'SHOULDER') {
+    return {
+      color: GROUND_COLORS.shoulder,
+      level: profile.baked?.selectLevel(deltaSEffective) ?? 0,
+    };
+  }
+
   const sourceL = stageRoadSourceLateral(view, localL);
   if (profile.baked) return profile.baked.sample(s, sourceL, deltaSEffective);
   return {
@@ -35,6 +50,10 @@ export function sampleStageGroundMapAtLevel(
   profile: GroundMapProfile,
   cliffSection = false,
 ): number {
+  const localClass = classifyStageRoadLocalL(view, localL);
+  if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
+  if (localClass === 'SHOULDER') return GROUND_COLORS.shoulder;
+
   const sourceL = stageRoadSourceLateral(view, localL);
   return profile.baked
     ? profile.baked.sampleAtLevel(s, sourceL, level)
