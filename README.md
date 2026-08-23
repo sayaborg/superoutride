@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.29 Reusable Raster Stage Successor Factory
+# SUPER OUTRIDE — M6.30 Third Live Successor Stage
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -52,7 +52,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.26 Live Child → Successor Stage — complete
 - M6.27 Live Route Runtime Assembly — complete
 - M6.28 Declarative Live Route Compilation — complete
-- **M6.29 Reusable Raster Stage Successor Factory — complete**
+- M6.29 Reusable Raster Stage Successor Factory — complete
+- **M6.30 Third Live Successor Stage — complete**
 
 ## Run / test
 
@@ -70,7 +71,7 @@ Full regression:
 npm test
 ```
 
-M6.29 adds five dedicated regressions to the M6.28 274-test suite, for a target of **279 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.29 had 279 tests. The first-fork browser render regression adds one integration test and M6.30 adds four dedicated route-depth regressions, for a target of **284 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -133,32 +134,48 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route remains:
+The browser route is now:
 
 ```text
-              ┌→ STAGE_2_L → GOAL_L
+              ┌→ STAGE_2_L → STAGE_3_L → GOAL_L
 STAGE_1 ──────┤
-              └→ STAGE_2_R → GOAL_R
+              └→ STAGE_2_R ─────────────→ GOAL_R
 ```
 
-The opening visible fork is one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
+The opening visible fork is still one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
 
 A route transition only creates a pending handoff. The old chart/content remain active until the corresponding physical seam is crossed forward and COMMIT succeeds.
 
-For either route the live sequence is:
+The LEFT live sequence is:
 
 ```text
 physical fork
-→ route choice
+→ S1_LEFT
 → PENDING
-→ parent→child seam COMMIT
-→ child physical transition
+→ parent→STAGE_2_L seam COMMIT
+→ S2L_CONTINUE physical transition
 → PENDING
-→ child→successor seam COMMIT
-→ successor physical FINISH
+→ STAGE_2_L→STAGE_3_L seam COMMIT
+→ S3L_CONTINUE physical transition
+→ PENDING
+→ STAGE_3_L→GOAL_L seam COMMIT
+→ physical GOAL_L FINISH
 ```
 
-Vehicle world X/Y/Z, yaw and velocities are never teleported by either handoff.
+The RIGHT route retains the previous depth:
+
+```text
+physical fork
+→ S1_RIGHT
+→ PENDING
+→ parent→STAGE_2_R seam COMMIT
+→ S2R_CONTINUE physical transition
+→ PENDING
+→ STAGE_2_R→GOAL_R seam COMMIT
+→ physical GOAL_R FINISH
+```
+
+Vehicle world X/Y/Z, yaw and velocities are never teleported by a handoff.
 
 ## Reusable stage authoring
 
@@ -221,7 +238,7 @@ The assembly compiler validates route/content/chart/runtime identity before simu
 
 ## M6.28 declarative live route
 
-The current route is authored as stage, transition and finish rows. A stage owns its complete runtime package; a transition owns only its topology and physical gate/seam geometry; a terminal finish owns only its physical FINISH geometry.
+Route topology is authored as stage, transition and finish rows. A stage owns its complete runtime package; a transition owns only its topology and physical gate/seam geometry; a terminal finish owns only its physical FINISH geometry.
 
 The generic compiler derives references that previously had to be repeated:
 
@@ -245,11 +262,11 @@ DeclarativeLiveRouteAuthoring
 → LiveRouteRuntimeAssembly
 ```
 
-M6.28 therefore reduces duplicated route authoring without weakening any lower-level check. `main.ts` remains stable and still calls `createM627LiveRouteRuntime()`, whose implementation delegates to declarative route authoring.
+M6.28 therefore reduces duplicated route authoring without weakening any lower-level check.
 
 ## M6.29 reusable Raster stage successor
 
-The Raster/Guide construction algorithm used by the M6.26 LEFT/RIGHT successor stages now lives in the generic runtime factory:
+The Raster/Guide construction algorithm used by the M6.26 successor stages lives in the generic runtime factory:
 
 ```text
 createRasterStageSuccessor(source, authoring)
@@ -274,19 +291,51 @@ targetSeamS
 finishS
 ```
 
-The requested overlap margin must cover `D_cam`, and the resulting `StageContinuationLink` validates world position/heading through `D_cam` behind and ahead of the seam.
+GroundMap sampling width is an explicit authoring value rather than a hardcoded current-course constant. The generic factory imports no RouteDag, route gates, renderer, camera, car physics, motorcycle physics, or milestone implementation.
 
-GroundMap sampling width is an explicit authoring value rather than a hardcoded current-course constant. M6.26 passes the existing ±12m value while the generic factory remains reusable.
+## First-fork render continuity fix
 
-M6.26 now retains only route/content-specific parameters such as LEFT/RIGHT deformation direction, seam/finish distances and the assertion that the second transition occurs after child terrain has settled. It no longer owns Raster editing helpers.
+A real browser-order integration test exposed that the apparent "stop at the fork" was not an intentional simulation stop. Immediately after the first child COMMIT, the renderer could throw:
 
-The M6.29 regression suite directly compares the generic factory output against the M6.26 successor, including every Raster vertex and all seam/finish chainages. Thus the extraction must reproduce the already validated live geometry exactly.
+```text
+RangeError: stage GroundMap sample is outside the local ground envelope
+```
 
-The generic factory imports no RouteDag, route gates, renderer, camera, car physics, motorcycle physics, or milestone implementation.
+The cause was a continuous-strip versus raster-pixel edge condition. `xGroundL/xGroundR` are projected strip edges, while source sampling is evaluated at pixel centers `x + 0.5`. The final included pixel center can therefore lie by at most half a pixel beyond the continuous local corridor.
+
+The renderer now clamps only the **stage-local GroundMap raster sample** to the already-authored local corridor before sampling. It does not change strip projection, pseudo-depth, chainage, affine horizontal mapping, road geometry, camera, route logic or physics.
+
+A permanent regression drives an actual car through the visible LEFT fork using the browser update order, performs the physical seam COMMIT, rebases the camera coordinate frame and successfully renders at least 30 child frames afterward.
+
+## M6.30 third live successor
+
+M6.30 applies the M6.29 factory recursively to the actual live route.
+
+The old LEFT terminal runtime geometry is retained and promoted from:
+
+```text
+CONTENT_GOAL_L
+```
+
+to:
+
+```text
+CONTENT_STAGE_3_L
+```
+
+A new independent `CONTENT_GOAL_L` is generated from that promoted stage with `createRasterStageSuccessor()`. Its environment is compiled through the existing M6.24 stage authoring compiler, while route topology is compiled through the existing M6.28 declarative compiler.
+
+This proves that route depth can differ between branches without changing `main.ts`, the simulation loop or renderer Core. `main.ts` still calls only the stable browser entry:
+
+```text
+createM627LiveRouteRuntime(...)
+```
+
+The M6.30 layer contains the new topology data; the browser and renderer do not contain `STAGE_3_L`, `S3L_CONTINUE`, LEFT/RIGHT depth rules, or another road rendering path.
 
 ## FINISH authority
 
-`GOAL_L` and `GOAL_R` are terminal Route DAG stages, but entering them does not finish the run. Completion still requires a validated forward crossing of the physical successor FINISH gate.
+`GOAL_L` and `GOAL_R` are terminal Route DAG stages, but entering them does not finish the run. Completion still requires a validated forward crossing of the physical FINISH gate owned by that terminal stage.
 
 ## Vehicle physics status
 
@@ -320,12 +369,13 @@ src/dev/m6-26-live-successor-stage.ts
 src/dev/m6-26-live-runtime-content.ts
 src/dev/m6-27-live-route-runtime.ts
 src/dev/m6-28-declarative-live-route.ts
+src/dev/m6-30-third-live-successor.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/47_m6_29_reusable_raster_successor.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/48_m6_30_third_live_successor.md`.
 
 ## Next
 
-Route topology is declarative and successor Raster/Guide construction is now reusable. The next proof should combine these two layers by extending one current terminal path through another independently generated stage using the same successor factory, while keeping `main.ts`, renderer Core and the physical gate → PENDING → seam COMMIT transaction unchanged.
+M6.30 proves unequal route depth using reusable successor and declarative-route primitives. The next architectural step is to describe a chain of successor-stage authoring records so arbitrary point-to-point depth can be compiled without milestone-specific terminal-package promotion code, while preserving the same world-space overlap validation, Raster <=10° authority and route-agnostic browser loop.
