@@ -3,6 +3,7 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIX
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
+import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import { createM5CameraRig, resetM5CameraRig, updateM5Camera, type M5CameraProfile, type M5CameraState } from './dev/m5-camera.js';
 import {
@@ -74,7 +75,7 @@ if (Math.abs(bakedGroundMap.metadata.courseLength - guide.length) > 1e-7) {
   throw new Error('baked GroundMap course length does not match runtime course');
 }
 const visualProfile = new CyclicVisualProfile(guide.length, compiledSurfaces.visualSections);
-const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections);
+const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections, M6_13_JUNCTION);
 const outdoorFarBackground = createM3FarBackground();
 const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
@@ -124,6 +125,7 @@ const groundProfile: GroundMapProfile = {
   roadLeft: 4.5,
   roadRight: 4.5,
   shoulderWidth: 1,
+  junction: M6_13_JUNCTION,
   logical: compiledSurfaces.groundMap,
   baked: bakedGroundMap,
 };
@@ -191,7 +193,8 @@ function frame(now: number): void {
     }
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
-    const rivalInput = sampleRivalDrivingInput(guide, rival);
+    const rivalTargetL = sampleM613RightBranchTargetL(rival.course.s);
+    const rivalInput = sampleRivalDrivingInput(guide, rival, rivalTargetL);
     updateM5Car(guide, heightProfile, surfaceMap, rival, rivalInput, SIM_DT);
     const rivalRecovered = updateM5Recovery(rivalRecovery, guide, heightProfile, surfaceMap, rival, SIM_DT);
     let rivalRaceUpdate: RaceProgressUpdate | null = null;
@@ -260,6 +263,7 @@ function render(): void {
   const bestBoundary = raceSession.bestBoundaryIntervalSeconds === null
     ? '--:--.---'
     : formatRaceTime(raceSession.bestBoundaryIntervalSeconds);
+  const junctionSection = M6_13_JUNCTION.sample(vehicle.course.s);
 
   ctx.fillStyle = '#d7f3ff';
   ctx.font = 'bold 13px monospace';
@@ -267,9 +271,9 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.3 RIVAL FOUNDATION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.13 VISIBLE JUNCTION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionSection.phase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
@@ -285,8 +289,8 @@ function render(): void {
   }
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Rival = independent world physics -> own validated progress -> ordinary World Sprite', 8, 218);
-  ctx.fillText(`No rival collision yet / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  ctx.fillText('Junction = one (s,l) strip: widen road -> grow median -> two asphalt bands', 8, 218);
+  ctx.fillText(`World physics unchanged / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
 function raceSample(): { x: number; z: number; sLocal: number } {
