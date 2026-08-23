@@ -1,0 +1,54 @@
+SUPER OUTRIDE M6.3 VALIDATION
+=============================
+
+Milestone: M6.3 Independent Moving Rival Foundation
+Validated feature head: dc01525aca7dad16b375aa43e16ff1390fa349ec
+Pull request: #13
+Final GitHub Actions run: 32614337231
+Final build job: 97132454621
+Result: SUCCESS
+
+Regression
+----------
+137 tests
+137 pass
+0 fail
+0 skipped
+
+M6.3 additions
+--------------
+- One DEV rival is a second ordinary world-space M5CarState, not a road-coordinate animation.
+- Rival AI emits canonical DrivingInput only. It never writes x/z/yaw/course.s/course.l or renderer values.
+- Rival steering uses Guide lookahead plus lateral feedback as controller input only; world state remains physics authority.
+- Rival straight target is 56 m/s (201.6 km/h).
+- Upcoming Guide curvature is sampled ahead; the rival brakes through ordinary DrivingInput for physically tighter curves instead of cheating velocity or position.
+- Current DEV 60m-radius bend therefore forces a lower physical curve speed while straights retain the 200+ km/h target.
+- Rival owns independent recovery, RaceProgressState and RaceSessionState.
+- Shared ranking consumes M6.2 sProgress + validatedProgressFloor only.
+- Rival rendering copies its physical world anchor into the existing CourseSprite / Painter path.
+- Existing discrete car yaw assets are selected; there is no runtime bitmap rotation or rival-specific 3D renderer.
+- No player/rival collision response is implemented yet.
+
+Stress validation
+-----------------
+- Six seconds / 360 fixed physics ticks from s=95.
+- Traverses the long-straight to first 60m-radius bend transition.
+- Uses real M5 car physics and world->Guide relocalization.
+- No recovery helper in the stress test.
+- Rival remains finite and supported for every tick.
+- Rival stays inside the authored supported lateral envelope.
+
+Development note
+----------------
+The first M6.3 PR run (32614220779) intentionally exposed an AI flaw: a constant ~200 km/h target entered the 60m DEV curve too fast and left supported SurfaceMap. The implementation was corrected rather than weakening the world-physics test. Final run 32614337231 passes 137/137.
+
+Regression retained
+-------------------
+- M6.2 deterministic timing/ranking tests pass.
+- M6.1 bounded continuous progress tests pass.
+- M6.0 physical checkpoint authority tests pass.
+- M5.9 tunnel/portal tests pass.
+- M5.8 workload tests pass.
+- M5.7 baked GroundMap tests pass.
+- fixed 2.0m=80px player metric remains intact.
+- Pages commit-versioned bootstrap regression passes.
