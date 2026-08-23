@@ -180,6 +180,9 @@ export function compileLiveRouteChoicePlan(
  * Before a junction the target remains local l=0. While one road widens it moves smoothly to
  * half a child-road width, then follows the actual authored child center as the median opens.
  * This is only an AI target; physical gate crossing still decides the route.
+ *
+ * The committed handoff stage is authoritative here. RouteDag advances at the physical gate,
+ * but the old chart/package remains active until the later physical seam COMMIT.
  */
 export function sampleLiveRouteChoicePlanTargetL(
   live: LiveRouteRuntimeAssembly,
@@ -188,7 +191,7 @@ export function sampleLiveRouteChoicePlanTargetL(
   s: number,
 ): number {
   if (state.routeState.status === 'FINISHED') return 0;
-  const step = plan.steps.find((candidate) => candidate.stageId === state.routeState.activeStageId);
+  const step = plan.steps.find((candidate) => candidate.stageId === state.handoffState.activeStageId);
   if (!step) return 0;
 
   const gate = live.gates.gates.find(
