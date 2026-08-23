@@ -19,6 +19,13 @@ export interface SpriteDrawStats {
   clipped: boolean;
 }
 
+/** Optional workload observer. It does not change sprite visibility or rasterization. */
+export type SpriteScanlineObserver = (
+  screenY: number,
+  outputSamples: number,
+  writtenPixels: number,
+) => void;
+
 const EPSILON = 1e-9;
 
 export function createSpriteAsset(
@@ -55,6 +62,7 @@ export function drawScaledSprite(
   xAnchor: number,
   yAnchor: number,
   pixelsPerMeter: number,
+  scanlineObserver?: SpriteScanlineObserver,
 ): SpriteDrawStats {
   const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
   if (!(scale > 0) || !Number.isFinite(scale)) {
@@ -90,16 +98,24 @@ export function drawScaledSprite(
     if (sy < 0 || sy >= asset.height) continue;
     const targetRow = y * target.width;
     const sourceRow = sy * asset.width;
+    let rowOutputSamples = 0;
+    let rowWrittenPixels = 0;
 
     for (let x = x0; x <= x1; x += 1) {
       const sourceX = asset.anchorX + ((x + 0.5) - xAnchor) * invScale;
       const sx = Math.floor(sourceX + 0.5);
       if (sx < 0 || sx >= asset.width) continue;
       outputSamples += 1;
+      rowOutputSamples += 1;
       const color = asset.pixels[sourceRow + sx]!;
       if (color === SPRITE_TRANSPARENT) continue;
       target.pixels[targetRow + x] = color;
       writtenPixels += 1;
+      rowWrittenPixels += 1;
+    }
+
+    if (scanlineObserver && (rowOutputSamples > 0 || rowWrittenPixels > 0)) {
+      scanlineObserver(y, rowOutputSamples, rowWrittenPixels);
     }
   }
 
