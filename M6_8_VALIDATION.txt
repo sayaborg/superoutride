@@ -1,0 +1,24 @@
+SUPER OUTRIDE M6.8 VALIDATION
+
+Milestone: gameplay-only validated route DAG foundation
+Validated implementation head: bba9edaeeeb2da6a023ce2ae3b59a0a1a189d9de
+PR: #18
+GitHub Actions run: 32615446209
+Build job: 97135303168
+
+Result:
+159 tests
+159 pass
+0 fail
+
+Validated properties:
+- route topology is a directed acyclic graph separate from renderer Core
+- compiler rejects cycles, unreachable stages, broken references and invalid terminal topology
+- route transitions consume only already-validated route-boundary events
+- steering, screen X and raw chainage are not route-selection authority
+- a transition must leave the current active stage; stale/skip transitions are rejected
+- entering a terminal stage does not complete the run by itself
+- terminal completion still requires an explicit validated FINISH boundary
+- identical validated boundary sequences produce identical route history
+- current closed renderer course is not claimed to contain physical branches
+- vehicle physics and renderer were unchanged
