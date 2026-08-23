@@ -34,11 +34,14 @@ const THIRD_TRANSITION_LEAD = 20;
 const THIRD_FINISH_AFTER_SEAM = 150;
 
 /**
- * M6.30 live topology retained as the current browser fixture.
+ * Current browser-facing live topology.
  *
- * M6.31 supplies the reusable deep LEFT successor chain. M6.32 now composes the visible fork,
- * LEFT bridge, successor chain and RIGHT terminal path as independent declarative fragments before
- * passing the canonical result through the ordinary M6.28 compiler.
+ * M6.30 introduced the third LEFT stage. M6.31 generalized successor chains, M6.32 generalized
+ * fragment composition, and M6.33 applies the same primitives to the RIGHT path. The browser loop
+ * remains unchanged and consumes only the resulting LiveRouteRuntimeAssembly.
+ *
+ * STAGE_1 -> STAGE_2_L -> STAGE_3_L -> GOAL_L
+ *        \-> STAGE_2_R -> STAGE_3_R -> GOAL_R
  */
 export function createM630ThirdLiveSuccessorRuntime(
   parentGuide: GuideCurve,
@@ -57,7 +60,7 @@ export function createM630ThirdLiveSuccessorRuntime(
   const baseById = new Map(basePackages.map((runtime) => [runtime.packageId, runtime]));
   const requireBase = (packageId: string): StageRuntimeContentPackage => {
     const found = baseById.get(packageId);
-    if (!found) throw new RangeError(`M6.30 missing base runtime package: ${packageId}`);
+    if (!found) throw new RangeError(`live route missing base runtime package: ${packageId}`);
     return found;
   };
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
@@ -65,10 +68,13 @@ export function createM630ThirdLiveSuccessorRuntime(
   const stage1Runtime = chartPackage(requireBase('CONTENT_STAGE_1'));
   const stage2LeftRuntime = chartPackage(requireBase('CONTENT_STAGE_2_L'));
   const stage2RightRuntime = chartPackage(requireBase('CONTENT_STAGE_2_R'));
-  const goalRightRuntime = chartPackage(requireBase('CONTENT_GOAL_R'));
   const stage3Left = repackageGuideChartRuntime(
     chartPackage(requireBase('CONTENT_GOAL_L')),
     'CONTENT_STAGE_3_L',
+  );
+  const stage3Right = repackageGuideChartRuntime(
+    chartPackage(requireBase('CONTENT_GOAL_R')),
+    'CONTENT_STAGE_3_R',
   );
 
   const leftChain = compileRasterSuccessorChain({
@@ -83,27 +89,7 @@ export function createM630ThirdLiveSuccessorRuntime(
       choiceId: 'S3L_CONTINUE',
       gateId: 'G_LIVE_STAGE3_L',
       handoffId: 'H_S3L_CONTINUE',
-      successor: {
-        id: 'LEFT_SUCCESSOR_TO_THIRD',
-        chartId: 'LEFT_THIRD_SUCCESSOR',
-        roadViewId: 'LEFT_THIRD_SUCCESSOR_VIEW',
-        surfaceSectionName: 'LEFT_THIRD_SUCCESSOR_STAGE',
-        sourceSeamMinS: THIRD_SOURCE_SEAM_MIN_S,
-        overlapMargin: THIRD_OVERLAP_MARGIN,
-        transitionLead: THIRD_TRANSITION_LEAD,
-        finishAfterSeam: THIRD_FINISH_AFTER_SEAM,
-        deformationMeters: 2.5,
-        deformationDirection: -1,
-        gentleTurnLimitDegrees: 5,
-        minDeformationRunVertices: 5,
-        dCam: CURRENT_CAMERA_DISTANCE_METERS,
-        dMax: 150,
-        finishClosureMargin: 20,
-        groundMapHalfWidth: 12,
-        groundHalfWidth: 4.5,
-        roadHalfWidth: ROAD_HALF_WIDTH,
-        shoulderWidth: 1,
-      },
+      successor: thirdSuccessorAuthoring('LEFT', -1),
     }],
     createRuntime: (structural, packageId) => chartPackage(compileAuthoredStageRuntimePackage({
       packageId,
@@ -115,6 +101,30 @@ export function createM630ThirdLiveSuccessorRuntime(
     }, authored.left)),
   });
 
+  const rightChain = compileRasterSuccessorChain({
+    sourceStageId: 'STAGE_3_R',
+    sourceRuntime: stage3Right,
+    sourceStructural: continuation.rightSuccessor,
+    halfWidth: ROAD_HALF_WIDTH,
+    finishGateId: 'G_LIVE_FINISH_R',
+    steps: [{
+      stageId: 'GOAL_R',
+      packageId: 'CONTENT_GOAL_R',
+      choiceId: 'S3R_CONTINUE',
+      gateId: 'G_LIVE_STAGE3_R',
+      handoffId: 'H_S3R_CONTINUE',
+      successor: thirdSuccessorAuthoring('RIGHT', 1),
+    }],
+    createRuntime: (structural, packageId) => chartPackage(compileAuthoredStageRuntimePackage({
+      packageId,
+      worldFrameId: WORLD_FRAME_ID,
+      coordinateFrame: structural.chart,
+      roadView: structural.roadView,
+      surfaceMap: structural.surfaceMap,
+      groundProfile: structural.groundProfile,
+    }, authored.right)),
+  });
+
   const stage1Row: DeclarativeLiveRouteStageAuthoring = {
     id: 'STAGE_1', kind: 'STAGE', runtime: stage1Runtime,
   };
@@ -124,10 +134,8 @@ export function createM630ThirdLiveSuccessorRuntime(
   const stage2RightRow: DeclarativeLiveRouteStageAuthoring = {
     id: 'STAGE_2_R', kind: 'STAGE', runtime: stage2RightRuntime,
   };
-  const goalRightRow: DeclarativeLiveRouteStageAuthoring = {
-    id: 'GOAL_R', kind: 'TERMINAL', runtime: goalRightRuntime,
-  };
   const stage3LeftRow = leftChain.stages[0]!;
+  const stage3RightRow = rightChain.stages[0]!;
 
   const forkLeft: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S1_LEFT',
@@ -189,7 +197,7 @@ export function createM630ThirdLiveSuccessorRuntime(
   const rightBridge: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S2R_CONTINUE',
     fromStageId: 'STAGE_2_R',
-    toStageId: 'GOAL_R',
+    toStageId: 'STAGE_3_R',
     gate: sourceTransitionGeometry(
       continuation.rightSuccessor,
       continuation.base.charts.right,
@@ -210,8 +218,6 @@ export function createM630ThirdLiveSuccessorRuntime(
         transitions: [forkLeft, forkRight],
       },
       {
-        // Shared rows intentionally repeat by object identity so the fragment composer proves the
-        // join rather than requiring callers to coordinate array ownership.
         stages: [stage2LeftRow, stage3LeftRow],
         transitions: [leftBridge],
       },
@@ -221,15 +227,40 @@ export function createM630ThirdLiveSuccessorRuntime(
         finishes: [leftChain.finish],
       },
       {
-        stages: [stage2RightRow, goalRightRow],
+        stages: [stage2RightRow, stage3RightRow],
         transitions: [rightBridge],
-        finishes: [{
-          stageId: 'GOAL_R',
-          gate: finishGeometry(continuation.rightSuccessor, 'G_LIVE_FINISH_R'),
-        }],
+      },
+      {
+        stages: rightChain.stages,
+        transitions: rightChain.transitions,
+        finishes: [rightChain.finish],
       },
     ],
   });
+}
+
+function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1) {
+  return {
+    id: `${side}_SUCCESSOR_TO_THIRD`,
+    chartId: `${side}_THIRD_SUCCESSOR`,
+    roadViewId: `${side}_THIRD_SUCCESSOR_VIEW`,
+    surfaceSectionName: `${side}_THIRD_SUCCESSOR_STAGE`,
+    sourceSeamMinS: THIRD_SOURCE_SEAM_MIN_S,
+    overlapMargin: THIRD_OVERLAP_MARGIN,
+    transitionLead: THIRD_TRANSITION_LEAD,
+    finishAfterSeam: THIRD_FINISH_AFTER_SEAM,
+    deformationMeters: 2.5,
+    deformationDirection,
+    gentleTurnLimitDegrees: 5,
+    minDeformationRunVertices: 5,
+    dCam: CURRENT_CAMERA_DISTANCE_METERS,
+    dMax: 150,
+    finishClosureMargin: 20,
+    groundMapHalfWidth: 12,
+    groundHalfWidth: 4.5,
+    roadHalfWidth: ROAD_HALF_WIDTH,
+    shoulderWidth: 1,
+  } as const;
 }
 
 function sourceTransitionGeometry(
@@ -254,13 +285,6 @@ function sourceHandoffGeometry(
   );
 }
 
-function finishGeometry(
-  successor: RasterSuccessorRuntimeSource,
-  id: string,
-): DeclarativeGateGeometry {
-  return pointGeometry(id, guideChartToWorld(successor.chart, successor.finishS, 0));
-}
-
 function pointGeometry(
   id: string,
   point: { readonly x: number; readonly z: number; readonly heading: number },
@@ -271,7 +295,7 @@ function pointGeometry(
 function chartPackage(runtime: StageRuntimeContentPackage): GuideChartRuntimePackage {
   const frame = runtime.coordinateFrame as Partial<GuideChart>;
   if (typeof frame.id !== 'string' || frame.guide === undefined || typeof frame.lateralOrigin !== 'number') {
-    throw new RangeError(`M6.30 runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
+    throw new RangeError(`live route runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
   }
   return runtime as GuideChartRuntimePackage;
 }
