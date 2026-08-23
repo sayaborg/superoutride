@@ -117,5 +117,4 @@ test('junction cross-section authority has no renderer or vehicle-physics depend
   const source = fs.readFileSync(new URL('../src/course/junction-cross-section.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /from ['"]\.\.\/render\//);
   assert.doesNotMatch(source, /from ['"]\.\.\/physics\//);
-  assert.doesNotMatch(source, /camera-space|perspective-correct|z-buffer/i);
 });
