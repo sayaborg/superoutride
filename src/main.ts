@@ -14,6 +14,7 @@ import { CyclicSurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
+import { loadM5BakedGroundMap } from './visual/baked-ground-map.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM3DebugHeightProfile } from './visual/height-profile.js';
 import type { GroundMapProfile } from './visual/ground-map.js';
@@ -44,6 +45,10 @@ const guide = createM2StadiumGuide();
 const heightProfile = createM3DebugHeightProfile(guide.length);
 const surfaceAuthoring = createM5DebugSurfaceRegionAuthoring(guide.length);
 const compiledSurfaces = compileSurfaceRegions(guide.length, surfaceAuthoring);
+const bakedGroundMap = await loadM5BakedGroundMap();
+if (Math.abs(bakedGroundMap.metadata.courseLength - guide.length) > 1e-7) {
+  throw new Error('baked GroundMap course length does not match runtime course');
+}
 const visualProfile = new CyclicVisualProfile(guide.length, compiledSurfaces.visualSections);
 const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections);
 const farBackground = createM3FarBackground();
@@ -82,6 +87,7 @@ const groundProfile: GroundMapProfile = {
   roadRight: 4.5,
   shoulderWidth: 1,
   logical: compiledSurfaces.groundMap,
+  baked: bakedGroundMap,
 };
 
 const terrainProfile: TerrainVisualProfile = {
@@ -171,7 +177,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M5.3 COMPILER FOUNDATION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M5.7 BAKED GROUNDMAP / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -182,11 +188,11 @@ function render(): void {
     ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 120);
     ctx.fillStyle = '#a6bac4';
   }
-  ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  ${stats.activeSection}`, 8, 96);
+  ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
   ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}`, 8, 108);
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Surface Region -> GroundMap / GroundBase / SurfaceMap -> world physics + pseudo renderer', 8, 218);
+  ctx.fillText('Surface Region -> baked GroundMap k0..k6 / GroundBase / SurfaceMap', 8, 218);
   ctx.fillText(`FIXED PLAYER SCALE: 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m) / FOV changes move camera`, 8, 229);
 }
 
