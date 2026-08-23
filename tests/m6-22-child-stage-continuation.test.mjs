@@ -230,7 +230,7 @@ test('M6.22 physical route choice commits an independent child chart and finishe
   assert.equal(routeState.status, 'FINISHED');
 });
 
-test('M6.22 browser wiring uses independent child continuation without adding route logic to renderer Core', async () => {
+test('M6.22 browser keeps independent child continuation while M6.23 owns live scenery packages', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
@@ -239,7 +239,7 @@ test('M6.22 browser wiring uses independent child continuation without adding ro
 
   assert.match(mainSource, /createM622ChildStageContinuation/);
   assert.match(mainSource, /createM622LivePointToPointGateSet/);
-  assert.match(mainSource, /createM622LiveStageRuntimeRegistry/);
+  assert.match(mainSource, /createM623LiveStageRuntimeRegistry/);
   assert.match(mainSource, /camera\.courseLength/);
   assert.doesNotMatch(rendererSource, /M6_22|CONTENT_GOAL_[LR]|GOAL_[LR]|S1_LEFT|S1_RIGHT/);
 });
