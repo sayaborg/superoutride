@@ -4,8 +4,9 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIX
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
-import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
+import { M6_13_JUNCTION } from './dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
+import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import {
   createM5CameraRig,
@@ -57,6 +58,14 @@ import { CyclicSurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
+import {
+  advanceLiveRouteTraveler,
+  createLiveRouteTravelerState,
+  liveRouteTravelersShareRuntimePackage,
+  resyncLiveRouteTraveler,
+  resolveLiveRouteTravelerRuntime,
+  sampleLiveRouteChoicePlanTargetL,
+} from './runtime/live-route-traveler.js';
 import {
   resolveActiveStageRuntimeContent,
   type StageRuntimeContentPackage,
@@ -184,6 +193,8 @@ const routeHandoffState = createRouteStageHandoffState(
 const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
 let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
+const rivalTraveler = createLiveRouteTravelerState(liveRoute, { x: rival.x, z: rival.z });
+const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
 
 const cameraProfile: M5CameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -359,15 +370,53 @@ function frame(now: number): void {
     );
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
-    const rivalTargetL = sampleM613RightBranchTargetL(rival.course.s);
-    const rivalInput = sampleRivalDrivingInput(guide, rival, rivalTargetL);
-    updateM5Car(guide, heightProfile, surfaceMap, rival, rivalInput, SIM_DT);
-    const rivalRecovered = updateM5Recovery(rivalRecovery, guide, heightProfile, surfaceMap, rival, SIM_DT);
+    const rivalRuntimeBefore = activeRivalRuntime();
+    const rivalParentDiagnosticBefore = isParentRaceDiagnostic(rivalRuntimeBefore);
+    const rivalTargetL = sampleLiveRouteChoicePlanTargetL(
+      liveRoute,
+      rivalTraveler,
+      rivalRoutePlan,
+      rival.course.s,
+    );
+    const rivalInput = sampleRivalDrivingInput(
+      rivalRuntimeBefore.coordinateFrame,
+      rival,
+      rivalTargetL,
+    );
+    updateM5Car(
+      rivalRuntimeBefore.coordinateFrame,
+      rivalRuntimeBefore.heightProfile,
+      rivalRuntimeBefore.surfaceMap,
+      rival,
+      rivalInput,
+      SIM_DT,
+    );
+    const rivalRecovered = updateM5Recovery(
+      rivalRecovery,
+      rivalRuntimeBefore.coordinateFrame,
+      rivalRuntimeBefore.heightProfile,
+      rivalRuntimeBefore.surfaceMap,
+      rival,
+      SIM_DT,
+    );
     let rivalRaceUpdate: RaceProgressUpdate | null = null;
     if (rivalRecovered !== null) {
-      resyncRaceProgressPosition(rivalRaceProgress, raceRules, rivalRaceSample());
+      if (rivalParentDiagnosticBefore) {
+        resyncRaceProgressPosition(rivalRaceProgress, raceRules, rivalRaceSample());
+      }
+      resyncLiveRouteTraveler(liveRoute, rivalTraveler, { x: rival.x, z: rival.z });
     } else {
-      rivalRaceUpdate = updateRaceProgress(rivalRaceProgress, raceRules, rivalRaceSample());
+      if (rivalParentDiagnosticBefore) {
+        rivalRaceUpdate = updateRaceProgress(rivalRaceProgress, raceRules, rivalRaceSample());
+      }
+      const rivalRouteUpdate = advanceLiveRouteTraveler(
+        liveRoute,
+        rivalTraveler,
+        { x: rival.x, z: rival.z },
+      );
+      if (rivalRouteUpdate.committed) {
+        rival.course = { ...rivalTraveler.handoffState.coordinate };
+      }
     }
     advanceRaceSession(rivalRaceSession, rivalRaceProgress, rivalRaceUpdate, SIM_DT);
 
@@ -389,6 +438,7 @@ function frame(now: number): void {
 
 function render(): void {
   const runtime = activeRuntime();
+  const rivalRuntime = activeRivalRuntime();
   const selectedBackground = runtime.selectFarBackground(camera.s);
   const backgroundDiagnosticKind = isParentRaceDiagnostic(runtime)
     ? selectM5FarBackground(
@@ -399,7 +449,7 @@ function render(): void {
       ).kind
     : runtime.packageId;
   const rivalSprite = createDynamicVehicleCourseSprite('RIVAL', rival, camera.yaw, spriteAssets.car);
-  const renderWorldSprites = rivalBelongsToRuntime(runtime)
+  const renderWorldSprites = liveRouteTravelersShareRuntimePackage(runtime, rivalRuntime)
     ? [...runtime.worldSprites, rivalSprite]
     : [...runtime.worldSprites];
   const stats = renderM5Driving(
@@ -460,7 +510,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.27 ROUTE RUNTIME ASSEMBLY / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.40 RIVAL LIVE ROUTE / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -489,7 +539,11 @@ function render(): void {
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Browser consumes one validated route/content/chart/gate/handoff/runtime bundle', 8, 218);
+  ctx.fillText(
+    `RIV ${rivalTraveler.routeState.activeStageId} ${rivalTraveler.routeState.status} C${rivalTraveler.handoffState.commitCount}`,
+    8,
+    218,
+  );
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
@@ -497,13 +551,12 @@ function activeRuntime(): StageRuntimeContentPackage {
   return resolveActiveStageRuntimeContent(stageRuntimeRegistry, routeHandoffState);
 }
 
-function isParentRaceDiagnostic(runtime: StageRuntimeContentPackage): boolean {
-  return runtime.packageId === 'CONTENT_STAGE_1';
+function activeRivalRuntime(): StageRuntimeContentPackage {
+  return resolveLiveRouteTravelerRuntime(liveRoute, rivalTraveler);
 }
 
-function rivalBelongsToRuntime(runtime: StageRuntimeContentPackage): boolean {
-  // Rival chainage remains in the parent DEV course domain. Never reinterpret it as child/successor chainage.
-  return isParentRaceDiagnostic(runtime);
+function isParentRaceDiagnostic(runtime: StageRuntimeContentPackage): boolean {
+  return runtime.packageId === 'CONTENT_STAGE_1';
 }
 
 function raceSample(): { x: number; z: number; sLocal: number } {
