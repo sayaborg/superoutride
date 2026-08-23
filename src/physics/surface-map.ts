@@ -41,10 +41,21 @@ export interface SurfaceSample {
 }
 
 /**
+ * Minimal read-only physics contract for SurfaceMap(s,l).
+ *
+ * Vehicle dynamics and recovery only consume material samples. They do not need the concrete
+ * cyclic authoring implementation. This lets a committed child stage provide a StageSurfaceMapView
+ * without changing any vehicle equations or granting route/content logic access to physics state.
+ */
+export interface SurfaceMapReader {
+  sample(s: number, l: number): SurfaceSample;
+}
+
+/**
  * Runtime SurfaceMap(s,l): piecewise-constant authored terrain plus an optional continuous
  * junction road cross-section. GroundMap pixels and GroundBase paint remain independent.
  */
-export class CyclicSurfaceMap {
+export class CyclicSurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
 
   constructor(
