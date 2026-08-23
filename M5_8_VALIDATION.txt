@@ -1,0 +1,77 @@
+SUPER OUTRIDE M5.8 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.8 Render Performance Budget Instrumentation
+
+Validated commit:
+  d2a09424a263db0ca052320ab2f797a9a5b0454f
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #6 M5.8 Render performance budget instrumentation
+  Run ID: 32612059626
+  Build job ID: 97126556860
+  Result: success
+
+Environment reported by runner:
+  Ubuntu 24.04.4 LTS
+  Node v20.20.2
+  npm 10.8.2
+  TypeScript ^5.8.3
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  node tools/build-ground-map.mjs
+  PASS
+
+Regression result:
+  tests 99
+  pass 99
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+Observed 70-frame current-debug-content stress envelope:
+  TerrainLine count / frame             = 171
+  TerrainLine count / screen row        = 9
+  terrain output samples / frame        = 54,720
+  terrain output samples / screen row   = 2,880
+  visible world sprites / frame         = 17
+  sprite output samples incl player     = 18,364 / frame
+  sprite output samples / scanline      = 268
+  sprite written pixels incl player     = 12,938 / frame
+  sprite written pixels / scanline      = 268
+  GroundMap max level used              = 6
+  GroundMap TerrainLine level counts    = [3437, 3436, 1755, 979, 546, 173, 18]
+
+Provisional current-debug-content budget:
+  explicit headroom factor              = 1.25
+  TerrainLine count max / frame         = 214
+  TerrainLine count max / screen row    = 12
+  terrain output samples max / frame    = 68,400
+  terrain output samples max / row      = 3,600
+  visible world sprites max / frame     = 22
+  sprite output samples max / frame     = 22,955
+  sprite output samples max / scanline  = 335
+
+M5.8 added tests:
+  83 sprite scanline observer exactly accounts for blitter workload
+  84 M5 renderer telemetry is internally consistent and does not drop generated terrain
+  85 current debug content sweep remains inside the explicit provisional target budget
+  86 provisional budget is mechanically derived from one explicit 25% margin
+
+Boundary:
+  These counters are telemetry/compiler-content validation only.
+  Runtime never drops non-optional TerrainLines merely because a counter crosses a budget.
+  The current 25% budget is provisional, not the final target-hardware budget.
+  Tunnel/portal close-up stress content is not yet included and must be used to revalidate or rebase the budget.
+
+PR deployment behavior:
+  build/test: success
+  Pages staging: skipped
+  deploy job: skipped
