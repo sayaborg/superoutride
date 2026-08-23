@@ -35,15 +35,7 @@ import {
 } from './gameplay/race-session.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
-import { observeRouteBoundaryCrossing } from './gameplay/route-boundary-gates.js';
-import { createRouteDagState, updateRouteDag, type RouteDagUpdate } from './gameplay/route-dag.js';
-import {
-  commitRouteStageHandoff,
-  createRouteStageHandoffState,
-  observePendingRouteStageHandoff,
-  queueRouteStageHandoff,
-  syncRouteStageHandoffCoordinate,
-} from './gameplay/route-stage-handoff.js';
+import { createSharedRouteChoiceState } from './gameplay/shared-route-choice-authority.js';
 import {
   POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
@@ -58,8 +50,8 @@ import { CyclicSurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
+import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
 import {
-  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
   liveRouteTravelersShareRuntimePackage,
   resyncLiveRouteTraveler,
@@ -178,23 +170,15 @@ const liveRoute = createM627LiveRouteRuntime(
   },
   spriteAssets,
 );
-const routeDag = liveRoute.route;
-const routeState = createRouteDagState(routeDag);
-const routeContent = liveRoute.content;
-const guideCharts = liveRoute.charts;
-const routeGates = liveRoute.gates;
-const routeHandoffManifest = liveRoute.handoffs;
-const routeHandoffState = createRouteStageHandoffState(
-  routeDag,
-  routeContent,
-  liveRoute.initialChart,
-  { x: vehicle.x, z: vehicle.z },
-);
+const playerTraveler = createLiveRouteTravelerState(liveRoute, { x: vehicle.x, z: vehicle.z });
+const routeState = playerTraveler.routeState;
+const routeHandoffState = playerTraveler.handoffState;
 const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
-let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
 const rivalTraveler = createLiveRouteTravelerState(liveRoute, { x: rival.x, z: rival.z });
 const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
+// M6.42 proves the two-phase browser order first. Shared locking remains an optional M6.41 policy.
+const sharedRouteChoices = createSharedRouteChoiceState('INDEPENDENT');
 
 const cameraProfile: M5CameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -227,8 +211,7 @@ window.addEventListener('keydown', (event) => {
       resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
       resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
     }
-    previousRoutePoint = { x: vehicle.x, z: vehicle.z };
-    syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, previousRoutePoint);
+    resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
     camera = updateM5Camera(
       cameraRig,
       runtime.coordinateFrame,
@@ -272,7 +255,7 @@ function frame(now: number): void {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    // A validated point-to-point finish records the objective; it does not pause DEV simulation.
+    // Phase 1: finish every actor's world physics before any RouteDag is mutated.
     const runtimeBefore = activeRuntime();
     const parentDiagnosticBefore = isParentRaceDiagnostic(runtimeBefore);
     if (vehicleKind === 'car') {
@@ -304,71 +287,17 @@ function frame(now: number): void {
       SIM_DT,
     );
     let raceUpdate: RaceProgressUpdate | null = null;
-    let routeUpdate: RouteDagUpdate | null = null;
-
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
       if (parentDiagnosticBefore) {
         resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
         resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
       }
-      previousRoutePoint = { x: vehicle.x, z: vehicle.z };
-      syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, previousRoutePoint);
-    } else {
-      if (parentDiagnosticBefore) {
-        updateGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-        raceUpdate = updateRaceProgress(raceProgress, raceRules, raceSample());
-      }
-      const currentRoutePoint = { x: vehicle.x, z: vehicle.z };
-
-      if (routeHandoffState.pending === null) {
-        const routeObservation = observeRouteBoundaryCrossing(
-          routeDag,
-          routeState,
-          routeGates,
-          previousRoutePoint,
-          currentRoutePoint,
-        );
-        routeUpdate = updateRouteDag(routeState, routeDag, routeObservation.boundary);
-        queueRouteStageHandoff(routeHandoffState, routeHandoffManifest, routeUpdate);
-      }
-
-      const handoffObservation = observePendingRouteStageHandoff(
-        routeHandoffState,
-        routeHandoffManifest,
-        previousRoutePoint,
-        currentRoutePoint,
-      );
-      const handoffEvent = commitRouteStageHandoff(
-        routeHandoffState,
-        routeState,
-        routeContent,
-        guideCharts,
-        handoffObservation.seam,
-        currentRoutePoint,
-      );
-      if (handoffEvent === 'COMMITTED') {
-        const runtimeAfter = activeRuntime();
-        vehicle.course = { ...routeHandoffState.coordinate };
-        rebaseM5CameraRigCoordinateFrame(
-          cameraRig,
-          runtimeBefore.coordinateFrame,
-          runtimeAfter.coordinateFrame,
-        );
-      } else {
-        syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, currentRoutePoint);
-      }
-      previousRoutePoint = currentRoutePoint;
+      resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
+    } else if (parentDiagnosticBefore) {
+      updateGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
+      raceUpdate = updateRaceProgress(raceProgress, raceRules, raceSample());
     }
-
-    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate);
-    updateRunObjectiveFromValidatedFinish(
-      runObjective,
-      POINT_TO_POINT_OBJECTIVE,
-      finish,
-      raceSession.elapsedSeconds + SIM_DT,
-    );
-    advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
     const rivalRuntimeBefore = activeRivalRuntime();
     const rivalParentDiagnosticBefore = isParentRaceDiagnostic(rivalRuntimeBefore);
@@ -405,19 +334,55 @@ function frame(now: number): void {
         resyncRaceProgressPosition(rivalRaceProgress, raceRules, rivalRaceSample());
       }
       resyncLiveRouteTraveler(liveRoute, rivalTraveler, { x: rival.x, z: rival.z });
-    } else {
-      if (rivalParentDiagnosticBefore) {
-        rivalRaceUpdate = updateRaceProgress(rivalRaceProgress, raceRules, rivalRaceSample());
-      }
-      const rivalRouteUpdate = advanceLiveRouteTraveler(
-        liveRoute,
-        rivalTraveler,
-        { x: rival.x, z: rival.z },
-      );
-      if (rivalRouteUpdate.committed) {
-        rival.course = { ...rivalTraveler.handoffState.coordinate };
-      }
+    } else if (rivalParentDiagnosticBefore) {
+      rivalRaceUpdate = updateRaceProgress(rivalRaceProgress, raceRules, rivalRaceSample());
     }
+
+    // Phase 2: observe both actors, arbitrate once, then apply their route/handoff transactions.
+    const routeTick = advanceLiveRouteMultiActorTick(
+      liveRoute,
+      sharedRouteChoices,
+      [
+        {
+          actorId: 'PLAYER',
+          state: playerTraveler,
+          currentWorldPoint: { x: vehicle.x, z: vehicle.z },
+          observeRouteBoundary: recovered === null,
+        },
+        {
+          actorId: 'RIVAL',
+          state: rivalTraveler,
+          currentWorldPoint: { x: rival.x, z: rival.z },
+          observeRouteBoundary: rivalRecovered === null,
+        },
+      ],
+    );
+    const playerRouteTick = routeTick.actors[0]!;
+    const rivalRouteTick = routeTick.actors[1]!;
+    const routeUpdate = playerRouteTick.routeUpdate;
+
+    if (playerRouteTick.committed) {
+      const runtimeAfter = activeRuntime();
+      vehicle.course = { ...routeHandoffState.coordinate };
+      rebaseM5CameraRigCoordinateFrame(
+        cameraRig,
+        runtimeBefore.coordinateFrame,
+        runtimeAfter.coordinateFrame,
+      );
+    }
+    if (rivalRouteTick.committed) {
+      rival.course = { ...rivalTraveler.handoffState.coordinate };
+    }
+
+    // A validated point-to-point finish records the objective; it does not pause DEV simulation.
+    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate);
+    updateRunObjectiveFromValidatedFinish(
+      runObjective,
+      POINT_TO_POINT_OBJECTIVE,
+      finish,
+      raceSession.elapsedSeconds + SIM_DT,
+    );
+    advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
     advanceRaceSession(rivalRaceSession, rivalRaceProgress, rivalRaceUpdate, SIM_DT);
 
     const runtimeAfterTick = activeRuntime();
@@ -510,7 +475,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.40 RIVAL LIVE ROUTE / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.42 MULTI-ACTOR ROUTE TICK / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
