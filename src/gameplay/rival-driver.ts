@@ -19,21 +19,22 @@ const SPEED_DEADBAND_MPS = 1;
  * It produces only canonical DrivingInput. It never writes world position, yaw, course.s/l,
  * or any renderer value, so the rival remains an ordinary world-physics vehicle.
  *
- * The controller depends only on the read-only vehicle contract. Concrete car/bike physics
- * may be retuned or replaced later as long as they expose the same world kinematic outputs.
+ * targetL is only a steering objective in Guide coordinates. It lets DEV content choose a
+ * branch without snapping or mutating world state. Route validation remains independent.
  */
 export function sampleRivalDrivingInput(
   guide: GuideCurve,
   car: VehicleCameraReadState,
+  targetL = 0,
 ): DrivingInput {
-  const target = guideCourseToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, 0);
+  const target = guideCourseToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, targetL);
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
   // Heading-to-lookahead is the main command. Course.l is feedback for the AI controller
   // only; world X/Z remains physics authority and no coordinate is ever overwritten.
   const steering = clamp(
-    yawError * 1.7 - car.course.l * 0.075 - car.lateralSpeed * 0.020,
+    yawError * 1.7 - (car.course.l - targetL) * 0.075 - car.lateralSpeed * 0.020,
     -1,
     1,
   );
