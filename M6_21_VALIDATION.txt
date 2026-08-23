@@ -1,0 +1,21 @@
+SUPER OUTRIDE — M6.21 Child Visual Identity
+
+Validation authority:
+  GitHub Actions exact PR-head status for the commit containing this record.
+  The exact validated SHA/run is reported in the PR/final handoff rather than self-embedded here,
+  because embedding a commit SHA inside that same commit is self-referential.
+
+Expected regression after M6.21 additions:
+  previous: 232 tests
+  added:      3 tests
+  total:    235 tests
+
+M6.21 validation points:
+- CONTENT_GOAL_L owns a coast/ocean full Far Background.
+- CONTENT_GOAL_R owns a mountain/valley full Far Background.
+- Parent CONTENT_STAGE_1 keeps its existing Far Background selector.
+- Runtime selection authority remains M6.17 handoff activePackageId.
+- Route choice while PENDING does not itself switch concrete runtime content.
+- Renderer Core receives one ordinary FarBackground and contains no LEFT/RIGHT package decision logic.
+- No pseudo-depth, scanline, Painter, road geometry, metric sprite-scale or world-pose authority changes.
+- FINISH remains a validated result event only; DEV physics/input/camera/rendering continue afterward.
