@@ -7,11 +7,11 @@ import {
   type M621ChildVisualIdentity,
 } from './m6-21-child-visual-identity.js';
 import type { M622ChildStageContinuation } from './m6-22-child-stage-continuation.js';
-import { createM623LiveStageRuntimeRegistry } from './m6-23-live-runtime-content.js';
+import { createM624LiveStageRuntimeRegistry } from './m6-24-live-runtime-content.js';
 
 /**
  * Compatibility entry point retained for the browser wiring established in M6.22.
- * M6.23 enriches committed child packages with their own height/terrain/sprite content while
+ * M6.24 now compiles committed child packages from declarative stage-local authoring while
  * preserving the same route/runtime boundary and parent overlap package.
  */
 export function createM622LiveStageRuntimeRegistry(
@@ -20,7 +20,7 @@ export function createM622LiveStageRuntimeRegistry(
   parent: M620SharedRuntimeContent,
   childVisualIdentity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
 ): StageRuntimeContentRegistry {
-  return createM623LiveStageRuntimeRegistry(
+  return createM624LiveStageRuntimeRegistry(
     manifest,
     continuation,
     parent,
