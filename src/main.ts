@@ -20,8 +20,10 @@ import {
   advanceRaceSession,
   createRaceSessionState,
   formatRaceTime,
+  rankRaceProgress,
 } from './gameplay/race-session.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
+import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
@@ -40,6 +42,7 @@ import {
 } from './visual/m5-9-tunnel.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from './visual/visual-profile.js';
+import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 import { createM4DebugWorldSprites } from './world/m4-debug-world.js';
 import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
 
@@ -75,20 +78,26 @@ const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSe
 const outdoorFarBackground = createM3FarBackground();
 const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
-const worldSprites = [
+const staticWorldSprites = [
   ...createM4DebugWorldSprites(guide, heightProfile, spriteAssets),
   ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
+
 const car = createM5Car(guide, heightProfile, surfaceMap, 45);
 const bike = createM5Bike(guide, heightProfile, surfaceMap, 45);
 let vehicle: M5CarState | M5BikeState = car;
 let vehicleKind: 'car' | 'bike' = 'car';
+const rival = createM5Car(guide, heightProfile, surfaceMap, 95);
+
 const cameraRig = createM5CameraRig();
 const recovery = createM5RecoveryState(vehicle);
+const rivalRecovery = createM5RecoveryState(rival);
 const raceRules = createM6DebugRaceRules(guide);
 const geometricCourse = createGeometricCourseTracker(guide.length, vehicle.course.s);
 const raceProgress = createRaceProgressState(raceRules, raceSample());
+const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
 const raceSession = createRaceSessionState();
+const rivalRaceSession = createRaceSessionState();
 
 const cameraProfile: M5CameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -182,6 +191,17 @@ function frame(now: number): void {
     }
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
+    const rivalInput = sampleRivalDrivingInput(guide, rival);
+    updateM5Car(guide, heightProfile, surfaceMap, rival, rivalInput, SIM_DT);
+    const rivalRecovered = updateM5Recovery(rivalRecovery, guide, heightProfile, surfaceMap, rival, SIM_DT);
+    let rivalRaceUpdate: RaceProgressUpdate | null = null;
+    if (rivalRecovered !== null) {
+      resyncRaceProgressPosition(rivalRaceProgress, raceRules, rivalRaceSample());
+    } else {
+      rivalRaceUpdate = updateRaceProgress(rivalRaceProgress, raceRules, rivalRaceSample());
+    }
+    advanceRaceSession(rivalRaceSession, rivalRaceProgress, rivalRaceUpdate, SIM_DT);
+
     camera = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
     accumulator -= SIM_DT;
   }
@@ -197,6 +217,8 @@ function render(): void {
     outdoorFarBackground,
     tunnelPresentation,
   );
+  const rivalSprite = createDynamicVehicleCourseSprite('RIVAL', rival, camera.yaw, spriteAssets.car);
+  const renderWorldSprites = [...staticWorldSprites, rivalSprite];
   const stats = renderM5Driving(
     framebuffer,
     selectedBackground.background,
@@ -205,11 +227,25 @@ function render(): void {
     vehicle,
     terrainProfile,
     groundProfile,
-    worldSprites,
+    renderWorldSprites,
     spriteAssets,
     vehicleKind,
   );
   ctx.putImageData(imageData, 0, 0);
+
+  const standings = rankRaceProgress([
+    {
+      competitorId: 'PLAYER',
+      sProgress: raceProgress.sProgress,
+      validatedProgressFloor: raceProgress.validatedProgressFloor,
+    },
+    {
+      competitorId: 'RIVAL',
+      sProgress: rivalRaceProgress.sProgress,
+      validatedProgressFloor: rivalRaceProgress.validatedProgressFloor,
+    },
+  ]);
+  const playerStanding = standings.find((entry) => entry.competitorId === 'PLAYER')!;
 
   const playerProjection = pseudoProject(
     { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
@@ -221,9 +257,6 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike' ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI : vehicle.sprungRoll * 180 / Math.PI;
   const nextGate = raceRules.gates[raceProgress.nextGateIndex]!;
   const progressWindow = getRaceProgressWindow(raceProgress, raceRules);
-  const raceDirection = raceProgress.direction === 'FORWARD'
-    ? 'FWD'
-    : raceProgress.direction === 'REVERSE' ? 'REV' : '---';
   const bestBoundary = raceSession.bestBoundaryIntervalSeconds === null
     ? '--:--.---'
     : formatRaceTime(raceSession.bestBoundaryIntervalSeconds);
@@ -234,7 +267,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.2 RUN SESSION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.3 RIVAL FOUNDATION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -242,8 +275,8 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
   ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
   ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
-  ctx.fillText(`RACE ${raceProgress.sProgress.toFixed(1)}m NEXT ${nextGate.name} ${raceDirection}  CUT ${raceProgress.shortcutViolationCount}`, 8, 120);
-  ctx.fillText(`WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  GEO ${geometricCourse.position.sLocal.toFixed(1)}`, 8, 132);
+  ctx.fillText(`POS ${playerStanding.rank}/2  YOU ${raceProgress.sProgress.toFixed(1)}  RIVAL ${rivalRaceProgress.sProgress.toFixed(1)}`, 8, 120);
+  ctx.fillText(`NEXT ${nextGate.name}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  BND ${raceSession.boundaryTimings.length}  BEST ${bestBoundary}`, 8, 144);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
@@ -252,12 +285,16 @@ function render(): void {
   }
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Timing uses fixed SIM_DT; ranking consumes s_progress + validated floor only', 8, 218);
-  ctx.fillText(`M5.9 tunnel intact / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  ctx.fillText('Rival = independent world physics -> own validated progress -> ordinary World Sprite', 8, 218);
+  ctx.fillText(`No rival collision yet / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
 function raceSample(): { x: number; z: number; sLocal: number } {
   return { x: vehicle.x, z: vehicle.z, sLocal: vehicle.course.s };
+}
+
+function rivalRaceSample(): { x: number; z: number; sLocal: number } {
+  return { x: rival.x, z: rival.z, sLocal: rival.course.s };
 }
 
 function formatSigned(value: number, digits = 2): string {
