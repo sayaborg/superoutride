@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.32 Declarative Route Fragment Composition
+# SUPER OUTRIDE — M6.33 Symmetric RIGHT Third Successor
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -55,7 +55,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.29 Reusable Raster Stage Successor Factory — complete
 - M6.30 Third Live Successor Stage — complete
 - M6.31 Reusable Raster Successor Chain Authoring — complete
-- **M6.32 Declarative Route Fragment Composition — complete**
+- M6.32 Declarative Route Fragment Composition — complete
+- **M6.33 Symmetric RIGHT Third Successor — complete**
 
 ## Run / test
 
@@ -73,7 +74,7 @@ Full regression:
 npm test
 ```
 
-M6.31 ended at **289 tests**. M6.32 adds five dedicated route-fragment regressions for a target of **294 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.32 ended at **294 tests**. M6.33 adds four dedicated RIGHT-successor regressions for a target of **298 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -136,12 +137,12 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route remains:
+The browser route is now symmetric in depth:
 
 ```text
               ┌→ STAGE_2_L → STAGE_3_L → GOAL_L
 STAGE_1 ──────┤
-              └→ STAGE_2_R ─────────────→ GOAL_R
+              └→ STAGE_2_R → STAGE_3_R → GOAL_R
 ```
 
 The opening visible fork is still one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
@@ -164,7 +165,7 @@ physical fork
 → physical GOAL_L FINISH
 ```
 
-The RIGHT route retains the previous depth:
+The RIGHT live sequence is now structurally equivalent:
 
 ```text
 physical fork
@@ -173,7 +174,10 @@ physical fork
 → parent→STAGE_2_R seam COMMIT
 → S2R_CONTINUE physical transition
 → PENDING
-→ STAGE_2_R→GOAL_R seam COMMIT
+→ STAGE_2_R→STAGE_3_R seam COMMIT
+→ S3R_CONTINUE physical transition
+→ PENDING
+→ STAGE_3_R→GOAL_R seam COMMIT
 → physical GOAL_R FINISH
 ```
 
@@ -364,34 +368,53 @@ DeclarativeRouteFragment[]
 → LiveRouteRuntimeAssembly
 ```
 
-A fragment contains only ordinary declarative rows:
-
-```text
-stages?
-transitions?
-finishes?
-```
-
 A repeated stage id may be canonicalized only when it has the same `RouteStageKind` and references the exact same runtime object. Conflicting definitions are rejected rather than silently choosing one fragment.
 
 Stage rows are the only mergeable identity. Transition ids and all physical transition-gate, handoff-seam and FINISH-gate ids must remain globally unique. A terminal stage may own only one FINISH row.
 
-The current live topology is now assembled from four real fragments:
+M6.32 only canonicalizes joins and detects cross-fragment identity collisions. Final cycle/reachability, package binding, runtime registry, physical gate and handoff checks remain M6.28 and the existing lower-level validators.
+
+No fragment/topology logic is imported by `main.ts` or renderer Core.
+
+## M6.33 symmetric RIGHT third successor
+
+M6.33 applies the already generic M6.31/M6.32 path to RIGHT instead of introducing a RIGHT-specific mechanism.
+
+The validated old terminal package is promoted by opaque identity only:
+
+```text
+CONTENT_GOAL_R
+→ CONTENT_STAGE_3_R
+```
+
+A new independent `CONTENT_GOAL_R` is then generated from `continuation.rightSuccessor` through `compileRasterSuccessorChain()`.
+
+The new transition is:
+
+```text
+STAGE_3_R
+→ S3R_CONTINUE
+→ PENDING
+→ H_S3R_CONTINUE COMMIT
+→ GOAL_R
+→ G_LIVE_FINISH_R
+```
+
+The new GOAL_R environment is compiled through the ordinary M6.24 stage compiler using `authored.right`. Thus the mountain/Far Background identity remains package-owned while the new GOAL_R owns a distinct Guide/Raster.
+
+The complete live route is now composed from five M6.32 fragments:
 
 ```text
 root fork
 + LEFT bridge
-+ M6.31 LEFT successor-chain fragment
-+ RIGHT terminal fragment
++ LEFT M6.31 successor chain
++ RIGHT bridge
++ RIGHT M6.31 successor chain
 ```
 
-The shared `STAGE_2_L`, `STAGE_3_L` and `STAGE_2_R` rows are intentionally repeated by exact object identity, so the real browser-facing route exercises the composition rule.
+The structural successor recipe is symmetric except for deformation direction (`LEFT=-1`, `RIGHT=+1`). Final Raster validity still comes only from `compileRasterCourse()` and the frozen <=10° one-vertex rule.
 
-M6.32 only canonicalizes joins and detects cross-fragment identity collisions. Final cycle/reachability, package binding, runtime registry, physical gate and handoff checks remain M6.28 and the existing lower-level validators.
-
-While composing the route, M6.30 transition/handoff helpers were also made explicit about the concrete source GuideChart. Physical transition/seam geometry belongs to the stage being left; generic `StageContinuationLink.sourceFrame` is not assumed to be a GuideChart.
-
-No fragment/topology logic is imported by `main.ts` or renderer Core.
+`main.ts`, the browser simulation loop and renderer Core are unchanged.
 
 ## FINISH authority
 
@@ -436,8 +459,8 @@ src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/50_m6_32_route_fragment_composition.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/51_m6_33_right_third_successor.md`.
 
 ## Next
 
-M6.31 provides arbitrary linear successor depth and M6.32 safely composes branch fragments. The next concrete proof is to extend the currently shorter RIGHT route by one independent successor using the same chain + fragment primitives, keeping the browser loop and renderer completely unchanged.
+Both branches now prove independent multi-stage continuation through the same generic chain and fragment layers. The next major architectural proof is a **second visible downstream junction** inside an active successor-stage domain, while preserving one chainage-driven lateral cross-section, physical world-space route gates, deferred seam handoff and exactly one active Raster road domain after COMMIT.
