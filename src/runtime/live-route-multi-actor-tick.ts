@@ -30,6 +30,8 @@ export interface LiveRouteActorTickSample {
   readonly actorId: string;
   readonly state: LiveRouteTravelerState;
   readonly currentWorldPoint: Vec2;
+  /** Recovery/resync ticks suppress route-boundary validation while preserving handoff/chart sync. */
+  readonly observeRouteBoundary?: boolean;
 }
 
 export interface LiveRouteActorTickResult {
@@ -48,7 +50,7 @@ export interface LiveRouteMultiActorTickResult {
 
 interface ObservedActor {
   readonly sample: LiveRouteActorTickSample;
-  readonly pendingAtObservation: boolean;
+  readonly routeMutationEligible: boolean;
   readonly observation: RouteBoundaryObservation | null;
 }
 
@@ -74,9 +76,10 @@ export function advanceLiveRouteMultiActorTick(
   assertActorSamples(samples);
 
   const observed: ObservedActor[] = samples.map((sample) => {
-    const pendingAtObservation = sample.state.handoffState.pending !== null;
-    if (pendingAtObservation) {
-      return Object.freeze({ sample, pendingAtObservation, observation: null });
+    const routeMutationEligible = sample.state.handoffState.pending === null
+      && sample.observeRouteBoundary !== false;
+    if (!routeMutationEligible) {
+      return Object.freeze({ sample, routeMutationEligible, observation: null });
     }
 
     const allowedChoiceId = sharedRouteAllowedTransitionChoiceId(
@@ -92,7 +95,7 @@ export function advanceLiveRouteMultiActorTick(
       sample.currentWorldPoint,
       allowedChoiceId,
     );
-    return Object.freeze({ sample, pendingAtObservation, observation });
+    return Object.freeze({ sample, routeMutationEligible, observation });
   });
 
   const transitionCandidates: SharedRouteChoiceCandidate[] = [];
@@ -122,11 +125,11 @@ export function advanceLiveRouteMultiActorTick(
 
   const results: LiveRouteActorTickResult[] = [];
   for (const item of observed) {
-    const { sample, observation, pendingAtObservation } = item;
+    const { sample, observation, routeMutationEligible } = item;
     let routeUpdate: RouteDagUpdate | null = null;
     const sharedDecision = decisionsByActor.get(sample.actorId) ?? null;
 
-    if (!pendingAtObservation) {
+    if (routeMutationEligible) {
       const acceptedBoundary = acceptedBoundaryForActor(observation, sharedDecision);
       routeUpdate = updateRouteDag(sample.state.routeState, live.route, acceptedBoundary);
       queueRouteStageHandoff(sample.state.handoffState, live.handoffs, routeUpdate);
