@@ -1,0 +1,41 @@
+SUPER OUTRIDE M6.37 — SYMMETRIC RIGHT SECOND LIVE FORK
+
+Baseline
+- M6.36: 315 tests
+
+M6.37 additions
+- 6 dedicated symmetric RIGHT second-fork regressions
+
+Expected full suite
+- tests: 321
+- pass: 321
+- fail: 0
+
+Validated structural principles
+- The M6.36 generic fork-stage compiler is reused unchanged for the surviving RIGHT terminal.
+- M6.35 exposes declarative LEFT-fork authoring while retaining its historical runtime fixture.
+- GOAL_R is promoted to STAGE_4_R_FORK by opaque package identity only; no world transform occurs.
+- RIGHT fork uses the same 7m incoming/child roads, 8m median and 1m shoulders as LEFT.
+- M6.34/M6.36 derive child centers at local l=-7.5m/+7.5m, gate half-width 3.5m and ground envelope +/-12m.
+- The grass median owns no route gate and selects nothing.
+- RIGHT fork child successors reuse the M6.29 Raster successor path and the frozen <=10-degree vertex-turn authority.
+- StageContinuationLink validates source child center -> target local l=0 through D_cam overlap.
+- Child environment packages remain M6.24 caller-owned content; route compilation does not own renderer identity.
+- Complete RIGHT-B route performs four physical transition -> PENDING -> forward seam -> COMMIT transactions before physical FINISH.
+- main.ts and renderer Core remain free of second-fork topology ids.
+- Stable browser entry remains createM627LiveRouteRuntime(); only its dev-layer delegate advances to M6.37.
+
+CI history
+1. Initial M6.37 candidate:
+   - tests: 321
+   - pass: 319
+   - fail: 2
+   - all six M6.37 regressions passed
+   - failures were obsolete M6.28 and M6.30 static assertions naming the previous M6.35 stable-entry target
+2. Corrected structural head:
+   - 1b02995a133f3a4d9502745e1c35671b14920dcb
+   - tests: 321
+   - pass: 321
+   - fail: 0
+
+Final exact-head CI must independently reproduce 321 / 321 / 0 after package-lock, docs and README synchronization before main fast-forward.
