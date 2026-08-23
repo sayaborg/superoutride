@@ -1,0 +1,128 @@
+SUPER OUTRIDE M6.30 VALIDATION
+
+Milestone: Third Live Successor Stage
+Package: super-outride-m6-30@0.6.30
+
+Purpose:
+- prove that the reusable M6.29 Raster successor factory can be applied recursively to the live route
+- extend only the LEFT path by one additional independent stage
+- retain unequal route depth without topology logic in main.ts or renderer Core
+- preserve world pose continuity and the physical gate -> PENDING -> seam COMMIT transaction
+
+Live topology:
+              -> STAGE_2_L -> STAGE_3_L -> GOAL_L
+STAGE_1 -----<
+              -> STAGE_2_R -------------> GOAL_R
+
+LEFT transaction:
+visible fork
+-> S1_LEFT
+-> PENDING
+-> parent/child COMMIT
+-> S2L_CONTINUE
+-> PENDING
+-> STAGE_2_L/STAGE_3_L COMMIT
+-> S3L_CONTINUE
+-> PENDING
+-> STAGE_3_L/GOAL_L COMMIT
+-> physical GOAL_L FINISH
+
+RIGHT transaction remains:
+visible fork
+-> S1_RIGHT
+-> PENDING
+-> parent/child COMMIT
+-> S2R_CONTINUE
+-> PENDING
+-> child/GOAL_R COMMIT
+-> physical GOAL_R FINISH
+
+M6.30 construction:
+- old CONTENT_GOAL_L geometry is promoted to CONTENT_STAGE_3_L
+- new CONTENT_GOAL_L is generated from the promoted stage through createRasterStageSuccessor()
+- new GOAL_L owns an independent GuideChart/Raster/StageRoadView/SurfaceMap/GroundMap runtime source
+- visual content is compiled with the existing M6.24 stage authoring compiler and M6.21 LEFT identity
+- all route rows are compiled through M6.28 compileDeclarativeLiveRoute()
+- main.ts remains unchanged and consumes createM627LiveRouteRuntime()
+
+Third successor authoring:
+sourceSeamMinS = 340m
+overlapMargin = 30m
+transitionLead = 20m
+finishAfterSeam = 150m
+deformationMeters = 2.5m
+deformationDirection = -1
+gentleTurnLimitDegrees = 5
+minDeformationRunVertices = 5
+D_cam = 5m
+dMax = 150m
+GroundMap half width = 12m
+ground half width = 4.5m
+road half width = 3.5m
+shoulder width = 1m
+
+Frozen geometry authority:
+- compileRasterCourse() remains final Raster authority
+- absolute one-vertex Raster turn remains <=10 degrees
+- D_cam overlap is validated before continuation is accepted
+- no tolerance widening
+- no alternate road renderer
+- no route-specific depth
+- no world teleport at handoff
+
+Fork-stall bug fixed immediately before M6.30:
+Symptom:
+- browser appeared to stop at first visible fork after child handoff
+
+Root cause:
+- simulation loop itself did not stop
+- first child render threw RangeError: stage GroundMap sample is outside the local ground envelope
+- continuous xGround edge was rasterized using x+0.5 pixel centers
+- final included pixel center could lie at most half a pixel outside the continuous local corridor
+- strict stage GroundMap sampler threw before requestAnimationFrame could be scheduled again
+
+Fix:
+- clamp only stage-local GroundMap lateral raster sample to the existing authored corridor
+- do not change strip edges, pseudo-depth, chainage, affine mapping, world pose, route, physics, camera, Painter or road geometry
+
+Fork regression:
+- real 60 Hz car physics
+- live route gate observation
+- route update
+- PENDING handoff
+- physical seam COMMIT
+- camera coordinate-frame rebase
+- actual child renderer
+- at least 30 rendered child frames after first COMMIT
+- no recovery at fork/handoff
+
+Fork-fix validated exact main base:
+b6a3e63bac67f4f6fb4c4177a92763cc1baf35e1
+CI: 280/280 pass / 0 fail
+PR #44 merged at the same exact SHA
+
+M6.30 structural validation:
+head 920d0ce53f43e5ed8db04385d67f8e3c30ac78a4
+CI run 32627842248
+284/284 pass / 0 fail
+
+M6.30 dedicated regressions:
+1. LEFT live route has STAGE_3_L while RIGHT path remains shallower
+2. old LEFT terminal package geometry becomes CONTENT_STAGE_3_L and new CONTENT_GOAL_L owns a different chart/Raster
+3. S3L_CONTINUE handoff target chart and content binding resolve the new GOAL_L package
+4. renderer and main.ts contain no M6.30 topology decision
+
+Historical fixture policy:
+- M6.27 assembly contract remains tested without fixing current route stage count
+- M6.28 five-stage declarative fixture remains directly tested
+- M6.28 compiler remains the current route compiler underneath M6.30
+
+Final CI authority:
+- M6.29 suite: 279 tests
+- live fork-stall regression: +1
+- M6.30 dedicated tests: +4
+- final target: 284 tests
+- package/docs changes require fresh exact-head CI before merge
+- PR #45 synthetic merge tree must be identical to final validated feature head
+- main must still equal b6a3e63bac67f4f6fb4c4177a92763cc1baf35e1 before fast-forward
+- main update must use force:false to the validated exact feature head
