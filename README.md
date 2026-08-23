@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.37 Symmetric RIGHT Second Live Fork
+# SUPER OUTRIDE — M6.38 Declarative Fork-Stage Growth Plan
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -60,7 +60,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.34 Reusable Stage-Local Junction — complete
 - M6.35 Second Live Physical Fork — complete
 - M6.36 Reusable Fork-Stage Route Authoring — complete
-- **M6.37 Symmetric RIGHT Second Live Fork — complete**
+- M6.37 Symmetric RIGHT Second Live Fork — complete
+- **M6.38 Declarative Fork-Stage Growth Plan — complete**
 
 ## Run / test
 
@@ -78,7 +79,7 @@ Full regression:
 npm test
 ```
 
-M6.36 ended at **315 tests**. M6.37 adds six dedicated symmetric RIGHT second-fork regressions for a target of **321 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.37 ended at **321 tests**. M6.38 adds six dedicated fork-growth equivalence regressions for a target of **327 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -141,7 +142,7 @@ There is no arbitrary `visualScale` multiplier. A future FOV change must move `D
 
 ## Current live point-to-point route
 
-Both major paths now own a real second physical fork:
+M6.38 intentionally preserves the complete M6.37 topology and physical geometry:
 
 ```text
 STAGE_1
@@ -174,7 +175,7 @@ Entering a terminal stage does not finish the run. Completion still requires a v
 
 ## Second-fork metric authority
 
-LEFT and RIGHT second forks intentionally share the same stage-local metric recipe:
+LEFT and RIGHT second forks share one stage-local metric recipe:
 
 ```text
 incoming road width = 7 m
@@ -191,13 +192,13 @@ source seam minimum = s 235
 M6.34/M6.36 derive rather than duplicate:
 
 ```text
-LEFT child center    = local l -7.5 m
-RIGHT child center   = local l +7.5 m
-child gate halfwidth = 3.5 m
+LEFT child center     = local l -7.5 m
+RIGHT child center    = local l +7.5 m
+child gate halfwidth  = 3.5 m
 stage ground envelope = +/-12 m
 ```
 
-The physical route gate, handoff seam and terminal FINISH width all derive from the authored child road width.
+The physical route gate, handoff seam and terminal FINISH width all derive from the authored child-road width.
 
 ## Reusable route/stage compiler chain
 
@@ -212,6 +213,7 @@ M6.32 declarative route-fragment composition
 M6.34 stage-local junction compiler
 M6.35 fork coordinate adapter
 M6.36 generic fork-stage route compiler
+M6.38 ordered fork-growth fold
 M6.28 final declarative live-route compiler
 M6.27 stable browser-facing runtime entry
 ```
@@ -274,38 +276,53 @@ M6.36 exposes:
 compileRasterForkStageRoute(authoring)
 ```
 
-Given one existing terminal, it:
-
-1. validates terminal status, FINISH ownership and source road view;
-2. repackages the old terminal as an ordinary fork stage without a coordinate transform;
-3. attaches the M6.34 stage-local junction;
-4. derives LEFT/RIGHT source centers and child half-width from the junction;
-5. creates both independent Raster successors;
-6. derives physical transition gates, handoff seams and FINISH gates;
-7. validates package/chart/world-frame ownership of caller-supplied child content;
-8. composes the new fork fragment through M6.32 and the unchanged M6.28 compiler.
+Given one existing terminal, it validates the source, promotes only opaque package identity, attaches the M6.34 stage-local junction, derives child centers and widths, creates both M6.29 Raster successors, validates caller-supplied package/chart ownership, derives transition gates/handoff seams/FINISH gates, and composes through M6.32.
 
 Branch authoring does **not** repeat `sourceLocalL`, `roadHalfWidth` or physical gate/seam centers.
 
-## M6.37 symmetric RIGHT proof
+## M6.38 declarative fork-growth plan
 
-M6.35 now exposes its validated LEFT-fork authoring:
-
-```text
-createM635SecondLiveForkAuthoring(...)
-```
-
-M6.37 applies the same M6.36 compiler to the surviving `GOAL_R` terminal:
+M6.38 adds one deliberately thin generic composition helper:
 
 ```text
-M6.35 authoring
-→ promote GOAL_R to STAGE_4_R_FORK
-→ compileRasterForkStageRoute(...)
-→ GOAL_RA / GOAL_RB
-→ compileDeclarativeLiveRoute()
+compileRasterForkGrowthPlan(upstream, steps)
 ```
 
-No RIGHT-specific route compiler was added.
+It owns only this operation:
+
+```text
+authoring = upstream
+for each ordered step:
+    compiled = compileRasterForkStageRoute({ ...step, upstream: authoring })
+    authoring = compiled.authoring
+```
+
+It does not calculate roads, junctions, branch centers, gates, seams or FINISH geometry. All of those remain M6.36 and lower-layer authority.
+
+The live route now starts directly from the M6.30 authoring and applies two data rows:
+
+```text
+M6.30 base authoring
+→ [GOAL_L → STAGE_4_L_FORK → GOAL_LA / GOAL_LB]
+→ [GOAL_R → STAGE_4_R_FORK → GOAL_RA / GOAL_RB]
+→ unchanged M6.28 final compiler
+```
+
+This removes the live constructor nesting `M6.37 → M6.35 → M6.30`. M6.35 and M6.37 remain executable historical fixtures and their physical regressions stay green.
+
+A zero-step growth plan is exact identity: it returns the same upstream authoring object and no compiled steps.
+
+## Exact behavior-preservation proof
+
+M6.38 does not merely compare stage counts with M6.37. Dedicated regressions compare the two complete runtime assemblies and prove exact preservation of:
+
+- RouteDag stage ids/kinds and transition topology;
+- stage→package bindings;
+- package→GuideChart identities;
+- every physical transition/FINISH gate id, owner, center, heading and half-width;
+- every physical handoff seam id, choice, target chart, center, heading and half-width.
+
+Thus M6.38 changes authoring composition, not live route behavior.
 
 The stable browser entry remains:
 
@@ -313,24 +330,27 @@ The stable browser entry remains:
 createM627LiveRouteRuntime(...)
 ```
 
-Only its dev-layer delegate advances to M6.37. `main.ts` and renderer Core contain none of `STAGE_4_L_FORK`, `STAGE_4_R_FORK`, `GOAL_LA/LB/RA/RB` or `S4*_FORK_*`.
-
-A dedicated RIGHT-B integration regression proves four physical transition → PENDING → seam COMMIT transactions followed by physical FINISH. The corresponding LEFT-A M6.35 regression remains green as a historical fixture.
+Its dev-layer delegate now calls `createM638DeclarativeForkGrowthRuntime(...)`. `main.ts` and renderer Core remain unchanged and contain no second-fork topology identities.
 
 ## Validation status
 
-Structural M6.37 head before documentation synchronization:
+Structural M6.38 head before documentation synchronization:
 
 ```text
-1b02995a133f3a4d9502745e1c35671b14920dcb
-321 tests
-321 pass
+c086ec6ed3dfb7f461e9b284284e8032b2b3fe48
+workflow 32634523257
+327 tests
+327 pass
 0 fail
 ```
 
-The initial M6.37 candidate produced 319/321 only because two older static layering assertions still named the previous M6.35 stable-entry target. All six new M6.37 regressions were already green. Those assertions were updated to the current layering without relaxing their historical fixture coverage.
+CI history before that green head:
 
-Final documentation-inclusive head must independently reproduce 321/321 before main fast-forward.
+- initial candidate: TypeScript rejected a widened readonly branch array where M6.36 requires an exact readonly two-branch tuple; explicit tuple typing fixed it without behavior change;
+- tuple-fixed candidate: 323/327, with all six M6.38 regressions already green; only four historical static layering assertions still named the prior M6.37 stable-entry target;
+- those assertions were updated to the actual M6.38 layering while all historical runtime/geometry fixture assertions were preserved.
+
+The documentation-inclusive exact head must independently reproduce **327/327 / 0 fail** before main fast-forward.
 
 ## Vehicle physics status
 
@@ -363,6 +383,7 @@ src/runtime/declarative-route-fragment.ts
 src/runtime/raster-stage-successor.ts
 src/runtime/raster-fork-successor.ts
 src/runtime/raster-fork-stage-route.ts
+src/runtime/raster-fork-growth-plan.ts
 src/runtime/raster-successor-chain.ts
 src/visual/stage-ground-map-view.ts
 src/dev/m6-22-child-stage-continuation.ts
@@ -375,12 +396,13 @@ src/dev/m6-28-declarative-live-route.ts
 src/dev/m6-30-third-live-successor.ts
 src/dev/m6-35-second-live-fork.ts
 src/dev/m6-37-symmetric-right-second-live-fork.ts
+src/dev/m6-38-declarative-fork-growth-plan.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/55_m6_37_symmetric_right_second_live_fork.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/56_m6_38_declarative_fork_growth_plan.md`.
 
 ## Next
 
-**M6.38 — Declarative Fork-Stage Growth Plan.** M6.37 proves M6.36 is reusable on both branch identities, but M6.35 and M6.37 still repeat the same junction/successor recipe and nest milestone-specific constructors. The next step is to represent ordered terminal→fork growth as data and fold it through the existing M6.36 compiler, eliminating duplicated route-growth boilerplate without creating a new renderer, physics or route-validation mechanism.
+**M6.39 — Deep Route Browser-Order Integration.** Route authoring is now sufficiently generic. The next useful step is not another abstraction: drive the actual 60 Hz browser update order through the deeper point-to-point route, including repeated physical route gates, PENDING/COMMIT handoffs, camera chart rebasing and renderer calls across a second fork. The regression must prove continuous rendering through the deep route without adding renderer-specific route logic.
