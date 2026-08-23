@@ -1,4 +1,5 @@
 import {
+  guideCoordinateLateralOrigin,
   locateWorldOnGuideCoordinateGlobal,
 } from '../core/guide-coordinate-frame.js';
 import type { Vec2 } from '../core/math.js';
@@ -205,7 +206,7 @@ export function sampleLiveRouteChoicePlanTargetL(
   if (Math.abs(finalTargetL) <= EPSILON) return 0;
 
   const stageJunction = runtime.groundProfile.stageJunction;
-  const sourceJunction = Math.abs(runtime.coordinateFrame.lateralOrigin) <= EPSILON
+  const sourceJunction = Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= EPSILON
     ? runtime.groundProfile.junction
     : undefined;
   const junction = stageJunction ?? sourceJunction;
