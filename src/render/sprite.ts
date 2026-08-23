@@ -19,6 +19,11 @@ export interface SpriteDrawStats {
   clipped: boolean;
 }
 
+export interface SpriteDrawTelemetry {
+  /** Optional caller-owned accumulator. No per-sprite row array is allocated. */
+  outputSamplesPerScanline?: Uint32Array;
+}
+
 const EPSILON = 1e-9;
 
 export function createSpriteAsset(
@@ -55,7 +60,13 @@ export function drawScaledSprite(
   xAnchor: number,
   yAnchor: number,
   pixelsPerMeter: number,
+  telemetry?: SpriteDrawTelemetry,
 ): SpriteDrawStats {
+  const rowSamples = telemetry?.outputSamplesPerScanline;
+  if (rowSamples && rowSamples.length < target.height) {
+    throw new RangeError('sprite scanline telemetry buffer is shorter than target height');
+  }
+
   const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
   if (!(scale > 0) || !Number.isFinite(scale)) {
     return { outputSamples: 0, writtenPixels: 0, clipped: true };
@@ -90,17 +101,21 @@ export function drawScaledSprite(
     if (sy < 0 || sy >= asset.height) continue;
     const targetRow = y * target.width;
     const sourceRow = sy * asset.width;
+    let samplesThisRow = 0;
 
     for (let x = x0; x <= x1; x += 1) {
       const sourceX = asset.anchorX + ((x + 0.5) - xAnchor) * invScale;
       const sx = Math.floor(sourceX + 0.5);
       if (sx < 0 || sx >= asset.width) continue;
       outputSamples += 1;
+      samplesThisRow += 1;
       const color = asset.pixels[sourceRow + sx]!;
       if (color === SPRITE_TRANSPARENT) continue;
       target.pixels[targetRow + x] = color;
       writtenPixels += 1;
     }
+
+    if (rowSamples && samplesThisRow > 0) rowSamples[y]! += samplesThisRow;
   }
 
   return {
