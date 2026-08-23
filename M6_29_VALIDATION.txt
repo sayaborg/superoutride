@@ -1,0 +1,91 @@
+SUPER OUTRIDE M6.29 VALIDATION
+
+Milestone: Reusable Raster Stage Successor Factory
+Package: super-outride-m6-29@0.6.29
+
+Purpose:
+- extract successor Raster/Guide construction from M6.26 into a reusable runtime-stage factory
+- preserve exact D_cam overlap and world continuity
+- keep the frozen <=10 degree Raster vertex turn limit as final authority
+- allow later route depths to reuse the same successor construction without copying milestone-specific geometry code
+
+Generic factory:
+createRasterStageSuccessor(source, authoring)
+
+Source authority:
+- compiled GuideCurve
+- GuideChart
+- GroundMapProfile chainage phase
+
+Authoring controls:
+- IDs for continuation/chart/road view/surface section
+- source seam minimum chainage
+- overlap margin
+- transition lead
+- finish distance after target seam
+- deformation distance and direction
+- gentle-turn threshold strictly below 10 degrees
+- minimum deformation-run vertex count
+- D_cam / dMax / finish closure margin
+- GroundMap span
+- local stage ground / road / shoulder dimensions
+
+Factory outputs:
+- independent successor Guide
+- successor GuideChart
+- StageRoadView
+- stage-local SurfaceMap view
+- GroundMapProfile with inherited chainage phase
+- validated StageContinuationLink
+- source transition chainage
+- source seam chainage
+- target seam chainage
+- successor FINISH chainage
+
+Geometry algorithm:
+1. choose source Raster seam at/after authored sourceSeamMinS
+2. locate a source interval covering the complete overlap envelope
+3. copy the overlap prefix exactly
+4. cyclically collect the remaining source Raster vertices
+5. find the longest run whose source per-vertex turns are <= authored gentle-turn threshold
+6. apply sin(pi*phase)^2 lateral normal deformation only inside that run
+7. pass the complete candidate through the ordinary compileRasterCourse()
+8. compile GuideCurve and validate StageContinuationLink over D_cam behind/ahead
+
+Frozen constraints:
+- compileRasterCourse() remains final geometry authority
+- Core absolute Raster vertex turn remains <=10 degrees
+- successor authoring cannot set gentleTurnLimitDegrees >=10
+- no tolerance widening or alternate Raster compiler is introduced
+- overlapMargin must cover D_cam
+- world pose/motion is not modified by successor construction
+- pseudo-depth remains signed cyclic chainage difference only
+- same depth remains same scale
+- renderer Core remains route/successor independent
+- physical route gate -> PENDING -> physical seam -> COMMIT semantics remain unchanged
+- metric player authority remains 2.0m = 80px at player depth
+
+M6.26 compatibility:
+- LEFT and RIGHT M6.26 successors now call createRasterStageSuccessor()
+- M6.26 retains only route-specific authoring values and its post-terrain transition constraint
+- old Raster editing helpers were removed from M6.26
+- exact M6.26 successor geometry and chainages are regression-compared against direct generic factory output
+
+Regression focus:
+1. generic factory reproduces M6.26 LEFT successor Raster geometry and seam/finish chainages
+2. source/target charts share exact D_cam overlap around the successor seam
+3. opposite deformation directions produce independent successor courses without modifying source chart authority
+4. gentle-turn threshold at the frozen 10-degree limit is rejected
+5. factory has no RouteDag, route-gate, renderer, camera, or vehicle-physics dependency
+6. M6.26 delegates successor Raster construction to the generic factory
+7. configurable GroundMap span preserves the current +/-12m runtime profile without hardcoding it in the factory
+
+CI authority:
+- M6.28 baseline: 274 tests
+- M6.29 adds 5 dedicated tests
+- target suite: 279 tests
+- structural exact head ba9f2402e80ffca759e7b74082bac3b83f620ab2 passed 279/279
+- documentation changes require a fresh exact-head CI before merge
+- PR synthetic merge tree must differ by zero files from the final validated feature head
+- main must still equal M6.28 exact head 5d2259e911efcb148bbd51068bf4321ae127efda before fast-forward
+- main update must be force:false to the validated exact feature head
