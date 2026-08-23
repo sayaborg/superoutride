@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
-import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
+import {
+  guideCoordinateCurve,
+  guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateGlobal,
+} from '../dist/core/guide-coordinate-frame.js';
+import { wrapPositive } from '../dist/core/math.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
@@ -40,7 +45,8 @@ import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 const DT = 1 / 60;
-const MAX_TICKS = 6000;
+const APPROACH_DISTANCE_METERS = 12;
+const SEGMENT_MAX_TICKS = 900;
 const POST_FINISH_RENDER_FRAMES = 30;
 const INTEGRATION_CRUISE_MIN_MPS = 18;
 const INTEGRATION_CRUISE_MAX_MPS = 22;
@@ -66,8 +72,6 @@ const CAMERA_PROFILE = {
 const PATHS = Object.freeze([
   Object.freeze({
     name: 'LEFT-A',
-    parentSide: 'LEFT',
-    secondForkSide: 'LEFT',
     choices: Object.freeze(['S1_LEFT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S4L_FORK_A']),
     packages: Object.freeze([
       'CONTENT_STAGE_2_L',
@@ -79,8 +83,6 @@ const PATHS = Object.freeze([
   }),
   Object.freeze({
     name: 'RIGHT-B',
-    parentSide: 'RIGHT',
-    secondForkSide: 'RIGHT',
     choices: Object.freeze(['S1_RIGHT', 'S2R_CONTINUE', 'S3R_CONTINUE', 'S4R_FORK_B']),
     packages: Object.freeze([
       'CONTENT_STAGE_2_R',
@@ -127,17 +129,6 @@ function parentShared(guide) {
   };
 }
 
-function targetLForRuntime(runtime, path) {
-  if (runtime.packageId === 'CONTENT_STAGE_1') {
-    return M6_13_JUNCTION.separatedChildCenterL(path.parentSide);
-  }
-  if (runtime.packageId === 'CONTENT_STAGE_4_L_FORK' || runtime.packageId === 'CONTENT_STAGE_4_R_FORK') {
-    assert.ok(runtime.groundProfile.stageJunction, `${runtime.packageId} must own its local junction`);
-    return runtime.groundProfile.stageJunction.separatedChildCenterL(path.secondForkSide);
-  }
-  return 0;
-}
-
 function sampleIntegrationDrivingInput(guide, car, targetL) {
   const steeringInput = sampleRivalDrivingInput(guide, car, targetL);
   const speed = Math.max(0, car.longitudinalSpeed);
@@ -164,7 +155,86 @@ function drawActiveRuntime(framebuffer, runtime, camera, car, assets) {
   );
 }
 
-function runDeepBrowserPath(path) {
+function snapshotVehicleWorld(car) {
+  return {
+    x: car.x,
+    y: car.y,
+    z: car.z,
+    yaw: car.yaw,
+    longitudinalSpeed: car.longitudinalSpeed,
+    lateralSpeed: car.lateralSpeed,
+    verticalSpeed: car.verticalSpeed,
+    yawRate: car.yawRate,
+  };
+}
+
+function findTransitionGate(live, choiceId) {
+  const gate = live.gates.gates.find(
+    (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId,
+  );
+  assert.ok(gate, `missing transition gate for ${choiceId}`);
+  return gate;
+}
+
+function findFinishGate(live, stageId) {
+  const gate = live.gates.gates.find(
+    (candidate) => candidate.kind === 'FINISH' && candidate.stageId === stageId,
+  );
+  assert.ok(gate, `missing FINISH gate for ${stageId}`);
+  return gate;
+}
+
+function stageVehicleBeforeGate(state, gate) {
+  assert.equal(state.handoffState.pending, null, 'fixture staging is allowed only between completed handoffs');
+  assert.equal(
+    state.routeState.activeStageId,
+    state.handoffState.activeStageId,
+    'route and committed runtime stage must agree before fixture staging',
+  );
+
+  const runtime = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+  const gateCoordinate = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, gate.center, false);
+  const guide = guideCoordinateCurve(runtime.coordinateFrame);
+  const startS = wrapPositive(gateCoordinate.s - APPROACH_DISTANCE_METERS, guide.length);
+  const start = guideCoordinateToWorld(runtime.coordinateFrame, startS, gateCoordinate.l);
+  const surface = runtime.surfaceMap.sample(start.s, start.l);
+  assert.equal(surface.material.supported, true, `${runtime.packageId} gate approach must be physically supported`);
+
+  state.car.x = start.x;
+  state.car.y = runtime.heightProfile.samplePhysics(start.s);
+  state.car.z = start.z;
+  state.car.yaw = start.heading;
+  state.car.speed = 20;
+  state.car.course = { s: start.s, l: start.l, segmentIndex: start.segmentIndex, distanceSquared: 0 };
+  state.car.verticalSpeed = 0;
+  state.car.longitudinalSpeed = 20;
+  state.car.lateralSpeed = 0;
+  state.car.yawRate = 0;
+  state.car.steerAngle = 0;
+  state.car.supported = true;
+  state.car.surfaceType = surface.type;
+  state.car.lateralAcceleration = 0;
+  state.car.sprungRoll = 0;
+
+  state.recovery.lastSafeS = start.s;
+  state.recovery.unsupportedTime = 0;
+  state.recovery.lastReason = null;
+  state.previousRoutePoint = { x: state.car.x, z: state.car.z };
+  syncRouteStageHandoffCoordinate(state.handoffState, state.live.charts, state.previousRoutePoint);
+
+  state.camera = updateM5Camera(
+    state.cameraRig,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    state.car,
+    CAMERA_PROFILE,
+    DT,
+  );
+
+  return { runtime, targetL: gateCoordinate.l };
+}
+
+function createDeepState() {
   const parentGuide = createM2StadiumGuide();
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
@@ -183,151 +253,279 @@ function runDeepBrowserPath(path) {
   const cameraRig = createM5CameraRig();
   const framebuffer = new SoftwareSurface(320, 240, new Uint32Array(320 * 240));
   const objective = createRunObjectiveState();
-  const acceptedChoices = [];
-  const committedPackages = [];
-  const renderedPackages = new Set();
-  const speedAtCommit = [];
-  let previousRoutePoint = { x: car.x, z: car.z };
-  let finishCount = 0;
-  let renderCountAfterFinish = 0;
-  let tickReachedFinish = null;
   const initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
-  let camera = updateM5Camera(cameraRig, initialRuntime.coordinateFrame, initialRuntime.heightProfile, car, CAMERA_PROFILE, DT);
-  drawActiveRuntime(framebuffer, initialRuntime, camera, car, assets);
-  renderedPackages.add(initialRuntime.packageId);
-
-  for (let tick = 0; tick < MAX_TICKS; tick += 1) {
-    const runtimeBefore = resolveActiveStageRuntimeContent(live.registry, handoffState);
-    const input = sampleIntegrationDrivingInput(
-      guideCoordinateCurve(runtimeBefore.coordinateFrame),
-      car,
-      targetLForRuntime(runtimeBefore, path),
-    );
-    updateM5Car(runtimeBefore.coordinateFrame, runtimeBefore.heightProfile, runtimeBefore.surfaceMap, car, input, DT);
-
-    const recovered = updateM5Recovery(
-      recovery,
-      runtimeBefore.coordinateFrame,
-      runtimeBefore.heightProfile,
-      runtimeBefore.surfaceMap,
-      car,
-      DT,
-    );
-    let routeUpdate = null;
-    let handoffEvent = null;
-
-    if (recovered !== null) {
-      previousRoutePoint = { x: car.x, z: car.z };
-      syncRouteStageHandoffCoordinate(handoffState, live.charts, previousRoutePoint);
-    } else {
-      const currentRoutePoint = { x: car.x, z: car.z };
-      if (handoffState.pending === null) {
-        const observation = observeRouteBoundaryCrossing(
-          live.route,
-          routeState,
-          live.gates,
-          previousRoutePoint,
-          currentRoutePoint,
-        );
-        routeUpdate = updateRouteDag(routeState, live.route, observation.boundary);
-        if (routeUpdate.acceptedChoice !== null) acceptedChoices.push(routeUpdate.acceptedChoice.id);
-        queueRouteStageHandoff(handoffState, live.handoffs, routeUpdate);
-      }
-
-      const handoffObservation = observePendingRouteStageHandoff(
-        handoffState,
-        live.handoffs,
-        previousRoutePoint,
-        currentRoutePoint,
-      );
-      handoffEvent = commitRouteStageHandoff(
-        handoffState,
-        routeState,
-        live.content,
-        live.charts,
-        handoffObservation.seam,
-        currentRoutePoint,
-      );
-      if (handoffEvent === 'COMMITTED') {
-        const runtimeAfter = resolveActiveStageRuntimeContent(live.registry, handoffState);
-        car.course = { ...handoffState.coordinate };
-        rebaseM5CameraRigCoordinateFrame(cameraRig, runtimeBefore.coordinateFrame, runtimeAfter.coordinateFrame);
-        committedPackages.push(runtimeAfter.packageId);
-        speedAtCommit.push(car.speed);
-      } else {
-        syncRouteStageHandoffCoordinate(handoffState, live.charts, currentRoutePoint);
-      }
-      previousRoutePoint = currentRoutePoint;
-    }
-
-    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate);
-    const objectiveUpdate = updateRunObjectiveFromValidatedFinish(
-      objective,
-      POINT_TO_POINT_OBJECTIVE,
-      finish,
-      (tick + 1) * DT,
-    );
-    if (objectiveUpdate.justFinished) {
-      finishCount += 1;
-      tickReachedFinish = tick;
-    }
-
-    const runtimeAfterTick = resolveActiveStageRuntimeContent(live.registry, handoffState);
-    camera = updateM5Camera(
-      cameraRig,
-      runtimeAfterTick.coordinateFrame,
-      runtimeAfterTick.heightProfile,
-      car,
-      CAMERA_PROFILE,
-      DT,
-    );
-
-    if (handoffEvent === 'COMMITTED') {
-      drawActiveRuntime(framebuffer, runtimeAfterTick, camera, car, assets);
-      renderedPackages.add(runtimeAfterTick.packageId);
-    }
-    if (objective.status === 'FINISHED') {
-      drawActiveRuntime(framebuffer, runtimeAfterTick, camera, car, assets);
-      renderedPackages.add(runtimeAfterTick.packageId);
-      renderCountAfterFinish += 1;
-    }
-
-    if (objective.status === 'FINISHED' && renderCountAfterFinish >= POST_FINISH_RENDER_FRAMES) break;
-  }
-
+  const camera = updateM5Camera(
+    cameraRig,
+    initialRuntime.coordinateFrame,
+    initialRuntime.heightProfile,
+    car,
+    CAMERA_PROFILE,
+    DT,
+  );
   return {
+    live,
+    assets,
     car,
     routeState,
     handoffState,
+    recovery,
+    cameraRig,
+    framebuffer,
     objective,
-    acceptedChoices,
-    committedPackages,
-    renderedPackages,
-    speedAtCommit,
-    recoveryCount: recovery.recoveries,
-    finishCount,
-    renderCountAfterFinish,
-    tickReachedFinish,
+    camera,
+    previousRoutePoint: { x: car.x, z: car.z },
+    acceptedChoices: [],
+    committedPackages: [],
+    renderedPackages: new Set(),
+    speedAtCommit: [],
+    commitWorldPreservationCount: 0,
+    finishCount: 0,
+    simulationTicks: 0,
   };
 }
 
+function updateObjective(state, routeUpdate) {
+  const finish = createValidatedRunFinishFromRoute(state.routeState, routeUpdate);
+  const update = updateRunObjectiveFromValidatedFinish(
+    state.objective,
+    POINT_TO_POINT_OBJECTIVE,
+    finish,
+    state.simulationTicks * DT,
+  );
+  if (update.justFinished) state.finishCount += 1;
+  return update;
+}
+
+function updateCamera(state) {
+  const runtime = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+  state.camera = updateM5Camera(
+    state.cameraRig,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    state.car,
+    CAMERA_PROFILE,
+    DT,
+  );
+  return runtime;
+}
+
+function driveTransitionSegment(state, expectedChoiceId) {
+  const gate = findTransitionGate(state.live, expectedChoiceId);
+  const staged = stageVehicleBeforeGate(state, gate);
+  if (state.renderedPackages.size === 0) {
+    drawActiveRuntime(state.framebuffer, staged.runtime, state.camera, state.car, state.assets);
+    state.renderedPackages.add(staged.runtime.packageId);
+  }
+
+  let acceptedThisSegment = false;
+  for (let tick = 0; tick < SEGMENT_MAX_TICKS; tick += 1) {
+    state.simulationTicks += 1;
+    const runtimeBefore = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+    const input = sampleIntegrationDrivingInput(
+      guideCoordinateCurve(runtimeBefore.coordinateFrame),
+      state.car,
+      staged.targetL,
+    );
+    updateM5Car(
+      runtimeBefore.coordinateFrame,
+      runtimeBefore.heightProfile,
+      runtimeBefore.surfaceMap,
+      state.car,
+      input,
+      DT,
+    );
+
+    const recovered = updateM5Recovery(
+      state.recovery,
+      runtimeBefore.coordinateFrame,
+      runtimeBefore.heightProfile,
+      runtimeBefore.surfaceMap,
+      state.car,
+      DT,
+    );
+    assert.equal(recovered, null, `${expectedChoiceId} approach must not require recovery`);
+
+    const currentRoutePoint = { x: state.car.x, z: state.car.z };
+    let routeUpdate = null;
+    if (state.handoffState.pending === null) {
+      const observation = observeRouteBoundaryCrossing(
+        state.live.route,
+        state.routeState,
+        state.live.gates,
+        state.previousRoutePoint,
+        currentRoutePoint,
+      );
+      routeUpdate = updateRouteDag(state.routeState, state.live.route, observation.boundary);
+      if (routeUpdate.acceptedChoice !== null) {
+        assert.equal(routeUpdate.acceptedChoice.id, expectedChoiceId, 'physical gate must select the expected route choice');
+        assert.equal(acceptedThisSegment, false, 'one segment may accept its route choice only once');
+        acceptedThisSegment = true;
+        state.acceptedChoices.push(routeUpdate.acceptedChoice.id);
+      }
+      queueRouteStageHandoff(state.handoffState, state.live.handoffs, routeUpdate);
+    }
+
+    const handoffObservation = observePendingRouteStageHandoff(
+      state.handoffState,
+      state.live.handoffs,
+      state.previousRoutePoint,
+      currentRoutePoint,
+    );
+    const worldBeforeCommit = snapshotVehicleWorld(state.car);
+    const handoffEvent = commitRouteStageHandoff(
+      state.handoffState,
+      state.routeState,
+      state.live.content,
+      state.live.charts,
+      handoffObservation.seam,
+      currentRoutePoint,
+    );
+
+    if (handoffEvent === 'COMMITTED') {
+      assert.equal(acceptedThisSegment, true, 'COMMIT requires a previously accepted physical route gate');
+      assert.deepEqual(snapshotVehicleWorld(state.car), worldBeforeCommit, 'COMMIT must not mutate authoritative world pose or velocity');
+      state.commitWorldPreservationCount += 1;
+
+      const runtimeAfter = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+      state.car.course = { ...state.handoffState.coordinate };
+      rebaseM5CameraRigCoordinateFrame(
+        state.cameraRig,
+        runtimeBefore.coordinateFrame,
+        runtimeAfter.coordinateFrame,
+      );
+      state.committedPackages.push(runtimeAfter.packageId);
+      state.speedAtCommit.push(state.car.speed);
+      state.previousRoutePoint = currentRoutePoint;
+      updateObjective(state, routeUpdate);
+      updateCamera(state);
+      drawActiveRuntime(state.framebuffer, runtimeAfter, state.camera, state.car, state.assets);
+      state.renderedPackages.add(runtimeAfter.packageId);
+      return;
+    }
+
+    syncRouteStageHandoffCoordinate(state.handoffState, state.live.charts, currentRoutePoint);
+    state.previousRoutePoint = currentRoutePoint;
+    updateObjective(state, routeUpdate);
+    updateCamera(state);
+  }
+
+  assert.fail(`${expectedChoiceId} did not reach its physical handoff seam within ${SEGMENT_MAX_TICKS} ticks`);
+}
+
+function driveTerminalFinish(state, terminalStageId) {
+  const gate = findFinishGate(state.live, terminalStageId);
+  const staged = stageVehicleBeforeGate(state, gate);
+
+  for (let tick = 0; tick < SEGMENT_MAX_TICKS; tick += 1) {
+    state.simulationTicks += 1;
+    const runtimeBefore = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+    const input = sampleIntegrationDrivingInput(
+      guideCoordinateCurve(runtimeBefore.coordinateFrame),
+      state.car,
+      staged.targetL,
+    );
+    updateM5Car(
+      runtimeBefore.coordinateFrame,
+      runtimeBefore.heightProfile,
+      runtimeBefore.surfaceMap,
+      state.car,
+      input,
+      DT,
+    );
+    const recovered = updateM5Recovery(
+      state.recovery,
+      runtimeBefore.coordinateFrame,
+      runtimeBefore.heightProfile,
+      runtimeBefore.surfaceMap,
+      state.car,
+      DT,
+    );
+    assert.equal(recovered, null, `${terminalStageId} FINISH approach must not require recovery`);
+
+    const currentRoutePoint = { x: state.car.x, z: state.car.z };
+    const observation = observeRouteBoundaryCrossing(
+      state.live.route,
+      state.routeState,
+      state.live.gates,
+      state.previousRoutePoint,
+      currentRoutePoint,
+    );
+    const routeUpdate = updateRouteDag(state.routeState, state.live.route, observation.boundary);
+    syncRouteStageHandoffCoordinate(state.handoffState, state.live.charts, currentRoutePoint);
+    state.previousRoutePoint = currentRoutePoint;
+    const objectiveUpdate = updateObjective(state, routeUpdate);
+    const runtimeAfterTick = updateCamera(state);
+
+    if (objectiveUpdate.justFinished) {
+      drawActiveRuntime(state.framebuffer, runtimeAfterTick, state.camera, state.car, state.assets);
+      state.renderedPackages.add(runtimeAfterTick.packageId);
+      break;
+    }
+  }
+
+  assert.equal(state.objective.status, 'FINISHED', `${terminalStageId} must cross its physical FINISH gate`);
+
+  for (let frame = 0; frame < POST_FINISH_RENDER_FRAMES; frame += 1) {
+    state.simulationTicks += 1;
+    const runtime = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
+    const input = sampleIntegrationDrivingInput(
+      guideCoordinateCurve(runtime.coordinateFrame),
+      state.car,
+      0,
+    );
+    updateM5Car(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, state.car, input, DT);
+    const recovered = updateM5Recovery(
+      state.recovery,
+      runtime.coordinateFrame,
+      runtime.heightProfile,
+      runtime.surfaceMap,
+      state.car,
+      DT,
+    );
+    assert.equal(recovered, null, 'validated FINISH must not require recovery to keep simulation alive');
+
+    const currentRoutePoint = { x: state.car.x, z: state.car.z };
+    const observation = observeRouteBoundaryCrossing(
+      state.live.route,
+      state.routeState,
+      state.live.gates,
+      state.previousRoutePoint,
+      currentRoutePoint,
+    );
+    const routeUpdate = updateRouteDag(state.routeState, state.live.route, observation.boundary);
+    syncRouteStageHandoffCoordinate(state.handoffState, state.live.charts, currentRoutePoint);
+    state.previousRoutePoint = currentRoutePoint;
+    updateObjective(state, routeUpdate);
+    const runtimeAfterTick = updateCamera(state);
+    drawActiveRuntime(state.framebuffer, runtimeAfterTick, state.camera, state.car, state.assets);
+    state.renderedPackages.add(runtimeAfterTick.packageId);
+  }
+}
+
+function runDeepBrowserPath(path) {
+  const state = createDeepState();
+  for (const choiceId of path.choices) driveTransitionSegment(state, choiceId);
+  driveTerminalFinish(state, path.terminalStageId);
+  return state;
+}
+
 for (const path of PATHS) {
-  test(`M6.39 browser-order 60 Hz ${path.name} path crosses four gates, commits four charts, physically finishes and keeps rendering`, () => {
+  test(`M6.39 checkpointed browser-order 60 Hz ${path.name} path performs four physical gate/PENDING/seam/COMMIT transactions then FINISH`, () => {
     const result = runDeepBrowserPath(path);
-    const diagnostic = `route=${result.routeState.activeStageId} status=${result.routeState.status} pkg=${result.handoffState.activePackageId} commits=${result.handoffState.commitCount} recoveries=${result.recoveryCount} choices=${result.acceptedChoices.join('>')} packages=${result.committedPackages.join('>')} finalS=${result.car.course.s.toFixed(3)} finalL=${result.car.course.l.toFixed(3)} speed=${result.car.speed.toFixed(3)} finishTick=${result.tickReachedFinish ?? 'NONE'} postFinishRenders=${result.renderCountAfterFinish}`;
+    const diagnostic = `route=${result.routeState.activeStageId} status=${result.routeState.status} pkg=${result.handoffState.activePackageId} commits=${result.handoffState.commitCount} recoveries=${result.recovery.recoveries} choices=${result.acceptedChoices.join('>')} packages=${result.committedPackages.join('>')} finalS=${result.car.course.s.toFixed(3)} finalL=${result.car.course.l.toFixed(3)} speed=${result.car.speed.toFixed(3)} ticks=${result.simulationTicks}`;
 
     assert.deepEqual(result.acceptedChoices, path.choices, `physical gate sequence must match authored path; ${diagnostic}`);
     assert.deepEqual(result.committedPackages, path.packages, `seam COMMIT sequence must match authored path; ${diagnostic}`);
     assert.equal(result.handoffState.commitCount, 4, `deep path must perform four handoffs; ${diagnostic}`);
+    assert.equal(result.commitWorldPreservationCount, 4, `every COMMIT must preserve world pose/velocity; ${diagnostic}`);
     assert.equal(result.routeState.status, 'FINISHED', `terminal physical FINISH must complete RouteDag; ${diagnostic}`);
     assert.equal(result.routeState.activeStageId, path.terminalStageId, `finish must belong to selected terminal; ${diagnostic}`);
     assert.equal(result.objective.status, 'FINISHED', `validated route finish must complete point-to-point objective; ${diagnostic}`);
     assert.equal(result.objective.finishId, path.terminalStageId, `objective finish id must match terminal stage; ${diagnostic}`);
     assert.equal(result.finishCount, 1, `validated finish must be recorded exactly once; ${diagnostic}`);
-    assert.equal(result.recoveryCount, 0, `route gates and handoffs must not require recovery; ${diagnostic}`);
+    assert.equal(result.recovery.recoveries, 0, `each physical gate/seam probe must remain supported; ${diagnostic}`);
     assert.equal(result.speedAtCommit.length, 4, `every handoff must record a physical speed; ${diagnostic}`);
     assert.ok(result.speedAtCommit.every((speed) => speed > 8), `car must remain moving through every COMMIT; speeds=${result.speedAtCommit.map((speed) => speed.toFixed(3)).join(',')}; ${diagnostic}`);
-    assert.ok(result.renderCountAfterFinish >= POST_FINISH_RENDER_FRAMES, `renderer must continue after validated finish; ${diagnostic}`);
 
     const expectedRenderedPackages = ['CONTENT_STAGE_1', ...path.packages];
     for (const packageId of expectedRenderedPackages) {
