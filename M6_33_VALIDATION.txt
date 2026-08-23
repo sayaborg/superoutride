@@ -1,0 +1,145 @@
+SUPER OUTRIDE M6.33 VALIDATION
+
+Milestone: Symmetric RIGHT Third Successor
+Package: super-outride-m6-33@0.6.33
+
+Purpose:
+- extend the previously shorter RIGHT live path by one independent Raster stage
+- reuse M6.31 successor-chain authoring and M6.32 route-fragment composition without a new route mechanism
+- preserve RIGHT environment identity through ordinary package compilation
+- keep browser loop, renderer Core and vehicle physics route-agnostic
+
+Current topology:
+              -> STAGE_2_L -> STAGE_3_L -> GOAL_L
+STAGE_1 -----<
+              -> STAGE_2_R -> STAGE_3_R -> GOAL_R
+
+RIGHT promotion:
+- old CONTENT_GOAL_R runtime is repackaged as CONTENT_STAGE_3_R
+- repackageGuideChartRuntime changes only opaque packageId
+- existing GuideChart/Raster/road/SurfaceMap/GroundMap/environment content references remain intact
+- no coordinate transform and no world-state mutation
+
+New RIGHT chain:
+sourceStageId = STAGE_3_R
+sourceRuntime package = CONTENT_STAGE_3_R
+sourceStructural = continuation.rightSuccessor
+choiceId = S3R_CONTINUE
+transition gate = G_LIVE_STAGE3_R
+handoff seam = H_S3R_CONTINUE
+target stage = GOAL_R
+target package = CONTENT_GOAL_R
+finish gate = G_LIVE_FINISH_R
+
+Successor metric authoring:
+sourceSeamMinS = 340m
+overlapMargin = 30m
+transitionLead = 20m
+finishAfterSeam = 150m
+deformationMeters = 2.5m
+RIGHT deformationDirection = +1
+LEFT deformationDirection = -1
+gentleTurnLimitDegrees = 5
+minDeformationRunVertices = 5
+D_cam = 5m
+dMax = 150m
+finishClosureMargin = 20m
+GroundMap half width = 12m
+ground half width = 4.5m
+road half width = 3.5m
+shoulder width = 1m
+
+Geometry authority:
+- M6.31 compileRasterSuccessorChain owns chain iteration/derived rows
+- M6.29 createRasterStageSuccessor owns structural generation underneath
+- compileRasterCourse remains final Raster authority
+- absolute one-vertex Raster turn remains <=10 degrees
+- gentleTurnLimitDegrees is not a relaxed final tolerance
+- StageContinuationLink D_cam overlap validation unchanged
+
+RIGHT environment:
+- new GOAL_R runtime compiled through M6.24 compileAuthoredStageRuntimePackage(..., authored.right)
+- promoted STAGE_3_R and generated GOAL_R retain the same RIGHT/mountain Far Background identity
+- new GOAL_R owns a distinct GuideChart/Raster
+- renderer has no RIGHT/mountain package decision
+
+Route composition:
+root fork fragment
++ LEFT bridge fragment
++ LEFT M6.31 successor-chain fragment
++ RIGHT bridge fragment
++ RIGHT M6.31 successor-chain fragment
+-> M6.32 compileDeclarativeRouteFragments
+-> M6.28 compileDeclarativeLiveRoute
+-> established RouteDag/content/runtime/gate/handoff validators
+
+RIGHT runtime transaction:
+physical fork S1_RIGHT
+-> PENDING
+-> parent/STAGE_2_R COMMIT
+-> S2R_CONTINUE
+-> PENDING
+-> STAGE_2_R/STAGE_3_R COMMIT
+-> S3R_CONTINUE
+-> PENDING
+-> STAGE_3_R/GOAL_R COMMIT
+-> physical GOAL_R FINISH
+
+World continuity:
+- no handoff teleports world X/Y/Z
+- no handoff rewrites yaw or velocities
+- source chart/runtime remains active while PENDING
+
+Frozen renderer authority:
+- one chainage -> one horizontal scanline
+- pseudo-depth = signed cyclic chainage difference only
+- no camera-space Z renderer depth
+- no Euclidean renderer depth
+- no lateral depth correction
+- same d -> same scale
+- same d + same height -> same screen Y
+- Raster Segment road; absolute one-vertex turn <=10 degrees
+- Terrain + World Sprite shared far-to-near Painter
+- no z-buffer/polygon road/perspective-correct texture
+- transparency 0/1
+- camera roll 0
+
+Fork-stall regression retained:
+- real 60 Hz car physics
+- visible LEFT fork
+- physical route selection
+- PENDING
+- physical seam COMMIT
+- camera coordinate-frame rebase
+- actual child renderer
+- >=30 rendered child frames after COMMIT
+- no recovery at fork/handoff
+
+M6.33 dedicated regressions:
+1. live route has independent STAGE_3_L and STAGE_3_R paths
+2. old RIGHT goal becomes CONTENT_STAGE_3_R; new CONTENT_GOAL_R has distinct Guide/Raster and same RIGHT Far Background identity
+3. S3R_CONTINUE resolves physical handoff, GOAL_R package binding and terminal physical FINISH
+4. RIGHT extension uses M6.31 chain + M6.32 fragments while main/renderer contain no RIGHT-third topology logic
+
+Historical regressions updated without weakening:
+- M6.30 LEFT third-stage tests now assert the LEFT proof remains valid as RIGHT also deepens
+- M6.32 live-fragment test now asserts fragment composition remains authority with the additional RIGHT fragment
+- pure M6.31/M6.32 validator tests are unchanged
+
+Structural validation before package/docs sync:
+head 47e4daa8c406801c978f7826b1cece77a3795f64
+PR #48 CI run 32629372001
+build job 97169637487
+298/298 pass / 0 fail
+
+Historical baseline:
+M6.32 final suite: 294 tests
+M6.33 dedicated tests: +4
+M6.33 target: 298 tests
+
+Final validation policy:
+- package/docs changes require fresh exact-head CI
+- only final validated exact feature head may fast-forward main
+- PR synthetic merge tree must match final feature head tree
+- main must remain on M6.32 validated head b1eafe5f37e020b1f383e1357c0beca9786b8e7a until final fast-forward
+- main update must use force:false
