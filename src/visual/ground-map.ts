@@ -20,6 +20,8 @@ export interface GroundMapProfile {
   roadLeft: number;
   roadRight: number;
   shoulderWidth: number;
+  /** Optional source-coordinate road center. Default 0 keeps all pre-M6.22 authoring unchanged. */
+  roadCenterL?: number;
   /** Optional continuous road cross-section authority used by compiler bake and DEV fallback. */
   junction?: JunctionCrossSectionProfile;
   /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
@@ -49,17 +51,19 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile,
     const junctionColor = sampleJunctionGroundMap(s, l, profile.junction, checker);
     if (junctionColor !== null) return junctionColor;
   } else {
-    const abs = Math.abs(l);
+    const roadCenterL = profile.roadCenterL ?? 0;
+    const localL = l - roadCenterL;
+    const abs = Math.abs(localL);
     if (abs <= 0.07 && isDashOn(s)) return GROUND_COLORS.marking;
-    if (l >= -profile.roadLeft && l <= profile.roadRight) return asphaltColor(s);
-    const leftShoulder = l >= -profile.roadLeft - profile.shoulderWidth && l < -profile.roadLeft;
-    const rightShoulder = l > profile.roadRight && l <= profile.roadRight + profile.shoulderWidth;
+    if (localL >= -profile.roadLeft && localL <= profile.roadRight) return asphaltColor(s);
+    const leftShoulder = localL >= -profile.roadLeft - profile.shoulderWidth && localL < -profile.roadLeft;
+    const rightShoulder = localL > profile.roadRight && localL <= profile.roadRight + profile.shoulderWidth;
     if (leftShoulder || rightShoulder) return GROUND_COLORS.shoulder;
   }
 
   const logical = profile.logical?.sample(s);
-  if (logical) return sampleOuterMaterial(logical, l, checker);
-  if (cliffSection && l < 0) return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
+  if (logical) return sampleOuterMaterial(logical, l - (profile.roadCenterL ?? 0), checker);
+  if (cliffSection && l < (profile.roadCenterL ?? 0)) return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
 }
 
