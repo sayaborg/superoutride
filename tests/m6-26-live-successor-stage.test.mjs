@@ -87,9 +87,9 @@ function setup() {
 
 test('M6.26 live route is one fork followed by one successor stage on each selected side', () => {
   const { route } = setup();
-  assert.deepEqual(route.nodes.map((node) => node.id), ['STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'GOAL_L', 'GOAL_R']);
+  assert.deepEqual(route.stages.map((stage) => stage.id), ['STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'GOAL_L', 'GOAL_R']);
   assert.equal(route.choices.length, 4);
-  assert.equal(route.nodes.filter((node) => node.kind === 'TERMINAL').length, 2);
+  assert.equal(route.stages.filter((stage) => stage.kind === 'TERMINAL').length, 2);
 });
 
 test('M6.26 successor Guides share a validated D_cam overlap then become independent courses', () => {
