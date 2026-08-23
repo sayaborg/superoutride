@@ -1,0 +1,141 @@
+SUPER OUTRIDE M6.31 VALIDATION
+
+Milestone: Reusable Raster Successor Chain Authoring
+Package: super-outride-m6-31@0.6.31
+
+Purpose:
+- generalize M6.30 terminal promotion + next-successor wiring into an arbitrary-length linear chain compiler
+- preserve M6.29 Raster successor factory as structural geometry authority
+- derive stage rows, physical transition gates, physical handoff seams and final FINISH without duplicating chainage authoring
+- keep stage environment/runtime creation outside the chain compiler through an explicit callback
+- keep renderer, browser loop and vehicle physics unchanged
+
+Primary primitive:
+compileRasterSuccessorChain(source)
+
+Input authority:
+- sourceStageId
+- sourceRuntime
+- sourceStructural
+- ordered successor steps
+- finishGateId
+- gate halfWidth
+- createRuntime callback
+
+Each successor step declares:
+- stageId
+- packageId
+- choiceId
+- gateId
+- handoffId
+- RasterSuccessorAuthoring
+
+Derived output:
+- source stage row
+- generated stage rows
+- transition rows
+- handoff geometry rows embedded in declarative transitions
+- final finish row
+- structural successor list
+- runtime list
+
+Stage-kind rule:
+- source stage = STAGE
+- every generated stage except last = STAGE
+- final generated stage = TERMINAL
+- empty chains rejected
+
+Geometry derivation:
+For each generated successor:
+- physical transition gate = source GuideChart at successor.sourceTransitionS
+- physical handoff seam = source GuideChart at successor.sourceSeamS
+- final FINISH = final generated GuideChart at final successor.finishS
+
+Important correction found by initial CI:
+- first implementation imported a nonexistent RasterStageSuccessorAuthoring type
+- actual authority type is RasterSuccessorAuthoring
+- StageContinuationLink.sourceFrame is intentionally a generic GuideCoordinateSource, not guaranteed GuideChart
+- chain compiler now captures the concrete source GuideChart before generating each successor and derives physical gate/seam geometry from that chart
+- this is both type-correct and semantically correct because the transition/seam physically belongs to the stage being left
+
+Environment ownership:
+createRuntime(structural, packageId, stageId, stepIndex)
+- caller compiles ordinary runtime content
+- returned packageId must equal authored packageId
+- returned coordinateFrame must be exactly generated structural.chart
+- mismatch rejected before declarative Route DAG compilation
+
+Opaque repackaging:
+repackageGuideChartRuntime(runtime, packageId)
+- changes only package identity
+- preserves coordinateFrame, roadView, SurfaceMap, GroundMap and all other runtime content references
+- performs no coordinate or world-state transform
+
+M6.30 delegation:
+- M6.30 no longer imports createRasterStageSuccessor directly for its deep LEFT continuation
+- existing CONTENT_GOAL_L runtime is repackaged as CONTENT_STAGE_3_L
+- compileRasterSuccessorChain generates the new GOAL_L structural/runtime step
+- M6.28 compileDeclarativeLiveRoute still compiles the complete live DAG
+- live topology remains:
+              -> STAGE_2_L -> STAGE_3_L -> GOAL_L
+STAGE_1 -----<
+              -> STAGE_2_R -------------> GOAL_R
+
+Frozen geometry authority:
+- createRasterStageSuccessor remains structural successor factory
+- compileRasterCourse remains final Raster authority
+- absolute one-vertex Raster turn <=10 degrees
+- StageContinuationLink overlap validation unchanged
+- D_cam = 5m overlap requirement unchanged
+- no tolerance widening
+- no alternate road renderer
+- no route-specific renderer depth
+- no world teleport
+
+Frozen renderer authority:
+- one chainage -> one horizontal scanline
+- pseudo-depth = signed cyclic chainage difference only
+- no camera-space Z depth
+- no Euclidean renderer depth
+- no lateral depth correction
+- same d -> same scale
+- same d + same height -> same screen Y
+- Terrain + World Sprite shared far-to-near Painter
+- no z-buffer/polygon road/perspective-correct texture
+- transparency 0/1
+- camera roll 0
+
+Fork-stall regression retained:
+- real 60 Hz car physics
+- first visible LEFT fork
+- physical route selection
+- PENDING
+- seam COMMIT
+- camera rebase
+- actual child renderer
+- >=30 rendered child frames after COMMIT
+- no recovery at fork/handoff
+
+M6.31 dedicated regressions:
+1. two-step successor chain derives SOURCE/STAGE, MID/STAGE, GOAL/TERMINAL plus two transitions and final FINISH
+2. physical transition/handoff geometry is derived from generated continuation source chart
+3. empty chains, duplicate ids and runtime/chart mismatches are rejected
+4. chain helper is renderer/Route-DAG implementation/vehicle-physics independent and M6.30 delegates deep LEFT construction
+5. repackaging changes only opaque package identity
+
+Structural validation before package/docs sync:
+head 989a8d58606195e753891e891555ef3009831314
+CI run 32628625007
+289/289 pass / 0 fail
+
+Historical baseline:
+M6.30 final suite: 284 tests
+M6.31 dedicated tests: +5
+M6.31 target: 289 tests
+
+Final validation policy:
+- package/docs changes require a fresh exact-head CI run
+- only the final validated exact feature head may fast-forward main
+- PR synthetic merge tree must be identical to final validated feature head
+- main must remain at the M6.30 validated head until final fast-forward
+- main update must use force:false
