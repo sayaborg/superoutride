@@ -172,11 +172,30 @@ export interface TerrainVisualProfile {
   visual: CyclicVisualProfile;
 }
 
+export interface TerrainLineSourceFootprint {
+  /** Core §25 ordinary vertical source footprint for one output scanline. */
+  deltaS: number;
+  /** Core §64 clipped chainage interval represented by a collapsed row. */
+  deltaSCollapse: number;
+  /** max(deltaS, deltaSCollapse), authoritative for shared GroundMap LOD. */
+  deltaSEffective: number;
+  /** Exact one-output-pixel lateral footprint from the scanline affine mapping. */
+  deltaL: number;
+  collapsed: boolean;
+}
+
 export interface M3TerrainLine extends TerrainLine {
   groundBaseLeft: GroundBase;
   groundBaseRight: GroundBase;
   sectionName: string;
   renderHeight: number;
+  sourceFootprint: TerrainLineSourceFootprint;
+}
+
+interface VerticalFootprintSetup {
+  deltaS: number;
+  deltaSCollapse: number;
+  collapsed: boolean;
 }
 
 export function generateTerrainLines(
@@ -220,7 +239,14 @@ export function generateTerrainLines(
       const d = (d0 + d1) * 0.5;
       const y = Math.floor(aY);
       if (y >= 0 && y < profile.screenHeight) {
-        const line = createM3TerrainLine(guide, camera, profile, d, y);
+        const line = createM3TerrainLine(
+          guide,
+          camera,
+          profile,
+          d,
+          y,
+          { deltaS: 0, deltaSCollapse: intervalLength, collapsed: true },
+        );
         if (line) lines.push(line);
       }
     } else {
@@ -238,7 +264,15 @@ export function generateTerrainLines(
         const d = bY / denom;
         if (d < d0 - 1e-7 || d > d1 + 1e-7) continue;
         if (d < visible.dStart - 1e-7 || d > visible.dEnd + 1e-7) continue;
-        const line = createM3TerrainLine(guide, camera, profile, d, y);
+        const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
+        const line = createM3TerrainLine(
+          guide,
+          camera,
+          profile,
+          d,
+          y,
+          { deltaS, deltaSCollapse: 0, collapsed: false },
+        );
         if (line) lines.push(line);
       }
     }
@@ -251,12 +285,52 @@ export function generateTerrainLines(
   return lines;
 }
 
+/**
+ * Core §25: Delta s = |s(y+0.5)-s(y-0.5)|. For integer row y,
+ * those pixel boundaries are screen coordinates y and y+1.
+ * The footprint is clipped only by the current forward near/far interval.
+ */
+export function computeTerrainRowDeltaS(
+  row: number,
+  aY: number,
+  bY: number,
+  dMin: number,
+  dMax: number,
+): number {
+  if (!Number.isFinite(row) || !Number.isFinite(aY) || !Number.isFinite(bY)) {
+    throw new RangeError('terrain footprint inputs must be finite');
+  }
+  if (!(dMin > 0 && dMax > dMin)) throw new RangeError('terrain footprint requires 0 < dMin < dMax');
+  if (Math.abs(bY) < 1e-12) return 0;
+
+  const dTop = depthAtScreenBoundary(row, aY, bY, dMin, dMax);
+  const dBottom = depthAtScreenBoundary(row + 1, aY, bY, dMin, dMax);
+  return Math.abs(dTop - dBottom);
+}
+
+function depthAtScreenBoundary(
+  screenY: number,
+  aY: number,
+  bY: number,
+  dMin: number,
+  dMax: number,
+): number {
+  const denom = screenY - aY;
+  if (Math.abs(denom) < 1e-12) return dMax;
+  const d = bY / denom;
+  // Crossing the positive-depth asymptote means the footprint extends toward infinity;
+  // the renderer's actual source interval is clipped at dMax.
+  if (!(d > 0) || !Number.isFinite(d)) return dMax;
+  return Math.min(dMax, Math.max(dMin, d));
+}
+
 function createM3TerrainLine(
   guide: GuideCurve,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
   d: number,
   y: number,
+  verticalFootprint: VerticalFootprintSetup,
 ): M3TerrainLine | null {
   const sUnwrapped = camera.s + d;
   const s = wrapPositive(sUnwrapped, guide.length);
@@ -265,11 +339,14 @@ function createM3TerrainLine(
   const groundRight = rasterCourseToWorld(guide.raster, s, profile.groundRight);
   const projectedLeft = pseudoProject({ ...groundLeft, y: renderHeight }, camera);
   const projectedRight = pseudoProject({ ...groundRight, y: renderHeight }, camera);
-  if (!(projectedRight.x > projectedLeft.x + 1e-7)) return null;
+  const groundSpan = projectedRight.x - projectedLeft.x;
+  if (!(groundSpan > 1e-7)) return null;
 
   const section = profile.visual.sample(s);
   const xRoadL = lateralToScreenX(-profile.roadLeft, projectedLeft.x, projectedRight.x, profile.groundLeft, profile.groundRight);
   const xRoadR = lateralToScreenX(profile.roadRight, projectedLeft.x, projectedRight.x, profile.groundLeft, profile.groundRight);
+  const deltaL = (profile.groundLeft + profile.groundRight) / groundSpan;
+  const deltaSEffective = Math.max(verticalFootprint.deltaS, verticalFootprint.deltaSCollapse);
 
   return {
     d,
@@ -283,5 +360,12 @@ function createM3TerrainLine(
     groundBaseRight: section.groundBaseRight,
     sectionName: section.name,
     renderHeight,
+    sourceFootprint: {
+      deltaS: verticalFootprint.deltaS,
+      deltaSCollapse: verticalFootprint.deltaSCollapse,
+      deltaSEffective,
+      deltaL,
+      collapsed: verticalFootprint.collapsed,
+    },
   };
 }
