@@ -1,0 +1,72 @@
+SUPER OUTRIDE M5.5 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.5 TerrainLine Footprint Instrumentation
+
+Validated commit:
+  50405ae49ab75f14c5e64e27442124909cffbfab
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #3 M5.5 TerrainLine footprint instrumentation
+  Successful run ID: 32610964898
+  Build job ID: 97123868758
+  Result: success
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  PASS
+
+Regression result:
+  tests 84
+  pass 84
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+M5.5 added exact Road Generator / TerrainLine source-footprint telemetry:
+  Delta_s           = chainage represented by one scanline using y pixel boundaries
+  Delta_s_collapse  = clipped chainage interval represented by a collapsed thin span
+  Delta_s_eff       = max(Delta_s, Delta_s_collapse)
+  Delta_l           = one destination pixel of the existing horizontal affine mapping
+
+Compiler-side reduction reports:
+  lineCount
+  collapsedLineCount
+  maxDeltaS
+  maxDeltaSCollapse
+  maxDeltaSEffective
+  maxDeltaL
+  requiredChainageLevel
+  maxDiagnosticLateralLevel
+
+Observed debug-course sweep:
+  course positions sampled every 40 m
+  yaw offsets = -75, -40, 0, +40, +75 deg
+
+  lineCount                    = 13,827
+  collapsedLineCount           = 0
+  maxDeltaS                    = 93.6726586943434 m
+  maxDeltaSCollapse            = 0 m
+  maxDeltaSEffective           = 93.6726586943434 m
+  maxDeltaL                    = 24.055002333538965 m
+  observed required k_s        = 6
+  max diagnostic k_l           = 10
+
+Important interpretation:
+  k_s=6 is an observed debug-course requirement, NOT the final target-profile k_max.
+  The shared anisotropic pyramid remains chainage-authoritative. k_l is diagnostic only and must not raise the shared-pyramid level.
+  Final k_max requires an explicit compiler target envelope covering camera/pitch/height, grade, heading, d_min/d_max and thin-span collapse rules.
+
+One initial CI run failed because the expected value in the asymptote-clipping unit test was incorrect. The implementation and all other tests passed in that run. The test expectation was corrected without changing the implementation, and the subsequent full CI run passed 84/84.
+
+Renderer behavior:
+  no geometry change
+  no Painter-order change
+  no runtime baked-GroundMap switch yet
+  telemetry/analysis only
