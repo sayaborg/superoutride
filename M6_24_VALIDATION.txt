@@ -1,0 +1,29 @@
+SUPER OUTRIDE M6.24 VALIDATION
+
+Milestone: Reusable Stage Authoring / Compiler
+Package: super-outride-m6-24@0.6.24
+
+Required invariants:
+- physics remains world-space authority
+- no road-center snap
+- one chainage -> one scanline remains unchanged
+- pseudo-depth remains signed chainage difference only
+- no renderer LEFT/RIGHT special case
+- no camera-space Z or Euclidean depth
+- no visualScale
+- stage sprites are authored in local l
+- compiler alone performs local-l -> raster-source-l rebase
+- active package remains selected through activePackageId
+- handoff world pose is unchanged
+
+M6.24 regression focus:
+1. declarative child authoring contains only child-local lateral positions
+2. compiler rebases sprite lateral positions exactly once
+3. compiled packages preserve coast/mountain M6.23 identity
+4. height profile course length is derived from each active child Guide
+5. reusable compiler has no route-DAG or renderer-Core dependency
+
+CI authority:
+- merge only an exact feature head whose GitHub Actions PR workflow succeeds
+- synthetic PR merge tree must have zero file differences from the validated feature head
+- main update must be fast-forward with force=false
