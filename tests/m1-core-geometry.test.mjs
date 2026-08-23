@@ -164,6 +164,36 @@ test('raster compiler rejects a turn sharper than the Core 10-degree hard limit'
   ]), /10deg limit/);
 });
 
+test('raster fixed-l strip edges converge to the same miter point from both sides of every vertex', () => {
+  const course = createM1DebugGuide().raster;
+  const epsilonS = 1e-7;
+  for (let i = 0; i < course.vertices.length; i += 1) {
+    const sVertex = course.vertexS[i];
+    for (const l of [-12, -4.5, 0, 4.5, 12]) {
+      const before = rasterCourseToWorld(course, sVertex - epsilonS, l);
+      const at = rasterCourseToWorld(course, sVertex, l);
+      const after = rasterCourseToWorld(course, sVertex + epsilonS, l);
+      assert.ok(Math.hypot(before.x - at.x, before.z - at.z) < 2e-6);
+      assert.ok(Math.hypot(after.x - at.x, after.z - at.z) < 2e-6);
+    }
+  }
+});
+
+test('raster vertex miter is an exact unit-offset intersection and stays bounded by the 10-degree turn limit', () => {
+  const course = createM1DebugGuide().raster;
+  const maxMiterScale = 1 / Math.cos(deg(5));
+  for (let i = 0; i < course.vertices.length; i += 1) {
+    const incoming = course.segments[(i - 1 + course.segments.length) % course.segments.length].heading;
+    const outgoing = course.segments[i].heading;
+    const nIn = normalFromHeading(incoming);
+    const nOut = normalFromHeading(outgoing);
+    const m = course.vertexMiters[i];
+    near(m.x * nIn.x + m.z * nIn.z, 1, 1e-12);
+    near(m.x * nOut.x + m.z * nOut.z, 1, 1e-12);
+    assert.ok(Math.hypot(m.x, m.z) <= maxMiterScale + 1e-12);
+  }
+});
+
 test('Guide world-coordinate round trip remains continuous across the whole closed course', () => {
   const guide = createM1DebugGuide();
   const laterals = [-12, -6, 0, 6, 12];
