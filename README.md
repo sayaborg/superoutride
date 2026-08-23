@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.38 Declarative Fork-Stage Growth Plan
+# SUPER OUTRIDE — M6.39 Deep Route Browser-Order Integration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -61,7 +61,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.35 Second Live Physical Fork — complete
 - M6.36 Reusable Fork-Stage Route Authoring — complete
 - M6.37 Symmetric RIGHT Second Live Fork — complete
-- **M6.38 Declarative Fork-Stage Growth Plan — complete**
+- M6.38 Declarative Fork-Stage Growth Plan — complete
+- **M6.39 Deep Route Browser-Order Integration — complete**
 
 ## Run / test
 
@@ -79,7 +80,7 @@ Full regression:
 npm test
 ```
 
-M6.37 ended at **321 tests**. M6.38 adds six dedicated fork-growth equivalence regressions for a target of **327 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.38 ended at **327 tests**. M6.39 adds two deep browser-order route regressions for **329 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -142,7 +143,7 @@ There is no arbitrary `visualScale` multiplier. A future FOV change must move `D
 
 ## Current live point-to-point route
 
-M6.38 intentionally preserves the complete M6.37 topology and physical geometry:
+M6.39 preserves the M6.38 topology and physical geometry:
 
 ```text
 STAGE_1
@@ -154,7 +155,7 @@ STAGE_1
                                  └→ GOAL_RB
 ```
 
-Every visible fork is still one chainage-driven lateral cross-section. It is never rendered as two independent 3D roads.
+Every visible fork remains one chainage-driven lateral cross-section, never two independently projected roads.
 
 Route selection comes only from a validated world-space physical gate crossing. Steering direction, screen X and sprite overlap cannot select a branch. The grass median owns no gate and selects nothing.
 
@@ -169,9 +170,7 @@ physical route gate
 → COMMIT target chart/content
 ```
 
-World X/Y/Z, yaw and velocities are not transformed by COMMIT.
-
-Entering a terminal stage does not finish the run. Completion still requires a validated forward crossing of that terminal's physical FINISH gate.
+World X/Y/Z, yaw and velocities are not transformed by COMMIT. Entering a terminal stage does not finish the run; a validated forward crossing of that terminal's physical FINISH gate is still required.
 
 ## Second-fork metric authority
 
@@ -189,7 +188,7 @@ route gate          = s 195
 source seam minimum = s 235
 ```
 
-M6.34/M6.36 derive rather than duplicate:
+M6.34/M6.36 derive:
 
 ```text
 LEFT child center     = local l -7.5 m
@@ -198,11 +197,7 @@ child gate halfwidth  = 3.5 m
 stage ground envelope = +/-12 m
 ```
 
-The physical route gate, handoff seam and terminal FINISH width all derive from the authored child-road width.
-
 ## Reusable route/stage compiler chain
-
-Current route growth is intentionally layered:
 
 ```text
 M6.24 stage environment compiler
@@ -211,7 +206,6 @@ M6.29 Raster successor factory
 M6.31 Raster successor chain
 M6.32 declarative route-fragment composition
 M6.34 stage-local junction compiler
-M6.35 fork coordinate adapter
 M6.36 generic fork-stage route compiler
 M6.38 ordered fork-growth fold
 M6.28 final declarative live-route compiler
@@ -220,42 +214,34 @@ M6.27 stable browser-facing runtime entry
 
 The renderer is downstream of the selected runtime package and does not know route identities.
 
-### Stage environment authority
+### Stage-local coordinate authority
 
-Stage content is authored in its own local chart:
+A stage package owns a `GuideCoordinateFrame`. Its local `l=0` may correspond to a non-zero lateral origin in the underlying source Guide geometry.
 
-```text
-heightNodes
-visualSections
-sprites { s, local l, asset }
-Far Background
-optional terrain overrides
-```
-
-M6.24 performs the single source conversion for raster-attached sprites:
+Raster-attached content performs the single source conversion:
 
 ```text
 l_source = l_local + coordinateFrame.lateralOrigin
 ```
 
-It produces ordinary `HeightProfile`, `TerrainProfile`, `CourseSprite`s and `StageRuntimeContentPackage` objects.
+World physics remains authoritative; a coordinate-frame change only changes the road chart used to describe the same world pose.
 
 ### Successor geometry authority
 
-M6.29 creates an independent Raster/Guide successor while preserving an exact overlap around the handoff seam. Final geometry always flows through ordinary `compileRasterCourse()`, so the frozen <=10° Raster vertex rule remains the final authority.
+M6.29 creates an independent Raster/Guide successor while preserving exact overlap around the handoff seam. Final geometry always flows through `compileRasterCourse()`, so the frozen <=10° Raster vertex rule remains final authority.
 
-M6.25 validates that source and target charts describe the same physical road locus across `D_cam` overlap:
+M6.25 validates the source/target coordinate relation across `D_cam` overlap:
 
 ```text
 s_target = targetSeamS + (s_source - sourceSeamS)
 l_target = targetLocalL + (l_source - sourceLocalL)
 ```
 
-These are coordinate relations only; they do not transform vehicle world state.
+These relations never transform vehicle world state.
 
 ### Declarative route authority
 
-M6.28 compiles stage, transition and FINISH rows into:
+M6.28 produces the complete runtime bundle:
 
 ```text
 RouteDag
@@ -266,91 +252,73 @@ RouteStageHandoffManifest
 LiveRouteRuntimeAssembly
 ```
 
-M6.32 composes independently authored route fragments before this final compilation. Duplicate or conflicting identity is rejected rather than silently resolved.
+M6.32 composes route fragments before final compilation. M6.38 applies ordered terminal→fork growth steps through the unchanged M6.36 compiler, removing milestone-constructor nesting while preserving M6.37 behavior exactly.
 
-### Generic fork-stage authority
+## M6.39 deep browser-order proof
 
-M6.36 exposes:
-
-```text
-compileRasterForkStageRoute(authoring)
-```
-
-Given one existing terminal, it validates the source, promotes only opaque package identity, attaches the M6.34 stage-local junction, derives child centers and widths, creates both M6.29 Raster successors, validates caller-supplied package/chart ownership, derives transition gates/handoff seams/FINISH gates, and composes through M6.32.
-
-Branch authoring does **not** repeat `sourceLocalL`, `roadHalfWidth` or physical gate/seam centers.
-
-## M6.38 declarative fork-growth plan
-
-M6.38 adds one deliberately thin generic composition helper:
+M6.39 validates two opposite complete outcomes through the stable browser entry:
 
 ```text
-compileRasterForkGrowthPlan(upstream, steps)
+LEFT-A  → GOAL_LA
+RIGHT-B → GOAL_RB
 ```
 
-It owns only this operation:
+Each path keeps one cumulative RouteDag state, handoff state, objective state, runtime registry and camera rig while performing four physical transactions:
 
 ```text
-authoring = upstream
-for each ordered step:
-    compiled = compileRasterForkStageRoute({ ...step, upstream: authoring })
-    authoring = compiled.authoring
+ordinary M5 physics
+→ physical transition gate
+→ PENDING
+→ physical seam
+→ COMMIT
+→ vehicle.course rebase
+→ camera frame rebase
+→ active package render
 ```
 
-It does not calculate roads, junctions, branch centers, gates, seams or FINISH geometry. All of those remain M6.36 and lower-layer authority.
+Between completed handoffs only, the test fixture places the car 8 m before the actual authored physical gate. From that point through the seam there is no position rewrite. This deliberately validates the browser transaction without turning current `DEV_UNCALIBRATED` full-course AI behavior into a frozen requirement.
 
-The live route now starts directly from the M6.30 authoring and applies two data rows:
+For all eight COMMITs across LEFT-A and RIGHT-B, world x/y/z, yaw and velocity state are exact-compared immediately before and after COMMIT and must remain unchanged. Every local physical probe must stay supported without recovery and remain above 8 m/s at COMMIT.
+
+After the selected terminal's physical FINISH, physics, camera and renderer continue for another 30 frames. FINISH records the point-to-point result; it does not freeze the live loop.
+
+## Coordinate-aware rival driver
+
+The deep integration test exposed a real coordinate-boundary bug in the DEV rival controller.
+
+Previously:
 
 ```text
-M6.30 base authoring
-→ [GOAL_L → STAGE_4_L_FORK → GOAL_LA / GOAL_LB]
-→ [GOAL_R → STAGE_4_R_FORK → GOAL_RA / GOAL_RB]
-→ unchanged M6.28 final compiler
+sampleRivalDrivingInput(GuideCurve, car, targetL)
 ```
 
-This removes the live constructor nesting `M6.37 → M6.35 → M6.30`. M6.35 and M6.37 remain executable historical fixtures and their physical regressions stay green.
+A child stage could therefore lose its `GuideCoordinateFrame.lateralOrigin` while `car.course.l` remained stage-local. For the existing ±7.5 m child origins, local `l=0` could be steered toward the wrong world-space line.
 
-A zero-step growth plan is exact identity: it returns the same upstream authoring object and no compiled steps.
-
-## Exact behavior-preservation proof
-
-M6.38 does not merely compare stage counts with M6.37. Dedicated regressions compare the two complete runtime assemblies and prove exact preservation of:
-
-- RouteDag stage ids/kinds and transition topology;
-- stage→package bindings;
-- package→GuideChart identities;
-- every physical transition/FINISH gate id, owner, center, heading and half-width;
-- every physical handoff seam id, choice, target chart, center, heading and half-width.
-
-Thus M6.38 changes authoring composition, not live route behavior.
-
-The stable browser entry remains:
+M6.39 changes the API to:
 
 ```text
-createM627LiveRouteRuntime(...)
+sampleRivalDrivingInput(GuideCoordinateSource, car, targetL)
 ```
 
-Its dev-layer delegate now calls `createM638DeclarativeForkGrowthRuntime(...)`. `main.ts` and renderer Core remain unchanged and contain no second-fork topology identities.
+Lookahead now uses `guideCoordinateToWorld()`. Plain `GuideCurve` callers remain exactly compatible as zero-origin sources, while child/successor callers can preserve stage-local coordinates by passing the full frame.
+
+This is a gameplay/coordinate-boundary correction only; renderer projection and vehicle physics equations are unchanged.
 
 ## Validation status
 
-Structural M6.38 head before documentation synchronization:
+Structural implementation head before documentation synchronization:
 
 ```text
-c086ec6ed3dfb7f461e9b284284e8032b2b3fe48
-workflow 32634523257
-327 tests
-327 pass
+0c1865ff45fd3e527aeb8393ea156fbb128d3d23
+workflow 32656017720
+329 tests
+329 pass
 0 fail
 ```
 
-CI history before that green head:
+Earlier M6.39 CI failures were work-in-progress diagnostics. They first showed that a full-route autonomous run depended on uncalibrated AI/handling, then exposed the real stage-local lateral-origin mismatch. Those runs are not milestone validation.
 
-- initial candidate: TypeScript rejected a widened readonly branch array where M6.36 requires an exact readonly two-branch tuple; explicit tuple typing fixed it without behavior change;
-- tuple-fixed candidate: 323/327, with all six M6.38 regressions already green; only four historical static layering assertions still named the prior M6.37 stable-entry target;
-- those assertions were updated to the actual M6.38 layering while all historical runtime/geometry fixture assertions were preserved.
-
-The documentation-inclusive exact head must independently reproduce **327/327 / 0 fail** before main fast-forward.
+The documentation-inclusive exact head must independently reproduce **329/329 / 0 fail** before main fast-forward.
 
 ## Vehicle physics status
 
@@ -360,49 +328,32 @@ DEV_UNCALIBRATED
 
 Handling values remain replaceable scaffolding. Vehicle-to-vehicle collision remains deferred until final handling/body dynamics are established.
 
-## Primary route/stage files
+## Primary route/runtime files
 
 ```text
 src/core/course.ts
 src/core/guide-curve.ts
 src/core/guide-coordinate-frame.ts
-src/course/junction-cross-section.ts
-src/course/stage-road-view.ts
+src/gameplay/rival-driver.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
-src/gameplay/route-stage-content.ts
 src/gameplay/route-stage-handoff.ts
-src/physics/stage-junction-surface-map.ts
 src/runtime/stage-runtime-content.ts
-src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
-src/runtime/stage-junction-compiler.ts
-src/runtime/live-route-runtime.ts
 src/runtime/declarative-live-route.ts
 src/runtime/declarative-route-fragment.ts
 src/runtime/raster-stage-successor.ts
-src/runtime/raster-fork-successor.ts
 src/runtime/raster-fork-stage-route.ts
 src/runtime/raster-fork-growth-plan.ts
-src/runtime/raster-successor-chain.ts
-src/visual/stage-ground-map-view.ts
-src/dev/m6-22-child-stage-continuation.ts
-src/dev/m6-24-stage-authoring.ts
-src/dev/m6-24-live-runtime-content.ts
-src/dev/m6-26-live-successor-stage.ts
-src/dev/m6-26-live-runtime-content.ts
 src/dev/m6-27-live-route-runtime.ts
-src/dev/m6-28-declarative-live-route.ts
-src/dev/m6-30-third-live-successor.ts
-src/dev/m6-35-second-live-fork.ts
-src/dev/m6-37-symmetric-right-second-live-fork.ts
 src/dev/m6-38-declarative-fork-growth-plan.ts
 src/render/m5-renderer.ts
 src/main.ts
+tests/m6-39-deep-browser-order-integration.test.mjs
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/56_m6_38_declarative_fork_growth_plan.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/57_m6_39_deep_browser_order_integration.md`.
 
 ## Next
 
-**M6.39 — Deep Route Browser-Order Integration.** Route authoring is now sufficiently generic. The next useful step is not another abstraction: drive the actual 60 Hz browser update order through the deeper point-to-point route, including repeated physical route gates, PENDING/COMMIT handoffs, camera chart rebasing and renderer calls across a second fork. The regression must prove continuous rendering through the deep route without adding renderer-specific route logic.
+**M6.40 — Rival Live Route Traversal.** The player already traverses package/chart handoffs, while the current DEV rival remains deliberately fixed to the parent course domain and disappears after the player commits to child content. M6.39 makes the rival steering boundary coordinate-frame aware. The next useful step is to give the rival its own RouteDag/handoff/runtime state, drive a deterministic authored route through the same physical gate/seam machinery, and render it only when its active runtime package is compatible with the player's visible stage. This should reuse the existing world-physics vehicle, route runtime and ordinary sprite path rather than introduce rival-specific renderer topology.
