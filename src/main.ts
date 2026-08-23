@@ -11,7 +11,7 @@ import {
   createM622LivePointToPointGateSet,
   createM622RouteStageHandoffManifest,
 } from './dev/m6-22-child-stage-continuation.js';
-import { createM622LiveStageRuntimeRegistry } from './dev/m6-22-live-runtime-content.js';
+import { createM623LiveStageRuntimeRegistry } from './dev/m6-23-live-runtime-content.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import {
   createM5CameraRig,
@@ -173,7 +173,7 @@ const routeHandoffState = createRouteStageHandoffState(
   childCharts.parent,
   { x: vehicle.x, z: vehicle.z },
 );
-const stageRuntimeRegistry = createM622LiveStageRuntimeRegistry(
+const stageRuntimeRegistry = createM623LiveStageRuntimeRegistry(
   routeContent,
   stageContinuation,
   {
@@ -468,7 +468,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.22 TRUE CHILD STAGES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.23 CHILD STAGE SCENERY / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -492,12 +492,12 @@ function render(): void {
   ctx.fillText(
     runObjective.status === 'FINISHED'
       ? `POINT-TO-POINT FINISH: ${runObjective.finishId}`
-      : 'Physical fork → overlap → independent child Raster/Guide → child FINISH',
+      : 'Physical fork → child Guide → package-owned scenery → child FINISH',
     8,
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Child package owns Guide + road + SurfaceMap + GroundMap + Far Background', 8, 218);
+  ctx.fillText('Child package owns Guide + SurfaceMap + height/terrain + landmarks + Far Background', 8, 218);
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
