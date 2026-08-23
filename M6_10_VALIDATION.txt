@@ -1,0 +1,24 @@
+SUPER OUTRIDE M6.10 VALIDATION
+
+Milestone: generic validated run finish for routed point-to-point
+Validated implementation head: 88f193a91727f23d39db51dadc3bbe37c24681f9
+PR: #20
+GitHub Actions run: 32615768243
+Build job: 97136116042
+
+Result:
+171 tests
+171 pass
+0 fail
+
+Validated properties:
+- RunObjective now consumes a generic already-validated finish signal
+- existing closed-course FINISH adapts through CLOSED_RACE without breaking M6.7 callers
+- validated terminal Route DAG FINISH adapts through ROUTE_DAG
+- route finishes do not invent a closed-course numeric s_progress value
+- terminal route entry alone cannot manufacture a run finish
+- actual world route gate crossing -> DAG transition -> terminal physical FINISH -> POINT_TO_POINT completion works end to end
+- routed point-to-point completion does not require RaceProgressUpdate or lap semantics
+- point-to-point completion still occurs exactly once
+- no raw chainage, steering, screen position or sprite state can complete a run
+- vehicle physics and renderer were unchanged
