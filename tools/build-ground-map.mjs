@@ -6,6 +6,7 @@ import { deriveGroundMapTargetEnvelope } from '../dist/compiler/ground-map-targe
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 
 const cameraHeight = 2.469902425419539;
@@ -23,6 +24,7 @@ const groundProfile = {
   roadLeft: 4.5,
   roadRight: 4.5,
   shoulderWidth: 1,
+  junction: M6_13_JUNCTION,
   logical: compiledSurfaces.groundMap,
 };
 const density = deriveGroundMapDensity({
@@ -52,7 +54,7 @@ await Promise.all([
 ]);
 
 const chunkRefs = asset.metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);
-console.log('M5.7 BAKED GROUND MAP', JSON.stringify({
+console.log('M6.13 BAKED GROUND MAP', JSON.stringify({
   courseLength: asset.metadata.courseLength,
   baseLateralTexels: asset.metadata.levels[0].lateralTexels,
   baseChainageTexels: asset.metadata.levels[0].chainageTexels,
