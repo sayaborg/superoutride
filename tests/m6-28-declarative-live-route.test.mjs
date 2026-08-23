@@ -130,18 +130,21 @@ test('M6.28 target chart ids are derived from target stage runtime rather than r
 
 test('M6.28 keeps main stable and its declarative compiler remains underneath later live-route authoring', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [mainSource, entrySource, m630Source, m635Source, fragmentSource] = await Promise.all([
+  const [mainSource, entrySource, m630Source, m635Source, forkSource, fragmentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-27-live-route-runtime.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(mainSource, /createM627LiveRouteRuntime/);
   assert.doesNotMatch(mainSource, /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime/);
   assert.match(entrySource, /createM635SecondLiveForkRuntime/);
   assert.match(m635Source, /createM630ThirdLiveSuccessorAuthoring/);
-  assert.match(m635Source, /compileDeclarativeRouteFragments/);
+  assert.match(m635Source, /compileRasterForkStageRoute/);
+  assert.match(m635Source, /compileDeclarativeLiveRoute\s*\(/);
+  assert.match(forkSource, /composeDeclarativeLiveRouteAuthoring/);
   assert.match(m630Source, /composeDeclarativeLiveRouteAuthoring/);
   assert.match(m630Source, /compileDeclarativeLiveRoute\s*\(/);
   assert.match(fragmentSource, /compileDeclarativeLiveRoute\(composeDeclarativeLiveRouteAuthoring\(source\)\)/);
