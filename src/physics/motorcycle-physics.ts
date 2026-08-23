@@ -1,5 +1,9 @@
 import type { DrivingInput } from '../input/driving-input.js';
-import { guideCourseToWorld, locateWorldOnGuideLocal, type GuideCurve } from '../core/guide-curve.js';
+import {
+  guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateLocal,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
 import type { M5CarState } from './car-physics.js';
@@ -39,12 +43,12 @@ export interface M5BikeState extends M5CarState {
 }
 
 export function createM5Bike(
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   s = 45,
 ): M5BikeState {
-  const p = guideCourseToWorld(guide, s, 0);
+  const p = guideCoordinateToWorld(guide, s, 0);
   const surface = surfaces.sample(p.s, 0);
   const speed = 45;
   return {
@@ -69,7 +73,7 @@ export function createM5Bike(
 }
 
 export function updateM5Bike(
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   bike: M5BikeState,
@@ -135,7 +139,7 @@ export function updateM5Bike(
   bike.z += (cos * bike.longitudinalSpeed - sin * bike.lateralSpeed) * dt;
   bike.yaw = wrapAngle(bike.yaw + bike.yawRate * dt);
 
-  bike.course = locateWorldOnGuideLocal(
+  bike.course = locateWorldOnGuideCoordinateLocal(
     guide,
     { x: bike.x, z: bike.z },
     bike.course.segmentIndex,
