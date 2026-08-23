@@ -1,0 +1,52 @@
+SUPER OUTRIDE M6.41 — Shared Route Choice Authority
+
+Structural validated head before documentation synchronization:
+ab53555f389e7f5456b935abfff10b1f28cdb105
+
+GitHub Actions PR run:
+32672424569
+Build job:
+97275141305
+
+Result:
+343 tests
+343 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+M6.41 authority:
+- optional race/session shared branch-choice layer above independent actor route travelers
+- INDEPENDENT mode preserves M6.40 browser semantics
+- FIRST_PHYSICAL_CROSSING_LOCKS mode locks only real branching stages
+- deterministic one-successor stages remain per-actor route transactions and allocate no shared lock
+- first physical gate crossing is ordered by actual sub-tick gate intersection fraction u, not JavaScript actor update order
+- exact same-u ties use supplied existing race order only as deterministic final tie-break
+- multiple actors crossing the winning gate in the same tick are all accepted; sibling choice crossings are rejected
+- after a lock, physical route observation can be narrowed to the allowed authored choice without mutating the compiled gate set
+- current browser main does not enable shared locking yet
+
+Route-boundary observation addition:
+- RouteBoundaryObservation.crossingFraction: number | null
+- unique transition / finish / reverse crossing returns the geometric world-segment intersection fraction u
+- NONE / ambiguous forward crossing returns null
+- observeRouteBoundaryCrossing() accepts an optional allowedTransitionChoiceId; default null preserves every previous caller
+
+Dedicated M6.41 regressions:
+1. exact physical sub-tick crossing fraction is exposed
+2. INDEPENDENT preserves divergent actor branch choices
+3. earliest physical crossing wins independent of actor update order
+4. exact simultaneous crossing uses supplied race order only as final tie-break
+5. same winning-gate actors all pass while sibling choice is rejected
+6. existing lock narrows later physical gate observation
+7. deterministic continuation stages do not consume locks
+8. shared authority imports only the RouteDag gameplay layer
+
+Earlier M6.41 failed CI:
+- initial candidate: 342 / 343 pass
+- only failure was the dependency regression regex matching the ordinary English word "input" in a comment
+- corrected the regression to inspect import specifiers; no gameplay logic, requirement or dependency boundary was weakened
+
+Frozen renderer / physics authority remains unchanged.
+Final documentation-inclusive head must independently reproduce 343/343 before main fast-forward.
