@@ -2,13 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { createM5FarBackground } from '../dist/visual/far-background.js';
-import { createM5HeightProfile } from '../dist/course/height-profile.js';
-import { createM5TerrainProfile } from '../dist/course/terrain-profile.js';
-import { createM5WorldSprites } from '../dist/visual/m5-world-sprites.js';
+import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM630ThirdLiveSuccessorRuntime } from '../dist/dev/m6-30-third-live-successor.js';
+import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 import {
   composeDeclarativeLiveRouteAuthoring,
 } from '../dist/runtime/declarative-route-fragment.js';
@@ -22,6 +25,41 @@ const transition = (id, fromStageId, toStageId, gateId = `G_${id}`, handoffId = 
   gate: geometry(gateId),
   handoff: geometry(handoffId),
 });
+
+function parentShared(guide) {
+  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+  const heightProfile = createM3DebugHeightProfile(guide.length);
+  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const groundProfile = {
+    groundLeft: 12,
+    groundRight: 12,
+    roadLeft: 4.5,
+    roadRight: 4.5,
+    shoulderWidth: 1,
+    junction: M6_13_JUNCTION,
+    logical: compiled.groundMap,
+  };
+  return {
+    heightProfile,
+    surfaceMap,
+    groundProfile,
+    terrainProfile: {
+      screenHeight: 240,
+      dMin: 2.5,
+      dMax: 150,
+      groundLeft: 12,
+      groundRight: 12,
+      roadLeft: 4.5,
+      roadRight: 4.5,
+      height: heightProfile,
+      visual: visualProfile,
+      thinSpanScreenRows: 1,
+    },
+    selectFarBackground: () => createM3FarBackground(),
+    worldSprites: [],
+  };
+}
 
 test('M6.32 composes fragments by canonicalizing an identical shared stage exactly once', () => {
   const sharedRuntime = runtime('PKG_SHARED');
@@ -93,19 +131,11 @@ test('M6.32 rejects duplicate terminal FINISH ownership and a missing composed s
 
 test('M6.32 current live route is unchanged while M6.30 delegates fragment composition outside renderer Core', async () => {
   const guide = createM2StadiumGuide();
-  const spriteAssets = createM4SpriteAssets();
-  const parentContent = {
-    heightProfile: createM5HeightProfile(guide.length),
-    terrainProfile: createM5TerrainProfile(guide.length),
-    groundProfile: { left: { kind: 'COLOR', rgba: 0xff000000 }, right: { kind: 'COLOR', rgba: 0xff000000 } },
-    selectFarBackground: () => createM5FarBackground(),
-    worldSprites: createM5WorldSprites(guide),
-  };
-  const live = createM630ThirdLiveSuccessorRuntime(guide, parentContent, spriteAssets);
+  const live = createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createM4SpriteAssets());
   assert.deepEqual(live.route.stages.map((stage) => stage.id), [
     'STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'STAGE_3_L', 'GOAL_L', 'GOAL_R',
   ]);
-  assert.deepEqual(live.route.transitions.map((edge) => edge.id), [
+  assert.deepEqual(live.route.choices.map((edge) => edge.id), [
     'S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE',
   ]);
 
@@ -116,6 +146,7 @@ test('M6.32 current live route is unchanged while M6.30 delegates fragment compo
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
   ]);
   assert.doesNotMatch(composerSource, /render\/|car-physics|motorcycle-physics|src\/dev|\.\.\/dev\//);
+  assert.match(composerSource, /compileDeclarativeLiveRoute\(composeDeclarativeLiveRouteAuthoring\(source\)\)/);
   assert.match(m630Source, /compileDeclarativeRouteFragments/);
   assert.doesNotMatch(m630Source, /compileDeclarativeLiveRoute\s*\(/);
   assert.doesNotMatch(rendererSource, /DeclarativeRouteFragment|STAGE_3_L|S3L_CONTINUE/);
