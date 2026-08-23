@@ -1,0 +1,27 @@
+SUPER OUTRIDE M6.25 VALIDATION
+
+Milestone: Successor Stage Continuation Link
+Package: super-outride-m6-25@0.6.25
+
+Required invariants:
+- world pose remains authoritative and is never teleported by a link
+- source/target charts may use different local-l origins for the same physical road locus
+- overlap validation covers D_cam behind and ahead of the seam
+- chainage mapping is seam-relative only
+- lateral mapping preserves signed displacement from the linked road locus
+- no route-DAG selection inside the link compiler
+- no renderer or vehicle-physics dependency
+- all frozen pseudo-3D renderer invariants remain unchanged
+
+Regression focus:
+1. existing LEFT parent->child overlap compiles through the generic primitive
+2. existing RIGHT parent->child overlap compiles through the generic primitive
+3. chainage mapping preserves relative seam offset
+4. lateral mapping preserves relative road-center displacement
+5. mismatched successor geometry is rejected
+6. primitive contains no route/renderer/vehicle-physics dependency
+
+CI authority:
+- exact feature head must pass GitHub Actions
+- PR synthetic merge tree must differ by zero files from the validated feature head
+- main update must be fast-forward with force=false
