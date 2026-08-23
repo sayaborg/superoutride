@@ -4,10 +4,6 @@ import {
   type RouteDag,
   type ValidatedRouteBoundary,
 } from './route-dag.js';
-import type {
-  RouteBoundaryGateSet,
-  RouteTransitionGate,
-} from './route-boundary-gates.js';
 
 const EPSILON = 1e-9;
 
@@ -186,30 +182,20 @@ export function arbitrateSharedRouteChoiceCandidates(
 }
 
 /**
- * Gate-set view for a trailing actor after a branch has already been locked.
+ * Return the only legal transition choice for this stage after a shared lock exists.
+ * Null means all ordinary authored choices remain eligible for physical observation.
  *
- * The physical sibling gate remains authored content, but it is no longer a legal route gate for
- * this race session. Filtering before geometric observation also prevents a large physics step
- * from becoming spuriously ambiguous by intersecting both the locked and forbidden sibling gate.
+ * The gate set itself is never modified: race/session policy only narrows observation candidates.
  */
-export function routeBoundaryGateViewForSharedChoice(
+export function sharedRouteAllowedTransitionChoiceId(
   route: RouteDag,
   state: SharedRouteChoiceState,
   activeStageId: string,
-  gateSet: RouteBoundaryGateSet,
-): RouteBoundaryGateSet {
-  if (state.mode === 'INDEPENDENT') return gateSet;
+): string | null {
+  if (state.mode === 'INDEPENDENT') return null;
   const stage = getRouteStage(route, activeStageId);
-  if (stage.kind !== 'STAGE' || stage.outgoingChoiceIds.length <= 1) return gateSet;
-  const lock = getSharedRouteChoiceLock(state, activeStageId);
-  if (lock === null) return gateSet;
-
-  const gates = gateSet.gates.filter((gate) => {
-    if (gate.kind !== 'TRANSITION') return true;
-    const choice = getRouteChoice(route, gate.choiceId);
-    return choice.fromStageId !== activeStageId || gate.choiceId === lock.choiceId;
-  });
-  return Object.freeze({ gates: Object.freeze(gates) });
+  if (stage.kind !== 'STAGE' || stage.outgoingChoiceIds.length <= 1) return null;
+  return getSharedRouteChoiceLock(state, activeStageId)?.choiceId ?? null;
 }
 
 export function sharedRouteChoiceAllowsBoundary(
