@@ -22,6 +22,8 @@ export interface GroundMapProfile {
   shoulderWidth: number;
   /** Optional source-coordinate road center. Default 0 keeps all pre-M6.22 authoring unchanged. */
   roadCenterL?: number;
+  /** Optional source chainage phase. Used when a stage-local s ruler is rebased onto reusable visual authoring. */
+  chainageOffsetS?: number;
   /** Optional continuous road cross-section authority used by compiler bake and DEV fallback. */
   junction?: JunctionCrossSectionProfile;
   /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
@@ -37,7 +39,8 @@ export function sampleGroundMapRuntime(
   profile: GroundMapProfile,
   cliffSection = false,
 ): BakedGroundMapSample {
-  if (profile.baked) return profile.baked.sample(s, l, deltaSEffective);
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
+  if (profile.baked) return profile.baked.sample(sourceS, l, deltaSEffective);
   return {
     color: sampleGroundMap(s, l, profile, cliffSection),
     level: 0,
@@ -46,22 +49,23 @@ export function sampleGroundMapRuntime(
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
-  const checker = (Math.floor(s / 3) + Math.floor(Math.abs(l) / 2)) & 1;
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
+  const checker = (Math.floor(sourceS / 3) + Math.floor(Math.abs(l) / 2)) & 1;
   if (profile.junction) {
-    const junctionColor = sampleJunctionGroundMap(s, l, profile.junction, checker);
+    const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, checker);
     if (junctionColor !== null) return junctionColor;
   } else {
     const roadCenterL = profile.roadCenterL ?? 0;
     const localL = l - roadCenterL;
     const abs = Math.abs(localL);
-    if (abs <= 0.07 && isDashOn(s)) return GROUND_COLORS.marking;
-    if (localL >= -profile.roadLeft && localL <= profile.roadRight) return asphaltColor(s);
+    if (abs <= 0.07 && isDashOn(sourceS)) return GROUND_COLORS.marking;
+    if (localL >= -profile.roadLeft && localL <= profile.roadRight) return asphaltColor(sourceS);
     const leftShoulder = localL >= -profile.roadLeft - profile.shoulderWidth && localL < -profile.roadLeft;
     const rightShoulder = localL > profile.roadRight && localL <= profile.roadRight + profile.shoulderWidth;
     if (leftShoulder || rightShoulder) return GROUND_COLORS.shoulder;
   }
 
-  const logical = profile.logical?.sample(s);
+  const logical = profile.logical?.sample(sourceS);
   if (logical) return sampleOuterMaterial(logical, l - (profile.roadCenterL ?? 0), checker);
   if (cliffSection && l < (profile.roadCenterL ?? 0)) return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
