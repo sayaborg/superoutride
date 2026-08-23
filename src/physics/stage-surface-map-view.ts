@@ -6,6 +6,7 @@ import {
 import {
   SURFACE_MATERIALS,
   type CyclicSurfaceMap,
+  type SurfaceMapReader,
   type SurfaceSample,
 } from './surface-map.js';
 
@@ -16,7 +17,7 @@ import {
  * GroundMap view. SHOULDER is local stage authority, so a former median-facing edge becomes a normal
  * supported shoulder after handoff. Anything outside the committed stage corridor is physically VOID.
  */
-export class StageSurfaceMapView {
+export class StageSurfaceMapView implements SurfaceMapReader {
   constructor(
     readonly source: CyclicSurfaceMap,
     readonly roadView: StageRoadView,
