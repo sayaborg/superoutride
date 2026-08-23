@@ -111,7 +111,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
   let recoveryCountAtChoice = 0;
   let maxParentS = car.course.s;
   let renderCountAfterCommit = 0;
-  let initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
+  const initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
   let camera = updateM5Camera(cameraRig, initialRuntime.coordinateFrame, initialRuntime.heightProfile, car, CAMERA_PROFILE, DT);
 
   for (let tick = 0; tick < 900; tick += 1) {
@@ -181,20 +181,22 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
 
     const runtimeAfterTick = resolveActiveStageRuntimeContent(live.registry, handoffState);
     camera = updateM5Camera(cameraRig, runtimeAfterTick.coordinateFrame, runtimeAfterTick.heightProfile, car, CAMERA_PROFILE, DT);
-    renderM5Driving(
-      framebuffer,
-      runtimeAfterTick.selectFarBackground(camera.s),
-      guideCoordinateCurve(runtimeAfterTick.coordinateFrame),
-      camera,
-      car,
-      runtimeAfterTick.terrainProfile,
-      runtimeAfterTick.groundProfile,
-      runtimeAfterTick.worldSprites,
-      assets,
-      'car',
-      runtimeAfterTick.roadView ?? undefined,
-    );
-    if (sawCommit) renderCountAfterCommit += 1;
+    if (sawCommit) {
+      renderM5Driving(
+        framebuffer,
+        runtimeAfterTick.selectFarBackground(camera.s),
+        guideCoordinateCurve(runtimeAfterTick.coordinateFrame),
+        camera,
+        car,
+        runtimeAfterTick.terrainProfile,
+        runtimeAfterTick.groundProfile,
+        runtimeAfterTick.worldSprites,
+        assets,
+        'car',
+        runtimeAfterTick.roadView ?? undefined,
+      );
+      renderCountAfterCommit += 1;
+    }
     if (sawCommit && car.course.s > 80 && renderCountAfterCommit >= 30) break;
   }
 
