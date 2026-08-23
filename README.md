@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.31 Reusable Raster Successor Chain Authoring
+# SUPER OUTRIDE — M6.32 Declarative Route Fragment Composition
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -54,7 +54,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.28 Declarative Live Route Compilation — complete
 - M6.29 Reusable Raster Stage Successor Factory — complete
 - M6.30 Third Live Successor Stage — complete
-- **M6.31 Reusable Raster Successor Chain Authoring — complete**
+- M6.31 Reusable Raster Successor Chain Authoring — complete
+- **M6.32 Declarative Route Fragment Composition — complete**
 
 ## Run / test
 
@@ -72,7 +73,7 @@ Full regression:
 npm test
 ```
 
-M6.30 ended at **284 tests**. M6.31 adds five dedicated successor-chain regressions for a target of **289 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.31 ended at **289 tests**. M6.32 adds five dedicated route-fragment regressions for a target of **294 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -219,7 +220,7 @@ The successor Guide is independent after the shared handoff overlap, but the Cor
 absolute Raster turn at one vertex <= 10°
 ```
 
-M6.26 deliberately does **not** relax this constraint. The final construction reuses an already valid child Raster as the structural base, copies the overlap exactly, then applies a smooth lateral deformation only over a safe low-curvature run. Vertices near the Core turn limit are left untouched, and `compileRasterCourse()` remains the final authority.
+M6.26 deliberately does **not** relax this constraint. The construction reuses an already valid child Raster as the structural base, copies the overlap exactly, then applies a smooth lateral deformation only over a safe low-curvature run. Vertices near the Core turn limit are left untouched, and `compileRasterCourse()` remains the final authority.
 
 ## M6.27 live route runtime assembly
 
@@ -263,11 +264,11 @@ DeclarativeLiveRouteAuthoring
 → LiveRouteRuntimeAssembly
 ```
 
-M6.28 therefore reduces duplicated route authoring without weakening any lower-level check.
+M6.28 remains the downstream route compiler underneath later authoring layers.
 
 ## M6.29 reusable Raster stage successor
 
-The Raster/Guide construction algorithm used by the M6.26 successor stages lives in the generic runtime factory:
+The Raster/Guide construction algorithm lives in the generic runtime factory:
 
 ```text
 createRasterStageSuccessor(source, authoring)
@@ -292,7 +293,7 @@ targetSeamS
 finishS
 ```
 
-GroundMap sampling width is an explicit authoring value rather than a hardcoded current-course constant. The generic factory imports no RouteDag, route gates, renderer, camera, car physics, motorcycle physics, or milestone implementation.
+GroundMap sampling width is explicit authoring. The generic factory imports no RouteDag, route gates, renderer, camera, car physics, motorcycle physics, or milestone implementation.
 
 ## First-fork render continuity fix
 
@@ -310,33 +311,17 @@ A permanent regression drives an actual car through the visible LEFT fork using 
 
 ## M6.30 third live successor
 
-M6.30 applies the M6.29 factory recursively to the actual live route.
+M6.30 made the LEFT route one stage deeper than RIGHT. The old LEFT terminal runtime geometry was promoted from `CONTENT_GOAL_L` to `CONTENT_STAGE_3_L`, and a new independent `CONTENT_GOAL_L` was generated from it.
 
-The old LEFT terminal runtime geometry is retained and promoted from:
-
-```text
-CONTENT_GOAL_L
-```
-
-to:
-
-```text
-CONTENT_STAGE_3_L
-```
-
-A new independent `CONTENT_GOAL_L` is generated from that promoted stage. Its environment is compiled through the existing M6.24 stage authoring compiler, while route topology is compiled through the existing M6.28 declarative compiler.
-
-This proves that route depth can differ between branches without changing `main.ts`, the simulation loop or renderer Core. `main.ts` still calls only the stable browser entry:
+This proved that route depth can differ between branches without changing `main.ts`, the simulation loop or renderer Core. `main.ts` still calls only the stable browser entry:
 
 ```text
 createM627LiveRouteRuntime(...)
 ```
 
-The M6.30 layer contains the new topology data; the browser and renderer do not contain `STAGE_3_L`, `S3L_CONTINUE`, LEFT/RIGHT depth rules, or another road rendering path.
-
 ## M6.31 reusable Raster successor chain
 
-M6.31 generalizes the repeated M6.30 continuation pattern into:
+M6.31 generalizes repeated continuation into:
 
 ```text
 compileRasterSuccessorChain(source)
@@ -353,30 +338,60 @@ current structural source
 → next source
 ```
 
-Only the final generated stage is marked `TERMINAL`; all earlier generated stages remain ordinary `STAGE` nodes. The final physical FINISH is derived from the final generated GuideChart and `finishS`.
+Only the final generated stage is `TERMINAL`; all earlier generated stages remain ordinary `STAGE` nodes. Final FINISH is derived from the final generated GuideChart and `finishS`.
 
-Transition and handoff geometry are derived from the concrete **source GuideChart active before each successor is generated**:
-
-```text
-sourceTransitionS -> physical transition gate
-sourceSeamS       -> physical handoff seam
-```
-
-The chain compiler therefore does not duplicate chainage positions and does not inspect renderer state.
-
-Environment/runtime content remains a caller responsibility through:
+Transition and handoff geometry are derived from the concrete source GuideChart active before each successor is generated:
 
 ```text
-createRuntime(structural, packageId, stageId, stepIndex)
+sourceTransitionS → physical transition gate
+sourceSeamS       → physical handoff seam
 ```
 
 The callback must return the exact generated GuideChart as its coordinate frame. Package/chart mismatches are rejected before declarative Route DAG compilation.
 
-M6.31 also adds `repackageGuideChartRuntime()`, used when an already validated terminal runtime is promoted into an intermediate stage. This changes only its opaque package identity and preserves all owned geometry/content object references.
+`repackageGuideChartRuntime()` changes only opaque package identity when a validated terminal runtime is promoted to an intermediate stage; it performs no coordinate transformation.
 
-M6.30 now delegates its deep LEFT continuation to the M6.31 chain compiler and no longer calls `createRasterStageSuccessor()` directly for that step. The current live route is unchanged; M6.31 is an authoring generalization rather than a new route-depth milestone.
+A dedicated two-step regression proves that the helper is genuinely recursive.
 
-A dedicated two-step regression proves the helper is genuinely recursive: one source produces an intermediate stage and then a distinct terminal successor with two independently generated charts.
+## M6.32 declarative route fragments
+
+M6.32 composes independently authored pieces before passing them to the unchanged M6.28 compiler:
+
+```text
+DeclarativeRouteFragment[]
+→ composeDeclarativeLiveRouteAuthoring()
+→ compileDeclarativeLiveRoute()
+→ LiveRouteRuntimeAssembly
+```
+
+A fragment contains only ordinary declarative rows:
+
+```text
+stages?
+transitions?
+finishes?
+```
+
+A repeated stage id may be canonicalized only when it has the same `RouteStageKind` and references the exact same runtime object. Conflicting definitions are rejected rather than silently choosing one fragment.
+
+Stage rows are the only mergeable identity. Transition ids and all physical transition-gate, handoff-seam and FINISH-gate ids must remain globally unique. A terminal stage may own only one FINISH row.
+
+The current live topology is now assembled from four real fragments:
+
+```text
+root fork
++ LEFT bridge
++ M6.31 LEFT successor-chain fragment
++ RIGHT terminal fragment
+```
+
+The shared `STAGE_2_L`, `STAGE_3_L` and `STAGE_2_R` rows are intentionally repeated by exact object identity, so the real browser-facing route exercises the composition rule.
+
+M6.32 only canonicalizes joins and detects cross-fragment identity collisions. Final cycle/reachability, package binding, runtime registry, physical gate and handoff checks remain M6.28 and the existing lower-level validators.
+
+While composing the route, M6.30 transition/handoff helpers were also made explicit about the concrete source GuideChart. Physical transition/seam geometry belongs to the stage being left; generic `StageContinuationLink.sourceFrame` is not assumed to be a GuideChart.
+
+No fragment/topology logic is imported by `main.ts` or renderer Core.
 
 ## FINISH authority
 
@@ -406,6 +421,7 @@ src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
 src/runtime/live-route-runtime.ts
 src/runtime/declarative-live-route.ts
+src/runtime/declarative-route-fragment.ts
 src/runtime/raster-stage-successor.ts
 src/runtime/raster-successor-chain.ts
 src/dev/m6-22-child-stage-continuation.ts
@@ -420,8 +436,8 @@ src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/49_m6_31_successor_chain_authoring.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/50_m6_32_route_fragment_composition.md`.
 
 ## Next
 
-M6.31 can compile arbitrary linear successor depth. The next architectural proof should compose multiple successor-chain fragments with explicit fork/junction transitions into higher-level branch authoring, while still emitting the established M6.28 declarative Route DAG rows and keeping exactly one active Raster road domain at a time.
+M6.31 provides arbitrary linear successor depth and M6.32 safely composes branch fragments. The next concrete proof is to extend the currently shorter RIGHT route by one independent successor using the same chain + fragment primitives, keeping the browser loop and renderer completely unchanged.
