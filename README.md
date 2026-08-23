@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.18 Stage-local Road View
+# SUPER OUTRIDE — M6.19 Stage Runtime Content Registry
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -41,7 +41,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the 
 - M6.15 Visible World-space Route Gates — complete
 - M6.16 Child Guide Chart Handoff — complete
 - M6.17 Deferred Stage Handoff Transaction — complete
-- **M6.18 Stage-local Single-road View — complete**
+- M6.18 Stage-local Single-road View — complete
+- **M6.19 Stage Runtime Content Registry — complete**
 
 ## Run / test
 
@@ -59,11 +60,11 @@ Full regression:
 npm test
 ```
 
-Current verified result:
+Current verified implementation result:
 
 ```text
-218 tests
-218 pass
+224 tests
+224 pass
 0 fail
 ```
 
@@ -145,11 +146,11 @@ binary size          20,220,870 bytes
 raw RGBA pyramid     71,902,320 bytes
 ```
 
-M5.8/M5.9 content-validation budget keeps explicit terrain/sprite workload bounds. M6 work does not replace the Painter or create a second depth road path.
+M5.8/M5.9 content-validation budget keeps explicit terrain/sprite workload bounds. M6 work does not replace the Painter or create a second depth-road path.
 
 ## Route / stage architecture
 
-The gameplay-only route DAG is:
+The gameplay-only DEV route DAG is:
 
 ```text
                  ┌─ STAGE_2_L ─┬─ GOAL_LL
@@ -176,6 +177,8 @@ Route DAG transition
 
 Steering, screen X, raw chainage and sprite overlap cannot choose a route.
 
+The closed stadium is a validation fixture, not a product lap-race requirement. Point-to-point completion and future branching remain separate from repeated DEV course-boundary timing.
+
 ## M6.12–M6.15 visible branch
 
 The visible fork is authored as one chainage-driven lateral cross-section, not two 3D roads.
@@ -192,7 +195,7 @@ M6.14 makes fixed-l raster strips meet at exact offset-line miter intersections,
 
 M6.15 places the actual route gates on the two visible separated asphalt roads. Crossing the median chooses nothing.
 
-## M6.16–M6.17 chart and handoff
+## M6.16–M6.17 chart and deferred handoff
 
 A child road can call its own center `l=0` without changing world state:
 
@@ -212,18 +215,18 @@ LEFT / RIGHT validated
     ↓
 PENDING
     ↓
-authored overlap / occlusion interval
+authored overlap
     ↓
 world-space handoff seam
     ↓
 atomic chart + content-reference commit
 ```
 
-This prevents an immediate visual cut at the choice point.
+This prevents an immediate visual/content cut at the branch-choice point.
 
 ## M6.18 stage-local single-road view
 
-A committed child can now be expressed as one self-contained road:
+A committed child can be expressed as one self-contained road:
 
 ```text
 OUTSIDE | 1 m SHOULDER | 7 m ASPHALT | 1 m SHOULDER | OUTSIDE
@@ -254,7 +257,61 @@ player scale
 
 Only horizontal endpoints / local lateral samples change; `Delta_l` is recomputed from the new span.
 
-The current closed stadium deliberately reuses the same fork on a later DEV lap to exercise a second DAG choice. M6.18 therefore does not add a lap-specific hack that permanently applies the child view to that repeated fixture. A true child runtime package/continuation is the next step.
+## M6.19 stage runtime content registry
+
+M6.11's opaque package reference now has a concrete runtime-resolution boundary without contaminating the Route DAG with renderer or physics types.
+
+```text
+RouteStageContentManifest
+       packageId only
+            ↓
+StageRuntimeContentRegistry
+            ↓
+StageRuntimeContentPackage
+  ├─ Guide coordinate frame
+  ├─ StageRoadView
+  ├─ SurfaceMapReader
+  ├─ Height / Terrain / Ground profiles
+  ├─ Far Background selector
+  └─ stage world sprites
+```
+
+The runtime-selection authority is **not** `RouteDagState.activeStageId`. It is the M6.17 handoff state's `activePackageId`.
+
+```text
+route gate accepted
+RouteDag = STAGE_2_L
+Handoff = PENDING
+activePackageId = CONTENT_STAGE_1
+        ↓
+validated handoff seam
+        ↓
+COMMITTED
+activePackageId = CONTENT_STAGE_2_L
+```
+
+Therefore route choice can be known while the old overlap content remains active, and concrete runtime content changes only at the authored seam.
+
+Core now exposes a minimal `GuideCoordinateSource = GuideCurve | GuideCoordinateFrame`. A normal GuideCurve remains a zero-origin frame, while a child GuideChart can make the selected road center local `l=0` without changing world X/Z. Physics, camera and recovery can consume the same child coordinate frame.
+
+Vehicle physics now requires only the read-only SurfaceMap contract:
+
+```text
+sample(s,l) → SurfaceSample
+```
+
+Both the parent `CyclicSurfaceMap` and child `StageSurfaceMapView` satisfy it; no handling equation or grip value changed in M6.19.
+
+The runtime compiler enforces:
+
+```text
+coordinateFrame.lateralOrigin
+== roadView.sourceLateralOrigin
+```
+
+so physics/camera local `l` and renderer local `l` cannot silently disagree.
+
+The current closed DEV stadium intentionally reuses the same physical fork on a later validation pass. M6.19 therefore proves the complete runtime-package boundary but does **not** permanently install a child package into `main.ts`; doing so would hide the reused second fork and would force a lap-specific reset hack into product architecture.
 
 ## Vehicle physics status
 
@@ -269,20 +326,24 @@ Vehicle-to-vehicle collision remains deferred until handling/body dynamics are r
 ## Primary route/stage files
 
 ```text
+src/core/guide-coordinate-frame.ts
 src/course/junction-cross-section.ts
 src/course/stage-road-view.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
 src/gameplay/route-stage-content.ts
 src/gameplay/route-stage-handoff.ts
+src/runtime/stage-runtime-content.ts
+src/dev/m6-19-stage-runtime-content.ts
 src/road/stage-terrain-view.ts
 src/visual/stage-ground-map-view.ts
 src/physics/stage-surface-map-view.ts
+src/physics/surface-map.ts
 src/render/m5-renderer.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/36_m6_18_stage_local_road_view.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/37_m6_19_stage_runtime_content.md`.
 
 ## Next
 
-Build the **stage runtime content package** that binds a committed Route DAG stage to its Guide/chart, StageRoadView, visual source, SurfaceMap view and stage world-sprite set. Then author a genuine child continuation / next junction so the M6.17 handoff can drive the live renderer and physics without relying on the closed DEV course repeating the same parent fork.
+Author a **genuine non-reused child-stage continuation**. Each committed child package must remain a self-contained road and, where appropriate, contain its own later fork or terminal continuation. Once that content exists, wire M6.19's `activePackageId` resolver into live physics / camera / renderer without any DEV-lap reset or repeated-parent-fork hack.
