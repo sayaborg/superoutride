@@ -54,14 +54,16 @@ function setup() {
   );
 }
 
-test('M6.27 assembles the complete M6.26 live route behind one browser-facing bundle', () => {
+test('M6.27 browser-facing bundle remains complete as later milestones deepen the live route', () => {
   const live = setup();
-  assert.equal(live.route.stages.length, 5);
-  assert.equal(live.route.choices.length, 4);
-  assert.equal(live.charts.length, 5);
-  assert.equal(live.registry.packages.length, 5);
-  assert.equal(live.handoffs.seams.length, 4);
-  assert.equal(live.gates.gates.filter((gate) => gate.kind === 'TRANSITION').length, 4);
+  assert.ok(live.route.stages.length >= 5);
+  assert.equal(live.route.choices.length, live.handoffs.seams.length);
+  assert.equal(live.charts.length, live.registry.packages.length);
+  assert.equal(live.content.bindings.length, live.route.stages.length);
+  assert.equal(
+    live.gates.gates.filter((gate) => gate.kind === 'TRANSITION').length,
+    live.route.choices.length,
+  );
   assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, 2);
 });
 
@@ -88,12 +90,13 @@ test('M6.27 assembly compiler rejects a start package/chart mismatch before simu
   );
 });
 
-test('M6.27 browser main consumes one assembly and no longer constructs M6.26 route pieces', async () => {
+test('M6.27 browser main consumes one assembly and no longer constructs route pieces', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(source, /createM627LiveRouteRuntime/);
   assert.match(source, /const liveRoute = createM627LiveRouteRuntime/);
   assert.doesNotMatch(source, /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveHandoffManifest|createM626LiveStageRuntimeRegistry/);
+  assert.doesNotMatch(source, /createM630ThirdLiveSuccessorRuntime|STAGE_3_L|S3L_CONTINUE/);
 });
 
 test('M6.27 generic assembly contains no renderer, camera or vehicle-physics dependency', async () => {
