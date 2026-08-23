@@ -2,6 +2,7 @@ import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
   guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateGlobal,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { sampleGuideCurve } from '../core/guide-curve.js';
@@ -62,8 +63,8 @@ export function resetM5CameraRig(rig: M5CameraRig): void {
 }
 
 /**
- * Re-express the existing camera lateral coordinate in a new Guide frame without moving the
- * camera in world XZ. Yaw and vertical filtering state remain continuous.
+ * Re-express the existing camera lateral coordinate in a new parallel Guide frame without moving
+ * the camera in world XZ. Yaw and vertical filtering state remain continuous.
  */
 export function rebaseM5CameraRigCoordinateFrame(
   rig: M5CameraRig,
@@ -73,6 +74,21 @@ export function rebaseM5CameraRigCoordinateFrame(
   if (!rig.initialized) return;
   const worldLateral = rig.lateral + guideCoordinateLateralOrigin(previous);
   rig.lateral = worldLateral - guideCoordinateLateralOrigin(next);
+}
+
+/**
+ * Re-express an initialized camera in a genuinely different Guide geometry from its authoritative
+ * world XZ position. This is the M6.22 stage-continuation primitive: only the camera's local road
+ * coordinate changes; yaw and vertical filter state are untouched.
+ */
+export function rebaseM5CameraRigWorldPosition(
+  rig: M5CameraRig,
+  next: GuideCoordinateSource,
+  world: { readonly x: number; readonly z: number },
+): void {
+  if (!rig.initialized) return;
+  const local = locateWorldOnGuideCoordinateGlobal(next, world, false);
+  rig.lateral = local.l;
 }
 
 /** Core §§34-39 camera rules, with M5 DEV LPF parameters. */
