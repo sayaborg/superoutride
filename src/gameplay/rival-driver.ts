@@ -1,7 +1,7 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
-import type { M5CarState } from '../physics/car-physics.js';
+import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 
 const G = 9.80665;
 const STEERING_LOOKAHEAD_METERS = 24;
@@ -19,13 +19,12 @@ const SPEED_DEADBAND_MPS = 1;
  * It produces only canonical DrivingInput. It never writes world position, yaw, course.s/l,
  * or any renderer value, so the rival remains an ordinary world-physics vehicle.
  *
- * The DEV stadium contains a 60 m radius curve, which cannot physically be taken at the
- * straight-line 200+ km/h target. The driver therefore reads Guide curvature ahead and
- * brakes through DrivingInput; it does not cheat by changing velocity or snapping position.
+ * The controller depends only on the read-only vehicle contract. Concrete car/bike physics
+ * may be retuned or replaced later as long as they expose the same world kinematic outputs.
  */
 export function sampleRivalDrivingInput(
   guide: GuideCurve,
-  car: M5CarState,
+  car: VehicleCameraReadState,
 ): DrivingInput {
   const target = guideCourseToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, 0);
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
