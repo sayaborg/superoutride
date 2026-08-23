@@ -1,0 +1,77 @@
+SUPER OUTRIDE M6.28 VALIDATION
+
+Milestone: Declarative Live Route Compilation
+Package: super-outride-m6-28@0.6.28
+
+Purpose:
+- define the current point-to-point route as declarative stage/transition/finish rows
+- derive RouteDag, content bindings, runtime registry, physical gates, handoff seams, chart set, and initial chart from one source
+- remove repeated choiceId, targetChartId, and stage->package binding authoring
+- keep the M6.27 browser-facing assembly entry stable
+
+Live route remains:
+              -> STAGE_2_L -> GOAL_L
+STAGE_1 -----|
+              -> STAGE_2_R -> GOAL_R
+
+Declarative source authority:
+Stages own:
+- stage id
+- stage kind
+- complete runtime package
+
+Transitions own:
+- transition id
+- from stage id
+- to stage id
+- physical route-choice gate geometry
+- deferred handoff seam geometry
+
+Finishes own:
+- terminal stage id
+- physical FINISH gate geometry
+
+Derived references:
+- Route choice id = transition id
+- target handoff chart id = target stage runtime.coordinateFrame.id
+- stage content package binding = stage.runtime.packageId
+- chart set = unique stage runtime GuideChart objects
+- initial chart = start stage runtime coordinate frame
+
+Required invariants:
+- RouteDag remains acyclic and fully reachable
+- every non-terminal stage has outgoing route choice(s)
+- terminal stages have no outgoing route choices
+- every route choice has one physical TRANSITION gate
+- every route choice has one deferred handoff seam
+- every terminal stage has one physical FINISH gate
+- content/runtime world frame remains singular
+- package IDs cannot map to different runtime objects
+- chart IDs cannot map to different GuideChart objects
+- runtime coordinate frame identity remains exact through content/handoff compilation
+- M6.27 LiveRouteRuntimeAssembly validation still runs after declarative compilation
+- main.ts remains unchanged and continues consuming createM627LiveRouteRuntime()
+- physical gate -> PENDING -> seam COMMIT transaction is unchanged
+- vehicle world X/Y/Z, yaw, and velocity remain authoritative and unteleported
+- renderer Core remains route-agnostic
+- Raster one-vertex turn hard limit remains <=10 degrees
+- pseudo-depth remains signed chainage difference only
+- fixed metric player scale remains 2.0m = 80px at player depth
+
+Regression focus:
+1. declarative rows compile the same five-stage/four-choice route and derive package bindings
+2. every physical route gate and handoff seam matches the M6.26 compiled world geometry numerically
+3. choiceId and targetChartId are derived, not repeated in current route authoring
+4. main.ts remains stable while the M6.27 entry delegates to M6.28 declarative authoring
+5. generic declarative compiler has no renderer, camera, vehicle-physics, or milestone dependency
+6. all historical architecture fixtures remain valid
+
+CI authority:
+- M6.27 baseline: 269 tests
+- M6.28 adds 5 dedicated tests
+- target suite: 274 tests
+- initial structural head ba7a97c0ea3aa45b46be85bcbbededbb7467f827 passed 274/274
+- documentation changes require a fresh exact-head CI before merge
+- PR synthetic merge tree must differ by zero files from the validated exact feature head
+- main must still equal the branch base before fast-forward
+- main update must use force:false and the validated exact feature head
