@@ -31,6 +31,7 @@ export interface RasterSuccessorAuthoring {
   readonly dCam: number;
   readonly dMax: number;
   readonly finishClosureMargin: number;
+  readonly groundMapHalfWidth: number;
   readonly groundHalfWidth: number;
   readonly roadHalfWidth: number;
   readonly shoulderWidth: number;
@@ -125,8 +126,8 @@ export function createRasterStageSuccessor(
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
   const sourceStartS = raster.vertexS[sourceStartIndex]!;
   const groundProfile: GroundMapProfile = {
-    groundLeft: 12,
-    groundRight: 12,
+    groundLeft: authoring.groundMapHalfWidth,
+    groundRight: authoring.groundMapHalfWidth,
     roadLeft: authoring.roadHalfWidth,
     roadRight: authoring.roadHalfWidth,
     shoulderWidth: authoring.shoulderWidth,
@@ -178,6 +179,7 @@ function assertAuthoring(authoring: RasterSuccessorAuthoring): void {
   }
   if (!(authoring.minDeformationRunVertices >= 2)) throw new RangeError('successor deformation run must contain at least two vertices');
   if (!(authoring.dCam > 0 && authoring.dMax > authoring.dCam)) throw new RangeError('successor depth envelope is invalid');
+  if (!(authoring.groundMapHalfWidth >= authoring.groundHalfWidth)) throw new RangeError('successor GroundMap must cover the local ground span');
   if (!(authoring.groundHalfWidth > authoring.roadHalfWidth)) throw new RangeError('successor ground must extend beyond road');
   if (!(authoring.roadHalfWidth > 0 && authoring.shoulderWidth >= 0)) throw new RangeError('successor road dimensions are invalid');
 }
