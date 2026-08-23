@@ -134,7 +134,7 @@ k_max = 6
 Delta_s_eff absolute upper bound = 147.5 m
 ```
 
-Current baked asset:
+Current M6.13 junction-aware baked asset:
 
 ```text
 course length        776.5128086698837 m
