@@ -1,0 +1,30 @@
+SUPER OUTRIDE — M6.19 Stage Runtime Content Registry
+
+Validated code/docs head:
+  df4b449259f3993673137df1f78d326d6257c981
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run:      32620653711
+  job:      97148217141
+  result:   success
+
+Regression:
+  tests: 224
+  pass:  224
+  fail:  0
+
+M6.19 validation points:
+- RouteStageContentManifest remains opaque packageId/worldFrameId gameplay data.
+- StageRuntimeContentRegistry resolves every opaque package exactly once.
+- Runtime selection consumes RouteStageHandoffState.activePackageId, not RouteDag.activeStageId.
+- A validated route choice remains on parent runtime content while handoff is PENDING.
+- Validated seam COMMIT atomically switches package/chart authority while world pose is unchanged.
+- GuideCoordinateSource keeps raw GuideCurve backward-compatible and allows child GuideChart l=0 in physics/camera.
+- Vehicle physics and recovery consume read-only SurfaceMapReader; no handling equation was changed.
+- StageSurfaceMapView is accepted by ordinary M5 car physics and keeps the selected child road supported.
+- Registry rejects missing packages, world-frame mismatch, and coordinate-frame / StageRoadView lateral-origin mismatch.
+- Renderer depth, scanline mapping, Painter ordering and fixed metric sprite scale remain unchanged.
+
+Note:
+The current closed DEV stadium reuses the same physical fork on a later validation pass. M6.19 therefore completes the runtime package boundary but intentionally does not permanently activate a child package in main.ts. The next content milestone must author a genuine non-reused child continuation before live switching.
