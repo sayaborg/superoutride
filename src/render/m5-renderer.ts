@@ -1,10 +1,13 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { wrapAngle } from '../core/math.js';
+import type { StageRoadView } from '../course/stage-road-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
+import { applyStageRoadViewToTerrainLine } from '../road/stage-terrain-view.js';
 import { computeForwardVisibleInterval, generateTerrainLines, type M3TerrainLine, type TerrainVisualProfile } from '../road/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
+import { sampleStageGroundMapAtLevel } from '../visual/stage-ground-map-view.js';
 import { selectVehicleSprite, type M4SpriteAssets } from '../visual/m4-sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from '../world/course-sprite.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
@@ -50,10 +53,16 @@ export function renderM5Driving(
   worldSprites: readonly CourseSprite[],
   assets: M4SpriteAssets,
   playerKind: PlayerVisualKind,
+  roadView?: StageRoadView,
 ): M5RenderResult {
   drawFarBackground(target, background, camera);
 
-  const terrain = generateTerrainLines(guide, camera, terrainProfile);
+  const baseTerrain = generateTerrainLines(guide, camera, terrainProfile);
+  const terrain = roadView === undefined
+    ? baseTerrain
+    : baseTerrain
+        .map((line) => applyStageRoadViewToTerrainLine(guide, camera, line, roadView))
+        .filter((line): line is M3TerrainLine => line !== null);
   const visible = computeForwardVisibleInterval(
     guide,
     camera.yaw,
@@ -86,7 +95,7 @@ export function renderM5Driving(
     sprites,
     (line) => {
       terrainLinesByRow[line.y]! += 1;
-      const stats = drawTerrainLine(target, line, groundProfile);
+      const stats = drawTerrainLine(target, line, groundProfile, roadView);
       terrainOutputPixels += stats.outputPixels;
       terrainOutputByRow[line.y]! += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
@@ -159,6 +168,7 @@ function drawTerrainLine(
   target: SoftwareSurface,
   line: M3TerrainLine,
   groundProfile: GroundMapProfile,
+  roadView?: StageRoadView,
 ): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
@@ -179,15 +189,26 @@ function drawTerrainLine(
   if (x1 >= x0) {
     const dx = line.xGroundR - line.xGroundL;
     if (Math.abs(dx) >= 1e-8) {
-      let lateral = -groundProfile.groundLeft
-        + ((x0 + 0.5 - line.xGroundL) / dx) * (groundProfile.groundLeft + groundProfile.groundRight);
-      const lateralStep = (groundProfile.groundLeft + groundProfile.groundRight) / dx;
+      const localGroundLeft = roadView?.groundLeft ?? groundProfile.groundLeft;
+      const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
+      let lateral = -localGroundLeft
+        + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
+      const lateralStep = (localGroundLeft + localGroundRight) / dx;
       const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        target.pixels[offset + x] = baked
-          ? baked.sampleAtLevel(line.s, lateral, groundMapLevel)
-          : sampleGroundMap(line.s, lateral, groundProfile, cliffSection);
+        target.pixels[offset + x] = roadView === undefined
+          ? (baked
+              ? baked.sampleAtLevel(line.s, lateral, groundMapLevel)
+              : sampleGroundMap(line.s, lateral, groundProfile, cliffSection))
+          : sampleStageGroundMapAtLevel(
+              line.s,
+              lateral,
+              groundMapLevel,
+              roadView,
+              groundProfile,
+              cliffSection,
+            );
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;
