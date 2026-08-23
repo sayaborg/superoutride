@@ -249,14 +249,13 @@ test('M6.20 live runtime has only parent plus two terminal child packages', () =
   );
 });
 
-test('M6.20 fixture stays validated while browser live authority advances to M6.26', async () => {
+test('M6.20 fixture stays validated while browser live authority consumes the M6.27 route assembly', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /createM626LiveRouteDag/);
-  assert.match(source, /createM626LiveContinuation/);
-  assert.match(source, /createM626LiveGateSet/);
-  assert.match(source, /createM626LiveStageRuntimeRegistry/);
+  assert.match(source, /createM627LiveRouteRuntime/);
+  assert.match(source, /const liveRoute = createM627LiveRouteRuntime/);
+  assert.doesNotMatch(source, /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
   assert.doesNotMatch(source, /createM620LivePointToPointRouteDag/);
   assert.doesNotMatch(source, /createM622ChildStageContinuation/);
   assert.match(source, /resolveActiveStageRuntimeContent/);
