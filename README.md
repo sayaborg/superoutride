@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M5.9 Tunnel / Portal Stress + Render Budget
+# SUPER OUTRIDE — M6.0 Validated Race Progress
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -22,7 +22,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.6 Target GroundMap kMax Proof — complete
 - M5.7 Baked GroundMap Runtime Integration — complete
 - M5.8 Render Performance Budget Instrumentation — complete
-- **M5.9 Tunnel / Portal Stress Content — complete**
+- M5.9 Tunnel / Portal Stress Content — complete
+- **M6.0 Validated Race Progress Foundation — complete**
 
 ## Run / test
 
@@ -43,14 +44,14 @@ npm test
 Current verified result:
 
 ```text
-106 tests
-106 pass
+118 tests
+118 pass
 0 fail
 ```
 
-See `M5_9_VALIDATION.txt` and `docs/17_m5_9_tunnel_portal.md`.
+See `M6_0_VALIDATION.txt` and `docs/18_m6_0_race_progress.md`.
 
-GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
+GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
 
 ## Controls
 
@@ -60,6 +61,17 @@ GitHub Pages runs the complete regression suite before deployment. Pull requests
 - V: Car / Motorcycle
 - R: manual recovery
 - touch steering is analog; touch throttle/brake are digital
+
+## Architecture authority
+
+```text
+Vehicle world state
+    ├─> world→Guide chart ─> s_car / GeometricCoursePosition
+    ├─> ordered physical race gates ─> s_progress
+    └─> camera ─> chainage pseudo renderer
+```
+
+`GeometricCoursePosition` is geometry authority. `s_progress` is gameplay/race authority. Raw `s_car` is never direct ranking/lap authority.
 
 ## Renderer invariants
 
@@ -166,10 +178,10 @@ camera background interval s=125..175 m
 It uses only existing Core mechanisms:
 
 ```text
-far tunnel interior -> tunnel Far Background
-entry/exit portal   -> ordinary World Sprite
+far tunnel interior   -> tunnel Far Background
+entry/exit portal     -> ordinary World Sprite
 near structural ribs -> ordinary World Sprite
-portal opening      -> 0/1 transparent aperture
+portal opening        -> 0/1 transparent aperture
 ```
 
 World-sprite structures are only:
@@ -246,7 +258,49 @@ sprite output samples max / scanline  757
 
 This is a renderer-work **content-validation budget**, not a CPU-cycle proof for a named historical machine. Runtime counters never gain permission to discard required TerrainLines merely because a budget is crossed.
 
-## Primary M5.4–M5.9 files
+## M6.0 validated race progress
+
+M6.0 implements Core §61 as a gameplay layer independent from the renderer.
+
+Current DEV race sequence:
+
+```text
+CP1    L/4
+CP2    L/2
+CP3    3L/4
+FINISH 0
+```
+
+Each checkpoint is compiled into a physical transverse world-space gate from the Guide center/tangent/right-normal at its chainage. Gate half-width reuses the existing Guide `lMax` authoring envelope; there is no independent checkpoint-width tuning parameter.
+
+Validation rules:
+
+```text
+physical world movement must cross gate
++ correct forward direction
++ correct authored checkpoint order
+= accepted race progress
+```
+
+Therefore:
+
+- raw `s_car` cannot directly award progress;
+- reverse crossings never award progress;
+- out-of-order crossings are shortcut violations;
+- lap increments only after CP1→CP2→CP3→FINISH;
+- one physics tick can accept at most one forward gate;
+- recovery/teleport resynchronizes observation without adding progress.
+
+M6.0 `s_progress` is deliberately conservative and gate-quantized. Smooth continuous within-sector ranking is deferred to M6.1 so the authority boundary is established first.
+
+The runtime HUD exposes both channels:
+
+```text
+RACE = validated gameplay progress
+GEO  = geometric lap + s_local
+```
+
+## Primary M5.4–M6.0 files
 
 ```text
 src/compiler/ground-map-lod.ts
@@ -262,6 +316,7 @@ src/render/rgb555.ts
 src/render/sprite.ts
 src/render/m5-renderer.ts
 src/road/terrain-line.ts
+src/gameplay/race-progress.ts
 tools/build-ground-map.mjs
 tests/m5-4-ground-map-lod.test.mjs
 tests/m5-5-terrain-footprint.test.mjs
@@ -269,31 +324,27 @@ tests/m5-6-target-kmax.test.mjs
 tests/m5-7-baked-groundmap.test.mjs
 tests/m5-8-performance-budget.test.mjs
 tests/m5-9-tunnel-portal.test.mjs
+tests/m6-race-progress.test.mjs
 docs/12_m5_4_ground_map_lod_foundation.md
 docs/13_m5_5_terrain_footprint.md
 docs/14_m5_6_target_kmax.md
 docs/15_m5_7_baked_groundmap.md
 docs/16_m5_8_performance_budget.md
 docs/17_m5_9_tunnel_portal.md
+docs/18_m6_0_race_progress.md
 M5_4_VALIDATION.txt
 M5_5_VALIDATION.txt
 M5_6_VALIDATION.txt
 M5_7_VALIDATION.txt
 M5_8_VALIDATION.txt
 M5_9_VALIDATION.txt
+M6_0_VALIDATION.txt
 ```
 
 ## Next
 
-The renderer/compiler M5.x block now includes the required tunnel/portal special case and measured workload envelope. The next main block is **M6 gameplay**.
+**M6.1 — continuous validated race ranking/progress.**
 
-The first gameplay foundation should keep Core separation between geometric position and validated race progress:
-
-```text
-s_car        = geometric chainage from world→course chart
-s_progress   = gameplay-validated race progress
-```
-
-M6 starts with checkpoint sequence, lap validation, reverse/shortcut handling and race progress state. Raw `s_car` must not directly become ranking/lap authority.
+The next step may use geometric chainage only as bounded interpolation inside the currently validated checkpoint sector. It must not allow raw `s_car` to become lap/ranking authority or bypass the ordered physical gate sequence.
 
 Do not add renderer complexity to implement gameplay state.
