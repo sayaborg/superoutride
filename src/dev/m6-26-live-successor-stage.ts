@@ -40,7 +40,9 @@ const SUCCESSOR_TRANSITION_LEAD = 20;
 const SUCCESSOR_FINISH_AFTER_SEAM = 150;
 const SUCCESSOR_ENTRY_STRAIGHT = 35;
 const SUCCESSOR_CLOSE_LENGTH = 55;
-const SUCCESSOR_CURVE_SAMPLES = 64;
+// This is authoring subdivision, not renderer tessellation. Keep every compiled Raster vertex turn
+// comfortably below the frozen Core 10-degree limit even on the tighter successor closure curve.
+const SUCCESSOR_CURVE_SAMPLES = 128;
 
 export interface M626SuccessorRuntimeSource {
   readonly guide: GuideCurve;
