@@ -1,4 +1,9 @@
-import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
+import { sampleGuideCurve } from '../core/guide-curve.js';
+import {
+  guideCoordinateCurve,
+  guideCoordinateToWorld,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
@@ -19,15 +24,16 @@ const SPEED_DEADBAND_MPS = 1;
  * It produces only canonical DrivingInput. It never writes world position, yaw, course.s/l,
  * or any renderer value, so the rival remains an ordinary world-physics vehicle.
  *
- * targetL is only a steering objective in Guide coordinates. It lets DEV content choose a
- * branch without snapping or mutating world state. Route validation remains independent.
+ * targetL is expressed in the supplied Guide coordinate source. Accepting a coordinate frame
+ * keeps child-stage local l coherent with its lateral origin while plain GuideCurve callers
+ * retain the original zero-origin behavior.
  */
 export function sampleRivalDrivingInput(
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   car: VehicleCameraReadState,
   targetL = 0,
 ): DrivingInput {
-  const target = guideCourseToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, targetL);
+  const target = guideCoordinateToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, targetL);
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
@@ -48,15 +54,16 @@ export function sampleRivalDrivingInput(
   };
 }
 
-export function estimateUpcomingTargetSpeed(guide: GuideCurve, s: number): number {
+export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: number): number {
+  const curve = guideCoordinateCurve(guide);
   let maxCurvature = 0;
   for (
     let offset = CURVATURE_PROBE_STEP_METERS;
     offset <= CURVATURE_LOOKAHEAD_METERS;
     offset += CURVATURE_PROBE_STEP_METERS
   ) {
-    const a = sampleGuideCurve(guide, s + offset);
-    const b = sampleGuideCurve(guide, s + offset + CURVATURE_PROBE_SPAN_METERS);
+    const a = sampleGuideCurve(curve, s + offset);
+    const b = sampleGuideCurve(curve, s + offset + CURVATURE_PROBE_SPAN_METERS);
     const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / CURVATURE_PROBE_SPAN_METERS;
     maxCurvature = Math.max(maxCurvature, curvature);
   }
