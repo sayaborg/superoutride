@@ -1,15 +1,17 @@
 import { wrapAngle } from '../core/math.js';
-import type { M5CarState } from '../physics/car-physics.js';
+import type { VehicleWorldPoseRead } from '../physics/vehicle-contract.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../visual/m4-sprite-assets.js';
 import type { CourseSprite } from './course-sprite.js';
 
 /**
  * Rendering adapter only. The vehicle remains world-physics authoritative; this function
  * copies the current physical anchor into the existing CourseSprite/Painter path.
+ *
+ * Deliberately depends only on the read-only world-pose contract, not M5CarState.
  */
 export function createDynamicVehicleCourseSprite(
   name: string,
-  vehicle: M5CarState,
+  vehicle: VehicleWorldPoseRead,
   cameraYaw: number,
   spriteSet: VehicleSpriteSet,
 ): CourseSprite {
