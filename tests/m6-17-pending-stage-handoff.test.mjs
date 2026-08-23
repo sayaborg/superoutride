@@ -97,9 +97,11 @@ test('forward handoff seam atomically commits child chart/content without changi
   assert.equal(observed.event, 'SEAM_VALIDATED');
   assert.deepEqual(observed.seam, { choiceId: 'S1_LEFT', seamId: 'H_S1_LEFT' });
 
+  // Crossing validation uses a finite physics segment, but the authored seam itself is the exact
+  // chart-handoff anchor. One metre along a curved Guide tangent is not mathematically l=0.
   const vehicleWorld = {
-    x: segment.current.x,
-    z: segment.current.z,
+    x: seam.center.x,
+    z: seam.center.z,
     y: 2.5,
     yaw: seam.heading + 0.02,
     longitudinalSpeed: 58,
@@ -143,10 +145,10 @@ test('two DEV junction passes can commit two independent child charts from one c
   const firstSeam = manifest.seams.find((candidate) => candidate.choiceId === 'S1_LEFT');
   const firstSegment = crossingSegment(firstSeam);
   const firstObserved = observePendingRouteStageHandoff(state, manifest, firstSegment.previous, firstSegment.current);
-  commitRouteStageHandoff(state, routeState, content, chartList, firstObserved.seam, firstSegment.current);
+  commitRouteStageHandoff(state, routeState, content, chartList, firstObserved.seam, firstSeam.center);
   assert.equal(state.activeChartId, 'LEFT_CHILD');
 
-  syncRouteStageHandoffCoordinate(state, chartList, firstSegment.current);
+  syncRouteStageHandoffCoordinate(state, chartList, firstSeam.center);
   near(state.coordinate.l, 0, 1e-5);
 
   const secondUpdate = updateRouteDag(routeState, route, { kind: 'TRANSITION', choiceId: 'S2L_RIGHT' });
@@ -158,7 +160,7 @@ test('two DEV junction passes can commit two independent child charts from one c
   const secondSeam = manifest.seams.find((candidate) => candidate.choiceId === 'S2L_RIGHT');
   const secondSegment = crossingSegment(secondSeam);
   const secondObserved = observePendingRouteStageHandoff(state, manifest, secondSegment.previous, secondSegment.current);
-  commitRouteStageHandoff(state, routeState, content, chartList, secondObserved.seam, secondSegment.current);
+  commitRouteStageHandoff(state, routeState, content, chartList, secondObserved.seam, secondSeam.center);
 
   assert.equal(state.activeStageId, 'GOAL_LR');
   assert.equal(state.activeChartId, 'RIGHT_CHILD');
