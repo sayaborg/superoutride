@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.30 Third Live Successor Stage
+# SUPER OUTRIDE — M6.31 Reusable Raster Successor Chain Authoring
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -53,7 +53,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.27 Live Route Runtime Assembly — complete
 - M6.28 Declarative Live Route Compilation — complete
 - M6.29 Reusable Raster Stage Successor Factory — complete
-- **M6.30 Third Live Successor Stage — complete**
+- M6.30 Third Live Successor Stage — complete
+- **M6.31 Reusable Raster Successor Chain Authoring — complete**
 
 ## Run / test
 
@@ -71,7 +72,7 @@ Full regression:
 npm test
 ```
 
-M6.29 had 279 tests. The first-fork browser render regression adds one integration test and M6.30 adds four dedicated route-depth regressions, for a target of **284 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.30 ended at **284 tests**. M6.31 adds five dedicated successor-chain regressions for a target of **289 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -134,7 +135,7 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route is now:
+The browser route remains:
 
 ```text
               ┌→ STAGE_2_L → STAGE_3_L → GOAL_L
@@ -323,7 +324,7 @@ to:
 CONTENT_STAGE_3_L
 ```
 
-A new independent `CONTENT_GOAL_L` is generated from that promoted stage with `createRasterStageSuccessor()`. Its environment is compiled through the existing M6.24 stage authoring compiler, while route topology is compiled through the existing M6.28 declarative compiler.
+A new independent `CONTENT_GOAL_L` is generated from that promoted stage. Its environment is compiled through the existing M6.24 stage authoring compiler, while route topology is compiled through the existing M6.28 declarative compiler.
 
 This proves that route depth can differ between branches without changing `main.ts`, the simulation loop or renderer Core. `main.ts` still calls only the stable browser entry:
 
@@ -332,6 +333,50 @@ createM627LiveRouteRuntime(...)
 ```
 
 The M6.30 layer contains the new topology data; the browser and renderer do not contain `STAGE_3_L`, `S3L_CONTINUE`, LEFT/RIGHT depth rules, or another road rendering path.
+
+## M6.31 reusable Raster successor chain
+
+M6.31 generalizes the repeated M6.30 continuation pattern into:
+
+```text
+compileRasterSuccessorChain(source)
+```
+
+A chain begins with one existing stage/runtime/structural source and an ordered list of successor steps. For each step the compiler:
+
+```text
+current structural source
+→ createRasterStageSuccessor(...)
+→ generated Guide/Raster/link
+→ caller createRuntime(...) callback
+→ declarative transition + handoff rows
+→ next source
+```
+
+Only the final generated stage is marked `TERMINAL`; all earlier generated stages remain ordinary `STAGE` nodes. The final physical FINISH is derived from the final generated GuideChart and `finishS`.
+
+Transition and handoff geometry are derived from the concrete **source GuideChart active before each successor is generated**:
+
+```text
+sourceTransitionS -> physical transition gate
+sourceSeamS       -> physical handoff seam
+```
+
+The chain compiler therefore does not duplicate chainage positions and does not inspect renderer state.
+
+Environment/runtime content remains a caller responsibility through:
+
+```text
+createRuntime(structural, packageId, stageId, stepIndex)
+```
+
+The callback must return the exact generated GuideChart as its coordinate frame. Package/chart mismatches are rejected before declarative Route DAG compilation.
+
+M6.31 also adds `repackageGuideChartRuntime()`, used when an already validated terminal runtime is promoted into an intermediate stage. This changes only its opaque package identity and preserves all owned geometry/content object references.
+
+M6.30 now delegates its deep LEFT continuation to the M6.31 chain compiler and no longer calls `createRasterStageSuccessor()` directly for that step. The current live route is unchanged; M6.31 is an authoring generalization rather than a new route-depth milestone.
+
+A dedicated two-step regression proves the helper is genuinely recursive: one source produces an intermediate stage and then a distinct terminal successor with two independently generated charts.
 
 ## FINISH authority
 
@@ -362,6 +407,7 @@ src/runtime/stage-continuation-link.ts
 src/runtime/live-route-runtime.ts
 src/runtime/declarative-live-route.ts
 src/runtime/raster-stage-successor.ts
+src/runtime/raster-successor-chain.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
@@ -374,8 +420,8 @@ src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/48_m6_30_third_live_successor.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/49_m6_31_successor_chain_authoring.md`.
 
 ## Next
 
-M6.30 proves unequal route depth using reusable successor and declarative-route primitives. The next architectural step is to describe a chain of successor-stage authoring records so arbitrary point-to-point depth can be compiled without milestone-specific terminal-package promotion code, while preserving the same world-space overlap validation, Raster <=10° authority and route-agnostic browser loop.
+M6.31 can compile arbitrary linear successor depth. The next architectural proof should compose multiple successor-chain fragments with explicit fork/junction transitions into higher-level branch authoring, while still emitting the established M6.28 declarative Route DAG rows and keeping exactly one active Raster road domain at a time.
