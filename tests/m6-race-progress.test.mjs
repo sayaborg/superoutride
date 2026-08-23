@@ -7,6 +7,7 @@ import {
   createGeometricCourseTracker,
   createM6DebugRaceRules,
   createRaceProgressState,
+  getRaceProgressWindow,
   resyncGeometricCourseTracker,
   resyncRaceProgressPosition,
   updateGeometricCourseTracker,
@@ -67,10 +68,11 @@ test('GeometricCoursePosition tracks seam laps independently from race progress'
   assert.deepEqual(tracker.position, { lap: 0, sLocal: 40 });
 });
 
-test('expected physical checkpoint crossing advances validated s_progress without reading raw s as authority', () => {
+test('expected physical checkpoint crossing advances the validated floor and opens the next sector', () => {
   const guide = createM2StadiumGuide();
   const rules = createM6DebugRaceRules(guide);
   const cp1 = rules.gates[0];
+  const cp2 = rules.gates[1];
   const initial = offset(cp1, -1, 0, rules.courseLength);
   const state = createRaceProgressState(rules, initial);
 
@@ -78,18 +80,22 @@ test('expected physical checkpoint crossing advances validated s_progress withou
   assert.equal(result.event, 'CHECKPOINT');
   assert.equal(result.acceptedGate?.name, 'CP1');
   assert.equal(state.nextGateIndex, 1);
-  assert.equal(state.sProgress, cp1.s);
+  assert.equal(state.validatedProgressFloor, cp1.s);
+  assert.ok(state.sProgress > cp1.s);
+  assert.ok(state.sProgress < cp2.s);
   assert.equal(state.lapIndex, 0);
 });
 
-test('raw geometric chainage ahead of the course does not by itself advance s_progress', () => {
+test('raw geometric chainage jump with no world motion cannot advance continuous s_progress', () => {
   const guide = createM2StadiumGuide();
   const rules = createM6DebugRaceRules(guide);
   const start = { x: 1_000_000, z: 1_000_000, sLocal: 10 };
   const state = createRaceProgressState(rules, start);
+  assert.equal(state.sProgress, 10);
 
-  updateRaceProgress(state, rules, { x: 1_000_000.01, z: 1_000_000.01, sLocal: guide.length * 0.74 });
-  assert.equal(state.sProgress, 0);
+  updateRaceProgress(state, rules, { x: start.x, z: start.z, sLocal: guide.length * 0.74 });
+  assert.equal(state.sProgress, 10);
+  assert.equal(state.validatedProgressFloor, 0);
   assert.equal(state.nextGateIndex, 0);
 });
 
@@ -103,13 +109,14 @@ test('reverse gate crossing is detected but never awards checkpoint progress', (
   assert.equal(result.event, 'REVERSE_CROSSING');
   assert.equal(result.direction, 'REVERSE');
   assert.equal(state.reverseCrossingCount, 1);
-  assert.equal(state.sProgress, 0);
+  assert.equal(state.validatedProgressFloor, 0);
   assert.equal(state.nextGateIndex, 0);
 });
 
 test('crossing a later checkpoint before the expected one is rejected as a shortcut', () => {
   const guide = createM2StadiumGuide();
   const rules = createM6DebugRaceRules(guide);
+  const cp1 = rules.gates[0];
   const cp2 = rules.gates[1];
   const state = createRaceProgressState(rules, offset(cp2, -1, 0, rules.courseLength));
 
@@ -118,10 +125,11 @@ test('crossing a later checkpoint before the expected one is rejected as a short
   assert.equal(result.acceptedGate, null);
   assert.equal(state.shortcutViolationCount, 1);
   assert.equal(state.nextGateIndex, 0);
-  assert.equal(state.sProgress, 0);
+  assert.equal(state.validatedProgressFloor, 0);
+  assert.ok(state.sProgress >= 0 && state.sProgress <= cp1.s);
 });
 
-test('checkpoint crossing outside the Guide race envelope does not validate', () => {
+test('checkpoint crossing outside the Guide race envelope does not validate and interpolation cannot pass its ceiling', () => {
   const guide = createM2StadiumGuide();
   const rules = createM6DebugRaceRules(guide);
   const cp1 = rules.gates[0];
@@ -130,7 +138,9 @@ test('checkpoint crossing outside the Guide race envelope does not validate', ()
 
   const result = updateRaceProgress(state, rules, offset(cp1, 1, outside, rules.courseLength));
   assert.equal(result.event, 'NONE');
-  assert.equal(state.sProgress, 0);
+  assert.equal(state.validatedProgressFloor, 0);
+  assert.equal(state.nextGateIndex, 0);
+  assert.equal(state.sProgress, cp1.s);
 });
 
 test('ordered CP1 CP2 CP3 FINISH sequence increments lap only at the validated finish crossing', () => {
@@ -148,7 +158,9 @@ test('ordered CP1 CP2 CP3 FINISH sequence increments lap only at the validated f
   assert.equal(finish.event, 'LAP');
   assert.equal(state.lapIndex, 1);
   assert.equal(state.nextGateIndex, 0);
-  assert.equal(state.sProgress, guide.length);
+  assert.equal(state.validatedProgressFloor, guide.length);
+  assert.ok(state.sProgress >= guide.length);
+  assert.ok(state.sProgress <= guide.length + rules.gates[0].s);
   assert.equal(state.acceptedGateCount, 4);
 });
 
@@ -168,16 +180,91 @@ test('one physics update can accept at most one forward gate even if a teleport 
   assert.equal(state.lastEvent, 'SHORTCUT_REJECTED');
 });
 
-test('recovery resync changes observation origin without awarding or erasing validated race progress', () => {
+test('recovery resync changes observation origin without awarding or moving validated race progress', () => {
   const guide = createM2StadiumGuide();
   const rules = createM6DebugRaceRules(guide);
   const state = createRaceProgressState(rules, offset(rules.gates[0], -1, 0, rules.courseLength));
   crossForward(state, rules, rules.gates[0]);
   const progressBefore = state.sProgress;
+  const floorBefore = state.validatedProgressFloor;
 
   const teleported = offset(rules.gates[2], 1, 0, rules.courseLength);
   resyncRaceProgressPosition(state, rules, teleported);
   assert.equal(state.lastEvent, 'RESYNC');
   assert.equal(state.sProgress, progressBefore);
+  assert.equal(state.validatedProgressFloor, floorBefore);
   assert.equal(state.nextGateIndex, 1);
+});
+
+test('M6.1 initial spawn inside sector zero seeds smooth progress without validating a checkpoint', () => {
+  const guide = createM2StadiumGuide();
+  const rules = createM6DebugRaceRules(guide);
+  const spawn = { x: 0, z: 0, sLocal: 45 };
+  const state = createRaceProgressState(rules, spawn);
+
+  assert.equal(state.sProgress, 45);
+  assert.equal(state.validatedProgressFloor, 0);
+  assert.deepEqual(getRaceProgressWindow(state, rules), { floor: 0, ceiling: rules.gates[0].s });
+});
+
+test('M6.1 forward motion interpolates continuously inside the current validated sector', () => {
+  const guide = createM2StadiumGuide();
+  const rules = createM6DebugRaceRules(guide);
+  const cp1 = rules.gates[0];
+  const state = createRaceProgressState(rules, offset(cp1, -20, 0, rules.courseLength));
+
+  const before = state.sProgress;
+  const result = updateRaceProgress(state, rules, offset(cp1, -10, 0, rules.courseLength));
+  assert.equal(result.event, 'NONE');
+  assert.equal(result.direction, 'FORWARD');
+  assert.ok(state.sProgress > before);
+  assert.ok(Math.abs(state.sProgress - (cp1.s - 10)) < 1e-9);
+  assert.equal(state.validatedProgressFloor, 0);
+});
+
+test('M6.1 raw interpolation saturates at the next required gate until that physical gate is accepted', () => {
+  const guide = createM2StadiumGuide();
+  const rules = createM6DebugRaceRules(guide);
+  const cp1 = rules.gates[0];
+  const outside = cp1.halfWidth + 1;
+  const state = createRaceProgressState(rules, offset(cp1, -2, outside, rules.courseLength));
+
+  updateRaceProgress(state, rules, offset(cp1, 20, outside, rules.courseLength));
+  assert.equal(state.nextGateIndex, 0);
+  assert.equal(state.validatedProgressFloor, 0);
+  assert.equal(state.sProgress, cp1.s);
+});
+
+test('M6.1 reverse interpolation can lose position inside a sector but never below the last validated gate', () => {
+  const guide = createM2StadiumGuide();
+  const rules = createM6DebugRaceRules(guide);
+  const cp1 = rules.gates[0];
+  const state = createRaceProgressState(rules, offset(cp1, -1, 0, rules.courseLength));
+  crossForward(state, rules, cp1);
+  assert.equal(state.validatedProgressFloor, cp1.s);
+
+  resyncRaceProgressPosition(state, rules, offset(cp1, 10, 0, rules.courseLength));
+  state.sProgress = cp1.s + 10;
+  const result = updateRaceProgress(state, rules, offset(cp1, -10, 0, rules.courseLength));
+  assert.equal(result.direction, 'REVERSE');
+  assert.equal(state.sProgress, cp1.s);
+  assert.equal(state.validatedProgressFloor, cp1.s);
+});
+
+test('M6.1 after CP1 the continuous ceiling moves to CP2 but cannot cross CP2 without validation', () => {
+  const guide = createM2StadiumGuide();
+  const rules = createM6DebugRaceRules(guide);
+  const cp1 = rules.gates[0];
+  const cp2 = rules.gates[1];
+  const state = createRaceProgressState(rules, offset(cp1, -1, 0, rules.courseLength));
+  crossForward(state, rules, cp1);
+  assert.deepEqual(getRaceProgressWindow(state, rules), { floor: cp1.s, ceiling: cp2.s });
+
+  const outside = cp2.halfWidth + 1;
+  resyncRaceProgressPosition(state, rules, offset(cp2, -2, outside, rules.courseLength));
+  state.sProgress = cp2.s - 1;
+  updateRaceProgress(state, rules, offset(cp2, 5, outside, rules.courseLength));
+  assert.equal(state.nextGateIndex, 1);
+  assert.equal(state.validatedProgressFloor, cp1.s);
+  assert.equal(state.sProgress, cp2.s);
 });
