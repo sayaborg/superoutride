@@ -1,0 +1,26 @@
+SUPER OUTRIDE M6.7 VALIDATION
+
+Milestone: Validated Run Objective / Point-to-Point Completion
+Validated implementation head: 059efe1a96fd3c77cf3b1fbcbc8827bc73b86834
+Pull request: #17
+GitHub Actions run: 32615048243
+Build job: 97134265681
+
+Result:
+153 tests
+153 pass
+0 fail
+
+Validated properties:
+- POINT_TO_POINT completion consumes only an already accepted physical FINISH gate
+- raw progress alone cannot complete a run
+- accepted checkpoints do not complete a run
+- reverse/shortcut/resync events without an accepted FINISH cannot complete a run
+- point-to-point FINISH is captured exactly once with deterministic elapsed time and validated progress
+- subsequent FINISH boundaries are ignored after terminal completion
+- REPEATABLE_DEV keeps the closed debug loop running across repeated validated FINISH boundaries
+- current closed-course lap bookkeeping remains validation internals, not product lap-race authority
+- no vehicle physics or renderer changes
+- existing M0-M6.6 regression remains green
+
+Status: GO
