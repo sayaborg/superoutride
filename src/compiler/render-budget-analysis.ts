@@ -14,6 +14,8 @@ export interface RenderBudgetSummary {
   readonly maxVisibleSpriteCount: number;
   readonly maxWorldSpriteOutputSamplesPerFrame: number;
   readonly maxPlayerOutputSamplesPerFrame: number;
+  /** World sprites plus player presentation, matching the total sprite-scaler load. */
+  readonly maxSpriteOutputSamplesPerFrame: number;
   readonly maxSpriteOutputSamplesPerScanline: number;
   readonly maxGroundMapLevel: number;
   readonly groundMapLevelLineCounts: readonly number[];
@@ -22,6 +24,7 @@ export interface RenderBudgetSummary {
   readonly worstTerrainPixelFrame: string;
   readonly worstTerrainRowFrame: string;
   readonly worstSpriteCountFrame: string;
+  readonly worstWorldSpriteFrame: string;
   readonly worstSpriteFrame: string;
   readonly worstSpriteScanlineFrame: string;
 }
@@ -45,12 +48,14 @@ export function summarizeRenderBudgetObservations(
   let maxVisibleSpriteCount = -1;
   let maxWorldSpriteOutputSamplesPerFrame = -1;
   let maxPlayerOutputSamplesPerFrame = -1;
+  let maxSpriteOutputSamplesPerFrame = -1;
   let maxSpriteOutputSamplesPerScanline = -1;
   let maxGroundMapLevel = 0;
   let worstTerrainLineFrame = '';
   let worstTerrainPixelFrame = '';
   let worstTerrainRowFrame = '';
   let worstSpriteCountFrame = '';
+  let worstWorldSpriteFrame = '';
   let worstSpriteFrame = '';
   let worstSpriteScanlineFrame = '';
   const levelLineCounts: number[] = [];
@@ -81,10 +86,15 @@ export function summarizeRenderBudgetObservations(
     }
     if (r.spriteOutputSamples > maxWorldSpriteOutputSamplesPerFrame) {
       maxWorldSpriteOutputSamplesPerFrame = r.spriteOutputSamples;
-      worstSpriteFrame = observation.label;
+      worstWorldSpriteFrame = observation.label;
     }
     if (r.playerOutputSamples > maxPlayerOutputSamplesPerFrame) {
       maxPlayerOutputSamplesPerFrame = r.playerOutputSamples;
+    }
+    const totalSpriteSamples = r.spriteOutputSamples + r.playerOutputSamples;
+    if (totalSpriteSamples > maxSpriteOutputSamplesPerFrame) {
+      maxSpriteOutputSamplesPerFrame = totalSpriteSamples;
+      worstSpriteFrame = observation.label;
     }
     if (r.spriteOutputSamplesMaxPerScanline > maxSpriteOutputSamplesPerScanline) {
       maxSpriteOutputSamplesPerScanline = r.spriteOutputSamplesMaxPerScanline;
@@ -109,6 +119,7 @@ export function summarizeRenderBudgetObservations(
     maxVisibleSpriteCount,
     maxWorldSpriteOutputSamplesPerFrame,
     maxPlayerOutputSamplesPerFrame,
+    maxSpriteOutputSamplesPerFrame,
     maxSpriteOutputSamplesPerScanline,
     maxGroundMapLevel,
     groundMapLevelLineCounts: levelLineCounts,
@@ -117,6 +128,7 @@ export function summarizeRenderBudgetObservations(
     worstTerrainPixelFrame,
     worstTerrainRowFrame,
     worstSpriteCountFrame,
+    worstWorldSpriteFrame,
     worstSpriteFrame,
     worstSpriteScanlineFrame,
   };
@@ -141,5 +153,9 @@ function validateObservation(observation: RenderBudgetObservation): void {
   const lineSum = r.groundMapLevelLineCounts.reduce((sum, count) => sum + count, 0);
   if (lineSum !== r.terrainLineCount) {
     throw new Error('GroundMap level line-count histogram must sum to terrainLineCount');
+  }
+  const terrainOutputSum = r.groundMapLevelOutputPixels.reduce((sum, count) => sum + count, 0);
+  if (terrainOutputSum !== r.terrainOutputPixels) {
+    throw new Error('GroundMap level output histogram must sum to terrainOutputPixels');
   }
 }
