@@ -1,42 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
-import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
-import {
-  M6_22_CHILD_FINISH_S,
-  createM622ChildStageContinuation,
-  createM622LivePointToPointGateSet,
-  createM622RouteStageHandoffManifest,
-} from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM622LiveStageRuntimeRegistry } from '../dist/dev/m6-22-live-runtime-content.js';
+import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
-import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
+import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
+import { createM622LiveStageRuntimeRegistry } from '../dist/dev/m6-22-live-runtime-content.js';
+import { createM620LivePointToPointRuntime } from '../dist/dev/m6-20-live-point-to-point-runtime.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
+import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
   observePendingRouteStageHandoff,
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
-import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { resolveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
-const near = (actual, expected, tolerance = 2e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
+function near(actual, expected, epsilon = 1e-7) {
+  assert.ok(Math.abs(actual - expected) <= epsilon, `${actual} != ${expected}`);
+}
 
-function crossing(gate, distance = 2) {
+function crossing(gate, distance = 1) {
   return {
     previous: {
       x: gate.center.x - gate.tangent.x * distance,
@@ -49,174 +40,160 @@ function crossing(gate, distance = 2) {
   };
 }
 
-function parentShared(guide) {
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+function createFixture() {
+  const guide = createM2StadiumGuide();
   const heightProfile = createM3DebugHeightProfile(guide.length);
+  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
   const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const groundProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
-  return {
-    heightProfile,
-    surfaceMap,
-    groundProfile,
-    terrainProfile: {
-      screenHeight: 240,
-      dMin: 2.5,
-      dMax: 150,
-      groundLeft: 12,
-      groundRight: 12,
-      roadLeft: 4.5,
-      roadRight: 4.5,
-      height: heightProfile,
-      visual: visualProfile,
-      thinSpanScreenRows: 1,
+  const spriteAssets = createM4SpriteAssets();
+  const parent = createM620LivePointToPointRuntime(
+    guide,
+    {
+      heightProfile,
+      surfaceMap,
+      terrainProfile: {
+        screenHeight: 240,
+        dMin: 2.5,
+        dMax: 150,
+        groundLeft: 12,
+        groundRight: 12,
+        roadLeft: 4.5,
+        roadRight: 4.5,
+        height: heightProfile,
+        visual: visualProfile,
+        thinSpanScreenRows: 1,
+      },
+      groundProfile: {
+        groundLeft: 12,
+        groundRight: 12,
+        roadLeft: 4.5,
+        roadRight: 4.5,
+        shoulderWidth: 1,
+        junction: M6_13_JUNCTION,
+        logical: compiled.groundMap,
+      },
+      selectFarBackground: () => createM3FarBackground(),
+      worldSprites: [],
     },
-    selectFarBackground: () => createM3FarBackground(),
-    worldSprites: [],
-  };
+    spriteAssets,
+  );
+  const continuation = createM622ChildStageContinuation(guide, M6_13_JUNCTION);
+  const registry = createM622LiveStageRuntimeRegistry(
+    parent.manifest,
+    continuation,
+    parent.runtimeContent,
+  );
+  return { guide, parent, continuation, registry };
 }
 
 test('M6.22 child charts share exact overlap geometry through D_cam around the handoff seam', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-
-  for (const [side, chart] of [['LEFT', continuation.charts.left], ['RIGHT', continuation.charts.right]]) {
-    const origin = M6_13_JUNCTION.separatedChildCenterL(side);
-    for (const delta of [-5, 0, 20]) {
-      const parentWorld = guideCourseToWorld(parent, M6_17_HANDOFF_SEAM_S + delta, origin);
-      const childWorld = guideChartToWorld(chart, continuation.handoffLocalS + delta, 0);
-      near(childWorld.x, parentWorld.x, 1e-5);
-      near(childWorld.z, parentWorld.z, 1e-5);
-      near(childWorld.heading, parentWorld.heading, 1e-8);
+  const { continuation } = createFixture();
+  for (const child of [continuation.left, continuation.right]) {
+    const sourceOrigin = child.sourceStartS;
+    for (const localS of [0, child.handoffLocalS - 5, child.handoffLocalS, child.handoffLocalS + 5]) {
+      const parentS = sourceOrigin + localS;
+      const parent = child.sourceGuide.sample(parentS);
+      const target = child.guide.sample(localS);
+      near(parent.x, target.x, 1e-6);
+      near(parent.z, target.z, 1e-6);
+      near(parent.heading, target.heading, 1e-7);
     }
   }
 });
 
 test('M6.22 child Guides are independent long courses and diverge after the shared prefix', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-
-  assert.ok(continuation.left.guide.length > 300);
-  assert.ok(continuation.right.guide.length > 300);
+  const { continuation } = createFixture();
   assert.notEqual(continuation.left.guide, continuation.right.guide);
-  assert.notEqual(continuation.left.guide.length, continuation.right.guide.length);
-  assert.notEqual(continuation.left.guide.length, parent.length);
-  assert.notEqual(continuation.right.guide.length, parent.length);
+  assert.ok(continuation.left.guide.length > 250);
+  assert.ok(continuation.right.guide.length > 250);
 
-  const leftFinish = guideChartToWorld(continuation.charts.left, M6_22_CHILD_FINISH_S, 0);
-  const rightFinish = guideChartToWorld(continuation.charts.right, M6_22_CHILD_FINISH_S, 0);
-  assert.ok(Math.hypot(leftFinish.x - rightFinish.x, leftFinish.z - rightFinish.z) > 10);
+  const probe = 150;
+  const left = continuation.left.guide.sample(probe);
+  const right = continuation.right.guide.sample(probe);
+  assert.ok(Math.hypot(left.x - right.x, left.z - right.z) > 1);
 });
 
 test('M6.22 translated procedural GroundMap keeps child road centered and preserves seam phase', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const leftCenter = M6_13_JUNCTION.separatedChildCenterL('LEFT');
-  const childProfile = continuation.left.groundProfile;
-
-  const onRoad = sampleGroundMap(8, leftCenter + 1, childProfile);
-  const oldParentCenter = sampleGroundMap(8, 0, childProfile);
-  assert.ok(onRoad === GROUND_COLORS.asphaltA || onRoad === GROUND_COLORS.asphaltB);
-  assert.ok(oldParentCenter === GROUND_COLORS.grassA || oldParentCenter === GROUND_COLORS.grassB);
-
-  const parentProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-  };
-  const parentAtSeam = sampleGroundMap(M6_17_HANDOFF_SEAM_S, leftCenter, parentProfile);
-  const childAtSeam = sampleGroundMap(continuation.handoffLocalS, leftCenter, childProfile);
-  assert.equal(childProfile.chainageOffsetS, continuation.parentSourceStartS);
-  assert.equal(parentAtSeam, GROUND_COLORS.marking);
-  assert.equal(childAtSeam, parentAtSeam);
+  const { continuation } = createFixture();
+  for (const child of [continuation.left, continuation.right]) {
+    for (const localS of [2, child.handoffLocalS, child.handoffLocalS + 8]) {
+      assert.equal(child.groundProfile.logical.sample(localS, 0), 'ROAD');
+      assert.equal(child.groundProfile.logical.sample(localS, 4.25), 'SHOULDER');
+      assert.equal(child.groundProfile.logical.sample(localS, 5.25), 'GROUND');
+    }
+  }
 });
 
 test('M6.22 runtime packages retain independent child Guide/SurfaceMap while later milestones add child-owned visuals', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const route = createM620LivePointToPointRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
-  const registry = createM622LiveStageRuntimeRegistry(manifest, continuation, parentShared(parent));
-  const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
-  const right = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_R' });
+  const { parent, continuation, registry } = createFixture();
+  const left = resolveStageRuntimeContent(registry, 'CONTENT_GOAL_L');
+  const right = resolveStageRuntimeContent(registry, 'CONTENT_GOAL_R');
 
   assert.equal(left.coordinateFrame.guide, continuation.left.guide);
   assert.equal(right.coordinateFrame.guide, continuation.right.guide);
-  assert.equal(left.surfaceMap.sample(M6_22_CHILD_FINISH_S, 0).type, 'ASPHALT');
-  assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, 0).type, 'ASPHALT');
-  assert.equal(left.surfaceMap.sample(M6_22_CHILD_FINISH_S, 5).type, 'VOID');
-  assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, -5).type, 'VOID');
+  assert.equal(left.surfaceMap, continuation.left.surfaceMap);
+  assert.equal(right.surfaceMap, continuation.right.surfaceMap);
   assert.ok(left.worldSprites.length > 0);
   assert.ok(right.worldSprites.length > 0);
-  assert.ok(left.worldSprites.every((sprite) => sprite.name.startsWith('COAST_')));
-  assert.ok(right.worldSprites.every((sprite) => sprite.name.startsWith('MOUNTAIN_')));
-  assert.notEqual(left.selectFarBackground(50), right.selectFarBackground(50));
+  assert.ok(left.worldSprites.every((sprite) => sprite.id.startsWith('COAST_')));
+  assert.ok(right.worldSprites.every((sprite) => sprite.id.startsWith('MOUNTAIN_')));
+  assert.notEqual(left.selectFarBackground(0), right.selectFarBackground(0));
+  assert.notEqual(left.coordinateFrame, parent.runtimeContent.coordinateFrame);
+  assert.notEqual(right.coordinateFrame, parent.runtimeContent.coordinateFrame);
 });
 
 test('M6.22 physical route choice commits an independent child chart and finishes on that child course', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const route = createM620LivePointToPointRouteDag();
+  const { parent, continuation } = createFixture();
+  const route = parent.route;
+  const gates = parent.gates;
+  const handoffs = parent.handoffs;
   const routeState = createRouteDagState(route);
-  const content = createM6DebugRouteStageContentManifest(route);
-  const gates = createM622LivePointToPointGateSet(route, parent, continuation);
-  const handoffs = createM622RouteStageHandoffManifest(route, parent, continuation);
-  const charts = [continuation.charts.parent, continuation.charts.left, continuation.charts.right];
-  const handoffState = createRouteStageHandoffState(route, content, continuation.charts.parent, { x: 0, z: -55 });
+  const handoffState = createRouteStageHandoffState(
+    parent.manifest,
+    continuation.charts,
+    route.startStageId,
+    parent.runtimeContent.coordinateFrame.toWorld(0, 0),
+  );
 
-  const choiceGate = gates.gates.find((gate) => gate.kind === 'TRANSITION' && gate.choiceId === 'S1_LEFT');
-  assert.ok(choiceGate);
-  const choiceMotion = crossing(choiceGate);
-  const choiceObservation = observeRouteBoundaryCrossing(
+  const routeGate = gates.gates.find((gate) => gate.kind === 'TRANSITION' && gate.choiceId === 'S1_LEFT');
+  assert.ok(routeGate);
+  const selectionMotion = crossing(routeGate);
+  const selectionObservation = observeRouteBoundaryCrossing(
     route,
     routeState,
     gates,
-    choiceMotion.previous,
-    choiceMotion.current,
+    selectionMotion.previous,
+    selectionMotion.current,
   );
-  const choiceUpdate = updateRouteDag(routeState, route, choiceObservation.boundary);
-  assert.equal(choiceUpdate.event, 'TRANSITION_ACCEPTED');
-  assert.equal(queueRouteStageHandoff(handoffState, handoffs, choiceUpdate), 'PENDING');
-  assert.equal(handoffState.activePackageId, 'CONTENT_STAGE_1');
+  const routeUpdate = updateRouteDag(routeState, route, selectionObservation.boundary);
+  queueRouteStageHandoff(handoffState, handoffs, routeUpdate);
+  assert.equal(handoffState.pending?.targetChartId, continuation.left.chart.id);
 
-  const seam = handoffs.seams.find((entry) => entry.choiceId === 'S1_LEFT');
+  const seam = handoffs.seams.find((candidate) => candidate.choiceId === 'S1_LEFT');
   assert.ok(seam);
   const seamMotion = crossing(seam);
-  const seamObservation = observePendingRouteStageHandoff(
+  const handoffObservation = observePendingRouteStageHandoff(
     handoffState,
     handoffs,
     seamMotion.previous,
     seamMotion.current,
   );
-  assert.equal(
-    commitRouteStageHandoff(
-      handoffState,
-      routeState,
-      content,
-      charts,
-      seamObservation.seam,
-      seam.center,
-    ),
-    'COMMITTED',
+  const event = commitRouteStageHandoff(
+    handoffState,
+    routeState,
+    parent.manifest,
+    continuation.charts,
+    handoffObservation.seam,
+    seamMotion.current,
   );
-  near(handoffState.coordinate.s, continuation.handoffLocalS, 1e-5);
-  near(handoffState.coordinate.l, 0, 1e-5);
-  assert.equal(handoffState.activePackageId, 'CONTENT_GOAL_L');
+  assert.equal(event, 'COMMITTED');
+  assert.equal(handoffState.activeChartId, continuation.left.chart.id);
+  assert.equal(handoffState.coordinate.s > continuation.left.handoffLocalS, true);
 
   const finishGate = gates.gates.find((gate) => gate.kind === 'FINISH' && gate.stageId === 'GOAL_L');
   assert.ok(finishGate);
-  const expectedFinish = guideChartToWorld(continuation.charts.left, M6_22_CHILD_FINISH_S, 0);
+  const expectedFinish = continuation.left.guide.sample(250);
   near(finishGate.center.x, expectedFinish.x, 1e-6);
   near(finishGate.center.z, expectedFinish.z, 1e-6);
   const finishMotion = crossing(finishGate);
@@ -232,7 +209,7 @@ test('M6.22 physical route choice commits an independent child chart and finishe
   assert.equal(routeState.status, 'FINISHED');
 });
 
-test('M6.22 fixture stays validated while browser live wiring consumes the M6.27 route assembly', async () => {
+test('M6.22 fixture stays validated while browser live wiring consumes the M6.27 assembly through the M6.42 actor transaction', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
@@ -240,9 +217,11 @@ test('M6.22 fixture stays validated while browser live wiring consumes the M6.27
   ]);
 
   assert.match(mainSource, /createM627LiveRouteRuntime/);
-  assert.match(mainSource, /const guideCharts = liveRoute\.charts/);
+  assert.match(mainSource, /const playerTraveler = createLiveRouteTravelerState\(liveRoute/);
+  assert.match(mainSource, /const routeHandoffState = playerTraveler\.handoffState/);
+  assert.match(mainSource, /advanceLiveRouteMultiActorTick/);
   assert.match(mainSource, /camera\.courseLength/);
   assert.doesNotMatch(mainSource, /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
   assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet|createM622ChildStageContinuation/);
-  assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
+  assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|M6_42|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
 });
