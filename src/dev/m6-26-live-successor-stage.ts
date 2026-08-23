@@ -1,7 +1,6 @@
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileRasterCourse, type RasterVertex } from '../core/course.js';
 import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
-import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import {
   compileRouteBoundaryGateSet,
@@ -38,11 +37,7 @@ const SUCCESSOR_SOURCE_SEAM_MIN_S = 340;
 const SUCCESSOR_OVERLAP_MARGIN = 30;
 const SUCCESSOR_TRANSITION_LEAD = 20;
 const SUCCESSOR_FINISH_AFTER_SEAM = 150;
-const SUCCESSOR_ENTRY_STRAIGHT = 35;
-const SUCCESSOR_CLOSE_LENGTH = 55;
-// This is authoring subdivision, not renderer tessellation. Keep every compiled Raster vertex turn
-// comfortably below the frozen Core 10-degree limit even on the tighter successor closure curve.
-const SUCCESSOR_CURVE_SAMPLES = 128;
+const SUCCESSOR_DEFORMATION_METERS = 3;
 
 export interface M626SuccessorRuntimeSource {
   readonly guide: GuideCurve;
@@ -138,24 +133,27 @@ function createSuccessorSource(
     throw new RangeError(`M6.26 ${side} child lacks successor overlap envelope`);
   }
 
-  const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map((vertex) => ({ ...vertex }));
-  const divergence = prefix[prefix.length - 1]!;
-  const start = prefix[0]!;
-  const outgoingHeading = raster.segments[sharedEndIndex]!.heading;
-  const incomingStartHeading = raster.segments[sourceStartIndex - 1]!.heading;
-  const outgoingTangent = tangentFromHeading(outgoingHeading);
-  const incomingStartTangent = tangentFromHeading(incomingStartHeading);
-  const curveStart = addScaled(divergence, outgoingTangent, SUCCESSOR_ENTRY_STRAIGHT);
-  const closeApproach = addScaled(start, incomingStartTangent, -SUCCESSOR_CLOSE_LENGTH);
-  const sideFactor = side === 'LEFT' ? 1 : -1;
-  const control1 = addScaled(curveStart, outgoingTangent, 260 + sideFactor * 25);
-  const control2 = addScaled(closeApproach, incomingStartTangent, -(220 - sideFactor * 20));
-  const continuation: RasterVertex[] = [{ ...curveStart }];
-  for (let i = 1; i <= SUCCESSOR_CURVE_SAMPLES; i += 1) {
-    continuation.push(cubicBezier(curveStart, control1, control2, closeApproach, i / SUCCESSOR_CURVE_SAMPLES));
-  }
+  // Re-index the already validated child Raster at a point before the second seam. The complete
+  // overlap remains byte-for-byte geometry. Only the later tail is smoothly displaced, with zero
+  // displacement and zero slope at both ends, so the successor becomes an independent course
+  // without manufacturing a sharp closure or weakening the frozen 10-degree Raster turn limit.
+  const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map(copyVertex);
+  const tailSource = [
+    ...raster.vertices.slice(sharedEndIndex + 1),
+    ...raster.vertices.slice(0, sourceStartIndex),
+  ];
+  const sideSign = side === 'LEFT' ? -1 : 1;
+  const referenceHeading = raster.segments[sharedEndIndex]!.heading;
+  const normalX = Math.cos(referenceHeading);
+  const normalZ = -Math.sin(referenceHeading);
+  const tail = tailSource.map((vertex, index) => {
+    const phase = (index + 1) / (tailSource.length + 1);
+    const smooth = Math.sin(Math.PI * phase) ** 2;
+    const offset = sideSign * SUCCESSOR_DEFORMATION_METERS * smooth;
+    return { x: vertex.x + normalX * offset, z: vertex.z + normalZ * offset };
+  });
 
-  const successorRaster = compileRasterCourse([...prefix, ...continuation]);
+  const successorRaster = compileRasterCourse([...prefix, ...tail]);
   const guide = compileGuideCurve(successorRaster, {
     lMax: source.guide.lMax,
     mMin: source.guide.mMin,
@@ -325,14 +323,6 @@ function findLastVertexAtOrBefore(values: readonly number[], target: number): nu
   return found;
 }
 
-function addScaled(point: Vec2, direction: Vec2, scale: number): Vec2 {
-  return { x: point.x + direction.x * scale, z: point.z + direction.z * scale };
-}
-
-function cubicBezier(a: Vec2, b: Vec2, c: Vec2, d: Vec2, t: number): RasterVertex {
-  const u = 1 - t;
-  return {
-    x: u * u * u * a.x + 3 * u * u * t * b.x + 3 * u * t * t * c.x + t * t * t * d.x,
-    z: u * u * u * a.z + 3 * u * u * t * b.z + 3 * u * t * t * c.z + t * t * t * d.z,
-  };
+function copyVertex(vertex: RasterVertex): RasterVertex {
+  return { x: vertex.x, z: vertex.z };
 }
