@@ -97,14 +97,15 @@ export function compileRasterForkStageRoute(
   if (oldFinishes.length !== 1) {
     throw new RangeError('Raster fork source terminal must own exactly one physical FINISH');
   }
-  if (oldTerminal.runtime.roadView === null) {
+  const sourceRoadView = oldTerminal.runtime.roadView;
+  if (sourceRoadView === null) {
     throw new RangeError('Raster fork source terminal requires a StageRoadView');
   }
 
   const promoted = repackageGuideChartRuntime(oldTerminal.runtime, source.forkPackageId);
   const junction = compileStageJunction({
     courseLength: promoted.coordinateFrame.guide.length,
-    roadView: promoted.roadView,
+    roadView: sourceRoadView,
     groundProfile: promoted.groundProfile,
   }, source.junction);
   const forkRuntime: GuideChartRuntimePackage = Object.freeze({
