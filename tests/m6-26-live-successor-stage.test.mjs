@@ -184,13 +184,16 @@ test('M6.26 left path can commit parent->child, child->successor, then physicall
   assert.equal(handoffState.commitCount, 2);
 });
 
-test('M6.26 browser/runtime additions do not add successor-stage knowledge to renderer Core', async () => {
+test('M6.26 browser/runtime additions stay outside renderer Core while M6.29 owns continuation construction', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [rendererSource, liveSource] = await Promise.all([
+  const [rendererSource, liveSource, successorFactorySource] = await Promise.all([
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-26-live-successor-stage.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(liveSource, /S2L_CONTINUE/);
-  assert.match(liveSource, /StageContinuationLink/);
-  assert.doesNotMatch(rendererSource, /M6_26|STAGE_2_[LR]|S2[LR]_CONTINUE|SUCCESSOR/);
+  assert.match(liveSource, /createRasterStageSuccessor/);
+  assert.match(successorFactorySource, /compileStageContinuationLink|StageContinuationLink/);
+  assert.doesNotMatch(successorFactorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
+  assert.doesNotMatch(rendererSource, /M6_26|M6_29|STAGE_2_[LR]|S2[LR]_CONTINUE|SUCCESSOR/);
 });
