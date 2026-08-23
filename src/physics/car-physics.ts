@@ -1,10 +1,10 @@
 import type { DrivingInput } from '../input/driving-input.js';
 import {
-  guideCourseToWorld,
-  locateWorldOnGuideLocal,
-  type CourseCoordinate,
-  type GuideCurve,
-} from '../core/guide-curve.js';
+  guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateLocal,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
+import type { CourseCoordinate } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { M2VehicleState } from '../dev/m2-vehicle.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
@@ -62,12 +62,12 @@ export interface M5CarState extends M2VehicleState {
 }
 
 export function createM5Car(
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   s = 45,
 ): M5CarState {
-  // Reuse the Guide chart only for the initial pose; thereafter world state is authoritative.
+  // The initial pose is expressed through the active Guide coordinate frame; world state is authoritative thereafter.
   const sample = guidePoint(guide, s, 0);
   const surface = surfaces.sample(sample.s, 0);
   const longitudinalSpeed = 45;
@@ -96,7 +96,7 @@ export function createM5Car(
 }
 
 export function updateM5Car(
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   car: M5CarState,
@@ -129,7 +129,7 @@ export function updateM5Car(
   car.z += (cos * car.longitudinalSpeed - sin * car.lateralSpeed) * dt;
   car.yaw = wrapAngle(car.yaw + car.yawRate * dt);
 
-  car.course = locateWorldOnGuideLocal(
+  car.course = locateWorldOnGuideCoordinateLocal(
     guide,
     { x: car.x, z: car.z },
     car.course.segmentIndex,
@@ -264,6 +264,6 @@ function integrateUnsupportedPlanar(car: M5CarState, dt: number, profile: CarPhy
   car.lateralAcceleration = 0;
 }
 
-function guidePoint(guide: GuideCurve, s: number, l: number) {
-  return guideCourseToWorld(guide, s, l);
+function guidePoint(guide: GuideCoordinateSource, s: number, l: number) {
+  return guideCoordinateToWorld(guide, s, l);
 }
