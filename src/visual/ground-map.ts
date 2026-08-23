@@ -24,8 +24,10 @@ export interface GroundMapProfile {
   roadCenterL?: number;
   /** Optional source chainage phase. Used when a stage-local s ruler is rebased onto reusable visual authoring. */
   chainageOffsetS?: number;
-  /** Optional continuous road cross-section authority used by compiler bake and DEV fallback. */
+  /** Optional source-coordinate continuous road cross-section used by compiler bake and reusable source sampling. */
   junction?: JunctionCrossSectionProfile;
+  /** Optional active-stage-local junction overlay. Only stage-local GroundMap adapters consume this field. */
+  stageJunction?: JunctionCrossSectionProfile;
   /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
   logical?: CyclicGroundMapLogicalProfile;
   /** M5.7 compiler-baked runtime source. Procedural sampling remains a DEV/test fallback. */
@@ -49,29 +51,9 @@ export function sampleGroundMapRuntime(
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
-  return sampleGroundMapInternal(s, l, profile, cliffSection, true);
-}
-
-/** Stage adapters use this after a stage-local junction has already been classified in local l. */
-export function sampleGroundMapWithoutJunction(
-  s: number,
-  l: number,
-  profile: GroundMapProfile,
-  cliffSection = false,
-): number {
-  return sampleGroundMapInternal(s, l, profile, cliffSection, false);
-}
-
-function sampleGroundMapInternal(
-  s: number,
-  l: number,
-  profile: GroundMapProfile,
-  cliffSection: boolean,
-  useJunction: boolean,
-): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);
-  if (useJunction && profile.junction) {
+  if (profile.junction) {
     const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, sourceS);
     if (junctionColor !== null) return junctionColor;
   } else {
@@ -92,11 +74,8 @@ function sampleGroundMapInternal(
 }
 
 /**
- * Procedural junction paint shared by parent-source and stage-local adapters.
- *
- * `junctionS` selects cross-section geometry. `patternS` selects checker/asphalt/dash phase. They are
- * separate so a stage-local chainage ruler can own its junction while still preserving an inherited
- * GroundMap longitudinal phase across a handoff.
+ * Procedural junction paint shared by source-coordinate and active-stage-local adapters.
+ * `junctionS` selects cross-section geometry while `patternS` independently preserves visual phase.
  */
 export function sampleJunctionGroundMap(
   junctionS: number,
