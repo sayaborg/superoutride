@@ -147,8 +147,8 @@ test('M6.32 fragment composition remains the live authority as later milestones 
   ]);
   assert.doesNotMatch(composerSource, /render\/|car-physics|motorcycle-physics|src\/dev|\.\.\/dev\//);
   assert.match(composerSource, /compileDeclarativeLiveRoute\(composeDeclarativeLiveRouteAuthoring\(source\)\)/);
-  assert.match(liveSource, /compileDeclarativeRouteFragments/);
-  assert.doesNotMatch(liveSource, /compileDeclarativeLiveRoute\s*\(/);
+  assert.match(liveSource, /composeDeclarativeLiveRouteAuthoring/);
+  assert.match(liveSource, /compileDeclarativeLiveRoute\s*\(/);
   assert.doesNotMatch(rendererSource, /DeclarativeRouteFragment|STAGE_3_[LR]|S3[LR]_CONTINUE/);
   assert.doesNotMatch(mainSource, /DeclarativeRouteFragment|STAGE_3_[LR]|S3[LR]_CONTINUE/);
 });
