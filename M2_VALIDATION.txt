@@ -1,0 +1,156 @@
+
+> super-outride-m2@0.2.0 test
+> npm run build && node --test tests/*.test.mjs
+
+
+> super-outride-m2@0.2.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: clampSteering keeps canonical range
+ok 1 - clampSteering keeps canonical range
+  ---
+  duration_ms: 0.569856
+  type: 'test'
+  ...
+# Subtest: keyboard steering ramps to full lock instead of jumping
+ok 2 - keyboard steering ramps to full lock instead of jumping
+  ---
+  duration_ms: 0.201279
+  type: 'test'
+  ...
+# Subtest: keyboard steering returns toward center when released or both keys are held
+ok 3 - keyboard steering returns toward center when released or both keys are held
+  ---
+  duration_ms: 0.086799
+  type: 'test'
+  ...
+# Subtest: touch X maps continuously to -1..+1
+ok 4 - touch X maps continuously to -1..+1
+  ---
+  duration_ms: 0.099177
+  type: 'test'
+  ...
+# Subtest: input merge gives active touch steering priority and ORs pedals
+ok 5 - input merge gives active touch steering priority and ORs pedals
+  ---
+  duration_ms: 0.740479
+  type: 'test'
+  ...
+# Subtest: wrapSigned follows Core interval (-L/2, +L/2]
+ok 6 - wrapSigned follows Core interval (-L/2, +L/2]
+  ---
+  duration_ms: 0.911324
+  type: 'test'
+  ...
+# Subtest: heading basis matches +Z forward and +X right
+ok 7 - heading basis matches +Z forward and +X right
+  ---
+  duration_ms: 0.569265
+  type: 'test'
+  ...
+# Subtest: Guide fallback math reproduces the Core 10-degree reference scale
+ok 8 - Guide fallback math reproduces the Core 10-degree reference scale
+  ---
+  duration_ms: 0.17491
+  type: 'test'
+  ...
+# Subtest: circular-authoring metadata produces the maximum fitting Guide radius
+ok 9 - circular-authoring metadata produces the maximum fitting Guide radius
+  ---
+  duration_ms: 1.372749
+  type: 'test'
+  ...
+# Subtest: Guide segments are G1 at every compiled boundary
+ok 10 - Guide segments are G1 at every compiled boundary
+  ---
+  duration_ms: 1.218761
+  type: 'test'
+  ...
+# Subtest: world to Guide coordinate recovers signed lateral position
+ok 11 - world to Guide coordinate recovers signed lateral position
+  ---
+  duration_ms: 0.738627
+  type: 'test'
+  ...
+# Subtest: local Guide search requires explicit initialization instead of silently going global
+ok 12 - local Guide search requires explicit initialization instead of silently going global
+  ---
+  duration_ms: 0.610788
+  type: 'test'
+  ...
+# Subtest: pseudo projection keeps same-s same-height anchors at identical depth, scale and Y
+ok 13 - pseudo projection keeps same-s same-height anchors at identical depth, scale and Y
+  ---
+  duration_ms: 0.654943
+  type: 'test'
+  ...
+# Subtest: general pseudo projection reduces to Core straight-road yaw equation
+ok 14 - general pseudo projection reduces to Core straight-road yaw equation
+  ---
+  duration_ms: 0.338272
+  type: 'test'
+  ...
+# Subtest: raster compiler rejects a turn sharper than the Core 10-degree hard limit
+ok 15 - raster compiler rejects a turn sharper than the Core 10-degree hard limit
+  ---
+  duration_ms: 0.355729
+  type: 'test'
+  ...
+# Subtest: Guide world-coordinate round trip remains continuous across the whole closed course
+ok 16 - Guide world-coordinate round trip remains continuous across the whole closed course
+  ---
+  duration_ms: 6.657048
+  type: 'test'
+  ...
+# Subtest: stadium debug course satisfies closed-course draw-distance requirement
+ok 17 - stadium debug course satisfies closed-course draw-distance requirement
+  ---
+  duration_ms: 2.309
+  type: 'test'
+  ...
+# Subtest: free world motion on the long straight produces simultaneous s and l change
+ok 18 - free world motion on the long straight produces simultaneous s and l change
+  ---
+  duration_ms: 0.700831
+  type: 'test'
+  ...
+# Subtest: camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw
+ok 19 - camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw
+  ---
+  duration_ms: 0.37022
+  type: 'test'
+  ...
+# Subtest: flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans
+ok 20 - flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans
+  ---
+  duration_ms: 1.27241
+  type: 'test'
+  ...
+# Subtest: horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLine
+ok 21 - horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLine
+  ---
+  duration_ms: 0.153738
+  type: 'test'
+  ...
+# Subtest: forward-only visibility becomes empty when camera faces more than 90 degrees away
+ok 22 - forward-only visibility becomes empty when camera faces more than 90 degrees away
+  ---
+  duration_ms: 0.197633
+  type: 'test'
+  ...
+# Subtest: player projection scale depends on chainage depth, not Euclidean camera distance
+ok 23 - player projection scale depends on chainage depth, not Euclidean camera distance
+  ---
+  duration_ms: 0.30998
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.278353

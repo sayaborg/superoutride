@@ -1,0 +1,381 @@
+SUPER OUTRIDE M5.1 VALIDATION
+
+TypeScript:
+
+> super-outride-m5-1@0.5.1 check
+> tsc -p tsconfig.json --noEmit
+
+
+Regression:
+
+> super-outride-m5-1@0.5.1 test
+> npm run build && node --test tests/*.test.mjs
+
+
+> super-outride-m5-1@0.5.1 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: clampSteering keeps canonical range
+ok 1 - clampSteering keeps canonical range
+  ---
+  duration_ms: 0.817454
+  type: 'test'
+  ...
+# Subtest: keyboard steering ramps to full lock instead of jumping
+ok 2 - keyboard steering ramps to full lock instead of jumping
+  ---
+  duration_ms: 0.272495
+  type: 'test'
+  ...
+# Subtest: keyboard steering returns toward center when released or both keys are held
+ok 3 - keyboard steering returns toward center when released or both keys are held
+  ---
+  duration_ms: 0.137113
+  type: 'test'
+  ...
+# Subtest: touch X maps continuously to -1..+1
+ok 4 - touch X maps continuously to -1..+1
+  ---
+  duration_ms: 0.15495
+  type: 'test'
+  ...
+# Subtest: input merge gives active touch steering priority and ORs pedals
+ok 5 - input merge gives active touch steering priority and ORs pedals
+  ---
+  duration_ms: 0.883772
+  type: 'test'
+  ...
+# Subtest: wrapSigned follows Core interval (-L/2, +L/2]
+ok 6 - wrapSigned follows Core interval (-L/2, +L/2]
+  ---
+  duration_ms: 1.153133
+  type: 'test'
+  ...
+# Subtest: heading basis matches +Z forward and +X right
+ok 7 - heading basis matches +Z forward and +X right
+  ---
+  duration_ms: 0.798596
+  type: 'test'
+  ...
+# Subtest: Guide fallback math reproduces the Core 10-degree reference scale
+ok 8 - Guide fallback math reproduces the Core 10-degree reference scale
+  ---
+  duration_ms: 0.255169
+  type: 'test'
+  ...
+# Subtest: circular-authoring metadata produces the maximum fitting Guide radius
+ok 9 - circular-authoring metadata produces the maximum fitting Guide radius
+  ---
+  duration_ms: 1.799884
+  type: 'test'
+  ...
+# Subtest: Guide segments are G1 at every compiled boundary
+ok 10 - Guide segments are G1 at every compiled boundary
+  ---
+  duration_ms: 1.504165
+  type: 'test'
+  ...
+# Subtest: world to Guide coordinate recovers signed lateral position
+ok 11 - world to Guide coordinate recovers signed lateral position
+  ---
+  duration_ms: 0.869882
+  type: 'test'
+  ...
+# Subtest: local Guide search requires explicit initialization instead of silently going global
+ok 12 - local Guide search requires explicit initialization instead of silently going global
+  ---
+  duration_ms: 0.652519
+  type: 'test'
+  ...
+# Subtest: pseudo projection keeps same-s same-height anchors at identical depth, scale and Y
+ok 13 - pseudo projection keeps same-s same-height anchors at identical depth, scale and Y
+  ---
+  duration_ms: 0.644448
+  type: 'test'
+  ...
+# Subtest: general pseudo projection reduces to Core straight-road yaw equation
+ok 14 - general pseudo projection reduces to Core straight-road yaw equation
+  ---
+  duration_ms: 0.461405
+  type: 'test'
+  ...
+# Subtest: raster compiler rejects a turn sharper than the Core 10-degree hard limit
+ok 15 - raster compiler rejects a turn sharper than the Core 10-degree hard limit
+  ---
+  duration_ms: 0.90242
+  type: 'test'
+  ...
+# Subtest: Guide world-coordinate round trip remains continuous across the whole closed course
+ok 16 - Guide world-coordinate round trip remains continuous across the whole closed course
+  ---
+  duration_ms: 8.798789
+  type: 'test'
+  ...
+# Subtest: stadium debug course satisfies closed-course draw-distance requirement
+ok 17 - stadium debug course satisfies closed-course draw-distance requirement
+  ---
+  duration_ms: 2.301178
+  type: 'test'
+  ...
+# Subtest: free world motion on the long straight produces simultaneous s and l change
+ok 18 - free world motion on the long straight produces simultaneous s and l change
+  ---
+  duration_ms: 0.713029
+  type: 'test'
+  ...
+# Subtest: camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw
+ok 19 - camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw
+  ---
+  duration_ms: 0.37056
+  type: 'test'
+  ...
+# Subtest: flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans
+ok 20 - flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans
+  ---
+  duration_ms: 1.320932
+  type: 'test'
+  ...
+# Subtest: horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLine
+ok 21 - horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLine
+  ---
+  duration_ms: 0.149001
+  type: 'test'
+  ...
+# Subtest: forward-only visibility becomes empty when camera faces more than 90 degrees away
+ok 22 - forward-only visibility becomes empty when camera faces more than 90 degrees away
+  ---
+  duration_ms: 0.200989
+  type: 'test'
+  ...
+# Subtest: player projection scale depends on chainage depth, not Euclidean camera distance
+ok 23 - player projection scale depends on chainage depth, not Euclidean camera distance
+  ---
+  duration_ms: 0.289941
+  type: 'test'
+  ...
+# Subtest: software surface provides deterministic 32-bit span writes
+ok 24 - software surface provides deterministic 32-bit span writes
+  ---
+  duration_ms: 1.100975
+  type: 'test'
+  ...
+# Subtest: Y_render is piecewise linear while Y_camera is continuous through a hill node
+ok 25 - Y_render is piecewise linear while Y_camera is continuous through a hill node
+  ---
+  duration_ms: 0.26237
+  type: 'test'
+  ...
+# Subtest: general TerrainLine generator is globally far-to-near and allows hill/dip row overdraw
+ok 26 - general TerrainLine generator is globally far-to-near and allows hill/dip row overdraw
+  ---
+  duration_ms: 2.177995
+  type: 'test'
+  ...
+# Subtest: TerrainLine row agrees with the single Core pseudo projection for its sampled chainage
+ok 27 - TerrainLine row agrees with the single Core pseudo projection for its sampled chainage
+  ---
+  duration_ms: 1.059794
+  type: 'test'
+  ...
+# Subtest: GroundMap source sampling distinguishes road, shoulder, marking and terrain
+ok 28 - GroundMap source sampling distinguishes road, shoulder, marking and terrain
+  ---
+  duration_ms: 0.224994
+  type: 'test'
+  ...
+# Subtest: cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock
+ok 29 - cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock
+  ---
+  duration_ms: 83.243362
+  type: 'test'
+  ...
+# Subtest: Far Background is a full image with meaningful pixels below its horizon
+ok 30 - Far Background is a full image with meaningful pixels below its horizon
+  ---
+  duration_ms: 66.659019
+  type: 'test'
+  ...
+# Subtest: programmer-art sprite assets obey <=15 opaque colors plus transparent
+ok 31 - programmer-art sprite assets obey <=15 opaque colors plus transparent
+  ---
+  duration_ms: 1.620377
+  type: 'test'
+  ...
+# Subtest: vehicle yaw/bank variants keep a consistent bitmap anchor semantic
+ok 32 - vehicle yaw/bank variants keep a consistent bitmap anchor semantic
+  ---
+  duration_ms: 0.345383
+  type: 'test'
+  ...
+# Subtest: scaled sprite blitter uses texel-center anchor and preserves transparent pixels
+ok 33 - scaled sprite blitter uses texel-center anchor and preserves transparent pixels
+  ---
+  duration_ms: 0.243472
+  type: 'test'
+  ...
+# Subtest: Painter merge is far-to-near and terrain wins the equal-depth tie before sprite
+ok 34 - Painter merge is far-to-near and terrain wins the equal-depth tie before sprite
+  ---
+  duration_ms: 0.567362
+  type: 'test'
+  ...
+# Subtest: course-attached sprite compiler snaps ground anchor to Y_render and keeps s_render
+ok 35 - course-attached sprite compiler snaps ground anchor to Y_render and keeps s_render
+  ---
+  duration_ms: 0.293196
+  type: 'test'
+  ...
+# Subtest: visible world sprites use shared chainage pseudo-depth and sort far-to-near
+ok 36 - visible world sprites use shared chainage pseudo-depth and sort far-to-near
+  ---
+  duration_ms: 0.982379
+  type: 'test'
+  ...
+# Subtest: yaw and bank selectors cover wrapped yaw and discrete bike bank variants
+ok 37 - yaw and bank selectors cover wrapped yaw and discrete bike bank variants
+  ---
+  duration_ms: 0.223922
+  type: 'test'
+  ...
+# Subtest: M4 camera creates bounded vehicle-relative yaw lag while preserving exact longitudinal D_cam
+ok 38 - M4 camera creates bounded vehicle-relative yaw lag while preserving exact longitudinal D_cam
+  ---
+  duration_ms: 1.626575
+  type: 'test'
+  ...
+# Subtest: M4 renderer draws merged world sprites and a yaw-variant player into the software framebuffer
+ok 39 - M4 renderer draws merged world sprites and a yaw-variant player into the software framebuffer
+  ---
+  duration_ms: 13.401525
+  type: 'test'
+  ...
+# Subtest: bike player path selects yaw x bank variant without runtime bitmap rotation
+ok 40 - bike player path selects yaw x bank variant without runtime bitmap rotation
+  ---
+  duration_ms: 0.449608
+  type: 'test'
+  ...
+# Subtest: sustained steering into VOID recovers before the player sprite can disappear
+ok 41 - sustained steering into VOID recovers before the player sprite can disappear
+  ---
+  duration_ms: 1046.156775
+  type: 'test'
+  ...
+# Subtest: automatic recovery returns a fallen car to supported road center and resets unsafe motion
+ok 42 - automatic recovery returns a fallen car to supported road center and resets unsafe motion
+  ---
+  duration_ms: 0.210182
+  type: 'test'
+  ...
+# Subtest: bike recovery clears bank state instead of carrying a crash lean into respawn
+ok 43 - bike recovery clears bank state instead of carrying a crash lean into respawn
+  ---
+  duration_ms: 0.227448
+  type: 'test'
+  ...
+# Subtest: manual recovery is presentation/gameplay reset and preserves chainage pseudo-projection afterward
+ok 44 - manual recovery is presentation/gameplay reset and preserves chainage pseudo-projection afterward
+  ---
+  duration_ms: 0.163543
+  type: 'test'
+  ...
+# Subtest: supported bike remains controllable without recovery firing spuriously
+ok 45 - supported bike remains controllable without recovery firing spuriously
+  ---
+  duration_ms: 0.661021
+  type: 'test'
+  ...
+# Subtest: SurfaceMap returns lightweight physical attributes independent from GroundMap pixels
+ok 46 - SurfaceMap returns lightweight physical attributes independent from GroundMap pixels
+  ---
+  duration_ms: 0.809773
+  type: 'test'
+  ...
+# Subtest: SurfaceMap supports authored custom support even when visual GroundBase decisions are unrelated
+ok 47 - SurfaceMap supports authored custom support even when visual GroundBase decisions are unrelated
+  ---
+  duration_ms: 0.172877
+  type: 'test'
+  ...
+# Subtest: Y_phys is a semantically separate smooth channel from piecewise-linear Y_render
+ok 48 - Y_phys is a semantically separate smooth channel from piecewise-linear Y_render
+  ---
+  duration_ms: 0.259265
+  type: 'test'
+  ...
+# Subtest: car remains world-authoritative and can traverse laterally across the road chart
+ok 49 - car remains world-authoritative and can traverse laterally across the road chart
+  ---
+  duration_ms: 4.009756
+  type: 'test'
+  ...
+# Subtest: surface material changes longitudinal acceleration without changing DrivingInput
+ok 50 - surface material changes longitudinal acceleration without changing DrivingInput
+  ---
+  duration_ms: 1.874284
+  type: 'test'
+  ...
+# Subtest: lower-friction sand limits turning response versus asphalt in the same steering probe
+ok 51 - lower-friction sand limits turning response versus asphalt in the same steering probe
+  ---
+  duration_ms: 0.994748
+  type: 'test'
+  ...
+# Subtest: VOID means no support: planar momentum continues while vertical state falls
+ok 52 - VOID means no support: planar momentum continues while vertical state falls
+  ---
+  duration_ms: 0.229901
+  type: 'test'
+  ...
+# Subtest: M5 camera retains exact chainage D_cam and bounded horizontal/vertical framing
+ok 53 - M5 camera retains exact chainage D_cam and bounded horizontal/vertical framing
+  ---
+  duration_ms: 1.315564
+  type: 'test'
+  ...
+# Subtest: M5 renderer projects player from physical Y and keeps player depth/scale chainage-only
+ok 54 - M5 renderer projects player from physical Y and keeps player depth/scale chainage-only
+  ---
+  duration_ms: 78.292038
+  type: 'test'
+  ...
+# Subtest: motorcycle steering produces physical bank and yaw while reusing canonical DrivingInput
+ok 55 - motorcycle steering produces physical bank and yaw while reusing canonical DrivingInput
+  ---
+  duration_ms: 2.657607
+  type: 'test'
+  ...
+# Subtest: motorcycle bank/yaw authority is surface-grip limited on sand
+ok 56 - motorcycle bank/yaw authority is surface-grip limited on sand
+  ---
+  duration_ms: 1.175096
+  type: 'test'
+  ...
+# Subtest: motorcycle physical bank state selects non-center yaw x bank sprite variant
+ok 57 - motorcycle physical bank state selects non-center yaw x bank sprite variant
+  ---
+  duration_ms: 1.332549
+  type: 'test'
+  ...
+# Subtest: car/bike model toggle transfers world kinematics instead of teleporting
+ok 58 - car/bike model toggle transfers world kinematics instead of teleporting
+  ---
+  duration_ms: 0.495927
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1189.144581
+
+Core freeze byte identity:
+PASS: byte-identical
+
+Long-run visibility stress:
+PASS: 2400 frames, recoveries=16, safetyFrames=344, X=48.0008..207.5590, Y=148.4344..212.4647

@@ -1,0 +1,60 @@
+SUPER OUTRIDE M4 VALIDATION
+============================
+
+Milestone: M4 Super Scaler
+Result: PASS
+
+TypeScript:
+  npm run check -> PASS
+  npm run build -> PASS
+
+Automated tests:
+  total  : 40
+  passed : 40
+  failed : 0
+
+M0/M1/M2/M3 regression tests remain enabled.
+
+M4-specific acceptance checks:
+  PASS  prototype sprite assets use <=15 opaque colors + transparent
+  PASS  vehicle yaw/bank variants keep consistent bitmap anchor semantics
+  PASS  scaled blitter uses Core texel-center anchor convention
+  PASS  transparent sprite texels skip framebuffer writes
+  PASS  Painter merge is far -> near
+  PASS  equal-depth tie draws TerrainLine before World Sprite
+  PASS  course-attached ground sprite snaps to Y_render(s)
+  PASS  world sprite retains s_render and shared chainage pseudo-depth
+  PASS  visible world sprites sort far -> near
+  PASS  yaw variant selector wraps full 360 degrees
+  PASS  motorcycle bank selector uses discrete yaw x bank asset table
+  PASS  M4 DEV camera produces bounded yaw lag
+  PASS  camera longitudinal position keeps player d = D_cam
+  PASS  renderer writes merged world sprites into software framebuffer
+  PASS  player car uses camera-relative yaw asset variant
+  PASS  player bike path uses yaw x bank asset variant
+
+Renderer structure:
+  Full Far Background
+    -> merge(TerrainLine far-to-near, World Sprite far-to-near)
+       equal d: Terrain -> Sprite
+    -> Player scaled sprite
+    -> HUD
+
+Sprite path:
+  uniform scale f/d
+  texel-center anchor
+  nearest scaled transfer
+  0/1 transparency
+
+Explicitly absent:
+  z-buffer
+  per-pixel depth test
+  sprite runtime rotation
+  sprite perspective warp
+  sprite anisotropic scale
+  arbitrary alpha
+  lateral depth correction
+  Euclidean-distance sprite scale correction
+
+Core Freeze copy:
+  byte compare with supplied /mnt/data/00_core_deign_freeze.md -> IDENTICAL

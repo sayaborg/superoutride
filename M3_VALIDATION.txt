@@ -1,0 +1,47 @@
+SUPER OUTRIDE M3 VALIDATION
+============================
+
+Milestone: M3 Visual Core
+Result: PASS
+
+TypeScript:
+  npm run check -> PASS
+  npm run build -> PASS
+
+Automated tests:
+  total  : 30
+  passed : 30
+  failed : 0
+
+M0/M1/M2 regression tests remain enabled.
+
+M3-specific acceptance checks:
+  PASS  Uint32 software framebuffer span writes
+  PASS  Y_render is cyclic piecewise-linear
+  PASS  DEV Y_camera is C1 at height nodes
+  PASS  general TerrainLine list is globally far -> near
+  PASS  hill/dip can produce multiple TerrainLines on one output row
+  PASS  TerrainLine vertical position agrees with Core pseudo projection
+  PASS  GroundMap distinguishes marking/asphalt/shoulder/grass/rock
+  PASS  cliff GroundBase_L=TRANSPARENT leaves the Far Background pixel untouched
+  PASS  cliff GroundBase_R COLOR overwrites the Far Background
+  PASS  Far Background contains meaningful horizon-below imagery
+
+Renderer structure:
+  Full Far Background
+    -> TerrainLines far-to-near
+       -> GroundBase_L / GroundMap / GroundBase_R span rules
+    -> Player
+    -> HUD
+
+Explicitly absent:
+  z-buffer
+  polygon road
+  perspective-correct road texture mapping
+  camera-space-Z depth correction
+  lateral depth correction
+  Canvas road path geometry
+  arbitrary alpha terrain blending
+
+Core Freeze copy:
+  byte compare with supplied /mnt/data/00_core_deign_freeze.md -> IDENTICAL

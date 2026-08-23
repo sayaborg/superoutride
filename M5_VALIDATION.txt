@@ -1,0 +1,28 @@
+SUPER OUTRIDE M5 VALIDATION
+
+Automated regression
+--------------------
+tests: 53
+pass : 53
+fail : 0
+
+M5-specific coverage
+--------------------
+- SurfaceMap ASPHALT / SHOULDER / GRASS / DIRT / SAND / VOID
+- SurfaceMap independent from GroundMap/GroundBase data
+- Y_phys semantic channel separated from Y_render / Y_camera
+- world-authoritative car crosses lateral road chart without snap
+- surface-dependent car acceleration and grip
+- VOID removes support and integrates falling Y
+- exact chainage D_cam retained by M5 camera
+- bounded Core-style vertical framing
+- renderer consumes physical player Y
+- player scale remains f / D_cam
+- motorcycle steering creates physical bank + yaw
+- motorcycle bank/yaw authority is surface-grip limited
+- physical motorcycle bank selects yaw x bank sprite variants
+- car/bike switching transfers world kinematics without teleport
+
+Core freeze integrity
+---------------------
+PASS: docs/00_core_design_freeze.md is byte-identical to supplied source.

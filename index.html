@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#05080c" />
+    <title>SUPER OUTRIDE — M5</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="app" aria-label="SUPER OUTRIDE M5 driving">
+      <section class="control-zone steering-zone" aria-label="Steering control">
+        <div id="steering-pad" class="steering-pad" role="application" aria-label="Analog steering pad">
+          <span class="steer-left">◀</span>
+          <span class="steer-center">STEER</span>
+          <span class="steer-right">▶</span>
+        </div>
+      </section>
+
+      <section class="game-zone">
+        <canvas id="game" width="320" height="240" aria-label="SUPER OUTRIDE game screen"></canvas>
+      </section>
+
+      <section class="control-zone pedal-zone" aria-label="Throttle and brake controls">
+        <button id="brake-button" class="pedal brake" type="button">BRAKE</button>
+        <button id="throttle-button" class="pedal throttle" type="button">THROTTLE</button>
+      </section>
+    </main>
+
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>

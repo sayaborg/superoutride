@@ -1,0 +1,14 @@
+{
+  "name": "super-outride-m5-2",
+  "version": "0.5.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
