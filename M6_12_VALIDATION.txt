@@ -1,0 +1,32 @@
+SUPER OUTRIDE M6.12 VALIDATION
+
+Validated feature head:
+a11b0bbaef744022c5848030b806586dd85fb05c
+
+Pull request:
+#22 M6.12 widening median junction cross-section
+
+GitHub Actions:
+run 32616312369
+job 97137534382
+
+Result:
+187 tests
+187 pass
+0 fail
+
+M6.12 assertions include:
+- existing single 9m road before junction
+- single-band widening before median
+- median begins only after full two-child asphalt width exists
+- median growth preserves exact child-road width
+- full separation is represented by two asphalt bands plus one median band in one lateral strip
+- lateral classification distinguishes left/right asphalt, median, shoulder and outside
+- outer/median widths are monotone through the split
+- separated child centers are deterministic same-world-frame offsets
+- invalid narrowing/zero-median/reversed phase authoring is rejected
+- junction geometry has no renderer or vehicle-physics dependency
+
+The first CI attempt had one test-only false positive: a dependency guard matched the phrase "camera-space" inside a source comment. The guard was corrected to inspect actual imports. The implementation geometry itself was unchanged. The second run above is the validated authority.
+
+No current Pages content uses the new junction yet. M6.12 establishes the cross-section geometry contract only.
