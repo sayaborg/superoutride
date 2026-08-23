@@ -32,10 +32,7 @@ export interface RenderBudgetViolation {
   readonly limit: number;
 }
 
-/**
- * M5.8 debug-content baseline measured by the 70-frame compiler stress sweep.
- * This is evidence for the provisional target below, not a runtime threshold.
- */
+/** M5.8 normal/debug content baseline before the required tunnel/portal stress case existed. */
 export const M5_8_DEBUG_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   frameCount: 70,
   maxTerrainLineCount: 171,
@@ -51,13 +48,9 @@ export const M5_8_DEBUG_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   groundMapLevelLineCounts: [3437, 3436, 1755, 979, 546, 173, 18],
 };
 
-/**
- * Explicit current-debug-content margin. Tunnel/portal stress content is not present yet,
- * so this is deliberately provisional rather than the final hardware budget.
- */
 export const M5_8_DEBUG_HEADROOM_FACTOR = 1.25;
 
-/** Exactly ceil(M5_8_DEBUG_OBSERVED_BASELINE × 1.25) for each Core budget metric. */
+/** Historical M5.8 provisional budget, retained to prove the tunnel is a stronger sprite stress case. */
 export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
   headroomFactor: M5_8_DEBUG_HEADROOM_FACTOR,
   terrainLineCountMax: 214,
@@ -68,6 +61,40 @@ export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
   spriteOutputSamplesPerFrameMax: 22955,
   spriteOutputSamplesPerScanlineMax: 335,
 };
+
+/** M5.9 required close portal / near interior stress sweep. */
+export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
+  frameCount: 51,
+  maxTerrainLineCount: 160,
+  maxTerrainLineCountPerScreenRow: 6,
+  maxTerrainOutputPixelsPerFrame: 51200,
+  maxTerrainOutputPixelsPerScreenRow: 1920,
+  maxVisibleSpriteCount: 13,
+  maxSpriteOutputSamplesPerFrame: 83655,
+  maxSpriteOutputSamplesPerScanline: 605,
+  maxSpriteWrittenPixelsPerFrame: 33017,
+  maxSpriteWrittenPixelsPerScanline: 275,
+  maxGroundMapLevelUsed: 6,
+  groundMapLevelLineCounts: [2592, 2436, 1110, 506, 619, 112, 20],
+};
+
+/** Combined evidence envelope: maxima across M5.8 normal content and M5.9 tunnel stress. */
+export const M5_9_COMBINED_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = combineRenderWorkloadEnvelopes(
+  M5_8_DEBUG_OBSERVED_BASELINE,
+  M5_9_TUNNEL_STRESS_BASELINE,
+);
+
+/** The same single explicit margin used in M5.8. */
+export const M5_9_TARGET_HEADROOM_FACTOR = 1.25;
+
+/**
+ * Current M5.x content-validation target including the Core-required tunnel/portal stress case.
+ * It is not a CPU-cycle proof for any named historical machine; it is the explicit renderer-work budget.
+ */
+export const M5_9_TARGET_BUDGET: Readonly<RenderTargetBudget> = deriveProvisionalRenderBudget(
+  M5_9_COMBINED_OBSERVED_BASELINE,
+  M5_9_TARGET_HEADROOM_FACTOR,
+);
 
 /** Pure compiler/content telemetry reduction. It never changes runtime rendering. */
 export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): RenderWorkloadEnvelope {
@@ -129,9 +156,59 @@ export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): Re
   };
 }
 
+/** Combine independent stress suites without pretending their maxima occurred in one frame. */
+export function combineRenderWorkloadEnvelopes(
+  ...envelopes: readonly RenderWorkloadEnvelope[]
+): RenderWorkloadEnvelope {
+  let frameCount = 0;
+  let maxTerrainLineCount = 0;
+  let maxTerrainLineCountPerScreenRow = 0;
+  let maxTerrainOutputPixelsPerFrame = 0;
+  let maxTerrainOutputPixelsPerScreenRow = 0;
+  let maxVisibleSpriteCount = 0;
+  let maxSpriteOutputSamplesPerFrame = 0;
+  let maxSpriteOutputSamplesPerScanline = 0;
+  let maxSpriteWrittenPixelsPerFrame = 0;
+  let maxSpriteWrittenPixelsPerScanline = 0;
+  let maxGroundMapLevelUsed = 0;
+  const groundMapLevelLineCounts: number[] = [];
+
+  for (const observed of envelopes) {
+    frameCount += observed.frameCount;
+    maxTerrainLineCount = Math.max(maxTerrainLineCount, observed.maxTerrainLineCount);
+    maxTerrainLineCountPerScreenRow = Math.max(maxTerrainLineCountPerScreenRow, observed.maxTerrainLineCountPerScreenRow);
+    maxTerrainOutputPixelsPerFrame = Math.max(maxTerrainOutputPixelsPerFrame, observed.maxTerrainOutputPixelsPerFrame);
+    maxTerrainOutputPixelsPerScreenRow = Math.max(maxTerrainOutputPixelsPerScreenRow, observed.maxTerrainOutputPixelsPerScreenRow);
+    maxVisibleSpriteCount = Math.max(maxVisibleSpriteCount, observed.maxVisibleSpriteCount);
+    maxSpriteOutputSamplesPerFrame = Math.max(maxSpriteOutputSamplesPerFrame, observed.maxSpriteOutputSamplesPerFrame);
+    maxSpriteOutputSamplesPerScanline = Math.max(maxSpriteOutputSamplesPerScanline, observed.maxSpriteOutputSamplesPerScanline);
+    maxSpriteWrittenPixelsPerFrame = Math.max(maxSpriteWrittenPixelsPerFrame, observed.maxSpriteWrittenPixelsPerFrame);
+    maxSpriteWrittenPixelsPerScanline = Math.max(maxSpriteWrittenPixelsPerScanline, observed.maxSpriteWrittenPixelsPerScanline);
+    maxGroundMapLevelUsed = Math.max(maxGroundMapLevelUsed, observed.maxGroundMapLevelUsed);
+    for (let k = 0; k < observed.groundMapLevelLineCounts.length; k += 1) {
+      groundMapLevelLineCounts[k] = (groundMapLevelLineCounts[k] ?? 0) + (observed.groundMapLevelLineCounts[k] ?? 0);
+    }
+  }
+
+  return {
+    frameCount,
+    maxTerrainLineCount,
+    maxTerrainLineCountPerScreenRow,
+    maxTerrainOutputPixelsPerFrame,
+    maxTerrainOutputPixelsPerScreenRow,
+    maxVisibleSpriteCount,
+    maxSpriteOutputSamplesPerFrame,
+    maxSpriteOutputSamplesPerScanline,
+    maxSpriteWrittenPixelsPerFrame,
+    maxSpriteWrittenPixelsPerScanline,
+    maxGroundMapLevelUsed,
+    groundMapLevelLineCounts,
+  };
+}
+
 /**
- * Converts an observed stress envelope into an explicit provisional content budget.
- * This is intentionally mechanical: all policy is visible in one headroom factor.
+ * Converts an observed stress envelope into an explicit content budget.
+ * All policy is visible in one headroom factor.
  */
 export function deriveProvisionalRenderBudget(
   observed: RenderWorkloadEnvelope,
