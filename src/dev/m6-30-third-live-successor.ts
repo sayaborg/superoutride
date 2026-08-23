@@ -1,13 +1,15 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
-import type {
-  DeclarativeGateGeometry,
-  DeclarativeLiveRouteStageAuthoring,
-  DeclarativeLiveRouteTransitionAuthoring,
-  GuideChartRuntimePackage,
+import {
+  compileDeclarativeLiveRoute,
+  type DeclarativeGateGeometry,
+  type DeclarativeLiveRouteAuthoring,
+  type DeclarativeLiveRouteStageAuthoring,
+  type DeclarativeLiveRouteTransitionAuthoring,
+  type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
-import { compileDeclarativeRouteFragments } from '../runtime/declarative-route-fragment.js';
+import { composeDeclarativeLiveRouteAuthoring } from '../runtime/declarative-route-fragment.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
 import {
   compileRasterSuccessorChain,
@@ -34,20 +36,15 @@ const THIRD_TRANSITION_LEAD = 20;
 const THIRD_FINISH_AFTER_SEAM = 150;
 
 /**
- * Current browser-facing live topology.
- *
- * M6.30 introduced the third LEFT stage. M6.31 generalized successor chains, M6.32 generalized
- * fragment composition, and M6.33 applies the same primitives to the RIGHT path. The browser loop
- * remains unchanged and consumes only the resulting LiveRouteRuntimeAssembly.
- *
- * STAGE_1 -> STAGE_2_L -> STAGE_3_L -> GOAL_L
- *        \-> STAGE_2_R -> STAGE_3_R -> GOAL_R
+ * Current M6.33 topology authoring, retained as a reusable upstream fragment source for later
+ * milestones. M6.35 promotes one terminal from this exact authoring without reconstructing the
+ * already validated first fork and successor chains by hand.
  */
-export function createM630ThirdLiveSuccessorRuntime(
+export function createM630ThirdLiveSuccessorAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
-): LiveRouteRuntimeAssembly {
+): DeclarativeLiveRouteAuthoring {
   const continuation = createM626LiveContinuation(parentGuide);
   const identity = createM621ChildVisualIdentity();
   const basePackages = createM626LiveStageRuntimePackages(
@@ -210,7 +207,7 @@ export function createM630ThirdLiveSuccessorRuntime(
     ),
   };
 
-  return compileDeclarativeRouteFragments({
+  return composeDeclarativeLiveRouteAuthoring({
     startStageId: 'STAGE_1',
     fragments: [
       {
@@ -237,6 +234,20 @@ export function createM630ThirdLiveSuccessorRuntime(
       },
     ],
   });
+}
+
+/**
+ * Browser-facing M6.33 runtime. Later milestones may consume the authoring function above while this
+ * historical fixture continues to compile the same symmetric two-terminal route.
+ */
+export function createM630ThirdLiveSuccessorRuntime(
+  parentGuide: GuideCurve,
+  parentContent: M620SharedRuntimeContent,
+  spriteAssets: M4SpriteAssets,
+): LiveRouteRuntimeAssembly {
+  return compileDeclarativeLiveRoute(
+    createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets),
+  );
 }
 
 function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1) {
