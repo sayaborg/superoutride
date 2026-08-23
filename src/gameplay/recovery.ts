@@ -2,7 +2,7 @@ import { guideCourseToWorld, type GuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapPositive } from '../core/math.js';
 import type { M5CarState } from '../physics/car-physics.js';
 import type { M5BikeState } from '../physics/motorcycle-physics.js';
-import type { CyclicSurfaceMap, SurfaceType } from '../physics/surface-map.js';
+import type { SurfaceMapReader, SurfaceType } from '../physics/surface-map.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
@@ -53,7 +53,7 @@ export function updateM5Recovery(
   state: M5RecoveryState,
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
   dt: number,
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
@@ -83,7 +83,7 @@ export function recoverM5Vehicle(
   state: M5RecoveryState,
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
   reason: RecoveryReason = 'manual',
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
