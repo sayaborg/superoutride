@@ -1,0 +1,100 @@
+SUPER OUTRIDE M5.9 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.9 Tunnel / Portal Stress Content
+
+Validated commit:
+  ce980028d0fa515818ac436b1a56c2fcf66ab1e9
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #8 M5.9 Tunnel / portal stress content
+  Run ID: 32612432247
+  Build job ID: 97127455725
+  Result: success
+
+Environment reported by runner:
+  Ubuntu 24.04.4 LTS
+  Node v20.20.2
+  npm 10.8.2
+  TypeScript ^5.8.3
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  node tools/build-ground-map.mjs
+  PASS
+
+Regression result:
+  tests 106
+  pass 106
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+Core tunnel implementation:
+  player-space tunnel interval         = s 130 .. 180 m
+  camera Far Background transition    = s 125 .. 175 m
+  transition offset                   = D_cam = 5 m
+  portal physical width               = 12 m
+  portal projected size at d=5        = 480 x 360 px
+  ordinary world-sprite structures    = s 130, 142, 168, 180
+  distant interior                    = tunnel Far Background
+  portal/rib transparency             = 0/1 only
+  dedicated tunnel 3D pass            = none
+
+M5.9 close portal / interior stress sweep:
+  frames                               = 51
+  TerrainLine count / frame            = 160
+  TerrainLine count / screen row       = 6
+  terrain output samples / frame       = 51,200
+  terrain output samples / row         = 1,920
+  visible world sprites / frame        = 13
+  sprite output samples incl player    = 83,655 / frame
+  sprite output samples / scanline     = 605
+  sprite written pixels incl player    = 33,017 / frame
+  sprite written pixels / scanline     = 275
+  GroundMap max level used             = 6
+  GroundMap TerrainLine level counts   = [2592, 2436, 1110, 506, 619, 112, 20]
+
+Violations of historical M5.8 provisional budget:
+  spriteOutputSamplesPerFrameMax       83,655 > 22,955
+  spriteOutputSamplesPerScanlineMax    605 > 335
+
+No M5.8 terrain or visible-world-sprite maximum was exceeded by the tunnel sweep.
+
+Combined evidence envelope (M5.8 normal + M5.9 tunnel):
+  frames represented                   = 121
+  TerrainLine count / frame            = 171
+  TerrainLine count / screen row       = 9
+  terrain output samples / frame       = 54,720
+  terrain output samples / row         = 2,880
+  visible world sprites / frame        = 17
+  sprite output samples / frame        = 83,655
+  sprite output samples / scanline     = 605
+  sprite written pixels / frame        = 33,017
+  sprite written pixels / scanline     = 275
+  GroundMap max level used             = 6
+
+M5.9 current content-validation target, same explicit 25% headroom:
+  TerrainLine count max / frame        = 214
+  TerrainLine count max / screen row   = 12
+  terrain output samples max / frame   = 68,400
+  terrain output samples max / row     = 3,600
+  visible world sprites max / frame    = 22
+  sprite output samples max / frame    = 104,569
+  sprite output samples max / scanline = 757
+
+Boundary:
+  This is an explicit renderer-work content budget, not a CPU-cycle proof for a named historical machine.
+  Runtime counters never drop non-optional TerrainLines merely because a budget is crossed.
+  Tunnel presentation uses only the existing Far Background + Painter world-sprite path.
+
+PR deployment behavior:
+  build/test: success
+  Pages staging: skipped
+  deploy job: skipped
