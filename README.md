@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.2 Run Timing / Ranking Consumer
+# SUPER OUTRIDE — M6.3 Independent Moving Rival
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -25,7 +25,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.9 Tunnel / Portal Stress Content — complete
 - M6.0 Validated Race Progress Foundation — complete
 - M6.1 Bounded Continuous Race Progress — complete
-- **M6.2 Deterministic Run Timing / Ranking Consumer — complete**
+- M6.2 Deterministic Run Timing / Ranking Consumer — complete
+- **M6.3 Independent Moving Rival Foundation — complete**
 
 ## Run / test
 
@@ -46,12 +47,12 @@ npm test
 Current verified result:
 
 ```text
-131 tests
-131 pass
+137 tests
+137 pass
 0 fail
 ```
 
-See `M6_2_VALIDATION.txt` and `docs/20_m6_2_run_timing_ranking.md`.
+See `M6_3_VALIDATION.txt` and `docs/21_m6_3_rival_foundation.md`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
 
@@ -67,17 +68,16 @@ GitHub Pages runs the complete regression suite before deployment. Pull requests
 ## Architecture authority
 
 ```text
-Vehicle world state
-    ├─> world→Guide chart ─> s_car / GeometricCoursePosition
-    ├─> ordered physical race gates
-    │       └─> validated race state
-    │               └─> bounded continuous s_progress
-    │                       ├─> run timing
-    │                       └─> ranking
-    └─> camera ─> chainage pseudo renderer
+Player world state ─┐
+                    ├─> own world→Guide chart
+Rival world state ──┘       └─> own validated race state
+                                  └─> shared timing / ranking
+
+Player camera ─> chainage pseudo renderer
+Rival physical anchor ─> ordinary CourseSprite / Painter path
 ```
 
-`GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/FINISH authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct FINISH/ranking authority.
+Every moving vehicle remains world-physics authoritative. `GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/FINISH authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct FINISH/ranking authority.
 
 ## Renderer invariants
 
@@ -241,27 +241,73 @@ Ordering is:
 3. exact equality = true tie
 ```
 
-This ensures a vehicle that has actually validated a gate ranks ahead of one merely saturated at the same unvalidated ceiling. Raw `sLocal`, world distance, screen position, and arbitrary competitor IDs are not ranking tie-breakers.
+Raw `sLocal`, world distance, screen position, and arbitrary competitor IDs are not ranking tie-breakers.
 
-Runtime HUD now includes deterministic `TIME`, validated boundary count, and best boundary interval.
+## M6.3 independent moving rival
+
+The DEV rival is a second ordinary `M5CarState` with independent world position, velocity, yaw, SurfaceMap contact, recovery, validated progress and session state.
+
+Its AI produces only canonical `DrivingInput`; it never writes world position, yaw, velocity, `course.s/l`, camera state or renderer state.
+
+Current straight target:
+
+```text
+56 m/s = 201.6 km/h
+```
+
+The 60m-radius DEV bend cannot physically sustain that speed, so the AI samples upcoming Guide curvature and produces ordinary braking input from a conservative lateral-acceleration target. This preserves the 200+ km/h straight character without bypassing world physics on tight test geometry.
+
+Rendering remains the existing path:
+
+```text
+rival physical x/y/z + sRender
+→ CourseSprite adapter
+→ existing discrete car yaw asset
+→ existing far→near Painter
+```
+
+There is no runtime bitmap rotation, rival-specific scale, rival pseudo-depth rule or separate 3D vehicle renderer.
+
+Player and rival are ranked by their independent validated M6.2 progress states. The HUD now exposes `POS`, `YOU`, and `RIVAL` progress.
+
+Current stress proof:
+
+```text
+360 fixed physics ticks
+6 seconds
+start s=95m
+crosses into first 60m-radius bend
+no recovery helper
+supported on every tick
+```
+
+The first M6.3 attempt intentionally failed this stronger test because the constant high-speed AI left the supported SurfaceMap. The controller was corrected with curvature-aware braking rather than weakening the physics test.
+
+**Vehicle-to-vehicle collision is not implemented yet.**
 
 ## Primary M6 files
 
 ```text
 src/gameplay/race-progress.ts
 src/gameplay/race-session.ts
+src/gameplay/rival-driver.ts
+src/world/dynamic-vehicle-sprite.ts
 tests/m6-race-progress.test.mjs
 tests/m6-2-race-session.test.mjs
+tests/m6-3-rival-foundation.test.mjs
+tests/m6-3-rival-sim.test.mjs
 docs/18_m6_0_race_progress.md
 docs/19_m6_1_continuous_race_progress.md
 docs/20_m6_2_run_timing_ranking.md
+docs/21_m6_3_rival_foundation.md
 M6_0_VALIDATION.txt
 M6_1_VALIDATION.txt
 M6_2_VALIDATION.txt
+M6_3_VALIDATION.txt
 ```
 
 ## Next
 
-**M6.3 — moving competitor/rival gameplay foundation.**
+**M6.4 — minimal world-space vehicle contact/collision foundation.**
 
-Each moving vehicle should keep its own world physics, Guide chart coordinate and validated progress. Shared ranking should consume those validated progress states. Any visible rival should enter the existing World Sprite / Painter path rather than introducing a separate 3D vehicle renderer.
+Any collision implementation must use physical world-space vehicle footprints/velocities, never sprite pixels, screen overlap or pseudo-depth. It should modify only physical vehicle state and then let the existing camera, race-progress and Painter systems observe the result.
