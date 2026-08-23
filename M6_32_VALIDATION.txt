@@ -1,0 +1,129 @@
+SUPER OUTRIDE M6.32 VALIDATION
+
+Milestone: Declarative Route Fragment Composition
+Package: super-outride-m6-32@0.6.32
+
+Purpose:
+- compose explicit fork/junction route pieces and M6.31 successor-chain pieces safely
+- canonicalize repeated shared stages without duplicating runtime ownership
+- reject cross-fragment topology/physical identity collisions before RouteDag compilation
+- preserve M6.28 compileDeclarativeLiveRoute as downstream authority
+- keep current live topology, browser loop, renderer and vehicle physics unchanged
+
+Primary primitive:
+composeDeclarativeLiveRouteAuthoring()
+compileDeclarativeRouteFragments()
+
+Fragment rows:
+- stages?
+- transitions?
+- finishes?
+
+Shared-stage rule:
+- same stage id may repeat only when RouteStageKind is identical
+- repeated row must reference the exact same runtime object
+- otherwise composition rejects the conflict
+
+Non-mergeable global identities:
+- transition id
+- transition physical gate id
+- handoff physical seam id
+- FINISH physical gate id
+
+FINISH rule:
+- one FINISH owner row per terminal stage
+- final terminal/physical FINISH validation remains downstream
+
+Start rule:
+- startStageId must exist after canonical stage composition
+
+Downstream authority remains:
+composeDeclarativeLiveRouteAuthoring
+-> compileDeclarativeLiveRoute (M6.28)
+-> RouteDag
+-> RouteStageContentManifest
+-> StageRuntimeContentRegistry
+-> physical RouteBoundaryGateSet
+-> RouteStageHandoffManifest
+-> LiveRouteRuntimeAssembly
+
+Current live topology remains:
+              -> STAGE_2_L -> STAGE_3_L -> GOAL_L
+STAGE_1 -----<
+              -> STAGE_2_R -------------> GOAL_R
+
+M6.30 real composition fragments:
+1. root fork fragment
+   STAGE_1, STAGE_2_L, STAGE_2_R
+   S1_LEFT, S1_RIGHT
+2. LEFT bridge fragment
+   shared STAGE_2_L, shared STAGE_3_L
+   S2L_CONTINUE
+3. M6.31 LEFT successor-chain fragment
+   shared STAGE_3_L, GOAL_L
+   S3L_CONTINUE, GOAL_L FINISH
+4. RIGHT terminal fragment
+   shared STAGE_2_R, GOAL_R
+   S2R_CONTINUE, GOAL_R FINISH
+
+Source GuideChart rule:
+- each successor transition gate is derived from the concrete source GuideChart at sourceTransitionS
+- each handoff seam is derived from that same source GuideChart at sourceSeamS
+- generic StageContinuationLink.sourceFrame is not assumed to be a GuideChart
+
+Frozen renderer/physics authority:
+- world X/Y/Z remains physics authority
+- no stage handoff teleports world pose/yaw/velocity
+- one chainage -> one horizontal scanline
+- pseudo-depth = signed cyclic chainage difference only
+- no camera-space Z renderer depth
+- no Euclidean renderer depth
+- no lateral depth correction
+- same d -> same scale
+- Raster Segment road; absolute turn <=10 degrees at one vertex
+- shared Terrain + World Sprite far-to-near Painter
+- no z-buffer/polygon road/perspective-correct texture
+- transparency 0/1
+- camera roll 0
+
+Fork-stall regression retained:
+- real 60 Hz car physics
+- visible LEFT fork
+- physical route selection
+- PENDING
+- physical seam COMMIT
+- camera rebase
+- actual child renderer
+- >=30 rendered child frames after COMMIT
+- no recovery at fork/handoff
+
+M6.32 dedicated regressions:
+1. identical shared stage canonicalizes once with runtime identity preserved
+2. conflicting shared-stage kind/runtime is rejected
+3. duplicate transition or physical gate/handoff identity is rejected
+4. duplicate FINISH ownership and missing start stage are rejected
+5. actual current live route composes unchanged and delegates through M6.28 while main/renderer remain topology-agnostic
+
+Initial PR CI issue:
+- one historical M6.28 source assertion expected M6.30 to call compileDeclarativeLiveRoute directly
+- one new M6.32 test used nonexistent height/terrain fixture imports
+- corrected by validating the real M6.30 -> M6.32 -> M6.28 delegation chain and reusing the already validated M6.30 parent-content fixture
+- no production validator or assertion was weakened
+
+Structural validation before package/docs sync:
+head b14e75909242a4de3ce126b51c31d13c8e916f97
+CI run 32629047860
+build job 97168849840
+294/294 pass / 0 fail
+
+Historical baseline:
+M6.31 final suite: 289 tests
+M6.32 dedicated tests: +5
+M6.32 target: 294 tests
+
+Final validation policy:
+- package/docs changes require fresh exact-head CI
+- only final validated exact feature head may fast-forward main
+- PR synthetic merge tree must match the final feature head tree
+- main must remain on the M6.31 validated head until final fast-forward
+- main update must use force:false
