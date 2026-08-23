@@ -84,18 +84,21 @@ test('M6.30 promotes the old LEFT goal package geometry into STAGE_3_L and gives
   assert.equal(stage3.worldFrameId, goal.worldFrameId);
 });
 
-test('M6.30 third LEFT transition owns a physical handoff to the new GOAL_L chart', () => {
+test('M6.30 third LEFT transition owns a physical handoff to the new GOAL_L chart and content binding', () => {
   const live = setup();
   const choice = live.route.choices.find((entry) => entry.id === 'S3L_CONTINUE');
   const seam = live.handoffs.seams.find((entry) => entry.choiceId === 'S3L_CONTINUE');
+  const binding = live.content.bindings.find((entry) => entry.stageId === 'GOAL_L');
   const goal = live.registry.packages.find((entry) => entry.packageId === 'CONTENT_GOAL_L');
   assert.ok(choice);
   assert.equal(choice.fromStageId, 'STAGE_3_L');
   assert.equal(choice.toStageId, 'GOAL_L');
   assert.ok(seam);
+  assert.ok(binding);
   assert.ok(goal);
   assert.equal(seam.targetChartId, goal.coordinateFrame.id);
-  assert.equal(seam.targetPackageId, 'CONTENT_GOAL_L');
+  assert.equal(binding.packageId, 'CONTENT_GOAL_L');
+  assert.equal(goal.packageId, binding.packageId);
 });
 
 test('M6.30 leaves renderer and browser loop route-agnostic', async () => {
