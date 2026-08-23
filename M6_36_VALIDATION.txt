@@ -1,0 +1,41 @@
+SUPER OUTRIDE M6.36 — REUSABLE FORK-STAGE ROUTE AUTHORING
+
+Baseline
+- M6.35: 309 tests
+
+M6.36 additions
+- 6 dedicated reusable fork-stage regressions
+
+Expected full suite
+- tests: 315
+- pass: 315
+- fail: 0
+
+Validated structural principles
+- One existing terminal can be promoted into an ordinary visible fork stage without a world transform.
+- The source terminal must exist exactly once, be TERMINAL, own no outgoing transition, own exactly one physical FINISH and own a StageRoadView.
+- M6.34 StageJunction remains the cross-section authority.
+- LEFT/RIGHT source-local child centers are derived from the junction; route authoring does not repeat sourceLocalL.
+- Physical transition/handoff/FINISH half-width is derived from childRoadWidth/2; branch authoring cannot repeat roadHalfWidth.
+- Fork successors reuse the M6.35 fork coordinate adapter and M6.29 Raster successor factory.
+- StageContinuationLink still validates source child center -> target local l=0 across D_cam overlap.
+- The frozen <=10-degree Raster vertex turn rule remains unchanged.
+- Child runtime content remains caller-owned, but package/chart/world-frame ownership is validated before final route compilation.
+- Only the replaced terminal FINISH is removed; unrelated upstream route authoring is preserved.
+- Final composition reuses M6.32 fragments and the unchanged M6.28 declarative route compiler.
+- main.ts and renderer Core contain no fork-stage topology logic.
+
+CI history
+1. Initial M6.36 PR run failed TypeScript only because the already-validated source roadView lost narrowing after repackaging.
+   - fixed by preserving the non-null source StageRoadView reference
+   - no runtime or geometric constraint changed
+2. Next run: 315 attempted / 314 pass / 1 fail.
+   - all M6.35 and M6.36 tests passed
+   - sole failure was an obsolete M6.28 static assertion expecting pre-M6.36 M6.35 wiring
+3. Corrected structural head:
+   - 37aadff76ad70b22d3ba8e8009b94d4e0f5bd83e
+   - tests: 315
+   - pass: 315
+   - fail: 0
+
+Final exact-head CI must independently reproduce 315 / 315 / 0 after docs/README synchronization before main fast-forward.
