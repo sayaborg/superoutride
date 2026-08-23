@@ -1,0 +1,57 @@
+SUPER OUTRIDE M6.27 VALIDATION
+
+Milestone: Live Route Runtime Assembly
+Package: super-outride-m6-27@0.6.27
+
+Purpose:
+- make the browser consume one validated live-route runtime bundle
+- remove current-route construction details from main.ts
+- validate consistency across Route DAG, content bindings, Guide charts, physical gates, handoff seams, and runtime packages before simulation begins
+
+Required invariants:
+- every route choice has a physical TRANSITION gate
+- every route choice has a handoff seam
+- every handoff target chart exists in the compiled chart set
+- every route-choice target stage has exactly one content binding
+- every target content package has runtime content
+- target runtime coordinateFrame is the exact handoff target chart object
+- initial route package uses the declared initial chart
+- every terminal stage has a physical FINISH gate
+- every compiled chart is reachable from the initial chart or a handoff target
+- content manifest and runtime registry share the same world frame
+- generic live-route assembly owns no renderer, camera, or vehicle-physics state
+- browser handoff transaction and world-space physics remain unchanged
+- renderer Core remains route-agnostic
+
+Live route remains unchanged from M6.26:
+              -> STAGE_2_L -> GOAL_L
+STAGE_1 -----|
+              -> STAGE_2_R -> GOAL_R
+
+Browser authority:
+main.ts receives one LiveRouteRuntimeAssembly containing:
+- route
+- content
+- charts
+- gates
+- handoffs
+- registry
+- initialChart
+
+M6.26-specific construction is confined to createM627LiveRouteRuntime().
+
+Regression focus:
+1. complete 5-stage / 4-choice / 5-chart / 5-package assembly
+2. every route target resolves through content/runtime to the exact handoff target chart
+3. start package/chart mismatch is rejected before simulation
+4. browser main consumes one M6.27 assembly instead of constructing M6.26 pieces directly
+5. generic assembly has no renderer, camera, vehicle-physics, or M6.26 dependency
+6. historical M6.20/M6.22 fixtures remain valid while browser authority moves forward
+
+CI authority:
+- M6.26 baseline: 264 tests
+- M6.27 adds 5 dedicated tests
+- target suite: 269 tests
+- exact feature head must pass GitHub Actions
+- PR synthetic merge tree must differ by zero files from validated feature head
+- main update must be force:false fast-forward to the validated exact head
