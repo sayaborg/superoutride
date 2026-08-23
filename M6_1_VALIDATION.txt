@@ -1,0 +1,41 @@
+SUPER OUTRIDE M6.1 VALIDATION
+=============================
+
+Milestone: M6.1 Bounded Continuous Race Progress
+Validated feature head: 27bf4c94823fe6e052f4090885db71377dea6123
+Pull request: #11
+GitHub Actions run: 32613807085
+Build job: 97131005528
+Result: SUCCESS
+
+Regression
+----------
+123 tests
+123 pass
+0 fail
+0 skipped
+
+M6.1 additions
+--------------
+- M6.0 physical world-space race gates remain the only checkpoint/lap authority.
+- RaceProgressState now separates validatedProgressFloor from continuous sProgress.
+- Current legal ranking window is [last validated gate, next required gate].
+- Raw geometric chainage contributes only signed frame-to-frame interpolation inside that window.
+- Raw chainage cannot cross a checkpoint or lap boundary without physical gate validation.
+- World-motion direction gates the interpolation sign: forward can increase, reverse can decrease, stationary world motion cannot move progress from a chainage projection jump.
+- Reverse progress cannot fall below the last physically validated gate.
+- Invalid/outside-envelope checkpoint crossing can at most saturate sProgress at the next gate ceiling.
+- After an accepted gate, only the post-intersection fraction of that physics tick is carried into the newly opened sector.
+- Recovery/teleport resync changes observation origin without moving validatedProgressFloor or sProgress.
+- Initial DEV spawn inside sector 0 may seed smooth within-sector progress without validating CP1.
+- HUD exposes RACE continuous progress and WIN floor..ceiling.
+- Renderer and M5.9 tunnel path are unchanged.
+
+Regression retained
+-------------------
+- M6.0 checkpoint/lap/reverse/shortcut validation tests pass.
+- M5.9 tunnel/portal tests pass.
+- M5.8 workload tests pass.
+- M5.7 baked GroundMap tests pass.
+- fixed 2.0m=80px player metric remains intact.
+- Pages commit-versioned bootstrap regression passes.
