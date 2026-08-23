@@ -1,6 +1,6 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
-import { wrapAngle } from '../core/math.js';
+import { clamp, wrapAngle } from '../core/math.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { applyStageRoadViewToTerrainLine } from '../road/stage-terrain-view.js';
@@ -197,13 +197,21 @@ function drawTerrainLine(
       const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
+        // xGroundL/xGroundR are projected strip edges while raster sampling is evaluated at
+        // pixel centers (x+0.5). At an integer projected edge, the last included pixel center can
+        // lie by at most half a pixel beyond the continuous stage corridor. Clamp only the
+        // stage-local raster sample back to that same authored corridor; the projected strip,
+        // chainage, depth and affine mapping remain unchanged.
+        const sampledLateral = roadView === undefined
+          ? lateral
+          : clamp(lateral, -localGroundLeft, localGroundRight);
         target.pixels[offset + x] = roadView === undefined
           ? (baked
-              ? baked.sampleAtLevel(line.s, lateral, groundMapLevel)
-              : sampleGroundMap(line.s, lateral, groundProfile, cliffSection))
+              ? baked.sampleAtLevel(line.s, sampledLateral, groundMapLevel)
+              : sampleGroundMap(line.s, sampledLateral, groundProfile, cliffSection))
           : sampleStageGroundMapAtLevel(
               line.s,
-              lateral,
+              sampledLateral,
               groundMapLevel,
               roadView,
               groundProfile,
