@@ -1,0 +1,24 @@
+SUPER OUTRIDE — M6.22 True Child Stage Continuation
+
+Validation authority:
+  GitHub Actions exact PR-head tree status for the commit containing this record.
+  The exact validated SHA/run is reported in the PR/final handoff rather than self-embedded here.
+
+Expected regression:
+  previous M6.21: 235 tests
+  M6.22 additions: 6 tests
+  total:          241 tests
+
+M6.22 validation points:
+- LEFT / RIGHT committed children own independent Raster Course + Guide geometry.
+- Child shared prefixes reproduce parent world geometry through the D_cam neighborhood of the handoff seam.
+- Handoff changes only the road-coordinate ruler; vehicle world pose, yaw and velocities are not teleported.
+- Camera continues on the selected child Guide and uses the active child course length for pseudo-depth wrapping.
+- Child SurfaceMap is stage-local and corridor exterior is VOID.
+- Child GroundMap supports source lateral translation and source chainage phase offset.
+- GroundMap road marking/checker phase remains continuous across the coordinate rebase seam.
+- LEFT / RIGHT FINISH gates are authored on distinct child-local course geometry at child s=250m.
+- Parent CourseSprites/rival chainage are not reinterpreted in the child chainage domain.
+- Renderer Core remains route-agnostic with no LEFT/RIGHT branch renderer.
+- Frozen chainage-only pseudo-depth, one-chainage/one-scanline, Painter and metric sprite-scale authorities are unchanged.
+- FINISH records a validated result but does not pause DEV physics/input/camera/rendering.
