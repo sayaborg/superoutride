@@ -6,16 +6,19 @@ import {
 import type { BakedGroundMapSample } from './baked-ground-map.js';
 import {
   GROUND_COLORS,
-  sampleGroundMap,
+  sampleGroundMapWithoutJunction,
+  sampleJunctionGroundMap,
   type GroundMapProfile,
 } from './ground-map.js';
 
 /**
  * Stage-local GroundMap sampling without duplicating reusable source data.
  *
- * ROAD/TERRAIN translate local l once into the authored source coordinate. SHOULDER is a
- * stage-local semantic override. An optional source chainage offset preserves longitudinal visual
- * phase when a stage handoff rebases the local s ruler; LOD authority itself remains chainage-only.
+ * A stage-local junction, when present, is classified before the fixed single-road StageRoadView.
+ * This lets an ordinary successor road widen and split while keeping its junction centered at local
+ * l=0 even when the underlying Raster source has a non-zero lateral origin. Outside the junction,
+ * ROAD/TERRAIN still translate local l once into the reusable source coordinate and SHOULDER keeps
+ * its existing stage-local semantic override.
  */
 export function sampleStageGroundMapRuntime(
   s: number,
@@ -27,6 +30,18 @@ export function sampleStageGroundMapRuntime(
 ): BakedGroundMapSample {
   const localClass = classifyStageRoadLocalL(view, localL);
   if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
+
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
+  if (profile.junction) {
+    const junctionColor = sampleJunctionGroundMap(s, localL, profile.junction, sourceS);
+    if (junctionColor !== null) {
+      return {
+        color: junctionColor,
+        level: profile.baked?.selectLevel(deltaSEffective) ?? 0,
+      };
+    }
+  }
+
   if (localClass === 'SHOULDER') {
     return {
       color: GROUND_COLORS.shoulder,
@@ -35,10 +50,9 @@ export function sampleStageGroundMapRuntime(
   }
 
   const sourceL = stageRoadSourceLateral(view, localL);
-  const sourceS = s + (profile.chainageOffsetS ?? 0);
   if (profile.baked) return profile.baked.sample(sourceS, sourceL, deltaSEffective);
   return {
-    color: sampleGroundMap(s, sourceL, profile, cliffSection),
+    color: sampleGroundMapWithoutJunction(s, sourceL, profile, cliffSection),
     level: 0,
   };
 }
@@ -53,11 +67,17 @@ export function sampleStageGroundMapAtLevel(
 ): number {
   const localClass = classifyStageRoadLocalL(view, localL);
   if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
+
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
+  if (profile.junction) {
+    const junctionColor = sampleJunctionGroundMap(s, localL, profile.junction, sourceS);
+    if (junctionColor !== null) return junctionColor;
+  }
+
   if (localClass === 'SHOULDER') return GROUND_COLORS.shoulder;
 
   const sourceL = stageRoadSourceLateral(view, localL);
-  const sourceS = s + (profile.chainageOffsetS ?? 0);
   return profile.baked
     ? profile.baked.sampleAtLevel(sourceS, sourceL, level)
-    : sampleGroundMap(s, sourceL, profile, cliffSection);
+    : sampleGroundMapWithoutJunction(s, sourceL, profile, cliffSection);
 }
