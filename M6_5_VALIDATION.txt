@@ -1,0 +1,35 @@
+SUPER OUTRIDE M6.5 VALIDATION
+
+Milestone: Deterministic Vehicle Physics Telemetry
+Validated implementation head: 39ba08685060235c4dc6845409335f9f8d45a4b2
+Pull request: #15
+GitHub Actions run: 32614775124
+Build job: 97133544269
+
+Result:
+143 tests
+143 pass
+0 fail
+
+Current physics status:
+DEV_UNCALIBRATED
+
+Historical 3-second DEV probe (NOT a handling target):
+- tickCount: 180
+- planarDistanceMeters: 146.61675053161213
+- netSignedChainageMeters: 146.5840739686775
+- maxSpeedMetersPerSecond: 50.91715773929218
+- maxAbsLateralMeters: 1.3569373205385356
+- maxAbsSideslipDegrees: 2.35110874660764
+- maxAbsYawRateDegreesPerSecond: 9.238084564698875
+
+Validated properties:
+- fixed-tick input/state telemetry is deterministic
+- observer snapshots inputs and authoritative world/Guide state without mutating physics
+- signed chainage telemetry is cyclic-seam safe
+- yaw-rate telemetry is angle-wrap safe
+- telemetry metrics are finite
+- tests intentionally do not assert current handling values as product targets
+- existing M0-M6.4 regression remains green
+
+Status: GO
