@@ -29,8 +29,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build
-        run: npm run build
+      - name: Test and build
+        run: npm test
 
       - name: Stage static site
         run: |

@@ -2,21 +2,23 @@ import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
+import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
+import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import { createM5CameraRig, resetM5CameraRig, updateM5Camera, type M5CameraProfile, type M5CameraState } from './dev/m5-camera.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
-import { createM5DebugSurfaceMap } from './physics/surface-map.js';
+import { CyclicSurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM3DebugHeightProfile } from './visual/height-profile.js';
-import { createM3DebugVisualProfile } from './visual/m3-debug-visual.js';
 import type { GroundMapProfile } from './visual/ground-map.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
+import { CyclicVisualProfile } from './visual/visual-profile.js';
 import { createM4DebugWorldSprites } from './world/m4-debug-world.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -40,8 +42,10 @@ const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebuff
 const inputManager = new InputManager(steeringPad, throttleButton, brakeButton);
 const guide = createM2StadiumGuide();
 const heightProfile = createM3DebugHeightProfile(guide.length);
-const visualProfile = createM3DebugVisualProfile(guide.length);
-const surfaceMap = createM5DebugSurfaceMap(guide.length);
+const surfaceAuthoring = createM5DebugSurfaceRegionAuthoring(guide.length);
+const compiledSurfaces = compileSurfaceRegions(guide.length, surfaceAuthoring);
+const visualProfile = new CyclicVisualProfile(guide.length, compiledSurfaces.visualSections);
+const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections);
 const farBackground = createM3FarBackground();
 const spriteAssets = createM4SpriteAssets();
 const worldSprites = createM4DebugWorldSprites(guide, heightProfile, spriteAssets);
@@ -77,6 +81,7 @@ const groundProfile: GroundMapProfile = {
   roadLeft: 4.5,
   roadRight: 4.5,
   shoulderWidth: 1,
+  logical: compiledSurfaces.groundMap,
 };
 
 const terrainProfile: TerrainVisualProfile = {
@@ -166,7 +171,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M5.2 METRIC SPRITES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M5.3 COMPILER FOUNDATION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -181,7 +186,7 @@ function render(): void {
   ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}`, 8, 108);
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('WORLD PHYSICS -> Guide local chart -> SurfaceMap(s,l) -> camera -> pseudo renderer', 8, 218);
+  ctx.fillText('Surface Region -> GroundMap / GroundBase / SurfaceMap -> world physics + pseudo renderer', 8, 218);
   ctx.fillText(`FIXED PLAYER SCALE: 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m) / FOV changes move camera`, 8, 229);
 }
 

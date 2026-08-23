@@ -26,19 +26,21 @@ export function createSpriteAsset(
   width: number,
   height: number,
   pixels: Uint32Array,
-  anchorX = (width - 1) * 0.5,
-  anchorY = height - 1,
-  worldWidthMeters = width,
+  anchorX: number | undefined,
+  anchorY: number | undefined,
+  worldWidthMeters: number,
 ): SpriteAsset {
   if (!(width > 0 && height > 0 && Number.isInteger(width) && Number.isInteger(height))) {
     throw new RangeError('sprite dimensions must be positive integers');
   }
   if (pixels.length !== width * height) throw new RangeError('sprite pixel buffer size mismatch');
-  if (!Number.isFinite(anchorX) || !Number.isFinite(anchorY)) throw new RangeError('sprite anchor must be finite');
+  const resolvedAnchorX = anchorX ?? (width - 1) * 0.5;
+  const resolvedAnchorY = anchorY ?? height - 1;
+  if (!Number.isFinite(resolvedAnchorX) || !Number.isFinite(resolvedAnchorY)) throw new RangeError('sprite anchor must be finite');
   if (!(worldWidthMeters > 0) || !Number.isFinite(worldWidthMeters)) {
     throw new RangeError('sprite worldWidthMeters must be finite and > 0');
   }
-  return { name, width, height, worldWidthMeters, anchorX, anchorY, pixels };
+  return { name, width, height, worldWidthMeters, anchorX: resolvedAnchorX, anchorY: resolvedAnchorY, pixels };
 }
 
 export function countOpaqueSpriteColors(asset: SpriteAsset): number {
@@ -59,11 +61,6 @@ export function drawScaledSprite(
     return { outputSamples: 0, writtenPixels: 0, clipped: true };
   }
 
-  // Core §55 texel-center convention. projection scale is px/m;
-  // convert it to px/source-texel from the asset's physical width.
-  // There is intentionally no arbitrary per-sprite visual scale multiplier.
-  // Rectangle boundaries are derived from the
-  // continuous source anchor; framebuffer pixels are sampled at x+0.5/y+0.5.
   const leftBoundary = xAnchor - scale * (asset.anchorX + 0.5);
   const topBoundary = yAnchor - scale * (asset.anchorY + 0.5);
   const rightBoundary = leftBoundary + scale * asset.width;

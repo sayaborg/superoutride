@@ -73,7 +73,6 @@ test('programmer-art sprite assets obey <=15 opaque colors plus transparent', ()
   }
 });
 
-
 test('vehicle yaw/bank variants keep a consistent bitmap anchor semantic', () => {
   for (const set of [assets.car, assets.bike]) {
     const first = set.assets[0][0];
@@ -92,8 +91,8 @@ test('scaled sprite blitter uses texel-center anchor and preserves transparent p
   const bg = rgba(1, 2, 3);
   const fg = rgba(240, 20, 30);
   const pixels = new Uint32Array(9);
-  pixels[2 * 3 + 1] = fg; // anchor texel only
-  const asset = createSpriteAsset('ANCHOR_PROBE', 3, 3, pixels, 1, 2);
+  pixels[2 * 3 + 1] = fg;
+  const asset = createSpriteAsset('ANCHOR_PROBE', 3, 3, pixels, 1, 2, 3);
   const surface = new SoftwareSurface(10, 10);
   surface.clear(bg);
   const stats = drawScaledSprite(surface, asset, 4.5, 5.5, 1);
@@ -107,12 +106,7 @@ test('Painter merge is far-to-near and terrain wins the equal-depth tie before s
   const terrain = [{ d: 10, id: 'T10' }, { d: 5, id: 'T5' }];
   const sprites = [{ d: 10, id: 'S10' }, { d: 7, id: 'S7' }];
   const order = [];
-  mergeTerrainAndSprites(
-    terrain,
-    sprites,
-    (item) => order.push(item.id),
-    (item) => order.push(item.id),
-  );
+  mergeTerrainAndSprites(terrain, sprites, (item) => order.push(item.id), (item) => order.push(item.id));
   assert.deepEqual(order, ['T10', 'S10', 'S7', 'T5']);
 });
 
@@ -169,18 +163,7 @@ test('M4 renderer draws merged world sprites and a yaw-variant player into the s
   }
   const world = createM4DebugWorldSprites(guide, height, assets);
   const surface = new SoftwareSurface(320, 240);
-  const stats = renderM4SuperScaler(
-    surface,
-    background,
-    guide,
-    camera,
-    vehicle,
-    terrainProfile,
-    groundProfile,
-    world,
-    assets,
-    'car',
-  );
+  const stats = renderM4SuperScaler(surface, background, guide, camera, vehicle, terrainProfile, groundProfile, world, assets, 'car');
   assert.ok(stats.visibleSpriteCount > 0);
   assert.ok(stats.spriteWrittenPixels > 0);
   assert.ok(stats.playerWrittenPixels > 0);

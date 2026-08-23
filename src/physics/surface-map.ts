@@ -1,4 +1,6 @@
+import { compileSurfaceRegions } from '../compiler/surface-region-compiler.js';
 import { wrapPositive } from '../core/math.js';
+import { createM5DebugSurfaceRegionAuthoring } from '../dev/m5-surface-authoring.js';
 
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
@@ -93,45 +95,8 @@ export class CyclicSurfaceMap {
   }
 }
 
-function standardBands(
-  leftOuter: SurfaceType,
-  rightOuter: SurfaceType,
-  roadLeft = 4.5,
-  roadRight = 4.5,
-  shoulderWidth = 1,
-  outerLimit = 10.5,
-): SurfaceBand[] {
-  const bands: SurfaceBand[] = [];
-  if (leftOuter !== 'VOID') bands.push({ lMin: -outerLimit, lMax: -(roadLeft + shoulderWidth), type: leftOuter });
-  bands.push({ lMin: -(roadLeft + shoulderWidth), lMax: -roadLeft, type: 'SHOULDER' });
-  bands.push({ lMin: -roadLeft, lMax: roadRight, type: 'ASPHALT' });
-  bands.push({ lMin: roadRight, lMax: roadRight + shoulderWidth, type: 'SHOULDER' });
-  if (rightOuter !== 'VOID') bands.push({ lMin: roadRight + shoulderWidth, lMax: outerLimit, type: rightOuter });
-  return bands;
-}
-
 /** DEV authoring compiled into the runtime SurfaceMap. */
 export function createM5DebugSurfaceMap(courseLength: number): CyclicSurfaceMap {
-  const starts = [
-    { sStart: 0, name: 'GRASSLAND', left: 'GRASS' as SurfaceType, right: 'GRASS' as SurfaceType },
-    { sStart: 280, name: 'SAND PATCH', left: 'GRASS' as SurfaceType, right: 'SAND' as SurfaceType },
-    { sStart: 360, name: 'DIRT PATCH', left: 'DIRT' as SurfaceType, right: 'GRASS' as SurfaceType },
-    { sStart: 455, name: 'CLIFF / SEA', left: 'VOID' as SurfaceType, right: 'GRASS' as SurfaceType },
-    { sStart: Math.min(625, courseLength - 1), name: 'GRASSLAND', left: 'GRASS' as SurfaceType, right: 'GRASS' as SurfaceType },
-  ].filter((entry, index, array) => entry.sStart < courseLength && (index === 0 || entry.sStart > array[index - 1]!.sStart));
-
-  return new CyclicSurfaceMap(courseLength, starts.map((entry) => {
-    let bands = standardBands(entry.left, entry.right);
-    // Cliff authoring: retain a narrow dirt verge, then unsupported space on the sea side.
-    if (entry.name === 'CLIFF / SEA') {
-      bands = [
-        { lMin: -6.5, lMax: -5.5, type: 'DIRT' },
-        { lMin: -5.5, lMax: -4.5, type: 'SHOULDER' },
-        { lMin: -4.5, lMax: 4.5, type: 'ASPHALT' },
-        { lMin: 4.5, lMax: 5.5, type: 'SHOULDER' },
-        { lMin: 5.5, lMax: 10.5, type: 'GRASS' },
-      ];
-    }
-    return { sStart: entry.sStart, name: entry.name, bands };
-  }));
+  const compiled = compileSurfaceRegions(courseLength, createM5DebugSurfaceRegionAuthoring(courseLength));
+  return new CyclicSurfaceMap(courseLength, compiled.surfaceSections);
 }
