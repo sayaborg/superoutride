@@ -1,0 +1,29 @@
+SUPER OUTRIDE — M6.20 Live Point-to-Point Stage Runtime
+
+Validated code/docs head:
+  e99795d843aad4b593ef1e2fa765634e9e7105b1
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run:      32621212329
+  job:      97149543238
+  result:   success
+
+Regression:
+  tests: 231
+  pass:  231
+  fail:  0
+
+M6.20 validation points:
+- Browser live route is one physical fork: STAGE_1 -> GOAL_L / GOAL_R.
+- Old M6.8 two-level repeated-fork DAG remains detached stress coverage only.
+- Visible route choice is s=545m, handoff seam s=600m, child FINISH s=700m, all before closed raster seam.
+- PENDING route selection keeps parent activePackageId/content until the validated handoff seam.
+- COMMITTED handoff switches the active child runtime package and child Guide coordinate frame.
+- Vehicle world X/Y/Z, yaw and velocities are not changed by handoff; only road-coordinate expression is rebased.
+- Camera lateral coordinate is rebased so its world lateral position remains continuous across child Guide-frame handoff.
+- Active runtime package drives player physics, SurfaceMap, camera, terrain/ground inputs, Far Background selection, world sprites and StageRoadView.
+- Renderer still contains no Route DAG decision path and retains chainage-only pseudo-depth / scanline / Painter authority.
+- Both LEFT and RIGHT physical paths reach their own child FINISH and complete POINT_TO_POINT without a second fork or lap requirement.
+- Browser source-level regression rejects reintroduction of createM6DebugRouteDag/createM615VisibleRouteBoundaryGateSet into main.ts.
+- Simulation stops after point-to-point objective completion before the closed raster seam is reached as gameplay progression.
