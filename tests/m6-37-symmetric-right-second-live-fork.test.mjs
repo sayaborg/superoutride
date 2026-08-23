@@ -195,7 +195,7 @@ test('M6.37 complete RIGHT-B route performs four PENDING/COMMIT handoffs then ph
   assert.equal(handoffState.commitCount, 4);
 });
 
-test('M6.37 reuses M6.36 for RIGHT symmetry while main and renderer remain topology-free', async () => {
+test('M6.37 remains a direct symmetric-fork fixture beneath the M6.38 live plan', async () => {
   const [source, leftSource, stableEntry, main, renderer] = await Promise.all([
     readFile(new URL('../src/dev/m6-37-symmetric-right-second-live-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
@@ -206,7 +206,7 @@ test('M6.37 reuses M6.36 for RIGHT symmetry while main and renderer remain topol
   assert.match(source, /createM635SecondLiveForkAuthoring/);
   assert.match(source, /compileRasterForkStageRoute/);
   assert.match(leftSource, /createM635SecondLiveForkAuthoring/);
-  assert.match(stableEntry, /createM637SymmetricSecondLiveForkRuntime/);
+  assert.match(stableEntry, /createM638DeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(main, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
   assert.doesNotMatch(renderer, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
 });
