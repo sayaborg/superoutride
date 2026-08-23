@@ -1,0 +1,22 @@
+SUPER OUTRIDE M6.11 VALIDATION
+
+Milestone: route stage content manifest boundary
+Validated implementation head: 0b4567add92ead19eb0e7d3ea285d38b9cf58534
+PR: #21
+GitHub Actions run: 32615880615
+Build job: 97136404155
+
+Result:
+177 tests
+177 pass
+0 fail
+
+Validated properties:
+- every Route DAG node resolves exactly one opaque content package
+- validated route transitions change only the selected content reference
+- route content manifest contains no renderer instance or concrete vehicle physics dependency
+- different validated route histories resolve deterministic different terminal packages
+- missing/duplicate stage bindings and unknown/unreachable packages are rejected
+- all packages must currently share one explicit worldFrameId
+- mixed world frames are rejected so content selection cannot silently transform/teleport physics
+- no runtime stage switch, world transform, renderer mutation or physics mutation is introduced yet
