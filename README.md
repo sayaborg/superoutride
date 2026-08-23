@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.25 Successor Stage Continuation Link
+# SUPER OUTRIDE — M6.26 Live Child → Successor Stage
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -48,7 +48,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.22 True Child Stage Continuation — complete
 - M6.23 Child Environment Content — complete
 - M6.24 Reusable Stage Authoring / Compiler — complete
-- **M6.25 Successor Stage Continuation Link — complete**
+- M6.25 Successor Stage Continuation Link — complete
+- **M6.26 Live Child → Successor Stage — complete**
 
 ## Run / test
 
@@ -66,7 +67,7 @@ Full regression:
 npm test
 ```
 
-M6.25 adds six regressions to the M6.24 252-test suite, for a target of **258 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.26 adds six dedicated regressions to the M6.25 258-test suite, for a target of **264 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -129,21 +130,34 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route remains:
+The browser route is now:
 
 ```text
-           ┌─ GOAL_L
-STAGE_1 ───┤
-           └─ GOAL_R
+              ┌→ STAGE_2_L → GOAL_L
+STAGE_1 ──────┤
+              └→ STAGE_2_R → GOAL_R
 ```
 
-The visible fork is still one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
+The opening visible fork is still one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
 
-At handoff, vehicle world X/Y/Z, yaw and velocities are never teleported. Only the road-coordinate expression and active content package change after a validated world-space seam.
+A route transition only creates a pending handoff. The old chart/content remain active until the corresponding physical seam is crossed forward and COMMIT succeeds.
 
-Current child geometry begins from a shared parent overlap around the `s=600` handoff and continues on independent child Raster/Guide courses. Each child FINISH is authored at child-local `s=250`.
+For either route the live sequence is:
 
-## M6.24 reusable stage authoring
+```text
+physical fork
+→ route choice
+→ PENDING
+→ parent→child seam COMMIT
+→ child physical transition
+→ PENDING
+→ child→successor seam COMMIT
+→ successor physical FINISH
+```
+
+Vehicle world X/Y/Z, yaw and velocities are never teleported by either handoff.
+
+## Reusable stage authoring
 
 Stage environment content is declared in its own local chart:
 
@@ -155,7 +169,7 @@ Far Background
 optional terrain overrides
 ```
 
-The compiler derives active Guide length and performs the single source conversion for raster-attached sprites:
+The M6.24 compiler derives active Guide length and performs the single source conversion for raster-attached sprites:
 
 ```text
 l_source = l_local + coordinateFrame.lateralOrigin
@@ -163,32 +177,34 @@ l_source = l_local + coordinateFrame.lateralOrigin
 
 It produces the ordinary `HeightProfile`, `TerrainProfile`, `CourseSprite`s and complete `StageRuntimeContentPackage` without route or renderer special cases.
 
-## M6.25 generic successor-stage link
+## Generic successor-stage link
 
-M6.25 extracts the M6.22 overlap-continuity rule into a reusable runtime primitive: `StageContinuationLink`.
+M6.25 `StageContinuationLink` states that source and target charts describe the same physical road locus across a validated overlap interval. Compilation checks world position and heading across the complete overlap around the seam.
 
-A link states that a source chart and a target chart describe the same physical road locus across a validated overlap interval. Source and target local lateral coordinates may differ. The existing fork proves both cases:
-
-```text
-parent LEFT  l=-7.5m  ↔ child LEFT  l=0
-parent RIGHT l=+7.5m  ↔ child RIGHT l=0
-```
-
-Compilation checks world position and heading across five points spanning the complete overlap. The current fixture validates `D_cam=5m` both behind and ahead of the seam. Mismatched successor geometry is rejected before runtime handoff.
-
-Within a valid link, chainage is a pure seam-relative rebase:
+Within a valid link:
 
 ```text
 s_target = targetSeamS + (s_source - sourceSeamS)
-```
-
-Signed lateral displacement from the linked road center is preserved:
-
-```text
 l_target = targetLocalL + (l_source - sourceLocalL)
 ```
 
 These equations only express coordinates. They do not modify world pose, pseudo-depth rules, camera projection or vehicle physics.
+
+## M6.26 successor geometry
+
+The successor Guide is independent after the shared handoff overlap, but the Core hard limit remains unchanged:
+
+```text
+absolute Raster turn at one vertex <= 10°
+```
+
+M6.26 deliberately does **not** relax this constraint. The final construction reuses an already valid child Raster as the structural base, copies the overlap exactly, then applies a smooth lateral deformation only over a safe low-curvature run. Vertices near the Core turn limit are left untouched, and `compileRasterCourse()` remains the final authority.
+
+This preserves the Super Scaler-style simple raster geometry while allowing the point-to-point route to continue onto a genuinely separate stage.
+
+## FINISH authority
+
+`GOAL_L` and `GOAL_R` are terminal Route DAG stages, but entering them does not finish the run. Completion still requires a validated forward crossing of the physical successor FINISH gate.
 
 ## Vehicle physics status
 
@@ -212,18 +228,17 @@ src/gameplay/route-stage-handoff.ts
 src/runtime/stage-runtime-content.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
-src/dev/m6-20-live-point-to-point.ts
-src/dev/m6-21-child-visual-identity.ts
 src/dev/m6-22-child-stage-continuation.ts
-src/dev/m6-22-live-runtime-content.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
+src/dev/m6-26-live-successor-stage.ts
+src/dev/m6-26-live-runtime-content.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/43_m6_25_successor_stage_link.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/44_m6_26_live_successor_stage.md`.
 
 ## Next
 
-Use the M6.24 package compiler and M6.25 validated continuation link to extend the live route from the selected child into a real successor stage. The next implementation should prove **child → next stage** world-pose-continuous handoff in the browser without adding 3D branching geometry or route logic to renderer Core.
+Generalize the now-proven two-handoff live chain into longer authored route sequences without adding milestone-specific branching to `main.ts`. The next step should make route-stage loading increasingly data-driven while keeping world-space physics and the frozen raster pseudo-3D renderer completely unchanged.
