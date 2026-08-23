@@ -147,7 +147,7 @@ function liveForkStep(
     branches: Object.freeze([
       liveForkBranch(identity, 'A', 'LEFT', -1),
       liveForkBranch(identity, 'B', 'RIGHT', 1),
-    ]),
+    ] as const),
     createRuntime,
   });
 }
