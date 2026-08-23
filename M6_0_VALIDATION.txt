@@ -1,0 +1,40 @@
+SUPER OUTRIDE M6.0 VALIDATION
+=============================
+
+Milestone: M6.0 Validated Race Progress Foundation
+Validated feature head: 312d2e4dbcb7ef200e26734052b477078bed76a0
+Pull request: #10
+GitHub Actions run: 32613581718
+Build job: 97130437060
+Result: SUCCESS
+
+Regression
+----------
+118 tests
+118 pass
+0 fail
+0 skipped
+
+M6.0 additions
+--------------
+- Core §5 GeometricCoursePosition tracker remains geometry-only.
+- Race progress is a separate gameplay authority.
+- Debug race uses CP1/CP2/CP3 plus fixed s=0 FINISH.
+- Checkpoints are physical world-space transverse gates derived from Guide samples.
+- Gate half-width is the existing Guide lMax envelope; M6 adds no independent width knob.
+- Checkpoints must be crossed in authored order.
+- Reverse gate crossings are detected and never award progress.
+- Out-of-order forward crossings are rejected as shortcut attempts.
+- At most one forward gate may be accepted per physics update, preventing teleport/recovery multi-gate scoring.
+- Recovery/manual reset resynchronizes observations without adding or erasing validated progress.
+- s_progress changes only on accepted race gates; raw s_car cannot directly award race progress.
+- HUD displays GEO and RACE separately.
+- Renderer implementation and pseudo-depth rules are unchanged.
+
+Regression retained
+-------------------
+- M5.9 tunnel/portal tests pass.
+- M5.8 workload tests pass.
+- M5.7 baked GroundMap tests pass.
+- fixed 2.0m=80px player metric remains intact.
+- Pages commit-versioned bootstrap regression passes.
