@@ -40,8 +40,10 @@ import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 const DT = 1 / 60;
-const MAX_TICKS = 3600;
+const MAX_TICKS = 6000;
 const POST_FINISH_RENDER_FRAMES = 30;
+const INTEGRATION_CRUISE_MIN_MPS = 18;
+const INTEGRATION_CRUISE_MAX_MPS = 22;
 const CAMERA_PROFILE = {
   dCam: 5,
   lCamMax: 12,
@@ -136,12 +138,40 @@ function targetLForRuntime(runtime, path) {
   return 0;
 }
 
+function sampleIntegrationDrivingInput(guide, car, targetL) {
+  const steeringInput = sampleRivalDrivingInput(guide, car, targetL);
+  const speed = Math.max(0, car.longitudinalSpeed);
+  return {
+    steering: steeringInput.steering,
+    throttle: !steeringInput.brake && speed < INTEGRATION_CRUISE_MIN_MPS,
+    brake: steeringInput.brake || speed > INTEGRATION_CRUISE_MAX_MPS,
+  };
+}
+
+function drawActiveRuntime(framebuffer, runtime, camera, car, assets) {
+  renderM5Driving(
+    framebuffer,
+    runtime.selectFarBackground(camera.s),
+    guideCoordinateCurve(runtime.coordinateFrame),
+    camera,
+    car,
+    runtime.terrainProfile,
+    runtime.groundProfile,
+    runtime.worldSprites,
+    assets,
+    'car',
+    runtime.roadView ?? undefined,
+  );
+}
+
 function runDeepBrowserPath(path) {
   const parentGuide = createM2StadiumGuide();
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
-  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 390);
+  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 320);
+  car.longitudinalSpeed = 20;
+  car.speed = 20;
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(
     live.route,
@@ -163,10 +193,12 @@ function runDeepBrowserPath(path) {
   let tickReachedFinish = null;
   const initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
   let camera = updateM5Camera(cameraRig, initialRuntime.coordinateFrame, initialRuntime.heightProfile, car, CAMERA_PROFILE, DT);
+  drawActiveRuntime(framebuffer, initialRuntime, camera, car, assets);
+  renderedPackages.add(initialRuntime.packageId);
 
   for (let tick = 0; tick < MAX_TICKS; tick += 1) {
     const runtimeBefore = resolveActiveStageRuntimeContent(live.registry, handoffState);
-    const input = sampleRivalDrivingInput(
+    const input = sampleIntegrationDrivingInput(
       guideCoordinateCurve(runtimeBefore.coordinateFrame),
       car,
       targetLForRuntime(runtimeBefore, path),
@@ -250,23 +282,14 @@ function runDeepBrowserPath(path) {
       DT,
     );
 
-    const shouldRender = handoffEvent === 'COMMITTED' || tick % 12 === 0 || objective.status === 'FINISHED';
-    if (shouldRender) {
-      renderM5Driving(
-        framebuffer,
-        runtimeAfterTick.selectFarBackground(camera.s),
-        guideCoordinateCurve(runtimeAfterTick.coordinateFrame),
-        camera,
-        car,
-        runtimeAfterTick.terrainProfile,
-        runtimeAfterTick.groundProfile,
-        runtimeAfterTick.worldSprites,
-        assets,
-        'car',
-        runtimeAfterTick.roadView ?? undefined,
-      );
+    if (handoffEvent === 'COMMITTED') {
+      drawActiveRuntime(framebuffer, runtimeAfterTick, camera, car, assets);
       renderedPackages.add(runtimeAfterTick.packageId);
-      if (objective.status === 'FINISHED') renderCountAfterFinish += 1;
+    }
+    if (objective.status === 'FINISHED') {
+      drawActiveRuntime(framebuffer, runtimeAfterTick, camera, car, assets);
+      renderedPackages.add(runtimeAfterTick.packageId);
+      renderCountAfterFinish += 1;
     }
 
     if (objective.status === 'FINISHED' && renderCountAfterFinish >= POST_FINISH_RENDER_FRAMES) break;
