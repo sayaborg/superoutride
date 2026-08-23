@@ -225,9 +225,26 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
   );
 });
 
-test('M6.40 generic traveler owns no renderer or vehicle-physics dependency', () => {
+test('M6.40 generic traveler stays renderer/physics independent while browser rival consumes it', () => {
   const source = fs.readFileSync(new URL('../src/runtime/live-route-traveler.ts', import.meta.url), 'utf8');
+  const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  const renderer = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /physics\//);
   assert.doesNotMatch(source, /M5Car|M5Bike|CourseSprite/);
+
+  for (const symbol of [
+    'createM640RivalRouteChoicePlan',
+    'createLiveRouteTravelerState',
+    'advanceLiveRouteTraveler',
+    'sampleLiveRouteChoicePlanTargetL',
+    'resolveLiveRouteTravelerRuntime',
+    'liveRouteTravelersShareRuntimePackage',
+  ]) {
+    assert.match(main, new RegExp(symbol));
+  }
+  assert.doesNotMatch(main, /sampleM613RightBranchTargetL\(rival\.course\.s\)/);
+  assert.doesNotMatch(main, /updateM5Car\(guide, heightProfile, surfaceMap, rival/);
+  assert.doesNotMatch(renderer, /M6_40|M6\.40|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
 });
