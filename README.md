@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.26 Live Child → Successor Stage
+# SUPER OUTRIDE — M6.27 Live Route Runtime Assembly
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -49,7 +49,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.23 Child Environment Content — complete
 - M6.24 Reusable Stage Authoring / Compiler — complete
 - M6.25 Successor Stage Continuation Link — complete
-- **M6.26 Live Child → Successor Stage — complete**
+- M6.26 Live Child → Successor Stage — complete
+- **M6.27 Live Route Runtime Assembly — complete**
 
 ## Run / test
 
@@ -67,7 +68,7 @@ Full regression:
 npm test
 ```
 
-M6.26 adds six dedicated regressions to the M6.25 258-test suite, for a target of **264 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.27 adds five dedicated regressions to the M6.26 264-test suite, for a target of **269 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -130,7 +131,7 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route is now:
+The browser route remains:
 
 ```text
               ┌→ STAGE_2_L → GOAL_L
@@ -138,7 +139,7 @@ STAGE_1 ──────┤
               └→ STAGE_2_R → GOAL_R
 ```
 
-The opening visible fork is still one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
+The opening visible fork is one chainage-driven lateral cross-section. Route selection is validated from physical world-space gate crossing; steering, screen X and sprite overlap cannot choose a branch.
 
 A route transition only creates a pending handoff. The old chart/content remain active until the corresponding physical seam is crossed forward and COMMIT succeeds.
 
@@ -200,7 +201,25 @@ absolute Raster turn at one vertex <= 10°
 
 M6.26 deliberately does **not** relax this constraint. The final construction reuses an already valid child Raster as the structural base, copies the overlap exactly, then applies a smooth lateral deformation only over a safe low-curvature run. Vertices near the Core turn limit are left untouched, and `compileRasterCourse()` remains the final authority.
 
-This preserves the Super Scaler-style simple raster geometry while allowing the point-to-point route to continue onto a genuinely separate stage.
+## M6.27 live route runtime assembly
+
+`main.ts` no longer constructs the current M6.26 route pieces individually. It consumes one validated `LiveRouteRuntimeAssembly` containing:
+
+```text
+route
+content
+charts
+gates
+handoffs
+registry
+initialChart
+```
+
+The generic assembly compiler validates the cross-layer relationships before simulation begins. For each route choice, its target stage must resolve through the content binding and runtime package to the **exact same GuideChart object** named by the handoff seam. The start package must use the declared initial chart, every route choice must have a physical TRANSITION gate, every terminal stage must have a physical FINISH gate, and all charts must be reachable.
+
+This layer imports no renderer, camera, car physics, motorcycle physics, or M6.26 milestone implementation. Current-route-specific construction is isolated in `createM627LiveRouteRuntime()`.
+
+The browser simulation loop still performs the same generic physical-gate → PENDING → seam COMMIT transaction; M6.27 changes assembly, not runtime driving semantics.
 
 ## FINISH authority
 
@@ -228,17 +247,19 @@ src/gameplay/route-stage-handoff.ts
 src/runtime/stage-runtime-content.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
+src/runtime/live-route-runtime.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
 src/dev/m6-26-live-successor-stage.ts
 src/dev/m6-26-live-runtime-content.ts
+src/dev/m6-27-live-route-runtime.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/44_m6_26_live_successor_stage.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/45_m6_27_live_route_runtime_assembly.md`.
 
 ## Next
 
-Generalize the now-proven two-handoff live chain into longer authored route sequences without adding milestone-specific branching to `main.ts`. The next step should make route-stage loading increasingly data-driven while keeping world-space physics and the frozen raster pseudo-3D renderer completely unchanged.
+`main.ts` is now insulated from the current route topology, but `createM627LiveRouteRuntime()` still explicitly invokes M6.26-specific constructors. The next architectural step is to make the route/stage sequence itself declarative enough for a generic compiler to assemble longer point-to-point routes without adding milestone-specific construction calls, while preserving world-space physics and the frozen raster pseudo-3D renderer unchanged.
