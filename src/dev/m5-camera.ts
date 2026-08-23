@@ -1,7 +1,7 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle, wrapPositive } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { M5CarState } from '../physics/car-physics.js';
+import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
 
 export interface M5CameraProfile {
@@ -60,7 +60,7 @@ export function updateM5Camera(
   rig: M5CameraRig,
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  vehicle: M5CarState,
+  vehicle: VehicleCameraReadState,
   profile: M5CameraProfile,
   dt: number,
 ): M5CameraState {
