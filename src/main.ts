@@ -4,6 +4,7 @@ import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
+import { createM615VisibleRouteBoundaryGateSet } from './dev/m6-15-visible-route-gates.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import { createM5CameraRig, resetM5CameraRig, updateM5Camera, type M5CameraProfile, type M5CameraState } from './dev/m5-camera.js';
 import {
@@ -25,6 +26,8 @@ import {
 } from './gameplay/race-session.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
+import { observeRouteBoundaryCrossing } from './gameplay/route-boundary-gates.js';
+import { createM6DebugRouteDag, createRouteDagState, updateRouteDag } from './gameplay/route-dag.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
@@ -99,6 +102,10 @@ const raceProgress = createRaceProgressState(raceRules, raceSample());
 const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
 const raceSession = createRaceSessionState();
 const rivalRaceSession = createRaceSessionState();
+const routeDag = createM6DebugRouteDag();
+const routeGates = createM615VisibleRouteBoundaryGateSet(routeDag, guide);
+const routeState = createRouteDagState(routeDag);
+let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
 
 const cameraProfile: M5CameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -152,6 +159,7 @@ window.addEventListener('keydown', (event) => {
     resetM5CameraRig(cameraRig);
     resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
     resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
+    previousRoutePoint = { x: vehicle.x, z: vehicle.z };
     camera = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
     return;
   }
@@ -187,9 +195,20 @@ function frame(now: number): void {
       resetM5CameraRig(cameraRig);
       resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
       resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
+      previousRoutePoint = { x: vehicle.x, z: vehicle.z };
     } else {
       updateGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
       raceUpdate = updateRaceProgress(raceProgress, raceRules, raceSample());
+      const currentRoutePoint = { x: vehicle.x, z: vehicle.z };
+      const routeObservation = observeRouteBoundaryCrossing(
+        routeDag,
+        routeState,
+        routeGates,
+        previousRoutePoint,
+        currentRoutePoint,
+      );
+      updateRouteDag(routeState, routeDag, routeObservation.boundary);
+      previousRoutePoint = currentRoutePoint;
     }
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
@@ -271,7 +290,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.13 VISIBLE JUNCTION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.15 VISIBLE ROUTE GATES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionSection.phase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -282,13 +301,15 @@ function render(): void {
   ctx.fillText(`POS ${playerStanding.rank}/2  YOU ${raceProgress.sProgress.toFixed(1)}  RIVAL ${rivalRaceProgress.sProgress.toFixed(1)}`, 8, 120);
   ctx.fillText(`NEXT ${nextGate.name}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  BND ${raceSession.boundaryTimings.length}  BEST ${bestBoundary}`, 8, 144);
+  ctx.fillText(`ROUTE ${routeState.activeStageId}  ${routeState.status}  EVT ${routeState.lastEvent}`, 8, 156);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
-    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 156);
+    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 168);
     ctx.fillStyle = '#a6bac4';
   }
 
   ctx.fillStyle = '#8fa3ad';
+  ctx.fillText('Route = physical L/R gate crossing only; median selects nothing', 8, 207);
   ctx.fillText('Junction = one (s,l) strip: widen road -> grow median -> two asphalt bands', 8, 218);
   ctx.fillText(`World physics unchanged / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
