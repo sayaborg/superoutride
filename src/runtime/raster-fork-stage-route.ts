@@ -72,8 +72,6 @@ export interface CompiledRasterForkStageRoute {
   readonly branches: readonly CompiledRasterForkStageBranch[];
 }
 
-const EPSILON = 1e-9;
-
 /**
  * Replace one terminal stage with a visible two-way stage-local fork and two independent Raster
  * successors.
@@ -243,6 +241,9 @@ function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
   if (!Number.isFinite(source.routeGateS)) {
     throw new RangeError('Raster fork routeGateS must be finite');
   }
+  if (source.branches.length !== 2) {
+    throw new RangeError('Raster fork requires exactly two branch rows');
+  }
 
   const otherStageIds = new Set(source.upstream.stages
     .filter((stage) => stage.id !== source.terminalStageId)
@@ -257,6 +258,9 @@ function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
   const packageIds = new Set(source.upstream.stages
     .filter((stage) => stage.id !== source.terminalStageId)
     .map((stage) => stage.runtime.packageId));
+  if (packageIds.has(source.forkPackageId)) {
+    throw new RangeError(`duplicate Raster fork package id: ${source.forkPackageId}`);
+  }
   packageIds.add(source.forkPackageId);
   const choiceIds = new Set(source.upstream.transitions.map((transition) => transition.id));
   const geometryIds = new Set<string>();
