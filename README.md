@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.6 Physics-Ready Gameplay Foundation
+# SUPER OUTRIDE — M6.7 Physics-Ready Gameplay Foundation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -29,7 +29,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M6.3 Independent Moving Rival Foundation — complete
 - M6.4 Vehicle Physics Replaceability Boundary — complete
 - M6.5 Deterministic Vehicle Physics Telemetry — complete
-- **M6.6 Deterministic Driving Input Trace Replay — complete**
+- M6.6 Deterministic Driving Input Trace Replay — complete
+- **M6.7 Validated Run Objective / Point-to-Point Completion — complete**
 
 ## Run / test
 
@@ -50,12 +51,12 @@ npm test
 Current verified result:
 
 ```text
-148 tests
-148 pass
+153 tests
+153 pass
 0 fail
 ```
 
-See `M6_4_VALIDATION.txt`, `M6_5_VALIDATION.txt`, `M6_6_VALIDATION.txt` and docs 22–24.
+See `M6_4_VALIDATION.txt` through `M6_7_VALIDATION.txt` and docs 22–25.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
 
@@ -76,7 +77,11 @@ DrivingInput
 replaceable vehicle physics
     ↓
 authoritative world state
-    ├─→ world→Guide chart → validated race progress → timing/ranking
+    ├─→ world→Guide chart
+    │       └─→ ordered physical race gates
+    │               └─→ validated race progress
+    │                       ├─→ timing/ranking
+    │                       └─→ run objective / FINISH
     ├─→ camera
     ├─→ dynamic vehicle sprite adapter → existing Painter
     └─→ calibration telemetry
@@ -222,8 +227,6 @@ validatedProgressFloor <= sProgress <= nextRequiredGateProgress
 
 Timing uses fixed simulation time only. Ranking consumes `sProgress` then `validatedProgressFloor`, never raw local chainage or screen position.
 
-The closed DEV course is a test bed; repeated FINISH crossing is not a product requirement for lap-race gameplay.
-
 ## M6.3 independent moving rival
 
 The DEV rival is a second ordinary world-space vehicle with independent world position, velocity, yaw, SurfaceMap contact, recovery, validated progress and session state.
@@ -250,28 +253,13 @@ Recovery is the intentional exception because respawn mutates velocity/steering/
 
 ## M6.5 deterministic physics telemetry
 
-The observer records fixed-tick input and authoritative world/Guide state and derives:
-
-- planar travel distance
-- signed chainage travel
-- max speed
-- max absolute lateral excursion
-- max sideslip
-- max yaw rate
-
-The current three-second DEV baseline is recorded as historical evidence only. CI does **not** assert those handling numbers as correct.
+The observer records fixed-tick input and authoritative world/Guide state and derives planar travel, signed chainage, max speed, lateral excursion, sideslip and yaw rate. The current DEV baseline is historical evidence only; CI does **not** assert those handling numbers as correct.
 
 ## M6.6 deterministic input trace replay
 
-Input traces use:
+Input traces use `SUPER_OUTRIDE_INPUT_TRACE_V1` with fixed `dt` and run-length encoded canonical `DrivingInput` commands. JSON round-trip preserves the exact sequence; invalid steering is rejected instead of silently clamped.
 
-```text
-SUPER_OUTRIDE_INPUT_TRACE_V1
-```
-
-with fixed `dt` and run-length encoded canonical `DrivingInput` commands. JSON round-trip preserves the exact sequence; invalid steering is rejected instead of silently clamped.
-
-The same immutable trace can be replayed against two physics candidates:
+The same immutable trace can be replayed against multiple physics candidates:
 
 ```text
 same trace
@@ -279,13 +267,30 @@ same trace
    └─→ physics B → telemetry B
 ```
 
-CI proves same trace + same physics is deterministic, while changing a physics profile produces measurable telemetry differences without changing the trace. This is the calibration harness for later serious handling work.
+CI proves same trace + same physics is deterministic while physics changes remain measurable without changing the trace.
+
+## M6.7 point-to-point run objective
+
+The closed stadium remains a DEV validation fixture, not a product lap-race requirement.
+
+Run completion is now a separate consumer:
+
+```text
+validated FINISH event
+    ├─→ POINT_TO_POINT   → FINISHED exactly once
+    └─→ REPEATABLE_DEV  → boundary recorded, continue running
+```
+
+Raw chainage, continuous progress alone, checkpoints, reverse crossings, shortcut rejection, recovery/resync and screen state cannot finish a run. `POINT_TO_POINT` captures deterministic elapsed time and validated progress only when the physical race-gate layer has already accepted FINISH.
+
+Thus closed-course geometric/lap bookkeeping may remain useful internally while product gameplay can be terminal and later branch-oriented.
 
 ## Primary M6 files
 
 ```text
 src/gameplay/race-progress.ts
 src/gameplay/race-session.ts
+src/gameplay/run-objective.ts
 src/gameplay/rival-driver.ts
 src/physics/vehicle-contract.ts
 src/physics/vehicle-calibration.ts
@@ -299,6 +304,7 @@ tests/m6-3-rival-sim.test.mjs
 tests/m6-4-physics-boundary.test.mjs
 tests/m6-5-physics-telemetry.test.mjs
 tests/m6-6-input-trace.test.mjs
+tests/m6-7-run-objective.test.mjs
 docs/18_m6_0_race_progress.md
 docs/19_m6_1_continuous_race_progress.md
 docs/20_m6_2_run_timing_ranking.md
@@ -306,8 +312,9 @@ docs/21_m6_3_rival_foundation.md
 docs/22_m6_4_vehicle_physics_boundary.md
 docs/23_m6_5_vehicle_physics_telemetry.md
 docs/24_m6_6_driving_input_trace.md
+docs/25_m6_7_run_objective.md
 ```
 
 ## Next
 
-Continue with gameplay/course-flow architecture that does not depend on today's uncalibrated handling. Deep vehicle collision and final handling calibration remain intentionally deferred.
+Continue with branch/route course-flow architecture above the validated gate layer. Deep vehicle collision and final handling calibration remain intentionally deferred until the vehicle model is ready.
