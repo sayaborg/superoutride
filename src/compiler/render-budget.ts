@@ -62,7 +62,7 @@ export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
   spriteOutputSamplesPerScanlineMax: 335,
 };
 
-/** M5.9 required close portal / near interior stress sweep. */
+/** M5.9 required close portal / near interior stress sweep, re-observed after raster miter joins. */
 export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   frameCount: 51,
   maxTerrainLineCount: 160,
@@ -72,8 +72,8 @@ export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   maxVisibleSpriteCount: 13,
   maxSpriteOutputSamplesPerFrame: 83655,
   maxSpriteOutputSamplesPerScanline: 605,
-  maxSpriteWrittenPixelsPerFrame: 33017,
-  maxSpriteWrittenPixelsPerScanline: 275,
+  maxSpriteWrittenPixelsPerFrame: 33013,
+  maxSpriteWrittenPixelsPerScanline: 277,
   maxGroundMapLevelUsed: 6,
   groundMapLevelLineCounts: [2592, 2436, 1110, 506, 619, 112, 20],
 };
