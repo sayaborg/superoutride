@@ -172,7 +172,9 @@ test('M6.41 deterministic single-successor stages remain per-actor transactions 
 
 test('M6.41 shared route authority stays gameplay-only with no renderer, camera, input or vehicle-physics dependency', async () => {
   const source = await readFile(new URL('../src/gameplay/shared-route-choice-authority.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /render|camera|input|m5-car|vehicle-physics/i);
+  const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
+  assert.deepEqual(importSpecifiers, ['./route-dag.js']);
+  assert.doesNotMatch(source, /from\s+['"][^'"]*(?:render|camera|input|m5-car|vehicle-physics)[^'"]*['"]/i);
   assert.match(source, /crossingFraction/);
   assert.match(source, /FIRST_PHYSICAL_CROSSING_LOCKS/);
 });
