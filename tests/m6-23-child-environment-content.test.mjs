@@ -64,6 +64,8 @@ function setup() {
     continuation,
     parentShared(parent),
     assets,
+    undefined,
+    environment,
   );
   return { parent, continuation, environment, registry };
 }
