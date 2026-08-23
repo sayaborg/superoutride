@@ -99,8 +99,8 @@ export function createM622ChildStageContinuation(parentGuide: GuideCurve): M622C
     right: createGuideChart('RIGHT_CHILD', rightGuide, rightOrigin),
   });
 
-  const left = createChildRuntimeSource(leftGuide, charts.left, 'LEFT', leftOrigin);
-  const right = createChildRuntimeSource(rightGuide, charts.right, 'RIGHT', rightOrigin);
+  const left = createChildRuntimeSource(leftGuide, charts.left, 'LEFT', leftOrigin, parentSourceStartS);
+  const right = createChildRuntimeSource(rightGuide, charts.right, 'RIGHT', rightOrigin, parentSourceStartS);
   const handoffLocalS = M6_17_HANDOFF_SEAM_S - parentSourceStartS;
 
   return Object.freeze({ charts, left, right, parentSourceStartS, handoffLocalS });
@@ -179,6 +179,7 @@ function createChildRuntimeSource(
   chart: GuideChart,
   side: 'LEFT' | 'RIGHT',
   sourceLateralOrigin: number,
+  chainageOffsetS: number,
 ): M622ChildStageRuntimeSource {
   const roadView = createStageRoadView({
     id: `${side}_CHILD_CONTINUATION_VIEW`,
@@ -206,12 +207,13 @@ function createChildRuntimeSource(
     groundBaseRight: { kind: 'color', color: rgba(45, 100, 53) },
   }]);
   const groundProfile: GroundMapProfile = {
-    groundLeft: parentGroundExtent(sourceLateralOrigin, 'LEFT'),
-    groundRight: parentGroundExtent(sourceLateralOrigin, 'RIGHT'),
+    groundLeft: 12,
+    groundRight: 12,
     roadLeft: CHILD_ROAD_HALF_WIDTH,
     roadRight: CHILD_ROAD_HALF_WIDTH,
     shoulderWidth: CHILD_SHOULDER_WIDTH,
     roadCenterL: sourceLateralOrigin,
+    chainageOffsetS,
   };
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,
@@ -243,10 +245,6 @@ function childSurfaceBands(origin: number): SurfaceBand[] {
     { lMin: origin - CHILD_ROAD_HALF_WIDTH, lMax: origin + CHILD_ROAD_HALF_WIDTH, type: 'ASPHALT' },
     { lMin: origin + CHILD_ROAD_HALF_WIDTH, lMax: origin + CHILD_GROUND_HALF_WIDTH, type: 'SHOULDER' },
   ];
-}
-
-function parentGroundExtent(origin: number, side: 'LEFT' | 'RIGHT'): number {
-  return side === 'LEFT' ? 12 + origin : 12 - origin;
 }
 
 function handoffSeam(parentGuide: GuideCurve, choiceId: string, target: GuideChart): RouteStageHandoffSeamAuthoring {
