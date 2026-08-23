@@ -1,0 +1,46 @@
+SUPER OUTRIDE M6.39 — Deep Route Browser-Order Integration
+
+Structural validated head before documentation synchronization:
+0c1865ff45fd3e527aeb8393ea156fbb128d3d23
+
+GitHub Actions PR run:
+32656017720
+Build job:
+97234785538
+
+Result:
+329 tests
+329 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+Dedicated M6.39 regressions:
+- LEFT-A: four physical route-gate -> PENDING -> seam -> COMMIT transactions, physical terminal FINISH, continued render
+- RIGHT-B: four physical route-gate -> PENDING -> seam -> COMMIT transactions, physical terminal FINISH, continued render
+
+Each transaction:
+- uses ordinary M5 car physics at 60 Hz
+- starts from a test-fixture checkpoint eight metres before the actual authored physical gate
+- performs no position rewrite between gate and seam
+- requires no recovery
+- requires >8 m/s at COMMIT
+- exact-compares world x/y/z, yaw and velocity state before/after COMMIT
+- rebases vehicle.course and camera frame only after validated COMMIT
+- renders the committed runtime package
+
+Terminal FINISH:
+- comes only from physical FINISH gate crossing
+- completes POINT_TO_POINT exactly once
+- simulation/camera/renderer continue for 30 frames afterward
+
+Integration-discovered production fix:
+- sampleRivalDrivingInput now accepts GuideCoordinateSource
+- lookahead uses guideCoordinateToWorld
+- stage-local l therefore remains coherent with nonzero lateralOrigin
+- plain GuideCurve callers remain compatible
+
+Earlier M6.39 failed runs were WIP diagnostics and are not milestone validation.
+
+Final documentation-inclusive head must independently reproduce 329/329 before main fast-forward.
