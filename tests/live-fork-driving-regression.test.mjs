@@ -68,7 +68,7 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
-  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 480);
+  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 390);
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(
     live.route,
@@ -82,6 +82,7 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
   let sawChoice = false;
   let sawCommit = false;
   let recoveryCountAtChoice = 0;
+  let maxParentS = car.course.s;
 
   for (let tick = 0; tick < 900; tick += 1) {
     const runtimeBefore = resolveActiveStageRuntimeContent(live.registry, handoffState);
@@ -97,6 +98,7 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
       input,
       DT,
     );
+    if (runtimeBefore.packageId === 'CONTENT_STAGE_1') maxParentS = Math.max(maxParentS, car.course.s);
 
     const recovered = updateM5Recovery(
       recovery,
@@ -155,9 +157,10 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
     if (sawCommit && car.course.s > 80) break;
   }
 
-  assert.equal(sawChoice, true, 'scripted physical car must select the visible LEFT road');
-  assert.equal(sawCommit, true, 'scripted physical car must cross the first handoff seam');
-  assert.ok(car.course.s > 80, `car should continue on child stage, got child s=${car.course.s.toFixed(3)}`);
-  assert.ok(minSpeedAfterChoice > 8, `car must not stall at fork; min speed=${minSpeedAfterChoice.toFixed(3)} m/s`);
-  assert.equal(recovery.recoveries, recoveryCountAtChoice, 'fork/handoff must not require recovery');
+  const diagnostic = `parentMaxS=${maxParentS.toFixed(3)} finalS=${car.course.s.toFixed(3)} finalL=${car.course.l.toFixed(3)} speed=${car.speed.toFixed(3)} recoveries=${recovery.recoveries} route=${routeState.activeStageId} pending=${handoffState.pending?.choiceId ?? 'NONE'} pkg=${handoffState.activePackageId}`;
+  assert.equal(sawChoice, true, `scripted physical car must select the visible LEFT road; ${diagnostic}`);
+  assert.equal(sawCommit, true, `scripted physical car must cross the first handoff seam; ${diagnostic}`);
+  assert.ok(car.course.s > 80, `car should continue on child stage; ${diagnostic}`);
+  assert.ok(minSpeedAfterChoice > 8, `car must not stall at fork; min=${minSpeedAfterChoice.toFixed(3)}; ${diagnostic}`);
+  assert.equal(recovery.recoveries, recoveryCountAtChoice, `fork/handoff must not require recovery; ${diagnostic}`);
 });
