@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.33 Symmetric RIGHT Third Successor
+# SUPER OUTRIDE — M6.34 Reusable Stage-Local Junction
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -56,7 +56,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.30 Third Live Successor Stage — complete
 - M6.31 Reusable Raster Successor Chain Authoring — complete
 - M6.32 Declarative Route Fragment Composition — complete
-- **M6.33 Symmetric RIGHT Third Successor — complete**
+- M6.33 Symmetric RIGHT Third Successor — complete
+- **M6.34 Reusable Stage-Local Junction — complete**
 
 ## Run / test
 
@@ -74,7 +75,7 @@ Full regression:
 npm test
 ```
 
-M6.32 ended at **294 tests**. M6.33 adds four dedicated RIGHT-successor regressions for a target of **298 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.33 ended at **298 tests**. M6.34 adds five dedicated reusable stage-junction regressions for a target of **303 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -137,7 +138,7 @@ There is no arbitrary `visualScale` multiplier.
 
 ## Live point-to-point architecture
 
-The browser route is now symmetric in depth:
+M6.34 is infrastructure only, so the browser route remains symmetric in depth:
 
 ```text
               ┌→ STAGE_2_L → STAGE_3_L → GOAL_L
@@ -165,7 +166,7 @@ physical fork
 → physical GOAL_L FINISH
 ```
 
-The RIGHT live sequence is now structurally equivalent:
+The RIGHT live sequence is structurally equivalent:
 
 ```text
 physical fork
@@ -402,7 +403,7 @@ STAGE_3_R
 
 The new GOAL_R environment is compiled through the ordinary M6.24 stage compiler using `authored.right`. Thus the mountain/Far Background identity remains package-owned while the new GOAL_R owns a distinct Guide/Raster.
 
-The complete live route is now composed from five M6.32 fragments:
+The complete live route is composed from five M6.32 fragments:
 
 ```text
 root fork
@@ -415,6 +416,31 @@ root fork
 The structural successor recipe is symmetric except for deformation direction (`LEFT=-1`, `RIGHT=+1`). Final Raster validity still comes only from `compileRasterCourse()` and the frozen <=10° one-vertex rule.
 
 `main.ts`, the browser simulation loop and renderer Core are unchanged.
+
+## M6.34 reusable stage-local junction
+
+M6.34 reuses the existing M6.12 `JunctionCrossSectionProfile` inside an arbitrary successor-stage chart. It does not add a second live fork yet.
+
+The key distinction is explicit coordinate authority:
+
+```text
+GroundMapProfile.junction      = source-coordinate junction
+GroundMapProfile.stageJunction = active-stage-local junction overlay
+```
+
+The two are deliberately separate. A successor stage can therefore evaluate a new fork around local `l=0` while its reusable source data continues to use the original `sourceLateralOrigin`.
+
+The required expanded ground half-width is derived rather than hand-sized:
+
+```text
+childRoadWidth + finalMedianWidth/2 + shoulderWidth
+```
+
+`compileStageJunction()` expands only the stage ground corridor. It preserves incoming road width and source lateral origin. `StageJunctionSurfaceMap` and the stage GroundMap adapter consume the same stage-local cross-section authority for asphalt, median and shoulder semantics.
+
+GroundMap checks `stageJunction` before the fixed single-road classification, then rebases to reusable source `l` only when the local junction does not own the sample. Source-coordinate `junction` semantics remain unchanged, preserving M6.13/M6.18 behavior.
+
+No Route DAG, renderer, camera or vehicle-physics logic is introduced by this reusable layer. The live route therefore remains M6.33 until M6.35 attaches the first downstream fork.
 
 ## FINISH authority
 
@@ -434,19 +460,23 @@ Handling values remain replaceable scaffolding. Vehicle-to-vehicle collision rem
 src/core/course.ts
 src/core/guide-curve.ts
 src/core/guide-coordinate-frame.ts
+src/course/junction-cross-section.ts
 src/course/stage-road-view.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
 src/gameplay/route-stage-content.ts
 src/gameplay/route-stage-handoff.ts
+src/physics/stage-junction-surface-map.ts
 src/runtime/stage-runtime-content.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
+src/runtime/stage-junction-compiler.ts
 src/runtime/live-route-runtime.ts
 src/runtime/declarative-live-route.ts
 src/runtime/declarative-route-fragment.ts
 src/runtime/raster-stage-successor.ts
 src/runtime/raster-successor-chain.ts
+src/visual/stage-ground-map-view.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
@@ -459,8 +489,8 @@ src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/51_m6_33_right_third_successor.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/52_m6_34_reusable_stage_local_junction.md`.
 
 ## Next
 
-Both branches now prove independent multi-stage continuation through the same generic chain and fragment layers. The next major architectural proof is a **second visible downstream junction** inside an active successor-stage domain, while preserving one chainage-driven lateral cross-section, physical world-space route gates, deferred seam handoff and exactly one active Raster road domain after COMMIT.
+**M6.35 — Second Live Physical Fork.** Attach the M6.34 stage-local junction to a successor stage, author two physical world-space route gates over its separated child roads, defer selection through the existing PENDING transaction, and COMMIT into two child successor charts. The renderer remains one chainage-driven Raster road throughout the visible split.
