@@ -1,0 +1,76 @@
+SUPER OUTRIDE M5.6 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.6 Target GroundMap kMax Proof
+
+Validated commit:
+  d1e712423ea21e8d727461024b64db4119b3be3a
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #4 M5.6 Prove target GroundMap kMax
+  Successful run ID: 32611284461
+  Build job ID: 97124680587
+  Result: success
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  PASS
+
+Regression result:
+  tests 89
+  pass 89
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+M5.6 compiler target:
+  dMin                 = 2.5 m
+  dMax                 = 150 m
+  thinSpanScreenRows   = 1 row
+  qS                   = 0.05110665314780038 m/texel
+
+Absolute proof:
+  ordinary Delta_s and collapsed Delta_s are both subsets of the clipped visible chainage interval.
+  therefore Delta_s_eff <= dMax - dMin = 147.5 m.
+
+Pyramid capacity:
+  level 5 capacity     = 52.33321282334759 m
+  level 6 capacity     = 209.33285129339035 m
+
+Measured M5.6 Road Generator sweep:
+  lineCount                    = 27,626
+  collapsedLineCount           = 528
+  maxDeltaS                    = 141.01635292107866 m
+  maxDeltaSCollapse            = 50 m
+  maxDeltaSEffective           = 141.01635292107866 m
+  maxDeltaL                    = 26.195567174687216 m
+  requiredChainageLevel        = 6
+  maxDiagnosticLateralLevel    = 11
+
+Proof result:
+  observedRequiredLevel = 6
+  necessityProven       = true
+  sufficiencyProven     = true
+
+Therefore the current target GroundMap shared anisotropic pyramid is fixed at:
+  kMax = 6
+
+The shared pyramid remains chainage-authoritative. Lateral k is diagnostic only and never promotes shared LOD.
+
+Thin-span change:
+  Core §64 is now implemented as explicit screen-space collapse when projected vertical span < 1 destination row.
+  Representative depth uses the midpoint in u=1/d, where screen Y is affine.
+  The full clipped segment chainage interval is retained as Delta_s_collapse.
+
+Initial CI note:
+  The first M5.6 CI run passed all existing regressions and all but one new test. The failing test incorrectly assumed a specific course position (s=20) must contain a collapsed TerrainLine. Full-course telemetry already showed 528 collapsed lines and the kMax proof succeeded. The test was corrected to assert collapse existence within the course envelope; implementation was unchanged. The subsequent run passed 89/89.
+
+Runtime state:
+  kMax is now compiler-authoritative for the current target.
+  GroundMap rendering is still procedural at this milestone; baked chunk/pyramid runtime integration follows next.
