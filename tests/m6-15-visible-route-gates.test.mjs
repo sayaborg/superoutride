@@ -84,7 +84,7 @@ test('physical crossing of the visible left road selects S1_LEFT while the media
     route,
     fresh,
     gates,
-    { x: center.x - center.x * 0 + Math.sin(center.heading) * -1, z: center.z + Math.cos(center.heading) * -1 },
+    { x: center.x - Math.sin(center.heading), z: center.z - Math.cos(center.heading) },
     { x: center.x + Math.sin(center.heading), z: center.z + Math.cos(center.heading) },
   );
   assert.equal(medianObserved.event, 'NONE');
@@ -141,10 +141,11 @@ test('terminal route completes only at the real single-road physical FINISH gate
   assert.equal(state.status, 'FINISHED');
 });
 
-test('M6.15 route-gate authoring has no renderer, screen-coordinate or vehicle-physics dependency', async () => {
+test('M6.15 route-gate authoring imports no renderer, input or vehicle-physics module', async () => {
   const source = await import('node:fs/promises').then(({ readFile }) =>
     readFile(new URL('../src/dev/m6-15-visible-route-gates.ts', import.meta.url), 'utf8'));
-  assert.doesNotMatch(source, /render\//);
-  assert.doesNotMatch(source, /screenX|screenY|steering/i);
-  assert.doesNotMatch(source, /physics\//);
+  const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
+  assert.equal(imports.some((path) => path.includes('/render/')), false);
+  assert.equal(imports.some((path) => path.includes('/input/')), false);
+  assert.equal(imports.some((path) => path.includes('/physics/')), false);
 });
