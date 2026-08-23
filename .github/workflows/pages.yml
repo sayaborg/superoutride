@@ -1,5 +1,6 @@
 name: Test and Deploy GitHub Pages
 
+# Pages source must be set to GitHub Actions in repository Settings > Pages.
 on:
   push:
     branches: [main]
