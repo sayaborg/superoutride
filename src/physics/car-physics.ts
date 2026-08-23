@@ -8,7 +8,7 @@ import {
 import { clamp, wrapAngle } from '../core/math.js';
 import type { M2VehicleState } from '../dev/m2-vehicle.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
-import type { CyclicSurfaceMap, SurfaceType } from './surface-map.js';
+import type { SurfaceMapReader, SurfaceType } from './surface-map.js';
 
 const G = 9.80665;
 const LOW_SPEED = 3;
@@ -64,7 +64,7 @@ export interface M5CarState extends M2VehicleState {
 export function createM5Car(
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   s = 45,
 ): M5CarState {
   // Reuse the Guide chart only for the initial pose; thereafter world state is authoritative.
@@ -98,7 +98,7 @@ export function createM5Car(
 export function updateM5Car(
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   car: M5CarState,
   input: DrivingInput,
   dt: number,
