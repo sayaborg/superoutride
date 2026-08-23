@@ -37,8 +37,18 @@ jobs:
       - name: Stage static site
         if: github.event_name != 'pull_request'
         run: |
-          mkdir -p _site
+          BUILD_ID="${GITHUB_SHA}"
+          mkdir -p "_site/build/${BUILD_ID}"
           cp index.html styles.css _site/
+
+          # Commit-versioned build path is the browser authority. Because every relative
+          # ESM import stays under this directory, a new deployment cannot mix old and
+          # new cached modules.
+          cp -R dist/. "_site/build/${BUILD_ID}/"
+          printf '%s\n' "${BUILD_ID}" > _site/version.txt
+
+          # Keep the legacy path during the transition so an already-cached old index.html
+          # can still boot while the new index propagates through Pages/CDN caches.
           cp -R dist _site/dist
           touch _site/.nojekyll
 
