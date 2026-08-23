@@ -5,6 +5,7 @@ import test from 'node:test';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
@@ -35,6 +36,7 @@ const groundProfile = {
   roadLeft: 4.5,
   roadRight: 4.5,
   shoulderWidth: 1,
+  junction: M6_13_JUNCTION,
   logical: compiledSurfaces.groundMap,
   baked,
 };
