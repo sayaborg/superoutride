@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.9 Validated Branch / Route Foundation
+# SUPER OUTRIDE — M6.11 Validated Route / Stage Foundation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -32,7 +32,9 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M6.6 Deterministic Driving Input Trace Replay — complete
 - M6.7 Validated Run Objective / Point-to-Point Completion — complete
 - M6.8 Gameplay-only Validated Route DAG — complete
-- **M6.9 World-space Validated Route Boundary Gates — complete**
+- M6.9 World-space Validated Route Boundary Gates — complete
+- M6.10 Generic Validated Run Finish — complete
+- **M6.11 Route Stage Content Manifest Boundary — complete**
 
 ## Run / test
 
@@ -53,14 +55,14 @@ npm test
 Current verified result:
 
 ```text
-166 tests
-166 pass
+177 tests
+177 pass
 0 fail
 ```
 
-See `M6_4_VALIDATION.txt` through `M6_9_VALIDATION.txt` and docs 22–27.
+See `M6_4_VALIDATION.txt` through `M6_11_VALIDATION.txt` and docs 22–29.
 
-GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
+GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned complete ESM build path so a new deployment cannot mix stale and current modules.
 
 ## Controls
 
@@ -81,14 +83,17 @@ replaceable vehicle physics
 authoritative world state
     ├─→ world→Guide chart
     │       └─→ ordered physical race gates
-    │               └─→ validated race progress
-    │                       ├─→ timing/ranking
-    │                       └─→ DEV closed-course FINISH
+    │               └─→ validated closed-course progress / DEV timing
     │
     ├─→ world-space route boundary gates
     │       └─→ ValidatedRouteBoundary
-    │               └─→ gameplay Route DAG
-    │                       └─→ active stage / chosen route / terminal outcome
+    │               └─→ Route DAG
+    │                       ├─→ active stage / selected route
+    │                       ├─→ terminal validated FINISH
+    │                       │       └─→ generic ValidatedRunFinish
+    │                       │               └─→ POINT_TO_POINT objective
+    │                       └─→ stage-content manifest
+    │                               └─→ exactly one opaque active package
     │
     ├─→ camera
     ├─→ dynamic vehicle sprite adapter → existing Painter
@@ -97,18 +102,7 @@ authoritative world state
 fixed DrivingInput trace ─→ replay same commands against physics A/B
 ```
 
-Every moving vehicle remains world-physics authoritative. `GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/closed-course FINISH authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct FINISH/ranking authority.
-
-For future OutRun-style branching, route choice has a separate authority chain:
-
-```text
-actual world-motion segment
-→ legal physical branch gate crossed forward
-→ ValidatedRouteBoundary
-→ Route DAG transition
-```
-
-Steering input, screen X, sprite overlap and raw chainage cannot choose a route.
+Every moving vehicle remains world-physics authoritative. Raw `s_car`, screen position, steering input and sprite overlap are never direct route/finish authority.
 
 ## Vehicle physics status
 
@@ -118,9 +112,9 @@ DEV_UNCALIBRATED
 
 Current car and motorcycle handling equations/parameters are integration scaffolding, **not product handling authority**. They may be substantially retuned or replaced later.
 
-M6.4 ensures camera, renderer, rival presentation and rival controller consume narrow read-only world-state contracts rather than concrete `M5CarState` internals. M6.5/M6.6 provide deterministic telemetry and exact input replay for later A/B tuning.
+M6.4 ensures upper layers consume narrow read-only world-state contracts instead of concrete `M5CarState` internals. M6.5/M6.6 provide deterministic telemetry and exact input replay for later A/B tuning. Current tire stiffness, steering response, grip, drive/brake force, yaw response, drag, top speed and motorcycle bank behavior are deliberately not frozen.
 
-Therefore current values such as tire stiffness, steering response, grip, drive/brake force, yaw response, drag, top speed and motorcycle bank behavior are deliberately not frozen.
+**Vehicle-to-vehicle collision remains deferred until handling/body dynamics are ready.**
 
 ## Renderer invariants
 
@@ -148,7 +142,7 @@ Optional Clear
 → HUD
 ```
 
-Core Design Freeze §0.1 explicitly excludes `branch / route DAG` from renderer Core. M6.8/M6.9 therefore add branching as gameplay/race-rule architecture without turning the renderer into a road graph or general 3D scene.
+Core Design Freeze §0.1 explicitly excludes `branch / route DAG` from renderer Core. M6.8+ therefore implement routing above the renderer rather than turning the renderer into a road graph or general 3D scene.
 
 ## Fixed metric authority
 
@@ -169,9 +163,9 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale` multiplier.
 
-## GroundMap completion
+## GroundMap / renderer workload authority
 
-GroundMap base density is derived from `d0=D_cam`. The one anisotropic pyramid uses ×2 lateral and ×4 chainage footprint per level; runtime shared level authority is `Delta_s_eff` only.
+GroundMap base density is derived from `d0=D_cam`. The shared anisotropic pyramid uses ×2 lateral and ×4 chainage footprint per level; runtime level authority is `Delta_s_eff` only.
 
 M5.6 proved:
 
@@ -180,25 +174,19 @@ k_max = 6
 Delta_s_eff upper bound = 147.5 m
 ```
 
-M5.7 current baked asset:
+M5.7 baked asset:
 
 ```text
 course length           776.5128086698837 m
 base size               960 × 16384 texels
 actual q_l              0.025 m/texel
 actual q_s              0.04739458060729271 m/texel
-logical chunk refs      141
-unique payloads         124
 binary size             20,220,030 bytes
 raw RGBA pyramid        71,902,320 bytes
 storage ratio           28.12%
 ```
 
-Runtime only chooses an already-prefiltered level and performs affine span sampling.
-
-## M5.8 / M5.9 renderer workload evidence
-
-Current combined content-validation budget with 25% headroom:
+M5.8/M5.9 combined content-validation budget with 25% headroom:
 
 ```text
 TerrainLine count max / frame         214
@@ -210,105 +198,35 @@ sprite output samples max / frame 104,569
 sprite output samples max / scanline  757
 ```
 
-This is a renderer-work content-validation budget, not a CPU-cycle proof for a named historical machine.
+## M5.9 tunnel / portal
 
-## M5.9 tunnel / portal path
-
-Current debug tunnel:
+Current debug tunnel remains implemented entirely through the existing paths:
 
 ```text
-player interval            s=130..180 m
-camera background interval s=125..175 m
-entry portal               s=130
-near rib A                 s=142
-near rib B                 s=168
-exit portal                s=180
+Far Background + ordinary World Sprites + existing Painter
 ```
 
-Far tunnel interior is Far Background. Portals/ribs are ordinary World Sprites with 0/1 transparency. The 12m portal reaches screen-filling size through the normal metric scaler; there is no dedicated tunnel 3D pass.
+No tunnel-specific 3D pass was introduced.
 
-## M6.0–M6.2 validated race progress
+## M6.0–M6.7 closed DEV progress / physics-ready gameplay
 
-Current closed DEV validation sequence:
+The current closed stadium is a validation fixture, not a product lap-race requirement.
 
-```text
-CP1    L/4
-CP2    L/2
-CP3    3L/4
-FINISH 0
-```
+Ordered physical gates validate progress. Continuous `sProgress` remains bounded between validated gates. Timing uses fixed simulation dt. Ranking consumes validated continuous progress, not raw local chainage or screen position.
 
-A gate is accepted only when actual world movement physically crosses it inside the lateral envelope, in the forward direction, and in the required authored order. Recovery/teleport cannot award gates.
+M6.7 separates point-to-point completion from repeated DEV closed-course boundaries.
 
-Continuous progress obeys:
+M6.4–M6.6 keep vehicle handling replaceable and measurable:
 
 ```text
-validatedProgressFloor <= sProgress <= nextRequiredGateProgress
-```
-
-Timing uses fixed simulation time only. Ranking consumes `sProgress` then `validatedProgressFloor`, never raw local chainage or screen position.
-
-## M6.3 independent moving rival
-
-The DEV rival is a second ordinary world-space vehicle with independent world position, velocity, yaw, SurfaceMap contact, recovery, validated progress and session state.
-
-Its AI produces only canonical `DrivingInput`; it never writes world position, yaw, velocity, `course.s/l`, camera state or renderer state. Rendering remains the existing `CourseSprite → Painter` path with discrete yaw assets.
-
-The current rival controller is itself DEV-only and will be retuned with future physics.
-
-**Vehicle-to-vehicle collision remains deferred until handling/body dynamics are ready.**
-
-## M6.4 physics replaceability boundary
-
-`src/physics/vehicle-contract.ts` exposes only the read state needed by upper layers:
-
-```text
-VehicleWorldPoseRead
-VehicleCameraReadState
-VehicleRenderReadState
-```
-
-A regression constructs a plain structural world-state object, with no `M5CarState`, and successfully drives camera, rival input generation, dynamic sprite adaptation and renderer. This prevents the current temporary physics implementation from becoming a presentation/gameplay dependency.
-
-Recovery is the intentional exception because respawn mutates velocity/steering/bank state; it may be rewritten together with a future physics model.
-
-## M6.5 deterministic physics telemetry
-
-The observer records fixed-tick input and authoritative world/Guide state and derives planar travel, signed chainage, max speed, lateral excursion, sideslip and yaw rate. The current DEV baseline is historical evidence only; CI does **not** assert those handling numbers as correct.
-
-## M6.6 deterministic input trace replay
-
-Input traces use `SUPER_OUTRIDE_INPUT_TRACE_V1` with fixed `dt` and run-length encoded canonical `DrivingInput` commands. JSON round-trip preserves the exact sequence; invalid steering is rejected instead of silently clamped.
-
-The same immutable trace can be replayed against multiple physics candidates:
-
-```text
-same trace
+same deterministic DrivingInput trace
    ├─→ physics A → telemetry A
    └─→ physics B → telemetry B
 ```
 
-CI proves same trace + same physics is deterministic while physics changes remain measurable without changing the trace.
+## M6.8 route DAG
 
-## M6.7 point-to-point run objective
-
-The closed stadium remains a DEV validation fixture, not a product lap-race requirement.
-
-Run completion is a separate consumer:
-
-```text
-validated FINISH event
-    ├─→ POINT_TO_POINT   → FINISHED exactly once
-    └─→ REPEATABLE_DEV  → boundary recorded, continue running
-```
-
-Raw chainage, continuous progress alone, checkpoints, reverse crossings, shortcut rejection, recovery/resync and screen state cannot finish a run.
-
-## M6.8 gameplay route DAG
-
-M6.8 adds a gameplay-only directed acyclic route graph.
-
-The current detached DEV topology is:
+The detached DEV route topology is:
 
 ```text
                  ┌─ STAGE_2_L ─┬─ GOAL_LL
@@ -317,72 +235,93 @@ STAGE_1 ─────────┤              └─ GOAL_LR
                                 └─ GOAL_RR
 ```
 
-Compiler validation rejects cycles, unreachable stages, broken references, self-loops and invalid terminal topology. Runtime accepts only a validated transition leaving the current active stage; stale or skip transitions are rejected.
+The graph is gameplay-only. Compiler validation rejects cycles, unreachable stages, self-loops, broken references and invalid terminal topology.
 
-Entering a terminal stage does **not** finish the run by topology alone. A separate validated terminal FINISH is required.
+A terminal node alone is not completion; its explicit validated physical FINISH is still required.
 
-This graph is gameplay validation content only. The current visible closed course is not claimed to contain these physical branches.
+## M6.9 world-space route gates
 
-## M6.9 world-space route boundary gates
-
-M6.9 supplies the physical producer for M6.8 route events.
-
-Every route choice owns one explicit transverse `TRANSITION` gate in world XZ. Every terminal route stage owns one explicit `FINISH` gate.
-
-For each physics step:
+Every route edge owns one explicit world-space transverse `TRANSITION` gate and every terminal owns one `FINISH` gate.
 
 ```text
 previous world XZ → current world XZ
         ↓
 test only gates legal for active stage
         ↓
-exactly one forward crossing inside gate width
+exactly one forward crossing inside physical width
         ↓
 ValidatedRouteBoundary
 ```
 
-Reverse crossings never validate. Crossing between branch gates selects nothing. Gates from another route stage are not candidates. If an abnormal single physics step crosses multiple legal branch gates, route selection is rejected as `AMBIGUOUS_FORWARD_CROSSING` rather than choosing arbitrarily.
+Reverse crossings never validate. Passing between branch gates selects nothing. An abnormal tick crossing multiple legal branch gates is rejected as ambiguous rather than resolved by steering, screen X or arbitrary ordering.
 
-The M6.9 DEV gate coordinates are detached test geometry only; they are not yet visible/drivable branches in the current renderer course.
+The current M6.9 gate coordinates are detached test geometry only. **The visible current course does not yet contain a real fork.**
 
-## Primary M6 files
+## M6.10 generic routed finish
+
+`RunObjective` now consumes a generic already-validated finish signal rather than requiring closed-course `RaceProgressUpdate` semantics.
 
 ```text
-src/gameplay/race-progress.ts
-src/gameplay/race-session.ts
+closed DEV race FINISH ─→ CLOSED_RACE ─┐
+                                       ├─→ ValidatedRunFinish → RunObjective
+terminal route FINISH ───→ ROUTE_DAG ──┘
+```
+
+CI proves the complete routed path:
+
+```text
+physical branch gate
+→ Route DAG transition
+→ terminal stage
+→ matching physical terminal FINISH
+→ Route DAG FINISHED
+→ generic ROUTE_DAG finish
+→ POINT_TO_POINT FINISHED
+```
+
+No lap counter or `RaceProgressUpdate` participates in the routed completion path.
+
+A route finish deliberately carries no invented closed-course numeric `s_progress` value.
+
+## M6.11 route stage content manifest
+
+Every Route DAG node now binds to exactly one **opaque content package reference**:
+
+```text
+activeStageId
+→ RouteStageContentManifest
+→ packageId + worldFrameId
+```
+
+The package is intentionally opaque to gameplay. A future loader may resolve it into the complete Guide/Raster Course/GroundMap/SurfaceMap/Far Background/world-sprite package.
+
+M6.11 does not switch real renderer assets yet. It only establishes selection authority.
+
+All currently authored stage packages must share one explicit `worldFrameId`. Mixed frames are rejected because stage selection must not silently reinterpret or teleport world-authoritative vehicle coordinates.
+
+A validated route transition therefore changes only the selected content reference, not vehicle pose, velocity, camera or renderer state.
+
+## Primary M6 route files
+
+```text
 src/gameplay/run-objective.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
-src/gameplay/rival-driver.ts
-src/physics/vehicle-contract.ts
-src/physics/vehicle-calibration.ts
-src/dev/vehicle-telemetry.ts
-src/dev/driving-input-trace.ts
-src/world/dynamic-vehicle-sprite.ts
-tests/m6-race-progress.test.mjs
-tests/m6-2-race-session.test.mjs
-tests/m6-3-rival-foundation.test.mjs
-tests/m6-3-rival-sim.test.mjs
-tests/m6-4-physics-boundary.test.mjs
-tests/m6-5-physics-telemetry.test.mjs
-tests/m6-6-input-trace.test.mjs
-tests/m6-7-run-objective.test.mjs
+src/gameplay/route-stage-content.ts
 tests/m6-8-route-dag.test.mjs
 tests/m6-9-route-boundary-gates.test.mjs
-docs/18_m6_0_race_progress.md
-docs/19_m6_1_continuous_race_progress.md
-docs/20_m6_2_run_timing_ranking.md
-docs/21_m6_3_rival_foundation.md
-docs/22_m6_4_vehicle_physics_boundary.md
-docs/23_m6_5_vehicle_physics_telemetry.md
-docs/24_m6_6_driving_input_trace.md
-docs/25_m6_7_run_objective.md
+tests/m6-10-generic-run-finish.test.mjs
+tests/m6-11-stage-content-binding.test.mjs
 docs/26_m6_8_route_dag.md
 docs/27_m6_9_route_boundary_gates.md
+docs/28_m6_10_generic_run_finish.md
+docs/29_m6_11_route_stage_content.md
 ```
 
 ## Next
 
-Decouple product point-to-point completion/timing from the closed-course `RaceProgressUpdate` type so an M6.9 validated terminal route FINISH can become product run completion directly. After that, stage-specific course content can be attached to route nodes without contaminating renderer Core.
+**Do not implement a fake visible fork by making the renderer understand a DAG.**
 
-Deep vehicle collision and final handling calibration remain intentionally deferred until the vehicle model is ready.
+Before real stage switching, design the branch-junction continuity rule: how outgoing stage packages overlap around a physical fork so the player can see and drive a continuous left/right junction while physics stays in one world frame and the renderer still processes one chainage-driven course at a time.
+
+That junction/content handoff is the next architecture problem. Final vehicle handling calibration and vehicle-to-vehicle collision remain intentionally deferred.
