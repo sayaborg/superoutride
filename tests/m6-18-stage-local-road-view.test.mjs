@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { rasterCourseToWorld } from '../dist/core/course.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { pseudoProject } from '../dist/core/projection.js';
 import {
   classifyStageRoadLocalL,
   stageRoadContainsLocalL,
@@ -16,6 +17,7 @@ import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js'
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { applyStageRoadViewToTerrainLine } from '../dist/road/stage-terrain-view.js';
 import { GROUND_COLORS } from '../dist/visual/ground-map.js';
 import { sampleStageGroundMapRuntime } from '../dist/visual/stage-ground-map-view.js';
 
@@ -113,6 +115,61 @@ test('SurfaceMap child-local view uses the same road/shoulder corridor and makes
   }
 });
 
+test('stage-local TerrainLine contains selected road while sibling road projects outside its ground span', () => {
+  const { guide, views } = setup();
+  const cameraPoint = rasterCourseToWorld(guide.raster, 580, 0);
+  const linePoint = rasterCourseToWorld(guide.raster, 600, 0);
+  const camera = {
+    x: cameraPoint.x,
+    y: 2.469902425419539,
+    z: cameraPoint.z,
+    yaw: linePoint.heading,
+    pitch: 8 * Math.PI / 180,
+    s: 580,
+    focalLength: 200,
+    centerX: 160,
+    centerY: 120,
+    courseLength: guide.length,
+  };
+  const baseLine = {
+    d: 20,
+    s: 600,
+    y: 150,
+    xGroundL: 0,
+    xGroundR: 320,
+    xRoadL: 0,
+    xRoadR: 320,
+    groundBaseLeft: { kind: 'color', color: 0 },
+    groundBaseRight: { kind: 'color', color: 0 },
+    sectionName: 'TEST',
+    renderHeight: 0,
+    sourceFootprint: {
+      deltaS: 0.1,
+      deltaSCollapse: 0,
+      deltaSEffective: 0.1,
+      deltaL: 0.1,
+      collapsed: false,
+    },
+  };
+
+  for (const [child, siblingOrigin] of [
+    [views.left, views.right.sourceLateralOrigin],
+    [views.right, views.left.sourceLateralOrigin],
+  ]) {
+    const line = applyStageRoadViewToTerrainLine(guide, camera, baseLine, child);
+    assert.ok(line);
+    const selected = stageRoadToWorld(guide.raster, child, 600, 0);
+    const sibling = rasterCourseToWorld(guide.raster, 600, siblingOrigin);
+    const selectedProjection = pseudoProject({ ...selected, y: 0 }, camera);
+    const siblingProjection = pseudoProject({ ...sibling, y: 0 }, camera);
+
+    assert.ok(selectedProjection.x >= line.xRoadL && selectedProjection.x <= line.xRoadR);
+    assert.ok(siblingProjection.x < line.xGroundL || siblingProjection.x > line.xGroundR);
+    near(line.sourceFootprint.deltaS, baseLine.sourceFootprint.deltaS);
+    near(line.sourceFootprint.deltaSEffective, baseLine.sourceFootprint.deltaSEffective);
+  }
+});
+
 test('M6.18 source adapters contain no camera, projection or route-DAG decision logic', async () => {
   const { readFile } = await import('node:fs/promises');
   for (const path of [
@@ -127,4 +184,10 @@ test('M6.18 source adapters contain no camera, projection or route-DAG decision 
     assert.equal(imports.some((entry) => entry.includes('/route-dag')), false);
     assert.doesNotMatch(source, /screenX|screenY/);
   }
+
+  const rendererSource = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const rendererImports = [...rendererSource.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
+  assert.match(rendererSource, /applyStageRoadViewToTerrainLine/);
+  assert.match(rendererSource, /sampleStageGroundMapAtLevel/);
+  assert.equal(rendererImports.some((entry) => entry.includes('/route-dag')), false);
 });
