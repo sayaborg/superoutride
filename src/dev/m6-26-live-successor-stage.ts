@@ -27,6 +27,7 @@ import {
 
 const ROAD_HALF_WIDTH = 3.5;
 const GROUND_HALF_WIDTH = 4.5;
+const GROUND_MAP_HALF_WIDTH = 12;
 const SHOULDER_WIDTH = 1;
 const SUCCESSOR_SOURCE_SEAM_MIN_S = 340;
 const SUCCESSOR_OVERLAP_MARGIN = 30;
@@ -121,6 +122,7 @@ function createSuccessorSource(
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     dMax: SUCCESSOR_D_MAX,
     finishClosureMargin: FINISH_CLOSURE_MARGIN,
+    groundMapHalfWidth: GROUND_MAP_HALF_WIDTH,
     groundHalfWidth: GROUND_HALF_WIDTH,
     roadHalfWidth: ROAD_HALF_WIDTH,
     shoulderWidth: SHOULDER_WIDTH,
