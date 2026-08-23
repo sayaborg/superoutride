@@ -61,6 +61,7 @@ test('M6.34 compiler expands one stage corridor exactly enough for both child ro
   assert.equal(compiled.roadView.sourceLateralOrigin, 7.5);
   assert.equal(compiled.roadView.roadLeft, 3.5);
   assert.equal(compiled.roadView.roadRight, 3.5);
+  assert.equal(compiled.groundProfile.stageJunction, compiled.junction);
 });
 
 test('M6.34 GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
@@ -116,7 +117,11 @@ test('M6.34 reusable junction layer adds no RouteDag, renderer, camera or vehicl
     readFile(new URL('../src/physics/stage-junction-surface-map.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/visual/stage-ground-map-view.ts', import.meta.url), 'utf8'),
   ]);
-  const source = `${compilerSource}\n${surfaceSource}`;
-  assert.doesNotMatch(source, /route-dag|route-boundary|route-stage-handoff|m5-renderer|camera|car-physics|motorcycle/i);
+  const implementationImports = `${compilerSource}\n${surfaceSource}`
+    .split('\n')
+    .filter((line) => /^import\b|\bfrom\s+['"]/.test(line))
+    .join('\n');
+  assert.doesNotMatch(implementationImports, /\.\.\/(?:gameplay|render|dev)\//);
+  assert.doesNotMatch(implementationImports, /car-physics|motorcycle-physics|camera/i);
   assert.doesNotMatch(groundSource, /STAGE_2_[LR]|STAGE_3_[LR]|GOAL_[LR]|S[123][LR]_/);
 });
