@@ -1,4 +1,4 @@
-import { guideChartToWorld } from '../gameplay/guide-chart.js';
+import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import type {
   DeclarativeGateGeometry,
   DeclarativeLiveRouteFinishAuthoring,
@@ -8,7 +8,7 @@ import type {
 } from './declarative-live-route.js';
 import {
   createRasterStageSuccessor,
-  type RasterStageSuccessorAuthoring,
+  type RasterSuccessorAuthoring,
   type RasterSuccessorRuntimeSource,
 } from './raster-stage-successor.js';
 
@@ -18,7 +18,7 @@ export interface RasterSuccessorChainStepAuthoring {
   readonly choiceId: string;
   readonly gateId: string;
   readonly handoffId: string;
-  readonly successor: RasterStageSuccessorAuthoring;
+  readonly successor: RasterSuccessorAuthoring;
 }
 
 export interface RasterSuccessorChainAuthoring {
@@ -90,6 +90,7 @@ export function compileRasterSuccessorChain(
     requireUnique(geometryIds, step.gateId, 'gate/handoff id');
     requireUnique(geometryIds, step.handoffId, 'gate/handoff id');
 
+    const sourceChart = currentStructural.chart;
     const nextStructural = createRasterStageSuccessor(currentStructural, step.successor);
     const runtime = source.createRuntime(nextStructural, step.packageId, step.stageId, index);
     if (runtime.packageId !== step.packageId) {
@@ -105,8 +106,8 @@ export function compileRasterSuccessorChain(
       id: step.choiceId,
       fromStageId,
       toStageId: step.stageId,
-      gate: chainGeometry(step.gateId, nextStructural, nextStructural.sourceTransitionS, source.halfWidth),
-      handoff: chainGeometry(step.handoffId, nextStructural, nextStructural.sourceSeamS, source.halfWidth),
+      gate: chainGeometry(step.gateId, sourceChart, nextStructural.sourceTransitionS, source.halfWidth),
+      handoff: chainGeometry(step.handoffId, sourceChart, nextStructural.sourceSeamS, source.halfWidth),
     });
     structurals.push(nextStructural);
     runtimes.push(runtime);
@@ -145,13 +146,13 @@ export function repackageGuideChartRuntime(
 
 function chainGeometry(
   id: string,
-  successor: RasterSuccessorRuntimeSource,
+  sourceChart: GuideChart,
   sourceS: number,
   halfWidth: number,
 ): DeclarativeGateGeometry {
   return pointGeometry(
     id,
-    guideChartToWorld(successor.link.sourceFrame, sourceS, 0),
+    guideChartToWorld(sourceChart, sourceS, 0),
     halfWidth,
   );
 }
