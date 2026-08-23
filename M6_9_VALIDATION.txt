@@ -1,0 +1,27 @@
+SUPER OUTRIDE M6.9 VALIDATION
+
+Milestone: world-space validated route boundary gates
+Validated implementation head: dd02fb2588423f87f3e88eb64041b6c2aa7abd23
+PR: #19
+GitHub Actions run: 32615567512
+Build job: 97135606737
+
+Result:
+166 tests
+166 pass
+0 fail
+
+Validated properties:
+- every route choice has exactly one explicit world-space TRANSITION gate
+- every terminal route stage has exactly one explicit world-space FINISH gate
+- only gates legal for the current active stage are considered
+- actual world-motion segment crossing is route-selection authority
+- crossing must be forward and inside the physical gate width
+- reverse crossing never validates route selection or finish
+- movement between branch gates selects no route
+- a gate belonging to another active-stage branch is ignored
+- terminal finish is emitted only by the matching physical FINISH gate
+- one tick crossing multiple legal route gates is rejected as ambiguous
+- no screen X, steering threshold, sprite overlap or raw chainage chooses a route
+- current closed renderer course remains unchanged and is not claimed to contain physical branches
+- vehicle physics and renderer were unchanged
