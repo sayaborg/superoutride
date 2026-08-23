@@ -7,6 +7,8 @@ export interface StageContinuationLinkAuthoring {
   readonly targetFrame: GuideCoordinateSource;
   readonly sourceSeamS: number;
   readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
   readonly overlapBehind: number;
   readonly overlapAhead: number;
   readonly positionTolerance?: number;
@@ -19,6 +21,8 @@ export interface StageContinuationLink {
   readonly targetFrame: GuideCoordinateSource;
   readonly sourceSeamS: number;
   readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
   readonly overlapBehind: number;
   readonly overlapAhead: number;
 }
@@ -29,9 +33,10 @@ const DEFAULT_HEADING_TOLERANCE = 1e-7;
 /**
  * Compile a coordinate-only stage continuation link.
  *
- * The source and target charts must describe the same world road geometry across the complete
- * authored overlap interval. A later gameplay handoff may therefore swap coordinate frames at the
- * seam without changing vehicle world pose, camera world anchor, or renderer mathematics.
+ * Source and target charts must describe the same world road locus across the complete authored
+ * overlap interval. Their local lateral coordinates may differ: for example parent l=-7.5 can be
+ * the same physical road center as child l=0. A later gameplay handoff can therefore swap charts
+ * without changing vehicle world pose, camera world anchor, or renderer mathematics.
  */
 export function compileStageContinuationLink(
   source: StageContinuationLinkAuthoring,
@@ -63,6 +68,8 @@ export function compileStageContinuationLink(
     targetFrame: source.targetFrame,
     sourceSeamS: source.sourceSeamS,
     targetSeamS: source.targetSeamS,
+    sourceLocalL: source.sourceLocalL,
+    targetLocalL: source.targetLocalL,
     overlapBehind: source.overlapBehind,
     overlapAhead: source.overlapAhead,
   });
@@ -76,14 +83,30 @@ export function mapStageContinuationChainage(
   return link.targetSeamS + (sourceS - link.sourceSeamS);
 }
 
+/** Preserve signed lateral displacement from the linked road locus across the chart rebase. */
+export function mapStageContinuationLateral(
+  link: StageContinuationLink,
+  sourceL: number,
+): number {
+  return link.targetLocalL + (sourceL - link.sourceLocalL);
+}
+
 function assertEquivalentSample(
   source: StageContinuationLinkAuthoring,
   delta: number,
   positionTolerance: number,
   headingTolerance: number,
 ): void {
-  const a = guideCoordinateToWorld(source.sourceFrame, source.sourceSeamS + delta, 0);
-  const b = guideCoordinateToWorld(source.targetFrame, source.targetSeamS + delta, 0);
+  const a = guideCoordinateToWorld(
+    source.sourceFrame,
+    source.sourceSeamS + delta,
+    source.sourceLocalL,
+  );
+  const b = guideCoordinateToWorld(
+    source.targetFrame,
+    source.targetSeamS + delta,
+    source.targetLocalL,
+  );
   const dx = a.x - b.x;
   const dz = a.z - b.z;
   if (Math.hypot(dx, dz) > positionTolerance) {
