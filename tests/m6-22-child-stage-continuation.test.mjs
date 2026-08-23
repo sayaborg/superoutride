@@ -116,20 +116,30 @@ test('M6.22 child Guides are independent long courses and diverge after the shar
   assert.ok(Math.hypot(leftFinish.x - rightFinish.x, leftFinish.z - rightFinish.z) > 10);
 });
 
-test('M6.22 translated procedural GroundMap keeps each child road centered in its source lateral frame', () => {
+test('M6.22 translated procedural GroundMap keeps child road centered and preserves seam phase', () => {
+  const parent = createM2StadiumGuide();
+  const continuation = createM622ChildStageContinuation(parent);
   const leftCenter = M6_13_JUNCTION.separatedChildCenterL('LEFT');
-  const profile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 3.5,
-    roadRight: 3.5,
-    shoulderWidth: 1,
-    roadCenterL: leftCenter,
-  };
-  const onRoad = sampleGroundMap(8, leftCenter + 1, profile);
-  const oldParentCenter = sampleGroundMap(8, 0, profile);
+  const childProfile = continuation.left.groundProfile;
+
+  const onRoad = sampleGroundMap(8, leftCenter + 1, childProfile);
+  const oldParentCenter = sampleGroundMap(8, 0, childProfile);
   assert.ok(onRoad === GROUND_COLORS.asphaltA || onRoad === GROUND_COLORS.asphaltB);
   assert.ok(oldParentCenter === GROUND_COLORS.grassA || oldParentCenter === GROUND_COLORS.grassB);
+
+  const parentProfile = {
+    groundLeft: 12,
+    groundRight: 12,
+    roadLeft: 4.5,
+    roadRight: 4.5,
+    shoulderWidth: 1,
+    junction: M6_13_JUNCTION,
+  };
+  const parentAtSeam = sampleGroundMap(M6_17_HANDOFF_SEAM_S, leftCenter, parentProfile);
+  const childAtSeam = sampleGroundMap(continuation.handoffLocalS, leftCenter, childProfile);
+  assert.equal(childProfile.chainageOffsetS, continuation.parentSourceStartS);
+  assert.equal(parentAtSeam, GROUND_COLORS.marking);
+  assert.equal(childAtSeam, parentAtSeam);
 });
 
 test('M6.22 runtime packages own independent child Guide, SurfaceMap and child visual identity', () => {
