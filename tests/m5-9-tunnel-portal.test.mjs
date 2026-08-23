@@ -4,6 +4,9 @@ import test from 'node:test';
 
 import {
   M5_8_DEBUG_TARGET_BUDGET,
+  M5_9_COMBINED_OBSERVED_BASELINE,
+  M5_9_TARGET_BUDGET,
+  M5_9_TUNNEL_STRESS_BASELINE,
   summarizeRenderWorkloads,
   validateRenderWorkload,
 } from '../dist/compiler/render-budget.js';
@@ -126,6 +129,15 @@ function renderProbe(s, yawOffset = 0) {
   return { stats, backgroundKind: selected.kind, camera };
 }
 
+function tunnelStressSweep() {
+  const samples = [];
+  const positions = [108, 116, 122, 125, 128, 130, 134, 138, 142, 148, 156, 164, 168, 172, 176, 180, 184];
+  for (const s of positions) {
+    for (const yaw of [deg(-20), 0, deg(20)]) samples.push(renderProbe(s, yaw).stats);
+  }
+  return summarizeRenderWorkloads(samples);
+}
+
 test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-sized', () => {
   assert.equal(tunnel.portalAsset.worldWidthMeters, 12);
   assert.equal(tunnelPortalApertureIsTransparent(tunnel.portalAsset), true);
@@ -160,20 +172,29 @@ test('portal is screen-filling at the metric player crossing without a special p
   assert.equal(projectedHeight, 360);
 });
 
-test('M5.9 close portal/interior sweep is a real sprite-budget stress case', () => {
-  const samples = [];
-  const positions = [108, 116, 122, 125, 128, 130, 134, 138, 142, 148, 156, 164, 168, 172, 176, 180, 184];
-  for (const s of positions) {
-    for (const yaw of [deg(-20), 0, deg(20)]) samples.push(renderProbe(s, yaw).stats);
-  }
-  const observed = summarizeRenderWorkloads(samples);
+test('M5.9 close portal/interior sweep is a real sprite-budget stress case and matches the recorded baseline', () => {
+  const observed = tunnelStressSweep();
   const oldViolations = validateRenderWorkload(observed, M5_8_DEBUG_TARGET_BUDGET);
-  assert.ok(observed.maxSpriteOutputSamplesPerFrame > M5_8_DEBUG_TARGET_BUDGET.spriteOutputSamplesPerFrameMax);
-  assert.ok(observed.maxSpriteOutputSamplesPerScanline > M5_8_DEBUG_TARGET_BUDGET.spriteOutputSamplesPerScanlineMax);
+  assert.deepEqual(observed, M5_9_TUNNEL_STRESS_BASELINE);
   assert.ok(oldViolations.some((entry) => entry.metric === 'spriteOutputSamplesPerFrameMax'));
   assert.ok(oldViolations.some((entry) => entry.metric === 'spriteOutputSamplesPerScanlineMax'));
+  assert.deepEqual(validateRenderWorkload(observed, M5_9_TARGET_BUDGET), []);
   console.log('M5.9 TUNNEL STRESS WORKLOAD', JSON.stringify(observed));
   console.log('M5.9 VIOLATIONS OF M5.8 PROVISIONAL BUDGET', JSON.stringify(oldViolations));
+});
+
+test('M5.9 combined target retains stronger normal terrain maxima and rebases the tunnel sprite limits with 25% headroom', () => {
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.frameCount, 121);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainLineCount, 171);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame, 54720);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxVisibleSpriteCount, 17);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerFrame, 83655);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerScanline, 605);
+  assert.equal(M5_9_TARGET_BUDGET.terrainLineCountMax, 214);
+  assert.equal(M5_9_TARGET_BUDGET.terrainOutputPixelsPerFrameMax, 68400);
+  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerFrameMax, 104569);
+  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerScanlineMax, 757);
+  assert.deepEqual(validateRenderWorkload(M5_9_COMBINED_OBSERVED_BASELINE, M5_9_TARGET_BUDGET), []);
 });
 
 test('background actually changes through the tunnel while renderer still uses the same M5 Painter function', () => {
