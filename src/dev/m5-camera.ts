@@ -1,5 +1,6 @@
 import {
   guideCoordinateCurve,
+  guideCoordinateLateralOrigin,
   guideCoordinateToWorld,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
@@ -60,6 +61,20 @@ export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.initialized = false;
 }
 
+/**
+ * Re-express the existing camera lateral coordinate in a new Guide frame without moving the
+ * camera in world XZ. Yaw and vertical filtering state remain continuous.
+ */
+export function rebaseM5CameraRigCoordinateFrame(
+  rig: M5CameraRig,
+  previous: GuideCoordinateSource,
+  next: GuideCoordinateSource,
+): void {
+  if (!rig.initialized) return;
+  const worldLateral = rig.lateral + guideCoordinateLateralOrigin(previous);
+  rig.lateral = worldLateral - guideCoordinateLateralOrigin(next);
+}
+
 /** Core §§34-39 camera rules, with M5 DEV LPF parameters. */
 export function updateM5Camera(
   rig: M5CameraRig,
@@ -96,10 +111,6 @@ export function updateM5Camera(
   const sCamera = wrapPositive(vehicle.course.s - profile.dCam, curve.length);
   const plan = guideCoordinateToWorld(guide, sCamera, rig.lateral);
 
-  // Extreme-spin presentation safety. Core §36 guarantees framing only inside the normal
-  // yaw/lateral envelope and explicitly leaves extreme spin to a separate presentation mode.
-  // We keep the same camera XZ position and chainage depth; only camera yaw is redirected
-  // toward the player when the normal projection would leave the screen-safe range.
   const scaleAtPlayer = profile.focalLength / profile.dCam;
   const safeMinX = profile.playerSafeXMin ?? 48;
   const safeMaxX = profile.playerSafeXMax ?? 272;
@@ -113,8 +124,6 @@ export function updateM5Camera(
 
   const groundHeight = height.sampleCamera(sCamera);
   const baseY = groundHeight + profile.height;
-
-  // Core §38: bounded vertical framing. The player is deliberately not perfectly locked.
   const cosPitch = Math.cos(profile.pitch);
   const yFrame = vehicle.y
     - (profile.dCam / (profile.focalLength * cosPitch))
