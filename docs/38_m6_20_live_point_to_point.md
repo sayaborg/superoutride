@@ -39,7 +39,7 @@ child physical FINISH     : s = 700 m
 closed raster seam        : s = 776.5128086698837 m
 ```
 
-したがって順序は必ず、
+したがってpoint-to-point objectiveの順序は必ず、
 
 ```text
 fork choice
@@ -48,12 +48,12 @@ handoff seam
   ↓ 100 m child-only run
 physical FINISH
   ↓
-closed seamより前にrun終了
+objective complete
 ```
 
 となる。
 
-これによりbrowser runはclosed raster seamをpoint-to-point gameplay上のlap boundaryとして利用しない。
+closed raster seamはpoint-to-point gameplay上のlap boundaryとして利用しない。DEV inspectionのためFINISH後もsimulation自体は継続可能である。
 
 ## 4. Live runtime packages
 
@@ -184,7 +184,9 @@ World gate
 
 となる。
 
-browser runtimeではobjectiveがFINISHEDになった後、simulation tickを進めない。したがってrun終了後にclosed raster seamへ進んで別のparent sectionへwrapすることはない。
+`FINISHED`はvalidated run resultのauthorityであり、DEV simulation pauseのauthorityではない。FINISH後もphysics / input / camera / rendererは継続し、結果とfinish timeを保持したまま走行状態を観察できる。
+
+この継続はclosed raster seamをlap completionとして再利用することを意味しない。point-to-point objectiveはs=700のphysical FINISHで既に完了している。
 
 ## 11. Closed race telemetryとの関係
 
@@ -203,8 +205,9 @@ M6.20 testsは次を固定する。
 5. camera frame rebaseがworld lateralを保存する。
 6. live registryはparent + terminal child 2 packageだけである。
 7. browser `main.ts`がM6.20 live route / runtime resolverを実際に使い、旧M6.8 repeated routeをimportしない。
+8. validated point-to-point FINISH後もsimulation loopを停止しない。
 
-実装・live wiring後の回帰は231/231 pass。
+M6.20 + post-finish continuation regressionまで含む基準は232/232 pass。
 
 ## 13. 次段階
 
