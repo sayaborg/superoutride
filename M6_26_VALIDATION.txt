@@ -1,0 +1,45 @@
+SUPER OUTRIDE M6.26 VALIDATION
+
+Milestone: Live Child -> Successor Stage
+Package: super-outride-m6-26@0.6.26
+
+Live route:
+              -> STAGE_2_L -> GOAL_L
+STAGE_1 -----|
+              -> STAGE_2_R -> GOAL_R
+
+Required invariants:
+- route selection remains physical world-space gate validation
+- entering a route stage does not itself finish the run
+- parent->child and child->successor handoffs are deferred until validated seams
+- both handoffs preserve world X/Y/Z, yaw and velocities
+- active road coordinates/content may change only at COMMIT
+- successor overlap is validated through StageContinuationLink across D_cam behind/ahead
+- successor Raster geometry obeys the existing <=10 degree per-vertex hard limit
+- the <=10 degree limit is never relaxed to accommodate authored continuation
+- successor course is independent after the copied overlap
+- successor FINISH is a physical world-space FINISH gate on the terminal chart
+- renderer Core contains no route-side or successor-stage logic
+- pseudo-depth remains chainage-only and all frozen renderer invariants remain unchanged
+
+Regression focus:
+1. five-node DAG is STAGE_1 -> STAGE_2_L/R -> GOAL_L/R
+2. successor Guides share a validated D_cam overlap and then become independent
+3. transition/handoff manifests cover all four route choices; FINISH exists only on terminal successor charts
+4. runtime registry owns parent, intermediate child, and terminal successor packages
+5. left path performs parent->child COMMIT, child->successor COMMIT, then physical FINISH with no world teleport
+6. renderer Core remains ignorant of successor-stage route logic
+7. legacy M6.20/M6.22 fixtures remain valid while browser live authority advances to M6.26
+
+Successor geometry policy:
+- reuse already valid child Raster geometry as the structural base
+- copy the handoff overlap exactly
+- apply smooth lateral deformation only on a safe low-curvature run
+- do not modify vertices already near the Core turn limit
+- compileRasterCourse remains the final authority; no tolerance widening
+
+CI authority:
+- exact feature head must pass GitHub Actions
+- target regression suite is 264 tests
+- PR synthetic merge tree must differ by zero files from the validated feature head
+- main update must use the validated PR head and never bypass failed CI
