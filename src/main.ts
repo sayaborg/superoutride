@@ -14,7 +14,13 @@ import {
   resyncRaceProgressPosition,
   updateGeometricCourseTracker,
   updateRaceProgress,
+  type RaceProgressUpdate,
 } from './gameplay/race-progress.js';
+import {
+  advanceRaceSession,
+  createRaceSessionState,
+  formatRaceTime,
+} from './gameplay/race-session.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
@@ -82,6 +88,7 @@ const recovery = createM5RecoveryState(vehicle);
 const raceRules = createM6DebugRaceRules(guide);
 const geometricCourse = createGeometricCourseTracker(guide.length, vehicle.course.s);
 const raceProgress = createRaceProgressState(raceRules, raceSample());
+const raceSession = createRaceSessionState();
 
 const cameraProfile: M5CameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -164,14 +171,16 @@ function frame(now: number): void {
     else updateM5Bike(guide, heightProfile, surfaceMap, vehicle as M5BikeState, input, SIM_DT);
 
     const recovered = updateM5Recovery(recovery, guide, heightProfile, surfaceMap, vehicle, SIM_DT);
+    let raceUpdate: RaceProgressUpdate | null = null;
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
       resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
       resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
     } else {
       updateGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-      updateRaceProgress(raceProgress, raceRules, raceSample());
+      raceUpdate = updateRaceProgress(raceProgress, raceRules, raceSample());
     }
+    advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
     camera = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
     accumulator -= SIM_DT;
@@ -215,6 +224,9 @@ function render(): void {
   const raceDirection = raceProgress.direction === 'FORWARD'
     ? 'FWD'
     : raceProgress.direction === 'REVERSE' ? 'REV' : '---';
+  const bestBoundary = raceSession.bestBoundaryIntervalSeconds === null
+    ? '--:--.---'
+    : formatRaceTime(raceSession.bestBoundaryIntervalSeconds);
 
   ctx.fillStyle = '#d7f3ff';
   ctx.font = 'bold 13px monospace';
@@ -222,7 +234,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.1 CONTINUOUS RACE / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.2 RUN SESSION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -230,16 +242,17 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
   ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
   ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
-  ctx.fillText(`RACE L${raceProgress.lapIndex + 1} ${raceProgress.sProgress.toFixed(1)}m NEXT ${nextGate.name} ${raceDirection}`, 8, 120);
-  ctx.fillText(`WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  GEO ${geometricCourse.position.sLocal.toFixed(1)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
+  ctx.fillText(`RACE ${raceProgress.sProgress.toFixed(1)}m NEXT ${nextGate.name} ${raceDirection}  CUT ${raceProgress.shortcutViolationCount}`, 8, 120);
+  ctx.fillText(`WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  GEO ${geometricCourse.position.sLocal.toFixed(1)}`, 8, 132);
+  ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  BND ${raceSession.boundaryTimings.length}  BEST ${bestBoundary}`, 8, 144);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
-    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 144);
+    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 156);
     ctx.fillStyle = '#a6bac4';
   }
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('s_progress is continuous only inside the last-gate -> next-gate validated window', 8, 218);
+  ctx.fillText('Timing uses fixed SIM_DT; ranking consumes s_progress + validated floor only', 8, 218);
   ctx.fillText(`M5.9 tunnel intact / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
