@@ -1,27 +1,21 @@
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
-import { compileRasterCourse, type RasterCourse, type RasterVertex } from '../core/course.js';
-import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
-import { normalFromHeading, wrapAngle } from '../core/math.js';
-import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
+import type { GuideCurve } from '../core/guide-curve.js';
 import {
   compileRouteBoundaryGateSet,
   type RouteBoundaryGateAuthoring,
   type RouteBoundaryGateSet,
 } from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../gameplay/route-dag.js';
-import { createGuideChart, guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
+import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileRouteStageHandoffManifest,
   type RouteStageHandoffManifest,
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
-import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import { CyclicSurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
 import {
-  compileStageContinuationLink,
-  type StageContinuationLink,
-} from '../runtime/stage-continuation-link.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
+  createRasterStageSuccessor,
+  type RasterSuccessorRuntimeSource,
+} from '../runtime/raster-stage-successor.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
@@ -41,19 +35,10 @@ const SUCCESSOR_FINISH_AFTER_SEAM = 150;
 const SUCCESSOR_DEFORMATION_METERS = 3;
 const GENTLE_TURN_LIMIT_DEGREES = 5;
 const MIN_DEFORMATION_RUN_VERTICES = 5;
+const SUCCESSOR_D_MAX = 150;
+const FINISH_CLOSURE_MARGIN = 20;
 
-export interface M626SuccessorRuntimeSource {
-  readonly guide: GuideCurve;
-  readonly chart: GuideChart;
-  readonly roadView: StageRoadView;
-  readonly surfaceMap: StageSurfaceMapView;
-  readonly groundProfile: GroundMapProfile;
-  readonly link: StageContinuationLink;
-  readonly sourceTransitionS: number;
-  readonly sourceSeamS: number;
-  readonly targetSeamS: number;
-  readonly finishS: number;
-}
+export type M626SuccessorRuntimeSource = RasterSuccessorRuntimeSource;
 
 export interface M626LiveContinuation {
   readonly base: M622ChildStageContinuation;
@@ -116,171 +101,125 @@ export function createM626LiveHandoffManifest(route: RouteDag, continuation: M62
   return compileRouteStageHandoffManifest(route, continuation.charts, authoring);
 }
 
-function createSuccessorSource(source: M622ChildStageRuntimeSource, side: 'LEFT' | 'RIGHT'): M626SuccessorRuntimeSource {
-  const raster = source.guide.raster;
-  const seamIndex = raster.vertexS.findIndex((s) => s >= SUCCESSOR_SOURCE_SEAM_MIN_S);
-  if (seamIndex < 0) throw new RangeError(`M6.26 ${side} child is too short for successor seam`);
-  const sourceSeamS = raster.vertexS[seamIndex]!;
-  const sourceStartIndex = findLastVertexAtOrBefore(raster.vertexS, sourceSeamS - SUCCESSOR_OVERLAP_MARGIN);
-  const sharedEndIndex = raster.vertexS.findIndex((s, index) => index > seamIndex && s >= sourceSeamS + SUCCESSOR_OVERLAP_MARGIN);
-  if (sourceStartIndex <= 0 || sharedEndIndex < 0) throw new RangeError(`M6.26 ${side} child lacks successor overlap envelope`);
-
-  const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map(copyVertex);
-  const tailIndices = [
-    ...range(sharedEndIndex + 1, raster.vertices.length),
-    ...range(0, sourceStartIndex),
-  ];
-  const gentleRun = longestGentleRun(raster, tailIndices);
-  if (gentleRun.length < MIN_DEFORMATION_RUN_VERTICES) {
-    throw new Error(`M6.26 ${side} successor lacks a safe low-curvature deformation run`);
-  }
-  const sideSign = side === 'LEFT' ? -1 : 1;
-  const tail = tailIndices.map((sourceIndex, tailIndex) => {
-    const vertex = raster.vertices[sourceIndex]!;
-    if (tailIndex < gentleRun.start || tailIndex >= gentleRun.start + gentleRun.length) return copyVertex(vertex);
-    const localIndex = tailIndex - gentleRun.start;
-    const phase = gentleRun.length === 1 ? 0 : localIndex / (gentleRun.length - 1);
-    const smooth = Math.sin(Math.PI * phase) ** 2;
-    const heading = raster.segments[sourceIndex]!.heading;
-    const normal = normalFromHeading(heading);
-    const offset = sideSign * SUCCESSOR_DEFORMATION_METERS * smooth;
-    return { x: vertex.x + normal.x * offset, z: vertex.z + normal.z * offset };
-  });
-
-  const successorRaster = compileRasterCourse([...prefix, ...tail]);
-  const guide = compileGuideCurve(successorRaster, {
-    lMax: source.guide.lMax,
-    mMin: source.guide.mMin,
-    dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  });
-  if (!(guide.length > 2 * 150)) throw new Error(`M6.26 ${side} successor Guide must exceed 2*dMax`);
-
-  const origin = source.chart.lateralOrigin;
-  const chart = createGuideChart(`${side}_SUCCESSOR`, guide, origin);
-  const roadView = createStageRoadView({
-    id: `${side}_SUCCESSOR_VIEW`,
-    sourceLateralOrigin: origin,
-    groundLeft: GROUND_HALF_WIDTH,
-    groundRight: GROUND_HALF_WIDTH,
-    roadLeft: ROAD_HALF_WIDTH,
-    roadRight: ROAD_HALF_WIDTH,
-    shoulderWidth: SHOULDER_WIDTH,
-  });
-  const sourceSurfaceMap = new CyclicSurfaceMap(guide.length, [{
-    sStart: 0,
-    name: `${side}_SUCCESSOR_STAGE`,
-    bands: childSurfaceBands(origin),
-  }]);
-  const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
-  const sourceStartS = raster.vertexS[sourceStartIndex]!;
-  const groundProfile: GroundMapProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: ROAD_HALF_WIDTH,
-    roadRight: ROAD_HALF_WIDTH,
-    shoulderWidth: SHOULDER_WIDTH,
-    roadCenterL: origin,
-    chainageOffsetS: (source.groundProfile.chainageOffsetS ?? 0) + sourceStartS,
-  };
-
-  const targetSeamIndex = seamIndex - sourceStartIndex;
-  const targetSeamS = successorRaster.vertexS[targetSeamIndex]!;
-  const link = compileStageContinuationLink({
+function createSuccessorSource(
+  source: M622ChildStageRuntimeSource,
+  side: 'LEFT' | 'RIGHT',
+): M626SuccessorRuntimeSource {
+  const successor = createRasterStageSuccessor(source, {
     id: `${side}_CHILD_TO_SUCCESSOR`,
-    sourceFrame: source.chart,
-    targetFrame: chart,
-    sourceSeamS,
-    targetSeamS,
-    sourceLocalL: 0,
-    targetLocalL: 0,
-    overlapBehind: CURRENT_CAMERA_DISTANCE_METERS,
-    overlapAhead: CURRENT_CAMERA_DISTANCE_METERS,
+    chartId: `${side}_SUCCESSOR`,
+    roadViewId: `${side}_SUCCESSOR_VIEW`,
+    surfaceSectionName: `${side}_SUCCESSOR_STAGE`,
+    sourceSeamMinS: SUCCESSOR_SOURCE_SEAM_MIN_S,
+    overlapMargin: SUCCESSOR_OVERLAP_MARGIN,
+    transitionLead: SUCCESSOR_TRANSITION_LEAD,
+    finishAfterSeam: SUCCESSOR_FINISH_AFTER_SEAM,
+    deformationMeters: SUCCESSOR_DEFORMATION_METERS,
+    deformationDirection: side === 'LEFT' ? -1 : 1,
+    gentleTurnLimitDegrees: GENTLE_TURN_LIMIT_DEGREES,
+    minDeformationRunVertices: MIN_DEFORMATION_RUN_VERTICES,
+    dCam: CURRENT_CAMERA_DISTANCE_METERS,
+    dMax: SUCCESSOR_D_MAX,
+    finishClosureMargin: FINISH_CLOSURE_MARGIN,
+    groundHalfWidth: GROUND_HALF_WIDTH,
+    roadHalfWidth: ROAD_HALF_WIDTH,
+    shoulderWidth: SHOULDER_WIDTH,
   });
-  const sourceTransitionS = sourceSeamS - SUCCESSOR_TRANSITION_LEAD;
-  const finishS = targetSeamS + SUCCESSOR_FINISH_AFTER_SEAM;
-  if (!(sourceTransitionS > 300)) throw new Error(`M6.26 ${side} transition must occur after child terrain settles`);
-  if (!(finishS < guide.length - 20)) throw new Error(`M6.26 ${side} finish must precede successor closure seam`);
-
-  return Object.freeze({ guide, chart, roadView, surfaceMap, groundProfile, link, sourceTransitionS, sourceSeamS, targetSeamS, finishS });
-}
-
-function longestGentleRun(raster: RasterCourse, indices: readonly number[]): { readonly start: number; readonly length: number } {
-  let bestStart = 0;
-  let bestLength = 0;
-  let currentStart = 0;
-  let currentLength = 0;
-  for (let i = 0; i < indices.length; i += 1) {
-    if (vertexTurnDegrees(raster, indices[i]!) <= GENTLE_TURN_LIMIT_DEGREES) {
-      if (currentLength === 0) currentStart = i;
-      currentLength += 1;
-      if (currentLength > bestLength) {
-        bestStart = currentStart;
-        bestLength = currentLength;
-      }
-    } else {
-      currentLength = 0;
-    }
+  if (!(successor.sourceTransitionS > 300)) {
+    throw new Error(`M6.26 ${side} transition must occur after child terrain settles`);
   }
-  return { start: bestStart, length: bestLength };
+  return successor;
 }
 
-function vertexTurnDegrees(raster: RasterCourse, vertexIndex: number): number {
-  const n = raster.segments.length;
-  const incoming = raster.segments[(vertexIndex - 1 + n) % n]!.heading;
-  const outgoing = raster.segments[vertexIndex]!.heading;
-  return Math.abs(wrapAngle(outgoing - incoming)) * 180 / Math.PI;
-}
-
-function parentTransitionGate(continuation: M626LiveContinuation, id: string, choiceId: string, side: 'LEFT' | 'RIGHT'): RouteBoundaryGateAuthoring {
+function parentTransitionGate(
+  continuation: M626LiveContinuation,
+  id: string,
+  choiceId: string,
+  side: 'LEFT' | 'RIGHT',
+): RouteBoundaryGateAuthoring {
   const l = M6_13_JUNCTION.separatedChildCenterL(side);
-  return transitionGateAuthoring(id, choiceId, guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, l), ROAD_HALF_WIDTH);
+  return transitionGateAuthoring(
+    id,
+    choiceId,
+    guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, l),
+    ROAD_HALF_WIDTH,
+  );
 }
 
-function successorTransitionGate(successor: M626SuccessorRuntimeSource, id: string, choiceId: string): RouteBoundaryGateAuthoring {
-  return transitionGateAuthoring(id, choiceId, guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0), ROAD_HALF_WIDTH);
+function successorTransitionGate(
+  successor: M626SuccessorRuntimeSource,
+  id: string,
+  choiceId: string,
+): RouteBoundaryGateAuthoring {
+  return transitionGateAuthoring(
+    id,
+    choiceId,
+    guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0),
+    ROAD_HALF_WIDTH,
+  );
 }
 
-function successorFinishGate(successor: M626SuccessorRuntimeSource, id: string, stageId: string): RouteBoundaryGateAuthoring {
+function successorFinishGate(
+  successor: M626SuccessorRuntimeSource,
+  id: string,
+  stageId: string,
+): RouteBoundaryGateAuthoring {
   const point = guideChartToWorld(successor.chart, successor.finishS, 0);
-  return { id, kind: 'FINISH', stageId, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
+  return {
+    id,
+    kind: 'FINISH',
+    stageId,
+    center: { x: point.x, z: point.z },
+    heading: point.heading,
+    halfWidth: ROAD_HALF_WIDTH,
+  };
 }
 
-function parentHandoffSeam(continuation: M626LiveContinuation, choiceId: string, target: GuideChart, side: 'LEFT' | 'RIGHT'): RouteStageHandoffSeamAuthoring {
+function parentHandoffSeam(
+  continuation: M626LiveContinuation,
+  choiceId: string,
+  target: GuideChart,
+  side: 'LEFT' | 'RIGHT',
+): RouteStageHandoffSeamAuthoring {
   const l = M6_13_JUNCTION.separatedChildCenterL(side);
   const point = guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, l);
-  return { id: `H_${choiceId}`, choiceId, targetChartId: target.id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
+  return {
+    id: `H_${choiceId}`,
+    choiceId,
+    targetChartId: target.id,
+    center: { x: point.x, z: point.z },
+    heading: point.heading,
+    halfWidth: ROAD_HALF_WIDTH,
+  };
 }
 
-function successorHandoffSeam(successor: M626SuccessorRuntimeSource, choiceId: string): RouteStageHandoffSeamAuthoring {
+function successorHandoffSeam(
+  successor: M626SuccessorRuntimeSource,
+  choiceId: string,
+): RouteStageHandoffSeamAuthoring {
   const point = guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0);
-  return { id: `H_${choiceId}`, choiceId, targetChartId: successor.chart.id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
+  return {
+    id: `H_${choiceId}`,
+    choiceId,
+    targetChartId: successor.chart.id,
+    center: { x: point.x, z: point.z },
+    heading: point.heading,
+    halfWidth: ROAD_HALF_WIDTH,
+  };
 }
 
-function transitionGateAuthoring(id: string, choiceId: string, point: { readonly x: number; readonly z: number; readonly heading: number }, halfWidth: number): RouteBoundaryGateAuthoring {
-  return { id, kind: 'TRANSITION', choiceId, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth };
-}
-
-function childSurfaceBands(origin: number): SurfaceBand[] {
-  return [
-    { lMin: origin - GROUND_HALF_WIDTH, lMax: origin - ROAD_HALF_WIDTH, type: 'SHOULDER' },
-    { lMin: origin - ROAD_HALF_WIDTH, lMax: origin + ROAD_HALF_WIDTH, type: 'ASPHALT' },
-    { lMin: origin + ROAD_HALF_WIDTH, lMax: origin + GROUND_HALF_WIDTH, type: 'SHOULDER' },
-  ];
-}
-
-function findLastVertexAtOrBefore(values: readonly number[], target: number): number {
-  let found = -1;
-  for (let i = 0; i < values.length; i += 1) {
-    if (values[i]! <= target) found = i;
-    else break;
-  }
-  return found;
-}
-
-function range(start: number, end: number): number[] {
-  return Array.from({ length: Math.max(0, end - start) }, (_, index) => start + index);
-}
-
-function copyVertex(vertex: RasterVertex): RasterVertex {
-  return { x: vertex.x, z: vertex.z };
+function transitionGateAuthoring(
+  id: string,
+  choiceId: string,
+  point: { readonly x: number; readonly z: number; readonly heading: number },
+  halfWidth: number,
+): RouteBoundaryGateAuthoring {
+  return {
+    id,
+    kind: 'TRANSITION',
+    choiceId,
+    center: { x: point.x, z: point.z },
+    heading: point.heading,
+    halfWidth,
+  };
 }
