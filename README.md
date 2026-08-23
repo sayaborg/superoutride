@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M5.6 Target GroundMap kMax Proof
+# SUPER OUTRIDE — M5.7 Baked GroundMap Runtime
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -19,7 +19,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.3 Compiler / Asset Pipeline Foundation — complete
 - M5.4 GroundMap Density / Anisotropic LOD Foundation — complete
 - M5.5 TerrainLine Footprint Instrumentation — complete
-- **M5.6 Target GroundMap kMax Proof — complete**
+- M5.6 Target GroundMap kMax Proof — complete
+- **M5.7 Baked GroundMap Runtime Integration — complete**
 
 ## Run / test
 
@@ -31,6 +32,8 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`.
 
+`npm run build` now compiles TypeScript and bakes the M5 GroundMap asset into `dist/assets/`.
+
 Full regression:
 
 ```bash
@@ -40,52 +43,38 @@ npm test
 Current verified result:
 
 ```text
-89 tests
-89 pass
+95 tests
+95 pass
 0 fail
 ```
 
-See `M5_6_VALIDATION.txt`.
+See `M5_7_VALIDATION.txt`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
 ## Controls
 
-Desktop:
-
 - Left / Right: analogized steering
-- Up: throttle ON/OFF
-- Down: brake ON/OFF
+- Up: throttle
+- Down: brake
 - V: Car / Motorcycle
 - R: manual recovery
-
-Touch:
-
-- landscape: steering in left margin, pedals in right margin
-- portrait: controls below the 320×240 display
-- steering analog; throttle/brake digital
-- no gyro
+- touch steering is analog; touch throttle/brake are digital
 
 ## Renderer invariants
 
 - world X/Y/Z is authoritative for physics
-- vehicle is not snapped to road center
 - one chainage maps to one horizontal scanline
 - pseudo-depth is signed cyclic chainage difference only
-- no camera-space-Z / Euclidean / lateral depth correction
 - same `d` means same scale
 - Raster Course remains straight-segment raster geometry
 - Guide Curve is coordinate / camera support only
 - TerrainLine and World Sprite share far-to-near Painter ordering
-- no z-buffer
-- no polygon road
+- no z-buffer or polygon road
 - no perspective-correct texture mapping
 - no arbitrary runtime sprite rotation
-- sprite transparency is 0/1
 - camera roll remains zero
-- GroundMap is an `(s,l)` course-section texture
-- SurfaceMap physics is `(s,l)` but never samples GroundMap pixels
-- GroundBase transparency and SurfaceMap VOID are independent
+- GroundMap, GroundBase and SurfaceMap remain semantically independent
 - Far Background is a full image including below-horizon pixels
 
 Final renderer order:
@@ -109,7 +98,7 @@ D_cam = 5.0 m
 d_min = 2.5 m
 ```
 
-Changing FOV changes camera distance, never the 2m=80px player reference. Sprite scale is physical:
+Sprite scale remains physical:
 
 ```text
 texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
@@ -117,9 +106,9 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale` multiplier.
 
-## Surface Region compiler
+## Surface Region authority
 
-One authoring authority compiles to three independent runtime products:
+One authoring source compiles independently to:
 
 ```text
 Surface Region
@@ -128,7 +117,7 @@ Surface Region
    └─ SurfaceMap physical profile
 ```
 
-Shared authoring does not make those meanings identical. A cliff may simultaneously compile as:
+For example, a cliff can simultaneously mean:
 
 ```text
 GroundMap left = ROCK
@@ -136,56 +125,45 @@ GroundBase left = TRANSPARENT
 SurfaceMap far-left = VOID
 ```
 
-## GroundMap density / anisotropic pyramid
+## GroundMap density and LOD
 
-Current base density is derived from `d0 = D_cam`:
+M5.4 density authority:
 
 ```text
-q_l = d0 / f
-q_s = f q_l^2 / (h cos Phi_ref)
-
 q_l = 0.025 m/texel
 q_s = 0.051106653147800385 m/texel
 ```
 
-One shared anisotropic pyramid is used:
+One anisotropic pyramid:
 
 ```text
 q_l(k) = q_l × 2^k
 q_s(k) = q_s × 4^k
 ```
 
-Compiler prefilter step:
-
-```text
-lateral  2 → 1
-chainage 4 → 1
-```
-
-Shared runtime LOD authority is chainage footprint only:
+Shared level authority is chainage footprint only:
 
 ```text
 k_s = max(ceil(log4(Delta_s_eff / q_s)), 0)
 k   = clamp(k_s, 0, k_max)
 ```
 
-Lateral `k_l` is diagnostic only and never raises the shared level.
+Lateral `k_l` remains diagnostic only.
 
-## TerrainLine footprint instrumentation
-
-Every generated TerrainLine carries:
+M5.6 proved for the current target:
 
 ```text
-Delta_s
-Delta_s_collapse
-Delta_s_eff = max(Delta_s, Delta_s_collapse)
-Delta_l
-collapsed
+Delta_s_eff <= d_max - d_min = 147.5 m
+level 5 capacity = 52.3332 m
+level 6 capacity = 209.3329 m
+k_max = 6
 ```
 
-Ordinary `Delta_s` uses the exact inverse vertical mapping at pixel boundaries. `Delta_l` is the exact one-pixel footprint of the existing horizontal affine mapping.
+The actual Road Generator sweep measured `max Delta_s_eff = 141.01635292107866m`, so k6 is both necessary and sufficient.
 
-M5.6 also makes Core §64 thin-span collapse explicit:
+## Explicit thin-span rule
+
+Core §64 is implemented directly in screen space:
 
 ```text
 epsilon_span = 1 destination row
@@ -193,93 +171,95 @@ Delta_y = |bY| |1/d0 - 1/d1|
 Delta_y < 1 → one-row collapse
 ```
 
-The representative depth is the midpoint in `u=1/d`, where screen Y is affine. The complete clipped interval is retained in `Delta_s_collapse`.
+Collapsed rows retain the complete clipped chainage interval as `Delta_s_collapse`.
 
-## M5.6 final target kMax
+## M5.7 baked GroundMap runtime
 
-For both ordinary and collapsed TerrainLines, the represented source interval is a subset of the forward depth clip. Therefore:
+The M5 runtime no longer evaluates the procedural GroundMap for normal terrain pixels.
 
-```text
-Delta_s_eff <= d_max - d_min
-             = 150 - 2.5
-             = 147.5 m
-```
-
-Current pyramid capacities are:
+Build path:
 
 ```text
-level 5:  52.33321282334759 m
-level 6: 209.33285129339035 m
+Surface Region logical GroundMap
+→ cyclic dense level 0
+→ compiler 2×4 anisotropic prefilter
+→ levels k0..k6
+→ bounded row chunks
+→ duplicate payload sharing
+→ binary asset
 ```
 
-The M5.6 Road Generator sweep measured:
+Current build result:
 
 ```text
-TerrainLines              27,626
-collapsed lines              528
-max Delta_s_eff      141.01635292107866 m
-max Delta_s_collapse  50.0 m
-max Delta_l           26.195567174687216 m
-required k_s                  6
-diagnostic max k_l           11
+course length           776.5128086698837 m
+base size               960 × 16384 texels
+actual q_l              0.025 m/texel
+actual q_s              0.04739458060729271 m/texel
+logical chunk refs      141
+unique payloads         124
+binary size             20,220,030 bytes
+raw RGBA pyramid        71,902,320 bytes
+storage ratio           28.12%
 ```
 
-So level 5 is demonstrably insufficient, while level 6 covers the absolute 147.5m proof bound. For the current target profile:
+The aligned base grid is slightly finer than the M5.4 density authority, never coarser.
+
+Storage:
 
 ```text
-k_max = 6
-necessityProven   = true
-sufficiencyProven = true
+level 0    palette8
+levels 1-6 RGB555
 ```
 
-This is now compiler-authoritative rather than a visual tuning value.
+Runtime behavior:
 
-Primary compiler/LOD files:
+```text
+TerrainLine Delta_s_eff
+→ choose one level once per line
+→ horizontal affine span samples that baked level
+```
+
+No runtime anisotropic filtering is performed. Level-0 texel centers are regression-tested for exact semantic equivalence with the procedural authoring source, and cyclic addressing is tested at every level.
+
+Primary M5.4–M5.7 files:
 
 ```text
 src/compiler/ground-map-lod.ts
 src/compiler/ground-map-prefilter.ts
 src/compiler/terrain-footprint-analysis.ts
 src/compiler/ground-map-target-envelope.ts
+src/compiler/ground-map-asset-compiler.ts
+src/visual/baked-ground-map.ts
+src/render/rgb555.ts
 src/road/terrain-line.ts
+tools/build-ground-map.mjs
 tests/m5-4-ground-map-lod.test.mjs
 tests/m5-5-terrain-footprint.test.mjs
 tests/m5-6-target-kmax.test.mjs
+tests/m5-7-baked-groundmap.test.mjs
 docs/12_m5_4_ground_map_lod_foundation.md
 docs/13_m5_5_terrain_footprint.md
 docs/14_m5_6_target_kmax.md
+docs/15_m5_7_baked_groundmap.md
 M5_4_VALIDATION.txt
 M5_5_VALIDATION.txt
 M5_6_VALIDATION.txt
+M5_7_VALIDATION.txt
 ```
-
-## Vehicle / SurfaceMap boundary
-
-Current DEV materials:
-
-```text
-ASPHALT
-SHOULDER
-GRASS
-DIRT
-SAND
-VOID
-```
-
-`VOID` means no supporting vehicle surface at `(s,l)`. Falling, crash handling and recovery remain gameplay/physics rules, not renderer rules.
 
 ## Next
 
-The next compiler/performance block is now baked GroundMap integration:
+The next block is performance/compiler budget validation rather than new gameplay:
 
-1. compile a deterministic level-0 GroundMap source from the logical course profile
-2. split/reuse it as bounded chunks rather than one all-course unique 56M-texel image
-3. generate the complete anisotropic pyramid through `k_max=6`
-4. select level per TerrainLine from `Delta_s_eff`
-5. connect baked sampling to the existing affine horizontal span path
-6. verify level-0 semantic equivalence against the procedural GroundMap source
-7. add terrain/sprite frame and scanline performance budgets
-8. special visual cases such as tunnel/portal
-9. M6 gameplay layer
+1. measure TerrainLine count per frame
+2. measure terrain output samples per frame and per screen row
+3. measure sprite output samples per frame and per scanline
+4. record GroundMap LOD distribution
+5. sweep normal and stress camera/course states
+6. define target budgets from observed data plus explicit margin
+7. validate content against those budgets without runtime-dropping non-optional terrain
+8. add tunnel/portal stress content
+9. then proceed toward M6 gameplay
 
-Do not introduce a 2D LOD table, lateral-driven shared LOD promotion, arbitrary texture-density knob, or new polygon/depth renderer while doing this work.
+Do not add a 2D LOD table, lateral-driven shared LOD promotion, arbitrary texture-density knob, or polygon/depth renderer while doing this work.
