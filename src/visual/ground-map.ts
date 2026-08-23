@@ -49,9 +49,29 @@ export function sampleGroundMapRuntime(
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
+  return sampleGroundMapInternal(s, l, profile, cliffSection, true);
+}
+
+/** Stage adapters use this after a stage-local junction has already been classified in local l. */
+export function sampleGroundMapWithoutJunction(
+  s: number,
+  l: number,
+  profile: GroundMapProfile,
+  cliffSection = false,
+): number {
+  return sampleGroundMapInternal(s, l, profile, cliffSection, false);
+}
+
+function sampleGroundMapInternal(
+  s: number,
+  l: number,
+  profile: GroundMapProfile,
+  cliffSection: boolean,
+  useJunction: boolean,
+): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);
-  if (profile.junction) {
+  if (useJunction && profile.junction) {
     const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, sourceS);
     if (junctionColor !== null) return junctionColor;
   } else {
