@@ -1,0 +1,70 @@
+SUPER OUTRIDE M5.7 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.7 Baked GroundMap Runtime Integration
+
+Validated commit:
+  0b76dbb762fb5a8e8f26298febd929d28d0be356
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #5 M5.7 Baked GroundMap runtime integration
+  Run ID: 32611747873
+  Build job ID: 97125815574
+  Result: success
+
+Build command:
+  tsc -p tsconfig.json && node tools/build-ground-map.mjs
+
+Bake result:
+  courseLength          = 776.5128086698837 m
+  baseLateralTexels     = 960
+  baseChainageTexels    = 16384
+  actualBaseQL          = 0.025 m/texel
+  actualBaseQS          = 0.04739458060729271 m/texel
+  kMax                  = 6
+  logical chunk refs    = 141
+  unique payloads       = 124
+  binaryBytes           = 20,220,030
+  uncompressedRgbaBytes = 71,902,320
+  storageRatio          = 0.2812152653766944
+
+Storage:
+  level 0   = palette8
+  levels 1-6 = RGB555 little-endian
+
+Runtime:
+  M5 browser loads dist/assets/m5-ground-map.json and m5-ground-map.bin.
+  One GroundMap level is selected once per TerrainLine from Delta_s_eff.
+  Horizontal terrain pixels then sample that prefiltered level.
+  Runtime does not perform anisotropic filtering.
+
+Regression result:
+  tests 95
+  pass 95
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+M5.7 added tests:
+  77 baked asset remains at least as dense as M5.4 authority and reaches kMax=6
+  78 level-0 baked texel centers are exactly semantically equivalent to procedural authoring source
+  79 runtime level selection is chainage-only and reaches level 6 for the proven far footprint
+  80 baked GroundMap preserves cyclic course addressing at every level
+  81 chunked palette/RGB555 binary remains below 35% of raw RGBA pyramid size
+  82 M5 renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap
+
+Preserved invariants:
+  no 2D LOD table
+  no lateral-driven shared LOD promotion
+  no runtime anisotropic filter
+  no polygon road or z-buffer
+  GroundBase transparency remains independent from SurfaceMap VOID
+  procedural sampleGroundMap remains compiler/source-reference and DEV/test fallback
+
+PR deployment behavior:
+  build/test: success
+  Pages staging: skipped
+  deploy job: skipped
