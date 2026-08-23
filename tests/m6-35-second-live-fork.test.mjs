@@ -227,7 +227,7 @@ test('M6.35 complete LEFT-A route performs four PENDING/COMMIT handoffs then phy
   assert.equal(handoffState.commitCount, 4);
 });
 
-test('M6.35 keeps second-fork topology outside main/renderer and delegates fork assembly to M6.36', async () => {
+test('M6.35 fixture stays validated below the M6.37 live entry and delegates fork assembly to M6.36', async () => {
   const [source, compiler, stableEntry, main, renderer] = await Promise.all([
     readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
@@ -236,11 +236,12 @@ test('M6.35 keeps second-fork topology outside main/renderer and delegates fork 
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(source, /compileRasterForkStageRoute/);
+  assert.match(source, /createM635SecondLiveForkAuthoring/);
   assert.doesNotMatch(source, /compileStageJunction|createRasterForkStageSuccessor|baseStages|baseTransitions|forkTransition|pointGeometry/);
   assert.match(compiler, /compileStageJunction/);
   assert.match(compiler, /createRasterForkStageSuccessor/);
   assert.match(compiler, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(stableEntry, /createM635SecondLiveForkRuntime/);
+  assert.match(stableEntry, /createM637SymmetricSecondLiveForkRuntime/);
   assert.doesNotMatch(main, /STAGE_4_L_FORK|GOAL_LA|GOAL_LB|S4L_FORK/);
   assert.doesNotMatch(renderer, /STAGE_4_L_FORK|GOAL_LA|GOAL_LB|S4L_FORK/);
 });
