@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M5.4 GroundMap LOD Foundation
+# SUPER OUTRIDE — M5.5 TerrainLine Footprint Instrumentation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -17,7 +17,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.1 Player visibility / recovery — complete
 - M5.2 Fixed metric sprite scale — complete
 - M5.3 Compiler / Asset Pipeline Foundation — complete
-- **M5.4 GroundMap Density / Anisotropic LOD Foundation — complete**
+- M5.4 GroundMap Density / Anisotropic LOD Foundation — complete
+- **M5.5 TerrainLine Footprint Instrumentation — complete**
 
 ## Run / test
 
@@ -38,12 +39,12 @@ npm test
 Current verified result:
 
 ```text
-78 tests
-78 pass
+84 tests
+84 pass
 0 fail
 ```
 
-See `M5_4_VALIDATION.txt`.
+See `M5_5_VALIDATION.txt`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
@@ -183,11 +184,11 @@ rho_l   = 40 texels/m
 rho_s   = 19.566924038402615 texels/m
 ```
 
-For the Core illustrative all-unique envelope `W=24m`, `L_unique=3000m`, the base-level upper bound is about **56.35 million texels**. This is deliberately exposed rather than hidden; later chunk reuse and compile-time optimization must address it.
+For the Core illustrative all-unique envelope `W=24m`, `L_unique=3000m`, the base-level upper bound is about **56.35 million texels**. Later chunk reuse and compile-time optimization must address it rather than silently reducing density.
 
 ## One anisotropic GroundMap pyramid
 
-M5.4 implements the Core single-pyramid rule:
+The Core single-pyramid rule is:
 
 ```text
 q_l(k) = q_l × 2^k
@@ -216,16 +217,51 @@ k_l = max(ceil(log2(Delta_l / q_l)), 0)
 
 A larger `k_l` must not raise the shared pyramid level because that would over-blur chainage by ×4 for every extra level.
 
-M5.4 provides deterministic 2×4 RGBA prefilter primitives and requires exact compiler padding/divisibility for requested levels. It does **not** yet invent `Delta_s_eff_max` or switch the runtime to baked GroundMap assets.
+## M5.5 actual TerrainLine footprint instrumentation
 
-Primary M5.4 files:
+The existing Road Generator now exposes the source footprint represented by every generated TerrainLine without changing geometry or Painter ordering:
+
+```text
+Delta_s
+Delta_s_collapse
+Delta_s_eff = max(Delta_s, Delta_s_collapse)
+Delta_l
+collapsed
+```
+
+For ordinary rows, `Delta_s` is derived from the exact Core inverse vertical mapping at the output-pixel boundaries. `Delta_l` is the exact one-pixel footprint of the existing horizontal affine mapping. For a collapsed thin span, the complete clipped chainage interval is carried as `Delta_s_collapse`.
+
+Compiler-side reduction reports the maximum observed footprint and derives required chainage level from `Delta_s_eff`; lateral level remains diagnostic.
+
+Current debug-course sweep:
+
+```text
+course positions: every 40 m
+yaw offsets: -75, -40, 0, +40, +75 deg
+
+TerrainLines              13,827
+collapsed lines                0
+max Delta_s_eff          93.6726586943434 m
+max Delta_l              24.055002333538965 m
+observed required k_s           6
+diagnostic max k_l             10
+```
+
+**`k_s=6` is not yet the final target-profile `k_max`.** It is an observed requirement for the present debug sweep. Final `k_max` must be compiled from an explicit target envelope covering camera height/pitch, near/far depth, grade, forward-heading range, render height and thin-span collapse behavior.
+
+Primary files through M5.5:
 
 ```text
 src/compiler/ground-map-lod.ts
 src/compiler/ground-map-prefilter.ts
+src/compiler/terrain-footprint-analysis.ts
+src/road/terrain-line.ts
 tests/m5-4-ground-map-lod.test.mjs
+tests/m5-5-terrain-footprint.test.mjs
 docs/12_m5_4_ground_map_lod_foundation.md
+docs/13_m5_5_terrain_footprint.md
 M5_4_VALIDATION.txt
+M5_5_VALIDATION.txt
 ```
 
 ## Vehicle / SurfaceMap boundary
@@ -251,15 +287,16 @@ Vertical framing is bounded rather than perfectly screen-locked. M5.1 additional
 
 ## Next
 
-The next compiler/performance block is now concrete:
+The next compiler/performance block is:
 
-1. derive/instrument actual `Delta_s_eff` and `Delta_l` from TerrainLine/Road Generator output
-2. stress hill/crest/dip, yaw and thin-span collapse
-3. obtain the actual `Delta_s_eff,max`
-4. derive the required real `k_max`
-5. connect baked GroundMap chunks and pyramid levels to runtime sampling
-6. add terrain/sprite frame and scanline performance budgets
-7. special visual cases such as tunnel/portal
-8. M6 gameplay layer
+1. define the target camera/course envelope used by compiler validation
+2. make thin-span collapse threshold explicit instead of implicit
+3. sweep that target envelope using the same Road Generator mapping
+4. derive and validate the actual required `k_max`
+5. generate/validate the complete anisotropic pyramid depth
+6. connect baked GroundMap chunks and pyramid levels to runtime sampling
+7. add terrain/sprite frame and scanline performance budgets
+8. special visual cases such as tunnel/portal
+9. M6 gameplay layer
 
 Do not introduce a guessed LOD depth or arbitrary texture-density tuning parameter merely to progress implementation.
