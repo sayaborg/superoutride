@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M5.5 TerrainLine Footprint Instrumentation
+# SUPER OUTRIDE — M5.6 Target GroundMap kMax Proof
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -18,7 +18,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.2 Fixed metric sprite scale — complete
 - M5.3 Compiler / Asset Pipeline Foundation — complete
 - M5.4 GroundMap Density / Anisotropic LOD Foundation — complete
-- **M5.5 TerrainLine Footprint Instrumentation — complete**
+- M5.5 TerrainLine Footprint Instrumentation — complete
+- **M5.6 Target GroundMap kMax Proof — complete**
 
 ## Run / test
 
@@ -39,12 +40,12 @@ npm test
 Current verified result:
 
 ```text
-84 tests
-84 pass
+89 tests
+89 pass
 0 fail
 ```
 
-See `M5_5_VALIDATION.txt`.
+See `M5_6_VALIDATION.txt`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
@@ -97,32 +98,18 @@ Optional Clear
 → HUD
 ```
 
-## M5.2 fixed metric sprite authority
+## Fixed metric authority
 
 ```text
 player car physical width = 2.0 m
 player car screen width = 80 px
 player-depth scale = 40 px/m
-```
-
-Therefore:
-
-```text
-f / D_cam = 40
-D_cam = f / 40
-```
-
-Current:
-
-```text
 f = 200 px
 D_cam = 5.0 m
 d_min = 2.5 m
 ```
 
-Changing FOV changes camera distance, never the 2m=80px player reference.
-
-Sprite scale is physical:
+Changing FOV changes camera distance, never the 2m=80px player reference. Sprite scale is physical:
 
 ```text
 texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
@@ -130,7 +117,7 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale` multiplier.
 
-## M5.3 Surface Region compiler foundation
+## Surface Region compiler
 
 One authoring authority compiles to three independent runtime products:
 
@@ -149,46 +136,19 @@ GroundBase left = TRANSPARENT
 SurfaceMap far-left = VOID
 ```
 
-Adjacent regions are coalesced independently for each consumer so physics-only boundaries do not create unnecessary visual runtime boundaries.
+## GroundMap density / anisotropic pyramid
 
-Compiler validation includes `dMax < Lcourse/2` and the supported SurfaceMap envelope remaining strictly inside the supplied Guide chart lateral limit. Sprite metadata requires `worldWidthMeters` and rejects `visualScale`.
-
-## M5.4 GroundMap density authority
-
-Core GroundMap base density is derived from one default authority:
-
-```text
-d0 = D_cam
-```
-
-with:
+Current base density is derived from `d0 = D_cam`:
 
 ```text
 q_l = d0 / f
 q_s = f q_l^2 / (h cos Phi_ref)
-rho_l = 1/q_l
-rho_s = 1/q_s
+
+q_l = 0.025 m/texel
+q_s = 0.051106653147800385 m/texel
 ```
 
-Using the current flat-road camera reference:
-
-```text
-d0      = 5.0 m
-f       = 200 px
-h       = 2.469902425419539 m
-Phi_ref = 8 deg
-
-q_l     = 0.025 m/texel
-q_s     = 0.051106653147800385 m/texel
-rho_l   = 40 texels/m
-rho_s   = 19.566924038402615 texels/m
-```
-
-For the Core illustrative all-unique envelope `W=24m`, `L_unique=3000m`, the base-level upper bound is about **56.35 million texels**. Later chunk reuse and compile-time optimization must address it rather than silently reducing density.
-
-## One anisotropic GroundMap pyramid
-
-The Core single-pyramid rule is:
+One shared anisotropic pyramid is used:
 
 ```text
 q_l(k) = q_l × 2^k
@@ -202,24 +162,18 @@ lateral  2 → 1
 chainage 4 → 1
 ```
 
-Runtime shared-pyramid level authority is **chainage footprint only**:
+Shared runtime LOD authority is chainage footprint only:
 
 ```text
 k_s = max(ceil(log4(Delta_s_eff / q_s)), 0)
 k   = clamp(k_s, 0, k_max)
 ```
 
-Lateral minification is diagnostic only:
+Lateral `k_l` is diagnostic only and never raises the shared level.
 
-```text
-k_l = max(ceil(log2(Delta_l / q_l)), 0)
-```
+## TerrainLine footprint instrumentation
 
-A larger `k_l` must not raise the shared pyramid level because that would over-blur chainage by ×4 for every extra level.
-
-## M5.5 actual TerrainLine footprint instrumentation
-
-The existing Road Generator now exposes the source footprint represented by every generated TerrainLine without changing geometry or Painter ordering:
+Every generated TerrainLine carries:
 
 ```text
 Delta_s
@@ -229,39 +183,74 @@ Delta_l
 collapsed
 ```
 
-For ordinary rows, `Delta_s` is derived from the exact Core inverse vertical mapping at the output-pixel boundaries. `Delta_l` is the exact one-pixel footprint of the existing horizontal affine mapping. For a collapsed thin span, the complete clipped chainage interval is carried as `Delta_s_collapse`.
+Ordinary `Delta_s` uses the exact inverse vertical mapping at pixel boundaries. `Delta_l` is the exact one-pixel footprint of the existing horizontal affine mapping.
 
-Compiler-side reduction reports the maximum observed footprint and derives required chainage level from `Delta_s_eff`; lateral level remains diagnostic.
-
-Current debug-course sweep:
+M5.6 also makes Core §64 thin-span collapse explicit:
 
 ```text
-course positions: every 40 m
-yaw offsets: -75, -40, 0, +40, +75 deg
-
-TerrainLines              13,827
-collapsed lines                0
-max Delta_s_eff          93.6726586943434 m
-max Delta_l              24.055002333538965 m
-observed required k_s           6
-diagnostic max k_l             10
+epsilon_span = 1 destination row
+Delta_y = |bY| |1/d0 - 1/d1|
+Delta_y < 1 → one-row collapse
 ```
 
-**`k_s=6` is not yet the final target-profile `k_max`.** It is an observed requirement for the present debug sweep. Final `k_max` must be compiled from an explicit target envelope covering camera height/pitch, near/far depth, grade, forward-heading range, render height and thin-span collapse behavior.
+The representative depth is the midpoint in `u=1/d`, where screen Y is affine. The complete clipped interval is retained in `Delta_s_collapse`.
 
-Primary files through M5.5:
+## M5.6 final target kMax
+
+For both ordinary and collapsed TerrainLines, the represented source interval is a subset of the forward depth clip. Therefore:
+
+```text
+Delta_s_eff <= d_max - d_min
+             = 150 - 2.5
+             = 147.5 m
+```
+
+Current pyramid capacities are:
+
+```text
+level 5:  52.33321282334759 m
+level 6: 209.33285129339035 m
+```
+
+The M5.6 Road Generator sweep measured:
+
+```text
+TerrainLines              27,626
+collapsed lines              528
+max Delta_s_eff      141.01635292107866 m
+max Delta_s_collapse  50.0 m
+max Delta_l           26.195567174687216 m
+required k_s                  6
+diagnostic max k_l           11
+```
+
+So level 5 is demonstrably insufficient, while level 6 covers the absolute 147.5m proof bound. For the current target profile:
+
+```text
+k_max = 6
+necessityProven   = true
+sufficiencyProven = true
+```
+
+This is now compiler-authoritative rather than a visual tuning value.
+
+Primary compiler/LOD files:
 
 ```text
 src/compiler/ground-map-lod.ts
 src/compiler/ground-map-prefilter.ts
 src/compiler/terrain-footprint-analysis.ts
+src/compiler/ground-map-target-envelope.ts
 src/road/terrain-line.ts
 tests/m5-4-ground-map-lod.test.mjs
 tests/m5-5-terrain-footprint.test.mjs
+tests/m5-6-target-kmax.test.mjs
 docs/12_m5_4_ground_map_lod_foundation.md
 docs/13_m5_5_terrain_footprint.md
+docs/14_m5_6_target_kmax.md
 M5_4_VALIDATION.txt
 M5_5_VALIDATION.txt
+M5_6_VALIDATION.txt
 ```
 
 ## Vehicle / SurfaceMap boundary
@@ -279,24 +268,18 @@ VOID
 
 `VOID` means no supporting vehicle surface at `(s,l)`. Falling, crash handling and recovery remain gameplay/physics rules, not renderer rules.
 
-Car and motorcycle physics remain replaceable DEV models. `V` transfers world kinematics instead of teleporting.
-
-## Camera / recovery
-
-Vertical framing is bounded rather than perfectly screen-locked. M5.1 additionally provides gameplay-side recovery, an extreme-spin whole-world safety camera, and manual recovery with `R`. The player sprite itself is never independently screen-clamped.
-
 ## Next
 
-The next compiler/performance block is:
+The next compiler/performance block is now baked GroundMap integration:
 
-1. define the target camera/course envelope used by compiler validation
-2. make thin-span collapse threshold explicit instead of implicit
-3. sweep that target envelope using the same Road Generator mapping
-4. derive and validate the actual required `k_max`
-5. generate/validate the complete anisotropic pyramid depth
-6. connect baked GroundMap chunks and pyramid levels to runtime sampling
+1. compile a deterministic level-0 GroundMap source from the logical course profile
+2. split/reuse it as bounded chunks rather than one all-course unique 56M-texel image
+3. generate the complete anisotropic pyramid through `k_max=6`
+4. select level per TerrainLine from `Delta_s_eff`
+5. connect baked sampling to the existing affine horizontal span path
+6. verify level-0 semantic equivalence against the procedural GroundMap source
 7. add terrain/sprite frame and scanline performance budgets
 8. special visual cases such as tunnel/portal
 9. M6 gameplay layer
 
-Do not introduce a guessed LOD depth or arbitrary texture-density tuning parameter merely to progress implementation.
+Do not introduce a 2D LOD table, lateral-driven shared LOD promotion, arbitrary texture-density knob, or new polygon/depth renderer while doing this work.
