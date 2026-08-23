@@ -1,0 +1,29 @@
+SUPER OUTRIDE M6.34 — REUSABLE STAGE-LOCAL JUNCTION
+
+Baseline
+- M6.33: 298 tests
+
+M6.34 additions
+- 5 dedicated stage-local junction regressions
+
+Expected full suite
+- tests: 303
+- pass: 303
+- fail: 0
+
+Validated structural principles
+- JunctionCrossSectionProfile remains the single two-way lateral cross-section authority.
+- Source-coordinate GroundMap `junction` remains unchanged in meaning.
+- New `stageJunction` is an active-stage-local overlay evaluated before source-lateral rebasing.
+- Stage junction GroundMap and SurfaceMap share one geometric cross-section authority.
+- Stage corridor widening is derived from child road + median + shoulder dimensions.
+- Incoming Raster road width and source lateral origin remain unchanged.
+- No renderer, camera, RouteDag or vehicle-physics dependency is added to the reusable compiler layer.
+- Existing fork browser-order render-continuity regression remains part of the complete suite.
+
+Structural CI already observed before package/docs synchronization
+- 303 tests
+- 303 pass
+- 0 fail
+
+Final exact-head CI must independently reproduce 303 / 303 / 0 before main fast-forward.
