@@ -8,6 +8,7 @@ import {
 } from '../runtime/declarative-live-route.js';
 import {
   compileRasterForkGrowthPlan,
+  type CompiledRasterForkGrowthPlan,
   type RasterForkGrowthStep,
 } from '../runtime/raster-fork-growth-plan.js';
 import type { RasterForkStageBranchAuthoring } from '../runtime/raster-fork-stage-route.js';
@@ -83,11 +84,11 @@ const RIGHT_SECOND_FORK: LiveForkIdentity = Object.freeze({
  * M6.38 expresses both live second forks as ordered data applied to one M6.30 base authoring.
  * The plan adds no geometry authority: every step still executes the unchanged M6.36 compiler.
  */
-export function createM638DeclarativeForkGrowthAuthoring(
+export function createM638DeclarativeForkGrowthPlan(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
-): DeclarativeLiveRouteAuthoring {
+): CompiledRasterForkGrowthPlan {
   const upstream = createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets);
   const identity = createM621ChildVisualIdentity();
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
@@ -107,7 +108,15 @@ export function createM638DeclarativeForkGrowthAuthoring(
   return compileRasterForkGrowthPlan(upstream, [
     liveForkStep(LEFT_SECOND_FORK, createRuntime),
     liveForkStep(RIGHT_SECOND_FORK, createRuntime),
-  ]).authoring;
+  ]);
+}
+
+export function createM638DeclarativeForkGrowthAuthoring(
+  parentGuide: GuideCurve,
+  parentContent: M620SharedRuntimeContent,
+  spriteAssets: M4SpriteAssets,
+): DeclarativeLiveRouteAuthoring {
+  return createM638DeclarativeForkGrowthPlan(parentGuide, parentContent, spriteAssets).authoring;
 }
 
 export function createM638DeclarativeForkGrowthRuntime(
