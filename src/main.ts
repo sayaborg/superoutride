@@ -5,13 +5,7 @@ import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
-import {
-  createM626LiveContinuation,
-  createM626LiveGateSet,
-  createM626LiveHandoffManifest,
-  createM626LiveRouteDag,
-} from './dev/m6-26-live-successor-stage.js';
-import { createM626LiveStageRuntimeRegistry } from './dev/m6-26-live-runtime-content.js';
+import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import {
   createM5CameraRig,
@@ -42,7 +36,6 @@ import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gam
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from './gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag, type RouteDagUpdate } from './gameplay/route-dag.js';
-import { createM6DebugRouteStageContentManifest } from './gameplay/route-stage-content.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -159,22 +152,8 @@ const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
 const raceSession = createRaceSessionState();
 const rivalRaceSession = createRaceSessionState();
 
-const routeDag = createM626LiveRouteDag();
-const routeState = createRouteDagState(routeDag);
-const routeContent = createM6DebugRouteStageContentManifest(routeDag);
-const stageContinuation = createM626LiveContinuation(guide);
-const guideCharts = stageContinuation.charts;
-const routeGates = createM626LiveGateSet(routeDag, stageContinuation);
-const routeHandoffManifest = createM626LiveHandoffManifest(routeDag, stageContinuation);
-const routeHandoffState = createRouteStageHandoffState(
-  routeDag,
-  routeContent,
-  stageContinuation.base.charts.parent,
-  { x: vehicle.x, z: vehicle.z },
-);
-const stageRuntimeRegistry = createM626LiveStageRuntimeRegistry(
-  routeContent,
-  stageContinuation,
+const liveRoute = createM627LiveRouteRuntime(
+  guide,
   {
     heightProfile,
     surfaceMap,
@@ -190,6 +169,19 @@ const stageRuntimeRegistry = createM626LiveStageRuntimeRegistry(
   },
   spriteAssets,
 );
+const routeDag = liveRoute.route;
+const routeState = createRouteDagState(routeDag);
+const routeContent = liveRoute.content;
+const guideCharts = liveRoute.charts;
+const routeGates = liveRoute.gates;
+const routeHandoffManifest = liveRoute.handoffs;
+const routeHandoffState = createRouteStageHandoffState(
+  routeDag,
+  routeContent,
+  liveRoute.initialChart,
+  { x: vehicle.x, z: vehicle.z },
+);
+const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
 let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
 
@@ -468,7 +460,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.26 LIVE SUCCESSOR STAGES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.27 ROUTE RUNTIME ASSEMBLY / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -497,7 +489,7 @@ function render(): void {
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Each active package owns its Guide + road + SurfaceMap + terrain + sprites', 8, 218);
+  ctx.fillText('Browser consumes one validated route/content/chart/gate/handoff/runtime bundle', 8, 218);
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
