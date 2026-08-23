@@ -3,6 +3,7 @@ import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
+  type DeclarativeLiveRouteAuthoring,
   type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
 import { compileRasterForkStageRoute } from '../runtime/raster-fork-stage-route.js';
@@ -25,20 +26,19 @@ const FORK_ROUTE_GATE_S = 195;
 const FORK_SOURCE_SEAM_MIN_S = 235;
 
 /**
- * M6.35 live route: the milestone now supplies only concrete IDs, dimensions and environment
- * identity. Generic terminal promotion, junction attachment, fork-child geometry and declarative
- * route-row derivation are owned by M6.36 compileRasterForkStageRoute().
+ * M6.35 LEFT second-fork authoring. Later milestones can compose another generic fork onto this
+ * exact validated topology without reconstructing the first fork or either third-stage chain.
  */
-export function createM635SecondLiveForkRuntime(
+export function createM635SecondLiveForkAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
-): LiveRouteRuntimeAssembly {
+): DeclarativeLiveRouteAuthoring {
   const upstream = createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets);
   const identity = createM621ChildVisualIdentity();
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
 
-  const fork = compileRasterForkStageRoute({
+  return compileRasterForkStageRoute({
     upstream,
     terminalStageId: 'GOAL_L',
     forkStageId: 'STAGE_4_L_FORK',
@@ -70,9 +70,18 @@ export function createM635SecondLiveForkRuntime(
       surfaceMap: structural.surfaceMap,
       groundProfile: structural.groundProfile,
     }, branch.side === 'LEFT' ? authored.left : authored.right)),
-  });
+  }).authoring;
+}
 
-  return compileDeclarativeLiveRoute(fork.authoring);
+/** Browser-facing historical M6.35 runtime fixture. */
+export function createM635SecondLiveForkRuntime(
+  parentGuide: GuideCurve,
+  parentContent: M620SharedRuntimeContent,
+  spriteAssets: M4SpriteAssets,
+): LiveRouteRuntimeAssembly {
+  return compileDeclarativeLiveRoute(
+    createM635SecondLiveForkAuthoring(parentGuide, parentContent, spriteAssets),
+  );
 }
 
 function forkBranchAuthoring(
