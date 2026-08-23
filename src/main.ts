@@ -177,7 +177,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M5.7 BAKED GROUNDMAP / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M5.8 PERF TELEMETRY / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -185,14 +185,15 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
-    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 120);
+    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 132);
     ctx.fillStyle = '#a6bac4';
   }
-  ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
-  ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}`, 8, 108);
+  ctx.fillText(`TL ${stats.terrainLineCount} ROW ${stats.terrainLinesMaxPerRow}  TPX ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsMaxPerRow}`, 8, 96);
+  ctx.fillText(`SPR ${stats.visibleSpriteCount}  SPX ${stats.spriteOutputSamples + stats.playerOutputSamples}/${stats.spriteOutputSamplesMaxPerScanline}  GM 0-${stats.groundMapMaxLevel}`, 8, 108);
+  ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}  ${stats.activeSection}`, 8, 120);
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Surface Region -> baked GroundMap k0..k6 / GroundBase / SurfaceMap', 8, 218);
+  ctx.fillText('Core §67 counters: terrain frame/row + sprite frame/scanline + GroundMap LOD', 8, 218);
   ctx.fillText(`FIXED PLAYER SCALE: 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m) / FOV changes move camera`, 8, 229);
 }
 
