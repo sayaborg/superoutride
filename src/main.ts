@@ -18,9 +18,14 @@ import { loadM5BakedGroundMap } from './visual/baked-ground-map.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM3DebugHeightProfile } from './visual/height-profile.js';
 import type { GroundMapProfile } from './visual/ground-map.js';
+import {
+  createM5TunnelPresentation,
+  selectM5FarBackground,
+} from './visual/m5-9-tunnel.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from './visual/visual-profile.js';
 import { createM4DebugWorldSprites } from './world/m4-debug-world.js';
+import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const steeringPad = mustGet<HTMLElement>('steering-pad');
@@ -51,9 +56,13 @@ if (Math.abs(bakedGroundMap.metadata.courseLength - guide.length) > 1e-7) {
 }
 const visualProfile = new CyclicVisualProfile(guide.length, compiledSurfaces.visualSections);
 const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections);
-const farBackground = createM3FarBackground();
+const outdoorFarBackground = createM3FarBackground();
+const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
-const worldSprites = createM4DebugWorldSprites(guide, heightProfile, spriteAssets);
+const worldSprites = [
+  ...createM4DebugWorldSprites(guide, heightProfile, spriteAssets),
+  ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
+];
 const car = createM5Car(guide, heightProfile, surfaceMap, 45);
 const bike = createM5Bike(guide, heightProfile, surfaceMap, 45);
 let vehicle: M5CarState | M5BikeState = car;
@@ -100,6 +109,7 @@ const terrainProfile: TerrainVisualProfile = {
   roadRight: groundProfile.roadRight,
   height: heightProfile,
   visual: visualProfile,
+  thinSpanScreenRows: 1,
 };
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -148,9 +158,15 @@ function frame(now: number): void {
 }
 
 function render(): void {
+  const selectedBackground = selectM5FarBackground(
+    camera.s,
+    guide.length,
+    outdoorFarBackground,
+    tunnelPresentation,
+  );
   const stats = renderM5Driving(
     framebuffer,
-    farBackground,
+    selectedBackground.background,
     guide,
     camera,
     vehicle,
@@ -177,8 +193,8 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M5.7 BAKED GROUNDMAP / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
-  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
+  ctx.fillText(`M5.9 TUNNEL / PORTAL / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}`, 8, 72);
@@ -189,11 +205,12 @@ function render(): void {
     ctx.fillStyle = '#a6bac4';
   }
   ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
-  ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}`, 8, 108);
+  ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
+  ctx.fillText(`RECOVERY ${recovery.recoveries}${recovery.lastReason ? `  ${recovery.lastReason}` : ''}`, 8, 120);
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Surface Region -> baked GroundMap k0..k6 / GroundBase / SurfaceMap', 8, 218);
-  ctx.fillText(`FIXED PLAYER SCALE: 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m) / FOV changes move camera`, 8, 229);
+  ctx.fillText('Tunnel = Far Background transition + transparent portal/rib sprites in existing Painter pass', 8, 218);
+  ctx.fillText(`FIXED PLAYER SCALE: 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m) / no tunnel 3D pass`, 8, 229);
 }
 
 function formatSigned(value: number, digits = 2): string {
