@@ -26,6 +26,8 @@ export interface M5RenderResult {
   playerYawVariant: number;
   playerBankVariant: number;
   playerRelativeYaw: number;
+  groundMapMaxLevel: number;
+  groundMapBaked: boolean;
 }
 
 export function renderM5Driving(
@@ -58,13 +60,16 @@ export function renderM5Driving(
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
+  let groundMapMaxLevel = 0;
 
   mergeTerrainAndSprites(
     terrain,
     sprites,
     (line) => {
       rowCounts[line.y]! += 1;
-      terrainOutputPixels += drawTerrainLine(target, line, groundProfile);
+      const stats = drawTerrainLine(target, line, groundProfile);
+      terrainOutputPixels += stats.outputPixels;
+      groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
     },
     (sprite) => {
       const stats = drawWorldSprite(target, sprite);
@@ -105,6 +110,8 @@ export function renderM5Driving(
     playerYawVariant: selected.yawIndex,
     playerBankVariant: selected.bankIndex,
     playerRelativeYaw: relativeYaw,
+    groundMapMaxLevel,
+    groundMapBaked: groundProfile.baked !== undefined,
   };
 }
 
@@ -112,10 +119,12 @@ function drawTerrainLine(
   target: SoftwareSurface,
   line: M3TerrainLine,
   groundProfile: GroundMapProfile,
-): number {
+): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
   const rightEdge = Math.floor(line.xGroundR);
+  const baked = groundProfile.baked;
+  const groundMapLevel = baked?.selectLevel(line.sourceFootprint.deltaSEffective) ?? 0;
 
   if (line.groundBaseLeft.kind === 'color') {
     const right = Math.min(target.width - 1, leftEdge - 1);
@@ -136,7 +145,9 @@ function drawTerrainLine(
       const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        target.pixels[offset + x] = sampleGroundMap(line.s, lateral, groundProfile, cliffSection);
+        target.pixels[offset + x] = baked
+          ? baked.sampleAtLevel(line.s, lateral, groundMapLevel)
+          : sampleGroundMap(line.s, lateral, groundProfile, cliffSection);
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;
@@ -151,7 +162,7 @@ function drawTerrainLine(
     }
   }
 
-  return outputPixels;
+  return { outputPixels, groundMapLevel };
 }
 
 function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {
