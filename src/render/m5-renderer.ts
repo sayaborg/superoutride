@@ -1,7 +1,7 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { wrapAngle } from '../core/math.js';
-import type { M5CarState } from '../physics/car-physics.js';
+import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { computeForwardVisibleInterval, generateTerrainLines, type M3TerrainLine, type TerrainVisualProfile } from '../road/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
@@ -44,7 +44,7 @@ export function renderM5Driving(
   background: FarBackground,
   guide: GuideCurve,
   camera: PseudoCamera,
-  vehicle: M5CarState,
+  vehicle: VehicleRenderReadState,
   terrainProfile: TerrainVisualProfile,
   groundProfile: GroundMapProfile,
   worldSprites: readonly CourseSprite[],
