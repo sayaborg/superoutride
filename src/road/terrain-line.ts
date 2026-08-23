@@ -31,6 +31,9 @@ export interface ForwardVisibleInterval {
 
 const EPSILON = 1e-9;
 
+/** Core §64 target rule: a projected segment thinner than one destination row collapses to one row. */
+export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
+
 export function computeForwardVisibleInterval(
   guide: GuideCurve,
   cameraYaw: number,
@@ -170,6 +173,8 @@ export interface TerrainVisualProfile {
   roadRight: number;
   height: CyclicHeightProfile;
   visual: CyclicVisualProfile;
+  /** Core §64 epsilon_span in destination scanline units. Defaults to one row. */
+  thinSpanScreenRows?: number;
 }
 
 export interface TerrainLineSourceFootprint {
@@ -206,6 +211,11 @@ export function generateTerrainLines(
   const visible = computeForwardVisibleInterval(guide, camera.yaw, camera.s, profile.dMin, profile.dMax);
   if (!visible) return [];
 
+  const thinSpanScreenRows = profile.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
+  if (!(thinSpanScreenRows > 0) || !Number.isFinite(thinSpanScreenRows)) {
+    throw new RangeError('thinSpanScreenRows must be finite and > 0');
+  }
+
   const yH = horizonY(camera);
   const cosPitch = Math.cos(camera.pitch);
   const f = camera.focalLength;
@@ -234,24 +244,28 @@ export function generateTerrainLines(
     const yIntercept = heightStart.y - grade * d0;
     const aY = yH - f * grade * cosPitch;
     const bY = -f * (yIntercept - camera.y) * cosPitch;
+    const y0 = aY + bY / d0;
+    const y1 = aY + bY / d1;
+    const projectedSpanRows = projectedTerrainSpanRows(bY, d0, d1);
 
-    if (Math.abs(bY) < 1e-8) {
-      const d = (d0 + d1) * 0.5;
-      const y = Math.floor(aY);
+    if (projectedSpanRows < thinSpanScreenRows) {
+      // y is affine in u=1/d, so use the u-midpoint as the representative sample.
+      const d = 2 / (1 / d0 + 1 / d1);
+      const representativeY = (y0 + y1) * 0.5;
+      const y = Math.floor(representativeY);
       if (y >= 0 && y < profile.screenHeight) {
+        const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
         const line = createM3TerrainLine(
           guide,
           camera,
           profile,
           d,
           y,
-          { deltaS: 0, deltaSCollapse: intervalLength, collapsed: true },
+          { deltaS, deltaSCollapse: intervalLength, collapsed: true },
         );
         if (line) lines.push(line);
       }
     } else {
-      const y0 = aY + bY / d0;
-      const y1 = aY + bY / d1;
       const minY = Math.min(y0, y1);
       const maxY = Math.max(y0, y1);
       const rowStart = Math.max(0, Math.ceil(minY - 0.5 - 1e-9));
@@ -283,6 +297,15 @@ export function generateTerrainLines(
   // Core Painter order. Hills/dips may produce multiple TerrainLines on the same output row.
   lines.sort((a, b) => b.d - a.d || a.y - b.y);
   return lines;
+}
+
+/** Core §64: projected vertical span of one clipped segment in destination-row units. */
+export function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
+  if (!Number.isFinite(bY)) throw new RangeError('bY must be finite');
+  if (!(d0 > 0) || !(d1 > d0) || !Number.isFinite(d0) || !Number.isFinite(d1)) {
+    throw new RangeError('projected terrain span requires finite 0 < d0 < d1');
+  }
+  return Math.abs(bY) * Math.abs(1 / d0 - 1 / d1);
 }
 
 /**
