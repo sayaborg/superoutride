@@ -8,9 +8,10 @@ import {
 } from '../runtime/declarative-live-route.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
 import {
-  createRasterStageSuccessor,
-  type RasterSuccessorRuntimeSource,
-} from '../runtime/raster-stage-successor.js';
+  compileRasterSuccessorChain,
+  repackageGuideChartRuntime,
+} from '../runtime/raster-successor-chain.js';
+import type { RasterSuccessorRuntimeSource } from '../runtime/raster-stage-successor.js';
 import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
@@ -31,14 +32,9 @@ const THIRD_TRANSITION_LEAD = 20;
 const THIRD_FINISH_AFTER_SEAM = 150;
 
 /**
- * M6.30 live proof: extend only the selected LEFT path through one additional independently
- * generated stage. The browser loop remains unchanged; this function only supplies route/runtime
- * source data through the existing declarative compiler.
- *
- * Live topology:
- *
- * STAGE_1 -> STAGE_2_L -> STAGE_3_L -> GOAL_L
- *        \-> STAGE_2_R -------------> GOAL_R
+ * M6.30 live proof retained as the current content fixture. M6.31 removes the milestone-specific
+ * terminal-promotion / next-edge construction by delegating the deep LEFT path to the generic
+ * Raster successor-chain compiler. main.ts and the browser loop remain unchanged.
  */
 export function createM630ThirdLiveSuccessorRuntime(
   parentGuide: GuideCurve,
@@ -46,7 +42,6 @@ export function createM630ThirdLiveSuccessorRuntime(
   spriteAssets: M4SpriteAssets,
 ): LiveRouteRuntimeAssembly {
   const continuation = createM626LiveContinuation(parentGuide);
-  const thirdLeft = createThirdLeftSuccessor(continuation.leftSuccessor);
   const identity = createM621ChildVisualIdentity();
   const basePackages = createM626LiveStageRuntimePackages(
     continuation,
@@ -62,27 +57,61 @@ export function createM630ThirdLiveSuccessorRuntime(
     return found;
   };
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
-  const stage3Left = Object.freeze({
-    ...requireBase('CONTENT_GOAL_L'),
-    packageId: 'CONTENT_STAGE_3_L',
-  }) satisfies StageRuntimeContentPackage;
-  const goalLeft = compileAuthoredStageRuntimePackage({
-    packageId: 'CONTENT_GOAL_L',
-    worldFrameId: WORLD_FRAME_ID,
-    coordinateFrame: thirdLeft.chart,
-    roadView: thirdLeft.roadView,
-    surfaceMap: thirdLeft.surfaceMap,
-    groundProfile: thirdLeft.groundProfile,
-  }, authored.left);
-  const packages: readonly StageRuntimeContentPackage[] = Object.freeze([
-    requireBase('CONTENT_STAGE_1'),
-    requireBase('CONTENT_STAGE_2_L'),
-    requireBase('CONTENT_STAGE_2_R'),
-    stage3Left,
-    goalLeft,
-    requireBase('CONTENT_GOAL_R'),
+  const stage3Left = repackageGuideChartRuntime(
+    chartPackage(requireBase('CONTENT_GOAL_L')),
+    'CONTENT_STAGE_3_L',
+  );
+  const leftChain = compileRasterSuccessorChain({
+    sourceStageId: 'STAGE_3_L',
+    sourceRuntime: stage3Left,
+    sourceStructural: continuation.leftSuccessor,
+    halfWidth: ROAD_HALF_WIDTH,
+    finishGateId: 'G_LIVE_FINISH_L',
+    steps: [{
+      stageId: 'GOAL_L',
+      packageId: 'CONTENT_GOAL_L',
+      choiceId: 'S3L_CONTINUE',
+      gateId: 'G_LIVE_STAGE3_L',
+      handoffId: 'H_S3L_CONTINUE',
+      successor: {
+        id: 'LEFT_SUCCESSOR_TO_THIRD',
+        chartId: 'LEFT_THIRD_SUCCESSOR',
+        roadViewId: 'LEFT_THIRD_SUCCESSOR_VIEW',
+        surfaceSectionName: 'LEFT_THIRD_SUCCESSOR_STAGE',
+        sourceSeamMinS: THIRD_SOURCE_SEAM_MIN_S,
+        overlapMargin: THIRD_OVERLAP_MARGIN,
+        transitionLead: THIRD_TRANSITION_LEAD,
+        finishAfterSeam: THIRD_FINISH_AFTER_SEAM,
+        deformationMeters: 2.5,
+        deformationDirection: -1,
+        gentleTurnLimitDegrees: 5,
+        minDeformationRunVertices: 5,
+        dCam: CURRENT_CAMERA_DISTANCE_METERS,
+        dMax: 150,
+        finishClosureMargin: 20,
+        groundMapHalfWidth: 12,
+        groundHalfWidth: 4.5,
+        roadHalfWidth: ROAD_HALF_WIDTH,
+        shoulderWidth: 1,
+      },
+    }],
+    createRuntime: (structural, packageId) => chartPackage(compileAuthoredStageRuntimePackage({
+      packageId,
+      worldFrameId: WORLD_FRAME_ID,
+      coordinateFrame: structural.chart,
+      roadView: structural.roadView,
+      surfaceMap: structural.surfaceMap,
+      groundProfile: structural.groundProfile,
+    }, authored.left)),
+  });
+  const packages: readonly GuideChartRuntimePackage[] = Object.freeze([
+    chartPackage(requireBase('CONTENT_STAGE_1')),
+    chartPackage(requireBase('CONTENT_STAGE_2_L')),
+    chartPackage(requireBase('CONTENT_STAGE_2_R')),
+    ...leftChain.runtimes,
+    chartPackage(requireBase('CONTENT_GOAL_R')),
   ]);
-  const byPackageId = new Map(packages.map((runtime) => [runtime.packageId, chartPackage(runtime)]));
+  const byPackageId = new Map(packages.map((runtime) => [runtime.packageId, runtime]));
   const runtime = (packageId: string): GuideChartRuntimePackage => {
     const found = byPackageId.get(packageId);
     if (!found) throw new RangeError(`M6.30 missing runtime package: ${packageId}`);
@@ -95,8 +124,7 @@ export function createM630ThirdLiveSuccessorRuntime(
       { id: 'STAGE_1', kind: 'STAGE', runtime: runtime('CONTENT_STAGE_1') },
       { id: 'STAGE_2_L', kind: 'STAGE', runtime: runtime('CONTENT_STAGE_2_L') },
       { id: 'STAGE_2_R', kind: 'STAGE', runtime: runtime('CONTENT_STAGE_2_R') },
-      { id: 'STAGE_3_L', kind: 'STAGE', runtime: runtime('CONTENT_STAGE_3_L') },
-      { id: 'GOAL_L', kind: 'TERMINAL', runtime: runtime('CONTENT_GOAL_L') },
+      ...leftChain.stages,
       { id: 'GOAL_R', kind: 'TERMINAL', runtime: runtime('CONTENT_GOAL_R') },
     ],
     transitions: [
@@ -149,13 +177,7 @@ export function createM630ThirdLiveSuccessorRuntime(
         gate: sourceTransitionGeometry(continuation.leftSuccessor, 'G_LIVE_STAGE2_L'),
         handoff: sourceHandoffGeometry(continuation.leftSuccessor, 'H_S2L_CONTINUE'),
       },
-      {
-        id: 'S3L_CONTINUE',
-        fromStageId: 'STAGE_3_L',
-        toStageId: 'GOAL_L',
-        gate: sourceTransitionGeometry(thirdLeft, 'G_LIVE_STAGE3_L'),
-        handoff: sourceHandoffGeometry(thirdLeft, 'H_S3L_CONTINUE'),
-      },
+      ...leftChain.transitions,
       {
         id: 'S2R_CONTINUE',
         fromStageId: 'STAGE_2_R',
@@ -165,33 +187,9 @@ export function createM630ThirdLiveSuccessorRuntime(
       },
     ],
     finishes: [
-      { stageId: 'GOAL_L', gate: finishGeometry(thirdLeft, 'G_LIVE_FINISH_L') },
+      leftChain.finish,
       { stageId: 'GOAL_R', gate: finishGeometry(continuation.rightSuccessor, 'G_LIVE_FINISH_R') },
     ],
-  });
-}
-
-function createThirdLeftSuccessor(source: RasterSuccessorRuntimeSource): RasterSuccessorRuntimeSource {
-  return createRasterStageSuccessor(source, {
-    id: 'LEFT_SUCCESSOR_TO_THIRD',
-    chartId: 'LEFT_THIRD_SUCCESSOR',
-    roadViewId: 'LEFT_THIRD_SUCCESSOR_VIEW',
-    surfaceSectionName: 'LEFT_THIRD_SUCCESSOR_STAGE',
-    sourceSeamMinS: THIRD_SOURCE_SEAM_MIN_S,
-    overlapMargin: THIRD_OVERLAP_MARGIN,
-    transitionLead: THIRD_TRANSITION_LEAD,
-    finishAfterSeam: THIRD_FINISH_AFTER_SEAM,
-    deformationMeters: 2.5,
-    deformationDirection: -1,
-    gentleTurnLimitDegrees: 5,
-    minDeformationRunVertices: 5,
-    dCam: CURRENT_CAMERA_DISTANCE_METERS,
-    dMax: 150,
-    finishClosureMargin: 20,
-    groundMapHalfWidth: 12,
-    groundHalfWidth: 4.5,
-    roadHalfWidth: ROAD_HALF_WIDTH,
-    shoulderWidth: 1,
   });
 }
 
