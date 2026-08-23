@@ -69,7 +69,6 @@ function sampleJunctionGroundMap(
   junction: JunctionCrossSectionProfile,
   checker: number,
 ): number | null {
-  const section = junction.sample(s);
   const lateralClass = junction.classify(s, l);
 
   if (lateralClass === 'MEDIAN') return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
@@ -80,13 +79,12 @@ function sampleJunctionGroundMap(
     || lateralClass === 'ASPHALT_RIGHT'
   ) {
     if (isDashOn(s)) {
-      if (section.childCenterL === null) {
+      if (lateralClass === 'ASPHALT_SINGLE') {
         if (Math.abs(l) <= 0.07) return GROUND_COLORS.marking;
-      } else if (
-        Math.abs(l - section.childCenterL.LEFT) <= 0.07
-        || Math.abs(l - section.childCenterL.RIGHT) <= 0.07
-      ) {
-        return GROUND_COLORS.marking;
+      } else {
+        const side = lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT';
+        const center = junction.childCenterLAt(s, side);
+        if (center !== null && Math.abs(l - center) <= 0.07) return GROUND_COLORS.marking;
       }
     }
     return asphaltColor(s);
