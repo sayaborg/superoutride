@@ -8,7 +8,7 @@ import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js'
 import { selectVehicleSprite, type M4SpriteAssets } from '../visual/m4-sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from '../world/course-sprite.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
-import { drawScaledSprite } from './sprite.js';
+import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { SoftwareSurface } from './software-surface.js';
 
 export type PlayerVisualKind = 'car' | 'bike';
@@ -28,6 +28,15 @@ export interface M5RenderResult {
   playerRelativeYaw: number;
   groundMapMaxLevel: number;
   groundMapBaked: boolean;
+
+  /** M5.8 workload telemetry. Counters never alter draw/cull decisions. */
+  terrainLineCountPerScreenRowMax: number;
+  terrainOutputPixelsPerScreenRowMax: number;
+  spriteOutputSamplesIncludingPlayer: number;
+  spriteOutputSamplesPerScanlineMax: number;
+  spriteWrittenPixelsIncludingPlayer: number;
+  spriteWrittenPixelsPerScanlineMax: number;
+  groundMapLevelHistogram: readonly number[];
 }
 
 export function renderM5Driving(
@@ -56,23 +65,35 @@ export function renderM5Driving(
     ? collectVisibleCourseSprites(worldSprites, camera, visible.dStart, visible.dEnd)
     : [];
 
-  const rowCounts = new Uint16Array(target.height);
+  const terrainLinesByRow = new Uint16Array(target.height);
+  const terrainOutputByRow = new Uint32Array(target.height);
+  const spriteOutputByScanline = new Uint32Array(target.height);
+  const spriteWrittenByScanline = new Uint32Array(target.height);
+  const groundMapLevelHistogram = new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1);
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
   let groundMapMaxLevel = 0;
 
+  const spriteObserver: SpriteScanlineObserver = (screenY, outputSamples, writtenPixels) => {
+    if (screenY < 0 || screenY >= target.height) return;
+    spriteOutputByScanline[screenY]! += outputSamples;
+    spriteWrittenByScanline[screenY]! += writtenPixels;
+  };
+
   mergeTerrainAndSprites(
     terrain,
     sprites,
     (line) => {
-      rowCounts[line.y]! += 1;
+      terrainLinesByRow[line.y]! += 1;
       const stats = drawTerrainLine(target, line, groundProfile);
       terrainOutputPixels += stats.outputPixels;
+      terrainOutputByRow[line.y]! += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
+      groundMapLevelHistogram[stats.groundMapLevel]! += 1;
     },
     (sprite) => {
-      const stats = drawWorldSprite(target, sprite);
+      const stats = drawWorldSprite(target, sprite, spriteObserver);
       spriteOutputSamples += stats.outputSamples;
       spriteWrittenPixels += stats.writtenPixels;
     },
@@ -92,10 +113,22 @@ export function renderM5Driving(
     playerProjection.x,
     playerProjection.y,
     playerProjection.scale,
+    spriteObserver,
   );
 
   let overdrawRows = 0;
-  for (const count of rowCounts) if (count > 1) overdrawRows += 1;
+  let terrainLineCountPerScreenRowMax = 0;
+  let terrainOutputPixelsPerScreenRowMax = 0;
+  let spriteOutputSamplesPerScanlineMax = 0;
+  let spriteWrittenPixelsPerScanlineMax = 0;
+  for (let y = 0; y < target.height; y += 1) {
+    const terrainLines = terrainLinesByRow[y]!;
+    if (terrainLines > 1) overdrawRows += 1;
+    terrainLineCountPerScreenRowMax = Math.max(terrainLineCountPerScreenRowMax, terrainLines);
+    terrainOutputPixelsPerScreenRowMax = Math.max(terrainOutputPixelsPerScreenRowMax, terrainOutputByRow[y]!);
+    spriteOutputSamplesPerScanlineMax = Math.max(spriteOutputSamplesPerScanlineMax, spriteOutputByScanline[y]!);
+    spriteWrittenPixelsPerScanlineMax = Math.max(spriteWrittenPixelsPerScanlineMax, spriteWrittenByScanline[y]!);
+  }
 
   return {
     terrainLineCount: terrain.length,
@@ -112,6 +145,13 @@ export function renderM5Driving(
     playerRelativeYaw: relativeYaw,
     groundMapMaxLevel,
     groundMapBaked: groundProfile.baked !== undefined,
+    terrainLineCountPerScreenRowMax,
+    terrainOutputPixelsPerScreenRowMax,
+    spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
+    spriteOutputSamplesPerScanlineMax,
+    spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
+    spriteWrittenPixelsPerScanlineMax,
+    groundMapLevelHistogram: Array.from(groundMapLevelHistogram),
   };
 }
 
@@ -165,12 +205,17 @@ function drawTerrainLine(
   return { outputPixels, groundMapLevel };
 }
 
-function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {
+function drawWorldSprite(
+  target: SoftwareSurface,
+  sprite: VisibleCourseSprite,
+  scanlineObserver?: SpriteScanlineObserver,
+) {
   return drawScaledSprite(
     target,
     sprite.asset,
     sprite.projection.x,
     sprite.projection.y,
     sprite.projection.scale,
+    scanlineObserver,
   );
 }
