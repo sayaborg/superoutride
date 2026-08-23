@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.1 Bounded Continuous Race Progress
+# SUPER OUTRIDE — M6.2 Run Timing / Ranking Consumer
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -24,7 +24,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.8 Render Performance Budget Instrumentation — complete
 - M5.9 Tunnel / Portal Stress Content — complete
 - M6.0 Validated Race Progress Foundation — complete
-- **M6.1 Bounded Continuous Race Progress — complete**
+- M6.1 Bounded Continuous Race Progress — complete
+- **M6.2 Deterministic Run Timing / Ranking Consumer — complete**
 
 ## Run / test
 
@@ -45,12 +46,12 @@ npm test
 Current verified result:
 
 ```text
-123 tests
-123 pass
+131 tests
+131 pass
 0 fail
 ```
 
-See `M6_1_VALIDATION.txt` and `docs/19_m6_1_continuous_race_progress.md`.
+See `M6_2_VALIDATION.txt` and `docs/20_m6_2_run_timing_ranking.md`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
 
@@ -68,11 +69,15 @@ GitHub Pages runs the complete regression suite before deployment. Pull requests
 ```text
 Vehicle world state
     ├─> world→Guide chart ─> s_car / GeometricCoursePosition
-    ├─> ordered physical race gates ─> validated race state ─> bounded s_progress
+    ├─> ordered physical race gates
+    │       └─> validated race state
+    │               └─> bounded continuous s_progress
+    │                       ├─> run timing
+    │                       └─> ranking
     └─> camera ─> chainage pseudo renderer
 ```
 
-`GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/lap authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct lap authority.
+`GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/FINISH authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct FINISH/ranking authority.
 
 ## Renderer invariants
 
@@ -123,14 +128,14 @@ There is no arbitrary `visualScale` multiplier.
 
 GroundMap base density is derived from `d0=D_cam`. The one anisotropic pyramid uses ×2 lateral and ×4 chainage footprint per level; runtime shared level authority is `Delta_s_eff` only.
 
-M5.6 proved the current target requires and is covered by:
+M5.6 proved:
 
 ```text
 k_max = 6
 Delta_s_eff upper bound = 147.5 m
 ```
 
-M5.7 bakes the full k0..k6 GroundMap at build time. Current asset:
+M5.7 current baked asset:
 
 ```text
 course length           776.5128086698837 m
@@ -144,35 +149,9 @@ raw RGBA pyramid        71,902,320 bytes
 storage ratio           28.12%
 ```
 
-Runtime only chooses an already-prefiltered level and performs affine span sampling. No runtime anisotropic filter or 2D LOD table exists.
+Runtime only chooses an already-prefiltered level and performs affine span sampling.
 
 ## M5.8 / M5.9 renderer workload evidence
-
-Normal-content observed maxima:
-
-```text
-TerrainLine count / frame             171
-TerrainLine count / screen row          9
-terrain output samples / frame      54,720
-terrain output samples / screen row   2,880
-visible world sprites / frame           17
-sprite output samples incl player   18,364 / frame
-sprite output samples / scanline        268
-GroundMap max level used                  6
-```
-
-Tunnel/portal stress observed maxima:
-
-```text
-TerrainLine count / frame              160
-TerrainLine count / screen row           6
-terrain output samples / frame       51,200
-terrain output samples / row          1,920
-visible world sprites / frame            13
-sprite output samples incl player    83,655 / frame
-sprite output samples / scanline         605
-GroundMap max level used                   6
-```
 
 Current combined content-validation budget with 25% headroom:
 
@@ -186,40 +165,26 @@ sprite output samples max / frame 104,569
 sprite output samples max / scanline  757
 ```
 
-This is a renderer-work content-validation budget, not a CPU-cycle proof for a named historical machine. Runtime counters never gain permission to discard required TerrainLines merely because a budget is crossed.
+This is a renderer-work content-validation budget, not a CPU-cycle proof for a named historical machine.
 
 ## M5.9 tunnel / portal path
 
-The current debug tunnel occupies:
+Current debug tunnel:
 
 ```text
 player interval            s=130..180 m
 camera background interval s=125..175 m
+entry portal               s=130
+near rib A                 s=142
+near rib B                 s=168
+exit portal                s=180
 ```
 
-It uses only existing Core mechanisms:
-
-```text
-far tunnel interior   -> tunnel Far Background
-entry/exit portal     -> ordinary World Sprite
-near structural ribs -> ordinary World Sprite
-portal opening        -> 0/1 transparent aperture
-```
-
-World-sprite structures are only:
-
-```text
-s=130 entry portal
-s=142 near rib A
-s=168 near rib B
-s=180 exit portal
-```
-
-The portal is physically 12m wide. At `d=5m`, normal metric scaling produces `480×360px`, so the portal can hide the discrete Far Background transition without any special scale or tunnel projection path. There is no dedicated tunnel 3D pass.
+Far tunnel interior is Far Background. Portals/ribs are ordinary World Sprites with 0/1 transparency. The 12m portal reaches screen-filling size through the normal metric scaler; there is no dedicated tunnel 3D pass.
 
 ## M6.0 physical race authority
 
-Current DEV race sequence:
+Current closed DEV validation sequence:
 
 ```text
 CP1    L/4
@@ -228,18 +193,9 @@ CP3    3L/4
 FINISH 0
 ```
 
-Each checkpoint is a physical transverse world-space gate compiled from the Guide center/tangent/right-normal at its chainage. Gate half-width reuses the existing Guide `lMax` envelope.
+A gate is accepted only when actual world movement physically crosses it inside the lateral envelope, in the forward direction, and in the required authored order. Recovery/teleport cannot award gates.
 
-A checkpoint is accepted only when:
-
-```text
-actual world movement crosses gate
-+ crossing is inside lateral envelope
-+ crossing is forward
-+ gate is the next authored checkpoint
-```
-
-Thus reverse crossing does not validate, out-of-order crossing is a shortcut violation, lap advances only after CP1→CP2→CP3→FINISH, and recovery/teleport cannot award gates.
+The closed DEV course is a test bed. Its repeated FINISH crossing must not be interpreted as a product requirement for lap-race gameplay.
 
 ## M6.1 bounded continuous s_progress
 
@@ -250,65 +206,62 @@ validatedProgressFloor = last physically accepted gate
 sProgress              = continuous ranking progress
 ```
 
-The legal ranking window is always:
+Always:
 
 ```text
 validatedProgressFloor <= sProgress <= nextRequiredGateProgress
 ```
 
-Raw cyclic chainage delta may interpolate only inside this window, and only when its sign agrees with actual world motion direction. Therefore:
+Raw cyclic chainage can interpolate only inside this validated window and only when its sign agrees with actual world motion. It cannot independently cross a checkpoint/FINISH boundary.
 
-- ordinary forward driving produces smooth ranking progress;
-- reverse driving can reduce progress only down to the last validated gate;
-- a stationary world position cannot gain progress from a projection jump;
-- an invalid shortcut can at most saturate at the next gate ceiling;
-- crossing a checkpoint/lap boundary still requires the M6.0 physical gate.
+## M6.2 deterministic run timing / ranking
 
-At a valid gate crossing, only the post-intersection fraction of the current physics tick is carried into the newly opened sector, avoiding a one-tick ranking stall without weakening gate authority.
-
-The runtime HUD exposes:
+Timing authority is fixed simulation time:
 
 ```text
-RACE = continuous validated ranking progress
-WIN  = current legal floor..ceiling
-GEO  = raw geometric local chainage
+elapsedSeconds += SIM_DT
 ```
 
-## Primary M5.4–M6.1 files
+Browser wall-clock and animation timestamps are not gameplay timing authority. Recovery consumes time and cannot produce false gate/FINISH records.
+
+Only accepted physical gates create timing records. The current closed DEV FINISH produces a generic **course-boundary** interval record so the same consumer can later support point-to-point/branching gameplay without embedding lap semantics.
+
+Active ranking consumes only:
 
 ```text
-src/compiler/ground-map-lod.ts
-src/compiler/ground-map-prefilter.ts
-src/compiler/terrain-footprint-analysis.ts
-src/compiler/ground-map-target-envelope.ts
-src/compiler/ground-map-asset-compiler.ts
-src/compiler/render-budget.ts
-src/visual/baked-ground-map.ts
-src/visual/m5-9-tunnel.ts
-src/world/m5-9-tunnel-world.ts
-src/render/rgb555.ts
-src/render/sprite.ts
-src/render/m5-renderer.ts
-src/road/terrain-line.ts
+sProgress
+validatedProgressFloor
+```
+
+Ordering is:
+
+```text
+1. larger sProgress
+2. if equal, larger validatedProgressFloor
+3. exact equality = true tie
+```
+
+This ensures a vehicle that has actually validated a gate ranks ahead of one merely saturated at the same unvalidated ceiling. Raw `sLocal`, world distance, screen position, and arbitrary competitor IDs are not ranking tie-breakers.
+
+Runtime HUD now includes deterministic `TIME`, validated boundary count, and best boundary interval.
+
+## Primary M6 files
+
+```text
 src/gameplay/race-progress.ts
-tools/build-ground-map.mjs
-tests/m5-4-ground-map-lod.test.mjs
-tests/m5-5-terrain-footprint.test.mjs
-tests/m5-6-target-kmax.test.mjs
-tests/m5-7-baked-groundmap.test.mjs
-tests/m5-8-performance-budget.test.mjs
-tests/m5-9-tunnel-portal.test.mjs
+src/gameplay/race-session.ts
 tests/m6-race-progress.test.mjs
+tests/m6-2-race-session.test.mjs
 docs/18_m6_0_race_progress.md
 docs/19_m6_1_continuous_race_progress.md
+docs/20_m6_2_run_timing_ranking.md
 M6_0_VALIDATION.txt
 M6_1_VALIDATION.txt
+M6_2_VALIDATION.txt
 ```
 
 ## Next
 
-**M6.2 — race session timing and ranking consumer layer.**
+**M6.3 — moving competitor/rival gameplay foundation.**
 
-The next gameplay layer should consume `sProgress` rather than reconstructing progress from raw geometry. Lap timing must trigger from validated FINISH events. Ranking must compare validated continuous race progress and never bypass the ordered physical gate sequence.
-
-Do not add renderer complexity to implement gameplay state.
+Each moving vehicle should keep its own world physics, Guide chart coordinate and validated progress. Shared ranking should consume those validated progress states. Any visible rival should enter the existing World Sprite / Painter path rather than introducing a separate 3D vehicle renderer.
