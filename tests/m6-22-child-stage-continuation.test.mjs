@@ -232,17 +232,17 @@ test('M6.22 physical route choice commits an independent child chart and finishe
   assert.equal(routeState.status, 'FINISHED');
 });
 
-test('M6.22 fixture stays validated while browser live wiring advances to M6.26 successor stages', async () => {
+test('M6.22 fixture stays validated while browser live wiring consumes the M6.27 route assembly', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(mainSource, /createM626LiveContinuation/);
-  assert.match(mainSource, /createM626LiveGateSet/);
-  assert.match(mainSource, /createM626LiveStageRuntimeRegistry/);
+  assert.match(mainSource, /createM627LiveRouteRuntime/);
+  assert.match(mainSource, /const guideCharts = liveRoute\.charts/);
   assert.match(mainSource, /camera\.courseLength/);
-  assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet/);
-  assert.doesNotMatch(rendererSource, /M6_22|M6_26|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
+  assert.doesNotMatch(mainSource, /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
+  assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet|createM622ChildStageContinuation/);
+  assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
 });
