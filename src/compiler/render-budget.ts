@@ -32,6 +32,43 @@ export interface RenderBudgetViolation {
   readonly limit: number;
 }
 
+/**
+ * M5.8 debug-content baseline measured by the 70-frame compiler stress sweep.
+ * This is evidence for the provisional target below, not a runtime threshold.
+ */
+export const M5_8_DEBUG_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = {
+  frameCount: 70,
+  maxTerrainLineCount: 171,
+  maxTerrainLineCountPerScreenRow: 9,
+  maxTerrainOutputPixelsPerFrame: 54720,
+  maxTerrainOutputPixelsPerScreenRow: 2880,
+  maxVisibleSpriteCount: 17,
+  maxSpriteOutputSamplesPerFrame: 18364,
+  maxSpriteOutputSamplesPerScanline: 268,
+  maxSpriteWrittenPixelsPerFrame: 12938,
+  maxSpriteWrittenPixelsPerScanline: 268,
+  maxGroundMapLevelUsed: 6,
+  groundMapLevelLineCounts: [3437, 3436, 1755, 979, 546, 173, 18],
+};
+
+/**
+ * Explicit current-debug-content margin. Tunnel/portal stress content is not present yet,
+ * so this is deliberately provisional rather than the final hardware budget.
+ */
+export const M5_8_DEBUG_HEADROOM_FACTOR = 1.25;
+
+/** Exactly ceil(M5_8_DEBUG_OBSERVED_BASELINE × 1.25) for each Core budget metric. */
+export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
+  headroomFactor: M5_8_DEBUG_HEADROOM_FACTOR,
+  terrainLineCountMax: 214,
+  terrainLineCountPerScreenRowMax: 12,
+  terrainOutputPixelsPerFrameMax: 68400,
+  terrainOutputPixelsPerScreenRowMax: 3600,
+  visibleSpriteCountMax: 22,
+  spriteOutputSamplesPerFrameMax: 22955,
+  spriteOutputSamplesPerScanlineMax: 335,
+};
+
 /** Pure compiler/content telemetry reduction. It never changes runtime rendering. */
 export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): RenderWorkloadEnvelope {
   let maxTerrainLineCount = 0;
