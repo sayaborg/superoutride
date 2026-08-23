@@ -4,6 +4,9 @@ import test from 'node:test';
 
 import {
   deriveProvisionalRenderBudget,
+  M5_8_DEBUG_HEADROOM_FACTOR,
+  M5_8_DEBUG_OBSERVED_BASELINE,
+  M5_8_DEBUG_TARGET_BUDGET,
   summarizeRenderWorkloads,
   validateRenderWorkload,
 } from '../dist/compiler/render-budget.js';
@@ -112,6 +115,18 @@ function renderProbe(s, l, yawOffset) {
   );
 }
 
+function currentStressSweep() {
+  const samples = [];
+  const yawOffsets = [deg(-60), 0, deg(60)];
+  for (let s = 10; s < guide.length; s += 40) {
+    for (const yawOffset of yawOffsets) samples.push(renderProbe(s, 0, yawOffset));
+  }
+  for (const s of [470, 510, 550, 590, 620]) {
+    samples.push(renderProbe(s, -5, 0), renderProbe(s, 5, 0));
+  }
+  return summarizeRenderWorkloads(samples);
+}
+
 test('sprite scanline observer accounts exactly for the blitter work it observes', () => {
   const target = new SoftwareSurface(320, 240);
   const perLineSamples = new Uint32Array(240);
@@ -135,37 +150,26 @@ test('M5 renderer workload telemetry is internally consistent and does not drop 
   assert.ok(stats.spriteOutputSamplesPerScanlineMax <= stats.spriteOutputSamplesIncludingPlayer);
 });
 
-test('current debug content sweep reports actual terrain/sprite frame and scanline workload maxima', () => {
-  const samples = [];
-  const yawOffsets = [deg(-60), 0, deg(60)];
-  for (let s = 10; s < guide.length; s += 40) {
-    for (const yawOffset of yawOffsets) samples.push(renderProbe(s, 0, yawOffset));
-  }
-  // Add lateral road-edge probes around the dense cliff/rail region.
-  for (const s of [470, 510, 550, 590, 620]) {
-    samples.push(renderProbe(s, -5, 0), renderProbe(s, 5, 0));
-  }
-  const observed = summarizeRenderWorkloads(samples);
+test('current debug content sweep remains inside the explicit M5.8 provisional target budget', () => {
+  const observed = currentStressSweep();
   assert.ok(observed.frameCount >= 60);
-  assert.ok(observed.maxTerrainLineCount > 100);
-  assert.ok(observed.maxTerrainOutputPixelsPerFrame > 320 * 100);
-  assert.ok(observed.maxTerrainOutputPixelsPerScreenRow >= 320);
-  assert.ok(observed.maxSpriteOutputSamplesPerFrame > 0);
-  assert.ok(observed.maxSpriteOutputSamplesPerScanline > 0);
   assert.equal(observed.maxGroundMapLevelUsed, 6);
+  assert.deepEqual(validateRenderWorkload(observed, M5_8_DEBUG_TARGET_BUDGET), []);
   console.log('M5.8 OBSERVED RENDER WORKLOAD', JSON.stringify(observed));
+  console.log('M5.8 PROVISIONAL DEBUG BUDGET', JSON.stringify(M5_8_DEBUG_TARGET_BUDGET));
 });
 
-test('provisional budget derivation exposes one explicit headroom factor and validator reports real violations', () => {
-  const observed = summarizeRenderWorkloads([
-    renderProbe(510, 0, 0),
-    renderProbe(590, 0, deg(40)),
-  ]);
-  const budget = deriveProvisionalRenderBudget(observed, 1.25);
-  assert.equal(budget.headroomFactor, 1.25);
-  assert.deepEqual(validateRenderWorkload(observed, budget), []);
-  const tooSmall = { ...budget, terrainOutputPixelsPerFrameMax: observed.maxTerrainOutputPixelsPerFrame - 1 };
-  const violations = validateRenderWorkload(observed, tooSmall);
+test('M5.8 provisional budget is mechanically derived from the recorded baseline and one explicit 25% margin', () => {
+  assert.equal(M5_8_DEBUG_HEADROOM_FACTOR, 1.25);
+  assert.deepEqual(
+    deriveProvisionalRenderBudget(M5_8_DEBUG_OBSERVED_BASELINE, M5_8_DEBUG_HEADROOM_FACTOR),
+    M5_8_DEBUG_TARGET_BUDGET,
+  );
+  const tooSmall = {
+    ...M5_8_DEBUG_TARGET_BUDGET,
+    terrainOutputPixelsPerFrameMax: M5_8_DEBUG_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame - 1,
+  };
+  const violations = validateRenderWorkload(M5_8_DEBUG_OBSERVED_BASELINE, tooSmall);
   assert.equal(violations.length, 1);
   assert.equal(violations[0].metric, 'terrainOutputPixelsPerFrameMax');
 });
