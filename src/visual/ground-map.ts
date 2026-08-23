@@ -1,5 +1,6 @@
 import type { CyclicGroundMapLogicalProfile, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
 import { rgba } from '../render/software-surface.js';
+import type { BakedGroundMapAsset, BakedGroundMapSample } from './baked-ground-map.js';
 
 export const GROUND_COLORS = {
   grassA: rgba(45, 100, 53),
@@ -20,8 +21,25 @@ export interface GroundMapProfile {
   shoulderWidth: number;
   /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
   logical?: CyclicGroundMapLogicalProfile;
+  /** M5.7 compiler-baked runtime source. Procedural sampling remains a DEV/test fallback. */
+  baked?: BakedGroundMapAsset;
 }
 
+export function sampleGroundMapRuntime(
+  s: number,
+  l: number,
+  deltaSEffective: number,
+  profile: GroundMapProfile,
+  cliffSection = false,
+): BakedGroundMapSample {
+  if (profile.baked) return profile.baked.sample(s, l, deltaSEffective);
+  return {
+    color: sampleGroundMap(s, l, profile, cliffSection),
+    level: 0,
+  };
+}
+
+/** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
   const abs = Math.abs(l);
   if (abs <= 0.07 && ((s % 12) + 12) % 12 < 7) return GROUND_COLORS.marking;
