@@ -16,10 +16,13 @@ export type PlayerVisualKind = 'car' | 'bike';
 export interface M5RenderResult {
   terrainLineCount: number;
   terrainOutputPixels: number;
+  terrainLinesMaxPerRow: number;
+  terrainOutputPixelsMaxPerRow: number;
   overdrawRows: number;
   visibleSpriteCount: number;
   spriteOutputSamples: number;
   spriteWrittenPixels: number;
+  spriteOutputSamplesMaxPerScanline: number;
   playerOutputSamples: number;
   playerWrittenPixels: number;
   activeSection: string;
@@ -28,6 +31,10 @@ export interface M5RenderResult {
   playerRelativeYaw: number;
   groundMapMaxLevel: number;
   groundMapBaked: boolean;
+  /** TerrainLine count by selected GroundMap level. */
+  groundMapLevelLineCounts: readonly number[];
+  /** Actual terrain GroundMap/GroundBase output samples attributed to each selected level. */
+  groundMapLevelOutputPixels: readonly number[];
 }
 
 export function renderM5Driving(
@@ -56,7 +63,12 @@ export function renderM5Driving(
     ? collectVisibleCourseSprites(worldSprites, camera, visible.dStart, visible.dEnd)
     : [];
 
-  const rowCounts = new Uint16Array(target.height);
+  const terrainLineCountsByRow = new Uint16Array(target.height);
+  const terrainOutputByRow = new Uint32Array(target.height);
+  const spriteOutputByScanline = new Uint32Array(target.height);
+  const levelCount = (groundProfile.baked?.kMax ?? 0) + 1;
+  const groundMapLevelLineCounts = new Array<number>(levelCount).fill(0);
+  const groundMapLevelOutputPixels = new Array<number>(levelCount).fill(0);
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
@@ -66,13 +78,16 @@ export function renderM5Driving(
     terrain,
     sprites,
     (line) => {
-      rowCounts[line.y]! += 1;
+      terrainLineCountsByRow[line.y]! += 1;
       const stats = drawTerrainLine(target, line, groundProfile);
       terrainOutputPixels += stats.outputPixels;
+      terrainOutputByRow[line.y]! += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
+      groundMapLevelLineCounts[stats.groundMapLevel] = (groundMapLevelLineCounts[stats.groundMapLevel] ?? 0) + 1;
+      groundMapLevelOutputPixels[stats.groundMapLevel] = (groundMapLevelOutputPixels[stats.groundMapLevel] ?? 0) + stats.outputPixels;
     },
     (sprite) => {
-      const stats = drawWorldSprite(target, sprite);
+      const stats = drawWorldSprite(target, sprite, spriteOutputByScanline);
       spriteOutputSamples += stats.outputSamples;
       spriteWrittenPixels += stats.writtenPixels;
     },
@@ -92,18 +107,31 @@ export function renderM5Driving(
     playerProjection.x,
     playerProjection.y,
     playerProjection.scale,
+    { outputSamplesPerScanline: spriteOutputByScanline },
   );
 
   let overdrawRows = 0;
-  for (const count of rowCounts) if (count > 1) overdrawRows += 1;
+  let terrainLinesMaxPerRow = 0;
+  let terrainOutputPixelsMaxPerRow = 0;
+  let spriteOutputSamplesMaxPerScanline = 0;
+  for (let y = 0; y < target.height; y += 1) {
+    const lineCount = terrainLineCountsByRow[y]!;
+    if (lineCount > 1) overdrawRows += 1;
+    terrainLinesMaxPerRow = Math.max(terrainLinesMaxPerRow, lineCount);
+    terrainOutputPixelsMaxPerRow = Math.max(terrainOutputPixelsMaxPerRow, terrainOutputByRow[y]!);
+    spriteOutputSamplesMaxPerScanline = Math.max(spriteOutputSamplesMaxPerScanline, spriteOutputByScanline[y]!);
+  }
 
   return {
     terrainLineCount: terrain.length,
     terrainOutputPixels,
+    terrainLinesMaxPerRow,
+    terrainOutputPixelsMaxPerRow,
     overdrawRows,
     visibleSpriteCount: sprites.length,
     spriteOutputSamples,
     spriteWrittenPixels,
+    spriteOutputSamplesMaxPerScanline,
     playerOutputSamples: playerStats.outputSamples,
     playerWrittenPixels: playerStats.writtenPixels,
     activeSection: terrainProfile.visual.sample(vehicle.course.s).name,
@@ -112,6 +140,8 @@ export function renderM5Driving(
     playerRelativeYaw: relativeYaw,
     groundMapMaxLevel,
     groundMapBaked: groundProfile.baked !== undefined,
+    groundMapLevelLineCounts,
+    groundMapLevelOutputPixels,
   };
 }
 
@@ -125,6 +155,7 @@ function drawTerrainLine(
   const rightEdge = Math.floor(line.xGroundR);
   const baked = groundProfile.baked;
   const groundMapLevel = baked?.selectLevel(line.sourceFootprint.deltaSEffective) ?? 0;
+  const preparedRow = baked?.prepareRow(line.s, groundMapLevel);
 
   if (line.groundBaseLeft.kind === 'color') {
     const right = Math.min(target.width - 1, leftEdge - 1);
@@ -144,11 +175,17 @@ function drawTerrainLine(
       const lateralStep = (groundProfile.groundLeft + groundProfile.groundRight) / dx;
       const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
+      let sourceColumn = preparedRow ? baked!.lateralToSourceColumn(groundMapLevel, lateral) : 0;
+      const sourceColumnStep = preparedRow
+        ? (lateralStep / (groundProfile.groundLeft + groundProfile.groundRight)) * preparedRow.lateralTexels
+        : 0;
+
       for (let x = x0; x <= x1; x += 1) {
-        target.pixels[offset + x] = baked
-          ? baked.sampleAtLevel(line.s, lateral, groundMapLevel)
+        target.pixels[offset + x] = preparedRow
+          ? baked!.samplePreparedColumn(preparedRow, sourceColumn)
           : sampleGroundMap(line.s, lateral, groundProfile, cliffSection);
         lateral += lateralStep;
+        sourceColumn += sourceColumnStep;
       }
       outputPixels += x1 - x0 + 1;
     }
@@ -165,12 +202,13 @@ function drawTerrainLine(
   return { outputPixels, groundMapLevel };
 }
 
-function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {
+function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite, outputSamplesPerScanline: Uint32Array) {
   return drawScaledSprite(
     target,
     sprite.asset,
     sprite.projection.x,
     sprite.projection.y,
     sprite.projection.scale,
+    { outputSamplesPerScanline },
   );
 }
