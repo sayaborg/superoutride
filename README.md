@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.27 Live Route Runtime Assembly
+# SUPER OUTRIDE — M6.28 Declarative Live Route Compilation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -50,7 +50,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.24 Reusable Stage Authoring / Compiler — complete
 - M6.25 Successor Stage Continuation Link — complete
 - M6.26 Live Child → Successor Stage — complete
-- **M6.27 Live Route Runtime Assembly — complete**
+- M6.27 Live Route Runtime Assembly — complete
+- **M6.28 Declarative Live Route Compilation — complete**
 
 ## Run / test
 
@@ -68,7 +69,7 @@ Full regression:
 npm test
 ```
 
-M6.27 adds five dedicated regressions to the M6.26 264-test suite, for a target of **269 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.28 adds five dedicated regressions to the M6.27 269-test suite, for a target of **274 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -203,7 +204,7 @@ M6.26 deliberately does **not** relax this constraint. The final construction re
 
 ## M6.27 live route runtime assembly
 
-`main.ts` no longer constructs the current M6.26 route pieces individually. It consumes one validated `LiveRouteRuntimeAssembly` containing:
+`main.ts` consumes one validated `LiveRouteRuntimeAssembly` containing:
 
 ```text
 route
@@ -215,11 +216,39 @@ registry
 initialChart
 ```
 
-The generic assembly compiler validates the cross-layer relationships before simulation begins. For each route choice, its target stage must resolve through the content binding and runtime package to the **exact same GuideChart object** named by the handoff seam. The start package must use the declared initial chart, every route choice must have a physical TRANSITION gate, every terminal stage must have a physical FINISH gate, and all charts must be reachable.
+The assembly compiler validates route/content/chart/runtime identity before simulation starts. The browser simulation loop performs the same generic physical-gate → PENDING → seam COMMIT transaction regardless of route topology.
 
-This layer imports no renderer, camera, car physics, motorcycle physics, or M6.26 milestone implementation. Current-route-specific construction is isolated in `createM627LiveRouteRuntime()`.
+## M6.28 declarative live route
 
-The browser simulation loop still performs the same generic physical-gate → PENDING → seam COMMIT transaction; M6.27 changes assembly, not runtime driving semantics.
+The current route is now authored as stage, transition and finish rows. A stage owns its complete runtime package; a transition owns only its topology and physical gate/seam geometry; a terminal finish owns only its physical FINISH geometry.
+
+The generic compiler derives references that previously had to be repeated:
+
+```text
+Route choiceId        = transition.id
+handoff targetChartId = target stage runtime.coordinateFrame.id
+content packageId     = stage.runtime.packageId
+chart set             = unique stage runtime GuideChart objects
+initialChart          = start stage runtime coordinateFrame
+```
+
+Compilation still flows through the established validators:
+
+```text
+DeclarativeLiveRouteAuthoring
+→ RouteDag
+→ RouteStageContentManifest
+→ StageRuntimeContentRegistry
+→ physical RouteBoundaryGateSet
+→ RouteStageHandoffManifest
+→ LiveRouteRuntimeAssembly
+```
+
+M6.28 therefore reduces duplicated route authoring without weakening any lower-level check. The regression suite directly compares every current physical TRANSITION gate and handoff seam against the M6.26 compiled world geometry, including X/Z, heading and width.
+
+`main.ts` remains stable and still calls `createM627LiveRouteRuntime()`. That stable entry now delegates to M6.28 declarative authoring, so current route construction can evolve without adding topology-specific logic to the browser loop.
+
+The generic declarative compiler imports no renderer, camera, car physics, motorcycle physics, or milestone implementation.
 
 ## FINISH authority
 
@@ -248,18 +277,20 @@ src/runtime/stage-runtime-content.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
 src/runtime/live-route-runtime.ts
+src/runtime/declarative-live-route.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
 src/dev/m6-26-live-successor-stage.ts
 src/dev/m6-26-live-runtime-content.ts
 src/dev/m6-27-live-route-runtime.ts
+src/dev/m6-28-declarative-live-route.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/45_m6_27_live_route_runtime_assembly.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/46_m6_28_declarative_live_route.md`.
 
 ## Next
 
-`main.ts` is now insulated from the current route topology, but `createM627LiveRouteRuntime()` still explicitly invokes M6.26-specific constructors. The next architectural step is to make the route/stage sequence itself declarative enough for a generic compiler to assemble longer point-to-point routes without adding milestone-specific construction calls, while preserving world-space physics and the frozen raster pseudo-3D renderer unchanged.
+The graph is declarative, but independent stage geometry/runtime packages are still produced by M6.26-specific continuation helpers. The next architectural step is to generalize stage-continuation and package construction so another route depth can be added primarily by supplying stage geometry/content plus declarative rows, without introducing another topology-specific constructor. World-space overlap validation and the frozen raster renderer must remain unchanged.
