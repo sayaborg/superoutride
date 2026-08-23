@@ -4,11 +4,13 @@ import {
   type GuideCurve,
 } from '../core/guide-curve.js';
 import {
+  clamp,
   dot,
   normalFromHeading,
   subtract,
   tangentFromHeading,
   wrapPositive,
+  wrapSigned,
   type Vec2,
 } from '../core/math.js';
 
@@ -55,9 +57,17 @@ export interface RaceCourseRules {
   readonly gates: readonly RaceGate[];
 }
 
+export interface RaceProgressWindow {
+  readonly floor: number;
+  readonly ceiling: number;
+}
+
 export interface RaceProgressState {
   lapIndex: number;
   nextGateIndex: number;
+  /** Last physically validated checkpoint/finish progress. Never moves from raw s alone. */
+  validatedProgressFloor: number;
+  /** Continuous ranking progress, strictly bounded by the current validated sector. */
   sProgress: number;
   direction: RaceMotionDirection;
   acceptedGateCount: number;
@@ -71,6 +81,7 @@ export interface RaceProgressUpdate {
   readonly event: RaceProgressEvent;
   readonly acceptedGate: RaceGate | null;
   readonly direction: RaceMotionDirection;
+  readonly window: RaceProgressWindow;
 }
 
 interface GateCrossing {
@@ -165,28 +176,57 @@ export function createRaceProgressState(
   rules: RaceCourseRules,
   initial: RaceProgressSample,
 ): RaceProgressState {
+  const normalized = normalizeSample(initial, rules.courseLength);
+  const firstGate = rules.gates[0];
+  if (!firstGate) throw new Error('race rules require at least the finish gate');
+  const firstCeiling = firstGate.kind === 'finish' ? rules.courseLength : firstGate.s;
+  // The initial spawn may be placed inside sector 0 (the current DEV spawn is s=45m).
+  // Only that first validated sector is eligible for initialization from geometric s.
+  const initialProgress = normalized.sLocal <= firstCeiling ? normalized.sLocal : 0;
   return {
     lapIndex: 0,
     nextGateIndex: 0,
-    sProgress: 0,
+    validatedProgressFloor: 0,
+    sProgress: initialProgress,
     direction: 'STATIONARY',
     acceptedGateCount: 0,
     reverseCrossingCount: 0,
     shortcutViolationCount: 0,
     lastEvent: 'NONE',
-    previous: normalizeSample(initial, rules.courseLength),
+    previous: normalized,
   };
+}
+
+/** Current legal continuous ranking interval established by accepted physical gates. */
+export function getRaceProgressWindow(
+  state: RaceProgressState,
+  rules: RaceCourseRules,
+): RaceProgressWindow {
+  const nextGate = rules.gates[state.nextGateIndex];
+  if (!nextGate) throw new Error('next race gate is missing');
+  const ceiling = nextGate.kind === 'finish'
+    ? (state.lapIndex + 1) * rules.courseLength
+    : state.lapIndex * rules.courseLength + nextGate.s;
+  if (ceiling + CROSSING_EPSILON < state.validatedProgressFloor) {
+    throw new Error('race progress window is inverted');
+  }
+  return { floor: state.validatedProgressFloor, ceiling };
 }
 
 /**
  * Validate race progress from the actual world movement segment.
  *
+ * Gate authority:
  * - only physical gate crossings count;
  * - gates must be crossed in authored order;
- * - reverse crossings never award progress;
- * - at most one forward gate can be accepted per physics update, so a teleport cannot
- *   validate several checkpoints/laps in one step;
- * - sProgress is updated only by accepted race gates, never directly from raw s_car.
+ * - reverse crossings never validate a gate;
+ * - at most one forward gate can be accepted per physics update.
+ *
+ * Continuous M6.1 ranking:
+ * - raw chainage contributes only a frame-to-frame interpolation delta;
+ * - the delta sign must agree with actual world motion direction;
+ * - interpolation is clamped to [last validated gate, next required gate];
+ * - therefore raw s_car can never cross a checkpoint/lap boundary by itself.
  */
 export function updateRaceProgress(
   state: RaceProgressState,
@@ -194,7 +234,11 @@ export function updateRaceProgress(
   currentSample: RaceProgressSample,
 ): RaceProgressUpdate {
   const current = normalizeSample(currentSample, rules.courseLength);
+  const rawDeltaS = wrapSigned(current.sLocal - state.previous.sLocal, rules.courseLength);
   state.direction = classifyMotionDirection(rules.guide, state.previous, current);
+  const interpolationDelta = state.direction === 'FORWARD'
+    ? Math.max(0, rawDeltaS)
+    : state.direction === 'REVERSE' ? Math.min(0, rawDeltaS) : 0;
   state.lastEvent = 'NONE';
 
   const crossings = rules.gates
@@ -202,7 +246,7 @@ export function updateRaceProgress(
     .filter((crossing): crossing is GateCrossing => crossing !== null)
     .sort((a, b) => a.u - b.u);
 
-  let acceptedGate: RaceGate | null = null;
+  let acceptedCrossing: GateCrossing | null = null;
   let forwardCrossingSeen = false;
 
   for (const crossing of crossings) {
@@ -225,29 +269,40 @@ export function updateRaceProgress(
       continue;
     }
 
-    acceptedGate = crossing.gate;
+    acceptedCrossing = crossing;
     state.acceptedGateCount += 1;
     if (crossing.gate.kind === 'finish') {
       state.lapIndex += 1;
       state.nextGateIndex = 0;
-      state.sProgress = state.lapIndex * rules.courseLength;
+      state.validatedProgressFloor = state.lapIndex * rules.courseLength;
       state.lastEvent = 'LAP';
     } else {
+      state.validatedProgressFloor = state.lapIndex * rules.courseLength + crossing.gate.s;
       state.nextGateIndex += 1;
-      state.sProgress = state.lapIndex * rules.courseLength + crossing.gate.s;
       state.lastEvent = 'CHECKPOINT';
     }
+  }
+
+  const window = getRaceProgressWindow(state, rules);
+  if (acceptedCrossing) {
+    // Preserve the fraction of this physics step that occurred after the accepted gate.
+    // This prevents a permanent one-tick ranking lag while keeping the new sector bounded.
+    const residual = Math.max(0, interpolationDelta * (1 - acceptedCrossing.u));
+    state.sProgress = clamp(state.validatedProgressFloor + residual, window.floor, window.ceiling);
+  } else {
+    state.sProgress = clamp(state.sProgress + interpolationDelta, window.floor, window.ceiling);
   }
 
   state.previous = current;
   return {
     event: state.lastEvent,
-    acceptedGate,
+    acceptedGate: acceptedCrossing?.gate ?? null,
     direction: state.direction,
+    window,
   };
 }
 
-/** Recovery/teleport is an observation reset only; it cannot award race progress. */
+/** Recovery/teleport is an observation reset only; it cannot award or move race progress. */
 export function resyncRaceProgressPosition(
   state: RaceProgressState,
   rules: RaceCourseRules,
