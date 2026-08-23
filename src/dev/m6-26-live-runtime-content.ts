@@ -25,12 +25,36 @@ export function createM626LiveStageRuntimeRegistry(
   spriteAssets: M4SpriteAssets,
   identity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
 ): StageRuntimeContentRegistry {
+  return compileStageRuntimeContentRegistry(
+    manifest,
+    createM626LiveStageRuntimePackages(
+      continuation,
+      parent,
+      spriteAssets,
+      manifest.worldFrameId,
+      identity,
+    ),
+  );
+}
+
+/**
+ * Expose the complete package objects before route/content binding compilation.
+ * M6.28 uses these as stage-owned values in declarative route authoring; legacy M6.26 registry
+ * construction remains a thin wrapper around the same package source.
+ */
+export function createM626LiveStageRuntimePackages(
+  continuation: M626LiveContinuation,
+  parent: M620SharedRuntimeContent,
+  spriteAssets: M4SpriteAssets,
+  worldFrameId: string,
+  identity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
+): readonly StageRuntimeContentPackage[] {
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
-  return compileStageRuntimeContentRegistry(manifest, [
-    parentPackage(manifest, continuation, parent),
+  return Object.freeze([
+    parentPackage(worldFrameId, continuation, parent),
     compileAuthoredStageRuntimePackage({
       packageId: 'CONTENT_STAGE_2_L',
-      worldFrameId: manifest.worldFrameId,
+      worldFrameId,
       coordinateFrame: continuation.base.left.chart,
       roadView: continuation.base.left.roadView,
       surfaceMap: continuation.base.left.surfaceMap,
@@ -38,14 +62,14 @@ export function createM626LiveStageRuntimeRegistry(
     }, authored.left),
     compileAuthoredStageRuntimePackage({
       packageId: 'CONTENT_STAGE_2_R',
-      worldFrameId: manifest.worldFrameId,
+      worldFrameId,
       coordinateFrame: continuation.base.right.chart,
       roadView: continuation.base.right.roadView,
       surfaceMap: continuation.base.right.surfaceMap,
       groundProfile: continuation.base.right.groundProfile,
     }, authored.right),
-    successorPackage('CONTENT_GOAL_L', continuation.leftSuccessor, manifest.worldFrameId, authored.left),
-    successorPackage('CONTENT_GOAL_R', continuation.rightSuccessor, manifest.worldFrameId, authored.right),
+    successorPackage('CONTENT_GOAL_L', continuation.leftSuccessor, worldFrameId, authored.left),
+    successorPackage('CONTENT_GOAL_R', continuation.rightSuccessor, worldFrameId, authored.right),
   ]);
 }
 
@@ -66,13 +90,13 @@ function successorPackage(
 }
 
 function parentPackage(
-  manifest: RouteStageContentManifest,
+  worldFrameId: string,
   continuation: M626LiveContinuation,
   parent: M620SharedRuntimeContent,
 ): StageRuntimeContentPackage {
   return {
     packageId: 'CONTENT_STAGE_1',
-    worldFrameId: manifest.worldFrameId,
+    worldFrameId,
     coordinateFrame: continuation.base.charts.parent,
     roadView: null,
     surfaceMap: parent.surfaceMap,
