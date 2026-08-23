@@ -106,7 +106,7 @@ test('M6.33 extends RIGHT through M6.31 chain + M6.32 fragments without renderer
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(liveSource, /compileRasterSuccessorChain/);
-  assert.match(liveSource, /compileDeclarativeRouteFragments/);
+  assert.match(liveSource, /composeDeclarativeLiveRouteAuthoring/);
   assert.match(liveSource, /sourceStageId: 'STAGE_3_R'/);
   assert.match(liveSource, /choiceId: 'S3R_CONTINUE'/);
   assert.doesNotMatch(rendererSource, /STAGE_3_R|S3R_CONTINUE|RIGHT_THIRD_SUCCESSOR/);
