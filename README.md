@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.19 Stage Runtime Content Registry
+# SUPER OUTRIDE — M6.20 Live Point-to-Point Stage Runtime
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -42,7 +42,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the 
 - M6.16 Child Guide Chart Handoff — complete
 - M6.17 Deferred Stage Handoff Transaction — complete
 - M6.18 Stage-local Single-road View — complete
-- **M6.19 Stage Runtime Content Registry — complete**
+- M6.19 Stage Runtime Content Registry — complete
+- **M6.20 Live Point-to-Point Stage Runtime — complete**
 
 ## Run / test
 
@@ -63,8 +64,8 @@ npm test
 Current verified implementation result:
 
 ```text
-224 tests
-224 pass
+231 tests
+231 pass
 0 fail
 ```
 
@@ -148,9 +149,9 @@ raw RGBA pyramid     71,902,320 bytes
 
 M5.8/M5.9 content-validation budget keeps explicit terrain/sprite workload bounds. M6 work does not replace the Painter or create a second depth-road path.
 
-## Route / stage architecture
+## Route architecture
 
-The gameplay-only DEV route DAG is:
+The older M6.8 two-level DAG remains a detached compiler/stress fixture:
 
 ```text
                  ┌─ STAGE_2_L ─┬─ GOAL_LL
@@ -159,7 +160,15 @@ STAGE_1 ─────────┤              └─ GOAL_LR
                                 └─ GOAL_RR
 ```
 
-A terminal node alone is not a finish. Completion still requires its explicit validated physical FINISH.
+The **browser live route** is now deliberately simpler and product-shaped:
+
+```text
+           ┌─ GOAL_L
+STAGE_1 ───┤
+           └─ GOAL_R
+```
+
+A terminal stage alone is not a finish. Completion still requires an explicit validated physical FINISH gate.
 
 Route choice authority is physical world motion:
 
@@ -177,7 +186,7 @@ Route DAG transition
 
 Steering, screen X, raw chainage and sprite overlap cannot choose a route.
 
-The closed stadium is a validation fixture, not a product lap-race requirement. Point-to-point completion and future branching remain separate from repeated DEV course-boundary timing.
+The closed stadium remains a geometry/render/physics fixture. Product run completion does not require lap semantics.
 
 ## M6.12–M6.15 visible branch
 
@@ -191,9 +200,7 @@ wide single asphalt region
 7 m left road | 8 m median | 7 m right road
 ```
 
-M6.14 makes fixed-l raster strips meet at exact offset-line miter intersections, removing corner seams without adding runtime curves or a tuning knob.
-
-M6.15 places the actual route gates on the two visible separated asphalt roads. Crossing the median chooses nothing.
+M6.14 makes fixed-l raster strips meet at exact offset-line miter intersections. M6.15 places physical route gates on the two separated asphalt child roads; crossing the median chooses nothing.
 
 ## M6.16–M6.17 chart and deferred handoff
 
@@ -206,7 +213,7 @@ parent right road l=+7.5  → RIGHT_CHILD l=0
 
 World position, yaw and velocity remain untouched.
 
-Route selection and package replacement are intentionally separated:
+Route selection and package replacement are separate:
 
 ```text
 visible route gate
@@ -222,44 +229,29 @@ world-space handoff seam
 atomic chart + content-reference commit
 ```
 
-This prevents an immediate visual/content cut at the branch-choice point.
-
 ## M6.18 stage-local single-road view
 
-A committed child can be expressed as one self-contained road:
+A committed child is expressed as one self-contained road:
 
 ```text
 OUTSIDE | 1 m SHOULDER | 7 m ASPHALT | 1 m SHOULDER | OUTSIDE
 ```
 
-Child source origins are ±7.5 m. Its local drawable/physical corridor is ±4.5 m, so the sibling road center is 15 m away and structurally outside the selected stage.
+Child source origins are ±7.5 m. Its local physical/draw corridor is ±4.5 m, so the sibling road center is structurally outside the selected stage.
 
-Reusable source content uses exactly one transform:
+Reusable source content uses one lateral transform:
 
 ```text
 source_l = local_l + sourceLateralOrigin
 ```
 
-The existing baked GroundMap is reused rather than duplicated. Both child shoulders are stage-local authority so the former median-facing edge becomes a normal shoulder after handoff. SurfaceMap outside the child corridor is VOID.
+The baked GroundMap is reused rather than duplicated. Both child shoulders are stage-local authority; SurfaceMap outside the child corridor is VOID.
 
-The renderer may receive an optional `StageRoadView`. It re-expresses only the TerrainLine horizontal strip before the unchanged Painter. It does **not** alter:
-
-```text
-s
-d
-y scanline
-render height
-Delta_s_eff
-Painter order
-sprite depth
-player scale
-```
-
-Only horizontal endpoints / local lateral samples change; `Delta_l` is recomputed from the new span.
+The renderer's optional `StageRoadView` changes only TerrainLine horizontal interpretation. It does not alter `s`, pseudo-depth, Y scanline, `Delta_s_eff`, Painter order, sprite depth or player scale.
 
 ## M6.19 stage runtime content registry
 
-M6.11's opaque package reference now has a concrete runtime-resolution boundary without contaminating the Route DAG with renderer or physics types.
+M6.11's opaque package reference resolves into a complete runtime package without contaminating Route DAG with renderer/physics types:
 
 ```text
 RouteStageContentManifest
@@ -276,42 +268,80 @@ StageRuntimeContentPackage
   └─ stage world sprites
 ```
 
-The runtime-selection authority is **not** `RouteDagState.activeStageId`. It is the M6.17 handoff state's `activePackageId`.
+Runtime selection authority is M6.17's `activePackageId`, not `RouteDagState.activeStageId`. Thus route choice can be known while parent overlap content remains active, and concrete content changes only at the validated handoff seam.
 
-```text
-route gate accepted
-RouteDag = STAGE_2_L
-Handoff = PENDING
-activePackageId = CONTENT_STAGE_1
-        ↓
-validated handoff seam
-        ↓
-COMMITTED
-activePackageId = CONTENT_STAGE_2_L
-```
+`GuideCoordinateSource = GuideCurve | GuideCoordinateFrame` lets physics/camera use child-local `l=0` while preserving the same world X/Z. Vehicle physics consumes only the read-only `sample(s,l) → SurfaceSample` contract.
 
-Therefore route choice can be known while the old overlap content remains active, and concrete runtime content changes only at the authored seam.
-
-Core now exposes a minimal `GuideCoordinateSource = GuideCurve | GuideCoordinateFrame`. A normal GuideCurve remains a zero-origin frame, while a child GuideChart can make the selected road center local `l=0` without changing world X/Z. Physics, camera and recovery can consume the same child coordinate frame.
-
-Vehicle physics now requires only the read-only SurfaceMap contract:
-
-```text
-sample(s,l) → SurfaceSample
-```
-
-Both the parent `CyclicSurfaceMap` and child `StageSurfaceMapView` satisfy it; no handling equation or grip value changed in M6.19.
-
-The runtime compiler enforces:
+Registry compilation requires:
 
 ```text
 coordinateFrame.lateralOrigin
 == roadView.sourceLateralOrigin
 ```
 
-so physics/camera local `l` and renderer local `l` cannot silently disagree.
+so physics/camera and renderer cannot silently disagree about child lateral origin.
 
-The current closed DEV stadium intentionally reuses the same physical fork on a later validation pass. M6.19 therefore proves the complete runtime-package boundary but does **not** permanently install a child package into `main.ts`; doing so would hide the reused second fork and would force a lap-specific reset hack into product architecture.
+## M6.20 live point-to-point runtime
+
+M6.20 removes the repeated-parent-fork assumption from the browser run. The live positions are:
+
+```text
+junction separated  s=530
+route choice        s=545
+handoff seam        s=600
+child FINISH        s=700
+closed raster seam  s=776.5128...
+```
+
+The live package set is only:
+
+```text
+CONTENT_STAGE_1
+CONTENT_GOAL_L
+CONTENT_GOAL_R
+```
+
+Before the seam, all player systems use parent content. After a validated COMMIT, the selected child package simultaneously drives:
+
+```text
+physics coordinate frame
+SurfaceMap
+camera coordinate frame
+Terrain/Ground source
+Far Background selector
+world-sprite source
+StageRoadView
+```
+
+At COMMIT, only the vehicle's road-coordinate expression is replaced by the already computed child coordinate:
+
+```text
+vehicle.course = child coordinate
+```
+
+World X/Y/Z, yaw and all velocities remain unchanged.
+
+The camera rig preserves world lateral location by rebasing only its local lateral coordinate:
+
+```text
+world_l     = old_local_l + old_origin
+new_local_l = world_l - new_origin
+```
+
+The actual renderer still receives the underlying Guide curve and the optional child `StageRoadView`; no Route DAG logic was added to renderer Core.
+
+The selected terminal child has its own physical FINISH at s=700. A forward crossing yields:
+
+```text
+physical FINISH
+→ RouteDag FINISHED
+→ ValidatedRunFinish
+→ POINT_TO_POINT_OBJECTIVE FINISHED
+```
+
+After objective finish the live simulation freezes, so the run never uses the closed raster seam as a product lap boundary.
+
+Rival physics remains an independent DEV system on the parent Guide. If its world road lies outside the active child view, only its presentation sprite is omitted; its physics/ranking state is not rewritten.
 
 ## Vehicle physics status
 
@@ -333,17 +363,19 @@ src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
 src/gameplay/route-stage-content.ts
 src/gameplay/route-stage-handoff.ts
+src/gameplay/run-objective.ts
 src/runtime/stage-runtime-content.ts
-src/dev/m6-19-stage-runtime-content.ts
+src/dev/m6-20-live-point-to-point.ts
+src/dev/m6-20-live-runtime-content.ts
 src/road/stage-terrain-view.ts
 src/visual/stage-ground-map-view.ts
 src/physics/stage-surface-map-view.ts
-src/physics/surface-map.ts
 src/render/m5-renderer.ts
+src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/37_m6_19_stage_runtime_content.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/38_m6_20_live_point_to_point.md`.
 
 ## Next
 
-Author a **genuine non-reused child-stage continuation**. Each committed child package must remain a self-contained road and, where appropriate, contain its own later fork or terminal continuation. Once that content exists, wire M6.19's `activePackageId` resolver into live physics / camera / renderer without any DEV-lap reset or repeated-parent-fork hack.
+Give LEFT and RIGHT child packages their own **visual identity** using only existing package members and renderer paths: distinct full Far Backgrounds and/or ordinary world sprites. This should prove that package replacement is visibly real without adding branch logic to the renderer or changing pseudo-depth mathematics.
