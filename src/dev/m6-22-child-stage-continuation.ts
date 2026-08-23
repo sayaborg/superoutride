@@ -28,7 +28,7 @@ import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 
 export const M6_22_CHILD_SOURCE_START_VERTEX_INDEX = 20;
 export const M6_22_CHILD_SHARED_END_VERTEX_INDEX = 27;
-export const M6_22_CHILD_FINISH_S = 200;
+export const M6_22_CHILD_FINISH_S = 250;
 
 const CHILD_GROUND_HALF_WIDTH = 4.5;
 const CHILD_ROAD_HALF_WIDTH = 3.5;
