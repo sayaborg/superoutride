@@ -111,5 +111,5 @@ test('M6.30 leaves renderer and browser loop route-agnostic as both branches dee
   ]);
   assert.doesNotMatch(source, /renderM5Driving|m5-renderer|car-physics|motorcycle-physics/);
   assert.doesNotMatch(main, /STAGE_3_[LR]|S3[LR]_CONTINUE/);
-  assert.match(stableEntry, /createM635SecondLiveForkRuntime/);
+  assert.match(stableEntry, /createM637SymmetricSecondLiveForkRuntime/);
 });
