@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M5.7 Baked GroundMap Runtime
+# SUPER OUTRIDE — M5.8 Render Performance Budget
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -20,7 +20,8 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5.4 GroundMap Density / Anisotropic LOD Foundation — complete
 - M5.5 TerrainLine Footprint Instrumentation — complete
 - M5.6 Target GroundMap kMax Proof — complete
-- **M5.7 Baked GroundMap Runtime Integration — complete**
+- M5.7 Baked GroundMap Runtime Integration — complete
+- **M5.8 Render Performance Budget Instrumentation — complete**
 
 ## Run / test
 
@@ -32,7 +33,7 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`.
 
-`npm run build` now compiles TypeScript and bakes the M5 GroundMap asset into `dist/assets/`.
+`npm run build` compiles TypeScript and bakes the M5 GroundMap asset into `dist/assets/`.
 
 Full regression:
 
@@ -43,12 +44,12 @@ npm test
 Current verified result:
 
 ```text
-95 tests
-95 pass
+99 tests
+99 pass
 0 fail
 ```
 
-See `M5_7_VALIDATION.txt`.
+See `M5_8_VALIDATION.txt` and `docs/16_m5_8_performance_budget.md`.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
@@ -125,7 +126,7 @@ GroundBase left = TRANSPARENT
 SurfaceMap far-left = VOID
 ```
 
-## GroundMap density and LOD
+## GroundMap density, footprint and baked runtime
 
 M5.4 density authority:
 
@@ -150,6 +151,14 @@ k   = clamp(k_s, 0, k_max)
 
 Lateral `k_l` remains diagnostic only.
 
+Every TerrainLine carries `Delta_s`, `Delta_s_collapse`, `Delta_s_eff`, `Delta_l`, and a collapsed flag. Core §64 thin-span collapse is explicit in screen space:
+
+```text
+epsilon_span = 1 destination row
+Delta_y = |bY| |1/d0 - 1/d1|
+Delta_y < 1 → one-row collapse
+```
+
 M5.6 proved for the current target:
 
 ```text
@@ -159,25 +168,9 @@ level 6 capacity = 209.3329 m
 k_max = 6
 ```
 
-The actual Road Generator sweep measured `max Delta_s_eff = 141.01635292107866m`, so k6 is both necessary and sufficient.
+The measured Road Generator maximum was `141.01635292107866m`, so k6 is both necessary and sufficient.
 
-## Explicit thin-span rule
-
-Core §64 is implemented directly in screen space:
-
-```text
-epsilon_span = 1 destination row
-Delta_y = |bY| |1/d0 - 1/d1|
-Delta_y < 1 → one-row collapse
-```
-
-Collapsed rows retain the complete clipped chainage interval as `Delta_s_collapse`.
-
-## M5.7 baked GroundMap runtime
-
-The M5 runtime no longer evaluates the procedural GroundMap for normal terrain pixels.
-
-Build path:
+M5.7 moves GroundMap filtering to build time:
 
 ```text
 Surface Region logical GroundMap
@@ -189,7 +182,7 @@ Surface Region logical GroundMap
 → binary asset
 ```
 
-Current build result:
+Current bake:
 
 ```text
 course length           776.5128086698837 m
@@ -203,26 +196,78 @@ raw RGBA pyramid        71,902,320 bytes
 storage ratio           28.12%
 ```
 
-The aligned base grid is slightly finer than the M5.4 density authority, never coarser.
+Storage is level-0 palette8 and levels 1–6 RGB555. Runtime chooses one already-prefiltered level per TerrainLine and performs only affine span sampling; there is no runtime anisotropic filter.
 
-Storage:
+## M5.8 render workload telemetry
 
-```text
-level 0    palette8
-levels 1-6 RGB555
-```
-
-Runtime behavior:
+The renderer now reports exact content/compiler workload counters without changing any draw or cull decision:
 
 ```text
-TerrainLine Delta_s_eff
-→ choose one level once per line
-→ horizontal affine span samples that baked level
+TerrainLine count / frame
+TerrainLine count / screen row
+terrain output samples / frame
+terrain output samples / screen row
+visible world sprites / frame
+sprite output samples / frame
+sprite output samples / scanline
+sprite written pixels / frame
+sprite written pixels / scanline
+GroundMap level histogram
 ```
 
-No runtime anisotropic filtering is performed. Level-0 texel centers are regression-tested for exact semantic equivalence with the procedural authoring source, and cyclic addressing is tested at every level.
+Player Sprite workload is included in the sprite sample/pixel totals because it uses the same scaler/blitter resource. `visibleSpriteCount` remains the world-sprite count.
 
-Primary M5.4–M5.7 files:
+Current 70-frame debug stress sweep measured:
+
+```text
+TerrainLine count / frame             171
+TerrainLine count / screen row          9
+terrain output samples / frame      54,720
+terrain output samples / screen row   2,880
+visible world sprites / frame           17
+sprite output samples incl player   18,364 / frame
+sprite output samples / scanline        268
+sprite written pixels incl player   12,938 / frame
+sprite written pixels / scanline        268
+GroundMap max level used                  6
+```
+
+GroundMap TerrainLine counts across the sweep:
+
+```text
+k0 3437
+k1 3436
+k2 1755
+k3  979
+k4  546
+k5  173
+k6   18
+```
+
+## Provisional current-debug-content budget
+
+M5.8 uses one explicit mechanical margin:
+
+```text
+headroom = 1.25
+budget   = ceil(observed maximum × 1.25)
+```
+
+Current provisional budget:
+
+```text
+TerrainLine count max / frame         214
+TerrainLine count max / screen row     12
+terrain output samples max / frame 68,400
+terrain output samples max / row     3,600
+visible world sprites max / frame      22
+sprite output samples max / frame  22,955
+sprite output samples max / scanline  335
+```
+
+This is **not yet the final target-hardware budget** because the Core tunnel/portal close-up stress case is not present yet. Budget counters are compiler/content validation telemetry only. Runtime must never drop required TerrainLines merely because a counter crosses a budget.
+
+## Primary M5.4–M5.8 files
 
 ```text
 src/compiler/ground-map-lod.ts
@@ -230,36 +275,39 @@ src/compiler/ground-map-prefilter.ts
 src/compiler/terrain-footprint-analysis.ts
 src/compiler/ground-map-target-envelope.ts
 src/compiler/ground-map-asset-compiler.ts
+src/compiler/render-budget.ts
 src/visual/baked-ground-map.ts
 src/render/rgb555.ts
+src/render/sprite.ts
+src/render/m5-renderer.ts
 src/road/terrain-line.ts
 tools/build-ground-map.mjs
 tests/m5-4-ground-map-lod.test.mjs
 tests/m5-5-terrain-footprint.test.mjs
 tests/m5-6-target-kmax.test.mjs
 tests/m5-7-baked-groundmap.test.mjs
+tests/m5-8-performance-budget.test.mjs
 docs/12_m5_4_ground_map_lod_foundation.md
 docs/13_m5_5_terrain_footprint.md
 docs/14_m5_6_target_kmax.md
 docs/15_m5_7_baked_groundmap.md
+docs/16_m5_8_performance_budget.md
 M5_4_VALIDATION.txt
 M5_5_VALIDATION.txt
 M5_6_VALIDATION.txt
 M5_7_VALIDATION.txt
+M5_8_VALIDATION.txt
 ```
 
 ## Next
 
-The next block is performance/compiler budget validation rather than new gameplay:
+The next block is **M5.9 tunnel / portal stress content**:
 
-1. measure TerrainLine count per frame
-2. measure terrain output samples per frame and per screen row
-3. measure sprite output samples per frame and per scanline
-4. record GroundMap LOD distribution
-5. sweep normal and stress camera/course states
-6. define target budgets from observed data plus explicit margin
-7. validate content against those budgets without runtime-dropping non-optional terrain
-8. add tunnel/portal stress content
-9. then proceed toward M6 gameplay
+1. implement tunnel/portal presentation using the existing Core path only
+2. use 0/1 transparent aperture + near sprite structure + Far Background transition rather than a dedicated 3D tunnel pass
+3. ensure far tunnel interior/background work does not consume unnecessary sprite budget
+4. make close portal/interior the required sprite stress case
+5. rerun M5.8 workload telemetry and decide whether the provisional budget survives or must be explicitly rebased
+6. then proceed toward M6 gameplay
 
-Do not add a 2D LOD table, lateral-driven shared LOD promotion, arbitrary texture-density knob, or polygon/depth renderer while doing this work.
+Do not add a 2D GroundMap LOD table, lateral-driven shared LOD promotion, arbitrary texture-density knob, polygon/depth renderer, or runtime dropping of required terrain to solve performance problems.
