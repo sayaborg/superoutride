@@ -1,0 +1,69 @@
+SUPER OUTRIDE M5.4 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.4 GroundMap Density / Anisotropic LOD Foundation
+
+Validated commit:
+  1e126ecafd91d6773771d12931ff272a561b58a6
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #2 M5.4 GroundMap LOD foundation
+  Run ID: 32610674749
+  Build job ID: 97123115775
+  Result: success
+
+Environment reported by runner:
+  Ubuntu 24.04.4 LTS
+  Node v20.20.2
+  npm 10.8.2
+  TypeScript ^5.8.3
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  PASS
+
+Regression result:
+  tests 78
+  pass 78
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+M5.4 added tests:
+  59 current GroundMap base density is derived from d0=D_cam=5m
+  60 current camera height raises the 24m x 3000m unique base estimate above the old h=2m example
+  61 anisotropic pyramid footprint grows x2 laterally and x4 in chainage per level
+  62 runtime level authority is chainage footprint while lateral level remains diagnostic only
+  63 required pyramid depth comes only from maximum effective chainage footprint
+  64 2x4 compiler prefilter preserves solid lateral materials and reduces dimensions exactly
+  65 pyramid builder enforces exact compiler padding for requested anisotropic levels
+
+Current density reference:
+  d0      = 5.0 m
+  f       = 200 px
+  h       = 2.469902425419539 m
+  Phi_ref = 8 deg
+  q_l     = 0.025 m/texel
+  q_s     = 0.051106653147800385 m/texel
+  rho_l   = 40 texels/m
+  rho_s   = 19.566924038402615 texels/m
+
+Illustrative unique GroundMap upper bound:
+  W        = 24 m
+  L_unique = 3000 m
+  N0       = 56,352,741.23 base texels (~56.35 M)
+
+PR deployment behavior:
+  build/test: success
+  Stage static site: skipped
+  Setup Pages: skipped
+  Upload Pages artifact: skipped
+  deploy job: skipped
+
+The runtime GroundMap sampler remains procedural in M5.4. The new code establishes compiler density, anisotropic prefilter, and LOD-selection authority only. Actual Delta_s_eff / Delta_l envelope measurement and baked runtime GroundMap integration remain subsequent work.

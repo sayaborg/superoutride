@@ -1,8 +1,6 @@
-# SUPER OUTRIDE — M5.3 Compiler Foundation
+# SUPER OUTRIDE — M5.4 GroundMap LOD Foundation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
-
-The architectural rule remains:
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
 
@@ -18,9 +16,10 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M5 Driving — complete (Car + Motorcycle DEV physics)
 - M5.1 Player visibility / recovery — complete
 - M5.2 Fixed metric sprite scale — complete
-- **M5.3 Compiler / Asset Pipeline Foundation — complete**
+- M5.3 Compiler / Asset Pipeline Foundation — complete
+- **M5.4 GroundMap Density / Anisotropic LOD Foundation — complete**
 
-## Run
+## Run / test
 
 ```bash
 npm install
@@ -28,13 +27,9 @@ npm run build
 python3 -m http.server 8000
 ```
 
-Open:
+Open `http://localhost:8000/`.
 
-```text
-http://localhost:8000/
-```
-
-## Test
+Full regression:
 
 ```bash
 npm test
@@ -43,14 +38,14 @@ npm test
 Current verified result:
 
 ```text
-71 tests
-71 pass
+78 tests
+78 pass
 0 fail
 ```
 
-M5.3 was independently verified by GitHub Actions pull-request CI on 2026-08-23. See `M5_3_VALIDATION.txt`.
+See `M5_4_VALIDATION.txt`.
 
-GitHub Pages now runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
+GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
 ## Controls
 
@@ -66,21 +61,16 @@ Touch:
 
 - landscape: steering in left margin, pedals in right margin
 - portrait: controls below the 320×240 display
-- steering is analog
-- throttle / brake are digital
+- steering analog; throttle/brake digital
 - no gyro
 
 ## Renderer invariants
-
-The following are intentional rules, not approximation bugs:
 
 - world X/Y/Z is authoritative for physics
 - vehicle is not snapped to road center
 - one chainage maps to one horizontal scanline
 - pseudo-depth is signed cyclic chainage difference only
-- no camera-space-Z depth correction
-- no Euclidean-distance sprite scaling
-- no lateral depth correction
+- no camera-space-Z / Euclidean / lateral depth correction
 - same `d` means same scale
 - Raster Course remains straight-segment raster geometry
 - Guide Curve is coordinate / camera support only
@@ -92,11 +82,11 @@ The following are intentional rules, not approximation bugs:
 - sprite transparency is 0/1
 - camera roll remains zero
 - GroundMap is an `(s,l)` course-section texture
-- SurfaceMap physics is also `(s,l)` but does not sample GroundMap pixels
-- GroundBase transparency and SurfaceMap VOID are independent meanings
+- SurfaceMap physics is `(s,l)` but never samples GroundMap pixels
+- GroundBase transparency and SurfaceMap VOID are independent
 - Far Background is a full image including below-horizon pixels
 
-Final renderer order remains:
+Final renderer order:
 
 ```text
 Optional Clear
@@ -107,8 +97,6 @@ Optional Clear
 ```
 
 ## M5.2 fixed metric sprite authority
-
-This relation is non-negotiable:
 
 ```text
 player car physical width = 2.0 m
@@ -123,7 +111,7 @@ f / D_cam = 40
 D_cam = f / 40
 ```
 
-Current values:
+Current:
 
 ```text
 f = 200 px
@@ -131,9 +119,9 @@ D_cam = 5.0 m
 d_min = 2.5 m
 ```
 
-Changing FOV changes camera distance; it does not change the 2m=80px presentation reference.
+Changing FOV changes camera distance, never the 2m=80px player reference.
 
-A sprite owns physical metadata. Source texels are not world meters:
+Sprite scale is physical:
 
 ```text
 texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
@@ -143,7 +131,7 @@ There is no arbitrary `visualScale` multiplier.
 
 ## M5.3 Surface Region compiler foundation
 
-M5.3 removes duplicated debug-course surface definitions. One authoring source now compiles to three independent runtime products:
+One authoring authority compiles to three independent runtime products:
 
 ```text
 Surface Region
@@ -152,7 +140,7 @@ Surface Region
    └─ SurfaceMap physical profile
 ```
 
-The shared source does not make those meanings identical. For example the cliff section can simultaneously mean:
+Shared authoring does not make those meanings identical. A cliff may simultaneously compile as:
 
 ```text
 GroundMap left = ROCK
@@ -160,44 +148,85 @@ GroundBase left = TRANSPARENT
 SurfaceMap far-left = VOID
 ```
 
-Adjacent authoring regions are coalesced independently for each runtime consumer. A physics-only boundary therefore does not create unnecessary visual runtime boundaries.
+Adjacent regions are coalesced independently for each consumer so physics-only boundaries do not create unnecessary visual runtime boundaries.
 
-Primary files:
+Compiler validation includes `dMax < Lcourse/2` and the supported SurfaceMap envelope remaining strictly inside the supplied Guide chart lateral limit. Sprite metadata requires `worldWidthMeters` and rejects `visualScale`.
 
-```text
-src/course/surface-region.ts
-src/dev/m5-surface-authoring.ts
-src/compiler/surface-region-compiler.ts
-src/compiler/course-validation.ts
-src/compiler/sprite-metadata.ts
-docs/11_m5_3_compiler_foundation.md
-```
+## M5.4 GroundMap density authority
 
-## Compiler validation foundation
-
-M5.3 introduces shared validation for:
+Core GroundMap base density is derived from one default authority:
 
 ```text
-dMax < Lcourse/2
-supported SurfaceMap envelope strictly inside supplied Guide chart lateral limit
+d0 = D_cam
 ```
 
-Existing Raster 10° turn-limit and Guide continuity validation stay in their geometry owners rather than being duplicated.
-
-## Sprite metadata validation
-
-External asset metadata must provide:
+with:
 
 ```text
-name
-sourceWidthTexels
-sourceHeightTexels
-worldWidthMeters
+q_l = d0 / f
+q_s = f q_l^2 / (h cos Phi_ref)
+rho_l = 1/q_l
+rho_s = 1/q_s
 ```
 
-`visualScale` is rejected.
+Using the current flat-road camera reference:
 
-The runtime `createSpriteAsset()` API likewise no longer has the accidental `worldWidthMeters = source width` default. Physical width must be explicit.
+```text
+d0      = 5.0 m
+f       = 200 px
+h       = 2.469902425419539 m
+Phi_ref = 8 deg
+
+q_l     = 0.025 m/texel
+q_s     = 0.051106653147800385 m/texel
+rho_l   = 40 texels/m
+rho_s   = 19.566924038402615 texels/m
+```
+
+For the Core illustrative all-unique envelope `W=24m`, `L_unique=3000m`, the base-level upper bound is about **56.35 million texels**. This is deliberately exposed rather than hidden; later chunk reuse and compile-time optimization must address it.
+
+## One anisotropic GroundMap pyramid
+
+M5.4 implements the Core single-pyramid rule:
+
+```text
+q_l(k) = q_l × 2^k
+q_s(k) = q_s × 4^k
+```
+
+Compiler prefilter step:
+
+```text
+lateral  2 → 1
+chainage 4 → 1
+```
+
+Runtime shared-pyramid level authority is **chainage footprint only**:
+
+```text
+k_s = max(ceil(log4(Delta_s_eff / q_s)), 0)
+k   = clamp(k_s, 0, k_max)
+```
+
+Lateral minification is diagnostic only:
+
+```text
+k_l = max(ceil(log2(Delta_l / q_l)), 0)
+```
+
+A larger `k_l` must not raise the shared pyramid level because that would over-blur chainage by ×4 for every extra level.
+
+M5.4 provides deterministic 2×4 RGBA prefilter primitives and requires exact compiler padding/divisibility for requested levels. It does **not** yet invent `Delta_s_eff_max` or switch the runtime to baked GroundMap assets.
+
+Primary M5.4 files:
+
+```text
+src/compiler/ground-map-lod.ts
+src/compiler/ground-map-prefilter.ts
+tests/m5-4-ground-map-lod.test.mjs
+docs/12_m5_4_ground_map_lod_foundation.md
+M5_4_VALIDATION.txt
+```
 
 ## Vehicle / SurfaceMap boundary
 
@@ -212,47 +241,25 @@ SAND
 VOID
 ```
 
-`VOID` means no supporting vehicle surface at `(s,l)`. Falling, crash handling and recovery remain gameplay/physics rules rather than renderer rules.
+`VOID` means no supporting vehicle surface at `(s,l)`. Falling, crash handling and recovery remain gameplay/physics rules, not renderer rules.
 
-Car and motorcycle physics remain replaceable DEV models. `V` transfers world kinematics between models instead of teleporting the vehicle.
+Car and motorcycle physics remain replaceable DEV models. `V` transfers world kinematics instead of teleporting.
 
 ## Camera / recovery
 
-M5 vertical framing is bounded rather than perfectly screen-locked. M5.1 additionally provides:
-
-- gameplay-side recovery from prolonged unsupported states
-- an extreme-spin safety camera that changes whole-world camera yaw
-- manual recovery with `R`
-
-The player sprite itself is never independently screen-clamped.
-
-## GitHub Pages
-
-Workflow:
-
-```text
-.github/workflows/pages.yml
-```
-
-Behavior:
-
-```text
-pull request → npm install → npm test
-main push    → npm install → npm test → stage → deploy
-```
-
-This prevents a regression from being published merely because TypeScript compilation succeeds.
+Vertical framing is bounded rather than perfectly screen-locked. M5.1 additionally provides gameplay-side recovery, an extreme-spin whole-world safety camera, and manual recovery with `R`. The player sprite itself is never independently screen-clamped.
 
 ## Next
 
-The next implementation block remains compiler/performance work rather than gameplay expansion:
+The next compiler/performance block is now concrete:
 
-1. aggregate course-compiler validation/reporting
-2. GroundMap base density derivation using `d0 = D_cam`
-3. compiler-side anisotropic GroundMap prefilter levels from chainage footprint
-4. asset-manifest ingestion through physical metadata validation
-5. terrain/sprite performance instrumentation and stress budgets
-6. special visual cases such as tunnel/portal
-7. M6 gameplay layer
+1. derive/instrument actual `Delta_s_eff` and `Delta_l` from TerrainLine/Road Generator output
+2. stress hill/crest/dip, yaw and thin-span collapse
+3. obtain the actual `Delta_s_eff,max`
+4. derive the required real `k_max`
+5. connect baked GroundMap chunks and pyramid levels to runtime sampling
+6. add terrain/sprite frame and scanline performance budgets
+7. special visual cases such as tunnel/portal
+8. M6 gameplay layer
 
-Do not finalize currently-unfrozen gameplay values merely to progress implementation.
+Do not introduce a guessed LOD depth or arbitrary texture-density tuning parameter merely to progress implementation.
