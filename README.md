@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.23 Child Environment Content
+# SUPER OUTRIDE — M6.24 Reusable Stage Authoring / Compiler
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -46,7 +46,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.20 Live Point-to-Point Stage Runtime — complete
 - M6.21 Child Visual Identity — complete
 - M6.22 True Child Stage Continuation — complete
-- **M6.23 Child Environment Content — complete**
+- M6.23 Child Environment Content — complete
+- **M6.24 Reusable Stage Authoring / Compiler — complete**
 
 ## Run / test
 
@@ -64,7 +65,7 @@ Full regression:
 npm test
 ```
 
-M6.23 adds six regressions to the M6.22 241-test suite, for a target of **247 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.24 adds five regressions to the M6.23 247-test suite, for a target of **252 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Controls
 
@@ -135,31 +136,9 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale` multiplier. Future field-of-view changes must preserve the metric authority by adjusting camera distance, not sprite scale.
 
-## GroundMap / workload authority
+## Live route / fork
 
-GroundMap base density is derived from `d0=D_cam`. The shared anisotropic pyramid grows ×2 laterally and ×4 in chainage per level; runtime LOD authority remains `Delta_s_eff` only.
-
-```text
-k_max = 6
-Delta_s_eff absolute upper bound = 147.5 m
-```
-
-The M6.13 parent junction baked asset remains the parent-stage authority:
-
-```text
-course length        776.5128086698837 m
-base size            960 × 16384 texels
-actual q_l           0.025 m/texel
-actual q_s           0.04739458060729271 m/texel
-binary size          20,220,870 bytes
-raw RGBA pyramid     71,902,320 bytes
-```
-
-M6.22+ child DEV stages use independent procedural GroundMap source data because their chainage domains differ from the parent course. The renderer sampling path remains the same.
-
-## Route architecture
-
-The older M6.8 two-level DAG remains a detached compiler/stress fixture. The browser live route is deliberately product-shaped and point-to-point:
+The browser route remains deliberately point-to-point:
 
 ```text
            ┌─ GOAL_L
@@ -167,27 +146,7 @@ STAGE_1 ───┤
            └─ GOAL_R
 ```
 
-A terminal stage alone is not a finish. Completion requires an explicit validated physical FINISH gate.
-
-Route choice authority is physical world motion:
-
-```text
-previous world XZ → current world XZ
-        ↓
-legal world-space route gates for active stage
-        ↓
-exactly one forward crossing inside gate width
-        ↓
-ValidatedRouteBoundary
-        ↓
-Route DAG transition
-```
-
-Steering, screen X, raw chainage and sprite overlap cannot choose a route.
-
-## Visible fork and deferred handoff
-
-The visible fork is still one chainage-driven lateral cross-section, not two simultaneously rendered 3D roads:
+The visible fork is one chainage-driven lateral cross-section, not two simultaneously rendered 3D roads:
 
 ```text
 single 9 m road
@@ -207,19 +166,11 @@ route choice         s≈545
 handoff seam         s=600
 ```
 
-At full separation:
+Route choice remains physical world motion through authored gates. Steering, screen X, raw chainage and sprite overlap cannot choose a route.
 
-```text
-left shoulder  -12..-11
-left road      -11..-4
-median          -4..+4
-right road      +4..+11
-right shoulder +11..+12
-```
+## Deferred handoff
 
-Fixed-l raster strips meet at offset-line miter intersections; with a maximum 10° vertex turn, the maximum miter factor is `1/cos(5°) ≈ 1.00382`.
-
-Route selection and concrete runtime replacement remain separate:
+Route selection and runtime replacement remain separate:
 
 ```text
 visible route gate
@@ -237,13 +188,7 @@ atomic chart + content-reference COMMIT
 
 At COMMIT, only the road-coordinate expression and camera local coordinate frame are rebased. Vehicle world X/Y/Z, yaw and velocities are unchanged.
 
-## M6.22 independent child continuation
-
-M6.18 established a child-local single-road **view** over parent-authored source data. M6.22 advances the live browser runtime beyond that historical fixture: a committed child owns an **independent Raster Course + Guide Curve**.
-
-The child course begins before the parent handoff seam and copies an exact parent Raster prefix through more than `D_cam` beyond the seam.
-
-Current DEV values:
+Current child geometry:
 
 ```text
 parent source start   s≈588.2564043349416
@@ -252,72 +197,19 @@ child-local handoff   s≈11.7435956650584
 child-local FINISH    s=250
 ```
 
-Therefore the camera's 5m-behind geometry is identical on both coordinate charts at COMMIT. Once the shared prefix ends, LEFT and RIGHT continue along different Raster/Guide geometry and have different course lengths.
-
-The selected child remains one self-contained road:
+Each selected child is one self-contained road:
 
 ```text
 OUTSIDE | 1 m SHOULDER | 7 m ASPHALT | 1 m SHOULDER | OUTSIDE
 ```
 
-Child-local road center is `l=0`; source lateral origins remain:
+## M6.23 package-owned environment
 
-```text
-LEFT  -7.5 m
-RIGHT +7.5 m
-```
+LEFT owns coast/ocean background, low coastal relief and coast sprites. RIGHT owns mountain/valley background, stronger mountain relief and mountain sprites.
 
-## GroundMap rebase continuity
+Both keep child `s=0..60m` at height zero, preserving the handoff camera neighborhood.
 
-A coordinate handoff must not make road markings jump. Child visual addressing therefore carries both lateral and longitudinal source transforms:
-
-```text
-source_l = child_local_l + sourceLateralOrigin
-source_s = child_local_s + chainageOffsetS
-```
-
-For the M6.22 overlap, `chainageOffsetS` equals the parent source-start chainage, so at the handoff seam:
-
-```text
-child_local_s + chainageOffsetS = parent_s
-```
-
-This preserves white-line dash, asphalt and checker phase across the rebase. The offset is visual-source addressing only; it does not change pseudo-depth or physics chainage.
-
-## M6.23 package-owned environment content
-
-M6.23 fills the independent M6.22 child stages with ordinary package-owned content while leaving renderer Core unchanged.
-
-The handoff neighborhood stays on a common height datum:
-
-```text
-child s = 0..60m
-height = 0m
-```
-
-Since the handoff occurs near child `s≈11.74m` and `D_cam=5m`, height/terrain identity begins well after the camera continuity neighborhood.
-
-LEFT keeps the M6.21 coast/ocean Far Background and adds low coastal relief plus ordinary child-domain sprites:
-
-```text
-COAST_SIGN_1
-COAST_GUARD_1
-COAST_GUARD_2
-COAST_BUILDING
-COAST_GUARD_3
-```
-
-RIGHT keeps the M6.21 mountain/valley Far Background and adds stronger mountain relief plus:
-
-```text
-MOUNTAIN_TREE_1..5
-MOUNTAIN_SIGN
-MOUNTAIN_BUILDING
-```
-
-Each sprite is compiled against its selected child Guide and HeightProfile. Parent CourseSprites are still not copied or reinterpreted because their `sRender` belongs to the parent chainage domain.
-
-The active child package now owns, as one atomic content unit:
+The active child package owns:
 
 ```text
 Guide / coordinate frame
@@ -330,13 +222,41 @@ Far Background selector
 child-domain World Sprites
 ```
 
-The browser entry established in M6.22 remains as a compatibility facade and delegates concrete child package composition to the M6.23 composer. Route/handoff wiring is not duplicated.
+## M6.24 reusable stage authoring compiler
+
+M6.24 removes child-specific package construction boilerplate.
+
+A stage environment is now authored declaratively in its own local chart:
+
+```text
+heightNodes
+visualSections
+sprites { s, local l, asset }
+Far Background
+optional terrain envelope overrides
+```
+
+The authoring definition contains no parent/source lateral origin. The reusable compiler derives the active Guide length and performs the one necessary raster-source conversion for sprites:
+
+```text
+l_source = l_local + coordinateFrame.lateralOrigin
+```
+
+It then compiles the ordinary `HeightProfile`, `TerrainProfile`, world-space `CourseSprite`s and complete `StageRuntimeContentPackage`.
+
+The compiler has no RouteDag selection logic and no renderer special cases. The runtime path remains:
+
+```text
+activePackageId
+→ StageRuntimeContentPackage
+→ existing physics / camera / renderM5Driving
+```
+
+The browser entry established in M6.22 remains as a compatibility facade and now delegates to M6.24, so `main.ts` does not accumulate milestone-specific content wiring.
 
 ## Physical FINISH and diagnostics
 
-M6.20's legacy parent fixture placed child FINISH around parent `s=700`. M6.22+ no longer uses that as the live child finish. Each terminal FINISH is authored directly on the selected child Guide at **child-local `s=250`**, where LEFT and RIGHT occupy distinct world positions.
-
-A forward crossing yields:
+Each terminal FINISH is authored directly on the selected child Guide at child-local `s=250`.
 
 ```text
 child physical FINISH
@@ -347,35 +267,13 @@ child physical FINISH
 
 FINISH records the result but does **not** pause DEV simulation. Physics, input, camera and rendering continue for inspection.
 
-The old parent closed-race progress/ranking remains a DEV diagnostic only. Player updates to that diagnostic stop once the child package is active, so child-local chainage is never misread as parent lap progress. Rival physics continues on the parent DEV Guide, but its parent-domain sprite is not reinterpreted after child COMMIT.
-
-Each child Raster substrate is currently internally cyclic because the existing Core compiler is cyclic. Product completion does not use that closure seam; the point-to-point objective is already complete at the child physical FINISH.
-
-## Renderer separation
-
-The data flow is still:
-
-```text
-activePackageId
-   ↓
-StageRuntimeContentPackage
-   ↓
-active Guide + package-owned content sources
-   ↓
-existing renderM5Driving()
-```
-
-Renderer Core contains no M6.22/M6.23 LEFT/RIGHT/route decision. Child pseudo-depth wraps with the active camera's child `courseLength`, not the parent stadium length. M6.23 world sprites use the same ordinary CourseSprite visibility and shared far→near Painter path as all prior sprites.
-
-## Vehicle physics status
+Vehicle physics remains:
 
 ```text
 DEV_UNCALIBRATED
 ```
 
-Car and motorcycle handling remain replaceable integration scaffolding. Grip, steering, high-speed steering, understeer/oversteer, braking, acceleration, top speed, slip/drift, inertia, car/bike differences and surface μ are not frozen product handling.
-
-Vehicle-to-vehicle collision remains deferred until final handling/body dynamics are ready.
+Handling parameters are not frozen product values. Vehicle-to-vehicle collision remains deferred.
 
 ## Primary route/stage files
 
@@ -383,32 +281,26 @@ Vehicle-to-vehicle collision remains deferred until final handling/body dynamics
 src/core/course.ts
 src/core/guide-curve.ts
 src/core/guide-coordinate-frame.ts
-src/course/junction-cross-section.ts
 src/course/stage-road-view.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
 src/gameplay/route-stage-content.ts
 src/gameplay/route-stage-handoff.ts
-src/gameplay/run-objective.ts
 src/runtime/stage-runtime-content.ts
+src/runtime/stage-authoring-compiler.ts
 src/dev/m6-20-live-point-to-point.ts
 src/dev/m6-21-child-visual-identity.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-22-live-runtime-content.ts
 src/dev/m6-23-child-environment-content.ts
-src/dev/m6-23-live-runtime-content.ts
-src/road/stage-terrain-view.ts
-src/visual/ground-map.ts
-src/visual/stage-ground-map-view.ts
-src/physics/stage-surface-map-view.ts
+src/dev/m6-24-stage-authoring.ts
+src/dev/m6-24-live-runtime-content.ts
 src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/41_m6_23_child_environment_content.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/42_m6_24_reusable_stage_authoring_compiler.md`.
 
 ## Next
 
-M6.23 proves that independent child stages can own geometry, physics surface, GroundMap addressing, Far Background, height/terrain and World Sprites without changing renderer architecture.
-
-The next structural step should be **reusable stage authoring/compiler support**: replace the current DEV-specific child construction with a compact data-driven stage definition that compiles the same runtime package contracts. After that, terminal child stages can be generalized into child-to-next-stage continuation for a longer point-to-point route.
+M6.24 establishes the reusable authoring boundary needed for longer routes. The next structural step is to use the same package/compiler model for **child → next stage continuation**, proving a multi-stage point-to-point run without adding 3D branching geometry or renderer route logic.
