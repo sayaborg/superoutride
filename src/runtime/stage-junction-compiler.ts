@@ -36,8 +36,9 @@ const EPSILON = 1e-9;
  * Attach one visible two-way JunctionCrossSectionProfile to an arbitrary centered stage chart.
  *
  * The incoming stage remains one Raster road. Only the lateral source envelope is expanded far
- * enough to contain both child roads, the final median and the outer shoulders. No new depth path,
- * route decision, camera rule or renderer primitive is introduced here.
+ * enough to contain both child roads, the final median and the outer shoulders. The source GroundMap
+ * keeps its original coordinate authority; the new junction is stored separately as stage-local
+ * overlay data. No new depth path or route decision is introduced here.
  */
 export function compileStageJunction(
   source: StageJunctionSource,
@@ -71,7 +72,7 @@ export function compileStageJunction(
     roadLeft: incomingHalfWidth,
     roadRight: incomingHalfWidth,
     shoulderWidth: authoring.crossSection.shoulderWidth,
-    junction,
+    stageJunction: junction,
   });
   const surfaceMap = new StageJunctionSurfaceMap(
     source.courseLength,
