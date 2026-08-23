@@ -5,13 +5,13 @@ import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
-import { createM620LivePointToPointRouteDag } from './dev/m6-20-live-point-to-point.js';
 import {
-  createM622ChildStageContinuation,
-  createM622LivePointToPointGateSet,
-  createM622RouteStageHandoffManifest,
-} from './dev/m6-22-child-stage-continuation.js';
-import { createM622LiveStageRuntimeRegistry } from './dev/m6-22-live-runtime-content.js';
+  createM626LiveContinuation,
+  createM626LiveGateSet,
+  createM626LiveHandoffManifest,
+  createM626LiveRouteDag,
+} from './dev/m6-26-live-successor-stage.js';
+import { createM626LiveStageRuntimeRegistry } from './dev/m6-26-live-runtime-content.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import {
   createM5CameraRig,
@@ -159,21 +159,20 @@ const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
 const raceSession = createRaceSessionState();
 const rivalRaceSession = createRaceSessionState();
 
-const routeDag = createM620LivePointToPointRouteDag();
+const routeDag = createM626LiveRouteDag();
 const routeState = createRouteDagState(routeDag);
 const routeContent = createM6DebugRouteStageContentManifest(routeDag);
-const stageContinuation = createM622ChildStageContinuation(guide);
-const childCharts = stageContinuation.charts;
-const guideCharts = [childCharts.parent, childCharts.left, childCharts.right] as const;
-const routeGates = createM622LivePointToPointGateSet(routeDag, guide, stageContinuation);
-const routeHandoffManifest = createM622RouteStageHandoffManifest(routeDag, guide, stageContinuation);
+const stageContinuation = createM626LiveContinuation(guide);
+const guideCharts = stageContinuation.charts;
+const routeGates = createM626LiveGateSet(routeDag, stageContinuation);
+const routeHandoffManifest = createM626LiveHandoffManifest(routeDag, stageContinuation);
 const routeHandoffState = createRouteStageHandoffState(
   routeDag,
   routeContent,
-  childCharts.parent,
+  stageContinuation.base.charts.parent,
   { x: vehicle.x, z: vehicle.z },
 );
-const stageRuntimeRegistry = createM622LiveStageRuntimeRegistry(
+const stageRuntimeRegistry = createM626LiveStageRuntimeRegistry(
   routeContent,
   stageContinuation,
   {
@@ -189,6 +188,7 @@ const stageRuntimeRegistry = createM622LiveStageRuntimeRegistry(
     ).background,
     worldSprites: staticWorldSprites,
   },
+  spriteAssets,
 );
 const runObjective = createRunObjectiveState();
 let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
@@ -453,7 +453,7 @@ function render(): void {
   const progressWindow = getRaceProgressWindow(raceProgress, raceRules);
   const junctionPhase = isParentRaceDiagnostic(runtime)
     ? M6_13_JUNCTION.sample(vehicle.course.s).phase
-    : 'CHILD';
+    : 'STAGE';
   const pendingHandoff = routeHandoffState.pending === null
     ? 'NONE'
     : `${routeHandoffState.pending.targetChartId}/${routeHandoffState.pending.targetStageId}`;
@@ -468,7 +468,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.22 TRUE CHILD STAGES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.26 LIVE SUCCESSOR STAGES / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -492,12 +492,12 @@ function render(): void {
   ctx.fillText(
     runObjective.status === 'FINISHED'
       ? `POINT-TO-POINT FINISH: ${runObjective.finishId}`
-      : 'Physical fork → overlap → independent child Raster/Guide → child FINISH',
+      : 'Physical fork → child → overlap → successor stage → physical FINISH',
     8,
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Child package owns Guide + road + SurfaceMap + GroundMap + Far Background', 8, 218);
+  ctx.fillText('Each active package owns its Guide + road + SurfaceMap + terrain + sprites', 8, 218);
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
@@ -510,7 +510,7 @@ function isParentRaceDiagnostic(runtime: StageRuntimeContentPackage): boolean {
 }
 
 function rivalBelongsToRuntime(runtime: StageRuntimeContentPackage): boolean {
-  // Rival chainage remains in the parent DEV course domain. Never reinterpret it as child chainage.
+  // Rival chainage remains in the parent DEV course domain. Never reinterpret it as child/successor chainage.
   return isParentRaceDiagnostic(runtime);
 }
 
