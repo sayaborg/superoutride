@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.3 Independent Moving Rival
+# SUPER OUTRIDE — M6.6 Physics-Ready Gameplay Foundation
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
 
@@ -26,7 +26,10 @@ The repository `main` branch is the implementation authority. Core renderer math
 - M6.0 Validated Race Progress Foundation — complete
 - M6.1 Bounded Continuous Race Progress — complete
 - M6.2 Deterministic Run Timing / Ranking Consumer — complete
-- **M6.3 Independent Moving Rival Foundation — complete**
+- M6.3 Independent Moving Rival Foundation — complete
+- M6.4 Vehicle Physics Replaceability Boundary — complete
+- M6.5 Deterministic Vehicle Physics Telemetry — complete
+- **M6.6 Deterministic Driving Input Trace Replay — complete**
 
 ## Run / test
 
@@ -47,12 +50,12 @@ npm test
 Current verified result:
 
 ```text
-137 tests
-137 pass
+148 tests
+148 pass
 0 fail
 ```
 
-See `M6_3_VALIDATION.txt` and `docs/21_m6_3_rival_foundation.md`.
+See `M6_4_VALIDATION.txt`, `M6_5_VALIDATION.txt`, `M6_6_VALIDATION.txt` and docs 22–24.
 
 GitHub Pages runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy. Pages uses a commit-versioned build path so a new deployment cannot mix stale and current ES modules.
 
@@ -68,16 +71,32 @@ GitHub Pages runs the complete regression suite before deployment. Pull requests
 ## Architecture authority
 
 ```text
-Player world state ─┐
-                    ├─> own world→Guide chart
-Rival world state ──┘       └─> own validated race state
-                                  └─> shared timing / ranking
+DrivingInput
+    ↓
+replaceable vehicle physics
+    ↓
+authoritative world state
+    ├─→ world→Guide chart → validated race progress → timing/ranking
+    ├─→ camera
+    ├─→ dynamic vehicle sprite adapter → existing Painter
+    └─→ calibration telemetry
 
-Player camera ─> chainage pseudo renderer
-Rival physical anchor ─> ordinary CourseSprite / Painter path
+fixed DrivingInput trace ─→ replay same commands against physics A/B
 ```
 
 Every moving vehicle remains world-physics authoritative. `GeometricCoursePosition` is geometry authority. Physical ordered race gates are checkpoint/FINISH authority. `s_progress` is continuous ranking progress bounded by those validated gates. Raw `s_car` is never direct FINISH/ranking authority.
+
+## Vehicle physics status
+
+```text
+DEV_UNCALIBRATED
+```
+
+Current car and motorcycle handling equations/parameters are integration scaffolding, **not product handling authority**. They may be substantially retuned or replaced later.
+
+M6.4 ensures camera, renderer, rival presentation and rival controller consume narrow read-only world-state contracts rather than concrete `M5CarState` internals. M6.5/M6.6 provide deterministic telemetry and exact input replay for later A/B tuning.
+
+Therefore current values such as tire stiffness, steering response, grip, drive/brake force, yaw response, drag, top speed and motorcycle bank behavior are deliberately not frozen.
 
 ## Renderer invariants
 
@@ -182,7 +201,7 @@ exit portal                s=180
 
 Far tunnel interior is Far Background. Portals/ribs are ordinary World Sprites with 0/1 transparency. The 12m portal reaches screen-filling size through the normal metric scaler; there is no dedicated tunnel 3D pass.
 
-## M6.0 physical race authority
+## M6.0–M6.2 validated race progress
 
 Current closed DEV validation sequence:
 
@@ -195,95 +214,72 @@ FINISH 0
 
 A gate is accepted only when actual world movement physically crosses it inside the lateral envelope, in the forward direction, and in the required authored order. Recovery/teleport cannot award gates.
 
-The closed DEV course is a test bed. Its repeated FINISH crossing must not be interpreted as a product requirement for lap-race gameplay.
-
-## M6.1 bounded continuous s_progress
-
-M6.1 separates:
-
-```text
-validatedProgressFloor = last physically accepted gate
-sProgress              = continuous ranking progress
-```
-
-Always:
+Continuous progress obeys:
 
 ```text
 validatedProgressFloor <= sProgress <= nextRequiredGateProgress
 ```
 
-Raw cyclic chainage can interpolate only inside this validated window and only when its sign agrees with actual world motion. It cannot independently cross a checkpoint/FINISH boundary.
+Timing uses fixed simulation time only. Ranking consumes `sProgress` then `validatedProgressFloor`, never raw local chainage or screen position.
 
-## M6.2 deterministic run timing / ranking
-
-Timing authority is fixed simulation time:
-
-```text
-elapsedSeconds += SIM_DT
-```
-
-Browser wall-clock and animation timestamps are not gameplay timing authority. Recovery consumes time and cannot produce false gate/FINISH records.
-
-Only accepted physical gates create timing records. The current closed DEV FINISH produces a generic **course-boundary** interval record so the same consumer can later support point-to-point/branching gameplay without embedding lap semantics.
-
-Active ranking consumes only:
-
-```text
-sProgress
-validatedProgressFloor
-```
-
-Ordering is:
-
-```text
-1. larger sProgress
-2. if equal, larger validatedProgressFloor
-3. exact equality = true tie
-```
-
-Raw `sLocal`, world distance, screen position, and arbitrary competitor IDs are not ranking tie-breakers.
+The closed DEV course is a test bed; repeated FINISH crossing is not a product requirement for lap-race gameplay.
 
 ## M6.3 independent moving rival
 
-The DEV rival is a second ordinary `M5CarState` with independent world position, velocity, yaw, SurfaceMap contact, recovery, validated progress and session state.
+The DEV rival is a second ordinary world-space vehicle with independent world position, velocity, yaw, SurfaceMap contact, recovery, validated progress and session state.
 
-Its AI produces only canonical `DrivingInput`; it never writes world position, yaw, velocity, `course.s/l`, camera state or renderer state.
+Its AI produces only canonical `DrivingInput`; it never writes world position, yaw, velocity, `course.s/l`, camera state or renderer state. Rendering remains the existing `CourseSprite → Painter` path with discrete yaw assets.
 
-Current straight target:
+The current rival controller is itself DEV-only and will be retuned with future physics.
 
-```text
-56 m/s = 201.6 km/h
-```
+**Vehicle-to-vehicle collision remains deferred until handling/body dynamics are ready.**
 
-The 60m-radius DEV bend cannot physically sustain that speed, so the AI samples upcoming Guide curvature and produces ordinary braking input from a conservative lateral-acceleration target. This preserves the 200+ km/h straight character without bypassing world physics on tight test geometry.
+## M6.4 physics replaceability boundary
 
-Rendering remains the existing path:
+`src/physics/vehicle-contract.ts` exposes only the read state needed by upper layers:
 
 ```text
-rival physical x/y/z + sRender
-→ CourseSprite adapter
-→ existing discrete car yaw asset
-→ existing far→near Painter
+VehicleWorldPoseRead
+VehicleCameraReadState
+VehicleRenderReadState
 ```
 
-There is no runtime bitmap rotation, rival-specific scale, rival pseudo-depth rule or separate 3D vehicle renderer.
+A regression constructs a plain structural world-state object, with no `M5CarState`, and successfully drives camera, rival input generation, dynamic sprite adaptation and renderer. This prevents the current temporary physics implementation from becoming a presentation/gameplay dependency.
 
-Player and rival are ranked by their independent validated M6.2 progress states. The HUD now exposes `POS`, `YOU`, and `RIVAL` progress.
+Recovery is the intentional exception because respawn mutates velocity/steering/bank state; it may be rewritten together with a future physics model.
 
-Current stress proof:
+## M6.5 deterministic physics telemetry
+
+The observer records fixed-tick input and authoritative world/Guide state and derives:
+
+- planar travel distance
+- signed chainage travel
+- max speed
+- max absolute lateral excursion
+- max sideslip
+- max yaw rate
+
+The current three-second DEV baseline is recorded as historical evidence only. CI does **not** assert those handling numbers as correct.
+
+## M6.6 deterministic input trace replay
+
+Input traces use:
 
 ```text
-360 fixed physics ticks
-6 seconds
-start s=95m
-crosses into first 60m-radius bend
-no recovery helper
-supported on every tick
+SUPER_OUTRIDE_INPUT_TRACE_V1
 ```
 
-The first M6.3 attempt intentionally failed this stronger test because the constant high-speed AI left the supported SurfaceMap. The controller was corrected with curvature-aware braking rather than weakening the physics test.
+with fixed `dt` and run-length encoded canonical `DrivingInput` commands. JSON round-trip preserves the exact sequence; invalid steering is rejected instead of silently clamped.
 
-**Vehicle-to-vehicle collision is not implemented yet.**
+The same immutable trace can be replayed against two physics candidates:
+
+```text
+same trace
+   ├─→ physics A → telemetry A
+   └─→ physics B → telemetry B
+```
+
+CI proves same trace + same physics is deterministic, while changing a physics profile produces measurable telemetry differences without changing the trace. This is the calibration harness for later serious handling work.
 
 ## Primary M6 files
 
@@ -291,23 +287,27 @@ The first M6.3 attempt intentionally failed this stronger test because the const
 src/gameplay/race-progress.ts
 src/gameplay/race-session.ts
 src/gameplay/rival-driver.ts
+src/physics/vehicle-contract.ts
+src/physics/vehicle-calibration.ts
+src/dev/vehicle-telemetry.ts
+src/dev/driving-input-trace.ts
 src/world/dynamic-vehicle-sprite.ts
 tests/m6-race-progress.test.mjs
 tests/m6-2-race-session.test.mjs
 tests/m6-3-rival-foundation.test.mjs
 tests/m6-3-rival-sim.test.mjs
+tests/m6-4-physics-boundary.test.mjs
+tests/m6-5-physics-telemetry.test.mjs
+tests/m6-6-input-trace.test.mjs
 docs/18_m6_0_race_progress.md
 docs/19_m6_1_continuous_race_progress.md
 docs/20_m6_2_run_timing_ranking.md
 docs/21_m6_3_rival_foundation.md
-M6_0_VALIDATION.txt
-M6_1_VALIDATION.txt
-M6_2_VALIDATION.txt
-M6_3_VALIDATION.txt
+docs/22_m6_4_vehicle_physics_boundary.md
+docs/23_m6_5_vehicle_physics_telemetry.md
+docs/24_m6_6_driving_input_trace.md
 ```
 
 ## Next
 
-**M6.4 — minimal world-space vehicle contact/collision foundation.**
-
-Any collision implementation must use physical world-space vehicle footprints/velocities, never sprite pixels, screen overlap or pseudo-depth. It should modify only physical vehicle state and then let the existing camera, race-progress and Painter systems observe the result.
+Continue with gameplay/course-flow architecture that does not depend on today's uncalibrated handling. Deep vehicle collision and final handling calibration remain intentionally deferred.
