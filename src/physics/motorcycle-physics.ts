@@ -3,7 +3,7 @@ import { guideCourseToWorld, locateWorldOnGuideLocal, type GuideCurve } from '..
 import { clamp, wrapAngle } from '../core/math.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
 import type { M5CarState } from './car-physics.js';
-import type { CyclicSurfaceMap, SurfaceType } from './surface-map.js';
+import type { SurfaceMapReader, SurfaceType } from './surface-map.js';
 
 const G = 9.80665;
 
@@ -41,7 +41,7 @@ export interface M5BikeState extends M5CarState {
 export function createM5Bike(
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   s = 45,
 ): M5BikeState {
   const p = guideCourseToWorld(guide, s, 0);
@@ -71,7 +71,7 @@ export function createM5Bike(
 export function updateM5Bike(
   guide: GuideCurve,
   height: CyclicHeightProfile,
-  surfaces: CyclicSurfaceMap,
+  surfaces: SurfaceMapReader,
   bike: M5BikeState,
   input: DrivingInput,
   dt: number,
