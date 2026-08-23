@@ -1,6 +1,7 @@
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
-import { compileRasterCourse, type RasterVertex } from '../core/course.js';
+import { compileRasterCourse, type RasterCourse, type RasterVertex } from '../core/course.js';
 import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
+import { normalFromHeading, wrapAngle } from '../core/math.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import {
   compileRouteBoundaryGateSet,
@@ -38,6 +39,8 @@ const SUCCESSOR_OVERLAP_MARGIN = 30;
 const SUCCESSOR_TRANSITION_LEAD = 20;
 const SUCCESSOR_FINISH_AFTER_SEAM = 150;
 const SUCCESSOR_DEFORMATION_METERS = 3;
+const GENTLE_TURN_LIMIT_DEGREES = 2;
+const MIN_DEFORMATION_RUN_VERTICES = 8;
 
 export interface M626SuccessorRuntimeSource {
   readonly guide: GuideCurve;
@@ -92,10 +95,7 @@ export function createM626LiveContinuation(parentGuide: GuideCurve): M626LiveCon
   return Object.freeze({ base, leftSuccessor, rightSuccessor, charts });
 }
 
-export function createM626LiveGateSet(
-  route: RouteDag,
-  continuation: M626LiveContinuation,
-): RouteBoundaryGateSet {
+export function createM626LiveGateSet(route: RouteDag, continuation: M626LiveContinuation): RouteBoundaryGateSet {
   return compileRouteBoundaryGateSet(route, [
     parentTransitionGate(continuation, 'G_LIVE_LEFT', 'S1_LEFT', 'LEFT'),
     parentTransitionGate(continuation, 'G_LIVE_RIGHT', 'S1_RIGHT', 'RIGHT'),
@@ -106,10 +106,7 @@ export function createM626LiveGateSet(
   ]);
 }
 
-export function createM626LiveHandoffManifest(
-  route: RouteDag,
-  continuation: M626LiveContinuation,
-): RouteStageHandoffManifest {
+export function createM626LiveHandoffManifest(route: RouteDag, continuation: M626LiveContinuation): RouteStageHandoffManifest {
   const authoring: RouteStageHandoffSeamAuthoring[] = [
     parentHandoffSeam(continuation, 'S1_LEFT', continuation.base.charts.left, 'LEFT'),
     parentHandoffSeam(continuation, 'S1_RIGHT', continuation.base.charts.right, 'RIGHT'),
@@ -119,38 +116,35 @@ export function createM626LiveHandoffManifest(
   return compileRouteStageHandoffManifest(route, continuation.charts, authoring);
 }
 
-function createSuccessorSource(
-  source: M622ChildStageRuntimeSource,
-  side: 'LEFT' | 'RIGHT',
-): M626SuccessorRuntimeSource {
+function createSuccessorSource(source: M622ChildStageRuntimeSource, side: 'LEFT' | 'RIGHT'): M626SuccessorRuntimeSource {
   const raster = source.guide.raster;
   const seamIndex = raster.vertexS.findIndex((s) => s >= SUCCESSOR_SOURCE_SEAM_MIN_S);
   if (seamIndex < 0) throw new RangeError(`M6.26 ${side} child is too short for successor seam`);
   const sourceSeamS = raster.vertexS[seamIndex]!;
   const sourceStartIndex = findLastVertexAtOrBefore(raster.vertexS, sourceSeamS - SUCCESSOR_OVERLAP_MARGIN);
   const sharedEndIndex = raster.vertexS.findIndex((s, index) => index > seamIndex && s >= sourceSeamS + SUCCESSOR_OVERLAP_MARGIN);
-  if (sourceStartIndex <= 0 || sharedEndIndex < 0) {
-    throw new RangeError(`M6.26 ${side} child lacks successor overlap envelope`);
-  }
+  if (sourceStartIndex <= 0 || sharedEndIndex < 0) throw new RangeError(`M6.26 ${side} child lacks successor overlap envelope`);
 
-  // Re-index the already validated child Raster at a point before the second seam. The complete
-  // overlap remains byte-for-byte geometry. Only the later tail is smoothly displaced, with zero
-  // displacement and zero slope at both ends, so the successor becomes an independent course
-  // without manufacturing a sharp closure or weakening the frozen 10-degree Raster turn limit.
   const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map(copyVertex);
-  const tailSource = [
-    ...raster.vertices.slice(sharedEndIndex + 1),
-    ...raster.vertices.slice(0, sourceStartIndex),
+  const tailIndices = [
+    ...range(sharedEndIndex + 1, raster.vertices.length),
+    ...range(0, sourceStartIndex),
   ];
+  const gentleRun = longestGentleRun(raster, tailIndices);
+  if (gentleRun.length < MIN_DEFORMATION_RUN_VERTICES) {
+    throw new Error(`M6.26 ${side} successor lacks a safe low-curvature deformation run`);
+  }
   const sideSign = side === 'LEFT' ? -1 : 1;
-  const referenceHeading = raster.segments[sharedEndIndex]!.heading;
-  const normalX = Math.cos(referenceHeading);
-  const normalZ = -Math.sin(referenceHeading);
-  const tail = tailSource.map((vertex, index) => {
-    const phase = (index + 1) / (tailSource.length + 1);
+  const tail = tailIndices.map((sourceIndex, tailIndex) => {
+    const vertex = raster.vertices[sourceIndex]!;
+    if (tailIndex < gentleRun.start || tailIndex >= gentleRun.start + gentleRun.length) return copyVertex(vertex);
+    const localIndex = tailIndex - gentleRun.start;
+    const phase = gentleRun.length === 1 ? 0 : localIndex / (gentleRun.length - 1);
     const smooth = Math.sin(Math.PI * phase) ** 2;
+    const heading = raster.segments[sourceIndex]!.heading;
+    const normal = normalFromHeading(heading);
     const offset = sideSign * SUCCESSOR_DEFORMATION_METERS * smooth;
-    return { x: vertex.x + normalX * offset, z: vertex.z + normalZ * offset };
+    return { x: vertex.x + normal.x * offset, z: vertex.z + normal.z * offset };
   });
 
   const successorRaster = compileRasterCourse([...prefix, ...tail]);
@@ -207,103 +201,63 @@ function createSuccessorSource(
   if (!(sourceTransitionS > 300)) throw new Error(`M6.26 ${side} transition must occur after child terrain settles`);
   if (!(finishS < guide.length - 20)) throw new Error(`M6.26 ${side} finish must precede successor closure seam`);
 
-  return Object.freeze({
-    guide,
-    chart,
-    roadView,
-    surfaceMap,
-    groundProfile,
-    link,
-    sourceTransitionS,
-    sourceSeamS,
-    targetSeamS,
-    finishS,
-  });
+  return Object.freeze({ guide, chart, roadView, surfaceMap, groundProfile, link, sourceTransitionS, sourceSeamS, targetSeamS, finishS });
 }
 
-function parentTransitionGate(
-  continuation: M626LiveContinuation,
-  id: string,
-  choiceId: string,
-  side: 'LEFT' | 'RIGHT',
-): RouteBoundaryGateAuthoring {
+function longestGentleRun(raster: RasterCourse, indices: readonly number[]): { readonly start: number; readonly length: number } {
+  let bestStart = 0;
+  let bestLength = 0;
+  let currentStart = 0;
+  let currentLength = 0;
+  for (let i = 0; i < indices.length; i += 1) {
+    if (vertexTurnDegrees(raster, indices[i]!) <= GENTLE_TURN_LIMIT_DEGREES) {
+      if (currentLength === 0) currentStart = i;
+      currentLength += 1;
+      if (currentLength > bestLength) {
+        bestStart = currentStart;
+        bestLength = currentLength;
+      }
+    } else {
+      currentLength = 0;
+    }
+  }
+  return { start: bestStart, length: bestLength };
+}
+
+function vertexTurnDegrees(raster: RasterCourse, vertexIndex: number): number {
+  const n = raster.segments.length;
+  const incoming = raster.segments[(vertexIndex - 1 + n) % n]!.heading;
+  const outgoing = raster.segments[vertexIndex]!.heading;
+  return Math.abs(wrapAngle(outgoing - incoming)) * 180 / Math.PI;
+}
+
+function parentTransitionGate(continuation: M626LiveContinuation, id: string, choiceId: string, side: 'LEFT' | 'RIGHT'): RouteBoundaryGateAuthoring {
   const l = M6_13_JUNCTION.separatedChildCenterL(side);
-  const point = guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, l);
-  return transitionGateAuthoring(id, choiceId, point, ROAD_HALF_WIDTH);
+  return transitionGateAuthoring(id, choiceId, guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, l), ROAD_HALF_WIDTH);
 }
 
-function successorTransitionGate(
-  successor: M626SuccessorRuntimeSource,
-  id: string,
-  choiceId: string,
-): RouteBoundaryGateAuthoring {
-  const point = guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0);
-  return transitionGateAuthoring(id, choiceId, point, ROAD_HALF_WIDTH);
+function successorTransitionGate(successor: M626SuccessorRuntimeSource, id: string, choiceId: string): RouteBoundaryGateAuthoring {
+  return transitionGateAuthoring(id, choiceId, guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0), ROAD_HALF_WIDTH);
 }
 
-function successorFinishGate(
-  successor: M626SuccessorRuntimeSource,
-  id: string,
-  stageId: string,
-): RouteBoundaryGateAuthoring {
+function successorFinishGate(successor: M626SuccessorRuntimeSource, id: string, stageId: string): RouteBoundaryGateAuthoring {
   const point = guideChartToWorld(successor.chart, successor.finishS, 0);
-  return {
-    id,
-    kind: 'FINISH',
-    stageId,
-    center: { x: point.x, z: point.z },
-    heading: point.heading,
-    halfWidth: ROAD_HALF_WIDTH,
-  };
+  return { id, kind: 'FINISH', stageId, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
 }
 
-function parentHandoffSeam(
-  continuation: M626LiveContinuation,
-  choiceId: string,
-  target: GuideChart,
-  side: 'LEFT' | 'RIGHT',
-): RouteStageHandoffSeamAuthoring {
+function parentHandoffSeam(continuation: M626LiveContinuation, choiceId: string, target: GuideChart, side: 'LEFT' | 'RIGHT'): RouteStageHandoffSeamAuthoring {
   const l = M6_13_JUNCTION.separatedChildCenterL(side);
   const point = guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, l);
-  return {
-    id: `H_${choiceId}`,
-    choiceId,
-    targetChartId: target.id,
-    center: { x: point.x, z: point.z },
-    heading: point.heading,
-    halfWidth: ROAD_HALF_WIDTH,
-  };
+  return { id: `H_${choiceId}`, choiceId, targetChartId: target.id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
 }
 
-function successorHandoffSeam(
-  successor: M626SuccessorRuntimeSource,
-  choiceId: string,
-): RouteStageHandoffSeamAuthoring {
+function successorHandoffSeam(successor: M626SuccessorRuntimeSource, choiceId: string): RouteStageHandoffSeamAuthoring {
   const point = guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0);
-  return {
-    id: `H_${choiceId}`,
-    choiceId,
-    targetChartId: successor.chart.id,
-    center: { x: point.x, z: point.z },
-    heading: point.heading,
-    halfWidth: ROAD_HALF_WIDTH,
-  };
+  return { id: `H_${choiceId}`, choiceId, targetChartId: successor.chart.id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
 }
 
-function transitionGateAuthoring(
-  id: string,
-  choiceId: string,
-  point: { readonly x: number; readonly z: number; readonly heading: number },
-  halfWidth: number,
-): RouteBoundaryGateAuthoring {
-  return {
-    id,
-    kind: 'TRANSITION',
-    choiceId,
-    center: { x: point.x, z: point.z },
-    heading: point.heading,
-    halfWidth,
-  };
+function transitionGateAuthoring(id: string, choiceId: string, point: { readonly x: number; readonly z: number; readonly heading: number }, halfWidth: number): RouteBoundaryGateAuthoring {
+  return { id, kind: 'TRANSITION', choiceId, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth };
 }
 
 function childSurfaceBands(origin: number): SurfaceBand[] {
@@ -321,6 +275,10 @@ function findLastVertexAtOrBefore(values: readonly number[], target: number): nu
     else break;
   }
   return found;
+}
+
+function range(start: number, end: number): number[] {
+  return Array.from({ length: Math.max(0, end - start) }, (_, index) => start + index);
 }
 
 function copyVertex(vertex: RasterVertex): RasterVertex {
