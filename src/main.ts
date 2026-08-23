@@ -1,14 +1,28 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
+import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
+import { classifyStageRoadLocalL } from './course/stage-road-view.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
-import { createM615VisibleRouteBoundaryGateSet } from './dev/m6-15-visible-route-gates.js';
 import { createM616ChildGuideCharts } from './dev/m6-16-child-guide-charts.js';
 import { createM617RouteStageHandoffManifest } from './dev/m6-17-handoff-seams.js';
+import { createM618StageRoadViews } from './dev/m6-18-stage-road-views.js';
+import {
+  createM620LivePointToPointGateSet,
+  createM620LivePointToPointRouteDag,
+} from './dev/m6-20-live-point-to-point.js';
+import { createM620LiveStageRuntimeRegistry } from './dev/m6-20-live-runtime-content.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
-import { createM5CameraRig, resetM5CameraRig, updateM5Camera, type M5CameraProfile, type M5CameraState } from './dev/m5-camera.js';
+import {
+  createM5CameraRig,
+  rebaseM5CameraRigCoordinateFrame,
+  resetM5CameraRig,
+  updateM5Camera,
+  type M5CameraProfile,
+  type M5CameraState,
+} from './dev/m5-camera.js';
 import {
   createGeometricCourseTracker,
   createM6DebugRaceRules,
@@ -29,7 +43,7 @@ import {
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from './gameplay/route-boundary-gates.js';
-import { createM6DebugRouteDag, createRouteDagState, updateRouteDag } from './gameplay/route-dag.js';
+import { createRouteDagState, updateRouteDag, type RouteDagUpdate } from './gameplay/route-dag.js';
 import { createM6DebugRouteStageContentManifest } from './gameplay/route-stage-content.js';
 import {
   commitRouteStageHandoff,
@@ -38,6 +52,12 @@ import {
   queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
 } from './gameplay/route-stage-handoff.js';
+import {
+  POINT_TO_POINT_OBJECTIVE,
+  createRunObjectiveState,
+  createValidatedRunFinishFromRoute,
+  updateRunObjectiveFromValidatedFinish,
+} from './gameplay/run-objective.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
@@ -46,6 +66,10 @@ import { CyclicSurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
+import {
+  resolveActiveStageRuntimeContent,
+  type StageRuntimeContentPackage,
+} from './runtime/stage-runtime-content.js';
 import { loadM5BakedGroundMap } from './visual/baked-ground-map.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM3DebugHeightProfile } from './visual/height-profile.js';
@@ -97,55 +121,6 @@ const staticWorldSprites = [
   ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
 
-const car = createM5Car(guide, heightProfile, surfaceMap, 45);
-const bike = createM5Bike(guide, heightProfile, surfaceMap, 45);
-let vehicle: M5CarState | M5BikeState = car;
-let vehicleKind: 'car' | 'bike' = 'car';
-const rival = createM5Car(guide, heightProfile, surfaceMap, 95);
-
-const cameraRig = createM5CameraRig();
-const recovery = createM5RecoveryState(vehicle);
-const rivalRecovery = createM5RecoveryState(rival);
-const raceRules = createM6DebugRaceRules(guide);
-const geometricCourse = createGeometricCourseTracker(guide.length, vehicle.course.s);
-const raceProgress = createRaceProgressState(raceRules, raceSample());
-const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
-const raceSession = createRaceSessionState();
-const rivalRaceSession = createRaceSessionState();
-const routeDag = createM6DebugRouteDag();
-const routeGates = createM615VisibleRouteBoundaryGateSet(routeDag, guide);
-const routeState = createRouteDagState(routeDag);
-const routeContent = createM6DebugRouteStageContentManifest(routeDag);
-const childCharts = createM616ChildGuideCharts(guide);
-const guideCharts = [childCharts.parent, childCharts.left, childCharts.right] as const;
-const routeHandoffManifest = createM617RouteStageHandoffManifest(routeDag, guide, childCharts);
-const routeHandoffState = createRouteStageHandoffState(
-  routeDag,
-  routeContent,
-  childCharts.parent,
-  { x: vehicle.x, z: vehicle.z },
-);
-let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
-
-const cameraProfile: M5CameraProfile = {
-  dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  lCamMax: 12,
-  height: 2.469902425419539,
-  pitch: (8 * Math.PI) / 180,
-  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
-  centerX: 160,
-  centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: (20 * Math.PI) / 180,
-  sDotMin: 8,
-  tauLat: 0.18,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
-};
-
 const groundProfile: GroundMapProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -170,18 +145,96 @@ const terrainProfile: TerrainVisualProfile = {
   thinSpanScreenRows: 1,
 };
 
+const car = createM5Car(guide, heightProfile, surfaceMap, 45);
+const bike = createM5Bike(guide, heightProfile, surfaceMap, 45);
+let vehicle: M5CarState | M5BikeState = car;
+let vehicleKind: 'car' | 'bike' = 'car';
+const rival = createM5Car(guide, heightProfile, surfaceMap, 95);
+
+const cameraRig = createM5CameraRig();
+const recovery = createM5RecoveryState(vehicle);
+const rivalRecovery = createM5RecoveryState(rival);
+const raceRules = createM6DebugRaceRules(guide);
+const geometricCourse = createGeometricCourseTracker(guide.length, vehicle.course.s);
+const raceProgress = createRaceProgressState(raceRules, raceSample());
+const rivalRaceProgress = createRaceProgressState(raceRules, rivalRaceSample());
+const raceSession = createRaceSessionState();
+const rivalRaceSession = createRaceSessionState();
+
+const routeDag = createM620LivePointToPointRouteDag();
+const routeGates = createM620LivePointToPointGateSet(routeDag, guide);
+const routeState = createRouteDagState(routeDag);
+const routeContent = createM6DebugRouteStageContentManifest(routeDag);
+const childCharts = createM616ChildGuideCharts(guide);
+const guideCharts = [childCharts.parent, childCharts.left, childCharts.right] as const;
+const stageRoadViews = createM618StageRoadViews(childCharts);
+const routeHandoffManifest = createM617RouteStageHandoffManifest(routeDag, guide, childCharts);
+const routeHandoffState = createRouteStageHandoffState(
+  routeDag,
+  routeContent,
+  childCharts.parent,
+  { x: vehicle.x, z: vehicle.z },
+);
+const stageRuntimeRegistry = createM620LiveStageRuntimeRegistry(
+  routeContent,
+  childCharts,
+  stageRoadViews,
+  {
+    heightProfile,
+    surfaceMap,
+    terrainProfile,
+    groundProfile,
+    selectFarBackground: (cameraS) => selectM5FarBackground(
+      cameraS,
+      guide.length,
+      outdoorFarBackground,
+      tunnelPresentation,
+    ).background,
+    worldSprites: staticWorldSprites,
+  },
+);
+const runObjective = createRunObjectiveState();
+let previousRoutePoint = { x: vehicle.x, z: vehicle.z };
+
+const cameraProfile: M5CameraProfile = {
+  dCam: CURRENT_CAMERA_DISTANCE_METERS,
+  lCamMax: 12,
+  height: 2.469902425419539,
+  pitch: (8 * Math.PI) / 180,
+  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
+  centerX: 160,
+  centerY: 120,
+  kPsi: 0.65,
+  thetaLagMax: (20 * Math.PI) / 180,
+  sDotMin: 8,
+  tauLat: 0.18,
+  playerTargetY: 190,
+  tauVertical: 0.22,
+  deltaYMax: 4,
+  playerSafeXMin: 48,
+  playerSafeXMax: 272,
+};
+
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   if (event.code === 'KeyR') {
-    recoverM5Vehicle(recovery, guide, heightProfile, surfaceMap, vehicle, 'manual');
+    const runtime = activeRuntime();
+    recoverM5Vehicle(recovery, runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, vehicle, 'manual');
     resetM5CameraRig(cameraRig);
     resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
     resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
     previousRoutePoint = { x: vehicle.x, z: vehicle.z };
     syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, previousRoutePoint);
-    camera = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
+    camera = updateM5Camera(
+      cameraRig,
+      runtime.coordinateFrame,
+      runtime.heightProfile,
+      vehicle,
+      cameraProfile,
+      SIM_DT,
+    );
     return;
   }
   if (event.code !== 'KeyV') return;
@@ -195,9 +248,18 @@ window.addEventListener('keydown', (event) => {
     vehicleKind = 'car';
   }
 });
+
 let accumulator = 0;
 let previousTime = performance.now();
-let camera: M5CameraState = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
+let initialRuntime = activeRuntime();
+let camera: M5CameraState = updateM5Camera(
+  cameraRig,
+  initialRuntime.coordinateFrame,
+  initialRuntime.heightProfile,
+  vehicle,
+  cameraProfile,
+  SIM_DT,
+);
 
 function frame(now: number): void {
   const elapsed = Math.min((now - previousTime) / 1000, 0.25);
@@ -207,11 +269,44 @@ function frame(now: number): void {
   while (accumulator >= SIM_DT) {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
-    if (vehicleKind === 'car') updateM5Car(guide, heightProfile, surfaceMap, vehicle, input, SIM_DT);
-    else updateM5Bike(guide, heightProfile, surfaceMap, vehicle as M5BikeState, input, SIM_DT);
 
-    const recovered = updateM5Recovery(recovery, guide, heightProfile, surfaceMap, vehicle, SIM_DT);
+    if (runObjective.status === 'FINISHED') {
+      accumulator -= SIM_DT;
+      continue;
+    }
+
+    const runtimeBefore = activeRuntime();
+    if (vehicleKind === 'car') {
+      updateM5Car(
+        runtimeBefore.coordinateFrame,
+        runtimeBefore.heightProfile,
+        runtimeBefore.surfaceMap,
+        vehicle,
+        input,
+        SIM_DT,
+      );
+    } else {
+      updateM5Bike(
+        runtimeBefore.coordinateFrame,
+        runtimeBefore.heightProfile,
+        runtimeBefore.surfaceMap,
+        vehicle as M5BikeState,
+        input,
+        SIM_DT,
+      );
+    }
+
+    const recovered = updateM5Recovery(
+      recovery,
+      runtimeBefore.coordinateFrame,
+      runtimeBefore.heightProfile,
+      runtimeBefore.surfaceMap,
+      vehicle,
+      SIM_DT,
+    );
     let raceUpdate: RaceProgressUpdate | null = null;
+    let routeUpdate: RouteDagUpdate | null = null;
+
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
       resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
@@ -231,7 +326,7 @@ function frame(now: number): void {
           previousRoutePoint,
           currentRoutePoint,
         );
-        const routeUpdate = updateRouteDag(routeState, routeDag, routeObservation.boundary);
+        routeUpdate = updateRouteDag(routeState, routeDag, routeObservation.boundary);
         queueRouteStageHandoff(routeHandoffState, routeHandoffManifest, routeUpdate);
       }
 
@@ -249,11 +344,27 @@ function frame(now: number): void {
         handoffObservation.seam,
         currentRoutePoint,
       );
-      if (handoffEvent !== 'COMMITTED') {
+      if (handoffEvent === 'COMMITTED') {
+        const runtimeAfter = activeRuntime();
+        vehicle.course = { ...routeHandoffState.coordinate };
+        rebaseM5CameraRigCoordinateFrame(
+          cameraRig,
+          runtimeBefore.coordinateFrame,
+          runtimeAfter.coordinateFrame,
+        );
+      } else {
         syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, currentRoutePoint);
       }
       previousRoutePoint = currentRoutePoint;
     }
+
+    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate);
+    updateRunObjectiveFromValidatedFinish(
+      runObjective,
+      POINT_TO_POINT_OBJECTIVE,
+      finish,
+      raceSession.elapsedSeconds + SIM_DT,
+    );
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
 
     const rivalTargetL = sampleM613RightBranchTargetL(rival.course.s);
@@ -268,7 +379,15 @@ function frame(now: number): void {
     }
     advanceRaceSession(rivalRaceSession, rivalRaceProgress, rivalRaceUpdate, SIM_DT);
 
-    camera = updateM5Camera(cameraRig, guide, heightProfile, vehicle, cameraProfile, SIM_DT);
+    const runtimeAfterTick = activeRuntime();
+    camera = updateM5Camera(
+      cameraRig,
+      runtimeAfterTick.coordinateFrame,
+      runtimeAfterTick.heightProfile,
+      vehicle,
+      cameraProfile,
+      SIM_DT,
+    );
     accumulator -= SIM_DT;
   }
 
@@ -277,25 +396,30 @@ function frame(now: number): void {
 }
 
 function render(): void {
-  const selectedBackground = selectM5FarBackground(
+  const runtime = activeRuntime();
+  const selectedBackground = runtime.selectFarBackground(camera.s);
+  const backgroundDiagnostic = selectM5FarBackground(
     camera.s,
     guide.length,
     outdoorFarBackground,
     tunnelPresentation,
   );
   const rivalSprite = createDynamicVehicleCourseSprite('RIVAL', rival, camera.yaw, spriteAssets.car);
-  const renderWorldSprites = [...staticWorldSprites, rivalSprite];
+  const renderWorldSprites = rivalBelongsToRuntime(runtime)
+    ? [...runtime.worldSprites, rivalSprite]
+    : [...runtime.worldSprites];
   const stats = renderM5Driving(
     framebuffer,
-    selectedBackground.background,
-    guide,
+    selectedBackground,
+    guideCoordinateCurve(runtime.coordinateFrame),
     camera,
     vehicle,
-    terrainProfile,
-    groundProfile,
+    runtime.terrainProfile,
+    runtime.groundProfile,
     renderWorldSprites,
     spriteAssets,
     vehicleKind,
+    runtime.roadView ?? undefined,
   );
   ctx.putImageData(imageData, 0, 0);
 
@@ -320,7 +444,9 @@ function render(): void {
   const dCar = pseudoDepth(vehicle.course.s, camera.s, guide.length);
   const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
   const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
-  const bankDeg = vehicleKind === 'bike' ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI : vehicle.sprungRoll * 180 / Math.PI;
+  const bankDeg = vehicleKind === 'bike'
+    ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
+    : vehicle.sprungRoll * 180 / Math.PI;
   const nextGate = raceRules.gates[raceProgress.nextGateIndex]!;
   const progressWindow = getRaceProgressWindow(raceProgress, raceRules);
   const bestBoundary = raceSession.bestBoundaryIntervalSeconds === null
@@ -330,6 +456,10 @@ function render(): void {
   const pendingHandoff = routeHandoffState.pending === null
     ? 'NONE'
     : `${routeHandoffState.pending.targetChartId}/${routeHandoffState.pending.targetStageId}`;
+  const runtimeView = runtime.roadView?.id ?? 'PARENT';
+  const runFinish = runObjective.finishId === null
+    ? 'RUNNING'
+    : `${runObjective.finishId} ${formatRaceTime(runObjective.finishElapsedSeconds ?? raceSession.elapsedSeconds)}`;
 
   ctx.fillStyle = '#d7f3ff';
   ctx.font = 'bold 13px monospace';
@@ -337,8 +467,8 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.17 DEFERRED HANDOFF / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
-  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
+  ctx.fillText(`M6.20 LIVE POINT-TO-POINT / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnostic.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionSection.phase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}`, 8, 72);
@@ -347,20 +477,37 @@ function render(): void {
   ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
   ctx.fillText(`POS ${playerStanding.rank}/2  YOU ${raceProgress.sProgress.toFixed(1)}  RIVAL ${rivalRaceProgress.sProgress.toFixed(1)}`, 8, 120);
   ctx.fillText(`NEXT ${nextGate.name}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
-  ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  BND ${raceSession.boundaryTimings.length}  BEST ${bestBoundary}`, 8, 144);
+  ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  RUN ${runFinish}`, 8, 144);
   ctx.fillText(`ROUTE ${routeState.activeStageId} ${routeState.status} EVT ${routeState.lastEvent}`, 8, 156);
   ctx.fillText(`CHART ${routeHandoffState.activeChartId} L ${formatSigned(routeHandoffState.coordinate.l)} C${routeHandoffState.commitCount}`, 8, 168);
-  ctx.fillText(`PENDING ${pendingHandoff}  PKG ${routeHandoffState.activePackageId}`, 8, 180);
+  ctx.fillText(`PKG ${runtime.packageId} VIEW ${runtimeView}  PENDING ${pendingHandoff}`, 8, 180);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
     ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
     ctx.fillStyle = '#a6bac4';
   }
 
+  ctx.fillStyle = runObjective.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
+  ctx.fillText(
+    runObjective.status === 'FINISHED'
+      ? `POINT-TO-POINT FINISH: ${runObjective.finishId}`
+      : 'Physical fork → deferred seam → active child runtime → child FINISH',
+    8,
+    207,
+  );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Route gate selects first; world seam commits chart/content later', 8, 207);
-  ctx.fillText('Renderer + physics still use parent Guide until real child package integration', 8, 218);
-  ctx.fillText(`World pose unchanged / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  ctx.fillText('Runtime package drives physics + camera + renderer from one child l=0 frame', 8, 218);
+  ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+}
+
+function activeRuntime(): StageRuntimeContentPackage {
+  return resolveActiveStageRuntimeContent(stageRuntimeRegistry, routeHandoffState);
+}
+
+function rivalBelongsToRuntime(runtime: StageRuntimeContentPackage): boolean {
+  if (runtime.roadView === null) return true;
+  const localL = rival.course.l - runtime.roadView.sourceLateralOrigin;
+  return classifyStageRoadLocalL(runtime.roadView, localL) !== 'OUTSIDE';
 }
 
 function raceSample(): { x: number; z: number; sLocal: number } {
