@@ -1,4 +1,5 @@
 import type { CyclicGroundMapLogicalProfile, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
+import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { rgba } from '../render/software-surface.js';
 import type { BakedGroundMapAsset, BakedGroundMapSample } from './baked-ground-map.js';
 
@@ -19,6 +20,8 @@ export interface GroundMapProfile {
   roadLeft: number;
   roadRight: number;
   shoulderWidth: number;
+  /** Optional continuous road cross-section authority used by compiler bake and DEV fallback. */
+  junction?: JunctionCrossSectionProfile;
   /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
   logical?: CyclicGroundMapLogicalProfile;
   /** M5.7 compiler-baked runtime source. Procedural sampling remains a DEV/test fallback. */
@@ -41,20 +44,63 @@ export function sampleGroundMapRuntime(
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
-  const abs = Math.abs(l);
-  if (abs <= 0.07 && ((s % 12) + 12) % 12 < 7) return GROUND_COLORS.marking;
-  if (l >= -profile.roadLeft && l <= profile.roadRight) {
-    return Math.floor(s * 0.25) & 1 ? GROUND_COLORS.asphaltA : GROUND_COLORS.asphaltB;
-  }
-  const leftShoulder = l >= -profile.roadLeft - profile.shoulderWidth && l < -profile.roadLeft;
-  const rightShoulder = l > profile.roadRight && l <= profile.roadRight + profile.shoulderWidth;
-  if (leftShoulder || rightShoulder) return GROUND_COLORS.shoulder;
-
   const checker = (Math.floor(s / 3) + Math.floor(Math.abs(l) / 2)) & 1;
+  if (profile.junction) {
+    const junctionColor = sampleJunctionGroundMap(s, l, profile.junction, checker);
+    if (junctionColor !== null) return junctionColor;
+  } else {
+    const abs = Math.abs(l);
+    if (abs <= 0.07 && isDashOn(s)) return GROUND_COLORS.marking;
+    if (l >= -profile.roadLeft && l <= profile.roadRight) return asphaltColor(s);
+    const leftShoulder = l >= -profile.roadLeft - profile.shoulderWidth && l < -profile.roadLeft;
+    const rightShoulder = l > profile.roadRight && l <= profile.roadRight + profile.shoulderWidth;
+    if (leftShoulder || rightShoulder) return GROUND_COLORS.shoulder;
+  }
+
   const logical = profile.logical?.sample(s);
   if (logical) return sampleOuterMaterial(logical, l, checker);
   if (cliffSection && l < 0) return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
+}
+
+function sampleJunctionGroundMap(
+  s: number,
+  l: number,
+  junction: JunctionCrossSectionProfile,
+  checker: number,
+): number | null {
+  const section = junction.sample(s);
+  const lateralClass = junction.classify(s, l);
+
+  if (lateralClass === 'MEDIAN') return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
+  if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
+  if (
+    lateralClass === 'ASPHALT_SINGLE'
+    || lateralClass === 'ASPHALT_LEFT'
+    || lateralClass === 'ASPHALT_RIGHT'
+  ) {
+    if (isDashOn(s)) {
+      if (section.childCenterL === null) {
+        if (Math.abs(l) <= 0.07) return GROUND_COLORS.marking;
+      } else if (
+        Math.abs(l - section.childCenterL.LEFT) <= 0.07
+        || Math.abs(l - section.childCenterL.RIGHT) <= 0.07
+      ) {
+        return GROUND_COLORS.marking;
+      }
+    }
+    return asphaltColor(s);
+  }
+
+  return null;
+}
+
+function asphaltColor(s: number): number {
+  return Math.floor(s * 0.25) & 1 ? GROUND_COLORS.asphaltA : GROUND_COLORS.asphaltB;
+}
+
+function isDashOn(s: number): boolean {
+  return ((s % 12) + 12) % 12 < 7;
 }
 
 function sampleOuterMaterial(section: GroundMapLogicalSection, l: number, checker: number): number {
