@@ -1,0 +1,61 @@
+SUPER OUTRIDE M5.3 VALIDATION
+Date: 2026-08-23 JST
+
+Milestone:
+  M5.3 Compiler / Asset Pipeline Foundation
+
+GitHub Actions validation:
+  Workflow: Test and Deploy GitHub Pages
+  PR: #1 Validate M5.3 compiler foundation (temporary, closed without merge)
+  Run ID: 32610503122
+  Build job ID: 97122651214
+  Result: success
+
+Environment reported by runner:
+  Ubuntu 24.04.4 LTS
+  Node v20.20.2
+  npm 10.8.2
+  TypeScript ^5.8.3
+
+Command:
+  npm test
+
+Build:
+  tsc -p tsconfig.json
+  PASS
+
+Regression result:
+  tests 71
+  pass 71
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+M5.3 added tests:
+  51 Surface Region authoring compiles and coalesces independent runtime profiles
+  52 compiled SurfaceMap preserves sand, cliff verge and implicit VOID semantics
+  53 compiled GroundMap logical material is independent from GroundBase transparency
+  54 Surface Region compiler rejects overlapping physical bands
+  55 course compiler foundation validates draw distance and drivable Guide envelope
+  56 sprite metadata validator accepts explicit physical width
+  57 sprite metadata validator requires worldWidthMeters
+  58 sprite metadata validator forbids arbitrary visualScale
+
+Existing M0-M5.2 regression tests also passed, including:
+  chainage-only pseudo-depth
+  TerrainLine affine mapping and Painter ordering
+  GroundBase transparent cliff behavior
+  world-sprite merge
+  M5.1 recovery stress
+  fixed 2.0m = 80px player presentation
+  car/motorcycle physics and kinematics transfer
+
+PR deployment behavior:
+  build/test: success
+  Stage static site: skipped
+  Setup Pages: skipped
+  Upload Pages artifact: skipped
+  deploy job: skipped
+
+This confirms the workflow only deploys for non-pull-request events while still running the full regression suite on pull requests.

@@ -1,6 +1,12 @@
-# SUPER OUTRIDE — M5.2 Fixed Metric Sprite Scale
+# SUPER OUTRIDE — M5.3 Compiler Foundation
 
-M5 connects the Core `SurfaceMap(s,l)` boundary to an actual world-space car simulation while preserving the M0–M4 pseudo-3D renderer unchanged in principle.
+Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by the Super Scaler era.
+
+The architectural rule remains:
+
+> **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
+
+The repository `main` branch is the implementation authority. Core renderer mathematics remain defined by `docs/00_core_design_freeze.md` plus the M5.2 sprite-metric addendum.
 
 ## Current milestone state
 
@@ -9,9 +15,10 @@ M5 connects the Core `SurfaceMap(s,l)` boundary to an actual world-space car sim
 - M2 Road Running — complete / GO
 - M3 Visual Core — complete
 - M4 Super Scaler — complete
-- **M5 Driving — complete (Car + Motorcycle Physics)**
-- **M5.1 visibility/recovery bugfix — complete**
-- **M5.2 fixed metric sprite scale — complete**
+- M5 Driving — complete (Car + Motorcycle DEV physics)
+- M5.1 Player visibility / recovery — complete
+- M5.2 Fixed metric sprite scale — complete
+- **M5.3 Compiler / Asset Pipeline Foundation — complete**
 
 ## Run
 
@@ -21,169 +28,231 @@ npm run build
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`.
-
-## Controls
-
-Desktop:
-
-- Left / Right: analogized steering input
-- Up: throttle ON/OFF
-- Down: brake ON/OFF
-- V: Car / Motorcycle
-- R: manual recovery
-
-Touch layout remains the M0 specification:
-
-- landscape: steering in left margin, pedals in right margin
-- portrait: controls below the 320x240 display
-- no gyro
-
-## M5 simulation path
+Open:
 
 ```text
-Keyboard / Touch
-      ↓
-DrivingInput
-      ↓
-M5 car physics (world X/Y/Z + yaw + body velocities)
-      ↓
-Guide Curve local continuity query
-      ↓
-(s,l)
-      ↓
-SurfaceMap(s,l)
-      ↓
-ASPHALT / SHOULDER / GRASS / DIRT / SAND / VOID
-      ↓
-Camera
-      ↓
-existing chainage pseudo-3D renderer
+http://localhost:8000/
 ```
 
-Physics never snaps the car to the road centerline. The Guide Curve is only used to recover the continuous local chart coordinate needed by SurfaceMap / camera / renderer.
-
-## SurfaceMap
-
-Runtime SurfaceMap is a compact piecewise-constant `s` section + lateral-band table. It does **not** sample GroundMap pixels.
-
-DEV materials currently define different:
-
-- friction coefficient
-- rolling resistance
-- drive-force scale
-- support / no-support state
-
-`VOID` means no supporting ground. M5 includes a deliberately simple gravity/fall state. M5.1 now adds a **gameplay-side DEV recovery** before the player can fall completely out of the viewport. Final crash/damage rules remain a later gameplay decision.
-
-GroundBase transparency and SurfaceMap support remain independent data paths.
-
-## Car physics
-
-M5 car physics is a **DEV gameplay/physics model**, not part of the Core Design Freeze.
-
-Current model:
-
-- world-space authoritative state
-- grip-limited single-track / dynamic-bicycle tire forces
-- body longitudinal + lateral velocity
-- yaw rate
-- steering actuator with high-speed steering-travel reduction
-- combined longitudinal/lateral axle friction limits
-- AWD-biased DEV drive split
-- front-biased braking
-- aerodynamic drag
-- surface-dependent rolling resistance and grip
-- simple unsupported/airborne gravity state on `VOID`
-
-The model is intentionally isolated so its parameters can later be replaced or tuned without changing renderer mathematics.
-
-## Camera change
-
-M5 adds the Core §38 bounded vertical framing path. The player is pulled toward a target screen Y in normal play, but is **not perfectly screen-locked**; correction is LPF-limited and clamped.
-
-The DEV base camera height was retuned so the player home position is near the lower portion of the 320x240 view instead of around mid-screen.
-
-M5.1 also adds a separate **extreme-spin player safety camera**. Normal Core §36 camera behavior remains active inside the intended presentation envelope. If the projected player would leave X=48..272, camera yaw temporarily points toward the player world position. The whole renderer uses that yaw; the player sprite itself is never screen-space clamped.
-
-## Renderer invariants retained
-
-- pseudo-depth = signed cyclic chainage difference
-- `d_car = D_cam`
-- no camera-space Z correction
-- no lateral depth correction
-- same d => same sprite scale
-- TerrainLine + world sprite far-to-near Painter merge
-- no z-buffer
-- no polygon road
-- 0/1 sprite transparency
-
-## Validation
+## Test
 
 ```bash
 npm test
 ```
 
-Current result:
+Current verified result:
 
 ```text
-58 tests
-58 pass
+71 tests
+71 pass
 0 fail
 ```
 
-See `M5_1_VALIDATION.txt` and `docs/09_m5_1_player_visibility_recovery.md`.
+M5.3 was independently verified by GitHub Actions pull-request CI on 2026-08-23. See `M5_3_VALIDATION.txt`.
 
-## Preview
+GitHub Pages now runs the complete regression suite before deployment. Pull requests run test/build only; pushes to `main` run test/build and then deploy.
 
-`M5_CAR_FRAME.png` and `M5_BIKE_FRAME.png` are direct 320x240 outputs of the M5 software renderer after live Car/Bike physics updates.
+## Controls
 
-## Core authority
+Desktop:
 
-`docs/00_core_design_freeze.md` remains byte-identical to the supplied Core Design Freeze.
+- Left / Right: analogized steering
+- Up: throttle ON/OFF
+- Down: brake ON/OFF
+- V: Car / Motorcycle
+- R: manual recovery
 
-## Motorcycle physics
+Touch:
 
-Motorcycle dynamics are a separate DEV model using the same world/SurfaceMap boundary:
+- landscape: steering in left margin, pedals in right margin
+- portrait: controls below the 320×240 display
+- steering is analog
+- throttle / brake are digital
+- no gyro
 
-- steering input maps to a physical bank target
-- bank is limited by surface grip
-- bank-derived lateral acceleration drives yaw response
-- loose surfaces allow additional sideslip
-- longitudinal acceleration/braking uses the same surface material query
-- physical bank feeds the existing yaw x bank sprite variant table
-- no runtime bitmap rotation
+## Renderer invariants
 
-`V` switches between car and motorcycle while transferring current world kinematics instead of teleporting to another course position.
+The following are intentional rules, not approximation bugs:
 
-## M5.1 player visibility fix
+- world X/Y/Z is authoritative for physics
+- vehicle is not snapped to road center
+- one chainage maps to one horizontal scanline
+- pseudo-depth is signed cyclic chainage difference only
+- no camera-space-Z depth correction
+- no Euclidean-distance sprite scaling
+- no lateral depth correction
+- same `d` means same scale
+- Raster Course remains straight-segment raster geometry
+- Guide Curve is coordinate / camera support only
+- TerrainLine and World Sprite share far-to-near Painter ordering
+- no z-buffer
+- no polygon road
+- no perspective-correct texture mapping
+- no arbitrary runtime sprite rotation
+- sprite transparency is 0/1
+- camera roll remains zero
+- GroundMap is an `(s,l)` course-section texture
+- SurfaceMap physics is also `(s,l)` but does not sample GroundMap pixels
+- GroundBase transparency and SurfaceMap VOID are independent meanings
+- Far Background is a full image including below-horizon pixels
 
-The original M5 could lose the player in two reproducible cases: prolonged `VOID` falling and extreme-spin camera framing. M5.1 fixes both without changing Core pseudo-depth or world physics. A 2400-frame full-steering + throttle stress test keeps the player anchor inside X=48.0..207.6 and Y=148.4..212.5.
+Final renderer order remains:
+
+```text
+Optional Clear
+→ Full Far Background
+→ Terrain + World Sprite far→near
+→ Player Sprite
+→ HUD
+```
+
+## M5.2 fixed metric sprite authority
+
+This relation is non-negotiable:
+
+```text
+player car physical width = 2.0 m
+player car screen width = 80 px
+player-depth scale = 40 px/m
+```
+
+Therefore:
+
+```text
+f / D_cam = 40
+D_cam = f / 40
+```
+
+Current values:
+
+```text
+f = 200 px
+D_cam = 5.0 m
+d_min = 2.5 m
+```
+
+Changing FOV changes camera distance; it does not change the 2m=80px presentation reference.
+
+A sprite owns physical metadata. Source texels are not world meters:
+
+```text
+texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
+```
+
+There is no arbitrary `visualScale` multiplier.
+
+## M5.3 Surface Region compiler foundation
+
+M5.3 removes duplicated debug-course surface definitions. One authoring source now compiles to three independent runtime products:
+
+```text
+Surface Region
+   ├─ GroundMap logical profile
+   ├─ GroundBase visual profile
+   └─ SurfaceMap physical profile
+```
+
+The shared source does not make those meanings identical. For example the cliff section can simultaneously mean:
+
+```text
+GroundMap left = ROCK
+GroundBase left = TRANSPARENT
+SurfaceMap far-left = VOID
+```
+
+Adjacent authoring regions are coalesced independently for each runtime consumer. A physics-only boundary therefore does not create unnecessary visual runtime boundaries.
+
+Primary files:
+
+```text
+src/course/surface-region.ts
+src/dev/m5-surface-authoring.ts
+src/compiler/surface-region-compiler.ts
+src/compiler/course-validation.ts
+src/compiler/sprite-metadata.ts
+docs/11_m5_3_compiler_foundation.md
+```
+
+## Compiler validation foundation
+
+M5.3 introduces shared validation for:
+
+```text
+dMax < Lcourse/2
+supported SurfaceMap envelope strictly inside supplied Guide chart lateral limit
+```
+
+Existing Raster 10° turn-limit and Guide continuity validation stay in their geometry owners rather than being duplicated.
+
+## Sprite metadata validation
+
+External asset metadata must provide:
+
+```text
+name
+sourceWidthTexels
+sourceHeightTexels
+worldWidthMeters
+```
+
+`visualScale` is rejected.
+
+The runtime `createSpriteAsset()` API likewise no longer has the accidental `worldWidthMeters = source width` default. Physical width must be explicit.
+
+## Vehicle / SurfaceMap boundary
+
+Current DEV materials:
+
+```text
+ASPHALT
+SHOULDER
+GRASS
+DIRT
+SAND
+VOID
+```
+
+`VOID` means no supporting vehicle surface at `(s,l)`. Falling, crash handling and recovery remain gameplay/physics rules rather than renderer rules.
+
+Car and motorcycle physics remain replaceable DEV models. `V` transfers world kinematics between models instead of teleporting the vehicle.
+
+## Camera / recovery
+
+M5 vertical framing is bounded rather than perfectly screen-locked. M5.1 additionally provides:
+
+- gameplay-side recovery from prolonged unsupported states
+- an extreme-spin safety camera that changes whole-world camera yaw
+- manual recovery with `R`
+
+The player sprite itself is never independently screen-clamped.
+
+## GitHub Pages
+
+Workflow:
+
+```text
+.github/workflows/pages.yml
+```
+
+Behavior:
+
+```text
+pull request → npm install → npm test
+main push    → npm install → npm test → stage → deploy
+```
+
+This prevents a regression from being published merely because TypeScript compilation succeeds.
 
 ## Next
 
-Post-M5 implementation order:
+The next implementation block remains compiler/performance work rather than gameplay expansion:
 
-- compiler-side Surface Region generation
-- GroundMap anisotropic prefilter pipeline
-- asset compiler / sprite metadata validation
-- terrain + sprite budget instrumentation and performance validation
-- special visual cases (tunnel/portal etc.)
-- M6 gameplay layer
+1. aggregate course-compiler validation/reporting
+2. GroundMap base density derivation using `d0 = D_cam`
+3. compiler-side anisotropic GroundMap prefilter levels from chainage footprint
+4. asset-manifest ingestion through physical metadata validation
+5. terrain/sprite performance instrumentation and stress budgets
+6. special visual cases such as tunnel/portal
+7. M6 gameplay layer
 
-## M5.2 fixed sprite-size authority
-
-M5.2 makes one presentation relation non-negotiable:
-
-```text
-2.0 m car width = 80 screen pixels at player depth
-1.0 m = 40 screen pixels at player depth
-```
-
-`pseudoProject.scale = f/d` is now interpreted as **pixels per world meter**. Sprite bitmaps own a physical `worldWidthMeters`; the blitter derives source-texel scale from physical width. There is no arbitrary sprite display-scale multiplier.
-
-Current camera values are `f=200 px`, `D_cam=5.0 m`, so `f/D_cam=40 px/m`. If FOV changes later, `D_cam` must move according to `D_cam=f/40`; the player car remains exactly 80 px wide.
-
-The M5.2 programmer car is authored at 80 source pixels across its 2.0 m physical width, so it is 1:1 at player depth. With the current `d_min=2.5 m`, an equally wide object can grow to at most 160 px (2x) before the near plane.
-
-See `docs/10_m5_2_metric_sprite_scale.md` and `M5_2_VALIDATION.txt`.
+Do not finalize currently-unfrozen gameplay values merely to progress implementation.
