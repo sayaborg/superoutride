@@ -129,17 +129,17 @@ test('M6.32 rejects duplicate terminal FINISH ownership and a missing composed s
   }), /start stage is not authored/);
 });
 
-test('M6.32 current live route is unchanged while M6.30 delegates fragment composition outside renderer Core', async () => {
+test('M6.32 fragment composition remains the live authority as later milestones add another RIGHT fragment', async () => {
   const guide = createM2StadiumGuide();
   const live = createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createM4SpriteAssets());
   assert.deepEqual(live.route.stages.map((stage) => stage.id), [
-    'STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'STAGE_3_L', 'GOAL_L', 'GOAL_R',
+    'STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'STAGE_3_L', 'GOAL_L', 'STAGE_3_R', 'GOAL_R',
   ]);
   assert.deepEqual(live.route.choices.map((edge) => edge.id), [
-    'S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE',
+    'S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE', 'S3R_CONTINUE',
   ]);
 
-  const [composerSource, m630Source, rendererSource, mainSource] = await Promise.all([
+  const [composerSource, liveSource, rendererSource, mainSource] = await Promise.all([
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
@@ -147,8 +147,8 @@ test('M6.32 current live route is unchanged while M6.30 delegates fragment compo
   ]);
   assert.doesNotMatch(composerSource, /render\/|car-physics|motorcycle-physics|src\/dev|\.\.\/dev\//);
   assert.match(composerSource, /compileDeclarativeLiveRoute\(composeDeclarativeLiveRouteAuthoring\(source\)\)/);
-  assert.match(m630Source, /compileDeclarativeRouteFragments/);
-  assert.doesNotMatch(m630Source, /compileDeclarativeLiveRoute\s*\(/);
-  assert.doesNotMatch(rendererSource, /DeclarativeRouteFragment|STAGE_3_L|S3L_CONTINUE/);
-  assert.doesNotMatch(mainSource, /DeclarativeRouteFragment|STAGE_3_L|S3L_CONTINUE/);
+  assert.match(liveSource, /compileDeclarativeRouteFragments/);
+  assert.doesNotMatch(liveSource, /compileDeclarativeLiveRoute\s*\(/);
+  assert.doesNotMatch(rendererSource, /DeclarativeRouteFragment|STAGE_3_[LR]|S3[LR]_CONTINUE/);
+  assert.doesNotMatch(mainSource, /DeclarativeRouteFragment|STAGE_3_[LR]|S3[LR]_CONTINUE/);
 });
