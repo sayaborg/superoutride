@@ -18,6 +18,7 @@ import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
+import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import { createM626LiveContinuation } from './m6-26-live-successor-stage.js';
 import { createM626LiveStageRuntimePackages } from './m6-26-live-runtime-content.js';
@@ -46,11 +47,13 @@ export function createM630ThirdLiveSuccessorRuntime(
 ): LiveRouteRuntimeAssembly {
   const continuation = createM626LiveContinuation(parentGuide);
   const thirdLeft = createThirdLeftSuccessor(continuation.leftSuccessor);
+  const identity = createM621ChildVisualIdentity();
   const basePackages = createM626LiveStageRuntimePackages(
     continuation,
     parentContent,
     spriteAssets,
     WORLD_FRAME_ID,
+    identity,
   );
   const baseById = new Map(basePackages.map((runtime) => [runtime.packageId, runtime]));
   const requireBase = (packageId: string): StageRuntimeContentPackage => {
@@ -58,7 +61,7 @@ export function createM630ThirdLiveSuccessorRuntime(
     if (!found) throw new RangeError(`M6.30 missing base runtime package: ${packageId}`);
     return found;
   };
-  const authored = createM624ChildStageAuthoring(spriteAssets);
+  const authored = createM624ChildStageAuthoring(spriteAssets, identity);
   const stage3Left = Object.freeze({
     ...requireBase('CONTENT_GOAL_L'),
     packageId: 'CONTENT_STAGE_3_L',
