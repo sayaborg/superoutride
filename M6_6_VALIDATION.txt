@@ -1,0 +1,25 @@
+SUPER OUTRIDE M6.6 VALIDATION
+
+Milestone: Deterministic Driving Input Trace Replay
+Validated implementation head: 141819a0fe296c1537ce01e8b296cd3d61cc3595
+Pull request: #16
+GitHub Actions run: 32614868436
+Build job: 97133786911
+
+Result:
+148 tests
+148 pass
+0 fail
+
+Validated properties:
+- fixed-dt DrivingInput traces use explicit format SUPER_OUTRIDE_INPUT_TRACE_V1
+- adjacent identical commands are run-length encoded deterministically
+- JSON serialization/parsing preserves the exact command sequence
+- invalid steering outside [-1,+1] is rejected rather than silently clamped
+- same trace + same physics gives bit-for-bit identical telemetry summary
+- the same immutable trace can replay against different physics parameter sets
+- different physics parameter sets produce measurable telemetry differences without modifying the trace
+- current vehicle physics remains DEV_UNCALIBRATED; no handling metric is promoted to product authority
+- existing M0-M6.5 regression remains green
+
+Status: GO
