@@ -164,9 +164,10 @@ export function compileRouteBoundaryGateSet(
  * - non-terminal stage: outgoing route-choice gates;
  * - terminal stage: that stage's finish gate.
  *
- * Reverse crossings never validate. If one physics step forward-crosses more than one legal
- * gate, the observation is rejected as ambiguous rather than choosing by screen position,
- * gate ordering or arbitrary ID.
+ * An optional allowedTransitionChoiceId narrows a branching stage to one already-authorized
+ * physical choice without changing authored gate geometry. Reverse crossings never validate.
+ * If one physics step forward-crosses more than one legal gate, the observation is rejected as
+ * ambiguous rather than choosing by screen position, gate ordering or arbitrary ID.
  */
 export function observeRouteBoundaryCrossing(
   route: RouteDag,
@@ -174,6 +175,7 @@ export function observeRouteBoundaryCrossing(
   gateSet: RouteBoundaryGateSet,
   previous: Vec2,
   current: Vec2,
+  allowedTransitionChoiceId: string | null = null,
 ): RouteBoundaryObservation {
   assertFinitePoint(previous, 'previous route-boundary point');
   assertFinitePoint(current, 'current route-boundary point');
@@ -181,12 +183,28 @@ export function observeRouteBoundaryCrossing(
   if (state.status === 'FINISHED') return emptyObservation();
 
   const activeStage = getRouteStage(route, state.activeStageId);
+  let availableChoices = activeStage.kind === 'TERMINAL'
+    ? []
+    : getAvailableRouteChoices(route, state as RouteDagState);
+  if (allowedTransitionChoiceId !== null) {
+    if (activeStage.kind === 'TERMINAL') {
+      throw new RangeError('terminal route stage cannot have an allowed transition choice');
+    }
+    const allowedChoice = getRouteChoice(route, allowedTransitionChoiceId);
+    if (allowedChoice.fromStageId !== activeStage.id
+      || !activeStage.outgoingChoiceIds.includes(allowedChoice.id)) {
+      throw new RangeError(
+        `allowed transition choice ${allowedTransitionChoiceId} does not leave active stage ${activeStage.id}`,
+      );
+    }
+    availableChoices = availableChoices.filter((choice) => choice.id === allowedTransitionChoiceId);
+  }
+
   const candidates = activeStage.kind === 'TERMINAL'
     ? gateSet.gates.filter(
       (gate): gate is RouteFinishGate => gate.kind === 'FINISH' && gate.stageId === activeStage.id,
     )
-    : getAvailableRouteChoices(route, state as RouteDagState).map((choice) =>
-      getTransitionGateForChoice(gateSet, choice));
+    : availableChoices.map((choice) => getTransitionGateForChoice(gateSet, choice));
 
   const crossings = candidates
     .map((gate) => detectGateCrossing(gate, previous, current))
