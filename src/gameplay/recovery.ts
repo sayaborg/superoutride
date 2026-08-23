@@ -1,4 +1,8 @@
-import { guideCourseToWorld, type GuideCurve } from '../core/guide-curve.js';
+import {
+  guideCoordinateCurve,
+  guideCoordinateToWorld,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
 import { clamp, wrapPositive } from '../core/math.js';
 import type { M5CarState } from '../physics/car-physics.js';
 import type { M5BikeState } from '../physics/motorcycle-physics.js';
@@ -51,7 +55,7 @@ export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState 
  */
 export function updateM5Recovery(
   state: M5RecoveryState,
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
@@ -81,15 +85,16 @@ export function updateM5Recovery(
 
 export function recoverM5Vehicle(
   state: M5RecoveryState,
-  guide: GuideCurve,
+  guide: GuideCoordinateSource,
   height: CyclicHeightProfile,
   surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
   reason: RecoveryReason = 'manual',
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
 ): void {
-  const s = wrapPositive(state.lastSafeS - profile.backtrackDistance, guide.length);
-  const plan = guideCourseToWorld(guide, s, 0);
+  const curve = guideCoordinateCurve(guide);
+  const s = wrapPositive(state.lastSafeS - profile.backtrackDistance, curve.length);
+  const plan = guideCoordinateToWorld(guide, s, 0);
   const speed = clamp(
     Math.max(0, vehicle.longitudinalSpeed) * profile.speedRetention,
     profile.minRecoverySpeed,
