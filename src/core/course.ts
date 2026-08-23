@@ -26,6 +26,11 @@ export interface RasterCourse {
   segments: readonly RasterSegment[];
   vertexS: readonly number[];
   vertexTurns: readonly number[];
+  /**
+   * Per-vertex lateral basis for exact miter joins. Multiplying this vector by
+   * l yields the shared intersection of the incoming/outgoing offset lines.
+   */
+  vertexMiters: readonly Vec2[];
   length: number;
 }
 
@@ -82,11 +87,27 @@ export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterCo
     return turn;
   });
 
+  const vertexMiters = copied.map((_, i) => {
+    const incoming = segments[(i - 1 + segments.length) % segments.length]!.heading;
+    const outgoing = segments[i]!.heading;
+    const nIn = normalFromHeading(incoming);
+    const nOut = normalFromHeading(outgoing);
+    const denominator = 1 + nIn.x * nOut.x + nIn.z * nOut.z;
+    if (!(denominator > EPSILON)) {
+      throw new Error(`raster vertex ${i} has degenerate lateral miter`);
+    }
+    return {
+      x: (nIn.x + nOut.x) / denominator,
+      z: (nIn.z + nOut.z) / denominator,
+    };
+  });
+
   return {
     vertices: copied,
     segments,
     vertexS,
     vertexTurns,
+    vertexMiters,
     length: s,
   };
 }
@@ -108,13 +129,31 @@ export function sampleRasterCourse(course: RasterCourse, s: number): RasterSampl
   };
 }
 
+/**
+ * Map raster chainage/lateral coordinates into world space with exact C0 miter
+ * joins for every fixed-l strip edge.
+ *
+ * The centerline, chainage and segment headings remain unchanged. Only the
+ * lateral basis changes. Each vertex basis is the intersection per metre of
+ * the adjacent offset lines; linear interpolation between the two endpoint
+ * miters remains on the current segment's offset line. This removes the old
+ * outside-corner step without introducing polygons, another road path or any
+ * camera-space depth.
+ */
 export function rasterCourseToWorld(course: RasterCourse, s: number, l: number): CourseWorldSample {
   const center = sampleRasterCourse(course, s);
-  const normal = normalFromHeading(center.heading);
+  const segment = course.segments[center.segmentIndex]!;
+  const ds = center.s - segment.sStart;
+  const t = Math.max(0, Math.min(1, ds / segment.length));
+  const m0 = course.vertexMiters[segment.startVertexIndex]!;
+  const m1 = course.vertexMiters[segment.endVertexIndex]!;
+  const lateralX = m0.x + (m1.x - m0.x) * t;
+  const lateralZ = m0.z + (m1.z - m0.z) * t;
+
   return {
     ...center,
-    x: center.x + normal.x * l,
-    z: center.z + normal.z * l,
+    x: center.x + lateralX * l,
+    z: center.z + lateralZ * l,
     l,
   };
 }
