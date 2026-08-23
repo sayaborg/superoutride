@@ -72,6 +72,8 @@ export interface RouteBoundaryObservation {
   readonly gate: RouteBoundaryGate | null;
   readonly forwardCrossingCount: number;
   readonly reverseCrossingCount: number;
+  /** Position of the unique observed physical crossing within this world-motion step, in [0,1]. */
+  readonly crossingFraction: number | null;
 }
 
 interface GateCrossing {
@@ -201,6 +203,7 @@ export function observeRouteBoundaryCrossing(
       gate: null,
       forwardCrossingCount: forward.length,
       reverseCrossingCount: reverse.length,
+      crossingFraction: null,
     };
   }
 
@@ -213,6 +216,7 @@ export function observeRouteBoundaryCrossing(
         gate: crossing.gate,
         forwardCrossingCount: 1,
         reverseCrossingCount: reverse.length,
+        crossingFraction: crossing.u,
       };
     }
     return {
@@ -221,6 +225,7 @@ export function observeRouteBoundaryCrossing(
       gate: crossing.gate,
       forwardCrossingCount: 1,
       reverseCrossingCount: reverse.length,
+      crossingFraction: crossing.u,
     };
   }
 
@@ -231,6 +236,7 @@ export function observeRouteBoundaryCrossing(
       gate: reverse[0]!.gate,
       forwardCrossingCount: 0,
       reverseCrossingCount: reverse.length,
+      crossingFraction: reverse[0]!.u,
     };
   }
 
@@ -305,6 +311,7 @@ function emptyObservation(): RouteBoundaryObservation {
     gate: null,
     forwardCrossingCount: 0,
     reverseCrossingCount: 0,
+    crossingFraction: null,
   };
 }
 
