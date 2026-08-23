@@ -3,21 +3,20 @@ import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
-import { classifyStageRoadLocalL } from './course/stage-road-view.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from './dev/m6-13-junction.js';
-import { createM616ChildGuideCharts } from './dev/m6-16-child-guide-charts.js';
 import { createM617RouteStageHandoffManifest } from './dev/m6-17-handoff-seams.js';
-import { createM618StageRoadViews } from './dev/m6-18-stage-road-views.js';
+import { createM620LivePointToPointRouteDag } from './dev/m6-20-live-point-to-point.js';
 import {
-  createM620LivePointToPointGateSet,
-  createM620LivePointToPointRouteDag,
-} from './dev/m6-20-live-point-to-point.js';
-import { createM620LiveStageRuntimeRegistry } from './dev/m6-20-live-runtime-content.js';
+  createM622ChildStageCharts,
+  createM622ChildStageRoadViews,
+  createM622LivePointToPointGateSet,
+  createM622LiveStageRuntimeRegistry,
+} from './dev/m6-22-child-stage-continuation.js';
 import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
 import {
   createM5CameraRig,
-  rebaseM5CameraRigCoordinateFrame,
+  rebaseM5CameraRigWorldPosition,
   resetM5CameraRig,
   updateM5Camera,
   type M5CameraProfile,
@@ -162,12 +161,12 @@ const raceSession = createRaceSessionState();
 const rivalRaceSession = createRaceSessionState();
 
 const routeDag = createM620LivePointToPointRouteDag();
-const routeGates = createM620LivePointToPointGateSet(routeDag, guide);
 const routeState = createRouteDagState(routeDag);
 const routeContent = createM6DebugRouteStageContentManifest(routeDag);
-const childCharts = createM616ChildGuideCharts(guide);
+const childCharts = createM622ChildStageCharts(guide);
 const guideCharts = [childCharts.parent, childCharts.left, childCharts.right] as const;
-const stageRoadViews = createM618StageRoadViews(childCharts);
+const stageRoadViews = createM622ChildStageRoadViews(childCharts);
+const routeGates = createM622LivePointToPointGateSet(routeDag, guide, childCharts);
 const routeHandoffManifest = createM617RouteStageHandoffManifest(routeDag, guide, childCharts);
 const routeHandoffState = createRouteStageHandoffState(
   routeDag,
@@ -175,7 +174,7 @@ const routeHandoffState = createRouteStageHandoffState(
   childCharts.parent,
   { x: vehicle.x, z: vehicle.z },
 );
-const stageRuntimeRegistry = createM620LiveStageRuntimeRegistry(
+const stageRuntimeRegistry = createM622LiveStageRuntimeRegistry(
   routeContent,
   childCharts,
   stageRoadViews,
@@ -343,10 +342,10 @@ function frame(now: number): void {
       if (handoffEvent === 'COMMITTED') {
         const runtimeAfter = activeRuntime();
         vehicle.course = { ...routeHandoffState.coordinate };
-        rebaseM5CameraRigCoordinateFrame(
+        rebaseM5CameraRigWorldPosition(
           cameraRig,
-          runtimeBefore.coordinateFrame,
           runtimeAfter.coordinateFrame,
+          camera,
         );
       } else {
         syncRouteStageHandoffCoordinate(routeHandoffState, guideCharts, currentRoutePoint);
@@ -394,12 +393,14 @@ function frame(now: number): void {
 function render(): void {
   const runtime = activeRuntime();
   const selectedBackground = runtime.selectFarBackground(camera.s);
-  const backgroundDiagnostic = selectM5FarBackground(
-    camera.s,
-    guide.length,
-    outdoorFarBackground,
-    tunnelPresentation,
-  );
+  const backgroundKind = runtime.packageId === 'CONTENT_STAGE_1'
+    ? selectM5FarBackground(
+      camera.s,
+      guide.length,
+      outdoorFarBackground,
+      tunnelPresentation,
+    ).kind
+    : runtime.packageId === 'CONTENT_GOAL_L' ? 'COAST' : 'MOUNTAIN';
   const rivalSprite = createDynamicVehicleCourseSprite('RIVAL', rival, camera.yaw, spriteAssets.car);
   const renderWorldSprites = rivalBelongsToRuntime(runtime)
     ? [...runtime.worldSprites, rivalSprite]
@@ -437,7 +438,7 @@ function render(): void {
     { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
     camera,
   );
-  const dCar = pseudoDepth(vehicle.course.s, camera.s, guide.length);
+  const dCar = pseudoDepth(vehicle.course.s, camera.s, camera.courseLength);
   const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
   const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
   const bankDeg = vehicleKind === 'bike'
@@ -448,7 +449,9 @@ function render(): void {
   const bestBoundary = raceSession.bestBoundaryIntervalSeconds === null
     ? '--:--.---'
     : formatRaceTime(raceSession.bestBoundaryIntervalSeconds);
-  const junctionSection = M6_13_JUNCTION.sample(vehicle.course.s);
+  const roadPhase = runtime.packageId === 'CONTENT_STAGE_1'
+    ? M6_13_JUNCTION.sample(vehicle.course.s).phase
+    : 'CHILD';
   const pendingHandoff = routeHandoffState.pending === null
     ? 'NONE'
     : `${routeHandoffState.pending.targetChartId}/${routeHandoffState.pending.targetStageId}`;
@@ -463,9 +466,9 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.20 LIVE POINT-TO-POINT / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
-  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnostic.kind}`, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionSection.phase}`, 8, 48);
+  ctx.fillText(`M6.22 CHILD STAGE CONTINUATION / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundKind}`, 8, 36);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  ROAD ${roadPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
@@ -487,12 +490,12 @@ function render(): void {
   ctx.fillText(
     runObjective.status === 'FINISHED'
       ? `POINT-TO-POINT FINISH: ${runObjective.finishId}`
-      : 'Physical fork → deferred seam → active child runtime → child FINISH',
+      : 'Physical fork → seam COMMIT → independent child Raster/Guide → child FINISH',
     8,
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Runtime package drives physics + camera + renderer from one child l=0 frame', 8, 218);
+  ctx.fillText('Selected child package owns Guide + SurfaceMap + GroundMap + Far Background', 8, 218);
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
@@ -501,9 +504,7 @@ function activeRuntime(): StageRuntimeContentPackage {
 }
 
 function rivalBelongsToRuntime(runtime: StageRuntimeContentPackage): boolean {
-  if (runtime.roadView === null) return true;
-  const localL = rival.course.l - runtime.roadView.sourceLateralOrigin;
-  return classifyStageRoadLocalL(runtime.roadView, localL) !== 'OUTSIDE';
+  return guideCoordinateCurve(runtime.coordinateFrame) === guide;
 }
 
 function raceSample(): { x: number; z: number; sLocal: number } {
