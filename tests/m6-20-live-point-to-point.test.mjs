@@ -248,3 +248,19 @@ test('M6.20 live runtime has only parent plus two terminal child packages', () =
     ['CONTENT_STAGE_1', 'CONTENT_GOAL_L', 'CONTENT_GOAL_R'],
   );
 });
+
+test('M6.20 browser runtime uses active stage packages instead of the repeated M6.8 fork', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
+
+  assert.match(source, /createM620LivePointToPointRouteDag/);
+  assert.match(source, /createM620LivePointToPointGateSet/);
+  assert.match(source, /createM620LiveStageRuntimeRegistry/);
+  assert.match(source, /resolveActiveStageRuntimeContent/);
+  assert.match(source, /POINT_TO_POINT_OBJECTIVE/);
+  assert.doesNotMatch(source, /createM6DebugRouteDag/);
+  assert.doesNotMatch(source, /createM615VisibleRouteBoundaryGateSet/);
+  assert.match(source, /runtimeBefore\.coordinateFrame/);
+  assert.match(source, /runtimeBefore\.surfaceMap/);
+  assert.match(source, /runtime\.roadView \?\? undefined/);
+});
