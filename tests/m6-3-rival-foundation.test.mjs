@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
-import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import {
+  estimateUpcomingTargetSpeed,
+  sampleRivalDrivingInput,
+} from '../dist/gameplay/rival-driver.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
 
@@ -46,19 +49,26 @@ test('rival driver steers back toward Guide center from a right-side offset on a
   assert.ok(input.steering < 0);
 });
 
-test('rival speed control uses throttle below cruise and brake above overspeed without direct velocity writes', () => {
+test('rival speed control uses 200+ km/h straight target but brakes for physically tighter upcoming curvature', () => {
   const guide = createM2StadiumGuide();
-  const slow = fakeCar(guide, 100, 0, 40);
-  const fast = fakeCar(guide, 100, 0, 70);
+  const straightTarget = estimateUpcomingTargetSpeed(guide, 450);
+  const preCurveTarget = estimateUpcomingTargetSpeed(guide, 120);
+  assert.ok(straightTarget >= 55.5);
+  assert.ok(preCurveTarget < straightTarget);
 
+  const slowStraight = fakeCar(guide, 450, 0, 40);
+  const fastStraight = fakeCar(guide, 450, 0, 70);
   assert.deepEqual(
-    { throttle: sampleRivalDrivingInput(guide, slow).throttle, brake: sampleRivalDrivingInput(guide, slow).brake },
+    { throttle: sampleRivalDrivingInput(guide, slowStraight).throttle, brake: sampleRivalDrivingInput(guide, slowStraight).brake },
     { throttle: true, brake: false },
   );
   assert.deepEqual(
-    { throttle: sampleRivalDrivingInput(guide, fast).throttle, brake: sampleRivalDrivingInput(guide, fast).brake },
+    { throttle: sampleRivalDrivingInput(guide, fastStraight).throttle, brake: sampleRivalDrivingInput(guide, fastStraight).brake },
     { throttle: false, brake: true },
   );
+
+  const tooFastForCurve = fakeCar(guide, 120, 0, 45);
+  assert.equal(sampleRivalDrivingInput(guide, tooFastForCurve).brake, true);
 });
 
 test('dynamic rival render adapter copies physical world anchor and chainage into ordinary CourseSprite', () => {
