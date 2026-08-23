@@ -1,0 +1,53 @@
+SUPER OUTRIDE M6.38 — DECLARATIVE FORK-STAGE GROWTH PLAN
+
+Baseline
+- M6.37: 321 tests
+
+M6.38 additions
+- 6 dedicated declarative fork-growth regressions
+
+Expected full suite
+- tests: 327
+- pass: 327
+- fail: 0
+
+Validated structural principles
+- compileRasterForkGrowthPlan() is only an ordered fold over the unchanged M6.36 compileRasterForkStageRoute() authority.
+- The generic growth-plan module owns no road geometry, gate/seam math, renderer, camera, vehicle physics or milestone-specific topology.
+- A zero-step plan is exact identity: same upstream authoring object, zero compiled steps.
+- Live M6.38 starts directly from M6.30 authoring and applies exactly two data rows: LEFT second fork then RIGHT second fork.
+- Live construction no longer nests M6.35 and M6.37 milestone constructors.
+- The shared second-fork recipe remains 7m incoming road, 7m child roads, 8m median, 1m shoulders, gate s=195 and source seam minimum s=235.
+- Child centers, gate widths and +/-12m local ground corridor remain derived by M6.34/M6.36.
+- Raster successors remain M6.29 authority and final compileRasterCourse() <=10-degree vertex validation remains unchanged.
+- Runtime child content remains caller-owned M6.24 stage authoring.
+- Stable browser entry remains createM627LiveRouteRuntime(); main.ts and renderer Core remain topology-free.
+
+Exact M6.37 equivalence regressions
+1. RouteDag stages/kinds and transitions exactly match M6.37.
+2. Stage/package bindings and package/GuideChart identities exactly match M6.37.
+3. Every physical transition/FINISH gate exactly matches M6.37.
+4. Every handoff seam exactly matches M6.37.
+5. The plan contains ordered STAGE_4_L_FORK then STAGE_4_R_FORK steps; zero-step identity is proven.
+6. Live construction is M6.30 + growth plan, with no M6.35/M6.37 nesting and no renderer/main topology dependency.
+
+CI history
+1. Initial candidate:
+   - TypeScript failure only: readonly branch array widened instead of required readonly 2-tuple.
+   - fixed with explicit tuple typing; behavior unchanged.
+2. Tuple-fixed candidate:
+   - tests: 327
+   - pass: 323
+   - fail: 4
+   - all six M6.38 regressions passed
+   - failures were obsolete M6.28/M6.30/M6.35/M6.37 static assertions naming the previous M6.37 stable-entry target.
+3. Corrected structural head:
+   - c086ec6ed3dfb7f461e9b284284e8032b2b3fe48
+   - workflow: 32634523257
+   - build job: 97182171093
+   - synthetic merge: f04e9ffc36d2d99f8aeaed6b5095e9be34e727e9
+   - tests: 327
+   - pass: 327
+   - fail: 0
+
+Final documentation-inclusive exact-head CI must independently reproduce 327 / 327 / 0 before main fast-forward.
