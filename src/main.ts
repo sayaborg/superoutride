@@ -9,6 +9,7 @@ import {
   createGeometricCourseTracker,
   createM6DebugRaceRules,
   createRaceProgressState,
+  getRaceProgressWindow,
   resyncGeometricCourseTracker,
   resyncRaceProgressPosition,
   updateGeometricCourseTracker,
@@ -210,6 +211,7 @@ function render(): void {
   const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
   const bankDeg = vehicleKind === 'bike' ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI : vehicle.sprungRoll * 180 / Math.PI;
   const nextGate = raceRules.gates[raceProgress.nextGateIndex]!;
+  const progressWindow = getRaceProgressWindow(raceProgress, raceRules);
   const raceDirection = raceProgress.direction === 'FORWARD'
     ? 'FWD'
     : raceProgress.direction === 'REVERSE' ? 'REV' : '---';
@@ -220,7 +222,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.0 RACE PROGRESS / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.1 CONTINUOUS RACE / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V]  RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${selectedBackground.kind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  Y ${vehicle.y.toFixed(1)}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -228,8 +230,8 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
   ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
   ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
-  ctx.fillText(`RACE L${raceProgress.lapIndex + 1} NEXT ${nextGate.name} PROG ${raceProgress.sProgress.toFixed(0)} ${raceDirection}`, 8, 120);
-  ctx.fillText(`GEO L${geometricCourse.position.lap} S ${geometricCourse.position.sLocal.toFixed(1)}  REC ${recovery.recoveries}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
+  ctx.fillText(`RACE L${raceProgress.lapIndex + 1} ${raceProgress.sProgress.toFixed(1)}m NEXT ${nextGate.name} ${raceDirection}`, 8, 120);
+  ctx.fillText(`WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  GEO ${geometricCourse.position.sLocal.toFixed(1)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';
     ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 144);
@@ -237,7 +239,7 @@ function render(): void {
   }
 
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('Race authority = ordered physical world gates; raw s_car remains geometry only', 8, 218);
+  ctx.fillText('s_progress is continuous only inside the last-gate -> next-gate validated window', 8, 218);
   ctx.fillText(`M5.9 tunnel intact / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
 }
 
