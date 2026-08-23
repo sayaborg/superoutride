@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.28 Declarative Live Route Compilation
+# SUPER OUTRIDE — M6.29 Reusable Raster Stage Successor Factory
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -51,7 +51,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.25 Successor Stage Continuation Link — complete
 - M6.26 Live Child → Successor Stage — complete
 - M6.27 Live Route Runtime Assembly — complete
-- **M6.28 Declarative Live Route Compilation — complete**
+- M6.28 Declarative Live Route Compilation — complete
+- **M6.29 Reusable Raster Stage Successor Factory — complete**
 
 ## Run / test
 
@@ -69,7 +70,7 @@ Full regression:
 npm test
 ```
 
-M6.28 adds five dedicated regressions to the M6.27 269-test suite, for a target of **274 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.29 adds five dedicated regressions to the M6.28 274-test suite, for a target of **279 tests**. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -220,7 +221,7 @@ The assembly compiler validates route/content/chart/runtime identity before simu
 
 ## M6.28 declarative live route
 
-The current route is now authored as stage, transition and finish rows. A stage owns its complete runtime package; a transition owns only its topology and physical gate/seam geometry; a terminal finish owns only its physical FINISH geometry.
+The current route is authored as stage, transition and finish rows. A stage owns its complete runtime package; a transition owns only its topology and physical gate/seam geometry; a terminal finish owns only its physical FINISH geometry.
 
 The generic compiler derives references that previously had to be repeated:
 
@@ -244,11 +245,44 @@ DeclarativeLiveRouteAuthoring
 → LiveRouteRuntimeAssembly
 ```
 
-M6.28 therefore reduces duplicated route authoring without weakening any lower-level check. The regression suite directly compares every current physical TRANSITION gate and handoff seam against the M6.26 compiled world geometry, including X/Z, heading and width.
+M6.28 therefore reduces duplicated route authoring without weakening any lower-level check. `main.ts` remains stable and still calls `createM627LiveRouteRuntime()`, whose implementation delegates to declarative route authoring.
 
-`main.ts` remains stable and still calls `createM627LiveRouteRuntime()`. That stable entry now delegates to M6.28 declarative authoring, so current route construction can evolve without adding topology-specific logic to the browser loop.
+## M6.29 reusable Raster stage successor
 
-The generic declarative compiler imports no renderer, camera, car physics, motorcycle physics, or milestone implementation.
+The Raster/Guide construction algorithm used by the M6.26 LEFT/RIGHT successor stages now lives in the generic runtime factory:
+
+```text
+createRasterStageSuccessor(source, authoring)
+```
+
+The factory accepts an already compiled Guide/chart plus metric authoring, copies a complete overlap interval exactly, finds a low-curvature source run, applies smooth `sin(pi*phase)^2` lateral deformation only inside that run, and always sends the result through the ordinary `compileRasterCourse()` authority.
+
+The frozen 10° Raster rule is not exposed as a configurable tolerance. `gentleTurnLimitDegrees` is only a conservative source-run selector and must remain strictly below 10°. Any final candidate must still pass the normal Raster compiler.
+
+The factory produces the complete structural successor source in one operation:
+
+```text
+GuideCurve
+GuideChart
+StageRoadView
+StageSurfaceMapView
+GroundMapProfile
+StageContinuationLink
+sourceTransitionS
+sourceSeamS
+targetSeamS
+finishS
+```
+
+The requested overlap margin must cover `D_cam`, and the resulting `StageContinuationLink` validates world position/heading through `D_cam` behind and ahead of the seam.
+
+GroundMap sampling width is an explicit authoring value rather than a hardcoded current-course constant. M6.26 passes the existing ±12m value while the generic factory remains reusable.
+
+M6.26 now retains only route/content-specific parameters such as LEFT/RIGHT deformation direction, seam/finish distances and the assertion that the second transition occurs after child terrain has settled. It no longer owns Raster editing helpers.
+
+The M6.29 regression suite directly compares the generic factory output against the M6.26 successor, including every Raster vertex and all seam/finish chainages. Thus the extraction must reproduce the already validated live geometry exactly.
+
+The generic factory imports no RouteDag, route gates, renderer, camera, car physics, motorcycle physics, or milestone implementation.
 
 ## FINISH authority
 
@@ -278,6 +312,7 @@ src/runtime/stage-authoring-compiler.ts
 src/runtime/stage-continuation-link.ts
 src/runtime/live-route-runtime.ts
 src/runtime/declarative-live-route.ts
+src/runtime/raster-stage-successor.ts
 src/dev/m6-22-child-stage-continuation.ts
 src/dev/m6-24-stage-authoring.ts
 src/dev/m6-24-live-runtime-content.ts
@@ -289,8 +324,8 @@ src/render/m5-renderer.ts
 src/main.ts
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/46_m6_28_declarative_live_route.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/47_m6_29_reusable_raster_successor.md`.
 
 ## Next
 
-The graph is declarative, but independent stage geometry/runtime packages are still produced by M6.26-specific continuation helpers. The next architectural step is to generalize stage-continuation and package construction so another route depth can be added primarily by supplying stage geometry/content plus declarative rows, without introducing another topology-specific constructor. World-space overlap validation and the frozen raster renderer must remain unchanged.
+Route topology is declarative and successor Raster/Guide construction is now reusable. The next proof should combine these two layers by extending one current terminal path through another independently generated stage using the same successor factory, while keeping `main.ts`, renderer Core and the physical gate → PENDING → seam COMMIT transaction unchanged.
