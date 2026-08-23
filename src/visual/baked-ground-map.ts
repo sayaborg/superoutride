@@ -52,13 +52,22 @@ export interface BakedGroundMapSample {
   readonly level: number;
 }
 
+/** One resolved chainage row. Safe to reuse for every lateral pixel in one TerrainLine. */
+export interface PreparedBakedGroundMapRow {
+  readonly level: number;
+  readonly lateralTexels: number;
+  readonly format: BakedGroundMapStorageFormat;
+  readonly payloadOffsetBytes: number;
+  readonly localRow: number;
+}
+
 const RGB555_TO_RGBA = new Uint32Array(0x8000);
 for (let i = 0; i < RGB555_TO_RGBA.length; i += 1) RGB555_TO_RGBA[i] = rgb555ToRgba(i);
 
 /**
  * Runtime view of compiler-baked GroundMap chunks.
  * No filtering is performed here: runtime only selects one prefiltered level
- * from Delta_s_eff and performs a nearest texel lookup in that level.
+ * from Delta_s_eff and performs nearest texel reads from the resolved row.
  */
 export class BakedGroundMapAsset {
   readonly bytes: Uint8Array;
@@ -89,40 +98,57 @@ export class BakedGroundMapAsset {
     return { color: this.sampleAtLevel(s, l, level), level };
   }
 
-  sampleAtLevel(s: number, l: number, levelIndex: number): number {
+  /** Resolve cyclic chainage and chunk payload once per TerrainLine. */
+  prepareRow(s: number, levelIndex: number): PreparedBakedGroundMapRow {
     const level = this.metadata.levels[levelIndex];
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
-
     const sLocal = wrapPositive(s, this.metadata.courseLength);
     const row = Math.min(
       level.chainageTexels - 1,
       Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels),
     );
-    const lateralWidth = this.metadata.groundLeft + this.metadata.groundRight;
-    const normalizedL = (l + this.metadata.groundLeft) / lateralWidth;
-    const column = Math.max(
-      0,
-      Math.min(level.lateralTexels - 1, Math.floor(normalizedL * level.lateralTexels)),
-    );
     const chunk = findChunk(level.chunks, row);
     const payload = this.metadata.payloads[chunk.payloadId];
     if (!payload) throw new Error('GroundMap chunk references missing payload');
-    const localRow = row - chunk.rowStart;
-    const texelIndex = localRow * level.lateralTexels + column;
+    return {
+      level: levelIndex,
+      lateralTexels: level.lateralTexels,
+      format: payload.format,
+      payloadOffsetBytes: payload.offsetBytes,
+      localRow: row - chunk.rowStart,
+    };
+  }
 
-    if (payload.format === 'palette8') {
-      const paletteIndex = this.bytes[payload.offsetBytes + texelIndex];
+  /** Convert a physical lateral coordinate to the continuous source-column coordinate used by the line scaler. */
+  lateralToSourceColumn(levelIndex: number, l: number): number {
+    const level = this.metadata.levels[levelIndex];
+    if (!level) throw new RangeError('GroundMap level outside baked pyramid');
+    const lateralWidth = this.metadata.groundLeft + this.metadata.groundRight;
+    return ((l + this.metadata.groundLeft) / lateralWidth) * level.lateralTexels;
+  }
+
+  /** Read one column from a row already resolved for the TerrainLine. */
+  samplePreparedColumn(row: PreparedBakedGroundMapRow, sourceColumn: number): number {
+    const column = Math.max(0, Math.min(row.lateralTexels - 1, Math.floor(sourceColumn)));
+    const texelIndex = row.localRow * row.lateralTexels + column;
+    if (row.format === 'palette8') {
+      const paletteIndex = this.bytes[row.payloadOffsetBytes + texelIndex];
       if (paletteIndex === undefined) throw new Error('GroundMap palette texel outside payload');
       const color = this.metadata.paletteRgba[paletteIndex];
       if (color === undefined) throw new Error('GroundMap palette index outside palette');
       return color >>> 0;
     }
 
-    const byteOffset = payload.offsetBytes + texelIndex * 2;
+    const byteOffset = row.payloadOffsetBytes + texelIndex * 2;
     const low = this.bytes[byteOffset];
     const high = this.bytes[byteOffset + 1];
     if (low === undefined || high === undefined) throw new Error('GroundMap RGB555 texel outside payload');
     return RGB555_TO_RGBA[(low | (high << 8)) & 0x7fff]!;
+  }
+
+  sampleAtLevel(s: number, l: number, levelIndex: number): number {
+    const row = this.prepareRow(s, levelIndex);
+    return this.samplePreparedColumn(row, this.lateralToSourceColumn(levelIndex, l));
   }
 
   /** Physical texel center useful for compiler/runtime equivalence tests. */
