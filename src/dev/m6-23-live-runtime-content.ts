@@ -17,6 +17,7 @@ import type {
 import {
   createM623ChildEnvironmentContent,
   type M623ChildEnvironment,
+  type M623ChildEnvironmentContent,
 } from './m6-23-child-environment-content.js';
 
 /**
@@ -29,8 +30,8 @@ export function createM623LiveStageRuntimeRegistry(
   parent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   childVisualIdentity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
+  environment: M623ChildEnvironmentContent = createM623ChildEnvironmentContent(continuation, spriteAssets),
 ): StageRuntimeContentRegistry {
-  const environment = createM623ChildEnvironmentContent(continuation, spriteAssets);
   return compileStageRuntimeContentRegistry(manifest, [
     {
       packageId: 'CONTENT_STAGE_1',
