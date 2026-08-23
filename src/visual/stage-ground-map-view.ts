@@ -11,11 +11,11 @@ import {
 } from './ground-map.js';
 
 /**
- * Stage-local GroundMap sampling without duplicating the baked parent asset.
+ * Stage-local GroundMap sampling without duplicating reusable source data.
  *
- * ROAD/TERRAIN translate local l once into the parent-authored source coordinate. SHOULDER is a
- * stage-local semantic override, so the median-facing edge of a committed child becomes a normal
- * shoulder. Runtime LOD remains chainage-only and is unchanged by this lateral view.
+ * ROAD/TERRAIN translate local l once into the authored source coordinate. SHOULDER is a
+ * stage-local semantic override. An optional source chainage offset preserves longitudinal visual
+ * phase when a stage handoff rebases the local s ruler; LOD authority itself remains chainage-only.
  */
 export function sampleStageGroundMapRuntime(
   s: number,
@@ -35,7 +35,8 @@ export function sampleStageGroundMapRuntime(
   }
 
   const sourceL = stageRoadSourceLateral(view, localL);
-  if (profile.baked) return profile.baked.sample(s, sourceL, deltaSEffective);
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
+  if (profile.baked) return profile.baked.sample(sourceS, sourceL, deltaSEffective);
   return {
     color: sampleGroundMap(s, sourceL, profile, cliffSection),
     level: 0,
@@ -55,7 +56,8 @@ export function sampleStageGroundMapAtLevel(
   if (localClass === 'SHOULDER') return GROUND_COLORS.shoulder;
 
   const sourceL = stageRoadSourceLateral(view, localL);
+  const sourceS = s + (profile.chainageOffsetS ?? 0);
   return profile.baked
-    ? profile.baked.sampleAtLevel(s, sourceL, level)
+    ? profile.baked.sampleAtLevel(sourceS, sourceL, level)
     : sampleGroundMap(s, sourceL, profile, cliffSection);
 }
