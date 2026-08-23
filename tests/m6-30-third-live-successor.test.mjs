@@ -54,7 +54,7 @@ function setup() {
   return live;
 }
 
-test('M6.30 live route adds one third LEFT stage while RIGHT route depth stays unchanged', () => {
+test('M6.30 LEFT third-stage path remains present as later milestones deepen the RIGHT route too', () => {
   const live = setup();
   assert.deepEqual(live.route.stages.map((stage) => [stage.id, stage.kind]), [
     ['STAGE_1', 'STAGE'],
@@ -62,6 +62,7 @@ test('M6.30 live route adds one third LEFT stage while RIGHT route depth stays u
     ['STAGE_2_R', 'STAGE'],
     ['STAGE_3_L', 'STAGE'],
     ['GOAL_L', 'TERMINAL'],
+    ['STAGE_3_R', 'STAGE'],
     ['GOAL_R', 'TERMINAL'],
   ]);
   assert.deepEqual(live.route.choices.map((choice) => choice.id), [
@@ -70,6 +71,7 @@ test('M6.30 live route adds one third LEFT stage while RIGHT route depth stays u
     'S2L_CONTINUE',
     'S3L_CONTINUE',
     'S2R_CONTINUE',
+    'S3R_CONTINUE',
   ]);
 });
 
@@ -101,13 +103,13 @@ test('M6.30 third LEFT transition owns a physical handoff to the new GOAL_L char
   assert.equal(goal.packageId, binding.packageId);
 });
 
-test('M6.30 leaves renderer and browser loop route-agnostic', async () => {
+test('M6.30 leaves renderer and browser loop route-agnostic as both branches deepen', async () => {
   const [source, main, stableEntry] = await Promise.all([
     readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-27-live-route-runtime.ts', import.meta.url), 'utf8'),
   ]);
   assert.doesNotMatch(source, /renderM5Driving|m5-renderer|car-physics|motorcycle-physics/);
-  assert.doesNotMatch(main, /M6\.30|STAGE_3_L|S3L_CONTINUE/);
+  assert.doesNotMatch(main, /STAGE_3_[LR]|S3[LR]_CONTINUE/);
   assert.match(stableEntry, /createM630ThirdLiveSuccessorRuntime/);
 });
