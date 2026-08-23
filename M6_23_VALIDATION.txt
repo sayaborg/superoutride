@@ -1,0 +1,24 @@
+SUPER OUTRIDE — M6.23 Child Environment Content
+
+Validation authority:
+  GitHub Actions exact PR-head tree status for the commit containing this record.
+  The exact validated SHA/run is reported in the PR/final handoff rather than self-embedded here.
+
+Expected regression:
+  previous M6.22: 241 tests
+  M6.23 additions: 6 tests
+  total:          247 tests
+
+M6.23 validation points:
+- Child handoff neighborhood remains on the shared zero-height datum through child s=60m.
+- LEFT child owns low coast relief and coast-specific ordinary CourseSprites.
+- RIGHT child owns mountain relief and mountain-specific ordinary CourseSprites.
+- Child sprites are compiled against the selected child Guide/HeightProfile and use child-local chainage.
+- Parent CourseSprites are not reinterpreted in a child chainage domain.
+- CONTENT_GOAL_L owns LEFT height, terrain, coast Far Background and COAST_* sprites.
+- CONTENT_GOAL_R owns RIGHT height, terrain, mountain Far Background and MOUNTAIN_* sprites.
+- Runtime selection authority remains handoff activePackageId.
+- Renderer Core receives ordinary resolved content only and contains no LEFT/RIGHT/M6.23 decision path.
+- Frozen chainage-only pseudo-depth, one-chainage/one-scanline, shared Painter and metric sprite-scale authorities are unchanged.
+- World pose is not teleported at content handoff.
+- Vehicle physics remains DEV_UNCALIBRATED.
