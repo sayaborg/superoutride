@@ -1,0 +1,49 @@
+SUPER OUTRIDE M6.40 — Rival Live Route Traversal
+
+Browser-integrated structural validated head before documentation synchronization:
+27738b46a1e639d6ccebcb786c607a17f7388438
+
+GitHub Actions PR run:
+32658502113
+Build job:
+97240954614
+
+Result:
+335 tests
+335 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+Dedicated M6.40 regressions:
+- deterministic DEV RIGHT-B route plan validates through the live RouteDag and ends at GOAL_RB
+- route-driving target follows authored junction widening / median growth instead of snapping to final branch center
+- during PENDING, committed handoff stage/chart remains steering-coordinate authority even though RouteDag has advanced
+- independent traveler states can commit separately without mutating each other
+- RIGHT-B traversal retains stage-local lateral semantics through continuations and the nonzero-origin second fork
+- rival sprite compatibility is active package identity only
+- generic traveler has no renderer or vehicle-physics dependency
+- browser main is statically locked to the new traveler wiring and no longer uses the old parent-only rival route target/update path
+- renderer Core contains no M6.40 / RIGHT-B route topology logic
+
+Browser rival runtime:
+- owns independent RouteDag/handoff state over the same immutable LiveRouteRuntimeAssembly as the player
+- resolves its own active package before physics
+- drives ordinary M5 car physics with that package's GuideCoordinateSource, HeightProfile and SurfaceMap
+- route transitions still require actual physical world-gate crossing
+- accepted transition queues PENDING; old chart/package stay active until physical seam COMMIT
+- only after COMMIT is rival.course mirrored to the new chart coordinate
+- recovery resync cannot manufacture route progress
+- rival CourseSprite is submitted only when player/rival packageId matches
+
+M6.39 coordinate-source fix remains authoritative:
+- sampleRivalDrivingInput accepts GuideCoordinateSource
+- stage-local l therefore survives nonzero lateralOrigin
+- plain GuideCurve zero-origin callers remain compatible
+
+Earlier M6.40 failed CI:
+- first structural candidate failed TypeScript because code directly accessed lateralOrigin on the GuideCoordinateSource union
+- fixed with existing guideCoordinateLateralOrigin() helper; no renderer/physics semantics were changed
+
+Final documentation-inclusive head must independently reproduce 335/335 before main fast-forward.
