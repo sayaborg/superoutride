@@ -270,11 +270,7 @@ function frame(now: number): void {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    if (runObjective.status === 'FINISHED') {
-      accumulator -= SIM_DT;
-      continue;
-    }
-
+    // A validated point-to-point finish records the objective; it does not pause DEV simulation.
     const runtimeBefore = activeRuntime();
     if (vehicleKind === 'car') {
       updateM5Car(
