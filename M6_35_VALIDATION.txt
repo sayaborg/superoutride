@@ -1,0 +1,41 @@
+SUPER OUTRIDE M6.35 — SECOND LIVE PHYSICAL FORK
+
+Baseline
+- M6.34: 303 tests
+
+M6.35 additions
+- 6 dedicated second-live-fork regressions
+
+Expected full suite
+- tests: 309
+- pass: 309
+- fail: 0
+
+Validated structural principles
+- The validated old LEFT terminal is promoted to STAGE_4_L_FORK by opaque package identity, without a world transform.
+- M6.34 StageJunction is the visible and physical second-fork cross-section authority.
+- The fork has one stage-local lateral strip, not two rendered 3D roads.
+- Final child-road centers are local l=-7.5m and +7.5m with a derived +/-12m ground envelope.
+- Physical route gates cover the separated child roads; the median selects nothing.
+- Route selection remains physical gate -> PENDING -> forward seam -> COMMIT.
+- Fork successors reuse M6.29 Raster construction; the adapter only shifts source chart coordinates and recompiles the public continuation link.
+- Fork handoffs map source child center to target local l=0 across validated D_cam overlap.
+- The frozen <=10-degree Raster vertex turn authority is unchanged.
+- GOAL_LA, GOAL_LB and GOAL_R each require their own physical FINISH crossing.
+- main.ts and renderer Core contain no second-fork topology knowledge.
+- Vehicle world X/Y/Z, yaw and velocities are never teleported by handoff.
+
+Initial PR CI
+- 309 tests attempted
+- 304 pass
+- 5 fail
+- all 6 new M6.35 tests passed
+- failures were historical time-dependent assertions for old live entry names / fixed terminal count
+
+Corrected structural CI
+- head: 51f5f5decb96349d923b24ad1251b23257bec1f7
+- tests: 309
+- pass: 309
+- fail: 0
+
+Final exact-head CI must independently reproduce 309 / 309 / 0 after package/docs/README synchronization before main fast-forward.
