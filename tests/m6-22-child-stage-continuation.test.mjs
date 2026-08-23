@@ -142,7 +142,7 @@ test('M6.22 translated procedural GroundMap keeps child road centered and preser
   assert.equal(childAtSeam, parentAtSeam);
 });
 
-test('M6.22 runtime packages own independent child Guide, SurfaceMap and child visual identity', () => {
+test('M6.22 runtime packages retain independent child Guide/SurfaceMap while later milestones add child-owned visuals', () => {
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
   const route = createM620LivePointToPointRouteDag();
@@ -157,8 +157,10 @@ test('M6.22 runtime packages own independent child Guide, SurfaceMap and child v
   assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, 0).type, 'ASPHALT');
   assert.equal(left.surfaceMap.sample(M6_22_CHILD_FINISH_S, 5).type, 'VOID');
   assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, -5).type, 'VOID');
-  assert.equal(left.worldSprites.length, 0);
-  assert.equal(right.worldSprites.length, 0);
+  assert.ok(left.worldSprites.length > 0);
+  assert.ok(right.worldSprites.length > 0);
+  assert.ok(left.worldSprites.every((sprite) => sprite.name.startsWith('COAST_')));
+  assert.ok(right.worldSprites.every((sprite) => sprite.name.startsWith('MOUNTAIN_')));
   assert.notEqual(left.selectFarBackground(50), right.selectFarBackground(50));
 });
 
