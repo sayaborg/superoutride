@@ -7,6 +7,11 @@ import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import {
+  createM5CameraRig,
+  rebaseM5CameraRigCoordinateFrame,
+  updateM5Camera,
+} from '../dist/dev/m5-camera.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -20,6 +25,8 @@ import {
 } from '../dist/gameplay/route-stage-handoff.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
@@ -27,6 +34,24 @@ import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 const DT = 1 / 60;
+const CAMERA_PROFILE = {
+  dCam: 5,
+  lCamMax: 12,
+  height: 2.469902425419539,
+  pitch: 8 * Math.PI / 180,
+  focalLength: 200,
+  centerX: 160,
+  centerY: 120,
+  kPsi: 0.65,
+  thetaLagMax: 20 * Math.PI / 180,
+  sDotMin: 8,
+  tauLat: 0.18,
+  playerTargetY: 190,
+  tauVertical: 0.22,
+  deltaYMax: 4,
+  playerSafeXMin: 48,
+  playerSafeXMax: 272,
+};
 
 function parentShared(guide) {
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
@@ -63,7 +88,7 @@ function parentShared(guide) {
   };
 }
 
-test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving after first handoff', () => {
+test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps rendering', () => {
   const parentGuide = createM2StadiumGuide();
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
@@ -77,12 +102,17 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
     { x: car.x, z: car.z },
   );
   const recovery = createM5RecoveryState(car);
+  const cameraRig = createM5CameraRig();
+  const framebuffer = new SoftwareSurface(320, 240, new Uint32Array(320 * 240));
   let previousRoutePoint = { x: car.x, z: car.z };
   let minSpeedAfterChoice = Infinity;
   let sawChoice = false;
   let sawCommit = false;
   let recoveryCountAtChoice = 0;
   let maxParentS = car.course.s;
+  let renderCountAfterCommit = 0;
+  let initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
+  let camera = updateM5Camera(cameraRig, initialRuntime.coordinateFrame, initialRuntime.heightProfile, car, CAMERA_PROFILE, DT);
 
   for (let tick = 0; tick < 900; tick += 1) {
     const runtimeBefore = resolveActiveStageRuntimeContent(live.registry, handoffState);
@@ -90,14 +120,7 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
       ? M6_13_JUNCTION.separatedChildCenterL('LEFT')
       : 0;
     const input = sampleRivalDrivingInput(guideCoordinateCurve(runtimeBefore.coordinateFrame), car, targetL);
-    updateM5Car(
-      runtimeBefore.coordinateFrame,
-      runtimeBefore.heightProfile,
-      runtimeBefore.surfaceMap,
-      car,
-      input,
-      DT,
-    );
+    updateM5Car(runtimeBefore.coordinateFrame, runtimeBefore.heightProfile, runtimeBefore.surfaceMap, car, input, DT);
     if (runtimeBefore.packageId === 'CONTENT_STAGE_1') maxParentS = Math.max(maxParentS, car.course.s);
 
     const recovered = updateM5Recovery(
@@ -111,55 +134,74 @@ test('live 60 Hz car physics crosses the visible LEFT fork and keeps moving afte
     if (recovered !== null) {
       previousRoutePoint = { x: car.x, z: car.z };
       syncRouteStageHandoffCoordinate(handoffState, live.charts, previousRoutePoint);
-      continue;
-    }
+    } else {
+      const currentRoutePoint = { x: car.x, z: car.z };
+      if (handoffState.pending === null) {
+        const observation = observeRouteBoundaryCrossing(
+          live.route,
+          routeState,
+          live.gates,
+          previousRoutePoint,
+          currentRoutePoint,
+        );
+        const routeUpdate = updateRouteDag(routeState, live.route, observation.boundary);
+        queueRouteStageHandoff(handoffState, live.handoffs, routeUpdate);
+        if (routeUpdate.acceptedChoice?.id === 'S1_LEFT') {
+          sawChoice = true;
+          recoveryCountAtChoice = recovery.recoveries;
+        }
+      }
 
-    const currentRoutePoint = { x: car.x, z: car.z };
-    if (handoffState.pending === null) {
-      const observation = observeRouteBoundaryCrossing(
-        live.route,
-        routeState,
-        live.gates,
+      const handoffObservation = observePendingRouteStageHandoff(
+        handoffState,
+        live.handoffs,
         previousRoutePoint,
         currentRoutePoint,
       );
-      const routeUpdate = updateRouteDag(routeState, live.route, observation.boundary);
-      queueRouteStageHandoff(handoffState, live.handoffs, routeUpdate);
-      if (routeUpdate.acceptedChoice?.id === 'S1_LEFT') {
-        sawChoice = true;
-        recoveryCountAtChoice = recovery.recoveries;
+      const handoffEvent = commitRouteStageHandoff(
+        handoffState,
+        routeState,
+        live.content,
+        live.charts,
+        handoffObservation.seam,
+        currentRoutePoint,
+      );
+      if (handoffEvent === 'COMMITTED') {
+        const runtimeAfter = resolveActiveStageRuntimeContent(live.registry, handoffState);
+        car.course = { ...handoffState.coordinate };
+        rebaseM5CameraRigCoordinateFrame(cameraRig, runtimeBefore.coordinateFrame, runtimeAfter.coordinateFrame);
+        if (handoffState.activePackageId === 'CONTENT_STAGE_2_L') sawCommit = true;
+      } else {
+        syncRouteStageHandoffCoordinate(handoffState, live.charts, currentRoutePoint);
       }
+      previousRoutePoint = currentRoutePoint;
     }
-
-    const handoffObservation = observePendingRouteStageHandoff(
-      handoffState,
-      live.handoffs,
-      previousRoutePoint,
-      currentRoutePoint,
-    );
-    const handoffEvent = commitRouteStageHandoff(
-      handoffState,
-      routeState,
-      live.content,
-      live.charts,
-      handoffObservation.seam,
-      currentRoutePoint,
-    );
-    if (handoffEvent === 'COMMITTED') {
-      car.course = { ...handoffState.coordinate };
-      if (handoffState.activePackageId === 'CONTENT_STAGE_2_L') sawCommit = true;
-    } else {
-      syncRouteStageHandoffCoordinate(handoffState, live.charts, currentRoutePoint);
-    }
-    previousRoutePoint = currentRoutePoint;
 
     if (sawChoice) minSpeedAfterChoice = Math.min(minSpeedAfterChoice, car.speed);
-    if (sawCommit && car.course.s > 80) break;
+
+    const runtimeAfterTick = resolveActiveStageRuntimeContent(live.registry, handoffState);
+    camera = updateM5Camera(cameraRig, runtimeAfterTick.coordinateFrame, runtimeAfterTick.heightProfile, car, CAMERA_PROFILE, DT);
+    renderM5Driving(
+      framebuffer,
+      runtimeAfterTick.selectFarBackground(camera.s),
+      guideCoordinateCurve(runtimeAfterTick.coordinateFrame),
+      camera,
+      car,
+      runtimeAfterTick.terrainProfile,
+      runtimeAfterTick.groundProfile,
+      runtimeAfterTick.worldSprites,
+      assets,
+      'car',
+      runtimeAfterTick.roadView ?? undefined,
+    );
+    if (sawCommit) renderCountAfterCommit += 1;
+    if (sawCommit && car.course.s > 80 && renderCountAfterCommit >= 30) break;
   }
 
-  const diagnostic = `parentMaxS=${maxParentS.toFixed(3)} finalS=${car.course.s.toFixed(3)} finalL=${car.course.l.toFixed(3)} speed=${car.speed.toFixed(3)} recoveries=${recovery.recoveries} route=${routeState.activeStageId} pending=${handoffState.pending?.choiceId ?? 'NONE'} pkg=${handoffState.activePackageId}`;
-  assert.equal(sawChoice, true, `scripted physical car must select the visible LEFT road; ${diagnostic}`);
-  assert.equal(sawCommit, true, `scripted physical car must cross the first handoff seam; ${diagnostic}`);
+  const diagnostic = `parentMaxS=${maxParentS.toFixed(3)} finalS=${car.course.s.toFixed(3)} finalL=${car.course.l.toFixed(3)} speed=${car.speed.toFixed(3)} recoveries=${recovery.recoveries} route=${routeState.activeStageId} pending=${handoffState.pending?.choiceId ?? 'NONE'} pkg=${handoffState.activePackageId} renderedAfterCommit=${renderCountAfterCommit}`;
+  assert.equal(sawChoice, true, `physical car must select LEFT; ${diagnostic}`);
+  assert.equal(sawCommit, true, `physical car must commit child; ${diagnostic}`);
+  assert.ok(renderCountAfterCommit >= 30, `renderer must continue after fork handoff; ${diagnostic}`);
   assert.ok(car.course.s > 80, `car should continue on child stage; ${diagnostic}`);
   assert.ok(minSpeedAfterChoice > 8, `car must not stall at fork; min=${minSpeedAfterChoice.toFixed(3)}; ${diagnostic}`);
   assert.equal(recovery.recoveries, recoveryCountAtChoice, `fork/handoff must not require recovery; ${diagnostic}`);
