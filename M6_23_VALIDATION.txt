@@ -1,0 +1,23 @@
+SUPER OUTRIDE — M6.23 Package-owned Child Stage Scenery
+
+Validation authority:
+  GitHub Actions exact PR-head status for the commit containing this record.
+  The exact validated SHA/run is reported in the PR/final handoff rather than self-embedded here.
+
+Expected regression after M6.23 additions:
+  previous: 241 tests
+  added:      5 tests
+  total:    246 tests
+
+M6.23 validation points:
+- M6.22 independent LEFT/RIGHT child Raster/Guide/SurfaceMap authority is preserved.
+- LEFT child owns coast/ocean terrain identity and ordinary lighthouse/palm CourseSprites.
+- RIGHT child owns a climbing mountain-pass height profile and ordinary pylon/pass-sign CourseSprites.
+- Both child height profiles are exactly continuous at the handoff seam.
+- LEFT ocean-facing GroundBase transparency remains visual-only and independent from SurfaceMap VOID.
+- Child landmark assets use metric worldWidthMeters, 0/1 transparency and <=15 opaque colors.
+- Child world sprites use the existing chainage-depth far-to-near Painter path.
+- Existing M6.21 Far Background identity remains package-owned.
+- Browser live wiring keeps M6.22 continuation/gates/handoff and advances only runtime package composition to M6.23.
+- Renderer Core contains no M6.23 coast/mountain/LEFT/RIGHT scenery decision logic.
+- No pseudo-depth, scanline, Raster Segment, Painter, camera roll or fixed player metric authority changes.
