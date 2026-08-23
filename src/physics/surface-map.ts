@@ -1,4 +1,5 @@
 import { compileSurfaceRegions } from '../compiler/surface-region-compiler.js';
+import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { wrapPositive } from '../core/math.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dev/m5-surface-authoring.js';
 
@@ -40,14 +41,17 @@ export interface SurfaceSample {
 }
 
 /**
- * Runtime SurfaceMap(s,l): piecewise-constant in authored s sections and lateral bands.
- * It is intentionally independent from GroundMap pixels and GroundBase paint rules.
- * Core Design Freeze §26.
+ * Runtime SurfaceMap(s,l): piecewise-constant authored terrain plus an optional continuous
+ * junction road cross-section. GroundMap pixels and GroundBase paint remain independent.
  */
 export class CyclicSurfaceMap {
   readonly sections: readonly SurfaceSection[];
 
-  constructor(readonly courseLength: number, sections: readonly SurfaceSection[]) {
+  constructor(
+    readonly courseLength: number,
+    sections: readonly SurfaceSection[],
+    readonly junction?: JunctionCrossSectionProfile,
+  ) {
     if (!(courseLength > 0)) throw new RangeError('course length must be > 0');
     const copied = sections
       .map((section) => ({
@@ -74,7 +78,21 @@ export class CyclicSurfaceMap {
   }
 
   sample(s: number, l: number): SurfaceSample {
-    const section = this.sectionAt(s);
+    const local = wrapPositive(s, this.courseLength);
+    const section = this.sectionAtLocal(local);
+
+    if (this.junction) {
+      const junctionClass = this.junction.classify(local, l);
+      const type = junctionSurfaceType(junctionClass);
+      if (type !== null) {
+        return {
+          sectionName: `${section.name} / JUNCTION`,
+          type,
+          material: SURFACE_MATERIALS[type],
+        };
+      }
+    }
+
     for (const band of section.bands) {
       if (l >= band.lMin && l <= band.lMax) {
         const material = SURFACE_MATERIALS[band.type];
@@ -85,7 +103,10 @@ export class CyclicSurfaceMap {
   }
 
   sectionAt(s: number): SurfaceSection {
-    const local = wrapPositive(s, this.courseLength);
+    return this.sectionAtLocal(wrapPositive(s, this.courseLength));
+  }
+
+  private sectionAtLocal(local: number): SurfaceSection {
     let index = this.sections.length - 1;
     for (let i = 0; i < this.sections.length; i += 1) {
       if (this.sections[i]!.sStart <= local) index = i;
@@ -93,6 +114,19 @@ export class CyclicSurfaceMap {
     }
     return this.sections[index]!;
   }
+}
+
+function junctionSurfaceType(
+  lateralClass: ReturnType<JunctionCrossSectionProfile['classify']>,
+): Exclude<SurfaceType, 'VOID'> | null {
+  if (
+    lateralClass === 'ASPHALT_SINGLE'
+    || lateralClass === 'ASPHALT_LEFT'
+    || lateralClass === 'ASPHALT_RIGHT'
+  ) return 'ASPHALT';
+  if (lateralClass === 'SHOULDER') return 'SHOULDER';
+  if (lateralClass === 'MEDIAN') return 'GRASS';
+  return null;
 }
 
 /** DEV authoring compiled into the runtime SurfaceMap. */
