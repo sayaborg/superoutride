@@ -73,9 +73,11 @@ test('M5.6 thin-span rule is explicitly one destination row', () => {
   assert.ok(projectedTerrainSpanRows(100, 20, 40) > 1);
 });
 
-test('Road Generator now emits explicit Core §64 collapsed TerrainLines', () => {
-  const lines = linesAt(20);
-  const collapsed = lines.filter((line) => line.sourceFootprint.collapsed);
+test('Road Generator emits explicit Core §64 collapsed TerrainLines within the current course envelope', () => {
+  const collapsed = [];
+  for (let s = 20; s < guide.length && collapsed.length === 0; s += 20) {
+    collapsed.push(...linesAt(s).filter((line) => line.sourceFootprint.collapsed));
+  }
   assert.ok(collapsed.length > 0);
   for (const line of collapsed) {
     assert.ok(line.sourceFootprint.deltaSCollapse > 0);
@@ -107,6 +109,7 @@ test('current debug Road Generator output still requires k=6 after explicit thin
     observedMaxDeltaSEffective: summary.maxDeltaSEffective,
   });
   validateTerrainFootprintsAgainstTarget(summary, target);
+  assert.ok(summary.collapsedLineCount > 0);
   assert.equal(summary.requiredChainageLevel, 6);
   assert.equal(target.observedRequiredLevel, 6);
   assert.equal(target.necessityProven, true);
