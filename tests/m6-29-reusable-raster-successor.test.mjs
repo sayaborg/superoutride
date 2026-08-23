@@ -28,6 +28,7 @@ function authoring(side) {
     dCam: 5,
     dMax: 150,
     finishClosureMargin: 20,
+    groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: 3.5,
     shoulderWidth: 1,
@@ -45,6 +46,8 @@ test('M6.29 generic factory reproduces the M6.26 LEFT successor geometry and sea
   near(direct.sourceSeamS, live.sourceSeamS);
   near(direct.targetSeamS, live.targetSeamS);
   near(direct.finishS, live.finishS);
+  assert.equal(direct.groundProfile.groundLeft, 12);
+  assert.equal(direct.groundProfile.groundRight, 12);
   assert.equal(direct.guide.raster.vertices.length, live.guide.raster.vertices.length);
   for (let i = 0; i < direct.guide.raster.vertices.length; i += 1) {
     near(direct.guide.raster.vertices[i].x, live.guide.raster.vertices[i].x);
