@@ -4,7 +4,12 @@ import assert from 'node:assert/strict';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { rasterCourseToWorld } from '../dist/core/course.js';
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
-import { stageRoadContainsLocalL, stageRoadSourceLateral, stageRoadToWorld } from '../dist/course/stage-road-view.js';
+import {
+  classifyStageRoadLocalL,
+  stageRoadContainsLocalL,
+  stageRoadSourceLateral,
+  stageRoadToWorld,
+} from '../dist/course/stage-road-view.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
@@ -44,6 +49,9 @@ test('M6.18 child stage view contains exactly one 7m road plus 1m shoulder on ea
     assert.equal(child.shoulderWidth, 1);
     assert.equal(child.groundLeft, 4.5);
     assert.equal(child.groundRight, 4.5);
+    assert.equal(classifyStageRoadLocalL(child, 0), 'ROAD');
+    assert.equal(classifyStageRoadLocalL(child, -4), 'SHOULDER');
+    assert.equal(classifyStageRoadLocalL(child, 4), 'SHOULDER');
     assert.equal(stageRoadContainsLocalL(child, -4.5), true);
     assert.equal(stageRoadContainsLocalL(child, 4.5), true);
     assert.equal(stageRoadContainsLocalL(child, -4.5001), false);
@@ -75,22 +83,31 @@ test('the unselected child road lies completely outside the committed child loca
   assert.equal(stageRoadContainsLocalL(views.right, leftRoadCenterInRightLocal), false);
 });
 
-test('GroundMap child-local samples translate to the existing parent-authored junction without a duplicate asset', () => {
+test('GroundMap child-local road reuses parent source while both shoulders are stage-local', () => {
   const { views, ground } = setup();
   for (const child of [views.left, views.right]) {
     const center = sampleStageGroundMapRuntime(600, 0, 0.1, child, ground).color;
-    const shoulder = sampleStageGroundMapRuntime(600, 4.0, 0.1, child, ground).color;
+    const leftShoulder = sampleStageGroundMapRuntime(600, -4.0, 0.1, child, ground).color;
+    const rightShoulder = sampleStageGroundMapRuntime(600, 4.0, 0.1, child, ground).color;
     assert.ok(center === GROUND_COLORS.asphaltA || center === GROUND_COLORS.asphaltB || center === GROUND_COLORS.marking);
-    assert.equal(shoulder, GROUND_COLORS.shoulder);
+    assert.equal(leftShoulder, GROUND_COLORS.shoulder);
+    assert.equal(rightShoulder, GROUND_COLORS.shoulder);
+    assert.throws(
+      () => sampleStageGroundMapRuntime(600, 4.6, 0.1, child, ground),
+      /outside the local ground envelope/,
+    );
   }
 });
 
-test('SurfaceMap child-local samples use the same lateral translation as GroundMap', () => {
+test('SurfaceMap child-local view uses the same road/shoulder corridor and makes sibling space VOID', () => {
   const { views, surface } = setup();
   for (const child of [views.left, views.right]) {
     const local = new StageSurfaceMapView(surface, child);
     assert.equal(local.sample(600, 0).type, 'ASPHALT');
+    assert.equal(local.sample(600, -4.0).type, 'SHOULDER');
     assert.equal(local.sample(600, 4.0).type, 'SHOULDER');
+    assert.equal(local.sample(600, -4.6).type, 'VOID');
+    assert.equal(local.sample(600, 4.6).type, 'VOID');
     near(stageRoadSourceLateral(child, 0), child.sourceLateralOrigin);
     near(stageRoadSourceLateral(child, 4), child.sourceLateralOrigin + 4);
   }
