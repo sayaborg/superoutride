@@ -1,0 +1,40 @@
+SUPER OUTRIDE M6.2 VALIDATION
+=============================
+
+Milestone: M6.2 Deterministic Run Timing and Ranking Consumer
+Validated feature head: 0f9d7f777828a6b4e04316b197d3a672ed6d5efe
+Pull request: #12
+GitHub Actions run: 32614030397
+Build job: 97131611258
+Result: SUCCESS
+
+Regression
+----------
+131 tests
+131 pass
+0 fail
+0 skipped
+
+M6.2 additions
+--------------
+- Run timing advances only from fixed simulation dt; browser wall-clock/frame timestamps are not gameplay timing authority.
+- Recovery/resync consumes elapsed run time but cannot manufacture checkpoint/finish timing records.
+- Only physically accepted race gates produce validated gate timing records.
+- The current closed DEV FINISH creates a generic course-boundary timing record rather than defining product lap gameplay.
+- Best boundary interval is tracked from validated FINISH boundaries.
+- Active ranking consumes only sProgress and validatedProgressFloor.
+- Primary ranking key is continuous validated sProgress.
+- Secondary ranking key is validatedProgressFloor, so a physically validated gate beats an unvalidated competitor saturated at the same gate ceiling.
+- Exact equal validated states are true ties; no raw geometry, arbitrary ID, or renderer state breaks them.
+- HUD exposes deterministic TIME / boundary count / best boundary interval.
+- Renderer remains unchanged.
+
+Regression retained
+-------------------
+- M6.1 bounded continuous progress tests pass.
+- M6.0 checkpoint/lap/reverse/shortcut authority tests pass.
+- M5.9 tunnel/portal tests pass.
+- M5.8 workload tests pass.
+- M5.7 baked GroundMap tests pass.
+- fixed 2.0m=80px player metric remains intact.
+- Pages commit-versioned bootstrap regression passes.
