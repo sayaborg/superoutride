@@ -64,7 +64,8 @@ test('M6.27 browser-facing bundle remains complete as later milestones deepen th
     live.gates.gates.filter((gate) => gate.kind === 'TRANSITION').length,
     live.route.choices.length,
   );
-  assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, 2);
+  const terminalCount = live.route.stages.filter((stage) => stage.kind === 'TERMINAL').length;
+  assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, terminalCount);
 });
 
 test('M6.27 every route target resolves through content/runtime to the exact handoff target chart', () => {
