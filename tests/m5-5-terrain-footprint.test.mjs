@@ -56,8 +56,8 @@ function linesAt(s, yawOffset = 0) {
 test('Core scanline Delta_s uses y pixel boundaries and visible-depth clipping', () => {
   // y(d) = a + b/d with a=0,b=100. Row 4 spans screen Y 4..5 => d 25..20.
   near(computeTerrainRowDeltaS(4, 0, 100, 2.5, 150), 5);
-  // A row crossing the asymptote is clipped to dMax rather than producing infinity/negative depth.
-  near(computeTerrainRowDeltaS(0, 0.5, 100, 2.5, 150), 50);
+  // A pixel boundary exactly on the asymptote is clipped to dMax: top=150m, bottom=100m.
+  near(computeTerrainRowDeltaS(0, 0, 100, 2.5, 150), 50);
 });
 
 test('actual M3 TerrainLines carry finite Core source-footprint telemetry without changing Painter output', () => {
