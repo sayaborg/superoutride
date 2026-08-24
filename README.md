@@ -1,10 +1,10 @@
-# SUPER OUTRIDE — M6.45 Open Source Profiles
+# SUPER OUTRIDE — M6.46 Branch Violation Recovery
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
 
-`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda. M6.46 changes gameplay/session policy only; renderer Core is unchanged.
 
 ## Current milestone state
 
@@ -68,7 +68,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.42 Multi-Actor Route Tick Arbitration — complete
 - M6.43 Course Mode / Rival Roster Foundation — complete
 - M6.44 Open Path Core — complete
-- **M6.45 Open Source Profiles — complete**
+- M6.45 Open Source Profiles — complete
+- **M6.46 Branch Violation Recovery — complete**
 
 ## Run / test
 
@@ -86,7 +87,13 @@ Full regression:
 npm test
 ```
 
-M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening raised the suite to **369 tests**. M6.45 adds open/cyclic source-profile regressions for a total of **375 tests**. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening raised the suite to **369 tests**. M6.45 raised it to **375 tests**. M6.46 adds seven direct branch/recovery regressions for a total of **382 tests**. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+
+Current package:
+
+```text
+super-outride-m6-46@0.6.46
+```
 
 ## Frozen renderer authority
 
@@ -243,6 +250,28 @@ Ordinary LINEAR and BRANCHING stages use open sources. The stage compiler delibe
 
 The baked GroundMap format itself remains finite and unchanged. M6.45 changes the sampling contract, not the proven anisotropic LOD/palette asset layout. A future CIRCUIT may explicitly opt into cyclic adapters without changing the renderer or the general source interfaces.
 
+## Topology-neutral recovery authority
+
+M6.46 removes the remaining hidden closed-course assumption from the general recovery path.
+
+Ordinary recovery now works in the current open stage domain:
+
+```text
+lastSafeS
+→ subtract gameplay backtrack distance
+→ stop at real s=0 if necessary
+```
+
+It never wraps from the start back to the path end. `recovery.ts` therefore depends on `HeightProfileReader`, not `CyclicHeightProfile`, and contains no `wrapPositive()` topology operation.
+
+A second primitive applies the same reset semantics at one explicit supported Guide coordinate:
+
+```text
+recoverM5VehicleToGuideCoordinate(..., { s, l }, reason)
+```
+
+This primitive does not know about branches, laps, screens or AI. M6.46 branch policy merely chooses a legal target and passes it to the general recovery operation.
+
 ## Course route structures
 
 M6.43 established three product route structures:
@@ -284,7 +313,7 @@ STAGE_1
 
 Every visible fork is still one chainage-driven lateral cross-section, never two independently projected roads.
 
-A route transition remains:
+A legal route transition remains:
 
 ```text
 physical route gate
@@ -318,15 +347,68 @@ Steering direction, AI intent, screen X, sprite overlap and JavaScript actor upd
 
 If multiple vehicles cross the same winning gate in the deciding tick, all may advance through that gate. A sibling crossing in that tick is rejected by session route authority.
 
-### Losing sibling-road behavior remains undecided
+### M6.46 losing sibling-road policy
 
-The route decision is fixed, but the physical response when a trailing vehicle attempts the forbidden sibling road remains intentionally unresolved:
+The physical response is now explicit:
 
 ```text
-branchViolationPolicy = UNDECIDED
+branchViolationPolicy = RECOVER_TO_LOCKED_BRANCH
 ```
 
-Possible later rules include an invisible/physical barrier or `WRONG COURSE` followed by forced recovery. No such behavior is implemented yet. The losing sibling road remains normal authored terrain/visual content; branch locking only controls legal route progression.
+A forbidden sibling crossing does **not** advance RouteDag and does **not** queue a handoff.
+
+The multi-actor route tick keeps two observations conceptually separate:
+
+```text
+physicalObservation = what authored route gate was physically crossed
+legalObservation    = what current shared lock permits as route progress
+```
+
+Only `legalObservation` may reach route arbitration/RouteDag. The unrestricted physical observation exists so the game can detect a forbidden sibling crossing rather than leaving an actor stranded in an unowned road.
+
+There are two equivalent violation cases:
+
+```text
+same deciding tick:
+  sibling loses arbitration → explicit LiveRouteBranchViolation
+
+later tick after lock already exists:
+  physical sibling crossing observed
+  legal observation remains narrowed to locked gate
+  → explicit LiveRouteBranchViolation
+```
+
+The recovery point is not a screen-space or AI heuristic. It is derived from the already-authorized physical route gate:
+
+```text
+locked gate center
+- locked gate forward tangent × recovery backtrack distance
+→ map world point into current Guide frame
+→ recover to that supported {s,l}
+→ resync traveler observation origin
+```
+
+This keeps the rule entirely above renderer Core and makes the physical route gate the single geographic authority.
+
+## AI after a shared lock
+
+The M6.40 RIGHT-B route plan remains DEV AI intent only.
+
+Before a field lock exists:
+
+```text
+AI route plan → steering target only
+physical crossing → actual route authority
+```
+
+After a shared lock already exists on the actor's committed stage:
+
+```text
+shared lock choice → AI steering target
+physical crossing → still actual route authority
+```
+
+Thus AI does not create or override route authority by steering intent. It merely stops fighting a route decision the race field has already made.
 
 ## Multi-actor route tick
 
@@ -339,6 +421,7 @@ all actor physics
 → apply accepted per-actor transitions
 → PENDING
 → per-actor seam / COMMIT
+→ branch-violation recovery if required
 → camera / render
 ```
 
@@ -366,14 +449,16 @@ MAX_RIVAL_COUNT = 16
 
 The upper bound belongs to mode validation only. It does not belong in physics, route batching, renderer or Painter logic.
 
-The current DEV mode remains:
+The current DEV mode is again:
 
 ```text
-routeKind  = BRANCHING
-rivalCount = 1
+routeKind              = BRANCHING
+rivalCount              = 1
+sharedRouteChoiceMode   = FIRST_PHYSICAL_CROSSING_LOCKS
+branchViolationPolicy   = RECOVER_TO_LOCKED_BRANCH
 ```
 
-so the visible fixture remains familiar while the architecture is not singular.
+The M6.45 Pages hotfix temporarily used zero rivals only while the losing-sibling physical response was undefined. M6.46 defines that response and restores the one-rival fixture without adding a renderer or route-topology special case.
 
 ## Rival roster
 
@@ -396,14 +481,12 @@ recovery
 race progress/session
 LiveRouteTravelerState
 multi-actor route arbitration
-per-actor COMMIT
+per-actor COMMIT / branch-violation recovery
 package-compatible dynamic CourseSprite generation
 standings
 ```
 
 The renderer only receives an ordinary variable-length sprite list.
-
-The current M6.40 RIGHT-B route plan remains DEV AI intent. Under the BRANCHING field rule it does not possess route authority: whichever physical vehicle first crosses a sibling branch gate determines the shared legal branch.
 
 ## Reusable route/stage compiler chain
 
@@ -434,39 +517,31 @@ l_source = l_local + coordinateFrame.lateralOrigin
 
 World physics remains authoritative. A chart handoff only re-expresses the same world pose in another local road coordinate system.
 
-## M6.44 / M6.45 validation targets
+## M6.44 / M6.45 / M6.46 validation targets
 
-M6.44 dedicated regressions cover:
+M6.44 dedicated regressions cover open Raster/Guide geometry, topology-neutral pseudo-depth, terrain endpoint clipping, open SurfaceMap and explicit cyclic surface selection.
 
-1. no Raster last-to-first segment;
-2. no synthetic endpoint closing turn/miter;
-3. non-wrapping Raster sampling;
-4. no Guide endpoint wrap fillet and non-cyclic Guide sampling;
-5. clipped local world-to-Guide search;
-6. topology-neutral `s_render - s_camera` pseudo-depth;
-7. same-depth scale invariance without topology input;
-8. terrain endpoint clipping instead of wrap;
-9. general `SurfaceMap` rejects chainage outside `[0,L]`;
-10. cyclic surface wrapping requires explicit `CyclicSurfaceMap` selection.
+M6.45 direct regressions cover open HeightProfile, VisualProfile, logical GroundMap and baked GroundMap addressing plus explicitly named cyclic adapters and compiler-owned endpoint extension.
 
-M6.45 direct regressions additionally cover:
+M6.46 direct regressions cover:
 
-1. open HeightProfile endpoint/domain behavior;
-2. explicit cyclic height addressing;
-3. open VisualProfile versus explicit cyclic visual addressing;
-4. open logical GroundMap versus explicit cyclic logical addressing;
-5. stage compiler ownership of final-height extension to Guide endpoint;
-6. open baked GroundMap plus explicit cyclic baked adapter.
+1. ordinary recovery backtracks to the real open start and never wraps;
+2. explicit supported Guide-coordinate recovery can represent `wrong-course`;
+3. a same-tick losing sibling crossing becomes an explicit branch violation;
+4. a later forbidden sibling crossing remains illegal for progress but is still physically surfaced;
+5. locked-branch recovery geometry derives from the legal physical gate and lands on supported content;
+6. an existing lock can replace AI plan intent without becoming route authority;
+7. branch-violation recovery geometry remains gameplay-only with no physics/render/camera dependency.
 
-The implementation-green M6.45 checkpoint `b7ee59f05ae402285a8598d7a06268add2548f96` passed exact-checkout GitHub Actions run #423 with:
+The implementation-green M6.46 checkpoint `3673c0b629b7e2b437aaeca524fd69d735844423` passed exact-checkout GitHub Actions run #433 with:
 
 ```text
-375 tests
-375 pass
+382 tests
+382 pass
 0 fail
 ```
 
-The final validation-file-inclusive M6.45 head must independently reproduce **375/375 / 0 fail** with `git rev-parse HEAD` equal to that final feature SHA before `main` is fast-forwarded.
+The docs/version-inclusive head and then the final validation-file-inclusive M6.46 head must each independently reproduce **382/382 / 0 fail** before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -492,6 +567,8 @@ src/compiler/surface-region-compiler.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/raster-stage-successor.ts
 src/gameplay/course-mode.ts
+src/gameplay/branch-violation.ts
+src/gameplay/recovery.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
 src/gameplay/shared-route-choice-authority.ts
@@ -512,12 +589,13 @@ tests/m6-42-multi-actor-route-tick-arbitration.test.mjs
 tests/m6-43-course-mode-rival-roster.test.mjs
 tests/m6-44-open-path-core.test.mjs
 tests/m6-45-open-source-profiles.test.mjs
+tests/m6-46-branch-violation-recovery.test.mjs
 ```
 
-Normative design authority is in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md`, `docs/00b_core_design_freeze_addendum_m6_44.md` and `docs/00c_core_design_freeze_addendum_m6_45.md`.
+Normative renderer/Core design authority remains in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md`, `docs/00b_core_design_freeze_addendum_m6_44.md` and `docs/00c_core_design_freeze_addendum_m6_45.md`.
 
-Milestone notes run through `docs/63_m6_45_open_source_profiles.md`.
+Milestone notes run through `docs/64_m6_46_branch_violation_recovery.md`.
 
 ## Next
 
-Further topology work must build above the open geometry/source primitives rather than adding implicit wrapping back into Core. In particular, a future CIRCUIT implementation must explicitly own endpoint connection, lap/unwrapped chainage and any cyclic source adapters, while LINEAR and BRANCHING continue to consume ordinary open Raster/Guide geometry and open stage source profiles.
+Further work should continue removing DEV-only cyclic assumptions from point-to-point integration where they remain, while keeping cyclic behavior an explicit upper-layer choice. A future CIRCUIT implementation must explicitly own endpoint connection, lap/unwrapped chainage and cyclic source adapters above Core. LINEAR and BRANCHING should continue to consume ordinary open Raster/Guide geometry, open stage source profiles and topology-neutral recovery.
