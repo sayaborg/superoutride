@@ -194,11 +194,32 @@ export function sampleLiveRouteChoicePlanTargetL(
   if (state.routeState.status === 'FINISHED') return 0;
   const step = plan.steps.find((candidate) => candidate.stageId === state.handoffState.activeStageId);
   if (!step) return 0;
+  return sampleLiveRouteChoiceTargetL(live, state, step.choiceId, s);
+}
+
+/**
+ * Steering target for one explicit choice that leaves the currently committed stage.
+ * Shared route authority can use this after a field lock exists so AI follows the legal branch;
+ * the choice still becomes authoritative only through physical gate crossing.
+ */
+export function sampleLiveRouteChoiceTargetL(
+  live: LiveRouteRuntimeAssembly,
+  state: LiveRouteTravelerState,
+  choiceId: string,
+  s: number,
+): number {
+  if (state.routeState.status === 'FINISHED') return 0;
+  const choice = getRouteChoice(live.route, choiceId);
+  if (choice.fromStageId !== state.handoffState.activeStageId) {
+    throw new RangeError(
+      `live route target choice ${choiceId} does not leave committed stage ${state.handoffState.activeStageId}`,
+    );
+  }
 
   const gate = live.gates.gates.find(
-    (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === step.choiceId,
+    (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId,
   );
-  if (!gate) throw new Error(`live route plan choice is missing physical gate: ${step.choiceId}`);
+  if (!gate) throw new Error(`live route target choice is missing physical gate: ${choiceId}`);
 
   const runtime = resolveLiveRouteTravelerRuntime(live, state);
   const gateCoordinate = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, gate.center, false);
