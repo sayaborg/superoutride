@@ -1,7 +1,7 @@
-import type { CyclicGroundMapLogicalProfile, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
+import type { GroundMapLogicalProfileReader, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { rgba } from '../render/software-surface.js';
-import type { BakedGroundMapAsset, BakedGroundMapSample } from './baked-ground-map.js';
+import type { BakedGroundMapReader, BakedGroundMapSample } from './baked-ground-map.js';
 
 export const GROUND_COLORS = {
   grassA: rgba(45, 100, 53),
@@ -28,10 +28,10 @@ export interface GroundMapProfile {
   junction?: JunctionCrossSectionProfile;
   /** Optional active-stage-local junction overlay. Only stage-local GroundMap adapters consume this field. */
   stageJunction?: JunctionCrossSectionProfile;
-  /** Compiler output. Optional only for legacy/test probes that predate M5.3. */
-  logical?: CyclicGroundMapLogicalProfile;
-  /** M5.7 compiler-baked runtime source. Procedural sampling remains a DEV/test fallback. */
-  baked?: BakedGroundMapAsset;
+  /** Compiler output. General form is open; explicit cyclic adapters satisfy the same reader contract. */
+  logical?: GroundMapLogicalProfileReader;
+  /** Compiler-baked runtime source. General form is open; cyclic addressing requires an explicit adapter. */
+  baked?: BakedGroundMapReader;
 }
 
 export function sampleGroundMapRuntime(
