@@ -56,6 +56,11 @@ export interface RasterSuccessorRuntimeSource {
  * owns a forward runout whose initial tangent is the source tangent at the cut. A smooth sin² lateral
  * excursion gives opposite successor authoring genuinely different geometry while returning to the
  * same forward tangent. Nothing ever reconnects to the source start or depends on cyclic topology.
+ *
+ * The runout deliberately preserves the same operational seam envelope as its source authoring plus
+ * one full dMax forward view. This makes a generated open stage reusable as the source of another
+ * continuation without manufacturing a wrap seam. Raster vertices are spaced no farther apart than
+ * overlapMargin so a later D_cam overlap always has an ordinary forward tangent available.
  */
 export function createRasterStageSuccessor(
   source: RasterSuccessorSource,
@@ -79,13 +84,18 @@ export function createRasterStageSuccessor(
   const runoutHeading = raster.segments[sharedEndIndex]!.heading;
   const runoutLength = Math.max(
     2 * authoring.dMax,
-    authoring.finishAfterSeam + authoring.overlapMargin + authoring.dCam,
+    authoring.sourceSeamMinS + authoring.overlapMargin + authoring.dMax,
+    authoring.finishAfterSeam + authoring.dMax,
+  );
+  const runoutVertexCount = Math.max(
+    authoring.minDeformationRunVertices,
+    Math.ceil(runoutLength / authoring.overlapMargin) + 1,
   );
   const runout = buildOpenRunout(
     runoutStart,
     runoutHeading,
     runoutLength,
-    authoring.minDeformationRunVertices,
+    runoutVertexCount,
     authoring.deformationDirection * authoring.deformationMeters,
   );
 
