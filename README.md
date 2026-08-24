@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.41 Shared Route Choice Authority
+# SUPER OUTRIDE — M6.42 Multi-Actor Route Tick Arbitration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -64,7 +64,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.38 Declarative Fork-Stage Growth Plan — complete
 - M6.39 Deep Route Browser-Order Integration — complete
 - M6.40 Rival Live Route Traversal — complete
-- **M6.41 Shared Route Choice Authority — complete**
+- M6.41 Shared Route Choice Authority — complete
+- **M6.42 Multi-Actor Route Tick Arbitration — complete**
 
 ## Run / test
 
@@ -82,7 +83,7 @@ Full regression:
 npm test
 ```
 
-M6.40 ended at **335 tests**. M6.41 adds eight shared-route authority regressions for **343 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.41 ended at **343 tests**. M6.42 adds ten route/browser regressions, including the 0- and 16-rival cardinality extremes, for **353 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -109,7 +110,7 @@ The implementation preserves all of the following:
 - GroundMap `(s,l)` visual data and SurfaceMap `(s,l)` physics data remain independent;
 - GroundBase TRANSPARENT and SurfaceMap VOID remain independent;
 - Far Background is one full image including below-horizon pixels;
-- branch / RouteDag logic is not renderer Core.
+- branch / RouteDag / race-mode logic is not renderer Core.
 
 Final renderer order:
 
@@ -145,7 +146,7 @@ There is no arbitrary `visualScale` multiplier. A future FOV change must move `D
 
 ## Current live point-to-point route
 
-M6.41 preserves the M6.38–M6.40 topology and geometry:
+M6.42 preserves the M6.38–M6.41 topology and geometry:
 
 ```text
 STAGE_1
@@ -220,8 +221,6 @@ For every tested COMMIT, world x/y/z, yaw and velocity state are exact-preserved
 
 ## M6.40 independent live-route rival
 
-The browser rival no longer remains in the parent course domain.
-
 `src/runtime/live-route-traveler.ts` provides actor-independent route state:
 
 ```text
@@ -231,94 +230,102 @@ LiveRouteTravelerState
   previous world XZ
 ```
 
-The player and rival share one immutable `LiveRouteRuntimeAssembly` but own independent mutable route/handoff state.
+The player and opponents share one immutable `LiveRouteRuntimeAssembly` but own independent mutable route/handoff state.
 
-The rival's current DEV steering intent is RIGHT-B, but that intent cannot directly select a branch. Actual route selection remains physical gate authority.
+The current single DEV rival's steering intent is RIGHT-B, but that intent cannot directly select a branch. Actual route selection remains physical gate authority.
 
-Each rival tick resolves its own active runtime package and uses that package's `GuideCoordinateSource`, `HeightProfile` and `SurfaceMap` for ordinary M5 car physics. `rival.course` is mirrored to a new chart only after a validated COMMIT.
+Each opponent tick resolves its own active runtime package and uses that package's `GuideCoordinateSource`, `HeightProfile` and `SurfaceMap` for ordinary M5 vehicle physics. Course coordinates are mirrored to a new chart only after a validated COMMIT.
 
-The rival remains an ordinary dynamic `CourseSprite` and is submitted to the player's Painter only when player/rival `packageId` matches. Renderer Core contains no rival-route logic.
+Dynamic opponents remain ordinary `CourseSprite`s and should be submitted to the player's Painter only when their committed `packageId` is compatible with the player's current package. Renderer Core contains no opponent-route logic.
 
 ## M6.41 optional shared route choice
 
-M6.41 adds a race/session policy layer above the independent M6.40 travelers.
-
-Two policies exist:
+M6.41 adds a race/session policy layer above independent route travelers.
 
 ```text
 INDEPENDENT
 FIRST_PHYSICAL_CROSSING_LOCKS
 ```
 
-`INDEPENDENT` is the current browser behavior and preserves M6.40 exactly.
+`INDEPENDENT` is still the current browser behavior.
 
-`FIRST_PHYSICAL_CROSSING_LOCKS` supports a Cool Riders-style rule:
+`FIRST_PHYSICAL_CROSSING_LOCKS` can implement a Cool Riders-style rule where the first vehicle to physically cross one branch gate locks that branch for the field. It does not rewrite every actor's RouteDag; every vehicle still performs its own gate → PENDING → seam → COMMIT transaction.
 
-> At a real branching stage, the first vehicle to physically cross one branch gate locks that branch for the race field. Trailing vehicles must then use the same branch.
+`RouteBoundaryObservation.crossingFraction = u ∈ [0,1]` exposes the already-computed physical segment/gate intersection fraction. Smaller `u` wins when sibling gates are crossed during the same simulation tick, so the result cannot depend on JavaScript actor update order. Exact same-`u` ties can use supplied existing race order only as the final deterministic tie-break.
 
-This does **not** rewrite every actor's RouteDag state. Each vehicle still physically performs its own gate → PENDING → seam → COMMIT transaction.
+A deterministic one-successor stage consumes no shared lock. Authored gate geometry remains immutable; an existing lock only narrows which transition choice is considered legal by the observer.
 
-The shared race/session layer constrains only which authored transition choice is legal.
+Whether shared locking becomes the final game rule remains a product/mode decision.
 
-### Physical first-crossing authority
+## M6.42 multi-actor route tick
 
-`RouteBoundaryObservation` now exposes the already-computed world-segment/gate intersection fraction:
-
-```text
-crossingFraction = u ∈ [0,1]
-```
-
-When two vehicles cross sibling gates in the same 60 Hz tick, smaller `u` wins. Therefore the result cannot depend on player-vs-rival JavaScript update order.
-
-Only an exact same-`u` tie uses supplied existing race order as the final deterministic tie-break. This allows a mathematically simultaneous crossing to follow the current leader without introducing an actor-ID rule.
-
-If several vehicles cross the same winning gate during that tick, all of those crossings are accepted; only the sibling choice is rejected.
-
-### Locks exist only for true forks
-
-A stage with one outgoing continuation never consumes shared-choice state. For example:
+M6.42 makes the 60 Hz route transaction explicitly two-phase:
 
 ```text
-STAGE_2_R → STAGE_3_R
+all participating actor physics
+→ observe every actor physical route-boundary motion
+→ arbitrate shared/session policy once
+→ apply accepted per-actor RouteDag transitions
+→ queue PENDING
+→ process per-actor physical handoff seams / COMMIT
+→ camera / render
 ```
 
-remains an ordinary deterministic per-actor transition.
+The new generic `advanceLiveRouteMultiActorTick()` accepts a variable-length actor array and owns no vehicle physics, camera, renderer or input dependency.
 
-### Authored geometry stays immutable
+Observation for the whole actor set happens before any actor RouteDag is mutated. Therefore M6.41 shared arbitration can never be decided merely because player or AI code ran first in the frame.
 
-After a fork has been locked, the compiled gate set is not mutated. `observeRouteBoundaryCrossing()` may receive the one allowed transition choice and narrows its physical candidates before intersection testing.
+Recovery/resync ticks can suppress route-boundary validation for one actor while still preserving handoff/chart coordinate synchronization.
 
-The sibling road remains normal visible/physical terrain; it simply has no legal route transition for that race session.
+### Rival/opponent cardinality
 
-This also prevents a large motion segment from becoming spuriously ambiguous by intersecting both the chosen and now-forbidden sibling gate.
-
-### Browser status
-
-M6.41 intentionally does **not** enable shared locking in `main.ts` yet:
+The architecture does **not** assume one rival.
 
 ```text
-player route traveler: INDEPENDENT
-rival route traveler:  INDEPENDENT
+PLAYER + rivals[0..N]
 ```
 
-The capability is implemented and validated, but whether this becomes the final game rule remains a product decision.
+The current product direction expects individual game modes to choose roughly **0 through 16 rivals**, but that cap belongs to the future game-mode / roster layer. `advanceLiveRouteMultiActorTick()` itself has no literal 16 and no fixed two-actor tuple.
+
+M6.42 validates both extremes through the same batching path:
+
+```text
+PLAYER + 0 rivals  → 1 actor
+PLAYER + 16 rivals → 17 actors
+```
+
+The browser still creates one DEV rival only. That is now explicitly a temporary fixture, not an architectural limit.
+
+Future multiple opponents should be represented as a roster and iterated for:
+
+```text
+physics / AI
+recovery
+route traveler sample
+per-actor session state
+package-compatible dynamic CourseSprite generation
+```
+
+The renderer should receive an ordinary variable-length sprite list and remain ignorant of the configured rival count.
+
+M6.42 also deliberately does **not** invent a route-global ranking metric for vehicles that have taken different branches. Raw stage-local chainage is not sufficient to compare them.
 
 ## Validation status
 
-Structural M6.41 head before documentation synchronization:
+Structural exact head before documentation synchronization:
 
 ```text
-ab53555f389e7f5456b935abfff10b1f28cdb105
-workflow 32672424569
-build job 97275141305
-343 tests
-343 pass
+e87690d2ba72ce494e9e0fa7549173681eb2f3d5
+workflow 32688668066
+build job 97318267946
+353 tests
+353 pass
 0 fail
 ```
 
-The first M6.41 candidate reached 342/343. The only failure was an over-broad static regression regex matching the ordinary English word `input` in a comment. The test was corrected to inspect actual import specifiers. No gameplay rule, dependency boundary or implementation behavior was weakened.
+The first browser-wired candidate exposed two obsolete static `main.ts` assertions from M6.22/M6.40. The behavioral route/geometry tests were green. A subsequent file-update mistake temporarily replaced larger historical fixture sections; both files were restored from `main` and only their obsolete layering assertions were updated. No historical geometry, route, handoff or traveler behavioral requirement was weakened.
 
-The documentation-inclusive exact head must independently reproduce **343/343 / 0 fail** before main fast-forward.
+The documentation-inclusive exact head must independently reproduce **353/353 / 0 fail** before main fast-forward.
 
 ## Vehicle physics status
 
@@ -339,6 +346,7 @@ src/gameplay/shared-route-choice-authority.ts
 src/gameplay/route-stage-handoff.ts
 src/runtime/live-route-runtime.ts
 src/runtime/live-route-traveler.ts
+src/runtime/live-route-multi-actor-tick.ts
 src/runtime/stage-runtime-content.ts
 src/runtime/declarative-live-route.ts
 src/runtime/declarative-route-fragment.ts
@@ -353,10 +361,12 @@ src/main.ts
 tests/m6-39-deep-browser-order-integration.test.mjs
 tests/m6-40-rival-live-route-traversal.test.mjs
 tests/m6-41-shared-route-choice-authority.test.mjs
+tests/m6-42-multi-actor-route-tick-arbitration.test.mjs
+tests/m6-42-browser-wiring.test.mjs
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/59_m6_41_shared_route_choice_authority.md`.
+Design notes are `docs/26_m6_8_route_dag.md` through `docs/60_m6_42_multi_actor_route_tick_arbitration.md`.
 
 ## Next
 
-**M6.42 — Multi-Actor Route Tick Arbitration.** Restructure the browser route portion of one 60 Hz tick into `physics → collect actor route observations → arbitrate session policy once → apply accepted actor transitions → process handoff seams → camera/render`. The browser can remain in `INDEPENDENT` mode while this two-phase order is proven, so the possible shared-route rule is supported without prematurely making it mandatory.
+**M6.43 — Mode-Aware Opponent Roster.** Replace the temporary singular browser `rival` fixture with a deterministic variable-length opponent roster. The game-mode/roster layer owns the selected rival count and current product cap (expected 0..16); route batching, vehicle physics interfaces and renderer remain cardinality-agnostic. The current DEV mode can still instantiate one opponent until actual mode selection UI is authored.
