@@ -216,9 +216,36 @@ maxSpriteWrittenPixelsPerScanline
 
 The renderer was not modified to preserve the old measurement. The M5.9 observed baseline was re-recorded at 278 while all workload limits and projection rules remain intact.
 
+## M6.44 hardening follow-up
+
+The post-merge review identified two places where the implementation could enforce the new authority more strongly without changing runtime behavior.
+
+First, `pseudoDepth()` is now strictly a two-argument API:
+
+```text
+pseudoDepth(s_render, s_camera)
+```
+
+The temporary ignored rest parameter is removed, and the M5 DEV camera state no longer carries a compatibility `courseLength` field. A stale three-argument topology-aware call therefore fails at TypeScript compile time instead of being silently accepted.
+
+Second, the general/open versus explicit/cyclic SurfaceMap split is directly regression-tested:
+
+```text
+SurfaceMap        out-of-domain s -> RangeError
+CyclicSurfaceMap  wrap only when explicitly selected
+```
+
+The CI workflow is also hardened. Pull-request validation explicitly checks out `pull_request.head.sha` rather than GitHub's synthetic merge ref and then asserts:
+
+```text
+git rev-parse HEAD == expected source SHA
+```
+
+This makes the repository's “validated exact head” rule mechanical rather than procedural.
+
 ## M6.44 dedicated regressions
 
-M6.44 adds eight direct regressions:
+M6.44 now has ten direct regressions:
 
 1. RasterPath has no last-to-first segment;
 2. Raster endpoints have no synthetic closure turn/miter;
@@ -227,12 +254,14 @@ M6.44 adds eight direct regressions:
 5. local world-to-Guide search clips instead of wrapping indices;
 6. renderer pseudo-depth is render-chainage difference only;
 7. same pseudo-depth preserves identical scale without topology input;
-8. forward terrain visibility clips at the open endpoint rather than wrapping.
+8. forward terrain visibility clips at the open endpoint rather than wrapping;
+9. general `SurfaceMap` rejects chainage outside `[0,L]`;
+10. cyclic surface wrapping exists only through explicit `CyclicSurfaceMap` selection.
 
-The total suite increases from M6.43's 359 tests to:
+The suite count after the hardening follow-up is:
 
 ```text
-367 tests
+369 tests
 ```
 
 ## Preserved boundaries
@@ -261,11 +290,13 @@ src/road/terrain-line.ts
 src/physics/surface-map.ts
 src/physics/stage-surface-map-view.ts
 src/runtime/raster-stage-successor.ts
-src/camera/m2-camera.ts
-src/camera/m3-camera.ts
-src/camera/m4-camera.ts
-src/camera/m5-camera.ts
-tests/core.test.mjs
+src/dev/m2-camera.ts
+src/dev/m3-camera.ts
+src/dev/m4-camera.ts
+src/dev/m5-camera.ts
+src/main.ts
+.github/workflows/pages.yml
+tests/m1-core-geometry.test.mjs
 tests/m6-44-open-path-core.test.mjs
 ```
 
