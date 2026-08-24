@@ -1,0 +1,82 @@
+SUPER OUTRIDE M6.44 — Open Path Core
+
+Documentation-inclusive validated head before this validation record:
+2ea9e36eda396a4cd8be0a0b89c7432b9385823e
+
+GitHub Actions PR run:
+32730068417
+Build job:
+97440092675
+Synthetic PR merge tested:
+d3a03cb293952b313efb303ff2b51a5c0fd93c05
+Base main at validation:
+ceb5064af73df0643d10efd90177d2cae1f9ea3d
+
+Result:
+367 tests
+367 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+M6.44 Open Path Core authority:
+- RasterPath is an open ordered polyline; the final authored vertex is not connected back to the first
+- RasterPath endpoints use adjacent-segment endpoint bases and have no synthetic closure turn or miter
+- GuidePath is open and contains no endpoint wrap fillet
+- ordinary Guide/Raster sampling and local Guide search clip to the open domain rather than wrapping indices or chainage
+- renderer pseudo-depth is signed render-chainage difference only; topology does not enter the projection function
+- forward TerrainLine sampling clips at the open path endpoint instead of wrapping to the beginning
+
+Topology separation:
+- open path geometry is the general primitive for LINEAR and BRANCHING course construction
+- CIRCUIT remains a separate future topology/gameplay authority; circuit support must not be obtained by making renderer geometry cyclic again
+- wrapSigned remains available only for consumers that explicitly own cyclic/topological semantics
+- existing RouteDag remains acyclic and independent from renderer geometry
+
+Surface authority:
+- SurfaceMap is the ordinary open-chainage physics surface primitive
+- out-of-domain open SurfaceMap sampling does not wrap to the opposite endpoint
+- CyclicSurfaceMap is retained only as an explicit closed/debug adapter where cyclic semantics are intentionally requested
+- visual GroundMap addressing and physical SurfaceMap semantics remain independent
+
+Successor-stage construction:
+- raster-stage-successor no longer depends on a synthetic last-to-first closure seam
+- successor construction preserves the exact D_cam overlap with its source chart
+- after the shared overlap, the successor authors its own open forward runout rather than borrowing source closure geometry
+- the runout reserves enough forward chainage and sufficiently fine vertex spacing for the generated successor to serve recursively as the source of another successor
+- finish validation is against the real open target endpoint, not a finishClosureMargin
+- obsolete finishClosureMargin authoring was removed from live successor authoring and tests
+
+Preserved frozen renderer invariants:
+- world X/Y/Z remains physics authority
+- one chainage maps to one horizontal scanline
+- same render depth means same scale
+- same render depth plus same height means same screen Y
+- Raster interior absolute turn limit remains 10 degrees
+- Guide remains coordinate/camera support, not a second road renderer
+- Terrain and World Sprite remain one far-to-near Painter stream
+- no z-buffer, polygon road, perspective-correct road texture, arbitrary runtime sprite rotation or alpha blending
+- fixed player sprite metric remains 2.0m = 80px at player depth, with D_cam adjusted for future FOV changes
+- route PENDING -> physical seam -> COMMIT preserves world pose, yaw and velocity
+
+M6.44 dedicated regressions:
+1. RasterPath does not create a last-to-first segment
+2. RasterPath endpoints have no synthetic closure turn or miter
+3. open RasterPath sampling never wraps out-of-range chainage
+4. GuidePath has no endpoint wrap fillet and does not sample cyclically
+5. local world-to-Guide search clips indices instead of wrapping endpoints
+6. renderer pseudo-depth is render-chainage difference only
+7. pseudo projection preserves same-depth scale without topology input
+8. forward terrain interval clips at the open path endpoint instead of wrapping
+
+Integration validation also confirms the complete existing deep branching route, successor chains, physical fork/handoff transactions, variable 0..16 rival route batching, metric sprite scale and Pages ESM boot remain green.
+
+One deterministic M5.9 tunnel stress observation moved by one written pixel per scanline during the refactor (277 -> 278); its recorded observational baseline was updated to the measured value without changing renderer architecture or weakening its budget assertions.
+
+Package authority:
+super-outride-m6-44@0.6.44
+
+Core Freeze authority is updated through the M6.44 Open Path addendum and docs/62_m6_44_open_path_core.md. README is synchronized to the open-path topology-neutral renderer semantics.
+
+This validation-file-inclusive feature head must independently reproduce 367/367 before main fast-forward.
