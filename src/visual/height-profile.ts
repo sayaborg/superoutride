@@ -15,6 +15,7 @@ export interface HeightSample {
 
 export interface HeightProfileReader {
   readonly courseLength: number;
+  readonly nodes: readonly HeightNode[];
   sampleRender(s: number): HeightSample;
   samplePhysics(s: number): number;
   sampleCamera(s: number): number;
