@@ -1,0 +1,68 @@
+SUPER OUTRIDE M6.43 — Course Mode / Rival Roster Foundation
+
+Documentation-inclusive validated head before this validation record:
+5653997bdb506d283918479645a607b06e3291b6
+
+GitHub Actions PR run:
+32717914637
+Build job:
+97402992451
+Synthetic PR merge tested:
+c012a9a6b08e22fa2c96ec3f0f9214333ca19301
+Base main at validation:
+40e6cb3c00bfd34f0c307774839be17c9368b364
+
+Result:
+359 tests
+359 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+M6.43 course-mode authority:
+- future course route structures are explicitly LINEAR, BRANCHING and CIRCUIT
+- LINEAR is a long single-route point-to-point shape
+- BRANCHING is an Out Run-style point-to-point graph with physical forks
+- CIRCUIT reserves a separate future CIRCUIT_LOOP / LAPS authority
+- existing RouteDag remains explicitly acyclic; circuit extensibility does not weaken the DAG invariant
+
+M6.43 branching product rule:
+- at every real fork, the first vehicle to physically cross one sibling route gate locks that branch for the race field
+- lock ordering uses M6.41/M6.42 physical sub-tick crossingFraction u, not JavaScript update order, steering, screen position or AI intent
+- each accepted vehicle still performs its own physical gate -> PENDING -> seam -> COMMIT transaction
+- the losing sibling-road physical response remains explicitly UNDECIDED
+- possible later enforcement such as an invisible/physical wall or WRONG COURSE forced recovery is not implemented by M6.43
+- branch violation response remains separate from branch-selection authority
+
+M6.43 rival-cardinality authority:
+- CourseModeAuthoring owns rivalCount
+- current product envelope is integer 0..16
+- MAX_RIVAL_COUNT=16 exists only at mode validation boundary
+- generic M6.42 multi-actor route tick remains cardinality agnostic
+- M6.42 separately validates PLAYER+0 rivals and PLAYER+16 rivals
+- renderer, Painter, physics and traveler state contain no one-rival or 16-rival special case
+
+M6.43 browser roster:
+- current DEV mode is BRANCHING with rivalCount=1, preserving the visible fixture
+- browser now creates rivals[] from createRivalRoster(), not one architectural rival
+- every rival uses ordinary AI input, M5 physics, recovery, race progress/session, LiveRouteTravelerState, M6.42 arbitration, per-actor COMMIT and dynamic CourseSprite conversion
+- zero rivals means empty loops; sixteen rivals means the same loops process sixteen entries
+- current M6.40 RIGHT-B rival route plan remains DEV AI intent and does not override first-physical-crossing shared route authority
+
+Dedicated M6.43 regressions:
+1. LINEAR / BRANCHING / CIRCUIT remain distinct route structures
+2. BRANCHING derives first-physical-crossing field locking while wrong-branch response remains UNDECIDED
+3. rivalCount validates the full integer 0..16 product envelope
+4. roster produces stable variable-length RIVAL_01.. identities with no null-rival special case
+5. current browser consumes one roster rival and mode-derived field locking
+6. CIRCUIT extensibility preserves the acyclic RouteDag and renderer dependency boundary
+
+Earlier M6.43 CI candidates:
+- ff2a22f3bcdedae0da33780a9eae4ce60c6c168c: 358/359; dependency regex matched comment words such as physics/renderer/camera
+- b0442ea7995c89cf75db02401146c9c67cba8cc4: 358/359; /cycle/ wording check did not match the existing word acyclic
+- both regressions were corrected to inspect actual import specifiers / assertAcyclicAndReachable(); implementation behavior and architectural requirements were not weakened
+
+Frozen pseudo-3D renderer, metric sprite scale, world-space physics and route COMMIT continuity remain unchanged.
+
+This validation-file-inclusive feature head must independently reproduce 359/359 before main fast-forward.
