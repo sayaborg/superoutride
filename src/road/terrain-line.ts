@@ -173,8 +173,8 @@ export function screenXToLateral(
   return -groundLeft + ((x - xGroundL) / dx) * (groundLeft + groundRight);
 }
 
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
-import type { CyclicVisualProfile, GroundBase } from '../visual/visual-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
+import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
 
 export interface TerrainVisualProfile {
   screenHeight: number;
@@ -184,8 +184,8 @@ export interface TerrainVisualProfile {
   groundRight: number;
   roadLeft: number;
   roadRight: number;
-  height: CyclicHeightProfile;
-  visual: CyclicVisualProfile;
+  height: HeightProfileReader;
+  visual: VisualProfileReader;
   /** Core §64 epsilon_span in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
 }
