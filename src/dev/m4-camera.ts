@@ -1,5 +1,5 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
-import { clamp, wrapAngle, wrapPositive } from '../core/math.js';
+import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
 import type { M2VehicleState } from './m2-vehicle.js';
@@ -66,7 +66,7 @@ export function updateM4Camera(
   rig.lateral += (lTarget - rig.lateral) * latAlpha;
   rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
 
-  const sCamera = wrapPositive(vehicle.course.s - profile.dCam, guide.length);
+  const sCamera = vehicle.course.s - profile.dCam;
   const plan = guideCourseToWorld(guide, sCamera, rig.lateral);
   const groundHeight = height.sampleCamera(sCamera);
 
@@ -81,7 +81,6 @@ export function updateM4Camera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
-    courseLength: guide.length,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
