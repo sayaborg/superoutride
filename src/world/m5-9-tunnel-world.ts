@@ -1,5 +1,5 @@
 import type { GuideCurve } from '../core/guide-curve.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import {
   M5_9_TUNNEL_ENTRY_S,
   M5_9_TUNNEL_EXIT_S,
@@ -14,7 +14,7 @@ import { compileCourseSprite, type CourseSprite } from './course-sprite.js';
  */
 export function createM5TunnelWorldSprites(
   guide: GuideCurve,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   tunnel: M5TunnelPresentation,
 ): CourseSprite[] {
   return [
