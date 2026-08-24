@@ -1,5 +1,5 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
-import { clamp, wrapAngle, wrapPositive } from '../core/math.js';
+import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { M2VehicleState } from './m2-vehicle.js';
 
@@ -28,7 +28,7 @@ export function computeM2Camera(
   const delta = wrapAngle(vehicle.yaw - guideAtCar.heading);
   const lTarget = vehicle.course.l - profile.dCam * Math.sin(delta);
   const lCamera = clamp(lTarget, -profile.lCamMax, profile.lCamMax);
-  const sCamera = wrapPositive(vehicle.course.s - profile.dCam, guide.length);
+  const sCamera = vehicle.course.s - profile.dCam;
   const plan = guideCourseToWorld(guide, sCamera, lCamera);
 
   return {
@@ -42,7 +42,6 @@ export function computeM2Camera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
-    courseLength: guide.length,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta: delta,
   };
