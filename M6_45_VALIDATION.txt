@@ -1,0 +1,110 @@
+SUPER OUTRIDE M6.45 — Open Source Profiles
+
+Documentation-inclusive validated head before this validation record:
+835420c9779a9a50f95ab47491622ce9ba4f299b
+
+GitHub Actions PR run:
+32739721247
+Build job:
+97470989191
+Base main at validation:
+8c4d7784f99f87c03719fdd9e245e516344ddf11
+
+Exact checkout:
+expected=835420c9779a9a50f95ab47491622ce9ba4f299b
+actual=835420c9779a9a50f95ab47491622ce9ba4f299b
+
+Result:
+375 tests
+375 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+Package authority:
+super-outride-m6-45@0.6.45
+
+M6.45 general-source authority:
+- open [0,L] is the general chainage domain for ordinary stage source data
+- HeightProfile is the general open height source
+- VisualProfile is the general open visual-section source
+- GroundMapLogicalProfile is the general open logical GroundMap source
+- BakedGroundMapAsset is the general finite/open baked visual source
+- SurfaceMap remains the general open physical surface source established by M6.44
+- out-of-range chainage is rejected rather than silently wrapped, clamped to the opposite endpoint, or interpreted as a lap
+
+Explicit cyclic topology adapters:
+- CyclicHeightProfile
+- CyclicVisualProfile
+- CyclicGroundMapLogicalProfile
+- CyclicBakedGroundMapAsset
+- CyclicSurfaceMap
+
+Architectural rule:
+Open is the general data model. Cyclic is a named topology adapter. The renderer is neither.
+
+Height compiler authority:
+- open HeightProfile requires explicit endpoint coverage at s=0 and s=L
+- reusable stage authoring may deliberately extend the final authored height value to the actual Guide endpoint
+- that extension is a compiler decision; HeightProfile itself does not guess, clamp, or wrap missing endpoint data
+
+GroundMap authority:
+- logical GroundMap no longer inherits cyclic chainage addressing
+- baked GroundMap runtime sampling no longer wraps source chainage implicitly
+- the baked asset format, anisotropic LOD hierarchy, palette/RGB555 encoding and established density authority remain unchanged
+- cyclic baked addressing requires the explicit CyclicBakedGroundMapAsset adapter
+- visual GroundMap semantics remain independent from physical SurfaceMap support semantics
+
+Ordinary stage integration:
+- M6.22 child stage physical sources use open SurfaceMap
+- M6.22/M6.23 child environment sources use open HeightProfile / VisualProfile
+- stage runtime/content assembly consumes common reader contracts rather than deriving topology from route identity
+- ordinary LINEAR and BRANCHING stage content does not opt into cyclic adapters merely for historical compatibility
+
+Preserved M6.44 open-path authority:
+- RasterPath and GuidePath remain open general primitives
+- there is no manufactured last-to-first segment, endpoint closing turn/miter, or endpoint Guide fillet
+- renderer pseudo-depth remains exactly s_render - s_camera
+- camera chainage remains s_vehicle - D_cam
+- forward TerrainLine traversal clips at the real path endpoint rather than wrapping
+- open successor construction owns ordinary forward runout rather than artificial source closure
+
+Topology separation:
+- LINEAR and BRANCHING consume ordinary open geometry and open source profiles
+- CIRCUIT remains a higher-layer topology authority
+- any future circuit endpoint connection, lap/unwrapped chainage, or periodic source addressing must be explicitly selected above Core
+- renderer Core receives no route kind, course length modulo, lap state, branch identity, or cyclic-source decision
+
+M6.45 direct regressions:
+1. HeightProfile is open, explicit at both endpoints and never wraps
+2. cyclic height addressing exists only through CyclicHeightProfile
+3. VisualProfile is open while CyclicVisualProfile is explicit
+4. logical GroundMap is open while cyclic logical addressing is explicit
+5. stage compiler explicitly extends authored final height to the open Guide endpoint
+6. baked GroundMap general asset owns an open chainage domain while cyclic baked addressing requires its explicit adapter
+
+Integration validation also confirms all existing renderer, GroundMap LOD, physical surface, child-stage, deep branching route, successor-chain, handoff, multi-actor arbitration, 0..16 rival cardinality, metric sprite scale, vehicle-physics replaceability, and Pages ESM boot regressions remain green.
+
+Frozen renderer invariants preserved:
+- world X/Y/Z remains vehicle-physics authority
+- one chainage maps to one horizontal scanline
+- same render depth means same scale
+- same render depth plus same height means same screen Y
+- Raster interior absolute turn limit remains 10 degrees
+- Guide remains coordinate/camera support, not a second road renderer
+- Terrain and World Sprite remain one far-to-near Painter stream
+- no z-buffer, polygon road, perspective-correct road texture, arbitrary runtime sprite rotation or alpha blending
+- fixed player sprite metric remains 2.0m = 80px at player depth, with D_cam adjusted for future FOV changes
+- route PENDING -> physical seam -> COMMIT preserves world pose, yaw and velocity
+
+Normative design authority is updated through:
+- docs/00_core_design_freeze.md
+- docs/00a_core_design_freeze_addendum_m5_2.md
+- docs/00b_core_design_freeze_addendum_m6_44.md
+- docs/00c_core_design_freeze_addendum_m6_45.md
+- docs/63_m6_45_open_source_profiles.md
+
+README is synchronized to M6.45 open-source-profile semantics.
+
+This validation-file-inclusive feature head must independently reproduce 375/375 with exact checkout before main fast-forward.
