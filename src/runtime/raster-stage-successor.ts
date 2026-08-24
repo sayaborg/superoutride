@@ -5,7 +5,7 @@ import { createStageRoadView, type StageRoadView } from '../course/stage-road-vi
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import { CyclicSurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
+import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
 import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 
@@ -114,7 +114,7 @@ export function createRasterStageSuccessor(
     roadRight: authoring.roadHalfWidth,
     shoulderWidth: authoring.shoulderWidth,
   });
-  const sourceSurfaceMap = new CyclicSurfaceMap(guide.length, [{
+  const sourceSurfaceMap = new SurfaceMap(guide.length, [{
     sStart: 0,
     name: authoring.surfaceSectionName,
     bands: singleRoadSurfaceBands(origin, authoring),
