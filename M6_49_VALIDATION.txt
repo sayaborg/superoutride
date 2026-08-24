@@ -1,0 +1,45 @@
+SUPER OUTRIDE
+M6.49 VALIDATION
+
+MILESTONE
+- M6.49 Circuit Runtime Window Integration
+
+PRE-VALIDATION FEATURE HEAD
+- d3f8741b96d44c4cfd7cf9287fe7930a366a07b7
+
+WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #471
+- Run id: 32789242841
+- Build job: 97627370386
+- Result: success
+- Exact checkout expected: d3f8741b96d44c4cfd7cf9287fe7930a366a07b7
+- Exact checkout actual:   d3f8741b96d44c4cfd7cf9287fe7930a366a07b7
+
+AUTOMATED REGRESSION
+- 406 tests
+- 406 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.49 DIRECT COVERAGE
+- Finite circuit runtime windows unfold Raster/Guide into ordinary open monotonically increasing runtime chainage.
+- Internal circuit seams are ordinary continuation locations; renderer forward visibility and TerrainLine generation cross them without CIRCUIT logic.
+- Unwrapped/window chainage conversion is topology-owned, explicit and bounded.
+- An internal seam maps to one-lap source s=0; the final finite open endpoint maps to source s=L.
+- Circuit height authoring must return to the same render/physics/camera world-height datum at the seam.
+- Height, Visual and Surface readers expose finite open-window semantics without lower-layer modulo addressing.
+- Virtual baked GroundMap metadata repeats finite row/chunk references while reusing the one-lap payload identity; texture payload bytes are not duplicated.
+- TerrainVisualProfile consumes HeightProfileReader / VisualProfileReader and no longer requires concrete Cyclic source types.
+- Renderer Core, direct pseudo-depth, Painter order and acyclic point-to-point RouteDag remain unchanged and topology-blind.
+- Topological winding remains coordinate state only; validated checkpoint/FINISH authority remains responsible for race laps.
+
+VERSION
+- super-outride-m6-49@0.6.49
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- Fast-forward main only to that exact CI-green feature head with force=false.
