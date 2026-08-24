@@ -68,13 +68,10 @@ export class HeightProfile implements HeightProfileReader {
     };
   }
 
-  // C1 DEV physics guide. It is a separate semantic channel from Y_render / Y_camera
-  // even though M5 deliberately uses the same cosine interpolation for both.
   samplePhysics(s: number): number {
     return this.sampleSmooth(s);
   }
 
-  // C1 debug camera guide: cosine interpolation makes slope 0 on both sides of every node.
   sampleCamera(s: number): number {
     return this.sampleSmooth(s);
   }
@@ -115,7 +112,6 @@ export class HeightProfile implements HeightProfileReader {
 /** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
 export class CyclicHeightProfile implements HeightProfileReader {
   readonly nodes: readonly HeightNode[];
-  readonly source: HeightProfile;
 
   constructor(readonly courseLength: number, nodes: readonly HeightNode[]) {
     if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
@@ -131,27 +127,36 @@ export class CyclicHeightProfile implements HeightProfileReader {
       if (i > 0 && node.s <= copied[i - 1]!.s) throw new Error('height nodes must be unique');
     }
     this.nodes = Object.freeze(copied);
-    this.source = new HeightProfile(courseLength, [
-      ...copied,
-      { s: courseLength, y: copied[0]!.y },
-    ]);
   }
 
   sampleRender(s: number): HeightSample {
-    return this.source.sampleRender(wrapPositive(s, this.courseLength));
+    const local = wrapPositive(s, this.courseLength);
+    const i = findCyclicSegment(this.nodes, this.courseLength, local);
+    const a = this.nodes[i]!;
+    const b = this.nodes[(i + 1) % this.nodes.length]!;
+    const sEnd = i === this.nodes.length - 1 ? this.courseLength : b.s;
+    const grade = (b.y - a.y) / (sEnd - a.s);
+    return {
+      y: a.y + grade * (local - a.s),
+      grade,
+      segmentIndex: i,
+      sStart: a.s,
+      sEnd,
+    };
   }
 
   samplePhysics(s: number): number {
-    return this.source.samplePhysics(wrapPositive(s, this.courseLength));
+    return cyclicSmooth(this.nodes, this.courseLength, s);
   }
 
   sampleCamera(s: number): number {
-    return this.source.sampleCamera(wrapPositive(s, this.courseLength));
+    return cyclicSmooth(this.nodes, this.courseLength, s);
   }
 
   distanceToNextRenderNode(s: number): number {
     const local = wrapPositive(s, this.courseLength);
-    const distance = this.source.distanceToNextRenderNode(local);
+    const sample = this.sampleRender(local);
+    const distance = sample.sEnd - local;
     return distance > EPSILON ? distance : this.courseLength;
   }
 }
@@ -170,6 +175,31 @@ export function createM3DebugHeightProfile(courseLength: number): HeightProfile 
     { s: 700, y: 0 },
   ].filter((node, index, array) => node.s < courseLength && (index === 0 || node.s > array[index - 1]!.s));
   return new HeightProfile(courseLength, [...interior, { s: courseLength, y: interior.at(-1)?.y ?? 0 }]);
+}
+
+function cyclicSmooth(nodes: readonly HeightNode[], courseLength: number, s: number): number {
+  const local = wrapPositive(s, courseLength);
+  const i = findCyclicSegment(nodes, courseLength, local);
+  const a = nodes[i]!;
+  const b = nodes[(i + 1) % nodes.length]!;
+  const sEnd = i === nodes.length - 1 ? courseLength : b.s;
+  const t = (local - a.s) / (sEnd - a.s);
+  const smooth = 0.5 - 0.5 * Math.cos(Math.PI * t);
+  return a.y + (b.y - a.y) * smooth;
+}
+
+function findCyclicSegment(nodes: readonly HeightNode[], courseLength: number, local: number): number {
+  let low = 0;
+  let high = nodes.length - 1;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    const current = nodes[mid]!;
+    const nextS = mid === nodes.length - 1 ? courseLength : nodes[mid + 1]!.s;
+    if (local < current.s) high = mid - 1;
+    else if (local >= nextS) low = mid + 1;
+    else return mid;
+  }
+  return nodes.length - 1;
 }
 
 function openChainage(s: number, courseLength: number, label: string): number {
