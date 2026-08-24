@@ -1,5 +1,8 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
-import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
+import {
+  guideCoordinateCurve,
+  locateWorldOnGuideCoordinateGlobal,
+} from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { createM2StadiumGuide } from './core/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
@@ -17,6 +20,7 @@ import {
   type M5CameraProfile,
   type M5CameraState,
 } from './dev/m5-camera.js';
+import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
 import {
   createGeometricCourseTracker,
   createM6DebugRaceRules,
@@ -34,9 +38,20 @@ import {
   formatRaceTime,
   rankRaceProgress,
 } from './gameplay/race-session.js';
-import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from './gameplay/recovery.js';
+import {
+  M5_RECOVERY_PROFILE,
+  createM5RecoveryState,
+  recoverM5Vehicle,
+  recoverM5VehicleToGuideCoordinate,
+  updateM5Recovery,
+  type M5RecoveryState,
+  type M5VehicleState,
+} from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
-import { createSharedRouteChoiceState } from './gameplay/shared-route-choice-authority.js';
+import {
+  createSharedRouteChoiceState,
+  getSharedRouteChoiceLock,
+} from './gameplay/shared-route-choice-authority.js';
 import {
   POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
@@ -58,6 +73,8 @@ import {
   resyncLiveRouteTraveler,
   resolveLiveRouteTravelerRuntime,
   sampleLiveRouteChoicePlanTargetL,
+  sampleLiveRouteChoiceTargetL,
+  type LiveRouteTravelerState,
 } from './runtime/live-route-traveler.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
 import {
@@ -320,12 +337,23 @@ function frame(now: number): void {
     const rivalFrames = rivals.map((rival) => {
       const rivalRuntimeBefore = resolveLiveRouteTravelerRuntime(liveRoute, rival.traveler);
       const rivalParentDiagnosticBefore = isParentRaceDiagnostic(rivalRuntimeBefore);
-      const rivalTargetL = sampleLiveRouteChoicePlanTargetL(
-        liveRoute,
-        rival.traveler,
-        rival.routePlan,
-        rival.vehicle.course.s,
+      const sharedLock = getSharedRouteChoiceLock(
+        sharedRouteChoices,
+        rival.traveler.handoffState.activeStageId,
       );
+      const rivalTargetL = sharedLock === null
+        ? sampleLiveRouteChoicePlanTargetL(
+          liveRoute,
+          rival.traveler,
+          rival.routePlan,
+          rival.vehicle.course.s,
+        )
+        : sampleLiveRouteChoiceTargetL(
+          liveRoute,
+          rival.traveler,
+          sharedLock.choiceId,
+          rival.vehicle.course.s,
+        );
       const rivalInput = sampleRivalDrivingInput(
         rivalRuntimeBefore.coordinateFrame,
         rival.vehicle,
@@ -368,7 +396,13 @@ function frame(now: number): void {
           sLocal: rival.vehicle.course.s,
         });
       }
-      return { rival, recovered: rivalRecovered, raceUpdate: rivalRaceUpdate };
+      return {
+        rival,
+        runtimeBefore: rivalRuntimeBefore,
+        parentDiagnosticBefore: rivalParentDiagnosticBefore,
+        recovered: rivalRecovered,
+        raceUpdate: rivalRaceUpdate,
+      };
     });
 
     // Phase 2: observe the complete field, arbitrate once, then apply actor route/handoff transactions.
@@ -393,7 +427,20 @@ function frame(now: number): void {
     const playerRouteTick = routeTick.actors[0]!;
     const routeUpdate = playerRouteTick.routeUpdate;
 
-    if (playerRouteTick.committed) {
+    if (playerRouteTick.branchViolation !== null) {
+      recoverActorToLockedBranch(
+        runtimeBefore,
+        recovery,
+        vehicle,
+        playerTraveler,
+        playerRouteTick.branchViolation.lockedChoiceId,
+      );
+      resetM5CameraRig(cameraRig);
+      if (parentDiagnosticBefore) {
+        resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
+        resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
+      }
+    } else if (playerRouteTick.committed) {
       const runtimeAfter = activeRuntime();
       vehicle.course = { ...routeHandoffState.coordinate };
       rebaseM5CameraRigCoordinateFrame(
@@ -408,7 +455,22 @@ function frame(now: number): void {
       if (rivalRouteTick.actorId !== rivalFrame.rival.actorId) {
         throw new Error('multi-actor route tick changed roster order');
       }
-      if (rivalRouteTick.committed) {
+      if (rivalRouteTick.branchViolation !== null) {
+        recoverActorToLockedBranch(
+          rivalFrame.runtimeBefore,
+          rivalFrame.rival.recovery,
+          rivalFrame.rival.vehicle,
+          rivalFrame.rival.traveler,
+          rivalRouteTick.branchViolation.lockedChoiceId,
+        );
+        if (rivalFrame.parentDiagnosticBefore) {
+          resyncRaceProgressPosition(rivalFrame.rival.raceProgress, raceRules, {
+            x: rivalFrame.rival.vehicle.x,
+            z: rivalFrame.rival.vehicle.z,
+            sLocal: rivalFrame.rival.vehicle.course.s,
+          });
+        }
+      } else if (rivalRouteTick.committed) {
         rivalFrame.rival.vehicle.course = { ...rivalFrame.rival.traveler.handoffState.coordinate };
       }
     }
@@ -531,7 +593,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.45 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.46 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -555,13 +617,49 @@ function render(): void {
   ctx.fillText(
     runObjective.status === 'FINISHED'
       ? `POINT-TO-POINT FINISH: ${runObjective.finishId}`
-      : 'BRANCH: player physical crossing selects route / 0-rival Pages fixture',
+      : 'BRANCH: first physical vehicle locks field / wrong branch recovers',
     8,
     207,
   );
   ctx.fillStyle = '#8fa3ad';
   ctx.fillText(`FIELD RIV ${rivals.length} LOCKS ${sharedRouteChoices.locks.length}  R1 ${rivalRouteSummary}`, 8, 218);
   ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+}
+
+function recoverActorToLockedBranch(
+  runtime: StageRuntimeContentPackage,
+  recoveryState: M5RecoveryState,
+  actorVehicle: M5VehicleState,
+  traveler: LiveRouteTravelerState,
+  lockedChoiceId: string,
+): void {
+  if (M6_43_DEV_COURSE_MODE.branchViolationPolicy !== 'RECOVER_TO_LOCKED_BRANCH') {
+    throw new Error('branch violation reached browser without a recovery policy');
+  }
+  const approach = lockedBranchRecoveryApproach(
+    liveRoute.gates,
+    lockedChoiceId,
+    M5_RECOVERY_PROFILE.backtrackDistance,
+  );
+  const target = locateWorldOnGuideCoordinateGlobal(
+    runtime.coordinateFrame,
+    approach.worldPoint,
+    false,
+  );
+  recoverM5VehicleToGuideCoordinate(
+    recoveryState,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    runtime.surfaceMap,
+    actorVehicle,
+    { s: target.s, l: target.l },
+    'wrong-course',
+  );
+  resyncLiveRouteTraveler(
+    liveRoute,
+    traveler,
+    { x: actorVehicle.x, z: actorVehicle.z },
+  );
 }
 
 function activeRuntime(): StageRuntimeContentPackage {
