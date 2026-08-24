@@ -1,5 +1,9 @@
-import { normalFromHeading, wrapSigned } from './math.js';
+import { normalFromHeading } from './math.js';
 
+/**
+ * Renderer-facing camera. Chainage is already expressed on the active render
+ * axis by the caller; renderer topology is intentionally absent.
+ */
 export interface PseudoCamera {
   x: number;
   y: number;
@@ -10,7 +14,6 @@ export interface PseudoCamera {
   focalLength: number;
   centerX: number;
   centerY: number;
-  courseLength: number;
 }
 
 export interface PseudoAnchor {
@@ -28,8 +31,9 @@ export interface PseudoProjection {
   cameraRightDistance: number;
 }
 
-export function pseudoDepth(sObject: number, sCamera: number, courseLength: number): number {
-  return wrapSigned(sObject - sCamera, courseLength);
+/** Core pseudo-depth authority: renderer chainage difference only. */
+export function pseudoDepth(sObject: number, sCamera: number): number {
+  return sObject - sCamera;
 }
 
 export function horizonY(camera: Pick<PseudoCamera, 'centerY' | 'focalLength' | 'pitch'>): number {
@@ -37,7 +41,7 @@ export function horizonY(camera: Pick<PseudoCamera, 'centerY' | 'focalLength' | 
 }
 
 export function pseudoProject(anchor: PseudoAnchor, camera: PseudoCamera): PseudoProjection {
-  const depth = pseudoDepth(anchor.s, camera.s, camera.courseLength);
+  const depth = pseudoDepth(anchor.s, camera.s);
   if (!(depth > 0)) throw new RangeError('pseudoProject requires a forward anchor with d > 0');
 
   const cameraRight = normalFromHeading(camera.yaw);
