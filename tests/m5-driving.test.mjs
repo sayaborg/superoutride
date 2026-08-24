@@ -155,7 +155,7 @@ test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical fra
   for (let i = 0; i < 180; i += 1) {
     camera = updateM5Camera(rig, guide, height, car, cameraProfile, 1 / 60);
   }
-  near(pseudoDepth(car.course.s, camera.s, guide.length), cameraProfile.dCam, 1e-9);
+  near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
   assert.ok(Math.abs(camera.verticalCorrection) <= cameraProfile.deltaYMax + 1e-9);
   assert.ok(Math.abs(camera.playerFrameError) < 2.0);
 });
@@ -177,7 +177,7 @@ test('M5 renderer projects player from physical Y and keeps player depth/scale c
   const stats = renderM5Driving(surface, background, guide, camera, car, terrainProfile, groundProfile, world, assets, 'car');
   assert.ok(stats.playerWrittenPixels > 0);
   near(projected.scale, cameraProfile.focalLength / cameraProfile.dCam, 1e-9);
-  near(pseudoDepth(car.course.s, camera.s, guide.length), cameraProfile.dCam, 1e-9);
+  near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
 });
 
 
