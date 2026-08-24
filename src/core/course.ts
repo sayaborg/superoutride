@@ -3,7 +3,6 @@ import {
   normalFromHeading,
   tangentFromHeading,
   wrapAngle,
-  wrapPositive,
   type Vec2,
 } from './math.js';
 
@@ -21,18 +20,29 @@ export interface RasterSegment {
   heading: number;
 }
 
-export interface RasterCourse {
+/**
+ * Core geometry primitive.
+ *
+ * A RasterPath is always open: P0 -> P1 -> ... -> Pn.  Topology such as a
+ * circuit seam or a point-to-point stage graph is deliberately not encoded in
+ * this object.
+ */
+export interface RasterPath {
   vertices: readonly RasterVertex[];
   segments: readonly RasterSegment[];
   vertexS: readonly number[];
   vertexTurns: readonly number[];
   /**
    * Per-vertex lateral basis for exact miter joins. Multiplying this vector by
-   * l yields the shared intersection of the incoming/outgoing offset lines.
+   * l yields the shared intersection of adjacent offset lines at an interior
+   * vertex. Endpoints use the normal of their single adjacent segment.
    */
   vertexMiters: readonly Vec2[];
   length: number;
 }
+
+/** Compatibility vocabulary. RasterCourse has the same open-path semantics. */
+export type RasterCourse = RasterPath;
 
 export interface RasterSample extends Vec2 {
   s: number;
@@ -46,18 +56,19 @@ export interface CourseWorldSample extends RasterSample {
 
 const MAX_VERTEX_TURN = (10 * Math.PI) / 180;
 const EPSILON = 1e-9;
+const RANGE_TOLERANCE = 1e-8;
 
-export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterCourse {
-  if (vertices.length < 3) throw new Error('closed raster course requires at least 3 vertices');
+export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
+  if (vertices.length < 2) throw new Error('open raster path requires at least 2 vertices');
 
   const copied = vertices.map((vertex) => ({ ...vertex }));
   const segments: RasterSegment[] = [];
   const vertexS: number[] = new Array(copied.length).fill(0);
 
   let s = 0;
-  for (let i = 0; i < copied.length; i += 1) {
+  for (let i = 0; i < copied.length - 1; i += 1) {
     const start = copied[i]!;
-    const end = copied[(i + 1) % copied.length]!;
+    const end = copied[i + 1]!;
     const dx = end.x - start.x;
     const dz = end.z - start.z;
     const length = Math.hypot(dx, dz);
@@ -67,16 +78,18 @@ export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterCo
     segments.push({
       index: i,
       startVertexIndex: i,
-      endVertexIndex: (i + 1) % copied.length,
+      endVertexIndex: i + 1,
       sStart: s,
       length,
       heading: headingFromDelta(dx, dz),
     });
     s += length;
   }
+  vertexS[copied.length - 1] = s;
 
   const vertexTurns = copied.map((_, i) => {
-    const incoming = segments[(i - 1 + segments.length) % segments.length]!.heading;
+    if (i === 0 || i === copied.length - 1) return 0;
+    const incoming = segments[i - 1]!.heading;
     const outgoing = segments[i]!.heading;
     const turn = wrapAngle(outgoing - incoming);
     if (Math.abs(turn) > MAX_VERTEX_TURN + 1e-8) {
@@ -88,7 +101,10 @@ export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterCo
   });
 
   const vertexMiters = copied.map((_, i) => {
-    const incoming = segments[(i - 1 + segments.length) % segments.length]!.heading;
+    if (i === 0) return normalFromHeading(segments[0]!.heading);
+    if (i === copied.length - 1) return normalFromHeading(segments[segments.length - 1]!.heading);
+
+    const incoming = segments[i - 1]!.heading;
     const outgoing = segments[i]!.heading;
     const nIn = normalFromHeading(incoming);
     const nOut = normalFromHeading(outgoing);
@@ -102,21 +118,26 @@ export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterCo
     };
   });
 
-  return {
-    vertices: copied,
-    segments,
-    vertexS,
-    vertexTurns,
-    vertexMiters,
+  return Object.freeze({
+    vertices: Object.freeze(copied),
+    segments: Object.freeze(segments),
+    vertexS: Object.freeze(vertexS),
+    vertexTurns: Object.freeze(vertexTurns),
+    vertexMiters: Object.freeze(vertexMiters),
     length: s,
-  };
+  });
 }
 
-export function sampleRasterCourse(course: RasterCourse, s: number): RasterSample {
-  const sLocal = wrapPositive(s, course.length);
-  const segmentIndex = findRasterSegmentIndex(course, sLocal);
-  const segment = course.segments[segmentIndex]!;
-  const start = course.vertices[segment.startVertexIndex]!;
+/** Compatibility export; compilation is open and never creates last -> first. */
+export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterPath {
+  return compileRasterPath(vertices);
+}
+
+export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
+  const sLocal = checkedPathChainage(path, s);
+  const segmentIndex = findRasterSegmentIndex(path, sLocal);
+  const segment = path.segments[segmentIndex]!;
+  const start = path.vertices[segment.startVertexIndex]!;
   const tangent = tangentFromHeading(segment.heading);
   const ds = sLocal - segment.sStart;
 
@@ -129,24 +150,28 @@ export function sampleRasterCourse(course: RasterCourse, s: number): RasterSampl
   };
 }
 
+/** Compatibility export; sampling is open and never wraps. */
+export function sampleRasterCourse(course: RasterCourse, s: number): RasterSample {
+  return sampleRasterPath(course, s);
+}
+
 /**
  * Map raster chainage/lateral coordinates into world space with exact C0 miter
  * joins for every fixed-l strip edge.
  *
  * The centerline, chainage and segment headings remain unchanged. Only the
- * lateral basis changes. Each vertex basis is the intersection per metre of
- * the adjacent offset lines; linear interpolation between the two endpoint
- * miters remains on the current segment's offset line. This removes the old
- * outside-corner step without introducing polygons, another road path or any
- * camera-space depth.
+ * lateral basis changes. Each interior vertex basis is the intersection per
+ * metre of the adjacent offset lines; endpoints use their adjacent segment
+ * normal. Linear interpolation between endpoint bases remains on the current
+ * segment's offset line.
  */
-export function rasterCourseToWorld(course: RasterCourse, s: number, l: number): CourseWorldSample {
-  const center = sampleRasterCourse(course, s);
-  const segment = course.segments[center.segmentIndex]!;
+export function rasterPathToWorld(path: RasterPath, s: number, l: number): CourseWorldSample {
+  const center = sampleRasterPath(path, s);
+  const segment = path.segments[center.segmentIndex]!;
   const ds = center.s - segment.sStart;
   const t = Math.max(0, Math.min(1, ds / segment.length));
-  const m0 = course.vertexMiters[segment.startVertexIndex]!;
-  const m1 = course.vertexMiters[segment.endVertexIndex]!;
+  const m0 = path.vertexMiters[segment.startVertexIndex]!;
+  const m1 = path.vertexMiters[segment.endVertexIndex]!;
   const lateralX = m0.x + (m1.x - m0.x) * t;
   const lateralZ = m0.z + (m1.z - m0.z) * t;
 
@@ -158,22 +183,37 @@ export function rasterCourseToWorld(course: RasterCourse, s: number, l: number):
   };
 }
 
-function findRasterSegmentIndex(course: RasterCourse, sLocal: number): number {
+/** Compatibility export; conversion uses open-path chainage. */
+export function rasterCourseToWorld(course: RasterCourse, s: number, l: number): CourseWorldSample {
+  return rasterPathToWorld(course, s, l);
+}
+
+function checkedPathChainage(path: RasterPath, s: number): number {
+  if (!Number.isFinite(s)) throw new RangeError('raster path chainage must be finite');
+  if (s < -RANGE_TOLERANCE || s > path.length + RANGE_TOLERANCE) {
+    throw new RangeError(`raster path chainage ${s} is outside [0, ${path.length}]`);
+  }
+  if (s <= 0) return 0;
+  if (s >= path.length) return path.length;
+  return s;
+}
+
+function findRasterSegmentIndex(path: RasterPath, sLocal: number): number {
   let low = 0;
-  let high = course.segments.length - 1;
+  let high = path.segments.length - 1;
 
   while (low <= high) {
     const mid = (low + high) >> 1;
-    const segment = course.segments[mid]!;
+    const segment = path.segments[mid]!;
     const nextStart = segment.sStart + segment.length;
     if (sLocal < segment.sStart) {
       high = mid - 1;
-    } else if (sLocal >= nextStart && mid < course.segments.length - 1) {
+    } else if (sLocal >= nextStart && mid < path.segments.length - 1) {
       low = mid + 1;
     } else {
       return mid;
     }
   }
 
-  return course.segments.length - 1;
+  return path.segments.length - 1;
 }
