@@ -1,4 +1,3 @@
-import { wrapPositive } from '../core/math.js';
 import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
 import { SoftwareSurface, rgba } from '../render/software-surface.js';
 import type { FarBackground } from './far-background.js';
@@ -26,17 +25,28 @@ export interface SelectedM5FarBackground {
  * Core tunnel rule: the far interior is a Far Background, while only near portal/rib
  * structure remains sprite geometry. Background switching is hidden by a screen-filling
  * portal at the player crossing because the camera transition is offset by D_cam.
+ *
+ * M6.47: the tunnel is an ordinary interval on one open stage. It never wraps through
+ * either endpoint; a future CIRCUIT layer may explicitly adapt source chainage before
+ * calling this presentation primitive.
  */
 export function createM5TunnelPresentation(courseLength: number, dCam: number): M5TunnelPresentation {
-  if (!(courseLength > M5_9_TUNNEL_EXIT_S + dCam)) {
-    throw new RangeError('debug course is too short for the M5.9 tunnel interval');
+  if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
+    throw new RangeError('courseLength must be finite and > 0');
   }
   if (!(dCam > 0) || !Number.isFinite(dCam)) throw new RangeError('dCam must be finite and > 0');
+
+  const cameraTransitionStartS = M5_9_TUNNEL_ENTRY_S - dCam;
+  const cameraTransitionEndS = M5_9_TUNNEL_EXIT_S - dCam;
+  if (cameraTransitionStartS < 0 || M5_9_TUNNEL_EXIT_S > courseLength) {
+    throw new RangeError('open course is too short for the M5.9 tunnel interval');
+  }
+
   return {
     entryS: M5_9_TUNNEL_ENTRY_S,
     exitS: M5_9_TUNNEL_EXIT_S,
-    cameraTransitionStartS: wrapPositive(M5_9_TUNNEL_ENTRY_S - dCam, courseLength),
-    cameraTransitionEndS: wrapPositive(M5_9_TUNNEL_EXIT_S - dCam, courseLength),
+    cameraTransitionStartS,
+    cameraTransitionEndS,
     portalAsset: createTunnelPortalAsset(),
     ribAsset: createTunnelRibAsset(),
     interiorBackground: createTunnelInteriorBackground(),
@@ -49,13 +59,14 @@ export function selectM5FarBackground(
   outdoor: FarBackground,
   tunnel: M5TunnelPresentation,
 ): SelectedM5FarBackground {
-  const s = wrapPositive(cameraS, courseLength);
-  const active = cyclicIntervalContains(
-    s,
-    tunnel.cameraTransitionStartS,
-    tunnel.cameraTransitionEndS,
-    courseLength,
-  );
+  if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
+    throw new RangeError('courseLength must be finite and > 0');
+  }
+  if (!Number.isFinite(cameraS) || cameraS < 0 || cameraS > courseLength) {
+    throw new RangeError('camera chainage is outside the open course');
+  }
+  const active = cameraS >= tunnel.cameraTransitionStartS
+    && cameraS < tunnel.cameraTransitionEndS;
   return active
     ? { kind: 'TUNNEL', background: tunnel.interiorBackground }
     : { kind: 'OUTDOOR', background: outdoor };
@@ -162,9 +173,4 @@ function fillRect(
   for (let y = top; y <= bottom; y += 1) {
     for (let x = left; x <= right; x += 1) pixels[y * width + x] = color >>> 0;
   }
-}
-
-function cyclicIntervalContains(value: number, start: number, end: number, length: number): boolean {
-  if (start <= end) return value >= start && value < end;
-  return value >= start || value < end;
 }
