@@ -1,6 +1,6 @@
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
-import { CyclicHeightProfile } from '../visual/height-profile.js';
-import { CyclicVisualProfile } from '../visual/visual-profile.js';
+import { HeightProfile } from '../visual/height-profile.js';
+import { VisualProfile } from '../visual/visual-profile.js';
 import { rgba } from '../render/software-surface.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
@@ -16,7 +16,7 @@ const ROAD_HALF_WIDTH = 3.5;
 const SHARED_FLAT_END_S = 60;
 
 export interface M623ChildEnvironment {
-  readonly heightProfile: CyclicHeightProfile;
+  readonly heightProfile: HeightProfile;
   readonly terrainProfile: TerrainVisualProfile;
   readonly worldSprites: readonly CourseSprite[];
 }
@@ -49,15 +49,16 @@ function createCoastEnvironment(
   source: M622ChildStageRuntimeSource,
   assets: M4SpriteAssets,
 ): M623ChildEnvironment {
-  const heightProfile = new CyclicHeightProfile(source.guide.length, [
+  const heightProfile = new HeightProfile(source.guide.length, [
     { s: 0, y: 0 },
     { s: SHARED_FLAT_END_S, y: 0 },
     { s: 105, y: -1.5 },
     { s: 155, y: 1.0 },
     { s: 215, y: 0 },
     { s: Math.min(source.guide.length - 1, 285), y: 0 },
+    { s: source.guide.length, y: 0 },
   ]);
-  const visual = new CyclicVisualProfile(source.guide.length, [{
+  const visual = new VisualProfile(source.guide.length, [{
     sStart: 0,
     name: 'LEFT_COAST_STAGE',
     groundBaseLeft: { kind: 'color', color: rgba(194, 169, 102) },
@@ -83,7 +84,7 @@ function createMountainEnvironment(
   source: M622ChildStageRuntimeSource,
   assets: M4SpriteAssets,
 ): M623ChildEnvironment {
-  const heightProfile = new CyclicHeightProfile(source.guide.length, [
+  const heightProfile = new HeightProfile(source.guide.length, [
     { s: 0, y: 0 },
     { s: SHARED_FLAT_END_S, y: 0 },
     { s: 105, y: 4 },
@@ -91,8 +92,9 @@ function createMountainEnvironment(
     { s: 195, y: 3 },
     { s: 245, y: 7 },
     { s: Math.min(source.guide.length - 1, 295), y: 0 },
+    { s: source.guide.length, y: 0 },
   ]);
-  const visual = new CyclicVisualProfile(source.guide.length, [{
+  const visual = new VisualProfile(source.guide.length, [{
     sStart: 0,
     name: 'RIGHT_MOUNTAIN_STAGE',
     groundBaseLeft: { kind: 'color', color: rgba(47, 76, 48) },
@@ -117,8 +119,8 @@ function createMountainEnvironment(
 }
 
 function terrain(
-  height: CyclicHeightProfile,
-  visual: CyclicVisualProfile,
+  height: HeightProfile,
+  visual: VisualProfile,
 ): TerrainVisualProfile {
   return {
     screenHeight: 240,
