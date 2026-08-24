@@ -148,6 +148,35 @@ test('M6.42 same winning physical gate can advance multiple actors in one arbitr
   assert.equal(b.routeState.activeStageId, 'STAGE_2_R');
 });
 
+test('M6.42 batching has no hidden one-rival assumption at 0 and 16 rival extremes', () => {
+  for (const rivalCount of [0, 16]) {
+    const live = createLiveFixture();
+    const right = gate(live, 'S1_RIGHT');
+    const actorCount = 1 + rivalCount;
+    const actors = Array.from({ length: actorCount }, (_, index) => {
+      const actorId = index === 0 ? 'PLAYER' : `RIVAL_${index}`;
+      return {
+        actorId,
+        state: createLiveRouteTravelerState(live, pointAlong(right, -1)),
+        currentWorldPoint: pointAlong(right, 1),
+      };
+    });
+
+    const tick = advanceLiveRouteMultiActorTick(
+      live,
+      createSharedRouteChoiceState('INDEPENDENT'),
+      actors,
+    );
+
+    assert.equal(tick.actors.length, actorCount);
+    for (const actor of actors) {
+      assert.equal(actorResult(tick, actor.actorId).routeUpdate?.acceptedChoice?.id, 'S1_RIGHT');
+      assert.equal(actor.state.routeState.activeStageId, 'STAGE_2_R');
+      assert.equal(actor.state.handoffState.pending?.choiceId, 'S1_RIGHT');
+    }
+  }
+});
+
 test('M6.42 accepted route transition becomes PENDING while committed package remains the old stage', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
