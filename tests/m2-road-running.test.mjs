@@ -39,7 +39,7 @@ const roadProfile = {
   roadRight: 4.5,
 };
 
-test('stadium debug course satisfies closed-course draw-distance requirement', () => {
+test('open stadium debug source is long enough for the configured draw-distance envelope', () => {
   const guide = createM2StadiumGuide();
   assert.ok(guide.length > 2 * roadProfile.dMax);
 });
@@ -66,7 +66,7 @@ test('camera chainage keeps player pseudo-depth exactly D_cam even with lateral 
   vehicle.course.l = 7;
   vehicle.yaw += deg(25);
   const camera = computeM2Camera(guide, vehicle, cameraProfile);
-  const d = pseudoDepth(vehicle.course.s, camera.s, guide.length);
+  const d = pseudoDepth(vehicle.course.s, camera.s);
   near(d, cameraProfile.dCam, 1e-10);
 });
 
