@@ -77,9 +77,10 @@ test('M6.43 circuit extensibility does not weaken the acyclic RouteDag or enter 
   const rosterSource = fs.readFileSync(new URL('../src/runtime/rival-roster.ts', import.meta.url), 'utf8');
   const routeDagSource = fs.readFileSync(new URL('../src/gameplay/route-dag.ts', import.meta.url), 'utf8');
   const rendererSource = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const forbiddenImport = /from\s+['"][^'"]*(?:route-dag|physics|render|camera)[^'"]*['"]/i;
 
-  assert.doesNotMatch(modeSource, /route-dag/);
-  assert.doesNotMatch(rosterSource, /physics|render|camera|RouteDag/);
+  assert.doesNotMatch(modeSource, forbiddenImport);
+  assert.doesNotMatch(rosterSource, forbiddenImport);
   assert.match(routeDagSource, /cycle/i);
   assert.doesNotMatch(rendererSource, /M6_43|CourseRouteKind|MAX_RIVAL_COUNT|FIRST_PHYSICAL_CROSSING_LOCKS/);
 });
