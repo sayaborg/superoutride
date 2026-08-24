@@ -1,7 +1,7 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { M2VehicleState } from './m2-vehicle.js';
 
 export interface M3CameraProfile {
@@ -23,7 +23,7 @@ export interface M3CameraState extends PseudoCamera {
 
 export function computeM3Camera(
   guide: GuideCurve,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   vehicle: M2VehicleState,
   profile: M3CameraProfile,
 ): M3CameraState {
