@@ -52,7 +52,7 @@ export function collectVisibleCourseSprites(
 ): VisibleCourseSprite[] {
   const visible: VisibleCourseSprite[] = [];
   for (const sprite of sprites) {
-    const d = pseudoDepth(sprite.sRender, camera.s, camera.courseLength);
+    const d = pseudoDepth(sprite.sRender, camera.s);
     if (d < dStart || d > dEnd) continue;
     const projection = pseudoProject(
       { x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender },
