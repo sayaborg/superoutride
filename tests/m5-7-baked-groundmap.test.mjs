@@ -12,7 +12,7 @@ import { createM5Car } from '../dist/physics/car-physics.js';
 import { createM5DebugSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
+import { BakedGroundMapAsset, CyclicBakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
@@ -76,11 +76,21 @@ test('runtime GroundMap level selection is chainage-only and reaches level 6 for
   assert.ok(Number.isInteger(sample.color));
 });
 
-test('baked GroundMap preserves cyclic course addressing at every pyramid level', () => {
+test('M6.45 baked GroundMap general asset owns an open chainage domain', () => {
   for (let k = 0; k <= baked.kMax; k += 1) {
-    const a = baked.sampleAtLevel(123.456, 2.25, k);
-    const b = baked.sampleAtLevel(123.456 + guide.length, 2.25, k);
-    const c = baked.sampleAtLevel(123.456 - guide.length, 2.25, k);
+    assert.doesNotThrow(() => baked.sampleAtLevel(0, 2.25, k));
+    assert.doesNotThrow(() => baked.sampleAtLevel(guide.length, 2.25, k));
+    assert.throws(() => baked.sampleAtLevel(-0.001, 2.25, k), RangeError);
+    assert.throws(() => baked.sampleAtLevel(guide.length + 0.001, 2.25, k), RangeError);
+  }
+});
+
+test('M6.45 cyclic baked GroundMap addressing requires the explicit adapter', () => {
+  const cyclic = new CyclicBakedGroundMapAsset(baked);
+  for (let k = 0; k <= baked.kMax; k += 1) {
+    const a = cyclic.sampleAtLevel(123.456, 2.25, k);
+    const b = cyclic.sampleAtLevel(123.456 + guide.length, 2.25, k);
+    const c = cyclic.sampleAtLevel(123.456 - guide.length, 2.25, k);
     assert.equal(a, b);
     assert.equal(a, c);
   }
