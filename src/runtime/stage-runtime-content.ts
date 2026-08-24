@@ -4,7 +4,7 @@ import type { RouteStageContentManifest } from '../gameplay/route-stage-content.
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 
@@ -14,7 +14,7 @@ export interface StageRuntimeContentPackage {
   readonly coordinateFrame: GuideCoordinateSource;
   readonly roadView: StageRoadView | null;
   readonly surfaceMap: SurfaceMapReader;
-  readonly heightProfile: CyclicHeightProfile;
+  readonly heightProfile: HeightProfileReader;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: GroundMapProfile;
   readonly selectFarBackground: (cameraS: number) => FarBackground;
