@@ -191,3 +191,29 @@ test('M6.43 mode/roster layers keep renderer cardinality-agnostic', () => {
   assert.doesNotMatch(rendererSource, /CURRENT_RIVAL_COUNT_CAP|rivalCount|DEV_CURRENT|M6_43/);
   assert.doesNotMatch(routeTickSource, /CURRENT_RIVAL_COUNT_CAP|rivalCount|\b16\b|M6_43/);
 });
+
+test('M6.43 browser iterates the mode roster instead of owning one special rival', () => {
+  const mainSource = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+
+  assert.match(mainSource, /const opponents = createM643LiveOpponentRoster\(/);
+  assert.match(mainSource, /createSharedRouteChoiceState\(M6_43_DEV_RACE_MODE\.sharedRouteChoiceMode\)/);
+  assert.match(mainSource, /const opponentTickStates = opponents\.map/);
+  assert.match(mainSource, /\.\.\.opponentTickStates\.map/);
+  assert.match(mainSource, /for \(let index = 0; index < opponentTickStates\.length; index \+= 1\)/);
+  assert.match(mainSource, /const opponentSprites = opponents\.flatMap/);
+  assert.match(mainSource, /opponent\.slot\.actorId/);
+  assert.doesNotMatch(mainSource, /const rival\s*=/);
+  assert.doesNotMatch(mainSource, /const rivalTraveler|const rivalRoutePlan|const rivalRecovery|const rivalRaceProgress/);
+  assert.doesNotMatch(mainSource, /CURRENT_RIVAL_COUNT_CAP|\b16\b/);
+});
+
+test('M6.43 browser renders only package-compatible opponents and disables old local-chainage standings after route divergence', () => {
+  const mainSource = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+
+  assert.match(mainSource, /liveRouteTravelersShareRuntimePackage\(runtime, opponentRuntime\)/);
+  assert.match(mainSource, /createDynamicVehicleCourseSprite\(\s*opponent\.slot\.actorId/);
+  assert.match(mainSource, /const parentFieldDiagnostic = isParentRaceDiagnostic\(runtime\)/);
+  assert.match(mainSource, /opponents\.every\(\(opponent\) => isParentRaceDiagnostic/);
+  assert.match(mainSource, /const standings = parentFieldDiagnostic\s*\? rankRaceProgress/);
+  assert.match(mainSource, /const positionText = playerStanding === null \? `--\/\$\{fieldSize\}`/);
+});
