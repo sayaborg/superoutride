@@ -125,7 +125,7 @@ test('visible world sprites use shared chainage pseudo-depth and sort far-to-nea
   const visible = collectVisibleCourseSprites(world, camera, 2.5, 150);
   assert.ok(visible.length > 0);
   for (let i = 1; i < visible.length; i += 1) assert.ok(visible[i].d <= visible[i - 1].d + 1e-9);
-  for (const sprite of visible) near(sprite.d, pseudoDepth(sprite.sRender, camera.s, guide.length));
+  for (const sprite of visible) near(sprite.d, pseudoDepth(sprite.sRender, camera.s));
 });
 
 test('yaw and bank selectors cover wrapped yaw and discrete bike bank variants', () => {
@@ -150,7 +150,7 @@ test('M4 camera creates bounded vehicle-relative yaw lag while preserving exact 
   const relative = Math.abs(camera.cameraVehicleYawDelta);
   assert.ok(relative > deg(1));
   assert.ok(relative <= cameraProfile.thetaLagMax + 1e-9);
-  near(pseudoDepth(vehicle.course.s, camera.s, guide.length), cameraProfile.dCam, 1e-9);
+  near(pseudoDepth(vehicle.course.s, camera.s), cameraProfile.dCam, 1e-9);
 });
 
 test('M4 renderer draws merged world sprites and a yaw-variant player into the software framebuffer', () => {
