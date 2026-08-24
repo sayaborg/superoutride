@@ -3,9 +3,9 @@ import type { StageRoadView } from '../course/stage-road-view.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import { CyclicHeightProfile, type HeightNode } from '../visual/height-profile.js';
+import { HeightProfile, type HeightNode } from '../visual/height-profile.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
-import { CyclicVisualProfile, type VisualSection } from '../visual/visual-profile.js';
+import { VisualProfile, type VisualSection } from '../visual/visual-profile.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 import type { StageRuntimeContentPackage } from './stage-runtime-content.js';
 
@@ -40,7 +40,7 @@ export interface StageRuntimeSource {
 }
 
 export interface CompiledStageEnvironment {
-  readonly heightProfile: CyclicHeightProfile;
+  readonly heightProfile: HeightProfile;
   readonly terrainProfile: TerrainVisualProfile;
   readonly worldSprites: readonly CourseSprite[];
 }
@@ -54,12 +54,17 @@ const DEFAULT_TERRAIN = Object.freeze({
   roadRight: 3.5,
   thinSpanScreenRows: 1,
 });
+const EPSILON = 1e-9;
 
 /**
  * Compile declarative stage-local environment authoring against one active Guide coordinate frame.
  *
  * Authoring uses local l. The compiler performs the only lateral rebase needed for raster-attached
  * sprites, keeping content definitions independent from parent/source lateral origins.
+ *
+ * Height authoring describes change points rather than topology. If its last authored point precedes
+ * the Guide endpoint, compilation explicitly extends that final height to s=L. The open HeightProfile
+ * itself never guesses, clamps, or wraps missing endpoint data.
  */
 export function compileStageEnvironment(
   coordinateFrame: GuideCoordinateSource,
@@ -67,8 +72,8 @@ export function compileStageEnvironment(
 ): CompiledStageEnvironment {
   const guide = guideCoordinateCurve(coordinateFrame);
   const lateralOrigin = guideCoordinateLateralOrigin(coordinateFrame);
-  const heightProfile = new CyclicHeightProfile(guide.length, authoring.heightNodes);
-  const visual = new CyclicVisualProfile(guide.length, authoring.visualSections);
+  const heightProfile = new HeightProfile(guide.length, compileOpenHeightNodes(guide.length, authoring.heightNodes));
+  const visual = new VisualProfile(guide.length, authoring.visualSections);
   const terrain = { ...DEFAULT_TERRAIN, ...authoring.terrain };
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,
@@ -112,4 +117,18 @@ export function compileAuthoredStageRuntimePackage(
     selectFarBackground: () => authoring.farBackground,
     worldSprites: environment.worldSprites,
   });
+}
+
+function compileOpenHeightNodes(courseLength: number, nodes: readonly HeightNode[]): readonly HeightNode[] {
+  if (nodes.length === 0) throw new Error('stage height authoring requires at least one node');
+  const copied = nodes.map((node) => ({ ...node })).sort((a, b) => a.s - b.s);
+  const last = copied.at(-1)!;
+  if (last.s > courseLength + EPSILON) {
+    throw new RangeError('stage height authoring extends beyond Guide endpoint');
+  }
+  if (Math.abs(last.s - courseLength) <= EPSILON) {
+    copied[copied.length - 1] = { ...last, s: courseLength };
+    return copied;
+  }
+  return [...copied, { s: courseLength, y: last.y }];
 }
