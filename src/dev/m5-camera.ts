@@ -5,7 +5,7 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { sampleGuideCurve } from '../core/guide-curve.js';
-import { clamp, wrapAngle, wrapPositive } from '../core/math.js';
+import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 import type { CyclicHeightProfile } from '../visual/height-profile.js';
@@ -108,7 +108,9 @@ export function updateM5Camera(
   rig.lateral += (lTarget - rig.lateral) * latAlpha;
   rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
 
-  const sCamera = wrapPositive(vehicle.course.s - profile.dCam, curve.length);
+  // Geometry is open. Course authoring supplies a pre-start staging margin so the
+  // ordinary camera equation remains valid; the camera never invents a topology wrap.
+  const sCamera = vehicle.course.s - profile.dCam;
   const plan = guideCoordinateToWorld(guide, sCamera, rig.lateral);
 
   const scaleAtPlayer = profile.focalLength / profile.dCam;
@@ -149,7 +151,6 @@ export function updateM5Camera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
-    courseLength: curve.length,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
