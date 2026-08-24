@@ -52,15 +52,25 @@ export interface BakedGroundMapSample {
   readonly level: number;
 }
 
+export interface BakedGroundMapReader {
+  readonly metadata: BakedGroundMapMetadata;
+  readonly kMax: number;
+  selectLevel(deltaSEffective: number): number;
+  sample(s: number, l: number, deltaSEffective: number): BakedGroundMapSample;
+  sampleAtLevel(s: number, l: number, levelIndex: number): number;
+  texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number };
+}
+
 const RGB555_TO_RGBA = new Uint32Array(0x8000);
 for (let i = 0; i < RGB555_TO_RGBA.length; i += 1) RGB555_TO_RGBA[i] = rgb555ToRgba(i);
+const EPSILON = 1e-9;
 
 /**
- * Runtime view of compiler-baked GroundMap chunks.
+ * Runtime view of compiler-baked GroundMap chunks over one open chainage domain.
  * No filtering is performed here: runtime only selects one prefiltered level
  * from Delta_s_eff and performs a nearest texel lookup in that level.
  */
-export class BakedGroundMapAsset {
+export class BakedGroundMapAsset implements BakedGroundMapReader {
   readonly bytes: Uint8Array;
 
   constructor(
@@ -93,11 +103,10 @@ export class BakedGroundMapAsset {
     const level = this.metadata.levels[levelIndex];
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
 
-    const sLocal = wrapPositive(s, this.metadata.courseLength);
-    const row = Math.min(
-      level.chainageTexels - 1,
-      Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels),
-    );
+    const sLocal = openChainage(s, this.metadata.courseLength);
+    const row = sLocal === this.metadata.courseLength
+      ? level.chainageTexels - 1
+      : Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels);
     const lateralWidth = this.metadata.groundLeft + this.metadata.groundRight;
     const normalizedL = (l + this.metadata.groundLeft) / lateralWidth;
     const column = Math.max(
@@ -137,6 +146,35 @@ export class BakedGroundMapAsset {
       l: -this.metadata.groundLeft
         + (column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight) / level.lateralTexels,
     };
+  }
+}
+
+/** Explicit legacy/circuit adapter. Only this layer performs periodic chainage addressing. */
+export class CyclicBakedGroundMapAsset implements BakedGroundMapReader {
+  constructor(readonly source: BakedGroundMapAsset) {}
+
+  get metadata(): BakedGroundMapMetadata {
+    return this.source.metadata;
+  }
+
+  get kMax(): number {
+    return this.source.kMax;
+  }
+
+  selectLevel(deltaSEffective: number): number {
+    return this.source.selectLevel(deltaSEffective);
+  }
+
+  sample(s: number, l: number, deltaSEffective: number): BakedGroundMapSample {
+    return this.source.sample(wrapPositive(s, this.metadata.courseLength), l, deltaSEffective);
+  }
+
+  sampleAtLevel(s: number, l: number, levelIndex: number): number {
+    return this.source.sampleAtLevel(wrapPositive(s, this.metadata.courseLength), l, levelIndex);
+  }
+
+  texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
+    return this.source.texelCenter(levelIndex, row, column);
   }
 }
 
@@ -221,4 +259,14 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
       throw new Error('GroundMap payload outside binary asset');
     }
   }
+}
+
+function openChainage(s: number, courseLength: number): number {
+  if (!Number.isFinite(s)) throw new RangeError('baked GroundMap chainage must be finite');
+  if (s < -EPSILON || s > courseLength + EPSILON) {
+    throw new RangeError('baked GroundMap chainage is outside [0, courseLength]');
+  }
+  if (Math.abs(s) <= EPSILON) return 0;
+  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
+  return s;
 }
