@@ -132,7 +132,7 @@ test('M6.20 live DAG is one physical fork into two terminal child stages', () =>
   assert.deepEqual(route.choices.map((choice) => choice.id), ['S1_LEFT', 'S1_RIGHT']);
 });
 
-test('M6.20 child FINISH lies after handoff and before the closed raster seam', () => {
+test('M6.20 child FINISH lies after handoff and before the open Guide endpoint', () => {
   const { guide, gates } = setup();
   assert.ok(M6_20_FINISH_GATE_S > M6_17_HANDOFF_SEAM_S);
   assert.ok(M6_20_FINISH_GATE_S < guide.length);
