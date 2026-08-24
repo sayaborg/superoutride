@@ -22,10 +22,10 @@ test('M6.43 course mode contract keeps linear branching and circuit as three dis
   assert.equal(circuit.finishKind, 'LAPS');
 });
 
-test('M6.43 branching product rule is first physical crossing lock while wrong-branch response remains undecided', () => {
+test('M6.46 branching keeps first physical crossing lock and defines losing-sibling recovery', () => {
   const mode = compileCourseMode({ id: 'OUTRUN', routeKind: 'BRANCHING', rivalCount: 4 });
   assert.equal(mode.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
-  assert.equal(mode.branchViolationPolicy, 'UNDECIDED');
+  assert.equal(mode.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   for (const routeKind of ['LINEAR', 'CIRCUIT']) {
     const other = compileCourseMode({ id: routeKind, routeKind, rivalCount: 4 });
@@ -59,17 +59,17 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
   assert.equal(new Set(max.map((entry) => entry.actorId)).size, 16);
 });
 
-test('M6.43 current Pages fixture leaves branch choice to the player until violation policy exists', () => {
+test('M6.46 current Pages fixture restores one rival after defining forbidden-branch recovery', () => {
   assert.equal(M6_43_DEV_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 0);
+  assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 1);
   assert.equal(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
-  assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'UNDECIDED');
-  assert.deepEqual(createRivalRoster(M6_43_DEV_COURSE_MODE), []);
+  assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   const source = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(source, /createRivalRoster\(M6_43_DEV_COURSE_MODE\)/);
   assert.match(source, /const rivals = rivalRoster\.map/);
   assert.match(source, /createSharedRouteChoiceState\(M6_43_DEV_COURSE_MODE\.sharedRouteChoiceMode\)/);
+  assert.match(source, /recoverActorToLockedBranch\(/);
   assert.doesNotMatch(source, /const rival = createM5Car/);
   assert.doesNotMatch(source, /const rivalTraveler =/);
 });
