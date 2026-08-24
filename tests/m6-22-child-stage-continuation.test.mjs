@@ -243,7 +243,8 @@ test('M6.22 fixture stays validated while browser live wiring consumes the M6.27
   assert.match(mainSource, /const playerTraveler = createLiveRouteTravelerState\(liveRoute/);
   assert.match(mainSource, /const routeHandoffState = playerTraveler\.handoffState/);
   assert.match(mainSource, /advanceLiveRouteMultiActorTick/);
-  assert.match(mainSource, /camera\.courseLength/);
+  assert.match(mainSource, /pseudoDepth\(vehicle\.course\.s, camera\.s\)/);
+  assert.doesNotMatch(mainSource, /camera\.courseLength/);
   assert.doesNotMatch(mainSource, /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
   assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet|createM622ChildStageContinuation/);
   assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|M6_42|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
