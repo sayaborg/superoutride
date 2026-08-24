@@ -138,8 +138,6 @@ test('M6.40 route intent follows authored junction growth instead of steering di
   assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 450) - 4.3) < 1e-9);
   assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 530) - 7.5) < 1e-9);
 
-  // RouteDag advances at the physical gate, but until seam COMMIT the old parent chart is still
-  // active and must remain the steering coordinate authority.
   resyncLiveRouteTraveler(live, traveler, pointAlongGate(gate, -1));
   advanceLiveRouteTraveler(live, traveler, pointAlongGate(gate, 1));
   assert.equal(traveler.routeState.activeStageId, 'STAGE_2_R');
@@ -225,8 +223,9 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
   );
 });
 
-test('M6.40 generic traveler stays renderer/physics independent while browser consumes it through M6.42 batching', () => {
+test('M6.40 generic traveler stays renderer/physics independent while M6.43 roster consumes it through M6.42 batching', () => {
   const source = fs.readFileSync(new URL('../src/runtime/live-route-traveler.ts', import.meta.url), 'utf8');
+  const roster = fs.readFileSync(new URL('../src/dev/m6-43-opponent-roster.ts', import.meta.url), 'utf8');
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const renderer = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
 
@@ -234,10 +233,11 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
   assert.doesNotMatch(source, /physics\//);
   assert.doesNotMatch(source, /M5Car|M5Bike|CourseSprite/);
   assert.match(source, /export function advanceLiveRouteTraveler/);
+  assert.match(roster, /createM640RivalRouteChoicePlan/);
+  assert.match(roster, /createLiveRouteTravelerState/);
 
   for (const symbol of [
-    'createM640RivalRouteChoicePlan',
-    'createLiveRouteTravelerState',
+    'createM643LiveOpponentRoster',
     'sampleLiveRouteChoicePlanTargetL',
     'resolveLiveRouteTravelerRuntime',
     'liveRouteTravelersShareRuntimePackage',
@@ -247,6 +247,6 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
   }
   assert.doesNotMatch(main, /advanceLiveRouteTraveler\(/);
   assert.doesNotMatch(main, /sampleM613RightBranchTargetL\(rival\.course\.s\)/);
-  assert.doesNotMatch(main, /updateM5Car\(guide, heightProfile, surfaceMap, rival/);
-  assert.doesNotMatch(renderer, /M6_40|M6\.40|M6_42|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
+  assert.doesNotMatch(main, /const rival\s*=/);
+  assert.doesNotMatch(renderer, /M6_40|M6\.40|M6_42|M6_43|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
 });
