@@ -2,7 +2,7 @@ import { rasterCourseToWorld } from '../core/course.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
 import type { GuideCurve } from '../core/guide-curve.js';
 import type { SpriteAsset } from '../render/sprite.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export interface CourseSpriteAuthoring {
   name: string;
@@ -29,7 +29,7 @@ export interface VisibleCourseSprite extends CourseSprite {
 
 export function compileCourseSprite(
   guide: GuideCurve,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   source: CourseSpriteAuthoring,
 ): CourseSprite {
   const plan = rasterCourseToWorld(guide.raster, source.s, source.l);
