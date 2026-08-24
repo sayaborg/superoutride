@@ -16,11 +16,11 @@ import {
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import { CyclicSurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
+import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
-import { CyclicHeightProfile } from '../visual/height-profile.js';
-import { CyclicVisualProfile } from '../visual/visual-profile.js';
+import { HeightProfile } from '../visual/height-profile.js';
+import { VisualProfile } from '../visual/visual-profile.js';
 import { rgba } from '../render/software-surface.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
@@ -48,7 +48,7 @@ export interface M622ChildStageRuntimeSource {
   readonly chart: GuideChart;
   readonly roadView: StageRoadView;
   readonly surfaceMap: StageSurfaceMapView;
-  readonly heightProfile: CyclicHeightProfile;
+  readonly heightProfile: HeightProfile;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: GroundMapProfile;
 }
@@ -190,17 +190,18 @@ function createChildRuntimeSource(
     roadRight: CHILD_ROAD_HALF_WIDTH,
     shoulderWidth: CHILD_SHOULDER_WIDTH,
   });
-  const sourceSurfaceMap = new CyclicSurfaceMap(guide.length, [{
+  const sourceSurfaceMap = new SurfaceMap(guide.length, [{
     sStart: 0,
     name: `${side}_CHILD_STAGE`,
     bands: childSurfaceBands(sourceLateralOrigin),
   }]);
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
-  const heightProfile = new CyclicHeightProfile(guide.length, [
+  const heightProfile = new HeightProfile(guide.length, [
     { s: 0, y: 0 },
     { s: guide.length * 0.5, y: 0 },
+    { s: guide.length, y: 0 },
   ]);
-  const visualProfile = new CyclicVisualProfile(guide.length, [{
+  const visualProfile = new VisualProfile(guide.length, [{
     sStart: 0,
     name: `${side}_CHILD_STAGE`,
     groundBaseLeft: { kind: 'color', color: rgba(39, 88, 46) },
