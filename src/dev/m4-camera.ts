@@ -1,7 +1,7 @@
 import { guideCourseToWorld, sampleGuideCurve, type GuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { M2VehicleState } from './m2-vehicle.js';
 
 export interface M4CameraProfile {
@@ -40,7 +40,7 @@ export function createM4CameraRig(): M4CameraRig {
 export function updateM4Camera(
   rig: M4CameraRig,
   guide: GuideCurve,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   vehicle: M2VehicleState,
   profile: M4CameraProfile,
   dt: number,
