@@ -1,0 +1,43 @@
+SUPER OUTRIDE
+M6.48 VALIDATION
+
+MILESTONE
+- M6.48 Explicit Circuit Topology Foundation
+
+PRE-VALIDATION FEATURE HEAD
+- d3cb38d10a1d35a4821d042894ceb4f22eaceda5
+
+WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #458
+- Run id: 32787180146
+- Build job: 97621367897
+- Result: success
+- Exact checkout expected: d3cb38d10a1d35a4821d042894ceb4f22eaceda5
+- Exact checkout actual:   d3cb38d10a1d35a4821d042894ceb4f22eaceda5
+
+AUTOMATED REGRESSION
+- 396 tests
+- 396 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.48 DIRECT COVERAGE
+- Circuit topology exists only when one ordinary open RasterPath explicitly returns its final authored world vertex to the first world point.
+- An ordinary non-returning open path is rejected instead of being implicitly closed.
+- Conflicting seam endpoint sourceRadius metadata is rejected rather than resolved ad hoc.
+- Circuit seam turn/miter validity is delegated to the existing compileRasterPath Core authority by unfolding two lap copies; no second circuit geometry rule set exists.
+- Finite circuit windows materialize as ordinary open RasterPaths with monotonically increasing chainage.
+- Continuous circuit chainage is explicit: s_unwrapped = winding * L + s_local with topology-owned decomposition/wrapping/lifting helpers.
+- Topological winding is coordinate state only and is not validated race-lap authority; physical checkpoint/FINISH validation remains separate.
+- Renderer Core, direct pseudo-depth, Painter order, open source profiles and acyclic point-to-point RouteDag remain unchanged.
+
+VERSION
+- super-outride-m6-48@0.6.48
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- Fast-forward main only to that exact CI-green feature head with force=false.
