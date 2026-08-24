@@ -1,0 +1,43 @@
+SUPER OUTRIDE
+M6.47 VALIDATION
+
+MILESTONE
+- M6.47 Open Parent Stage Integration
+
+PRE-VALIDATION FEATURE HEAD
+- f783ef1e2f4de9c72aa47d6138c6adad3498d01d
+
+WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #450
+- Build job: 97530435595
+- Result: success
+- Exact checkout expected: f783ef1e2f4de9c72aa47d6138c6adad3498d01d
+- Exact checkout actual:   f783ef1e2f4de9c72aa47d6138c6adad3498d01d
+
+AUTOMATED REGRESSION
+- 389 tests
+- 389 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.47 DIRECT COVERAGE
+- Live BRANCHING parent stage uses open VisualProfile and SurfaceMap instead of explicit cyclic adapters.
+- Parent HeightProfile, logical GroundMap and baked GroundMap remain open.
+- M5.9 tunnel background selection is one ordinary open interval and never wraps either endpoint.
+- Camera, car, motorcycle and parent world-source height dependencies use HeightProfileReader, not CyclicHeightProfile.
+- M620 shared runtime content accepts open HeightProfileReader and SurfaceMap.
+- Ordinary car/bike/camera consume open HeightProfile directly.
+- Open sources reject out-of-range chainage rather than normalizing it.
+- Explicit Cyclic* adapters remain opt-in primitives for future upper-level CIRCUIT topology.
+- Renderer Core, direct pseudo-depth, Painter order, RouteDag acyclicity, shared physical branch authority and fixed 2.0m=80px metric are unchanged.
+
+VERSION
+- super-outride-m6-47@0.6.47
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- Fast-forward main only to that exact CI-green feature head with force=false.
