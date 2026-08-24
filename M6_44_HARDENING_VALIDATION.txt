@@ -1,0 +1,69 @@
+SUPER OUTRIDE M6.44 — Open Path Hardening Validation
+
+Purpose:
+This follow-up tightens the M6.44 architectural boundary without changing the frozen open-path renderer semantics or package version.
+
+Base main before hardening:
+d7881e63340a2961c6186648ffdfe51618ce1657
+
+Documentation-inclusive validated checkpoint:
+46541821c3f308d5d07daf8e39188674daaadd27
+
+GitHub Actions PR run:
+32734893270
+Run number:
+411
+Build job:
+97455251751
+
+Exact-source verification:
+expected=46541821c3f308d5d07daf8e39188674daaadd27
+actual=46541821c3f308d5d07daf8e39188674daaadd27
+
+Result:
+369 tests
+369 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+Hardening authority:
+- pseudoDepth is strictly pseudoDepth(s_render, s_camera); no ignored topology/legacy arguments remain
+- PseudoCamera owns no courseLength field
+- M5CameraState no longer reintroduces a compatibility courseLength field
+- browser main uses two-argument pseudoDepth and contains no camera.courseLength dependency
+- general SurfaceMap owns open [0,L] chainage and rejects out-of-domain sampling
+- cyclic SurfaceMap addressing is available only through the explicitly named CyclicSurfaceMap adapter
+- M6.44 dedicated regression coverage increases from eight to ten tests
+- stale closed-raster wording in current open-path tests/documentation is removed where it no longer describes the implementation
+
+CI authority:
+- pull-request CI explicitly checks out github.event.pull_request.head.sha
+- push/manual CI explicitly checks out github.sha
+- the workflow immediately asserts git rev-parse HEAD equals the expected source SHA
+- tests therefore validate the literal source commit rather than GitHub's synthetic pull-request merge ref
+
+Preserved M6.44 authority:
+- RasterPath and GuidePath remain open general primitives
+- renderer depth remains d = s_render - s_camera
+- renderer owns no LINEAR / BRANCHING / CIRCUIT topology branch
+- SurfaceMap general form is open; cyclic behavior is explicit
+- successor stages remain open and do not manufacture last-to-first closure
+- fixed metric sprite authority remains 2.0m = 80px at player depth
+- world X/Y/Z remains vehicle-physics authority
+- one chainage maps to one horizontal scanline
+- Terrain + World Sprite remain one far-to-near Painter stream
+
+Deferred, not hidden:
+- CyclicHeightProfile and CyclicVisualProfile remain explicit historical/DEV cyclic primitives and are not converted by this hardening follow-up
+- future circuit topology remains a higher-layer concern and must not re-enter RasterPath, GuidePath or pseudo-depth
+
+Package authority remains:
+super-outride-m6-44@0.6.44
+
+The validation-file-inclusive feature head produced by this record must independently reproduce:
+- exact checkout SHA equality
+- 369/369 tests
+- 0 fail
+before main is fast-forwarded.
