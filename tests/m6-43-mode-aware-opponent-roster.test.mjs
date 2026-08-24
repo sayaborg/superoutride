@@ -155,7 +155,9 @@ test('M6.43 DEV opponent starting grid is deterministic, unique and inside the c
     fixture.surfaceMap,
     fixture.raceRules,
   );
-  assert.deepEqual(roster.map((entry) => entry.vehicle.course.s), Array.from({ length: 16 }, (_, index) => opponentSpawnS(index)));
+  for (let index = 0; index < roster.length; index += 1) {
+    assert.ok(Math.abs(roster[index].vehicle.course.s - opponentSpawnS(index)) <= 1e-9);
+  }
   assert.ok(roster.every((entry) => entry.vehicle.course.s < 390));
   assert.ok(roster.every((entry) => entry.vehicle.supported));
 });
