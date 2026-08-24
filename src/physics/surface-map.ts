@@ -40,22 +40,17 @@ export interface SurfaceSample {
   readonly material: SurfaceMaterial;
 }
 
-/**
- * Minimal read-only physics contract for SurfaceMap(s,l).
- *
- * Vehicle dynamics and recovery only consume material samples. They do not need the concrete
- * cyclic authoring implementation. This lets a committed child stage provide a StageSurfaceMapView
- * without changing any vehicle equations or granting route/content logic access to physics state.
- */
+/** Minimal read-only physics contract for SurfaceMap(s,l). */
 export interface SurfaceMapReader {
   sample(s: number, l: number): SurfaceSample;
 }
 
 /**
- * Runtime SurfaceMap(s,l): piecewise-constant authored terrain plus an optional continuous
- * junction road cross-section. GroundMap pixels and GroundBase paint remain independent.
+ * General runtime SurfaceMap(s,l): an open [0, courseLength] chainage domain containing
+ * piecewise-constant authored terrain plus an optional continuous junction cross-section.
+ * GroundMap pixels and GroundBase paint remain independent.
  */
-export class CyclicSurfaceMap implements SurfaceMapReader {
+export class SurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
 
   constructor(
@@ -89,7 +84,7 @@ export class CyclicSurfaceMap implements SurfaceMapReader {
   }
 
   sample(s: number, l: number): SurfaceSample {
-    const local = wrapPositive(s, this.courseLength);
+    const local = this.normalizeChainage(s);
     const section = this.sectionAtLocal(local);
 
     if (this.junction) {
@@ -114,7 +109,14 @@ export class CyclicSurfaceMap implements SurfaceMapReader {
   }
 
   sectionAt(s: number): SurfaceSection {
-    return this.sectionAtLocal(wrapPositive(s, this.courseLength));
+    return this.sectionAtLocal(this.normalizeChainage(s));
+  }
+
+  protected normalizeChainage(s: number): number {
+    if (!Number.isFinite(s) || s < 0 || s > this.courseLength) {
+      throw new RangeError(`surface chainage ${s} outside [0, ${this.courseLength}]`);
+    }
+    return s;
   }
 
   private sectionAtLocal(local: number): SurfaceSection {
@@ -124,6 +126,14 @@ export class CyclicSurfaceMap implements SurfaceMapReader {
       else break;
     }
     return this.sections[index]!;
+  }
+}
+
+/** Explicit closed-course adapter retained only where cyclic topology is intentionally authored. */
+export class CyclicSurfaceMap extends SurfaceMap {
+  protected override normalizeChainage(s: number): number {
+    if (!Number.isFinite(s)) throw new RangeError('surface chainage must be finite');
+    return wrapPositive(s, this.courseLength);
   }
 }
 
@@ -140,7 +150,7 @@ function junctionSurfaceType(
   return null;
 }
 
-/** DEV authoring compiled into the runtime SurfaceMap. */
+/** DEV closed-course authoring explicitly opts into cyclic SurfaceMap addressing. */
 export function createM5DebugSurfaceMap(courseLength: number): CyclicSurfaceMap {
   const compiled = compileSurfaceRegions(courseLength, createM5DebugSurfaceRegionAuthoring(courseLength));
   return new CyclicSurfaceMap(courseLength, compiled.surfaceSections);
