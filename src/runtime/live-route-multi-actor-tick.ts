@@ -5,6 +5,7 @@ import {
 } from '../gameplay/route-boundary-gates.js';
 import {
   arbitrateSharedRouteChoiceCandidates,
+  getSharedRouteChoiceLock,
   sharedRouteAllowedTransitionChoiceId,
   type SharedRouteChoiceArbitration,
   type SharedRouteChoiceCandidate,
@@ -34,10 +35,20 @@ export interface LiveRouteActorTickSample {
   readonly observeRouteBoundary?: boolean;
 }
 
+/** Physical attempt to cross a sibling branch that shared route authority has made illegal. */
+export interface LiveRouteBranchViolation {
+  readonly actorId: string;
+  readonly stageId: string;
+  readonly attemptedChoiceId: string;
+  readonly lockedChoiceId: string;
+  readonly crossingFraction: number;
+}
+
 export interface LiveRouteActorTickResult {
   readonly actorId: string;
   readonly observation: RouteBoundaryObservation | null;
   readonly sharedDecision: SharedRouteChoiceDecision | null;
+  readonly branchViolation: LiveRouteBranchViolation | null;
   readonly routeUpdate: RouteDagUpdate | null;
   readonly handoffEvent: RouteStageHandoffEvent;
   readonly committed: boolean;
@@ -51,6 +62,8 @@ export interface LiveRouteMultiActorTickResult {
 interface ObservedActor {
   readonly sample: LiveRouteActorTickSample;
   readonly routeMutationEligible: boolean;
+  readonly allowedChoiceId: string | null;
+  readonly physicalObservation: RouteBoundaryObservation | null;
   readonly observation: RouteBoundaryObservation | null;
 }
 
@@ -79,7 +92,13 @@ export function advanceLiveRouteMultiActorTick(
     const routeMutationEligible = sample.state.handoffState.pending === null
       && sample.observeRouteBoundary !== false;
     if (!routeMutationEligible) {
-      return Object.freeze({ sample, routeMutationEligible, observation: null });
+      return Object.freeze({
+        sample,
+        routeMutationEligible,
+        allowedChoiceId: null,
+        physicalObservation: null,
+        observation: null,
+      });
     }
 
     const allowedChoiceId = sharedRouteAllowedTransitionChoiceId(
@@ -87,15 +106,30 @@ export function advanceLiveRouteMultiActorTick(
       shared,
       sample.state.routeState.activeStageId,
     );
-    const observation = observeRouteBoundaryCrossing(
+    const physicalObservation = observeRouteBoundaryCrossing(
       live.route,
       sample.state.routeState,
       live.gates,
       sample.state.previousWorldPoint,
       sample.currentWorldPoint,
-      allowedChoiceId,
     );
-    return Object.freeze({ sample, routeMutationEligible, observation });
+    const observation = allowedChoiceId === null
+      ? physicalObservation
+      : observeRouteBoundaryCrossing(
+        live.route,
+        sample.state.routeState,
+        live.gates,
+        sample.state.previousWorldPoint,
+        sample.currentWorldPoint,
+        allowedChoiceId,
+      );
+    return Object.freeze({
+      sample,
+      routeMutationEligible,
+      allowedChoiceId,
+      physicalObservation,
+      observation,
+    });
   });
 
   const transitionCandidates: SharedRouteChoiceCandidate[] = [];
@@ -128,6 +162,9 @@ export function advanceLiveRouteMultiActorTick(
     const { sample, observation, routeMutationEligible } = item;
     let routeUpdate: RouteDagUpdate | null = null;
     const sharedDecision = decisionsByActor.get(sample.actorId) ?? null;
+    const branchViolation = routeMutationEligible
+      ? detectBranchViolation(item, sharedDecision, shared)
+      : null;
 
     if (routeMutationEligible) {
       const acceptedBoundary = acceptedBoundaryForActor(observation, sharedDecision);
@@ -162,6 +199,7 @@ export function advanceLiveRouteMultiActorTick(
       actorId: sample.actorId,
       observation,
       sharedDecision,
+      branchViolation,
       routeUpdate,
       handoffEvent,
       committed: handoffEvent === 'COMMITTED',
@@ -171,6 +209,42 @@ export function advanceLiveRouteMultiActorTick(
   return Object.freeze({
     actors: Object.freeze(results),
     arbitration,
+  });
+}
+
+function detectBranchViolation(
+  item: ObservedActor,
+  decision: SharedRouteChoiceDecision | null,
+  shared: SharedRouteChoiceState,
+): LiveRouteBranchViolation | null {
+  if (decision?.reason === 'CONFLICTS_WITH_LOCK') {
+    const lock = getSharedRouteChoiceLock(shared, decision.stageId);
+    const crossingFraction = item.observation?.crossingFraction;
+    if (lock === null || crossingFraction === null || crossingFraction === undefined) {
+      throw new Error(`rejected shared branch crossing lacks lock geometry: ${item.sample.actorId}`);
+    }
+    return Object.freeze({
+      actorId: item.sample.actorId,
+      stageId: decision.stageId,
+      attemptedChoiceId: decision.choiceId,
+      lockedChoiceId: lock.choiceId,
+      crossingFraction,
+    });
+  }
+
+  if (item.allowedChoiceId === null) return null;
+  const boundary = item.physicalObservation?.boundary;
+  if (boundary?.kind !== 'TRANSITION' || boundary.choiceId === item.allowedChoiceId) return null;
+  const crossingFraction = item.physicalObservation?.crossingFraction;
+  if (crossingFraction === null || crossingFraction === undefined) {
+    throw new Error(`forbidden shared branch crossing lacks physical fraction: ${item.sample.actorId}`);
+  }
+  return Object.freeze({
+    actorId: item.sample.actorId,
+    stageId: item.sample.state.routeState.activeStageId,
+    attemptedChoiceId: boundary.choiceId,
+    lockedChoiceId: item.allowedChoiceId,
+    crossingFraction,
   });
 }
 
