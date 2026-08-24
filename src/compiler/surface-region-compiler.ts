@@ -13,6 +13,11 @@ export interface GroundMapLogicalSection {
   readonly right: GroundMapMaterial;
 }
 
+export interface GroundMapLogicalProfileReader {
+  readonly courseLength: number;
+  sample(s: number): GroundMapLogicalSection;
+}
+
 export interface CompiledVisualSection {
   readonly sStart: number;
   readonly name: string;
@@ -26,25 +31,34 @@ export interface CompiledSurfaceSection {
   readonly bands: readonly AuthoredSurfaceBand[];
 }
 
-export class CyclicGroundMapLogicalProfile {
+const EPSILON = 1e-9;
+
+/** General logical GroundMap source. Chainage is the open interval [0, courseLength]. */
+export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
   readonly sections: readonly GroundMapLogicalSection[];
 
   constructor(readonly courseLength: number, sections: readonly GroundMapLogicalSection[]) {
-    if (!(courseLength > 0)) throw new RangeError('course length must be > 0');
+    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
+      throw new RangeError('GroundMap logical profile length must be finite and > 0');
+    }
     const copied = sections.map((section) => ({ ...section })).sort((a, b) => a.sStart - b.sStart);
-    if (copied.length === 0 || Math.abs(copied[0]!.sStart) > 1e-9) {
+    if (copied.length === 0 || Math.abs(copied[0]!.sStart) > EPSILON) {
       throw new Error('GroundMap logical profile must start at s=0');
     }
+    copied[0]!.sStart = 0;
     for (let i = 0; i < copied.length; i += 1) {
       const section = copied[i]!;
-      if (section.sStart < 0 || section.sStart >= courseLength) throw new RangeError('GroundMap section outside course');
+      if (!Number.isFinite(section.sStart) || section.sStart < 0 || section.sStart >= courseLength) {
+        throw new RangeError('GroundMap section outside open profile');
+      }
+      if (section.name.trim().length === 0) throw new Error('GroundMap section name must be non-empty');
       if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('GroundMap sections must be unique');
     }
-    this.sections = copied;
+    this.sections = Object.freeze(copied);
   }
 
   sample(s: number): GroundMapLogicalSection {
-    const local = wrapPositive(s, this.courseLength);
+    const local = openChainage(s, this.courseLength, 'GroundMap logical profile');
     let index = this.sections.length - 1;
     for (let i = 0; i < this.sections.length; i += 1) {
       if (this.sections[i]!.sStart <= local) index = i;
@@ -54,8 +68,25 @@ export class CyclicGroundMapLogicalProfile {
   }
 }
 
+/** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
+export class CyclicGroundMapLogicalProfile implements GroundMapLogicalProfileReader {
+  readonly source: GroundMapLogicalProfile;
+
+  constructor(readonly courseLength: number, sections: readonly GroundMapLogicalSection[]) {
+    this.source = new GroundMapLogicalProfile(courseLength, sections);
+  }
+
+  get sections(): readonly GroundMapLogicalSection[] {
+    return this.source.sections;
+  }
+
+  sample(s: number): GroundMapLogicalSection {
+    return this.source.sample(wrapPositive(s, this.courseLength));
+  }
+}
+
 export interface CompiledSurfaceRegions {
-  readonly groundMap: CyclicGroundMapLogicalProfile;
+  readonly groundMap: GroundMapLogicalProfile;
   readonly visualSections: readonly CompiledVisualSection[];
   readonly surfaceSections: readonly CompiledSurfaceSection[];
 }
@@ -87,7 +118,7 @@ export function compileSurfaceRegions(
   }));
 
   return {
-    groundMap: new CyclicGroundMapLogicalProfile(courseLength, groundMapSections),
+    groundMap: new GroundMapLogicalProfile(courseLength, groundMapSections),
     visualSections,
     surfaceSections,
   };
@@ -186,4 +217,14 @@ function coalesce<T, U>(
     previous = region;
   }
   return out;
+}
+
+function openChainage(s: number, courseLength: number, label: string): number {
+  if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
+  if (s < -EPSILON || s > courseLength + EPSILON) {
+    throw new RangeError(`${label} chainage is outside [0, courseLength]`);
+  }
+  if (Math.abs(s) <= EPSILON) return 0;
+  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
+  return s;
 }
