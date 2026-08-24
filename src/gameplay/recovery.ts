@@ -3,14 +3,14 @@ import {
   guideCoordinateToWorld,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import { clamp, wrapPositive } from '../core/math.js';
+import { clamp } from '../core/math.js';
 import type { M5CarState } from '../physics/car-physics.js';
 import type { M5BikeState } from '../physics/motorcycle-physics.js';
 import type { SurfaceMapReader, SurfaceType } from '../physics/surface-map.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
-export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'chart-excursion' | 'manual';
+export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'chart-excursion' | 'manual' | 'wrong-course';
 
 export interface M5RecoveryProfile {
   maxUnsupportedTime: number;
@@ -39,6 +39,11 @@ export interface M5RecoveryState {
   lastReason: RecoveryReason | null;
 }
 
+export interface M5RecoveryTarget {
+  readonly s: number;
+  readonly l: number;
+}
+
 export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
@@ -56,7 +61,7 @@ export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState 
 export function updateM5Recovery(
   state: M5RecoveryState,
   guide: GuideCoordinateSource,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
   dt: number,
@@ -83,37 +88,80 @@ export function updateM5Recovery(
   return reason;
 }
 
+/**
+ * Ordinary open-path recovery. The target is an explicit gameplay decision, not topology:
+ * backtrack along the current stage and stop at the real start endpoint instead of wrapping.
+ */
 export function recoverM5Vehicle(
   state: M5RecoveryState,
   guide: GuideCoordinateSource,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   vehicle: M5VehicleState,
   reason: RecoveryReason = 'manual',
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
 ): void {
   const curve = guideCoordinateCurve(guide);
-  const s = wrapPositive(state.lastSafeS - profile.backtrackDistance, curve.length);
-  const plan = guideCoordinateToWorld(guide, s, 0);
+  if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < 0 || state.lastSafeS > curve.length) {
+    throw new RangeError('recovery lastSafeS must lie within the active Guide domain');
+  }
+  recoverM5VehicleToGuideCoordinate(
+    state,
+    guide,
+    height,
+    surfaces,
+    vehicle,
+    { s: Math.max(0, state.lastSafeS - profile.backtrackDistance), l: 0 },
+    reason,
+    profile,
+  );
+}
+
+/**
+ * Apply the common recovery state reset at one explicitly chosen supported Guide coordinate.
+ * Route/session policy may use this primitive without teaching recovery about branches or laps.
+ */
+export function recoverM5VehicleToGuideCoordinate(
+  state: M5RecoveryState,
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
+  vehicle: M5VehicleState,
+  target: M5RecoveryTarget,
+  reason: RecoveryReason,
+  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
+): void {
+  const curve = guideCoordinateCurve(guide);
+  if (![target.s, target.l].every(Number.isFinite)) {
+    throw new RangeError('recovery target coordinate must be finite');
+  }
+  if (target.s < 0 || target.s > curve.length) {
+    throw new RangeError('recovery target chainage must lie within the active Guide domain');
+  }
+
+  const plan = guideCoordinateToWorld(guide, target.s, target.l);
+  const surface = surfaces.sample(plan.s, target.l);
+  if (!surface.material.supported) {
+    throw new Error('recovery target must be physically supported');
+  }
   const speed = clamp(
     Math.max(0, vehicle.longitudinalSpeed) * profile.speedRetention,
     profile.minRecoverySpeed,
     profile.maxRecoverySpeed,
   );
-  const surface = surfaces.sample(plan.s, 0);
 
   vehicle.x = plan.x;
   vehicle.y = height.samplePhysics(plan.s);
   vehicle.z = plan.z;
   vehicle.yaw = plan.heading;
   vehicle.speed = speed;
-  vehicle.course = { s: plan.s, l: 0, segmentIndex: plan.segmentIndex, distanceSquared: 0 };
+  vehicle.course = { s: plan.s, l: target.l, segmentIndex: plan.segmentIndex, distanceSquared: 0 };
   vehicle.verticalSpeed = 0;
   vehicle.longitudinalSpeed = speed;
   vehicle.lateralSpeed = 0;
   vehicle.yawRate = 0;
   vehicle.steerAngle = 0;
-  vehicle.supported = surface.material.supported;
+  vehicle.supported = true;
   vehicle.surfaceType = surface.type as SurfaceType;
   vehicle.lateralAcceleration = 0;
   vehicle.sprungRoll = 0;
