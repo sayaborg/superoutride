@@ -266,7 +266,6 @@ function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -
     minDeformationRunVertices: 5,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     dMax: 150,
-    finishClosureMargin: 20,
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: ROAD_HALF_WIDTH,
