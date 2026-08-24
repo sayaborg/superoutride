@@ -27,7 +27,6 @@ function authoring(side) {
     minDeformationRunVertices: 5,
     dCam: 5,
     dMax: 150,
-    finishClosureMargin: 20,
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: 3.5,
