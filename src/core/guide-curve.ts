@@ -1,4 +1,4 @@
-import { sampleRasterCourse, type RasterCourse } from './course.js';
+import { sampleRasterPath, type RasterPath, type RasterCourse } from './course.js';
 import {
   clamp,
   distanceSquared,
@@ -9,8 +9,6 @@ import {
   subtract,
   tangentFromHeading,
   wrapAngle,
-  wrapPositive,
-  wrapSigned,
   type Vec2,
 } from './math.js';
 
@@ -55,14 +53,22 @@ export interface GuideArcSegment {
 export type GuideSegment = GuideStraightSegment | GuideArcSegment;
 type GuideSegmentDraft = Omit<GuideStraightSegment, 'index'> | Omit<GuideArcSegment, 'index'>;
 
-export interface GuideCurve {
-  raster: RasterCourse;
+/**
+ * Open Guide support path sharing the RasterPath chainage axis exactly.
+ * Endpoints are ordinary endpoints; only interior Raster vertices can own a
+ * circular fillet.
+ */
+export interface GuidePath {
+  raster: RasterPath;
   segments: readonly GuideSegment[];
   corners: readonly GuideCorner[];
   length: number;
   lMax: number;
   mMin: number;
 }
+
+/** Compatibility vocabulary. GuideCurve has the same open-path semantics. */
+export type GuideCurve = GuidePath;
 
 export interface GuideSample extends Vec2 {
   s: number;
@@ -79,6 +85,7 @@ export interface CourseCoordinate {
 
 const DEFAULT_TOLERANCE = 1e-7;
 const ZERO_TURN = 1e-10;
+const RANGE_TOLERANCE = 1e-8;
 
 export function filletMetric(turn: number): number {
   const absTurn = Math.abs(turn);
@@ -96,18 +103,21 @@ export function guideMetric(mu: number, signedCurvature: number, l: number): num
   return mu * (1 - signedCurvature * l);
 }
 
-export function compileGuideCurve(course: RasterCourse, options: GuideCompileOptions): GuideCurve {
+export function compileGuidePath(path: RasterPath, options: GuideCompileOptions): GuidePath {
   const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
-  const corners: GuideCorner[] = course.vertices.map((vertex, i) => {
-    const turn = course.vertexTurns[i]!;
-    const incoming = course.segments[(i - 1 + course.segments.length) % course.segments.length]!.heading;
-    const outgoing = course.segments[i]!.heading;
+  const lastVertexIndex = path.vertices.length - 1;
+  const corners: GuideCorner[] = path.vertices.map((vertex, i) => {
+    const isStart = i === 0;
+    const isEnd = i === lastVertexIndex;
+    const incoming = isStart ? path.segments[0]!.heading : path.segments[i - 1]!.heading;
+    const outgoing = isEnd ? path.segments[path.segments.length - 1]!.heading : path.segments[i]!.heading;
+    const turn = isStart || isEnd ? 0 : path.vertexTurns[i]!;
     const mu = filletMetric(turn);
 
     if (Math.abs(turn) < ZERO_TURN) {
       return {
         vertexIndex: i,
-        sVertex: course.vertexS[i]!,
+        sVertex: path.vertexS[i]!,
         turn,
         mu: 1,
         radius: Number.POSITIVE_INFINITY,
@@ -148,7 +158,7 @@ export function compileGuideCurve(course: RasterCourse, options: GuideCompileOpt
 
     return {
       vertexIndex: i,
-      sVertex: course.vertexS[i]!,
+      sVertex: path.vertexS[i]!,
       turn,
       mu,
       radius,
@@ -160,14 +170,13 @@ export function compileGuideCurve(course: RasterCourse, options: GuideCompileOpt
     };
   });
 
-  validateFilletOverlap(course, corners, options.dCam, tolerance);
+  validateFilletOverlap(path, corners, options.dCam, tolerance);
 
   const unsorted: GuideSegmentDraft[] = [];
-
-  for (let i = 0; i < course.segments.length; i += 1) {
-    const segment = course.segments[i]!;
+  for (let i = 0; i < path.segments.length; i += 1) {
+    const segment = path.segments[i]!;
     const currentCorner = corners[i]!;
-    const nextCorner = corners[(i + 1) % corners.length]!;
+    const nextCorner = corners[i + 1]!;
     const sStart = segment.sStart + currentCorner.trim;
     const sEnd = segment.sStart + segment.length - nextCorner.trim;
     if (sEnd - sStart > tolerance) {
@@ -180,61 +189,52 @@ export function compileGuideCurve(course: RasterCourse, options: GuideCompileOpt
     }
   }
 
-  for (let i = 0; i < corners.length; i += 1) {
+  // Open endpoints never receive synthetic wrap fillets.
+  for (let i = 1; i < corners.length - 1; i += 1) {
     const corner = corners[i]!;
     if (!(corner.trim > tolerance)) continue;
-
-    if (i === 0) {
-      unsorted.push({
-        kind: 'arc',
-        sStart: course.length - corner.trim,
-        sEnd: course.length,
-        cornerIndex: i,
-        qStart: 0,
-        qEnd: 0.5,
-      });
-      unsorted.push({
-        kind: 'arc',
-        sStart: 0,
-        sEnd: corner.trim,
-        cornerIndex: i,
-        qStart: 0.5,
-        qEnd: 1,
-      });
-    } else {
-      unsorted.push({
-        kind: 'arc',
-        sStart: corner.sVertex - corner.trim,
-        sEnd: corner.sVertex + corner.trim,
-        cornerIndex: i,
-        qStart: 0,
-        qEnd: 1,
-      });
-    }
+    unsorted.push({
+      kind: 'arc',
+      sStart: corner.sVertex - corner.trim,
+      sEnd: corner.sVertex + corner.trim,
+      cornerIndex: i,
+      qStart: 0,
+      qEnd: 1,
+    });
   }
 
   unsorted.sort((a, b) => a.sStart - b.sStart);
   const segments: GuideSegment[] = unsorted.map((segment, index) => ({ ...segment, index } as GuideSegment));
-  validateGuideCoverage(segments, course.length, tolerance);
+  validateGuideCoverage(segments, path.length, tolerance);
 
-  return {
-    raster: course,
-    segments,
-    corners,
-    length: course.length,
+  return Object.freeze({
+    raster: path,
+    segments: Object.freeze(segments),
+    corners: Object.freeze(corners),
+    length: path.length,
     lMax: options.lMax,
     mMin: options.mMin,
-  };
+  });
 }
 
-export function sampleGuideCurve(guide: GuideCurve, s: number): GuideSample {
-  const sLocal = wrapPositive(s, guide.length);
+/** Compatibility export; Guide compilation is open and never wraps endpoints. */
+export function compileGuideCurve(course: RasterCourse, options: GuideCompileOptions): GuidePath {
+  return compileGuidePath(course, options);
+}
+
+export function sampleGuidePath(guide: GuidePath, s: number): GuideSample {
+  const sLocal = checkedGuideChainage(guide, s);
   const segmentIndex = findGuideSegmentIndex(guide, sLocal);
   return sampleGuideSegment(guide, guide.segments[segmentIndex]!, sLocal);
 }
 
-export function guideCourseToWorld(guide: GuideCurve, s: number, l: number): GuideSample & { l: number } {
-  const center = sampleGuideCurve(guide, s);
+/** Compatibility export; sampling is open and never wraps. */
+export function sampleGuideCurve(guide: GuideCurve, s: number): GuideSample {
+  return sampleGuidePath(guide, s);
+}
+
+export function guidePathToWorld(guide: GuidePath, s: number, l: number): GuideSample & { l: number } {
+  const center = sampleGuidePath(guide, s);
   const normal = normalFromHeading(center.heading);
   return {
     ...center,
@@ -242,6 +242,10 @@ export function guideCourseToWorld(guide: GuideCurve, s: number, l: number): Gui
     z: center.z + normal.z * l,
     l,
   };
+}
+
+export function guideCourseToWorld(guide: GuideCurve, s: number, l: number): GuideSample & { l: number } {
+  return guidePathToWorld(guide, s, l);
 }
 
 export function locateWorldOnGuideGlobal(guide: GuideCurve, world: Vec2, clampL = false): CourseCoordinate {
@@ -260,25 +264,24 @@ export function locateWorldOnGuideLocal(
   }
   if (!Number.isInteger(searchRadius) || searchRadius < 0) throw new RangeError('searchRadius must be a non-negative integer');
 
-  const indices: number[] = [];
-  const seen = new Set<number>();
-  for (let offset = -searchRadius; offset <= searchRadius; offset += 1) {
-    const index = wrapIndex(previousSegmentIndex + offset, guide.segments.length);
-    if (!seen.has(index)) {
-      indices.push(index);
-      seen.add(index);
-    }
-  }
+  const first = Math.max(0, previousSegmentIndex - searchRadius);
+  const last = Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius);
+  const indices = Array.from({ length: last - first + 1 }, (_, offset) => first + offset);
   return bestCandidate(guide, world, indices, clampL);
 }
 
 export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLocal: number): GuideSample {
+  const checked = checkedGuideChainage(guide, sLocal);
+  if (checked < segment.sStart - RANGE_TOLERANCE || checked > segment.sEnd + RANGE_TOLERANCE) {
+    throw new RangeError('guide segment sample is outside the segment interval');
+  }
+
   if (segment.kind === 'straight') {
-    const raster = sampleRasterCourse(guide.raster, sLocal);
+    const raster = sampleRasterPath(guide.raster, checked);
     return {
       x: raster.x,
       z: raster.z,
-      s: wrapPositive(sLocal, guide.length),
+      s: checked,
       heading: raster.heading,
       segmentIndex: segment.index,
     };
@@ -286,8 +289,8 @@ export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLo
 
   const corner = guide.corners[segment.cornerIndex]!;
   if (!corner.center || !Number.isFinite(corner.radius)) throw new Error('invalid arc corner');
-  const q = qForCornerS(guide, corner, sLocal);
-  return sampleCornerAtQ(guide, corner, q, segment.index);
+  const q = qForCornerS(corner, checked);
+  return sampleCornerAtQ(corner, q, segment.index);
 }
 
 function bestCandidate(
@@ -334,10 +337,9 @@ function projectWorldToGuideSegment(
       const n = scale(radial, -sign / radialLength);
       const heading = headingFromDelta(-n.z, n.x);
       const angle = wrapAngle(heading - corner.incomingHeading);
-      q = angle / corner.turn;
-      q = clamp(q, segment.qStart, segment.qEnd);
+      q = clamp(angle / corner.turn, segment.qStart, segment.qEnd);
     }
-    sample = sampleCornerAtQ(guide, corner, q, segment.index);
+    sample = sampleCornerAtQ(corner, q, segment.index);
   }
 
   const delta = subtract(world, sample);
@@ -352,7 +354,7 @@ function projectWorldToGuideSegment(
   };
 }
 
-function sampleCornerAtQ(guide: GuideCurve, corner: GuideCorner, qInput: number, segmentIndex: number): GuideSample {
+function sampleCornerAtQ(corner: GuideCorner, qInput: number, segmentIndex: number): GuideSample {
   if (!corner.center) throw new Error('corner has no arc');
   const q = clamp(qInput, 0, 1);
   const heading = corner.incomingHeading + corner.turn * q;
@@ -360,31 +362,25 @@ function sampleCornerAtQ(guide: GuideCurve, corner: GuideCorner, qInput: number,
   const sign = Math.sign(corner.turn);
   const x = corner.center.x - sign * corner.radius * normal.x;
   const z = corner.center.z - sign * corner.radius * normal.z;
-  const sUnwrapped = corner.sVertex - corner.trim + 2 * corner.trim * q;
-  return {
-    x,
-    z,
-    s: wrapPositive(sUnwrapped, guide.length),
-    heading,
-    segmentIndex,
-  };
+  const s = corner.sVertex - corner.trim + 2 * corner.trim * q;
+  return { x, z, s, heading, segmentIndex };
 }
 
-function qForCornerS(guide: GuideCurve, corner: GuideCorner, s: number): number {
-  const ds = wrapSigned(wrapPositive(s, guide.length) - corner.sVertex, guide.length);
+function qForCornerS(corner: GuideCorner, s: number): number {
+  const ds = s - corner.sVertex;
   return clamp((ds + corner.trim) / (2 * corner.trim), 0, 1);
 }
 
 function validateFilletOverlap(
-  course: RasterCourse,
+  path: RasterPath,
   corners: readonly GuideCorner[],
   dCam: number | undefined,
   tolerance: number,
 ): void {
-  for (let i = 0; i < course.segments.length; i += 1) {
-    const segment = course.segments[i]!;
+  for (let i = 0; i < path.segments.length; i += 1) {
+    const segment = path.segments[i]!;
     const a = corners[i]!;
-    const b = corners[(i + 1) % corners.length]!;
+    const b = corners[i + 1]!;
     const required = a.trim + b.trim;
     if (required > segment.length + tolerance) {
       throw new Error(`Guide fillets overlap on raster segment ${i}`);
@@ -402,9 +398,9 @@ function validateFilletOverlap(
   }
 }
 
-function validateGuideCoverage(segments: readonly GuideSegment[], courseLength: number, tolerance: number): void {
-  if (segments.length === 0) throw new Error('guide curve contains no segments');
-  if (Math.abs(segments[0]!.sStart) > tolerance) throw new Error('guide curve does not start at s=0');
+function validateGuideCoverage(segments: readonly GuideSegment[], pathLength: number, tolerance: number): void {
+  if (segments.length === 0) throw new Error('guide path contains no segments');
+  if (Math.abs(segments[0]!.sStart) > tolerance) throw new Error('guide path does not start at s=0');
 
   let cursor = 0;
   for (const segment of segments) {
@@ -414,10 +410,20 @@ function validateGuideCoverage(segments: readonly GuideSegment[], courseLength: 
     if (!(segment.sEnd > segment.sStart)) throw new Error('guide segment must have positive s interval');
     cursor = segment.sEnd;
   }
-  if (Math.abs(cursor - courseLength) > tolerance) throw new Error('guide curve does not cover full closed-course chainage');
+  if (Math.abs(cursor - pathLength) > tolerance) throw new Error('guide path does not cover full path chainage');
 }
 
-function findGuideSegmentIndex(guide: GuideCurve, sLocal: number): number {
+function checkedGuideChainage(guide: GuidePath, s: number): number {
+  if (!Number.isFinite(s)) throw new RangeError('guide path chainage must be finite');
+  if (s < -RANGE_TOLERANCE || s > guide.length + RANGE_TOLERANCE) {
+    throw new RangeError(`guide path chainage ${s} is outside [0, ${guide.length}]`);
+  }
+  if (s <= 0) return 0;
+  if (s >= guide.length) return guide.length;
+  return s;
+}
+
+function findGuideSegmentIndex(guide: GuidePath, sLocal: number): number {
   let low = 0;
   let high = guide.segments.length - 1;
   while (low <= high) {
@@ -432,9 +438,4 @@ function findGuideSegmentIndex(guide: GuideCurve, sLocal: number): number {
     }
   }
   return guide.segments.length - 1;
-}
-
-function wrapIndex(index: number, length: number): number {
-  const wrapped = index % length;
-  return wrapped < 0 ? wrapped + length : wrapped;
 }
