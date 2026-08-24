@@ -9,8 +9,13 @@ import {
   type CircuitTopology,
 } from '../gameplay/circuit-topology.js';
 import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
-import type { BakedGroundMapSample } from '../visual/baked-ground-map.js';
-import type { GroundMapRuntimeReader } from '../visual/ground-map-runtime-reader.js';
+import type {
+  BakedGroundMapChunkMetadata,
+  BakedGroundMapLevelMetadata,
+  BakedGroundMapMetadata,
+  BakedGroundMapReader,
+  BakedGroundMapSample,
+} from '../visual/baked-ground-map.js';
 import type {
   HeightNode,
   HeightProfileReader,
@@ -25,7 +30,7 @@ export interface CircuitLapRuntimeSources {
   readonly height: HeightProfileReader;
   readonly visual: VisualProfileReader;
   readonly surface: SurfaceMapReader;
-  readonly ground?: GroundMapRuntimeReader;
+  readonly ground?: BakedGroundMapReader;
 }
 
 /**
@@ -48,7 +53,7 @@ export interface CircuitRuntimeWindow {
   readonly height: HeightProfileReader;
   readonly visual: VisualProfileReader;
   readonly surface: SurfaceMapReader;
-  readonly ground?: GroundMapRuntimeReader;
+  readonly ground?: BakedGroundMapReader;
 }
 
 interface WindowSourcePosition {
@@ -84,7 +89,7 @@ export function compileCircuitRuntimeWindow(
   const surface = new CircuitSurfaceWindow(topology, repeatCount, sources.surface);
   const ground = sources.ground === undefined
     ? undefined
-    : new CircuitGroundMapWindow(topology, repeatCount, sources.ground);
+    : new CircuitBakedGroundMapWindow(topology, repeatCount, sources.ground);
 
   return Object.freeze({
     topology,
@@ -236,15 +241,22 @@ class CircuitSurfaceWindow implements SurfaceMapReader {
   }
 }
 
-class CircuitGroundMapWindow implements GroundMapRuntimeReader {
+/**
+ * Virtual finite baked GroundMap. Metadata truthfully describes N repeated rows
+ * while payload ids are shared with the one-lap source, so no texture bytes are
+ * duplicated and stage/runtime length validation remains exact.
+ */
+class CircuitBakedGroundMapWindow implements BakedGroundMapReader {
+  readonly metadata: BakedGroundMapMetadata;
   readonly courseLength: number;
 
   constructor(
     private readonly topology: CircuitTopology,
     private readonly repeatCount: number,
-    private readonly source: GroundMapRuntimeReader,
+    private readonly source: BakedGroundMapReader,
   ) {
     this.courseLength = topology.lapLength * repeatCount;
+    this.metadata = repeatBakedGroundMapMetadata(source.metadata, repeatCount, this.courseLength);
   }
 
   get kMax(): number {
@@ -263,6 +275,19 @@ class CircuitGroundMapWindow implements GroundMapRuntimeReader {
     return this.source.sampleAtLevel(this.sourceS(s), l, levelIndex);
   }
 
+  texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
+    const level = this.metadata.levels[levelIndex];
+    if (!level) throw new RangeError('GroundMap level outside circuit window pyramid');
+    if (row < 0 || row >= level.chainageTexels || column < 0 || column >= level.lateralTexels) {
+      throw new RangeError('GroundMap texel outside circuit window level');
+    }
+    return {
+      s: (row + 0.5) * this.metadata.courseLength / level.chainageTexels,
+      l: -this.metadata.groundLeft
+        + (column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight) / level.lateralTexels,
+    };
+  }
+
   private sourceS(s: number): number {
     return resolveWindowSourcePosition(
       this.topology,
@@ -273,12 +298,47 @@ class CircuitGroundMapWindow implements GroundMapRuntimeReader {
   }
 }
 
+function repeatBakedGroundMapMetadata(
+  source: BakedGroundMapMetadata,
+  repeatCount: number,
+  windowLength: number,
+): BakedGroundMapMetadata {
+  const levels: BakedGroundMapLevelMetadata[] = source.levels.map((level) => {
+    const chunks: BakedGroundMapChunkMetadata[] = [];
+    for (let lap = 0; lap < repeatCount; lap += 1) {
+      const rowOffset = lap * level.chainageTexels;
+      for (const chunk of level.chunks) {
+        chunks.push(Object.freeze({
+          rowStart: rowOffset + chunk.rowStart,
+          rowCount: chunk.rowCount,
+          payloadId: chunk.payloadId,
+        }));
+      }
+    }
+    return Object.freeze({
+      ...level,
+      chainageTexels: level.chainageTexels * repeatCount,
+      chunks: Object.freeze(chunks),
+    });
+  });
+
+  return Object.freeze({
+    ...source,
+    courseLength: windowLength,
+    levels: Object.freeze(levels),
+    uncompressedRgbaBytes: source.uncompressedRgbaBytes * repeatCount,
+  });
+}
+
 function validateLapSourceLengths(
   topology: CircuitTopology,
   sources: CircuitLapRuntimeSources,
 ): void {
   assertSameLength(sources.height.courseLength, topology.lapLength, 'height');
   assertSameLength(sources.visual.courseLength, topology.lapLength, 'visual');
+  if (sources.ground) {
+    assertSameLength(sources.ground.metadata.courseLength, topology.lapLength, 'GroundMap');
+  }
 }
 
 function validateHeightSeam(topology: CircuitTopology, height: HeightProfileReader): void {
