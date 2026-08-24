@@ -1,10 +1,10 @@
-# SUPER OUTRIDE — M6.46 Branch Violation Recovery
+# SUPER OUTRIDE — M6.47 Open Parent Stage Integration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
 
-`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda. M6.46 changes gameplay/session policy only; renderer Core is unchanged.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda. M6.46 defined branch-violation recovery; M6.47 applies the already-frozen open-source architecture to the live BRANCHING parent-stage integration. Renderer Core is unchanged.
 
 ## Current milestone state
 
@@ -69,7 +69,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.43 Course Mode / Rival Roster Foundation — complete
 - M6.44 Open Path Core — complete
 - M6.45 Open Source Profiles — complete
-- **M6.46 Branch Violation Recovery — complete**
+- M6.46 Branch Violation Recovery — complete
+- **M6.47 Open Parent Stage Integration — complete candidate**
 
 ## Run / test
 
@@ -87,12 +88,22 @@ Full regression:
 npm test
 ```
 
-M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening raised the suite to **369 tests**. M6.45 raised it to **375 tests**. M6.46 adds seven direct branch/recovery regressions for a total of **382 tests**. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+Regression history:
+
+```text
+M6.43  359 tests
+M6.44  369 tests after post-merge hardening
+M6.45  375 tests
+M6.46  382 tests
+M6.47  389 tests
+```
+
+Pull-request CI explicitly checks out the feature-head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 Current package:
 
 ```text
-super-outride-m6-46@0.6.46
+super-outride-m6-47@0.6.47
 ```
 
 ## Frozen renderer authority
@@ -171,11 +182,7 @@ Authored vertices mean only:
 v0 → v1 → ... → vN
 ```
 
-Core does not manufacture a hidden:
-
-```text
-vN → v0
-```
+Core does not manufacture `vN → v0`.
 
 Therefore:
 
@@ -190,22 +197,9 @@ Therefore:
 
 The authoring/compiler layer owns sufficient run-in/runout around ordinary play so endpoint clipping does not require renderer exceptions.
 
-### Open SurfaceMap / explicit cyclic adapter
-
-Physical surface addressing follows the same principle:
-
-```text
-SurfaceMap        = general open [0,L] physical map
-CyclicSurfaceMap  = explicit closed-course adapter
-```
-
-Point-to-point successor stages use the general open `SurfaceMap`. Existing closed DEV content may deliberately opt into the cyclic adapter, but wrapping is no longer an inherited property of every stage.
-
 ### Open successor stages
 
-The reusable Raster successor factory no longer obtains a tail by wrapping from the source endpoint back to its beginning.
-
-A successor now:
+The reusable Raster successor factory uses ordinary forward geometry:
 
 ```text
 copy exact handoff overlap
@@ -214,9 +208,7 @@ copy exact handoff overlap
 → retain enough forward envelope for later successor seams/draw distance
 ```
 
-Generated runout vertices remain inside the frozen 10° interior Raster limit. FINISH only needs to lie before the actual open endpoint; there is no manufactured closure seam or `finishClosureMargin` authority.
-
-This allows the existing deep route to remain a true chain of point-to-point stage geometry rather than a chain built on fake loops.
+There is no artificial endpoint closure and no `finishClosureMargin` authority.
 
 ## Open source profile authority
 
@@ -232,7 +224,7 @@ BakedGroundMapAsset
 SurfaceMap
 ```
 
-Closed-course addressing is never implicit. It exists only through explicitly named adapters:
+Closed-course addressing exists only through explicitly named adapters:
 
 ```text
 CyclicHeightProfile
@@ -246,13 +238,81 @@ The governing rule is:
 
 > **Open is the general data model. Cyclic is a named topology adapter. The renderer is neither.**
 
-Ordinary LINEAR and BRANCHING stages use open sources. The stage compiler deliberately extends an authored final height change-point to the real Guide endpoint when needed; that expansion belongs to compilation, not to hidden runtime wrapping or clamping.
+Ordinary LINEAR and BRANCHING stages use open sources. A future CIRCUIT may deliberately choose cyclic adapters above Core without changing the renderer or the general source interfaces.
 
-The baked GroundMap format itself remains finite and unchanged. M6.45 changes the sampling contract, not the proven anisotropic LOD/palette asset layout. A future CIRCUIT may explicitly opt into cyclic adapters without changing the renderer or the general source interfaces.
+## M6.47 live parent-stage authority
+
+M6.47 removes the remaining cyclic choices from the live BRANCHING parent stage itself.
+
+The live `STAGE_1` source stack is now consistently open:
+
+```text
+Raster / Guide       open path
+HeightProfile         open
+VisualProfile         open
+SurfaceMap            open
+logical GroundMap     open
+baked GroundMap       open
+M5.9 tunnel interval  open
+```
+
+Previously, the general classes were already open, but `main.ts` still explicitly selected:
+
+```text
+CyclicVisualProfile
+CyclicSurfaceMap
+```
+
+for the parent runtime. That meant the data model and the actual point-to-point integration disagreed. M6.47 removes that mismatch rather than adding another topology flag.
+
+### Open M5.9 tunnel presentation
+
+The tunnel is an ordinary finite interval on the parent stage.
+
+```text
+cameraTransitionStartS <= cameraS < cameraTransitionEndS
+```
+
+`selectM5FarBackground()` now rejects camera chainage outside the actual open course instead of applying `wrapPositive()`. No cyclic interval helper remains in tunnel presentation.
+
+A future CIRCUIT implementation may explicitly transform topology chainage before calling a presentation/source reader. The tunnel primitive itself stays topology-neutral.
+
+### Reader contracts instead of false cyclic requirements
+
+The following consumers never needed closed-course behavior; they only needed height samples:
+
+```text
+M3 camera
+M4 camera
+M5 camera
+car physics
+motorcycle physics
+parent world-sprite authoring
+M5.9 tunnel world-sprite authoring
+```
+
+Their contracts now use:
+
+```text
+HeightProfileReader
+```
+
+rather than `CyclicHeightProfile`.
+
+Likewise, the shared live parent runtime input no longer requires a cyclic surface type:
+
+```text
+M620SharedRuntimeContent.heightProfile → HeightProfileReader
+M620SharedRuntimeContent.surfaceMap    → SurfaceMap
+```
+
+This is a type-authority cleanup as well as a wiring cleanup: point-to-point code no longer claims that periodicity is required when it is not.
+
+Explicit `Cyclic*` adapters remain available and tested. M6.47 does not delete them because they are the intended opt-in mechanism for a future CIRCUIT topology layer.
 
 ## Topology-neutral recovery authority
 
-M6.46 removes the remaining hidden closed-course assumption from the general recovery path.
+M6.46 removed the hidden closed-course assumption from general recovery.
 
 Ordinary recovery now works in the current open stage domain:
 
@@ -262,15 +322,7 @@ lastSafeS
 → stop at real s=0 if necessary
 ```
 
-It never wraps from the start back to the path end. `recovery.ts` therefore depends on `HeightProfileReader`, not `CyclicHeightProfile`, and contains no `wrapPositive()` topology operation.
-
-A second primitive applies the same reset semantics at one explicit supported Guide coordinate:
-
-```text
-recoverM5VehicleToGuideCoordinate(..., { s, l }, reason)
-```
-
-This primitive does not know about branches, laps, screens or AI. M6.46 branch policy merely chooses a legal target and passes it to the general recovery operation.
+It never wraps from the start back to the path end. Explicit wrong-course recovery uses the same topology-neutral primitive at a supported Guide coordinate.
 
 ## Course route structures
 
@@ -282,7 +334,7 @@ BRANCHING  Out Run-style branching point-to-point
 CIRCUIT    closed lap route
 ```
 
-The first two belong naturally to open geometry and open source profiles:
+The first two naturally use open geometry and open source profiles:
 
 ```text
 LINEAR     → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
@@ -295,7 +347,7 @@ BRANCHING  → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
 CIRCUIT → CIRCUIT_LOOP / LAPS finish
 ```
 
-This does not weaken the existing acyclic RouteDag and does not change RasterPath/GuidePath or general source profiles into cyclic primitives. A future circuit implementation must explicitly own endpoint connection/wrapping above Core, using named adapters where needed.
+This does not weaken the existing acyclic RouteDag and does not change RasterPath/GuidePath or general source profiles into cyclic primitives.
 
 ## Current live branching route
 
@@ -311,7 +363,7 @@ STAGE_1
                                  └→ GOAL_RB
 ```
 
-Every visible fork is still one chainage-driven lateral cross-section, never two independently projected roads.
+Every visible fork is one chainage-driven lateral cross-section, never two independently projected roads.
 
 A legal route transition remains:
 
@@ -328,11 +380,11 @@ World X/Y/Z, yaw and velocities are not transformed by COMMIT. Entering a termin
 
 ## Branching field rule
 
-For a `BRANCHING` course, the product rule remains:
+For a `BRANCHING` course:
 
 > **At each real fork, the first vehicle to physically cross one sibling branch gate locks that branch for the race field.**
 
-This reuses M6.41/M6.42 shared authority:
+The sequence remains:
 
 ```text
 all participating vehicle physics
@@ -340,59 +392,24 @@ all participating vehicle physics
 → arbitrate once using physical sub-tick crossingFraction u
 → earliest crossing chooses the branch
 → store field lock
-→ accepted vehicles still perform their own PENDING / seam / COMMIT
+→ accepted vehicles perform their own PENDING / seam / COMMIT
 ```
 
 Steering direction, AI intent, screen X, sprite overlap and JavaScript actor update order cannot choose the route.
 
-If multiple vehicles cross the same winning gate in the deciding tick, all may advance through that gate. A sibling crossing in that tick is rejected by session route authority.
-
-### M6.46 losing sibling-road policy
-
-The physical response is now explicit:
+M6.46 defines a losing sibling crossing as:
 
 ```text
-branchViolationPolicy = RECOVER_TO_LOCKED_BRANCH
-```
-
-A forbidden sibling crossing does **not** advance RouteDag and does **not** queue a handoff.
-
-The multi-actor route tick keeps two observations conceptually separate:
-
-```text
-physicalObservation = what authored route gate was physically crossed
-legalObservation    = what current shared lock permits as route progress
-```
-
-Only `legalObservation` may reach route arbitration/RouteDag. The unrestricted physical observation exists so the game can detect a forbidden sibling crossing rather than leaving an actor stranded in an unowned road.
-
-There are two equivalent violation cases:
-
-```text
-same deciding tick:
-  sibling loses arbitration → explicit LiveRouteBranchViolation
-
-later tick after lock already exists:
-  physical sibling crossing observed
-  legal observation remains narrowed to locked gate
-  → explicit LiveRouteBranchViolation
-```
-
-The recovery point is not a screen-space or AI heuristic. It is derived from the already-authorized physical route gate:
-
-```text
-locked gate center
-- locked gate forward tangent × recovery backtrack distance
-→ map world point into current Guide frame
-→ recover to that supported {s,l}
+physical sibling crossing
+→ no illegal RouteDag progress
+→ no illegal PENDING
+→ recover to approach of already-locked legal gate
 → resync traveler observation origin
 ```
 
-This keeps the rule entirely above renderer Core and makes the physical route gate the single geographic authority.
+The recovery point derives from the physical route gate, not a screen-space or AI heuristic.
 
 ## AI after a shared lock
-
-The M6.40 RIGHT-B route plan remains DEV AI intent only.
 
 Before a field lock exists:
 
@@ -401,18 +418,18 @@ AI route plan → steering target only
 physical crossing → actual route authority
 ```
 
-After a shared lock already exists on the actor's committed stage:
+After a shared lock exists:
 
 ```text
 shared lock choice → AI steering target
 physical crossing → still actual route authority
 ```
 
-Thus AI does not create or override route authority by steering intent. It merely stops fighting a route decision the race field has already made.
+AI follows an already-authorized route but never creates route authority by steering intent.
 
-## Multi-actor route tick
+## Multi-actor route tick / rival count
 
-M6.42 established one variable-length route transaction per 60 Hz physics tick:
+One variable-length route transaction occurs per 60 Hz physics tick:
 
 ```text
 all actor physics
@@ -425,68 +442,22 @@ all actor physics
 → camera / render
 ```
 
-`advanceLiveRouteMultiActorTick()` is cardinality-agnostic and owns no vehicle physics, camera, renderer or input dependency.
-
-It validates both:
+The engine-level path is valid for `PLAYER + 0..16 rivals`. `CourseModeAuthoring` owns the product cap:
 
 ```text
-PLAYER + 0 rivals  → 1 actor
-PLAYER + 16 rivals → 17 actors
-```
-
-The engine-level route transaction contains no one-rival assumption and no literal product cap.
-
-## Mode-owned rival count
-
-`CourseModeAuthoring` owns opponent cardinality.
-
-Current product envelope:
-
-```text
-rivalCount = integer 0..16
 MAX_RIVAL_COUNT = 16
 ```
 
-The upper bound belongs to mode validation only. It does not belong in physics, route batching, renderer or Painter logic.
-
-The current DEV mode is again:
+The current DEV mode is:
 
 ```text
-routeKind              = BRANCHING
-rivalCount              = 1
-sharedRouteChoiceMode   = FIRST_PHYSICAL_CROSSING_LOCKS
-branchViolationPolicy   = RECOVER_TO_LOCKED_BRANCH
+routeKind               = BRANCHING
+rivalCount               = 1
+sharedRouteChoiceMode    = FIRST_PHYSICAL_CROSSING_LOCKS
+branchViolationPolicy    = RECOVER_TO_LOCKED_BRANCH
 ```
 
-The M6.45 Pages hotfix temporarily used zero rivals only while the losing-sibling physical response was undefined. M6.46 defines that response and restores the one-rival fixture without adding a renderer or route-topology special case.
-
-## Rival roster
-
-`src/runtime/rival-roster.ts` compiles a stable variable-length roster:
-
-```text
-0 rivals  → []
-3 rivals  → RIVAL_01, RIVAL_02, RIVAL_03
-16 rivals → RIVAL_01 ... RIVAL_16
-```
-
-There is no `null rival` special case.
-
-`main.ts` iterates `rivals[]` through ordinary:
-
-```text
-AI input
-M5 vehicle physics
-recovery
-race progress/session
-LiveRouteTravelerState
-multi-actor route arbitration
-per-actor COMMIT / branch-violation recovery
-package-compatible dynamic CourseSprite generation
-standings
-```
-
-The renderer only receives an ordinary variable-length sprite list.
+The renderer receives an ordinary variable-length sprite list and owns no rival-count policy.
 
 ## Reusable route/stage compiler chain
 
@@ -517,31 +488,28 @@ l_source = l_local + coordinateFrame.lateralOrigin
 
 World physics remains authoritative. A chart handoff only re-expresses the same world pose in another local road coordinate system.
 
-## M6.44 / M6.45 / M6.46 validation targets
+## M6.47 direct validation targets
 
-M6.44 dedicated regressions cover open Raster/Guide geometry, topology-neutral pseudo-depth, terrain endpoint clipping, open SurfaceMap and explicit cyclic surface selection.
+The seven direct M6.47 regressions cover:
 
-M6.45 direct regressions cover open HeightProfile, VisualProfile, logical GroundMap and baked GroundMap addressing plus explicitly named cyclic adapters and compiler-owned endpoint extension.
+1. live parent stage constructs open `VisualProfile` and `SurfaceMap`, not cyclic adapters;
+2. parent visual/surface readers own the real `[0,L]` domain and reject out-of-range chainage;
+3. M5.9 Far Background selection is one open interval and never wraps endpoints;
+4. ordinary car, bike and M5 camera consume the open `HeightProfile` reader directly;
+5. camera/physics/world/shared-runtime contracts no longer require cyclic height/surface types;
+6. tunnel presentation contains no `wrapPositive` or cyclic interval helper;
+7. explicit `CyclicVisualProfile` and `CyclicSurfaceMap` remain available for a future upper-level CIRCUIT choice.
 
-M6.46 direct regressions cover:
-
-1. ordinary recovery backtracks to the real open start and never wraps;
-2. explicit supported Guide-coordinate recovery can represent `wrong-course`;
-3. a same-tick losing sibling crossing becomes an explicit branch violation;
-4. a later forbidden sibling crossing remains illegal for progress but is still physically surfaced;
-5. locked-branch recovery geometry derives from the legal physical gate and lands on supported content;
-6. an existing lock can replace AI plan intent without becoming route authority;
-7. branch-violation recovery geometry remains gameplay-only with no physics/render/camera dependency.
-
-The implementation-green M6.46 checkpoint `3673c0b629b7e2b437aaeca524fd69d735844423` passed exact-checkout GitHub Actions run #433 with:
+Implementation-green checkpoint:
 
 ```text
-382 tests
-382 pass
-0 fail
+feature head: 2f9330e658bfc3aabb1bb43bed7672b1633ed431
+GitHub Actions: #445
+build job: 97529084769
+389 tests / 389 pass / 0 fail
 ```
 
-The docs/version-inclusive head and then the final validation-file-inclusive M6.46 head must each independently reproduce **382/382 / 0 fail** before `main` is fast-forwarded.
+The docs/version-inclusive head and then the final validation-file-inclusive M6.47 head must each independently reproduce **389/389 / 0 fail** before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -560,9 +528,12 @@ src/core/projection.ts
 src/road/terrain-line.ts
 src/physics/surface-map.ts
 src/physics/stage-surface-map-view.ts
+src/physics/car-physics.ts
+src/physics/motorcycle-physics.ts
 src/visual/height-profile.ts
 src/visual/visual-profile.ts
 src/visual/baked-ground-map.ts
+src/visual/m5-9-tunnel.ts
 src/compiler/surface-region-compiler.ts
 src/runtime/stage-authoring-compiler.ts
 src/runtime/raster-stage-successor.ts
@@ -579,6 +550,8 @@ src/runtime/live-route-traveler.ts
 src/runtime/live-route-multi-actor-tick.ts
 src/runtime/live-route-runtime.ts
 src/runtime/stage-runtime-content.ts
+src/dev/m5-camera.ts
+src/dev/m6-20-live-runtime-content.ts
 src/dev/m6-27-live-route-runtime.ts
 src/dev/m6-38-declarative-fork-growth-plan.ts
 src/dev/m6-40-rival-live-route.ts
@@ -590,12 +563,24 @@ tests/m6-43-course-mode-rival-roster.test.mjs
 tests/m6-44-open-path-core.test.mjs
 tests/m6-45-open-source-profiles.test.mjs
 tests/m6-46-branch-violation-recovery.test.mjs
+tests/m6-47-open-parent-stage-integration.test.mjs
 ```
 
 Normative renderer/Core design authority remains in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md`, `docs/00b_core_design_freeze_addendum_m6_44.md` and `docs/00c_core_design_freeze_addendum_m6_45.md`.
 
-Milestone notes run through `docs/64_m6_46_branch_violation_recovery.md`.
+Milestone notes run through `docs/65_m6_47_open_parent_stage_integration.md`.
 
 ## Next
 
-Further work should continue removing DEV-only cyclic assumptions from point-to-point integration where they remain, while keeping cyclic behavior an explicit upper-layer choice. A future CIRCUIT implementation must explicitly own endpoint connection, lap/unwrapped chainage and cyclic source adapters above Core. LINEAR and BRANCHING should continue to consume ordinary open Raster/Guide geometry, open stage source profiles and topology-neutral recovery.
+M6.47 completes the open-path/source integration for the live BRANCHING parent stage without deleting the explicit cyclic adapters intended for another topology.
+
+The next clean architectural step is to begin the **explicit upper-level CIRCUIT topology contract**, not to make Core cyclic again. That layer must own, at minimum:
+
+```text
+open endpoint connection / seam authority
+unwrapped lap-progress chainage
+mapping between topology chainage and one finite open stage source domain
+explicit selection of cyclic source adapters where appropriate
+```
+
+RasterPath, GuidePath, renderer pseudo-depth, general source profiles, recovery and the acyclic point-to-point RouteDag remain unchanged.
