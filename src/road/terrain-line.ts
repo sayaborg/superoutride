@@ -1,6 +1,5 @@
 import { rasterCourseToWorld, sampleRasterCourse } from '../core/course.js';
 import type { GuideCurve } from '../core/guide-curve.js';
-import { wrapPositive } from '../core/math.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
 
 export interface FlatRoadProfile {
@@ -34,6 +33,13 @@ const EPSILON = 1e-9;
 /** Core §64 target rule: a projected segment thinner than one destination row collapses to one row. */
 export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
 
+/**
+ * Determine the ordinary forward renderer interval on one open GuidePath.
+ *
+ * The path endpoint is a geometry boundary, not a topology seam: the visible
+ * interval simply ends there. Product courses author sufficient run-in/runout
+ * so this clipping is not an ordinary gameplay special case.
+ */
 export function computeForwardVisibleInterval(
   guide: GuideCurve,
   cameraYaw: number,
@@ -41,31 +47,38 @@ export function computeForwardVisibleInterval(
   dMin: number,
   dMax: number,
 ): ForwardVisibleInterval | null {
-  if (!(dMin > 0 && dMax > dMin && dMax < guide.length * 0.5)) {
-    throw new RangeError('Core requires 0 < dMin < dMax < Lcourse/2');
+  if (!(dMin > 0 && dMax > dMin) || !Number.isFinite(dMin) || !Number.isFinite(dMax)) {
+    throw new RangeError('renderer requires finite 0 < dMin < dMax');
+  }
+  if (!Number.isFinite(sCamera) || sCamera < -EPSILON || sCamera > guide.length + EPSILON) {
+    throw new RangeError('camera render chainage is outside the open GuidePath');
   }
 
-  const end = sCamera + dMax;
+  const available = Math.max(0, guide.length - Math.max(0, sCamera));
+  const dEnd = Math.min(dMax, available);
+  if (dEnd <= dMin + EPSILON) return null;
+
+  const end = sCamera + dEnd;
   let cursor = sCamera + dMin;
 
   while (cursor <= end + EPSILON) {
-    const sLocal = wrapPositive(cursor, guide.length);
+    const sLocal = Math.min(guide.length, Math.max(0, cursor));
     const sample = sampleRasterCourse(guide.raster, sLocal);
     const facing = Math.cos(sample.heading - cameraYaw);
     if (facing <= 0) {
-      const dEnd = cursor - sCamera;
-      return dEnd <= dMin + EPSILON ? null : { dStart: dMin, dEnd };
+      const facingEnd = cursor - sCamera;
+      return facingEnd <= dMin + EPSILON ? null : { dStart: dMin, dEnd: facingEnd };
     }
 
     const segment = guide.raster.segments[sample.segmentIndex]!;
     const localToSegmentEnd = segment.sStart + segment.length - sLocal;
     const step = Math.max(localToSegmentEnd, EPSILON);
     const next = Math.min(end, cursor + step);
-    if (next >= end - EPSILON) return { dStart: dMin, dEnd: dMax };
+    if (next >= end - EPSILON) return { dStart: dMin, dEnd };
     cursor = next;
   }
 
-  return { dStart: dMin, dEnd: dMax };
+  return { dStart: dMin, dEnd };
 }
 
 export function generateFlatTerrainLines(
@@ -97,7 +110,7 @@ export function generateFlatTerrainLines(
     const d = numerator / denominator;
     if (d < visible.dStart || d > visible.dEnd) continue;
 
-    const s = wrapPositive(camera.s + d, guide.length);
+    const s = camera.s + d;
     const groundLeft = rasterCourseToWorld(guide.raster, s, -profile.groundLeft);
     const groundRight = rasterCourseToWorld(guide.raster, s, profile.groundRight);
     const projectedLeft = pseudoProject({ ...groundLeft, y: profile.groundY }, camera);
@@ -225,7 +238,7 @@ export function generateTerrainLines(
   let cursor = start;
 
   while (cursor < end - 1e-8) {
-    const local = wrapPositive(cursor, guide.length);
+    const local = cursor;
     const raster = sampleRasterCourse(guide.raster, local);
     const rasterSegment = guide.raster.segments[raster.segmentIndex]!;
     const rasterDistance = rasterSegment.sStart + rasterSegment.length - local;
@@ -355,8 +368,7 @@ function createM3TerrainLine(
   y: number,
   verticalFootprint: VerticalFootprintSetup,
 ): M3TerrainLine | null {
-  const sUnwrapped = camera.s + d;
-  const s = wrapPositive(sUnwrapped, guide.length);
+  const s = camera.s + d;
   const renderHeight = profile.height.sampleRender(s).y;
   const groundLeft = rasterCourseToWorld(guide.raster, s, -profile.groundLeft);
   const groundRight = rasterCourseToWorld(guide.raster, s, profile.groundRight);
