@@ -90,21 +90,29 @@ test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reade
   assert.equal(Number.isFinite(camera.groundHeight), true);
 });
 
-test('M6.47 camera physics and world contracts no longer name CyclicHeightProfile', async () => {
-  const files = [
+test('M6.47 camera physics world and shared-runtime contracts no longer require cyclic height or surface types', async () => {
+  const heightReaderFiles = [
     '../src/dev/m3-camera.ts',
     '../src/dev/m4-camera.ts',
     '../src/dev/m5-camera.ts',
+    '../src/dev/m6-20-live-runtime-content.ts',
     '../src/physics/car-physics.ts',
     '../src/physics/motorcycle-physics.ts',
     '../src/world/m4-debug-world.ts',
     '../src/world/m5-9-tunnel-world.ts',
   ];
-  for (const path of files) {
+  for (const path of heightReaderFiles) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /CyclicHeightProfile/, path);
     assert.match(source, /HeightProfileReader/, path);
   }
+
+  const sharedRuntime = await readFile(
+    new URL('../src/dev/m6-20-live-runtime-content.ts', import.meta.url),
+    'utf8',
+  );
+  assert.doesNotMatch(sharedRuntime, /CyclicSurfaceMap/);
+  assert.match(sharedRuntime, /surfaceMap: SurfaceMap/);
 });
 
 test('M6.47 tunnel presentation contains no implicit modulo or wrapPositive topology', async () => {
