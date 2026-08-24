@@ -5,7 +5,7 @@ import {
 } from '../course/stage-road-view.js';
 import {
   SURFACE_MATERIALS,
-  type CyclicSurfaceMap,
+  type SurfaceMap,
   type SurfaceMapReader,
   type SurfaceSample,
 } from './surface-map.js';
@@ -19,7 +19,7 @@ import {
  */
 export class StageSurfaceMapView implements SurfaceMapReader {
   constructor(
-    readonly source: CyclicSurfaceMap,
+    readonly source: SurfaceMap,
     readonly roadView: StageRoadView,
   ) {}
 
