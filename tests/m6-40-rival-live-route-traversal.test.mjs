@@ -6,28 +6,32 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/core/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
-import { createM640RivalRouteChoicePlan } from '../dist/dev/m6-40-rival-live-route.js';
+import {
+  M6_40_RIVAL_ROUTE_CHOICE_IDS,
+  createM640RivalRouteChoicePlan,
+} from '../dist/dev/m6-40-rival-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import {
+  advanceLiveRouteTraveler,
+  compileLiveRouteChoicePlan,
+  createLiveRouteTravelerState,
+  liveRouteTravelersShareRuntimePackage,
+  resyncLiveRouteTraveler,
+  resolveLiveRouteTravelerRuntime,
+  sampleLiveRouteChoicePlanTargetL,
+} from '../dist/runtime/live-route-traveler.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
-import {
-  advanceLiveRouteTraveler,
-  createLiveRouteTravelerState,
-  liveRouteTravelersShareRuntimePackage,
-  resolveLiveRouteTravelerRuntime,
-  sampleLiveRouteChoicePlanTargetL,
-} from '../dist/runtime/live-route-traveler.js';
 
 function createLiveFixture() {
   const guide = createM2StadiumGuide();
-  const heightProfile = createM3DebugHeightProfile(guide.length);
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+  const heightProfile = createM3DebugHeightProfile(guide.length);
   const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
   const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const spriteAssets = createM4SpriteAssets();
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
@@ -37,143 +41,162 @@ function createLiveFixture() {
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
   };
-  const terrainProfile = {
-    screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
   return createM627LiveRouteRuntime(
     guide,
     {
       heightProfile,
       surfaceMap,
-      terrainProfile,
       groundProfile,
+      terrainProfile: {
+        screenHeight: 240,
+        dMin: 2.5,
+        dMax: 150,
+        groundLeft: 12,
+        groundRight: 12,
+        roadLeft: 4.5,
+        roadRight: 4.5,
+        height: heightProfile,
+        visual: visualProfile,
+        thinSpanScreenRows: 1,
+      },
       selectFarBackground: () => createM3FarBackground(),
       worldSprites: [],
     },
-    spriteAssets,
+    createM4SpriteAssets(),
   );
+}
+
+function pointAlongGate(gate, signedMeters) {
+  return {
+    x: gate.center.x + gate.tangent.x * signedMeters,
+    z: gate.center.z + gate.tangent.z * signedMeters,
+  };
 }
 
 function transitionGate(live, choiceId) {
   const gate = live.gates.gates.find(
     (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId,
   );
-  assert.ok(gate, `missing transition gate ${choiceId}`);
+  assert.ok(gate, `missing gate for ${choiceId}`);
   return gate;
 }
 
-function seam(live, choiceId) {
-  const result = live.handoffs.seams.find((candidate) => candidate.choiceId === choiceId);
-  assert.ok(result, `missing handoff seam ${choiceId}`);
-  return result;
-}
-
-function cross(boundary, distance = 1) {
-  return {
-    previous: {
-      x: boundary.center.x - boundary.tangent.x * distance,
-      z: boundary.center.z - boundary.tangent.z * distance,
-    },
-    current: {
-      x: boundary.center.x + boundary.tangent.x * distance,
-      z: boundary.center.z + boundary.tangent.z * distance,
-    },
-  };
+function handoffSeam(live, choiceId) {
+  const seam = live.handoffs.seams.find((candidate) => candidate.choiceId === choiceId);
+  assert.ok(seam, `missing seam for ${choiceId}`);
+  return seam;
 }
 
 function crossChoice(live, traveler, choiceId) {
-  const gateMotion = cross(transitionGate(live, choiceId));
-  traveler.previousWorldPoint = { ...gateMotion.previous };
-  const routeUpdate = advanceLiveRouteTraveler(live, traveler, gateMotion.current);
-  assert.equal(routeUpdate.routeUpdate?.acceptedChoice?.id, choiceId);
+  const gate = transitionGate(live, choiceId);
+  resyncLiveRouteTraveler(live, traveler, pointAlongGate(gate, -1));
+  const gateUpdate = advanceLiveRouteTraveler(live, traveler, pointAlongGate(gate, 1));
+  assert.equal(gateUpdate.routeUpdate?.acceptedChoice?.id, choiceId);
+  assert.equal(gateUpdate.committed, false);
   assert.equal(traveler.handoffState.pending?.choiceId, choiceId);
 
-  const seamMotion = cross(seam(live, choiceId));
-  traveler.previousWorldPoint = { ...seamMotion.previous };
-  const handoffUpdate = advanceLiveRouteTraveler(live, traveler, seamMotion.current);
-  assert.equal(handoffUpdate.committed, true);
+  const seam = handoffSeam(live, choiceId);
+  resyncLiveRouteTraveler(live, traveler, pointAlongGate(seam, -1));
+  const seamUpdate = advanceLiveRouteTraveler(live, traveler, pointAlongGate(seam, 1));
+  assert.equal(seamUpdate.handoffEvent, 'COMMITTED');
+  assert.equal(seamUpdate.committed, true);
+  assert.equal(traveler.handoffState.pending, null);
+  return seamUpdate;
 }
 
 test('M6.40 DEV rival plan is one validated RIGHT-B path ending at GOAL_RB', () => {
   const live = createLiveFixture();
   const plan = createM640RivalRouteChoicePlan(live);
 
-  assert.deepEqual(plan.choiceIds, [
-    'S1_RIGHT',
-    'S2R_CONTINUE',
-    'S3R_CONTINUE',
-    'S4R_FORK_B',
+  assert.deepEqual(plan.steps.map((step) => step.choiceId), [...M6_40_RIVAL_ROUTE_CHOICE_IDS]);
+  assert.deepEqual(plan.steps.map((step) => step.stageId), [
+    'STAGE_1',
+    'STAGE_2_R',
+    'STAGE_3_R',
+    'STAGE_4_R_FORK',
   ]);
   assert.equal(plan.terminalStageId, 'GOAL_RB');
+
+  assert.throws(
+    () => compileLiveRouteChoicePlan(live, ['S1_RIGHT', 'S2L_CONTINUE']),
+    /does not leave stage STAGE_2_R/,
+  );
+  assert.throws(
+    () => compileLiveRouteChoicePlan(live, ['S1_RIGHT']),
+    /must end at a terminal stage/,
+  );
 });
 
 test('M6.40 route intent follows authored junction growth instead of steering directly to the final branch center', () => {
   const live = createLiveFixture();
-  const traveler = createLiveRouteTravelerState(live, { x: 0, z: 0 });
   const plan = createM640RivalRouteChoicePlan(live);
-  const runtime = resolveLiveRouteTravelerRuntime(live, traveler);
+  const gate = transitionGate(live, 'S1_RIGHT');
+  const traveler = createLiveRouteTravelerState(live, pointAlongGate(gate, -1));
 
-  const before = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 360);
-  const widening = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 410);
-  const separated = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 550);
+  assert.equal(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 380), 0);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 410) - 1.75) < 1e-9);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 450) - 4.3) < 1e-9);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 530) - 7.5) < 1e-9);
 
-  assert.equal(runtime.packageId, 'CONTENT_STAGE_1');
-  assert.equal(before, 0);
-  assert.ok(widening > before);
-  assert.ok(separated > widening);
-  assert.ok(Math.abs(separated - 7.5) < 1e-9);
+  // RouteDag advances at the physical gate, but until seam COMMIT the old parent chart is still
+  // active and must remain the steering coordinate authority.
+  resyncLiveRouteTraveler(live, traveler, pointAlongGate(gate, -1));
+  advanceLiveRouteTraveler(live, traveler, pointAlongGate(gate, 1));
+  assert.equal(traveler.routeState.activeStageId, 'STAGE_2_R');
+  assert.equal(traveler.handoffState.activeStageId, 'STAGE_1');
+  assert.ok(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 550) > 7.49);
 });
 
 test('M6.40 independent traveler can commit RIGHT child runtime without mutating another traveler', () => {
   const live = createLiveFixture();
-  const a = createLiveRouteTravelerState(live, { x: 0, z: 0 });
-  const b = createLiveRouteTravelerState(live, { x: 0, z: 0 });
-  const bBefore = JSON.stringify(b);
+  const gate = transitionGate(live, 'S1_RIGHT');
+  const start = pointAlongGate(gate, -1);
+  const player = createLiveRouteTravelerState(live, start);
+  const rival = createLiveRouteTravelerState(live, start);
+  const playerSnapshot = JSON.stringify(player);
 
-  crossChoice(live, a, 'S1_RIGHT');
+  crossChoice(live, rival, 'S1_RIGHT');
 
-  assert.equal(a.routeState.activeStageId, 'STAGE_2_R');
-  assert.equal(a.handoffState.activeStageId, 'STAGE_2_R');
-  assert.equal(resolveLiveRouteTravelerRuntime(live, a).packageId, 'CONTENT_STAGE_2_R');
-  assert.equal(JSON.stringify(b), bBefore);
+  assert.equal(rival.routeState.activeStageId, 'STAGE_2_R');
+  assert.equal(rival.handoffState.activeStageId, 'STAGE_2_R');
+  assert.equal(rival.handoffState.activePackageId, 'CONTENT_STAGE_2_R');
+  assert.equal(rival.handoffState.commitCount, 1);
+  assert.equal(JSON.stringify(player), playerSnapshot);
 });
 
 test('M6.40 RIGHT-B traveler preserves stage-local target semantics through continuation and second fork', () => {
   const live = createLiveFixture();
-  const traveler = createLiveRouteTravelerState(live, { x: 0, z: 0 });
   const plan = createM640RivalRouteChoicePlan(live);
+  const firstGate = transitionGate(live, 'S1_RIGHT');
+  const traveler = createLiveRouteTravelerState(live, pointAlongGate(firstGate, -1));
 
   crossChoice(live, traveler, 'S1_RIGHT');
-  const stage2Runtime = resolveLiveRouteTravelerRuntime(live, traveler);
-  assert.ok(Math.abs(stage2Runtime.coordinateFrame.lateralOrigin - 7.5) < 1e-9);
+  assert.equal(resolveLiveRouteTravelerRuntime(live, traveler).packageId, 'CONTENT_STAGE_2_R');
   assert.equal(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 100), 0);
 
   crossChoice(live, traveler, 'S2R_CONTINUE');
+  assert.equal(resolveLiveRouteTravelerRuntime(live, traveler).packageId, 'CONTENT_STAGE_3_R');
+  assert.equal(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 100), 0);
+
   crossChoice(live, traveler, 'S3R_CONTINUE');
-  const stage4Runtime = resolveLiveRouteTravelerRuntime(live, traveler);
-  const preFork = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 160);
-  const forked = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 230);
-  assert.equal(stage4Runtime.packageId, 'CONTENT_STAGE_4_R_FORK');
-  assert.equal(preFork, 0);
-  assert.ok(forked > 0);
+  const forkRuntime = resolveLiveRouteTravelerRuntime(live, traveler);
+  assert.equal(forkRuntime.packageId, 'CONTENT_STAGE_4_R_FORK');
+  assert.notEqual(forkRuntime.coordinateFrame.lateralOrigin, 0);
+  assert.equal(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 70), 0);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 95) - 1.75) < 1e-9);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 140) - 5.5) < 1e-9);
+  assert.ok(Math.abs(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 170) - 7.5) < 1e-9);
 
   crossChoice(live, traveler, 'S4R_FORK_B');
   assert.equal(resolveLiveRouteTravelerRuntime(live, traveler).packageId, 'CONTENT_GOAL_RB');
+  assert.equal(traveler.routeState.activeStageId, 'GOAL_RB');
 });
 
 test('M6.40 rival sprite compatibility is package identity, not raw world proximity or route intent', () => {
   const live = createLiveFixture();
-  const a = createLiveRouteTravelerState(live, { x: 0, z: 0 });
-  const b = createLiveRouteTravelerState(live, { x: 0, z: 0 });
+  const gate = transitionGate(live, 'S1_RIGHT');
+  const a = createLiveRouteTravelerState(live, pointAlongGate(gate, -1));
+  const b = createLiveRouteTravelerState(live, pointAlongGate(gate, -1));
 
   assert.equal(
     liveRouteTravelersShareRuntimePackage(
@@ -183,7 +206,7 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
     true,
   );
 
-  crossChoice(live, a, 'S1_RIGHT');
+  crossChoice(live, b, 'S1_RIGHT');
   assert.equal(
     liveRouteTravelersShareRuntimePackage(
       resolveLiveRouteTravelerRuntime(live, a),
@@ -192,7 +215,7 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
     false,
   );
 
-  crossChoice(live, b, 'S1_RIGHT');
+  crossChoice(live, a, 'S1_RIGHT');
   assert.equal(
     liveRouteTravelersShareRuntimePackage(
       resolveLiveRouteTravelerRuntime(live, a),
