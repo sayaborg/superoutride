@@ -31,14 +31,8 @@ export interface PseudoProjection {
   cameraRightDistance: number;
 }
 
-/**
- * Core pseudo-depth authority: renderer chainage difference only.
- *
- * The ignored rest parameter is a temporary source-compatibility bridge for
- * DEV callers compiled before M6.44. It carries no semantic authority and is
- * never inspected; product renderer code supplies exactly two arguments.
- */
-export function pseudoDepth(sObject: number, sCamera: number, ..._ignoredLegacyArgs: readonly unknown[]): number {
+/** Core pseudo-depth authority: renderer chainage difference only. */
+export function pseudoDepth(sObject: number, sCamera: number): number {
   return sObject - sCamera;
 }
 
