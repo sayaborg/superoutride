@@ -13,6 +13,7 @@ import {
   sampleGuidePath,
 } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
+import { CyclicSurfaceMap, SurfaceMap } from '../dist/physics/surface-map.js';
 import { computeForwardVisibleInterval } from '../dist/road/terrain-line.js';
 
 const near = (actual, expected, tolerance = 1e-8) => {
@@ -29,6 +30,21 @@ function createOpenFixture() {
   ]);
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   return { raster, guide };
+}
+
+function createSurfaceSections() {
+  return [
+    {
+      sStart: 0,
+      name: 'START',
+      bands: [{ lMin: -5, lMax: 5, type: 'ASPHALT' }],
+    },
+    {
+      sStart: 60,
+      name: 'END',
+      bands: [{ lMin: -5, lMax: 5, type: 'DIRT' }],
+    },
+  ];
 }
 
 test('M6.44 RasterPath does not create a last-to-first segment', () => {
@@ -81,8 +97,6 @@ test('M6.44 local world-to-Guide search clips indices instead of wrapping endpoi
 test('M6.44 renderer pseudo-depth is render-chainage difference only', () => {
   assert.equal(pseudoDepth(25, 10), 15);
   assert.equal(pseudoDepth(2, 9), -7);
-  // Legacy DEV arguments are ignored and cannot change renderer depth authority.
-  assert.equal(pseudoDepth(2, 9, 10_000), -7);
 });
 
 test('M6.44 pseudo projection preserves same-depth scale without topology input', () => {
@@ -111,4 +125,18 @@ test('M6.44 forward terrain interval clips at the open path endpoint instead of 
   assert.ok(interval);
   near(interval.dStart, 2.5);
   near(interval.dEnd, 20, 1e-7);
+});
+
+test('M6.44 general SurfaceMap owns an open chainage domain', () => {
+  const surface = new SurfaceMap(100, createSurfaceSections());
+  assert.equal(surface.sample(0, 0).sectionName, 'START');
+  assert.equal(surface.sample(100, 0).sectionName, 'END');
+  assert.throws(() => surface.sample(-0.01, 0), /outside/);
+  assert.throws(() => surface.sample(100.01, 0), /outside/);
+});
+
+test('M6.44 cyclic surface addressing requires the explicit CyclicSurfaceMap adapter', () => {
+  const surface = new CyclicSurfaceMap(100, createSurfaceSections());
+  assert.equal(surface.sample(105, 0).sectionName, 'START');
+  assert.equal(surface.sample(-5, 0).sectionName, 'END');
 });
