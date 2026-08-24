@@ -83,8 +83,8 @@ test('M6.49 finite circuit window is an ordinary open Raster/Guide path across i
   assert.equal(window.raster.segments.length, topology.lapPath.segments.length * 3);
   assert.ok(Math.abs(window.raster.length - 3 * L) < 1e-8);
   assert.ok(Math.abs(window.guide.length - 3 * L) < 1e-8);
-  assert.equal(window.startUnwrappedS, -L);
-  assert.equal(window.endUnwrappedS, 2 * L);
+  assert.ok(Math.abs(window.startUnwrappedS + L) < 1e-8);
+  assert.ok(Math.abs(window.endUnwrappedS - 2 * L) < 1e-8);
 
   const sCamera = L - 10;
   const cameraSample = sampleGuidePath(window.guide, sCamera);
@@ -118,8 +118,8 @@ test('M6.49 height and visual readers expose one finite open window and repeat s
   const { topology, window } = compileWindow({ repeatCount: 3 });
   const L = topology.lapLength;
 
-  assert.equal(window.height.courseLength, 3 * L);
-  assert.equal(window.visual.courseLength, 3 * L);
+  assert.ok(Math.abs(window.height.courseLength - 3 * L) < 1e-8);
+  assert.ok(Math.abs(window.visual.courseLength - 3 * L) < 1e-8);
   assert.equal(window.height.samplePhysics(L), 0);
   assert.ok(Math.abs(window.height.samplePhysics(1.5 * L) - 4) < 1e-8);
   assert.equal(window.visual.sample(L).name, 'START_GREEN');
@@ -161,30 +161,79 @@ test('M6.49 SurfaceMap window resets at internal seam while preserving the final
   assert.throws(() => window.surface.sample(2 * L + 1, 0), /outside \[0, length\]/);
 });
 
-test('M6.49 GroundMap runtime window delegates LOD unchanged and owns only explicit circuit source addressing', () => {
+test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating source payload identity', () => {
+  const topology = createGentleCircuit();
+  const L = topology.lapLength;
   const calls = [];
+  const sourceLevel = {
+    index: 0,
+    lateralTexels: 4,
+    chainageTexels: 8,
+    qLActual: 1,
+    qSActual: L / 8,
+    chunks: [{ rowStart: 0, rowCount: 8, payloadId: 0 }],
+  };
   const ground = {
-    kMax: 6,
-    selectLevel(deltaSEffective) {
-      return deltaSEffective >= 8 ? 3 : 1;
+    metadata: {
+      version: 1,
+      courseLength: L,
+      groundLeft: 2,
+      groundRight: 2,
+      qLAuthority: 1,
+      qSAuthority: L / 8,
+      actualBaseQL: 1,
+      actualBaseQS: L / 8,
+      kMax: 0,
+      rowGroup: 8,
+      chunkTargetMeters: L,
+      paletteRgba: [0],
+      levels: [sourceLevel],
+      payloads: [{ id: 0, encoding: 'palette4-rle', width: 4, height: 8, offset: 0, byteLength: 1 }],
+      binaryBytes: 1,
+      uncompressedRgbaBytes: 128,
+    },
+    kMax: 0,
+    selectLevel() {
+      return 0;
     },
     sample(s, l, deltaSEffective) {
       calls.push(['sample', s, l, deltaSEffective]);
-      return { color: Math.round(s), level: this.selectLevel(deltaSEffective) };
+      return { color: Math.round(s), level: 0 };
     },
     sampleAtLevel(s, l, levelIndex) {
       calls.push(['level', s, l, levelIndex]);
       return Math.round(s * 10 + levelIndex);
     },
+    texelCenter(levelIndex, row, column) {
+      assert.equal(levelIndex, 0);
+      return {
+        s: (row + 0.5) * L / sourceLevel.chainageTexels,
+        l: -2 + (column + 0.5),
+      };
+    },
   };
-  const { topology, window } = compileWindow({ repeatCount: 2, ground });
-  const L = topology.lapLength;
+  const window = compileCircuitRuntimeWindow(
+    topology,
+    0,
+    2,
+    { lMax: 4.5, mMin: 0.72, dCam: 5 },
+    createSources(topology, ground),
+  );
 
-  assert.equal(window.ground.kMax, 6);
-  assert.equal(window.ground.selectLevel(9), 3);
-  window.ground.sampleAtLevel(L, 2, 4);
-  window.ground.sampleAtLevel(2 * L, 2, 4);
-  assert.deepEqual(calls[0], ['level', 0, 2, 4]);
+  assert.ok(window.ground);
+  assert.ok(Math.abs(window.ground.metadata.courseLength - 2 * L) < 1e-8);
+  assert.equal(window.ground.metadata.levels[0].chainageTexels, 16);
+  assert.deepEqual(window.ground.metadata.levels[0].chunks, [
+    { rowStart: 0, rowCount: 8, payloadId: 0 },
+    { rowStart: 8, rowCount: 8, payloadId: 0 },
+  ]);
+  assert.equal(window.ground.metadata.payloads, ground.metadata.payloads);
+  assert.equal(window.ground.metadata.binaryBytes, ground.metadata.binaryBytes);
+  assert.equal(window.ground.metadata.uncompressedRgbaBytes, 256);
+
+  window.ground.sampleAtLevel(L, 2, 0);
+  window.ground.sampleAtLevel(2 * L, 2, 0);
+  assert.deepEqual(calls[0], ['level', 0, 2, 0]);
   assert.ok(Math.abs(calls[1][1] - L) < 1e-8);
 });
 
@@ -219,6 +268,14 @@ test('M6.49 ordinary TerrainLine generation crosses a circuit seam with open win
 
   assert.ok(lines.length > 0);
   assert.ok(lines.some((line) => line.s > L), 'terrain must continue beyond the former one-lap endpoint');
+});
+
+test('M6.49 TerrainVisualProfile source contract is topology-neutral reader authority', async () => {
+  const source = await readFile(new URL('../src/road/terrain-line.ts', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(source, /CyclicHeightProfile|CyclicVisualProfile/);
+  assert.match(source, /HeightProfileReader/);
+  assert.match(source, /VisualProfileReader/);
 });
 
 test('M6.49 circuit runtime integration stays outside renderer and RouteDag while renderer stays topology-blind', async () => {
