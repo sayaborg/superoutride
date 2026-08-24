@@ -1,10 +1,10 @@
-# SUPER OUTRIDE — M6.44 Open Path Core
+# SUPER OUTRIDE — M6.45 Open Source Profiles
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
 
-`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite and M6.44 open-path addenda.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda.
 
 ## Current milestone state
 
@@ -67,7 +67,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.41 Shared Route Choice Authority — complete
 - M6.42 Multi-Actor Route Tick Arbitration — complete
 - M6.43 Course Mode / Rival Roster Foundation — complete
-- **M6.44 Open Path Core — complete**
+- M6.44 Open Path Core — complete
+- **M6.45 Open Source Profiles — complete**
 
 ## Run / test
 
@@ -85,7 +86,7 @@ Full regression:
 npm test
 ```
 
-M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening own ten direct open-path/topology-boundary regressions for **369 tests** total. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening raised the suite to **369 tests**. M6.45 adds open/cyclic source-profile regressions for a total of **375 tests**. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -210,6 +211,38 @@ Generated runout vertices remain inside the frozen 10° interior Raster limit. F
 
 This allows the existing deep route to remain a true chain of point-to-point stage geometry rather than a chain built on fake loops.
 
+## Open source profile authority
+
+M6.45 extends the same architecture from geometry into non-geometry stage sources.
+
+General source forms are open:
+
+```text
+HeightProfile
+VisualProfile
+GroundMapLogicalProfile
+BakedGroundMapAsset
+SurfaceMap
+```
+
+Closed-course addressing is never implicit. It exists only through explicitly named adapters:
+
+```text
+CyclicHeightProfile
+CyclicVisualProfile
+CyclicGroundMapLogicalProfile
+CyclicBakedGroundMapAsset
+CyclicSurfaceMap
+```
+
+The governing rule is:
+
+> **Open is the general data model. Cyclic is a named topology adapter. The renderer is neither.**
+
+Ordinary LINEAR and BRANCHING stages use open sources. The stage compiler deliberately extends an authored final height change-point to the real Guide endpoint when needed; that expansion belongs to compilation, not to hidden runtime wrapping or clamping.
+
+The baked GroundMap format itself remains finite and unchanged. M6.45 changes the sampling contract, not the proven anisotropic LOD/palette asset layout. A future CIRCUIT may explicitly opt into cyclic adapters without changing the renderer or the general source interfaces.
+
 ## Course route structures
 
 M6.43 established three product route structures:
@@ -220,7 +253,7 @@ BRANCHING  Out Run-style branching point-to-point
 CIRCUIT    closed lap route
 ```
 
-The first two belong naturally to open geometry:
+The first two belong naturally to open geometry and open source profiles:
 
 ```text
 LINEAR     → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
@@ -233,7 +266,7 @@ BRANCHING  → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
 CIRCUIT → CIRCUIT_LOOP / LAPS finish
 ```
 
-This does not weaken the existing acyclic RouteDag and does not change RasterPath/GuidePath into cyclic primitives. A future circuit implementation must explicitly own endpoint connection/wrapping above Core, using named adapters where needed.
+This does not weaken the existing acyclic RouteDag and does not change RasterPath/GuidePath or general source profiles into cyclic primitives. A future circuit implementation must explicitly own endpoint connection/wrapping above Core, using named adapters where needed.
 
 ## Current live branching route
 
@@ -401,9 +434,9 @@ l_source = l_local + coordinateFrame.lateralOrigin
 
 World physics remains authoritative. A chart handoff only re-expresses the same world pose in another local road coordinate system.
 
-## M6.44 validation targets
+## M6.44 / M6.45 validation targets
 
-Dedicated regressions cover:
+M6.44 dedicated regressions cover:
 
 1. no Raster last-to-first segment;
 2. no synthetic endpoint closing turn/miter;
@@ -416,15 +449,24 @@ Dedicated regressions cover:
 9. general `SurfaceMap` rejects chainage outside `[0,L]`;
 10. cyclic surface wrapping requires explicit `CyclicSurfaceMap` selection.
 
-The original M6.44 implementation-green checkpoint `ee675357afc27f27ebcb3c727f8011127d7e8858` passed GitHub Actions run #397 with:
+M6.45 direct regressions additionally cover:
+
+1. open HeightProfile endpoint/domain behavior;
+2. explicit cyclic height addressing;
+3. open VisualProfile versus explicit cyclic visual addressing;
+4. open logical GroundMap versus explicit cyclic logical addressing;
+5. stage compiler ownership of final-height extension to Guide endpoint;
+6. open baked GroundMap plus explicit cyclic baked adapter.
+
+The implementation-green M6.45 checkpoint `b7ee59f05ae402285a8598d7a06268add2548f96` passed exact-checkout GitHub Actions run #423 with:
 
 ```text
-367 tests
-367 pass
+375 tests
+375 pass
 0 fail
 ```
 
-The hardening follow-up raises the suite to **369 tests** and makes the exact source SHA an executable CI invariant. The validation-file-inclusive hardening head must independently reproduce **369/369 / 0 fail** with `git rev-parse HEAD` equal to the expected feature SHA before `main` is fast-forwarded.
+The final validation-file-inclusive M6.45 head must independently reproduce **375/375 / 0 fail** with `git rev-parse HEAD` equal to that final feature SHA before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -443,6 +485,11 @@ src/core/projection.ts
 src/road/terrain-line.ts
 src/physics/surface-map.ts
 src/physics/stage-surface-map-view.ts
+src/visual/height-profile.ts
+src/visual/visual-profile.ts
+src/visual/baked-ground-map.ts
+src/compiler/surface-region-compiler.ts
+src/runtime/stage-authoring-compiler.ts
 src/runtime/raster-stage-successor.ts
 src/gameplay/course-mode.ts
 src/gameplay/route-dag.ts
@@ -464,12 +511,13 @@ src/main.ts
 tests/m6-42-multi-actor-route-tick-arbitration.test.mjs
 tests/m6-43-course-mode-rival-roster.test.mjs
 tests/m6-44-open-path-core.test.mjs
+tests/m6-45-open-source-profiles.test.mjs
 ```
 
-Normative design authority is in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md` and `docs/00b_core_design_freeze_addendum_m6_44.md`.
+Normative design authority is in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md`, `docs/00b_core_design_freeze_addendum_m6_44.md` and `docs/00c_core_design_freeze_addendum_m6_45.md`.
 
-Milestone notes run through `docs/62_m6_44_open_path_core.md`.
+Milestone notes run through `docs/63_m6_45_open_source_profiles.md`.
 
 ## Next
 
-M6.45 should build route/topology integration on top of the new open primitive rather than adding topology back into Core. In particular, any future explicit circuit connection must remain a higher-layer authority while LINEAR and BRANCHING continue to consume ordinary open Raster/Guide geometry.
+Further topology work must build above the open geometry/source primitives rather than adding implicit wrapping back into Core. In particular, a future CIRCUIT implementation must explicitly own endpoint connection, lap/unwrapped chainage and any cyclic source adapters, while LINEAR and BRANCHING continue to consume ordinary open Raster/Guide geometry and open stage source profiles.
