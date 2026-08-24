@@ -37,7 +37,6 @@ const SUCCESSOR_DEFORMATION_METERS = 3;
 const GENTLE_TURN_LIMIT_DEGREES = 5;
 const MIN_DEFORMATION_RUN_VERTICES = 5;
 const SUCCESSOR_D_MAX = 150;
-const FINISH_CLOSURE_MARGIN = 20;
 
 export type M626SuccessorRuntimeSource = RasterSuccessorRuntimeSource;
 
@@ -121,7 +120,6 @@ function createSuccessorSource(
     minDeformationRunVertices: MIN_DEFORMATION_RUN_VERTICES,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     dMax: SUCCESSOR_D_MAX,
-    finishClosureMargin: FINISH_CLOSURE_MARGIN,
     groundMapHalfWidth: GROUND_MAP_HALF_WIDTH,
     groundHalfWidth: GROUND_HALF_WIDTH,
     roadHalfWidth: ROAD_HALF_WIDTH,
