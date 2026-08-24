@@ -85,7 +85,7 @@ Full regression:
 npm test
 ```
 
-M6.43 ended at **359 tests**. M6.44 adds eight direct open-path regressions for **367 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.43 ended at **359 tests**. M6.44 plus its post-merge hardening own ten direct open-path/topology-boundary regressions for **369 tests** total. Pull-request CI explicitly checks out the feature head SHA, asserts that the actual checkout equals that SHA, and then runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -412,9 +412,11 @@ Dedicated regressions cover:
 5. clipped local world-to-Guide search;
 6. topology-neutral `s_render - s_camera` pseudo-depth;
 7. same-depth scale invariance without topology input;
-8. terrain endpoint clipping instead of wrap.
+8. terrain endpoint clipping instead of wrap;
+9. general `SurfaceMap` rejects chainage outside `[0,L]`;
+10. cyclic surface wrapping requires explicit `CyclicSurfaceMap` selection.
 
-The implementation-green checkpoint `ee675357afc27f27ebcb3c727f8011127d7e8858` passed GitHub Actions run #397 with:
+The original M6.44 implementation-green checkpoint `ee675357afc27f27ebcb3c727f8011127d7e8858` passed GitHub Actions run #397 with:
 
 ```text
 367 tests
@@ -422,7 +424,7 @@ The implementation-green checkpoint `ee675357afc27f27ebcb3c727f8011127d7e8858` p
 0 fail
 ```
 
-The documentation-inclusive exact feature head and then the validation-file-inclusive final feature head must independently reproduce **367/367 / 0 fail** before `main` is fast-forwarded.
+The hardening follow-up raises the suite to **369 tests** and makes the exact source SHA an executable CI invariant. The validation-file-inclusive hardening head must independently reproduce **369/369 / 0 fail** with `git rev-parse HEAD` equal to the expected feature SHA before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
