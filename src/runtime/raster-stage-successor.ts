@@ -30,7 +30,6 @@ export interface RasterSuccessorAuthoring {
   readonly minDeformationRunVertices: number;
   readonly dCam: number;
   readonly dMax: number;
-  readonly finishClosureMargin: number;
   readonly groundMapHalfWidth: number;
   readonly groundHalfWidth: number;
   readonly roadHalfWidth: number;
@@ -51,12 +50,13 @@ export interface RasterSuccessorRuntimeSource {
 }
 
 /**
- * Build one independent closed Raster/Guide successor from an already compiled stage.
+ * Build one independent open Raster/Guide successor from an already compiled stage.
  *
- * The source overlap is copied exactly. New geometry is introduced only on the longest run whose
- * source Raster vertex turns are below the authored gentle-turn threshold. The final Raster is
- * always passed through compileRasterCourse(), so the existing Core <=10° turn limit remains the
- * authority and cannot be widened by this factory.
+ * The source overlap is copied exactly. New geometry is introduced only on the remaining forward
+ * source tail and only on the longest run whose interior Raster turns are below the authored
+ * gentle-turn threshold. No source endpoint is connected back to the source start. The final Raster
+ * is always passed through compileRasterCourse(), so the existing Core <=10° interior-turn limit
+ * remains the authority and cannot be widened by this factory.
  */
 export function createRasterStageSuccessor(
   source: RasterSuccessorSource,
@@ -76,10 +76,7 @@ export function createRasterStageSuccessor(
   }
 
   const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map(copyVertex);
-  const tailIndices = [
-    ...range(sharedEndIndex + 1, raster.vertices.length),
-    ...range(0, sourceStartIndex),
-  ];
+  const tailIndices = range(sharedEndIndex + 1, raster.vertices.length);
   const gentleRun = longestGentleRun(raster, tailIndices, authoring.gentleTurnLimitDegrees);
   if (gentleRun.length < authoring.minDeformationRunVertices) {
     throw new Error(`${authoring.id} successor lacks a safe low-curvature deformation run`);
@@ -91,8 +88,7 @@ export function createRasterStageSuccessor(
     const localIndex = tailIndex - gentleRun.start;
     const phase = gentleRun.length === 1 ? 0 : localIndex / (gentleRun.length - 1);
     const smooth = Math.sin(Math.PI * phase) ** 2;
-    const heading = raster.segments[sourceIndex]!.heading;
-    const normal = normalFromHeading(heading);
+    const normal = normalFromHeading(vertexHeading(raster, sourceIndex));
     const offset = authoring.deformationDirection * authoring.deformationMeters * smooth;
     return { x: vertex.x + normal.x * offset, z: vertex.z + normal.z * offset };
   });
@@ -150,8 +146,8 @@ export function createRasterStageSuccessor(
   });
   const sourceTransitionS = sourceSeamS - authoring.transitionLead;
   const finishS = targetSeamS + authoring.finishAfterSeam;
-  if (!(finishS < guide.length - authoring.finishClosureMargin)) {
-    throw new Error(`${authoring.id} finish must precede successor closure seam`);
+  if (!(finishS < guide.length)) {
+    throw new Error(`${authoring.id} finish must lie before the open successor endpoint`);
   }
 
   return Object.freeze({
@@ -209,10 +205,15 @@ function longestGentleRun(
 }
 
 function vertexTurnDegrees(raster: RasterCourse, vertexIndex: number): number {
-  const n = raster.segments.length;
-  const incoming = raster.segments[(vertexIndex - 1 + n) % n]!.heading;
+  if (vertexIndex <= 0 || vertexIndex >= raster.vertices.length - 1) return 0;
+  const incoming = raster.segments[vertexIndex - 1]!.heading;
   const outgoing = raster.segments[vertexIndex]!.heading;
   return Math.abs(wrapAngle(outgoing - incoming)) * 180 / Math.PI;
+}
+
+function vertexHeading(raster: RasterCourse, vertexIndex: number): number {
+  if (vertexIndex < raster.segments.length) return raster.segments[vertexIndex]!.heading;
+  return raster.segments.at(-1)!.heading;
 }
 
 function singleRoadSurfaceBands(origin: number, authoring: RasterSuccessorAuthoring): SurfaceBand[] {
