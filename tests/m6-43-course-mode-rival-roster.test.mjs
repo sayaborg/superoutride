@@ -81,6 +81,7 @@ test('M6.43 circuit extensibility does not weaken the acyclic RouteDag or enter 
 
   assert.doesNotMatch(modeSource, forbiddenImport);
   assert.doesNotMatch(rosterSource, forbiddenImport);
-  assert.match(routeDagSource, /cycle/i);
+  assert.match(routeDagSource, /assertAcyclicAndReachable\(/);
+  assert.match(routeDagSource, /route graph must be acyclic/);
   assert.doesNotMatch(rendererSource, /M6_43|CourseRouteKind|MAX_RIVAL_COUNT|FIRST_PHYSICAL_CROSSING_LOCKS/);
 });
