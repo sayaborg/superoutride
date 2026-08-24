@@ -1,4 +1,3 @@
-import { wrapPositive } from '../core/math.js';
 import { rgbaToRgb555 } from '../render/rgb555.js';
 import type {
   BakedGroundMapChunkMetadata,
@@ -26,7 +25,7 @@ interface PendingPayload {
 
 /**
  * M5.7 offline compiler. Runtime never performs anisotropic filtering.
- * The exact cyclic course is rasterized once at level 0, prefiltered through kMax,
+ * The exact open chainage domain is rasterized once at level 0, prefiltered through kMax,
  * then split into bounded row chunks. Identical encoded chunks share one payload.
  */
 export async function compileBakedGroundMapAsset(
@@ -56,7 +55,7 @@ export async function compileBakedGroundMapAsset(
 
   const basePixels = new Uint32Array(baseLateralTexels * baseChainageTexels);
   for (let row = 0; row < baseChainageTexels; row += 1) {
-    const s = wrapPositive((row + 0.5) * actualBaseQS, courseLength);
+    const s = (row + 0.5) * actualBaseQS;
     const offset = row * baseLateralTexels;
     for (let column = 0; column < baseLateralTexels; column += 1) {
       const l = -profile.groundLeft + (column + 0.5) * actualBaseQL;
