@@ -1,7 +1,8 @@
 import type { GroundMapLogicalProfileReader, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { rgba } from '../render/software-surface.js';
-import type { BakedGroundMapReader, BakedGroundMapSample } from './baked-ground-map.js';
+import type { BakedGroundMapSample } from './baked-ground-map.js';
+import type { GroundMapRuntimeReader } from './ground-map-runtime-reader.js';
 
 export const GROUND_COLORS = {
   grassA: rgba(45, 100, 53),
@@ -30,8 +31,8 @@ export interface GroundMapProfile {
   stageJunction?: JunctionCrossSectionProfile;
   /** Compiler output. General form is open; explicit cyclic adapters satisfy the same reader contract. */
   logical?: GroundMapLogicalProfileReader;
-  /** Compiler-baked runtime source. General form is open; cyclic addressing requires an explicit adapter. */
-  baked?: BakedGroundMapReader;
+  /** Runtime GroundMap source. Compiler metadata is deliberately outside this minimal renderer contract. */
+  baked?: GroundMapRuntimeReader;
 }
 
 export function sampleGroundMapRuntime(
