@@ -27,7 +27,7 @@ const near = (actual, expected, tolerance = 1e-8) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-test('wrapSigned follows Core interval (-L/2, +L/2]', () => {
+test('wrapSigned remains available to topology/gameplay consumers', () => {
   assert.equal(wrapSigned(0, 100), 0);
   assert.equal(wrapSigned(50, 100), 50);
   assert.equal(wrapSigned(-50, 100), 50);
@@ -51,17 +51,18 @@ test('Guide fallback math reproduces the Core 10-degree reference scale', () => 
   near(rMin, 16.013591455974513, 1e-9);
 });
 
-test('circular-authoring metadata produces the maximum fitting Guide radius', () => {
+test('circular-authoring metadata applies to interior Guide corners only', () => {
   const guide = createM1DebugGuide();
-  const corner = guide.corners[0];
+  const corner = guide.corners[1];
   near(corner.radius, 100 * Math.cos(deg(5)), 1e-10);
   assert.ok(corner.radius > corner.rMin);
 
-  const atStart = sampleGuideCurve(guide, 0);
-  near(atStart.heading, 0, 1e-10);
+  assert.equal(guide.corners[0].trim, 0);
+  assert.equal(guide.corners.at(-1).trim, 0);
+  near(sampleGuideCurve(guide, 0).heading, guide.raster.segments[0].heading, 1e-10);
 });
 
-test('Guide segments are G1 at every compiled boundary', () => {
+test('Guide segments are G1 at every compiled interior boundary without a synthetic seam', () => {
   const guide = createM1DebugGuide();
   for (let i = 0; i < guide.segments.length - 1; i += 1) {
     const a = guide.segments[i];
@@ -75,25 +76,24 @@ test('Guide segments are G1 at every compiled boundary', () => {
     near(Math.cos(left.heading), Math.cos(right.heading), 1e-8);
   }
 
-  const last = guide.segments.at(-1);
-  const first = guide.segments[0];
-  const cyclicLeft = sampleGuideSegment(guide, last, guide.length);
-  const cyclicRight = sampleGuideSegment(guide, first, 0);
-  near(cyclicLeft.x, cyclicRight.x, 1e-7);
-  near(cyclicLeft.z, cyclicRight.z, 1e-7);
-  near(Math.sin(cyclicLeft.heading), Math.sin(cyclicRight.heading), 1e-8);
-  near(Math.cos(cyclicLeft.heading), Math.cos(cyclicRight.heading), 1e-8);
+  near(guide.segments[0].sStart, 0);
+  near(guide.segments.at(-1).sEnd, guide.length);
+  assert.notDeepEqual(
+    sampleGuideCurve(guide, 0),
+    sampleGuideCurve(guide, guide.length),
+    'open Guide endpoints must not be treated as one cyclic seam',
+  );
 });
 
 test('world to Guide coordinate recovers signed lateral position', () => {
   const guide = createM1DebugGuide();
   const world = guideCourseToWorld(guide, 42, 6.5);
   const global = locateWorldOnGuideGlobal(guide, world);
-  near(wrapSigned(global.s - 42, guide.length), 0, 1e-7);
+  near(global.s - 42, 0, 1e-7);
   near(global.l, 6.5, 1e-7);
 
   const local = locateWorldOnGuideLocal(guide, world, world.segmentIndex, 2);
-  near(wrapSigned(local.s - 42, guide.length), 0, 1e-7);
+  near(local.s - 42, 0, 1e-7);
   near(local.l, 6.5, 1e-7);
 });
 
@@ -118,7 +118,6 @@ test('pseudo projection keeps same-s same-height anchors at identical depth, sca
     focalLength: 200,
     centerX: 160,
     centerY: 120,
-    courseLength: guide.length,
   };
 
   const leftPlan = rasterCourseToWorld(guide.raster, 40, -10);
@@ -148,14 +147,13 @@ test('general pseudo projection reduces to Core straight-road yaw equation', () 
     focalLength: f,
     centerX: 160,
     centerY: 120,
-    courseLength: 1000,
   };
   const projected = pseudoProject({ x: l, y: 0, z: d, s: d }, camera);
   const expected = straightRoadScreenX(160, f, d, theta, l, lCam);
   near(projected.x, expected, 1e-10);
 });
 
-test('raster compiler rejects a turn sharper than the Core 10-degree hard limit', () => {
+test('raster compiler rejects an interior turn sharper than the Core 10-degree hard limit', () => {
   assert.throws(() => compileRasterCourse([
     { x: 0, z: 0 },
     { x: 0, z: 20 },
@@ -164,10 +162,10 @@ test('raster compiler rejects a turn sharper than the Core 10-degree hard limit'
   ]), /10deg limit/);
 });
 
-test('raster fixed-l strip edges converge to the same miter point from both sides of every vertex', () => {
+test('raster fixed-l strip edges converge to the same miter point from both sides of every interior vertex', () => {
   const course = createM1DebugGuide().raster;
   const epsilonS = 1e-7;
-  for (let i = 0; i < course.vertices.length; i += 1) {
+  for (let i = 1; i < course.vertices.length - 1; i += 1) {
     const sVertex = course.vertexS[i];
     for (const l of [-12, -4.5, 0, 4.5, 12]) {
       const before = rasterCourseToWorld(course, sVertex - epsilonS, l);
@@ -179,11 +177,11 @@ test('raster fixed-l strip edges converge to the same miter point from both side
   }
 });
 
-test('raster vertex miter is an exact unit-offset intersection and stays bounded by the 10-degree turn limit', () => {
+test('raster interior miter is exact while endpoint bases are adjacent-segment normals', () => {
   const course = createM1DebugGuide().raster;
   const maxMiterScale = 1 / Math.cos(deg(5));
-  for (let i = 0; i < course.vertices.length; i += 1) {
-    const incoming = course.segments[(i - 1 + course.segments.length) % course.segments.length].heading;
+  for (let i = 1; i < course.vertices.length - 1; i += 1) {
+    const incoming = course.segments[i - 1].heading;
     const outgoing = course.segments[i].heading;
     const nIn = normalFromHeading(incoming);
     const nOut = normalFromHeading(outgoing);
@@ -192,16 +190,19 @@ test('raster vertex miter is an exact unit-offset intersection and stays bounded
     near(m.x * nOut.x + m.z * nOut.z, 1, 1e-12);
     assert.ok(Math.hypot(m.x, m.z) <= maxMiterScale + 1e-12);
   }
+
+  assert.deepEqual(course.vertexMiters[0], normalFromHeading(course.segments[0].heading));
+  assert.deepEqual(course.vertexMiters.at(-1), normalFromHeading(course.segments.at(-1).heading));
 });
 
-test('Guide world-coordinate round trip remains continuous across the whole closed course', () => {
+test('Guide world-coordinate round trip remains continuous across the whole open path', () => {
   const guide = createM1DebugGuide();
   const laterals = [-12, -6, 0, 6, 12];
   for (let s = 0; s < guide.length; s += 5) {
     for (const l of laterals) {
       const world = guideCourseToWorld(guide, s, l);
       const local = locateWorldOnGuideLocal(guide, world, world.segmentIndex, 2);
-      near(wrapSigned(local.s - s, guide.length), 0, 2e-6);
+      near(local.s - s, 0, 2e-6);
       near(local.l, l, 2e-6);
     }
   }
