@@ -59,10 +59,12 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
   assert.equal(new Set(max.map((entry) => entry.actorId)).size, 16);
 });
 
-test('M6.43 current browser fixture is branching with one roster rival and field-wide branch locking', () => {
+test('M6.43 current Pages fixture leaves branch choice to the player until violation policy exists', () => {
   assert.equal(M6_43_DEV_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 1);
+  assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 0);
   assert.equal(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
+  assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'UNDECIDED');
+  assert.deepEqual(createRivalRoster(M6_43_DEV_COURSE_MODE), []);
 
   const source = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(source, /createRivalRoster\(M6_43_DEV_COURSE_MODE\)/);
