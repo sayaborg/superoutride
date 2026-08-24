@@ -1,6 +1,6 @@
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import type { CyclicSurfaceMap } from '../physics/surface-map.js';
+import type { SurfaceMap } from '../physics/surface-map.js';
 import {
   compileStageRuntimeContentRegistry,
   type StageRuntimeContentPackage,
@@ -8,7 +8,7 @@ import {
 } from '../runtime/stage-runtime-content.js';
 import type { FarBackground } from '../visual/far-background.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
@@ -19,8 +19,8 @@ import {
 } from './m6-21-child-visual-identity.js';
 
 export interface M620SharedRuntimeContent {
-  readonly heightProfile: CyclicHeightProfile;
-  readonly surfaceMap: CyclicSurfaceMap;
+  readonly heightProfile: HeightProfileReader;
+  readonly surfaceMap: SurfaceMap;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: GroundMapProfile;
   readonly selectFarBackground: (cameraS: number) => FarBackground;
