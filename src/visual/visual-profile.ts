@@ -45,12 +45,7 @@ export class VisualProfile implements VisualProfileReader {
 
   sample(s: number): VisualSection {
     const local = openChainage(s, this.courseLength, 'visual profile');
-    let index = this.sections.length - 1;
-    for (let i = 0; i < this.sections.length; i += 1) {
-      if (this.sections[i]!.sStart <= local) index = i;
-      else break;
-    }
-    return this.sections[index]!;
+    return sectionAt(this.sections, local);
   }
 
   distanceToNextSection(s: number): number {
@@ -65,25 +60,32 @@ export class VisualProfile implements VisualProfileReader {
 
 /** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
 export class CyclicVisualProfile implements VisualProfileReader {
-  readonly source: VisualProfile;
+  readonly sections: readonly VisualSection[];
 
   constructor(readonly courseLength: number, sections: readonly VisualSection[]) {
-    this.source = new VisualProfile(courseLength, sections);
-  }
-
-  get sections(): readonly VisualSection[] {
-    return this.source.sections;
+    this.sections = new VisualProfile(courseLength, sections).sections;
   }
 
   sample(s: number): VisualSection {
-    return this.source.sample(wrapPositive(s, this.courseLength));
+    return sectionAt(this.sections, wrapPositive(s, this.courseLength));
   }
 
   distanceToNextSection(s: number): number {
     const local = wrapPositive(s, this.courseLength);
-    const distance = this.source.distanceToNextSection(local);
-    return distance > EPSILON ? distance : this.courseLength;
+    for (const section of this.sections) {
+      if (section.sStart > local + EPSILON) return section.sStart - local;
+    }
+    return this.courseLength - local;
   }
+}
+
+function sectionAt(sections: readonly VisualSection[], local: number): VisualSection {
+  let index = sections.length - 1;
+  for (let i = 0; i < sections.length; i += 1) {
+    if (sections[i]!.sStart <= local) index = i;
+    else break;
+  }
+  return sections[index]!;
 }
 
 function openChainage(s: number, courseLength: number, label: string): number {
