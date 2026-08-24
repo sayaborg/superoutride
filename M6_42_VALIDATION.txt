@@ -1,0 +1,54 @@
+SUPER OUTRIDE M6.42 — Multi-Actor Route Tick Arbitration
+
+Structural validated head before documentation synchronization:
+e87690d2ba72ce494e9e0fa7549173681eb2f3d5
+
+GitHub Actions PR run:
+32688668066
+Build job:
+97318267946
+
+Result:
+353 tests
+353 pass
+0 fail
+0 cancelled
+0 skipped
+0 todo
+
+M6.42 authority:
+- one route transaction phase occurs only after all participating actor world-physics updates for the simulation tick
+- every actor route-boundary motion is observed before any actor RouteDagState is mutated
+- optional shared route choice is arbitrated once per tick from the complete physical candidate set
+- accepted RouteDag transitions and PENDING handoffs remain per actor
+- physical seam COMMIT remains per actor and changes chart/package authority only
+- recovery/resync can suppress route-boundary observation without suppressing handoff/chart synchronization
+- browser currently keeps shared route policy INDEPENDENT
+- player is now also represented by LiveRouteTravelerState; legacy routeState/handoff aliases remain for current HUD/objective wiring
+
+Actor cardinality:
+- generic route batching accepts a variable-length actor array and contains no one-rival/two-actor assumption
+- generic route batching does not own the product rival-count cap
+- current product direction expects mode/roster authoring to support roughly 0..16 rivals
+- dedicated regression validates PLAYER + 0 rivals and PLAYER + 16 rivals through the same M6.42 path
+- current browser's one DEV rival is a fixture, not an architectural limit
+
+Dedicated M6.42 regressions:
+1. INDEPENDENT simultaneous divergent branch transactions
+2. shared earliest physical crossing wins after all-actor observation
+3. same winning gate can advance multiple actors
+4. zero- and sixteen-rival extremes use the same batching path
+5. transition remains PENDING before seam COMMIT
+6. seam COMMIT remains per actor
+7. recovery-suppressed actor cannot manufacture route progress
+8. single-actor batching matches legacy traveler semantics
+9. route tick has no vehicle-physics/camera/renderer dependency
+10. browser updates current player/rival physics before one arbitration call
+
+Intermediate failures:
+- first browser-wired candidate failed only two obsolete static main.ts layering assertions from M6.22/M6.40
+- a later file update accidentally replaced historical fixture sections; both test files were restored from main and only the obsolete layering assertions were updated
+- no historical geometry, route, handoff or traveler behavioral assertion was weakened or removed
+
+Frozen renderer / physics authority remains unchanged.
+Final documentation-inclusive head must independently reproduce 353/353 before main fast-forward.
