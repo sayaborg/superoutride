@@ -1,10 +1,10 @@
-# SUPER OUTRIDE — M6.43 Course Mode / Rival Roster Foundation
+# SUPER OUTRIDE — M6.44 Open Path Core
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D.**
 
-`main` is the implementation authority. Frozen renderer mathematics remain defined by `docs/00_core_design_freeze.md` and the M5.2 metric-sprite addendum.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite and M6.44 open-path addenda.
 
 ## Current milestone state
 
@@ -66,7 +66,8 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 - M6.40 Rival Live Route Traversal — complete
 - M6.41 Shared Route Choice Authority — complete
 - M6.42 Multi-Actor Route Tick Arbitration — complete
-- **M6.43 Course Mode / Rival Roster Foundation — complete**
+- M6.43 Course Mode / Rival Roster Foundation — complete
+- **M6.44 Open Path Core — complete**
 
 ## Run / test
 
@@ -84,7 +85,7 @@ Full regression:
 npm test
 ```
 
-M6.42 ended at **353 tests**. M6.43 adds six course-mode / roster regressions for **359 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
+M6.43 ended at **359 tests**. M6.44 adds eight direct open-path regressions for **367 tests** total. GitHub Pages runs the complete suite before any `main` deployment. Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
 
 ## Frozen renderer authority
 
@@ -93,14 +94,15 @@ The implementation preserves all of the following:
 - world X/Y/Z is authoritative for physics;
 - vehicle motion is not snapped to the road centerline;
 - one chainage maps to one horizontal scanline;
-- pseudo-depth is signed cyclic chainage difference only;
+- pseudo-depth is exactly `s_render - s_camera`;
+- renderer depth contains no course-length modulo or topology decision;
 - camera-space Z is not introduced;
 - Euclidean distance is not used as renderer depth;
 - lateral position does not modify depth;
 - same `d` means same scale;
 - same `d` + same height means same screen Y;
 - road remains Raster Segment geometry;
-- absolute turn at one Raster vertex remains at most 10°;
+- absolute turn at one **interior** Raster vertex remains at most 10°;
 - Guide Curve is coordinate / camera support only;
 - TerrainLine and World Sprite share one far-to-near Painter;
 - no z-buffer or polygon road;
@@ -111,7 +113,7 @@ The implementation preserves all of the following:
 - GroundMap `(s,l)` visual data and SurfaceMap `(s,l)` physics data remain independent;
 - GroundBase TRANSPARENT and SurfaceMap VOID remain independent;
 - Far Background is one full image including below-horizon pixels;
-- branch / RouteDag / course-mode / rival-count logic is not renderer Core.
+- branch / RouteDag / course-mode / rival-count / circuit topology is not renderer Core.
 
 Final renderer order:
 
@@ -145,9 +147,72 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale` multiplier. A future FOV change must move `D_cam` so the 40 px/m player-depth reference remains fixed.
 
+## Open path geometry authority
+
+M6.44 makes the renderer geometry primitive independent from route topology.
+
+The canonical Raster/Guide domain is:
+
+```text
+0 <= s <= L
+```
+
+Authored vertices mean only:
+
+```text
+v0 → v1 → ... → vN
+```
+
+Core does not manufacture a hidden:
+
+```text
+vN → v0
+```
+
+Therefore:
+
+- RasterPath has no implicit closing segment;
+- first/last Raster vertices have no synthetic closing turn or miter;
+- GuidePath has no endpoint wrap fillet;
+- Raster/Guide sampling does not modulo-wrap out-of-range chainage;
+- local world-to-Guide search clips at real endpoints;
+- TerrainLine forward visibility clips at the actual path end;
+- camera chainage uses `s_vehicle - D_cam` without wrapping;
+- world-sprite and terrain depth both use `s_render - s_camera`.
+
+The authoring/compiler layer owns sufficient run-in/runout around ordinary play so endpoint clipping does not require renderer exceptions.
+
+### Open SurfaceMap / explicit cyclic adapter
+
+Physical surface addressing follows the same principle:
+
+```text
+SurfaceMap        = general open [0,L] physical map
+CyclicSurfaceMap  = explicit closed-course adapter
+```
+
+Point-to-point successor stages use the general open `SurfaceMap`. Existing closed DEV content may deliberately opt into the cyclic adapter, but wrapping is no longer an inherited property of every stage.
+
+### Open successor stages
+
+The reusable Raster successor factory no longer obtains a tail by wrapping from the source endpoint back to its beginning.
+
+A successor now:
+
+```text
+copy exact handoff overlap
+→ continue from ordinary forward tangent
+→ own an open forward runout
+→ retain enough forward envelope for later successor seams/draw distance
+```
+
+Generated runout vertices remain inside the frozen 10° interior Raster limit. FINISH only needs to lie before the actual open endpoint; there is no manufactured closure seam or `finishClosureMargin` authority.
+
+This allows the existing deep route to remain a true chain of point-to-point stage geometry rather than a chain built on fake loops.
+
 ## Course route structures
 
-M6.43 makes three future product route structures explicit:
+M6.43 established three product route structures:
 
 ```text
 LINEAR     long single-route point-to-point
@@ -155,20 +220,20 @@ BRANCHING  Out Run-style branching point-to-point
 CIRCUIT    closed lap route
 ```
 
-The first two currently belong to the point-to-point graph authority family:
+The first two belong naturally to open geometry:
 
 ```text
 LINEAR     → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
 BRANCHING  → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
 ```
 
-`CIRCUIT` is deliberately reserved as a separate future authority:
+`CIRCUIT` remains a separate future topology authority:
 
 ```text
 CIRCUIT → CIRCUIT_LOOP / LAPS finish
 ```
 
-This is an architectural boundary, not a circuit implementation yet. The existing `RouteDag` remains acyclic. Circuit support must not be obtained by weakening the DAG into a cyclic graph merely to represent laps.
+This does not weaken the existing acyclic RouteDag and does not change RasterPath/GuidePath into cyclic primitives. A future circuit implementation must explicitly own endpoint connection/wrapping above Core, using named adapters where needed.
 
 ## Current live branching route
 
@@ -201,7 +266,7 @@ World X/Y/Z, yaw and velocities are not transformed by COMMIT. Entering a termin
 
 ## Branching field rule
 
-For a `BRANCHING` course, the product rule is now fixed:
+For a `BRANCHING` course, the product rule remains:
 
 > **At each real fork, the first vehicle to physically cross one sibling branch gate locks that branch for the race field.**
 
@@ -220,17 +285,15 @@ Steering direction, AI intent, screen X, sprite overlap and JavaScript actor upd
 
 If multiple vehicles cross the same winning gate in the deciding tick, all may advance through that gate. A sibling crossing in that tick is rejected by session route authority.
 
-### Losing sibling-road behavior is intentionally undecided
+### Losing sibling-road behavior remains undecided
 
-The route decision is fixed, but the physical response when a trailing vehicle attempts the forbidden sibling road is not.
-
-M6.43 records:
+The route decision is fixed, but the physical response when a trailing vehicle attempts the forbidden sibling road remains intentionally unresolved:
 
 ```text
 branchViolationPolicy = UNDECIDED
 ```
 
-Possible later rules include an invisible/physical barrier or `WRONG COURSE` followed by forced recovery. No such behavior is implemented yet. The losing sibling road therefore remains normal authored terrain/visual content; branch locking only controls legal route progression.
+Possible later rules include an invisible/physical barrier or `WRONG COURSE` followed by forced recovery. No such behavior is implemented yet. The losing sibling road remains normal authored terrain/visual content; branch locking only controls legal route progression.
 
 ## Multi-actor route tick
 
@@ -248,18 +311,18 @@ all actor physics
 
 `advanceLiveRouteMultiActorTick()` is cardinality-agnostic and owns no vehicle physics, camera, renderer or input dependency.
 
-It already validates both:
+It validates both:
 
 ```text
 PLAYER + 0 rivals  → 1 actor
 PLAYER + 16 rivals → 17 actors
 ```
 
-The engine-level route transaction therefore contains no one-rival assumption and no literal product cap.
+The engine-level route transaction contains no one-rival assumption and no literal product cap.
 
 ## Mode-owned rival count
 
-M6.43 moves opponent cardinality into `CourseModeAuthoring`.
+`CourseModeAuthoring` owns opponent cardinality.
 
 Current product envelope:
 
@@ -277,7 +340,7 @@ routeKind  = BRANCHING
 rivalCount = 1
 ```
 
-so the visible fixture remains familiar while the architecture is no longer singular.
+so the visible fixture remains familiar while the architecture is not singular.
 
 ## Rival roster
 
@@ -291,7 +354,7 @@ so the visible fixture remains familiar while the architecture is no longer sing
 
 There is no `null rival` special case.
 
-`main.ts` now builds `rivals[]` and iterates every opponent through ordinary:
+`main.ts` iterates `rivals[]` through ordinary:
 
 ```text
 AI input
@@ -305,16 +368,16 @@ package-compatible dynamic CourseSprite generation
 standings
 ```
 
-Zero rivals means those loops are empty. Sixteen rivals means the same loops have sixteen entries. The renderer only receives an ordinary variable-length sprite list.
+The renderer only receives an ordinary variable-length sprite list.
 
-The current M6.40 RIGHT-B route plan is still a DEV AI intent. Under the new BRANCHING field rule it does not possess route authority: whichever physical vehicle first crosses a sibling branch gate determines the shared legal branch.
+The current M6.40 RIGHT-B route plan remains DEV AI intent. Under the BRANCHING field rule it does not possess route authority: whichever physical vehicle first crosses a sibling branch gate determines the shared legal branch.
 
 ## Reusable route/stage compiler chain
 
 ```text
 M6.24 stage environment compiler
 M6.25 StageContinuationLink
-M6.29 Raster successor factory
+M6.29 open Raster successor factory
 M6.31 Raster successor chain
 M6.32 declarative route-fragment composition
 M6.34 stage-local junction compiler
@@ -338,20 +401,28 @@ l_source = l_local + coordinateFrame.lateralOrigin
 
 World physics remains authoritative. A chart handoff only re-expresses the same world pose in another local road coordinate system.
 
-## Validation status
+## M6.44 validation targets
 
-M6.43 dedicated regressions cover:
+Dedicated regressions cover:
 
-1. `LINEAR / BRANCHING / CIRCUIT` as distinct route structures;
-2. BRANCHING first-physical-crossing field locking plus `UNDECIDED` wrong-branch response;
-3. integer rival cardinality across the full 0..16 product envelope;
-4. stable variable-length roster identity with no null-rival special case;
-5. browser consumption of a one-rival roster and mode-derived shared locking;
-6. preservation of the acyclic RouteDag and renderer dependency boundary.
+1. no Raster last-to-first segment;
+2. no synthetic endpoint closing turn/miter;
+3. non-wrapping Raster sampling;
+4. no Guide endpoint wrap fillet and non-cyclic Guide sampling;
+5. clipped local world-to-Guide search;
+6. topology-neutral `s_render - s_camera` pseudo-depth;
+7. same-depth scale invariance without topology input;
+8. terrain endpoint clipping instead of wrap.
 
-The first M6.43 CI candidates each reached **358/359**. Both failures were static regression wording problems, not implementation failures: first a dependency regex matched documentation comments, then `/cycle/` failed to match the existing word `acyclic`. The regressions were corrected to inspect import specifiers and the actual `assertAcyclicAndReachable()` guard. No implementation requirement or dependency boundary was weakened.
+The implementation-green checkpoint `ee675357afc27f27ebcb3c727f8011127d7e8858` passed GitHub Actions run #397 with:
 
-The documentation-inclusive exact head must independently reproduce **359/359 / 0 fail** before main fast-forward.
+```text
+367 tests
+367 pass
+0 fail
+```
+
+The documentation-inclusive exact feature head and then the validation-file-inclusive final feature head must independently reproduce **367/367 / 0 fail** before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -364,6 +435,13 @@ Handling values remain replaceable scaffolding. Vehicle-to-vehicle collision rem
 ## Primary current files
 
 ```text
+src/core/course.ts
+src/core/guide-curve.ts
+src/core/projection.ts
+src/road/terrain-line.ts
+src/physics/surface-map.ts
+src/physics/stage-surface-map-view.ts
+src/runtime/raster-stage-successor.ts
 src/gameplay/course-mode.ts
 src/gameplay/route-dag.ts
 src/gameplay/route-boundary-gates.ts
@@ -382,12 +460,14 @@ src/dev/m6-43-course-mode.ts
 src/render/m5-renderer.ts
 src/main.ts
 tests/m6-42-multi-actor-route-tick-arbitration.test.mjs
-tests/m6-42-browser-wiring.test.mjs
 tests/m6-43-course-mode-rival-roster.test.mjs
+tests/m6-44-open-path-core.test.mjs
 ```
 
-Design notes are `docs/26_m6_8_route_dag.md` through `docs/61_m6_43_course_mode_rival_roster.md`.
+Normative design authority is in `docs/00_core_design_freeze.md`, `docs/00a_core_design_freeze_addendum_m5_2.md` and `docs/00b_core_design_freeze_addendum_m6_44.md`.
+
+Milestone notes run through `docs/62_m6_44_open_path_core.md`.
 
 ## Next
 
-A useful next milestone is to separate the current shared DEV AI route plan from per-rival roster authoring and add deterministic **spawn / AI profile / intended route plan per roster entry**, while keeping field branch authority independent from AI intent. Circuit runtime construction remains a later milestone and should enter through its reserved `CIRCUIT_LOOP` authority rather than by changing RouteDag semantics.
+M6.45 should build route/topology integration on top of the new open primitive rather than adding topology back into Core. In particular, any future explicit circuit connection must remain a higher-layer authority while LINEAR and BRANCHING continue to consume ordinary open Raster/Guide geometry.
