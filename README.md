@@ -1,77 +1,25 @@
-# SUPER OUTRIDE — M6.48 Explicit Circuit Topology Foundation
+# SUPER OUTRIDE — M6.49 Circuit Runtime Window Integration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D. Topology stays above Core.**
 
-`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative M5.2 metric-sprite, M6.44 open-path and M6.45 open-source-profile addenda. M6.46 defined branch-violation recovery, M6.47 completed open-source integration in the live BRANCHING parent stage, and M6.48 introduces an explicit upper-level CIRCUIT topology without making Core cyclic.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative metric/open-path addenda. M6.44–M6.47 made the general geometry and runtime source stack open. M6.48 added explicit upper-level CIRCUIT topology. M6.49 compiles that topology into a finite ordinary open runtime window so the existing Guide, source readers, TerrainLine generator and renderer remain topology-blind.
 
 ## Current milestone state
 
-- M0 Browser Shell — complete
-- M1 Core Geometry — complete
-- M2 Road Running — complete / GO
-- M3 Visual Core — complete
-- M4 Super Scaler — complete
-- M5 Driving — complete (Car + Motorcycle DEV physics)
-- M5.1 Player visibility / recovery — complete
-- M5.2 Fixed metric sprite scale — complete
-- M5.3 Compiler / Asset Pipeline Foundation — complete
-- M5.4 GroundMap Density / Anisotropic LOD Foundation — complete
-- M5.5 TerrainLine Footprint Instrumentation — complete
-- M5.6 Target GroundMap kMax Proof — complete
-- M5.7 Baked GroundMap Runtime Integration — complete
-- M5.8 Render Performance Budget Instrumentation — complete
-- M5.9 Tunnel / Portal Stress Content — complete
-- M6.0 Validated Race Progress Foundation — complete
-- M6.1 Bounded Continuous Race Progress — complete
-- M6.2 Deterministic Run Timing / Ranking Consumer — complete
-- M6.3 Independent Moving Rival Foundation — complete
-- M6.4 Vehicle Physics Replaceability Boundary — complete
-- M6.5 Deterministic Vehicle Physics Telemetry — complete
-- M6.6 Deterministic Driving Input Trace Replay — complete
-- M6.7 Validated Run Objective / Point-to-Point Completion — complete
-- M6.8 Gameplay-only Validated Route DAG — complete
-- M6.9 World-space Validated Route Boundary Gates — complete
-- M6.10 Generic Validated Run Finish — complete
-- M6.11 Route Stage Content Manifest Boundary — complete
-- M6.12 Junction Cross-section Authority — complete
-- M6.13 Visible Junction GroundMap / SurfaceMap — complete
-- M6.14 Raster Fixed-l Miter Continuity — complete
-- M6.15 Visible World-space Route Gates — complete
-- M6.16 Child Guide Chart Handoff — complete
-- M6.17 Deferred Stage Handoff Transaction — complete
-- M6.18 Stage-local Single-road View — complete
-- M6.19 Stage Runtime Content Registry — complete
-- M6.20 Live Point-to-Point Stage Runtime — complete
-- M6.21 Child Visual Identity — complete
-- M6.22 True Child Stage Continuation — complete
-- M6.23 Child Environment Content — complete
-- M6.24 Reusable Stage Authoring / Compiler — complete
-- M6.25 Successor Stage Continuation Link — complete
-- M6.26 Live Child → Successor Stage — complete
-- M6.27 Live Route Runtime Assembly — complete
-- M6.28 Declarative Live Route Compilation — complete
-- M6.29 Reusable Raster Stage Successor Factory — complete
-- M6.30 Third Live Successor Stage — complete
-- M6.31 Reusable Raster Successor Chain Authoring — complete
-- M6.32 Declarative Route Fragment Composition — complete
-- M6.33 Symmetric RIGHT Third Successor — complete
-- M6.34 Reusable Stage-Local Junction — complete
-- M6.35 Second Live Physical Fork — complete
-- M6.36 Reusable Fork-Stage Route Authoring — complete
-- M6.37 Symmetric RIGHT Second Live Fork — complete
-- M6.38 Declarative Fork-Stage Growth Plan — complete
-- M6.39 Deep Route Browser-Order Integration — complete
-- M6.40 Rival Live Route Traversal — complete
-- M6.41 Shared Route Choice Authority — complete
-- M6.42 Multi-Actor Route Tick Arbitration — complete
-- M6.43 Course Mode / Rival Roster Foundation — complete
-- M6.44 Open Path Core — complete
-- M6.45 Open Source Profiles — complete
-- M6.46 Branch Violation Recovery — complete
-- M6.47 Open Parent Stage Integration — complete
-- **M6.48 Explicit Circuit Topology Foundation — complete candidate**
+```text
+M0–M5    browser / geometry / visual / driving foundations       complete
+M6.0–43  race progress / route / runtime / rival foundations     complete
+M6.44     Open Path Core                                         complete
+M6.45     Open Source Profiles                                   complete
+M6.46     Branch Violation Recovery                              complete
+M6.47     Open Parent Stage Integration                          complete
+M6.48     Explicit Circuit Topology Foundation                   complete
+M6.49     Circuit Runtime Window Integration                     complete candidate
+```
+
+The current live Pages fixture remains **BRANCHING**. M6.49 establishes CIRCUIT runtime infrastructure without changing the current product fixture.
 
 ## Run / test
 
@@ -98,6 +46,7 @@ M6.45  375 tests
 M6.46  382 tests
 M6.47  389 tests
 M6.48  396 tests
+M6.49  406 tests
 ```
 
 Pull-request CI explicitly checks out the feature-head SHA, asserts that actual checkout equals that SHA, and runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
@@ -105,7 +54,7 @@ Pull-request CI explicitly checks out the feature-head SHA, asserts that actual 
 Current package:
 
 ```text
-super-outride-m6-48@0.6.48
+super-outride-m6-49@0.6.49
 ```
 
 ## Frozen renderer authority
@@ -131,7 +80,7 @@ The implementation preserves all of the following:
 - no arbitrary runtime sprite rotation;
 - transparency is 0/1; no alpha blending;
 - camera roll remains zero;
-- GroundMap `(s,l)` visual data and SurfaceMap `(s,l)` physics data remain independent;
+- GroundMap visual data and SurfaceMap physical data remain independent;
 - GroundBase TRANSPARENT and SurfaceMap VOID remain independent;
 - Far Background is one full image including below-horizon pixels;
 - route topology, branch policy, rival count and circuit winding are not renderer Core.
@@ -155,9 +104,6 @@ player-depth scale        = 40 px/m
 f                         = 200 px
 D_cam                     = 5.0 m
 d_min                     = 2.5 m
-camera pitch              = 8°
-base camera height        = 2.469902425419539 m
-player target Y           ≈ 190
 ```
 
 Sprite scale remains physical:
@@ -168,35 +114,18 @@ texelScale = (f/d) * (worldWidthMeters/sourceWidthTexels)
 
 There is no arbitrary `visualScale`. A future FOV change must move `D_cam` so the 40 px/m player-depth reference remains fixed.
 
-## Open path geometry authority
+## Open geometry and source authority
 
-M6.44 makes the canonical Raster/Guide primitive open:
+The canonical general domain is open:
 
 ```text
 0 <= s <= L
-v0 → v1 → ... → vN
+P0 → P1 → ... → Pn
 ```
 
-Core does not manufacture `vN → v0`.
+Core never manufactures `Pn → P0`.
 
-Therefore:
-
-- RasterPath has no implicit closing segment;
-- first/last Raster vertices have no synthetic closing turn or miter;
-- GuidePath has no endpoint wrap fillet;
-- Raster/Guide sampling never modulo-wraps out-of-range chainage;
-- local world-to-Guide search clips at real endpoints;
-- TerrainLine visibility clips at the actual path end;
-- camera chainage uses `s_vehicle - D_cam` without wrapping;
-- world-sprite and terrain depth both use direct `s_render - s_camera`.
-
-LINEAR and BRANCHING authoring provide ordinary run-in/runout so the renderer needs no endpoint special case.
-
-## Open source profile authority
-
-M6.45 applies the same rule to non-geometry sources.
-
-General forms are open:
+General source forms are also open:
 
 ```text
 HeightProfile
@@ -206,124 +135,13 @@ BakedGroundMapAsset
 SurfaceMap
 ```
 
-Closed addressing is available only through explicitly named adapters:
-
-```text
-CyclicHeightProfile
-CyclicVisualProfile
-CyclicGroundMapLogicalProfile
-CyclicBakedGroundMapAsset
-CyclicSurfaceMap
-```
+Explicit `Cyclic*` adapters remain available only where an upper-level topology deliberately selects them.
 
 Governing rule:
 
 > **Open is the general data model. Cyclic is an explicit topology adapter. The renderer is neither.**
 
-M6.47 applies this consistently to the live BRANCHING parent-stage stack, including the M5.9 tunnel interval and reader contracts.
-
-## M6.48 explicit CIRCUIT topology
-
-M6.48 adds `src/gameplay/circuit-topology.ts` above Core.
-
-A circuit lap is authored as one ordinary open RasterPath whose last authored vertex explicitly returns to the first world point:
-
-```text
-P0 → P1 → ... → Pn-1 → Pn
-                         where Pn.world == P0.world
-```
-
-This is intentionally different from hidden closure.
-
-Core sees only the authored segments:
-
-```text
-P0 → P1
-P1 → P2
-...
-Pn-1 → Pn
-```
-
-Core still does **not** create another `Pn → P0` segment.
-
-The upper-level `CircuitTopology` merely declares that the two authored endpoint coordinates identify the same topology seam.
-
-### Seam geometry has no second rule set
-
-M6.48 does not reproduce the Raster 10° turn rule or miter mathematics in a circuit-specific compiler.
-
-Instead the topology compiler builds a two-copy proof path:
-
-```text
-lap 0
-→ seam
-→ lap 1
-```
-
-and sends it back through ordinary:
-
-```ts
-compileRasterPath(...)
-```
-
-The former endpoint becomes a normal interior Raster vertex in that finite unfolded path. Therefore existing Core alone validates:
-
-- seam turn ≤ 10°;
-- interior miter validity;
-- segment non-degeneracy;
-- ordinary open-path geometry invariants.
-
-There is no duplicated circuit geometry authority.
-
-### Finite unfolding
-
-`unfoldCircuitRasterPath(topology, repeatCount)` materializes any finite number of lap copies as one ordinary open RasterPath:
-
-```text
-lap 0 → lap 1 → lap 2 → ...
-0 --------------------------> increasing open chainage
-```
-
-The renderer can therefore consume a circuit-derived window using exactly the same open-path machinery as any other course. It never needs to know that the geometry originated from a circuit.
-
-### Explicit topology chainage
-
-M6.48 introduces explicit topology-owned helpers:
-
-```text
-decomposeCircuitChainage
-wrapCircuitChainage
-liftCircuitLocalChainageNear
-```
-
-The coordinate model is:
-
-```text
-s_unwrapped = winding * L + s_local
-0 <= s_local < L
-```
-
-`winding` is only a topological coordinate count. It is **not** race-lap authority.
-
-This separation is mandatory:
-
-```text
-cross topology seam
-→ coordinate winding may change
-
-complete required checkpoints + validated physical FINISH
-→ race lap may change
-```
-
-A teleport, reverse crossing or shortcut can never gain a race lap merely because a chainage helper changes winding.
-
-### Endpoint metadata authority
-
-Because the first and final lap vertices identify one seam point, seam endpoint authoring metadata must agree. M6.48 currently enforces exact agreement for `sourceRadius`; conflicting endpoint definitions are rejected rather than silently choosing one.
-
-## Course route structures
-
-M6.43 established three product structures:
+## Product route structures
 
 ```text
 LINEAR     long single-route point-to-point
@@ -331,7 +149,7 @@ BRANCHING  Out Run-style branching point-to-point
 CIRCUIT    closed lap route
 ```
 
-Their topology authorities remain distinct:
+Their authorities remain distinct:
 
 ```text
 LINEAR     → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
@@ -339,11 +157,136 @@ BRANCHING  → POINT_TO_POINT_GRAPH / POINT_TO_POINT finish
 CIRCUIT    → CIRCUIT_LOOP / LAPS finish
 ```
 
-The acyclic RouteDag remains the correct structure for point-to-point routes. M6.48 does not weaken it or force a loop into it.
+The acyclic RouteDag remains the correct structure for point-to-point routes. CIRCUIT does not weaken it or turn it into a hidden lap graph.
+
+## M6.48 explicit CIRCUIT topology
+
+One lap is authored as one ordinary open RasterPath whose final authored vertex explicitly returns to the first world point:
+
+```text
+P0 → P1 → ... → Pn-1 → Pn
+                         Pn.world == P0.world
+```
+
+There is still no extra hidden `Pn → P0` Core segment.
+
+`CircuitTopology` identifies the two authored endpoints as one topology seam and owns continuous topology chainage:
+
+```text
+s_unwrapped = winding * L + s_local
+0 <= s_local < L
+```
+
+Seam turn/miter validity is not reimplemented. M6.48 unfolds two copies and sends the resulting ordinary open path through `compileRasterPath()`, leaving Core as the single geometry authority.
+
+`winding` is coordinate state only. It is not race-lap authority.
+
+## M6.49 finite circuit runtime window
+
+M6.49 resolves CIRCUIT topology once before ordinary runtime consumers:
+
+```text
+CircuitTopology
++ one-lap open Height / Visual / Surface / Ground sources
++ startWinding
++ repeatCount
+        │
+        ▼
+compileCircuitRuntimeWindow(...)
+        │
+        ├─ open RasterPath
+        ├─ open GuidePath
+        ├─ finite HeightProfileReader
+        ├─ finite VisualProfileReader
+        ├─ finite SurfaceMapReader
+        └─ finite virtual BakedGroundMapReader
+        │
+        ▼
+existing camera / physics / TerrainLine / renderer
+```
+
+For `N` lap copies of length `L`:
+
+```text
+0 <= s_window <= N*L
+s_unwrapped_start = startWinding * L
+s_unwrapped = s_unwrapped_start + s_window
+```
+
+No lower consumer performs modulo addressing.
+
+### Deterministic seam ownership
+
+Internal finite-window seam:
+
+```text
+s_window = kL, 0 < k < N
+→ one-lap source s = 0
+```
+
+Final finite open endpoint:
+
+```text
+s_window = NL
+→ one-lap source s = L
+```
+
+Thus internal seams are ordinary continuation points while the finite runtime window still has a real inspectable endpoint.
+
+### Height continuity
+
+A circuit source must return to the same physical height datum:
+
+```text
+Y_render(0) == Y_render(L)
+Y_phys(0)   == Y_phys(L)
+Y_camera(0) == Y_camera(L)
+```
+
+Invalid authoring is rejected rather than corrected ad hoc.
+
+### Virtual baked GroundMap
+
+Existing stage validation requires truthful `BakedGroundMapReader.metadata`. M6.49 does not add an exception.
+
+Instead the circuit GroundMap window is a virtual finite baked asset:
+
+```text
+window chainage rows = source rows * repeatCount
+chunk rowStart       = source rowStart + lap * sourceRows
+payloadId            = unchanged
+```
+
+The window therefore has truthful finite course metadata while reusing the one-lap payload bytes. Runtime texture data is not duplicated merely because the coordinate window contains repeated laps.
+
+### Terrain reader boundary
+
+`TerrainVisualProfile` now requires only:
+
+```text
+HeightProfileReader
+VisualProfileReader
+```
+
+not concrete `CyclicHeightProfile / CyclicVisualProfile` types. This completes the open-reader boundary needed for ordinary TerrainLine generation to cross a circuit seam.
+
+## Race lap remains separate
+
+Topological/runtime-window seam passage does not validate a race lap.
+
+```text
+cross topology seam
+→ winding / source-address state may change
+
+complete required checkpoints + validated physical FINISH
+→ race lap may change
+```
+
+Teleport, reverse crossing, recovery or coordinate conversion cannot manufacture validated race progress.
 
 ## Current live branching route
 
-The current Pages/DEV course mode remains `BRANCHING`:
+The current Pages/DEV route remains:
 
 ```text
 STAGE_1
@@ -354,8 +297,6 @@ STAGE_1
                                  ├→ GOAL_RA
                                  └→ GOAL_RB
 ```
-
-Every visible fork is one chainage-driven lateral cross-section, never two independently projected depth roads.
 
 A legal transition remains:
 
@@ -368,24 +309,9 @@ physical route gate
 → COMMIT target chart/content
 ```
 
-World X/Y/Z, yaw and velocity do not change through COMMIT. Entering a terminal stage is not FINISH; the terminal physical FINISH gate must still be crossed forward.
+World X/Y/Z, yaw and velocity do not change through COMMIT. Entering a terminal stage is not FINISH; the physical FINISH gate must still be crossed forward.
 
-## Branching field authority
-
-For BRANCHING:
-
-> **At each real fork, the first vehicle to physically cross one sibling branch gate locks that branch for the race field.**
-
-```text
-all vehicle physics
-→ observe all physical gate crossings
-→ arbitrate once using physical sub-tick crossingFraction u
-→ earliest crossing selects branch
-→ store field lock
-→ accepted actors perform their own PENDING / seam / COMMIT
-```
-
-A losing sibling crossing produces no illegal route progress and recovers toward the already-locked legal branch. Steering direction, AI intent, screen X, sprite overlap and JavaScript update order never select the route.
+For BRANCHING, the first vehicle to physically cross one sibling branch gate locks that branch for the field. A losing sibling crossing produces no illegal route progress and recovers toward the locked legal branch.
 
 ## Multi-actor / rival authority
 
@@ -395,7 +321,7 @@ The engine path supports:
 PLAYER + 0..16 rivals
 ```
 
-Current DEV mode:
+Current DEV fixture:
 
 ```text
 routeKind               = BRANCHING
@@ -404,31 +330,35 @@ sharedRouteChoiceMode   = FIRST_PHYSICAL_CROSSING_LOCKS
 branchViolationPolicy   = RECOVER_TO_LOCKED_BRANCH
 ```
 
-The renderer receives only a normal variable-length sprite list and owns no rival-count or route policy.
+The renderer receives only a variable-length sprite list and owns no rival-count or route policy.
 
-## M6.48 direct validation targets
+## M6.49 direct validation
 
-Seven direct regressions cover:
+Ten direct regressions cover:
 
-1. a circuit seam exists only when the open lap explicitly repeats its first world vertex at the end;
-2. an ordinary open path is rejected rather than implicitly closed;
-3. conflicting seam endpoint `sourceRadius` metadata is rejected;
-4. finite unfolding produces one ordinary open RasterPath with normal interior seam turns;
-5. positive and negative unwrapped chainage decompose into canonical local chainage plus winding;
-6. local source chainage lifts continuously through the seam without giving modulo authority to Core;
-7. circuit topology remains outside renderer, projection and RouteDag authority and delegates geometry proof to `compileRasterPath()`.
+1. finite circuit Raster/Guide unfolding;
+2. forward visibility through an internal circuit seam;
+3. bounded explicit window/unwrapped conversion;
+4. internal seam `s=0` versus final endpoint `s=L` ownership;
+5. finite Height/Visual reader semantics;
+6. rejection of mismatched seam height;
+7. finite SurfaceMap source repetition;
+8. virtual baked GroundMap metadata row repetition with shared payload identity;
+9. ordinary TerrainLine generation across a circuit seam;
+10. topology-neutral TerrainVisualProfile and renderer/RouteDag isolation.
 
 Code-green checkpoint:
 
 ```text
-feature head: d320e8635cd2e5a42000ff785f2be837b5eb7f9a
-GitHub Actions: #453
-build job: 97620478759
-exact checkout: d320e8635cd2e5a42000ff785f2be837b5eb7f9a
-396 tests / 396 pass / 0 fail
+feature head: e41bee83c8d3925d5646787b17b2d98c3ea09023
+GitHub Actions: #466
+run id: 32788978408
+build job: 97626621991
+exact checkout: e41bee83c8d3925d5646787b17b2d98c3ea09023
+406 tests / 406 pass / 0 fail
 ```
 
-The docs/version-inclusive head and final validation-file-inclusive head must each independently reproduce **396/396 / 0 fail** before `main` is fast-forwarded.
+Docs/version-inclusive and final validation-file-inclusive heads must independently reproduce **406/406 / 0 fail** before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -446,57 +376,23 @@ src/core/guide-curve.ts
 src/core/projection.ts
 src/road/terrain-line.ts
 src/physics/surface-map.ts
-src/physics/car-physics.ts
-src/physics/motorcycle-physics.ts
 src/visual/height-profile.ts
 src/visual/visual-profile.ts
 src/visual/baked-ground-map.ts
 src/gameplay/course-mode.ts
 src/gameplay/circuit-topology.ts
+src/runtime/circuit-runtime-window.ts
 src/gameplay/branch-violation.ts
-src/gameplay/recovery.ts
 src/gameplay/route-dag.ts
-src/gameplay/route-boundary-gates.ts
-src/gameplay/shared-route-choice-authority.ts
-src/gameplay/route-stage-handoff.ts
-src/runtime/raster-stage-successor.ts
-src/runtime/rival-roster.ts
-src/runtime/live-route-multi-actor-tick.ts
 src/runtime/stage-runtime-content.ts
 src/render/m5-renderer.ts
 src/main.ts
 tests/m6-44-open-path-core.test.mjs
 tests/m6-45-open-source-profiles.test.mjs
 tests/m6-46-branch-violation-recovery.test.mjs
-tests/m6-47-open-parent-stage-integration.test.mjs
+tests/m6-47-open-runtime-integration.test.mjs
 tests/m6-48-explicit-circuit-topology.test.mjs
+tests/m6-49-circuit-runtime-window.test.mjs
 ```
 
-Normative renderer/Core design authority remains in:
-
-```text
-docs/00_core_design_freeze.md
-docs/00a_core_design_freeze_addendum_m5_2.md
-docs/00b_core_design_freeze_addendum_m6_44.md
-docs/00c_core_design_freeze_addendum_m6_45.md
-```
-
-M6.48 does not modify those frozen renderer rules; it implements the upper-level circuit direction already required by M6.44/M6.45.
-
-Milestone notes run through `docs/66_m6_48_explicit_circuit_topology.md`.
-
-## Next
-
-M6.48 establishes circuit geometry identity and continuous topology chainage without integrating a live circuit into the renderer.
-
-The next clean step is **M6.49 Circuit Guide / Source Window Integration**:
-
-```text
-CircuitTopology
-→ finite unfolded Raster window
-→ ordinary Guide compilation across the interior lap seam
-→ explicit mapping of one-lap Height / Visual / Ground / Surface sources
-→ finite topology-neutral runtime package
-```
-
-That step must preserve the same rule: topology transforms coordinates and selects adapters **before** ordinary Core/source consumers run. RasterPath, GuidePath, pseudo-depth, Painter order, general source profiles and the point-to-point RouteDag remain topology-neutral.
+Detailed M6.49 authority is recorded in `docs/67_m6_49_circuit_runtime_window.md`.
