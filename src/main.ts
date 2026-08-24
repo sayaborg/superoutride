@@ -62,7 +62,7 @@ import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
-import { CyclicSurfaceMap } from './physics/surface-map.js';
+import { SurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
@@ -90,7 +90,7 @@ import {
   selectM5FarBackground,
 } from './visual/m5-9-tunnel.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from './visual/visual-profile.js';
+import { VisualProfile } from './visual/visual-profile.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 import { createM4DebugWorldSprites } from './world/m4-debug-world.js';
 import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
@@ -122,8 +122,8 @@ const bakedGroundMap = await loadM5BakedGroundMap();
 if (Math.abs(bakedGroundMap.metadata.courseLength - guide.length) > 1e-7) {
   throw new Error('baked GroundMap course length does not match runtime course');
 }
-const visualProfile = new CyclicVisualProfile(guide.length, compiledSurfaces.visualSections);
-const surfaceMap = new CyclicSurfaceMap(guide.length, compiledSurfaces.surfaceSections, M6_13_JUNCTION);
+const visualProfile = new VisualProfile(guide.length, compiledSurfaces.visualSections);
+const surfaceMap = new SurfaceMap(guide.length, compiledSurfaces.surfaceSections, M6_13_JUNCTION);
 const outdoorFarBackground = createM3FarBackground();
 const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
@@ -593,7 +593,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.46 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.47 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
