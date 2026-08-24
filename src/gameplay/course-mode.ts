@@ -6,7 +6,8 @@ export type CourseFinishKind = 'POINT_TO_POINT' | 'LAPS';
 
 export type CourseSharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
 
-export type BranchViolationPolicy = 'UNDECIDED';
+/** Physical response after shared branch authority has made one sibling route illegal. */
+export type BranchViolationPolicy = 'RECOVER_TO_LOCKED_BRANCH';
 
 export interface CourseModeAuthoring {
   readonly id: string;
@@ -64,7 +65,7 @@ export function compileCourseMode(authoring: CourseModeAuthoring): CourseModePro
         finishKind: 'POINT_TO_POINT',
         rivalCount: authoring.rivalCount,
         sharedRouteChoiceMode: 'FIRST_PHYSICAL_CROSSING_LOCKS',
-        branchViolationPolicy: 'UNDECIDED',
+        branchViolationPolicy: 'RECOVER_TO_LOCKED_BRANCH',
       });
     case 'CIRCUIT':
       return Object.freeze({
