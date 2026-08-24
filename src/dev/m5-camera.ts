@@ -38,6 +38,8 @@ export interface M5CameraRig {
 
 export interface M5CameraState extends PseudoCamera {
   l: number;
+  /** DEV-harness compatibility only; renderer PseudoCamera has no topology field. */
+  courseLength: number;
   guideHeadingAtCar: number;
   vehicleGuideYawDelta: number;
   cameraVehicleYawDelta: number;
@@ -151,6 +153,7 @@ export function updateM5Camera(
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
+    courseLength: curve.length,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
