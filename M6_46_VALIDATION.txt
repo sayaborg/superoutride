@@ -1,0 +1,45 @@
+SUPER OUTRIDE
+M6.46 VALIDATION
+
+MILESTONE
+- M6.46 Branch Violation Recovery
+
+PRE-VALIDATION FEATURE HEAD
+- e02e342165a34f3b38cea963b3b7d9aba61c8ed1
+
+WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #438
+- Build job: 97485020872
+- Result: success
+- Exact checkout expected: e02e342165a34f3b38cea963b3b7d9aba61c8ed1
+- Exact checkout actual:   e02e342165a34f3b38cea963b3b7d9aba61c8ed1
+
+AUTOMATED REGRESSION
+- 382 tests
+- 382 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.46 DIRECT COVERAGE
+- BRANCHING keeps FIRST_PHYSICAL_CROSSING_LOCKS and now uses RECOVER_TO_LOCKED_BRANCH.
+- Same-tick losing sibling crossing emits an explicit LiveRouteBranchViolation without RouteDag progress.
+- Existing shared locks continue narrowing legal route observation while unrestricted physical observation surfaces a forbidden sibling crossing.
+- A forbidden sibling crossing never queues PENDING and never commits the illegal route.
+- Recovery target derives from the already-authorized physical transition gate approach.
+- General recovery is open/topology-neutral and no longer uses wrapPositive or requires CyclicHeightProfile.
+- Explicit supported Guide-coordinate recovery is reusable for the wrong-course response.
+- Rival AI follows an already-existing shared lock as steering intent, while physical gate crossing remains route authority.
+- The current Pages fixture restores one rival; the generic roster/multi-actor infrastructure remains valid for 0..16 rivals.
+- Deep LEFT/RIGHT route handoffs and physical FINISH validation remain green.
+- Renderer Core, pseudo-depth, Painter order and fixed 2.0m=80px player metric authority are unchanged.
+
+VERSION
+- super-outride-m6-46@0.6.46
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- Fast-forward main only to that exact CI-green feature head with force=false.
