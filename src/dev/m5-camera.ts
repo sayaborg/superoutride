@@ -8,7 +8,7 @@ import { sampleGuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export interface M5CameraProfile {
   dCam: number;
@@ -79,7 +79,7 @@ export function rebaseM5CameraRigCoordinateFrame(
 export function updateM5Camera(
   rig: M5CameraRig,
   guide: GuideCoordinateSource,
-  height: CyclicHeightProfile,
+  height: HeightProfileReader,
   vehicle: VehicleCameraReadState,
   profile: M5CameraProfile,
   dt: number,
