@@ -7,6 +7,10 @@ import test from 'node:test';
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const srcRoot = path.join(repositoryRoot, 'src');
 const devRoot = path.join(srcRoot, 'dev');
+const allowedDevCompositionRoots = new Set([
+  path.join(srcRoot, 'main.ts'),
+  path.join(srcRoot, 'main-circuit.ts'),
+]);
 
 async function collectTypeScriptFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -32,26 +36,27 @@ async function pathExists(target) {
   }
 }
 
-test('general source layers do not depend on src/dev', async () => {
-  const topLevelEntries = await readdir(srcRoot, { withFileTypes: true });
-  const generalDirectories = topLevelEntries
-    .filter((entry) => entry.isDirectory() && entry.name !== 'dev')
-    .map((entry) => path.join(srcRoot, entry.name));
+test('only explicit top-level composition roots may depend on src/dev', async () => {
   const violations = [];
 
-  for (const directory of generalDirectories) {
-    for (const sourceFile of await collectTypeScriptFiles(directory)) {
-      const source = await readFile(sourceFile, 'utf8');
-      const importSpecifiers = [
-        ...source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g),
-      ].map((match) => match[1]);
+  for (const sourceFile of await collectTypeScriptFiles(srcRoot)) {
+    if (sourceFile === devRoot || sourceFile.startsWith(`${devRoot}${path.sep}`)) {
+      continue;
+    }
 
-      for (const specifier of importSpecifiers) {
-        if (!specifier.startsWith('.')) continue;
-        const resolved = path.resolve(path.dirname(sourceFile), specifier);
-        if (resolved === devRoot || resolved.startsWith(`${devRoot}${path.sep}`)) {
-          violations.push(`${path.relative(repositoryRoot, sourceFile)} -> ${specifier}`);
-        }
+    const source = await readFile(sourceFile, 'utf8');
+    const importSpecifiers = [
+      ...source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g),
+    ].map((match) => match[1]);
+
+    for (const specifier of importSpecifiers) {
+      if (!specifier.startsWith('.')) continue;
+      const resolved = path.resolve(path.dirname(sourceFile), specifier);
+      if (resolved !== devRoot && !resolved.startsWith(`${devRoot}${path.sep}`)) {
+        continue;
+      }
+      if (!allowedDevCompositionRoots.has(sourceFile)) {
+        violations.push(`${path.relative(repositoryRoot, sourceFile)} -> ${specifier}`);
       }
     }
   }
