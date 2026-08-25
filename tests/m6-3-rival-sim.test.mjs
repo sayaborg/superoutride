@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { createM5DebugSurfaceMap } from '../dist/physics/surface-map.js';
