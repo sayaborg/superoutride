@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCoordinateLateralOrigin } from '../dist/core/guide-coordinate-frame.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import { createM617RouteStageHandoffManifest } from '../dist/dev/m6-17-handoff-seams.js';
@@ -16,7 +16,7 @@ import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runti
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { rebaseM5CameraRigCoordinateFrame } from '../dist/dev/m5-camera.js';
+import { rebaseM5CameraRigCoordinateFrame } from '../dist/camera/m5-camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
