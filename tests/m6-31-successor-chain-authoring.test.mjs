@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
 import {
   compileRasterSuccessorChain,
