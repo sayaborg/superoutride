@@ -1,6 +1,6 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
-import type { M2VehicleState } from '../dev/m2-vehicle.js';
+import type { VehicleKinematicState } from '../physics/vehicle-state.js';
 import { generateTerrainLines, type TerrainVisualProfile } from '../road/terrain-line.js';
 import { SoftwareSurface, rgba } from './software-surface.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
@@ -21,7 +21,7 @@ export function renderM3VisualCore(
   background: FarBackground,
   guide: GuideCurve,
   camera: PseudoCamera,
-  vehicle: M2VehicleState,
+  vehicle: VehicleKinematicState,
   terrainProfile: TerrainVisualProfile,
   groundProfile: GroundMapProfile,
 ): M3RenderResult {
