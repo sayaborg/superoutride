@@ -1,4 +1,4 @@
-import type { RaceProgressState, RaceProgressUpdate } from './race-progress.js';
+import type { PhysicalRaceGate } from './physical-race-gate.js';
 
 const EPSILON = 1e-9;
 
@@ -9,11 +9,7 @@ export interface ValidatedGateTiming {
   readonly validatedProgressFloor: number;
 }
 
-/**
- * A completed FINISH boundary in the current closed DEV course.
- * This is deliberately named boundary timing rather than lap timing: the product gameplay
- * is free to consume the same validated FINISH semantics for a point-to-point run later.
- */
+/** One physically validated FINISH boundary timing. */
 export interface CourseBoundaryTiming {
   readonly index: number;
   readonly elapsedSeconds: number;
@@ -26,6 +22,16 @@ export interface RaceSessionState {
   readonly gateTimings: ValidatedGateTiming[];
   readonly boundaryTimings: CourseBoundaryTiming[];
   bestBoundaryIntervalSeconds: number | null;
+}
+
+/** Minimal validated-progress contract needed by timing. */
+export interface RaceSessionProgressView {
+  readonly validatedProgressFloor: number;
+}
+
+/** Minimal already-validated gate contract needed by timing. */
+export interface RaceSessionUpdateView {
+  readonly acceptedGate: PhysicalRaceGate | null;
 }
 
 export interface RaceRankingInput {
@@ -52,16 +58,21 @@ export function createRaceSessionState(): RaceSessionState {
  * Advance deterministic gameplay time from the fixed simulation delta.
  * Browser wall-clock/frame time is never timing authority.
  *
+ * Timing consumes only already-validated physical gate results. It has no dependency on
+ * legacy closed-course wrapping, CircuitTopology, RouteDag or renderer state.
  * Gate timestamps are quantized to the physics tick that reports the accepted physical
  * crossing. This bounded <=dt timing resolution is intentional and deterministic.
  */
 export function advanceRaceSession(
   session: RaceSessionState,
-  progress: RaceProgressState,
-  update: RaceProgressUpdate | null,
+  progress: RaceSessionProgressView,
+  update: RaceSessionUpdateView | null,
   dt: number,
 ): void {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('race session dt must be finite and > 0');
+  if (!Number.isFinite(progress.validatedProgressFloor)) {
+    throw new RangeError('race session validatedProgressFloor must be finite');
+  }
   session.elapsedSeconds += dt;
 
   const gate = update?.acceptedGate;
