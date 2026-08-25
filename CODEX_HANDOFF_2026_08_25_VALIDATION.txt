@@ -1,0 +1,133 @@
+SUPER OUTRIDE CODEX HANDOFF 2026-08-25 VALIDATION
+=================================================
+
+Purpose
+-------
+Validate the documentation-only transition package that moves persistent project context from the preceding ChatGPT development thread into repository authority for future Codex sessions.
+
+Pre-handoff game/runtime baseline
+---------------------------------
+Repository:
+  sayaborg/superoutride
+
+Main SHA before handoff documentation:
+  6e15c374ba6679eec16b589c68941154c67665fd
+
+Package:
+  super-outride-m6-51@0.6.51
+
+Baseline runtime tests:
+  431 / 431 pass / 0 fail
+
+Latest runtime PR before handoff:
+  #70 M6.51 Pages branching continuation hotfix
+
+Baseline Pages main-push workflow:
+  #496
+  run id 32833392245
+  build success
+  deploy success
+
+Handoff scope
+-------------
+The handoff branch is documentation-only.
+
+It adds/changes only:
+  AGENTS.md
+  README.md
+  docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+  this validation record
+
+No game source, test, package, build configuration or workflow code is intentionally changed by the handoff package.
+
+Persistent authority created
+----------------------------
+AGENTS.md:
+  persistent coding-agent/development contract
+
+Core Freeze + addenda:
+  normative frozen renderer/math/open-source authority
+
+Numbered milestone documents:
+  scoped later design authority
+
+Types + tests:
+  executable implementation contract
+
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md:
+  takeover snapshot, exact pre-handoff game baseline, current architecture, incident context, known/deferred items and mandatory first read-only Codex audit
+
+README.md:
+  entry/current-state index only; not a second normative design authority
+
+Pre-validation exact-head CI
+----------------------------
+PR:
+  #71 Add Codex takeover contract and handoff
+
+Feature branch:
+  docs/codex-handoff-2026-08-25
+
+Docs-inclusive exact head:
+  ebd55fb9c87eecaba034085098effd8a15f2e632
+
+Workflow:
+  Test and Deploy GitHub Pages
+  run #497
+  run id 32835925056
+  build job 97764649435
+
+Exact checkout:
+  expected=ebd55fb9c87eecaba034085098effd8a15f2e632
+  actual=ebd55fb9c87eecaba034085098effd8a15f2e632
+
+Project runtime:
+  node v20.20.2
+  npm 10.8.2
+
+Package:
+  super-outride-m6-51@0.6.51
+
+Result:
+  tests 431
+  pass 431
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+Important handoff state
+-----------------------
+The exact pre-handoff game/runtime baseline remains:
+  6e15c374ba6679eec16b589c68941154c67665fd
+
+The final post-handoff repository/main SHA will be newer because this validation record itself must be included in the released head.
+
+The first Codex task is intentionally read-only and is specified in:
+  docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+
+Known investigation lead transferred
+------------------------------------
+The handoff records a possible later second-fork/recovery issue observed only during an over-scoped exploratory simulation while debugging PR #70.
+
+It is not established as the cause of the first-fork incident and is not a validated product bug yet. Future work must reproduce and characterize it before any recovery/gate/AI change is made.
+
+Release rule
+------------
+This validation file must itself be included in the final feature head.
+
+That validation-inclusive exact SHA must receive another complete green CI run before main may move.
+
+Immediately before release:
+  - re-fetch main;
+  - require the candidate to be a pure fast-forward from the original baseline/current main;
+  - require behind_by = 0;
+  - require merge base = current main.
+
+Main must then move with force=false to exactly the validated feature SHA.
+
+After release verify:
+  main SHA == validated feature SHA
+  PR head SHA == PR merge SHA == validated feature SHA
+
+Finally verify the main-push Test and Deploy GitHub Pages workflow on that same SHA, including build and deploy success.
