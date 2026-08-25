@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import { computeM3Camera } from '../dist/dev/m3-camera.js';
 import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
@@ -10,7 +10,7 @@ import { renderM3VisualCore } from '../dist/render/m3-renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground, drawFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/visual/m3-debug-visual.js';
+import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/dev/m3-debug-visual.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
 const deg = (value) => value * Math.PI / 180;
