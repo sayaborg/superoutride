@@ -1,5 +1,7 @@
 # M6.17 — Deferred Stage Handoff
 
+> **Historical milestone note:** the DEV sequence below records the M6.17 first route gate at approximately `s=545 m`. The live first physical route gate was later moved to `570 m` by the M6.51 Pages branching-continuation hotfix after the 545 m gate was proven to be physically missed by the leading rival. The handoff seam remains `600 m`. Current incident evidence is archived at `docs/validation/M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt`.
+
 ## Purpose
 
 Route choice and content/chart replacement are not the same event.
