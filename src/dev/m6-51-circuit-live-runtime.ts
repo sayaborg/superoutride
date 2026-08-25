@@ -1,5 +1,4 @@
 import { compileRasterPath } from '../core/course.js';
-import { createM2StadiumGuide } from '../core/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { compileCourseMode } from '../gameplay/course-mode.js';
@@ -8,6 +7,7 @@ import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/c
 import { GROUND_COLORS } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
+import { createM2StadiumGuide } from './debug-course.js';
 
 export const M6_51_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_CIRCUIT_THREE_LAP_SOLO',
