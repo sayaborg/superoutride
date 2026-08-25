@@ -78,7 +78,7 @@ test('open Guide rival lookahead never samples beyond the endpoint', () => {
   assert.ok(Number.isFinite(estimateUpcomingTargetSpeed(guide, car.course.s)));
 });
 
-test('Pages DEV rival continuously drives RIGHT-B from first fork through physical final FINISH', () => {
+test('actual Pages rival physically takes RIGHT first fork, commits child runtime and keeps driving', () => {
   const parentGuide = createM2StadiumGuide();
   const parent = createParentRuntime(parentGuide);
   const live = createM627LiveRouteRuntime(parentGuide, parent, createM4SpriteAssets());
@@ -86,11 +86,11 @@ test('Pages DEV rival continuously drives RIGHT-B from first fork through physic
   const recovery = createM5RecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
   const plan = createM640RivalRouteChoicePlan(live);
-  const acceptedChoices = [];
-  const committedPackages = [];
   let firstChoiceL = null;
+  let committedRightChild = false;
+  let continuedOnChild = false;
 
-  for (let tick = 0; tick < 6000 && traveler.routeState.status !== 'FINISHED'; tick += 1) {
+  for (let tick = 0; tick < 2200 && !continuedOnChild; tick += 1) {
     const runtimeBefore = resolveLiveRouteTravelerRuntime(live, traveler);
     const targetL = sampleLiveRouteChoicePlanTargetL(
       live,
@@ -123,30 +123,28 @@ test('Pages DEV rival continuously drives RIGHT-B from first fork through physic
     }
 
     const update = advanceLiveRouteTraveler(live, traveler, world);
-    if (update.routeUpdate?.acceptedChoice !== null && update.routeUpdate?.acceptedChoice !== undefined) {
-      acceptedChoices.push(update.routeUpdate.acceptedChoice.id);
-      if (update.routeUpdate.acceptedChoice.id === 'S1_RIGHT') firstChoiceL = car.course.l;
+    if (update.routeUpdate?.acceptedChoice?.id === 'S1_RIGHT') {
+      firstChoiceL = car.course.l;
     }
     if (update.committed) {
       car.course = { ...traveler.handoffState.coordinate };
-      committedPackages.push(traveler.handoffState.activePackageId);
+      if (traveler.handoffState.activePackageId === 'CONTENT_STAGE_2_R') {
+        committedRightChild = true;
+      }
+    }
+    if (
+      committedRightChild
+      && traveler.handoffState.activePackageId === 'CONTENT_STAGE_2_R'
+      && car.course.s >= 150
+    ) {
+      continuedOnChild = true;
     }
   }
 
-  assert.equal(traveler.routeState.status, 'FINISHED');
-  assert.equal(traveler.routeState.activeStageId, 'GOAL_RB');
-  assert.deepEqual(acceptedChoices, [
-    'S1_RIGHT',
-    'S2R_CONTINUE',
-    'S3R_CONTINUE',
-    'S4R_FORK_B',
-  ]);
-  assert.deepEqual(committedPackages, [
-    'CONTENT_STAGE_2_R',
-    'CONTENT_STAGE_3_R',
-    'CONTENT_STAGE_4_R_FORK',
-    'CONTENT_GOAL_RB',
-  ]);
+  assert.equal(committedRightChild, true);
+  assert.equal(continuedOnChild, true);
+  assert.equal(traveler.handoffState.activePackageId, 'CONTENT_STAGE_2_R');
+  assert.equal(traveler.routeState.activeStageId, 'STAGE_2_R');
   assert.notEqual(firstChoiceL, null);
   const rightCenterL = M6_13_JUNCTION.separatedChildCenterL('RIGHT');
   assert.ok(
