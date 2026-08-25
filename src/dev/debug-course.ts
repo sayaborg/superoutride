@@ -1,6 +1,6 @@
-import { CURRENT_CAMERA_DISTANCE_METERS } from './presentation-scale.js';
-import { compileRasterCourse, type RasterVertex } from './course.js';
-import { compileGuideCurve, type GuideCurve } from './guide-curve.js';
+import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import { compileRasterCourse, type RasterVertex } from '../core/course.js';
+import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
 
 export function createM1DebugGuide(): GuideCurve {
   const radius = 100;

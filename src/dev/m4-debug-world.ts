@@ -2,7 +2,7 @@ import type { GuideCurve } from '../core/guide-curve.js';
 import type { SpriteAsset } from '../render/sprite.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
-import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from './course-sprite.js';
+import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 
 export function createM4DebugWorldSprites(
   guide: GuideCurve,
