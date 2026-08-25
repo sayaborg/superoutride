@@ -1,0 +1,127 @@
+SUPER OUTRIDE CODEX FINAL REPOSITORY HYGIENE VALIDATION
+
+Repository:
+sayaborg/superoutride
+
+Scope:
+Codex pre-migration repository hygiene after the FINAL CODEX MIGRATION POINT. This scope is behavior-preserving and limited to explicit DEV dependency authority, source-boundary enforcement, DEV documentation, current entry-document wording, and Pages compatibility/failure-fallback wording.
+
+Baseline main exact SHA:
+430aff95b35f9a76b941fa17e3d4b4d44aed393b
+
+Package:
+super-outride-m6-51@0.6.51
+
+Phase A/B/C repository hygiene state before this branch:
+- branch audit completed before destructive cleanup;
+- all 84 non-main historical/stale branches were classified before deletion;
+- seven diverged branches were semantically audited and intentionally discarded;
+- stale PR #7 and #58 were closed without merge;
+- Phase C completed with main as the sole remote branch;
+- main remained exactly 430aff95b35f9a76b941fa17e3d4b4d44aed393b after branch cleanup;
+- open PR count was zero before this hygiene PR.
+
+Phase D repository-settings status:
+DEFERRED BY EXPLICIT USER INSTRUCTION / NOT APPLIED.
+
+The intended settings normalization (automatic merged-head deletion, main force-push/deletion protection, linear-history protection, and required build check without require-PR/up-to-date restrictions) could not be applied through the available administration-authentication path. GitHub repository contents and main were not mutated by the failed attempt. This validation does not claim those repository settings are normalized.
+
+Phase E pre-validation exact head:
+076bed9bb6196d67b83c35ec1663fadd662ed6d8
+
+PR:
+#77 Final repository hygiene for Codex
+
+Pre-validation diff relationship:
+base main: 430aff95b35f9a76b941fa17e3d4b4d44aed393b
+candidate: 076bed9bb6196d67b83c35ec1663fadd662ed6d8
+ahead_by: 5
+behind_by: 0
+merge base: 430aff95b35f9a76b941fa17e3d4b4d44aed393b
+
+Changed files before this validation artifact: exactly 5
+- .github/workflows/pages.yml
+- AGENTS.md
+- README.md
+- src/dev/README.md
+- tests/source-boundary-normalization.test.mjs
+
+Behavior impact:
+NONE INTENDED.
+
+No changes in this pre-validation scope to:
+- gameplay algorithms;
+- renderer algorithms;
+- physics algorithms or tuning;
+- camera behavior;
+- course/race/runtime algorithms;
+- topology or route semantics;
+- numeric tuning;
+- milestone source placement or naming;
+- numbered milestone documentation;
+- Core Freeze or addenda;
+- existing historical validation evidence;
+- package/version metadata;
+- Pages staging/deployment behavior.
+
+DEV boundary resolution:
+- src/dev is explicitly documented as DEV composition/evidence, not general runtime authority;
+- src/dev/README.md classifies current public DEV composition fixtures, historical milestone/regression fixtures, and instrumentation/telemetry;
+- general layers must not import src/dev;
+- the only current non-DEV TypeScript roots allowed to assemble DEV fixtures are src/main.ts and src/main-circuit.ts;
+- tests/source-boundary-normalization.test.mjs now scans all src/**/*.ts instead of only top-level source directories;
+- src/dev/** remains free to depend on ordinary general layers;
+- retired authority compatibility shims remain prohibited.
+
+Pages wording resolution:
+- _site/build/$SHA/ remains the authoritative commit-versioned browser ESM path;
+- _site/dist/ remains present with unchanged staging behavior;
+- only the explanatory comment changed from temporary "during the transition" language to explicit compatibility/failure-fallback language.
+
+Historical evidence policy:
+Existing numbered milestone documents and docs/validation/* remain historical evidence. Earlier statements are not rewritten merely because later repository hygiene clarifies current authority. In particular, older clean-room/validation records are preserved rather than retroactively edited.
+
+Pre-validation GitHub Actions evidence:
+workflow: Test and Deploy GitHub Pages
+run: #588
+run id: 32870733979
+build job: 97876822919
+event: pull_request
+expected SHA: 076bed9bb6196d67b83c35ec1663fadd662ed6d8
+actual SHA:   076bed9bb6196d67b83c35ec1663fadd662ed6d8
+Node project runtime: v20.20.2
+npm: 10.8.2
+package: super-outride-m6-51@0.6.51
+result: 433 tests / 433 pass / 0 fail / 0 skipped
+build conclusion: success
+PR deploy job: skipped as expected
+
+Relevant enforced regression evidence:
+- test #432: only explicit top-level composition roots may depend on src/dev — PASS
+- test #433: source-boundary authority paths have no compatibility shims — PASS
+
+Validation-inclusive release preconditions:
+1. Adding this artifact changes the branch SHA. The resulting artifact-inclusive exact head is the only release candidate.
+2. Run the complete PR workflow again on that exact artifact-inclusive head.
+3. Require expected checkout SHA = actual checkout SHA = artifact-inclusive candidate SHA.
+4. Require 433 / 433 pass, 0 fail, 0 skipped.
+5. Re-fetch main immediately before release and require it still represents the candidate's merge base.
+6. Require candidate ahead_by > 0, behind_by = 0, merge base = current main.
+7. Move main only to the validated exact candidate with force=false and no extra merge commit.
+8. Verify main SHA = validated candidate SHA and inspect PR #77 identity/state.
+9. Verify the main-push workflow on that same SHA, including Pages build and deploy success.
+10. Delete the cleanup branch after release and re-audit repository-only state; branch deletion may require the same manual Codespaces path used in Phase C because the connected GitHub tool does not expose ref deletion.
+
+Self-reference avoidance rule:
+Do not edit this artifact after the artifact-inclusive exact head has been validated merely to write that later SHA, later CI run, main-ref identity, PR state, Pages run, or branch-deletion result into this file. Such an edit would create another unvalidated SHA and restart the exact-head cycle. Final identity is established by immutable Git commit/PR/main-ref/workflow history together with this artifact.
+
+Final hygiene acceptance target, excluding the explicitly deferred Phase D repository settings:
+- stale branch = 0 after cleanup-branch deletion
+- stale open PR = 0
+- unclassified branch = 0
+- broken current cross-reference = 0
+- duplicate current authority = 0
+- misplaced production authority = 0
+- undocumented DEV dependency = 0
+- stale Pages migration wording = 0
+- unvalidated main head = 0
