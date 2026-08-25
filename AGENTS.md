@@ -4,7 +4,7 @@ This file is the persistent working contract for coding agents operating in this
 
 It is intentionally **not** a second design document. Normative game/rendering mathematics live in the Core Freeze documents and their explicit addenda. Milestone-specific decisions live in the corresponding milestone documents and regression tests.
 
-Before changing code, read this file, the authority documents listed below, and the latest takeover/handoff document.
+Before changing code, read this file, the repository entry/authority documents listed below, and the current migration/handoff checkpoint when takeover context is relevant.
 
 ---
 
@@ -60,9 +60,15 @@ docs/69_m6_51_circuit_live_runtime.md
 
 Types, compilers and regression tests are the executable contract. If documentation and implementation appear inconsistent, do not silently choose one. Identify the conflict, determine which authority owns the topic, and resolve it explicitly.
 
-### Current takeover state
+### Documentation authority index
 
-The latest `docs/SUPER_OUTRIDE_CODEX_HANDOFF_*.md` records the takeover baseline, current architecture, known issues and recommended first task. It is a snapshot, not a replacement for normative design documents.
+`docs/README.md` distinguishes normative authority, chronological milestone history, takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
+
+### Current migration/handoff state
+
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` is the current concise Codex migration checkpoint. It records the repository baseline entering the final migration freeze, completed cleanup work, deferred investigation leads and the reading order.
+
+The original mandatory first read-only Codex takeover audit has been completed. Do not repeat that one-time migration ceremony merely because a fresh session reads the handoff. The handoff remains context/navigation only and does not replace normative design documents or executable contracts.
 
 ### README
 
@@ -400,7 +406,9 @@ During implementation:
 - avoid duplicate state and duplicate coordinate authorities;
 - preserve world-state continuity through chart/content changes;
 - prefer finite/open composition over implicit wrapping;
-- keep DEV fixtures clearly separate from product authority.
+- keep DEV fixtures clearly separate from product authority;
+- do not introduce dependencies from general `src/*` layers into `src/dev`;
+- do not recreate retired authority paths as compatibility re-export shims.
 
 After implementation:
 
@@ -429,6 +437,8 @@ Do **not** do any of the following without a new explicit normative design decis
 - make topological winding equal validated race laps;
 - make RouteDag cyclic to implement CIRCUIT;
 - add a renderer CIRCUIT special path when finite open composition is sufficient;
+- introduce a general-layer dependency on `src/dev`;
+- recreate a retired authority path as a compatibility shim;
 - hide a runtime defect by removing a rival/feature unless the product rule itself is intentionally changed;
 - bypass a failing physical-gate regression by widening gates without validating authored road geometry;
 - merge an unvalidated SHA;
@@ -441,13 +451,14 @@ Do **not** do any of the following without a new explicit normative design decis
 When starting from a fresh Codex/agent context:
 
 1. Read this file completely.
-2. Read `README.md` for repository entry points.
-3. Read the four freeze/addendum files listed in section 2.
-4. Read the latest relevant milestone documents, especially M6.44 onward for current topology/runtime work.
-5. Read the latest `docs/SUPER_OUTRIDE_CODEX_HANDOFF_*.md`.
-6. Confirm current `main` SHA and compare it with the handoff snapshot.
-7. Run the complete test suite before changing anything.
-8. Perform a read-only architecture/takeover audit first if the handoff requests it.
-9. Only then propose or implement the next milestone.
+2. Read `README.md` for repository entry points and current status.
+3. Read `docs/README.md` for authority/supersession and evidence policy.
+4. Read the four freeze/addendum files listed in section 2.
+5. Read the latest relevant milestone documents, especially M6.44 onward for current topology/runtime work.
+6. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` for the current migration baseline and deferred-work map.
+7. Confirm current `main` SHA and compare it with the handoff snapshot/baseline.
+8. Run the complete test suite before changing anything.
+9. Perform a read-only architecture/takeover audit first only if the current handoff explicitly marks migration verification incomplete. The current 2026-08-25 migration freeze marks the original one-time takeover audit complete.
+10. Only then define or implement the next scoped task.
 
 The repository, not a previous chat transcript, is the continuing project memory.
