@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { compileRasterCourse, rasterCourseToWorld } from '../dist/core/course.js';
-import { createM1DebugGuide } from '../dist/core/debug-course.js';
+import { createM1DebugGuide } from '../dist/dev/debug-course.js';
 import {
   filletMetric,
   guideCourseToWorld,
