@@ -1,0 +1,101 @@
+SUPER OUTRIDE M6.51 PAGES BRANCHING CONTINUATION HOTFIX VALIDATION
+==================================================================
+
+Purpose
+-------
+Fix the public M6.51 BRANCHING fixture that appeared to pass the first visible fork and then froze shortly afterward, while also correcting the stale on-canvas M6.47 milestone label.
+
+Deployed incident authority
+---------------------------
+Previous main / deployed Pages SHA:
+  140d7bf10e180936062f676acf49066f556796ea
+
+GitHub Pages push run:
+  #492
+  run id 32830139955
+
+Pages deployment log reported:
+  pages_build_version = 140d7bf10e180936062f676acf49066f556796ea
+  deployment success
+  environment URL = https://sayaborg.github.io/superoutride/
+
+The downloaded github-pages artifact from that run was inspected directly. Therefore the incident was not attributed to a stale GitHub Pages deployment.
+
+Reproduced root cause
+---------------------
+1. The deployed BRANCHING HUD itself still hardcoded `M6.47 BUILD` even though index.html and package metadata were M6.51.
+
+2. The public fixture retained one deterministic DEV rival starting at parent s=95 and planning RIGHT-B.
+
+3. The first physical route gate was authored at s=545. At the rival's forward plane crossing, the measured stage-local lateral coordinate was approximately +3.32 m.
+
+4. The RIGHT child physical gate is centered near +7.5 m with half-width 3.5 m, so its accepted lateral interval is approximately +4.0..+11.0 m. The rival therefore looked visually committed to RIGHT but physically missed route arbitration by about 0.68 m. RouteDag correctly remained on STAGE_1.
+
+5. The rival then continued along the ordinary open parent Guide. Near parent s≈656.4, the old 100 m curvature lookahead attempted to sample beyond the parent Guide endpoint (L≈766.054 m), throwing RangeError. That unhandled exception terminated the browser animation loop, producing the observed apparent freeze.
+
+Hotfix design
+-------------
+- Keep the public one-rival fixture. Do not hide the defect by removing the rival.
+- Keep FIRST_PHYSICAL_CROSSING_LOCKS and physical crossing as route authority. AI intent never grants route progress.
+- Move the first physical route gate from s=545 m to s=570 m. This remains after full road separation and before the existing s=600 m handoff seam, preserving a distinct physical gate -> PENDING -> physical seam -> COMMIT interval.
+- At s=570 the actual Pages rival crosses the RIGHT gate physically inside the child road (measured local l≈+7.90 m in the continuous 60 Hz regression).
+- Bound deterministic rival steering and curvature lookahead to the real finite open Guide endpoint. This is endpoint clipping, not cyclic wrapping or topology inference.
+- Correct the BRANCHING HUD milestone to M6.51.
+- Add a package-derived visible milestone synchronization regression covering index.html, BRANCHING HUD and CIRCUIT HUD.
+
+Architecture preserved
+----------------------
+- World X/Y/Z remains vehicle physics authority.
+- Route choice remains physical gate crossing only.
+- Route gate -> PENDING -> physical seam -> COMMIT remains unchanged.
+- Renderer/Core receives no route or topology special case.
+- Open Guide remains open; no modulo or wrap is introduced.
+- Public rival cardinality remains 1 and the product 0..16 rival architecture remains intact.
+- Fixed presentation authority remains 2.0 m = 80 px.
+
+Direct incident regressions
+---------------------------
+1. `open Guide rival lookahead never samples beyond the endpoint`
+   Verifies steering and speed-lookahead sampling remain finite near the real open Guide end.
+
+2. `actual Pages rival physically takes RIGHT first fork, commits child runtime and keeps driving`
+   Uses the real DEV rival start s=95, real RIGHT-B route plan, ordinary M5 car physics and recovery at 60 Hz. It requires:
+   - physical S1_RIGHT acceptance inside the RIGHT child-road width,
+   - seam COMMIT to CONTENT_STAGE_2_R,
+   - continued child-stage driving to at least child s=150 m.
+
+3. `visible Pages milestone labels match the package milestone`
+   Prevents a future deployed build from showing an old milestone label while the package is newer.
+
+Pre-validation exact-head CI
+----------------------------
+Feature head:
+  6a4edbdc28624c5331d79f6566fd653a31c5e81c
+
+PR:
+  #70 M6.51 Pages branching continuation hotfix
+
+Workflow:
+  Test and Deploy GitHub Pages
+  run #494
+  run id 32832784469
+  build job 97754963088
+
+Exact checkout:
+  expected=6a4edbdc28624c5331d79f6566fd653a31c5e81c
+  actual=6a4edbdc28624c5331d79f6566fd653a31c5e81c
+
+Package:
+  super-outride-m6-51@0.6.51
+
+Result:
+  tests 431
+  pass 431
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+Release rule
+------------
+This validation file must itself be included in the final feature head. That validation-inclusive exact SHA must receive another complete green CI run before main may be fast-forwarded. Main must move with force=false and must end at exactly that validated SHA.
