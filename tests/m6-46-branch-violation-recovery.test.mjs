@@ -19,7 +19,10 @@ import { createM5Car } from '../dist/physics/car-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
 import {
+  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
+  resyncLiveRouteTraveler,
+  resolveLiveRouteTravelerRuntime,
   sampleLiveRouteChoiceTargetL,
 } from '../dist/runtime/live-route-traveler.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
@@ -87,6 +90,26 @@ function actorResult(tick, actorId) {
   const result = tick.actors.find((candidate) => candidate.actorId === actorId);
   assert.ok(result, `missing actor result ${actorId}`);
   return result;
+}
+
+function handoffSeam(live, choiceId) {
+  const result = live.handoffs.seams.find((candidate) => candidate.choiceId === choiceId);
+  assert.ok(result, `missing handoff seam ${choiceId}`);
+  return result;
+}
+
+function crossAndCommitChoice(live, traveler, choiceId) {
+  const transition = gate(live, choiceId);
+  resyncLiveRouteTraveler(live, traveler, pointAlong(transition, -1));
+  const routeTick = advanceLiveRouteTraveler(live, traveler, pointAlong(transition, 1));
+  assert.equal(routeTick.routeUpdate?.acceptedChoice?.id, choiceId);
+  assert.equal(routeTick.committed, false);
+
+  const seam = handoffSeam(live, choiceId);
+  resyncLiveRouteTraveler(live, traveler, pointAlong(seam, -1));
+  const handoffTick = advanceLiveRouteTraveler(live, traveler, pointAlong(seam, 1));
+  assert.equal(handoffTick.committed, true);
+  assert.equal(traveler.handoffState.pending, null);
 }
 
 test('M6.46 ordinary recovery backtracks to the real open start instead of wrapping to the path end', () => {
@@ -191,6 +214,73 @@ test('M6.46 locked-branch recovery approach derives from the legal physical gate
   assert.ok(parent);
   const target = locateWorldOnGuideCoordinateGlobal(parent.coordinateFrame, approach.worldPoint, false);
   assert.equal(parent.surfaceMap.sample(target.s, target.l).material.supported, true);
+});
+
+test('second-fork losing sibling recovers to the locked physical gate without manufacturing route progress', () => {
+  const { live } = createLiveFixture();
+  const winner = createLiveRouteTravelerState(live, pointAlong(gate(live, 'S1_RIGHT'), -1));
+  const loser = createLiveRouteTravelerState(live, pointAlong(gate(live, 'S1_RIGHT'), -1));
+
+  for (const choiceId of ['S1_RIGHT', 'S2R_CONTINUE', 'S3R_CONTINUE']) {
+    crossAndCommitChoice(live, winner, choiceId);
+    crossAndCommitChoice(live, loser, choiceId);
+  }
+  assert.equal(winner.routeState.activeStageId, 'STAGE_4_R_FORK');
+  assert.equal(loser.routeState.activeStageId, 'STAGE_4_R_FORK');
+
+  const losingGate = gate(live, 'S4R_FORK_A');
+  const lockedGate = gate(live, 'S4R_FORK_B');
+  resyncLiveRouteTraveler(live, winner, pointAlong(lockedGate, -1));
+  resyncLiveRouteTraveler(live, loser, pointAlong(losingGate, -3));
+  const shared = createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS');
+  const conflictTick = advanceLiveRouteMultiActorTick(live, shared, [
+    { actorId: 'LOSER', state: loser, currentWorldPoint: pointAlong(losingGate, 1) },
+    { actorId: 'WINNER', state: winner, currentWorldPoint: pointAlong(lockedGate, 3) },
+  ]);
+
+  assert.equal(conflictTick.arbitration.createdLocks[0]?.stageId, 'STAGE_4_R_FORK');
+  assert.equal(conflictTick.arbitration.createdLocks[0]?.choiceId, 'S4R_FORK_B');
+  assert.equal(actorResult(conflictTick, 'LOSER').branchViolation?.attemptedChoiceId, 'S4R_FORK_A');
+  assert.equal(actorResult(conflictTick, 'LOSER').branchViolation?.lockedChoiceId, 'S4R_FORK_B');
+  assert.equal(loser.routeState.activeStageId, 'STAGE_4_R_FORK');
+  assert.equal(loser.handoffState.pending, null);
+
+  const runtime = resolveLiveRouteTravelerRuntime(live, loser);
+  const car = createM5Car(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, 0);
+  const recovery = createM5RecoveryState(car);
+  const approach = lockedBranchRecoveryApproach(live.gates, 'S4R_FORK_B', 8);
+  const target = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, approach.worldPoint, false);
+  recoverM5VehicleToGuideCoordinate(
+    recovery,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    runtime.surfaceMap,
+    car,
+    { s: target.s, l: target.l },
+    'wrong-course',
+  );
+  resyncLiveRouteTraveler(live, loser, { x: car.x, z: car.z });
+
+  assert.equal(car.supported, true);
+  assert.equal(recovery.lastReason, 'wrong-course');
+  assert.equal(loser.routeState.activeStageId, 'STAGE_4_R_FORK');
+  assert.equal(loser.handoffState.pending, null);
+
+  const legalTick = advanceLiveRouteMultiActorTick(live, shared, [
+    { actorId: 'LOSER', state: loser, currentWorldPoint: pointAlong(lockedGate, 1) },
+  ]);
+  assert.equal(actorResult(legalTick, 'LOSER').branchViolation, null);
+  assert.equal(actorResult(legalTick, 'LOSER').routeUpdate?.acceptedChoice?.id, 'S4R_FORK_B');
+  assert.equal(loser.routeState.activeStageId, 'GOAL_RB');
+  assert.equal(loser.handoffState.pending?.choiceId, 'S4R_FORK_B');
+
+  const seam = handoffSeam(live, 'S4R_FORK_B');
+  resyncLiveRouteTraveler(live, loser, pointAlong(seam, -1));
+  const commitTick = advanceLiveRouteMultiActorTick(live, shared, [
+    { actorId: 'LOSER', state: loser, currentWorldPoint: pointAlong(seam, 1) },
+  ]);
+  assert.equal(actorResult(commitTick, 'LOSER').committed, true);
+  assert.equal(loser.handoffState.activePackageId, 'CONTENT_GOAL_RB');
 });
 
 test('M6.46 explicit locked choice can replace AI plan intent without becoming route authority', () => {
