@@ -1,10 +1,10 @@
-# SUPER OUTRIDE — M6.50 Circuit Race Progress
+# SUPER OUTRIDE — M6.51 Circuit Live Runtime Integration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
-> **Physics is world-space. Renderer is chainage-driven raster pseudo-3D. Topology stays above Core. Race laps require validated physical gates.**
+> **Physics is world-space. Renderer is chainage-driven raster pseudo-3D. Topology stays above Core. Open is the general runtime model.**
 
-`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative metric/open-path addenda. M6.44–M6.47 made the general geometry/runtime source stack open. M6.48 added explicit upper-level CIRCUIT topology. M6.49 compiles that topology into a finite ordinary open runtime window. M6.50 adds physical CIRCUIT race progress on that same finite open ruler without adding cyclic behavior to renderer, camera or vehicle physics.
+`main` is the implementation authority. Frozen renderer mathematics are defined by `docs/00_core_design_freeze.md` plus the normative metric/open-path addenda. Detailed milestone decisions live in `docs/` rather than being duplicated here.
 
 ## Current milestone state
 
@@ -17,10 +17,9 @@ M6.46      Branch Violation Recovery                             complete
 M6.47      Open Parent Stage Integration                         complete
 M6.48      Explicit Circuit Topology Foundation                  complete
 M6.49      Circuit Runtime Window Integration                    complete
-M6.50      Circuit Race Progress                                 complete candidate
+M6.50      Circuit Race Progress                                 complete
+M6.51      Circuit Live Runtime Integration                      complete candidate
 ```
-
-The current live Pages fixture remains **BRANCHING**. M6.50 establishes CIRCUIT race authority without switching the current product fixture.
 
 ## Run / test
 
@@ -30,7 +29,19 @@ npm run build
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`.
+Open the existing BRANCHING live fixture:
+
+```text
+http://localhost:8000/
+```
+
+Open the M6.51 three-lap CIRCUIT live fixture:
+
+```text
+http://localhost:8000/?mode=circuit
+```
+
+The query parameter selects only the top-level browser composition. Lower engine layers do not receive a `routeKind` flag.
 
 Full regression:
 
@@ -48,7 +59,8 @@ M6.46  382 tests
 M6.47  389 tests
 M6.48  396 tests
 M6.49  406 tests
-M6.50  420 tests expected after timing integration
+M6.50  420 tests
+M6.51  428 tests at code-green checkpoint
 ```
 
 Pull-request CI explicitly checks out the feature-head SHA, asserts that actual checkout equals that SHA, and runs the complete suite. GitHub Pages uses a commit-versioned complete ESM path so a deployment cannot mix modules from different commits.
@@ -56,7 +68,7 @@ Pull-request CI explicitly checks out the feature-head SHA, asserts that actual 
 Current package:
 
 ```text
-super-outride-m6-50@0.6.50
+super-outride-m6-51@0.6.51
 ```
 
 ## Frozen renderer authority
@@ -161,277 +173,9 @@ CIRCUIT    → CIRCUIT_LOOP / physical ordered LAPS finish
 
 The acyclic RouteDag remains the correct structure for point-to-point routes. CIRCUIT does not weaken it or turn it into a hidden lap graph.
 
-## M6.48 explicit CIRCUIT topology
+## BRANCHING live authority
 
-One lap is authored as one ordinary open RasterPath whose final authored vertex explicitly returns to the first world point:
-
-```text
-P0 → P1 → ... → Pn-1 → Pn
-                         Pn.world == P0.world
-```
-
-There is still no extra hidden `Pn → P0` Core segment.
-
-`CircuitTopology` owns continuous topology chainage:
-
-```text
-s_unwrapped = winding * L + s_local
-0 <= s_local < L
-```
-
-Seam turn/miter validity is not reimplemented. M6.48 unfolds copies and sends the resulting ordinary open path through `compileRasterPath()`, leaving Core as the single geometry authority.
-
-`winding` is coordinate state only. It is not race-lap authority.
-
-## M6.49 finite circuit runtime window
-
-M6.49 resolves CIRCUIT topology once before ordinary runtime consumers:
-
-```text
-CircuitTopology
-+ one-lap open Height / Visual / Surface / Ground sources
-+ startWinding
-+ repeatCount
-        │
-        ▼
-compileCircuitRuntimeWindow(...)
-        │
-        ├─ open RasterPath
-        ├─ open GuidePath
-        ├─ finite HeightProfileReader
-        ├─ finite VisualProfileReader
-        ├─ finite SurfaceMapReader
-        └─ finite virtual BakedGroundMapReader
-        │
-        ▼
-existing camera / physics / TerrainLine / renderer
-```
-
-For `N` lap copies of length `L`:
-
-```text
-0 <= s_window <= N*L
-s_unwrapped_start = startWinding * L
-s_unwrapped = s_unwrapped_start + s_window
-```
-
-No lower consumer performs modulo addressing.
-
-Internal seam ownership:
-
-```text
-s_window = kL, 0 < k < N
-→ one-lap source s = 0
-```
-
-Final finite open endpoint:
-
-```text
-s_window = NL
-→ one-lap source s = L
-```
-
-A circuit height source must physically return to the same render/physics/camera height datum at `0` and `L`.
-
-The virtual baked GroundMap repeats finite metadata rows/chunk references while reusing one-lap payload IDs and bytes.
-
-## M6.50 shared physical race gate
-
-The old M6.0 closed DEV race and the new finite-open race now share one physical gate primitive:
-
-```text
-PhysicalRaceGate
-  index
-  kind
-  name
-  s
-  center
-  tangent
-  normal
-  halfWidth
-```
-
-The crossing authority is actual world motion:
-
-```text
-previous world position
-→ current world position
-→ transverse gate-plane intersection
-→ Guide-envelope width test
-→ forward/reverse classification
-```
-
-Raw chainage alone cannot satisfy this physical crossing test.
-
-Legacy `race-progress.ts` keeps its old wrapped DEV semantics but delegates gate compilation/crossing geometry to this shared primitive.
-
-## M6.50 generic finite ordered progress
-
-The general runtime primitive is topology-free:
-
-```text
-OrderedRaceCourseRules
-  open Guide
-  strictly increasing physical gates[]
-
-OrderedRaceProgressState
-  status
-  nextGateIndex
-  validatedProgressFloor
-  sProgress
-  acceptedGateCount
-  acceptedFinishCount
-  reverseCrossingCount
-  shortcutViolationCount
-```
-
-It contains no:
-
-```text
-lapLength
-wrapPositive
-wrapSigned
-CircuitTopology
-routeKind
-```
-
-Continuous ranking progress remains bounded:
-
-```text
-validatedProgressFloor <= sProgress <= nextRequiredGate.s
-```
-
-## Repeated world geometry is not duplicate race authority
-
-Circuit checkpoint/finish copies share world geometry:
-
-```text
-L1_CP1.center == L2_CP1.center == L3_CP1.center
-```
-
-M6.50 uses the finite previous/current `s_window` interval only to select which logical repeated gate copy is eligible for the current physics step. The interval is padded by actual planar world travel to tolerate small Guide projection lag.
-
-Then the candidate must still pass the normal physical world-segment crossing test.
-
-Therefore:
-
-```text
-s_window candidate selection != physical gate validation
-```
-
-## Circuit race authoring
-
-A circuit race is authored once per lap:
-
-```text
-CircuitRaceAuthoring
-  id
-  lapCount
-  checkpointChainages[]
-```
-
-with:
-
-```text
-0 < CP1 < CP2 < ... < L
-```
-
-At least one physical checkpoint per lap is required.
-
-For three laps with three checkpoints:
-
-```text
-L1_CP1 → L1_CP2 → L1_CP3 → L1_FINISH
-L2_CP1 → L2_CP2 → L2_CP3 → L2_FINISH
-L3_CP1 → L3_CP2 → L3_CP3 → L3_FINISH
-```
-
-The circuit compiler expands that into one strictly increasing finite-open gate sequence. The generic ordered progress runtime does not need lap/modulo logic.
-
-## N scored laps require N+1 runtime copies
-
-Normative M6.50 rule:
-
-> **An N-lap CIRCUIT race requires an M6.49 runtime window containing at least N+1 lap copies.**
-
-```text
-raceDistance = N * L
-window.length >= (N+1) * L
-raceDistance < window.length
-```
-
-This deliberately places every scored FINISH at an ordinary **internal** Guide seam:
-
-```text
-L, 2L, ... NL
-```
-
-rather than making the last FINISH coincide with the finite open endpoint.
-
-Benefits:
-
-- every lap uses identical physical FINISH center/tangent/normal authority;
-- renderer/camera retain normal forward lookahead after the final FINISH;
-- no endpoint-specific finish tangent;
-- no synthetic closure;
-- no special final-lap runtime path.
-
-The extra lap is unscored runtime/runout content, not an extra race lap.
-
-## Validated circuit lap authority
-
-The authoritative lap count is:
-
-```text
-acceptedFinishCount
-```
-
-One lap requires:
-
-```text
-required ordered checkpoints
-+ forward physical FINISH crossing inside Guide envelope
-```
-
-These do **not** award a lap:
-
-```text
-CircuitTopology winding change
-raw s_window crossing kL
-FINISH crossing before required checkpoints
-reverse FINISH crossing
-recovery/resync
-teleport/raw chainage mutation
-```
-
-`startWinding` is topology identity only. A race beginning at winding 137 still starts at validated lap 0 and progress 0.
-
-Intermediate validated FINISH gates produce a race boundary; only the final authored FINISH changes circuit race state to `FINISHED`.
-
-## Race timing and ranking reuse
-
-`race-session.ts` now consumes the minimum shared contract:
-
-```text
-validatedProgressFloor
-acceptedGate: PhysicalRaceGate | null
-```
-
-Both legacy closed DEV progress and CIRCUIT progress can therefore use the same deterministic timing system. No circuit-only timer is introduced.
-
-Ranking remains:
-
-```text
-primary   = sProgress
-secondary = validatedProgressFloor
-exact equality = true tie
-```
-
-Because CIRCUIT progress is finite/open, no modulo ranking is needed.
-
-## Current live branching route
-
-The current Pages/DEV route remains:
+The default Pages fixture remains the current branching route:
 
 ```text
 STAGE_1
@@ -458,15 +202,13 @@ World X/Y/Z, yaw and velocity do not change through COMMIT. Entering a terminal 
 
 For BRANCHING, the first vehicle to physically cross one sibling branch gate locks that branch for the field. A losing sibling crossing produces no illegal route progress and recovers toward the locked legal branch.
 
-## Multi-actor / rival authority
-
 The engine path supports:
 
 ```text
 PLAYER + 0..16 rivals
 ```
 
-Current DEV fixture:
+Current BRANCHING DEV fixture:
 
 ```text
 routeKind               = BRANCHING
@@ -475,45 +217,190 @@ sharedRouteChoiceMode   = FIRST_PHYSICAL_CROSSING_LOCKS
 branchViolationPolicy   = RECOVER_TO_LOCKED_BRANCH
 ```
 
-The renderer receives only a variable-length sprite list and owns no rival-count or route policy.
+## CIRCUIT architecture
 
-## M6.50 direct validation
+### M6.48 — explicit topology
 
-Fourteen direct regressions cover:
-
-1. finite strictly ordered N-lap physical gate expansion;
-2. required unscored lookahead lap / internal final FINISH;
-3. invalid checkpoint authoring rejection;
-4. `startWinding` / validated-lap separation;
-5. raw `s_window` movement cannot score;
-6. premature physical FINISH shortcut rejection;
-7. lap increments only at ordered physical FINISH;
-8. repeated world-gate disambiguation without duplicate acceptance;
-9. identical physical FINISH seam plane across scored laps;
-10. reverse FINISH cannot award lap;
-11. recovery resync cannot move validated race progress;
-12. exact completion at final validated third FINISH;
-13. shared physical-gate math and topology/renderer dependency isolation;
-14. generic race-session timing directly consumes CIRCUIT progress.
-
-First code-only checkpoint before timing/version/docs completion:
+One lap is authored as one ordinary open RasterPath whose final authored vertex explicitly returns to the first world point:
 
 ```text
-feature head: 8ddbef9edb0b9c0f221b789db8577741cb6b6ef2
-GitHub Actions: #474
-run id: 32807659262
-build job: 97680801851
-exact checkout: 8ddbef9edb0b9c0f221b789db8577741cb6b6ef2
-419 tests / 419 pass / 0 fail
+P0 → P1 → ... → Pn-1 → Pn
+                         Pn.world == P0.world
 ```
 
-The timing integration adds one direct regression, so the docs/version-inclusive and final validation-file-inclusive heads must independently reproduce:
+There is still no hidden `Pn → P0` Core segment.
+
+`CircuitTopology` owns:
 
 ```text
-420 tests / 420 pass / 0 fail
+s_unwrapped = winding * L + s_local
+0 <= s_local < L
 ```
 
-before `main` is fast-forwarded.
+`winding` is topology coordinate state only. It is not race-lap authority.
+
+### M6.49 — finite open runtime window
+
+CIRCUIT topology is unfolded before ordinary runtime consumers:
+
+```text
+CircuitTopology
++ one-lap open sources
++ startWinding
++ repeatCount
+        │
+        ▼
+finite ordinary open Raster / Guide / source window
+        │
+        ▼
+existing camera / physics / TerrainLine / renderer
+```
+
+For `N` copies:
+
+```text
+0 <= s_window <= N*L
+s_unwrapped = startWinding*L + s_window
+```
+
+Lower consumers perform no modulo addressing.
+
+### M6.50 — physical lap authority
+
+Circuit race authoring expands into one strictly increasing finite sequence:
+
+```text
+L1_CP1 → ... → L1_FINISH
+L2_CP1 → ... → L2_FINISH
+...
+```
+
+A lap is awarded only by:
+
+```text
+required ordered physical checkpoints
++ forward physical FINISH crossing
+```
+
+These are not lap authority:
+
+```text
+winding change
+raw s_window crossing kL
+premature FINISH
+reverse FINISH
+recovery/resync
+raw chainage mutation
+```
+
+The validated lap count is `acceptedFinishCount`.
+
+Normative runout rule:
+
+```text
+N scored laps → at least N+1 finite runtime copies
+```
+
+Therefore every scored FINISH, including the final one, remains an ordinary internal Guide seam with normal forward lookahead.
+
+### M6.51 — live integration without a new tracker
+
+M6.51's main architectural result is that no new live circuit-position subsystem is necessary.
+
+The M6.49 window is already one ordinary open Guide. Existing car/bike physics already maintains:
+
+```text
+course.s
+course.l
+course.segmentIndex
+```
+
+and uses a local Guide search around the previous segment. Repeated lap copies are adjacent segments in the finite unfolded Guide, so the ordinary open search naturally advances through an internal circuit seam:
+
+```text
+... L-epsilon → L → L+epsilon ...
+```
+
+Thus:
+
+```text
+vehicle.course.s == s_window
+```
+
+for live CIRCUIT driving.
+
+There is no:
+
+```text
+circuit chainage tracker
+physics modulo
+physics winding counter
+seam snap
+renderer circuit branch
+camera circuit branch
+```
+
+The same finite ruler is passed directly to:
+
+```text
+updateM5Car / updateM5Bike
+updateM5Camera
+renderM5Driving
+```
+
+Physical M6.50 checkpoints/FINISH consume `vehicle.course.s` only as bounded finite `s_window` candidate/disambiguation data. Actual world-segment gate crossing remains mandatory.
+
+## M6.51 browser composition
+
+M6.51 keeps route-shape selection at the composition root:
+
+```text
+src/main.ts          BRANCHING
+src/main-circuit.ts  CIRCUIT
+```
+
+Pages/local boot:
+
+```text
+/               → BRANCHING
+/?mode=circuit  → CIRCUIT
+```
+
+The CIRCUIT DEV fixture is:
+
+```text
+routeKind     = CIRCUIT
+rivalCount    = 0
+lapCount      = 3
+checkpoints   = 1/4 L, 1/2 L, 3/4 L
+runtime copies= 4
+```
+
+The fourth copy is unscored runout/lookahead. Race completion records the final physical boundary time but does not freeze world simulation.
+
+## M6.51 direct validation
+
+Eight direct regressions cover:
+
+1. `lapCount + 1` runtime-copy derivation;
+2. CIRCUIT mode owns no branch policy/shared lock;
+3. explicit duplicated lap endpoint unfolds into an ordinary open runtime;
+4. real 60 Hz M5 car physics crosses an internal circuit seam and continues onto `s > L`;
+5. unchanged M5 camera follows the second unfolded copy after that real seam crossing;
+6. unchanged M5 renderer draws normally after that real seam crossing;
+7. generic live compiler owns no browser/renderer/vehicle/RouteDag dependency;
+8. CIRCUIT browser composition reuses existing open engine paths and imports no point-to-point route authority.
+
+Code-green checkpoint before package/docs synchronization:
+
+```text
+feature head: 71f75b271a8be30d352557ffad59560f95899049
+GitHub Actions: #486
+exact checkout: 71f75b271a8be30d352557ffad59560f95899049
+428 tests / 428 pass / 0 fail
+```
+
+Package/docs-inclusive and validation-file-inclusive heads must independently reproduce the complete 428/428 suite before `main` is fast-forwarded.
 
 ## Vehicle physics status
 
@@ -537,24 +424,32 @@ src/visual/baked-ground-map.ts
 src/gameplay/course-mode.ts
 src/gameplay/circuit-topology.ts
 src/runtime/circuit-runtime-window.ts
+src/runtime/circuit-live-runtime.ts
 src/gameplay/physical-race-gate.ts
-src/gameplay/race-progress.ts
 src/gameplay/ordered-race-progress.ts
 src/gameplay/circuit-race-progress.ts
 src/gameplay/race-session.ts
 src/gameplay/branch-violation.ts
 src/gameplay/route-dag.ts
-src/runtime/stage-runtime-content.ts
 src/render/m5-renderer.ts
 src/main.ts
-tests/m6-44-open-path-core.test.mjs
-tests/m6-45-open-source-profiles.test.mjs
-tests/m6-46-branch-violation-recovery.test.mjs
-tests/m6-47-open-runtime-integration.test.mjs
+src/main-circuit.ts
 tests/m6-48-explicit-circuit-topology.test.mjs
 tests/m6-49-circuit-runtime-window.test.mjs
 tests/m6-50-circuit-race-progress.test.mjs
 tests/m6-50-circuit-race-session.test.mjs
+tests/m6-51-circuit-live-runtime.test.mjs
 ```
 
-Detailed M6.50 authority is recorded in `docs/68_m6_50_circuit_race_progress.md`.
+Detailed milestone authority:
+
+```text
+docs/62_m6_44_open_path_core.md
+docs/63_m6_45_open_source_profiles.md
+docs/64_m6_46_branch_violation_recovery.md
+docs/65_m6_47_open_parent_stage_integration.md
+docs/66_m6_48_explicit_circuit_topology.md
+docs/67_m6_49_circuit_runtime_window.md
+docs/68_m6_50_circuit_race_progress.md
+docs/69_m6_51_circuit_live_runtime.md
+```
