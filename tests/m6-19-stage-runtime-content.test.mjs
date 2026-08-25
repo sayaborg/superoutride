@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import {
   guideCoordinateToWorld,
   locateWorldOnGuideCoordinateGlobal,
