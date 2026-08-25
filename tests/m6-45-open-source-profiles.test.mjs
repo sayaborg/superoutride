@@ -5,7 +5,7 @@ import {
   CyclicGroundMapLogicalProfile,
   GroundMapLogicalProfile,
 } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { CyclicHeightProfile, HeightProfile } from '../dist/visual/height-profile.js';
 import { CyclicVisualProfile, VisualProfile } from '../dist/visual/visual-profile.js';
