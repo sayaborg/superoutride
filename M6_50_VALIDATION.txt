@@ -1,0 +1,47 @@
+SUPER OUTRIDE
+M6.50 VALIDATION
+
+MILESTONE
+- M6.50 Circuit Race Progress
+
+PRE-VALIDATION FEATURE HEAD
+- b63f82c05d7c7b53a1766679898061588764d380
+
+WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #481
+- Run id: 32808021244
+- Build job: 97681794256
+- Result: success
+- Exact checkout expected: b63f82c05d7c7b53a1766679898061588764d380
+- Exact checkout actual:   b63f82c05d7c7b53a1766679898061588764d380
+
+AUTOMATED REGRESSION
+- 420 tests
+- 420 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.50 DIRECT COVERAGE
+- Shared PhysicalRaceGate owns the single transverse physical race-gate geometry/crossing authority used by legacy M6 race progress and finite-open progress.
+- Legacy M6.0/M6.1 wrapped DEV race semantics remain behavior-compatible while delegating physical gate math to the shared primitive.
+- OrderedRaceProgress owns generic finite-open strictly ordered physical race progress with no lap length, modulo operation, CircuitTopology or renderer authority.
+- Circuit race authoring expands one-lap checkpoints and lapCount into one finite monotonically increasing ordered physical gate sequence.
+- An N-lap scored CIRCUIT requires at least N+1 runtime lap copies, keeping every scored FINISH on an ordinary internal Guide seam and preserving ordinary lookahead beyond final FINISH.
+- startWinding is topology/window identity only and never seeds validated race laps or progress.
+- Raw s_window can select the logical repeated gate copy and interpolate only inside a validated sector; it cannot validate a checkpoint/FINISH without real world-space physical crossing.
+- Repeated checkpoint/FINISH world geometry is disambiguated by finite window chainage before the shared physical crossing test, preventing duplicate lap-copy acceptance.
+- Premature FINISH crossing is SHORTCUT_REJECTED; reverse FINISH crossing awards no lap; recovery/resync awards and erases no progress.
+- acceptedFinishCount is the validated CIRCUIT lap authority; full race FINISHED occurs exactly at the final authored forward physical FINISH after all required checkpoints.
+- race-session timing now consumes a minimal validated progress + shared PhysicalRaceGate contract, so CIRCUIT reuses existing deterministic timing rather than creating a circuit-specific timer.
+- Renderer Core, direct pseudo-depth, Painter order, world-space physics, acyclic RouteDag, branching authority and fixed 2.0m=80px metric authority remain unchanged.
+
+VERSION
+- super-outride-m6-50@0.6.50
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- Fast-forward main only to that exact CI-green feature head with force=false.
