@@ -1,7 +1,7 @@
 import type { GuideCurve } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { wrapAngle } from '../core/math.js';
-import type { M2VehicleState } from '../dev/m2-vehicle.js';
+import type { VehicleKinematicState } from '../physics/vehicle-state.js';
 import { computeForwardVisibleInterval, generateTerrainLines, type M3TerrainLine, type TerrainVisualProfile } from '../road/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
@@ -33,7 +33,7 @@ export function renderM4SuperScaler(
   background: FarBackground,
   guide: GuideCurve,
   camera: PseudoCamera,
-  vehicle: M2VehicleState,
+  vehicle: VehicleKinematicState,
   terrainProfile: TerrainVisualProfile,
   groundProfile: GroundMapProfile,
   worldSprites: readonly CourseSprite[],
