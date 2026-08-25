@@ -4,8 +4,8 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/core/constants.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from '../dist/dev/m6-51-circuit-live-runtime.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
