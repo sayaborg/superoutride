@@ -4,7 +4,7 @@ import { compileBakedGroundMapAsset } from '../dist/compiler/ground-map-asset-co
 import { deriveGroundMapDensity } from '../dist/compiler/ground-map-lod.js';
 import { deriveGroundMapTargetEnvelope } from '../dist/compiler/ground-map-target-envelope.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
