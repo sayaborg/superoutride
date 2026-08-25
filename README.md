@@ -11,12 +11,11 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 Before modifying this repository, read in this order:
 
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
-2. `README.md` — this current-state index.
-3. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
-4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-5. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/69_...`.
-6. Relevant source/types/compilers and regression tests — executable implementation contract.
-7. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — final concise Codex migration checkpoint and deferred-work map.
+2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
+3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
+4. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/69_...`.
+5. Relevant source/types/compilers and regression tests — executable implementation contract.
+6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — final concise Codex migration checkpoint and deferred-work map.
 
 The repository, not a previous chat transcript, is the continuing project memory.
 
