@@ -15,15 +15,17 @@ Before modifying this repository, read in this order:
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
 4. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/69_...`.
 5. Relevant source/types/compilers and regression tests — executable implementation contract.
-6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — final concise Codex migration checkpoint and deferred-work map.
+6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — concise Codex migration handoff, final migration status and deferred-work map.
 
-The repository, not a previous chat transcript, is the continuing project memory.
+At and after the validated FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
 
-## Current validated repository baseline before PR-C
+## Codex migration freeze lineage
+
+PR-C completed at this exact baseline:
 
 ```text
-main SHA:
-72f63cd19c68522da52094d6eef29499865690fc
+main SHA after PR-C:
+3956c23c7209ec271b42ee4a98e5c9510919f19d
 
 package:
 super-outride-m6-51@0.6.51
@@ -31,14 +33,21 @@ super-outride-m6-51@0.6.51
 tests:
 433 / 433 pass / 0 fail / 0 skipped
 
-latest completed cleanup PR:
-#74 Normalize source module boundaries
-
-Pages main-push workflow:
-#580 / build success / deploy success
+PR-C:
+#75 Freeze Codex migration authority
 ```
 
-The final PR-C release SHA will be newer because PR-C is documentation/authority-freeze work. Exact released identity belongs to PR-C validation evidence and Git history rather than a self-referential README edit.
+That SHA is the **PR-C completion baseline**, not the FINAL CODEX MIGRATION POINT. The later final clean-room audit, final validation-inclusive CI, pure fast-forward release and main-push Pages verification establish the final migration point.
+
+The exact released final migration SHA belongs to:
+
+```text
+docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
+Git / PR / main-ref identity
+main-push Pages workflow identity
+```
+
+rather than a self-referential README edit.
 
 The last runtime-changing baseline remains:
 
@@ -48,7 +57,9 @@ PR #70 M6.51 Pages branching continuation hotfix
 431 / 431 tests
 ```
 
-PRs #71–#74 changed takeover documentation, repository organization, documentation/evidence authority, and behavior-preserving source placement; they did not intentionally change gameplay/runtime algorithms or tuning.
+PRs #71–#75 changed takeover documentation, repository organization, documentation/evidence authority, behavior-preserving source placement and migration authority. They did not intentionally change gameplay/runtime algorithms or tuning.
+
+The final migration cleanup after PR-C changes migration-status documentation/evidence only; it does not change source, tests, package metadata, workflow logic, renderer, physics, topology, route behavior, camera behavior, numeric tuning or Pages composition.
 
 ## Current milestone state
 
@@ -86,6 +97,33 @@ docs/validation/M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt
 ```
 
 Historical validation evidence under `docs/validation/` is evidence, not current design authority.
+
+## Final migration state
+
+The original one-time takeover audit and cleanup PR-A/PR-B/PR-C are historical predecessors to the final freeze. They must not be confused with the final clean-room/release steps.
+
+For a released `main` at or descended from the FINAL CODEX MIGRATION POINT:
+
+```text
+Step 1-6  complete before/through PR-C
+Step 7    final clean-room audit complete
+Step 8    final validation-inclusive exact-head CI / fast-forward / Pages verification complete
+Step 9    FINAL CODEX MIGRATION POINT frozen
+```
+
+The clean-room manifest is:
+
+```text
+docs/validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
+```
+
+The final release evidence is:
+
+```text
+docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
+```
+
+After that point, normal development may resume under `AGENTS.md`; previous ChatGPT threads are not authority.
 
 ## Run / test
 
