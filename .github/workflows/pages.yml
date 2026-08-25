@@ -59,8 +59,9 @@ jobs:
           cp -R dist/. "_site/build/${BUILD_ID}/"
           printf '%s\n' "${BUILD_ID}" > _site/version.txt
 
-          # Keep the legacy path during the transition so an already-cached old index.html
-          # can still boot while the new index propagates through Pages/CDN caches.
+          # Keep the legacy path as an explicit compatibility/failure fallback so an
+          # already-cached older index can still boot if the authoritative versioned
+          # entry has not propagated or cannot be resolved.
           cp -R dist _site/dist
           touch _site/.nojekyll
 
