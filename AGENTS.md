@@ -66,9 +66,11 @@ Types, compilers and regression tests are the executable contract. If documentat
 
 ### Current migration/handoff state
 
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` is the current concise Codex migration checkpoint. It records the repository baseline entering the final migration freeze, completed cleanup work, deferred investigation leads and the reading order.
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` is the concise Codex migration handoff. It records the PR-C completion baseline, completed cleanup work, deferred investigation leads and the reading order.
 
-The original mandatory first read-only Codex takeover audit has been completed. Do not repeat that one-time migration ceremony merely because a fresh session reads the handoff. The handoff remains context/navigation only and does not replace normative design documents or executable contracts.
+The original mandatory first read-only Codex takeover audit was completed before PR-C. That one-time audit is distinct from the later final clean-room audit and final exact-head migration freeze. The released FINAL CODEX MIGRATION POINT is established by `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` together with Git/PR/main-ref and Pages workflow identity. Do not infer the final migration SHA from an embedded self-reference in an entry document.
+
+At and after that released final migration point, do not repeat the migration cleanup ceremony merely because a fresh session reads the handoff. The handoff remains context/navigation only and does not replace normative design documents or executable contracts.
 
 ### README
 
@@ -455,10 +457,10 @@ When starting from a fresh Codex/agent context:
 3. Read `docs/README.md` for authority/supersession and evidence policy.
 4. Read the four freeze/addendum files listed in section 2.
 5. Read the latest relevant milestone documents, especially M6.44 onward for current topology/runtime work.
-6. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` for the current migration baseline and deferred-work map.
-7. Confirm current `main` SHA and compare it with the handoff snapshot/baseline.
+6. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` for the migration baseline and deferred-work map.
+7. Confirm current `main` SHA and verify the FINAL CODEX MIGRATION POINT against `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history rather than expecting a self-referential SHA in this file.
 8. Run the complete test suite before changing anything.
-9. Perform a read-only architecture/takeover audit first only if the current handoff explicitly marks migration verification incomplete. The current 2026-08-25 migration freeze marks the original one-time takeover audit complete.
+9. Do not repeat the original migration cleanup/takeover ceremony when the current `main` is at or descended from the validated FINAL CODEX MIGRATION POINT. A new read-only architecture audit is required only when a new task genuinely changes or challenges current authority.
 10. Only then define or implement the next scoped task.
 
-The repository, not a previous chat transcript, is the continuing project memory.
+At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
