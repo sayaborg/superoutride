@@ -1,0 +1,105 @@
+SUPER OUTRIDE FINAL CLEAN-ROOM AUDIT MANIFEST
+
+Status: Step 7 audit manifest / immutable repository evidence after release.
+Design authority: none. This record classifies findings against the repository state audited before any Step 7 fix.
+
+Audit baseline main:
+3956c23c7209ec271b42ee4a98e5c9510919f19d
+
+Package:
+super-outride-m6-51@0.6.51
+
+Baseline regression suite:
+433 tests / 433 pass / 0 fail / 0 skipped
+
+Audit method and scope:
+- reconstruct current project state from repository contents only;
+- inspect root entry/configuration files, package metadata, build tooling and GitHub Pages workflow;
+- enumerate the complete src/ tree and current authority placements;
+- inspect source-boundary regression and current runtime/topology milestone authority;
+- inspect the tests tree and executable-contract relationship through the complete suite;
+- enumerate docs/ and docs/validation/ including M6.32 through M6.50 validation evidence;
+- inspect Core Freeze + addenda, current M6.44-M6.51 milestone sequence, README, AGENTS, docs authority index and Codex handoff;
+- distinguish current/normative statements from historical milestone snapshots and immutable validation evidence;
+- check current package/version/test/SHA wording, Pages entry/composition and exact-head release procedure.
+
+FINDING F-01
+Classification: must fix / wording-status fix
+Problem:
+PR-C intentionally marked the original one-time takeover audit and cleanup PRs complete, but the entry/handoff documents use nearby phrases such as "final migration checkpoint", "migration completion state", and "repository ... is the continuing project memory" without explicitly distinguishing PR-C completion from the still-required final clean-room audit, final validation-inclusive exact-head release, and final migration-point freeze. A repository-only reader can therefore reasonably infer that Steps 7-9 were already complete at PR-C SHA 3956c23..., which is false for the audited baseline.
+Affected current-state documents:
+- AGENTS.md
+- README.md
+- docs/README.md
+- docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+Disposition:
+Synchronize only migration-status wording in those four current-state documents. Preserve all renderer, gameplay, topology, package, source, test and workflow behavior. The released final state must distinguish the PR-C baseline from the FINAL CODEX MIGRATION POINT and must use the final validation artifact/Git identity rather than a self-referential embedded final SHA.
+Impact:
+- authority: current-state/migration authority clarity only
+- behavior: none
+- tests: no expected count change
+- documentation: yes, four current-state files
+- release: yes, requires fresh exact-head PR CI and final validation-inclusive exact-head CI/Pages
+
+FINDING F-02
+Classification: keep as historical / no action
+Observation:
+Numbered milestone documents contain historical package numbers, test counts and then-current source paths, including paths later moved by PR-B. docs/README.md explicitly classifies numbered milestone documents as chronological historical decision records rather than a flat current specification.
+Disposition:
+Do not rewrite historical milestone text. Current path authority remains in README/AGENTS/source tree/tests and supersession context remains in docs/README.md.
+Impact: none.
+
+FINDING F-03
+Classification: keep as historical / no action
+Observation:
+Historical validation artifacts contain old SHAs, old paths, old numerical values and filename gaps. docs/validation/README.md explicitly defines them as immutable historical evidence and explains gaps and exact-head self-reference.
+Disposition:
+Do not rewrite old validation evidence. Add only new Step 7/8 evidence.
+Impact: none.
+
+FINDING F-04
+Classification: no action
+Observation:
+src/gameplay/race-progress.ts retains the legacy closed DEV race model. M6.50 explicitly preserves that model for behavior compatibility while general finite ordered race progress lives in ordered-race-progress.ts and CIRCUIT race authority lives in circuit-race-progress.ts.
+Disposition:
+Do not rename merely for cosmetic consistency. The current architecture already distinguishes the authorities by semantics and executable tests.
+Impact: none.
+
+FINDING F-05
+Classification: no action
+Observation:
+Milestone-named and debug fixture sources remain concentrated under src/dev. Their milestone naming is useful DEV provenance and does not create a competing general authority.
+Disposition:
+Keep.
+Impact: none.
+
+FINDING F-06
+Classification: no action
+Observation:
+Current production placements are src/camera/m5-camera.ts, src/physics/vehicle-state.ts and src/physics/surface-map.ts. Debug authorities are under src/dev. The retired PR-B authority paths are absent. tests/source-boundary-normalization.test.mjs recursively enforces no general src/* -> src/dev dependency and absence of retired compatibility paths.
+Disposition:
+Keep current placement and regression unchanged.
+Impact: none.
+
+FINDING F-07
+Classification: no action
+Observation:
+package.json/package-lock.json agree on super-outride-m6-51@0.6.51. tsconfig emits src/**/*.ts to dist/. Generated dist/, _site/ and node_modules are ignored. tools/build-ground-map.mjs consumes compiled authorities at their current paths. index.html selects only top-level BRANCHING/CIRCUIT composition and supports commit-versioned Pages boot. pages.yml checks out and verifies the exact PR head/github SHA, runs the complete npm test suite, stages commit-versioned build output and deploys only non-PR runs.
+Disposition:
+No package/build/workflow/Pages change in Step 7.
+Impact: none.
+
+STEP 7 COHERENT FIX SCOPE
+Only F-01 requires modification. Update the four current-state documents together so that:
+1. 3956c23c7209ec271b42ee4a98e5c9510919f19d is explicitly the PR-C completion baseline, not the final migration point;
+2. the original takeover audit/PR-A/PR-B/PR-C history is distinct from the final clean-room/validation/release freeze;
+3. the final released repository states that repository-only authority begins at the FINAL CODEX MIGRATION POINT;
+4. exact final identity is proven by the new final validation artifact, PR metadata, main ref and Pages run rather than by editing a self-referential final SHA into current documents;
+5. no gameplay/runtime/source/test/package/workflow changes are mixed into this fix.
+
+No moves.
+No deletions.
+No source changes.
+No test changes.
+No package/version changes.
+No workflow changes.
