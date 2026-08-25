@@ -1,7 +1,8 @@
 # SUPER OUTRIDE — Runtime Data Model v0.5
 
-Status: M5 implementation boundary document.  
-Authority: mathematical meanings remain exclusively in `00_core_design_freeze.md`.
+Status: **historical M5 implementation boundary document**.  
+Authority: mathematical meanings remain exclusively in `00_core_design_freeze.md` and its explicit addenda.  
+Current topology note: later M6.44/M6.45 authority makes the general geometry/source model open; do not treat M5-era cyclic/course-length details in this snapshot as current general runtime authority. See `README.md` in this directory.
 
 ## 1. Canonical input
 
