@@ -220,8 +220,9 @@ function render(): void {
   const nextGate = raceProgress.status === 'FINISHED'
     ? null
     : raceRules.gates[raceProgress.nextGateIndex] ?? null;
+  const finalBoundarySeconds = raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? raceSession.elapsedSeconds;
   const raceState = raceProgress.status === 'FINISHED'
-    ? `FINISHED ${formatRaceTime(raceSession.elapsedSeconds)}`
+    ? `FINISHED ${formatRaceTime(finalBoundarySeconds)}`
     : 'RUNNING';
 
   ctx.fillStyle = '#d7f3ff';
