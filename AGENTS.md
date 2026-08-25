@@ -94,6 +94,33 @@ Prefer deleting duplicate authority, generalizing an existing primitive, or chan
 
 Do not apply an ad hoc patch merely because it makes a visible symptom disappear.
 
+### Mandatory architecture decision gate
+
+Before implementing any non-trivial feature, bug fix, refactor, integration change or design-affecting maintenance change, answer all of the following from the current repository evidence:
+
+1. Which existing layer owns this decision?
+2. Is there already a primitive or authority that can express it without a new abstraction?
+3. Would the proposed solution create duplicate state, duplicate coordinate truth or a second authority for one concept?
+4. Would it add a product-, mode-, vehicle-, route- or stage-specific branch to a lower engine layer?
+5. Can the same result be obtained more cleanly through authoring, topology, compilation, runtime composition, or a simpler product rule?
+6. Does the solution preserve every applicable frozen renderer, physics, metric and topology invariant?
+7. What regression or architecture check proves the real causal behavior and prevents the boundary from drifting later?
+
+This gate is mandatory. A feature request is not implicit permission to weaken frozen invariants or bypass current authority boundaries. If the requested behavior conflicts with them, identify the conflict and prefer an upper-level or explicit normative design change rather than silently inserting a lower-level exception.
+
+If a proposed solution requires a lower-layer special case, duplicated state, duplicated coordinate authority, hidden wrapping, compatibility authority, or an ad hoc exception, do not implement it merely because it is locally convenient. Reconsider the design first.
+
+The preferred transformation is:
+
+```text
+complex product requirement
+-> explicit upper-level authoring / topology / compilation / composition
+-> simple ordinary runtime representation
+-> unchanged or more-general lower engine primitives
+```
+
+When a stable architectural boundary or invariant can reasonably be checked mechanically, add or extend a regression/architecture test so CI enforces it. Do not rely on prose alone for a rule that can be made executable. Purely procedural or non-mechanizable rules may remain contract-only.
+
 ---
 
 ## 4. Frozen renderer and geometry invariants
