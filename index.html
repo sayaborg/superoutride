@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#05080c" />
-    <title>SUPER OUTRIDE — M6.50</title>
+    <title>SUPER OUTRIDE — M6.51</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main id="app" aria-label="SUPER OUTRIDE M6.50 driving">
+    <main id="app" aria-label="SUPER OUTRIDE M6.51 driving">
       <section class="control-zone steering-zone" aria-label="Steering control">
         <div id="steering-pad" class="steering-pad" role="application" aria-label="Analog steering pad">
           <span class="steer-left">◀</span>
@@ -28,7 +28,12 @@
     </main>
 
     <script type="module">
-      const fallbackEntry = './dist/main.js';
+      // Keep BRANCHING as the default product fixture while exposing the new CIRCUIT
+      // composition through one explicit top-level boot choice. Lower engine layers do
+      // not receive a mode flag or a route-kind branch.
+      const circuitMode = new URLSearchParams(location.search).get('mode') === 'circuit';
+      const entryName = circuitMode ? 'main-circuit.js' : 'main.js';
+      const fallbackEntry = `./dist/${entryName}`;
       let entry = fallbackEntry;
 
       try {
@@ -38,7 +43,7 @@
           if (/^[0-9a-f]{40}$/.test(version)) {
             // Import the complete build from a commit-specific directory. Relative ESM imports
             // therefore inherit the versioned path instead of reusing stale /dist/*.js modules.
-            entry = `./build/${version}/main.js`;
+            entry = `./build/${version}/${entryName}`;
           }
         }
       } catch {
