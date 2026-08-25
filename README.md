@@ -9,12 +9,13 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 Before modifying this repository, read in this order:
 
 1. `AGENTS.md` — persistent coding-agent/development contract.
-2. `docs/00_core_design_freeze.md` — frozen renderer/core mathematics.
-3. `docs/00a_core_design_freeze_addendum_m5_2.md` — fixed metric sprite authority.
-4. `docs/00b_core_design_freeze_addendum_m6_44.md` — open path authority.
-5. `docs/00c_core_design_freeze_addendum_m6_45.md` — open source-profile authority.
-6. Relevant numbered milestone documents under `docs/`.
-7. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — current Codex takeover snapshot and known-state map.
+2. `docs/README.md` — documentation authority, history and validation-evidence policy.
+3. `docs/00_core_design_freeze.md` — frozen renderer/core mathematics.
+4. `docs/00a_core_design_freeze_addendum_m5_2.md` — fixed metric sprite authority.
+5. `docs/00b_core_design_freeze_addendum_m6_44.md` — open path authority.
+6. `docs/00c_core_design_freeze_addendum_m6_45.md` — open source-profile authority.
+7. Relevant numbered milestone documents under `docs/`.
+8. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — Codex takeover snapshot and known-state map.
 
 `README.md` is intentionally an entry/index, not a second normative design document.
 
@@ -41,7 +42,7 @@ Pages main-push workflow:
 #496 / build success / deploy success
 ```
 
-The final repository SHA after merging the documentation-only Codex handoff will be newer than this game baseline. See the handoff/validation record and current `main` for the actual takeover release head.
+The repository HEAD is newer than this game baseline because later commits contain documentation/handoff and repository-organization cleanup only. Use current `main` as the repository-state authority and the SHA above only as the exact last runtime-changing baseline.
 
 ## Current milestone state
 
@@ -75,8 +76,10 @@ docs/69_m6_51_circuit_live_runtime.md
 The immediately preceding public Pages incident/fix is recorded in:
 
 ```text
-M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt
+docs/validation/M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt
 ```
+
+Historical validation evidence is archived under `docs/validation/`; it is evidence, not current design authority.
 
 ## Run / test
 
@@ -213,7 +216,9 @@ Boot selection occurs only at the composition root:
 
 ```text
 AGENTS.md
+docs/README.md
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+docs/validation/README.md
 
 src/core/course.ts
 src/core/guide-curve.ts
