@@ -4,11 +4,10 @@ import {
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
-import type { M2VehicleState } from '../dev/m2-vehicle.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { SurfaceMapReader, SurfaceType } from './surface-map.js';
+import type { VehicleKinematicState } from './vehicle-state.js';
 
 const G = 9.80665;
 const LOW_SPEED = 3;
@@ -49,7 +48,7 @@ export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
   maxFallSpeed: 55,
 };
 
-export interface M5CarState extends M2VehicleState {
+export interface M5CarState extends VehicleKinematicState {
   y: number;
   verticalSpeed: number;
   longitudinalSpeed: number;
