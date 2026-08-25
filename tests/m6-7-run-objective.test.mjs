@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM6DebugRaceRules } from '../dist/gameplay/race-progress.js';
 import {
   POINT_TO_POINT_OBJECTIVE,
