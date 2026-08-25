@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
@@ -11,7 +11,7 @@ import {
   createM5CameraRig,
   rebaseM5CameraRigCoordinateFrame,
   updateM5Camera,
-} from '../dist/dev/m5-camera.js';
+} from '../dist/camera/m5-camera.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
