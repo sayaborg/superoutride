@@ -4,45 +4,52 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 > **Physics is world-space. Renderer is chainage-driven raster pseudo-3D. Topology stays above Core. Open is the general runtime model.**
 
+`README.md` is an entry point and current-state index. It is not a second normative design document.
+
 ## Development entry point
 
 Before modifying this repository, read in this order:
 
-1. `AGENTS.md` — persistent coding-agent/development contract.
-2. `docs/README.md` — documentation authority, history and validation-evidence policy.
-3. `docs/00_core_design_freeze.md` — frozen renderer/core mathematics.
-4. `docs/00a_core_design_freeze_addendum_m5_2.md` — fixed metric sprite authority.
-5. `docs/00b_core_design_freeze_addendum_m6_44.md` — open path authority.
-6. `docs/00c_core_design_freeze_addendum_m6_45.md` — open source-profile authority.
-7. Relevant numbered milestone documents under `docs/`.
-8. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — Codex takeover snapshot and known-state map.
-
-`README.md` is intentionally an entry/index, not a second normative design document.
+1. `AGENTS.md` — persistent coding-agent/development/release contract.
+2. `README.md` — this current-state index.
+3. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
+4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
+5. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/69_...`.
+6. Relevant source/types/compilers and regression tests — executable implementation contract.
+7. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — final concise Codex migration checkpoint and deferred-work map.
 
 The repository, not a previous chat transcript, is the continuing project memory.
 
-## Current validated game baseline
-
-The last runtime implementation before the Codex-handoff documentation package is:
+## Current validated repository baseline before PR-C
 
 ```text
-main game baseline SHA:
-6e15c374ba6679eec16b589c68941154c67665fd
+main SHA:
+72f63cd19c68522da52094d6eef29499865690fc
 
 package:
 super-outride-m6-51@0.6.51
 
 tests:
-431 / 431 pass / 0 fail
+433 / 433 pass / 0 fail / 0 skipped
 
-latest runtime PR:
-#70 M6.51 Pages branching continuation hotfix
+latest completed cleanup PR:
+#74 Normalize source module boundaries
 
 Pages main-push workflow:
-#496 / build success / deploy success
+#580 / build success / deploy success
 ```
 
-The repository HEAD is newer than this game baseline because later commits contain documentation/handoff and repository-organization cleanup only. Use current `main` as the repository-state authority and the SHA above only as the exact last runtime-changing baseline.
+The final PR-C release SHA will be newer because PR-C is documentation/authority-freeze work. Exact released identity belongs to PR-C validation evidence and Git history rather than a self-referential README edit.
+
+The last runtime-changing baseline remains:
+
+```text
+6e15c374ba6679eec16b589c68941154c67665fd
+PR #70 M6.51 Pages branching continuation hotfix
+431 / 431 tests
+```
+
+PRs #71–#74 changed takeover documentation, repository organization, documentation/evidence authority, and behavior-preserving source placement; they did not intentionally change gameplay/runtime algorithms or tuning.
 
 ## Current milestone state
 
@@ -60,7 +67,7 @@ M6.51      Circuit Live Runtime Integration                      complete
 M6.51      Pages branching continuation hotfix                   complete
 ```
 
-Detailed authority for M6.44–M6.51:
+Current topology/runtime design sequence:
 
 ```text
 docs/62_m6_44_open_path_core.md
@@ -73,13 +80,13 @@ docs/68_m6_50_circuit_race_progress.md
 docs/69_m6_51_circuit_live_runtime.md
 ```
 
-The immediately preceding public Pages incident/fix is recorded in:
+The M6.51 public Pages branching incident/fix is historical evidence at:
 
 ```text
 docs/validation/M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt
 ```
 
-Historical validation evidence is archived under `docs/validation/`; it is evidence, not current design authority.
+Historical validation evidence under `docs/validation/` is evidence, not current design authority.
 
 ## Run / test
 
@@ -89,19 +96,19 @@ npm run build
 python3 -m http.server 8000
 ```
 
-Default BRANCHING live fixture:
+Default BRANCHING fixture:
 
 ```text
 http://localhost:8000/
 ```
 
-Three-lap CIRCUIT live fixture:
+Three-lap CIRCUIT DEV fixture:
 
 ```text
 http://localhost:8000/?mode=circuit
 ```
 
-The query parameter selects only the top-level browser composition. Lower engine layers do not receive a distributed CIRCUIT/route-kind renderer mode.
+The query parameter selects only the top-level browser composition. Lower engine layers remain topology-neutral ordinary consumers.
 
 Full regression:
 
@@ -109,158 +116,72 @@ Full regression:
 npm test
 ```
 
-Regression history:
+Current package:
 
 ```text
-M6.43  359 tests
-M6.44  369 tests after post-merge hardening
-M6.45  375 tests
-M6.46  382 tests
-M6.47  389 tests
-M6.48  396 tests
-M6.49  406 tests
-M6.50  420 tests
-M6.51  428 tests
-M6.51 Pages branching hotfix 431 tests
+super-outride-m6-51@0.6.51
 ```
 
-## Core architecture in one page
-
-### Renderer
+Vehicle handling status remains:
 
 ```text
+DEV_UNCALIBRATED
+```
+
+## Current composition and source-placement landmarks
+
+```text
+src/main.ts          BRANCHING composition root
+src/main-circuit.ts  CIRCUIT composition root
+
+src/camera/m5-camera.ts          production M5 camera authority
+src/physics/vehicle-state.ts     shared vehicle kinematic contract
+src/physics/surface-map.ts       general SurfaceMap authority
+
+src/dev/debug-course.ts
+src/dev/m3-debug-visual.ts
+src/dev/m4-debug-world.ts
+src/dev/m5-debug-surface-map.ts  DEV/debug fixture authorities
+```
+
+General source layers must not depend on `src/dev`. Retired authority paths must not be recreated as compatibility shims; regression coverage enforces both rules.
+
+## Core orientation
+
+The minimum orientation is:
+
+```text
+world X/Y/Z = vehicle physics authority
+
 d = s_render - s_camera
+  = renderer pseudo-depth authority
+
+Open   = general data/runtime model
+Cyclic = explicit upper-level topology choice
+Renderer = topology-blind
+
+player-depth presentation:
+2.0 m = 80 px
+1.0 m = 40 px
+f = 200 px
+D_cam = 5.0 m = f / 40
 ```
 
-World X/Y/Z is vehicle-physics authority. One chainage maps to one horizontal scanline. Same depth means same scale; same depth plus same height means same screen Y.
-
-Road geometry remains Raster Segment geometry with an interior turn hard limit of `<= 10 degrees`. Guide geometry is coordinate/camera support only. Terrain and World Sprites share a single far-to-near Painter.
-
-No z-buffer, polygon-road conversion, perspective-correct road mapping, arbitrary runtime sprite rotation or alpha blending is introduced.
-
-### Fixed metric presentation
-
-```text
-player car physical width = 2.0 m
-player car source width   = 80 px
-player-depth scale        = 40 px/m
-f                         = 200 px
-D_cam                     = 5.0 m
-D_cam                     = f / 40
-```
-
-There is no arbitrary sprite `visualScale` authority.
-
-### General topology/source rule
-
-```text
-0 <= s <= L
-```
-
-General geometry/source forms are open. Core does not manufacture a last-to-first segment.
-
-> **Open is the general data model. Cyclic is an explicit upper-level topology choice. The renderer is neither.**
-
-### Point-to-point route rule
-
-```text
-physical route gate
--> validated RouteDag transition
--> PENDING
--> forward physical handoff seam
--> COMMIT target chart/content
-```
-
-World pose/yaw/velocity remain continuous through COMMIT. Terminal-stage entry is not FINISH; a physical FINISH gate is still required.
-
-Current BRANCHING field rule:
-
-```text
-rivalCount              = 1
-sharedRouteChoiceMode   = FIRST_PHYSICAL_CROSSING_LOCKS
-branchViolationPolicy   = RECOVER_TO_LOCKED_BRANCH
-```
-
-### CIRCUIT rule
-
-CIRCUIT is composed above open Core:
-
-```text
-explicit closed-lap authoring
--> CircuitTopology
--> finite ordinary open runtime window
--> ordinary car/bike physics + camera + renderer
--> ordered physical checkpoints + forward FINISH
--> validated lap race
-```
-
-Topological winding is not validated race-lap authority.
-
-For `N` scored laps, runtime provides at least `N + 1` finite copies so the final scored FINISH is still an ordinary internal seam with runout/lookahead.
-
-## Browser composition roots
-
-```text
-src/main.ts          BRANCHING
-src/main-circuit.ts  CIRCUIT
-```
-
-Boot selection occurs only at the composition root:
-
-```text
-/              -> BRANCHING
-/?mode=circuit -> CIRCUIT
-```
-
-## Current important files
-
-```text
-AGENTS.md
-docs/README.md
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
-docs/validation/README.md
-
-src/core/course.ts
-src/core/guide-curve.ts
-src/core/guide-coordinate-frame.ts
-src/core/projection.ts
-src/road/terrain-line.ts
-src/physics/surface-map.ts
-src/render/m5-renderer.ts
-
-src/gameplay/route-dag.ts
-src/gameplay/route-boundary-gates.ts
-src/gameplay/route-stage-handoff.ts
-src/gameplay/shared-route-choice-authority.ts
-src/gameplay/branch-violation.ts
-src/runtime/live-route-traveler.ts
-src/runtime/live-route-multi-actor-tick.ts
-
-src/gameplay/circuit-topology.ts
-src/runtime/circuit-runtime-window.ts
-src/runtime/circuit-live-runtime.ts
-src/gameplay/physical-race-gate.ts
-src/gameplay/ordered-race-progress.ts
-src/gameplay/circuit-race-progress.ts
-
-src/main.ts
-src/main-circuit.ts
-.github/workflows/pages.yml
-```
+Do not use this summary to replace the Core Freeze/addenda or executable tests.
 
 ## Release discipline
 
-The release contract is defined in `AGENTS.md`. In short:
+The full release contract is in `AGENTS.md`:
 
 ```text
-feature branch
--> PR
--> exact-head full green CI
+exact main
+-> dedicated branch
+-> PR exact-head full green CI
 -> validation-inclusive exact-head full green CI
--> confirm current main is the original fast-forward base
--> force=false fast-forward main to that exact validated SHA
+-> pure fast-forward check
+-> force=false main update to validated SHA
 -> verify main == PR head == PR merge SHA
--> verify main-push Pages workflow
+-> verify main-push build/deploy
 ```
 
-Do not merge an unvalidated SHA or create an extra merge commit as the released `main` state.
+Do not release an unvalidated SHA or create an extra merge commit as the released `main` state.
