@@ -8,7 +8,7 @@ import {
   updateM5Camera,
   type M5CameraProfile,
   type M5CameraState,
-} from './dev/m5-camera.js';
+} from './camera/m5-camera.js';
 import {
   createCircuitRaceProgressState,
   getCircuitRaceProgressWindow,
