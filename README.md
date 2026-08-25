@@ -59,7 +59,7 @@ PR #70 M6.51 Pages branching continuation hotfix
 
 PRs #71–#75 changed takeover documentation, repository organization, documentation/evidence authority, behavior-preserving source placement and migration authority. They did not intentionally change gameplay/runtime algorithms or tuning.
 
-The final migration cleanup after PR-C changes migration-status documentation/evidence only; it does not change source, tests, package metadata, workflow logic, renderer, physics, topology, route behavior, camera behavior, numeric tuning or Pages composition.
+The final migration cleanup after PR-C and later repository-hygiene work are behavior-preserving authority/maintenance changes. They may update documentation, boundary-enforcement tests or workflow comments, but do not intentionally change gameplay/runtime algorithms, renderer behavior, physics, topology, route behavior, camera behavior, numeric tuning or Pages composition.
 
 ## Current milestone state
 
@@ -181,7 +181,16 @@ src/dev/m4-debug-world.ts
 src/dev/m5-debug-surface-map.ts  DEV/debug fixture authorities
 ```
 
-General source layers must not depend on `src/dev`. Retired authority paths must not be recreated as compatibility shims; regression coverage enforces both rules.
+`src/dev` is not a general runtime authority. General layers must not import it. The only current non-DEV TypeScript files allowed to assemble DEV fixtures are the explicit top-level browser composition roots:
+
+```text
+src/main.ts
+src/main-circuit.ts
+```
+
+`src/dev/**` may depend on ordinary general layers; that dependency direction must not be reversed. See `src/dev/README.md` for the DEV fixture categories and boundary rule. `tests/source-boundary-normalization.test.mjs` enforces the rule across all `src/**/*.ts` files.
+
+Retired authority paths must not be recreated as compatibility shims.
 
 ## Core orientation
 
