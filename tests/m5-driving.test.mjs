@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
 import { createM5DebugSurfaceMap, CyclicSurfaceMap } from '../dist/physics/surface-map.js';
@@ -13,9 +13,9 @@ import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/visual/m3-debug-visual.js';
+import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { createM4DebugWorldSprites } from '../dist/world/m4-debug-world.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const deg = (v) => v * Math.PI / 180;
 const near = (a, b, eps = 1e-7) => assert.ok(Math.abs(a - b) <= eps, `${a} != ${b} ± ${eps}`);
