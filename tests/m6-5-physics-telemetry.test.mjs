@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/core/constants.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import {
   createVehicleTelemetryRecorder,
   recordVehicleTelemetryTick,
@@ -10,7 +11,6 @@ import {
 } from '../dist/dev/vehicle-telemetry.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { VEHICLE_PHYSICS_CALIBRATION_STATUS } from '../dist/physics/vehicle-calibration.js';
-import { createM5DebugSurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 
 function plainVehicle() {
