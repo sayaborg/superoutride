@@ -4,7 +4,7 @@ import {
   locateWorldOnGuideCoordinateGlobal,
 } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
-import { createM2StadiumGuide } from './core/debug-course.js';
+import { createM2StadiumGuide } from './dev/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
 import { M6_13_JUNCTION } from './dev/m6-13-junction.js';
@@ -19,7 +19,7 @@ import {
   updateM5Camera,
   type M5CameraProfile,
   type M5CameraState,
-} from './dev/m5-camera.js';
+} from './camera/m5-camera.js';
 import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
 import {
   createGeometricCourseTracker,
@@ -92,7 +92,7 @@ import {
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { VisualProfile } from './visual/visual-profile.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
-import { createM4DebugWorldSprites } from './world/m4-debug-world.js';
+import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
 import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
