@@ -1,0 +1,92 @@
+SUPER OUTRIDE FINAL CODEX MIGRATION VALIDATION
+
+Scope: Step 7 clean-room resolution + Step 8/9 final Codex migration freeze
+PR: #76 Freeze final Codex migration point
+Repository: sayaborg/superoutride
+
+Audit baseline main:
+3956c23c7209ec271b42ee4a98e5c9510919f19d
+
+Package:
+super-outride-m6-51@0.6.51
+
+Step 7 clean-room result after the coherent documentation/status fix:
+stale = 0
+contradiction = 0
+misplaced = 0
+duplicate authority = 0
+broken link = 0
+
+Meaning of zero:
+No material repository-only ambiguity remains that would cause a fresh reader to misidentify current authority, current runtime architecture, current source placement, or current release procedure. Historical milestone statements and immutable historical validation evidence remain intentionally historical and are not counted as stale current authority.
+
+Step 7 manifest:
+docs/validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
+
+Resolved Step 7 finding:
+- distinguish PR-C completion baseline 3956c23c7209ec271b42ee4a98e5c9510919f19d from the later FINAL CODEX MIGRATION POINT;
+- synchronize migration-state wording in AGENTS.md, README.md, docs/README.md and docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md;
+- preserve numbered milestone documents and older validation artifacts as historical evidence;
+- preserve source placement, executable contracts, package metadata, workflow logic and Pages composition unchanged.
+
+No changes in this final migration scope to:
+- src/
+- tests/
+- package.json / package-lock.json
+- tsconfig.json
+- tools/
+- .github/workflows/
+- renderer algorithms
+- physics algorithms or tuning
+- camera behavior
+- topology or route behavior
+- numeric tuning
+- Pages composition
+
+Pre-validation exact head:
+02568a8530a2e5544ee036343f3876522a16ddd5
+
+Pre-validation GitHub Actions:
+workflow: Test and Deploy GitHub Pages
+run: #585
+run id: 32857358893
+build job: 97832494077
+expected SHA: 02568a8530a2e5544ee036343f3876522a16ddd5
+actual SHA:   02568a8530a2e5544ee036343f3876522a16ddd5
+Node project runtime: v20.20.2
+npm: 10.8.2
+package: super-outride-m6-51@0.6.51
+result: 433 tests / 433 pass / 0 fail / 0 skipped
+conclusion: success
+PR deploy job: skipped as expected
+
+Pre-validation fast-forward relationship:
+main: 3956c23c7209ec271b42ee4a98e5c9510919f19d
+candidate pre-validation head: 02568a8530a2e5544ee036343f3876522a16ddd5
+ahead_by: 5
+behind_by: 0
+merge base: 3956c23c7209ec271b42ee4a98e5c9510919f19d
+changed files before this artifact: 5
+- AGENTS.md
+- README.md
+- docs/README.md
+- docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+- docs/validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
+
+Release preconditions after adding this artifact:
+1. This file changes the branch head. The new validation-inclusive exact head is the only release candidate.
+2. Run the complete PR workflow on that validation-inclusive exact head.
+3. Require expected SHA = actual checkout SHA = validation-inclusive candidate SHA.
+4. Require the complete suite to remain 433 / 433 pass, 0 fail, 0 skipped.
+5. Re-fetch main immediately before release.
+6. Require candidate ahead_by > 0, behind_by = 0, and merge base = current main.
+7. Move main only to that validated exact candidate with force=false and no extra merge commit.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA.
+9. Verify the main-push workflow on the same SHA, including Pages build and deploy success.
+10. Only then freeze that SHA as FINAL CODEX MIGRATION POINT.
+
+Self-reference avoidance rule:
+Do not edit this artifact after the validation-inclusive exact head is validated merely to write that later head SHA, run number, merge identity, or Pages run into this file. Such an edit would create a different unvalidated head and restart the validation cycle. The final validation-inclusive SHA and run/release identity are therefore completed by immutable Git commit/PR/main-ref/workflow history together with this artifact.
+
+Final authority transition condition:
+Only after all release preconditions above succeed may the repository state be declared the FINAL CODEX MIGRATION POINT. At and after that point, repository contents/history are sufficient continuing project memory and past ChatGPT threads are no longer project authority.
