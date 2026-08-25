@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoDepth } from '../dist/core/projection.js';
 import { createM4CameraRig, updateM4Camera } from '../dist/dev/m4-camera.js';
 import { createM2Vehicle, updateM2Vehicle } from '../dist/dev/m2-vehicle.js';
@@ -11,7 +11,7 @@ import { renderM4SuperScaler } from '../dist/render/m4-renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/visual/m3-debug-visual.js';
+import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import {
   createM4SpriteAssets,
   selectBankVariant,
@@ -19,7 +19,7 @@ import {
   selectYawVariant,
 } from '../dist/visual/m4-sprite-assets.js';
 import { compileCourseSprite, collectVisibleCourseSprites } from '../dist/world/course-sprite.js';
-import { createM4DebugWorldSprites } from '../dist/world/m4-debug-world.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const deg = (value) => value * Math.PI / 180;
 const near = (actual, expected, tolerance = 1e-7) => {
