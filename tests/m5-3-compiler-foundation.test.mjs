@@ -4,7 +4,7 @@ import test from 'node:test';
 import { validateCourseCompilerFoundation } from '../dist/compiler/course-validation.js';
 import { validateSpritePhysicalMetadata } from '../dist/compiler/sprite-metadata.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
