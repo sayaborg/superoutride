@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
@@ -40,7 +40,7 @@ test('general source layers do not depend on src/dev', async () => {
 
   for (const directory of generalDirectories) {
     for (const sourceFile of await collectTypeScriptFiles(directory)) {
-      const source = await import('node:fs/promises').then(({ readFile }) => readFile(sourceFile, 'utf8'));
+      const source = await readFile(sourceFile, 'utf8');
       const importSpecifiers = [
         ...source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g),
       ].map((match) => match[1]);
