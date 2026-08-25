@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import {
   guideCoordinateCurve,
   guideCoordinateToWorld,
@@ -16,7 +16,7 @@ import {
   createM5CameraRig,
   rebaseM5CameraRigCoordinateFrame,
   updateM5Camera,
-} from '../dist/dev/m5-camera.js';
+} from '../dist/camera/m5-camera.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -178,7 +178,6 @@ function findTransitionGate(live, choiceId) {
   assert.ok(gate, `missing transition gate for ${choiceId}`);
   return gate;
 }
-
 function findFinishGate(live, stageId) {
   const gate = live.gates.gates.find(
     (candidate) => candidate.kind === 'FINISH' && candidate.stageId === stageId,
