@@ -314,6 +314,15 @@ Boot selection belongs only at the composition root:
 
 Do not distribute `if (CIRCUIT)` / `routeKind` decisions through lower engine layers when composition can select the correct ordinary runtime objects once.
 
+`src/dev` is not a general runtime authority. General layers must not import it. The only current non-DEV TypeScript files allowed to assemble DEV fixtures are the two explicit top-level browser composition roots:
+
+```text
+src/main.ts
+src/main-circuit.ts
+```
+
+`src/dev/**` may depend on ordinary general layers, but that dependency direction must not be reversed. `src/dev/README.md` defines the DEV fixture categories, and `tests/source-boundary-normalization.test.mjs` enforces the boundary across all `src/**/*.ts` files.
+
 GitHub Pages uses a commit-versioned complete ESM build path. Do not weaken that cache-coherency design.
 
 Visible milestone labels must remain synchronized with package milestone metadata; regression coverage exists for this.
@@ -409,7 +418,7 @@ During implementation:
 - preserve world-state continuity through chart/content changes;
 - prefer finite/open composition over implicit wrapping;
 - keep DEV fixtures clearly separate from product authority;
-- do not introduce dependencies from general `src/*` layers into `src/dev`;
+- do not introduce dependencies from general `src/*` layers into `src/dev`; only `src/main.ts` and `src/main-circuit.ts` may assemble DEV fixtures as explicit top-level composition roots;
 - do not recreate retired authority paths as compatibility re-export shims.
 
 After implementation:
