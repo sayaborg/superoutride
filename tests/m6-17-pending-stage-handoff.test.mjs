@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import {
