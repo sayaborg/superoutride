@@ -1,6 +1,6 @@
 # SUPER OUTRIDE Documentation Authority
 
-This directory contains both current normative design authority and chronological milestone records. They are intentionally different kinds of documents.
+This directory contains current normative authority, chronological milestone records, takeover context, and historical validation evidence. Those are intentionally different document classes.
 
 ## 1. Normative frozen authority
 
@@ -13,15 +13,15 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-Later addenda supersede only the assumptions they explicitly replace. In particular, M6.44/M6.45 replace the old implicit cyclic geometry/source assumptions with the current open general model.
+Later addenda supersede only the assumptions they explicitly replace. In particular, M6.44/M6.45 replace old implicit cyclic geometry/source assumptions with the current open general model.
 
 ## 2. Numbered milestone documents
 
-`01_...` through `69_...` are chronological milestone records. They describe the authority and implementation boundary that existed at that milestone.
+`01_...` through `69_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
-Do not rewrite historical milestone prose merely to make it use current terminology. Instead, resolve apparent conflicts by following the later explicit authority.
+Do not rewrite historical milestone prose merely to use current terminology. Resolve apparent conflicts by following the later explicit authority.
 
 The most important current topology/runtime sequence is:
 
@@ -44,7 +44,7 @@ Current governing rule:
 
 M6.17 records the first DEV route gate at approximately `s=545 m`, which was correct for that milestone. The M6.51 Pages branching-continuation hotfix later moved the live first physical route gate to `570 m`; the handoff seam remains `600 m`.
 
-The historical M6.17 value is intentionally retained in its original sequence and annotated there. Current incident authority is:
+The historical M6.17 value is intentionally retained in its original sequence and annotated there. Incident evidence is:
 
 ```text
 validation/M6_51_PAGES_BRANCH_HOTFIX_VALIDATION.txt
@@ -60,15 +60,29 @@ validation/
 
 Validation files are immutable historical evidence, not current design authority. See `validation/README.md` before interpreting them.
 
-## 5. Handoff documents
+Repository-cleanup validation records follow the same rule: they prove exact-head CI/release facts but do not become design authority.
 
-`SUPER_OUTRIDE_CODEX_HANDOFF_*.md` files are takeover snapshots. They may describe the exact repository state at a particular handoff date, but do not override the Core Freeze/addenda, later milestone authority, types, or regression tests.
+## 5. Codex migration handoff
+
+The current migration checkpoint is:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+```
+
+The original long-form takeover snapshot at this path requested a mandatory first read-only Codex audit. That audit and the subsequent repository cleanup sequence have now been completed. The current file is intentionally concise and records only the migration baseline, authority reading order, cleanup outcome, unresolved/deferred items, prohibitions, and exact-head workflow.
+
+Git history preserves the older snapshot. Do not create another full duplicate design/handoff document merely to preserve its prose.
+
+Handoff documents are context/navigation snapshots. They do not override the Core Freeze/addenda, later milestone authority, types, compilers, or regression tests.
 
 ## 6. Repository-level documents
 
 ```text
-../AGENTS.md  persistent agent/development contract
+../AGENTS.md  persistent agent/development/release contract
 ../README.md  repository entry point and current-state index
 ```
 
-If documents appear inconsistent, do not silently choose one. Identify which document owns the topic and whether a later explicit authority superseded the older statement.
+For a fresh coding context, use the reading order in `../README.md` and the working rules in `../AGENTS.md`.
+
+If documents appear inconsistent, do not silently choose one. Identify which authority owns the topic and whether a later explicit authority superseded the older statement.
