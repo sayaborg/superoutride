@@ -1,0 +1,67 @@
+SUPER OUTRIDE
+M6.51 VALIDATION
+
+MILESTONE
+- M6.51 Circuit Live Runtime Integration
+
+BASE MAIN BEFORE M6.51
+- 3e8456b2f433175a235b3358adf1daaefd1f0cc3
+
+CODE-GREEN CHECKPOINT
+- 71f75b271a8be30d352557ffad59560f95899049
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #486
+- Run id: 32829262858
+- Build job: 97744057321
+- Result: success
+- Exact checkout expected: 71f75b271a8be30d352557ffad59560f95899049
+- Exact checkout actual:   71f75b271a8be30d352557ffad59560f95899049
+- 428 tests / 428 pass / 0 fail
+
+PRE-VALIDATION FEATURE HEAD
+- fb64c655614e4154937e0ad0e305a5772e4da555
+
+PRE-VALIDATION WORKFLOW
+- GitHub Actions / Test and Deploy GitHub Pages
+- Run: #490
+- Run id: 32829604476
+- Build job: 97745092456
+- Result: success
+- Exact checkout expected: fb64c655614e4154937e0ad0e305a5772e4da555
+- Exact checkout actual:   fb64c655614e4154937e0ad0e305a5772e4da555
+- Package: super-outride-m6-51@0.6.51
+
+AUTOMATED REGRESSION
+- 428 tests
+- 428 pass
+- 0 fail
+- 0 cancelled
+- 0 skipped
+- 0 todo
+
+M6.51 DIRECT COVERAGE
+- compileCircuitLiveRuntime is a thin upper-level assembler: authored lapCount mechanically derives lapCount + 1 finite open runtime copies and M6.50 race rules.
+- The M6.51 DEV circuit closes the familiar open M2 stadium source explicitly by appending exactly one copy of the first Raster vertex; Core still creates no hidden last-to-first segment.
+- The finite M6.49 window is the live ruler. No separate live circuit chainage/winding tracker is introduced.
+- Existing vehicle course.s/course.l/course.segmentIndex plus the existing local Guide search track the correct unfolded lap copy across an internal seam.
+- A real 60 Hz ordinary M5 car-physics regression crosses an internal circuit seam and continues monotonically from s < L to s > L without seam snap, modulo or circuit physics branch.
+- The unchanged M5 camera follows the same second unfolded copy after that real physics seam crossing.
+- The unchanged M5 renderer produces an ordinary frame after that real physics seam crossing; there is no circuit renderer path.
+- For live CIRCUIT driving, vehicle.course.s is the finite s_window consumed by existing open engine contracts.
+- M6.50 remains race authority: ordered physical checkpoints plus forward physical FINISH award validated laps; winding/raw s_window alone do not.
+- Three scored DEV laps own four finite runtime copies, keeping the final scored FINISH an ordinary internal seam with one unscored runout/lookahead copy.
+- Recovery uses the existing vehicle recovery plus circuit race resync and cannot manufacture or erase validated progress.
+- Browser route-shape selection occurs once at the composition root: default Pages boot remains BRANCHING; ?mode=circuit selects main-circuit.ts.
+- Both browser compositions use the same commit-versioned exact-SHA Pages ESM boot.
+- CIRCUIT finish presentation records the final physical boundary time while world simulation may continue into the runout copy.
+- No Core renderer, Guide geometry, car/bike physics, camera or RouteDag file is modified by M6.51.
+- Fixed metric authority remains 2.0 m = 80 px at player depth and D_cam = f / 40.
+
+VERSION
+- super-outride-m6-51@0.6.51
+
+RELEASE RULE
+- This file is part of the release candidate.
+- Re-run the complete suite on the exact validation-file-inclusive feature head.
+- That final run must independently reproduce exact checkout and 428/428 before main moves.
+- Fast-forward main only to that exact CI-green feature head with force=false.
