@@ -2,22 +2,24 @@
 
 ## 0. Status
 
-The Codex takeover audit requested by the original 2026-08-25 handoff has been completed. The repository was then normalized through cleanup PRs #72, #73 and #74.
+The original read-only Codex takeover audit and repository cleanup PRs #72-#75 have been completed. PR #75 / PR-C froze the migration authority documents, but **PR-C completion was not itself the FINAL CODEX MIGRATION POINT**.
 
-This file is now the **final concise migration checkpoint**. It replaces the earlier long-form takeover snapshot at this path. Git history preserves that original snapshot; do not duplicate it into another giant handoff.
+The final migration point is established only by the later Step 7 clean-room audit plus Step 8 validation-inclusive exact-head CI / pure fast-forward / Pages verification. The exact released identity is evidenced by `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` together with Git/PR/main-ref/workflow history; it is intentionally not embedded here as a self-referential final SHA.
+
+This file is the **concise migration handoff**. It replaces the earlier long-form takeover snapshot at this path. Git history preserves that original snapshot; do not duplicate it into another giant handoff.
 
 This file is not normative game-design authority. The repository authority chain below remains controlling.
 
 ---
 
-## 1. Exact repository baseline entering this freeze
+## 1. PR-C completion baseline entering the final clean-room freeze
 
 ```text
 repository:
   sayaborg/superoutride
 
-main SHA before PR-C:
-  72f63cd19c68522da52094d6eef29499865690fc
+main SHA after PR-C:
+  3956c23c7209ec271b42ee4a98e5c9510919f19d
 
 package:
   super-outride-m6-51@0.6.51
@@ -25,16 +27,11 @@ package:
 tests:
   433 / 433 pass / 0 fail / 0 skipped
 
-latest completed cleanup PR:
-  #74 Normalize source module boundaries
-
-main-push Pages workflow:
-  #580
-  run id 32853385557
-  head SHA 72f63cd19c68522da52094d6eef29499865690fc
-  build success
-  deploy success
+PR-C:
+  #75 Freeze Codex migration authority
 ```
+
+This `3956c23...` SHA is an explicit historical baseline for the final clean-room audit. It must not be mistaken for the later FINAL CODEX MIGRATION POINT.
 
 The last runtime-changing baseline remains:
 
@@ -44,7 +41,9 @@ PR #70 M6.51 Pages branching continuation hotfix
 431 / 431 tests
 ```
 
-Everything from PR #71 through PR-B/#74 is takeover, repository organization, documentation authority, or behavior-preserving source-boundary cleanup. The final PR-C release SHA will be newer than `72f63cd...`; establish that exact released identity from PR-C validation evidence and Git history rather than editing this file into a self-referential SHA loop.
+PRs #71 through #75 are takeover, repository organization, documentation/evidence authority, behavior-preserving source-boundary cleanup, and migration-authority work. They did not intentionally change gameplay/runtime algorithms or tuning.
+
+The final clean-room/freeze work after PR-C is also documentation/evidence-only. Exact final identity belongs to the final validation evidence and Git/PR/workflow history rather than a self-referential edit of this handoff.
 
 ---
 
@@ -62,7 +61,7 @@ For a fresh coding-agent context, read in this order:
    - `docs/00c_core_design_freeze_addendum_m6_45.md`
 5. Relevant numbered milestone documents. For current topology/runtime work, start with `docs/62_...` through `docs/69_...`.
 6. Relevant types, compilers and regression tests — executable implementation contract.
-7. This handoff — migration baseline and deferred-work map only.
+7. This handoff — migration lineage/status and deferred-work map only.
 
 Authority classes are intentionally separate:
 
@@ -90,7 +89,7 @@ If two sources appear inconsistent, identify which source owns the topic and whe
 
 ---
 
-## 3. Cleanup completed before Codex migration freeze
+## 3. Cleanup completed before the final clean-room freeze
 
 ### PR #72 — repository prune
 
@@ -130,6 +129,19 @@ DEV/debug authorities:
 Old authority paths have no compatibility re-export shims. `tests/source-boundary-normalization.test.mjs` mechanically prevents general `src/*` layers from importing `src/dev` and verifies the retired authority paths remain absent.
 
 No renderer algorithm, physics tuning, route topology, camera behavior or Pages composition was intentionally changed by PR-B.
+
+### PR #75 — migration authority freeze
+
+PR-C synchronized:
+
+```text
+AGENTS.md
+README.md
+docs/README.md
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+```
+
+and added PR-C validation evidence. It completed the original takeover/cleanup sequence, but the required final clean-room audit and final exact-head migration freeze were deliberately later steps.
 
 ---
 
@@ -253,11 +265,36 @@ GitHub Actions exact checkout is release evidence. A green run for an earlier co
 
 ---
 
-## 8. Migration completion state
+## 8. Final migration completion state
 
-The mandatory read-only Codex takeover audit from the original handoff has been completed and consumed by PR-C. A future session does **not** need to repeat that one-time migration ceremony merely because it reads this file.
+There are two distinct historical checkpoints:
 
-A fresh session must still:
+```text
+original takeover audit / cleanup sequence
+  -> completed through PR-C / PR #75
+  -> baseline 3956c23c7209ec271b42ee4a98e5c9510919f19d
+
+final migration freeze
+  -> Step 7 repository-only clean-room audit
+  -> Step 8 final validation-inclusive exact-head CI + pure fast-forward + Pages verification
+  -> Step 9 freeze the validated SHA as FINAL CODEX MIGRATION POINT
+```
+
+Step 7 evidence:
+
+```text
+docs/validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
+```
+
+Step 8/9 evidence:
+
+```text
+docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
+```
+
+The final validation artifact follows the repository's self-reference rule: it records the pre-validation candidate and required identity checks, while the validation-inclusive final SHA/run identity is established by Git/PR/main-ref/workflow history without editing the artifact again.
+
+When this handoff is read from a `main` at or descended from that validated FINAL CODEX MIGRATION POINT, Steps 1-9 are complete. A fresh session does **not** repeat the migration ceremony. It must still:
 
 1. read the authority chain above;
 2. confirm current `main` and package;
@@ -265,6 +302,6 @@ A fresh session must still:
 4. inspect the relevant source/tests for the proposed task;
 5. preserve the release discipline in `AGENTS.md`.
 
-No next gameplay milestone is forced by this handoff. Select the smallest coherent next task from current repository evidence and explicit user direction.
+Only after the FINAL CODEX MIGRATION POINT may normal SUPER OUTRIDE development resume. No particular next gameplay milestone is forced by this handoff; select the smallest coherent next task from current repository evidence and explicit user direction.
 
-The repository, not a previous chat transcript, is the continuing project memory.
+At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
