@@ -10,10 +10,13 @@ import {
 import type { RouteDag } from '../gameplay/route-dag.js';
 
 /**
- * First chainage at which the visible M6.13 split is already fully separated and can commit a
- * physical route choice. Selection happens before any future stage/content handoff.
+ * Physical branch-choice gate inside the fully separated child roads.
+ *
+ * It is intentionally downstream of the first mathematically separated cross-section. This gives
+ * an ordinary physical vehicle enough road distance to enter one complete child carriageway before
+ * arbitration while still leaving a distinct gate -> PENDING -> handoff-seam interval.
  */
-export const M6_15_ROUTE_GATE_S = 545;
+export const M6_15_ROUTE_GATE_S = 570;
 
 /** DEV terminal FINISH on the ordinary single-road section after the route has become terminal. */
 export const M6_15_FINISH_GATE_S = 20;
