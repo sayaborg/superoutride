@@ -62,17 +62,28 @@ Validation files are immutable historical evidence, not current design authority
 
 Repository-cleanup validation records follow the same rule: they prove exact-head CI/release facts but do not become design authority.
 
+The final Codex migration has two dedicated evidence records:
+
+```text
+validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
+validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
+```
+
+The first records the Step 7 repository-only audit findings before correction. The second records the self-reference-safe Step 8 final candidate and release contract. Exact final SHA/run identity is completed by Git/PR/main-ref and workflow history without rewriting an already-validated artifact.
+
 ## 5. Codex migration handoff
 
-The current migration checkpoint is:
+The current migration handoff is:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
 ```
 
-The original long-form takeover snapshot at this path requested a mandatory first read-only Codex audit. That audit and the subsequent repository cleanup sequence have now been completed. The current file is intentionally concise and records only the migration baseline, authority reading order, cleanup outcome, unresolved/deferred items, prohibitions, and exact-head workflow.
+The original long-form takeover snapshot at this path requested a mandatory first read-only Codex audit. That original audit and cleanup PRs #72-#75 were completed before the final clean-room freeze, but they are not themselves proof that the later Step 7-9 finalization completed.
 
-Git history preserves the older snapshot. Do not create another full duplicate design/handoff document merely to preserve its prose.
+The released FINAL CODEX MIGRATION POINT is established only after the final clean-room manifest is resolved, the final validation-inclusive exact head receives complete green CI, that exact head fast-forwards `main` with `force=false`, SHA identity is verified, and the same `main` SHA receives successful Pages build/deploy. The dedicated final validation record and Git/PR/workflow history are the evidence for that transition.
+
+The current handoff is intentionally concise and records the migration lineage/baseline, authority reading order, cleanup outcome, unresolved/deferred items, prohibitions, and exact-head workflow. Git history preserves the older takeover snapshot. Do not create another full duplicate design/handoff document merely to preserve its prose.
 
 Handoff documents are context/navigation snapshots. They do not override the Core Freeze/addenda, later milestone authority, types, compilers, or regression tests.
 
@@ -84,5 +95,7 @@ Handoff documents are context/navigation snapshots. They do not override the Cor
 ```
 
 For a fresh coding context, use the reading order in `../README.md` and the working rules in `../AGENTS.md`.
+
+At and after the validated FINAL CODEX MIGRATION POINT, repository contents/history—not previous ChatGPT threads—are the continuing project memory.
 
 If documents appear inconsistent, do not silently choose one. Identify which authority owns the topic and whether a later explicit authority superseded the older statement.
