@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
 import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
