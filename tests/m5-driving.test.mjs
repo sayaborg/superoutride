@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
-import { createM5DebugSurfaceMap, CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
