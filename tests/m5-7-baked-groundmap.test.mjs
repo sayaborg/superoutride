@@ -3,10 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
 import { createM5DebugSurfaceMap } from '../dist/physics/surface-map.js';
@@ -16,9 +16,9 @@ import { BakedGroundMapAsset, CyclicBakedGroundMapAsset } from '../dist/visual/b
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/visual/m3-debug-visual.js';
+import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { createM4DebugWorldSprites } from '../dist/world/m4-debug-world.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
 const binary = new Uint8Array(await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url)));
