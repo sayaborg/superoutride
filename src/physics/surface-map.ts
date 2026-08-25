@@ -1,7 +1,5 @@
-import { compileSurfaceRegions } from '../compiler/surface-region-compiler.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { wrapPositive } from '../core/math.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dev/m5-surface-authoring.js';
 
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
@@ -148,10 +146,4 @@ function junctionSurfaceType(
   if (lateralClass === 'SHOULDER') return 'SHOULDER';
   if (lateralClass === 'MEDIAN') return 'GRASS';
   return null;
-}
-
-/** DEV closed-course authoring explicitly opts into cyclic SurfaceMap addressing. */
-export function createM5DebugSurfaceMap(courseLength: number): CyclicSurfaceMap {
-  const compiled = compileSurfaceRegions(courseLength, createM5DebugSurfaceRegionAuthoring(courseLength));
-  return new CyclicSurfaceMap(courseLength, compiled.surfaceSections);
 }
