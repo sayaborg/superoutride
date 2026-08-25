@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { rasterCourseToWorld } from '../dist/core/course.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import {
   classifyStageRoadLocalL,
