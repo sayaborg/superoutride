@@ -11,9 +11,9 @@ import {
   validateRenderWorkload,
 } from '../dist/compiler/render-budget.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
@@ -25,7 +25,7 @@ import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
-import { createM4DebugWorldSprites } from '../dist/world/m4-debug-world.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const deg = (value) => value * Math.PI / 180;
 const guide = createM2StadiumGuide();
