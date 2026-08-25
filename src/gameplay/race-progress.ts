@@ -1,21 +1,20 @@
-import {
-  guideCourseToWorld,
-  sampleGuideCurve,
-  type GuideCurve,
-} from '../core/guide-curve.js';
+import type { GuideCurve } from '../core/guide-curve.js';
 import {
   clamp,
-  dot,
-  normalFromHeading,
-  subtract,
-  tangentFromHeading,
   wrapPositive,
   wrapSigned,
   type Vec2,
 } from '../core/math.js';
+import {
+  classifyPhysicalRaceMotionDirection,
+  compilePhysicalRaceGate,
+  detectPhysicalRaceGateCrossing,
+  type PhysicalRaceGate,
+  type PhysicalRaceGateCrossing,
+  type RaceMotionDirection as PhysicalRaceMotionDirection,
+} from './physical-race-gate.js';
 
 const CROSSING_EPSILON = 1e-9;
-const MOTION_EPSILON = 1e-7;
 
 export interface GeometricCoursePosition {
   lap: number;
@@ -27,7 +26,7 @@ export interface GeometricCourseTracker {
   previousSLocal: number;
 }
 
-export type RaceMotionDirection = 'FORWARD' | 'REVERSE' | 'STATIONARY';
+export type RaceMotionDirection = PhysicalRaceMotionDirection;
 export type RaceProgressEvent =
   | 'NONE'
   | 'CHECKPOINT'
@@ -40,16 +39,8 @@ export interface RaceProgressSample extends Vec2 {
   sLocal: number;
 }
 
-export interface RaceGate {
-  readonly index: number;
-  readonly kind: 'checkpoint' | 'finish';
-  readonly name: string;
-  readonly s: number;
-  readonly center: Vec2;
-  readonly tangent: Vec2;
-  readonly normal: Vec2;
-  readonly halfWidth: number;
-}
+/** Backward-compatible name for the shared physical gate primitive. */
+export type RaceGate = PhysicalRaceGate;
 
 export interface RaceCourseRules {
   readonly guide: GuideCurve;
@@ -84,12 +75,6 @@ export interface RaceProgressUpdate {
   readonly window: RaceProgressWindow;
 }
 
-interface GateCrossing {
-  readonly gate: RaceGate;
-  readonly direction: 'FORWARD' | 'REVERSE';
-  readonly u: number;
-}
-
 /**
  * Compile explicit ordered checkpoints into physical world-space transverse gates.
  * Finish is fixed at s=0. Gate width is the Guide authoring envelope; M6 adds no
@@ -112,8 +97,8 @@ export function compileRaceCourseRules(
   }
 
   const gates: RaceGate[] = checkpointChainages.map((s, index) =>
-    compileGate(guide, index, 'checkpoint', `CP${index + 1}`, s));
-  gates.push(compileGate(guide, gates.length, 'finish', 'FINISH', 0));
+    compilePhysicalRaceGate(guide, index, 'checkpoint', `CP${index + 1}`, s));
+  gates.push(compilePhysicalRaceGate(guide, gates.length, 'finish', 'FINISH', 0));
 
   return {
     guide,
@@ -235,18 +220,23 @@ export function updateRaceProgress(
 ): RaceProgressUpdate {
   const current = normalizeSample(currentSample, rules.courseLength);
   const rawDeltaS = wrapSigned(current.sLocal - state.previous.sLocal, rules.courseLength);
-  state.direction = classifyMotionDirection(rules.guide, state.previous, current);
+  state.direction = classifyPhysicalRaceMotionDirection(
+    rules.guide,
+    current.sLocal,
+    state.previous,
+    current,
+  );
   const interpolationDelta = state.direction === 'FORWARD'
     ? Math.max(0, rawDeltaS)
     : state.direction === 'REVERSE' ? Math.min(0, rawDeltaS) : 0;
   state.lastEvent = 'NONE';
 
   const crossings = rules.gates
-    .map((gate) => detectGateCrossing(gate, state.previous, current))
-    .filter((crossing): crossing is GateCrossing => crossing !== null)
+    .map((gate) => detectPhysicalRaceGateCrossing(gate, state.previous, current))
+    .filter((crossing): crossing is PhysicalRaceGateCrossing => crossing !== null)
     .sort((a, b) => a.u - b.u);
 
-  let acceptedCrossing: GateCrossing | null = null;
+  let acceptedCrossing: PhysicalRaceGateCrossing | null = null;
   let forwardCrossingSeen = false;
 
   for (const crossing of crossings) {
@@ -311,74 +301,6 @@ export function resyncRaceProgressPosition(
   state.previous = normalizeSample(currentSample, rules.courseLength);
   state.direction = 'STATIONARY';
   state.lastEvent = 'RESYNC';
-}
-
-function compileGate(
-  guide: GuideCurve,
-  index: number,
-  kind: 'checkpoint' | 'finish',
-  name: string,
-  s: number,
-): RaceGate {
-  const centerSample = guideCourseToWorld(guide, s, 0);
-  const tangent = tangentFromHeading(centerSample.heading);
-  const normal = normalFromHeading(centerSample.heading);
-  return {
-    index,
-    kind,
-    name,
-    s: wrapPositive(s, guide.length),
-    center: { x: centerSample.x, z: centerSample.z },
-    tangent,
-    normal,
-    halfWidth: guide.lMax,
-  };
-}
-
-function classifyMotionDirection(
-  guide: GuideCurve,
-  previous: RaceProgressSample,
-  current: RaceProgressSample,
-): RaceMotionDirection {
-  const movement = subtract(current, previous);
-  const guideSample = sampleGuideCurve(guide, current.sLocal);
-  const tangent = tangentFromHeading(guideSample.heading);
-  const longitudinal = dot(movement, tangent);
-  if (longitudinal > MOTION_EPSILON) return 'FORWARD';
-  if (longitudinal < -MOTION_EPSILON) return 'REVERSE';
-  return 'STATIONARY';
-}
-
-function detectGateCrossing(
-  gate: RaceGate,
-  previous: Vec2,
-  current: Vec2,
-): GateCrossing | null {
-  const previousRelative = subtract(previous, gate.center);
-  const currentRelative = subtract(current, gate.center);
-  const a0 = dot(previousRelative, gate.tangent);
-  const a1 = dot(currentRelative, gate.tangent);
-
-  let direction: 'FORWARD' | 'REVERSE' | null = null;
-  if (a0 < -CROSSING_EPSILON && a1 >= -CROSSING_EPSILON) direction = 'FORWARD';
-  else if (a0 > CROSSING_EPSILON && a1 <= CROSSING_EPSILON) direction = 'REVERSE';
-  if (direction === null) return null;
-
-  const denominator = a1 - a0;
-  if (Math.abs(denominator) <= CROSSING_EPSILON) return null;
-  const u = -a0 / denominator;
-  if (u < 0 || u > 1) return null;
-
-  const dx = current.x - previous.x;
-  const dz = current.z - previous.z;
-  const crossingPoint = {
-    x: previous.x + dx * u,
-    z: previous.z + dz * u,
-  };
-  const lateral = dot(subtract(crossingPoint, gate.center), gate.normal);
-  if (Math.abs(lateral) > gate.halfWidth + CROSSING_EPSILON) return null;
-
-  return { gate, direction, u };
 }
 
 function normalizeSample(sample: RaceProgressSample, courseLength: number): RaceProgressSample {
