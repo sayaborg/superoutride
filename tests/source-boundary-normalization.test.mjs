@@ -37,6 +37,7 @@ test('general source layers do not depend on src/dev', async () => {
   const generalDirectories = topLevelEntries
     .filter((entry) => entry.isDirectory() && entry.name !== 'dev')
     .map((entry) => path.join(srcRoot, entry.name));
+  const violations = [];
 
   for (const directory of generalDirectories) {
     for (const sourceFile of await collectTypeScriptFiles(directory)) {
@@ -48,14 +49,14 @@ test('general source layers do not depend on src/dev', async () => {
       for (const specifier of importSpecifiers) {
         if (!specifier.startsWith('.')) continue;
         const resolved = path.resolve(path.dirname(sourceFile), specifier);
-        assert.equal(
-          resolved === devRoot || resolved.startsWith(`${devRoot}${path.sep}`),
-          false,
-          `${path.relative(repositoryRoot, sourceFile)} must not import ${specifier}`,
-        );
+        if (resolved === devRoot || resolved.startsWith(`${devRoot}${path.sep}`)) {
+          violations.push(`${path.relative(repositoryRoot, sourceFile)} -> ${specifier}`);
+        }
       }
     }
   }
+
+  assert.deepEqual(violations.sort(), []);
 });
 
 test('source-boundary authority paths have no compatibility shims', async () => {
