@@ -7,7 +7,7 @@ import {
   validateTerrainFootprintsAgainstTarget,
 } from '../dist/compiler/ground-map-target-envelope.js';
 import { summarizeTerrainFootprints } from '../dist/compiler/terrain-footprint-analysis.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
 import { computeM3Camera } from '../dist/dev/m3-camera.js';
 import {
@@ -16,7 +16,7 @@ import {
   projectedTerrainSpanRows,
 } from '../dist/road/terrain-line.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/visual/m3-debug-visual.js';
+import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 
 const deg = (value) => value * Math.PI / 180;
 const guide = createM2StadiumGuide();
