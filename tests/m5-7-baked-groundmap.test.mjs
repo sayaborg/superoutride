@@ -4,12 +4,12 @@ import test from 'node:test';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
-import { createM5DebugSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset, CyclicBakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
