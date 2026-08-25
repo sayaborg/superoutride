@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/dev/m5-camera.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
 import { createM5Bike } from '../dist/physics/motorcycle-physics.js';
@@ -94,11 +94,11 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
   const heightReaderFiles = [
     '../src/dev/m3-camera.ts',
     '../src/dev/m4-camera.ts',
-    '../src/dev/m5-camera.ts',
+    '../src/camera/m5-camera.ts',
     '../src/dev/m6-20-live-runtime-content.ts',
     '../src/physics/car-physics.ts',
     '../src/physics/motorcycle-physics.ts',
-    '../src/world/m4-debug-world.ts',
+    '../src/dev/m4-debug-world.ts',
     '../src/world/m5-9-tunnel-world.ts',
   ];
   for (const path of heightReaderFiles) {
