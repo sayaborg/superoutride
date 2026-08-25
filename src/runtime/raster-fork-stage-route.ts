@@ -172,11 +172,17 @@ export function compileRasterForkStageRoute(
         guideChartToWorld(forkRuntime.coordinateFrame, source.routeGateS, sourceLocalL),
         childHalfWidth,
       ),
-      handoff: pointGeometry(
-        branch.handoffId,
-        guideChartToWorld(forkRuntime.coordinateFrame, structural.sourceSeamS, sourceLocalL),
-        childHalfWidth,
-      ),
+      handoff: Object.freeze({
+        ...pointGeometry(
+          branch.handoffId,
+          guideChartToWorld(forkRuntime.coordinateFrame, structural.sourceSeamS, sourceLocalL),
+          childHalfWidth,
+        ),
+        sourceSeamS: structural.link.sourceSeamS,
+        targetSeamS: structural.link.targetSeamS,
+        sourceLocalL: structural.link.sourceLocalL,
+        targetLocalL: structural.link.targetLocalL,
+      }),
     });
     const finish: DeclarativeLiveRouteFinishAuthoring = Object.freeze({
       stageId: branch.stageId,

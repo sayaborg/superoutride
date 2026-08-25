@@ -83,6 +83,10 @@ test('accepted route choice becomes PENDING while old chart/content remain activ
     targetStageId: 'STAGE_2_L',
     targetChartId: 'LEFT_CHILD',
     seamId: 'H_S1_LEFT',
+    sourceSeamS: 600,
+    targetSeamS: 600,
+    sourceLocalL: -7.5,
+    targetLocalL: 0,
   });
 });
 

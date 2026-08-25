@@ -36,6 +36,13 @@ export interface DeclarativeGateGeometry {
   readonly halfWidth: number;
 }
 
+export interface DeclarativeHandoffGeometry extends DeclarativeGateGeometry {
+  readonly sourceSeamS: number;
+  readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
+}
+
 export interface DeclarativeLiveRouteTransitionAuthoring {
   readonly id: string;
   readonly fromStageId: string;
@@ -43,7 +50,7 @@ export interface DeclarativeLiveRouteTransitionAuthoring {
   /** Physical route-choice gate. choiceId is derived from id. */
   readonly gate: DeclarativeGateGeometry;
   /** Deferred handoff seam. targetChartId is derived from the target stage runtime package. */
-  readonly handoff: DeclarativeGateGeometry;
+  readonly handoff: DeclarativeHandoffGeometry;
 }
 
 export interface DeclarativeLiveRouteFinishAuthoring {

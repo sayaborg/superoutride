@@ -8,6 +8,13 @@ import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime
 import { createM640RivalRouteChoicePlan } from '../dist/dev/m6-40-rival-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import {
+  createFieldRouteProgressState,
+  fieldRouteProgressBoundaryFromRouteUpdate,
+  fieldRouteProgressTravelerView,
+  resyncFieldRouteProgress,
+  updateFieldRouteProgress,
+} from '../dist/gameplay/field-route-progress.js';
+import {
   createM5RecoveryState,
   updateM5Recovery,
 } from '../dist/gameplay/recovery.js';
@@ -85,10 +92,15 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
   const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
   const recovery = createM5RecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
+  const fieldProgress = createFieldRouteProgressState(
+    live.progress,
+    fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
+  );
   const plan = createM640RivalRouteChoicePlan(live);
   let firstChoiceL = null;
   let committedRightChild = false;
   let continuedOnChild = false;
+  let maxCommitProgressDelta = 0;
 
   for (let tick = 0; tick < 2200 && !continuedOnChild; tick += 1) {
     const runtimeBefore = resolveLiveRouteTravelerRuntime(live, traveler);
@@ -119,14 +131,30 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
     const world = { x: car.x, z: car.z };
     if (recovered !== null) {
       resyncLiveRouteTraveler(live, traveler, world);
+      resyncFieldRouteProgress(
+        fieldProgress,
+        live.progress,
+        fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
+      );
       continue;
     }
 
+    const progressBeforeRouteTick = fieldProgress.sProgress;
     const update = advanceLiveRouteTraveler(live, traveler, world);
+    updateFieldRouteProgress(
+      fieldProgress,
+      live.progress,
+      fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
+      fieldRouteProgressBoundaryFromRouteUpdate(update.routeUpdate),
+    );
     if (update.routeUpdate?.acceptedChoice?.id === 'S1_RIGHT') {
       firstChoiceL = car.course.l;
     }
     if (update.committed) {
+      maxCommitProgressDelta = Math.max(
+        maxCommitProgressDelta,
+        Math.abs(fieldProgress.sProgress - progressBeforeRouteTick),
+      );
       car.course = { ...traveler.handoffState.coordinate };
       if (traveler.handoffState.activePackageId === 'CONTENT_STAGE_2_R') {
         committedRightChild = true;
@@ -145,6 +173,9 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
   assert.equal(continuedOnChild, true);
   assert.equal(traveler.handoffState.activePackageId, 'CONTENT_STAGE_2_R');
   assert.equal(traveler.routeState.activeStageId, 'STAGE_2_R');
+  assert.ok(fieldProgress.validatedProgressFloor > 0);
+  assert.ok(fieldProgress.sProgress > fieldProgress.validatedProgressFloor);
+  assert.ok(maxCommitProgressDelta < 2, `chart COMMIT must not jump field progress: ${maxCommitProgressDelta}`);
   assert.notEqual(firstChoiceL, null);
   const rightCenterL = M6_13_JUNCTION.separatedChildCenterL('RIGHT');
   assert.ok(

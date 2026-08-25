@@ -46,10 +46,19 @@ export function createM617RouteStageHandoffManifest(
     if (!side) throw new Error(`DEV handoff side missing for route choice: ${choice.id}`);
     const l = M6_13_JUNCTION.separatedChildCenterL(side);
     const center = guideCourseToWorld(guide, M6_17_HANDOFF_SEAM_S, l);
+    const sourceOrigin = choice.fromStageId === route.startStageId
+      ? charts.parent.lateralOrigin
+      : choice.fromStageId.includes('_L')
+        ? charts.left.lateralOrigin
+        : charts.right.lateralOrigin;
     return {
       id: `H_${choice.id}`,
       choiceId: choice.id,
       targetChartId: side === 'LEFT' ? charts.left.id : charts.right.id,
+      sourceSeamS: M6_17_HANDOFF_SEAM_S,
+      targetSeamS: M6_17_HANDOFF_SEAM_S,
+      sourceLocalL: l - sourceOrigin,
+      targetLocalL: 0,
       center: { x: center.x, z: center.z },
       heading: center.heading,
       halfWidth: M6_13_JUNCTION.authoring.childRoadWidth * 0.5,

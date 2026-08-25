@@ -3,6 +3,7 @@ import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
   type DeclarativeGateGeometry,
+  type DeclarativeHandoffGeometry,
   type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
 import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
@@ -105,9 +106,15 @@ function parentHandoffGeometry(
   continuation: M626LiveContinuation,
   id: string,
   side: 'LEFT' | 'RIGHT',
-): DeclarativeGateGeometry {
+): DeclarativeHandoffGeometry {
   const localL = M6_13_JUNCTION.separatedChildCenterL(side);
-  return pointGeometry(id, guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL));
+  return {
+    ...pointGeometry(id, guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL)),
+    sourceSeamS: M6_17_HANDOFF_SEAM_S,
+    targetSeamS: continuation.base.handoffLocalS,
+    sourceLocalL: localL,
+    targetLocalL: 0,
+  };
 }
 
 function successorTransitionGeometry(
@@ -123,11 +130,17 @@ function successorTransitionGeometry(
 function successorHandoffGeometry(
   successor: M626SuccessorRuntimeSource,
   id: string,
-): DeclarativeGateGeometry {
-  return pointGeometry(
-    id,
-    guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0),
-  );
+): DeclarativeHandoffGeometry {
+  return {
+    ...pointGeometry(
+      id,
+      guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0),
+    ),
+    sourceSeamS: successor.link.sourceSeamS,
+    targetSeamS: successor.link.targetSeamS,
+    sourceLocalL: successor.link.sourceLocalL,
+    targetLocalL: successor.link.targetLocalL,
+  };
 }
 
 function successorFinishGeometry(

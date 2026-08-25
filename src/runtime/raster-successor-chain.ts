@@ -1,6 +1,7 @@
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import type {
   DeclarativeGateGeometry,
+  DeclarativeHandoffGeometry,
   DeclarativeLiveRouteFinishAuthoring,
   DeclarativeLiveRouteStageAuthoring,
   DeclarativeLiveRouteTransitionAuthoring,
@@ -107,7 +108,7 @@ export function compileRasterSuccessorChain(
       fromStageId,
       toStageId: step.stageId,
       gate: chainGeometry(step.gateId, sourceChart, nextStructural.sourceTransitionS, source.halfWidth),
-      handoff: chainGeometry(step.handoffId, sourceChart, nextStructural.sourceSeamS, source.halfWidth),
+      handoff: chainHandoffGeometry(step.handoffId, sourceChart, nextStructural, source.halfWidth),
     });
     structurals.push(nextStructural);
     runtimes.push(runtime);
@@ -155,6 +156,21 @@ function chainGeometry(
     guideChartToWorld(sourceChart, sourceS, 0),
     halfWidth,
   );
+}
+
+function chainHandoffGeometry(
+  id: string,
+  sourceChart: GuideChart,
+  target: RasterSuccessorRuntimeSource,
+  halfWidth: number,
+): DeclarativeHandoffGeometry {
+  return {
+    ...chainGeometry(id, sourceChart, target.link.sourceSeamS, halfWidth),
+    sourceSeamS: target.link.sourceSeamS,
+    targetSeamS: target.link.targetSeamS,
+    sourceLocalL: target.link.sourceLocalL,
+    targetLocalL: target.link.targetLocalL,
+  };
 }
 
 function pointGeometry(

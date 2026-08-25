@@ -3,6 +3,10 @@ import type { RouteBoundaryGateSet } from '../gameplay/route-boundary-gates.js';
 import type { RouteDag } from '../gameplay/route-dag.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import type { RouteStageHandoffManifest } from '../gameplay/route-stage-handoff.js';
+import {
+  compileFieldRouteProgressRules,
+  type FieldRouteProgressRules,
+} from '../gameplay/field-route-progress.js';
 import type { StageRuntimeContentRegistry } from './stage-runtime-content.js';
 
 /**
@@ -20,10 +24,13 @@ export interface LiveRouteRuntimeAssembly {
   readonly handoffs: RouteStageHandoffManifest;
   readonly registry: StageRuntimeContentRegistry;
   readonly initialChart: GuideChart;
+  readonly progress: FieldRouteProgressRules;
 }
 
+type LiveRouteRuntimeAssemblySource = Omit<LiveRouteRuntimeAssembly, 'progress'>;
+
 export function compileLiveRouteRuntimeAssembly(
-  source: LiveRouteRuntimeAssembly,
+  source: LiveRouteRuntimeAssemblySource,
 ): LiveRouteRuntimeAssembly {
   const chartById = new Map<string, GuideChart>();
   for (const chart of source.charts) {
@@ -87,6 +94,17 @@ export function compileLiveRouteRuntimeAssembly(
     }
   }
 
+  const progress = compileFieldRouteProgressRules(
+    source.route,
+    source.gates,
+    source.handoffs,
+    source.content.bindings.map((binding) => {
+      const runtime = runtimeByPackage.get(binding.packageId);
+      if (!runtime) throw new Error(`live route progress package is missing: ${binding.packageId}`);
+      return Object.freeze({ stageId: binding.stageId, coordinateFrame: runtime.coordinateFrame });
+    }),
+  );
+
   return Object.freeze({
     route: source.route,
     content: source.content,
@@ -95,5 +113,6 @@ export function compileLiveRouteRuntimeAssembly(
     handoffs: source.handoffs,
     registry: source.registry,
     initialChart: source.initialChart,
+    progress,
   });
 }

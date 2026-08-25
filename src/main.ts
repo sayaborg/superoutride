@@ -22,10 +22,17 @@ import {
 } from './camera/m5-camera.js';
 import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
 import {
+  createFieldRouteProgressState,
+  fieldRouteProgressBoundaryFromRouteUpdate,
+  fieldRouteProgressTravelerView,
+  fieldRouteProgressWindow,
+  resyncFieldRouteProgress,
+  updateFieldRouteProgress,
+} from './gameplay/field-route-progress.js';
+import {
   createGeometricCourseTracker,
   createM6DebugRaceRules,
   createRaceProgressState,
-  getRaceProgressWindow,
   resyncGeometricCourseTracker,
   resyncRaceProgressPosition,
   updateGeometricCourseTracker,
@@ -186,6 +193,10 @@ const liveRoute = createM627LiveRouteRuntime(
   spriteAssets,
 );
 const playerTraveler = createLiveRouteTravelerState(liveRoute, { x: vehicle.x, z: vehicle.z });
+const playerFieldProgress = createFieldRouteProgressState(
+  liveRoute.progress,
+  fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
+);
 const routeState = playerTraveler.routeState;
 const routeHandoffState = playerTraveler.handoffState;
 const stageRuntimeRegistry = liveRoute.registry;
@@ -199,6 +210,10 @@ const rivals = rivalRoster.map((entry) => {
     surfaceMap,
     95 + entry.rivalIndex * 6,
   );
+  const traveler = createLiveRouteTravelerState(
+    liveRoute,
+    { x: rivalVehicle.x, z: rivalVehicle.z },
+  );
   return {
     actorId: entry.actorId,
     vehicle: rivalVehicle,
@@ -209,7 +224,11 @@ const rivals = rivalRoster.map((entry) => {
       sLocal: rivalVehicle.course.s,
     }),
     raceSession: createRaceSessionState(),
-    traveler: createLiveRouteTravelerState(liveRoute, { x: rivalVehicle.x, z: rivalVehicle.z }),
+    traveler,
+    fieldProgress: createFieldRouteProgressState(
+      liveRoute.progress,
+      fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
+    ),
     routePlan: rivalRoutePlan,
   };
 });
@@ -247,6 +266,11 @@ window.addEventListener('keydown', (event) => {
       resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
     }
     resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
+    resyncFieldRouteProgress(
+      playerFieldProgress,
+      liveRoute.progress,
+      fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
+    );
     camera = updateM5Camera(
       cameraRig,
       runtime.coordinateFrame,
@@ -449,6 +473,20 @@ function frame(now: number): void {
         runtimeAfter.coordinateFrame,
       );
     }
+    const playerProgressView = fieldRouteProgressTravelerView(
+      playerTraveler.routeState,
+      playerTraveler.handoffState,
+    );
+    if (recovered !== null || playerRouteTick.branchViolation !== null) {
+      resyncFieldRouteProgress(playerFieldProgress, liveRoute.progress, playerProgressView);
+    } else {
+      updateFieldRouteProgress(
+        playerFieldProgress,
+        liveRoute.progress,
+        playerProgressView,
+        fieldRouteProgressBoundaryFromRouteUpdate(routeUpdate),
+      );
+    }
     for (let rivalIndex = 0; rivalIndex < rivalFrames.length; rivalIndex += 1) {
       const rivalFrame = rivalFrames[rivalIndex]!;
       const rivalRouteTick = routeTick.actors[rivalIndex + 1]!;
@@ -473,10 +511,28 @@ function frame(now: number): void {
       } else if (rivalRouteTick.committed) {
         rivalFrame.rival.vehicle.course = { ...rivalFrame.rival.traveler.handoffState.coordinate };
       }
+      const rivalProgressView = fieldRouteProgressTravelerView(
+        rivalFrame.rival.traveler.routeState,
+        rivalFrame.rival.traveler.handoffState,
+      );
+      if (rivalFrame.recovered !== null || rivalRouteTick.branchViolation !== null) {
+        resyncFieldRouteProgress(
+          rivalFrame.rival.fieldProgress,
+          liveRoute.progress,
+          rivalProgressView,
+        );
+      } else {
+        updateFieldRouteProgress(
+          rivalFrame.rival.fieldProgress,
+          liveRoute.progress,
+          rivalProgressView,
+          fieldRouteProgressBoundaryFromRouteUpdate(rivalRouteTick.routeUpdate),
+        );
+      }
     }
 
     // A validated point-to-point finish records the objective; it does not pause DEV simulation.
-    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate);
+    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
     updateRunObjectiveFromValidatedFinish(
       runObjective,
       POINT_TO_POINT_OBJECTIVE,
@@ -549,13 +605,13 @@ function render(): void {
   const standings = rankRaceProgress([
     {
       competitorId: 'PLAYER',
-      sProgress: raceProgress.sProgress,
-      validatedProgressFloor: raceProgress.validatedProgressFloor,
+      sProgress: playerFieldProgress.sProgress,
+      validatedProgressFloor: playerFieldProgress.validatedProgressFloor,
     },
     ...rivals.map((rival) => ({
       competitorId: rival.actorId,
-      sProgress: rival.raceProgress.sProgress,
-      validatedProgressFloor: rival.raceProgress.validatedProgressFloor,
+      sProgress: rival.fieldProgress.sProgress,
+      validatedProgressFloor: rival.fieldProgress.validatedProgressFloor,
     })),
   ]);
   const playerStanding = standings.find((entry) => entry.competitorId === 'PLAYER')!;
@@ -570,8 +626,11 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : vehicle.sprungRoll * 180 / Math.PI;
-  const nextGate = raceRules.gates[raceProgress.nextGateIndex]!;
-  const progressWindow = getRaceProgressWindow(raceProgress, raceRules);
+  const progressWindow = fieldRouteProgressWindow(
+    liveRoute.progress,
+    routeState.activeStageId,
+    playerFieldProgress.validatedProgressFloor,
+  );
   const junctionPhase = isParentRaceDiagnostic(runtime)
     ? M6_13_JUNCTION.sample(vehicle.course.s).phase
     : 'STAGE';
@@ -593,7 +652,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.51 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.52 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -601,8 +660,8 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
   ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
   ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
-  ctx.fillText(`POS ${playerStanding.rank}/${standings.length}  YOU ${raceProgress.sProgress.toFixed(1)}  RIVALS ${rivals.length}`, 8, 120);
-  ctx.fillText(`NEXT ${nextGate.name}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  CUT ${raceProgress.shortcutViolationCount}`, 8, 132);
+  ctx.fillText(`POS ${playerStanding.rank}/${standings.length}  YOU ${playerFieldProgress.sProgress.toFixed(1)}  RIVALS ${rivals.length}`, 8, 120);
+  ctx.fillText(`NEXT ${routeState.activeStageId}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  ROUTE GATES ${playerFieldProgress.acceptedTransitionCount}`, 8, 132);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  RUN ${runFinish}`, 8, 144);
   ctx.fillText(`ROUTE ${routeState.activeStageId} ${routeState.status} EVT ${routeState.lastEvent}`, 8, 156);
   ctx.fillText(`CHART ${routeHandoffState.activeChartId} L ${formatSigned(routeHandoffState.coordinate.l)} C${routeHandoffState.commitCount}`, 8, 168);

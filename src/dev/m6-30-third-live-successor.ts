@@ -4,6 +4,7 @@ import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
   type DeclarativeGateGeometry,
+  type DeclarativeHandoffGeometry,
   type DeclarativeLiveRouteAuthoring,
   type DeclarativeLiveRouteStageAuthoring,
   type DeclarativeLiveRouteTransitionAuthoring,
@@ -25,7 +26,10 @@ import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
-import { createM626LiveContinuation } from './m6-26-live-successor-stage.js';
+import {
+  createM626LiveContinuation,
+  type M626LiveContinuation,
+} from './m6-26-live-successor-stage.js';
 import { createM626LiveStageRuntimePackages } from './m6-26-live-runtime-content.js';
 
 const WORLD_FRAME_ID = 'DEV_ROUTE_WORLD_V1';
@@ -146,14 +150,7 @@ export function createM630ThirdLiveSuccessorAuthoring(
         M6_13_JUNCTION.separatedChildCenterL('LEFT'),
       ),
     ),
-    handoff: pointGeometry(
-      'H_S1_LEFT',
-      guideChartToWorld(
-        continuation.base.charts.parent,
-        M6_17_HANDOFF_SEAM_S,
-        M6_13_JUNCTION.separatedChildCenterL('LEFT'),
-      ),
-    ),
+    handoff: parentHandoffGeometry(continuation, 'H_S1_LEFT', 'LEFT'),
   };
   const forkRight: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S1_RIGHT',
@@ -167,14 +164,7 @@ export function createM630ThirdLiveSuccessorAuthoring(
         M6_13_JUNCTION.separatedChildCenterL('RIGHT'),
       ),
     ),
-    handoff: pointGeometry(
-      'H_S1_RIGHT',
-      guideChartToWorld(
-        continuation.base.charts.parent,
-        M6_17_HANDOFF_SEAM_S,
-        M6_13_JUNCTION.separatedChildCenterL('RIGHT'),
-      ),
-    ),
+    handoff: parentHandoffGeometry(continuation, 'H_S1_RIGHT', 'RIGHT'),
   };
   const leftBridge: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S2L_CONTINUE',
@@ -288,11 +278,35 @@ function sourceHandoffGeometry(
   successor: RasterSuccessorRuntimeSource,
   sourceChart: GuideChart,
   id: string,
-): DeclarativeGateGeometry {
-  return pointGeometry(
-    id,
-    guideChartToWorld(sourceChart, successor.sourceSeamS, 0),
-  );
+): DeclarativeHandoffGeometry {
+  return {
+    ...pointGeometry(
+      id,
+      guideChartToWorld(sourceChart, successor.sourceSeamS, 0),
+    ),
+    sourceSeamS: successor.link.sourceSeamS,
+    targetSeamS: successor.link.targetSeamS,
+    sourceLocalL: successor.link.sourceLocalL,
+    targetLocalL: successor.link.targetLocalL,
+  };
+}
+
+function parentHandoffGeometry(
+  continuation: M626LiveContinuation,
+  id: string,
+  side: 'LEFT' | 'RIGHT',
+): DeclarativeHandoffGeometry {
+  const localL = M6_13_JUNCTION.separatedChildCenterL(side);
+  return {
+    ...pointGeometry(
+      id,
+      guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL),
+    ),
+    sourceSeamS: M6_17_HANDOFF_SEAM_S,
+    targetSeamS: continuation.base.handoffLocalS,
+    sourceLocalL: localL,
+    targetLocalL: 0,
+  };
 }
 
 function pointGeometry(

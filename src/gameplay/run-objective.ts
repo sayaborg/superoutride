@@ -89,13 +89,13 @@ export function createValidatedRunFinishFromRace(
 /**
  * Adapt an already-validated terminal Route DAG FINISH into the generic run-finish signal.
  *
- * The numeric closed-course s_progress space is intentionally not projected onto the route
- * graph. A routed point-to-point finish therefore carries `validatedProgress: null` until a
- * future stage-progress model defines a meaningful route-global metric.
+ * A route-progress producer may supply its physically validated numeric floor. Historical callers
+ * without that gameplay authority remain valid and emit `validatedProgress: null`.
  */
 export function createValidatedRunFinishFromRoute(
   routeState: Pick<RouteDagState, 'status' | 'activeStageId' | 'finishStageId'>,
   routeUpdate: RouteDagUpdate | null,
+  progress?: { readonly validatedProgressFloor: number },
 ): ValidatedRunFinish | null {
   if (!routeUpdate || routeUpdate.event !== 'FINISHED' || !routeUpdate.justFinished) return null;
 
@@ -108,11 +108,14 @@ export function createValidatedRunFinishFromRoute(
   ) {
     throw new Error('inconsistent validated Route DAG finish state');
   }
+  if (progress !== undefined && !Number.isFinite(progress.validatedProgressFloor)) {
+    throw new RangeError('validated route progress floor must be finite');
+  }
 
   return Object.freeze({
     source: 'ROUTE_DAG',
     id: routeState.finishStageId,
-    validatedProgress: null,
+    validatedProgress: progress?.validatedProgressFloor ?? null,
   });
 }
 

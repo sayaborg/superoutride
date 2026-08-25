@@ -1,10 +1,11 @@
+import { sampleGuideCurve, type CourseCoordinate } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import {
+  guideChartToWorld,
   handoffGuideChart,
   locateWorldOnGuideChartLocal,
   type GuideChart,
 } from './guide-chart.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
 import type { RouteChoice, RouteDag, RouteDagState, RouteDagUpdate } from './route-dag.js';
 import {
   resolveActiveRouteStageContent,
@@ -29,11 +30,20 @@ export type RouteStageHandoffEvent =
 export interface RouteStageHandoffSeamAuthoring extends WorldCrossingGateAuthoring {
   readonly choiceId: string;
   readonly targetChartId: string;
+  /** Existing StageContinuationLink coordinates; these are the chart-rebase authority. */
+  readonly sourceSeamS: number;
+  readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
 }
 
 export interface RouteStageHandoffSeam extends WorldCrossingGate {
   readonly choiceId: string;
   readonly targetChartId: string;
+  readonly sourceSeamS: number;
+  readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
 }
 
 export interface RouteStageHandoffManifest {
@@ -45,6 +55,10 @@ export interface PendingRouteStageHandoff {
   readonly targetStageId: string;
   readonly targetChartId: string;
   readonly seamId: string;
+  readonly sourceSeamS: number;
+  readonly targetSeamS: number;
+  readonly sourceLocalL: number;
+  readonly targetLocalL: number;
 }
 
 export interface ValidatedRouteStageHandoffSeam {
@@ -95,10 +109,29 @@ export function compileRouteStageHandoffManifest(
     if (!chartIds.has(source.targetChartId)) {
       throw new RangeError(`handoff seam references unknown Guide chart: ${source.targetChartId}`);
     }
+    if (![source.sourceSeamS, source.targetSeamS, source.sourceLocalL, source.targetLocalL].every(Number.isFinite)) {
+      throw new RangeError(`handoff seam coordinate map must be finite: ${source.id}`);
+    }
+    const targetChart = charts.find((chart) => chart.id === source.targetChartId)!;
+    if (!(source.targetSeamS >= 0 && source.targetSeamS <= targetChart.guide.length)) {
+      throw new RangeError(`handoff target seam lies outside target chart: ${source.id}`);
+    }
+    const targetAnchor = guideChartToWorld(targetChart, source.targetSeamS, source.targetLocalL);
+    if (Math.hypot(targetAnchor.x - source.center.x, targetAnchor.z - source.center.z) > 1e-6) {
+      throw new RangeError(`handoff target coordinate map disagrees with world seam: ${source.id}`);
+    }
     choiceIds.add(choice.id);
     seamIds.add(source.id);
     const gate = compileWorldCrossingGate(source);
-    seams.push(Object.freeze({ ...gate, choiceId: choice.id, targetChartId: source.targetChartId }));
+    seams.push(Object.freeze({
+      ...gate,
+      choiceId: choice.id,
+      targetChartId: source.targetChartId,
+      sourceSeamS: source.sourceSeamS,
+      targetSeamS: source.targetSeamS,
+      sourceLocalL: source.sourceLocalL,
+      targetLocalL: source.targetLocalL,
+    }));
   }
 
   for (const choice of route.choices) {
@@ -146,6 +179,10 @@ export function queueRouteStageHandoff(
     targetStageId: choice.toStageId,
     targetChartId: seam.targetChartId,
     seamId: seam.id,
+    sourceSeamS: seam.sourceSeamS,
+    targetSeamS: seam.targetSeamS,
+    sourceLocalL: seam.sourceLocalL,
+    targetLocalL: seam.targetLocalL,
   });
   state.lastEvent = 'PENDING';
   return state.lastEvent;
@@ -195,9 +232,32 @@ export function commitRouteStageHandoff(
     return state.lastEvent;
   }
 
+  const sourceChart = getChart(charts, state.activeChartId);
+  const sourceSeamSample = sampleGuideCurve(sourceChart.guide, pending.sourceSeamS);
+  const sourceCoordinate = locateWorldOnGuideChartLocal(
+    sourceChart,
+    world,
+    sourceSeamSample.segmentIndex,
+    3,
+    false,
+  );
   const targetChart = getChart(charts, pending.targetChartId);
+  const targetS = pending.targetSeamS + (sourceCoordinate.s - pending.sourceSeamS);
+  if (!(targetS >= 0 && targetS <= targetChart.guide.length)) {
+    throw new RangeError(
+      `handoff mapped coordinate lies outside target chart: ${pending.choiceId}`
+      + ` source=${sourceCoordinate.s} seam=${pending.sourceSeamS}`
+      + ` target=${targetS} length=${targetChart.guide.length}`,
+    );
+  }
+  const targetSample = sampleGuideCurve(targetChart.guide, targetS);
   const activeContent = resolveActiveRouteStageContent(content, { activeStageId: pending.targetStageId });
-  state.coordinate = handoffGuideChart(targetChart, world);
+  state.coordinate = {
+    s: targetS,
+    l: pending.targetLocalL + (sourceCoordinate.l - pending.sourceLocalL),
+    segmentIndex: targetSample.segmentIndex,
+    distanceSquared: sourceCoordinate.distanceSquared,
+  };
   state.activeStageId = pending.targetStageId;
   state.activeChartId = targetChart.id;
   state.activePackageId = activeContent.package.packageId;

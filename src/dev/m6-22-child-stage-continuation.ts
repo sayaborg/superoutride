@@ -112,8 +112,8 @@ export function createM622RouteStageHandoffManifest(
   continuation: M622ChildStageContinuation,
 ): RouteStageHandoffManifest {
   const authoring: RouteStageHandoffSeamAuthoring[] = [
-    handoffSeam(parentGuide, 'S1_LEFT', continuation.charts.left),
-    handoffSeam(parentGuide, 'S1_RIGHT', continuation.charts.right),
+    handoffSeam(parentGuide, 'S1_LEFT', continuation.charts.left, continuation.handoffLocalS),
+    handoffSeam(parentGuide, 'S1_RIGHT', continuation.charts.right, continuation.handoffLocalS),
   ];
   return compileRouteStageHandoffManifest(
     route,
@@ -248,7 +248,12 @@ function childSurfaceBands(origin: number): SurfaceBand[] {
   ];
 }
 
-function handoffSeam(parentGuide: GuideCurve, choiceId: string, target: GuideChart): RouteStageHandoffSeamAuthoring {
+function handoffSeam(
+  parentGuide: GuideCurve,
+  choiceId: string,
+  target: GuideChart,
+  targetSeamS: number,
+): RouteStageHandoffSeamAuthoring {
   const side = choiceId === 'S1_LEFT' ? 'LEFT' : 'RIGHT';
   const l = M6_13_JUNCTION.separatedChildCenterL(side);
   const point = guideCourseToWorld(parentGuide, M6_17_HANDOFF_SEAM_S, l);
@@ -256,6 +261,10 @@ function handoffSeam(parentGuide: GuideCurve, choiceId: string, target: GuideCha
     id: `H_${choiceId}`,
     choiceId,
     targetChartId: target.id,
+    sourceSeamS: M6_17_HANDOFF_SEAM_S,
+    targetSeamS,
+    sourceLocalL: l,
+    targetLocalL: 0,
     center: { x: point.x, z: point.z },
     heading: point.heading,
     halfWidth: M6_13_JUNCTION.authoring.childRoadWidth * 0.5,

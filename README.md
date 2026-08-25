@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.51
+# SUPER OUTRIDE — M6.52
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -13,7 +13,7 @@ Before modifying this repository, read in this order:
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/69_...`.
+4. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/70_...`.
 5. Relevant source/types/compilers and regression tests — executable implementation contract.
 6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — concise Codex migration handoff, final migration status and deferred-work map.
 
@@ -75,6 +75,7 @@ M6.49      Circuit Runtime Window Integration                    complete
 M6.50      Circuit Race Progress                                 complete
 M6.51      Circuit Live Runtime Integration                      complete
 M6.51      Pages branching continuation hotfix                   complete
+M6.52      Shared Field Route Progress                            complete
 ```
 
 Current topology/runtime design sequence:
@@ -88,6 +89,7 @@ docs/66_m6_48_explicit_circuit_topology.md
 docs/67_m6_49_circuit_runtime_window.md
 docs/68_m6_50_circuit_race_progress.md
 docs/69_m6_51_circuit_live_runtime.md
+docs/70_m6_52_field_route_progress.md
 ```
 
 The M6.51 public Pages branching incident/fix is historical evidence at:
@@ -156,7 +158,7 @@ npm test
 Current package:
 
 ```text
-super-outride-m6-51@0.6.51
+super-outride-m6-52@0.6.52
 ```
 
 Vehicle handling status remains:
