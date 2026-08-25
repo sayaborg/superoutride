@@ -2,19 +2,12 @@ import type { DrivingInput } from '../input/driving-input.js';
 import {
   guideCourseToWorld,
   locateWorldOnGuideLocal,
-  type CourseCoordinate,
   type GuideCurve,
 } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
+import type { VehicleKinematicState } from '../physics/vehicle-state.js';
 
-export interface M2VehicleState {
-  x: number;
-  z: number;
-  yaw: number;
-  speed: number;
-  sprungRoll: number;
-  course: CourseCoordinate;
-}
+export type M2VehicleState = VehicleKinematicState;
 
 export function createM2Vehicle(guide: GuideCurve, s = 45): M2VehicleState {
   const world = guideCourseToWorld(guide, s, 0);
