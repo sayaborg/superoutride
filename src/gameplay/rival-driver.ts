@@ -17,6 +17,7 @@ const STRAIGHT_CRUISE_SPEED_MPS = 56;
 const MIN_CURVE_SPEED_MPS = 18;
 const LATERAL_ACCEL_TARGET_G = 0.72;
 const SPEED_DEADBAND_MPS = 1;
+const GUIDE_EPSILON = 1e-9;
 
 /**
  * Small deterministic DEV rival driver.
@@ -33,7 +34,9 @@ export function sampleRivalDrivingInput(
   car: VehicleCameraReadState,
   targetL = 0,
 ): DrivingInput {
-  const target = guideCoordinateToWorld(guide, car.course.s + STEERING_LOOKAHEAD_METERS, targetL);
+  const curve = guideCoordinateCurve(guide);
+  const targetS = Math.min(curve.length, car.course.s + STEERING_LOOKAHEAD_METERS);
+  const target = guideCoordinateToWorld(guide, targetS, targetL);
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
@@ -62,9 +65,13 @@ export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: num
     offset <= CURVATURE_LOOKAHEAD_METERS;
     offset += CURVATURE_PROBE_STEP_METERS
   ) {
-    const a = sampleGuideCurve(curve, s + offset);
-    const b = sampleGuideCurve(curve, s + offset + CURVATURE_PROBE_SPAN_METERS);
-    const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / CURVATURE_PROBE_SPAN_METERS;
+    const aS = Math.min(curve.length, s + offset);
+    const bS = Math.min(curve.length, aS + CURVATURE_PROBE_SPAN_METERS);
+    if (bS <= aS + GUIDE_EPSILON) break;
+
+    const a = sampleGuideCurve(curve, aS);
+    const b = sampleGuideCurve(curve, bS);
+    const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / (bS - aS);
     maxCurvature = Math.max(maxCurvature, curvature);
   }
 
