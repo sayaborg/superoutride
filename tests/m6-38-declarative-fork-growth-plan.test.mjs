@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/core/debug-course.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM630ThirdLiveSuccessorAuthoring } from '../dist/dev/m6-30-third-live-successor.js';
 import { createM637SymmetricSecondLiveForkRuntime } from '../dist/dev/m6-37-symmetric-right-second-live-fork.js';
