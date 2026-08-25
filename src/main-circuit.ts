@@ -1,0 +1,284 @@
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
+import { pseudoDepth, pseudoProject } from './core/projection.js';
+import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from './dev/m6-51-circuit-live-runtime.js';
+import {
+  createM5CameraRig,
+  resetM5CameraRig,
+  updateM5Camera,
+  type M5CameraProfile,
+  type M5CameraState,
+} from './dev/m5-camera.js';
+import {
+  createCircuitRaceProgressState,
+  getCircuitRaceProgressWindow,
+  getValidatedCircuitLapCount,
+  resyncCircuitRaceProgress,
+  updateCircuitRaceProgress,
+  type CircuitRaceProgressUpdate,
+} from './gameplay/circuit-race-progress.js';
+import { decomposeCircuitChainage } from './gameplay/circuit-topology.js';
+import {
+  advanceRaceSession,
+  createRaceSessionState,
+  formatRaceTime,
+} from './gameplay/race-session.js';
+import {
+  createM5RecoveryState,
+  recoverM5Vehicle,
+  updateM5Recovery,
+} from './gameplay/recovery.js';
+import { InputManager } from './input/input-manager.js';
+import type { DrivingInput } from './input/driving-input.js';
+import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
+import {
+  adoptM5BikeKinematics,
+  adoptM5CarKinematics,
+  createM5Bike,
+  updateM5Bike,
+  type M5BikeState,
+} from './physics/motorcycle-physics.js';
+import { renderM5Driving } from './render/m5-renderer.js';
+import { SoftwareSurface } from './render/software-surface.js';
+import type { TerrainVisualProfile } from './road/terrain-line.js';
+import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
+import { createM3FarBackground } from './visual/far-background.js';
+import type { GroundMapProfile } from './visual/ground-map.js';
+import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
+
+const canvas = mustGet<HTMLCanvasElement>('game');
+const steeringPad = mustGet<HTMLElement>('steering-pad');
+const throttleButton = mustGet<HTMLElement>('throttle-button');
+const brakeButton = mustGet<HTMLElement>('brake-button');
+
+canvas.width = LOGICAL_WIDTH;
+canvas.height = LOGICAL_HEIGHT;
+document.documentElement.classList.toggle('touch-capable', isTouchCapable());
+
+const maybeContext = canvas.getContext('2d', { alpha: false });
+if (!maybeContext) throw new Error('2D canvas context unavailable');
+const ctx: CanvasRenderingContext2D = maybeContext;
+ctx.imageSmoothingEnabled = false;
+
+const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+const framebufferPixels = new Uint32Array(imageData.data.buffer);
+const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
+const inputManager = new InputManager(steeringPad, throttleButton, brakeButton);
+
+const live = createM651CircuitLiveRuntime();
+const windowRuntime = live.window;
+const raceRules = live.raceRules;
+const guide = windowRuntime.guide;
+const height = windowRuntime.height;
+const surfaces = windowRuntime.surface;
+const background = createM3FarBackground();
+const spriteAssets = createM4SpriteAssets();
+
+const groundProfile: GroundMapProfile = {
+  groundLeft: 12,
+  groundRight: 12,
+  roadLeft: 4.5,
+  roadRight: 4.5,
+  shoulderWidth: 1,
+};
+const terrainProfile: TerrainVisualProfile = {
+  screenHeight: LOGICAL_HEIGHT,
+  dMin: 2.5,
+  dMax: 150,
+  groundLeft: groundProfile.groundLeft,
+  groundRight: groundProfile.groundRight,
+  roadLeft: groundProfile.roadLeft,
+  roadRight: groundProfile.roadRight,
+  height,
+  visual: windowRuntime.visual,
+  thinSpanScreenRows: 1,
+};
+
+const car = createM5Car(guide, height, surfaces, 45);
+const bike = createM5Bike(guide, height, surfaces, 45);
+let vehicle: M5CarState | M5BikeState = car;
+let vehicleKind: 'car' | 'bike' = 'car';
+const recovery = createM5RecoveryState(vehicle);
+const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
+const raceSession = createRaceSessionState();
+const cameraRig = createM5CameraRig();
+
+const cameraProfile: M5CameraProfile = {
+  dCam: CURRENT_CAMERA_DISTANCE_METERS,
+  lCamMax: 12,
+  height: 2.469902425419539,
+  pitch: (8 * Math.PI) / 180,
+  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
+  centerX: 160,
+  centerY: 120,
+  kPsi: 0.65,
+  thetaLagMax: (20 * Math.PI) / 180,
+  sDotMin: 8,
+  tauLat: 0.18,
+  playerTargetY: 190,
+  tauVertical: 0.22,
+  deltaYMax: 4,
+  playerSafeXMin: 48,
+  playerSafeXMax: 272,
+};
+
+let input: DrivingInput = { steering: 0, throttle: false, brake: false };
+let camera: M5CameraState = updateM5Camera(
+  cameraRig,
+  guide,
+  height,
+  vehicle,
+  cameraProfile,
+  SIM_DT,
+);
+
+window.addEventListener('keydown', (event) => {
+  if (event.repeat) return;
+  if (event.code === 'KeyR') {
+    recoverM5Vehicle(recovery, guide, height, surfaces, vehicle, 'manual');
+    resetM5CameraRig(cameraRig);
+    resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
+    camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
+    return;
+  }
+  if (event.code !== 'KeyV') return;
+  if (vehicleKind === 'car') {
+    adoptM5BikeKinematics(bike, vehicle);
+    vehicle = bike;
+    vehicleKind = 'bike';
+  } else {
+    adoptM5CarKinematics(car, vehicle as M5BikeState);
+    vehicle = car;
+    vehicleKind = 'car';
+  }
+});
+
+let accumulator = 0;
+let previousTime = performance.now();
+
+function frame(now: number): void {
+  const elapsed = Math.min((now - previousTime) / 1000, 0.25);
+  previousTime = now;
+  accumulator += elapsed;
+
+  while (accumulator >= SIM_DT) {
+    inputManager.update(SIM_DT);
+    input = inputManager.sample();
+
+    if (vehicleKind === 'car') {
+      updateM5Car(guide, height, surfaces, vehicle, input, SIM_DT);
+    } else {
+      updateM5Bike(guide, height, surfaces, vehicle as M5BikeState, input, SIM_DT);
+    }
+
+    const recovered = updateM5Recovery(recovery, guide, height, surfaces, vehicle, SIM_DT);
+    let raceUpdate: CircuitRaceProgressUpdate | null = null;
+    if (recovered !== null) {
+      resetM5CameraRig(cameraRig);
+      resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
+    } else {
+      raceUpdate = updateCircuitRaceProgress(raceProgress, raceRules, raceSample());
+    }
+    advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
+    camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
+    accumulator -= SIM_DT;
+  }
+
+  render();
+  requestAnimationFrame(frame);
+}
+
+function render(): void {
+  const stats = renderM5Driving(
+    framebuffer,
+    background,
+    guide,
+    camera,
+    vehicle,
+    terrainProfile,
+    groundProfile,
+    [],
+    spriteAssets,
+    vehicleKind,
+  );
+  ctx.putImageData(imageData, 0, 0);
+
+  const playerProjection = pseudoProject(
+    { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
+    camera,
+  );
+  const dCar = pseudoDepth(vehicle.course.s, camera.s);
+  const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
+  const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
+  const bankDeg = vehicleKind === 'bike'
+    ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
+    : vehicle.sprungRoll * 180 / Math.PI;
+  const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
+  const validatedLaps = getValidatedCircuitLapCount(raceProgress);
+  const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
+  const topologyPosition = decomposeCircuitChainage(windowRuntime.topology, unwrappedS);
+  const nextGate = raceProgress.status === 'FINISHED'
+    ? null
+    : raceRules.gates[raceProgress.nextGateIndex] ?? null;
+  const raceState = raceProgress.status === 'FINISHED'
+    ? `FINISHED ${formatRaceTime(raceSession.elapsedSeconds)}`
+    : 'RUNNING';
+
+  ctx.fillStyle = '#d7f3ff';
+  ctx.font = 'bold 13px monospace';
+  ctx.textBaseline = 'top';
+  ctx.fillText('SUPER OUTRIDE', 8, 6);
+  ctx.fillStyle = '#a6bac4';
+  ctx.font = '9px monospace';
+  ctx.fillText(`M6.51 ${M6_51_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
+  ctx.fillText(`S_WIN ${vehicle.course.s.toFixed(1).padStart(7)}  L ${formatSigned(vehicle.course.l)}  COPY ${topologyPosition.winding}`, 8, 48);
+  ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  LOCAL ${topologyPosition.sLocal.toFixed(1)}  EVT ${raceProgress.lastEvent}`, 8, 60);
+  ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
+  ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  CUT ${raceProgress.shortcutViolationCount}  REV ${raceProgress.reverseCrossingCount}`, 8, 84);
+  ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  ${raceState}`, 8, 96);
+  ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
+  ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
+  ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 132);
+  ctx.fillText(`TL ${stats.terrainLineCount}  GM ${stats.groundMapBaked ? 'BAKED' : 'PROC'}  ${stats.activeSection}`, 8, 144);
+  ctx.fillText(`WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps / +1 runout`, 8, 156);
+  ctx.fillText(`TOPO ${windowRuntime.topology.id}  START WIND ${windowRuntime.startWinding}`, 8, 168);
+  ctx.fillText('Physical CPs + forward FINISH are lap authority; winding is not.', 8, 180);
+  if (camera.playerSafetyActive) {
+    ctx.fillStyle = '#ffd08a';
+    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
+    ctx.fillStyle = '#a6bac4';
+  }
+  ctx.fillStyle = raceProgress.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
+  ctx.fillText(
+    raceProgress.status === 'FINISHED'
+      ? `THREE-LAP CIRCUIT FINISH / extra open runout remains live`
+      : 'CIRCUIT LIVE: ordinary open physics / camera / renderer',
+    8,
+    207,
+  );
+  ctx.fillStyle = '#8fa3ad';
+  ctx.fillText(`No RouteDag / no modulo in Core / no circuit renderer path`, 8, 218);
+  ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+}
+
+function raceSample(): { x: number; z: number; sWindow: number } {
+  return { x: vehicle.x, z: vehicle.z, sWindow: vehicle.course.s };
+}
+
+function formatSigned(value: number, digits = 2): string {
+  const normalized = Math.abs(value) < 0.0005 ? 0 : value;
+  return `${normalized >= 0 ? '+' : '-'}${Math.abs(normalized).toFixed(digits)}`;
+}
+
+function isTouchCapable(): boolean {
+  return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
+}
+
+function mustGet<T extends HTMLElement>(id: string): T {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Missing #${id}`);
+  return element as T;
+}
+
+requestAnimationFrame(frame);
