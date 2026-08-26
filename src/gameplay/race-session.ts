@@ -38,6 +38,8 @@ export interface RaceRankingInput {
   readonly competitorId: string;
   readonly sProgress: number;
   readonly validatedProgressFloor: number;
+  /** Already-validated terminal FINISH time. Absent/null while the competitor is unfinished. */
+  readonly finishElapsedSeconds?: number | null;
 }
 
 export interface RaceStanding extends RaceRankingInput {
@@ -107,7 +109,8 @@ export function advanceRaceSession(
  * Primary key: continuous sProgress.
  * Secondary key: validatedProgressFloor. This makes a physically validated gate crossing
  * beat an unvalidated competitor merely saturated at the same next-gate ceiling.
- * Exact equality is a real tie; no arbitrary ID or raw geometry tie-breaker is introduced.
+ * At identical completed progress, an already-validated terminal FINISH time is the final key.
+ * Exact equality remains a real tie; no arbitrary ID or raw geometry tie-breaker is introduced.
  */
 export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStanding[] {
   const indexed = inputs.map((input, inputIndex) => {
@@ -120,6 +123,14 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
     if (Math.abs(progressDelta) > EPSILON) return progressDelta;
     const floorDelta = b.input.validatedProgressFloor - a.input.validatedProgressFloor;
     if (Math.abs(floorDelta) > EPSILON) return floorDelta;
+    const aFinish = a.input.finishElapsedSeconds ?? null;
+    const bFinish = b.input.finishElapsedSeconds ?? null;
+    if (aFinish !== null || bFinish !== null) {
+      if (aFinish === null) return 1;
+      if (bFinish === null) return -1;
+      const finishDelta = aFinish - bFinish;
+      if (Math.abs(finishDelta) > EPSILON) return finishDelta;
+    }
     return a.inputIndex - b.inputIndex;
   });
 
@@ -131,7 +142,8 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
     const input = indexed[i]!.input;
     const tied = previous !== null
       && Math.abs(input.sProgress - previous.sProgress) <= EPSILON
-      && Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= EPSILON;
+      && Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= EPSILON
+      && equalFinishTime(input.finishElapsedSeconds, previous.finishElapsedSeconds);
     const rank = tied ? previousRank : i + 1;
     standings.push({ ...input, rank });
     previous = input;
@@ -155,7 +167,21 @@ function validateRankingInput(input: RaceRankingInput): void {
   if (!Number.isFinite(input.sProgress) || !Number.isFinite(input.validatedProgressFloor)) {
     throw new RangeError('ranking progress must be finite');
   }
+  if (
+    input.finishElapsedSeconds !== undefined
+    && input.finishElapsedSeconds !== null
+    && (!(input.finishElapsedSeconds >= 0) || !Number.isFinite(input.finishElapsedSeconds))
+  ) {
+    throw new RangeError('ranking finishElapsedSeconds must be finite and >= 0 or null');
+  }
   if (input.sProgress + EPSILON < input.validatedProgressFloor) {
     throw new RangeError('sProgress cannot be below validatedProgressFloor');
   }
+}
+
+function equalFinishTime(a: number | null | undefined, b: number | null | undefined): boolean {
+  const normalizedA = a ?? null;
+  const normalizedB = b ?? null;
+  if (normalizedA === null || normalizedB === null) return normalizedA === normalizedB;
+  return Math.abs(normalizedA - normalizedB) <= EPSILON;
 }

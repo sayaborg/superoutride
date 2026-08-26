@@ -1,7 +1,8 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
-import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from './dev/m6-51-circuit-live-runtime.js';
+import { createM651CircuitLiveRuntime } from './dev/m6-51-circuit-live-runtime.js';
+import { M6_54_DEV_COURSE_MODE } from './dev/m6-54-circuit-multi-actor.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -22,12 +23,14 @@ import {
   advanceRaceSession,
   createRaceSessionState,
   formatRaceTime,
+  rankRaceProgress,
 } from './gameplay/race-session.js';
 import {
   createM5RecoveryState,
   recoverM5Vehicle,
   updateM5Recovery,
 } from './gameplay/recovery.js';
+import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
@@ -42,9 +45,11 @@ import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
+import { createRivalRoster } from './runtime/rival-roster.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import type { GroundMapProfile } from './visual/ground-map.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
+import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const steeringPad = mustGet<HTMLElement>('steering-pad');
@@ -101,6 +106,22 @@ let vehicleKind: 'car' | 'bike' = 'car';
 const recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
+const rivalRoster = createRivalRoster(M6_54_DEV_COURSE_MODE);
+const rivals = rivalRoster.map((entry) => {
+  // DEV grid placement only. Final product grid authoring remains deliberately undecided.
+  const rivalVehicle = createM5Car(guide, height, surfaces, 95 + entry.rivalIndex * 6);
+  return {
+    actorId: entry.actorId,
+    vehicle: rivalVehicle,
+    recovery: createM5RecoveryState(rivalVehicle),
+    raceProgress: createCircuitRaceProgressState(raceRules, {
+      x: rivalVehicle.x,
+      z: rivalVehicle.z,
+      sWindow: rivalVehicle.course.s,
+    }),
+    raceSession: createRaceSessionState(),
+  };
+});
 const cameraRig = createM5CameraRig();
 
 const cameraProfile: M5CameraProfile = {
@@ -180,6 +201,39 @@ function frame(now: number): void {
       raceUpdate = updateCircuitRaceProgress(raceProgress, raceRules, raceSample());
     }
     advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
+
+    for (const rival of rivals) {
+      const rivalInput = sampleRivalDrivingInput(guide, rival.vehicle, 0);
+      updateM5Car(guide, height, surfaces, rival.vehicle, rivalInput, SIM_DT);
+      const rivalRecovered = updateM5Recovery(
+        rival.recovery,
+        guide,
+        height,
+        surfaces,
+        rival.vehicle,
+        SIM_DT,
+      );
+      let rivalRaceUpdate: CircuitRaceProgressUpdate | null = null;
+      if (rivalRecovered !== null) {
+        resyncCircuitRaceProgress(rival.raceProgress, raceRules, {
+          x: rival.vehicle.x,
+          z: rival.vehicle.z,
+          sWindow: rival.vehicle.course.s,
+        });
+      } else {
+        rivalRaceUpdate = updateCircuitRaceProgress(rival.raceProgress, raceRules, {
+          x: rival.vehicle.x,
+          z: rival.vehicle.z,
+          sWindow: rival.vehicle.course.s,
+        });
+      }
+      advanceRaceSession(
+        rival.raceSession,
+        rival.raceProgress,
+        rivalRaceUpdate,
+        SIM_DT,
+      );
+    }
     camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
     accumulator -= SIM_DT;
   }
@@ -189,6 +243,12 @@ function frame(now: number): void {
 }
 
 function render(): void {
+  const rivalSprites = rivals.map((rival) => createDynamicVehicleCourseSprite(
+    rival.actorId,
+    rival.vehicle,
+    camera.yaw,
+    spriteAssets.car,
+  ));
   const stats = renderM5Driving(
     framebuffer,
     background,
@@ -197,7 +257,7 @@ function render(): void {
     vehicle,
     terrainProfile,
     groundProfile,
-    [],
+    rivalSprites,
     spriteAssets,
     vehicleKind,
   );
@@ -217,6 +277,26 @@ function render(): void {
   const validatedLaps = getValidatedCircuitLapCount(raceProgress);
   const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
   const topologyPosition = decomposeCircuitChainage(windowRuntime.topology, unwrappedS);
+  const standings = rankRaceProgress([
+    {
+      competitorId: 'PLAYER',
+      sProgress: raceProgress.sProgress,
+      validatedProgressFloor: raceProgress.validatedProgressFloor,
+      finishElapsedSeconds: raceProgress.status === 'FINISHED'
+        ? raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? null
+        : null,
+    },
+    ...rivals.map((rival) => ({
+      competitorId: rival.actorId,
+      sProgress: rival.raceProgress.sProgress,
+      validatedProgressFloor: rival.raceProgress.validatedProgressFloor,
+      finishElapsedSeconds: rival.raceProgress.status === 'FINISHED'
+        ? rival.raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? null
+        : null,
+    })),
+  ]);
+  const playerStanding = standings.find((entry) => entry.competitorId === 'PLAYER')!;
+  const firstRival = rivals[0] ?? null;
   const nextGate = raceProgress.status === 'FINISHED'
     ? null
     : raceRules.gates[raceProgress.nextGateIndex] ?? null;
@@ -231,12 +311,12 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.53 ${M6_51_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.54 ${M6_54_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S_WIN ${vehicle.course.s.toFixed(1).padStart(7)}  L ${formatSigned(vehicle.course.l)}  COPY ${topologyPosition.winding}`, 8, 48);
-  ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  LOCAL ${topologyPosition.sLocal.toFixed(1)}  EVT ${raceProgress.lastEvent}`, 8, 60);
+  ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
   ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
-  ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  CUT ${raceProgress.shortcutViolationCount}  REV ${raceProgress.reverseCrossingCount}`, 8, 84);
+  ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  R1 ${firstRival?.raceProgress.sProgress.toFixed(1) ?? 'NONE'}  CUT ${raceProgress.shortcutViolationCount}`, 8, 84);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  ${raceState}`, 8, 96);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
@@ -254,7 +334,7 @@ function render(): void {
   ctx.fillText(
     raceProgress.status === 'FINISHED'
       ? `THREE-LAP CIRCUIT FINISH / extra open runout remains live`
-      : 'CIRCUIT LIVE: ordinary open physics / camera / renderer',
+      : `CIRCUIT FIELD: ${rivals.length} DEV rival / ordinary open runtime`,
     8,
     207,
   );

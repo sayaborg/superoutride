@@ -138,6 +138,35 @@ test('exactly equal validated race states remain a true tie with no arbitrary ID
   ]);
 });
 
+test('validated terminal finish time resolves only otherwise-equal completed progress', () => {
+  const standings = rankRaceProgress([
+    {
+      competitorId: 'LATER_FINISH',
+      sProgress: 300,
+      validatedProgressFloor: 300,
+      finishElapsedSeconds: 24.5,
+    },
+    {
+      competitorId: 'EARLIER_FINISH',
+      sProgress: 300,
+      validatedProgressFloor: 300,
+      finishElapsedSeconds: 23.75,
+    },
+    {
+      competitorId: 'UNFINISHED_AT_CEILING',
+      sProgress: 300,
+      validatedProgressFloor: 200,
+      finishElapsedSeconds: null,
+    },
+  ]);
+
+  assert.deepEqual(standings.map((entry) => [entry.competitorId, entry.rank]), [
+    ['EARLIER_FINISH', 1],
+    ['LATER_FINISH', 2],
+    ['UNFINISHED_AT_CEILING', 3],
+  ]);
+});
+
 test('race time formatter is deterministic millisecond display', () => {
   assert.equal(formatRaceTime(0), '0:00.000');
   assert.equal(formatRaceTime(65.4329), '1:05.432');
