@@ -30,16 +30,6 @@ import {
   updateFieldRouteProgress,
 } from './gameplay/field-route-progress.js';
 import {
-  createGeometricCourseTracker,
-  createM6DebugRaceRules,
-  createRaceProgressState,
-  resyncGeometricCourseTracker,
-  resyncRaceProgressPosition,
-  updateGeometricCourseTracker,
-  updateRaceProgress,
-  type RaceProgressUpdate,
-} from './gameplay/race-progress.js';
-import {
   advanceRaceSession,
   createRaceSessionState,
   formatRaceTime,
@@ -170,9 +160,6 @@ let vehicleKind: 'car' | 'bike' = 'car';
 
 const cameraRig = createM5CameraRig();
 const recovery = createM5RecoveryState(vehicle);
-const raceRules = createM6DebugRaceRules(guide);
-const geometricCourse = createGeometricCourseTracker(guide.length, vehicle.course.s);
-const raceProgress = createRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
 
 const liveRoute = createM627LiveRouteRuntime(
@@ -218,12 +205,6 @@ const rivals = rivalRoster.map((entry) => {
     actorId: entry.actorId,
     vehicle: rivalVehicle,
     recovery: createM5RecoveryState(rivalVehicle),
-    raceProgress: createRaceProgressState(raceRules, {
-      x: rivalVehicle.x,
-      z: rivalVehicle.z,
-      sLocal: rivalVehicle.course.s,
-    }),
-    raceSession: createRaceSessionState(),
     traveler,
     fieldProgress: createFieldRouteProgressState(
       liveRoute.progress,
@@ -261,10 +242,6 @@ window.addEventListener('keydown', (event) => {
     const runtime = activeRuntime();
     recoverM5Vehicle(recovery, runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, vehicle, 'manual');
     resetM5CameraRig(cameraRig);
-    if (isParentRaceDiagnostic(runtime)) {
-      resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-      resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
-    }
     resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
     resyncFieldRouteProgress(
       playerFieldProgress,
@@ -316,7 +293,6 @@ function frame(now: number): void {
 
     // Phase 1: finish every actor's world physics before any route authority is mutated.
     const runtimeBefore = activeRuntime();
-    const parentDiagnosticBefore = isParentRaceDiagnostic(runtimeBefore);
     if (vehicleKind === 'car') {
       updateM5Car(
         runtimeBefore.coordinateFrame,
@@ -345,22 +321,13 @@ function frame(now: number): void {
       vehicle,
       SIM_DT,
     );
-    let raceUpdate: RaceProgressUpdate | null = null;
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
-      if (parentDiagnosticBefore) {
-        resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-        resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
-      }
       resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
-    } else if (parentDiagnosticBefore) {
-      updateGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-      raceUpdate = updateRaceProgress(raceProgress, raceRules, raceSample());
     }
 
     const rivalFrames = rivals.map((rival) => {
       const rivalRuntimeBefore = resolveLiveRouteTravelerRuntime(liveRoute, rival.traveler);
-      const rivalParentDiagnosticBefore = isParentRaceDiagnostic(rivalRuntimeBefore);
       const sharedLock = getSharedRouteChoiceLock(
         sharedRouteChoices,
         rival.traveler.handoffState.activeStageId,
@@ -399,33 +366,17 @@ function frame(now: number): void {
         rival.vehicle,
         SIM_DT,
       );
-      let rivalRaceUpdate: RaceProgressUpdate | null = null;
       if (rivalRecovered !== null) {
-        if (rivalParentDiagnosticBefore) {
-          resyncRaceProgressPosition(rival.raceProgress, raceRules, {
-            x: rival.vehicle.x,
-            z: rival.vehicle.z,
-            sLocal: rival.vehicle.course.s,
-          });
-        }
         resyncLiveRouteTraveler(
           liveRoute,
           rival.traveler,
           { x: rival.vehicle.x, z: rival.vehicle.z },
         );
-      } else if (rivalParentDiagnosticBefore) {
-        rivalRaceUpdate = updateRaceProgress(rival.raceProgress, raceRules, {
-          x: rival.vehicle.x,
-          z: rival.vehicle.z,
-          sLocal: rival.vehicle.course.s,
-        });
       }
       return {
         rival,
         runtimeBefore: rivalRuntimeBefore,
-        parentDiagnosticBefore: rivalParentDiagnosticBefore,
         recovered: rivalRecovered,
-        raceUpdate: rivalRaceUpdate,
       };
     });
 
@@ -460,10 +411,6 @@ function frame(now: number): void {
         playerRouteTick.branchViolation.lockedChoiceId,
       );
       resetM5CameraRig(cameraRig);
-      if (parentDiagnosticBefore) {
-        resyncGeometricCourseTracker(geometricCourse, guide.length, vehicle.course.s);
-        resyncRaceProgressPosition(raceProgress, raceRules, raceSample());
-      }
     } else if (playerRouteTick.committed) {
       const runtimeAfter = activeRuntime();
       vehicle.course = { ...routeHandoffState.coordinate };
@@ -501,13 +448,6 @@ function frame(now: number): void {
           rivalFrame.rival.traveler,
           rivalRouteTick.branchViolation.lockedChoiceId,
         );
-        if (rivalFrame.parentDiagnosticBefore) {
-          resyncRaceProgressPosition(rivalFrame.rival.raceProgress, raceRules, {
-            x: rivalFrame.rival.vehicle.x,
-            z: rivalFrame.rival.vehicle.z,
-            sLocal: rivalFrame.rival.vehicle.course.s,
-          });
-        }
       } else if (rivalRouteTick.committed) {
         rivalFrame.rival.vehicle.course = { ...rivalFrame.rival.traveler.handoffState.coordinate };
       }
@@ -531,23 +471,18 @@ function frame(now: number): void {
       }
     }
 
+    // Timing is a fixed-step clock. RouteDag + FieldRouteProgress remain the only BRANCHING
+    // progress/finish authorities; no closed-course gate tracker participates here.
+    advanceRaceSession(raceSession, playerFieldProgress, null, SIM_DT);
+
     // A validated point-to-point finish records the objective; it does not pause DEV simulation.
     const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
     updateRunObjectiveFromValidatedFinish(
       runObjective,
       POINT_TO_POINT_OBJECTIVE,
       finish,
-      raceSession.elapsedSeconds + SIM_DT,
+      raceSession.elapsedSeconds,
     );
-    advanceRaceSession(raceSession, raceProgress, raceUpdate, SIM_DT);
-    for (const rivalFrame of rivalFrames) {
-      advanceRaceSession(
-        rivalFrame.rival.raceSession,
-        rivalFrame.rival.raceProgress,
-        rivalFrame.raceUpdate,
-        SIM_DT,
-      );
-    }
 
     const runtimeAfterTick = activeRuntime();
     camera = updateM5Camera(
@@ -568,7 +503,7 @@ function frame(now: number): void {
 function render(): void {
   const runtime = activeRuntime();
   const selectedBackground = runtime.selectFarBackground(camera.s);
-  const backgroundDiagnosticKind = isParentRaceDiagnostic(runtime)
+  const backgroundDiagnosticKind = isParentRuntime(runtime)
     ? selectM5FarBackground(
         camera.s,
         guide.length,
@@ -631,7 +566,7 @@ function render(): void {
     routeState.activeStageId,
     playerFieldProgress.validatedProgressFloor,
   );
-  const junctionPhase = isParentRaceDiagnostic(runtime)
+  const junctionPhase = isParentRuntime(runtime)
     ? M6_13_JUNCTION.sample(vehicle.course.s).phase
     : 'STAGE';
   const pendingHandoff = routeHandoffState.pending === null
@@ -652,7 +587,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.52 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M6.53 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -725,12 +660,8 @@ function activeRuntime(): StageRuntimeContentPackage {
   return resolveActiveStageRuntimeContent(stageRuntimeRegistry, routeHandoffState);
 }
 
-function isParentRaceDiagnostic(runtime: StageRuntimeContentPackage): boolean {
+function isParentRuntime(runtime: StageRuntimeContentPackage): boolean {
   return runtime.packageId === 'CONTENT_STAGE_1';
-}
-
-function raceSample(): { x: number; z: number; sLocal: number } {
-  return { x: vehicle.x, z: vehicle.z, sLocal: vehicle.course.s };
 }
 
 function formatSigned(value: number, digits = 2): string {
