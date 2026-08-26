@@ -17,6 +17,10 @@ import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js'
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
+import {
+  M6_22_PARENT_FORK_GEOMETRY,
+  type M622ParentForkGeometry,
+} from './m6-22-child-stage-continuation.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import { createM630ThirdLiveSuccessorAuthoring } from './m6-30-third-live-successor.js';
@@ -88,8 +92,14 @@ export function createM638DeclarativeForkGrowthPlan(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
+  parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): CompiledRasterForkGrowthPlan {
-  const upstream = createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets);
+  const upstream = createM630ThirdLiveSuccessorAuthoring(
+    parentGuide,
+    parentContent,
+    spriteAssets,
+    parentFork,
+  );
   const identity = createM621ChildVisualIdentity();
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
 
@@ -115,17 +125,24 @@ export function createM638DeclarativeForkGrowthAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
+  parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): DeclarativeLiveRouteAuthoring {
-  return createM638DeclarativeForkGrowthPlan(parentGuide, parentContent, spriteAssets).authoring;
+  return createM638DeclarativeForkGrowthPlan(
+    parentGuide,
+    parentContent,
+    spriteAssets,
+    parentFork,
+  ).authoring;
 }
 
 export function createM638DeclarativeForkGrowthRuntime(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
+  parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): LiveRouteRuntimeAssembly {
   return compileDeclarativeLiveRoute(
-    createM638DeclarativeForkGrowthAuthoring(parentGuide, parentContent, spriteAssets),
+    createM638DeclarativeForkGrowthAuthoring(parentGuide, parentContent, spriteAssets, parentFork),
   );
 }
 

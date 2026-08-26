@@ -20,10 +20,11 @@ import type { RasterSuccessorRuntimeSource } from '../runtime/raster-stage-succe
 import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
-import { M6_13_JUNCTION } from './m6-13-junction.js';
-import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
-import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
+import {
+  M6_22_PARENT_FORK_GEOMETRY,
+  type M622ParentForkGeometry,
+} from './m6-22-child-stage-continuation.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import {
@@ -48,8 +49,9 @@ export function createM630ThirdLiveSuccessorAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
+  parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): DeclarativeLiveRouteAuthoring {
-  const continuation = createM626LiveContinuation(parentGuide);
+  const continuation = createM626LiveContinuation(parentGuide, parentFork);
   const identity = createM621ChildVisualIdentity();
   const basePackages = createM626LiveStageRuntimePackages(
     continuation,
@@ -146,11 +148,11 @@ export function createM630ThirdLiveSuccessorAuthoring(
       'G_LIVE_LEFT',
       guideChartToWorld(
         continuation.base.charts.parent,
-        M6_15_ROUTE_GATE_S,
-        M6_13_JUNCTION.separatedChildCenterL('LEFT'),
+        parentFork.routeGateS,
+        parentFork.junction.separatedChildCenterL('LEFT'),
       ),
     ),
-    handoff: parentHandoffGeometry(continuation, 'H_S1_LEFT', 'LEFT'),
+    handoff: parentHandoffGeometry(continuation, 'H_S1_LEFT', 'LEFT', parentFork),
   };
   const forkRight: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S1_RIGHT',
@@ -160,11 +162,11 @@ export function createM630ThirdLiveSuccessorAuthoring(
       'G_LIVE_RIGHT',
       guideChartToWorld(
         continuation.base.charts.parent,
-        M6_15_ROUTE_GATE_S,
-        M6_13_JUNCTION.separatedChildCenterL('RIGHT'),
+        parentFork.routeGateS,
+        parentFork.junction.separatedChildCenterL('RIGHT'),
       ),
     ),
-    handoff: parentHandoffGeometry(continuation, 'H_S1_RIGHT', 'RIGHT'),
+    handoff: parentHandoffGeometry(continuation, 'H_S1_RIGHT', 'RIGHT', parentFork),
   };
   const leftBridge: DeclarativeLiveRouteTransitionAuthoring = {
     id: 'S2L_CONTINUE',
@@ -234,9 +236,10 @@ export function createM630ThirdLiveSuccessorRuntime(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
+  parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): LiveRouteRuntimeAssembly {
   return compileDeclarativeLiveRoute(
-    createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets),
+    createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets, parentFork),
   );
 }
 
@@ -295,14 +298,15 @@ function parentHandoffGeometry(
   continuation: M626LiveContinuation,
   id: string,
   side: 'LEFT' | 'RIGHT',
+  parentFork: M622ParentForkGeometry,
 ): DeclarativeHandoffGeometry {
-  const localL = M6_13_JUNCTION.separatedChildCenterL(side);
+  const localL = parentFork.junction.separatedChildCenterL(side);
   return {
     ...pointGeometry(
       id,
-      guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL),
+      guideChartToWorld(continuation.base.charts.parent, parentFork.handoffSeamS, localL),
     ),
-    sourceSeamS: M6_17_HANDOFF_SEAM_S,
+    sourceSeamS: parentFork.handoffSeamS,
     targetSeamS: continuation.base.handoffLocalS,
     sourceLocalL: localL,
     targetLocalL: 0,

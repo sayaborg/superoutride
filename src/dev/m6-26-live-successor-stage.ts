@@ -20,9 +20,11 @@ import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 import {
+  M6_22_PARENT_FORK_GEOMETRY,
   createM622ChildStageContinuation,
   type M622ChildStageContinuation,
   type M622ChildStageRuntimeSource,
+  type M622ParentForkGeometry,
 } from './m6-22-child-stage-continuation.js';
 
 const ROAD_HALF_WIDTH = 3.5;
@@ -66,8 +68,11 @@ export function createM626LiveRouteDag(): RouteDag {
   );
 }
 
-export function createM626LiveContinuation(parentGuide: GuideCurve): M626LiveContinuation {
-  const base = createM622ChildStageContinuation(parentGuide);
+export function createM626LiveContinuation(
+  parentGuide: GuideCurve,
+  fork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
+): M626LiveContinuation {
+  const base = createM622ChildStageContinuation(parentGuide, fork);
   const leftSuccessor = createSuccessorSource(base.left, 'LEFT');
   const rightSuccessor = createSuccessorSource(base.right, 'RIGHT');
   const charts = Object.freeze([

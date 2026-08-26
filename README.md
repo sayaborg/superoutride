@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M7.1
+# SUPER OUTRIDE — M7.2
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -80,6 +80,7 @@ M6.53      BRANCHING Session Authority Normalization              complete
 M6.54      CIRCUIT Multi-Actor Integration                        complete
 M7.0       Vehicle Dynamics Architecture Freeze                   complete
 M7.1       Highway Calibration Course Authoring                   complete
+M7.2       Default BRANCHING Highway Integration                  implementation candidate
 ```
 
 Current topology/runtime design sequence:
@@ -98,6 +99,7 @@ docs/71_m6_53_branching_session_normalization.md
 docs/72_m6_54_circuit_multi_actor_integration.md
 docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
 docs/74_m7_1_highway_calibration_course_authoring.md
+docs/75_m7_2_default_branching_highway_integration.md
 ```
 
 The M6.51 public Pages branching incident/fix is historical evidence at:
@@ -143,7 +145,7 @@ npm run build
 python3 -m http.server 8000
 ```
 
-Default BRANCHING fixture:
+Default BRANCHING fixture (long four-lane highway, then physical route split):
 
 ```text
 http://localhost:8000/
@@ -166,8 +168,8 @@ npm test
 Current package:
 
 ```text
-super-outride-m7-1@0.7.1
-456 / 456 tests pass
+super-outride-m7-2@0.7.2
+460 / 460 tests pass
 ```
 
 Vehicle handling status remains:

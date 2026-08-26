@@ -72,7 +72,7 @@ export function sampleGroundMapRuntime(
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);
-  if (profile.junction) {
+  if (profile.junction && profile.junction.sample(sourceS).phase !== 'SINGLE') {
     const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, sourceS);
     if (junctionColor !== null) return junctionColor;
   } else {

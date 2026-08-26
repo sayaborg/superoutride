@@ -4,14 +4,19 @@ import {
   locateWorldOnGuideCoordinateGlobal,
 } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
-import { createM2StadiumGuide } from './dev/debug-course.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
-import { compileSurfaceRegions } from './compiler/surface-region-compiler.js';
-import { M6_13_JUNCTION } from './dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
 import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
 import { M6_43_DEV_COURSE_MODE } from './dev/m6-43-course-mode.js';
-import { createM5DebugSurfaceRegionAuthoring } from './dev/m5-surface-authoring.js';
+import {
+  M7_2_DEFAULT_BRANCHING_FORK,
+  M7_2_DEFAULT_BRANCHING_JUNCTION,
+  M7_2_PLAYER_RECOVERY_PROFILE,
+  M7_2_PLAYER_START_L,
+  M7_2_RIVAL_RECOVERY_PROFILE,
+  M7_2_RIVAL_START_L,
+  createM72DefaultBranchingParent,
+} from './dev/m7-2-default-branching-highway.js';
 import {
   createM5CameraRig,
   rebaseM5CameraRigCoordinateFrame,
@@ -59,11 +64,9 @@ import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
-import { SurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
-import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
 import {
   createLiveRouteTravelerState,
@@ -79,16 +82,12 @@ import {
   resolveActiveStageRuntimeContent,
   type StageRuntimeContentPackage,
 } from './runtime/stage-runtime-content.js';
-import { loadM5BakedGroundMap } from './visual/baked-ground-map.js';
 import { createM3FarBackground } from './visual/far-background.js';
-import { createM3DebugHeightProfile } from './visual/height-profile.js';
-import type { GroundMapProfile } from './visual/ground-map.js';
 import {
   createM5TunnelPresentation,
   selectM5FarBackground,
 } from './visual/m5-9-tunnel.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
-import { VisualProfile } from './visual/visual-profile.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
 import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
@@ -112,16 +111,14 @@ const framebufferPixels = new Uint32Array(imageData.data.buffer);
 const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
 
 const inputManager = new InputManager(steeringPad, throttleButton, brakeButton);
-const guide = createM2StadiumGuide();
-const heightProfile = createM3DebugHeightProfile(guide.length);
-const surfaceAuthoring = createM5DebugSurfaceRegionAuthoring(guide.length);
-const compiledSurfaces = compileSurfaceRegions(guide.length, surfaceAuthoring);
-const bakedGroundMap = await loadM5BakedGroundMap();
-if (Math.abs(bakedGroundMap.metadata.courseLength - guide.length) > 1e-7) {
-  throw new Error('baked GroundMap course length does not match runtime course');
-}
-const visualProfile = new VisualProfile(guide.length, compiledSurfaces.visualSections);
-const surfaceMap = new SurfaceMap(guide.length, compiledSurfaces.surfaceSections, M6_13_JUNCTION);
+const parentCourse = createM72DefaultBranchingParent();
+const {
+  guide,
+  heightProfile,
+  surfaceMap,
+  groundProfile,
+  terrainProfile,
+} = parentCourse;
 const outdoorFarBackground = createM3FarBackground();
 const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
@@ -130,32 +127,8 @@ const staticWorldSprites = [
   ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
 
-const groundProfile: GroundMapProfile = {
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  shoulderWidth: 1,
-  junction: M6_13_JUNCTION,
-  logical: compiledSurfaces.groundMap,
-  baked: bakedGroundMap,
-};
-
-const terrainProfile: TerrainVisualProfile = {
-  screenHeight: LOGICAL_HEIGHT,
-  dMin: 2.5,
-  dMax: 150,
-  groundLeft: groundProfile.groundLeft,
-  groundRight: groundProfile.groundRight,
-  roadLeft: groundProfile.roadLeft,
-  roadRight: groundProfile.roadRight,
-  height: heightProfile,
-  visual: visualProfile,
-  thinSpanScreenRows: 1,
-};
-
-const car = createM5Car(guide, heightProfile, surfaceMap, 45);
-const bike = createM5Bike(guide, heightProfile, surfaceMap, 45);
+const car = createM5Car(guide, heightProfile, surfaceMap, 45, M7_2_PLAYER_START_L);
+const bike = createM5Bike(guide, heightProfile, surfaceMap, 45, M7_2_PLAYER_START_L);
 let vehicle: M5CarState | M5BikeState = car;
 let vehicleKind: 'car' | 'bike' = 'car';
 
@@ -179,6 +152,7 @@ const liveRoute = createM627LiveRouteRuntime(
     worldSprites: staticWorldSprites,
   },
   spriteAssets,
+  M7_2_DEFAULT_BRANCHING_FORK,
 );
 const playerTraveler = createLiveRouteTravelerState(liveRoute, { x: vehicle.x, z: vehicle.z });
 const playerFieldProgress = createFieldRouteProgressState(
@@ -197,6 +171,7 @@ const rivals = rivalRoster.map((entry) => {
     heightProfile,
     surfaceMap,
     95 + entry.rivalIndex * 6,
+    M7_2_RIVAL_START_L,
   );
   const traveler = createLiveRouteTravelerState(
     liveRoute,
@@ -245,7 +220,15 @@ window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   if (event.code === 'KeyR') {
     const runtime = activeRuntime();
-    recoverM5Vehicle(recovery, runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, vehicle, 'manual');
+    recoverM5Vehicle(
+      recovery,
+      runtime.coordinateFrame,
+      runtime.heightProfile,
+      runtime.surfaceMap,
+      vehicle,
+      'manual',
+      M7_2_PLAYER_RECOVERY_PROFILE,
+    );
     resetM5CameraRig(cameraRig);
     resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
     resyncFieldRouteProgress(
@@ -325,6 +308,7 @@ function frame(now: number): void {
       runtimeBefore.surfaceMap,
       vehicle,
       SIM_DT,
+      M7_2_PLAYER_RECOVERY_PROFILE,
     );
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
@@ -370,6 +354,7 @@ function frame(now: number): void {
         rivalRuntimeBefore.surfaceMap,
         rival.vehicle,
         SIM_DT,
+        M7_2_RIVAL_RECOVERY_PROFILE,
       );
       if (rivalRecovered !== null) {
         resyncLiveRouteTraveler(
@@ -573,7 +558,7 @@ function render(): void {
     playerFieldProgress.validatedProgressFloor,
   );
   const junctionPhase = isParentRuntime(runtime)
-    ? M6_13_JUNCTION.sample(vehicle.course.s).phase
+    ? M7_2_DEFAULT_BRANCHING_JUNCTION.sample(vehicle.course.s).phase
     : 'STAGE';
   const pendingHandoff = routeHandoffState.pending === null
     ? 'NONE'
@@ -593,7 +578,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.1 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M7.2 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);

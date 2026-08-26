@@ -44,11 +44,15 @@ const cameraProfile = {
 };
 
 test('M6.47 live parent stage constructs open VisualProfile and SurfaceMap instead of cyclic adapters', async () => {
-  const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(source, /new VisualProfile\(guide\.length, compiledSurfaces\.visualSections\)/);
-  assert.match(source, /new SurfaceMap\(guide\.length, compiledSurfaces\.surfaceSections, M6_13_JUNCTION\)/);
-  assert.doesNotMatch(source, /CyclicVisualProfile/);
-  assert.doesNotMatch(source, /CyclicSurfaceMap/);
+  const [mainSource, fixtureSource] = await Promise.all([
+    readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
+  ]);
+  assert.match(mainSource, /createM72DefaultBranchingParent/);
+  assert.match(fixtureSource, /new VisualProfile\(guide\.length/);
+  assert.match(fixtureSource, /new SurfaceMap\(/);
+  assert.doesNotMatch(mainSource + fixtureSource, /CyclicVisualProfile/);
+  assert.doesNotMatch(mainSource + fixtureSource, /CyclicSurfaceMap/);
 });
 
 test('M6.47 parent visual and surface sources own the real open [0,L] domain', () => {

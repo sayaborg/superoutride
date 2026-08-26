@@ -78,12 +78,13 @@ test('DEV rival branch target moves continuously outward instead of snapping wor
   assert.equal(sampleM613RightBranchTargetL(530), 7.5);
 });
 
-test('M6.13 GroundMap build and live runtime use the same junction authoring authority', () => {
+test('M6.13 baked fixture remains historical while current live runtime selects the M7.2 junction authority', () => {
   const buildSource = fs.readFileSync(new URL('../tools/build-ground-map.mjs', import.meta.url), 'utf8');
   const mainSource = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(buildSource, /M6_13_JUNCTION/);
-  assert.match(mainSource, /junction: M6_13_JUNCTION/);
-  assert.match(mainSource, /new SurfaceMap\(guide\.length, compiledSurfaces\.surfaceSections, M6_13_JUNCTION\)/);
+  assert.match(mainSource, /createM72DefaultBranchingParent/);
+  assert.match(mainSource, /M7_2_DEFAULT_BRANCHING_FORK/);
+  assert.doesNotMatch(mainSource, /M6_13_JUNCTION/);
 });
 
 test('visible junction remains chainage-driven source data and does not add a second renderer road path', () => {

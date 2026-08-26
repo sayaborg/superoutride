@@ -94,9 +94,13 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
   const turtle = { x: 0, z: 0, heading: 0 };
 
   const appendStraight = (length: number): void => {
-    turtle.x += Math.sin(turtle.heading) * length;
-    turtle.z += Math.cos(turtle.heading) * length;
-    vertices.push({ x: turtle.x, z: turtle.z });
+    const steps = Math.ceil(length / 50);
+    const stepLength = length / steps;
+    for (let step = 0; step < steps; step += 1) {
+      turtle.x += Math.sin(turtle.heading) * stepLength;
+      turtle.z += Math.cos(turtle.heading) * stepLength;
+      vertices.push({ x: turtle.x, z: turtle.z });
+    }
   };
 
   const appendArc = (radius: number, turn: number): void => {
