@@ -80,7 +80,7 @@ M6.53      BRANCHING Session Authority Normalization              complete
 M6.54      CIRCUIT Multi-Actor Integration                        complete
 M7.0       Vehicle Dynamics Architecture Freeze                   complete
 M7.1       Highway Calibration Course Authoring                   complete
-M7.2       Default BRANCHING Highway Integration                  implementation candidate
+M7.2       Default BRANCHING Highway Integration                  complete
 ```
 
 Current topology/runtime design sequence:

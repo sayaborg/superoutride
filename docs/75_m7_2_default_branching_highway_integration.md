@@ -1,6 +1,6 @@
 # M7.2 Default BRANCHING Highway Integration
 
-Status: implementation candidate; PR, release and Pages validation are not yet complete.
+Status: release authority candidate. Exact release status is established by Git/PR/main-ref and main-push Pages workflow identity.
 
 M7.2 corrects the M7.1 composition scope. M7.1 added the requested highway calibration course to the explicit CIRCUIT entry only. The normal `/` product entry remained on the approximately 0.766 km historical stadium parent stage. M7.2 makes the long four-lane highway the parent stage of the default BRANCHING composition without changing the `/ -> BRANCHING` product contract.
 
