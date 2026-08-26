@@ -14,12 +14,31 @@ export const GROUND_COLORS = {
   marking: rgba(232, 229, 205),
 } as const;
 
+export interface LongitudinalRoadMarking {
+  readonly centerL: number;
+  readonly width: number;
+  readonly pattern: 'SOLID' | 'DASHED';
+  readonly dashLength?: number;
+  readonly gapLength?: number;
+  readonly phaseS?: number;
+}
+
+const HISTORICAL_CENTER_MARKING: readonly LongitudinalRoadMarking[] = Object.freeze([Object.freeze({
+  centerL: 0,
+  width: 0.14,
+  pattern: 'DASHED' as const,
+  dashLength: 7,
+  gapLength: 5,
+})]);
+
 export interface GroundMapProfile {
   groundLeft: number;
   groundRight: number;
   roadLeft: number;
   roadRight: number;
   shoulderWidth: number;
+  /** Explicit authored longitudinal paint. Omission preserves the historical center dash fixture. */
+  roadMarkings?: readonly LongitudinalRoadMarking[];
   /** Optional source-coordinate road center. Default 0 keeps all pre-M6.22 authoring unchanged. */
   roadCenterL?: number;
   /** Optional source chainage phase. Used when a stage-local s ruler is rebased onto reusable visual authoring. */
@@ -59,8 +78,7 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile,
   } else {
     const roadCenterL = profile.roadCenterL ?? 0;
     const localL = l - roadCenterL;
-    const abs = Math.abs(localL);
-    if (abs <= 0.07 && isDashOn(sourceS)) return GROUND_COLORS.marking;
+    if (sampleRoadMarking(sourceS, localL, profile.roadMarkings)) return GROUND_COLORS.marking;
     if (localL >= -profile.roadLeft && localL <= profile.roadRight) return asphaltColor(sourceS);
     const leftShoulder = localL >= -profile.roadLeft - profile.shoulderWidth && localL < -profile.roadLeft;
     const rightShoulder = localL > profile.roadRight && localL <= profile.roadRight + profile.shoulderWidth;
@@ -93,7 +111,7 @@ export function sampleJunctionGroundMap(
     || lateralClass === 'ASPHALT_LEFT'
     || lateralClass === 'ASPHALT_RIGHT'
   ) {
-    if (isDashOn(patternS)) {
+    if (dashPatternOn(patternS, 7, 5)) {
       if (lateralClass === 'ASPHALT_SINGLE') {
         if (Math.abs(l) <= 0.07) return GROUND_COLORS.marking;
       } else {
@@ -116,8 +134,37 @@ function asphaltColor(s: number): number {
   return Math.floor(s * 0.25) & 1 ? GROUND_COLORS.asphaltA : GROUND_COLORS.asphaltB;
 }
 
-function isDashOn(s: number): boolean {
-  return ((s % 12) + 12) % 12 < 7;
+function sampleRoadMarking(
+  s: number,
+  localL: number,
+  markings: readonly LongitudinalRoadMarking[] | undefined,
+): boolean {
+  const authored = markings ?? HISTORICAL_CENTER_MARKING;
+
+  for (const marking of authored) {
+    if (!(marking.width > 0) || !Number.isFinite(marking.width) || !Number.isFinite(marking.centerL)) {
+      throw new RangeError('road marking position and width must be finite, with width > 0');
+    }
+    if (Math.abs(localL - marking.centerL) > marking.width * 0.5) continue;
+    if (marking.pattern === 'SOLID') return true;
+
+    const dashLength = marking.dashLength;
+    const gapLength = marking.gapLength;
+    if (!(dashLength !== undefined && dashLength > 0 && Number.isFinite(dashLength))) {
+      throw new RangeError('dashed road marking dashLength must be finite and > 0');
+    }
+    if (!(gapLength !== undefined && gapLength > 0 && Number.isFinite(gapLength))) {
+      throw new RangeError('dashed road marking gapLength must be finite and > 0');
+    }
+    const localS = s + (marking.phaseS ?? 0);
+    if (dashPatternOn(localS, dashLength, gapLength)) return true;
+  }
+  return false;
+}
+
+function dashPatternOn(s: number, dashLength: number, gapLength: number): boolean {
+  const period = dashLength + gapLength;
+  return ((s % period) + period) % period < dashLength;
 }
 
 function sampleOuterMaterial(section: GroundMapLogicalSection, l: number, checker: number): number {

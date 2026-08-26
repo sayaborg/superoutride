@@ -1,8 +1,15 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
-import { createM651CircuitLiveRuntime } from './dev/m6-51-circuit-live-runtime.js';
-import { M6_54_DEV_COURSE_MODE } from './dev/m6-54-circuit-multi-actor.js';
+import {
+  M7_1_DEV_COURSE_MODE,
+  M7_1_HIGHWAY_RECOVERY_PROFILE,
+  M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
+  M7_1_PLAYER_START_L,
+  M7_1_RIVAL_START_L,
+  createM71HighwayCalibrationRuntime,
+  createM71HighwayGroundProfile,
+} from './dev/m7-1-highway-calibration-course.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -48,7 +55,6 @@ import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
 import { createM3FarBackground } from './visual/far-background.js';
-import type { GroundMapProfile } from './visual/ground-map.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 
@@ -71,7 +77,7 @@ const framebufferPixels = new Uint32Array(imageData.data.buffer);
 const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
 const inputManager = new InputManager(steeringPad, throttleButton, brakeButton);
 
-const live = createM651CircuitLiveRuntime();
+const live = createM71HighwayCalibrationRuntime();
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
 const guide = windowRuntime.guide;
@@ -80,13 +86,7 @@ const surfaces = windowRuntime.surface;
 const background = createM3FarBackground();
 const spriteAssets = createM4SpriteAssets();
 
-const groundProfile: GroundMapProfile = {
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  shoulderWidth: 1,
-};
+const groundProfile = createM71HighwayGroundProfile();
 const terrainProfile: TerrainVisualProfile = {
   screenHeight: LOGICAL_HEIGHT,
   dMin: 2.5,
@@ -100,17 +100,23 @@ const terrainProfile: TerrainVisualProfile = {
   thinSpanScreenRows: 1,
 };
 
-const car = createM5Car(guide, height, surfaces, 45);
-const bike = createM5Bike(guide, height, surfaces, 45);
+const car = createM5Car(guide, height, surfaces, 45, M7_1_PLAYER_START_L);
+const bike = createM5Bike(guide, height, surfaces, 45, M7_1_PLAYER_START_L);
 let vehicle: M5CarState | M5BikeState = car;
 let vehicleKind: 'car' | 'bike' = 'car';
 const recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
-const rivalRoster = createRivalRoster(M6_54_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(M7_1_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
   // DEV grid placement only. Final product grid authoring remains deliberately undecided.
-  const rivalVehicle = createM5Car(guide, height, surfaces, 95 + entry.rivalIndex * 6);
+  const rivalVehicle = createM5Car(
+    guide,
+    height,
+    surfaces,
+    95 + entry.rivalIndex * 6,
+    M7_1_RIVAL_START_L,
+  );
   return {
     actorId: entry.actorId,
     vehicle: rivalVehicle,
@@ -161,7 +167,15 @@ let camera: M5CameraState = updateM5Camera(
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   if (event.code === 'KeyR') {
-    recoverM5Vehicle(recovery, guide, height, surfaces, vehicle, 'manual');
+    recoverM5Vehicle(
+      recovery,
+      guide,
+      height,
+      surfaces,
+      vehicle,
+      'manual',
+      M7_1_HIGHWAY_RECOVERY_PROFILE,
+    );
     resetM5CameraRig(cameraRig);
     resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
     camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
@@ -197,7 +211,15 @@ function frame(now: number): void {
       updateM5Bike(guide, height, surfaces, vehicle as M5BikeState, input, SIM_DT);
     }
 
-    const recovered = updateM5Recovery(recovery, guide, height, surfaces, vehicle, SIM_DT);
+    const recovered = updateM5Recovery(
+      recovery,
+      guide,
+      height,
+      surfaces,
+      vehicle,
+      SIM_DT,
+      M7_1_HIGHWAY_RECOVERY_PROFILE,
+    );
     let raceUpdate: CircuitRaceProgressUpdate | null = null;
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
@@ -217,6 +239,7 @@ function frame(now: number): void {
         surfaces,
         rival.vehicle,
         SIM_DT,
+        M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
       );
       let rivalRaceUpdate: CircuitRaceProgressUpdate | null = null;
       if (rivalRecovered !== null) {
@@ -317,7 +340,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.0 ${M6_54_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M7.1 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S_WIN ${vehicle.course.s.toFixed(1).padStart(7)}  L ${formatSigned(vehicle.course.l)}  COPY ${topologyPosition.winding}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);

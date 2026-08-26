@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M7.0
+# SUPER OUTRIDE — M7.1
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -13,7 +13,7 @@ Before modifying this repository, read in this order:
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. Relevant numbered milestone documents under `docs/`; for current topology/runtime and vehicle dynamics start with `docs/62_...` through `docs/73_...`.
+4. Relevant numbered milestone documents under `docs/`; for current topology/runtime and vehicle dynamics start with `docs/62_...` through `docs/74_...`.
 5. Relevant source/types/compilers and regression tests — executable implementation contract.
 6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — concise Codex migration handoff, final migration status and deferred-work map.
 
@@ -79,6 +79,7 @@ M6.52      Shared Field Route Progress                            complete
 M6.53      BRANCHING Session Authority Normalization              complete
 M6.54      CIRCUIT Multi-Actor Integration                        complete
 M7.0       Vehicle Dynamics Architecture Freeze                   complete
+M7.1       Highway Calibration Course Authoring                   complete
 ```
 
 Current topology/runtime design sequence:
@@ -96,6 +97,7 @@ docs/70_m6_52_field_route_progress.md
 docs/71_m6_53_branching_session_normalization.md
 docs/72_m6_54_circuit_multi_actor_integration.md
 docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
+docs/74_m7_1_highway_calibration_course_authoring.md
 ```
 
 The M6.51 public Pages branching incident/fix is historical evidence at:
@@ -147,7 +149,7 @@ Default BRANCHING fixture:
 http://localhost:8000/
 ```
 
-Three-lap, one-rival CIRCUIT DEV fixture:
+Three-lap, one-rival M7.1 highway-calibration CIRCUIT DEV fixture:
 
 ```text
 http://localhost:8000/?mode=circuit
@@ -164,8 +166,8 @@ npm test
 Current package:
 
 ```text
-super-outride-m7-0@0.7.0
-451 / 451 tests pass
+super-outride-m7-1@0.7.1
+456 / 456 tests pass
 ```
 
 Vehicle handling status remains:
@@ -186,6 +188,7 @@ src/physics/vehicle-contract.ts  read-only consumer contracts
 src/physics/surface-map.ts       general SurfaceMap authority
 
 src/dev/debug-course.ts
+src/dev/m7-1-highway-calibration-course.ts
 src/dev/m3-debug-visual.ts
 src/dev/m4-debug-world.ts
 src/dev/m5-debug-surface-map.ts  DEV/debug fixture authorities

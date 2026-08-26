@@ -126,9 +126,10 @@ export function createM5Bike(
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   s = 45,
+  l = 0,
 ): M5BikeState {
-  const p = guideCoordinateToWorld(guide, s, 0);
-  const surface = surfaces.sample(p.s, 0);
+  const p = guideCoordinateToWorld(guide, s, l);
+  const surface = surfaces.sample(p.s, l);
   const speed = 45;
   const groundHeight = height.samplePhysics(p.s);
   const frontOffset = M5_BIKE_PROFILE.wheelbase * (1 - M5_BIKE_PROFILE.frontWeightFraction);
@@ -142,7 +143,7 @@ export function createM5Bike(
     velocityY: 0,
     velocityZ: Math.cos(p.heading) * speed,
     yawRate: 0,
-    course: { s: p.s, l: 0, segmentIndex: p.segmentIndex, distanceSquared: 0 },
+    course: { s: p.s, l, segmentIndex: p.segmentIndex, distanceSquared: 0 },
     sprungPitch: 0,
     sprungPitchRate: 0,
     sprungRoll: 0,

@@ -140,9 +140,10 @@ export function createM5Car(
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   s = 45,
+  l = 0,
 ): M5CarState {
-  const sample = guideCoordinateToWorld(guide, s, 0);
-  const surface = surfaces.sample(sample.s, 0);
+  const sample = guideCoordinateToWorld(guide, s, l);
+  const surface = surfaces.sample(sample.s, l);
   const initialSpeed = 45;
   const groundHeight = height.samplePhysics(sample.s);
   const state = {
@@ -154,7 +155,7 @@ export function createM5Car(
     velocityY: 0,
     velocityZ: Math.cos(sample.heading) * initialSpeed,
     yawRate: 0,
-    course: { s: sample.s, l: 0, segmentIndex: sample.segmentIndex, distanceSquared: 0 },
+    course: { s: sample.s, l, segmentIndex: sample.segmentIndex, distanceSquared: 0 },
     sprungPitch: 0,
     sprungPitchRate: 0,
     sprungRoll: 0,

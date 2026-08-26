@@ -22,6 +22,8 @@ export interface M5RecoveryProfile {
   minRecoverySpeed: number;
   maxRecoverySpeed: number;
   speedRetention: number;
+  /** Ordinary same-chart recovery lane target. Explicit route recovery may still supply its own target. */
+  targetL?: number;
 }
 
 export const M5_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = {
@@ -113,7 +115,7 @@ export function recoverM5Vehicle(
     height,
     surfaces,
     vehicle,
-    { s: Math.max(0, state.lastSafeS - profile.backtrackDistance), l: 0 },
+    { s: Math.max(0, state.lastSafeS - profile.backtrackDistance), l: profile.targetL ?? 0 },
     reason,
     profile,
   );
