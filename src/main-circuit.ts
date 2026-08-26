@@ -183,7 +183,7 @@ window.addEventListener('keydown', (event) => {
   }
   if (event.code !== 'KeyV') return;
   if (vehicleKind === 'car') {
-    adoptM5BikeKinematics(bike, vehicle);
+    adoptM5BikeKinematics(bike, vehicle as M5CarState);
     vehicle = bike;
     vehicleKind = 'bike';
   } else {
@@ -206,7 +206,7 @@ function frame(now: number): void {
     input = inputManager.sample();
 
     if (vehicleKind === 'car') {
-      updateM5Car(guide, height, surfaces, vehicle, input, SIM_DT);
+      updateM5Car(guide, height, surfaces, vehicle as M5CarState, input, SIM_DT);
     } else {
       updateM5Bike(guide, height, surfaces, vehicle as M5BikeState, input, SIM_DT);
     }
@@ -340,7 +340,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.3 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M7.4 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GND' : 'AIR'}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);

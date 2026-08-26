@@ -31,6 +31,10 @@ export interface CarPhysicsProfile {
   rearAxle: number;
   frontCornerStiffness: number;
   rearCornerStiffness: number;
+  frontLateralRelaxationLength: number;
+  rearLateralRelaxationLength: number;
+  lateralForceMinimumTau: number;
+  lateralForceMaximumTau: number;
   maxSteer: number;
   steeringTau: number;
   lowSpeedThreshold: number;
@@ -73,6 +77,10 @@ export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
   rearAxle: 1.44,
   frontCornerStiffness: 78000,
   rearCornerStiffness: 86000,
+  frontLateralRelaxationLength: 1.6,
+  rearLateralRelaxationLength: 1.2,
+  lateralForceMinimumTau: 0.025,
+  lateralForceMaximumTau: 0.16,
   maxSteer: 31 * Math.PI / 180,
   steeringTau: 0.16,
   lowSpeedThreshold: 3,
@@ -127,6 +135,9 @@ export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
 
 /** M7 body state. The final six properties are derived migration accessors, not stored state. */
 export interface M5CarState extends VehicleDynamicsState {
+  /** Model-specific axle-force memory. These are not a second body-motion authority. */
+  frontLateralForce: number;
+  rearLateralForce: number;
   speed: number;
   verticalSpeed: number;
   longitudinalSpeed: number;
@@ -162,6 +173,8 @@ export function createM5Car(
     sprungRollRate: 0,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
+    frontLateralForce: 0,
+    rearLateralForce: 0,
     surfaceType: surface.type,
     contacts: createReducedContactStations(
       M5_CAR_PROFILE.frontAxle,
@@ -264,8 +277,10 @@ function integrateGroundDynamics(
   const rolling = Math.abs(u) > profile.rollingSpeedEpsilon
     ? -Math.sign(u) * material.rollingResistance * m * VEHICLE_GRAVITY
     : 0;
-  const fzFront = m * VEHICLE_GRAVITY * b / wheelbase;
-  const fzRear = m * VEHICLE_GRAVITY * a / wheelbase;
+  const staticFzFront = m * VEHICLE_GRAVITY * b / wheelbase;
+  const staticFzRear = m * VEHICLE_GRAVITY * a / wheelbase;
+  const fzFront = car.contacts[0].phase === 'CONTACT' ? staticFzFront : 0;
+  const fzRear = car.contacts[1].phase === 'CONTACT' ? staticFzRear : 0;
   car.contacts[0].normalLoad = fzFront;
   car.contacts[1].normalLoad = fzRear;
 
@@ -294,6 +309,8 @@ function integrateGroundDynamics(
   car.contacts[1].wheelAngularSpeed = wheelAngularSpeed;
 
   if (Math.abs(u) < profile.lowSpeedThreshold) {
+    car.frontLateralForce = 0;
+    car.rearLateralForce = 0;
     car.yawRate += (u / wheelbase * Math.tan(car.control.actualSteerAngle) - car.yawRate)
       * (1 - Math.exp(-dt / profile.lowSpeedYawTau));
     const nextU = Math.max(0, u + (fxFront + fxRear) / m * dt);
@@ -307,8 +324,36 @@ function integrateGroundDynamics(
   const alphaRear = Math.atan2(v - b * car.yawRate, uForSlip);
   const fyFrontLimit = Math.sqrt(Math.max(0, frontLimit ** 2 - fxFront ** 2));
   const fyRearLimit = Math.sqrt(Math.max(0, rearLimit ** 2 - fxRear ** 2));
-  const fyFront = clamp(-profile.frontCornerStiffness * alphaFront, -fyFrontLimit, fyFrontLimit);
-  const fyRear = clamp(-profile.rearCornerStiffness * alphaRear, -fyRearLimit, fyRearLimit);
+  const fyFrontTarget = smoothSaturatedLateralForce(
+    -profile.frontCornerStiffness * alphaFront,
+    fyFrontLimit,
+  );
+  const fyRearTarget = smoothSaturatedLateralForce(
+    -profile.rearCornerStiffness * alphaRear,
+    fyRearLimit,
+  );
+  car.frontLateralForce = updateAxleLateralForce(
+    car.frontLateralForce,
+    fyFrontTarget,
+    fyFrontLimit,
+    car.contacts[0].phase === 'CONTACT',
+    uForSlip,
+    profile.frontLateralRelaxationLength,
+    dt,
+    profile,
+  );
+  car.rearLateralForce = updateAxleLateralForce(
+    car.rearLateralForce,
+    fyRearTarget,
+    fyRearLimit,
+    car.contacts[1].phase === 'CONTACT',
+    uForSlip,
+    profile.rearLateralRelaxationLength,
+    dt,
+    profile,
+  );
+  const fyFront = car.frontLateralForce;
+  const fyRear = car.rearLateralForce;
   const fy = fyFront + fyRear;
   // World velocity is authoritative. Do not also apply rotating-body-frame Coriolis terms;
   // the next body observation derives them once from the updated yaw and unchanged world vector.
@@ -330,6 +375,8 @@ function integrateUnsupportedPlanar(
   dt: number,
   profile: CarPhysicsProfile,
 ): void {
+  car.frontLateralForce = 0;
+  car.rearLateralForce = 0;
   const body = bodyFrameVelocity(car);
   updateAutomaticPowertrain(
     car.powertrain,
@@ -354,6 +401,31 @@ function integrateUnsupportedPlanar(
   car.control.appliedRearBrake = 0;
   car.control.tractionControlActive = input.throttle;
   car.control.absActive = input.brake;
+}
+
+function smoothSaturatedLateralForce(linearForce: number, limit: number): number {
+  if (limit <= 1e-9) return 0;
+  return limit * Math.tanh(linearForce / limit);
+}
+
+function updateAxleLateralForce(
+  current: number,
+  target: number,
+  limit: number,
+  contacting: boolean,
+  speed: number,
+  relaxationLength: number,
+  dt: number,
+  profile: CarPhysicsProfile,
+): number {
+  if (!contacting || limit <= 1e-9) return 0;
+  const tau = clamp(
+    relaxationLength / Math.max(speed, profile.lowSpeedThreshold),
+    profile.lateralForceMinimumTau,
+    profile.lateralForceMaximumTau,
+  );
+  const next = current + (target - current) * (1 - Math.exp(-dt / Math.max(tau, 1e-4)));
+  return clamp(next, -limit, limit);
 }
 
 function installDerivedM5Accessors<T extends VehicleDynamicsState>(state: T): T & M5CarState {

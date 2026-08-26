@@ -193,6 +193,10 @@ export function recoverM5VehicleToGuideCoordinate(
     vehicle.bankAngle = 0;
     vehicle.bankRate = 0;
   }
+  if ('frontLateralForce' in vehicle) {
+    vehicle.frontLateralForce = 0;
+    vehicle.rearLateralForce = 0;
+  }
 
   state.lastSafeS = plan.s;
   state.unsupportedTime = 0;

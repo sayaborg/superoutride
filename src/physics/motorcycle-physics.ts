@@ -302,5 +302,7 @@ export function adoptM5BikeKinematics(target: M5BikeState, source: M5CarState): 
 
 export function adoptM5CarKinematics(target: M5CarState, source: M5BikeState): void {
   copyCommonVehicleDynamicsState(target, source);
+  target.frontLateralForce = 0;
+  target.rearLateralForce = 0;
   target.sprungRoll = source.sprungRoll;
 }
