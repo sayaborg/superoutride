@@ -82,7 +82,7 @@ M7.0       Vehicle Dynamics Architecture Freeze                   complete
 M7.1       Highway Calibration Course Authoring                   complete
 M7.2       Default BRANCHING Highway Integration                  complete
 M7.3       Grip Calibration Pass 1 + Instrument HUD              complete
-M7.4       Transient Tire Response                               implementation candidate
+M7.4       Transient Tire Response                               complete
 ```
 
 Current topology/runtime design sequence:

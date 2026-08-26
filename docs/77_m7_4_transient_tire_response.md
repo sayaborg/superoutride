@@ -1,6 +1,6 @@
 # M7.4 Transient Tire Response
 
-Status: implementation candidate. Handling remains `DEV_UNCALIBRATED`; human driving evaluation remains final product-feel authority.
+Status: release authority candidate. Exact release status is established by Git/PR/main-ref and main-push Pages workflow identity. Handling remains `DEV_UNCALIBRATED`; human driving evaluation remains final product-feel authority.
 
 M7.4 responds to human trial evidence that the apparent low-grip problem is primarily a tire-force transient and controllability problem. It does not raise paved friction again. It replaces the car solver's instantaneous linear-force hard clamp with explicit axle-force memory, speed-dependent relaxation and smooth saturation.
 
