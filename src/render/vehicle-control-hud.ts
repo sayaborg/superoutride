@@ -5,20 +5,21 @@ import type { AutomaticPowertrainState } from '../physics/automatic-powertrain.j
 export interface VehicleControlHudLines {
   readonly steering: string;
   readonly pedals: string;
-  readonly powertrain: string;
+  readonly instruments: string;
 }
 
 /** Always-visible post-assist actuator telemetry. Input intent is intentionally not displayed as output. */
 export function formatVehicleControlHud(
   control: VehicleControlState,
   powertrain: AutomaticPowertrainState,
+  speedMetersPerSecond: number,
 ): VehicleControlHudLines {
   const steerDegrees = control.actualSteerAngle * 180 / Math.PI;
   const brake = Math.max(control.appliedFrontBrake, control.appliedRearBrake);
   return {
     steering: `ST ${signedBar(steerDegrees / 31)} ${formatSigned(steerDegrees, 1)}deg`,
     pedals: `DRV ${amountBar(control.appliedDrive)}${control.tractionControlActive ? ' TCS' : '    '} BRK ${amountBar(brake)}${control.absActive ? ' ABS' : ''}`,
-    powertrain: `AT G${powertrain.gear} ${Math.round(powertrain.engineRpm).toString().padStart(5)}rpm${powertrain.shiftDirection > 0 ? ' SHIFT UP' : powertrain.shiftDirection < 0 ? ' SHIFT DN' : ''}`,
+    instruments: `SPD ${Math.round(speedMetersPerSecond * 3.6).toString().padStart(3)}km/h RPM ${Math.round(powertrain.engineRpm).toString().padStart(5)} AT GEAR ${powertrain.gear}${powertrain.shiftDirection > 0 ? ' UP' : powertrain.shiftDirection < 0 ? ' DN' : ''}`,
   };
 }
 

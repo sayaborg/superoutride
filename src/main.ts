@@ -551,7 +551,7 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : vehicle.sprungRoll * 180 / Math.PI;
-  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain);
+  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
   const progressWindow = fieldRouteProgressWindow(
     liveRoute.progress,
     routeState.activeStageId,
@@ -578,13 +578,13 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.2 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
-  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
+  ctx.fillText(`M7.3 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(controlHud.instruments, 8, 36);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GND' : 'AIR'}`, 8, 48);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
-  ctx.fillText(controlHud.powertrain, 8, 96);
+  ctx.fillText(`JCT ${junctionPhase}  BG ${backgroundDiagnosticKind}`, 8, 96);
   ctx.fillText(controlHud.pedals, 8, 108);
   ctx.fillText(`POS ${playerStanding.rank}/${standings.length}  YOU ${playerFieldProgress.sProgress.toFixed(1)}  RIVALS ${rivals.length}`, 8, 120);
   ctx.fillText(`NEXT ${routeState.activeStageId}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  ROUTE GATES ${playerFieldProgress.acceptedTransitionCount}`, 8, 132);

@@ -12,8 +12,8 @@ export interface SurfaceMaterial {
 }
 
 export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> = {
-  ASPHALT: { type: 'ASPHALT', supported: true, friction: 1.05, rollingResistance: 0.014, driveScale: 1.0 },
-  SHOULDER: { type: 'SHOULDER', supported: true, friction: 0.82, rollingResistance: 0.025, driveScale: 0.92 },
+  ASPHALT: { type: 'ASPHALT', supported: true, friction: 1.30, rollingResistance: 0.014, driveScale: 1.0 },
+  SHOULDER: { type: 'SHOULDER', supported: true, friction: 0.95, rollingResistance: 0.025, driveScale: 0.92 },
   GRASS: { type: 'GRASS', supported: true, friction: 0.52, rollingResistance: 0.065, driveScale: 0.72 },
   DIRT: { type: 'DIRT', supported: true, friction: 0.64, rollingResistance: 0.045, driveScale: 0.82 },
   SAND: { type: 'SAND', supported: true, friction: 0.40, rollingResistance: 0.11, driveScale: 0.58 },

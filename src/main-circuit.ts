@@ -301,7 +301,7 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : vehicle.sprungRoll * 180 / Math.PI;
-  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain);
+  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
   const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
   const validatedLaps = getValidatedCircuitLapCount(raceProgress);
   const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
@@ -340,9 +340,9 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.2 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
-  ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
-  ctx.fillText(`S_WIN ${vehicle.course.s.toFixed(1).padStart(7)}  L ${formatSigned(vehicle.course.l)}  COPY ${topologyPosition.winding}`, 8, 48);
+  ctx.fillText(`M7.3 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(controlHud.instruments, 8, 36);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GND' : 'AIR'}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
   ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
   ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  R1 ${firstRival?.raceProgress.sProgress.toFixed(1) ?? 'NONE'}  CUT ${raceProgress.shortcutViolationCount}`, 8, 84);
@@ -352,7 +352,7 @@ function render(): void {
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 132);
   ctx.fillText(controlHud.pedals, 8, 144);
   ctx.fillText(`WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps / +1 runout`, 8, 156);
-  ctx.fillText(controlHud.powertrain, 8, 168);
+  ctx.fillText(`WINDOW ${topologyPosition.winding}/${windowRuntime.repeatCount - 1}`, 8, 168);
   ctx.fillText('Physical CPs + forward FINISH are lap authority; winding is not.', 8, 180);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';

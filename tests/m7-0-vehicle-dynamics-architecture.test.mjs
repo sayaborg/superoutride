@@ -99,10 +99,10 @@ test('M7.0 post-assist drive brake and intervention state is always renderable',
   }
   updateM5Car(guide, height, surfaces, car, { steering: 0, throttle: false, brake: true }, 1 / 60);
   assert.equal(car.control.absActive, true);
-  const hud = formatVehicleControlHud(car.control, car.powertrain);
+  const hud = formatVehicleControlHud(car.control, car.powertrain, car.speed);
   assert.match(hud.steering, /^ST \[/);
   assert.match(hud.pedals, /DRV \[.*\] .*BRK \[.*\] ABS/);
-  assert.match(hud.powertrain, /^AT G\d+\s+\d+rpm/);
+  assert.match(hud.instruments, /^SPD \s*\d+km\/h RPM \s*\d+ AT GEAR \d+/);
 });
 
 test('M7.0 AT gear ratio owns delivered drive force and shifts below redline', () => {
