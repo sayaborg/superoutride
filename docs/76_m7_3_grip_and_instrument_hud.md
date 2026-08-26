@@ -1,6 +1,6 @@
 # M7.3 Grip Calibration Pass 1 and Instrument HUD
 
-Status: implementation candidate. Handling remains `DEV_UNCALIBRATED`; human driving evaluation remains final product-feel authority.
+Status: release authority candidate. Exact release status is established by Git/PR/main-ref and main-push Pages workflow identity. Handling remains `DEV_UNCALIBRATED`; human driving evaluation remains final product-feel authority.
 
 M7.3 is the first explicit numerical handling pass after the M7.0 architecture freeze. It responds to human trial evidence that the current paved-road response feels too low-grip and is not practically controllable. It also makes speed, engine RPM, automatic transmission and selected gear unambiguous in both browser compositions.
 
