@@ -1,12 +1,14 @@
 import type { DrivingInput } from './driving-input.js';
-import { stepKeyboardSteering } from './steering-filter.js';
+
+export function digitalKeyboardSteering(left: boolean, right: boolean): -1 | 0 | 1 {
+  return left === right ? 0 : left ? -1 : 1;
+}
 
 export class KeyboardInput {
   private left = false;
   private right = false;
   private throttle = false;
   private brake = false;
-  private steering = 0;
 
   constructor(target: Window = window) {
     target.addEventListener('keydown', (event) => this.onKey(event, true), { passive: false });
@@ -14,13 +16,13 @@ export class KeyboardInput {
     target.addEventListener('blur', () => this.reset());
   }
 
-  update(dt: number): void {
-    this.steering = stepKeyboardSteering(this.steering, this.left, this.right, dt);
+  update(_dt: number): void {
+    // Input devices publish digital intent. Vehicle control owns actuator travel over time.
   }
 
   sample(): DrivingInput {
     return {
-      steering: this.steering,
+      steering: digitalKeyboardSteering(this.left, this.right),
       throttle: this.throttle,
       brake: this.brake,
     };
@@ -53,6 +55,5 @@ export class KeyboardInput {
     this.right = false;
     this.throttle = false;
     this.brake = false;
-    this.steering = 0;
   }
 }

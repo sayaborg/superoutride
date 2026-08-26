@@ -7,6 +7,8 @@ import { clamp } from '../core/math.js';
 import type { M5CarState } from '../physics/car-physics.js';
 import type { M5BikeState } from '../physics/motorcycle-physics.js';
 import type { SurfaceMapReader, SurfaceType } from '../physics/surface-map.js';
+import { resetVehicleControlState } from '../physics/vehicle-dynamics.js';
+import { resetAutomaticPowertrainTransient } from '../physics/automatic-powertrain.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
@@ -164,7 +166,26 @@ export function recoverM5VehicleToGuideCoordinate(
   vehicle.supported = true;
   vehicle.surfaceType = surface.type as SurfaceType;
   vehicle.lateralAcceleration = 0;
+  vehicle.longitudinalAcceleration = 0;
+  vehicle.sprungPitch = 0;
+  vehicle.sprungPitchRate = 0;
   vehicle.sprungRoll = 0;
+  vehicle.sprungRollRate = 0;
+  resetVehicleControlState(vehicle);
+  resetAutomaticPowertrainTransient(vehicle.powertrain);
+  for (const contact of vehicle.contacts) {
+    contact.phase = 'CONTACT';
+    contact.supportAvailable = true;
+    contact.supportFraction = 1;
+    contact.groundHeight = vehicle.y;
+    contact.surfaceType = surface.type;
+    contact.friction = surface.material.friction;
+    contact.rollingResistance = surface.material.rollingResistance;
+    contact.driveScale = surface.material.driveScale;
+    contact.compression = 0;
+    contact.normalLoad = 0;
+    contact.wheelAngularSpeed = 0;
+  }
 
   if ('bankAngle' in vehicle) {
     vehicle.bankAngle = 0;

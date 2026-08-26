@@ -11,6 +11,10 @@ export interface VehicleWorldPoseRead {
   readonly y: number;
   readonly z: number;
   readonly yaw: number;
+  /** Authoritative world-space linear velocity when supplied by current vehicle dynamics. */
+  readonly velocityX?: number;
+  readonly velocityY?: number;
+  readonly velocityZ?: number;
   readonly course: CourseCoordinate;
 }
 
@@ -18,6 +22,9 @@ export interface VehicleWorldPoseRead {
 export interface VehicleCameraReadState extends VehicleWorldPoseRead {
   readonly longitudinalSpeed: number;
   readonly lateralSpeed: number;
+  readonly yawRate?: number;
+  readonly sprungPitch?: number;
+  readonly lateralAcceleration?: number;
 }
 
 /** Minimum vehicle state needed by the pseudo-3D renderer. */

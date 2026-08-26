@@ -1,43 +1,122 @@
 import type { DrivingInput } from '../input/driving-input.js';
-import {
-  guideCoordinateToWorld,
-  locateWorldOnGuideCoordinateLocal,
-  type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
-import { clamp, wrapAngle } from '../core/math.js';
+import { guideCoordinateToWorld, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { clamp } from '../core/math.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { M5CarState } from './car-physics.js';
-import type { SurfaceMapReader, SurfaceType } from './surface-map.js';
-
-const G = 9.80665;
+import { ensureM5DerivedAccessors } from './car-physics.js';
+import type { SurfaceMapReader } from './surface-map.js';
+import {
+  createAutomaticPowertrainState,
+  updateAutomaticPowertrain,
+  type AutomaticPowertrainProfile,
+} from './automatic-powertrain.js';
+import {
+  VEHICLE_GRAVITY,
+  aggregateContactMaterial,
+  bodyFrameVelocity,
+  copyCommonVehicleDynamicsState,
+  createReducedContactStations,
+  createVehicleControlState,
+  integrateWorldPlanarPose,
+  setBodyFrameVelocity,
+  updateReducedContactsAndVerticalBody,
+  vehicleGrounded,
+  type VehicleDynamicsState,
+} from './vehicle-dynamics.js';
 
 export interface MotorcyclePhysicsProfile {
   mass: number;
   wheelbase: number;
+  frontWeightFraction: number;
   maxBank: number;
   bankTau: number;
   yawTau: number;
+  steeringTau: number;
+  gripBankScale: number;
+  lowSpeedBankReference: number;
+  lowSpeedBankMinimum: number;
   maxDriveForce: number;
   maxBrakeForce: number;
   topSpeed: number;
   aeroDrag: number;
+  frontBrakeFraction: number;
+  lateralGripScale: number;
+  looseFrictionReference: number;
+  looseSlipScale: number;
+  looseSlipTau: number;
+  airborneBankTau: number;
+  airborneLateralDamping: number;
+  airborneYawDamping: number;
+  airborneWheelSpinDamping: number;
+  sprungRollMax: number;
+  powertrain: AutomaticPowertrainProfile;
   maxFallSpeed: number;
+  contactTolerance: number;
+  contactReleaseGap: number;
+  supportedPitchTau: number;
+  airbornePitchDamping: number;
 }
 
 export const M5_BIKE_PROFILE: Readonly<MotorcyclePhysicsProfile> = {
   mass: 285,
   wheelbase: 1.52,
+  frontWeightFraction: 0.47,
   maxBank: 52 * Math.PI / 180,
   bankTau: 0.20,
   yawTau: 0.13,
+  steeringTau: 0.08,
+  gripBankScale: 0.95,
+  lowSpeedBankReference: 12,
+  lowSpeedBankMinimum: 0.25,
   maxDriveForce: 3300,
   maxBrakeForce: 5200,
   topSpeed: 90,
   aeroDrag: 0.24,
+  frontBrakeFraction: 0.72,
+  lateralGripScale: 0.95,
+  looseFrictionReference: 1.05,
+  looseSlipScale: 0.06,
+  looseSlipTau: 0.20,
+  airborneBankTau: 0.45,
+  airborneLateralDamping: 0.05,
+  airborneYawDamping: 0.08,
+  airborneWheelSpinDamping: 0.10,
+  sprungRollMax: 0.55,
+  powertrain: {
+    idleRpm: 1200,
+    redlineRpm: 12000,
+    upshiftRpm: 10500,
+    downshiftRpm: 4200,
+    shiftDuration: 0.10,
+    engineResponseTau: 0.06,
+    torqueConverterSlipRpm: 900,
+    finalDriveRatio: 3.0,
+    drivenWheelRadius: 0.31,
+    efficiency: 0.92,
+    gearRatios: [2.50, 1.80, 1.40, 1.15, 1.00, 0.88],
+    torqueCurve: [
+      { rpm: 1200, torqueNewtonMeters: 75 },
+      { rpm: 4500, torqueNewtonMeters: 125 },
+      { rpm: 8000, torqueNewtonMeters: 150 },
+      { rpm: 10500, torqueNewtonMeters: 138 },
+      { rpm: 12000, torqueNewtonMeters: 0 },
+    ],
+  },
   maxFallSpeed: 55,
+  contactTolerance: 0.035,
+  contactReleaseGap: 0.45,
+  supportedPitchTau: 0.09,
+  airbornePitchDamping: 0.7,
 };
 
-export interface M5BikeState extends M5CarState {
+/** Bike and car share body/contact shape, but neither concrete model inherits the other's solver. */
+export interface M5BikeState extends VehicleDynamicsState {
+  speed: number;
+  verticalSpeed: number;
+  longitudinalSpeed: number;
+  lateralSpeed: number;
+  steerAngle: number;
+  supported: boolean;
   bankAngle: number;
   bankRate: number;
 }
@@ -51,25 +130,33 @@ export function createM5Bike(
   const p = guideCoordinateToWorld(guide, s, 0);
   const surface = surfaces.sample(p.s, 0);
   const speed = 45;
-  return {
+  const groundHeight = height.samplePhysics(p.s);
+  const frontOffset = M5_BIKE_PROFILE.wheelbase * (1 - M5_BIKE_PROFILE.frontWeightFraction);
+  const rearOffset = -M5_BIKE_PROFILE.wheelbase * M5_BIKE_PROFILE.frontWeightFraction;
+  const state = {
     x: p.x,
-    y: height.samplePhysics(p.s),
+    y: groundHeight,
     z: p.z,
     yaw: p.heading,
-    speed,
-    sprungRoll: 0,
-    course: { s: p.s, l: 0, segmentIndex: p.segmentIndex, distanceSquared: 0 },
-    verticalSpeed: 0,
-    longitudinalSpeed: speed,
-    lateralSpeed: 0,
+    velocityX: Math.sin(p.heading) * speed,
+    velocityY: 0,
+    velocityZ: Math.cos(p.heading) * speed,
     yawRate: 0,
-    steerAngle: 0,
-    supported: surface.material.supported,
-    surfaceType: surface.type,
+    course: { s: p.s, l: 0, segmentIndex: p.segmentIndex, distanceSquared: 0 },
+    sprungPitch: 0,
+    sprungPitchRate: 0,
+    sprungRoll: 0,
+    sprungRollRate: 0,
+    longitudinalAcceleration: 0,
     lateralAcceleration: 0,
+    surfaceType: surface.type,
+    contacts: createReducedContactStations(frontOffset, rearOffset, 0, surface.material, groundHeight),
+    control: createVehicleControlState(),
+    powertrain: createAutomaticPowertrainState(M5_BIKE_PROFILE.powertrain, speed),
     bankAngle: 0,
     bankRate: 0,
-  };
+  } as M5BikeState;
+  return ensureM5DerivedAccessors(state) as M5BikeState;
 }
 
 export function updateM5Bike(
@@ -81,122 +168,138 @@ export function updateM5Bike(
   dt: number,
   profile: MotorcyclePhysicsProfile = M5_BIKE_PROFILE,
 ): void {
-  const before = surfaces.sample(bike.course.s, bike.course.l);
-  bike.surfaceType = before.type;
-  bike.supported = before.material.supported;
+  const material = aggregateContactMaterial(bike);
+  const before = bodyFrameVelocity(bike);
+  const speed = Math.max(0, before.longitudinal);
+  bike.control.steeringRequest = clamp(input.steering, -1, 1);
 
-  const speed = Math.max(0, bike.longitudinalSpeed);
-  const speedRatio = clamp(speed / profile.topSpeed, 0, 1);
-
-  if (bike.supported) {
-    const gripBankLimit = Math.atan(before.material.friction * 0.95);
+  if (vehicleGrounded(bike)) {
+    const gripBankLimit = Math.atan(material.friction * profile.gripBankScale);
     const availableBank = Math.min(profile.maxBank, gripBankLimit);
-    const lowSpeedBankScale = clamp(speed / 12, 0.25, 1);
-    const bankTarget = input.steering * availableBank * lowSpeedBankScale;
-    const bankAlpha = 1 - Math.exp(-dt / Math.max(profile.bankTau, 1e-4));
+    const bankTarget = bike.control.steeringRequest * availableBank
+      * clamp(speed / profile.lowSpeedBankReference, profile.lowSpeedBankMinimum, 1);
     const previousBank = bike.bankAngle;
-    bike.bankAngle += (bankTarget - bike.bankAngle) * bankAlpha;
+    bike.bankAngle += (bankTarget - bike.bankAngle)
+      * (1 - Math.exp(-dt / Math.max(profile.bankTau, 1e-4)));
     bike.bankRate = (bike.bankAngle - previousBank) / Math.max(dt, 1e-6);
-
-    const drive = input.throttle
-      ? profile.maxDriveForce * before.material.driveScale * Math.max(0, 1 - speedRatio * speedRatio)
-      : 0;
-    const brake = input.brake ? profile.maxBrakeForce : 0;
-    const drag = profile.aeroDrag * speed * speed;
-    const rolling = before.material.rollingResistance * profile.mass * G;
-    const traction = before.material.friction * profile.mass * G;
-    const fx = clamp(drive - brake - drag - rolling, -traction, traction);
-    bike.longitudinalSpeed = Math.max(0, bike.longitudinalSpeed + (fx / profile.mass) * dt);
-
-    const gripLat = before.material.friction * G * 0.95;
-    const bankLat = G * Math.tan(bike.bankAngle);
-    bike.lateralAcceleration = clamp(bankLat, -gripLat, gripLat);
-    const yawTarget = bike.lateralAcceleration / Math.max(bike.longitudinalSpeed, 3);
-    const yawAlpha = 1 - Math.exp(-dt / Math.max(profile.yawTau, 1e-4));
-    bike.yawRate += (yawTarget - bike.yawRate) * yawAlpha;
-
-    // Small residual sideslip remains possible on loose surfaces; it is not the steering mechanism.
-    const loose = 1 - clamp(before.material.friction / 1.05, 0, 1);
-    const lateralTarget = -input.steering * loose * bike.longitudinalSpeed * 0.06;
-    const slipAlpha = 1 - Math.exp(-dt / 0.20);
-    bike.lateralSpeed += (lateralTarget - bike.lateralSpeed) * slipAlpha;
-    bike.steerAngle = Math.atan(profile.wheelbase * bike.yawRate / Math.max(bike.longitudinalSpeed, 3));
+    integrateBikeGroundDynamics(bike, input, material, dt, profile);
   } else {
-    const bankAlpha = 1 - Math.exp(-dt / 0.45);
     const previousBank = bike.bankAngle;
-    bike.bankAngle += (0 - bike.bankAngle) * bankAlpha;
+    bike.bankAngle += -bike.bankAngle * (1 - Math.exp(-dt / profile.airborneBankTau));
     bike.bankRate = (bike.bankAngle - previousBank) / Math.max(dt, 1e-6);
-    bike.longitudinalSpeed -= Math.sign(bike.longitudinalSpeed)
-      * (profile.aeroDrag * bike.longitudinalSpeed * Math.abs(bike.longitudinalSpeed) / profile.mass) * dt;
-    bike.yawRate *= Math.exp(-dt * 0.08);
-    bike.lateralSpeed *= Math.exp(-dt * 0.05);
-    bike.lateralAcceleration = 0;
-  }
-
-  const sin = Math.sin(bike.yaw);
-  const cos = Math.cos(bike.yaw);
-  bike.x += (sin * bike.longitudinalSpeed + cos * bike.lateralSpeed) * dt;
-  bike.z += (cos * bike.longitudinalSpeed - sin * bike.lateralSpeed) * dt;
-  bike.yaw = wrapAngle(bike.yaw + bike.yawRate * dt);
-
-  bike.course = locateWorldOnGuideCoordinateLocal(
-    guide,
-    { x: bike.x, z: bike.z },
-    bike.course.segmentIndex,
-    3,
-    false,
-  );
-
-  const after = surfaces.sample(bike.course.s, bike.course.l);
-  const groundY = height.samplePhysics(bike.course.s);
-  if (after.material.supported) {
-    if (!bike.supported) {
-      if (bike.y <= groundY || bike.verticalSpeed <= 0) {
-        bike.y = groundY;
-        bike.verticalSpeed = 0;
-        bike.supported = true;
-      }
-    } else {
-      bike.y = groundY;
-      bike.verticalSpeed = 0;
-      bike.supported = true;
+    setBodyFrameVelocity(
+      bike,
+      before.longitudinal - Math.sign(before.longitudinal)
+        * (profile.aeroDrag * before.longitudinal * Math.abs(before.longitudinal) / profile.mass) * dt,
+      before.lateral * Math.exp(-dt * profile.airborneLateralDamping),
+    );
+    bike.yawRate *= Math.exp(-dt * profile.airborneYawDamping);
+    for (const contact of bike.contacts) {
+      contact.wheelAngularSpeed *= Math.exp(-dt * profile.airborneWheelSpinDamping);
     }
-  } else {
-    bike.supported = false;
-    bike.verticalSpeed = Math.max(bike.verticalSpeed - G * dt, -profile.maxFallSpeed);
-    bike.y += bike.verticalSpeed * dt;
+    updateAutomaticPowertrain(
+      bike.powertrain,
+      profile.powertrain,
+      before.longitudinal,
+      input.throttle ? 1 : 0,
+      dt,
+    );
+    bike.lateralAcceleration = 0;
+    resetAppliedControls(bike);
   }
 
-  bike.surfaceType = after.type;
-  bike.speed = Math.hypot(bike.longitudinalSpeed, bike.lateralSpeed);
-  bike.sprungRoll = clamp(bike.bankAngle / profile.maxBank, -1, 1) * 0.55;
+  integrateWorldPlanarPose(guide, bike, dt);
+  const frontOffset = profile.wheelbase * (1 - profile.frontWeightFraction);
+  const rearOffset = -profile.wheelbase * profile.frontWeightFraction;
+  updateReducedContactsAndVerticalBody(guide, height, surfaces, bike, {
+    maxFallSpeed: profile.maxFallSpeed,
+    contactTolerance: profile.contactTolerance,
+    contactReleaseGap: profile.contactReleaseGap,
+    supportedPitchTau: profile.supportedPitchTau,
+    airbornePitchDamping: profile.airbornePitchDamping,
+  }, dt);
+
+  const after = bodyFrameVelocity(bike);
+  bike.longitudinalAcceleration = (after.longitudinal - before.longitudinal) / Math.max(dt, 1e-6);
+  const previousRoll = bike.sprungRoll;
+  bike.sprungRoll = clamp(bike.bankAngle / profile.maxBank, -1, 1) * profile.sprungRollMax;
+  bike.sprungRollRate = (bike.sprungRoll - previousRoll) / Math.max(dt, 1e-6);
+}
+
+function integrateBikeGroundDynamics(
+  bike: M5BikeState,
+  input: DrivingInput,
+  material: ReturnType<typeof aggregateContactMaterial>,
+  dt: number,
+  profile: MotorcyclePhysicsProfile,
+): void {
+  const body = bodyFrameVelocity(bike);
+  const speed = Math.max(0, body.longitudinal);
+  const driveRequested = clamp(updateAutomaticPowertrain(
+    bike.powertrain,
+    profile.powertrain,
+    speed,
+    input.throttle ? 1 : 0,
+    dt,
+  ) * material.driveScale, 0, profile.maxDriveForce);
+  const brakeRequested = input.brake ? profile.maxBrakeForce : 0;
+  const passive = profile.aeroDrag * speed ** 2
+    + material.rollingResistance * profile.mass * VEHICLE_GRAVITY;
+  const frontNormal = profile.mass * VEHICLE_GRAVITY * profile.frontWeightFraction;
+  const rearNormal = profile.mass * VEHICLE_GRAVITY - frontNormal;
+  bike.contacts[0].normalLoad = frontNormal;
+  bike.contacts[1].normalLoad = rearNormal;
+
+  const frontBrakeRequested = brakeRequested * profile.frontBrakeFraction;
+  const rearBrakeRequested = brakeRequested * (1 - profile.frontBrakeFraction);
+  const rearDriveApplied = Math.min(driveRequested, material.friction * rearNormal);
+  const frontBrakeApplied = Math.min(frontBrakeRequested, material.friction * frontNormal);
+  const rearBrakeCapacity = Math.max(0, material.friction * rearNormal - rearDriveApplied);
+  const rearBrakeApplied = Math.min(rearBrakeRequested, rearBrakeCapacity);
+  bike.control.appliedDrive = driveRequested > 0 ? rearDriveApplied / driveRequested : 0;
+  bike.control.appliedFrontBrake = frontBrakeRequested > 0 ? frontBrakeApplied / frontBrakeRequested : 0;
+  bike.control.appliedRearBrake = rearBrakeRequested > 0 ? rearBrakeApplied / rearBrakeRequested : 0;
+  bike.control.tractionControlActive = driveRequested > 0 && bike.control.appliedDrive < 0.999;
+  bike.control.absActive = brakeRequested > 0
+    && Math.min(bike.control.appliedFrontBrake, bike.control.appliedRearBrake) < 0.999;
+  const wheelAngularSpeed = speed / profile.powertrain.drivenWheelRadius;
+  bike.contacts[0].wheelAngularSpeed = wheelAngularSpeed;
+  bike.contacts[1].wheelAngularSpeed = wheelAngularSpeed;
+
+  const fx = rearDriveApplied - frontBrakeApplied - rearBrakeApplied - passive;
+  const nextSpeed = Math.max(0, speed + fx / profile.mass * dt);
+  const gripLat = material.friction * VEHICLE_GRAVITY * profile.lateralGripScale;
+  bike.lateralAcceleration = clamp(VEHICLE_GRAVITY * Math.tan(bike.bankAngle), -gripLat, gripLat);
+  const yawTarget = bike.lateralAcceleration / Math.max(nextSpeed, 3);
+  bike.yawRate += (yawTarget - bike.yawRate)
+    * (1 - Math.exp(-dt / Math.max(profile.yawTau, 1e-4)));
+  const loose = 1 - clamp(material.friction / profile.looseFrictionReference, 0, 1);
+  const lateralTarget = -bike.control.steeringRequest * loose * nextSpeed * profile.looseSlipScale;
+  const nextLateral = body.lateral + (lateralTarget - body.lateral)
+    * (1 - Math.exp(-dt / profile.looseSlipTau));
+  setBodyFrameVelocity(bike, nextSpeed, nextLateral);
+
+  const steerTarget = Math.atan(profile.wheelbase * bike.yawRate / Math.max(nextSpeed, 3));
+  bike.control.actualSteerAngle += (steerTarget - bike.control.actualSteerAngle)
+    * (1 - Math.exp(-dt / Math.max(profile.steeringTau, 1e-4)));
+}
+
+function resetAppliedControls(bike: M5BikeState): void {
+  bike.control.appliedDrive = 0;
+  bike.control.appliedFrontBrake = 0;
+  bike.control.appliedRearBrake = 0;
+  bike.control.tractionControlActive = false;
+  bike.control.absActive = false;
 }
 
 export function adoptM5BikeKinematics(target: M5BikeState, source: M5CarState): void {
-  copyCommon(target, source);
-  target.bankAngle = clamp(source.sprungRoll / 0.55, -1, 1) * M5_BIKE_PROFILE.maxBank;
+  copyCommonVehicleDynamicsState(target, source);
+  target.bankAngle = clamp(source.sprungRoll / M5_BIKE_PROFILE.sprungRollMax, -1, 1)
+    * M5_BIKE_PROFILE.maxBank;
   target.bankRate = 0;
 }
 
 export function adoptM5CarKinematics(target: M5CarState, source: M5BikeState): void {
-  copyCommon(target, source);
+  copyCommonVehicleDynamicsState(target, source);
   target.sprungRoll = source.sprungRoll;
-}
-
-function copyCommon(target: M5CarState, source: M5CarState): void {
-  target.x = source.x;
-  target.y = source.y;
-  target.z = source.z;
-  target.yaw = source.yaw;
-  target.speed = source.speed;
-  target.sprungRoll = source.sprungRoll;
-  target.course = { ...source.course };
-  target.verticalSpeed = source.verticalSpeed;
-  target.longitudinalSpeed = source.longitudinalSpeed;
-  target.lateralSpeed = source.lateralSpeed;
-  target.yawRate = source.yawRate;
-  target.steerAngle = source.steerAngle;
-  target.supported = source.supported;
-  target.surfaceType = source.surfaceType as SurfaceType;
-  target.lateralAcceleration = source.lateralAcceleration;
 }

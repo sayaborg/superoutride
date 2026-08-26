@@ -27,12 +27,18 @@ export interface M5CameraProfile {
   deltaYMax: number;
   playerSafeXMin?: number;
   playerSafeXMax?: number;
+  /** Presentation-only pitch cue; camera roll remains exactly zero. */
+  sprungPitchGain?: number;
+  lateralGOffsetMetersPerG?: number;
+  lateralGOffsetMax?: number;
+  lateralGOffsetTau?: number;
 }
 
 export interface M5CameraRig {
   yaw: number;
   lateral: number;
   verticalCorrection: number;
+  lateralGOffset: number;
   initialized: boolean;
 }
 
@@ -50,7 +56,7 @@ export interface M5CameraState extends PseudoCamera {
 }
 
 export function createM5CameraRig(): M5CameraRig {
-  return { yaw: 0, lateral: 0, verticalCorrection: 0, initialized: false };
+  return { yaw: 0, lateral: 0, verticalCorrection: 0, lateralGOffset: 0, initialized: false };
 }
 
 /** Reinitialize presentation state after an explicit gameplay teleport/respawn. */
@@ -58,6 +64,7 @@ export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.yaw = 0;
   rig.lateral = 0;
   rig.verticalCorrection = 0;
+  rig.lateralGOffset = 0;
   rig.initialized = false;
 }
 
@@ -87,8 +94,11 @@ export function updateM5Camera(
   const curve = guideCoordinateCurve(guide);
   const guideAtCar = sampleGuideCurve(curve, vehicle.course.s);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
-  const estimatedSDot = vehicle.longitudinalSpeed * Math.cos(vehicleGuideYawDelta)
-    - vehicle.lateralSpeed * Math.sin(vehicleGuideYawDelta);
+  const worldVelocityAvailable = vehicle.velocityX !== undefined && vehicle.velocityZ !== undefined;
+  const estimatedSDot = worldVelocityAvailable
+    ? vehicle.velocityX! * Math.sin(guideAtCar.heading) + vehicle.velocityZ! * Math.cos(guideAtCar.heading)
+    : vehicle.longitudinalSpeed * Math.cos(vehicleGuideYawDelta)
+      - vehicle.lateralSpeed * Math.sin(vehicleGuideYawDelta);
 
   if (!rig.initialized) {
     rig.yaw = vehicle.yaw;
@@ -103,7 +113,16 @@ export function updateM5Camera(
   const lag = clamp(wrapAngle(rig.yaw - vehicle.yaw), -profile.thetaLagMax, profile.thetaLagMax);
   rig.yaw = wrapAngle(vehicle.yaw + lag);
 
-  const lTarget = vehicle.course.l - profile.dCam * Math.sin(vehicleGuideYawDelta);
+  const lateralGTarget = clamp(
+    -(vehicle.lateralAcceleration ?? 0) / 9.80665 * (profile.lateralGOffsetMetersPerG ?? 0),
+    -(profile.lateralGOffsetMax ?? 0),
+    profile.lateralGOffsetMax ?? 0,
+  );
+  const lateralGAlpha = 1 - Math.exp(-dt / Math.max(profile.lateralGOffsetTau ?? 0.12, 1e-4));
+  rig.lateralGOffset += (lateralGTarget - rig.lateralGOffset) * lateralGAlpha;
+  const lTarget = vehicle.course.l
+    - profile.dCam * Math.sin(vehicleGuideYawDelta)
+    + rig.lateralGOffset;
   const latAlpha = 1 - Math.exp(-dt / Math.max(profile.tauLat, 1e-4));
   rig.lateral += (lTarget - rig.lateral) * latAlpha;
   rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
@@ -126,10 +145,11 @@ export function updateM5Camera(
 
   const groundHeight = height.sampleCamera(sCamera);
   const baseY = groundHeight + profile.height;
-  const cosPitch = Math.cos(profile.pitch);
+  const cameraPitch = profile.pitch + (vehicle.sprungPitch ?? 0) * (profile.sprungPitchGain ?? 0);
+  const cosPitch = Math.cos(cameraPitch);
   const yFrame = vehicle.y
     - (profile.dCam / (profile.focalLength * cosPitch))
-      * (profile.centerY - profile.focalLength * Math.sin(profile.pitch) - profile.playerTargetY);
+      * (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
   const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, 1e-4));
   rig.verticalCorrection += (frameDelta - rig.verticalCorrection) * verticalAlpha;
@@ -137,7 +157,7 @@ export function updateM5Camera(
 
   const cameraY = baseY + rig.verticalCorrection;
   const projectedPlayerY = profile.centerY
-    - profile.focalLength * Math.sin(profile.pitch)
+    - profile.focalLength * Math.sin(cameraPitch)
     - (profile.focalLength / profile.dCam) * (vehicle.y - cameraY) * cosPitch;
 
   return {
@@ -145,7 +165,7 @@ export function updateM5Camera(
     y: cameraY,
     z: plan.z,
     yaw: rig.yaw,
-    pitch: profile.pitch,
+    pitch: cameraPitch,
     s: sCamera,
     l: rig.lateral,
     focalLength: profile.focalLength,

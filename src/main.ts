@@ -61,6 +61,7 @@ import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics
 import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { SurfaceMap } from './physics/surface-map.js';
 import { renderM5Driving } from './render/m5-renderer.js';
+import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
@@ -232,6 +233,10 @@ const cameraProfile: M5CameraProfile = {
   deltaYMax: 4,
   playerSafeXMin: 48,
   playerSafeXMax: 272,
+  sprungPitchGain: 0.55,
+  lateralGOffsetMetersPerG: 0.65,
+  lateralGOffsetMax: 0.8,
+  lateralGOffsetTau: 0.14,
 };
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -561,6 +566,7 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : vehicle.sprungRoll * 180 / Math.PI;
+  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain);
   const progressWindow = fieldRouteProgressWindow(
     liveRoute.progress,
     routeState.activeStageId,
@@ -587,14 +593,14 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.54 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M7.0 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}  BG ${backgroundDiagnosticKind}`, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)}  L ${formatSigned(vehicle.course.l)}  JCT ${junctionPhase}`, 8, 48);
-  ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
+  ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
-  ctx.fillText(`TL ${stats.terrainLineCount} SPR ${stats.visibleSpriteCount}  GM LOD 0-${stats.groundMapMaxLevel}  ${stats.activeSection}`, 8, 96);
-  ctx.fillText(`LOAD T ${stats.terrainOutputPixels}/${stats.terrainOutputPixelsPerScreenRowMax}  S ${stats.spriteOutputSamplesIncludingPlayer}/${stats.spriteOutputSamplesPerScanlineMax}`, 8, 108);
+  ctx.fillText(controlHud.powertrain, 8, 96);
+  ctx.fillText(controlHud.pedals, 8, 108);
   ctx.fillText(`POS ${playerStanding.rank}/${standings.length}  YOU ${playerFieldProgress.sProgress.toFixed(1)}  RIVALS ${rivals.length}`, 8, 120);
   ctx.fillText(`NEXT ${routeState.activeStageId}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  ROUTE GATES ${playerFieldProgress.acceptedTransitionCount}`, 8, 132);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  RUN ${runFinish}`, 8, 144);

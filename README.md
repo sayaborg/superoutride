@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M6.54
+# SUPER OUTRIDE — M7.0
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -13,7 +13,7 @@ Before modifying this repository, read in this order:
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. Relevant numbered milestone documents under `docs/`; for current topology/runtime start with `docs/62_...` through `docs/72_...`.
+4. Relevant numbered milestone documents under `docs/`; for current topology/runtime and vehicle dynamics start with `docs/62_...` through `docs/73_...`.
 5. Relevant source/types/compilers and regression tests — executable implementation contract.
 6. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` — concise Codex migration handoff, final migration status and deferred-work map.
 
@@ -78,6 +78,7 @@ M6.51      Pages branching continuation hotfix                   complete
 M6.52      Shared Field Route Progress                            complete
 M6.53      BRANCHING Session Authority Normalization              complete
 M6.54      CIRCUIT Multi-Actor Integration                        complete
+M7.0       Vehicle Dynamics Architecture Freeze                   complete
 ```
 
 Current topology/runtime design sequence:
@@ -94,6 +95,7 @@ docs/69_m6_51_circuit_live_runtime.md
 docs/70_m6_52_field_route_progress.md
 docs/71_m6_53_branching_session_normalization.md
 docs/72_m6_54_circuit_multi_actor_integration.md
+docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
 ```
 
 The M6.51 public Pages branching incident/fix is historical evidence at:
@@ -162,7 +164,8 @@ npm test
 Current package:
 
 ```text
-super-outride-m6-54@0.6.54
+super-outride-m7-0@0.7.0
+451 / 451 tests pass
 ```
 
 Vehicle handling status remains:
@@ -178,7 +181,8 @@ src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
 
 src/camera/m5-camera.ts          production M5 camera authority
-src/physics/vehicle-state.ts     shared vehicle kinematic contract
+src/physics/vehicle-dynamics.ts  shared world body/contact/integration authority
+src/physics/vehicle-contract.ts  read-only consumer contracts
 src/physics/surface-map.ts       general SurfaceMap authority
 
 src/dev/debug-course.ts

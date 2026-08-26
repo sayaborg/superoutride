@@ -42,6 +42,7 @@ import {
   type M5BikeState,
 } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
+import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
@@ -141,6 +142,10 @@ const cameraProfile: M5CameraProfile = {
   deltaYMax: 4,
   playerSafeXMin: 48,
   playerSafeXMax: 272,
+  sprungPitchGain: 0.55,
+  lateralGOffsetMetersPerG: 0.65,
+  lateralGOffsetMax: 0.8,
+  lateralGOffsetTau: 0.14,
 };
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -273,6 +278,7 @@ function render(): void {
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : vehicle.sprungRoll * 180 / Math.PI;
+  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain);
   const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
   const validatedLaps = getValidatedCircuitLapCount(raceProgress);
   const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
@@ -311,19 +317,19 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M6.54 ${M6_54_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M7.0 ${M6_54_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
   ctx.fillText(`SPD ${(vehicle.speed * 3.6).toFixed(0).padStart(3)} km/h  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GROUND' : 'AIR'}`, 8, 36);
   ctx.fillText(`S_WIN ${vehicle.course.s.toFixed(1).padStart(7)}  L ${formatSigned(vehicle.course.l)}  COPY ${topologyPosition.winding}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
   ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
   ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  R1 ${firstRival?.raceProgress.sProgress.toFixed(1) ?? 'NONE'}  CUT ${raceProgress.shortcutViolationCount}`, 8, 84);
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  ${raceState}`, 8, 96);
-  ctx.fillText(`STEER ${formatSigned(vehicle.steerAngle * 180 / Math.PI, 1)}deg  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
+  ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 132);
-  ctx.fillText(`TL ${stats.terrainLineCount}  GM ${stats.groundMapBaked ? 'BAKED' : 'PROC'}  ${stats.activeSection}`, 8, 144);
+  ctx.fillText(controlHud.pedals, 8, 144);
   ctx.fillText(`WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps / +1 runout`, 8, 156);
-  ctx.fillText(`TOPO ${windowRuntime.topology.id}  START WIND ${windowRuntime.startWinding}`, 8, 168);
+  ctx.fillText(controlHud.powertrain, 8, 168);
   ctx.fillText('Physical CPs + forward FINISH are lap authority; winding is not.', 8, 180);
   if (camera.playerSafetyActive) {
     ctx.fillStyle = '#ffd08a';

@@ -43,7 +43,10 @@ export function sampleRivalDrivingInput(
   // Heading-to-lookahead is the main command. Course.l is feedback for the AI controller
   // only; world X/Z remains physics authority and no coordinate is ever overwritten.
   const steering = clamp(
-    yawError * 1.7 - (car.course.l - targetL) * 0.075 - car.lateralSpeed * 0.020,
+    yawError * 1.7
+      - (car.course.l - targetL) * 0.075
+      - car.lateralSpeed * 0.020
+      - (car.yawRate ?? 0) * 0.50,
     -1,
     1,
   );

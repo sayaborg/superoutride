@@ -1,9 +1,11 @@
-import { clampSteering, type DrivingInput } from './driving-input.js';
+import type { DrivingInput } from './driving-input.js';
 
-export function steeringFromPointerX(clientX: number, left: number, width: number): number {
+export function steeringFromPointerX(clientX: number, left: number, width: number): -1 | 0 | 1 {
   if (width <= 0) return 0;
   const normalized = (clientX - left) / width;
-  return clampSteering(normalized * 2 - 1);
+  if (normalized < 0.4) return -1;
+  if (normalized > 0.6) return 1;
+  return 0;
 }
 
 type MomentaryKey = 'throttle' | 'brake';

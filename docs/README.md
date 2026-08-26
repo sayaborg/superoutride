@@ -17,7 +17,7 @@ Later addenda supersede only the assumptions they explicitly replace. In particu
 
 ## 2. Numbered milestone documents
 
-`01_...` through `72_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `73_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -37,6 +37,7 @@ The most important current topology/runtime sequence is:
 70_m6_52_field_route_progress.md
 71_m6_53_branching_session_normalization.md
 72_m6_54_circuit_multi_actor_integration.md
+73_m7_0_vehicle_dynamics_architecture_freeze.md
 ```
 
 Current governing rule:
