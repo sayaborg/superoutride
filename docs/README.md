@@ -102,6 +102,24 @@ It is the concise takeover/navigation document for PR #88. It records the exact 
 
 A fresh Codex session should start from `../AGENTS.md` and this active handoff, then resolve every design question back to the normative documents/source/tests named there. The active handoff is not a second vehicle-physics authority; `78_m8_0_phase9_vehicle_physics_architecture_freeze.md` owns the M8.0 architecture.
 
+### Temporary handoff-preparation branch refs
+
+During handoff preparation, three temporary branch refs were accidentally created from implementation checkpoint `3adccfc94f2ab05ceaf07f233abe61f00114c3c9`:
+
+```text
+feature/phase9-vehicle-physics-freeze-copy
+feature/phase9-vehicle-physics-freeze-handoff
+feature/phase9-vehicle-physics-freeze-handoff-check
+```
+
+They contain no unique intended work and are not authority. The only active implementation branch is:
+
+```text
+feature/phase9-vehicle-physics-freeze
+```
+
+On takeover, verify those temporary refs still point only to the checkpoint/no unique commits, then delete them as repository hygiene. Do not merge or continue work from them.
+
 ## 6. Codex migration handoff
 
 The historical repository-migration handoff is:
