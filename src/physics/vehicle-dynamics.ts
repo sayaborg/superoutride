@@ -1,83 +1,60 @@
 import {
+  guideCoordinateCurve,
+  guideCoordinateLateralOrigin,
+  guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateGlobal,
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import type { CourseCoordinate } from '../core/guide-curve.js';
-import { wrapAngle } from '../core/math.js';
+import { sampleGuideCurve, type CourseCoordinate } from '../core/guide-curve.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
-import {
-  SURFACE_MATERIALS,
-  type SurfaceMapReader,
-  type SurfaceMaterial,
-  type SurfaceType,
-} from './surface-map.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
+import type { CompiledTireProfile } from './tire-wheel.js';
+import type { SurfaceMapReader, SurfaceMaterial, SurfaceType } from './surface-map.js';
+import {
+  WORLD_UP,
+  add3,
+  cross3,
+  dot3,
+  magnitude3,
+  normalize3,
+  rotateAroundAxis,
+  scale3,
+  sub3,
+  type Vec3,
+} from './vehicle-math3.js';
 
 export const VEHICLE_GRAVITY = 9.80665;
+export const VEHICLE_SUBSTEPS = 12;
 
 export type VehicleContactId = 'FRONT' | 'REAR';
-export type VehicleContactPhase = 'AIRBORNE' | 'CONTACT';
 
-/**
- * One longitudinal contact station shared by the reduced car and motorcycle architectures.
- *
- * A car station represents one axle and samples support across its authored half width. A bike
- * station represents one real wheel and therefore uses halfWidth=0. Tire force resolution remains
- * model-specific; this common state owns only support/contact observation and normal load output.
- */
-export interface VehicleContactStationState {
-  readonly id: VehicleContactId;
-  readonly forwardOffset: number;
-  readonly halfWidth: number;
-  phase: VehicleContactPhase;
-  supportAvailable: boolean;
-  supportFraction: number;
-  groundHeight: number;
-  surfaceType: SurfaceType;
-  friction: number;
-  rollingResistance: number;
-  driveScale: number;
-  compression: number;
-  normalLoad: number;
-  wheelAngularSpeed: number;
-}
-
-/** Post-assist actuator authority. Digital input intent is deliberately not duplicated here. */
+/** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
-  /** Normalized intent. Player input adapters emit only -1/0/+1; AI may remain continuous. */
   steeringRequest: number;
   actualSteerAngle: number;
-  appliedDrive: number;
-  appliedFrontBrake: number;
-  appliedRearBrake: number;
-  tractionControlActive: boolean;
-  absActive: boolean;
+  requestedDriveTorque: number;
+  frontBrakeTorque: number;
+  rearBrakeTorque: number;
+  frontWheelLocked: boolean;
+  rearWheelLocked: boolean;
+  frontUtilization: number;
+  rearUtilization: number;
 }
 
-/**
- * Shared world body/contact authority used by both current concrete vehicle solvers.
- *
- * World velocity is authoritative. Longitudinal/lateral speed and resultant speed are derived
- * observations and must never be stored as a second velocity truth.
- */
+/** Shared public world-state fields. `course` is a derived Guide cache, never world authority. */
 export interface VehicleDynamicsState {
+  readonly kind: 'CAR' | 'BIKE';
   x: number;
   y: number;
   z: number;
-  yaw: number;
   velocityX: number;
   velocityY: number;
   velocityZ: number;
-  yawRate: number;
   course: CourseCoordinate;
-  sprungPitch: number;
-  sprungPitchRate: number;
-  sprungRoll: number;
-  sprungRollRate: number;
+  surfaceType: SurfaceType;
   longitudinalAcceleration: number;
   lateralAcceleration: number;
-  surfaceType: SurfaceType;
-  readonly contacts: [VehicleContactStationState, VehicleContactStationState];
   readonly control: VehicleControlState;
   readonly powertrain: AutomaticPowertrainState;
 }
@@ -88,332 +65,405 @@ export interface BodyFrameVelocity {
   readonly vertical: number;
 }
 
-export interface ReducedContactProfile {
-  readonly maxFallSpeed: number;
-  readonly contactTolerance: number;
-  readonly contactReleaseGap: number;
-  readonly supportedPitchTau: number;
-  readonly airbornePitchDamping: number;
+export interface SuspensionStationProfile {
+  readonly springRate: number;
+  readonly damping: number;
+  readonly qStatic: number;
+  readonly qBump: number;
+  readonly qTravel: number;
+  readonly bumpForceMax: number;
 }
 
-interface SupportProbe {
-  readonly available: boolean;
-  readonly groundHeight: number;
+export interface ContactStationProfile {
+  readonly id: VehicleContactId;
+  readonly forwardOffset: number;
+  /** CG-to-free-reach distance along body down at maximum suspension extension. */
+  readonly freeReachDown: number;
+  readonly rollingRadius: number;
+  readonly crownRadius: number;
+  readonly wheelInertia: number;
+  readonly maxBrakeTorque: number;
+  readonly suspension: SuspensionStationProfile;
+  readonly tire: CompiledTireProfile;
+}
+
+export interface BodyKinematics {
+  readonly position: Vec3;
+  readonly velocity: Vec3;
+  readonly right: Vec3;
+  readonly up: Vec3;
+  readonly forward: Vec3;
+  readonly omegaWorld: Vec3;
+}
+
+export interface SurfaceGeometryObservation {
+  readonly coordinate: CourseCoordinate;
+  readonly point: Vec3;
+  readonly horizontalTangent: Vec3;
+  readonly right: Vec3;
+  readonly tangent: Vec3;
+  readonly normal: Vec3;
+  readonly curvature: number;
+  readonly metric: number;
+  readonly offsetMetric: number;
+  readonly heightDerivativeByPlanArc: number;
+  readonly gradeAngle: number;
   readonly material: SurfaceMaterial;
+  readonly surfaceType: SurfaceType;
+}
+
+export interface ContactObservation {
+  readonly id: VehicleContactId;
+  readonly profile: ContactStationProfile;
+  readonly surface: SurfaceGeometryObservation;
+  readonly supportAvailable: boolean;
+  readonly withinReach: boolean;
+  readonly forceTransmitting: boolean;
+  readonly tireFrameValid: boolean;
+  readonly wheelForward: Vec3;
+  readonly wheelAxis: Vec3;
+  readonly reachPoint: Vec3;
+  readonly contactPoint: Vec3;
+  readonly reachVelocity: Vec3;
+  readonly gap: number;
+  readonly q: number;
+  readonly qDot: number;
+  readonly normalLoad: number;
+  readonly effectiveRollingRadius: number;
+  readonly tireForward: Vec3;
+  readonly tireRight: Vec3;
+  readonly longitudinalVelocity: number;
+  readonly lateralVelocity: number;
+}
+
+export class VehicleOutsideModelError extends Error {
+  constructor(readonly contactId: VehicleContactId, readonly compression: number, readonly travel: number) {
+    super(`${contactId} suspension compression ${compression} reached/exceeded qTravel ${travel}`);
+    this.name = 'VehicleOutsideModelError';
+  }
 }
 
 export function createVehicleControlState(): VehicleControlState {
   return {
     steeringRequest: 0,
     actualSteerAngle: 0,
-    appliedDrive: 0,
-    appliedFrontBrake: 0,
-    appliedRearBrake: 0,
-    tractionControlActive: false,
-    absActive: false,
+    requestedDriveTorque: 0,
+    frontBrakeTorque: 0,
+    rearBrakeTorque: 0,
+    frontWheelLocked: false,
+    rearWheelLocked: false,
+    frontUtilization: 0,
+    rearUtilization: 0,
   };
-}
-
-export function createReducedContactStations(
-  frontOffset: number,
-  rearOffset: number,
-  halfWidth: number,
-  initialSurface: SurfaceMaterial,
-  initialHeight: number,
-): [VehicleContactStationState, VehicleContactStationState] {
-  return [
-    createContactStation('FRONT', frontOffset, halfWidth, initialSurface, initialHeight),
-    createContactStation('REAR', rearOffset, halfWidth, initialSurface, initialHeight),
-  ];
-}
-
-export function bodyFrameVelocity(vehicle: VehicleDynamicsState): BodyFrameVelocity {
-  const sin = Math.sin(vehicle.yaw);
-  const cos = Math.cos(vehicle.yaw);
-  return {
-    longitudinal: vehicle.velocityX * sin + vehicle.velocityZ * cos,
-    lateral: vehicle.velocityX * cos - vehicle.velocityZ * sin,
-    vertical: vehicle.velocityY,
-  };
-}
-
-export function setBodyFrameVelocity(
-  vehicle: VehicleDynamicsState,
-  longitudinal: number,
-  lateral: number,
-  vertical = vehicle.velocityY,
-): void {
-  const sin = Math.sin(vehicle.yaw);
-  const cos = Math.cos(vehicle.yaw);
-  vehicle.velocityX = sin * longitudinal + cos * lateral;
-  vehicle.velocityZ = cos * longitudinal - sin * lateral;
-  vehicle.velocityY = vertical;
-}
-
-export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
-  return Math.hypot(vehicle.velocityX, vehicle.velocityZ);
-}
-
-export function vehicleGrounded(vehicle: VehicleDynamicsState): boolean {
-  return vehicle.contacts.some((contact) => contact.phase === 'CONTACT');
-}
-
-export function vehicleRepresentativeSurface(vehicle: VehicleDynamicsState): SurfaceType {
-  const contacts = vehicle.contacts.filter((contact) => contact.phase === 'CONTACT');
-  if (contacts.length === 0) return 'VOID';
-  return contacts.reduce((worst, contact) => (
-    SURFACE_MATERIALS[contact.surfaceType].friction < SURFACE_MATERIALS[worst].friction
-      ? contact.surfaceType
-      : worst
-  ), contacts[0]!.surfaceType);
-}
-
-export function aggregateContactMaterial(vehicle: VehicleDynamicsState): SurfaceMaterial {
-  const contacts = vehicle.contacts.filter((contact) => contact.phase === 'CONTACT');
-  if (contacts.length === 0) return SURFACE_MATERIALS.VOID;
-  const weight = 1 / contacts.length;
-  return {
-    type: vehicleRepresentativeSurface(vehicle),
-    supported: true,
-    friction: contacts.reduce((sum, contact) => sum + contact.friction * weight, 0),
-    rollingResistance: contacts.reduce((sum, contact) => sum + contact.rollingResistance * weight, 0),
-    driveScale: contacts.reduce((sum, contact) => sum + contact.driveScale * weight, 0),
-  };
-}
-
-/** Apply the common world pose integration after a model-specific force/control solve. */
-export function integrateWorldPlanarPose(
-  guide: GuideCoordinateSource,
-  vehicle: VehicleDynamicsState,
-  dt: number,
-): void {
-  vehicle.x += vehicle.velocityX * dt;
-  vehicle.z += vehicle.velocityZ * dt;
-  vehicle.yaw = wrapAngle(vehicle.yaw + vehicle.yawRate * dt);
-  vehicle.course = locateWorldOnGuideCoordinateLocal(
-    guide,
-    { x: vehicle.x, z: vehicle.z },
-    vehicle.course.segmentIndex,
-    4,
-    false,
-  );
-}
-
-/**
- * Resolve support availability separately from actual contact, then advance common heave/pitch.
- * A supported surface below an airborne vehicle does not create contact until a station reaches it.
- */
-export function updateReducedContactsAndVerticalBody(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: VehicleDynamicsState,
-  profile: ReducedContactProfile,
-  dt: number,
-): void {
-  const previousY = vehicle.y;
-  const previousPitch = vehicle.sprungPitch;
-
-  for (const station of vehicle.contacts) {
-    const support = sampleStationSupport(guide, height, surfaces, vehicle, station);
-    station.supportAvailable = support.supportFraction > 0;
-    station.supportFraction = support.supportFraction;
-    station.groundHeight = support.groundHeight;
-    station.surfaceType = support.surface.type;
-    station.friction = support.surface.friction;
-    station.rollingResistance = support.surface.rollingResistance;
-    station.driveScale = support.surface.driveScale;
-
-    const stationY = vehicle.y + Math.sin(vehicle.sprungPitch) * station.forwardOffset;
-    const gap = stationY - station.groundHeight;
-    const stationVerticalSpeed = vehicle.velocityY
-      + Math.cos(vehicle.sprungPitch) * station.forwardOffset * vehicle.sprungPitchRate;
-    const retainedContact = station.phase === 'CONTACT'
-      && station.supportAvailable
-      && gap <= profile.contactReleaseGap;
-    const newContact = station.supportAvailable
-      && gap <= profile.contactTolerance
-      && stationVerticalSpeed <= 0;
-    station.phase = retainedContact || newContact ? 'CONTACT' : 'AIRBORNE';
-    station.compression = station.phase === 'CONTACT' ? Math.max(0, -gap) : 0;
-    if (station.phase === 'AIRBORNE') station.normalLoad = 0;
-  }
-
-  const contacting = vehicle.contacts.filter((station) => station.phase === 'CONTACT');
-  if (contacting.length === 0) {
-    vehicle.velocityY = Math.max(
-      vehicle.velocityY - VEHICLE_GRAVITY * dt,
-      -profile.maxFallSpeed,
-    );
-    vehicle.y += vehicle.velocityY * dt;
-    vehicle.sprungPitch += vehicle.sprungPitchRate * dt;
-    vehicle.sprungPitchRate *= Math.exp(-dt * profile.airbornePitchDamping);
-    vehicle.surfaceType = 'VOID';
-    return;
-  }
-
-  let pitchTarget = vehicle.sprungPitch;
-  const front = vehicle.contacts[0];
-  const rear = vehicle.contacts[1];
-  if (front.phase === 'CONTACT' && rear.phase === 'CONTACT') {
-    pitchTarget = Math.atan2(
-      front.groundHeight - rear.groundHeight,
-      front.forwardOffset - rear.forwardOffset,
-    );
-  }
-  const pitchAlpha = 1 - Math.exp(-dt / Math.max(profile.supportedPitchTau, 1e-4));
-  vehicle.sprungPitch += (pitchTarget - vehicle.sprungPitch) * pitchAlpha;
-  vehicle.sprungPitchRate = (vehicle.sprungPitch - previousPitch) / Math.max(dt, 1e-6);
-
-  const bodyTargets = contacting.map((station) => (
-    station.groundHeight - Math.sin(vehicle.sprungPitch) * station.forwardOffset
-  ));
-  const bodyTargetY = bodyTargets.reduce((sum, value) => sum + value, 0) / bodyTargets.length;
-  vehicle.y = bodyTargetY;
-  vehicle.velocityY = (vehicle.y - previousY) / Math.max(dt, 1e-6);
-  vehicle.surfaceType = vehicleRepresentativeSurface(vehicle);
-}
-
-export function copyCommonVehicleDynamicsState(
-  target: VehicleDynamicsState,
-  source: VehicleDynamicsState,
-): void {
-  target.x = source.x;
-  target.y = source.y;
-  target.z = source.z;
-  target.yaw = source.yaw;
-  target.velocityX = source.velocityX;
-  target.velocityY = source.velocityY;
-  target.velocityZ = source.velocityZ;
-  target.yawRate = source.yawRate;
-  target.course = { ...source.course };
-  target.sprungPitch = source.sprungPitch;
-  target.sprungPitchRate = source.sprungPitchRate;
-  target.sprungRoll = source.sprungRoll;
-  target.sprungRollRate = source.sprungRollRate;
-  target.longitudinalAcceleration = source.longitudinalAcceleration;
-  target.lateralAcceleration = source.lateralAcceleration;
-  target.surfaceType = source.surfaceType;
-  for (let i = 0; i < target.contacts.length; i += 1) {
-    copyContact(target.contacts[i]!, source.contacts[i]!);
-  }
-  Object.assign(target.control, source.control);
-  Object.assign(target.powertrain, source.powertrain);
 }
 
 export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
   Object.assign(vehicle.control, createVehicleControlState());
 }
 
-function createContactStation(
-  id: VehicleContactId,
-  forwardOffset: number,
-  halfWidth: number,
-  material: SurfaceMaterial,
-  groundHeight: number,
-): VehicleContactStationState {
+export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
+  return Math.hypot(vehicle.velocityX, vehicle.velocityZ);
+}
+
+export function bodyFrameVelocity(
+  vehicle: VehicleDynamicsState,
+  forward: Vec3,
+  right: Vec3,
+): BodyFrameVelocity {
+  const velocity = { x: vehicle.velocityX, y: vehicle.velocityY, z: vehicle.velocityZ };
   return {
-    id,
-    forwardOffset,
-    halfWidth,
-    phase: material.supported ? 'CONTACT' : 'AIRBORNE',
-    supportAvailable: material.supported,
-    supportFraction: material.supported ? 1 : 0,
-    groundHeight,
-    surfaceType: material.type,
-    friction: material.friction,
-    rollingResistance: material.rollingResistance,
-    driveScale: material.driveScale,
-    compression: 0,
-    normalLoad: 0,
-    wheelAngularSpeed: 0,
+    longitudinal: dot3(velocity, forward),
+    lateral: dot3(velocity, right),
+    vertical: vehicle.velocityY,
   };
 }
 
-function sampleStationSupport(
+export function refreshGuideObservation(
+  guide: GuideCoordinateSource,
+  vehicle: VehicleDynamicsState,
+): void {
+  const world = { x: vehicle.x, z: vehicle.z };
+  const curve = guideCoordinateCurve(guide);
+  const previous = vehicle.course.segmentIndex;
+  let coordinate: CourseCoordinate;
+  if (Number.isInteger(previous) && previous >= 0 && previous < curve.segments.length) {
+    try {
+      coordinate = locateWorldOnGuideCoordinateLocal(guide, world, previous, 5, false);
+    } catch {
+      coordinate = locateWorldOnGuideCoordinateGlobal(guide, world, false);
+    }
+  } else {
+    coordinate = locateWorldOnGuideCoordinateGlobal(guide, world, false);
+  }
+  vehicle.course = coordinate;
+}
+
+export function sampleSurfaceGeometryAtWorld(
   guide: GuideCoordinateSource,
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
-  vehicle: VehicleDynamicsState,
-  station: VehicleContactStationState,
-): { supportFraction: number; groundHeight: number; surface: SurfaceMaterial } {
-  const lateralOffsets = station.halfWidth > 1e-6
-    ? [-station.halfWidth, station.halfWidth]
-    : [0];
-  const probes = lateralOffsets.map((lateralOffset) => sampleSupportProbe(
+  point: Vec3,
+  previousSegmentIndex: number,
+): SurfaceGeometryObservation {
+  const curve = guideCoordinateCurve(guide);
+  let coordinate: CourseCoordinate;
+  if (previousSegmentIndex >= 0 && previousSegmentIndex < curve.segments.length) {
+    try {
+      coordinate = locateWorldOnGuideCoordinateLocal(
+        guide,
+        { x: point.x, z: point.z },
+        previousSegmentIndex,
+        5,
+        false,
+      );
+    } catch {
+      coordinate = locateWorldOnGuideCoordinateGlobal(guide, { x: point.x, z: point.z }, false);
+    }
+  } else {
+    coordinate = locateWorldOnGuideCoordinateGlobal(guide, { x: point.x, z: point.z }, false);
+  }
+  return sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
+}
+
+export function sampleSurfaceGeometryAtCoordinate(
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
+  coordinate: CourseCoordinate,
+): SurfaceGeometryObservation {
+  const curve = guideCoordinateCurve(guide);
+  const guideSample = sampleGuideCurve(curve, coordinate.s);
+  const segment = curve.segments[guideSample.segmentIndex]!;
+  let curvature = 0;
+  let metric = 1;
+  if (segment.kind === 'arc') {
+    const corner = curve.corners[segment.cornerIndex]!;
+    curvature = Math.sign(corner.turn) / corner.radius;
+    metric = corner.mu;
+  }
+  const worldL = coordinate.l + guideCoordinateLateralOrigin(guide);
+  const offsetMetric = 1 - curvature * worldL;
+  if (!(offsetMetric > 0)) {
+    throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
+  }
+  const heightSample = height.samplePhysicsDifferential(coordinate.s);
+  const heightDerivativeByPlanArc = heightSample.dYdS / metric;
+  const horizontalTangent = {
+    x: Math.sin(guideSample.heading),
+    y: 0,
+    z: Math.cos(guideSample.heading),
+  };
+  const right = {
+    x: Math.cos(guideSample.heading),
+    y: 0,
+    z: -Math.sin(guideSample.heading),
+  };
+  const tangent = normalize3(add3(
+    scale3(horizontalTangent, offsetMetric),
+    scale3(WORLD_UP, heightDerivativeByPlanArc),
+  ), horizontalTangent);
+  const normal = normalize3(add3(
+    scale3(horizontalTangent, -heightDerivativeByPlanArc),
+    scale3(WORLD_UP, offsetMetric),
+  ), WORLD_UP);
+  const plan = guideCoordinateToWorld(guide, coordinate.s, coordinate.l);
+  const sample = surfaces.sample(coordinate.s, coordinate.l);
+  return {
+    coordinate,
+    point: { x: plan.x, y: heightSample.y, z: plan.z },
+    horizontalTangent,
+    right,
+    tangent,
+    normal,
+    curvature,
+    metric,
+    offsetMetric,
+    heightDerivativeByPlanArc,
+    gradeAngle: Math.atan2(heightDerivativeByPlanArc, offsetMetric),
+    material: sample.material,
+    surfaceType: sample.type,
+  };
+}
+
+/**
+ * One ordinary derived contact solve for both vehicle kinds. Surface normal is frozen within the
+ * substep; crown-point motion from body angular velocity and steer rate is analytic.
+ */
+export function deriveContactObservation(
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
+  body: BodyKinematics,
+  station: ContactStationProfile,
+  steerAngle: number,
+  steerRate: number,
+  previousSegmentIndex: number,
+): ContactObservation {
+  const isFront = station.id === 'FRONT';
+  const wheelForward = isFront
+    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle), body.forward)
+    : body.forward;
+  const wheelAxis = normalize3(cross3(body.up, wheelForward), body.right);
+
+  const freeOffset = add3(
+    scale3(body.forward, station.forwardOffset),
+    scale3(body.up, -station.freeReachDown),
+  );
+  const freePoint = add3(body.position, freeOffset);
+  const surface = sampleSurfaceGeometryAtWorld(
     guide,
     height,
     surfaces,
-    vehicle,
-    station.forwardOffset,
-    lateralOffset,
-  ));
-  const supported = probes.filter((probe) => probe.available);
-  if (supported.length === 0) {
-    return { supportFraction: 0, groundHeight: vehicle.y, surface: SURFACE_MATERIALS.VOID };
-  }
-  const inverse = 1 / supported.length;
-  const representative = supported.reduce((worst, probe) => (
-    probe.material.friction < worst.material.friction ? probe : worst
-  ), supported[0]!);
-  return {
-    supportFraction: supported.length / probes.length,
-    groundHeight: supported.reduce((sum, probe) => sum + probe.groundHeight * inverse, 0),
-    surface: {
-      type: representative.material.type,
-      supported: true,
-      friction: supported.reduce((sum, probe) => sum + probe.material.friction * inverse, 0),
-      rollingResistance: supported.reduce(
-        (sum, probe) => sum + probe.material.rollingResistance * inverse,
-        0,
-      ),
-      driveScale: supported.reduce((sum, probe) => sum + probe.material.driveScale * inverse, 0),
-    },
-  };
-}
-
-function sampleSupportProbe(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: VehicleDynamicsState,
-  forwardOffset: number,
-  lateralOffset: number,
-): SupportProbe {
-  const sin = Math.sin(vehicle.yaw);
-  const cos = Math.cos(vehicle.yaw);
-  const point = {
-    x: vehicle.x + sin * forwardOffset + cos * lateralOffset,
-    z: vehicle.z + cos * forwardOffset - sin * lateralOffset,
-  };
-  const coordinate = locateWorldOnGuideCoordinateLocal(
-    guide,
-    point,
-    vehicle.course.segmentIndex,
-    5,
-    false,
+    freePoint,
+    previousSegmentIndex,
   );
-  const sample = surfaces.sample(coordinate.s, coordinate.l);
+
+  let reachPoint = freePoint;
+  let crownVelocity = { x: 0, y: 0, z: 0 } satisfies Vec3;
+  let crownValid = true;
+  let effectiveRollingRadius = station.rollingRadius;
+  if (station.crownRadius > 0) {
+    const nDotF = dot3(surface.normal, wheelForward);
+    const nCrossRaw = sub3(surface.normal, scale3(wheelForward, nDotF));
+    const nCrossLength = magnitude3(nCrossRaw);
+    crownValid = nCrossLength > 1e-8;
+    if (crownValid) {
+      const nCross = scale3(nCrossRaw, 1 / nCrossLength);
+      reachPoint = add3(
+        freePoint,
+        scale3(sub3(body.up, nCross), station.crownRadius),
+      );
+      effectiveRollingRadius = (station.rollingRadius - station.crownRadius)
+        + station.crownRadius * dot3(body.up, nCross);
+
+      const upDot = cross3(body.omegaWorld, body.up);
+      const wheelForwardDot = add3(
+        cross3(body.omegaWorld, wheelForward),
+        isFront ? scale3(cross3(body.up, wheelForward), steerRate) : { x: 0, y: 0, z: 0 },
+      );
+      const nCrossRawDot = scale3(add3(
+        scale3(wheelForward, dot3(surface.normal, wheelForwardDot)),
+        scale3(wheelForwardDot, nDotF),
+      ), -1);
+      const nCrossDot = scale3(
+        sub3(nCrossRawDot, scale3(nCross, dot3(nCross, nCrossRawDot))),
+        1 / nCrossLength,
+      );
+      crownVelocity = scale3(sub3(upDot, nCrossDot), station.crownRadius);
+    }
+  }
+
+  const reachVelocity = add3(
+    add3(body.velocity, cross3(body.omegaWorld, freeOffset)),
+    crownVelocity,
+  );
+  const gap = dot3(sub3(reachPoint, surface.point), surface.normal);
+  const supportAvailable = surface.material.supported;
+  const withinReach = supportAvailable && gap <= 0;
+  const q = withinReach ? -gap : 0;
+  if (q >= station.suspension.qTravel) {
+    throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);
+  }
+  const qDot = withinReach ? -dot3(reachVelocity, surface.normal) : 0;
+  const bumpForce = bumpStopForce(q, station.suspension);
+  const normalLoad = withinReach
+    ? Math.max(0, station.suspension.springRate * q + station.suspension.damping * qDot + bumpForce)
+    : 0;
+  const contactPoint = sub3(reachPoint, scale3(surface.normal, gap));
+
+  const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
+  const tireFrameValid = crownValid && magnitude3(tireForwardRaw) > 1e-8;
+  const tireForward = tireFrameValid ? normalize3(tireForwardRaw, surface.tangent) : surface.tangent;
+  const tireRight = tireFrameValid
+    ? normalize3(cross3(surface.normal, tireForward), surface.right)
+    : surface.right;
+  const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;
+  const lateralVelocity = tireFrameValid ? dot3(reachVelocity, tireRight) : 0;
+
   return {
-    available: sample.material.supported,
-    groundHeight: height.samplePhysics(coordinate.s),
-    material: sample.material,
+    id: station.id,
+    profile: station,
+    surface,
+    supportAvailable,
+    withinReach,
+    forceTransmitting: normalLoad > 0,
+    tireFrameValid,
+    wheelForward,
+    wheelAxis,
+    reachPoint,
+    contactPoint,
+    reachVelocity,
+    gap,
+    q,
+    qDot,
+    normalLoad,
+    effectiveRollingRadius,
+    tireForward,
+    tireRight,
+    longitudinalVelocity,
+    lateralVelocity,
   };
 }
 
-function copyContact(
-  target: VehicleContactStationState,
-  source: VehicleContactStationState,
-): void {
-  target.phase = source.phase;
-  target.supportAvailable = source.supportAvailable;
-  target.supportFraction = source.supportFraction;
-  target.groundHeight = source.groundHeight;
-  target.surfaceType = source.surfaceType;
-  target.friction = source.friction;
-  target.rollingResistance = source.rollingResistance;
-  target.driveScale = source.driveScale;
-  target.compression = source.compression;
-  target.normalLoad = source.normalLoad;
-  target.wheelAngularSpeed = source.wheelAngularSpeed;
+export function compileSuspensionStation(
+  staticLoad: number,
+  rideFrequency: number,
+  dampingRatio: number,
+  qBump: number,
+  qTravel: number,
+  bumpForceMax: number,
+): SuspensionStationProfile {
+  if (!(staticLoad > 0)) throw new RangeError('static station load must be > 0');
+  if (!(rideFrequency > 0)) throw new RangeError('ride frequency must be > 0');
+  if (!(dampingRatio >= 0)) throw new RangeError('damping ratio must be >= 0');
+  const effectiveMass = staticLoad / VEHICLE_GRAVITY;
+  const omega = 2 * Math.PI * rideFrequency;
+  const springRate = omega ** 2 * effectiveMass;
+  const damping = 2 * dampingRatio * Math.sqrt(springRate * effectiveMass);
+  const qStatic = staticLoad / springRate;
+  if (!(qStatic > 0 && qStatic < qBump && qBump < qTravel)) {
+    throw new RangeError('suspension requires 0 < qStatic < qBump < qTravel');
+  }
+  if (!(bumpForceMax >= 0)) throw new RangeError('bumpForceMax must be >= 0');
+  return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
+}
+
+export function contactForceWorld(
+  contact: ContactObservation,
+  tireFx: number,
+  tireFy: number,
+): Vec3 {
+  if (!contact.forceTransmitting) return { x: 0, y: 0, z: 0 };
+  return add3(
+    scale3(contact.surface.normal, contact.normalLoad),
+    add3(scale3(contact.tireForward, tireFx), scale3(contact.tireRight, tireFy)),
+  );
+}
+
+export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3): Vec3 {
+  return cross3(sub3(contact.contactPoint, cg), force);
+}
+
+export function representativeSurfaceType(contacts: readonly ContactObservation[]): SurfaceType {
+  const loaded = contacts.filter((contact) => contact.forceTransmitting);
+  if (loaded.length === 0) return 'VOID';
+  return loaded.reduce((worst, contact) => (
+    contact.surface.material.gripFactor < worst.surface.material.gripFactor ? contact : worst
+  ), loaded[0]!).surfaceType;
+}
+
+export function initializeGuideObservation(
+  guide: GuideCoordinateSource,
+  x: number,
+  z: number,
+): CourseCoordinate {
+  return locateWorldOnGuideCoordinateGlobal(guide, { x, z }, false);
+}
+
+function bumpStopForce(q: number, suspension: SuspensionStationProfile): number {
+  if (q <= suspension.qBump || !(suspension.bumpForceMax > 0)) return 0;
+  const x = (q - suspension.qBump) / (suspension.qTravel - suspension.qBump);
+  const t = Math.max(0, Math.min(1, x));
+  const smooth = t * t * (3 - 2 * t);
+  return suspension.bumpForceMax * smooth;
 }
