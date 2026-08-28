@@ -5,6 +5,10 @@ export interface EngineTorquePoint {
   readonly torqueNewtonMeters: number;
 }
 
+/**
+ * Power-delivery model only. The engine RPM state is not a second vehicle-speed authority and
+ * engine rotor angular momentum is deliberately outside the Phase 9 rigid-body baseline.
+ */
 export interface AutomaticPowertrainProfile {
   readonly idleRpm: number;
   readonly redlineRpm: number;
@@ -14,7 +18,6 @@ export interface AutomaticPowertrainProfile {
   readonly engineResponseTau: number;
   readonly torqueConverterSlipRpm: number;
   readonly finalDriveRatio: number;
-  readonly drivenWheelRadius: number;
   readonly efficiency: number;
   readonly gearRatios: readonly number[];
   readonly torqueCurve: readonly EngineTorquePoint[];
@@ -26,16 +29,17 @@ export interface AutomaticPowertrainState {
   shiftTimer: number;
   shiftDirection: -1 | 0 | 1;
   engineTorqueNewtonMeters: number;
-  outputDriveForce: number;
+  /** Torque delivered to the driven wheel/axle station. Never a direct body force. */
+  outputDriveTorque: number;
 }
 
 export function createAutomaticPowertrainState(
   profile: AutomaticPowertrainProfile,
-  longitudinalSpeed = 0,
+  drivenWheelOmega = 0,
 ): AutomaticPowertrainState {
   validateAutomaticPowertrainProfile(profile);
-  const gear = selectInitialGear(profile, Math.abs(longitudinalSpeed));
-  const coupledRpm = coupledEngineRpm(profile, Math.abs(longitudinalSpeed), gear);
+  const gear = selectInitialGear(profile, Math.abs(drivenWheelOmega));
+  const coupledRpm = coupledEngineRpm(profile, Math.abs(drivenWheelOmega), gear);
   const engineRpm = clamp(coupledRpm, profile.idleRpm, profile.redlineRpm);
   return {
     engineRpm,
@@ -43,24 +47,25 @@ export function createAutomaticPowertrainState(
     shiftTimer: 0,
     shiftDirection: 0,
     engineTorqueNewtonMeters: sampleEngineTorque(profile, engineRpm),
-    outputDriveForce: 0,
+    outputDriveTorque: 0,
   };
 }
 
 /**
- * Advance one forward automatic transmission. Longitudinal world/body speed remains external
- * authority; engine and gearbox state own only rotational/power delivery state.
+ * Advance one forward automatic transmission from the authoritative driven-wheel rotational state.
+ * The returned value is wheel torque. Body force can arise only later through wheel slip and tire
+ * contact.
  */
 export function updateAutomaticPowertrain(
   state: AutomaticPowertrainState,
   profile: AutomaticPowertrainProfile,
-  longitudinalSpeed: number,
+  drivenWheelOmega: number,
   throttle: number,
   dt: number,
 ): number {
-  const speed = Math.abs(longitudinalSpeed);
+  const wheelOmega = Math.abs(drivenWheelOmega);
   const pedal = clamp(throttle, 0, 1);
-  const currentCoupledRpm = coupledEngineRpm(profile, speed, state.gear);
+  const currentCoupledRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
 
   if (state.shiftTimer <= 0) {
     if (currentCoupledRpm >= profile.upshiftRpm && state.gear < profile.gearRatios.length) {
@@ -70,7 +75,7 @@ export function updateAutomaticPowertrain(
     } else if (
       currentCoupledRpm <= profile.downshiftRpm
       && state.gear > 1
-      && coupledEngineRpm(profile, speed, state.gear - 1) < profile.upshiftRpm
+      && coupledEngineRpm(profile, wheelOmega, state.gear - 1) < profile.upshiftRpm
     ) {
       state.gear -= 1;
       state.shiftTimer = profile.shiftDuration;
@@ -83,7 +88,7 @@ export function updateAutomaticPowertrain(
     if (state.shiftTimer === 0) state.shiftDirection = 0;
   }
 
-  const coupledRpm = coupledEngineRpm(profile, speed, state.gear);
+  const coupledRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
   const converterSlip = pedal * profile.torqueConverterSlipRpm
     * clamp(1 - coupledRpm / profile.upshiftRpm, 0, 1);
   const rpmTarget = clamp(
@@ -103,14 +108,13 @@ export function updateAutomaticPowertrain(
     0,
     1,
   );
-  state.outputDriveForce = pedal
+  state.outputDriveTorque = pedal
     * state.engineTorqueNewtonMeters
     * ratio
     * profile.efficiency
-    / profile.drivenWheelRadius
     * shiftDriveScale
     * redlineScale;
-  return state.outputDriveForce;
+  return state.outputDriveTorque;
 }
 
 export function sampleEngineTorque(
@@ -133,23 +137,22 @@ export function sampleEngineTorque(
 
 export function coupledEngineRpm(
   profile: AutomaticPowertrainProfile,
-  longitudinalSpeed: number,
+  drivenWheelOmega: number,
   gear: number,
 ): number {
-  const wheelRadiansPerSecond = Math.abs(longitudinalSpeed) / profile.drivenWheelRadius;
   const ratio = profile.gearRatios[gear - 1]! * profile.finalDriveRatio;
-  return wheelRadiansPerSecond * ratio * 60 / (2 * Math.PI);
+  return Math.abs(drivenWheelOmega) * ratio * 60 / (2 * Math.PI);
 }
 
 export function resetAutomaticPowertrainTransient(state: AutomaticPowertrainState): void {
   state.shiftTimer = 0;
   state.shiftDirection = 0;
-  state.outputDriveForce = 0;
+  state.outputDriveTorque = 0;
 }
 
-function selectInitialGear(profile: AutomaticPowertrainProfile, speed: number): number {
+function selectInitialGear(profile: AutomaticPowertrainProfile, wheelOmega: number): number {
   for (let gear = 1; gear <= profile.gearRatios.length; gear += 1) {
-    if (coupledEngineRpm(profile, speed, gear) <= profile.upshiftRpm) return gear;
+    if (coupledEngineRpm(profile, wheelOmega, gear) <= profile.upshiftRpm) return gear;
   }
   return profile.gearRatios.length;
 }
