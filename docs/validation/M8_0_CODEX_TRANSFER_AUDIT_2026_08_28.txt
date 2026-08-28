@@ -1,0 +1,159 @@
+SUPER OUTRIDE — M8.0 CODEX TRANSFER AUDIT
+2026-08-28 JST
+
+CLASSIFICATION
+
+Repository transfer / handoff audit evidence.
+This file is NOT design authority, NOT release evidence, and NOT proof that M8.0 is complete.
+Normative authority remains the Core Freeze/addenda plus the applicable later milestone authority, including docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md for the active M8.0 vehicle-physics candidate.
+
+PURPOSE
+
+Verify that a fresh Codex context can resume active PR #88 from repository authority without prior ChatGPT conversation history, and identify any repository-navigation or hygiene defects that must not be mistaken for implementation authority.
+
+AUDITED DEVELOPMENT IDENTITY
+
+repository:
+sayaborg/superoutride
+
+released main at audit:
+dd2b35c6e2187770ba71d0a8a29a5ae65a9298b1
+
+active branch:
+feature/phase9-vehicle-physics-freeze
+
+active PR:
+#88 — M8.0 Phase 9 vehicle physics architecture freeze
+state: OPEN / DRAFT
+
+The active branch remained a pure descendant of audited main during this transfer audit. Before the final navigation/evidence commits it compared as ahead_by=24, behind_by=0 with merge base equal to current main. This is lineage information only; release still requires a future validation-inclusive green exact head and a fresh pre-release comparison.
+
+AUTHORITY / NAVIGATION RESULT
+
+PASS after one correction.
+
+Correct current hierarchy:
+
+1. AGENTS.md — persistent development / architecture-decision / Git-release contract.
+2. README.md — repository entry point and current-state index only.
+3. docs/README.md — documentation authority / supersession / evidence index.
+4. docs/00_core_design_freeze.md + 00a/00b/00c — frozen Core/renderer/metric/open-model authority.
+5. docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md — active M8.0 vehicle-physics architecture authority; scoped supersession of conflicting M7.0/M7.3/M7.4 vehicle-physics decisions.
+6. source/types/compilers/tests — executable implementation contract.
+7. docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md — active PR #88 takeover/navigation context only.
+8. docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md — historical repository-migration handoff context, not active M8.0 work state.
+9. docs/validation/** — immutable/historical evidence class, never design authority.
+
+Defect found and corrected during this audit:
+AGENTS.md still called the 2026-08-25 migration handoff the current handoff and listed an incomplete post-M6.51 milestone reading sequence. The active branch now points fresh agents to the M8.0 active handoff and docs/78 authority first when PR #88 is active, while preserving the 2026-08-25 file as historical migration context.
+
+MINIMAL TAKEOVER PROMPT
+
+A fresh Codex session should require only:
+
+Read AGENTS.md and docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md, then continue PR #88 from repository authority to completion.
+
+No previous ChatGPT transcript is required by the intended repository contract.
+
+STRUCTURE / DEPENDENCY RESULT
+
+PASS for transfer readiness; implementation remains incomplete.
+
+Observed M8.0 changes stay inside the existing responsibility structure rather than creating a parallel Phase-9 subsystem. Vehicle mechanics remain under src/physics; presentation, gameplay/recovery, runtime adapters, and top-level composition change only at their existing boundaries.
+
+The latest complete full-suite run inspected during this audit continued to pass source-boundary enforcement, including:
+- only explicit top-level composition roots may depend on src/dev;
+- source-boundary authority paths have no compatibility shims.
+
+src/dev/README.md remains consistent with that dependency rule.
+
+Potential cleanup watch item, not transfer-blocking and not resolved by this documentation audit:
+src/physics/vehicle-state.ts contains an older small kinematic interface. Do not treat it as M8.0 authority. During PR #88 source/test migration, inspect actual references and retire it if it is dead rather than preserving it as a compatibility authority.
+
+WORKFLOW / RELEASE CONTRACT RESULT
+
+PASS.
+
+.github/workflows/pages.yml:
+- runs for pull requests and main pushes;
+- checks out the exact PR head SHA / github SHA;
+- verifies the exact checkout explicitly;
+- runs npm test before packaging;
+- uses a commit-versioned ESM dist path;
+- deploys Pages only on main push.
+
+This matches the force=false / exact-head release discipline in AGENTS.md.
+
+CURRENT TEST / CI CHECKPOINT
+
+Implementation head with complete build + test evidence:
+3adccfc94f2ab05ceaf07f233abe61f00114c3c9
+Actions run 33160399210
+
+Later documentation-inclusive branch head independently exercised during the transfer audit:
+85e4fc546439532986eae1abd3d0adcdd8b28f2d
+Actions run 33160878842
+
+The latter run explicitly checked out that exact SHA, compiled successfully, and completed:
+
+449 tests
+417 pass
+32 fail
+0 skipped
+
+The same failure count/class as the implementation checkpoint confirms the handoff/index-only commits had not manufactured a different source failure state.
+
+M8.0 is therefore a known-red active migration candidate, NOT a release candidate.
+
+The active handoff classifies the failures. The main real mechanics/profile issue is nominal CAR suspension slightly exceeding current qTravel=0.26 m in several otherwise-valid integration probes. This must be resolved causally. q or N clamping is prohibited by M8.0 authority.
+
+PACKAGE / VISIBLE VERSION RESULT
+
+Current package metadata remains super-outride-m7-4@0.7.4 while M8.0 is an unreleased draft candidate. This is intentionally not silently relabeled during the transfer audit. Codex should synchronize candidate/release labels deliberately as part of PR #88 once migration/tests are coherent; it must not claim M8.0 released before final validation.
+
+TEMPORARY REF HYGIENE
+
+The following accidental temporary refs were inspected:
+
+feature/phase9-vehicle-physics-freeze-copy
+feature/phase9-vehicle-physics-freeze-handoff
+feature/phase9-vehicle-physics-freeze-handoff-check
+
+Each was compared against 3adccfc94f2ab05ceaf07f233abe61f00114c3c9 and was exactly identical:
+ahead_by=0
+behind_by=0
+unique commits=0
+changed files=0
+
+They contain no intended unique work and are safe to delete.
+
+During this final audit another accidental ref was created by the connector:
+
+noop-do-not-create
+
+It was created directly from 84dd46bcb4ca764570ce852a3d9803b129d1499b, the active branch snapshot immediately after the AGENTS navigation correction. It contains no independently authored work; the active branch is the authority and continues beyond that snapshot. Verify ancestry/identity against repository history, then delete it with the other temporary refs.
+
+The available connector did not expose branch-ref deletion, so deletion remains a mechanical takeover hygiene task. Do not base work on any of these temporary refs.
+
+TRANSFER-BLOCKING DOCUMENT DEFECTS
+
+None known after the AGENTS navigation correction.
+
+TRANSFER-BLOCKING IMPLEMENTATION STATUS
+
+PR #88 remains intentionally incomplete/red. Codex must continue the implementation/test migration described in the active handoff. This audit does not approve merge or release.
+
+DEFINITION OF TRANSFER READY
+
+For repository-to-Codex transfer, the repository is ready when a fresh session can:
+- identify main, active branch and PR from Git/PR state;
+- find current authority without prior chat history;
+- distinguish M8.0 authority from historical M7 and historical migration handoffs;
+- see the known-red CI state and failure classification;
+- continue PR #88 without recreating retired M7 authority;
+- follow the exact-head release contract after all tests become green.
+
+That navigation/structure condition is satisfied by this audit, subject only to deletion of the explicitly identified temporary refs.
+
+Do not use this file as design authority or as evidence that PR #88 is complete/released.
+Exact current branch/release SHA identity must always come from Git/PR/workflow history rather than a self-referential SHA embedded in this file.
