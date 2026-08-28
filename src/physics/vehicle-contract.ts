@@ -1,21 +1,20 @@
 import type { CourseCoordinate } from '../core/guide-curve.js';
 
 /**
- * Read-only world pose consumed outside the concrete vehicle physics implementation.
- *
- * Physics remains authoritative for these values. Presentation/gameplay consumers may read
- * them but must never infer or rewrite physics internals from screen-space state.
+ * Read-only world pose consumed outside concrete vehicle physics.
+ * World x/y/z is the physical CG authority. `course` is a derived Guide observation cache only.
  */
 export interface VehicleWorldPoseRead {
   readonly x: number;
   readonly y: number;
   readonly z: number;
   readonly yaw: number;
-  /** Authoritative world-space linear velocity when supplied by current vehicle dynamics. */
   readonly velocityX?: number;
   readonly velocityY?: number;
   readonly velocityZ?: number;
   readonly course: CourseCoordinate;
+  /** Derived visual anchor. It follows the CG in flight but preserves static sprite ground contact. */
+  readonly presentationY?: number;
 }
 
 /** Minimum vehicle state needed by the chase camera. */
