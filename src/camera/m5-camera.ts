@@ -59,7 +59,6 @@ export function createM5CameraRig(): M5CameraRig {
   return { yaw: 0, lateral: 0, verticalCorrection: 0, lateralGOffset: 0, initialized: false };
 }
 
-/** Reinitialize presentation state after an explicit gameplay teleport/respawn. */
 export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.yaw = 0;
   rig.lateral = 0;
@@ -68,10 +67,6 @@ export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.initialized = false;
 }
 
-/**
- * Re-express the existing camera lateral coordinate in a new Guide frame without moving the
- * camera in world XZ. Yaw and vertical filtering state remain continuous.
- */
 export function rebaseM5CameraRigCoordinateFrame(
   rig: M5CameraRig,
   previous: GuideCoordinateSource,
@@ -82,7 +77,6 @@ export function rebaseM5CameraRigCoordinateFrame(
   rig.lateral = worldLateral - guideCoordinateLateralOrigin(next);
 }
 
-/** Core §§34-39 camera rules, with M5 DEV LPF parameters. */
 export function updateM5Camera(
   rig: M5CameraRig,
   guide: GuideCoordinateSource,
@@ -127,8 +121,6 @@ export function updateM5Camera(
   rig.lateral += (lTarget - rig.lateral) * latAlpha;
   rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
 
-  // Geometry is open. Course authoring supplies a pre-start staging margin so the
-  // ordinary camera equation remains valid; the camera never invents a topology wrap.
   const sCamera = vehicle.course.s - profile.dCam;
   const plan = guideCoordinateToWorld(guide, sCamera, rig.lateral);
 
@@ -147,7 +139,8 @@ export function updateM5Camera(
   const baseY = groundHeight + profile.height;
   const cameraPitch = profile.pitch + (vehicle.sprungPitch ?? 0) * (profile.sprungPitchGain ?? 0);
   const cosPitch = Math.cos(cameraPitch);
-  const yFrame = vehicle.y
+  const vehiclePresentationY = vehicle.presentationY ?? vehicle.y;
+  const yFrame = vehiclePresentationY
     - (profile.dCam / (profile.focalLength * cosPitch))
       * (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
@@ -158,7 +151,7 @@ export function updateM5Camera(
   const cameraY = baseY + rig.verticalCorrection;
   const projectedPlayerY = profile.centerY
     - profile.focalLength * Math.sin(cameraPitch)
-    - (profile.focalLength / profile.dCam) * (vehicle.y - cameraY) * cosPitch;
+    - (profile.focalLength / profile.dCam) * (vehiclePresentationY - cameraY) * cosPitch;
 
   return {
     x: plan.x,
