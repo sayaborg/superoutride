@@ -106,7 +106,7 @@ test('M7.2 default composition owns lane-center spawn and recovery without chang
   assert.doesNotMatch(main, /createM71HighwayCalibrationRuntime|compileCircuitLiveRuntime/);
 });
 
-test('first crest recovery preserves airborne forward progress instead of relaunching forever', () => {
+test('first crest remains bounded at continuous throttle without recovery', () => {
   const parent = createM72DefaultBranchingParent();
   const car = createM5Car(
     parent.guide,
@@ -117,6 +117,7 @@ test('first crest recovery preserves airborne forward progress instead of relaun
   );
   const recovery = createM5RecoveryState(car);
   let maximumS = car.course.s;
+  let maximumRoadRelativePresentationHeight = Number.NEGATIVE_INFINITY;
 
   for (let tick = 0; tick < 720; tick += 1) {
     updateM5Car(
@@ -137,11 +138,30 @@ test('first crest recovery preserves airborne forward progress instead of relaun
       M7_2_PLAYER_RECOVERY_PROFILE,
     );
     maximumS = Math.max(maximumS, car.course.s);
+    if (car.course.s >= 250 && car.course.s <= 560) {
+      maximumRoadRelativePresentationHeight = Math.max(
+        maximumRoadRelativePresentationHeight,
+        car.presentationY - parent.heightProfile.samplePhysics(car.course.s),
+      );
+    }
   }
 
-  assert.equal(recovery.recoveries, 1);
+  let maximumGrade = 0;
+  for (let s = 250; s <= 560; s += 0.25) {
+    maximumGrade = Math.max(
+      maximumGrade,
+      Math.abs(parent.heightProfile.samplePhysicsDifferential(s).dYdS),
+    );
+  }
+
+  assert.equal(recovery.recoveries, 0);
+  assert.ok(maximumGrade <= 0.14, `first-crest grade=${maximumGrade}`);
+  assert.ok(
+    maximumRoadRelativePresentationHeight < 0.15,
+    `first-crest presentation height=${maximumRoadRelativePresentationHeight}`,
+  );
   assert.ok(maximumS > 580, `expected forward continuation after crest, max s=${maximumS}`);
-  assert.ok(car.course.s > 580, `expected no recovery loop near the first crest, s=${car.course.s}`);
+  assert.ok(car.course.s > 580, `expected ordinary progress through the first crest, s=${car.course.s}`);
 });
 
 test('airborne recontact recovers before the vehicle can continue below authored terrain', () => {

@@ -154,7 +154,6 @@ export function createM71HighwayHeightProfile(courseLength: number): HeightProfi
     { s: 100, y: 0 },
     { s: 260, y: 9 },
     { s: 350, y: 14 },
-    { s: 380, y: -4 },
     { s: 560, y: -4 },
     { s: 700, y: 0 },
     { s: 1_400, y: 12 },

@@ -68,7 +68,7 @@ test('M7.1 lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges'
   assert.equal(sampleGroundMap(10, 7, profile), GROUND_COLORS.marking);
 });
 
-test('M7.1 authored crest causally releases both contacts at highway speed', () => {
+test('M7.1 first crest stays within the bounded highway envelope at 216 km/h', () => {
   const live = createM71HighwayCalibrationRuntime();
   const car = createM5Car(
     live.window.guide,
@@ -79,8 +79,7 @@ test('M7.1 authored crest causally releases both contacts at highway speed', () 
     60,
   );
 
-  let observedAirborne = false;
-  let maxGroundGap = 0;
+  let maxRoadRelativePresentationHeight = Number.NEGATIVE_INFINITY;
   for (let tick = 0; tick < 240; tick += 1) {
     updateM5Car(
       live.window.guide,
@@ -90,16 +89,26 @@ test('M7.1 authored crest causally releases both contacts at highway speed', () 
       { steering: 0, throttle: false, brake: false },
       SIM_DT,
     );
-    observedAirborne ||= !car.supported;
-    maxGroundGap = Math.max(
-      maxGroundGap,
-      car.y - live.window.height.samplePhysics(car.course.s),
+    maxRoadRelativePresentationHeight = Math.max(
+      maxRoadRelativePresentationHeight,
+      car.presentationY - live.window.height.samplePhysics(car.course.s),
     );
-    if (observedAirborne && maxGroundGap > 0.60) break;
   }
 
-  assert.equal(observedAirborne, true);
-  assert.ok(maxGroundGap > 0.60, `expected contact-release gap, got ${maxGroundGap}`);
+  let maximumGrade = 0;
+  for (let s = 250; s <= 560; s += 0.25) {
+    maximumGrade = Math.max(
+      maximumGrade,
+      Math.abs(live.window.height.samplePhysicsDifferential(s).dYdS),
+    );
+  }
+
+  assert.ok(maximumGrade <= 0.14, `first-crest grade=${maximumGrade}`);
+  assert.ok(
+    maxRoadRelativePresentationHeight < 0.15,
+    `first-crest presentation height=${maxRoadRelativePresentationHeight}`,
+  );
+  assert.ok(car.course.s > 450, `expected forward progress through first crest, s=${car.course.s}`);
 });
 
 test('M7.1 spawn and ordinary recovery target an authored lane center', () => {

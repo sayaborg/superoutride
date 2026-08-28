@@ -3,11 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import {
-  M7_1_AIRBORNE_PROBE_START_S,
-  M7_1_PLAYER_START_L,
-  createM71HighwayCalibrationRuntime,
-} from '../dist/dev/m7-1-highway-calibration-course.js';
+import { M7_1_PLAYER_START_L } from '../dist/dev/m7-1-highway-calibration-course.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import {
@@ -50,6 +46,16 @@ const DT = 1 / 60;
 const highway = createM72DefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
+  { s: highway.guide.length, y: 0 },
+]);
+const contactReleaseHeight = new HeightProfile(highway.guide.length, [
+  { s: 0, y: 0 },
+  { s: 100, y: 0 },
+  { s: 260, y: 9 },
+  { s: 350, y: 14 },
+  { s: 380, y: -4 },
+  { s: 560, y: -4 },
+  { s: 700, y: 0 },
   { s: highway.guide.length, y: 0 },
 ]);
 
@@ -244,13 +250,12 @@ test('M8.0 unilateral suspension covers static, separation, bump, rebound and qT
   );
 });
 
-test('M8.0 authored crest releases and later recontacts without stored phase state', () => {
-  const live = createM71HighwayCalibrationRuntime();
+test('M8.0 contact-release fixture recontacts without stored phase state', () => {
   const bike = createM5Bike(
-    live.window.guide,
-    live.window.height,
-    live.window.surface,
-    M7_1_AIRBORNE_PROBE_START_S,
+    highway.guide,
+    contactReleaseHeight,
+    highway.surfaceMap,
+    250,
     M7_1_PLAYER_START_L,
     60,
   );
@@ -258,9 +263,9 @@ test('M8.0 authored crest releases and later recontacts without stored phase sta
   let recontactTick = -1;
   for (let tick = 0; tick < 320; tick += 1) {
     updateM5Bike(
-      live.window.guide,
-      live.window.height,
-      live.window.surface,
+      highway.guide,
+      contactReleaseHeight,
+      highway.surfaceMap,
       bike,
       { steering: 0, throttle: false, brake: false },
       DT,
