@@ -98,17 +98,25 @@ validation/M8_0_CODEX_TRANSFER_AUDIT_2026_08_28.txt
 
 It records repository-only authority/navigation, structure/dependency, workflow/CI and temporary-ref hygiene findings for takeover. It is transfer evidence only: it is not design authority, not M8.0 completion evidence, and not release validation.
 
-## 5. Current active development handoff
+M8.0 completion/release evidence is:
 
-The active M8.0 / Phase 9 implementation continuation checkpoint is:
+```text
+validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt
+```
+
+It records the green pre-validation candidate, executable Phase 9 acceptance matrix and self-reference-safe exact-head release procedure. Final SHA/run identity is supplied by Git/PR/main-ref/workflow history.
+
+## 5. M8.0 implementation/finalization handoff
+
+The M8.0 / Phase 9 implementation and finalization checkpoint is:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
 ```
 
-It is the concise takeover/navigation document for PR #88. It records the exact audited main baseline, active branch/PR, last exact implementation head tested in CI, current failure classification, non-reopen decisions, required next work, and release contract.
+It records the audited main baseline, active branch/PR, migration history, non-reopen decisions and exact-head release contract. After release it remains historical finalization context, not current design authority.
 
-A fresh Codex session should start from `../AGENTS.md` and this active handoff, then resolve every design question back to the normative documents/source/tests named there. The active handoff is not a second vehicle-physics authority; `78_m8_0_phase9_vehicle_physics_architecture_freeze.md` owns the M8.0 architecture.
+A fresh Codex session should start from `../AGENTS.md`, then use this finalization handoff only when PR #88 lineage is relevant. The handoff is not a second vehicle-physics authority; `78_m8_0_phase9_vehicle_physics_architecture_freeze.md` owns the M8.0 architecture.
 
 ### Temporary handoff-preparation branch refs
 
@@ -132,7 +140,7 @@ It is only a snapshot of active-branch commit `84dd46bcb4ca764570ce852a3d9803b12
 feature/phase9-vehicle-physics-freeze
 ```
 
-The available transfer-audit connector did not expose ref deletion. On takeover, verify the fourth ref is an ancestor/snapshot as recorded in Git history, then delete all four temporary refs as repository hygiene. Do not merge or continue work from them.
+All four temporary refs were verified at their recorded identities/ancestry and deleted during PR #88 completion. Their historical SHAs remain recorded in the transfer audit. Do not recreate, merge or continue work from them.
 
 ## 6. Codex migration handoff
 
@@ -146,7 +154,7 @@ The original long-form takeover snapshot at this path requested a mandatory firs
 
 The released FINAL CODEX MIGRATION POINT is established only after the final clean-room manifest is resolved, the final validation-inclusive exact head receives complete green CI, that exact head fast-forwards `main` with `force=false`, SHA identity is verified, and the same `main` SHA receives successful Pages build/deploy. The dedicated final validation record and Git/PR/workflow history are the evidence for that transition.
 
-This migration handoff remains historical migration context. It does not replace the newer active M8.0 development handoff while PR #88 is in progress.
+This migration handoff remains historical migration context. It does not replace M8.0 architecture authority, the PR #88 finalization record, or current task evidence.
 
 Handoff documents are context/navigation snapshots. They do not override the Core Freeze/addenda, later milestone authority, types, compilers, or regression tests.
 
@@ -157,7 +165,7 @@ Handoff documents are context/navigation snapshots. They do not override the Cor
 ../README.md  repository entry point and current-state index
 ```
 
-For a fresh coding context, use the active handoff above plus the working rules in `../AGENTS.md`.
+For a fresh coding context, start with the working rules in `../AGENTS.md` and use the M8.0 handoff above only when its PR lineage is relevant.
 
 At and after the validated FINAL CODEX MIGRATION POINT, repository contents/history—not previous ChatGPT threads—are the continuing project memory.
 

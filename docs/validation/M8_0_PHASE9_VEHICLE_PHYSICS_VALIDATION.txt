@@ -1,0 +1,83 @@
+SUPER OUTRIDE — M8.0 PHASE 9 VEHICLE PHYSICS VALIDATION
+2026-08-28 JST
+
+Scope:
+M8.0 Phase 9 ideal vehicle-physics architecture implementation, legacy-regression migration, dedicated acceptance coverage, exact-head release, and Pages verification.
+
+Repository:
+sayaborg/superoutride
+
+PR:
+#88 — M8.0 Phase 9 vehicle physics architecture freeze
+
+Audited main baseline:
+dd2b35c6e2187770ba71d0a8a29a5ae65a9298b1
+
+Package / visible milestone:
+super-outride-m8-0@0.8.0
+SUPER OUTRIDE M8.0
+
+Pre-validation implementation candidate:
+b36ab494585d36eac58712d3e200297c4f46694e
+
+Pre-validation GitHub Actions:
+workflow: Test and Deploy GitHub Pages
+run id: 33164042964
+expected SHA: b36ab494585d36eac58712d3e200297c4f46694e
+actual checkout: verified by workflow
+result: 483 tests / 483 pass / 0 fail / 0 skipped
+conclusion: success
+PR deploy job: skipped as expected
+
+Resolved implementation classes:
+- corrected CAR nose-up pitch sign consistently in moment projection and world angular velocity;
+- kept suspension compression/load unclamped and increased authored CAR travel/bump margins for the measured DEV crest, recontact and braking envelope;
+- reconstructed CAR and BIKE spawn/recovery pose along the physical surface normal with tangent-aligned velocity;
+- kept pending-route recovery on the source side of its handoff seam so only a later ordinary physical crossing can COMMIT;
+- completed BIKE brake-torque and quadratic-drag profile validation;
+- migrated regressions away from retired stored contact phase, tire-force memory, direct body velocity setters, direct body force and hidden assist authority;
+- synchronized package and visible milestone metadata.
+
+Dedicated Phase 9 executable acceptance:
+tests/m8-0-phase9-vehicle-physics.test.mjs
+
+The acceptance matrix covers:
+- authoritative world pose/velocity and CAR/BIKE state shape;
+- one-k tire response, radial combined saturation and finite zero-speed slip;
+- unique implicit wheel root, standing start and brake lock through zero;
+- unilateral static/bump/rebound/separation/qTravel rejection plus authored crest release/recontact;
+- CAR useful steering, positive-understeer compilation and emergent/recovering rear-utilization oversteer without a drift mode;
+- BIKE crown upright identity, contact migration and effective rolling radius consistency;
+- Rider lean pulse, steady-lean approach and release arrest;
+- BIKE wheel angular-momentum materiality from both axial OmegaDot reaction and axis gyroscopic reaction;
+- emergent wheelie/stoppie load transfer and BIKE crest airborne/recontact without behavior modes;
+- runtime Nsub=12 agreement with finer offline integration classes;
+- A>0 surface geometry, profile brake/aero gates and finite unclamped 100 m/s stress behavior.
+
+Full repository result before this artifact:
+npm test
+483 tests
+483 pass
+0 fail
+0 skipped
+
+Temporary-ref hygiene:
+The three refs recorded as exact copies of 3adccfc94f2ab05ceaf07f233abe61f00114c3c9 and the noop-do-not-create snapshot of 84dd46bcb4ca764570ce852a3d9803b129d1499b were reverified at 0/0 identity and as ancestors of the active branch, then deleted from origin. They contained no unique work.
+
+Validation-inclusive release preconditions:
+1. This artifact and the synchronized repository status documents change the branch head. That new exact head is the only release candidate.
+2. Run the complete PR workflow on that exact validation-inclusive head.
+3. Require expected SHA = actual checkout SHA = PR head SHA.
+4. Require the complete suite to remain 483 / 483 pass, 0 fail, 0 skipped.
+5. Mark PR #88 ready only after those checks succeed.
+6. Re-fetch main immediately before release.
+7. Require behind_by=0 and merge base=current main.
+8. Move main only to that validated exact candidate with force=false and no merge commit.
+9. Verify main SHA = validated SHA = PR head SHA = PR merge SHA.
+10. Verify the main-push workflow on the same SHA, including Pages build and deploy success.
+
+Self-reference avoidance:
+Do not edit this artifact after the validation-inclusive head is validated merely to insert that later SHA, run id, merge identity or Pages run. Such an edit creates a different unvalidated head. Final release identity is therefore completed by immutable Git commit/PR/main-ref/workflow history together with this record.
+
+Release transition condition:
+M8.0 is released only when all validation-inclusive preconditions above are true. At that point the exact main/PR/workflow identity is the M8.0 release point and this handoff becomes historical finalization context.

@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M8.0 Phase 9 candidate
+# SUPER OUTRIDE — M8.0 Phase 9
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -6,14 +6,14 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 `README.md` is an entry point and current-state index. It is not a second normative design document.
 
-## Active development status
+## Current milestone status
 
-M8.0 / Phase 9 vehicle-physics replacement is currently under implementation and validation on:
+M8.0 / Phase 9 vehicle-physics implementation and regression migration are complete on:
 
 ```text
 branch: feature/phase9-vehicle-physics-freeze
 PR:     #88 — M8.0 Phase 9 vehicle physics architecture freeze
-status: DRAFT / NOT RELEASED
+status: final exact-head release procedure recorded by Git / PR / workflow history
 ```
 
 The current normative vehicle-physics architecture is:
@@ -22,29 +22,29 @@ The current normative vehicle-physics architecture is:
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 ```
 
-The current active takeover checkpoint is:
+The M8.0 implementation/finalization checkpoint is:
 
 ```text
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
 ```
 
-That handoff records the exact audited main baseline, PR/branch identity, last exact implementation head tested in CI, current failure classification and the remaining path to release. It is navigation/current-work context, not a second design authority.
+That handoff records the audited baseline, migration history and release procedure. It is navigation/current-work context, not a second design authority.
 
-M8.0 must not be described as released until PR #88 has a validation-inclusive exact green head, `main` is moved to that exact head by the repository release contract, and the same main SHA passes the required main-push build/Pages verification.
+The self-reference-safe M8.0 release evidence is `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt`. Exact release identity is the validation-inclusive PR #88 commit for which GitHub records PR head = PR merge = `main`, with successful exact-head PR CI and main-push build/Pages deployment. Do not infer the SHA from this file.
 
 ## Development entry point
 
-For the current PR #88 work, read in this order:
+For M8.0 authority or follow-on work, read in this order:
 
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
-2. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` — active M8.0 continuation checkpoint.
+2. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` — M8.0 implementation/finalization checkpoint.
 3. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
 5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` — current vehicle-physics architecture authority.
 6. Relevant source/types/compilers and regression tests — executable implementation contract.
 7. PR #88 and its latest exact-head CI.
 
-Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`, but it does not supersede the active M8.0 handoff.
+Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`; it does not supersede current M8.0 authority or release evidence.
 
 At and after the validated FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT/Codex transcript—is the continuing project memory.
 
@@ -110,7 +110,7 @@ M7.1       Highway Calibration Course Authoring                     complete
 M7.2       Default BRANCHING Highway Integration                    complete
 M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M8.0
 M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
-M8.0       Phase 9 Ideal Vehicle Physics Architecture               candidate / PR #88 / NOT RELEASED
+M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
 ```
 
 Current topology/runtime/physics design sequence:
@@ -137,7 +137,7 @@ docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 
 Historical validation evidence under `docs/validation/` is evidence, not current design authority.
 
-## Current M8.0 validation checkpoint
+## M8.0 validation checkpoint
 
 The audited `main` baseline for PR #88 is:
 
@@ -145,23 +145,23 @@ The audited `main` baseline for PR #88 is:
 dd2b35c6e2187770ba71d0a8a29a5ae65a9298b1
 ```
 
-The last implementation head that received a complete build + regression run before the active handoff documentation commits is:
+The pre-validation implementation candidate is:
 
 ```text
-3adccfc94f2ab05ceaf07f233abe61f00114c3c9
-GitHub Actions run 33160399210
+b36ab494585d36eac58712d3e200297c4f46694e
+GitHub Actions run 33164042964
 ```
 
-That exact run reached successful TypeScript/build compilation, then completed the regression suite with:
+That exact PR run verified its checkout, compiled successfully and completed:
 
 ```text
-449 tests
-417 pass
-32 fail
+483 tests
+483 pass
+0 fail
 0 skipped
 ```
 
-This is **not** a release result. The active handoff classifies the remaining failures into obsolete M7-test authority, tests mutating derived/getter-only observations, milestone/text assertions, and a real CAR suspension `qTravel`/profile issue that must be resolved causally rather than clamped.
+Adding the validation record changes the head, so the final validation-inclusive SHA and its PR/main-push runs are intentionally completed by GitHub history rather than embedded self-reference. See the validation record for the exact release contract and covered mechanics.
 
 Always inspect the current PR head and latest CI on takeover; the embedded tested SHA above is evidence for the checkpoint, not a self-referential current-head declaration.
 
@@ -206,7 +206,7 @@ http://localhost:8000/?mode=circuit
 
 The query parameter selects only the top-level browser composition. Lower engine layers remain topology-neutral ordinary consumers.
 
-Package/visible milestone metadata is part of the current M8.0 migration and must be synchronized deliberately before release. Do not infer release status from a temporary branch label.
+Package and visible milestone metadata are synchronized at `super-outride-m8-0@0.8.0`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 

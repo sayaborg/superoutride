@@ -1,8 +1,22 @@
-# SUPER OUTRIDE — M8.0 Phase 9 Active Codex Handoff
+# SUPER OUTRIDE — M8.0 Phase 9 Codex Finalization Handoff
 
-Status: active development handoff. This file is navigation/current-work context, not a second physics design authority.
+Status: implementation migration complete; exact-head release finalization context. This file is not a second physics design authority.
 
 Repository is the only project authority. Previous ChatGPT/Codex conversations are not authority.
+
+## Completion update
+
+The known-red checkpoint retained below is historical takeover evidence. PR #88 subsequently completed the causal migration and reached a green pre-validation candidate:
+
+```text
+candidate: b36ab494585d36eac58712d3e200297c4f46694e
+Actions:   33164042964
+tests:     483 / 483 pass / 0 fail / 0 skipped
+```
+
+The dedicated executable acceptance suite is `tests/m8-0-phase9-vehicle-physics.test.mjs`. Final validation and release evidence is `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt`; the validation-inclusive SHA, PR merge identity, main identity and main-push Pages run are intentionally supplied by GitHub history to avoid self-reference.
+
+The four temporary refs listed in §11 were verified at their recorded exact identities and ancestry, then deleted during completion.
 
 ## 0. Minimal takeover instruction
 
@@ -40,7 +54,7 @@ Active PR:
 #88 — M8.0 Phase 9 vehicle physics architecture freeze
 ```
 
-PR remains DRAFT until migration, new regressions, full validation-inclusive CI, and release checks are complete.
+PR remains DRAFT until the validation-inclusive exact head is green. It becomes ready only for the force=false exact-head release transaction described in §10 and the validation record.
 
 Last implementation head that received a complete compile + test run before handoff documentation was added:
 
@@ -437,6 +451,6 @@ A fourth accidental ref was created during the transfer audit:
 noop-do-not-create
 ```
 
-It is only a snapshot created directly from active-branch commit `84dd46bcb4ca764570ce852a3d9803b129d1499b` immediately after the AGENTS navigation correction. It contains no independently intended work. The connector used for the transfer audit did not expose ref deletion, so verify the recorded ancestry in Git and delete all four refs mechanically before or early in takeover.
+It is only a snapshot created directly from active-branch commit `84dd46bcb4ca764570ce852a3d9803b129d1499b` immediately after the AGENTS navigation correction and contains no independently intended work. This historical instruction was satisfied: all four refs were identity/ancestry-verified and deleted during PR #88 completion.
 
 Never continue implementation from those refs. The only active branch is `feature/phase9-vehicle-physics-freeze` and the only active PR is #88.

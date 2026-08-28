@@ -39,7 +39,7 @@ docs/00c_core_design_freeze_addendum_m6_45.md
 
 The addenda supersede only the specific earlier assumptions they explicitly replace.
 
-The current vehicle-physics architecture authority on the active M8.0 candidate branch is:
+The current vehicle-physics architecture authority is:
 
 ```text
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
@@ -86,15 +86,15 @@ Types, compilers and regression tests are the executable contract. If documentat
 
 `docs/README.md` distinguishes normative authority, chronological milestone history, active takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
 
-### Current active handoff state
+### M8.0 finalization handoff state
 
-While draft PR #88 is the active M8.0 work, the current takeover/navigation checkpoint is:
+The implementation/finalization checkpoint for M8.0 PR #88 is:
 
 ```text
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
 ```
 
-That file is current-work navigation/context only. It does not replace the Core Freeze/addenda, `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md`, source/types/compilers, or regression tests.
+That file is navigation/finalization context only. After release it is historical. It does not replace the Core Freeze/addenda, `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md`, source/types/compilers, regression tests, or `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt` as release evidence.
 
 The older:
 
@@ -532,10 +532,10 @@ When starting from a fresh Codex/agent context:
 6. Otherwise, identify the current task/handoff from repository/PR history and the latest relevant milestone authority; do not assume a dated handoff is still active.
 7. Read current source/types/compilers and the tests relevant to the task.
 8. Confirm current `main`, active branch/PR head, and exact latest CI state before changing anything.
-9. Use `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` only when historical final-migration lineage is relevant; do not treat it as the active M8.0 work checkpoint.
+9. Use `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` only when historical final-migration lineage is relevant; do not treat it as current M8.0 authority.
 10. Verify the FINAL CODEX MIGRATION POINT against `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history rather than expecting a self-referential SHA in this file.
 11. Do not repeat the original migration cleanup/takeover ceremony when current `main` is at or descended from the validated FINAL CODEX MIGRATION POINT.
-12. Run/inspect the complete test suite as required by the active handoff; a known-red active migration branch is not equivalent to a release candidate.
+12. Run/inspect the complete test suite required by the current task and relevant validation contract; historical known-red checkpoints are not release evidence.
 13. Only then continue the scoped task under the Mandatory Architecture Decision Gate.
 
 At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
