@@ -111,6 +111,7 @@ M7.2       Default BRANCHING Highway Integration                    complete
 M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M8.0
 M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
 M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
+M8.0       CIRCUIT Low-Speed Corner Authoring                        current public course follow-on
 ```
 
 Current topology/runtime/physics design sequence:
@@ -133,6 +134,7 @@ docs/75_m7_2_default_branching_highway_integration.md
 docs/76_m7_3_grip_and_instrument_hud.md
 docs/77_m7_4_transient_tire_response.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+docs/79_m8_0_circuit_low_speed_corner_authoring.md
 ```
 
 Historical validation evidence under `docs/validation/` is evidence, not current design authority.

@@ -28,6 +28,7 @@ export const M7_1_MARKING_GAP_LENGTH_METERS = 12;
 
 export const M7_1_STANDARD_CURVE_RADIUS_METERS = 470;
 export const M7_1_SWEEP_CURVE_RADIUS_METERS = 720;
+export const M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS = 90;
 export const M7_1_AIRBORNE_PROBE_START_S = 250;
 
 export const M7_1_DEV_COURSE_MODE = compileCourseMode({
@@ -78,12 +79,14 @@ export function createM71HighwayGroundProfile(): GroundMapProfile {
 }
 
 /**
- * Long explicit closed-lap authoring used only by the M7.1 calibration composition.
+ * Long explicit closed-lap source shared by the current CIRCUIT composition and
+ * the M7.2 BRANCHING parent before its physical handoff.
  *
- * The 470 m end curves remain above the Japanese 100 km/h ordinary minimum
- * reference of 460 m after Raster-to-Guide filleting. The 720 m alternating
- * sweep supplies both left and right steering load. Every authored Raster turn
- * is at most five degrees, below the frozen ten-degree limit.
+ * The 470 m end curves and 720 m alternating sweep retain the original high-speed
+ * calibration loads. The second side additionally owns a 90 m right-left-right
+ * complex after the BRANCHING handoff seam, so the CIRCUIT composition requires
+ * real braking without changing the point-to-point route before its exit. Every
+ * authored Raster turn is at most five degrees, below the frozen ten-degree limit.
  */
 export function createM71HighwayCalibrationLapRaster(): RasterPath {
   const vertices: RasterVertex[] = [{
@@ -124,18 +127,41 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
     turtle.heading = startHeading + turn;
   };
 
-  const appendHighwaySide = (): void => {
+  const appendLowSpeedComplex = (): void => {
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -Math.PI / 2);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, Math.PI);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -Math.PI / 2);
+  };
+
+  const appendHighwaySide = (includeLowSpeedFinish: boolean): void => {
     appendStraight(700);
     appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, -20 * Math.PI / 180);
     appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, 40 * Math.PI / 180);
     appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, -20 * Math.PI / 180);
-    appendStraight(700);
+    if (includeLowSpeedFinish) {
+      // Keep the M7.2 gate/seam interval unchanged, then leave enough straight
+      // exit to settle before the final high-speed end curve.
+      appendStraight(610);
+      appendLowSpeedComplex();
+      appendStraight(150);
+    } else {
+      appendStraight(700);
+    }
   };
 
-  appendHighwaySide();
+  appendHighwaySide(false);
   appendArc(M7_1_STANDARD_CURVE_RADIUS_METERS, Math.PI);
-  appendHighwaySide();
+  appendHighwaySide(true);
   appendArc(M7_1_STANDARD_CURVE_RADIUS_METERS, Math.PI);
+  if (!(
+    turtle.z < 0
+    && Math.abs(turtle.x) < 1e-7
+    && Math.abs(Math.sin(turtle.heading)) < 1e-7
+    && Math.cos(turtle.heading) > 1 - 1e-7
+  )) {
+    throw new Error('M8.0 low-speed complex must return on the start-side axis');
+  }
+  appendStraight(-turtle.z);
 
   if (Math.hypot(turtle.x, turtle.z) > 1e-7) {
     throw new Error('M7.1 calibration lap authoring failed to close');

@@ -14,11 +14,17 @@ import {
   M7_1_MARKING_GAP_LENGTH_METERS,
   M7_1_PLAYER_START_L,
   M7_1_ROAD_HALF_WIDTH_METERS,
+  M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS,
   createM71HighwayCalibrationLapRaster,
   createM71HighwayCalibrationRuntime,
   createM71HighwayGroundProfile,
   createM71HighwaySurfaceMap,
 } from '../dist/dev/m7-1-highway-calibration-course.js';
+import { M7_2_HANDOFF_SEAM_S } from '../dist/dev/m7-2-default-branching-highway.js';
+import {
+  estimateUpcomingTargetSpeed,
+  sampleRivalDrivingInput,
+} from '../dist/gameplay/rival-driver.js';
 import {
   createM5RecoveryState,
   recoverM5Vehicle,
@@ -27,18 +33,79 @@ import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { createM5Bike } from '../dist/physics/motorcycle-physics.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
-test('M7.1 calibration lap is long and keeps Japanese-expressway reference radii', () => {
+test('current circuit lap retains high-speed references and adds a post-handoff low-speed complex', () => {
   const raster = createM71HighwayCalibrationLapRaster();
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const finiteRadii = guide.corners
     .map((corner) => corner.radius)
     .filter(Number.isFinite);
+  const lowSpeedCorners = guide.corners.filter((corner) => corner.radius < 100);
 
   assert.ok(raster.length > 7_000, `expected > 7 km, got ${raster.length}`);
-  assert.ok(Math.min(...finiteRadii) >= 460);
+  assert.equal(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, 90);
+  assert.ok(Math.min(...finiteRadii) > 89 && Math.min(...finiteRadii) < 91);
+  assert.ok(finiteRadii.some((radius) => radius >= 460));
+  assert.ok(finiteRadii.some((radius) => radius >= 710));
+  assert.ok(lowSpeedCorners.length > 0);
+  assert.ok(lowSpeedCorners.every((corner) => corner.sVertex > M7_2_HANDOFF_SEAM_S));
   assert.ok(Math.max(...raster.vertexTurns.map((turn) => Math.abs(turn))) <= 5.000001 * Math.PI / 180);
   assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9), 'course needs right turns');
   assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9), 'course needs left turns');
+
+  const lowSpeedApproachS = lowSpeedCorners[0].sVertex - 80;
+  assert.ok(estimateUpcomingTargetSpeed(guide, 450) >= 55.5);
+  assert.ok(
+    estimateUpcomingTargetSpeed(guide, lowSpeedApproachS) <= 26,
+    'rival speed authority must command a real low-speed approach',
+  );
+});
+
+test('ordinary rival physics brakes for and clears the complete low-speed complex on asphalt', () => {
+  const live = createM71HighwayCalibrationRuntime();
+  const lapLength = live.window.topology.lapLength;
+  const lowSpeedCorners = live.window.guide.corners.filter(
+    (corner) => corner.sVertex < lapLength && corner.radius < 100,
+  );
+  const firstCorner = lowSpeedCorners[0];
+  const lastCorner = lowSpeedCorners.at(-1);
+  assert.ok(firstCorner && lastCorner);
+
+  const car = createM5Car(
+    live.window.guide,
+    live.window.height,
+    live.window.surface,
+    firstCorner.sVertex - 180,
+    0,
+    45,
+  );
+  const exitTargetS = lastCorner.sVertex + 300;
+  let minimumSpeed = car.longitudinalSpeed;
+  let maximumAbsoluteL = Math.abs(car.course.l);
+  // Constructor state has not yet derived its first contact observation.
+  let remainedSupported = true;
+  let ticks = 0;
+
+  while (car.course.s < exitTargetS && ticks < 3_000) {
+    const input = sampleRivalDrivingInput(live.window.guide, car, 0);
+    updateM5Car(
+      live.window.guide,
+      live.window.height,
+      live.window.surface,
+      car,
+      input,
+      SIM_DT,
+    );
+    minimumSpeed = Math.min(minimumSpeed, car.longitudinalSpeed);
+    maximumAbsoluteL = Math.max(maximumAbsoluteL, Math.abs(car.course.l));
+    remainedSupported &&= car.supported;
+    ticks += 1;
+  }
+
+  assert.ok(car.course.s >= exitTargetS, `rival stalled at s=${car.course.s}`);
+  assert.ok(minimumSpeed < 26, `expected braking below 26 m/s, got ${minimumSpeed}`);
+  assert.ok(car.longitudinalSpeed > 40, `expected exit acceleration, got ${car.longitudinalSpeed}`);
+  assert.ok(maximumAbsoluteL < M7_1_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
+  assert.equal(remainedSupported, true);
 });
 
 test('M7.1 four-lane cross-section owns 3.5 m lanes and matching physical support', () => {

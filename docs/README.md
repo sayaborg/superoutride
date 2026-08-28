@@ -23,7 +23,7 @@ It explicitly supersedes conflicting vehicle-physics architecture decisions in M
 
 ## 2. Numbered milestone documents
 
-`01_...` through `78_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `79_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -49,7 +49,12 @@ The most important current topology/runtime/physics sequence is:
 76_m7_3_grip_and_instrument_hud.md
 77_m7_4_transient_tire_response.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+79_m8_0_circuit_low_speed_corner_authoring.md
 ```
+
+The current public CIRCUIT course geometry follow-on is `79_m8_0_circuit_low_speed_corner_authoring.md`.
+It supersedes only the scoped all-high-speed/minimum-radius description in M7.1; it does not change
+M8.0 vehicle-physics or frozen renderer/topology authority.
 
 Current governing topology rule:
 
