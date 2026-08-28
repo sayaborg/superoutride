@@ -13,17 +13,23 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-Later addenda supersede only the assumptions they explicitly replace. In particular, M6.44/M6.45 replace old implicit cyclic geometry/source assumptions with the current open general model.
+The current vehicle-physics architecture authority is:
+
+```text
+78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+```
+
+It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 while leaving those earlier milestone documents intact as historical records.
 
 ## 2. Numbered milestone documents
 
-`01_...` through `77_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `78_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
 Do not rewrite historical milestone prose merely to use current terminology. Resolve apparent conflicts by following the later explicit authority.
 
-The most important current topology/runtime sequence is:
+The most important current topology/runtime/physics sequence is:
 
 ```text
 62_m6_44_open_path_core.md
@@ -42,11 +48,16 @@ The most important current topology/runtime sequence is:
 75_m7_2_default_branching_highway_integration.md
 76_m7_3_grip_and_instrument_hud.md
 77_m7_4_transient_tire_response.md
+78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 ```
 
-Current governing rule:
+Current governing topology rule:
 
 > Open is the general data model. Cyclic is an explicit upper-level topology choice. The renderer is neither.
+
+Current governing vehicle-physics rule:
+
+> World state is authoritative; Guide/contact/tire observations are derived; CAR and BIKE produce handling through the minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
 
 ## 3. Known historical-value supersession
 
