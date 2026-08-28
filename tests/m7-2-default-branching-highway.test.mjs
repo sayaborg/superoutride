@@ -17,6 +17,7 @@ import {
   createM72DefaultBranchingParent,
 } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
@@ -106,7 +107,7 @@ test('M7.2 default composition owns lane-center spawn and recovery without chang
   assert.doesNotMatch(main, /createM71HighwayCalibrationRuntime|compileCircuitLiveRuntime/);
 });
 
-test('first crest remains bounded at continuous throttle without recovery', () => {
+test('opening section remains bounded at continuous throttle without recovery', () => {
   const parent = createM72DefaultBranchingParent();
   const car = createM5Car(
     parent.guide,
@@ -138,7 +139,7 @@ test('first crest remains bounded at continuous throttle without recovery', () =
       M7_2_PLAYER_RECOVERY_PROFILE,
     );
     maximumS = Math.max(maximumS, car.course.s);
-    if (car.course.s >= 250 && car.course.s <= 560) {
+    if (car.course.s >= 250 && car.course.s <= 700) {
       maximumRoadRelativePresentationHeight = Math.max(
         maximumRoadRelativePresentationHeight,
         car.presentationY - parent.heightProfile.samplePhysics(car.course.s),
@@ -147,7 +148,7 @@ test('first crest remains bounded at continuous throttle without recovery', () =
   }
 
   let maximumGrade = 0;
-  for (let s = 250; s <= 560; s += 0.25) {
+  for (let s = 250; s <= 700; s += 0.25) {
     maximumGrade = Math.max(
       maximumGrade,
       Math.abs(parent.heightProfile.samplePhysicsDifferential(s).dYdS),
@@ -155,13 +156,48 @@ test('first crest remains bounded at continuous throttle without recovery', () =
   }
 
   assert.equal(recovery.recoveries, 0);
-  assert.ok(maximumGrade <= 0.14, `first-crest grade=${maximumGrade}`);
+  assert.ok(maximumGrade <= 0.03, `opening-section grade=${maximumGrade}`);
   assert.ok(
     maximumRoadRelativePresentationHeight < 0.15,
-    `first-crest presentation height=${maximumRoadRelativePresentationHeight}`,
+    `opening-section presentation height=${maximumRoadRelativePresentationHeight}`,
   );
-  assert.ok(maximumS > 580, `expected forward continuation after crest, max s=${maximumS}`);
-  assert.ok(car.course.s > 580, `expected ordinary progress through the first crest, s=${car.course.s}`);
+  assert.ok(maximumS > 580, `expected forward continuation through opening section, max s=${maximumS}`);
+  assert.ok(car.course.s > 580, `expected ordinary opening-section progress, s=${car.course.s}`);
+});
+
+test('opening section keeps the live rival inside its suspension model', () => {
+  const parent = createM72DefaultBranchingParent();
+  const rival = createM5Car(
+    parent.guide,
+    parent.heightProfile,
+    parent.surfaceMap,
+    95,
+    M7_2_RIVAL_START_L,
+  );
+  const recovery = createM5RecoveryState(rival);
+
+  for (let tick = 0; tick < 1_200 && rival.course.s <= 900; tick += 1) {
+    updateM5Car(
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      rival,
+      sampleRivalDrivingInput(parent.guide, rival, 0),
+      1 / 60,
+    );
+    updateM5Recovery(
+      recovery,
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      rival,
+      1 / 60,
+      M7_2_RIVAL_RECOVERY_PROFILE,
+    );
+  }
+
+  assert.equal(recovery.recoveries, 0);
+  assert.ok(rival.course.s > 900, `live rival stopped in opening section at s=${rival.course.s}`);
 });
 
 test('airborne recontact recovers before the vehicle can continue below authored terrain', () => {

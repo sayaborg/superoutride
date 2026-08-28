@@ -68,7 +68,7 @@ test('M7.1 lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges'
   assert.equal(sampleGroundMap(10, 7, profile), GROUND_COLORS.marking);
 });
 
-test('M7.1 first crest stays within the bounded highway envelope at 216 km/h', () => {
+test('M7.1 opening section stays within the bounded highway envelope at 216 km/h', () => {
   const live = createM71HighwayCalibrationRuntime();
   const car = createM5Car(
     live.window.guide,
@@ -96,19 +96,19 @@ test('M7.1 first crest stays within the bounded highway envelope at 216 km/h', (
   }
 
   let maximumGrade = 0;
-  for (let s = 250; s <= 560; s += 0.25) {
+  for (let s = 250; s <= 700; s += 0.25) {
     maximumGrade = Math.max(
       maximumGrade,
       Math.abs(live.window.height.samplePhysicsDifferential(s).dYdS),
     );
   }
 
-  assert.ok(maximumGrade <= 0.14, `first-crest grade=${maximumGrade}`);
+  assert.ok(maximumGrade <= 0.03, `opening-section grade=${maximumGrade}`);
   assert.ok(
     maxRoadRelativePresentationHeight < 0.15,
-    `first-crest presentation height=${maxRoadRelativePresentationHeight}`,
+    `opening-section presentation height=${maxRoadRelativePresentationHeight}`,
   );
-  assert.ok(car.course.s > 450, `expected forward progress through first crest, s=${car.course.s}`);
+  assert.ok(car.course.s > 450, `expected forward progress through opening section, s=${car.course.s}`);
 });
 
 test('M7.1 spawn and ordinary recovery target an authored lane center', () => {

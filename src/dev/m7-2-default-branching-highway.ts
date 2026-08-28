@@ -117,9 +117,6 @@ export function createM72BranchingHeightProfile(courseLength: number): HeightPro
   return new HeightProfile(courseLength, [
     { s: 0, y: 0 },
     { s: 100, y: 0 },
-    { s: 260, y: 9 },
-    { s: 350, y: 14 },
-    { s: 560, y: -4 },
     { s: 700, y: 0 },
     { s: 1_400, y: 12 },
     { s: 2_100, y: -8 },
