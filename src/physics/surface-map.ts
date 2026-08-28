@@ -3,21 +3,24 @@ import { wrapPositive } from '../core/math.js';
 
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
+/**
+ * Surface authority is relative to the tire profile. Absolute tire capacity is
+ * muEff = tire.muRef * material.gripFactor.
+ */
 export interface SurfaceMaterial {
   readonly type: SurfaceType;
   readonly supported: boolean;
-  readonly friction: number;
+  readonly gripFactor: number;
   readonly rollingResistance: number;
-  readonly driveScale: number;
 }
 
 export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> = {
-  ASPHALT: { type: 'ASPHALT', supported: true, friction: 1.30, rollingResistance: 0.014, driveScale: 1.0 },
-  SHOULDER: { type: 'SHOULDER', supported: true, friction: 0.95, rollingResistance: 0.025, driveScale: 0.92 },
-  GRASS: { type: 'GRASS', supported: true, friction: 0.52, rollingResistance: 0.065, driveScale: 0.72 },
-  DIRT: { type: 'DIRT', supported: true, friction: 0.64, rollingResistance: 0.045, driveScale: 0.82 },
-  SAND: { type: 'SAND', supported: true, friction: 0.40, rollingResistance: 0.11, driveScale: 0.58 },
-  VOID: { type: 'VOID', supported: false, friction: 0, rollingResistance: 0, driveScale: 0 },
+  ASPHALT: { type: 'ASPHALT', supported: true, gripFactor: 1.00, rollingResistance: 0.014 },
+  SHOULDER: { type: 'SHOULDER', supported: true, gripFactor: 0.78, rollingResistance: 0.025 },
+  GRASS: { type: 'GRASS', supported: true, gripFactor: 0.43, rollingResistance: 0.065 },
+  DIRT: { type: 'DIRT', supported: true, gripFactor: 0.52, rollingResistance: 0.045 },
+  SAND: { type: 'SAND', supported: true, gripFactor: 0.33, rollingResistance: 0.11 },
+  VOID: { type: 'VOID', supported: false, gripFactor: 0, rollingResistance: 0 },
 };
 
 export interface SurfaceBand {
