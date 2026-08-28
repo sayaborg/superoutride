@@ -118,13 +118,20 @@ export function recoverM5Vehicle(
   if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < 0 || state.lastSafeS > curve.length) {
     throw new RangeError('recovery lastSafeS must lie within the active Guide domain');
   }
+  if (!Number.isFinite(vehicle.course.s)) {
+    throw new RangeError('recovery vehicle chainage observation must be finite');
+  }
+  // Airborne world motion can advance well beyond the last loaded station. Recovering only from
+  // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
+  // causal Guide observation, then backtrack once into the ordinary supported reconstruction.
+  const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), 0, curve.length);
   recoverM5VehicleToGuideCoordinate(
     state,
     guide,
     height,
     surfaces,
     vehicle,
-    { s: Math.max(0, state.lastSafeS - profile.backtrackDistance), l: profile.targetL ?? 0 },
+    { s: Math.max(0, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 },
     reason,
     profile,
   );

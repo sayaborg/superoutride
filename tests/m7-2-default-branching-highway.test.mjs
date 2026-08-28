@@ -16,6 +16,8 @@ import {
   M7_2_ROUTE_GATE_S,
   createM72DefaultBranchingParent,
 } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
@@ -101,4 +103,42 @@ test('M7.2 default composition owns lane-center spawn and recovery without chang
   assert.match(main, /M7_2_PLAYER_START_L/);
   assert.match(main, /M7_2_PLAYER_RECOVERY_PROFILE/);
   assert.doesNotMatch(main, /createM71HighwayCalibrationRuntime|compileCircuitLiveRuntime/);
+});
+
+test('first crest recovery preserves airborne forward progress instead of relaunching forever', () => {
+  const parent = createM72DefaultBranchingParent();
+  const car = createM5Car(
+    parent.guide,
+    parent.heightProfile,
+    parent.surfaceMap,
+    45,
+    M7_2_PLAYER_START_L,
+  );
+  const recovery = createM5RecoveryState(car);
+  let maximumS = car.course.s;
+
+  for (let tick = 0; tick < 720; tick += 1) {
+    updateM5Car(
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      car,
+      { steering: 0, throttle: true, brake: false },
+      1 / 60,
+    );
+    updateM5Recovery(
+      recovery,
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      car,
+      1 / 60,
+      M7_2_PLAYER_RECOVERY_PROFILE,
+    );
+    maximumS = Math.max(maximumS, car.course.s);
+  }
+
+  assert.equal(recovery.recoveries, 1);
+  assert.ok(maximumS > 580, `expected forward continuation after crest, max s=${maximumS}`);
+  assert.ok(car.course.s > 580, `expected no recovery loop near the first crest, s=${car.course.s}`);
 });
