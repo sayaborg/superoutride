@@ -24,7 +24,9 @@ import { add3, quaternionFromYawPitchLean, scale3 } from '../physics/vehicle-mat
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
-export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'chart-excursion' | 'manual' | 'wrong-course';
+export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'manual' | 'wrong-course';
+
+const SURFACE_PENETRATION_TOLERANCE = 1e-3;
 
 export interface M5RecoveryProfile {
   maxUnsupportedTime: number;
@@ -92,10 +94,20 @@ export function updateM5Recovery(
     : M5_BIKE_PROFILE.desiredCgHeight;
   const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
+  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
+  const surfaceDistance =
+    (vehicle.x - surface.point.x) * surface.normal.x
+    + (vehicle.y - surface.point.y) * surface.normal.y
+    + (vehicle.z - surface.point.z) * surface.normal.z;
+  // VOID is non-load-bearing, but it still shares the rendered heightfield. Letting the CG pass
+  // below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
+  // for the larger fall-distance/chart limits.
+  const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE;
 
   let reason: RecoveryReason | null = null;
   if (Math.abs(vehicle.course.l) >= profile.maxLateralExcursion) reason = 'chart-excursion';
   else if (fallDistance >= profile.maxFallDistance) reason = 'fall-distance';
+  else if (penetratedSurface) reason = 'surface-penetration';
   else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';
 
   if (reason !== null) {

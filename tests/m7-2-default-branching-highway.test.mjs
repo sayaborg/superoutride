@@ -18,6 +18,7 @@ import {
 } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
@@ -141,4 +142,56 @@ test('first crest recovery preserves airborne forward progress instead of relaun
   assert.equal(recovery.recoveries, 1);
   assert.ok(maximumS > 580, `expected forward continuation after crest, max s=${maximumS}`);
   assert.ok(car.course.s > 580, `expected no recovery loop near the first crest, s=${car.course.s}`);
+});
+
+test('airborne recontact recovers before the vehicle can continue below authored terrain', () => {
+  const parent = createM72DefaultBranchingParent();
+  const car = createM5Car(
+    parent.guide,
+    parent.heightProfile,
+    parent.surfaceMap,
+    45,
+    M7_2_PLAYER_START_L,
+  );
+  const recovery = createM5RecoveryState(car);
+  let minimumSurfaceDistance = Number.POSITIVE_INFINITY;
+  const reasons = [];
+
+  for (let tick = 0; tick < 1_080; tick += 1) {
+    updateM5Car(
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      car,
+      { steering: 0, throttle: true, brake: false },
+      1 / 60,
+    );
+    const surface = sampleSurfaceGeometryAtCoordinate(
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      car.course,
+    );
+    const surfaceDistance =
+      (car.x - surface.point.x) * surface.normal.x
+      + (car.y - surface.point.y) * surface.normal.y
+      + (car.z - surface.point.z) * surface.normal.z;
+    minimumSurfaceDistance = Math.min(minimumSurfaceDistance, surfaceDistance);
+    const reason = updateM5Recovery(
+      recovery,
+      parent.guide,
+      parent.heightProfile,
+      parent.surfaceMap,
+      car,
+      1 / 60,
+      M7_2_PLAYER_RECOVERY_PROFILE,
+    );
+    if (reason !== null) reasons.push(reason);
+  }
+
+  assert.ok(reasons.includes('surface-penetration'));
+  assert.ok(
+    minimumSurfaceDistance > -0.1,
+    `expected immediate recovery at the authored surface, distance=${minimumSurfaceDistance}`,
+  );
 });
