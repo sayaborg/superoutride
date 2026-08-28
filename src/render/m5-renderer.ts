@@ -31,8 +31,6 @@ export interface M5RenderResult {
   playerRelativeYaw: number;
   groundMapMaxLevel: number;
   groundMapBaked: boolean;
-
-  /** M5.8 workload telemetry. Counters never alter draw/cull decisions. */
   terrainLineCountPerScreenRowMax: number;
   terrainOutputPixelsPerScreenRowMax: number;
   spriteOutputSamplesIncludingPlayer: number;
@@ -109,7 +107,7 @@ export function renderM5Driving(
   );
 
   const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
+    { x: vehicle.x, y: vehicle.presentationY ?? vehicle.y, z: vehicle.z, s: vehicle.course.s },
     camera,
   );
   const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
@@ -197,11 +195,6 @@ function drawTerrainLine(
       const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        // xGroundL/xGroundR are projected strip edges while raster sampling is evaluated at
-        // pixel centers (x+0.5). At an integer projected edge, the last included pixel center can
-        // lie by at most half a pixel beyond the continuous stage corridor. Clamp only the
-        // stage-local raster sample back to that same authored corridor; the projected strip,
-        // chainage, depth and affine mapping remain unchanged.
         const sampledLateral = roadView === undefined
           ? lateral
           : clamp(lateral, -localGroundLeft, localGroundRight);
