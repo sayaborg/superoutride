@@ -63,7 +63,7 @@ import {
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
-import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
+import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
@@ -127,13 +127,17 @@ const staticWorldSprites = [
   ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
 
-const car = createM5Car(guide, heightProfile, surfaceMap, 45, M7_2_PLAYER_START_L);
-const bike = createM5Bike(guide, heightProfile, surfaceMap, 45, M7_2_PLAYER_START_L);
-let vehicle: M5CarState | M5BikeState = car;
+let vehicle: M5CarState | M5BikeState = createM5Car(
+  guide,
+  heightProfile,
+  surfaceMap,
+  45,
+  M7_2_PLAYER_START_L,
+);
 let vehicleKind: 'car' | 'bike' = 'car';
 
 const cameraRig = createM5CameraRig();
-const recovery = createM5RecoveryState(vehicle);
+let recovery = createM5RecoveryState(vehicle);
 const raceSession = createRaceSessionState();
 
 const liveRoute = createM627LiveRouteRuntime(
@@ -247,15 +251,7 @@ window.addEventListener('keydown', (event) => {
     return;
   }
   if (event.code !== 'KeyV') return;
-  if (vehicleKind === 'car') {
-    adoptM5BikeKinematics(bike, vehicle as M5CarState);
-    vehicle = bike;
-    vehicleKind = 'bike';
-  } else {
-    adoptM5CarKinematics(car, vehicle as M5BikeState);
-    vehicle = car;
-    vehicleKind = 'car';
-  }
+  switchVehicleAtSafeSpawn();
 });
 
 let accumulator = 0;
@@ -279,7 +275,6 @@ function frame(now: number): void {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    // Phase 1: finish every actor's world physics before any route authority is mutated.
     const runtimeBefore = activeRuntime();
     if (vehicleKind === 'car') {
       updateM5Car(
@@ -370,7 +365,6 @@ function frame(now: number): void {
       };
     });
 
-    // Phase 2: observe the complete field, arbitrate once, then apply actor route/handoff transactions.
     const routeTick = advanceLiveRouteMultiActorTick(
       liveRoute,
       sharedRouteChoices,
@@ -461,11 +455,7 @@ function frame(now: number): void {
       }
     }
 
-    // Timing is a fixed-step clock. RouteDag + FieldRouteProgress remain the only BRANCHING
-    // progress/finish authorities; no closed-course gate tracker participates here.
     advanceRaceSession(raceSession, playerFieldProgress, null, SIM_DT);
-
-    // A validated point-to-point finish records the objective; it does not pause DEV simulation.
     const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
     updateRunObjectiveFromValidatedFinish(
       runObjective,
@@ -525,6 +515,7 @@ function render(): void {
     vehicleKind,
     runtime.roadView ?? undefined,
   );
+  void stats;
   ctx.putImageData(imageData, 0, 0);
 
   const standings = rankRaceProgress([
@@ -542,7 +533,7 @@ function render(): void {
   const playerStanding = standings.find((entry) => entry.competitorId === 'PLAYER')!;
 
   const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
+    { x: vehicle.x, y: vehicle.presentationY, z: vehicle.z, s: vehicle.course.s },
     camera,
   );
   const dCar = pseudoDepth(vehicle.course.s, camera.s);
@@ -550,7 +541,7 @@ function render(): void {
   const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
-    : vehicle.sprungRoll * 180 / Math.PI;
+    : 0;
   const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
   const progressWindow = fieldRouteProgressWindow(
     liveRoute.progress,
@@ -578,9 +569,9 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.4 BUILD ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M8.0 PHASE 9 ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GND' : 'AIR'}`, 8, 48);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
@@ -608,7 +599,39 @@ function render(): void {
   );
   ctx.fillStyle = '#8fa3ad';
   ctx.fillText(`FIELD RIV ${rivals.length} LOCKS ${sharedRouteChoices.locks.length}  R1 ${rivalRouteSummary}`, 8, 218);
-  ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+}
+
+/** DEV switch is an explicit safe-spawn reconstruction, never a running-state conversion. */
+function switchVehicleAtSafeSpawn(): void {
+  const runtime = activeRuntime();
+  recoverM5Vehicle(
+    recovery,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    runtime.surfaceMap,
+    vehicle,
+    'manual',
+    M7_2_PLAYER_RECOVERY_PROFILE,
+  );
+  const s = vehicle.course.s;
+  const l = vehicle.course.l;
+  const speed = vehicle.longitudinalSpeed;
+  if (vehicleKind === 'car') {
+    vehicle = createM5Bike(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, s, l, speed);
+    vehicleKind = 'bike';
+  } else {
+    vehicle = createM5Car(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, s, l, speed);
+    vehicleKind = 'car';
+  }
+  recovery = createM5RecoveryState(vehicle);
+  resetM5CameraRig(cameraRig);
+  resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: vehicle.x, z: vehicle.z });
+  resyncFieldRouteProgress(
+    playerFieldProgress,
+    liveRoute.progress,
+    fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
+  );
 }
 
 function recoverActorToLockedBranch(
