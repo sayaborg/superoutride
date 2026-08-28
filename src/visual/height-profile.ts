@@ -13,11 +13,18 @@ export interface HeightSample {
   sEnd: number;
 }
 
+/** Same smooth H authority used by physics plus its analytic dH/ds. */
+export interface PhysicsHeightSample {
+  readonly y: number;
+  readonly dYdS: number;
+}
+
 export interface HeightProfileReader {
   readonly courseLength: number;
   readonly nodes: readonly HeightNode[];
   sampleRender(s: number): HeightSample;
   samplePhysics(s: number): number;
+  samplePhysicsDifferential(s: number): PhysicsHeightSample;
   sampleCamera(s: number): number;
   distanceToNextRenderNode(s: number): number;
 }
@@ -70,11 +77,19 @@ export class HeightProfile implements HeightProfileReader {
   }
 
   samplePhysics(s: number): number {
-    return this.sampleSmooth(s);
+    return this.samplePhysicsDifferential(s).y;
+  }
+
+  samplePhysicsDifferential(s: number): PhysicsHeightSample {
+    const local = openChainage(s, this.courseLength, 'height profile');
+    const i = this.findSegment(local);
+    const a = this.nodes[i]!;
+    const b = this.nodes[i + 1]!;
+    return smoothPhysicsSample(a, b, local);
   }
 
   sampleCamera(s: number): number {
-    return this.sampleSmooth(s);
+    return this.samplePhysics(s);
   }
 
   distanceToNextRenderNode(s: number): number {
@@ -82,16 +97,6 @@ export class HeightProfile implements HeightProfileReader {
     if (local === this.courseLength) return 0;
     const i = this.findSegment(local);
     return this.nodes[i + 1]!.s - local;
-  }
-
-  private sampleSmooth(s: number): number {
-    const local = openChainage(s, this.courseLength, 'height profile');
-    const i = this.findSegment(local);
-    const a = this.nodes[i]!;
-    const b = this.nodes[i + 1]!;
-    const t = (local - a.s) / (b.s - a.s);
-    const smooth = 0.5 - 0.5 * Math.cos(Math.PI * t);
-    return a.y + (b.y - a.y) * smooth;
   }
 
   private findSegment(local: number): number {
@@ -147,11 +152,21 @@ export class CyclicHeightProfile implements HeightProfileReader {
   }
 
   samplePhysics(s: number): number {
-    return cyclicSmooth(this.nodes, this.courseLength, s);
+    return this.samplePhysicsDifferential(s).y;
+  }
+
+  samplePhysicsDifferential(s: number): PhysicsHeightSample {
+    const local = wrapPositive(s, this.courseLength);
+    const i = findCyclicSegment(this.nodes, this.courseLength, local);
+    const a = this.nodes[i]!;
+    const bBase = this.nodes[(i + 1) % this.nodes.length]!;
+    const sEnd = i === this.nodes.length - 1 ? this.courseLength : bBase.s;
+    const b = { s: sEnd, y: bBase.y };
+    return smoothPhysicsSample(a, b, local);
   }
 
   sampleCamera(s: number): number {
-    return cyclicSmooth(this.nodes, this.courseLength, s);
+    return this.samplePhysics(s);
   }
 
   distanceToNextRenderNode(s: number): number {
@@ -178,15 +193,16 @@ export function createM3DebugHeightProfile(courseLength: number): HeightProfile 
   return new HeightProfile(courseLength, [...interior, { s: courseLength, y: interior.at(-1)?.y ?? 0 }]);
 }
 
-function cyclicSmooth(nodes: readonly HeightNode[], courseLength: number, s: number): number {
-  const local = wrapPositive(s, courseLength);
-  const i = findCyclicSegment(nodes, courseLength, local);
-  const a = nodes[i]!;
-  const b = nodes[(i + 1) % nodes.length]!;
-  const sEnd = i === nodes.length - 1 ? courseLength : b.s;
-  const t = (local - a.s) / (sEnd - a.s);
-  const smooth = 0.5 - 0.5 * Math.cos(Math.PI * t);
-  return a.y + (b.y - a.y) * smooth;
+function smoothPhysicsSample(a: HeightNode, b: HeightNode, s: number): PhysicsHeightSample {
+  const length = b.s - a.s;
+  const t = (s - a.s) / length;
+  const angle = Math.PI * t;
+  const smooth = 0.5 - 0.5 * Math.cos(angle);
+  const dSmoothDs = 0.5 * Math.PI * Math.sin(angle) / length;
+  return {
+    y: a.y + (b.y - a.y) * smooth,
+    dYdS: (b.y - a.y) * dSmoothDs,
+  };
 }
 
 function findCyclicSegment(nodes: readonly HeightNode[], courseLength: number, local: number): number {
