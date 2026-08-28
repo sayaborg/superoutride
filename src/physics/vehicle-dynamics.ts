@@ -449,7 +449,7 @@ export function representativeSurfaceType(contacts: readonly ContactObservation[
   if (loaded.length === 0) return 'VOID';
   return loaded.reduce((worst, contact) => (
     contact.surface.material.gripFactor < worst.surface.material.gripFactor ? contact : worst
-  ), loaded[0]!).surfaceType;
+  ), loaded[0]!).surface.surfaceType;
 }
 
 export function initializeGuideObservation(
