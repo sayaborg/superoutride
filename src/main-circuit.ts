@@ -41,13 +41,7 @@ import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
-import {
-  adoptM5BikeKinematics,
-  adoptM5CarKinematics,
-  createM5Bike,
-  updateM5Bike,
-  type M5BikeState,
-} from './physics/motorcycle-physics.js';
+import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
@@ -100,16 +94,19 @@ const terrainProfile: TerrainVisualProfile = {
   thinSpanScreenRows: 1,
 };
 
-const car = createM5Car(guide, height, surfaces, 45, M7_1_PLAYER_START_L);
-const bike = createM5Bike(guide, height, surfaces, 45, M7_1_PLAYER_START_L);
-let vehicle: M5CarState | M5BikeState = car;
+let vehicle: M5CarState | M5BikeState = createM5Car(
+  guide,
+  height,
+  surfaces,
+  45,
+  M7_1_PLAYER_START_L,
+);
 let vehicleKind: 'car' | 'bike' = 'car';
-const recovery = createM5RecoveryState(vehicle);
+let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
 const rivalRoster = createRivalRoster(M7_1_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
-  // DEV grid placement only. Final product grid authoring remains deliberately undecided.
   const rivalVehicle = createM5Car(
     guide,
     height,
@@ -182,15 +179,7 @@ window.addEventListener('keydown', (event) => {
     return;
   }
   if (event.code !== 'KeyV') return;
-  if (vehicleKind === 'car') {
-    adoptM5BikeKinematics(bike, vehicle as M5CarState);
-    vehicle = bike;
-    vehicleKind = 'bike';
-  } else {
-    adoptM5CarKinematics(car, vehicle as M5BikeState);
-    vehicle = car;
-    vehicleKind = 'car';
-  }
+  switchVehicleAtSafeSpawn();
 });
 
 let accumulator = 0;
@@ -289,10 +278,11 @@ function render(): void {
     spriteAssets,
     vehicleKind,
   );
+  void stats;
   ctx.putImageData(imageData, 0, 0);
 
   const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.y, z: vehicle.z, s: vehicle.course.s },
+    { x: vehicle.x, y: vehicle.presentationY, z: vehicle.z, s: vehicle.course.s },
     camera,
   );
   const dCar = pseudoDepth(vehicle.course.s, camera.s);
@@ -300,7 +290,7 @@ function render(): void {
   const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
-    : vehicle.sprungRoll * 180 / Math.PI;
+    : 0;
   const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
   const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
   const validatedLaps = getValidatedCircuitLapCount(raceProgress);
@@ -340,9 +330,9 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M7.4 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M8.0 PHASE 9 ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'GND' : 'AIR'}`, 8, 48);
+  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
   ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
   ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  R1 ${firstRival?.raceProgress.sProgress.toFixed(1) ?? 'NONE'}  CUT ${raceProgress.shortcutViolationCount}`, 8, 84);
@@ -362,14 +352,39 @@ function render(): void {
   ctx.fillStyle = raceProgress.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
   ctx.fillText(
     raceProgress.status === 'FINISHED'
-      ? `THREE-LAP CIRCUIT FINISH / extra open runout remains live`
+      ? 'THREE-LAP CIRCUIT FINISH / extra open runout remains live'
       : `CIRCUIT FIELD: ${rivals.length} DEV rival / ordinary open runtime`,
     8,
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText(`No RouteDag / no modulo in Core / no circuit renderer path`, 8, 218);
-  ctx.fillText(`World pose continuous / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  ctx.fillText('No RouteDag / no modulo in Core / no circuit renderer path', 8, 218);
+  ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+}
+
+function switchVehicleAtSafeSpawn(): void {
+  recoverM5Vehicle(
+    recovery,
+    guide,
+    height,
+    surfaces,
+    vehicle,
+    'manual',
+    M7_1_HIGHWAY_RECOVERY_PROFILE,
+  );
+  const s = vehicle.course.s;
+  const l = vehicle.course.l;
+  const speed = vehicle.longitudinalSpeed;
+  if (vehicleKind === 'car') {
+    vehicle = createM5Bike(guide, height, surfaces, s, l, speed);
+    vehicleKind = 'bike';
+  } else {
+    vehicle = createM5Car(guide, height, surfaces, s, l, speed);
+    vehicleKind = 'car';
+  }
+  recovery = createM5RecoveryState(vehicle);
+  resetM5CameraRig(cameraRig);
+  resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {
