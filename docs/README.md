@@ -90,6 +90,14 @@ validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
 
 The first records the Step 7 repository-only audit findings before correction. The second records the self-reference-safe Step 8 final candidate and release contract. Exact final SHA/run identity is completed by Git/PR/main-ref and workflow history without rewriting an already-validated artifact.
 
+The Codex-transfer audit for the active M8.0 candidate is:
+
+```text
+validation/M8_0_CODEX_TRANSFER_AUDIT_2026_08_28.txt
+```
+
+It records repository-only authority/navigation, structure/dependency, workflow/CI and temporary-ref hygiene findings for takeover. It is transfer evidence only: it is not design authority, not M8.0 completion evidence, and not release validation.
+
 ## 5. Current active development handoff
 
 The active M8.0 / Phase 9 implementation continuation checkpoint is:
@@ -104,7 +112,7 @@ A fresh Codex session should start from `../AGENTS.md` and this active handoff, 
 
 ### Temporary handoff-preparation branch refs
 
-During handoff preparation, three temporary branch refs were accidentally created from implementation checkpoint `3adccfc94f2ab05ceaf07f233abe61f00114c3c9`:
+The final transfer audit independently verified that these three temporary refs are exactly identical to implementation checkpoint `3adccfc94f2ab05ceaf07f233abe61f00114c3c9` (`ahead_by=0`, `behind_by=0`, no unique commits/files):
 
 ```text
 feature/phase9-vehicle-physics-freeze-copy
@@ -112,13 +120,19 @@ feature/phase9-vehicle-physics-freeze-handoff
 feature/phase9-vehicle-physics-freeze-handoff-check
 ```
 
-They contain no unique intended work and are not authority. The only active implementation branch is:
+A fourth accidental connector ref was created during the final transfer audit:
+
+```text
+noop-do-not-create
+```
+
+It is only a snapshot of active-branch commit `84dd46bcb4ca764570ce852a3d9803b129d1499b` immediately after the AGENTS navigation correction and contains no independently intended work. The active implementation branch remains exclusively:
 
 ```text
 feature/phase9-vehicle-physics-freeze
 ```
 
-On takeover, verify those temporary refs still point only to the checkpoint/no unique commits, then delete them as repository hygiene. Do not merge or continue work from them.
+The available transfer-audit connector did not expose ref deletion. On takeover, verify the fourth ref is an ancestor/snapshot as recorded in Git history, then delete all four temporary refs as repository hygiene. Do not merge or continue work from them.
 
 ## 6. Codex migration handoff
 
