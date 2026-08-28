@@ -6,7 +6,7 @@ import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branch
 import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { M5_BIKE_PROFILE } from '../dist/physics/motorcycle-physics.js';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
-import { usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
+import { radialC1Magnitude, usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
 import {
   formatVehicleControlHud,
   formatVehicleSuspensionHud,
@@ -37,6 +37,27 @@ test('M8.0 car useful-steer capacity stays inside the shared one-k radial knee',
     M5_CAR_PROFILE.frontStation.tire,
   );
   assert.ok(Math.abs(capacity - M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef * frontNormal) < 1e-9);
+});
+
+test('CAR tire calibration spreads the rounded shoulder while retaining the flat peak', () => {
+  const pureLateralAngles = (normalizedStiffness) => ({
+    linearEnd: Math.atan(
+      M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef / normalizedStiffness,
+    ) * 180 / Math.PI,
+    plateauStart: Math.atan(
+      (2 - M5_CAR_PROFILE.rhoKnee) * M5_CAR_PROFILE.muRef / normalizedStiffness,
+    ) * 180 / Math.PI,
+  });
+  const front = pureLateralAngles(M5_CAR_PROFILE.frontNormalizedStiffness);
+  const rear = pureLateralAngles(M5_CAR_PROFILE.rearNormalizedStiffness);
+
+  assert.ok(front.linearEnd > 6.3 && front.plateauStart > 9.4);
+  assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 8.1);
+  assert.ok(front.plateauStart - front.linearEnd > 3.0);
+  assert.ok(rear.plateauStart - rear.linearEnd > 2.65);
+  assert.equal(M5_CAR_PROFILE.rhoKnee, 0.80);
+  assert.equal(M5_CAR_PROFILE.muRef, 1.25);
+  assert.equal(radialC1Magnitude(20, M5_CAR_PROFILE.rhoKnee), 1);
 });
 
 test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {

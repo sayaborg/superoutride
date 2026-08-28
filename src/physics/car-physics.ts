@@ -120,8 +120,8 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   muRef: 1.25,
   rhoKnee: 0.80,
   lowSpeedRegularization: 1.0,
-  frontNormalizedStiffness: 12,
-  rearNormalizedStiffness: 14,
+  frontNormalizedStiffness: 9,
+  rearNormalizedStiffness: 10.5,
 
   maxSteer: 31 * Math.PI / 180,
   steeringTau: 0.10,
