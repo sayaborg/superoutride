@@ -42,7 +42,7 @@ Active PR:
 
 PR remains DRAFT until migration, new regressions, full validation-inclusive CI, and release checks are complete.
 
-Last implementation head that received a complete compile + test run before this handoff documentation was added:
+Last implementation head that received a complete compile + test run before handoff documentation was added:
 
 ```text
 3adccfc94f2ab05ceaf07f233abe61f00114c3c9
@@ -63,7 +63,24 @@ That run checked out the exact SHA above. TypeScript/build compilation completed
 0 skipped
 ```
 
-The handoff/index commits that follow that implementation head are documentation-only descendants unless repository history says otherwise. On takeover always run `git rev-parse HEAD` and inspect PR #88 rather than treating an embedded SHA in this document as self-referential branch-head authority.
+A later documentation-inclusive exact head was independently exercised during the final repository transfer audit:
+
+```text
+85e4fc546439532986eae1abd3d0adcdd8b28f2d
+Actions run 33160878842
+```
+
+That workflow explicitly verified the exact checkout, compiled successfully, and reproduced the same `417 pass / 32 fail / 0 skipped` result. This confirms the handoff/index-only descendants had not changed the implementation failure class.
+
+Final repository-transfer audit evidence is recorded at:
+
+```text
+docs/validation/M8_0_CODEX_TRANSFER_AUDIT_2026_08_28.txt
+```
+
+That file is transfer/audit evidence only, not design authority and not release validation.
+
+On takeover always run `git rev-parse HEAD` and inspect PR #88/current workflow state rather than treating any embedded SHA in this document as self-referential branch-head authority.
 
 ## 2. Required reading order
 
@@ -206,9 +223,11 @@ Normative M8.0 design authority is already in:
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 ```
 
+Structural transfer-audit note: `src/physics/vehicle-state.ts` still contains an older small kinematic interface. Do not treat it as M8.0 authority or add compatibility behavior around it. During PR #88 migration, inspect real references and retire it if dead.
+
 ## 6. Current CI failure classification
 
-The latest full run on implementation head `3adccfc...` is useful because compilation is green and the remaining 32 failures are now exposed at test/runtime level.
+The complete runs above are useful because compilation is green and the remaining 32 failures are exposed at test/runtime level.
 
 ### A. Expected legacy-authority test failures
 
@@ -326,6 +345,8 @@ The full run showed many Core/renderer/topology/route/circuit tests still passin
 
 `tests/m7-2-default-branching-highway.test.mjs` passed and should remain PRESERVE-class unless later evidence shows otherwise.
 
+The full run also passed repository source-boundary enforcement, including the rule that only explicit top-level composition roots may depend on `src/dev` and the check that retired authority paths are not recreated as compatibility shims.
+
 Do not use M8.0 physics migration as an excuse to redesign renderer depth, RouteDag, circuit unfolding, GroundMap visual semantics, or fixed metric presentation.
 
 ## 8. Required next work
@@ -333,10 +354,11 @@ Do not use M8.0 physics migration as an excuse to redesign renderer depth, Route
 Recommended order:
 
 1. Re-fetch/inspect current PR #88 head and exact latest CI.
-2. Run/inspect the qTravel failure class first and determine whether it is profile margin or a mechanics defect.
-3. Fix the real causal issue without q/N clamps.
-4. Migrate legacy tests that freeze retired M7 physics authority. For every changed test, identify the M8.0 authority that supersedes it.
-5. Add a dedicated M8.0 Phase 9 executable regression suite covering at minimum:
+2. Delete the explicitly identified temporary refs in §11 after confirming the recorded ancestry; do not work from them.
+3. Run/inspect the qTravel failure class first and determine whether it is profile margin or a mechanics defect.
+4. Fix the real causal issue without q/N clamps.
+5. Migrate legacy tests that freeze retired M7 physics authority. For every changed test, identify the M8.0 authority that supersedes it.
+6. Add a dedicated M8.0 Phase 9 executable regression suite covering at minimum:
    - authority/state shape;
    - one-k tire and radial combined saturation;
    - finite zero-speed slip regularization;
@@ -351,16 +373,16 @@ Recommended order:
    - BIKE wheelie/stoppie emergence and crest airborne;
    - Nsub=12 vs offline reference classes;
    - course/profile compiler invariants including A>0 and speed/aero envelopes.
-6. Synchronize package/visible milestone labels as an M8.0 candidate only when tests are updated coherently.
-7. Run complete `npm test` until green.
-8. Inspect final diff for accidental compatibility shims or duplicate authority.
-9. Add final validation evidence only after the validation-inclusive exact head exists.
-10. Run complete CI again on that validation-inclusive exact SHA.
-11. Mark PR #88 ready only after that exact head is green.
-12. Re-fetch `main`; verify candidate is a pure fast-forward (`behind_by=0`, merge base=current main).
-13. Move `main` to the validated exact SHA with `force=false` only.
-14. Verify `main SHA == validated PR head SHA` and required PR/release identity.
-15. Verify the main-push build/Pages workflow on that same SHA before declaring M8.0 released.
+7. Synchronize package/visible milestone labels as an M8.0 candidate only when tests are updated coherently.
+8. Run complete `npm test` until green.
+9. Inspect final diff for accidental compatibility shims or duplicate authority.
+10. Add final validation evidence only after the validation-inclusive exact head exists.
+11. Run complete CI again on that validation-inclusive exact SHA.
+12. Mark PR #88 ready only after that exact head is green.
+13. Re-fetch `main`; verify candidate is a pure fast-forward (`behind_by=0`, merge base=current main).
+14. Move `main` to the validated exact SHA with `force=false` only.
+15. Verify `main SHA == validated PR head SHA` and required PR/release identity.
+16. Verify the main-push build/Pages workflow on that same SHA before declaring M8.0 released.
 
 ## 9. Explicit takeover prohibitions
 
@@ -396,3 +418,25 @@ repository docs reflect released state without self-reference ambiguity
 ```
 
 Before those conditions, keep PR #88 draft and do not describe M8.0 as released.
+
+## 11. Final transfer-audit hygiene notes
+
+The final repository transfer audit independently compared these three accidental refs against implementation checkpoint `3adccfc94f2ab05ceaf07f233abe61f00114c3c9`:
+
+```text
+feature/phase9-vehicle-physics-freeze-copy
+feature/phase9-vehicle-physics-freeze-handoff
+feature/phase9-vehicle-physics-freeze-handoff-check
+```
+
+All three were exactly identical: `ahead_by=0`, `behind_by=0`, no unique commits, no changed files. They are safe to delete and contain no intended work.
+
+A fourth accidental ref was created during the transfer audit:
+
+```text
+noop-do-not-create
+```
+
+It is only a snapshot created directly from active-branch commit `84dd46bcb4ca764570ce852a3d9803b129d1499b` immediately after the AGENTS navigation correction. It contains no independently intended work. The connector used for the transfer audit did not expose ref deletion, so verify the recorded ancestry in Git and delete all four refs mechanically before or early in takeover.
+
+Never continue implementation from those refs. The only active branch is `feature/phase9-vehicle-physics-freeze` and the only active PR is #88.
