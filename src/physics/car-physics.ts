@@ -92,7 +92,7 @@ export interface CompiledCarPhysicsProfile extends CarPhysicsProfile {
 }
 
 export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhysicsProfile({
-  mass: 1320,
+  mass: 1310,
   yawInertia: 2350,
   pitchInertia: 2550,
   frontAxle: 1.16,
@@ -117,8 +117,8 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   frontWheelInertia: 2.2,
   rearWheelInertia: 2.4,
 
-  muRef: 1.25,
-  rhoKnee: 0.80,
+  muRef: 1.35,
+  rhoKnee: 0.74,
   lowSpeedRegularization: 1.0,
   frontNormalizedStiffness: 9,
   rearNormalizedStiffness: 10.5,

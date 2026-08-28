@@ -39,7 +39,7 @@ test('M8.0 car useful-steer capacity stays inside the shared one-k radial knee',
   assert.ok(Math.abs(capacity - M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef * frontNormal) < 1e-9);
 });
 
-test('CAR tire calibration spreads the rounded shoulder while retaining the flat peak', () => {
+test('CAR calibration keeps the broad shoulder with a lightweight high-grip profile', () => {
   const pureLateralAngles = (normalizedStiffness) => ({
     linearEnd: Math.atan(
       M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef / normalizedStiffness,
@@ -51,12 +51,14 @@ test('CAR tire calibration spreads the rounded shoulder while retaining the flat
   const front = pureLateralAngles(M5_CAR_PROFILE.frontNormalizedStiffness);
   const rear = pureLateralAngles(M5_CAR_PROFILE.rearNormalizedStiffness);
 
-  assert.ok(front.linearEnd > 6.3 && front.plateauStart > 9.4);
-  assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 8.1);
-  assert.ok(front.plateauStart - front.linearEnd > 3.0);
-  assert.ok(rear.plateauStart - rear.linearEnd > 2.65);
-  assert.equal(M5_CAR_PROFILE.rhoKnee, 0.80);
-  assert.equal(M5_CAR_PROFILE.muRef, 1.25);
+  assert.ok(front.linearEnd > 6.3 && front.plateauStart > 10.6);
+  assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 9.1);
+  assert.ok(front.plateauStart - front.linearEnd > 4.3);
+  assert.ok(rear.plateauStart - rear.linearEnd > 3.7);
+  assert.equal(M5_CAR_PROFILE.mass, 1310);
+  assert.equal(M5_CAR_PROFILE.rhoKnee, 0.74);
+  assert.equal(M5_CAR_PROFILE.muRef, 1.35);
+  assert.ok(Math.abs(M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef - 0.999) < 1e-12);
   assert.equal(radialC1Magnitude(20, M5_CAR_PROFILE.rhoKnee), 1);
 });
 
