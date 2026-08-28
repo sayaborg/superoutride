@@ -1,6 +1,6 @@
 import type { DrivingInput } from '../input/driving-input.js';
-import { guideCoordinateToWorld, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
-import { clamp } from '../core/math.js';
+import { clamp, wrapAngle } from '../core/math.js';
+import type { GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { SurfaceMapReader } from './surface-map.js';
 import {
@@ -10,102 +10,121 @@ import {
 } from './automatic-powertrain.js';
 import {
   VEHICLE_GRAVITY,
-  aggregateContactMaterial,
+  VEHICLE_SUBSTEPS,
   bodyFrameVelocity,
-  createReducedContactStations,
+  compileSuspensionStation,
+  contactForceWorld,
   createVehicleControlState,
-  integrateWorldPlanarPose,
-  setBodyFrameVelocity,
-  updateReducedContactsAndVerticalBody,
-  vehicleGrounded,
+  deriveContactObservation,
+  initializeGuideObservation,
+  momentAboutCg,
+  refreshGuideObservation,
+  representativeSurfaceType,
+  sampleSurfaceGeometryAtCoordinate,
   vehicleSpeed,
+  type BodyKinematics,
+  type ContactObservation,
+  type ContactStationProfile,
+  type VehicleControlState,
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
+import {
+  evaluateTireForce,
+  solveWheelOmega,
+  tireLinearDemand,
+  usefulLateralCapacity,
+  validateCompiledTireProfile,
+  type CompiledTireProfile,
+} from './tire-wheel.js';
+import {
+  WORLD_UP,
+  add3,
+  cross3,
+  dot3,
+  normalize3,
+  scale3,
+  type Vec3,
+} from './vehicle-math3.js';
 
 export interface CarPhysicsProfile {
-  mass: number;
-  bodyWidth: number;
-  trackWidth: number;
-  yawInertia: number;
-  frontAxle: number;
-  rearAxle: number;
-  frontCornerStiffness: number;
-  rearCornerStiffness: number;
-  frontLateralRelaxationLength: number;
-  rearLateralRelaxationLength: number;
-  lateralForceMinimumTau: number;
-  lateralForceMaximumTau: number;
-  maxSteer: number;
-  steeringTau: number;
-  lowSpeedThreshold: number;
-  rackMinimumRatio: number;
-  rackReferenceSpeed: number;
-  frontSlipUtilization: number;
-  optimalFrontSlipMin: number;
-  optimalFrontSlipMax: number;
-  maxDriveForce: number;
-  maxBrakeForce: number;
-  topSpeed: number;
-  aeroDrag: number;
-  rollingSpeedEpsilon: number;
-  frontDriveFraction: number;
-  frontBrakeFraction: number;
-  rearTractionScale: number;
-  lowSpeedYawTau: number;
-  lowSpeedLateralTau: number;
-  maxLateralSpeed: number;
-  maxYawRate: number;
-  airborneLateralDamping: number;
-  airborneYawDamping: number;
-  airborneWheelSpinDamping: number;
-  sprungRollRadiansPerG: number;
-  sprungRollTau: number;
-  powertrain: AutomaticPowertrainProfile;
-  maxFallSpeed: number;
-  contactTolerance: number;
-  contactReleaseGap: number;
-  supportedPitchTau: number;
-  airbornePitchDamping: number;
+  readonly mass: number;
+  readonly yawInertia: number;
+  readonly pitchInertia: number;
+  readonly frontAxle: number;
+  readonly rearAxle: number;
+  readonly desiredCgHeight: number;
+
+  readonly frontRideFrequency: number;
+  readonly rearRideFrequency: number;
+  readonly frontDampingRatio: number;
+  readonly rearDampingRatio: number;
+  readonly frontQBump: number;
+  readonly rearQBump: number;
+  readonly frontQTravel: number;
+  readonly rearQTravel: number;
+  readonly frontBumpForceMax: number;
+  readonly rearBumpForceMax: number;
+
+  readonly wheelRadius: number;
+  /** Equivalent rotational inertia of both wheels represented by the front axle station. */
+  readonly frontWheelInertia: number;
+  /** Equivalent rotational inertia of both wheels represented by the rear axle station. */
+  readonly rearWheelInertia: number;
+
+  readonly muRef: number;
+  readonly rhoKnee: number;
+  readonly lowSpeedRegularization: number;
+  readonly frontNormalizedStiffness: number;
+  readonly rearNormalizedStiffness: number;
+
+  readonly maxSteer: number;
+  readonly steeringTau: number;
+  readonly frontBrakeTorqueMax: number;
+  readonly rearBrakeTorqueMax: number;
+  /** F = -quadraticDrag * |v_planar| * v_planar, applied at the CG. */
+  readonly quadraticDrag: number;
+  readonly powertrain: AutomaticPowertrainProfile;
 }
 
-export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
+export interface CompiledCarPhysicsProfile extends CarPhysicsProfile {
+  readonly frontStation: ContactStationProfile;
+  readonly rearStation: ContactStationProfile;
+}
+
+export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhysicsProfile({
   mass: 1320,
-  bodyWidth: 2.0,
-  trackWidth: 1.62,
   yawInertia: 2350,
+  pitchInertia: 2550,
   frontAxle: 1.16,
   rearAxle: 1.44,
-  frontCornerStiffness: 78000,
-  rearCornerStiffness: 86000,
-  frontLateralRelaxationLength: 1.6,
-  rearLateralRelaxationLength: 1.2,
-  lateralForceMinimumTau: 0.025,
-  lateralForceMaximumTau: 0.16,
+  desiredCgHeight: 0.55,
+
+  frontRideFrequency: 1.8,
+  rearRideFrequency: 1.8,
+  frontDampingRatio: 0.35,
+  rearDampingRatio: 0.35,
+  frontQBump: 0.205,
+  rearQBump: 0.205,
+  frontQTravel: 0.26,
+  rearQTravel: 0.26,
+  frontBumpForceMax: 30_000,
+  rearBumpForceMax: 26_000,
+
+  wheelRadius: 0.33,
+  frontWheelInertia: 2.2,
+  rearWheelInertia: 2.4,
+
+  muRef: 1.25,
+  rhoKnee: 0.80,
+  lowSpeedRegularization: 1.0,
+  frontNormalizedStiffness: 12,
+  rearNormalizedStiffness: 14,
+
   maxSteer: 31 * Math.PI / 180,
-  steeringTau: 0.16,
-  lowSpeedThreshold: 3,
-  rackMinimumRatio: 0.16,
-  rackReferenceSpeed: 24,
-  frontSlipUtilization: 1.0,
-  optimalFrontSlipMin: 3.5 * Math.PI / 180,
-  optimalFrontSlipMax: 10 * Math.PI / 180,
-  maxDriveForce: 7600,
-  maxBrakeForce: 15000,
-  topSpeed: 82,
-  aeroDrag: 0.39,
-  rollingSpeedEpsilon: 0.25,
-  frontDriveFraction: 0.35,
-  frontBrakeFraction: 0.62,
-  rearTractionScale: 1.16,
-  lowSpeedYawTau: 0.11,
-  lowSpeedLateralTau: 0.08,
-  maxLateralSpeed: 45,
-  maxYawRate: 2.5,
-  airborneLateralDamping: 0.05,
-  airborneYawDamping: 0.08,
-  airborneWheelSpinDamping: 0.12,
-  sprungRollRadiansPerG: 0.16,
-  sprungRollTau: 0.18,
+  steeringTau: 0.10,
+  frontBrakeTorqueMax: 3_070,
+  rearBrakeTorqueMax: 1_880,
+  quadraticDrag: 0.39,
   powertrain: {
     idleRpm: 850,
     redlineRpm: 7200,
@@ -115,7 +134,6 @@ export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
     engineResponseTau: 0.08,
     torqueConverterSlipRpm: 650,
     finalDriveRatio: 3.50,
-    drivenWheelRadius: 0.33,
     efficiency: 0.90,
     gearRatios: [3.10, 2.10, 1.55, 1.18, 0.88, 0.65],
     torqueCurve: [
@@ -126,24 +144,113 @@ export const M5_CAR_PROFILE: Readonly<CarPhysicsProfile> = {
       { rpm: 7200, torqueNewtonMeters: 0 },
     ],
   },
-  maxFallSpeed: 55,
-  contactTolerance: 0.04,
-  contactReleaseGap: 0.60,
-  supportedPitchTau: 0.11,
-  airbornePitchDamping: 0.9,
-};
+});
 
-/** M7 body state. The final six properties are derived migration accessors, not stored state. */
 export interface M5CarState extends VehicleDynamicsState {
-  /** Model-specific axle-force memory. These are not a second body-motion authority. */
-  frontLateralForce: number;
-  rearLateralForce: number;
-  speed: number;
-  verticalSpeed: number;
-  longitudinalSpeed: number;
-  lateralSpeed: number;
-  steerAngle: number;
-  supported: boolean;
+  readonly kind: 'CAR';
+  yaw: number;
+  pitch: number;
+  yawRate: number;
+  pitchRate: number;
+  frontSteerAngle: number;
+  frontWheelOmega: number;
+  rearWheelOmega: number;
+
+  /** Derived-output cache only; never consumed by the next physics solve. */
+  frontNormalLoad: number;
+  rearNormalLoad: number;
+  frontGap: number;
+  rearGap: number;
+  frontSupportAvailable: boolean;
+  rearSupportAvailable: boolean;
+
+  readonly speed: number;
+  readonly verticalSpeed: number;
+  readonly longitudinalSpeed: number;
+  readonly lateralSpeed: number;
+  readonly steerAngle: number;
+  readonly supported: boolean;
+  readonly sprungPitch: number;
+  readonly sprungRoll: number;
+  readonly presentationY: number;
+}
+
+export function compileCarPhysicsProfile(profile: CarPhysicsProfile): Readonly<CompiledCarPhysicsProfile> {
+  if (!(profile.mass > 0)) throw new RangeError('CAR mass must be > 0');
+  if (!(profile.yawInertia > 0 && profile.pitchInertia > 0)) throw new RangeError('CAR inertias must be > 0');
+  if (!(profile.frontAxle > 0 && profile.rearAxle > 0)) throw new RangeError('CAR axle distances must be > 0');
+  if (!(profile.desiredCgHeight > 0)) throw new RangeError('CAR CG height must be > 0');
+  if (!(profile.frontNormalizedStiffness < profile.rearNormalizedStiffness)) {
+    throw new RangeError('CAR baseline requires positive understeer gradient: kFront < kRear');
+  }
+  if (!(profile.wheelRadius > 0 && profile.frontWheelInertia > 0 && profile.rearWheelInertia > 0)) {
+    throw new RangeError('CAR wheel radius/inertias must be > 0');
+  }
+  if (!(profile.maxSteer > 0 && profile.steeringTau > 0)) throw new RangeError('CAR steer limits must be > 0');
+  if (!(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0)) {
+    throw new RangeError('CAR brake torques must be >= 0');
+  }
+  if (!(profile.quadraticDrag >= 0)) throw new RangeError('CAR quadratic drag must be >= 0');
+
+  const wheelbase = profile.frontAxle + profile.rearAxle;
+  const frontStaticLoad = profile.mass * VEHICLE_GRAVITY * profile.rearAxle / wheelbase;
+  const rearStaticLoad = profile.mass * VEHICLE_GRAVITY * profile.frontAxle / wheelbase;
+  const frontSuspension = compileSuspensionStation(
+    frontStaticLoad,
+    profile.frontRideFrequency,
+    profile.frontDampingRatio,
+    profile.frontQBump,
+    profile.frontQTravel,
+    profile.frontBumpForceMax,
+  );
+  const rearSuspension = compileSuspensionStation(
+    rearStaticLoad,
+    profile.rearRideFrequency,
+    profile.rearDampingRatio,
+    profile.rearQBump,
+    profile.rearQTravel,
+    profile.rearBumpForceMax,
+  );
+  const frontTire: CompiledTireProfile = Object.freeze({
+    muRef: profile.muRef,
+    normalizedStiffness: profile.frontNormalizedStiffness,
+    cornerStiffness: profile.frontNormalizedStiffness * frontStaticLoad,
+    rhoKnee: profile.rhoKnee,
+    lowSpeedRegularization: profile.lowSpeedRegularization,
+  });
+  const rearTire: CompiledTireProfile = Object.freeze({
+    muRef: profile.muRef,
+    normalizedStiffness: profile.rearNormalizedStiffness,
+    cornerStiffness: profile.rearNormalizedStiffness * rearStaticLoad,
+    rhoKnee: profile.rhoKnee,
+    lowSpeedRegularization: profile.lowSpeedRegularization,
+  });
+  validateCompiledTireProfile(frontTire);
+  validateCompiledTireProfile(rearTire);
+
+  const frontStation: ContactStationProfile = Object.freeze({
+    id: 'FRONT',
+    forwardOffset: profile.frontAxle,
+    freeReachDown: profile.desiredCgHeight + frontSuspension.qStatic,
+    rollingRadius: profile.wheelRadius,
+    crownRadius: 0,
+    wheelInertia: profile.frontWheelInertia,
+    maxBrakeTorque: profile.frontBrakeTorqueMax,
+    suspension: frontSuspension,
+    tire: frontTire,
+  });
+  const rearStation: ContactStationProfile = Object.freeze({
+    id: 'REAR',
+    forwardOffset: -profile.rearAxle,
+    freeReachDown: profile.desiredCgHeight + rearSuspension.qStatic,
+    rollingRadius: profile.wheelRadius,
+    crownRadius: 0,
+    wheelInertia: profile.rearWheelInertia,
+    maxBrakeTorque: profile.rearBrakeTorqueMax,
+    suspension: rearSuspension,
+    tire: rearTire,
+  });
+  return Object.freeze({ ...profile, frontStation, rearStation });
 }
 
 export function createM5Car(
@@ -152,41 +259,50 @@ export function createM5Car(
   surfaces: SurfaceMapReader,
   s = 45,
   l = 0,
+  initialSpeed = 45,
+  profile: CompiledCarPhysicsProfile = M5_CAR_PROFILE,
 ): M5CarState {
-  const sample = guideCoordinateToWorld(guide, s, l);
-  const surface = surfaces.sample(sample.s, l);
-  const initialSpeed = 45;
-  const groundHeight = height.samplePhysics(sample.s);
+  const surfaceCoordinate = { s, l, segmentIndex: 0, distanceSquared: 0 };
+  const surface = sampleSurfaceGeometryAtCoordinate(
+    guide,
+    height,
+    surfaces,
+    { ...surfaceCoordinate, segmentIndex: locateSegmentIndex(guide, s) },
+  );
+  if (!surface.material.supported) throw new Error('CAR spawn requires supported surface');
+  const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
+  const pitch = surface.gradeAngle;
+  const planarForward = { x: Math.sin(yaw), y: 0, z: Math.cos(yaw) };
+  const omega = initialSpeed / profile.wheelRadius;
   const state = {
-    x: sample.x,
-    y: groundHeight,
-    z: sample.z,
-    yaw: sample.heading,
-    velocityX: Math.sin(sample.heading) * initialSpeed,
+    kind: 'CAR',
+    x: surface.point.x,
+    y: surface.point.y + profile.desiredCgHeight,
+    z: surface.point.z,
+    velocityX: planarForward.x * initialSpeed,
     velocityY: 0,
-    velocityZ: Math.cos(sample.heading) * initialSpeed,
+    velocityZ: planarForward.z * initialSpeed,
+    yaw,
+    pitch,
     yawRate: 0,
-    course: { s: sample.s, l, segmentIndex: sample.segmentIndex, distanceSquared: 0 },
-    sprungPitch: 0,
-    sprungPitchRate: 0,
-    sprungRoll: 0,
-    sprungRollRate: 0,
+    pitchRate: 0,
+    frontSteerAngle: 0,
+    frontWheelOmega: omega,
+    rearWheelOmega: omega,
+    course: initializeGuideObservation(guide, surface.point.x, surface.point.z),
+    surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
-    frontLateralForce: 0,
-    rearLateralForce: 0,
-    surfaceType: surface.type,
-    contacts: createReducedContactStations(
-      M5_CAR_PROFILE.frontAxle,
-      -M5_CAR_PROFILE.rearAxle,
-      M5_CAR_PROFILE.trackWidth * 0.5,
-      surface.material,
-      groundHeight,
-    ),
     control: createVehicleControlState(),
-    powertrain: createAutomaticPowertrainState(M5_CAR_PROFILE.powertrain, initialSpeed),
+    powertrain: createAutomaticPowertrainState(profile.powertrain, omega),
+    frontNormalLoad: 0,
+    rearNormalLoad: 0,
+    frontGap: 0,
+    rearGap: 0,
+    frontSupportAvailable: true,
+    rearSupportAvailable: true,
   } as M5CarState;
-  return installDerivedM5Accessors(state);
+  return installCarDerivedAccessors(state, profile);
 }
 
 export function updateM5Car(
@@ -196,284 +312,343 @@ export function updateM5Car(
   car: M5CarState,
   input: DrivingInput,
   dt: number,
-  profile: CarPhysicsProfile = M5_CAR_PROFILE,
+  profile: CompiledCarPhysicsProfile = M5_CAR_PROFILE,
 ): void {
-  const velocityBefore = bodyFrameVelocity(car);
-  const material = aggregateContactMaterial(car);
-  car.control.steeringRequest = clamp(input.steering, -1, 1);
-  updateGripLimitedSteering(car, material.friction, dt, profile);
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR dt must be finite and > 0');
+  const velocityBefore = { x: car.velocityX, y: car.velocityY, z: car.velocityZ };
+  const substep = dt / VEHICLE_SUBSTEPS;
+  let finalFront: ContactObservation | null = null;
+  let finalRear: ContactObservation | null = null;
+  let finalFrontFx = 0;
+  let finalFrontFy = 0;
+  let finalRearFx = 0;
+  let finalRearFy = 0;
 
-  if (vehicleGrounded(car)) integrateGroundDynamics(car, input, material, dt, profile);
-  else integrateUnsupportedPlanar(car, input, dt, profile);
+  for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
+    const bodyBeforeSteer = carBodyKinematics(car);
+    const frontBefore = deriveContactObservation(
+      guide, height, surfaces, bodyBeforeSteer, profile.frontStation,
+      car.frontSteerAngle, 0, car.course.segmentIndex,
+    );
+    const rearBefore = deriveContactObservation(
+      guide, height, surfaces, bodyBeforeSteer, profile.rearStation,
+      0, 0, car.course.segmentIndex,
+    );
 
-  integrateWorldPlanarPose(guide, car, dt);
-  updateReducedContactsAndVerticalBody(guide, height, surfaces, car, {
-    maxFallSpeed: profile.maxFallSpeed,
-    contactTolerance: profile.contactTolerance,
-    contactReleaseGap: profile.contactReleaseGap,
-    supportedPitchTau: profile.supportedPitchTau,
-    airbornePitchDamping: profile.airbornePitchDamping,
-  }, dt);
+    const steeringRequest = clamp(input.steering, -1, 1);
+    const steerTarget = carSteerTarget(
+      guide,
+      height,
+      surfaces,
+      car,
+      bodyBeforeSteer,
+      frontBefore,
+      rearBefore,
+      steeringRequest,
+      profile,
+    );
+    const previousSteer = car.frontSteerAngle;
+    car.frontSteerAngle += (steerTarget - car.frontSteerAngle)
+      * (1 - Math.exp(-substep / profile.steeringTau));
+    car.frontSteerAngle = clamp(car.frontSteerAngle, -profile.maxSteer, profile.maxSteer);
+    const steerRate = (car.frontSteerAngle - previousSteer) / substep;
 
-  const velocityAfter = bodyFrameVelocity(car);
-  car.longitudinalAcceleration = (velocityAfter.longitudinal - velocityBefore.longitudinal)
-    / Math.max(dt, 1e-6);
-  const previousRoll = car.sprungRoll;
-  const rollTarget = clamp(car.lateralAcceleration / VEHICLE_GRAVITY, -1.2, 1.2)
-    * profile.sprungRollRadiansPerG;
-  car.sprungRoll += (rollTarget - car.sprungRoll)
-    * (1 - Math.exp(-dt / profile.sprungRollTau));
-  car.sprungRollRate = (car.sprungRoll - previousRoll) / Math.max(dt, 1e-6);
-}
+    const body = carBodyKinematics(car);
+    const front = deriveContactObservation(
+      guide, height, surfaces, body, profile.frontStation,
+      car.frontSteerAngle, steerRate, car.course.segmentIndex,
+    );
+    const rear = deriveContactObservation(
+      guide, height, surfaces, body, profile.rearStation,
+      0, 0, car.course.segmentIndex,
+    );
 
-function updateGripLimitedSteering(
-  car: M5CarState,
-  mu: number,
-  dt: number,
-  profile: CarPhysicsProfile,
-): void {
-  const { longitudinal: u } = bodyFrameVelocity(car);
-  const frontNormal = profile.mass * VEHICLE_GRAVITY * profile.rearAxle
-    / (profile.frontAxle + profile.rearAxle);
-  const optimalSlip = clamp(
-    mu * frontNormal / profile.frontCornerStiffness * profile.frontSlipUtilization,
-    profile.optimalFrontSlipMin,
-    profile.optimalFrontSlipMax,
-  );
-  const rackEnvelope = profile.rackMinimumRatio
-    + (1 - profile.rackMinimumRatio) / (1 + (Math.abs(u) / profile.rackReferenceSpeed) ** 2);
-  const request = car.control.steeringRequest * profile.maxSteer * rackEnvelope;
-  const limited = Math.abs(u) < profile.lowSpeedThreshold
-    ? request
-    : clamp(request, -optimalSlip, optimalSlip);
-  // Neutral returns to zero. No automatic countersteer authority is introduced here.
-  const target = car.control.steeringRequest === 0 ? 0 : limited;
-  car.control.actualSteerAngle += (target - car.control.actualSteerAngle)
-    * (1 - Math.exp(-dt / Math.max(profile.steeringTau, 1e-4)));
-}
+    const driveTorque = updateAutomaticPowertrain(
+      car.powertrain,
+      profile.powertrain,
+      car.rearWheelOmega,
+      input.throttle ? 1 : 0,
+      substep,
+    );
+    const frontBrakeTorque = input.brake ? profile.frontBrakeTorqueMax : 0;
+    const rearBrakeTorque = input.brake ? profile.rearBrakeTorqueMax : 0;
 
-function integrateGroundDynamics(
-  car: M5CarState,
-  input: DrivingInput,
-  material: ReturnType<typeof aggregateContactMaterial>,
-  dt: number,
-  profile: CarPhysicsProfile,
-): void {
-  const m = profile.mass;
-  const a = profile.frontAxle;
-  const b = profile.rearAxle;
-  const wheelbase = a + b;
-  const { longitudinal: u, lateral: v } = bodyFrameVelocity(car);
-  const driveRequested = clamp(updateAutomaticPowertrain(
-    car.powertrain,
-    profile.powertrain,
-    u,
-    input.throttle ? 1 : 0,
-    dt,
-  ) * material.driveScale, 0, profile.maxDriveForce);
-  const brakeDirection = u > 0.15 ? -1 : u < -0.15 ? 1 : 0;
-  const brakeRequested = input.brake ? profile.maxBrakeForce * brakeDirection : 0;
-  const drag = -profile.aeroDrag * u * Math.abs(u);
-  const rolling = Math.abs(u) > profile.rollingSpeedEpsilon
-    ? -Math.sign(u) * material.rollingResistance * m * VEHICLE_GRAVITY
-    : 0;
-  const staticFzFront = m * VEHICLE_GRAVITY * b / wheelbase;
-  const staticFzRear = m * VEHICLE_GRAVITY * a / wheelbase;
-  const fzFront = car.contacts[0].phase === 'CONTACT' ? staticFzFront : 0;
-  const fzRear = car.contacts[1].phase === 'CONTACT' ? staticFzRear : 0;
-  car.contacts[0].normalLoad = fzFront;
-  car.contacts[1].normalLoad = fzRear;
+    const frontWheel = solveWheelOmega({
+      omegaPrevious: car.frontWheelOmega,
+      inertia: profile.frontWheelInertia,
+      rollingRadius: front.effectiveRollingRadius,
+      longitudinalVelocity: front.longitudinalVelocity,
+      lateralVelocity: front.lateralVelocity,
+      normalLoad: front.tireFrameValid ? front.normalLoad : 0,
+      gripFactor: front.surface.material.gripFactor,
+      rollingResistance: front.tireFrameValid ? front.surface.material.rollingResistance : 0,
+      driveTorque: 0,
+      brakeTorque: frontBrakeTorque,
+      dt: substep,
+      tire: profile.frontStation.tire,
+    });
+    const rearWheel = solveWheelOmega({
+      omegaPrevious: car.rearWheelOmega,
+      inertia: profile.rearWheelInertia,
+      rollingRadius: rear.effectiveRollingRadius,
+      longitudinalVelocity: rear.longitudinalVelocity,
+      lateralVelocity: rear.lateralVelocity,
+      normalLoad: rear.tireFrameValid ? rear.normalLoad : 0,
+      gripFactor: rear.surface.material.gripFactor,
+      rollingResistance: rear.tireFrameValid ? rear.surface.material.rollingResistance : 0,
+      driveTorque,
+      brakeTorque: rearBrakeTorque,
+      dt: substep,
+      tire: profile.rearStation.tire,
+    });
 
-  const driveFront = driveRequested * profile.frontDriveFraction;
-  const driveRear = driveRequested * (1 - profile.frontDriveFraction);
-  const brakeFront = brakeRequested * profile.frontBrakeFraction;
-  const brakeRear = brakeRequested * (1 - profile.frontBrakeFraction);
-  const passiveFront = (drag + rolling) * (fzFront / (m * VEHICLE_GRAVITY));
-  const passiveRear = (drag + rolling) * (fzRear / (m * VEHICLE_GRAVITY));
-  const frontLimit = material.friction * fzFront;
-  const rearLimit = material.friction * fzRear * profile.rearTractionScale;
-  const fxFront = clamp(driveFront + brakeFront + passiveFront, -frontLimit, frontLimit);
-  const fxRear = clamp(driveRear + brakeRear + passiveRear, -rearLimit, rearLimit);
+    car.frontWheelOmega = frontWheel.omega;
+    car.rearWheelOmega = rearWheel.omega;
 
-  const frontActuator = fxFront - passiveFront;
-  const rearActuator = fxRear - passiveRear;
-  const driveApplied = Math.max(0, frontActuator) + Math.max(0, rearActuator);
-  car.control.appliedDrive = driveRequested > 0 ? clamp(driveApplied / driveRequested, 0, 1) : 0;
-  car.control.appliedFrontBrake = brakeFront < 0 ? clamp(frontActuator / brakeFront, 0, 1) : 0;
-  car.control.appliedRearBrake = brakeRear < 0 ? clamp(rearActuator / brakeRear, 0, 1) : 0;
-  car.control.tractionControlActive = driveRequested > 0 && car.control.appliedDrive < 0.999;
-  car.control.absActive = brakeRequested !== 0
-    && Math.min(car.control.appliedFrontBrake, car.control.appliedRearBrake) < 0.999;
-  const wheelAngularSpeed = u / profile.powertrain.drivenWheelRadius;
-  car.contacts[0].wheelAngularSpeed = wheelAngularSpeed;
-  car.contacts[1].wheelAngularSpeed = wheelAngularSpeed;
+    const frontForce = contactForceWorld(front, frontWheel.tire.fx, frontWheel.tire.fy);
+    const rearForce = contactForceWorld(rear, rearWheel.tire.fx, rearWheel.tire.fy);
+    const planarVelocity = { x: car.velocityX, y: 0, z: car.velocityZ };
+    const planarSpeed = Math.hypot(planarVelocity.x, planarVelocity.z);
+    const aeroForce = scale3(planarVelocity, -profile.quadraticDrag * planarSpeed);
+    const gravity = { x: 0, y: -profile.mass * VEHICLE_GRAVITY, z: 0 };
+    const totalForce = add3(add3(frontForce, rearForce), add3(aeroForce, gravity));
 
-  if (Math.abs(u) < profile.lowSpeedThreshold) {
-    car.frontLateralForce = 0;
-    car.rearLateralForce = 0;
-    car.yawRate += (u / wheelbase * Math.tan(car.control.actualSteerAngle) - car.yawRate)
-      * (1 - Math.exp(-dt / profile.lowSpeedYawTau));
-    const nextU = Math.max(0, u + (fxFront + fxRear) / m * dt);
-    setBodyFrameVelocity(car, nextU, v * Math.exp(-dt / profile.lowSpeedLateralTau));
-    car.lateralAcceleration = nextU * car.yawRate;
-    return;
+    const cg = body.position;
+    const contactMoment = add3(
+      momentAboutCg(front, cg, frontForce),
+      momentAboutCg(rear, cg, rearForce),
+    );
+    // Phase 9 final audit closure: wheel spin angular-momentum magnitude change belongs to the
+    // body+wheel balance. CAR has no roll DOF, so only the allowed pitch projection is integrated.
+    const wheelReaction = add3(
+      scale3(front.wheelAxis, -profile.frontWheelInertia * frontWheel.omegaDot),
+      scale3(rear.wheelAxis, -profile.rearWheelInertia * rearWheel.omegaDot),
+    );
+    const totalMoment = add3(contactMoment, wheelReaction);
+
+    car.velocityX += totalForce.x / profile.mass * substep;
+    car.velocityY += totalForce.y / profile.mass * substep;
+    car.velocityZ += totalForce.z / profile.mass * substep;
+    car.yawRate += totalMoment.y / profile.yawInertia * substep;
+    car.pitchRate += dot3(totalMoment, body.right) / profile.pitchInertia * substep;
+    car.x += car.velocityX * substep;
+    car.y += car.velocityY * substep;
+    car.z += car.velocityZ * substep;
+    car.yaw = wrapAngle(car.yaw + car.yawRate * substep);
+    car.pitch = wrapAngle(car.pitch + car.pitchRate * substep);
+    refreshGuideObservation(guide, car);
+
+    car.control.steeringRequest = steeringRequest;
+    car.control.actualSteerAngle = car.frontSteerAngle;
+    car.control.requestedDriveTorque = driveTorque;
+    car.control.frontBrakeTorque = frontBrakeTorque;
+    car.control.rearBrakeTorque = rearBrakeTorque;
+    car.control.frontWheelLocked = frontWheel.locked;
+    car.control.rearWheelLocked = rearWheel.locked;
+    car.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;
+    car.control.rearUtilization = Number.isFinite(rearWheel.tire.rho) ? rearWheel.tire.rho : 0;
+
+    finalFront = front;
+    finalRear = rear;
+    finalFrontFx = frontWheel.tire.fx;
+    finalFrontFy = frontWheel.tire.fy;
+    finalRearFx = rearWheel.tire.fx;
+    finalRearFy = rearWheel.tire.fy;
   }
 
-  const uForSlip = Math.max(Math.abs(u), profile.lowSpeedThreshold);
-  const alphaFront = Math.atan2(v + a * car.yawRate, uForSlip) - car.control.actualSteerAngle;
-  const alphaRear = Math.atan2(v - b * car.yawRate, uForSlip);
-  const fyFrontLimit = Math.sqrt(Math.max(0, frontLimit ** 2 - fxFront ** 2));
-  const fyRearLimit = Math.sqrt(Math.max(0, rearLimit ** 2 - fxRear ** 2));
-  const fyFrontTarget = smoothSaturatedLateralForce(
-    -profile.frontCornerStiffness * alphaFront,
-    fyFrontLimit,
-  );
-  const fyRearTarget = smoothSaturatedLateralForce(
-    -profile.rearCornerStiffness * alphaRear,
-    fyRearLimit,
-  );
-  car.frontLateralForce = updateAxleLateralForce(
-    car.frontLateralForce,
-    fyFrontTarget,
-    fyFrontLimit,
-    car.contacts[0].phase === 'CONTACT',
-    uForSlip,
-    profile.frontLateralRelaxationLength,
-    dt,
-    profile,
-  );
-  car.rearLateralForce = updateAxleLateralForce(
-    car.rearLateralForce,
-    fyRearTarget,
-    fyRearLimit,
-    car.contacts[1].phase === 'CONTACT',
-    uForSlip,
-    profile.rearLateralRelaxationLength,
-    dt,
-    profile,
-  );
-  const fyFront = car.frontLateralForce;
-  const fyRear = car.rearLateralForce;
-  const fy = fyFront + fyRear;
-  // World velocity is authoritative. Do not also apply rotating-body-frame Coriolis terms;
-  // the next body observation derives them once from the updated yaw and unchanged world vector.
-  let nextU = u + (fxFront + fxRear) / m * dt;
-  let nextV = v + fy / m * dt;
-  car.yawRate += (a * fyFront - b * fyRear) / profile.yawInertia * dt;
-  if (nextU < 0) {
-    nextU = 0;
-    if (input.brake) nextV *= 0.9;
+  if (finalFront && finalRear) {
+    updateCarContactTelemetry(car, finalFront, finalRear);
+    car.surfaceType = representativeSurfaceType([finalFront, finalRear]);
   }
-  setBodyFrameVelocity(car, nextU, clamp(nextV, -profile.maxLateralSpeed, profile.maxLateralSpeed));
-  car.yawRate = clamp(car.yawRate, -profile.maxYawRate, profile.maxYawRate);
-  car.lateralAcceleration = fy / m;
+  const velocityDelta = {
+    x: car.velocityX - velocityBefore.x,
+    y: car.velocityY - velocityBefore.y,
+    z: car.velocityZ - velocityBefore.z,
+  };
+  const finalBody = carBodyKinematics(car);
+  car.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / dt;
+  car.lateralAcceleration = dot3(velocityDelta, finalBody.right) / dt;
+  void finalFrontFx;
+  void finalFrontFy;
+  void finalRearFx;
+  void finalRearFy;
 }
 
-function integrateUnsupportedPlanar(
+function carSteerTarget(
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
   car: M5CarState,
-  input: DrivingInput,
-  dt: number,
-  profile: CarPhysicsProfile,
-): void {
-  car.frontLateralForce = 0;
-  car.rearLateralForce = 0;
-  const body = bodyFrameVelocity(car);
-  updateAutomaticPowertrain(
-    car.powertrain,
-    profile.powertrain,
-    body.longitudinal,
-    input.throttle ? 1 : 0,
-    dt,
-  );
-  const dragAccel = profile.aeroDrag * body.longitudinal * Math.abs(body.longitudinal) / profile.mass;
-  setBodyFrameVelocity(
-    car,
-    body.longitudinal - Math.sign(body.longitudinal) * dragAccel * dt,
-    body.lateral * Math.exp(-dt * profile.airborneLateralDamping),
-  );
-  car.yawRate *= Math.exp(-dt * profile.airborneYawDamping);
-  for (const contact of car.contacts) {
-    contact.wheelAngularSpeed *= Math.exp(-dt * profile.airborneWheelSpinDamping);
-  }
-  car.lateralAcceleration = 0;
-  car.control.appliedDrive = 0;
-  car.control.appliedFrontBrake = 0;
-  car.control.appliedRearBrake = 0;
-  car.control.tractionControlActive = input.throttle;
-  car.control.absActive = input.brake;
-}
-
-function smoothSaturatedLateralForce(linearForce: number, limit: number): number {
-  if (limit <= 1e-9) return 0;
-  return limit * Math.tanh(linearForce / limit);
-}
-
-function updateAxleLateralForce(
-  current: number,
-  target: number,
-  limit: number,
-  contacting: boolean,
-  speed: number,
-  relaxationLength: number,
-  dt: number,
-  profile: CarPhysicsProfile,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  steeringRequest: number,
+  profile: CompiledCarPhysicsProfile,
 ): number {
-  if (!contacting || limit <= 1e-9) return 0;
-  const tau = clamp(
-    relaxationLength / Math.max(speed, profile.lowSpeedThreshold),
-    profile.lateralForceMinimumTau,
-    profile.lateralForceMaximumTau,
+  const raw = steeringRequest * profile.maxSteer;
+  if (
+    !front.forceTransmitting || !rear.forceTransmitting
+    || !front.tireFrameValid || !rear.tireFrameValid
+  ) return raw;
+
+  const frontDemand = tireLinearDemand(
+    car.frontWheelOmega,
+    front.effectiveRollingRadius,
+    front.longitudinalVelocity,
+    front.lateralVelocity,
+    profile.frontStation.tire,
   );
-  const next = current + (target - current) * (1 - Math.exp(-dt / Math.max(tau, 1e-4)));
-  return clamp(next, -limit, limit);
+  const rearDemand = tireLinearDemand(
+    car.rearWheelOmega,
+    rear.effectiveRollingRadius,
+    rear.longitudinalVelocity,
+    rear.lateralVelocity,
+    profile.rearStation.tire,
+  );
+  const frontUseful = usefulLateralCapacity(
+    frontDemand.dx,
+    front.normalLoad,
+    front.surface.material.gripFactor,
+    profile.frontStation.tire,
+  );
+  const rearUseful = usefulLateralCapacity(
+    rearDemand.dx,
+    rear.normalLoad,
+    rear.surface.material.gripFactor,
+    profile.rearStation.tire,
+  );
+  const wheelbase = profile.frontAxle + profile.rearAxle;
+  const ayUseful = Math.min(
+    frontUseful * wheelbase / (profile.mass * profile.rearAxle),
+    rearUseful * wheelbase / (profile.mass * profile.frontAxle),
+  );
+  const frontForceRequired = profile.mass * ayUseful * profile.rearAxle / wheelbase;
+  const rearForceRequired = profile.mass * ayUseful * profile.frontAxle / wheelbase;
+  const alphaFront = Math.atan(frontForceRequired / profile.frontStation.tire.cornerStiffness);
+  const alphaRear = Math.atan(rearForceRequired / profile.rearStation.tire.cornerStiffness);
+  const speed = vehicleSpeed(car);
+  const curvatureUseful = ayUseful / (speed ** 2 + profile.lowSpeedRegularization ** 2);
+  const useful = clamp(
+    Math.atan(wheelbase * curvatureUseful) + alphaFront - alphaRear,
+    0,
+    profile.maxSteer,
+  );
+  const base = clamp(raw, -useful, useful);
+  if (Math.abs(raw - base) < 1e-12) return base;
+
+  const rawRho = hypotheticalFrontUtilization(
+    guide, height, surfaces, car, body, raw, profile,
+  );
+  const baseRho = hypotheticalFrontUtilization(
+    guide, height, surfaces, car, body, base, profile,
+  );
+  return rawRho < baseRho ? raw : base;
 }
 
-function installDerivedM5Accessors<T extends VehicleDynamicsState>(state: T): T & M5CarState {
-  Object.defineProperties(state, {
-    speed: {
-      enumerable: true,
-      get: () => vehicleSpeed(state),
-      set: () => { /* derived observation */ },
-    },
-    verticalSpeed: {
-      enumerable: true,
-      get: () => state.velocityY,
-      set: (value: number) => { state.velocityY = value; },
-    },
+function hypotheticalFrontUtilization(
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
+  car: M5CarState,
+  body: BodyKinematics,
+  steer: number,
+  profile: CompiledCarPhysicsProfile,
+): number {
+  const contact = deriveContactObservation(
+    guide, height, surfaces, body, profile.frontStation,
+    steer, 0, car.course.segmentIndex,
+  );
+  if (!contact.forceTransmitting || !contact.tireFrameValid) return Number.POSITIVE_INFINITY;
+  return evaluateTireForce(
+    car.frontWheelOmega,
+    contact.effectiveRollingRadius,
+    contact.longitudinalVelocity,
+    contact.lateralVelocity,
+    contact.normalLoad,
+    contact.surface.material.gripFactor,
+    profile.frontStation.tire,
+  ).rho;
+}
+
+function carBodyKinematics(car: M5CarState): BodyKinematics {
+  const right = { x: Math.cos(car.yaw), y: 0, z: -Math.sin(car.yaw) };
+  const forward = normalize3({
+    x: Math.sin(car.yaw) * Math.cos(car.pitch),
+    y: Math.sin(car.pitch),
+    z: Math.cos(car.yaw) * Math.cos(car.pitch),
+  }, { x: Math.sin(car.yaw), y: 0, z: Math.cos(car.yaw) });
+  const up = normalize3(cross3(forward, right), WORLD_UP);
+  const omegaWorld = add3(scale3(WORLD_UP, car.yawRate), scale3(right, car.pitchRate));
+  return {
+    position: { x: car.x, y: car.y, z: car.z },
+    velocity: { x: car.velocityX, y: car.velocityY, z: car.velocityZ },
+    right,
+    up,
+    forward,
+    omegaWorld,
+  };
+}
+
+function updateCarContactTelemetry(
+  car: M5CarState,
+  front: ContactObservation,
+  rear: ContactObservation,
+): void {
+  car.frontNormalLoad = front.normalLoad;
+  car.rearNormalLoad = rear.normalLoad;
+  car.frontGap = front.gap;
+  car.rearGap = rear.gap;
+  car.frontSupportAvailable = front.supportAvailable;
+  car.rearSupportAvailable = rear.supportAvailable;
+}
+
+function installCarDerivedAccessors(
+  car: M5CarState,
+  profile: CompiledCarPhysicsProfile,
+): M5CarState {
+  Object.defineProperties(car, {
+    speed: { enumerable: true, get: () => vehicleSpeed(car) },
+    verticalSpeed: { enumerable: true, get: () => car.velocityY },
     longitudinalSpeed: {
       enumerable: true,
-      get: () => bodyFrameVelocity(state).longitudinal,
-      set: (value: number) => {
-        const current = bodyFrameVelocity(state);
-        setBodyFrameVelocity(state, value, current.lateral);
+      get: () => {
+        const body = carBodyKinematics(car);
+        return bodyFrameVelocity(car, body.forward, body.right).longitudinal;
       },
     },
     lateralSpeed: {
       enumerable: true,
-      get: () => bodyFrameVelocity(state).lateral,
-      set: (value: number) => {
-        const current = bodyFrameVelocity(state);
-        setBodyFrameVelocity(state, current.longitudinal, value);
+      get: () => {
+        const body = carBodyKinematics(car);
+        return bodyFrameVelocity(car, body.forward, body.right).lateral;
       },
     },
-    steerAngle: {
-      enumerable: true,
-      get: () => state.control.actualSteerAngle,
-      set: (value: number) => { state.control.actualSteerAngle = value; },
-    },
-    supported: {
-      enumerable: true,
-      get: () => vehicleGrounded(state),
-      set: (value: boolean) => {
-        for (const contact of state.contacts) contact.phase = value ? 'CONTACT' : 'AIRBORNE';
-      },
-    },
+    steerAngle: { enumerable: true, get: () => car.frontSteerAngle },
+    supported: { enumerable: true, get: () => car.frontNormalLoad > 0 || car.rearNormalLoad > 0 },
+    sprungPitch: { enumerable: true, get: () => car.pitch },
+    sprungRoll: { enumerable: true, get: () => 0 },
+    presentationY: { enumerable: true, get: () => car.y - profile.desiredCgHeight },
   });
-  return state as T & M5CarState;
+  return car;
 }
 
-export function ensureM5DerivedAccessors<T extends VehicleDynamicsState>(state: T): T & M5CarState {
-  return Object.prototype.hasOwnProperty.call(state, 'longitudinalSpeed')
-    ? state as T & M5CarState
-    : installDerivedM5Accessors(state);
+function locateSegmentIndex(guide: GuideCoordinateSource, s: number): number {
+  const curve = 'guide' in guide ? guide.guide : guide;
+  return sampleSurfaceSegmentIndex(curve.segments, s);
 }
+
+function sampleSurfaceSegmentIndex(
+  segments: readonly { readonly sStart: number; readonly sEnd: number; readonly index: number }[],
+  s: number,
+): number {
+  for (const segment of segments) {
+    if (s >= segment.sStart - 1e-9 && s <= segment.sEnd + 1e-9) return segment.index;
+  }
+  throw new RangeError('CAR spawn s is outside Guide');
+}
+
+export function ensureM5DerivedAccessors<T extends M5CarState>(state: T): T {
+  return installCarDerivedAccessors(state, M5_CAR_PROFILE) as T;
+}
+
+export type { VehicleControlState };
