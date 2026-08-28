@@ -4,7 +4,7 @@ This file is the persistent working contract for coding agents operating in this
 
 It is intentionally **not** a second design document. Normative game/rendering mathematics live in the Core Freeze documents and their explicit addenda. Milestone-specific decisions live in the corresponding milestone documents and regression tests.
 
-Before changing code, read this file, the repository entry/authority documents listed below, and the current migration/handoff checkpoint when takeover context is relevant.
+Before changing code, read this file, the repository entry/authority documents listed below, and the current active handoff checkpoint when takeover context is relevant.
 
 ---
 
@@ -39,11 +39,19 @@ docs/00c_core_design_freeze_addendum_m6_45.md
 
 The addenda supersede only the specific earlier assumptions they explicitly replace.
 
+The current vehicle-physics architecture authority on the active M8.0 candidate branch is:
+
+```text
+docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+```
+
+It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
+
 ### Milestone design authority
 
 Detailed post-freeze decisions live in the numbered milestone documents under `docs/`.
 
-For the current topology/runtime architecture, the important sequence is:
+For current topology/runtime architecture, read this sequence:
 
 ```text
 docs/62_m6_44_open_path_core.md
@@ -54,6 +62,20 @@ docs/66_m6_48_explicit_circuit_topology.md
 docs/67_m6_49_circuit_runtime_window.md
 docs/68_m6_50_circuit_race_progress.md
 docs/69_m6_51_circuit_live_runtime.md
+docs/70_m6_52_field_route_progress.md
+docs/71_m6_53_branching_session_normalization.md
+docs/72_m6_54_circuit_multi_actor_integration.md
+```
+
+For vehicle-physics lineage/current authority, read:
+
+```text
+docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
+docs/74_m7_1_highway_calibration_course_authoring.md
+docs/75_m7_2_default_branching_highway_integration.md
+docs/76_m7_3_grip_and_instrument_hud.md
+docs/77_m7_4_transient_tire_response.md
+docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 ```
 
 ### Executable implementation contract
@@ -62,15 +84,29 @@ Types, compilers and regression tests are the executable contract. If documentat
 
 ### Documentation authority index
 
-`docs/README.md` distinguishes normative authority, chronological milestone history, takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
+`docs/README.md` distinguishes normative authority, chronological milestone history, active takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
 
-### Current migration/handoff state
+### Current active handoff state
 
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` is the concise Codex migration handoff. It records the PR-C completion baseline, completed cleanup work, deferred investigation leads and the reading order.
+While draft PR #88 is the active M8.0 work, the current takeover/navigation checkpoint is:
+
+```text
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
+```
+
+That file is current-work navigation/context only. It does not replace the Core Freeze/addenda, `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md`, source/types/compilers, or regression tests.
+
+The older:
+
+```text
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
+```
+
+is historical repository-migration handoff context. It records the PR-C/final-migration lineage and must not be mistaken for the active PR #88 work checkpoint.
 
 The original mandatory first read-only Codex takeover audit was completed before PR-C. That one-time audit is distinct from the later final clean-room audit and final exact-head migration freeze. The released FINAL CODEX MIGRATION POINT is established by `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` together with Git/PR/main-ref and Pages workflow identity. Do not infer the final migration SHA from an embedded self-reference in an entry document.
 
-At and after that released final migration point, do not repeat the migration cleanup ceremony merely because a fresh session reads the handoff. The handoff remains context/navigation only and does not replace normative design documents or executable contracts.
+At and after that released final migration point, do not repeat the migration cleanup ceremony merely because a fresh session reads historical migration context. For active work, resolve current status from `README.md`, `docs/README.md`, the active handoff, Git/PR state, and exact-head CI.
 
 ### README
 
@@ -491,12 +527,15 @@ When starting from a fresh Codex/agent context:
 1. Read this file completely.
 2. Read `README.md` for repository entry points and current status.
 3. Read `docs/README.md` for authority/supersession and evidence policy.
-4. Read the four freeze/addendum files listed in section 2.
-5. Read the latest relevant milestone documents, especially M6.44 onward for current topology/runtime work.
-6. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` for the migration baseline and deferred-work map.
-7. Confirm current `main` SHA and verify the FINAL CODEX MIGRATION POINT against `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history rather than expecting a self-referential SHA in this file.
-8. Run the complete test suite before changing anything.
-9. Do not repeat the original migration cleanup/takeover ceremony when the current `main` is at or descended from the validated FINAL CODEX MIGRATION POINT. A new read-only architecture audit is required only when a new task genuinely changes or challenges current authority.
-10. Only then define or implement the next scoped task.
+4. Read the four Core freeze/addendum files listed in section 2.
+5. If draft PR #88 / branch `feature/phase9-vehicle-physics-freeze` is still active, read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` and `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` before touching vehicle physics.
+6. Otherwise, identify the current task/handoff from repository/PR history and the latest relevant milestone authority; do not assume a dated handoff is still active.
+7. Read current source/types/compilers and the tests relevant to the task.
+8. Confirm current `main`, active branch/PR head, and exact latest CI state before changing anything.
+9. Use `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` only when historical final-migration lineage is relevant; do not treat it as the active M8.0 work checkpoint.
+10. Verify the FINAL CODEX MIGRATION POINT against `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history rather than expecting a self-referential SHA in this file.
+11. Do not repeat the original migration cleanup/takeover ceremony when current `main` is at or descended from the validated FINAL CODEX MIGRATION POINT.
+12. Run/inspect the complete test suite as required by the active handoff; a known-red active migration branch is not equivalent to a release candidate.
+13. Only then continue the scoped task under the Mandatory Architecture Decision Gate.
 
 At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
