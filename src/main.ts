@@ -66,7 +66,10 @@ import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
 import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
-import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
+import {
+  formatVehicleControlHud,
+  formatVehicleSuspensionHud,
+} from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
 import {
@@ -552,6 +555,7 @@ function render(): void {
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : 0;
   const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
+  const suspensionHud = formatVehicleSuspensionHud(vehicle);
   const progressWindow = fieldRouteProgressWindow(
     liveRoute.progress,
     routeState.activeStageId,
@@ -584,7 +588,7 @@ function render(): void {
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 72);
   ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 84);
-  ctx.fillText(`JCT ${junctionPhase}  BG ${backgroundDiagnosticKind}`, 8, 96);
+  ctx.fillText(suspensionHud, 8, 96);
   ctx.fillText(controlHud.pedals, 8, 108);
   ctx.fillText(`POS ${playerStanding.rank}/${standings.length}  YOU ${playerFieldProgress.sProgress.toFixed(1)}  RIVALS ${rivals.length}`, 8, 120);
   ctx.fillText(`NEXT ${routeState.activeStageId}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}  ROUTE GATES ${playerFieldProgress.acceptedTransitionCount}`, 8, 132);
@@ -596,6 +600,8 @@ function render(): void {
     ctx.fillStyle = '#ffd08a';
     ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
     ctx.fillStyle = '#a6bac4';
+  } else {
+    ctx.fillText(`JCT ${junctionPhase}  BG ${backgroundDiagnosticKind}`, 8, 192);
   }
 
   ctx.fillStyle = runObjective.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';

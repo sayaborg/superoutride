@@ -7,7 +7,10 @@ import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-ph
 import { M5_BIKE_PROFILE } from '../dist/physics/motorcycle-physics.js';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
 import { usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
-import { formatVehicleControlHud } from '../dist/render/vehicle-control-hud.js';
+import {
+  formatVehicleControlHud,
+  formatVehicleSuspensionHud,
+} from '../dist/render/vehicle-control-hud.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
 test('M8.0 SurfaceMap owns relative grip while tire profiles own reference friction', () => {
@@ -77,4 +80,16 @@ test('M7.3 always-visible instrument line names speed RPM automatic transmission
     const source = fs.readFileSync(new URL(`../src/${entry}`, import.meta.url), 'utf8');
     assert.match(source, /ctx\.fillText\(controlHud\.instruments, 8, 36\)/);
   }
+});
+
+test('front and rear road gaps expose signed station height and suspension compression', () => {
+  assert.equal(
+    formatVehicleSuspensionHud({ frontGap: -0.0714, rearGap: 0.1234 }),
+    'SUSP F H-0.071m Q0.071m R H+0.123m Q0.000m',
+  );
+
+  const branching = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  const circuit = fs.readFileSync(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
+  assert.match(branching, /ctx\.fillText\(suspensionHud, 8, 96\)/);
+  assert.match(circuit, /ctx\.fillText\(suspensionHud, 8, 132\)/);
 });

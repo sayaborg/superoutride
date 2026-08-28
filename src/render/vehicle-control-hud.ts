@@ -8,6 +8,11 @@ export interface VehicleControlHudLines {
   readonly instruments: string;
 }
 
+export interface VehicleSuspensionHudTelemetry {
+  readonly frontGap: number;
+  readonly rearGap: number;
+}
+
 /** HUD consumes derived physical telemetry only; there is no ABS/TCS intervention authority. */
 export function formatVehicleControlHud(
   control: VehicleControlState,
@@ -24,6 +29,18 @@ export function formatVehicleControlHud(
     pedals: `DRV ${driveTorque.toString().padStart(4)}Nm BRK ${frontBrake}/${rearBrake}Nm${locks}`,
     instruments: `SPD ${Math.round(speedMetersPerSecond * 3.6).toString().padStart(3)}km/h RPM ${Math.round(powertrain.engineRpm).toString().padStart(5)} AT GEAR ${powertrain.gear}${powertrain.shiftDirection > 0 ? ' UP' : powertrain.shiftDirection < 0 ? ' DN' : ''}`,
   };
+}
+
+/**
+ * Signed H is each contact station's road-normal distance: positive in flight and negative while
+ * the suspension is compressed. Q exposes the matching non-negative suspension compression.
+ */
+export function formatVehicleSuspensionHud(
+  telemetry: VehicleSuspensionHudTelemetry,
+): string {
+  const frontCompression = Math.max(0, -telemetry.frontGap);
+  const rearCompression = Math.max(0, -telemetry.rearGap);
+  return `SUSP F H${formatSigned(telemetry.frontGap, 3)}m Q${frontCompression.toFixed(3)}m R H${formatSigned(telemetry.rearGap, 3)}m Q${rearCompression.toFixed(3)}m`;
 }
 
 function signedBar(value: number): string {

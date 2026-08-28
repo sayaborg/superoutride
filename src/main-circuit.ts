@@ -43,7 +43,10 @@ import type { DrivingInput } from './input/driving-input.js';
 import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
 import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
-import { formatVehicleControlHud } from './render/vehicle-control-hud.js';
+import {
+  formatVehicleControlHud,
+  formatVehicleSuspensionHud,
+} from './render/vehicle-control-hud.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
@@ -292,6 +295,7 @@ function render(): void {
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : 0;
   const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
+  const suspensionHud = formatVehicleSuspensionHud(vehicle);
   const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
   const validatedLaps = getValidatedCircuitLapCount(raceProgress);
   const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
@@ -339,7 +343,7 @@ function render(): void {
   ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  ${raceState}`, 8, 96);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
-  ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 132);
+  ctx.fillText(suspensionHud, 8, 132);
   ctx.fillText(controlHud.pedals, 8, 144);
   ctx.fillText(`WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps / +1 runout`, 8, 156);
   ctx.fillText(`WINDOW ${topologyPosition.winding}/${windowRuntime.repeatCount - 1}`, 8, 168);
@@ -348,6 +352,8 @@ function render(): void {
     ctx.fillStyle = '#ffd08a';
     ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
     ctx.fillStyle = '#a6bac4';
+  } else {
+    ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 192);
   }
   ctx.fillStyle = raceProgress.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
   ctx.fillText(
