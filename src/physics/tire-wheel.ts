@@ -1,0 +1,273 @@
+import { clamp } from '../core/math.js';
+
+export interface CompiledTireProfile {
+  readonly muRef: number;
+  readonly normalizedStiffness: number;
+  readonly cornerStiffness: number;
+  readonly rhoKnee: number;
+  readonly lowSpeedRegularization: number;
+}
+
+export interface TireDemand {
+  readonly sx: number;
+  readonly sy: number;
+  readonly dx: number;
+  readonly dy: number;
+}
+
+export interface TireForceResult extends TireDemand {
+  readonly fx: number;
+  readonly fy: number;
+  readonly fmax: number;
+  readonly rho: number;
+}
+
+export interface WheelSolveInput {
+  readonly omegaPrevious: number;
+  readonly inertia: number;
+  readonly rollingRadius: number;
+  readonly longitudinalVelocity: number;
+  readonly lateralVelocity: number;
+  readonly normalLoad: number;
+  readonly gripFactor: number;
+  readonly rollingResistance: number;
+  readonly driveTorque: number;
+  readonly brakeTorque: number;
+  readonly dt: number;
+  readonly tire: CompiledTireProfile;
+}
+
+export interface WheelSolveResult {
+  readonly omega: number;
+  readonly omegaDot: number;
+  readonly tire: TireForceResult;
+  readonly locked: boolean;
+}
+
+export function tireLinearDemand(
+  omega: number,
+  rollingRadius: number,
+  longitudinalVelocity: number,
+  lateralVelocity: number,
+  tire: CompiledTireProfile,
+): TireDemand {
+  const v0 = tire.lowSpeedRegularization;
+  const referenceSpeed = Math.sqrt(longitudinalVelocity ** 2 + v0 ** 2);
+  const sx = (rollingRadius * omega - longitudinalVelocity) / referenceSpeed;
+  const sy = -lateralVelocity / referenceSpeed;
+  return {
+    sx,
+    sy,
+    dx: tire.cornerStiffness * sx,
+    dy: tire.cornerStiffness * sy,
+  };
+}
+
+export function evaluateTireForce(
+  omega: number,
+  rollingRadius: number,
+  longitudinalVelocity: number,
+  lateralVelocity: number,
+  normalLoad: number,
+  gripFactor: number,
+  tire: CompiledTireProfile,
+): TireForceResult {
+  const demand = tireLinearDemand(
+    omega,
+    rollingRadius,
+    longitudinalVelocity,
+    lateralVelocity,
+    tire,
+  );
+  const fmax = Math.max(0, tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad));
+  const magnitude = Math.hypot(demand.dx, demand.dy);
+  if (!(fmax > 0) || !(magnitude > 0)) {
+    return {
+      ...demand,
+      fx: 0,
+      fy: 0,
+      fmax,
+      rho: fmax > 0 ? 0 : (magnitude > 0 ? Number.POSITIVE_INFINITY : 0),
+    };
+  }
+  const rho = magnitude / fmax;
+  const saturatedMagnitude = radialC1Magnitude(rho, tire.rhoKnee) * fmax;
+  const scale = saturatedMagnitude / magnitude;
+  return {
+    ...demand,
+    fx: demand.dx * scale,
+    fy: demand.dy * scale,
+    fmax,
+    rho,
+  };
+}
+
+/** C1 radial transition: linear through rhoKnee, constant magnitude from 2-rhoKnee onward. */
+export function radialC1Magnitude(rho: number, rhoKnee: number): number {
+  if (!(rho > 0)) return 0;
+  const a = rhoKnee;
+  const b = 2 - a;
+  if (rho <= a) return rho;
+  if (rho >= b) return 1;
+  const width = b - a;
+  const t = (rho - a) / width;
+  const h00 = 2 * t ** 3 - 3 * t ** 2 + 1;
+  const h10 = t ** 3 - 2 * t ** 2 + t;
+  const h01 = -2 * t ** 3 + 3 * t ** 2;
+  return h00 * a + h10 * width + h01;
+}
+
+/**
+ * Surface rolling resistance is one continuous monotone torque in the scalar wheel equation.
+ * It reuses the tire low-speed regularization and owns no second low-speed threshold.
+ */
+export function rollingResistanceTorque(
+  omega: number,
+  rollingRadius: number,
+  normalLoad: number,
+  rollingResistance: number,
+  lowSpeedRegularization: number,
+): number {
+  if (!(normalLoad > 0) || !(rollingResistance > 0)) return 0;
+  const rollingSpeed = rollingRadius * omega;
+  const smoothSign = rollingSpeed / Math.sqrt(rollingSpeed ** 2 + lowSpeedRegularization ** 2);
+  return rollingResistance * normalLoad * rollingRadius * smoothSign;
+}
+
+/**
+ * Unique scalar backward-Euler wheel root with a Coulomb brake atom at Omega=0.
+ * The no-brake residual is monotone; bounded tire and rolling torques make the finite bracket
+ * explicit rather than heuristic.
+ */
+export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
+  validateWheelSolveInput(input);
+  const {
+    omegaPrevious,
+    inertia,
+    rollingRadius,
+    normalLoad,
+    gripFactor,
+    rollingResistance,
+    driveTorque,
+    brakeTorque,
+    dt,
+    tire,
+  } = input;
+
+  const noBrakeResidual = (omega: number): number => {
+    const force = evaluateTireForce(
+      omega,
+      rollingRadius,
+      input.longitudinalVelocity,
+      input.lateralVelocity,
+      normalLoad,
+      gripFactor,
+      tire,
+    );
+    return inertia / dt * (omega - omegaPrevious)
+      - driveTorque
+      + rollingRadius * force.fx
+      + rollingResistanceTorque(
+        omega,
+        rollingRadius,
+        normalLoad,
+        rollingResistance,
+        tire.lowSpeedRegularization,
+      );
+  };
+
+  const atZero = noBrakeResidual(0);
+  let omega: number;
+  let locked = false;
+  if (Math.abs(atZero) <= brakeTorque) {
+    omega = 0;
+    locked = brakeTorque > 0;
+  } else {
+    const fmax = tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad);
+    const maxRoadTorque = rollingRadius * fmax;
+    const maxRollingTorque = rollingResistance * Math.max(0, normalLoad) * rollingRadius;
+    const span = Math.abs(omegaPrevious)
+      + dt * (Math.abs(driveTorque) + brakeTorque + maxRoadTorque + maxRollingTorque) / inertia
+      + 1;
+
+    if (atZero < -brakeTorque) {
+      const residual = (candidate: number) => noBrakeResidual(candidate) + brakeTorque;
+      omega = bisectMonotone(residual, 0, span);
+    } else {
+      const residual = (candidate: number) => noBrakeResidual(candidate) - brakeTorque;
+      omega = bisectMonotone(residual, -span, 0);
+    }
+  }
+
+  const force = evaluateTireForce(
+    omega,
+    rollingRadius,
+    input.longitudinalVelocity,
+    input.lateralVelocity,
+    normalLoad,
+    gripFactor,
+    tire,
+  );
+  return {
+    omega,
+    omegaDot: (omega - omegaPrevious) / dt,
+    tire: force,
+    locked,
+  };
+}
+
+export function usefulLateralCapacity(
+  longitudinalLinearDemand: number,
+  normalLoad: number,
+  gripFactor: number,
+  tire: CompiledTireProfile,
+): number {
+  const fmax = tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad);
+  const useful = tire.rhoKnee * fmax;
+  return Math.sqrt(Math.max(0, useful ** 2 - longitudinalLinearDemand ** 2));
+}
+
+export function validateCompiledTireProfile(tire: CompiledTireProfile): void {
+  if (!(tire.muRef > 0)) throw new RangeError('tire muRef must be > 0');
+  if (!(tire.normalizedStiffness > 0)) throw new RangeError('normalized tire stiffness must be > 0');
+  if (!(tire.cornerStiffness > 0)) throw new RangeError('compiled corner stiffness must be > 0');
+  if (!(tire.rhoKnee > 0 && tire.rhoKnee < 1)) throw new RangeError('rhoKnee must lie in (0,1)');
+  if (!(tire.lowSpeedRegularization > 0)) throw new RangeError('tire low-speed regularization must be > 0');
+}
+
+function bisectMonotone(fn: (value: number) => number, lowerInput: number, upperInput: number): number {
+  let lower = lowerInput;
+  let upper = upperInput;
+  let fLower = fn(lower);
+  let fUpper = fn(upper);
+  if (fLower > 0 || fUpper < 0) {
+    throw new Error(`wheel root bracket invalid: [${fLower}, ${fUpper}]`);
+  }
+  for (let i = 0; i < 60; i += 1) {
+    const mid = (lower + upper) * 0.5;
+    const fMid = fn(mid);
+    if (Math.abs(fMid) < 1e-10) return mid;
+    if (fMid < 0) {
+      lower = mid;
+      fLower = fMid;
+    } else {
+      upper = mid;
+      fUpper = fMid;
+    }
+  }
+  void fLower;
+  void fUpper;
+  return (lower + upper) * 0.5;
+}
+
+function validateWheelSolveInput(input: WheelSolveInput): void {
+  if (!(input.dt > 0) || !Number.isFinite(input.dt)) throw new RangeError('wheel solve dt must be finite and > 0');
+  if (!(input.inertia > 0) || !Number.isFinite(input.inertia)) throw new RangeError('wheel inertia must be finite and > 0');
+  if (!(input.rollingRadius > 0) || !Number.isFinite(input.rollingRadius)) throw new RangeError('wheel radius must be finite and > 0');
+  if (!(input.brakeTorque >= 0) || !Number.isFinite(input.brakeTorque)) throw new RangeError('brake torque must be finite and >= 0');
+  if (![input.omegaPrevious, input.longitudinalVelocity, input.lateralVelocity, input.normalLoad,
+    input.gripFactor, input.rollingResistance, input.driveTorque].every(Number.isFinite)) {
+    throw new RangeError('wheel solve inputs must be finite');
+  }
+  validateCompiledTireProfile(input.tire);
+}
