@@ -20,12 +20,12 @@ import type {
   HeightNode,
   HeightProfileReader,
   HeightSample,
+  PhysicsHeightSample,
 } from '../visual/height-profile.js';
 import type { VisualProfileReader, VisualSection } from '../visual/visual-profile.js';
 
 const EPSILON = 1e-8;
 
-/** One explicitly authored open lap worth of runtime source data. */
 export interface CircuitLapRuntimeSources {
   readonly height: HeightProfileReader;
   readonly visual: VisualProfileReader;
@@ -33,14 +33,6 @@ export interface CircuitLapRuntimeSources {
   readonly ground?: BakedGroundMapReader;
 }
 
-/**
- * Finite open runtime view of an upper-level circuit.
- *
- * Every downstream consumer sees ordinary monotonically increasing window
- * chainage in [0,length]. Only this integration layer maps that ruler back to
- * one-lap source chainage. Topological winding remains separate from race-lap
- * validation.
- */
 export interface CircuitRuntimeWindow {
   readonly topology: CircuitTopology;
   readonly startWinding: number;
@@ -62,10 +54,6 @@ interface WindowSourcePosition {
   readonly sourceS: number;
 }
 
-/**
- * Compile a finite seam-aligned circuit window into ordinary open runtime
- * primitives. No renderer, camera, vehicle or RouteDag code is involved.
- */
 export function compileCircuitRuntimeWindow(
   topology: CircuitTopology,
   startWinding: number,
@@ -107,7 +95,6 @@ export function compileCircuitRuntimeWindow(
   });
 }
 
-/** Convert topology-owned continuous chainage to the finite open window ruler. */
 export function circuitUnwrappedToWindowChainage(
   window: CircuitRuntimeWindow,
   sUnwrapped: number,
@@ -116,7 +103,6 @@ export function circuitUnwrappedToWindowChainage(
   return checkedWindowChainage(window, sUnwrapped - window.startUnwrappedS);
 }
 
-/** Convert finite open window chainage back to topology-owned continuous chainage. */
 export function circuitWindowToUnwrappedChainage(
   window: CircuitRuntimeWindow,
   sWindow: number,
@@ -124,11 +110,6 @@ export function circuitWindowToUnwrappedChainage(
   return window.startUnwrappedS + checkedWindowChainage(window, sWindow);
 }
 
-/**
- * Map finite open window chainage to the one-lap source domain.
- * Interior seams belong to the next lap (source s=0); the final open endpoint
- * remains source s=L so endpoint inspection never invents wrap semantics.
- */
 export function circuitWindowToLapSourceChainage(
   window: Pick<CircuitRuntimeWindow, 'topology' | 'repeatCount' | 'length'>,
   sWindow: number,
@@ -168,6 +149,10 @@ class CircuitHeightWindow implements HeightProfileReader {
 
   samplePhysics(s: number): number {
     return this.source.samplePhysics(this.resolve(s).sourceS);
+  }
+
+  samplePhysicsDifferential(s: number): PhysicsHeightSample {
+    return this.source.samplePhysicsDifferential(this.resolve(s).sourceS);
   }
 
   sampleCamera(s: number): number {
@@ -241,11 +226,6 @@ class CircuitSurfaceWindow implements SurfaceMapReader {
   }
 }
 
-/**
- * Virtual finite baked GroundMap. Metadata truthfully describes N repeated rows
- * while payload ids are shared with the one-lap source, so no texture bytes are
- * duplicated and stage/runtime length validation remains exact.
- */
 class CircuitBakedGroundMapWindow implements BakedGroundMapReader {
   readonly metadata: BakedGroundMapMetadata;
   readonly courseLength: number;
