@@ -79,9 +79,9 @@ test('plain world-state object can drive camera, rival input, dynamic sprite and
   assert.equal(typeof input.brake, 'boolean');
 
   const assets = createM4SpriteAssets();
-  const rivalSprite = createDynamicVehicleCourseSprite('PLAIN', vehicle, camera.yaw, assets.car);
+  const rivalSprite = createDynamicVehicleCourseSprite('PLAIN', vehicle, camera.yaw, assets.car, height);
   assert.equal(rivalSprite.x, vehicle.x);
-  assert.equal(rivalSprite.y, vehicle.y);
+  assert.equal(rivalSprite.y, height.sampleRender(vehicle.course.s).y);
   assert.equal(rivalSprite.z, vehicle.z);
   assert.equal(rivalSprite.sRender, vehicle.course.s);
 

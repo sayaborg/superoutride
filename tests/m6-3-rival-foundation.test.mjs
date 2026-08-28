@@ -8,6 +8,7 @@ import {
   sampleRivalDrivingInput,
 } from '../dist/gameplay/rival-driver.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
 
 function fakeCar(guide, s, l = 0, speed = 45) {
@@ -71,16 +72,20 @@ test('rival speed control uses 200+ km/h straight target but brakes for physical
   assert.equal(sampleRivalDrivingInput(guide, tooFastForCurve).brake, true);
 });
 
-test('dynamic rival render adapter copies physical world anchor and chainage into ordinary CourseSprite', () => {
+test('dynamic rival render adapter preserves road-relative physical height in ordinary CourseSprite', () => {
   const guide = createM2StadiumGuide();
   const assets = createM4SpriteAssets();
+  const height = createM3DebugHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 2, 50);
   car.y = 1.25;
-  const sprite = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car);
+  const sprite = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car, height);
 
   assert.equal(sprite.name, 'RIVAL');
   assert.equal(sprite.x, car.x);
-  assert.equal(sprite.y, car.y);
+  assert.equal(
+    sprite.y,
+    height.sampleRender(car.course.s).y + car.y - height.samplePhysics(car.course.s),
+  );
   assert.equal(sprite.z, car.z);
   assert.equal(sprite.sRender, car.course.s);
   assert.equal(sprite.asset.worldWidthMeters, 2.0);
@@ -89,9 +94,10 @@ test('dynamic rival render adapter copies physical world anchor and chainage int
 test('dynamic rival orientation chooses a discrete existing yaw asset rather than runtime bitmap rotation', () => {
   const guide = createM2StadiumGuide();
   const assets = createM4SpriteAssets();
+  const height = createM3DebugHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 0, 50);
-  const rear = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car);
-  const side = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw - Math.PI / 2, assets.car);
+  const rear = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car, height);
+  const side = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw - Math.PI / 2, assets.car, height);
 
   assert.notEqual(rear.asset.name, side.asset.name);
   assert.match(rear.asset.name, /^CAR_YAW_/);

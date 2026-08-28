@@ -62,20 +62,20 @@ export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
   spriteOutputSamplesPerScanlineMax: 335,
 };
 
-/** M5.9 required close portal / near interior stress sweep, re-observed after M6.44 open-path projection cleanup. */
+/** M5.9 required close portal / near interior stress sweep, re-observed after M8.0 render-height alignment. */
 export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   frameCount: 51,
-  maxTerrainLineCount: 160,
+  maxTerrainLineCount: 163,
   maxTerrainLineCountPerScreenRow: 6,
-  maxTerrainOutputPixelsPerFrame: 51200,
+  maxTerrainOutputPixelsPerFrame: 52160,
   maxTerrainOutputPixelsPerScreenRow: 1920,
   maxVisibleSpriteCount: 13,
   maxSpriteOutputSamplesPerFrame: 83655,
   maxSpriteOutputSamplesPerScanline: 605,
-  maxSpriteWrittenPixelsPerFrame: 33013,
-  maxSpriteWrittenPixelsPerScanline: 278,
+  maxSpriteWrittenPixelsPerFrame: 32110,
+  maxSpriteWrittenPixelsPerScanline: 276,
   maxGroundMapLevelUsed: 6,
-  groundMapLevelLineCounts: [2592, 2436, 1110, 506, 619, 112, 20],
+  groundMapLevelLineCounts: [2790, 2328, 1083, 476, 628, 112, 20],
 };
 
 /** Combined evidence envelope: maxima across M5.8 normal content and M5.9 tunnel stress. */

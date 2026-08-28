@@ -268,6 +268,7 @@ function render(): void {
     rival.vehicle,
     camera.yaw,
     spriteAssets.car,
+    height,
   ));
   const stats = renderM5Driving(
     framebuffer,

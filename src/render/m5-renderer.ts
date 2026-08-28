@@ -11,6 +11,7 @@ import { sampleStageGroundMapAtLevel } from '../visual/stage-ground-map-view.js'
 import { selectVehicleSprite, type M4SpriteAssets } from '../visual/m4-sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from '../world/course-sprite.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
+import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { SoftwareSurface } from './software-surface.js';
 
@@ -25,6 +26,7 @@ export interface M5RenderResult {
   spriteWrittenPixels: number;
   playerOutputSamples: number;
   playerWrittenPixels: number;
+  playerScreenY: number;
   activeSection: string;
   playerYawVariant: number;
   playerBankVariant: number;
@@ -53,23 +55,24 @@ export function renderM5Driving(
   playerKind: PlayerVisualKind,
   roadView?: StageRoadView,
 ): M5RenderResult {
-  drawFarBackground(target, background, camera);
+  const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
+  drawFarBackground(target, background, renderCamera);
 
-  const baseTerrain = generateTerrainLines(guide, camera, terrainProfile);
+  const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
   const terrain = roadView === undefined
     ? baseTerrain
     : baseTerrain
-        .map((line) => applyStageRoadViewToTerrainLine(guide, camera, line, roadView))
+        .map((line) => applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView))
         .filter((line): line is M3TerrainLine => line !== null);
   const visible = computeForwardVisibleInterval(
     guide,
-    camera.yaw,
-    camera.s,
+    renderCamera.yaw,
+    renderCamera.s,
     terrainProfile.dMin,
     terrainProfile.dMax,
   );
   const sprites = visible
-    ? collectVisibleCourseSprites(worldSprites, camera, visible.dStart, visible.dEnd)
+    ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd)
     : [];
 
   const terrainLinesByRow = new Uint16Array(target.height);
@@ -106,12 +109,17 @@ export function renderM5Driving(
     },
   );
 
+  const playerRenderY = mapPhysicalHeightToRender(
+    terrainProfile.height,
+    vehicle.course.s,
+    vehicle.presentationY ?? vehicle.y,
+  );
   const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.presentationY ?? vehicle.y, z: vehicle.z, s: vehicle.course.s },
-    camera,
+    { x: vehicle.x, y: playerRenderY, z: vehicle.z, s: vehicle.course.s },
+    renderCamera,
   );
   const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
-  const relativeYaw = wrapAngle(vehicle.yaw - camera.yaw);
+  const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
   const normalizedBank = playerKind === 'bike' ? vehicle.sprungRoll / 0.55 : 0;
   const selected = selectVehicleSprite(playerSet, relativeYaw, normalizedBank);
   const playerStats = drawScaledSprite(
@@ -146,6 +154,7 @@ export function renderM5Driving(
     spriteWrittenPixels,
     playerOutputSamples: playerStats.outputSamples,
     playerWrittenPixels: playerStats.writtenPixels,
+    playerScreenY: playerProjection.y,
     activeSection: terrainProfile.visual.sample(vehicle.course.s).name,
     playerYawVariant: selected.yawIndex,
     playerBankVariant: selected.bankIndex,

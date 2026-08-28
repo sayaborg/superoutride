@@ -511,6 +511,7 @@ function render(): void {
       rival.vehicle,
       camera.yaw,
       spriteAssets.car,
+      rivalRuntime.heightProfile,
     )];
   });
   const renderWorldSprites = [...runtime.worldSprites, ...rivalSprites];
