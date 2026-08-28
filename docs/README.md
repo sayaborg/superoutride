@@ -90,9 +90,21 @@ validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
 
 The first records the Step 7 repository-only audit findings before correction. The second records the self-reference-safe Step 8 final candidate and release contract. Exact final SHA/run identity is completed by Git/PR/main-ref and workflow history without rewriting an already-validated artifact.
 
-## 5. Codex migration handoff
+## 5. Current active development handoff
 
-The current migration handoff is:
+The active M8.0 / Phase 9 implementation continuation checkpoint is:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
+```
+
+It is the concise takeover/navigation document for PR #88. It records the exact audited main baseline, active branch/PR, last exact implementation head tested in CI, current failure classification, non-reopen decisions, required next work, and release contract.
+
+A fresh Codex session should start from `../AGENTS.md` and this active handoff, then resolve every design question back to the normative documents/source/tests named there. The active handoff is not a second vehicle-physics authority; `78_m8_0_phase9_vehicle_physics_architecture_freeze.md` owns the M8.0 architecture.
+
+## 6. Codex migration handoff
+
+The historical repository-migration handoff is:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
@@ -102,18 +114,18 @@ The original long-form takeover snapshot at this path requested a mandatory firs
 
 The released FINAL CODEX MIGRATION POINT is established only after the final clean-room manifest is resolved, the final validation-inclusive exact head receives complete green CI, that exact head fast-forwards `main` with `force=false`, SHA identity is verified, and the same `main` SHA receives successful Pages build/deploy. The dedicated final validation record and Git/PR/workflow history are the evidence for that transition.
 
-The current handoff is intentionally concise and records the migration lineage/baseline, authority reading order, cleanup outcome, unresolved/deferred items, prohibitions, and exact-head workflow. Git history preserves the older takeover snapshot. Do not create another full duplicate design/handoff document merely to preserve its prose.
+This migration handoff remains historical migration context. It does not replace the newer active M8.0 development handoff while PR #88 is in progress.
 
 Handoff documents are context/navigation snapshots. They do not override the Core Freeze/addenda, later milestone authority, types, compilers, or regression tests.
 
-## 6. Repository-level documents
+## 7. Repository-level documents
 
 ```text
 ../AGENTS.md  persistent agent/development/release contract
 ../README.md  repository entry point and current-state index
 ```
 
-For a fresh coding context, use the reading order in `../README.md` and the working rules in `../AGENTS.md`.
+For a fresh coding context, use the active handoff above plus the working rules in `../AGENTS.md`.
 
 At and after the validated FINAL CODEX MIGRATION POINT, repository contents/history—not previous ChatGPT threads—are the continuing project memory.
 
