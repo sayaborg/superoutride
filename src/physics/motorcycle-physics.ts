@@ -244,6 +244,10 @@ export function compileMotorcyclePhysicsProfile(
   if (!(profile.phiControlMax > 0 && profile.maxSteer > 0 && profile.steeringTau > 0)) {
     throw new RangeError('BIKE rider/steer limits must be > 0');
   }
+  if (!(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0)) {
+    throw new RangeError('BIKE brake torques must be >= 0');
+  }
+  if (!(profile.quadraticDrag >= 0)) throw new RangeError('BIKE quadratic drag must be >= 0');
 
   const frontTire: CompiledTireProfile = Object.freeze({
     muRef: profile.muRef,
@@ -303,12 +307,13 @@ export function createM5Bike(
   const orientation = quaternionFromYawPitchLean(yaw, surface.gradeAngle, 0);
   const frontOmega = initialSpeed / profile.frontRollingRadius;
   const rearOmega = initialSpeed / profile.rearRollingRadius;
+  const position = add3(surface.point, scale3(surface.normal, profile.desiredCgHeight));
   const initialVelocity = scale3(surface.tangent, initialSpeed);
   const state = {
     kind: 'BIKE',
-    x: surface.point.x,
-    y: surface.point.y + profile.desiredCgHeight,
-    z: surface.point.z,
+    x: position.x,
+    y: position.y,
+    z: position.z,
     velocityX: initialVelocity.x,
     velocityY: initialVelocity.y,
     velocityZ: initialVelocity.z,
@@ -317,7 +322,7 @@ export function createM5Bike(
     frontSteerAngle: 0,
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
-    course: initializeGuideObservation(guide, surface.point.x, surface.point.z),
+    course: initializeGuideObservation(guide, position.x, position.z),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,

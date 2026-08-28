@@ -4,102 +4,73 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
-import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { M5_CAR_PROFILE, createM5Car } from '../dist/physics/car-physics.js';
+import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
-function createFlatHighwayCar() {
+function fixture() {
   const parent = createM72DefaultBranchingParent();
   const height = new HeightProfile(parent.guide.length, [
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
   ]);
-  return {
-    parent,
-    height,
-    car: createM5Car(parent.guide, height, parent.surfaceMap, 800, -1.75),
-  };
+  return { parent, height, car: createM5Car(parent.guide, height, parent.surfaceMap, 800, -1.75) };
 }
 
-test('M7.4 axle lateral force is explicit model-specific transient state', async () => {
-  const { car } = createFlatHighwayCar();
-  assert.equal(car.frontLateralForce, 0);
-  assert.equal(car.rearLateralForce, 0);
-  assert.equal(M5_CAR_PROFILE.frontLateralRelaxationLength, 1.6);
-  assert.equal(M5_CAR_PROFILE.rearLateralRelaxationLength, 1.2);
-  assert.equal(M5_CAR_PROFILE.lateralForceMinimumTau, 0.025);
-  assert.equal(M5_CAR_PROFILE.lateralForceMaximumTau, 0.16);
+test('M8.0 tire force is an algebraic observation with no model-specific memory state', async () => {
+  const { car } = fixture();
+  assert.equal('frontLateralForce' in car, false);
+  assert.equal('rearLateralForce' in car, false);
+  assert.equal('contacts' in car, false);
 
+  const carSource = await readFile(new URL('../src/physics/car-physics.ts', import.meta.url), 'utf8');
   const common = await readFile(new URL('../src/physics/vehicle-dynamics.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(common, /frontLateralForce|rearLateralForce|LateralRelaxationLength/);
+  assert.doesNotMatch(carSource, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
+  assert.doesNotMatch(common, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
 });
 
-test('M7.4 digital steering produces progressive force onset and a bounded release transient', () => {
-  const { parent, height, car } = createFlatHighwayCar();
-  const dt = 1 / 60;
-  let previousAcceleration = 0;
-  let maxAccelerationJerk = 0;
-  let maxAbsSideslipDegrees = 0;
-  let forceAtRelease = 0;
-  let forceOneTickAfterRelease = 0;
-
-  for (let tick = 0; tick < 120; tick += 1) {
-    updateM5Car(
-      parent.guide,
-      height,
-      parent.surfaceMap,
-      car,
-      { steering: tick < 6 ? 1 : 0, throttle: false, brake: false },
-      dt,
-    );
-    if (tick === 5) forceAtRelease = car.frontLateralForce;
-    if (tick === 6) forceOneTickAfterRelease = car.frontLateralForce;
-    maxAccelerationJerk = Math.max(
-      maxAccelerationJerk,
-      Math.abs(car.lateralAcceleration - previousAcceleration) / dt,
-    );
-    previousAcceleration = car.lateralAcceleration;
-    maxAbsSideslipDegrees = Math.max(
-      maxAbsSideslipDegrees,
-      Math.abs(Math.atan2(car.lateralSpeed, Math.max(0.01, car.longitudinalSpeed)) * 180 / Math.PI),
-    );
-  }
-
-  assert.ok(forceAtRelease > 0);
-  assert.ok(forceOneTickAfterRelease > forceAtRelease * 0.5);
-  assert.ok(maxAccelerationJerk < 35, `lateral acceleration jerk ${maxAccelerationJerk.toFixed(3)}m/s^3`);
-  assert.ok(maxAbsSideslipDegrees < 2.5, `tap sideslip ${maxAbsSideslipDegrees.toFixed(3)}deg`);
-  assert.ok(Math.abs(car.yawRate * 180 / Math.PI) < 0.2);
-  assert.ok(Math.abs(car.lateralAcceleration) < 0.05);
+test('M8.0 one-k tire response is immediate deterministic and releases with zero demand', () => {
+  const tire = M5_CAR_PROFILE.frontStation.tire;
+  const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
+  const repeated = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
+  const released = evaluateTireForce(30 / 0.33, 0.33, 30, 0, 6500, 1, tire);
+  assert.deepEqual(repeated, loaded);
+  assert.notEqual(loaded.fy, 0);
+  assert.equal(released.fx, 0);
+  assert.equal(released.fy, 0);
 });
 
-test('M7.4 an airborne axle cannot retain or manufacture tire force', () => {
-  const { parent, height, car } = createFlatHighwayCar();
-  car.frontLateralForce = 4000;
-  car.contacts[0].phase = 'AIRBORNE';
-
-  updateM5Car(
-    parent.guide,
-    height,
-    parent.surfaceMap,
-    car,
-    { steering: 1, throttle: false, brake: false },
-    1 / 60,
+test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
+  const force = evaluateTireForce(
+    200,
+    M5_CAR_PROFILE.wheelRadius,
+    30,
+    8,
+    0,
+    1,
+    M5_CAR_PROFILE.frontStation.tire,
   );
-
-  assert.equal(car.frontLateralForce, 0);
-  assert.equal(car.contacts[0].normalLoad, 0);
-  assert.ok(car.contacts[1].normalLoad > 0);
+  assert.equal(force.fx, 0);
+  assert.equal(force.fy, 0);
+  assert.equal(force.fmax, 0);
 });
 
-test('M7.4 recovery clears car tire-force memory', () => {
-  const { parent, height, car } = createFlatHighwayCar();
+test('M8.0 recovery reconstructs authoritative state without clearing nonexistent tire memory', () => {
+  const { parent, height, car } = fixture();
   const recovery = createM5RecoveryState(car);
-  car.frontLateralForce = 3200;
-  car.rearLateralForce = -2100;
   recovery.lastSafeS = car.course.s;
+  car.velocityX = 12;
+  car.velocityY = -8;
+  car.velocityZ = -4;
+  car.pitch = 0.4;
+  car.pitchRate = 1.2;
 
   recoverM5Vehicle(recovery, parent.guide, height, parent.surfaceMap, car, 'manual');
 
-  assert.equal(car.frontLateralForce, 0);
-  assert.equal(car.rearLateralForce, 0);
+  assert.equal('frontLateralForce' in car, false);
+  assert.equal('rearLateralForce' in car, false);
+  assert.equal(car.pitchRate, 0);
+  assert.equal(car.control.frontUtilization, 0);
+  assert.equal(car.control.rearUtilization, 0);
+  assert.equal(car.supported, true);
 });

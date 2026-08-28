@@ -145,8 +145,9 @@ test('M6.46 explicit supported Guide recovery target is reusable for wrong-cours
     'wrong-course',
   );
 
-  assert.equal(car.course.s, 80);
+  assert.ok(Math.abs(car.course.s - 80) < 0.2, `CG surface-normal offset moved s to ${car.course.s}`);
   assert.equal(car.course.l, 1);
+  assert.equal(recovery.lastSafeS, 80);
   assert.equal(car.supported, true);
   assert.equal(recovery.lastReason, 'wrong-course');
   assert.equal(recovery.recoveries, 1);

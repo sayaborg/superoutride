@@ -49,6 +49,7 @@ import {
   type M5RecoveryState,
   type M5VehicleState,
 } from './gameplay/recovery.js';
+import { pendingRouteStageRecoveryTarget } from './gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import {
   createSharedRouteChoiceState,
@@ -304,6 +305,10 @@ function frame(now: number): void {
       vehicle,
       SIM_DT,
       M7_2_PLAYER_RECOVERY_PROFILE,
+      pendingRouteStageRecoveryTarget(
+        playerTraveler.handoffState,
+        M7_2_PLAYER_RECOVERY_PROFILE.backtrackDistance,
+      ),
     );
     if (recovered !== null) {
       resetM5CameraRig(cameraRig);
@@ -350,6 +355,10 @@ function frame(now: number): void {
         rival.vehicle,
         SIM_DT,
         M7_2_RIVAL_RECOVERY_PROFILE,
+        pendingRouteStageRecoveryTarget(
+          rival.traveler.handoffState,
+          M7_2_RIVAL_RECOVERY_PROFILE.backtrackDistance,
+        ),
       );
       if (rivalRecovered !== null) {
         resyncLiveRouteTraveler(

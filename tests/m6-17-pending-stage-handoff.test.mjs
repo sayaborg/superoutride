@@ -19,6 +19,7 @@ import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
   observePendingRouteStageHandoff,
+  pendingRouteStageRecoveryTarget,
   queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
@@ -88,6 +89,17 @@ test('accepted route choice becomes PENDING while old chart/content remain activ
     sourceLocalL: -7.5,
     targetLocalL: 0,
   });
+});
+
+test('pending recovery target stays before the source seam and cannot manufacture COMMIT', () => {
+  const { route, routeState, manifest, state } = setup();
+  assert.equal(pendingRouteStageRecoveryTarget(state, 8), null);
+  const routeUpdate = updateRouteDag(routeState, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
+  queueRouteStageHandoff(state, manifest, routeUpdate);
+  assert.deepEqual(pendingRouteStageRecoveryTarget(state, 8), { s: 592, l: -7.5 });
+  assert.equal(state.lastEvent, 'PENDING');
+  assert.equal(state.commitCount, 0);
+  assert.throws(() => pendingRouteStageRecoveryTarget(state, -1), /non-negative/);
 });
 
 test('forward handoff seam atomically commits child chart/content without changing world pose or motion', () => {

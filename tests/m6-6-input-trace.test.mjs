@@ -86,7 +86,13 @@ test('same immutable trace can A/B two physics parameter sets without changing t
   const baseline = replayProbe(trace);
   const lowerDrive = replayProbe(trace, {
     ...M5_CAR_PROFILE,
-    maxDriveForce: M5_CAR_PROFILE.maxDriveForce * 0.55,
+    powertrain: {
+      ...M5_CAR_PROFILE.powertrain,
+      torqueCurve: M5_CAR_PROFILE.powertrain.torqueCurve.map((point) => ({
+        ...point,
+        torqueNewtonMeters: point.torqueNewtonMeters * 0.55,
+      })),
+    },
   });
 
   assert.equal(serializeDrivingInputTrace(trace), before);

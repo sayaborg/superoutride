@@ -92,21 +92,19 @@ const cameraProfile = {
 function placeCar(car, s, yawOffset = 0) {
   const p = guideCourseToWorld(guide, s, 0);
   const surface = surfaces.sample(s, 0);
-  Object.assign(car, {
-    x: p.x,
-    z: p.z,
-    y: height.samplePhysics(s),
-    yaw: p.heading + yawOffset,
-    speed: 45,
-    longitudinalSpeed: 45,
-    lateralSpeed: 0,
-    yawRate: 0,
-    steerAngle: 0,
-    course: { s: p.s, l: 0, segmentIndex: p.segmentIndex, distanceSquared: 0 },
-    verticalSpeed: 0,
-    surfaceType: surface.type,
-    supported: surface.material.supported,
-  });
+  car.x = p.x;
+  car.z = p.z;
+  car.y = height.samplePhysics(s) + 0.55;
+  car.yaw = p.heading + yawOffset;
+  car.velocityX = Math.sin(car.yaw) * 45;
+  car.velocityY = 0;
+  car.velocityZ = Math.cos(car.yaw) * 45;
+  car.yawRate = 0;
+  car.frontSteerAngle = 0;
+  car.course = { s: p.s, l: 0, segmentIndex: p.segmentIndex, distanceSquared: 0 };
+  car.surfaceType = surface.type;
+  car.frontNormalLoad = surface.material.supported ? 1 : 0;
+  car.rearNormalLoad = surface.material.supported ? 1 : 0;
 }
 
 function renderProbe(s, yawOffset = 0) {

@@ -81,6 +81,30 @@ export interface RouteStageHandoffObservation {
   readonly seam: ValidatedRouteStageHandoffSeam | null;
 }
 
+export interface PendingRouteStageRecoveryTarget {
+  readonly s: number;
+  readonly l: number;
+}
+
+/**
+ * Keep an explicit recovery discontinuity on the source side of a still-pending handoff seam.
+ * A later ordinary world-motion segment must cross the seam before content/chart state can commit.
+ */
+export function pendingRouteStageRecoveryTarget(
+  state: Pick<RouteStageHandoffState, 'pending'>,
+  backtrackDistance: number,
+): PendingRouteStageRecoveryTarget | null {
+  if (!Number.isFinite(backtrackDistance) || backtrackDistance < 0) {
+    throw new RangeError('pending handoff recovery backtrack distance must be finite and non-negative');
+  }
+  const pending = state.pending;
+  if (pending === null) return null;
+  return Object.freeze({
+    s: Math.max(0, pending.sourceSeamS - backtrackDistance),
+    l: pending.sourceLocalL,
+  });
+}
+
 /**
  * Compile one post-selection handoff seam per route choice.
  *

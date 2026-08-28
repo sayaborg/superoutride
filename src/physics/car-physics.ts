@@ -105,10 +105,13 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   rearDampingRatio: 0.35,
   frontQBump: 0.205,
   rearQBump: 0.205,
-  frontQTravel: 0.26,
-  rearQTravel: 0.26,
-  frontBumpForceMax: 30_000,
-  rearBumpForceMax: 26_000,
+  // The authored DEV crest/recontact and brake envelope reaches roughly 0.305 m from full
+  // extension after canonical static spawn. Keep a finite margin without weakening qTravel
+  // rejection or clamping compression/load.
+  frontQTravel: 0.32,
+  rearQTravel: 0.32,
+  frontBumpForceMax: 90_000,
+  rearBumpForceMax: 78_000,
 
   wheelRadius: 0.33,
   frontWheelInertia: 2.2,
@@ -272,16 +275,17 @@ export function createM5Car(
   if (!surface.material.supported) throw new Error('CAR spawn requires supported surface');
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const pitch = surface.gradeAngle;
-  const planarForward = { x: Math.sin(yaw), y: 0, z: Math.cos(yaw) };
+  const position = add3(surface.point, scale3(surface.normal, profile.desiredCgHeight));
+  const initialVelocity = scale3(surface.tangent, initialSpeed);
   const omega = initialSpeed / profile.wheelRadius;
   const state = {
     kind: 'CAR',
-    x: surface.point.x,
-    y: surface.point.y + profile.desiredCgHeight,
-    z: surface.point.z,
-    velocityX: planarForward.x * initialSpeed,
-    velocityY: 0,
-    velocityZ: planarForward.z * initialSpeed,
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    velocityX: initialVelocity.x,
+    velocityY: initialVelocity.y,
+    velocityZ: initialVelocity.z,
     yaw,
     pitch,
     yawRate: 0,
@@ -289,7 +293,7 @@ export function createM5Car(
     frontSteerAngle: 0,
     frontWheelOmega: omega,
     rearWheelOmega: omega,
-    course: initializeGuideObservation(guide, surface.point.x, surface.point.z),
+    course: initializeGuideObservation(guide, position.x, position.z),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
@@ -430,7 +434,10 @@ export function updateM5Car(
     car.velocityY += totalForce.y / profile.mass * substep;
     car.velocityZ += totalForce.z / profile.mass * substep;
     car.yawRate += totalMoment.y / profile.yawInertia * substep;
-    car.pitchRate += dot3(totalMoment, body.right) / profile.pitchInertia * substep;
+    // `pitch` is nose-up-positive, while positive right-axis rotation is nose-down under the
+    // repository's +Z-forward/+X-right convention. Project the physical moment with the matching
+    // sign so suspension load transfer damps displacement instead of reinforcing it.
+    car.pitchRate -= dot3(totalMoment, body.right) / profile.pitchInertia * substep;
     car.x += car.velocityX * substep;
     car.y += car.velocityY * substep;
     car.z += car.velocityZ * substep;
@@ -578,7 +585,7 @@ function carBodyKinematics(car: M5CarState): BodyKinematics {
     z: Math.cos(car.yaw) * Math.cos(car.pitch),
   }, { x: Math.sin(car.yaw), y: 0, z: Math.cos(car.yaw) });
   const up = normalize3(cross3(forward, right), WORLD_UP);
-  const omegaWorld = add3(scale3(WORLD_UP, car.yawRate), scale3(right, car.pitchRate));
+  const omegaWorld = add3(scale3(WORLD_UP, car.yawRate), scale3(right, -car.pitchRate));
   return {
     position: { x: car.x, y: car.y, z: car.z },
     velocity: { x: car.velocityX, y: car.velocityY, z: car.velocityZ },

@@ -84,17 +84,17 @@ function placeCar(car, s, l, yawOffset) {
   const surface = surfaces.sample(s, l);
   car.x = p.x;
   car.z = p.z;
-  car.y = height.samplePhysics(s);
+  car.y = height.samplePhysics(s) + 0.55;
   car.yaw = p.heading + yawOffset;
-  car.speed = 45;
-  car.longitudinalSpeed = 45;
-  car.lateralSpeed = 0;
+  car.velocityX = Math.sin(car.yaw) * 45;
+  car.velocityY = 0;
+  car.velocityZ = Math.cos(car.yaw) * 45;
   car.yawRate = 0;
-  car.steerAngle = 0;
+  car.frontSteerAngle = 0;
   car.course = { s: p.s, l, segmentIndex: p.segmentIndex, distanceSquared: 0 };
-  car.verticalSpeed = 0;
   car.surfaceType = surface.type;
-  car.supported = surface.material.supported;
+  car.frontNormalLoad = surface.material.supported ? 1 : 0;
+  car.rearNormalLoad = surface.material.supported ? 1 : 0;
 }
 
 function renderProbe(s, l, yawOffset) {

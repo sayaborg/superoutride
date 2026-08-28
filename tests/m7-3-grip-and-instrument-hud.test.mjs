@@ -6,30 +6,34 @@ import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branch
 import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { M5_BIKE_PROFILE } from '../dist/physics/motorcycle-physics.js';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
+import { usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
 import { formatVehicleControlHud } from '../dist/render/vehicle-control-hud.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
-test('M7.3 raises shared paved grip while retaining the authored off-road hierarchy', () => {
-  assert.equal(SURFACE_MATERIALS.ASPHALT.friction, 1.30);
-  assert.equal(SURFACE_MATERIALS.SHOULDER.friction, 0.95);
-  assert.equal(SURFACE_MATERIALS.GRASS.friction, 0.52);
-  assert.equal(SURFACE_MATERIALS.DIRT.friction, 0.64);
-  assert.equal(SURFACE_MATERIALS.SAND.friction, 0.40);
-  assert.ok(SURFACE_MATERIALS.ASPHALT.friction > SURFACE_MATERIALS.SHOULDER.friction);
-  assert.ok(SURFACE_MATERIALS.SHOULDER.friction > SURFACE_MATERIALS.GRASS.friction);
-  assert.ok(SURFACE_MATERIALS.ASPHALT.friction * M5_BIKE_PROFILE.lateralGripScale >= 1.20);
+test('M8.0 SurfaceMap owns relative grip while tire profiles own reference friction', () => {
+  assert.equal(SURFACE_MATERIALS.ASPHALT.gripFactor, 1.00);
+  assert.equal(SURFACE_MATERIALS.SHOULDER.gripFactor, 0.78);
+  assert.equal(SURFACE_MATERIALS.GRASS.gripFactor, 0.43);
+  assert.equal(SURFACE_MATERIALS.DIRT.gripFactor, 0.52);
+  assert.equal(SURFACE_MATERIALS.SAND.gripFactor, 0.33);
+  assert.ok(SURFACE_MATERIALS.ASPHALT.gripFactor > SURFACE_MATERIALS.SHOULDER.gripFactor);
+  assert.ok(SURFACE_MATERIALS.SHOULDER.gripFactor > SURFACE_MATERIALS.GRASS.gripFactor);
+  assert.equal(M5_BIKE_PROFILE.muRef, 1.25);
+  assert.equal('friction' in SURFACE_MATERIALS.ASPHALT, false);
+  assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
-test('M7.3 car useful-steer target does not extend beyond the linear front friction limit', () => {
-  assert.equal(M5_CAR_PROFILE.frontSlipUtilization, 1.0);
-  assert.equal(M5_CAR_PROFILE.steeringTau, 0.16);
-
+test('M8.0 car useful-steer capacity stays inside the shared one-k radial knee', () => {
+  assert.ok(M5_CAR_PROFILE.frontNormalizedStiffness < M5_CAR_PROFILE.rearNormalizedStiffness);
   const frontNormal = M5_CAR_PROFILE.mass * 9.80665 * M5_CAR_PROFILE.rearAxle
     / (M5_CAR_PROFILE.frontAxle + M5_CAR_PROFILE.rearAxle);
-  const frictionSlip = SURFACE_MATERIALS.ASPHALT.friction * frontNormal
-    / M5_CAR_PROFILE.frontCornerStiffness;
-  const requestedUsefulSlip = frictionSlip * M5_CAR_PROFILE.frontSlipUtilization;
-  assert.ok(requestedUsefulSlip <= frictionSlip + 1e-12);
+  const capacity = usefulLateralCapacity(
+    0,
+    frontNormal,
+    SURFACE_MATERIALS.ASPHALT.gripFactor,
+    M5_CAR_PROFILE.frontStation.tire,
+  );
+  assert.ok(Math.abs(capacity - M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef * frontNormal) < 1e-9);
 });
 
 test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {

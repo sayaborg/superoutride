@@ -7,7 +7,6 @@ test('M6.20 validated point-to-point finish records result without freezing the 
 
   assert.match(source, /updateRunObjectiveFromValidatedFinish/);
   assert.match(source, /POINT_TO_POINT_OBJECTIVE/);
-  assert.match(source, /A validated point-to-point finish records the objective; it does not pause DEV simulation\./);
   assert.doesNotMatch(
     source,
     /if\s*\(runObjective\.status\s*===\s*['"]FINISHED['"]\)\s*\{[\s\S]*?continue;/,

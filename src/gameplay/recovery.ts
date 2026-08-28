@@ -20,7 +20,7 @@ import {
 import {
   createAutomaticPowertrainState,
 } from '../physics/automatic-powertrain.js';
-import { quaternionFromYawPitchLean, scale3 } from '../physics/vehicle-math3.js';
+import { add3, quaternionFromYawPitchLean, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
@@ -78,6 +78,7 @@ export function updateM5Recovery(
   vehicle: M5VehicleState,
   dt: number,
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
+  target: M5RecoveryTarget | null = null,
 ): RecoveryReason | null {
   if (vehicle.supported) {
     state.lastSafeS = vehicle.course.s;
@@ -97,7 +98,10 @@ export function updateM5Recovery(
   else if (fallDistance >= profile.maxFallDistance) reason = 'fall-distance';
   else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';
 
-  if (reason !== null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, reason, profile);
+  if (reason !== null) {
+    if (target === null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, reason, profile);
+    else recoverM5VehicleToGuideCoordinate(state, guide, height, surfaces, vehicle, target, reason, profile);
+  }
   return reason;
 }
 
@@ -159,9 +163,6 @@ export function recoverM5VehicleToGuideCoordinate(
     profile.maxRecoverySpeed,
   );
 
-  vehicle.x = surface.point.x;
-  vehicle.z = surface.point.z;
-  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z);
   vehicle.surfaceType = surface.surfaceType;
   vehicle.longitudinalAcceleration = 0;
   vehicle.lateralAcceleration = 0;
@@ -173,8 +174,9 @@ export function recoverM5VehicleToGuideCoordinate(
   vehicle.velocityY = velocity.y;
   vehicle.velocityZ = velocity.z;
 
-  if (vehicle.kind === 'CAR') reconstructCar(vehicle, surface.point.y, yaw, surface.gradeAngle, speed);
-  else reconstructBike(vehicle, surface.point.y, yaw, surface.gradeAngle, surface.normal, speed);
+  if (vehicle.kind === 'CAR') reconstructCar(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
+  else reconstructBike(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
+  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z);
 
   state.lastSafeS = target.s;
   state.unsupportedTime = 0;
@@ -184,14 +186,18 @@ export function recoverM5VehicleToGuideCoordinate(
 
 function reconstructCar(
   car: M5CarState,
-  surfaceY: number,
+  surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
+  surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
   speed: number,
 ): void {
   const p = M5_CAR_PROFILE;
   const wheelbase = p.frontAxle + p.rearAxle;
-  car.y = surfaceY + p.desiredCgHeight;
+  const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
+  car.x = position.x;
+  car.y = position.y;
+  car.z = position.z;
   car.yaw = yaw;
   car.pitch = pitch;
   car.yawRate = 0;
@@ -210,14 +216,17 @@ function reconstructCar(
 
 function reconstructBike(
   bike: M5BikeState,
-  surfaceY: number,
+  surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
+  surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
-  surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   speed: number,
 ): void {
   const p = M5_BIKE_PROFILE;
-  bike.y = surfaceY + p.desiredCgHeight;
+  const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
+  bike.x = position.x;
+  bike.y = position.y;
+  bike.z = position.z;
   bike.orientation = quaternionFromYawPitchLean(yaw, pitch, 0);
   bike.omegaBody = { x: 0, y: 0, z: 0 };
   bike.frontSteerAngle = 0;

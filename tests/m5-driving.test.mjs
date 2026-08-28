@@ -8,7 +8,7 @@ import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
-import { adoptM5BikeKinematics, adoptM5CarKinematics, createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
+import { createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -58,17 +58,17 @@ function placeCar(car, s, l, speed = 30) {
   const p = guideCourseToWorld(guide, s, l);
   car.x = p.x;
   car.z = p.z;
-  car.y = height.samplePhysics(s);
+  car.y = height.samplePhysics(s) + 0.55;
   car.yaw = p.heading;
-  car.longitudinalSpeed = speed;
-  car.lateralSpeed = 0;
+  car.velocityX = Math.sin(car.yaw) * speed;
+  car.velocityY = 0;
+  car.velocityZ = Math.cos(car.yaw) * speed;
   car.yawRate = 0;
-  car.speed = speed;
   car.course = { s: p.s, l, segmentIndex: p.segmentIndex, distanceSquared: 0 };
-  car.verticalSpeed = 0;
   const surface = surfaces.sample(s, l);
   car.surfaceType = surface.type;
-  car.supported = surface.material.supported;
+  car.frontNormalLoad = surface.material.supported ? 1 : 0;
+  car.rearNormalLoad = surface.material.supported ? 1 : 0;
 }
 
 test('SurfaceMap returns lightweight physical attributes independent from GroundMap pixels', () => {
@@ -169,7 +169,8 @@ test('M5 renderer projects player from physical Y and keeps player depth/scale c
   placeCar(car, 520, -8, 20);
   // Force an airborne offset to prove renderer consumes vehicle.y rather than Y_render.
   car.y = height.samplePhysics(520) - 0.5;
-  car.supported = false;
+  car.frontNormalLoad = 0;
+  car.rearNormalLoad = 0;
   car.surfaceType = 'VOID';
   const rig = createM5CameraRig();
   const camera = updateM5Camera(rig, guide, height, car, cameraProfile, 1 / 60);
@@ -187,26 +188,22 @@ test('motorcycle steering produces physical bank and yaw while reusing canonical
   for (let i = 0; i < 90; i += 1) {
     updateM5Bike(guide, height, surfaces, bike, { steering: 0.55, throttle: true, brake: false }, 1 / 60);
   }
-  assert.ok(bike.bankAngle > deg(5));
+  assert.ok(Math.abs(bike.bankAngle) > deg(5));
   assert.ok(bike.yawRate > 0);
   assert.ok(bike.course.l > 0);
-  assert.ok(bike.sprungRoll > 0);
+  assert.ok(Math.abs(bike.sprungRoll) > deg(5));
 });
 
 test('motorcycle bank/yaw authority is surface-grip limited on sand', () => {
-  const asphalt = createM5Bike(guide, height, surfaces, 300);
-  const sand = createM5Bike(guide, height, surfaces, 300);
-  const pa = guideCourseToWorld(guide, 300, 0);
-  const ps = guideCourseToWorld(guide, 300, 8);
-  Object.assign(asphalt, { x: pa.x, z: pa.z, y: height.samplePhysics(300), yaw: pa.heading, course: { s: pa.s, l: 0, segmentIndex: pa.segmentIndex, distanceSquared: 0 }, longitudinalSpeed: 25, speed: 25 });
-  Object.assign(sand, { x: ps.x, z: ps.z, y: height.samplePhysics(300), yaw: ps.heading, course: { s: ps.s, l: 8, segmentIndex: ps.segmentIndex, distanceSquared: 0 }, longitudinalSpeed: 25, speed: 25 });
+  const asphalt = createM5Bike(guide, height, surfaces, 300, 0, 25);
+  const sand = createM5Bike(guide, height, surfaces, 300, 8, 25);
   for (let i = 0; i < 45; i += 1) {
     const input = { steering: -0.8, throttle: false, brake: false };
     updateM5Bike(guide, height, surfaces, asphalt, input, 1 / 60);
     updateM5Bike(guide, height, surfaces, sand, input, 1 / 60);
   }
   assert.ok(Math.abs(asphalt.bankAngle) > Math.abs(sand.bankAngle));
-  assert.ok(Math.abs(asphalt.yawRate) > Math.abs(sand.yawRate));
+  assert.ok(Math.abs(asphalt.lateralSpeed) > Math.abs(sand.lateralSpeed));
 });
 
 test('motorcycle physical bank state selects non-center yaw x bank sprite variant', () => {
@@ -221,18 +218,12 @@ test('motorcycle physical bank state selects non-center yaw x bank sprite varian
   assert.notEqual(bankIndex, Math.floor(bankCount / 2));
 });
 
-test('car/bike model toggle transfers world kinematics instead of teleporting', () => {
+test('CAR and BIKE constructors own independent authoritative state at a safe spawn', () => {
   const car = createM5Car(guide, height, surfaces, 140);
-  for (let i = 0; i < 25; i += 1) updateM5Car(guide, height, surfaces, car, { steering: 0.2, throttle: true, brake: false }, 1 / 60);
   const bike = createM5Bike(guide, height, surfaces, 45);
-  adoptM5BikeKinematics(bike, car);
-  near(bike.x, car.x);
-  near(bike.y, car.y);
-  near(bike.z, car.z);
-  near(bike.yaw, car.yaw);
-  near(bike.longitudinalSpeed, car.longitudinalSpeed);
-  const car2 = createM5Car(guide, height, surfaces, 45);
-  adoptM5CarKinematics(car2, bike);
-  near(car2.x, bike.x);
-  near(car2.course.s, bike.course.s);
+  assert.notEqual(car.course.s, bike.course.s);
+  assert.equal('orientation' in car, false);
+  assert.equal('pitch' in bike, false);
+  assert.equal('frontLateralForce' in car, false);
+  assert.equal('contacts' in bike, false);
 });

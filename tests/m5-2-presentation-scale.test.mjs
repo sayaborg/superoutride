@@ -11,7 +11,6 @@ import {
   pixelsPerMeterAtDepth,
   screenWidthForWorldWidth,
 } from '../dist/core/presentation-scale.js';
-import { M5_CAR_PROFILE } from '../dist/physics/car-physics.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { drawScaledSprite } from '../dist/render/sprite.js';
@@ -35,7 +34,7 @@ test('future FOV changes move D_cam and cannot change the 40 px/m player referen
 });
 
 test('car physical width is 2.0 m and car source asset is authored 80 px wide', () => {
-  assert.equal(M5_CAR_PROFILE.bodyWidth, 2);
+  assert.equal(CAR_WIDTH_METERS, 2);
   const assets = createM4SpriteAssets();
   const rear = assets.car.assets[0][0];
   assert.equal(rear.worldWidthMeters, 2);

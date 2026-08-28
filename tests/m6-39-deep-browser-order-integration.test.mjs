@@ -224,20 +224,19 @@ function stageBeforeGate(state, gate) {
   assert.equal(surface.material.supported, true, `${runtime.packageId} probe start must be supported`);
 
   state.car.x = start.x;
-  state.car.y = runtime.heightProfile.samplePhysics(start.s);
+  state.car.y = runtime.heightProfile.samplePhysics(start.s) + 0.55;
   state.car.z = start.z;
   state.car.yaw = start.heading;
-  state.car.speed = PROBE_SPEED_MPS;
   state.car.course = { s: start.s, l: start.l, segmentIndex: start.segmentIndex, distanceSquared: 0 };
-  state.car.verticalSpeed = 0;
-  state.car.longitudinalSpeed = PROBE_SPEED_MPS;
-  state.car.lateralSpeed = 0;
+  state.car.velocityX = Math.sin(start.heading) * PROBE_SPEED_MPS;
+  state.car.velocityY = 0;
+  state.car.velocityZ = Math.cos(start.heading) * PROBE_SPEED_MPS;
   state.car.yawRate = 0;
-  state.car.steerAngle = 0;
-  state.car.supported = true;
+  state.car.frontSteerAngle = 0;
+  state.car.frontNormalLoad = 1;
+  state.car.rearNormalLoad = 1;
   state.car.surfaceType = surface.type;
   state.car.lateralAcceleration = 0;
-  state.car.sprungRoll = 0;
 
   state.recovery.lastSafeS = start.s;
   state.recovery.unsupportedTime = 0;
@@ -255,8 +254,9 @@ function createDeepState() {
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
   const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 320);
-  car.speed = PROBE_SPEED_MPS;
-  car.longitudinalSpeed = PROBE_SPEED_MPS;
+  car.velocityX = Math.sin(car.yaw) * PROBE_SPEED_MPS;
+  car.velocityY = 0;
+  car.velocityZ = Math.cos(car.yaw) * PROBE_SPEED_MPS;
 
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(

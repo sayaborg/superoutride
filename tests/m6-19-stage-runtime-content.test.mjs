@@ -213,10 +213,7 @@ test('validated seam atomically changes package, Guide coordinate frame and road
 test('ordinary M5 car physics consumes a committed child Guide frame and child SurfaceMap without snapping', () => {
   const { charts, roadViews, surfaceMap, heightProfile } = setup();
   const leftSurface = new StageSurfaceMapView(surfaceMap, roadViews.left);
-  const car = createM5Car(charts.left, heightProfile, leftSurface, 600);
-  car.longitudinalSpeed = 0;
-  car.lateralSpeed = 0;
-  car.speed = 0;
+  const car = createM5Car(charts.left, heightProfile, leftSurface, 600, 0, 0);
   const before = { x: car.x, z: car.z, yaw: car.yaw };
 
   updateM5Car(

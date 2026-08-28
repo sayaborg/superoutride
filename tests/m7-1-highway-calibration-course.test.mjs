@@ -76,8 +76,8 @@ test('M7.1 authored crest causally releases both contacts at highway speed', () 
     live.window.surface,
     M7_1_AIRBORNE_PROBE_START_S,
     M7_1_PLAYER_START_L,
+    60,
   );
-  car.speed = 60;
 
   let observedAirborne = false;
   let maxGroundGap = 0;
@@ -95,6 +95,7 @@ test('M7.1 authored crest causally releases both contacts at highway speed', () 
       maxGroundGap,
       car.y - live.window.height.samplePhysics(car.course.s),
     );
+    if (observedAirborne && maxGroundGap > 0.60) break;
   }
 
   assert.equal(observedAirborne, true);

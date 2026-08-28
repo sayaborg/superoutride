@@ -9,6 +9,7 @@ import { createM5CameraRig, resetM5CameraRig, updateM5Camera } from '../dist/cam
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
+import { quaternionFromYawPitchLean } from '../dist/physics/vehicle-math3.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
@@ -87,11 +88,15 @@ test('sustained steering into VOID recovers before the player sprite can disappe
 test('automatic recovery returns a fallen car to supported road center and resets unsafe motion', () => {
   const car = createM5Car(guide, height, surfaces, 520);
   car.course = { ...car.course, s: 520, l: -8 };
-  car.supported = false;
+  car.frontNormalLoad = 0;
+  car.rearNormalLoad = 0;
+  car.frontSupportAvailable = false;
+  car.rearSupportAvailable = false;
   car.surfaceType = 'VOID';
   car.y = height.samplePhysics(520) - 4;
-  car.verticalSpeed = -12;
-  car.lateralSpeed = 14;
+  car.velocityX = Math.cos(car.yaw) * 14 + Math.sin(car.yaw) * 30;
+  car.velocityY = -12;
+  car.velocityZ = -Math.sin(car.yaw) * 14 + Math.cos(car.yaw) * 30;
   car.yawRate = 1.2;
   const recovery = createM5RecoveryState(car);
   recovery.lastSafeS = 500;
@@ -100,19 +105,21 @@ test('automatic recovery returns a fallen car to supported road center and reset
   assert.equal(reason, 'fall-distance');
   assert.equal(car.supported, true);
   assert.equal(car.surfaceType, 'ASPHALT');
-  assert.equal(car.course.l, 0);
+  assert.ok(Math.abs(car.course.l) < 1e-12);
   assert.equal(car.verticalSpeed, 0);
-  assert.equal(car.lateralSpeed, 0);
+  assert.ok(Math.abs(car.lateralSpeed) < 1e-12);
   assert.equal(car.yawRate, 0);
   assert.equal(recovery.recoveries, 1);
 });
 
 test('bike recovery clears bank state instead of carrying a crash lean into respawn', () => {
   const bike = createM5Bike(guide, height, surfaces, 520);
-  bike.bankAngle = deg(40);
-  bike.bankRate = 2;
-  bike.sprungRoll = 0.5;
-  bike.supported = false;
+  bike.orientation = quaternionFromYawPitchLean(bike.yaw, bike.sprungPitch, deg(40));
+  bike.omegaBody = { x: 2, y: 0, z: 0 };
+  bike.frontNormalLoad = 0;
+  bike.rearNormalLoad = 0;
+  bike.frontSupportAvailable = false;
+  bike.rearSupportAvailable = false;
   bike.surfaceType = 'VOID';
   bike.course = { ...bike.course, s: 520, l: -20 };
   const recovery = createM5RecoveryState(bike);
@@ -120,10 +127,10 @@ test('bike recovery clears bank state instead of carrying a crash lean into resp
 
   const reason = updateM5Recovery(recovery, guide, height, surfaces, bike, 1 / 60);
   assert.equal(reason, 'chart-excursion');
-  assert.equal(bike.bankAngle, 0);
-  assert.equal(bike.bankRate, 0);
-  assert.equal(bike.sprungRoll, 0);
-  assert.equal(bike.course.l, 0);
+  assert.ok(Math.abs(bike.bankAngle) < 1e-12);
+  assert.ok(Math.abs(bike.bankRate) < 1e-12);
+  assert.ok(Math.abs(bike.sprungRoll) < 1e-12);
+  assert.ok(Math.abs(bike.course.l) < 1e-12);
 });
 
 test('manual recovery is presentation/gameplay reset and preserves chainage pseudo-projection afterward', () => {
