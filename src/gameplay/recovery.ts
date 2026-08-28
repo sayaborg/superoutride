@@ -1,14 +1,26 @@
 import {
   guideCoordinateCurve,
-  guideCoordinateToWorld,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
-import type { M5CarState } from '../physics/car-physics.js';
-import type { M5BikeState } from '../physics/motorcycle-physics.js';
-import type { SurfaceMapReader, SurfaceType } from '../physics/surface-map.js';
-import { resetVehicleControlState } from '../physics/vehicle-dynamics.js';
-import { resetAutomaticPowertrainTransient } from '../physics/automatic-powertrain.js';
+import {
+  M5_CAR_PROFILE,
+  type M5CarState,
+} from '../physics/car-physics.js';
+import {
+  M5_BIKE_PROFILE,
+  type M5BikeState,
+} from '../physics/motorcycle-physics.js';
+import type { SurfaceMapReader } from '../physics/surface-map.js';
+import {
+  initializeGuideObservation,
+  resetVehicleControlState,
+  sampleSurfaceGeometryAtCoordinate,
+} from '../physics/vehicle-dynamics.js';
+import {
+  createAutomaticPowertrainState,
+} from '../physics/automatic-powertrain.js';
+import { quaternionFromYawPitchLean, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = M5CarState | M5BikeState;
@@ -57,11 +69,7 @@ export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState 
   };
 }
 
-/**
- * M5 gameplay-side fail-safe. Core defines VOID as unsupported but intentionally leaves
- * crash/damage/respawn to gameplay. This DEV rule keeps the driving prototype playable
- * without modifying world physics or pseudo projection.
- */
+/** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
 export function updateM5Recovery(
   state: M5RecoveryState,
   guide: GuideCoordinateSource,
@@ -78,24 +86,21 @@ export function updateM5Recovery(
   }
 
   state.unsupportedTime += dt;
-  const groundY = height.samplePhysics(vehicle.course.s);
-  const fallDistance = Math.max(0, groundY - vehicle.y);
+  const desiredCgHeight = vehicle.kind === 'CAR'
+    ? M5_CAR_PROFILE.desiredCgHeight
+    : M5_BIKE_PROFILE.desiredCgHeight;
+  const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
+  const fallDistance = Math.max(0, expectedCgY - vehicle.y);
 
   let reason: RecoveryReason | null = null;
   if (Math.abs(vehicle.course.l) >= profile.maxLateralExcursion) reason = 'chart-excursion';
   else if (fallDistance >= profile.maxFallDistance) reason = 'fall-distance';
   else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';
 
-  if (reason !== null) {
-    recoverM5Vehicle(state, guide, height, surfaces, vehicle, reason, profile);
-  }
+  if (reason !== null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, reason, profile);
   return reason;
 }
 
-/**
- * Ordinary open-path recovery. The target is an explicit gameplay decision, not topology:
- * backtrack along the current stage and stop at the real start endpoint instead of wrapping.
- */
 export function recoverM5Vehicle(
   state: M5RecoveryState,
   guide: GuideCoordinateSource,
@@ -122,8 +127,9 @@ export function recoverM5Vehicle(
 }
 
 /**
- * Apply the common recovery state reset at one explicitly chosen supported Guide coordinate.
- * Route/session policy may use this primitive without teaching recovery about branches or laps.
+ * Explicit gameplay discontinuity: reconstruct a complete safe authoritative vehicle state at one
+ * authored supported coordinate. No contact phase, tire memory, assist state or route progress is
+ * manufactured.
  */
 export function recoverM5VehicleToGuideCoordinate(
   state: M5RecoveryState,
@@ -136,70 +142,103 @@ export function recoverM5VehicleToGuideCoordinate(
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
 ): void {
   const curve = guideCoordinateCurve(guide);
-  if (![target.s, target.l].every(Number.isFinite)) {
-    throw new RangeError('recovery target coordinate must be finite');
-  }
-  if (target.s < 0 || target.s > curve.length) {
-    throw new RangeError('recovery target chainage must lie within the active Guide domain');
-  }
+  if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
+  if (target.s < 0 || target.s > curve.length) throw new RangeError('recovery target chainage must lie within the active Guide domain');
 
-  const plan = guideCoordinateToWorld(guide, target.s, target.l);
-  const surface = surfaces.sample(plan.s, target.l);
-  if (!surface.material.supported) {
-    throw new Error('recovery target must be physically supported');
-  }
+  const coordinate = {
+    s: target.s,
+    l: target.l,
+    segmentIndex: segmentIndexAt(curve.segments, target.s),
+    distanceSquared: 0,
+  };
+  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
+  if (!surface.material.supported) throw new Error('recovery target must be physically supported');
   const speed = clamp(
     Math.max(0, vehicle.longitudinalSpeed) * profile.speedRetention,
     profile.minRecoverySpeed,
     profile.maxRecoverySpeed,
   );
 
-  vehicle.x = plan.x;
-  vehicle.y = height.samplePhysics(plan.s);
-  vehicle.z = plan.z;
-  vehicle.yaw = plan.heading;
-  vehicle.speed = speed;
-  vehicle.course = { s: plan.s, l: target.l, segmentIndex: plan.segmentIndex, distanceSquared: 0 };
-  vehicle.verticalSpeed = 0;
-  vehicle.longitudinalSpeed = speed;
-  vehicle.lateralSpeed = 0;
-  vehicle.yawRate = 0;
-  vehicle.steerAngle = 0;
-  vehicle.supported = true;
-  vehicle.surfaceType = surface.type as SurfaceType;
-  vehicle.lateralAcceleration = 0;
+  vehicle.x = surface.point.x;
+  vehicle.z = surface.point.z;
+  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z);
+  vehicle.surfaceType = surface.surfaceType;
   vehicle.longitudinalAcceleration = 0;
-  vehicle.sprungPitch = 0;
-  vehicle.sprungPitchRate = 0;
-  vehicle.sprungRoll = 0;
-  vehicle.sprungRollRate = 0;
+  vehicle.lateralAcceleration = 0;
   resetVehicleControlState(vehicle);
-  resetAutomaticPowertrainTransient(vehicle.powertrain);
-  for (const contact of vehicle.contacts) {
-    contact.phase = 'CONTACT';
-    contact.supportAvailable = true;
-    contact.supportFraction = 1;
-    contact.groundHeight = vehicle.y;
-    contact.surfaceType = surface.type;
-    contact.friction = surface.material.friction;
-    contact.rollingResistance = surface.material.rollingResistance;
-    contact.driveScale = surface.material.driveScale;
-    contact.compression = 0;
-    contact.normalLoad = 0;
-    contact.wheelAngularSpeed = 0;
-  }
 
-  if ('bankAngle' in vehicle) {
-    vehicle.bankAngle = 0;
-    vehicle.bankRate = 0;
-  }
-  if ('frontLateralForce' in vehicle) {
-    vehicle.frontLateralForce = 0;
-    vehicle.rearLateralForce = 0;
-  }
+  const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
+  const velocity = scale3(surface.tangent, speed);
+  vehicle.velocityX = velocity.x;
+  vehicle.velocityY = velocity.y;
+  vehicle.velocityZ = velocity.z;
 
-  state.lastSafeS = plan.s;
+  if (vehicle.kind === 'CAR') reconstructCar(vehicle, surface.point.y, yaw, surface.gradeAngle, speed);
+  else reconstructBike(vehicle, surface.point.y, yaw, surface.gradeAngle, surface.normal, speed);
+
+  state.lastSafeS = target.s;
   state.unsupportedTime = 0;
   state.recoveries += 1;
   state.lastReason = reason;
+}
+
+function reconstructCar(
+  car: M5CarState,
+  surfaceY: number,
+  yaw: number,
+  pitch: number,
+  speed: number,
+): void {
+  const p = M5_CAR_PROFILE;
+  const wheelbase = p.frontAxle + p.rearAxle;
+  car.y = surfaceY + p.desiredCgHeight;
+  car.yaw = yaw;
+  car.pitch = pitch;
+  car.yawRate = 0;
+  car.pitchRate = 0;
+  car.frontSteerAngle = 0;
+  car.frontWheelOmega = speed / p.wheelRadius;
+  car.rearWheelOmega = speed / p.wheelRadius;
+  car.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;
+  car.rearNormalLoad = p.mass * 9.80665 * p.frontAxle / wheelbase;
+  car.frontGap = -p.frontStation.suspension.qStatic;
+  car.rearGap = -p.rearStation.suspension.qStatic;
+  car.frontSupportAvailable = true;
+  car.rearSupportAvailable = true;
+  Object.assign(car.powertrain, createAutomaticPowertrainState(p.powertrain, car.rearWheelOmega));
+}
+
+function reconstructBike(
+  bike: M5BikeState,
+  surfaceY: number,
+  yaw: number,
+  pitch: number,
+  surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
+  speed: number,
+): void {
+  const p = M5_BIKE_PROFILE;
+  bike.y = surfaceY + p.desiredCgHeight;
+  bike.orientation = quaternionFromYawPitchLean(yaw, pitch, 0);
+  bike.omegaBody = { x: 0, y: 0, z: 0 };
+  bike.frontSteerAngle = 0;
+  bike.frontWheelOmega = speed / p.frontRollingRadius;
+  bike.rearWheelOmega = speed / p.rearRollingRadius;
+  bike.frontNormalLoad = p.mass * 9.80665 * p.frontWeightFraction;
+  bike.rearNormalLoad = p.mass * 9.80665 - bike.frontNormalLoad;
+  bike.frontGap = -p.frontStation.suspension.qStatic;
+  bike.rearGap = -p.rearStation.suspension.qStatic;
+  bike.frontSupportAvailable = true;
+  bike.rearSupportAvailable = true;
+  bike.referenceSurfaceNormal = { ...surfaceNormal };
+  Object.assign(bike.powertrain, createAutomaticPowertrainState(p.powertrain, bike.rearWheelOmega));
+}
+
+function segmentIndexAt(
+  segments: readonly { readonly sStart: number; readonly sEnd: number; readonly index: number }[],
+  s: number,
+): number {
+  for (const segment of segments) {
+    if (s >= segment.sStart - 1e-9 && s <= segment.sEnd + 1e-9) return segment.index;
+  }
+  throw new RangeError('recovery target is outside Guide segments');
 }
