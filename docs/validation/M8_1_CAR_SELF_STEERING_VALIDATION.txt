@@ -1,19 +1,19 @@
-SUPER OUTRIDE — M8.1 CAR TRAVEL-DIRECTION STEERING VALIDATION
+SUPER OUTRIDE — M8.1 CAR PREDICTIVE TRAVEL-DIRECTION STEERING VALIDATION
 2026-08-30 JST
 
 Scope:
-M8.1 CAR normalized driver-request input, slew-limited body-travel steering offset, automatic
-countersteer, digital touch buttons, derived handwheel/front-slip telemetry, live CAR steering HUD,
-and ordinary DEV rival adaptation.
+M8.1 CAR normalized driver-request input, press-slew body-travel steering offset, stateless yaw-rate
+preview, damped automatic countersteer, digital touch buttons, derived handwheel/front-slip
+telemetry, live CAR steering HUD, and ordinary DEV rival adaptation.
 
 Repository:
 sayaborg/superoutride
 
 Audited main baseline:
-f8df430b8fca15544bded808c4d2d6048448bc68
+ad42829d36b839984186611e007838da28e747ca
 
 Candidate branch:
-codex/m8-1-car-self-steering
+codex/m8-1-yaw-damped-steering
 
 Package / visible milestone:
 super-outride-m8-1@0.8.1
@@ -24,15 +24,17 @@ docs/80_m8_1_car_self_steering_control.md
 
 Resolved implementation classes:
 - canonical CAR steering input is a normalized driver request, while BIKE lean intent is unchanged;
-- one slew-limited steering-offset command makes short digital presses proportionally small;
-- a fast overdamped rack response aims the sole road-wheel angle along authoritative CG travel
-  direction plus that offset;
+- one press-slew steering-offset command makes short digital presses proportionally small and
+  clears immediately when the digital button is released;
+- a stateless 0.12-second yaw-rate preview predicts CG travel direction in the rotating body frame;
+- a fast overdamped rack response aims the sole road-wheel angle along that predicted direction plus
+  the driver offset;
 - front-contact slip remains ordinary tire-force/HUD telemetry and is not steering feedback;
-- using CG rather than front-station velocity leaves yaw-rate-derived front slip to damp the
-  lateral/yaw response instead of making the handwheel follow it;
+- using CG rather than front-station velocity leaves yaw-rate-derived front slip physical, while
+  the preview explicitly damps the otherwise underdamped sideslip/yaw pair;
 - the old CAR useful-steer cap and hypothetical front-utilization comparison are removed;
-- neutral input aims along CG travel direction and produces countersteer when body sideslip
-  requires it;
+- neutral input aims along predicted CG travel direction and produces early countersteer when body
+  sideslip or yaw rate requires it;
 - the 31-degree mechanical road-wheel stop remains the only hard steering-angle limit;
 - 15:1 steering ratio derives the displayed handwheel angle, including +/-465 degrees at lock;
 - touch steering uses independent left/right digital buttons with multi-pointer neutral handling;
@@ -47,8 +49,9 @@ tests/m8-1-car-self-steering.test.mjs
 The acceptance matrix covers:
 - one-k-consistent regularized slip observation;
 - regularized authoritative CG travel-direction derivation;
-- short digital tap versus held request through offset slew and fast rack response;
-- released high-speed tap damping without rack-lock divergence;
+- short digital tap versus held request through press slew and fast rack response;
+- immediate digital command release and high-speed tap damping without rack-lock divergence;
+- a held-drift release with rapidly shrinking body-sideslip and yaw-rate envelopes;
 - physical neutral-input countersteer from a yawed body/velocity state;
 - finite request offset, mechanical rack stop and 15:1 handwheel derivation;
 - CAR HUD telemetry-model derivation;
@@ -56,8 +59,8 @@ The acceptance matrix covers:
 
 Full repository result before this artifact:
 npm test
-500 tests
-500 pass
+501 tests
+501 pass
 0 fail
 0 skipped
 
@@ -70,22 +73,31 @@ Browser verification:
 - neutral display returned to N while the road-wheel/handwheel values remained physical outputs.
 - after the response split, a fresh BRANCHING reload ran for three seconds with the CAR panel at
   neutral and emitted no new browser log entry.
-- after travel-direction integration, a fresh BRANCHING boot displayed `M8.1 TRAVEL STEER`, kept
-  the physical handwheel panel at neutral and emitted no browser log entry.
+- the released `ad42829d` Pages build displayed `M8.1 TRAVEL STEER` and accepted live digital
+  steering input before this corrective candidate.
+- the corrective local candidate displayed `M8.1 YAW-PREVIEW STEER`, rendered the physical
+  handwheel panel, accepted repeated right-key presses and returned to neutral input/handwheel
+  presentation without a blank frame or missing asset.
 
-High-speed causal probe with body-travel steering:
+Corrective held-drift causal probe with predictive travel steering:
+- 45 m/s initial speed, 30 right-input frames with throttle, then 120 neutral frames on wide asphalt;
+- the driver offset is exactly zero on the first released physics tick;
+- successive 0.5-second absolute body-sideslip envelopes are 5.66, 1.06, 0.20 and 0.04 degrees;
+- matching yaw-rate envelopes are 27.9, 6.3, 1.4 and 0.3 degrees/second;
+- the response keeps the one physical rack state, never consumes front slip and needs no behavior
+  mode, tire change, body force or stored gyro state.
+
+Corrective high-speed tap probe:
 - 80 m/s initial speed, nine 60 Hz right-input frames, then 360 neutral frames on wide asphalt;
-- initial post-release road-wheel peak: 3.11 degrees;
-- maximum road-wheel angle from three seconds after release: 0.21 degrees;
-- road-wheel angle at six seconds after release: 0.03 degrees;
-- the front-station zero-slip controller produced 0.48 degrees over the same late window, while the
-  former shared 0.12-second response reached the 31-degree mechanical stop.
+- initial post-release road-wheel peak: 1.08 degrees;
+- maximum road-wheel angle from three seconds after release: 0.00026 degrees;
+- end yaw rate: 0.00000044 degrees/second.
 
 Validation-inclusive exact-head preconditions:
 1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
 2. Push the candidate branch and open a PR targeting main.
 3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
-4. Require the complete suite to remain 500 / 500 pass, 0 fail, 0 skipped.
+4. Require the complete suite to remain 501 / 501 pass, 0 fail, 0 skipped.
 5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
 6. Never add an unvalidated merge commit or force-update main.
 7. If release is authorized, move main only to the validated exact SHA with force=false.

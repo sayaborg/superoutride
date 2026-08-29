@@ -83,6 +83,8 @@ export interface CarPhysicsProfile {
   readonly steeringOffsetRate: number;
   /** Fast overdamped road-wheel response toward the derived travel-direction target. */
   readonly steeringResponseTau: number;
+  /** Short yaw preview used to damp heading overshoot without tire-slip feedback. */
+  readonly steeringYawPreviewTime: number;
   /** Equivalent handwheel angle / road-wheel angle. */
   readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
@@ -133,6 +135,7 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   steeringOffsetMax: 15 * Math.PI / 180,
   steeringOffsetRate: 24 * Math.PI / 180,
   steeringResponseTau: 0.01,
+  steeringYawPreviewTime: 0.12,
   steeringRatio: 15,
   frontBrakeTorqueMax: 3_070,
   rearBrakeTorqueMax: 1_880,
@@ -210,6 +213,9 @@ export function compileCarPhysicsProfile(profile: CarPhysicsProfile): Readonly<C
   }
   if (!(profile.steeringResponseTau > 0 && Number.isFinite(profile.steeringResponseTau))) {
     throw new RangeError('CAR steering response time must be finite and > 0');
+  }
+  if (!(profile.steeringYawPreviewTime > 0 && Number.isFinite(profile.steeringYawPreviewTime))) {
+    throw new RangeError('CAR steering yaw preview time must be finite and > 0');
   }
   if (!(profile.steeringRatio > 0 && Number.isFinite(profile.steeringRatio))) {
     throw new RangeError('CAR steering ratio must be finite and > 0');
@@ -371,6 +377,7 @@ export function updateM5Car(
       car.frontSteerAngle,
       car.steeringOffsetCommand,
       bodyTravelDirection,
+      car.yawRate,
       substep,
       profile,
     );
@@ -509,8 +516,8 @@ export function updateM5Car(
 }
 
 /**
- * Digital input slews one travel-direction angle offset. This is the input-device response; not a
- * second road-wheel-angle authority.
+ * Held digital input slews one travel-direction angle offset; release clears it immediately. This
+ * is the input-device response, not a second road-wheel-angle authority.
  */
 export function stepCarSteeringOffsetCommand(
   steeringOffsetCommand: number,
@@ -525,6 +532,9 @@ export function stepCarSteeringOffsetCommand(
   if (![steeringOffsetCommand, steeringRequest].every(Number.isFinite)) {
     throw new RangeError('CAR steering-offset command inputs must be finite');
   }
+  // A released digital button applies no continuing driver torque. The rack remains the sole
+  // physical response stage, so retaining an angle command here would manufacture a second lag.
+  if (steeringRequest === 0) return 0;
   const target = clamp(steeringRequest, -1, 1) * profile.steeringOffsetMax;
   const maximumChange = profile.steeringOffsetRate * dt;
   return steeringOffsetCommand + clamp(
@@ -535,23 +545,25 @@ export function stepCarSteeringOffsetCommand(
 }
 
 /**
- * Fast overdamped rack response toward body-CG travel direction plus driver command. Front tire
- * slip remains an ordinary tire-force observation and is deliberately not steering feedback.
+ * Fast overdamped rack response toward the short-horizon body travel direction plus driver
+ * command. The yaw preview is the stateless gyro term: it damps heading overshoot without making
+ * front tire slip a steering feedback authority.
  */
 export function stepCarTravelDirectionSteering(
   roadWheelAngle: number,
   steeringOffsetCommand: number,
   bodyTravelDirection: number,
+  yawRate: number,
   dt: number,
   profile: Pick<CompiledCarPhysicsProfile,
-    'steeringResponseTau' | 'maxRoadWheelSteer'>,
+    'steeringResponseTau' | 'steeringYawPreviewTime' | 'maxRoadWheelSteer'>,
 ): number {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR steering dt must be finite and > 0');
-  if (![roadWheelAngle, steeringOffsetCommand, bodyTravelDirection].every(Number.isFinite)) {
+  if (![roadWheelAngle, steeringOffsetCommand, bodyTravelDirection, yawRate].every(Number.isFinite)) {
     throw new RangeError('CAR steering inputs must be finite');
   }
   const target = clamp(
-    bodyTravelDirection + steeringOffsetCommand,
+    bodyTravelDirection - yawRate * profile.steeringYawPreviewTime + steeringOffsetCommand,
     -profile.maxRoadWheelSteer,
     profile.maxRoadWheelSteer,
   );

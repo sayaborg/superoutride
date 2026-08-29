@@ -1,4 +1,4 @@
-# M8.1 CAR Travel-Direction Steering Assist
+# M8.1 CAR Predictive Travel-Direction Steering Assist
 
 Status: current normative CAR control authority above the unchanged M8.0 mechanical model.
 
@@ -15,18 +15,19 @@ semantics and observability before tire, mass, inertia, steering response or oth
 
 1. CAR Driver owns the interpretation of canonical steering intent. Input devices remain digital
    publishers and do not own actuator state.
-2. The existing authoritative world velocity, body frame and front road-wheel angle express the
-   assist without a new vehicle coordinate or tire-force authority.
-3. One slew-limited steering-offset command separates digital press duration from fast rack
-   response. It is not a second road-wheel angle, contact phase or tire authority.
+2. The existing authoritative world velocity, yaw rate, body frame and front road-wheel angle
+   express the assist without a new vehicle coordinate or tire-force authority.
+3. One press-slew steering-offset command separates digital press duration from fast rack response.
+   A released digital button clears that command immediately; it is not a second rack response,
+   road-wheel angle, contact phase or tire authority.
 4. The control law contains no course-, route-, topology-, stage- or camera-specific branch.
 5. Guide geometry remains a derived surface/contact observation. Steering uses authoritative CG
    velocity in the body frame, never Guide heading, camera direction or screen position.
 6. M8.0 world mechanics, tire saturation, finite/open composition and frozen renderer invariants
    are preserved.
-7. Dedicated causal regressions prove digital tap response, high-speed release damping,
-   full-request offset, neutral countersteer, mechanical rack limits, telemetry derivation
-   and the absence of the retired useful-steer authority.
+7. Dedicated causal regressions prove digital tap response, immediate command release, shrinking
+   held-drift sideslip/yaw envelopes, full-request offset, neutral countersteer, mechanical rack
+   limits, telemetry derivation and the absence of the retired useful-steer authority.
 
 ## 2. Canonical input meaning
 
@@ -35,7 +36,7 @@ For CAR only, canonical `DrivingInput.steering` is normalized driver steering re
 ```text
 u in [-1, +1]
 u = -1  request maximum left travel-direction offset
-u =  0  release toward zero offset
+u =  0  release the driver offset
 u = +1  request maximum right travel-direction offset
 ```
 
@@ -43,15 +44,17 @@ Keyboard and touch adapters publish only `-1`, `0` or `+1`. Analog traces remain
 the canonical contract stays continuous over `[-1,+1]`. CAR Driver interprets that value as a
 request; BIKE Rider retains its existing lean-intent interpretation.
 
-The digital request changes immediately, but the steering-offset command moves toward it at one
-authored angular rate. A short press therefore creates a small command instead of forcing the
-physical rack response itself to be slow. Releasing the button slews the same command back to zero;
-there is no latched steering target or input-device angle.
+While a nonzero digital request is held, the steering-offset command moves toward it at one authored
+angular rate. A short press therefore creates a small command instead of forcing the physical rack
+response itself to be slow. Releasing the button clears the driver command immediately, as releasing
+real steering torque does. The physical rack remains the sole response stage; there is no latched
+steering target or input-device angle.
 
-## 3. Derived regularized body travel direction
+## 3. Derived regularized predictive travel direction
 
-The assist reference is the CG velocity direction relative to the CAR body frame. It is not an
-angle relative to Guide heading and contains no front-contact or tire-slip feedback.
+The base assist reference is the CG velocity direction relative to the CAR body frame. A stateless
+short yaw preview then predicts that direction in the rotating body frame. Neither term is an angle
+relative to Guide heading, and neither contains front-contact or tire-slip feedback.
 
 Using authoritative CG velocity and the same low-speed regularizer `v0`:
 
@@ -60,30 +63,34 @@ Vlong = dot(V_CG, body_forward)
 Vlat  = dot(V_CG, body_right)
 Vref  = sqrt(Vlong^2 + v0^2)
 beta_travel = atan2(Vlat, Vref)
+beta_preview = beta_travel - yaw_rate * T_preview
 ```
 
-At ordinary speed this approaches the geometric body sideslip angle. At zero speed it is finite and
-zero; no start/stop control mode or speed-indexed steering map is introduced.
+At ordinary speed `beta_travel` approaches the geometric body sideslip angle. `beta_preview`
+expresses where the same world-velocity direction will lie in the body frame after the short preview
+time if current yaw continues. This is the reduced-model equivalent of an RC drift gyro: positive
+yaw requests earlier countersteer. It adds no state, force, speed-indexed steering map or behavior
+mode. At zero speed the velocity term remains finite and zero.
 
 The ordinary M8.0 front-contact slip angle remains fully authoritative for front tire force and HUD
 telemetry. CAR Driver does not consume it. Using CG rather than front-station velocity deliberately
-leaves the front-station yaw-velocity term in physical tire slip, so ordinary front lateral force
-damps yaw instead of the rack cancelling it.
+leaves the front-station yaw-velocity term in physical tire slip. The preview supplies explicit
+Driver damping for the otherwise underdamped body-sideslip/yaw pair without consuming or cancelling
+that tire observation.
 
-## 4. Command slew and travel-direction rack response
+## 4. Press slew and predictive travel-direction rack response
 
 CAR retains one authoritative front road-wheel angle `delta`. The input command and physical rack
 response are deliberately separate:
 
 ```text
 offset_requested = u * offset_max
-offset_command_next = move_toward(
-  offset_command,
-  offset_requested,
-  offset_rate * h
-)
+offset_command_next = 0                                      if u == 0
+offset_command_next = move_toward(offset_command,
+                                  offset_requested,
+                                  offset_rate * h)            otherwise
 
-delta_target = clamp(beta_travel + offset_command_next,
+delta_target = clamp(beta_preview + offset_command_next,
                      -delta_mechanical_max, +delta_mechanical_max)
 lambda = 1 - exp(-h / tau_steering)
 delta_next = delta + (delta_target - delta) * lambda
@@ -98,9 +105,11 @@ Consequences:
 - a short press produces a proportionally small travel-direction offset;
 - held request reaches a finite angular offset while body motion supplies the remaining road-wheel
   angle naturally;
-- releasing to `u=0` returns the offset to zero and aims the rack along CG travel direction;
+- releasing to `u=0` clears residual driver command and aims the rack along the predicted CG travel
+  direction;
 - body sideslip therefore produces ordinary automatic countersteer;
-- yaw-rate motion at the front station remains physical tire slip and supplies yaw damping;
+- the yaw preview arrests return overshoot while front-station yaw motion remains ordinary physical
+  tire slip;
 - steering remains continuous in flight because it needs no contact-validity branch;
 - the mechanical rack stop remains explicit and does not manufacture tire force.
 
@@ -110,6 +119,7 @@ The initial uncalibrated authoring values are:
 offset_max            = 15 degrees
 offset_rate           = 24 degrees/second
 tau_steering          = 0.01 seconds
+T_preview             = 0.12 seconds
 delta_mechanical_max = 31 degrees
 ```
 

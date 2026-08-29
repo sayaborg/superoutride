@@ -39,7 +39,7 @@ function stepFixedVelocityResponse(angle, request, ticks) {
         SUBSTEP,
         M5_CAR_PROFILE,
       );
-      next = stepCarTravelDirectionSteering(next, command, 0, SUBSTEP, M5_CAR_PROFILE);
+      next = stepCarTravelDirectionSteering(next, command, 0, 0, SUBSTEP, M5_CAR_PROFILE);
     }
   }
   return next;
@@ -85,6 +85,10 @@ test('M8.1 command slew makes a short digital tap smaller while the rack respons
   assert.ok(oneTick < sixTicks);
   assert.ok(sixTicks < sixtyTicks);
   assert.ok(Math.abs(sixtyTicks - M5_CAR_PROFILE.steeringOffsetMax) < 5e-5);
+  assert.equal(
+    stepCarSteeringOffsetCommand(sixtyTicks, 0, SUBSTEP, M5_CAR_PROFILE),
+    0,
+  );
 });
 
 test('M8.1 neutral input physically countersteers a body yawed across its velocity', () => {
@@ -121,7 +125,7 @@ test('M8.1 finite request owns an angular offset while the rack keeps one hard s
   let command = 0;
   for (let tick = 0; tick < 2_000; tick += 1) {
     command = stepCarSteeringOffsetCommand(command, 1, SUBSTEP, M5_CAR_PROFILE);
-    angle = stepCarTravelDirectionSteering(angle, command, 0, SUBSTEP, M5_CAR_PROFILE);
+    angle = stepCarTravelDirectionSteering(angle, command, 0, 0, SUBSTEP, M5_CAR_PROFILE);
   }
   assert.ok(Math.abs(angle - M5_CAR_PROFILE.steeringOffsetMax) < 1e-12);
   for (let tick = 0; tick < 100; tick += 1) {
@@ -129,6 +133,7 @@ test('M8.1 finite request owns an angular offset while the rack keeps one hard s
       angle,
       command,
       M5_CAR_PROFILE.maxRoadWheelSteer,
+      0,
       SUBSTEP,
       M5_CAR_PROFILE,
     );
@@ -147,9 +152,13 @@ test('M8.1 finite request owns an angular offset while the rack keeps one hard s
     () => compileCarPhysicsProfile({ ...M5_CAR_PROFILE, steeringOffsetRate: 0 }),
     /steering offset rate/,
   );
+  assert.throws(
+    () => compileCarPhysicsProfile({ ...M5_CAR_PROFILE, steeringYawPreviewTime: 0 }),
+    /steering yaw preview time/,
+  );
 });
 
-test('M8.1 travel-direction steering damps a released high-speed tap without driving the rack to lock', () => {
+test('M8.1 yaw-preview steering releases a high-speed tap immediately and stays away from rack lock', () => {
   const wideSurface = new SurfaceMap(highway.guide.length, [{
     sStart: 0,
     name: 'WIDE ASPHALT STEERING PROBE',
@@ -170,6 +179,7 @@ test('M8.1 travel-direction steering damps a released high-speed tap without dri
       { steering: tick < tapTicks ? 1 : 0, throttle: false, brake: false },
       DT,
     );
+    if (tick === tapTicks) assert.equal(car.steeringOffsetCommand, 0);
     if (tick >= tapTicks && tick < tapTicks + 60) {
       initialPeak = Math.max(initialPeak, Math.abs(car.frontSteerAngle));
     }
@@ -179,10 +189,55 @@ test('M8.1 travel-direction steering damps a released high-speed tap without dri
     if (tick >= tapTicks) overallPeak = Math.max(overallPeak, Math.abs(car.frontSteerAngle));
   }
 
-  assert.ok(initialPeak > 2 * Math.PI / 180);
-  assert.ok(latePeak < initialPeak * 0.25);
+  assert.ok(initialPeak > 0.5 * Math.PI / 180);
+  assert.ok(latePeak < initialPeak * 0.05);
   assert.ok(overallPeak < M5_CAR_PROFILE.maxRoadWheelSteer * 0.25);
   assert.ok(Math.abs(car.steeringOffsetCommand) < 1e-12);
+});
+
+test('M8.1 held drift release has a rapidly shrinking sideslip and yaw envelope', () => {
+  const wideSurface = new SurfaceMap(highway.guide.length, [{
+    sStart: 0,
+    name: 'WIDE ASPHALT HELD DRIFT PROBE',
+    bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
+  }]);
+  const car = createM5Car(highway.guide, flatHeight, wideSurface, 800, -1.75, 45);
+  const holdTicks = 30;
+  const windowTicks = 30;
+  const betaEnvelope = [0, 0, 0, 0];
+  const yawEnvelope = [0, 0, 0, 0];
+
+  for (let tick = 0; tick < holdTicks + windowTicks * betaEnvelope.length; tick += 1) {
+    updateM5Car(
+      highway.guide,
+      flatHeight,
+      wideSurface,
+      car,
+      { steering: tick < holdTicks ? 1 : 0, throttle: true, brake: false },
+      DT,
+    );
+    if (tick < holdTicks) continue;
+    if (tick === holdTicks) assert.equal(car.steeringOffsetCommand, 0);
+    const window = Math.min(
+      betaEnvelope.length - 1,
+      Math.floor((tick - holdTicks) / windowTicks),
+    );
+    const beta = Math.abs(Math.atan2(
+      car.lateralSpeed,
+      Math.sqrt(
+        car.longitudinalSpeed ** 2 + M5_CAR_PROFILE.lowSpeedRegularization ** 2,
+      ),
+    ));
+    betaEnvelope[window] = Math.max(betaEnvelope[window], beta);
+    yawEnvelope[window] = Math.max(yawEnvelope[window], Math.abs(car.yawRate));
+  }
+
+  assert.ok(betaEnvelope[0] > 4 * Math.PI / 180);
+  assert.ok(yawEnvelope[0] > 20 * Math.PI / 180);
+  for (let window = 1; window < betaEnvelope.length; window += 1) {
+    assert.ok(betaEnvelope[window] < betaEnvelope[window - 1] * 0.3);
+    assert.ok(yawEnvelope[window] < yawEnvelope[window - 1] * 0.3);
+  }
 });
 
 test('M8.1 CAR HUD exposes digital request, handwheel, road wheel and both slip observations', () => {
@@ -219,7 +274,10 @@ test('M8.1 owns no retired useful-steer authority and both public roots draw the
     /carSteerTarget|usefulLateralCapacity|hypotheticalFrontUtilization|countersteerMode|observedFrontSlip|frontBefore/,
   );
   assert.match(carSource, /carBodyTravelDirection\(/);
-  assert.match(carSource, /bodyTravelDirection \+ steeringOffsetCommand/);
+  assert.match(
+    carSource,
+    /bodyTravelDirection - yawRate \* profile\.steeringYawPreviewTime \+ steeringOffsetCommand/,
+  );
   assert.match(index, /id="steer-left-button"/);
   assert.match(index, /id="steer-right-button"/);
   assert.match(branching, /drawCarSteeringHud\(ctx, input\.steering/);

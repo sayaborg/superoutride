@@ -70,10 +70,11 @@ Current governing vehicle-physics rule:
 
 Current governing CAR steering rule:
 
-> Steering input is a normalized driver request; one slew-limited angular-offset command makes
-> digital press duration controllable, while a fast rack response aims the authoritative road-wheel
-> angle along CG travel direction plus that offset. Front slip remains tire-force/telemetry
-> authority and is not steering feedback.
+> Steering input is a normalized driver request; one press-slew angular-offset command makes
+> digital press duration controllable and clears immediately on release. A stateless yaw-rate
+> preview and fast rack response aim the authoritative road-wheel angle along the short-horizon
+> predicted CG travel direction plus that offset. Front slip remains tire-force/telemetry authority
+> and is not steering feedback.
 
 ## 3. Known historical-value supersession
 
@@ -122,13 +123,13 @@ validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt
 
 It records the green pre-validation candidate, executable Phase 9 acceptance matrix and self-reference-safe exact-head release procedure. Final SHA/run identity is supplied by Git/PR/main-ref/workflow history.
 
-M8.1 CAR travel-direction steering implementation evidence is:
+M8.1 CAR predictive travel-direction steering implementation evidence is:
 
 ```text
 validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt
 ```
 
-It records the validation-inclusive local candidate, the 498-test executable result, browser
+It records the validation-inclusive local candidate, the executable result, browser
 checks for both public compositions, and the self-reference-safe exact-head CI procedure.
 
 ## 5. M8.0 implementation/finalization handoff

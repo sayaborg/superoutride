@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M8.1 CAR Travel-Direction Steering Assist
+# SUPER OUTRIDE — M8.1 CAR Predictive Travel-Direction Steering Assist
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -8,9 +8,10 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 ## Current milestone status
 
-M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with a slew-limited steering offset
-from authoritative body travel direction and one fast rack response. Neutral input aims the road
-wheel along CG travel direction and can produce automatic countersteer. The current authority is:
+M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with a press-slew steering offset,
+authoritative body travel direction, a stateless yaw-rate preview and one fast rack response.
+Neutral input aims the road wheel along the short-horizon predicted travel direction and produces
+damped automatic countersteer. The current authority is:
 
 ```text
 docs/80_m8_1_car_self_steering_control.md
@@ -124,7 +125,7 @@ M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical /
 M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
 M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
 M8.0       CIRCUIT Low-Speed Corner Authoring                        current public course follow-on
-M8.1       CAR Travel-Direction Steering Assist                       current control authority; handling uncalibrated
+M8.1       CAR Predictive Travel-Direction Steering Assist            current control authority; handling uncalibrated
 ```
 
 Current topology/runtime/physics design sequence:
@@ -245,7 +246,7 @@ src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
 src/physics/vehicle-math3.ts        minimal quaternion/3D math
 src/physics/vehicle-dynamics.ts     common M8.0 contact/surface/suspension observations
-src/physics/car-physics.ts          M8.0 CAR mechanics + M8.1 travel-direction Driver
+src/physics/car-physics.ts          M8.0 CAR mechanics + M8.1 predictive travel-direction Driver
 src/physics/motorcycle-physics.ts   M8.0 BIKE solver
 src/physics/vehicle-contract.ts     read-only consumer contracts
 src/physics/surface-map.ts         general SurfaceMap authority
