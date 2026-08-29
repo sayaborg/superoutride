@@ -4,7 +4,7 @@ import test from 'node:test';
 import { clampSteering } from '../dist/input/driving-input.js';
 import { mergeDrivingInput } from '../dist/input/input-manager.js';
 import { digitalKeyboardSteering } from '../dist/input/keyboard-input.js';
-import { steeringFromPointerX } from '../dist/input/touch-input.js';
+import { digitalTouchSteering } from '../dist/input/touch-input.js';
 
 test('clampSteering keeps canonical range', () => {
   assert.equal(clampSteering(-2), -1);
@@ -19,11 +19,11 @@ test('keyboard steering publishes only digital intent', () => {
   assert.equal(digitalKeyboardSteering(true, true), 0);
 });
 
-test('touch steering publishes left neutral or right digital intent', () => {
-  assert.equal(steeringFromPointerX(100, 100, 200), -1);
-  assert.equal(steeringFromPointerX(200, 100, 200), 0);
-  assert.equal(steeringFromPointerX(300, 100, 200), 1);
-  assert.equal(steeringFromPointerX(350, 100, 200), 1);
+test('touch steering buttons publish left neutral or right digital effort', () => {
+  assert.equal(digitalTouchSteering(true, false), -1);
+  assert.equal(digitalTouchSteering(false, false), 0);
+  assert.equal(digitalTouchSteering(false, true), 1);
+  assert.equal(digitalTouchSteering(true, true), 0);
 });
 
 test('input merge gives active touch steering priority and ORs pedals', () => {

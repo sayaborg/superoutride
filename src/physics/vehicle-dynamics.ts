@@ -31,8 +31,13 @@ export type VehicleContactId = 'FRONT' | 'REAR';
 
 /** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
+  /** Canonical input observation. CAR reads normalized handwheel effort; BIKE reads lean intent. */
   steeringRequest: number;
   actualSteerAngle: number;
+  /** CAR-only equivalent handwheel angle derived from road-wheel angle and authored ratio. */
+  handwheelAngle: number;
+  /** Signed regularized front contact slip angle. Derived telemetry only. */
+  frontSlipAngle: number;
   requestedDriveTorque: number;
   frontBrakeTorque: number;
   rearBrakeTorque: number;
@@ -147,6 +152,8 @@ export function createVehicleControlState(): VehicleControlState {
   return {
     steeringRequest: 0,
     actualSteerAngle: 0,
+    handwheelAngle: 0,
+    frontSlipAngle: 0,
     requestedDriveTorque: 0,
     frontBrakeTorque: 0,
     rearBrakeTorque: 0,

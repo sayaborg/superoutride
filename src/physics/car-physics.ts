@@ -29,10 +29,8 @@ import {
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
 import {
-  evaluateTireForce,
+  regularizedTireSlipAngle,
   solveWheelOmega,
-  tireLinearDemand,
-  usefulLateralCapacity,
   validateCompiledTireProfile,
   type CompiledTireProfile,
 } from './tire-wheel.js';
@@ -77,8 +75,14 @@ export interface CarPhysicsProfile {
   readonly frontNormalizedStiffness: number;
   readonly rearNormalizedStiffness: number;
 
-  readonly maxSteer: number;
-  readonly steeringTau: number;
+  /** Mechanical road-wheel stop. This is not an ordinary useful-steer limit. */
+  readonly maxRoadWheelSteer: number;
+  /** Full normalized driver effort's steady front-slip equilibrium. */
+  readonly assistedSlipAngleMax: number;
+  /** One overdamped driver-effort/self-aligning response time. */
+  readonly selfSteerResponseTau: number;
+  /** Equivalent handwheel angle / road-wheel angle. */
+  readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
   /** F = -quadraticDrag * |v_planar| * v_planar, applied at the CG. */
@@ -123,8 +127,10 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   frontNormalizedStiffness: 9,
   rearNormalizedStiffness: 10.5,
 
-  maxSteer: 31 * Math.PI / 180,
-  steeringTau: 0.10,
+  maxRoadWheelSteer: 31 * Math.PI / 180,
+  assistedSlipAngleMax: 6.5 * Math.PI / 180,
+  selfSteerResponseTau: 0.12,
+  steeringRatio: 15,
   frontBrakeTorqueMax: 3_070,
   rearBrakeTorqueMax: 1_880,
   quadraticDrag: 0.39,
@@ -189,7 +195,18 @@ export function compileCarPhysicsProfile(profile: CarPhysicsProfile): Readonly<C
   if (!(profile.wheelRadius > 0 && profile.frontWheelInertia > 0 && profile.rearWheelInertia > 0)) {
     throw new RangeError('CAR wheel radius/inertias must be > 0');
   }
-  if (!(profile.maxSteer > 0 && profile.steeringTau > 0)) throw new RangeError('CAR steer limits must be > 0');
+  if (!(profile.maxRoadWheelSteer > 0 && profile.maxRoadWheelSteer < Math.PI / 2)) {
+    throw new RangeError('CAR mechanical road-wheel steer must lie in (0, pi/2)');
+  }
+  if (!(profile.assistedSlipAngleMax > 0 && profile.assistedSlipAngleMax < Math.PI / 2)) {
+    throw new RangeError('CAR assisted slip angle must lie in (0, pi/2)');
+  }
+  if (!(profile.selfSteerResponseTau > 0 && Number.isFinite(profile.selfSteerResponseTau))) {
+    throw new RangeError('CAR self-steer response time must be finite and > 0');
+  }
+  if (!(profile.steeringRatio > 0 && Number.isFinite(profile.steeringRatio))) {
+    throw new RangeError('CAR steering ratio must be finite and > 0');
+  }
   if (!(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0)) {
     throw new RangeError('CAR brake torques must be >= 0');
   }
@@ -334,27 +351,22 @@ export function updateM5Car(
       guide, height, surfaces, bodyBeforeSteer, profile.frontStation,
       car.frontSteerAngle, 0, car.course.segmentIndex,
     );
-    const rearBefore = deriveContactObservation(
-      guide, height, surfaces, bodyBeforeSteer, profile.rearStation,
-      0, 0, car.course.segmentIndex,
-    );
-
     const steeringRequest = clamp(input.steering, -1, 1);
-    const steerTarget = carSteerTarget(
-      guide,
-      height,
-      surfaces,
-      car,
-      bodyBeforeSteer,
-      frontBefore,
-      rearBefore,
+    const previousSteer = car.frontSteerAngle;
+    const observedFrontSlip = frontBefore.forceTransmitting && frontBefore.tireFrameValid
+      ? regularizedTireSlipAngle(
+        frontBefore.longitudinalVelocity,
+        frontBefore.lateralVelocity,
+        profile.lowSpeedRegularization,
+      )
+      : 0;
+    car.frontSteerAngle = stepCarSelfSteering(
+      car.frontSteerAngle,
       steeringRequest,
+      observedFrontSlip,
+      substep,
       profile,
     );
-    const previousSteer = car.frontSteerAngle;
-    car.frontSteerAngle += (steerTarget - car.frontSteerAngle)
-      * (1 - Math.exp(-substep / profile.steeringTau));
-    car.frontSteerAngle = clamp(car.frontSteerAngle, -profile.maxSteer, profile.maxSteer);
     const steerRate = (car.frontSteerAngle - previousSteer) / substep;
 
     const body = carBodyKinematics(car);
@@ -447,6 +459,14 @@ export function updateM5Car(
 
     car.control.steeringRequest = steeringRequest;
     car.control.actualSteerAngle = car.frontSteerAngle;
+    car.control.handwheelAngle = car.frontSteerAngle * profile.steeringRatio;
+    car.control.frontSlipAngle = front.forceTransmitting && front.tireFrameValid
+      ? regularizedTireSlipAngle(
+        front.longitudinalVelocity,
+        front.lateralVelocity,
+        profile.lowSpeedRegularization,
+      )
+      : 0;
     car.control.requestedDriveTorque = driveTorque;
     car.control.frontBrakeTorque = frontBrakeTorque;
     car.control.rearBrakeTorque = rearBrakeTorque;
@@ -481,100 +501,30 @@ export function updateM5Car(
   void finalRearFy;
 }
 
-function carSteerTarget(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  car: M5CarState,
-  body: BodyKinematics,
-  front: ContactObservation,
-  rear: ContactObservation,
-  steeringRequest: number,
-  profile: CompiledCarPhysicsProfile,
+/**
+ * One overdamped virtual steering-torque balance. Driver effort changes immediately; this is the
+ * sole steering response and stores no target-slip or countersteer mode state.
+ */
+export function stepCarSelfSteering(
+  roadWheelAngle: number,
+  steeringEffort: number,
+  observedFrontSlipAngle: number,
+  dt: number,
+  profile: Pick<CompiledCarPhysicsProfile,
+    'assistedSlipAngleMax' | 'selfSteerResponseTau' | 'maxRoadWheelSteer'>,
 ): number {
-  const raw = steeringRequest * profile.maxSteer;
-  if (
-    !front.forceTransmitting || !rear.forceTransmitting
-    || !front.tireFrameValid || !rear.tireFrameValid
-  ) return raw;
-
-  const frontDemand = tireLinearDemand(
-    car.frontWheelOmega,
-    front.effectiveRollingRadius,
-    front.longitudinalVelocity,
-    front.lateralVelocity,
-    profile.frontStation.tire,
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR self-steer dt must be finite and > 0');
+  if (![roadWheelAngle, steeringEffort, observedFrontSlipAngle].every(Number.isFinite)) {
+    throw new RangeError('CAR self-steer inputs must be finite');
+  }
+  const effort = clamp(steeringEffort, -1, 1);
+  const equilibriumSlip = effort * profile.assistedSlipAngleMax;
+  const steerRate = (equilibriumSlip - observedFrontSlipAngle) / profile.selfSteerResponseTau;
+  return clamp(
+    roadWheelAngle + steerRate * dt,
+    -profile.maxRoadWheelSteer,
+    profile.maxRoadWheelSteer,
   );
-  const rearDemand = tireLinearDemand(
-    car.rearWheelOmega,
-    rear.effectiveRollingRadius,
-    rear.longitudinalVelocity,
-    rear.lateralVelocity,
-    profile.rearStation.tire,
-  );
-  const frontUseful = usefulLateralCapacity(
-    frontDemand.dx,
-    front.normalLoad,
-    front.surface.material.gripFactor,
-    profile.frontStation.tire,
-  );
-  const rearUseful = usefulLateralCapacity(
-    rearDemand.dx,
-    rear.normalLoad,
-    rear.surface.material.gripFactor,
-    profile.rearStation.tire,
-  );
-  const wheelbase = profile.frontAxle + profile.rearAxle;
-  const ayUseful = Math.min(
-    frontUseful * wheelbase / (profile.mass * profile.rearAxle),
-    rearUseful * wheelbase / (profile.mass * profile.frontAxle),
-  );
-  const frontForceRequired = profile.mass * ayUseful * profile.rearAxle / wheelbase;
-  const rearForceRequired = profile.mass * ayUseful * profile.frontAxle / wheelbase;
-  const alphaFront = Math.atan(frontForceRequired / profile.frontStation.tire.cornerStiffness);
-  const alphaRear = Math.atan(rearForceRequired / profile.rearStation.tire.cornerStiffness);
-  const speed = vehicleSpeed(car);
-  const curvatureUseful = ayUseful / (speed ** 2 + profile.lowSpeedRegularization ** 2);
-  const useful = clamp(
-    Math.atan(wheelbase * curvatureUseful) + alphaFront - alphaRear,
-    0,
-    profile.maxSteer,
-  );
-  const base = clamp(raw, -useful, useful);
-  if (Math.abs(raw - base) < 1e-12) return base;
-
-  const rawRho = hypotheticalFrontUtilization(
-    guide, height, surfaces, car, body, raw, profile,
-  );
-  const baseRho = hypotheticalFrontUtilization(
-    guide, height, surfaces, car, body, base, profile,
-  );
-  return rawRho < baseRho ? raw : base;
-}
-
-function hypotheticalFrontUtilization(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  car: M5CarState,
-  body: BodyKinematics,
-  steer: number,
-  profile: CompiledCarPhysicsProfile,
-): number {
-  const contact = deriveContactObservation(
-    guide, height, surfaces, body, profile.frontStation,
-    steer, 0, car.course.segmentIndex,
-  );
-  if (!contact.forceTransmitting || !contact.tireFrameValid) return Number.POSITIVE_INFINITY;
-  return evaluateTireForce(
-    car.frontWheelOmega,
-    contact.effectiveRollingRadius,
-    contact.longitudinalVelocity,
-    contact.lateralVelocity,
-    contact.normalLoad,
-    contact.surface.material.gripFactor,
-    profile.frontStation.tire,
-  ).rho;
 }
 
 function carBodyKinematics(car: M5CarState): BodyKinematics {

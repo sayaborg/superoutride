@@ -63,6 +63,25 @@ export function tireLinearDemand(
   };
 }
 
+/**
+ * Signed lateral slip observation using the same low-speed denominator as the one-k tire law.
+ * At ordinary speed this approaches the geometric tire slip angle; at rest it remains finite.
+ */
+export function regularizedTireSlipAngle(
+  longitudinalVelocity: number,
+  lateralVelocity: number,
+  lowSpeedRegularization: number,
+): number {
+  if (!(lowSpeedRegularization > 0) || !Number.isFinite(lowSpeedRegularization)) {
+    throw new RangeError('tire low-speed regularization must be finite and > 0');
+  }
+  if (![longitudinalVelocity, lateralVelocity].every(Number.isFinite)) {
+    throw new RangeError('tire slip-angle velocities must be finite');
+  }
+  const referenceSpeed = Math.sqrt(longitudinalVelocity ** 2 + lowSpeedRegularization ** 2);
+  return Math.atan2(-lateralVelocity, referenceSpeed);
+}
+
 export function evaluateTireForce(
   omega: number,
   rollingRadius: number,

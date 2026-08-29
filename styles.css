@@ -64,6 +64,7 @@ body {
 }
 
 .steering-pad,
+.steer-button,
 .pedal {
   border: 1px solid #49616e;
   background: #111a21;
@@ -87,8 +88,13 @@ body {
   font-size: 20px;
 }
 
-.steer-left {
-  justify-self: start;
+.steer-button {
+  width: 48px;
+  min-height: 64px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .steer-center {
@@ -96,8 +102,12 @@ body {
   opacity: 0.7;
 }
 
-.steer-right {
-  justify-self: end;
+.steer-button:active,
+.steer-button.active {
+  transform: translateY(1px);
+  border-color: #ffd08a;
+  background: #263744;
+  color: #ffd08a;
 }
 
 .pedal-zone {

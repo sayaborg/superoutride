@@ -26,7 +26,7 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
-test('M8.0 car useful-steer capacity stays inside the shared one-k radial knee', () => {
+test('M8.0 front-tire linear capacity stays inside the shared one-k radial knee', () => {
   assert.ok(M5_CAR_PROFILE.frontNormalizedStiffness < M5_CAR_PROFILE.rearNormalizedStiffness);
   const frontNormal = M5_CAR_PROFILE.mass * 9.80665 * M5_CAR_PROFILE.rearAxle
     / (M5_CAR_PROFILE.frontAxle + M5_CAR_PROFILE.rearAxle);

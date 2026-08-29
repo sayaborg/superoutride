@@ -1,4 +1,5 @@
 export interface DrivingInput {
+  /** Normalized canonical intent: CAR driver effort; BIKE rider lean intent. */
   steering: number;
   throttle: boolean;
   brake: boolean;

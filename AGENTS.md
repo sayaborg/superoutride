@@ -43,9 +43,12 @@ The current vehicle-physics architecture authority is:
 
 ```text
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+docs/80_m8_1_car_self_steering_control.md
 ```
 
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
+M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; the
+M8.0 mechanical model and BIKE authority remain frozen.
 
 ### Milestone design authority
 
@@ -76,6 +79,7 @@ docs/75_m7_2_default_branching_highway_integration.md
 docs/76_m7_3_grip_and_instrument_hud.md
 docs/77_m7_4_transient_tire_response.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+docs/80_m8_1_car_self_steering_control.md
 ```
 
 ### Executable implementation contract

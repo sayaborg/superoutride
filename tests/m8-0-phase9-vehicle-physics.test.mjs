@@ -31,6 +31,7 @@ import {
   deriveContactObservation,
   sampleSurfaceGeometryAtCoordinate,
 } from '../dist/physics/vehicle-dynamics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   bodyBasisFromQuaternion,
   dot3,
@@ -281,7 +282,7 @@ test('M8.0 contact-release fixture recontacts without stored phase state', () =>
   assert.equal('contactPhase' in bike, false);
 });
 
-test('M8.0 CAR useful-steer cap and positive-understeer compiler gate remain causal', () => {
+test('M8.1 CAR mechanical steer stop and positive-understeer compiler gate remain causal', () => {
   assert.throws(
     () => compileCarPhysicsProfile({
       ...M5_CAR_PROFILE,
@@ -299,17 +300,22 @@ test('M8.0 CAR useful-steer cap and positive-understeer compiler gate remain cau
     DT,
   );
   assert.ok(car.frontSteerAngle > 0);
-  assert.ok(car.frontSteerAngle < M5_CAR_PROFILE.maxSteer);
+  assert.ok(car.frontSteerAngle < M5_CAR_PROFILE.maxRoadWheelSteer);
 });
 
-test('M8.0 CAR power-oversteer emerges from rear combined utilization and arrests on release', async () => {
-  const car = createM5Car(highway.guide, flatHeight, highway.surfaceMap, 800, -1.75, 25);
+test('M8.1 CAR power-oversteer emerges and neutral self-steer arrests it without a mode', async () => {
+  const wideSurface = new SurfaceMap(highway.guide.length, [{
+    sStart: 0,
+    name: 'WIDE ASPHALT PROBE',
+    bands: [{ lMin: -500, lMax: 500, type: 'ASPHALT' }],
+  }]);
+  const car = createM5Car(highway.guide, flatHeight, wideSurface, 800, -1.75, 25);
   let maxRearUtilization = 0;
   for (let tick = 0; tick < 90; tick += 1) {
     updateM5Car(
       highway.guide,
       flatHeight,
-      highway.surfaceMap,
+      wideSurface,
       car,
       { steering: 0.55, throttle: true, brake: false },
       DT,
@@ -317,21 +323,28 @@ test('M8.0 CAR power-oversteer emerges from rear combined utilization and arrest
     maxRearUtilization = Math.max(maxRearUtilization, car.control.rearUtilization);
   }
   const yawRateAtRelease = Math.abs(car.yawRate);
-  for (let tick = 0; tick < 120; tick += 1) {
+  let observedCountersteer = false;
+  for (let tick = 0; tick < 240; tick += 1) {
     updateM5Car(
       highway.guide,
       flatHeight,
-      highway.surfaceMap,
+      wideSurface,
       car,
       { steering: 0, throttle: false, brake: false },
       DT,
     );
+    observedCountersteer ||= Math.sign(car.frontSteerAngle) === -Math.sign(car.yawRate)
+      && Math.abs(car.frontSteerAngle) > 1e-4;
   }
   assert.ok(maxRearUtilization > 1);
   assert.ok(yawRateAtRelease > 0.05);
   assert.ok(Math.abs(car.yawRate) < yawRateAtRelease * 0.1);
+  assert.equal(observedCountersteer, true);
   const source = await readFile(new URL('../src/physics/car-physics.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /driftMode|driftTarget|driftAssist/);
+  assert.doesNotMatch(
+    source,
+    /driftMode|driftTarget|driftAssist|usefulLateralCapacity|hypotheticalFrontUtilization/,
+  );
 });
 
 test('M8.0 BIKE crown has upright identity, contact migration and one consistent Reff', () => {

@@ -28,6 +28,7 @@ import {
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
 import {
+  regularizedTireSlipAngle,
   solveWheelOmega,
   tireLinearDemand,
   usefulLateralCapacity,
@@ -494,6 +495,14 @@ export function updateM5Bike(
 
     bike.control.steeringRequest = clamp(input.steering, -1, 1);
     bike.control.actualSteerAngle = bike.frontSteerAngle;
+    bike.control.handwheelAngle = 0;
+    bike.control.frontSlipAngle = front.forceTransmitting && front.tireFrameValid
+      ? regularizedTireSlipAngle(
+        front.longitudinalVelocity,
+        front.lateralVelocity,
+        profile.lowSpeedRegularization,
+      )
+      : 0;
     bike.control.requestedDriveTorque = driveTorque;
     bike.control.frontBrakeTorque = frontBrakeTorque;
     bike.control.rearBrakeTorque = rearBrakeTorque;

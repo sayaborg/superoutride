@@ -18,9 +18,19 @@ export class InputManager {
   private readonly keyboard: KeyboardInput;
   private readonly touch: TouchInput;
 
-  constructor(steeringPad: HTMLElement, throttleButton: HTMLElement, brakeButton: HTMLElement) {
+  constructor(
+    steerLeftButton: HTMLElement,
+    steerRightButton: HTMLElement,
+    throttleButton: HTMLElement,
+    brakeButton: HTMLElement,
+  ) {
     this.keyboard = new KeyboardInput();
-    this.touch = new TouchInput(steeringPad, throttleButton, brakeButton);
+    this.touch = new TouchInput(
+      steerLeftButton,
+      steerRightButton,
+      throttleButton,
+      brakeButton,
+    );
   }
 
   update(dt: number): void {

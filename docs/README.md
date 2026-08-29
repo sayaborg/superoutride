@@ -13,17 +13,20 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-The current vehicle-physics architecture authority is:
+The current vehicle-physics architecture and CAR control authorities are:
 
 ```text
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+80_m8_1_car_self_steering_control.md
 ```
 
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 while leaving those earlier milestone documents intact as historical records.
+M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; M8.0
+continues to own the mechanical model and BIKE authority.
 
 ## 2. Numbered milestone documents
 
-`01_...` through `79_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `80_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -50,6 +53,7 @@ The most important current topology/runtime/physics sequence is:
 77_m7_4_transient_tire_response.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 79_m8_0_circuit_low_speed_corner_authoring.md
+80_m8_1_car_self_steering_control.md
 ```
 
 The current public CIRCUIT course geometry follow-on is `79_m8_0_circuit_low_speed_corner_authoring.md`.
@@ -63,6 +67,12 @@ Current governing topology rule:
 Current governing vehicle-physics rule:
 
 > World state is authoritative; Guide/contact/tire observations are derived; CAR and BIKE produce handling through the minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
+
+Current governing CAR steering rule:
+
+> Steering input is normalized driver effort; one overdamped self-steering balance moves the
+> authoritative road-wheel angle toward a finite front-slip equilibrium, and neutral effort aligns
+> the tire to its actual road-plane contact velocity without a mode or old useful-steer cap.
 
 ## 3. Known historical-value supersession
 
@@ -110,6 +120,15 @@ validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt
 ```
 
 It records the green pre-validation candidate, executable Phase 9 acceptance matrix and self-reference-safe exact-head release procedure. Final SHA/run identity is supplied by Git/PR/main-ref/workflow history.
+
+M8.1 CAR self-steering implementation evidence is:
+
+```text
+validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt
+```
+
+It records the validation-inclusive local candidate, the 498-test executable result, browser
+checks for both public compositions, and the self-reference-safe exact-head CI procedure.
 
 ## 5. M8.0 implementation/finalization handoff
 

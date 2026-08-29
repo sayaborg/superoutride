@@ -1,0 +1,82 @@
+SUPER OUTRIDE — M8.1 CAR SELF-STEERING VALIDATION
+2026-08-30 JST
+
+Scope:
+M8.1 CAR normalized driver-effort input, physical self-steering/countersteer, digital touch buttons,
+derived handwheel/front-slip telemetry, live CAR steering HUD, and ordinary DEV rival adaptation.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f8df430b8fca15544bded808c4d2d6048448bc68
+
+Candidate branch:
+codex/m8-1-car-self-steering
+
+Package / visible milestone:
+super-outride-m8-1@0.8.1
+SUPER OUTRIDE M8.1
+
+Normative authority:
+docs/80_m8_1_car_self_steering_control.md
+
+Resolved implementation classes:
+- canonical CAR steering input is normalized driver effort, while BIKE lean intent is unchanged;
+- one overdamped self-steering balance uses actual regularized front contact slip and owns no
+  target-slip state, assist mode or countersteer mode;
+- the old CAR useful-steer cap and hypothetical front-utilization comparison are removed;
+- neutral effort physically aligns the tire to contact velocity and produces countersteer when
+  body sideslip requires it;
+- the 31-degree mechanical road-wheel stop remains the only hard steering-angle limit;
+- 15:1 steering ratio derives the displayed handwheel angle, including +/-465 degrees at lock;
+- touch steering uses independent left/right digital buttons with multi-pointer neutral handling;
+- the CAR HUD shows L/N/R input, a rotated steering-wheel marker, handwheel angle, road-wheel angle,
+  front slip and body slip without feeding telemetry back into physics;
+- the ordinary DEV rival publishes bounded effort and retains physical route/recovery authority;
+- velocity-direction camera work and finer discrete body-slip sprite authoring remain deferred.
+
+Dedicated executable acceptance:
+tests/m8-1-car-self-steering.test.mjs
+
+The acceptance matrix covers:
+- one-k-consistent regularized slip observation;
+- short digital tap versus held effort through one steering response;
+- physical neutral-input countersteer from a yawed body/velocity state;
+- finite effort equilibrium, mechanical rack stop and 15:1 handwheel derivation;
+- CAR HUD telemetry-model derivation;
+- absence of retired CAR useful-steer authority and presence in both public composition roots.
+
+Full repository result before this artifact:
+npm test
+498 tests
+498 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local BRANCHING boot: http://127.0.0.1:8000/
+- local CIRCUIT boot: http://127.0.0.1:8000/?mode=circuit
+- both reported SUPER OUTRIDE M8.1, rendered the CAR steering panel and emitted no browser
+  error/warning logs;
+- repeated digital right taps changed the derived road-wheel/handwheel telemetry and vehicle path;
+- neutral display returned to N while the road-wheel/handwheel values remained physical outputs.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 498 / 498 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later commit SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. Tire, mass, inertia and feel calibration intentionally follow this milestone.

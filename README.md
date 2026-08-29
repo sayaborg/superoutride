@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M8.0 Phase 9
+# SUPER OUTRIDE — M8.1 CAR Self-Steering Control
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -7,6 +7,18 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 `README.md` is an entry point and current-state index. It is not a second normative design document.
 
 ## Current milestone status
+
+M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with normalized driver effort and
+one overdamped self-steering balance. Neutral effort now physically aligns the front tire to its
+actual contact velocity and can produce self-countersteer. The current authority is:
+
+```text
+docs/80_m8_1_car_self_steering_control.md
+```
+
+The M8.0 five-DOF/two-station mechanical model, tire law, wheel solve, suspension, powertrain and
+BIKE authority remain frozen. Vehicle feel parameters remain `DEV_UNCALIBRATED`; M8.1 establishes
+the control and telemetry boundary before the next calibration pass.
 
 M8.0 / Phase 9 vehicle-physics implementation and regression migration are complete on:
 
@@ -34,15 +46,15 @@ The self-reference-safe M8.0 release evidence is `docs/validation/M8_0_PHASE9_VE
 
 ## Development entry point
 
-For M8.0 authority or follow-on work, read in this order:
+For current vehicle work, read in this order:
 
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` — M8.0 implementation/finalization checkpoint.
 3. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
 5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` — current vehicle-physics architecture authority.
-6. Relevant source/types/compilers and regression tests — executable implementation contract.
-7. PR #88 and its latest exact-head CI.
+6. `docs/80_m8_1_car_self_steering_control.md` — current CAR steering-control authority.
+7. Relevant source/types/compilers and regression tests — executable implementation contract.
 
 Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`; it does not supersede current M8.0 authority or release evidence.
 
@@ -112,6 +124,7 @@ M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical /
 M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
 M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
 M8.0       CIRCUIT Low-Speed Corner Authoring                        current public course follow-on
+M8.1       CAR Self-Steering Control                                 current control authority; handling uncalibrated
 ```
 
 Current topology/runtime/physics design sequence:
@@ -135,6 +148,7 @@ docs/76_m7_3_grip_and_instrument_hud.md
 docs/77_m7_4_transient_tire_response.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/79_m8_0_circuit_low_speed_corner_authoring.md
+docs/80_m8_1_car_self_steering_control.md
 ```
 
 Historical validation evidence under `docs/validation/` is evidence, not current design authority.
@@ -208,13 +222,17 @@ http://localhost:8000/?mode=circuit
 
 The query parameter selects only the top-level browser composition. Lower engine layers remain topology-neutral ordinary consumers.
 
-Package and visible milestone metadata are synchronized at `super-outride-m8-0@0.8.0`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
+Package and visible milestone metadata are synchronized at `super-outride-m8-1@0.8.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 
 ```text
 DEV_UNCALIBRATED
 ```
+
+The validation-inclusive local candidate passes `498 / 498` repository tests. M8.1 evidence and
+the exact-head CI/release checklist are recorded in
+`docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -227,7 +245,7 @@ src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
 src/physics/vehicle-math3.ts        minimal quaternion/3D math
 src/physics/vehicle-dynamics.ts     common M8.0 contact/surface/suspension observations
-src/physics/car-physics.ts          M8.0 CAR solver
+src/physics/car-physics.ts          M8.0 CAR mechanics + M8.1 self-steering Driver
 src/physics/motorcycle-physics.ts   M8.0 BIKE solver
 src/physics/vehicle-contract.ts     read-only consumer contracts
 src/physics/surface-map.ts         general SurfaceMap authority

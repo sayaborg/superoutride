@@ -67,6 +67,7 @@ import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics
 import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import {
+  drawCarSteeringHud,
   formatVehicleControlHud,
   formatVehicleSuspensionHud,
 } from './render/vehicle-control-hud.js';
@@ -97,7 +98,8 @@ import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
 import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
-const steeringPad = mustGet<HTMLElement>('steering-pad');
+const steerLeftButton = mustGet<HTMLElement>('steer-left-button');
+const steerRightButton = mustGet<HTMLElement>('steer-right-button');
 const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
 
@@ -114,7 +116,12 @@ const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
 const framebufferPixels = new Uint32Array(imageData.data.buffer);
 const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
 
-const inputManager = new InputManager(steeringPad, throttleButton, brakeButton);
+const inputManager = new InputManager(
+  steerLeftButton,
+  steerRightButton,
+  throttleButton,
+  brakeButton,
+);
 const parentCourse = createM72DefaultBranchingParent();
 const {
   guide,
@@ -551,7 +558,8 @@ function render(): void {
   );
   const dCar = pseudoDepth(vehicle.course.s, camera.s);
   const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
-  const slipDeg = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed)) * 180 / Math.PI;
+  const bodySlipAngle = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed));
+  const slipDeg = bodySlipAngle * 180 / Math.PI;
   const bankDeg = vehicleKind === 'bike'
     ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
     : 0;
@@ -583,7 +591,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M8.0 PHASE 9 ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M8.1 SELF STEER ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -616,6 +624,9 @@ function render(): void {
   ctx.fillStyle = '#8fa3ad';
   ctx.fillText(`FIELD RIV ${rivals.length} LOCKS ${sharedRouteChoices.locks.length}  R1 ${rivalRouteSummary}`, 8, 218);
   ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
+  if (vehicleKind === 'car') {
+    drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
+  }
 }
 
 /** DEV switch is an explicit safe-spawn reconstruction, never a running-state conversion. */
