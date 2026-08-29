@@ -31,7 +31,7 @@ export type VehicleContactId = 'FRONT' | 'REAR';
 
 /** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
-  /** Canonical input observation. CAR reads normalized handwheel effort; BIKE reads lean intent. */
+  /** Canonical input observation. CAR reads normalized steering request; BIKE reads lean intent. */
   steeringRequest: number;
   actualSteerAngle: number;
   /** CAR-only equivalent handwheel angle derived from road-wheel angle and authored ratio. */

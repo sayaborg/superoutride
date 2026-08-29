@@ -70,9 +70,10 @@ Current governing vehicle-physics rule:
 
 Current governing CAR steering rule:
 
-> Steering input is normalized driver effort; one overdamped self-steering balance moves the
-> authoritative road-wheel angle toward a finite front-slip equilibrium, and neutral effort aligns
-> the tire to its actual road-plane contact velocity without a mode or old useful-steer cap.
+> Steering input is a normalized driver request; one slew-limited assisted-slip command makes
+> digital press duration controllable, while a separate fast overdamped rack balance aligns the
+> authoritative road-wheel angle to actual road-plane contact velocity without a mode or old
+> useful-steer cap.
 
 ## 3. Known historical-value supersession
 

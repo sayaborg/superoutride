@@ -2,8 +2,9 @@ SUPER OUTRIDE — M8.1 CAR SELF-STEERING VALIDATION
 2026-08-30 JST
 
 Scope:
-M8.1 CAR normalized driver-effort input, physical self-steering/countersteer, digital touch buttons,
-derived handwheel/front-slip telemetry, live CAR steering HUD, and ordinary DEV rival adaptation.
+M8.1 CAR normalized driver-request input, slew-limited assisted-slip command, fast physical
+self-steering/countersteer, digital touch buttons, derived handwheel/front-slip telemetry, live CAR
+steering HUD, and ordinary DEV rival adaptation.
 
 Repository:
 sayaborg/superoutride
@@ -22,18 +23,21 @@ Normative authority:
 docs/80_m8_1_car_self_steering_control.md
 
 Resolved implementation classes:
-- canonical CAR steering input is normalized driver effort, while BIKE lean intent is unchanged;
-- one overdamped self-steering balance uses actual regularized front contact slip and owns no
-  target-slip state, assist mode or countersteer mode;
+- canonical CAR steering input is a normalized driver request, while BIKE lean intent is unchanged;
+- one slew-limited assisted-slip command makes short digital presses proportionally small;
+- a separate fast overdamped rack balance uses actual regularized front contact slip and owns no
+  duplicate road-wheel angle, assist mode or countersteer mode;
+- the former shared 0.12-second response was split because its self-alignment phase lag could drive
+  the handwheel to the mechanical stop after a released high-speed tap;
 - the old CAR useful-steer cap and hypothetical front-utilization comparison are removed;
-- neutral effort physically aligns the tire to contact velocity and produces countersteer when
+- neutral input physically aligns the tire to contact velocity and produces countersteer when
   body sideslip requires it;
 - the 31-degree mechanical road-wheel stop remains the only hard steering-angle limit;
 - 15:1 steering ratio derives the displayed handwheel angle, including +/-465 degrees at lock;
 - touch steering uses independent left/right digital buttons with multi-pointer neutral handling;
 - the CAR HUD shows L/N/R input, a rotated steering-wheel marker, handwheel angle, road-wheel angle,
   front slip and body slip without feeding telemetry back into physics;
-- the ordinary DEV rival publishes bounded effort and retains physical route/recovery authority;
+- the ordinary DEV rival publishes a bounded request and retains physical route/recovery authority;
 - velocity-direction camera work and finer discrete body-slip sprite authoring remain deferred.
 
 Dedicated executable acceptance:
@@ -41,16 +45,17 @@ tests/m8-1-car-self-steering.test.mjs
 
 The acceptance matrix covers:
 - one-k-consistent regularized slip observation;
-- short digital tap versus held effort through one steering response;
+- short digital tap versus held request through command slew and fast rack response;
+- released high-speed tap damping without rack-lock divergence;
 - physical neutral-input countersteer from a yawed body/velocity state;
-- finite effort equilibrium, mechanical rack stop and 15:1 handwheel derivation;
+- finite request equilibrium, mechanical rack stop and 15:1 handwheel derivation;
 - CAR HUD telemetry-model derivation;
 - absence of retired CAR useful-steer authority and presence in both public composition roots.
 
 Full repository result before this artifact:
 npm test
-498 tests
-498 pass
+499 tests
+499 pass
 0 fail
 0 skipped
 
@@ -61,12 +66,21 @@ Browser verification:
   error/warning logs;
 - repeated digital right taps changed the derived road-wheel/handwheel telemetry and vehicle path;
 - neutral display returned to N while the road-wheel/handwheel values remained physical outputs.
+- after the response split, a fresh BRANCHING reload ran for three seconds with the CAR panel at
+  neutral and emitted no new browser log entry.
+
+High-speed causal probe after the response split:
+- 80 m/s initial speed, nine 60 Hz right-input frames, then 360 neutral frames on wide asphalt;
+- initial post-release road-wheel peak: 3.21 degrees;
+- maximum road-wheel angle from three seconds after release: 0.48 degrees;
+- road-wheel angle at six seconds after release: 0.10 degrees;
+- the same probe on the former shared 0.12-second response reached the 31-degree mechanical stop.
 
 Validation-inclusive exact-head preconditions:
 1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
 2. Push the candidate branch and open a PR targeting main.
 3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
-4. Require the complete suite to remain 498 / 498 pass, 0 fail, 0 skipped.
+4. Require the complete suite to remain 499 / 499 pass, 0 fail, 0 skipped.
 5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
 6. Never add an unvalidated merge commit or force-update main.
 7. If release is authorized, move main only to the validated exact SHA with force=false.

@@ -68,7 +68,7 @@ test('M8.0 CAR is five-DOF/two-station while BIKE owns quaternion and crown stat
   assert.equal('contacts' in bike, false);
 });
 
-test('M8.1 digital effort produces continuous steering and neutral self-countersteer', () => {
+test('M8.1 digital request produces continuous steering and neutral self-countersteer', () => {
   const car = createM5Car(guide, height, surfaces, 90);
   updateM5Car(guide, height, surfaces, car, { steering: 1, throttle: false, brake: false }, 1 / 60);
   const first = car.control.actualSteerAngle;
@@ -84,7 +84,7 @@ test('M8.1 digital effort produces continuous steering and neutral self-counters
   car.frontSteerAngle = 0;
   updateM5Car(guide, height, surfaces, car, { steering: 0, throttle: false, brake: false }, 1 / 60);
   assert.ok(car.control.frontSlipAngle > 0);
-  assert.ok(car.control.actualSteerAngle < 0, 'neutral effort must countersteer toward zero front slip');
+  assert.ok(car.control.actualSteerAngle < 0, 'neutral input must countersteer toward zero front slip');
 });
 
 test('M8.0 HUD exposes physical torque lock and utilization telemetry without hidden assists', () => {

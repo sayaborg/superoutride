@@ -8,9 +8,9 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 ## Current milestone status
 
-M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with normalized driver effort and
-one overdamped self-steering balance. Neutral effort now physically aligns the front tire to its
-actual contact velocity and can produce self-countersteer. The current authority is:
+M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with a slew-limited assisted-slip
+command and a fast overdamped self-steering balance. Neutral input now physically aligns the front
+tire to its actual contact velocity and can produce self-countersteer. The current authority is:
 
 ```text
 docs/80_m8_1_car_self_steering_control.md

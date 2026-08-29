@@ -17,35 +17,37 @@ semantics and observability before tire, mass, inertia, self-steer response or o
    publishers and do not own actuator state.
 2. The existing authoritative front road-wheel angle, derived front contact velocity and tire
    observation express self-steering without a new vehicle coordinate or tire-force authority.
-3. No target-slip state, contact phase, countersteer mode, steering-assist mode or duplicate rack
-   state is introduced.
+3. One slew-limited assisted-slip command separates digital press duration from fast rack
+   self-alignment. It is not a second road-wheel angle, contact phase, countersteer mode or tire
+   authority.
 4. The control law contains no course-, route-, topology-, stage- or camera-specific branch.
 5. Guide geometry remains a derived surface/contact observation. Self-steering uses the front
    contact's actual road-plane velocity, never Guide heading or screen position.
 6. M8.0 world mechanics, tire saturation, finite/open composition and frozen renderer invariants
    are preserved.
-7. Dedicated causal regressions prove digital tap response, full-effort equilibrium, neutral
-   self-countersteer, mechanical rack limits, telemetry derivation and the absence of the retired
-   useful-steer authority.
+7. Dedicated causal regressions prove digital tap response, high-speed release damping,
+   full-request equilibrium, neutral self-countersteer, mechanical rack limits, telemetry derivation
+   and the absence of the retired useful-steer authority.
 
 ## 2. Canonical input meaning
 
-For CAR only, canonical `DrivingInput.steering` is normalized driver steering effort:
+For CAR only, canonical `DrivingInput.steering` is normalized driver steering request:
 
 ```text
 u in [-1, +1]
-u = -1  maximum left handwheel effort
-u =  0  hands-off / no driver steering torque
-u = +1  maximum right handwheel effort
+u = -1  request maximum left assisted slip
+u =  0  release toward hands-off / zero assisted slip
+u = +1  request maximum right assisted slip
 ```
 
 Keyboard and touch adapters publish only `-1`, `0` or `+1`. Analog traces remain legal because
-the canonical contract stays continuous over `[-1,+1]`. CAR Driver interprets that value as effort;
-BIKE Rider retains its existing lean-intent interpretation.
+the canonical contract stays continuous over `[-1,+1]`. CAR Driver interprets that value as a
+request; BIKE Rider retains its existing lean-intent interpretation.
 
-Input effort changes immediately. There is no input low-pass, press ramp or second target-slip
-buffer. A brief digital press is a brief torque impulse and therefore produces a proportionally
-small road-wheel response through the one steering dynamic below.
+The digital request changes immediately, but the assisted-slip command moves toward it at one
+authored angular rate. A short press therefore creates a small command instead of forcing the
+physical rack response itself to be slow. Releasing the button slews the same command back to zero;
+there is no latched steering target or input-device angle.
 
 ## 3. Derived regularized front slip angle
 
@@ -62,44 +64,54 @@ alpha_front = atan(-Vy_front / Vref)
 At ordinary speed this approaches the geometric front slip angle. At zero speed it is finite and
 zero; no start/stop control mode is introduced.
 
-## 4. Overdamped virtual steering-torque balance
+## 4. Command slew and fast virtual steering-torque balance
 
-CAR retains one authoritative front road-wheel angle `delta`. Driver effort and self-aligning
-response are represented by one overdamped balance:
-
-```text
-alpha_equilibrium = u * alpha_assist_max
-delta_dot          = (alpha_equilibrium - alpha_front) / tau_self_steer
-delta_next         = clamp(delta + delta_dot * h, -delta_mechanical_max, +delta_mechanical_max)
-```
-
-This is the normalized first-order form of:
+CAR retains one authoritative front road-wheel angle `delta`. The input command and physical rack
+response are deliberately separate:
 
 ```text
-C_delta * delta_dot = T_driver - K_alpha * alpha_front
-alpha_assist_max     = T_driver_max / K_alpha
-tau_self_steer       = C_delta / K_alpha
+alpha_requested = u * alpha_assist_max
+alpha_command_next = move_toward(
+  alpha_command,
+  alpha_requested,
+  alpha_command_rate * h
+)
+
+delta_dot  = (alpha_command_next - alpha_front) / tau_self_steer
+delta_next = clamp(delta + delta_dot * h, -delta_mechanical_max, +delta_mechanical_max)
 ```
 
-There is no separately filtered target slip angle. The equilibrium expression is derived from the
-torque balance and is not stored as vehicle state.
+The second equation remains the normalized overdamped form of:
+
+```text
+C_delta * delta_dot = K_alpha * (alpha_command - alpha_front)
+tau_self_steer      = C_delta / K_alpha
+```
+
+`alpha_command` is one control state and `delta` is the sole rack-angle state. The split is required
+because using one slow rack response both to shrink digital taps and to self-align the tire adds
+phase lag to the coupled yaw/lateral dynamics. At high speed that lag can reverse and amplify the
+handwheel after release. Fast rack alignment removes that causal feedback while the command slew
+preserves fine digital control.
 
 Consequences:
 
-- a short press moves the road wheel only for the press duration;
-- held effort approaches a finite front-slip equilibrium rather than mechanical lock at speed;
-- releasing to `u=0` aligns the front tire with its actual contact velocity;
+- a short press produces a proportionally small assisted-slip command;
+- held request approaches a finite front-slip equilibrium rather than mechanical lock at speed;
+- releasing to `u=0` first returns the command to zero while the faster rack response aligns the
+  front tire with its actual contact velocity;
 - if body sideslip requires opposite road-wheel angle for zero front slip, neutral input produces
   ordinary self-countersteer;
-- loss of front contact removes front-slip feedback, so effort can still move the unloaded rack
+- loss of front contact removes front-slip feedback, so a nonzero command can still move the unloaded rack
   while neutral input holds it; recontact restores ordinary self-alignment;
 - the mechanical rack stop remains explicit and does not manufacture tire force.
 
 The initial uncalibrated authoring values are:
 
 ```text
-alpha_assist_max   = 6.5 degrees
-tau_self_steer     = 0.12 seconds
+alpha_assist_max     = 6.5 degrees
+alpha_command_rate   = 24 degrees/second
+tau_self_steer       = 0.01 seconds
 delta_mechanical_max = 31 degrees
 ```
 
@@ -144,15 +156,15 @@ The live CAR HUD must show:
 
 HUD values are derived telemetry only and are never consumed by physics. A `COUNTERSTEER` mode or
 assist-state flag is prohibited; countersteer is observed directly when road-wheel angle opposes
-body heading/sideslip while driver effort is neutral or points elsewhere.
+body heading/sideslip while the driver request is neutral or points elsewhere.
 
 ## 7. Ordinary DEV rival integration
 
 The DEV rival remains an upper-level publisher of canonical `DrivingInput`. Its path feedback is
-therefore converted to normalized driver effort rather than a road-wheel target. It owns no rack,
+therefore converted to normalized driver request rather than a road-wheel target. It owns no rack,
 front-slip or vehicle-coordinate state and cannot bypass the ordinary CAR solve.
 
-The current uncalibrated rival uses a longer `36 m` lookahead, at most `0.65` steering effort, a
+The current uncalibrated rival uses a longer `36 m` lookahead, at most `0.65` steering request, a
 `0.47 g` speed-planning envelope and a `0.25 m/s` pedal deadband. These are DEV driver settings,
 not tire or player-control authority. They keep the existing physical fork, low-speed-course and
 post-handoff regressions causal after the canonical input meaning changes.

@@ -19,7 +19,7 @@ test('keyboard steering publishes only digital intent', () => {
   assert.equal(digitalKeyboardSteering(true, true), 0);
 });
 
-test('touch steering buttons publish left neutral or right digital effort', () => {
+test('touch steering buttons publish left neutral or right digital request', () => {
   assert.equal(digitalTouchSteering(true, false), -1);
   assert.equal(digitalTouchSteering(false, false), 0);
   assert.equal(digitalTouchSteering(false, true), 1);

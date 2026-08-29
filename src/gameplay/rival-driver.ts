@@ -43,10 +43,10 @@ export function sampleRivalDrivingInput(
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
   // Heading/lateral feedback first produces a signed steering demand. M8.1 interprets the
-  // canonical value as driver effort rather than rack angle, so the square-root response gives
-  // the DEV rival enough ordinary handwheel effort around small errors without introducing a
-  // second rack/slip authority. The DEV driver deliberately stays below full player effort;
-  // if it reverses, neutral effort lets physical self-steer realign the tire.
+  // canonical value as driver request rather than rack angle, so the square-root response gives
+  // the DEV rival enough ordinary steering request around small errors without introducing a
+  // second rack-angle authority. The DEV driver deliberately stays below the full player request;
+  // if it reverses, neutral input lets physical self-steer realign the tire.
   const pathDemand = clamp(
     yawError * 1.7
       - (car.course.l - targetL) * 0.075

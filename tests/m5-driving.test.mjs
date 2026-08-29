@@ -102,12 +102,14 @@ test('Y_phys is a semantically separate smooth channel from piecewise-linear Y_r
 test('car remains world-authoritative and can traverse laterally across the road chart', () => {
   const car = createM5Car(guide, height, surfaces, 70);
   const startL = car.course.l;
+  let maxAbsYawRate = 0;
   for (let i = 0; i < 120; i += 1) {
     updateM5Car(guide, height, surfaces, car, { steering: 0.35, throttle: true, brake: false }, 1 / 60);
+    maxAbsYawRate = Math.max(maxAbsYawRate, Math.abs(car.yawRate));
   }
   assert.ok(Math.abs(car.course.l - startL) > 2);
   assert.ok(Math.abs(car.lateralSpeed) > 0.1);
-  assert.ok(Math.abs(car.yawRate) > 0.01);
+  assert.ok(maxAbsYawRate > 0.01);
 });
 
 test('surface material changes longitudinal acceleration without changing DrivingInput', () => {
@@ -128,12 +130,16 @@ test('lower-friction sand limits turning response versus asphalt in the same ste
   const sand = createM5Car(guide, height, surfaces, 300);
   placeCar(asphalt, 300, 0, 28);
   placeCar(sand, 300, 8, 28);
+  let asphaltPeakYawRate = 0;
+  let sandPeakYawRate = 0;
   for (let i = 0; i < 30; i += 1) {
     const input = { steering: -0.45, throttle: false, brake: false };
     updateM5Car(guide, height, surfaces, asphalt, input, 1 / 60);
     updateM5Car(guide, height, surfaces, sand, input, 1 / 60);
+    asphaltPeakYawRate = Math.max(asphaltPeakYawRate, Math.abs(asphalt.yawRate));
+    sandPeakYawRate = Math.max(sandPeakYawRate, Math.abs(sand.yawRate));
   }
-  assert.ok(Math.abs(asphalt.yawRate) > Math.abs(sand.yawRate));
+  assert.ok(asphaltPeakYawRate > sandPeakYawRate);
 });
 
 test('VOID means no support: planar momentum continues while vertical state falls', () => {

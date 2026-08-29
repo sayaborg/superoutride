@@ -77,9 +77,11 @@ export interface CarPhysicsProfile {
 
   /** Mechanical road-wheel stop. This is not an ordinary useful-steer limit. */
   readonly maxRoadWheelSteer: number;
-  /** Full normalized driver effort's steady front-slip equilibrium. */
+  /** Full normalized driver request's steady front-slip equilibrium. */
   readonly assistedSlipAngleMax: number;
-  /** One overdamped driver-effort/self-aligning response time. */
+  /** Slew rate from digital input toward the requested assisted front-slip angle. */
+  readonly assistedSlipAngleRate: number;
+  /** Fast overdamped road-wheel self-aligning response time. */
   readonly selfSteerResponseTau: number;
   /** Equivalent handwheel angle / road-wheel angle. */
   readonly steeringRatio: number;
@@ -129,7 +131,8 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
 
   maxRoadWheelSteer: 31 * Math.PI / 180,
   assistedSlipAngleMax: 6.5 * Math.PI / 180,
-  selfSteerResponseTau: 0.12,
+  assistedSlipAngleRate: 24 * Math.PI / 180,
+  selfSteerResponseTau: 0.01,
   steeringRatio: 15,
   frontBrakeTorqueMax: 3_070,
   rearBrakeTorqueMax: 1_880,
@@ -162,6 +165,7 @@ export interface M5CarState extends VehicleDynamicsState {
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
+  assistedSlipAngleCommand: number;
   frontWheelOmega: number;
   rearWheelOmega: number;
 
@@ -200,6 +204,9 @@ export function compileCarPhysicsProfile(profile: CarPhysicsProfile): Readonly<C
   }
   if (!(profile.assistedSlipAngleMax > 0 && profile.assistedSlipAngleMax < Math.PI / 2)) {
     throw new RangeError('CAR assisted slip angle must lie in (0, pi/2)');
+  }
+  if (!(profile.assistedSlipAngleRate > 0 && Number.isFinite(profile.assistedSlipAngleRate))) {
+    throw new RangeError('CAR assisted slip angle rate must be finite and > 0');
   }
   if (!(profile.selfSteerResponseTau > 0 && Number.isFinite(profile.selfSteerResponseTau))) {
     throw new RangeError('CAR self-steer response time must be finite and > 0');
@@ -308,6 +315,7 @@ export function createM5Car(
     yawRate: 0,
     pitchRate: 0,
     frontSteerAngle: 0,
+    assistedSlipAngleCommand: 0,
     frontWheelOmega: omega,
     rearWheelOmega: omega,
     course: initializeGuideObservation(guide, position.x, position.z),
@@ -360,9 +368,15 @@ export function updateM5Car(
         profile.lowSpeedRegularization,
       )
       : 0;
+    car.assistedSlipAngleCommand = stepCarAssistedSlipAngleCommand(
+      car.assistedSlipAngleCommand,
+      steeringRequest,
+      substep,
+      profile,
+    );
     car.frontSteerAngle = stepCarSelfSteering(
       car.frontSteerAngle,
-      steeringRequest,
+      car.assistedSlipAngleCommand,
       observedFrontSlip,
       substep,
       profile,
@@ -502,24 +516,49 @@ export function updateM5Car(
 }
 
 /**
- * One overdamped virtual steering-torque balance. Driver effort changes immediately; this is the
- * sole steering response and stores no target-slip or countersteer mode state.
+ * Digital input slews one assisted-slip command. This is the input-device response; it is not a
+ * second road-wheel-angle authority.
+ */
+export function stepCarAssistedSlipAngleCommand(
+  assistedSlipAngleCommand: number,
+  steeringRequest: number,
+  dt: number,
+  profile: Pick<CompiledCarPhysicsProfile,
+    'assistedSlipAngleMax' | 'assistedSlipAngleRate'>,
+): number {
+  if (!(dt > 0) || !Number.isFinite(dt)) {
+    throw new RangeError('CAR assisted-slip command dt must be finite and > 0');
+  }
+  if (![assistedSlipAngleCommand, steeringRequest].every(Number.isFinite)) {
+    throw new RangeError('CAR assisted-slip command inputs must be finite');
+  }
+  const target = clamp(steeringRequest, -1, 1) * profile.assistedSlipAngleMax;
+  const maximumChange = profile.assistedSlipAngleRate * dt;
+  return assistedSlipAngleCommand + clamp(
+    target - assistedSlipAngleCommand,
+    -maximumChange,
+    maximumChange,
+  );
+}
+
+/**
+ * Fast overdamped virtual rack balance. The separately slew-limited command makes a short digital
+ * press small without forcing road-wheel self-alignment to lag behind the vehicle response.
  */
 export function stepCarSelfSteering(
   roadWheelAngle: number,
-  steeringEffort: number,
+  assistedSlipAngleCommand: number,
   observedFrontSlipAngle: number,
   dt: number,
   profile: Pick<CompiledCarPhysicsProfile,
-    'assistedSlipAngleMax' | 'selfSteerResponseTau' | 'maxRoadWheelSteer'>,
+    'selfSteerResponseTau' | 'maxRoadWheelSteer'>,
 ): number {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR self-steer dt must be finite and > 0');
-  if (![roadWheelAngle, steeringEffort, observedFrontSlipAngle].every(Number.isFinite)) {
+  if (![roadWheelAngle, assistedSlipAngleCommand, observedFrontSlipAngle].every(Number.isFinite)) {
     throw new RangeError('CAR self-steer inputs must be finite');
   }
-  const effort = clamp(steeringEffort, -1, 1);
-  const equilibriumSlip = effort * profile.assistedSlipAngleMax;
-  const steerRate = (equilibriumSlip - observedFrontSlipAngle) / profile.selfSteerResponseTau;
+  const steerRate = (assistedSlipAngleCommand - observedFrontSlipAngle)
+    / profile.selfSteerResponseTau;
   return clamp(
     roadWheelAngle + steerRate * dt,
     -profile.maxRoadWheelSteer,
