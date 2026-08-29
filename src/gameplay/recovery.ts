@@ -222,7 +222,7 @@ function reconstructCar(
   car.yawRate = 0;
   car.pitchRate = 0;
   car.frontSteerAngle = 0;
-  car.assistedSlipAngleCommand = 0;
+  car.steeringOffsetCommand = 0;
   car.frontWheelOmega = speed / p.wheelRadius;
   car.rearWheelOmega = speed / p.wheelRadius;
   car.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;

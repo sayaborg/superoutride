@@ -16,7 +16,7 @@ const CURVATURE_PROBE_STEP_METERS = 20;
 const STRAIGHT_CRUISE_SPEED_MPS = 56;
 const MIN_CURVE_SPEED_MPS = 18;
 const LATERAL_ACCEL_TARGET_G = 0.47;
-const MAX_STEERING_EFFORT = 0.65;
+const MAX_STEERING_REQUEST = 0.65;
 const SPEED_DEADBAND_MPS = 0.25;
 const GUIDE_EPSILON = 1e-9;
 
@@ -42,11 +42,8 @@ export function sampleRivalDrivingInput(
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
-  // Heading/lateral feedback first produces a signed steering demand. M8.1 interprets the
-  // canonical value as driver request rather than rack angle, so the square-root response gives
-  // the DEV rival enough ordinary steering request around small errors without introducing a
-  // second rack-angle authority. The DEV driver deliberately stays below the full player request;
-  // if it reverses, neutral input lets physical self-steer realign the tire.
+  // Heading/lateral feedback publishes only an angular-offset request. The DEV rival remains an
+  // ordinary input publisher and stays below the full player request.
   const pathDemand = clamp(
     yawError * 1.7
       - (car.course.l - targetL) * 0.075
@@ -57,7 +54,7 @@ export function sampleRivalDrivingInput(
   );
   const steering = car.longitudinalSpeed <= 0
     ? 0
-    : MAX_STEERING_EFFORT * Math.sign(pathDemand) * Math.sqrt(Math.abs(pathDemand));
+    : MAX_STEERING_REQUEST * Math.sign(pathDemand) * Math.sqrt(Math.abs(pathDemand));
 
   const speed = Math.max(0, car.longitudinalSpeed);
   return {

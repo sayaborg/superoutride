@@ -303,7 +303,7 @@ test('M8.1 CAR mechanical steer stop and positive-understeer compiler gate remai
   assert.ok(car.frontSteerAngle < M5_CAR_PROFILE.maxRoadWheelSteer);
 });
 
-test('M8.1 CAR power-oversteer emerges and neutral self-steer arrests it without a mode', async () => {
+test('M8.1 CAR power-oversteer emerges and neutral travel steering arrests it without a mode', async () => {
   const wideSurface = new SurfaceMap(highway.guide.length, [{
     sStart: 0,
     name: 'WIDE ASPHALT PROBE',

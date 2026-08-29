@@ -5,10 +5,11 @@ import test from 'node:test';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import {
   M5_CAR_PROFILE,
+  carBodyTravelDirection,
   compileCarPhysicsProfile,
   createM5Car,
-  stepCarAssistedSlipAngleCommand,
-  stepCarSelfSteering,
+  stepCarSteeringOffsetCommand,
+  stepCarTravelDirectionSteering,
   updateM5Car,
 } from '../dist/physics/car-physics.js';
 import {
@@ -32,14 +33,13 @@ function stepFixedVelocityResponse(angle, request, ticks) {
   let command = 0;
   for (let tick = 0; tick < ticks; tick += 1) {
     for (let substep = 0; substep < 12; substep += 1) {
-      command = stepCarAssistedSlipAngleCommand(
+      command = stepCarSteeringOffsetCommand(
         command,
         request,
         SUBSTEP,
         M5_CAR_PROFILE,
       );
-      // On a straight with fixed forward velocity, front slip approaches road-wheel angle.
-      next = stepCarSelfSteering(next, command, next, SUBSTEP, M5_CAR_PROFILE);
+      next = stepCarTravelDirectionSteering(next, command, 0, SUBSTEP, M5_CAR_PROFILE);
     }
   }
   return next;
@@ -53,6 +53,29 @@ test('M8.1 regularized front slip observation matches the one-k lateral denomina
   assert.ok(Math.abs(regularizedTireSlipAngle(0, 0, tire.lowSpeedRegularization)) === 0);
 });
 
+test('M8.1 body travel direction derives countersteer from authoritative CG velocity', () => {
+  const speed = 30;
+  const lateralSpeed = -3;
+  const body = {
+    position: { x: 0, y: 0, z: 0 },
+    velocity: { x: lateralSpeed, y: 0, z: speed },
+    right: { x: 1, y: 0, z: 0 },
+    up: { x: 0, y: 1, z: 0 },
+    forward: { x: 0, y: 0, z: 1 },
+    omegaWorld: { x: 0, y: 0.2, z: 0 },
+  };
+  const actual = carBodyTravelDirection(
+    body,
+    M5_CAR_PROFILE.lowSpeedRegularization,
+  );
+  const expected = Math.atan2(
+    lateralSpeed,
+    Math.sqrt(speed * speed + M5_CAR_PROFILE.lowSpeedRegularization ** 2),
+  );
+  assert.ok(Math.abs(actual - expected) < 1e-12);
+  assert.ok(actual < 0);
+});
+
 test('M8.1 command slew makes a short digital tap smaller while the rack response stays fast', () => {
   const oneTick = stepFixedVelocityResponse(0, 1, 1);
   const sixTicks = stepFixedVelocityResponse(0, 1, 6);
@@ -61,7 +84,7 @@ test('M8.1 command slew makes a short digital tap smaller while the rack respons
   assert.ok(oneTick > 0);
   assert.ok(oneTick < sixTicks);
   assert.ok(sixTicks < sixtyTicks);
-  assert.ok(Math.abs(sixtyTicks - M5_CAR_PROFILE.assistedSlipAngleMax) < 5e-5);
+  assert.ok(Math.abs(sixtyTicks - M5_CAR_PROFILE.steeringOffsetMax) < 5e-5);
 });
 
 test('M8.1 neutral input physically countersteers a body yawed across its velocity', () => {
@@ -74,7 +97,7 @@ test('M8.1 neutral input physically countersteers a body yawed across its veloci
   car.frontWheelOmega = speed / M5_CAR_PROFILE.wheelRadius;
   car.rearWheelOmega = speed / M5_CAR_PROFILE.wheelRadius;
   car.frontSteerAngle = 0;
-  car.assistedSlipAngleCommand = 0;
+  car.steeringOffsetCommand = 0;
 
   updateM5Car(
     highway.guide,
@@ -93,14 +116,24 @@ test('M8.1 neutral input physically countersteers a body yawed across its veloci
   ) < 1e-12);
 });
 
-test('M8.1 finite request owns a soft slip equilibrium while the rack keeps one hard stop', () => {
+test('M8.1 finite request owns an angular offset while the rack keeps one hard stop', () => {
   let angle = 0;
   let command = 0;
   for (let tick = 0; tick < 2_000; tick += 1) {
-    command = stepCarAssistedSlipAngleCommand(command, 1, SUBSTEP, M5_CAR_PROFILE);
-    angle = stepCarSelfSteering(angle, command, 0, SUBSTEP, M5_CAR_PROFILE);
+    command = stepCarSteeringOffsetCommand(command, 1, SUBSTEP, M5_CAR_PROFILE);
+    angle = stepCarTravelDirectionSteering(angle, command, 0, SUBSTEP, M5_CAR_PROFILE);
   }
-  assert.equal(angle, M5_CAR_PROFILE.maxRoadWheelSteer);
+  assert.ok(Math.abs(angle - M5_CAR_PROFILE.steeringOffsetMax) < 1e-12);
+  for (let tick = 0; tick < 100; tick += 1) {
+    angle = stepCarTravelDirectionSteering(
+      angle,
+      command,
+      M5_CAR_PROFILE.maxRoadWheelSteer,
+      SUBSTEP,
+      M5_CAR_PROFILE,
+    );
+  }
+  assert.ok(Math.abs(angle - M5_CAR_PROFILE.maxRoadWheelSteer) < 1e-6);
   assert.equal(M5_CAR_PROFILE.steeringRatio, 15);
   assert.ok(Math.abs(
     M5_CAR_PROFILE.maxRoadWheelSteer * M5_CAR_PROFILE.steeringRatio * 180 / Math.PI - 465,
@@ -111,12 +144,12 @@ test('M8.1 finite request owns a soft slip equilibrium while the rack keeps one 
     /steering ratio/,
   );
   assert.throws(
-    () => compileCarPhysicsProfile({ ...M5_CAR_PROFILE, assistedSlipAngleRate: 0 }),
-    /assisted slip angle rate/,
+    () => compileCarPhysicsProfile({ ...M5_CAR_PROFILE, steeringOffsetRate: 0 }),
+    /steering offset rate/,
   );
 });
 
-test('M8.1 fast self-alignment prevents a released high-speed digital tap from driving the rack to lock', () => {
+test('M8.1 travel-direction steering damps a released high-speed tap without driving the rack to lock', () => {
   const wideSurface = new SurfaceMap(highway.guide.length, [{
     sStart: 0,
     name: 'WIDE ASPHALT STEERING PROBE',
@@ -149,7 +182,7 @@ test('M8.1 fast self-alignment prevents a released high-speed digital tap from d
   assert.ok(initialPeak > 2 * Math.PI / 180);
   assert.ok(latePeak < initialPeak * 0.25);
   assert.ok(overallPeak < M5_CAR_PROFILE.maxRoadWheelSteer * 0.25);
-  assert.ok(Math.abs(car.assistedSlipAngleCommand) < 1e-12);
+  assert.ok(Math.abs(car.steeringOffsetCommand) < 1e-12);
 });
 
 test('M8.1 CAR HUD exposes digital request, handwheel, road wheel and both slip observations', () => {
@@ -183,8 +216,10 @@ test('M8.1 owns no retired useful-steer authority and both public roots draw the
   ]);
   assert.doesNotMatch(
     carSource,
-    /carSteerTarget|usefulLateralCapacity|hypotheticalFrontUtilization|countersteerMode/,
+    /carSteerTarget|usefulLateralCapacity|hypotheticalFrontUtilization|countersteerMode|observedFrontSlip|frontBefore/,
   );
+  assert.match(carSource, /carBodyTravelDirection\(/);
+  assert.match(carSource, /bodyTravelDirection \+ steeringOffsetCommand/);
   assert.match(index, /id="steer-left-button"/);
   assert.match(index, /id="steer-right-button"/);
   assert.match(branching, /drawCarSteeringHud\(ctx, input\.steering/);

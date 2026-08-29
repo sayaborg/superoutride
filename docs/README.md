@@ -70,10 +70,10 @@ Current governing vehicle-physics rule:
 
 Current governing CAR steering rule:
 
-> Steering input is a normalized driver request; one slew-limited assisted-slip command makes
-> digital press duration controllable, while a separate fast overdamped rack balance aligns the
-> authoritative road-wheel angle to actual road-plane contact velocity without a mode or old
-> useful-steer cap.
+> Steering input is a normalized driver request; one slew-limited angular-offset command makes
+> digital press duration controllable, while a fast rack response aims the authoritative road-wheel
+> angle along CG travel direction plus that offset. Front slip remains tire-force/telemetry
+> authority and is not steering feedback.
 
 ## 3. Known historical-value supersession
 
@@ -122,7 +122,7 @@ validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt
 
 It records the green pre-validation candidate, executable Phase 9 acceptance matrix and self-reference-safe exact-head release procedure. Final SHA/run identity is supplied by Git/PR/main-ref/workflow history.
 
-M8.1 CAR self-steering implementation evidence is:
+M8.1 CAR travel-direction steering implementation evidence is:
 
 ```text
 validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt

@@ -77,12 +77,12 @@ export interface CarPhysicsProfile {
 
   /** Mechanical road-wheel stop. This is not an ordinary useful-steer limit. */
   readonly maxRoadWheelSteer: number;
-  /** Full normalized driver request's steady front-slip equilibrium. */
-  readonly assistedSlipAngleMax: number;
-  /** Slew rate from digital input toward the requested assisted front-slip angle. */
-  readonly assistedSlipAngleRate: number;
-  /** Fast overdamped road-wheel self-aligning response time. */
-  readonly selfSteerResponseTau: number;
+  /** Full normalized driver request's angle offset from body travel direction. */
+  readonly steeringOffsetMax: number;
+  /** Slew rate from digital input toward the requested travel-direction angle offset. */
+  readonly steeringOffsetRate: number;
+  /** Fast overdamped road-wheel response toward the derived travel-direction target. */
+  readonly steeringResponseTau: number;
   /** Equivalent handwheel angle / road-wheel angle. */
   readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
@@ -130,9 +130,9 @@ export const M5_CAR_PROFILE: Readonly<CompiledCarPhysicsProfile> = compileCarPhy
   rearNormalizedStiffness: 10.5,
 
   maxRoadWheelSteer: 31 * Math.PI / 180,
-  assistedSlipAngleMax: 6.5 * Math.PI / 180,
-  assistedSlipAngleRate: 24 * Math.PI / 180,
-  selfSteerResponseTau: 0.01,
+  steeringOffsetMax: 15 * Math.PI / 180,
+  steeringOffsetRate: 24 * Math.PI / 180,
+  steeringResponseTau: 0.01,
   steeringRatio: 15,
   frontBrakeTorqueMax: 3_070,
   rearBrakeTorqueMax: 1_880,
@@ -165,7 +165,7 @@ export interface M5CarState extends VehicleDynamicsState {
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
-  assistedSlipAngleCommand: number;
+  steeringOffsetCommand: number;
   frontWheelOmega: number;
   rearWheelOmega: number;
 
@@ -202,14 +202,14 @@ export function compileCarPhysicsProfile(profile: CarPhysicsProfile): Readonly<C
   if (!(profile.maxRoadWheelSteer > 0 && profile.maxRoadWheelSteer < Math.PI / 2)) {
     throw new RangeError('CAR mechanical road-wheel steer must lie in (0, pi/2)');
   }
-  if (!(profile.assistedSlipAngleMax > 0 && profile.assistedSlipAngleMax < Math.PI / 2)) {
-    throw new RangeError('CAR assisted slip angle must lie in (0, pi/2)');
+  if (!(profile.steeringOffsetMax > 0 && profile.steeringOffsetMax < Math.PI / 2)) {
+    throw new RangeError('CAR steering offset must lie in (0, pi/2)');
   }
-  if (!(profile.assistedSlipAngleRate > 0 && Number.isFinite(profile.assistedSlipAngleRate))) {
-    throw new RangeError('CAR assisted slip angle rate must be finite and > 0');
+  if (!(profile.steeringOffsetRate > 0 && Number.isFinite(profile.steeringOffsetRate))) {
+    throw new RangeError('CAR steering offset rate must be finite and > 0');
   }
-  if (!(profile.selfSteerResponseTau > 0 && Number.isFinite(profile.selfSteerResponseTau))) {
-    throw new RangeError('CAR self-steer response time must be finite and > 0');
+  if (!(profile.steeringResponseTau > 0 && Number.isFinite(profile.steeringResponseTau))) {
+    throw new RangeError('CAR steering response time must be finite and > 0');
   }
   if (!(profile.steeringRatio > 0 && Number.isFinite(profile.steeringRatio))) {
     throw new RangeError('CAR steering ratio must be finite and > 0');
@@ -315,7 +315,7 @@ export function createM5Car(
     yawRate: 0,
     pitchRate: 0,
     frontSteerAngle: 0,
-    assistedSlipAngleCommand: 0,
+    steeringOffsetCommand: 0,
     frontWheelOmega: omega,
     rearWheelOmega: omega,
     course: initializeGuideObservation(guide, position.x, position.z),
@@ -355,29 +355,22 @@ export function updateM5Car(
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
     const bodyBeforeSteer = carBodyKinematics(car);
-    const frontBefore = deriveContactObservation(
-      guide, height, surfaces, bodyBeforeSteer, profile.frontStation,
-      car.frontSteerAngle, 0, car.course.segmentIndex,
-    );
     const steeringRequest = clamp(input.steering, -1, 1);
     const previousSteer = car.frontSteerAngle;
-    const observedFrontSlip = frontBefore.forceTransmitting && frontBefore.tireFrameValid
-      ? regularizedTireSlipAngle(
-        frontBefore.longitudinalVelocity,
-        frontBefore.lateralVelocity,
-        profile.lowSpeedRegularization,
-      )
-      : 0;
-    car.assistedSlipAngleCommand = stepCarAssistedSlipAngleCommand(
-      car.assistedSlipAngleCommand,
+    car.steeringOffsetCommand = stepCarSteeringOffsetCommand(
+      car.steeringOffsetCommand,
       steeringRequest,
       substep,
       profile,
     );
-    car.frontSteerAngle = stepCarSelfSteering(
+    const bodyTravelDirection = carBodyTravelDirection(
+      bodyBeforeSteer,
+      profile.lowSpeedRegularization,
+    );
+    car.frontSteerAngle = stepCarTravelDirectionSteering(
       car.frontSteerAngle,
-      car.assistedSlipAngleCommand,
-      observedFrontSlip,
+      car.steeringOffsetCommand,
+      bodyTravelDirection,
       substep,
       profile,
     );
@@ -516,53 +509,73 @@ export function updateM5Car(
 }
 
 /**
- * Digital input slews one assisted-slip command. This is the input-device response; it is not a
+ * Digital input slews one travel-direction angle offset. This is the input-device response; not a
  * second road-wheel-angle authority.
  */
-export function stepCarAssistedSlipAngleCommand(
-  assistedSlipAngleCommand: number,
+export function stepCarSteeringOffsetCommand(
+  steeringOffsetCommand: number,
   steeringRequest: number,
   dt: number,
   profile: Pick<CompiledCarPhysicsProfile,
-    'assistedSlipAngleMax' | 'assistedSlipAngleRate'>,
+    'steeringOffsetMax' | 'steeringOffsetRate'>,
 ): number {
   if (!(dt > 0) || !Number.isFinite(dt)) {
-    throw new RangeError('CAR assisted-slip command dt must be finite and > 0');
+    throw new RangeError('CAR steering-offset command dt must be finite and > 0');
   }
-  if (![assistedSlipAngleCommand, steeringRequest].every(Number.isFinite)) {
-    throw new RangeError('CAR assisted-slip command inputs must be finite');
+  if (![steeringOffsetCommand, steeringRequest].every(Number.isFinite)) {
+    throw new RangeError('CAR steering-offset command inputs must be finite');
   }
-  const target = clamp(steeringRequest, -1, 1) * profile.assistedSlipAngleMax;
-  const maximumChange = profile.assistedSlipAngleRate * dt;
-  return assistedSlipAngleCommand + clamp(
-    target - assistedSlipAngleCommand,
+  const target = clamp(steeringRequest, -1, 1) * profile.steeringOffsetMax;
+  const maximumChange = profile.steeringOffsetRate * dt;
+  return steeringOffsetCommand + clamp(
+    target - steeringOffsetCommand,
     -maximumChange,
     maximumChange,
   );
 }
 
 /**
- * Fast overdamped virtual rack balance. The separately slew-limited command makes a short digital
- * press small without forcing road-wheel self-alignment to lag behind the vehicle response.
+ * Fast overdamped rack response toward body-CG travel direction plus driver command. Front tire
+ * slip remains an ordinary tire-force observation and is deliberately not steering feedback.
  */
-export function stepCarSelfSteering(
+export function stepCarTravelDirectionSteering(
   roadWheelAngle: number,
-  assistedSlipAngleCommand: number,
-  observedFrontSlipAngle: number,
+  steeringOffsetCommand: number,
+  bodyTravelDirection: number,
   dt: number,
   profile: Pick<CompiledCarPhysicsProfile,
-    'selfSteerResponseTau' | 'maxRoadWheelSteer'>,
+    'steeringResponseTau' | 'maxRoadWheelSteer'>,
 ): number {
-  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR self-steer dt must be finite and > 0');
-  if (![roadWheelAngle, assistedSlipAngleCommand, observedFrontSlipAngle].every(Number.isFinite)) {
-    throw new RangeError('CAR self-steer inputs must be finite');
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('CAR steering dt must be finite and > 0');
+  if (![roadWheelAngle, steeringOffsetCommand, bodyTravelDirection].every(Number.isFinite)) {
+    throw new RangeError('CAR steering inputs must be finite');
   }
-  const steerRate = (assistedSlipAngleCommand - observedFrontSlipAngle)
-    / profile.selfSteerResponseTau;
-  return clamp(
-    roadWheelAngle + steerRate * dt,
+  const target = clamp(
+    bodyTravelDirection + steeringOffsetCommand,
     -profile.maxRoadWheelSteer,
     profile.maxRoadWheelSteer,
+  );
+  const response = 1 - Math.exp(-dt / profile.steeringResponseTau);
+  return clamp(
+    roadWheelAngle + (target - roadWheelAngle) * response,
+    -profile.maxRoadWheelSteer,
+    profile.maxRoadWheelSteer,
+  );
+}
+
+/** Body-CG travel direction in the body plane; finite and zero at rest. */
+export function carBodyTravelDirection(
+  body: BodyKinematics,
+  lowSpeedRegularization: number,
+): number {
+  if (!(lowSpeedRegularization > 0)) {
+    throw new RangeError('CAR travel-direction regularization must be > 0');
+  }
+  const longitudinal = dot3(body.velocity, body.forward);
+  const lateral = dot3(body.velocity, body.right);
+  return Math.atan2(
+    lateral,
+    Math.sqrt(longitudinal * longitudinal + lowSpeedRegularization * lowSpeedRegularization),
   );
 }
 
