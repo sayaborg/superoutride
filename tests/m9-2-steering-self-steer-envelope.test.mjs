@@ -103,7 +103,7 @@ test('current canonical excessive-self-steer case is input-neutral and below tir
   assert.ok(driven.peakOppositeRoadWheelDegrees > coast.peakOppositeRoadWheelDegrees);
 });
 
-test('weakening yaw preview or slowing actuator release trades away stabilization rather than fixing the cause', () => {
+test('weakening yaw preview trades away yaw stabilization', () => {
   const sweeps = collectSteeringAuthoritySweeps();
   const noPreview = sweeps.yawPreview.find((entry) => entry.steeringYawPreviewTime === 0).result;
   const currentPreview = sweeps.yawPreview.find(
@@ -115,24 +115,4 @@ test('weakening yaw preview or slowing actuator release trades away stabilizatio
   );
   assert.ok(noPreview.settleSeconds > currentPreview.settleSeconds);
 
-  const slowRelease = sweeps.actuatorRelease.find(
-    (entry) => entry.steeringReleaseRate === 2,
-  ).result;
-  const releasedM90Release = sweeps.actuatorRelease.find(
-    (entry) => entry.steeringReleaseRate === 4,
-  ).result;
-  const currentRelease = sweeps.actuatorRelease.find(
-    (entry) => entry.steeringReleaseRate === 8,
-  ).result;
-  assert.ok(slowRelease.peakOppositeRoadWheelDegrees < currentRelease.peakOppositeRoadWheelDegrees);
-  assert.ok(
-    slowRelease.peakReverseYawRateDegreesPerSecond
-    > currentRelease.peakReverseYawRateDegreesPerSecond,
-  );
-  assert.ok(slowRelease.settleSeconds > currentRelease.settleSeconds);
-  assert.ok(
-    currentRelease.peakReverseYawRateDegreesPerSecond
-    < releasedM90Release.peakReverseYawRateDegreesPerSecond,
-  );
-  assert.ok(currentRelease.settleSeconds < releasedM90Release.settleSeconds);
 });

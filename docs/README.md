@@ -37,10 +37,10 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 ```
 
 M9.2 supersedes the implicit unit gain on M9.0 travel-direction steering feedback and the M9.0
-steering-actuator neutral-release rate. It adds one common finite vehicle-instance calibration
+asymmetric steering-actuator rates. It adds one common finite vehicle-instance calibration
 value, gives the browser player default `0.5`, and exposes the exact comparison set `0.3` through
-`0.7` in `0.1` steps. Steering apply remains `1.6 normalized/s` and neutral release becomes `8`
-normalized/s. It does not change yaw-rate preview, final road-wheel response, tires, camera, route
+`0.7` in `0.1` steps. Steering apply and neutral release are both `8/3 normalized/s`. It does not
+change yaw-rate preview, final road-wheel response, tires, camera, route
 or topology; ordinary mechanics construction and rivals retain gain `1.0`.
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile

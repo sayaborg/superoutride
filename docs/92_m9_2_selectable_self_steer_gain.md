@@ -8,8 +8,8 @@ M9.2 preserves the M9.0 Two-Station Arcade Vehicle Dynamics solver, M9.1 six com
 profiles, three finite actuators, yaw-rate preview, tire model, camera modes and renderer.
 
 It supersedes only the implicit unit coefficient on the retained M8.1/M9.0 travel-direction
-steering term and the M9.0 common steering-actuator neutral-release rate. The user may compare five
-explicit gains while the driver steering offset returns to neutral faster than it did in M9.0.
+steering term and the M9.0 asymmetric common steering-actuator rates. The user may compare five
+explicit gains while driver-offset application and neutral return use one symmetric response.
 
 ## 2. Steering law
 
@@ -46,18 +46,20 @@ The browser-player default is `0.5`, selected from the user calibration result. 
 mechanics default remains `1.0`, so ordinary construction and rivals are not silently redefined by
 the browser-player calibration control.
 
-## 3. Steering actuator release
+## 3. Symmetric steering actuator response
 
-The retained finite steering actuator continues to apply driver steering at `1.6 normalized/s`,
-equivalent to `24 deg/s` over the `15 deg` maximum driver road-wheel offset. Its neutral release is:
+The retained finite steering actuator uses one rate for both nonzero driver steering application
+and neutral release:
 
 ```text
-8 normalized/s = 120 deg/s = 0.125 s full-scale-to-neutral
+apply = release = 8/3 normalized/s
+                = 40 deg/s over the 15 deg maximum driver road-wheel offset
+                = 0.375 s neutral-to-full-scale or full-scale-to-neutral
 ```
 
-This supersedes the M9.0 `4 normalized/s` (`60 deg/s`, `0.25 s`) release only. It removes the
-driver-offset term sooner after every steering source is neutral; it does not scale the
-travel-direction or yaw-preview terms and does not alter the final road-wheel response time.
+The `0.375 s` traversal time is the midpoint between the preceding `0.625 s` application and
+`0.125 s` neutral release. Equal rates remove the response asymmetry at input release. They do not
+scale the travel-direction or yaw-preview terms and do not alter the final road-wheel response time.
 
 ## 4. Authority and lifetime
 
@@ -100,7 +102,7 @@ M9.2 adds no:
 - dead zone, hysteresis or timer;
 - camera-dependent steering correction;
 - tire/grip change;
-- steering apply-rate, final road-wheel response or yaw-preview change;
+- final road-wheel response or yaw-preview change;
 - vehicle/profile-specific gain branch;
 - route, course or topology dependency;
 - automatic gain selection.
@@ -120,6 +122,6 @@ Executable acceptance must prove:
 6. Every profile remains on the same common mechanics path.
 7. The deterministic 25 m/s FR calibration sweep records opposite steer, reverse yaw, settle time
    and tire utilization for all five values.
-8. Steering apply remains `1.6 normalized/s`; neutral release is exactly `8 normalized/s` and
-   reaches zero through the ordinary shared actuator path.
+8. Steering apply and neutral release are both exactly `8/3 normalized/s` and traverse equal
+   normalized distance in equal time through the ordinary shared actuator path.
 9. Camera, tire, final road-wheel response, renderer, route and topology invariants remain unchanged.

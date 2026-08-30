@@ -162,7 +162,7 @@ export function collectSteeringAuthoritySweeps() {
   }
 
   const actuatorRelease = [];
-  for (const steeringReleaseRate of [2, 3, 4, 6, 8]) {
+  for (const steeringReleaseRate of [2, 8 / 3, 3, 4, 6, 8]) {
     const profile = compileArcadeVehicleProfile({
       ...FR_VEHICLE_PROFILE,
       id: 'FR',
