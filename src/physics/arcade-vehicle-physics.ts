@@ -55,6 +55,8 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
+  /** Runtime calibration authority for travel-direction steering feedback. */
+  travelDirectionSteeringGain: number;
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
@@ -85,7 +87,9 @@ export function createArcadeVehicle(
   s = 45,
   l = 0,
   initialSpeed = 45,
+  travelDirectionSteeringGain = 1,
 ): ArcadeVehicleState {
+  assertTravelDirectionSteeringGain(travelDirectionSteeringGain);
   const coordinate = { s, l, segmentIndex: locateSegmentIndex(guide, s), distanceSquared: 0 };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
   if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');
@@ -108,6 +112,7 @@ export function createArcadeVehicle(
     yawRate: 0,
     pitchRate: 0,
     frontSteerAngle: 0,
+    travelDirectionSteeringGain,
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
@@ -159,6 +164,7 @@ export function updateArcadeVehicle(
       steeringOffset,
       bodyTravelDirection,
       vehicle.yawRate,
+      vehicle.travelDirectionSteeringGain,
       substep,
       profile,
     );
@@ -299,6 +305,7 @@ export function stepTravelDirectionSteering(
   steeringOffset: number,
   bodyTravelDirection: number,
   yawRate: number,
+  travelDirectionGain: number,
   dt: number,
   profile: Pick<CompiledArcadeVehicleProfile,
     'steeringResponseTau' | 'steeringYawPreviewTime' | 'maxRoadWheelSteer'>,
@@ -307,8 +314,11 @@ export function stepTravelDirectionSteering(
   if (![roadWheelAngle, steeringOffset, bodyTravelDirection, yawRate].every(Number.isFinite)) {
     throw new RangeError('vehicle steering inputs must be finite');
   }
+  assertTravelDirectionSteeringGain(travelDirectionGain);
   const target = clamp(
-    bodyTravelDirection - yawRate * profile.steeringYawPreviewTime + steeringOffset,
+    travelDirectionGain * bodyTravelDirection
+      - yawRate * profile.steeringYawPreviewTime
+      + steeringOffset,
     -profile.maxRoadWheelSteer,
     profile.maxRoadWheelSteer,
   );
@@ -318,6 +328,20 @@ export function stepTravelDirectionSteering(
     -profile.maxRoadWheelSteer,
     profile.maxRoadWheelSteer,
   );
+}
+
+export function setArcadeVehicleTravelDirectionSteeringGain(
+  vehicle: ArcadeVehicleState,
+  gain: number,
+): void {
+  assertTravelDirectionSteeringGain(gain);
+  vehicle.travelDirectionSteeringGain = gain;
+}
+
+function assertTravelDirectionSteeringGain(gain: number): void {
+  if (!(gain >= 0 && gain <= 1) || !Number.isFinite(gain)) {
+    throw new RangeError('vehicle travel-direction steering gain must be finite and lie in [0,1]');
+  }
 }
 
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */

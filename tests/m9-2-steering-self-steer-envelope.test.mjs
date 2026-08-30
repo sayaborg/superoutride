@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   collectCurrentSteeringSelfSteerEnvelope,
   collectSteeringAuthoritySweeps,
+  collectTravelDirectionGainSweep,
 } from '../tools/probe-steering-self-steer.mjs';
 
 function findCase(envelope, expected) {
@@ -38,6 +39,35 @@ test('self-steer calibration probe covers duration speed drive and every common 
       if (typeof value === 'number') assert.ok(Number.isFinite(value), `${entry.profile} ${key}`);
     }
   }
+});
+
+test('selectable travel-direction gains produce one deterministic calibration sweep', () => {
+  const sweep = collectTravelDirectionGainSweep();
+  assert.deepEqual(sweep.map(({ gain }) => gain), [0.5, 0.6, 0.7, 0.8, 0.9, 1]);
+  assert.deepEqual(collectTravelDirectionGainSweep(), sweep);
+  for (const { gain, result } of sweep) {
+    assert.equal(result.travelDirectionGain, gain);
+    assert.equal(result.oppositePeakComponentsDegrees.residualDriverOffset, 0);
+    assert.ok(result.maxFrontUtilization < 1);
+    assert.ok(result.maxRearUtilization < 1);
+  }
+  for (let index = 1; index < sweep.length; index += 1) {
+    const weaker = sweep[index - 1].result;
+    const stronger = sweep[index].result;
+    assert.ok(weaker.peakOppositeRoadWheelDegrees < stronger.peakOppositeRoadWheelDegrees);
+    assert.ok(
+      weaker.peakReverseYawRateDegreesPerSecond
+      < stronger.peakReverseYawRateDegreesPerSecond,
+    );
+    assert.ok(weaker.settleSeconds > stronger.settleSeconds);
+  }
+  const canonical = findCase(collectCurrentSteeringSelfSteerEnvelope(), {
+    profile: 'FR',
+    speedMetersPerSecond: 25,
+    pressSeconds: 0.35,
+    driven: false,
+  });
+  assert.deepEqual(sweep.at(-1).result, canonical);
 });
 
 test('current canonical excessive-self-steer case is input-neutral and below tire saturation', () => {

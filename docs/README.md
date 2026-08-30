@@ -25,6 +25,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
+92_m9_2_selectable_self_steer_gain.md
 88_m9_1_six_profile_debug_hud.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
@@ -34,6 +35,11 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 85_m8_6_two_hundred_meter_render_distance.md
 91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.2 supersedes only the implicit unit gain on M9.0 travel-direction steering feedback. It adds
+one common finite vehicle-instance calibration value, defaults to the released `1.0`, and exposes
+the exact browser comparison set `0.5` through `1.0` in `0.1` steps. It does not change yaw-rate
+preview, driver input, actuator response, tires, camera, route or topology.
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
 selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
@@ -66,6 +72,7 @@ The current browser course-debug composition authority is:
 88_m9_1_six_profile_debug_hud.md
 90_m9_1_mobile_touch_selectors.md
 91_m9_1_dual_yaw_camera_modes.md
+92_m9_2_selectable_self_steer_gain.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -76,7 +83,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `91_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `92_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -115,6 +122,7 @@ The most important current topology/runtime/physics sequence is:
 89_m9_1_low_mid_speed_mountain_circuit.md
 90_m9_1_mobile_touch_selectors.md
 91_m9_1_dual_yaw_camera_modes.md
+92_m9_2_selectable_self_steer_gain.md
 ```
 
 The current browser touch-selection authority is
@@ -127,6 +135,10 @@ The current camera-yaw mode authority is `91_m9_1_dual_yaw_camera_modes.md`. It 
 body-yaw lock the default, retains M8.2 movement-yaw follow as the alternate, and makes the DEV
 arrow show travel direction while body lock is active. Body-pitch follow and all frozen
 renderer/metric rules remain unchanged.
+
+The current selectable self-steer calibration authority is
+`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9` and the shared touch
+selector one exact gain table while the common mechanics owns the sole current value.
 
 The current public CIRCUIT course geometry authority is
 `89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
@@ -146,9 +158,9 @@ Current governing steering rule:
 
 > Steering input is a normalized driver request; one finite actuator value makes digital press
 > duration controllable and returns monotonically to exact neutral. A stateless yaw-rate preview
-> and fast rack response aim the authoritative road-wheel angle along the short-horizon predicted
-> CG travel direction plus that offset. Front slip remains tire-force/telemetry authority and is
-> not steering feedback.
+> and fast rack response aim the authoritative road-wheel angle along a selectable `[0,1]`
+> fraction of CG travel direction plus that offset. Front slip remains tire-force/telemetry
+> authority and is not steering feedback.
 
 Current governing player-camera rule:
 

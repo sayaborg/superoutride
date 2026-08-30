@@ -1,5 +1,6 @@
 import { COURSE_MODE_HOTKEY_LABEL } from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
+import { formatSelfSteerGainSelector } from './self-steer-gain-selection.js';
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
 import {
   assertExclusivePedalInput,
@@ -17,6 +18,7 @@ export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
+  readonly selfSteerSelector: string;
   readonly instruments: string;
   readonly requestedSteering: number;
   readonly requestedThrottle: number;
@@ -38,6 +40,7 @@ export function createVehicleDebugHudModel(
   return {
     courseSelector: `COURSE ${COURSE_MODE_HOTKEY_LABEL}  ACTIVE ${routeKind}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
+    selfSteerSelector: `SELF ${formatSelfSteerGainSelector(vehicle.travelDirectionSteeringGain)}`,
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: input.throttle ? 1 : 0,
@@ -63,8 +66,9 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(routeKind, input, vehicle);
   const lines = [
-    `M9.1 ${model.courseSelector}`,
+    `M9.2 ${model.courseSelector}`,
     model.vehicleSelector,
+    model.selfSteerSelector,
     model.instruments,
   ];
 
@@ -73,10 +77,10 @@ export function drawVehicleDebugHud(
   ctx.textBaseline = 'top';
   const width = Math.ceil(Math.max(...lines.map((line) => ctx.measureText(line).width))) + 6;
   ctx.fillStyle = '#071016';
-  ctx.fillRect(3, 3, width, 29);
+  ctx.fillRect(3, 3, width, 38);
   ctx.fillStyle = '#d7f3ff';
   lines.forEach((line, index) => ctx.fillText(line, 6, 5 + index * 9));
-  drawVehicleControlGraphics(ctx, model, 3, 34);
+  drawVehicleControlGraphics(ctx, model, 3, 43);
   drawTopDownGSensor(ctx, model, 286, 65);
   ctx.restore();
 }

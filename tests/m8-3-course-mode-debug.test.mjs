@@ -249,6 +249,7 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.match(model.vehicleSelector, /\[Q\]FR\*/);
+  assert.match(model.selfSteerSelector, /\[9\]1\.0\*/);
   assert.equal(model.requestedSteering, -1);
   assert.equal(model.requestedThrottle, 1);
   assert.equal(model.requestedBrake, 0);

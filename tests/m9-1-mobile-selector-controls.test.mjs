@@ -6,9 +6,11 @@ import {
   createMobileCourseSelectorModel,
   createMobileCameraYawSelectorModel,
   createMobileVehicleSelectorModel,
+  createMobileSelfSteerGainSelectorModel,
   mountMobileCameraYawSelector,
   mountMobileCourseSelector,
   mountMobileVehicleSelector,
+  mountMobileSelfSteerGainSelector,
 } from '../dist/browser/mobile-selector-controls.js';
 import {
   TOUCH_INTERFACE_MAX_SHORT_SIDE_PX,
@@ -131,6 +133,17 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
+test('mobile self-steer buttons expose the six canonical calibration gains', () => {
+  assert.deepEqual(createMobileSelfSteerGainSelectorModel(0.7), [
+    { value: 0.5, label: '0.5', ariaLabel: 'Set self-steer gain to 0.5', active: false },
+    { value: 0.6, label: '0.6', ariaLabel: 'Set self-steer gain to 0.6', active: false },
+    { value: 0.7, label: '0.7', ariaLabel: 'Set self-steer gain to 0.7', active: true },
+    { value: 0.8, label: '0.8', ariaLabel: 'Set self-steer gain to 0.8', active: false },
+    { value: 0.9, label: '0.9', ariaLabel: 'Set self-steer gain to 0.9', active: false },
+    { value: 1.0, label: '1.0', ariaLabel: 'Set self-steer gain to 1.0', active: false },
+  ]);
+});
+
 test('mobile selector taps publish canonical selections and expose exactly one active button', () => {
   const fakeDocument = new FakeDocument();
   const courseContainer = new FakeContainer();
@@ -161,6 +174,22 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   assert.deepEqual(
     vehicleContainer.children.map((button) => button.attributes.get('aria-pressed')),
     ['false', 'false', 'false', 'false', 'true', 'false'],
+  );
+
+  const gainContainer = new FakeContainer();
+  let selectedGain = null;
+  const gainController = mountMobileSelfSteerGainSelector(
+    gainContainer,
+    1.0,
+    (gain) => { selectedGain = gain; },
+    fakeDocument,
+  );
+  gainContainer.children[2].click();
+  assert.equal(selectedGain, 0.7);
+  gainController.setActive(selectedGain);
+  assert.deepEqual(
+    gainContainer.children.map((button) => button.attributes.get('aria-pressed')),
+    ['false', 'false', 'true', 'false', 'false', 'false'],
   );
   assert.equal(vehicleContainer.children[4].classList.contains('active'), true);
 
@@ -193,10 +222,13 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   assert.match(index, /id="course-selector-buttons"/);
   assert.match(index, /id="vehicle-selector-buttons"/);
   assert.match(index, /id="camera-selector-buttons"/);
-  assert.doesNotMatch(index, /data-(?:course|vehicle)-/);
+  assert.match(index, /id="self-steer-selector-buttons"/);
+  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer)-/);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /mountMobileVehicleSelector/);
     assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
+    assert.match(source, /selectSelfSteerGain\(selectedSelfSteerGain\)/);
+    assert.match(source, /mountMobileSelfSteerGainSelector/);
   }
 });

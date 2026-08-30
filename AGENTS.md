@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/92_m9_2_selectable_self_steer_gain.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
@@ -51,6 +52,13 @@ docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.2 supersedes only the M9.0 implicit unit coefficient on travel-direction steering feedback. It
+owns one finite common vehicle-instance gain in `[0,1]`, default `1.0`, and the browser calibration
+choices `0.5/0.6/0.7/0.8/0.9/1.0`. The gain scales only `betaTravel`; yaw preview, driver offset,
+actuator response, tires and camera remain separate authorities. One shared browser table owns
+keyboard/numpad/touch/HUD selection, and profile safe-spawn reconstruction preserves the selected
+player value without adding a vehicle-kind branch.
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
 drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
@@ -88,6 +96,7 @@ docs/82_m8_3_three_mode_course_debug.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
+docs/92_m9_2_selectable_self_steer_gain.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -140,6 +149,7 @@ docs/86_m8_7_varied_elevation_circuit.md
 docs/89_m9_1_low_mid_speed_mountain_circuit.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
+docs/92_m9_2_selectable_self_steer_gain.md
 ```
 
 ### Executable implementation contract

@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.1 Six-Profile Debug HUD Candidate
+# SUPER OUTRIDE — M9.2 Selectable Self-Steer Gain Candidate
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -12,6 +12,12 @@ the common vehicle architecture is
 handoff context, not current design authority; the normative M9 authority is the numbered document linked below.
 
 ## Current milestone status
+
+M9.2 makes the common travel-direction self-steer feedback selectable at `0.5`, `0.6`, `0.7`,
+`0.8`, `0.9` and `1.0`. Keys/numpad `4` through `9`, shared touch buttons and the common HUD derive
+from one table. The selected player value survives recovery and profile switching; the common
+formula scales only `betaTravel`, while yaw preview, actuator response, tires and camera remain
+unchanged. The authority is `docs/92_m9_2_selectable_self_steer_gain.md`.
 
 M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one common compact
 debug HUD for all three course compositions. The four cars share one engine/tire/chassis package;
@@ -92,6 +98,7 @@ status: final exact-head release procedure recorded by Git / PR / workflow histo
 The current normative vehicle-physics architecture is, in supersession order:
 
 ```text
+docs/92_m9_2_selectable_self_steer_gain.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
@@ -117,14 +124,16 @@ For current vehicle work, read in this order:
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
 4. `docs/88_m9_1_six_profile_debug_hud.md` — current profile/drive-selection and shared debug-HUD authority.
-5. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle-mechanics authority.
-6. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+5. `docs/92_m9_2_selectable_self_steer_gain.md` — current self-steer calibration and selector authority.
+6. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle-mechanics authority.
+7. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
-7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
+8. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
    `docs/86_m8_7_varied_elevation_circuit.md`, then
    `docs/89_m9_1_low_mid_speed_mountain_circuit.md` and
    `docs/90_m9_1_mobile_touch_selectors.md` and
-   `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera/composition/render/course/touch
+   `docs/91_m9_1_dual_yaw_camera_modes.md` and
+   `docs/92_m9_2_selectable_self_steer_gain.md` — current camera/composition/render/course/touch/steering-calibration
    authorities and scoped supersession.
 8. Relevant source/types/compilers and regression tests — executable implementation contract.
 
@@ -210,6 +219,7 @@ M9.1       Six-Profile Common Debug HUD                                     curr
 M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
 M9.1       Mobile Touch Selectors                                            current browser touch-selection authority
 M9.1       Dual Yaw Camera Modes                                             current player-camera yaw-mode authority
+M9.2       Selectable Travel-Direction Self-Steer Gain                       current calibration/debug authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -365,6 +375,7 @@ src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
 src/browser/mobile-selector-controls.ts  authority-derived touch selector adapter
 src/browser/touch-interface.ts           shared touch/coarse/phone-size layout decision
 src/browser/camera-yaw-mode-selection.ts P camera-yaw toggle binding
+src/browser/self-steer-gain-selection.ts 4/5/6/7/8/9 self-steer calibration authority
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
 

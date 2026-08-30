@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { BROWSER_SELF_STEER_GAINS } from '../dist/browser/self-steer-gain-selection.js';
 import {
   createArcadeVehicle,
   updateArcadeVehicle,
@@ -43,7 +44,13 @@ const profiles = [
   BIKE2_VEHICLE_PROFILE,
 ];
 
-export function runSteeringSelfSteerProbe({ profile, speed, pressSeconds, driven }) {
+export function runSteeringSelfSteerProbe({
+  profile,
+  speed,
+  pressSeconds,
+  driven,
+  travelDirectionGain = 1,
+}) {
   const vehicle = createArcadeVehicle(
     profile,
     highway.guide,
@@ -52,6 +59,7 @@ export function runSteeringSelfSteerProbe({ profile, speed, pressSeconds, driven
     800,
     -1.75,
     speed,
+    travelDirectionGain,
   );
   const pressTicks = Math.round(pressSeconds / DT);
   const totalTicks = pressTicks + Math.round(POST_RELEASE_SECONDS / DT);
@@ -85,6 +93,7 @@ export function runSteeringSelfSteerProbe({ profile, speed, pressSeconds, driven
     speedMetersPerSecond: speed,
     pressSeconds,
     driven,
+    travelDirectionGain,
     peakOppositeRoadWheelDegrees: Math.max(0, -oppositePeak.roadWheelAngle * RAD_TO_DEG),
     peakSameYawRateDegreesPerSecond: peakSameYawRate * RAD_TO_DEG,
     peakReverseYawRateDegreesPerSecond: Math.max(
@@ -99,7 +108,7 @@ export function runSteeringSelfSteerProbe({ profile, speed, pressSeconds, driven
     maxFrontUtilization,
     maxRearUtilization,
     oppositePeakComponentsDegrees: Object.freeze({
-      travelDirection: oppositePeak.bodySideslip * RAD_TO_DEG,
+      travelDirection: oppositePeak.bodySideslip * travelDirectionGain * RAD_TO_DEG,
       yawPreview: oppositePeak.yawPreview * RAD_TO_DEG,
       residualDriverOffset: oppositePeak.driverOffset * RAD_TO_DEG,
     }),
@@ -181,6 +190,19 @@ export function collectSteeringAuthoritySweeps() {
   });
 }
 
+export function collectTravelDirectionGainSweep() {
+  return Object.freeze(BROWSER_SELF_STEER_GAINS.map(({ gain }) => Object.freeze({
+    gain,
+    result: runSteeringSelfSteerProbe({
+      profile: FR_VEHICLE_PROFILE,
+      speed: 25,
+      pressSeconds: 0.35,
+      driven: false,
+      travelDirectionGain: gain,
+    }),
+  })));
+}
+
 function observePostRelease(vehicle, tickAfterRelease) {
   const bodySideslip = Math.atan2(
     vehicle.lateralSpeed,
@@ -231,6 +253,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
       },
     },
     currentEnvelope: collectCurrentSteeringSelfSteerEnvelope(),
+    travelDirectionGainSweep: collectTravelDirectionGainSweep(),
     authoritySweeps: collectSteeringAuthoritySweeps(),
   }, null, 2));
 }

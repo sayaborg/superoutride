@@ -104,6 +104,10 @@ body {
   grid-template-columns: repeat(2, minmax(44px, 1fr));
 }
 
+.self-steer-selector-buttons {
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+}
+
 .selector-button {
   min-width: 44px;
   min-height: 44px;
@@ -208,7 +212,7 @@ body {
     grid-column: 1 / -1;
     grid-row: 1;
     width: min(100%, 900px);
-    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr) minmax(0, 3fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -220,7 +224,7 @@ body {
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 116px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 
   .touch-capable .steering-zone {
@@ -271,7 +275,7 @@ body {
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - 260px);
+    max-height: calc(100dvh - 310px);
   }
 
   .touch-capable .steering-zone {

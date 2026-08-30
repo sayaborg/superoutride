@@ -12,15 +12,19 @@ import {
   M5_CAMERA_YAW_MODES,
   type M5CameraYawMode,
 } from '../camera/m5-camera.js';
+import {
+  BROWSER_SELF_STEER_GAINS,
+  type BrowserSelfSteerGain,
+} from './self-steer-gain-selection.js';
 
-export interface MobileSelectorButtonModel<Value extends string> {
+export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
   readonly label: string;
   readonly ariaLabel: string;
   readonly active: boolean;
 }
 
-export interface MobileSelectorController<Value extends string> {
+export interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
 }
 
@@ -56,6 +60,17 @@ export function createMobileCameraYawSelectorModel(
       ? 'Lock camera yaw to vehicle body'
       : 'Follow vehicle movement direction with camera yaw',
     active: mode === activeMode,
+  }));
+}
+
+export function createMobileSelfSteerGainSelectorModel(
+  activeGain: BrowserSelfSteerGain,
+): readonly MobileSelectorButtonModel<BrowserSelfSteerGain>[] {
+  return BROWSER_SELF_STEER_GAINS.map(({ gain }) => ({
+    value: gain,
+    label: gain.toFixed(1),
+    ariaLabel: `Set self-steer gain to ${gain.toFixed(1)}`,
+    active: gain === activeGain,
   }));
 }
 
@@ -105,7 +120,21 @@ export function mountMobileCameraYawSelector(
   );
 }
 
-function mountMobileSelector<Value extends string>(
+export function mountMobileSelfSteerGainSelector(
+  container: HTMLElement,
+  activeGain: BrowserSelfSteerGain,
+  onSelect: (gain: BrowserSelfSteerGain) => void,
+  documentRef: Document = document,
+): MobileSelectorController<BrowserSelfSteerGain> {
+  return mountMobileSelector(
+    container,
+    createMobileSelfSteerGainSelectorModel(activeGain),
+    onSelect,
+    documentRef,
+  );
+}
+
+function mountMobileSelector<Value extends string | number>(
   container: HTMLElement,
   model: readonly MobileSelectorButtonModel<Value>[],
   onSelect: (value: Value) => void,
