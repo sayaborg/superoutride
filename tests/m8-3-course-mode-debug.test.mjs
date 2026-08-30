@@ -7,6 +7,11 @@ import {
   browserCourseModeForKey,
   selectBrowserCourseMode,
 } from '../dist/browser/course-mode-selection.js';
+import {
+  BROWSER_VEHICLE_PROFILES,
+  browserVehicleProfileForKey,
+  formatVehicleProfileSelector,
+} from '../dist/browser/vehicle-profile-selection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
@@ -30,13 +35,16 @@ import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-ha
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
   BIKE_VEHICLE_PROFILE,
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
+  MR_VEHICLE_PROFILE,
+  RR_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
+import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
 import {
   advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
@@ -73,6 +81,37 @@ test('browser course selector maps 1/2/3 and URL modes from one authority', () =
   assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
 });
 
+test('browser vehicle selector maps Q/W/E/R to FR/MR/RR/Bike from one authority', () => {
+  assert.deepEqual(
+    BROWSER_VEHICLE_PROFILES.map(({ code, profile }) => [code, profile.id]),
+    [['KeyQ', 'FR'], ['KeyW', 'MR'], ['KeyE', 'RR'], ['KeyR', 'BIKE']],
+  );
+  assert.equal(browserVehicleProfileForKey('KeyQ'), FR_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyW'), MR_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyE'), RR_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyR'), BIKE_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyV'), null);
+  assert.equal(formatVehicleProfileSelector('MR'), '[Q]FR [W]MR* [E]RR [R]BIKE');
+});
+
+test('FR MR RR and Bike are four compiled profiles on one two-station mechanics contract', () => {
+  const profiles = [
+    FR_VEHICLE_PROFILE,
+    MR_VEHICLE_PROFILE,
+    RR_VEHICLE_PROFILE,
+    BIKE_VEHICLE_PROFILE,
+  ];
+  assert.deepEqual(profiles.map((profile) => profile.id), ['FR', 'MR', 'RR', 'BIKE']);
+  for (const profile of profiles) {
+    assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
+    assert.equal(profile.actuator, FR_VEHICLE_PROFILE.actuator);
+  }
+  const rearLoadShare = (profile) => profile.frontAxle / (profile.frontAxle + profile.rearAxle);
+  assert.ok(rearLoadShare(FR_VEHICLE_PROFILE) < 0.5);
+  assert.ok(rearLoadShare(MR_VEHICLE_PROFILE) > 0.5);
+  assert.ok(rearLoadShare(RR_VEHICLE_PROFILE) > rearLoadShare(MR_VEHICLE_PROFILE));
+});
+
 test('LINEAR debug course is one finite ordinary open 8 km highway and renders normally', () => {
   const runtime = createM83LinearHighwayRuntime();
   assert.equal(M8_3_LINEAR_COURSE_MODE.routeKind, 'LINEAR');
@@ -104,13 +143,17 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(camera.playerScreenX, 160);
 });
 
-test('both M9 vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
+test('all four vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
   const runtime = createM83LinearHighwayRuntime();
-  for (const [profile, createVehicle] of [
-    [CAR_VEHICLE_PROFILE, createTestCar],
-    [BIKE_VEHICLE_PROFILE, createTestBike],
+  for (const profile of [
+    FR_VEHICLE_PROFILE,
+    MR_VEHICLE_PROFILE,
+    RR_VEHICLE_PROFILE,
+    BIKE_VEHICLE_PROFILE,
   ]) {
-    const vehicle = createVehicle(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20);
+    const vehicle = profile.id === 'BIKE'
+      ? createTestBike(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20)
+      : createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile);
     for (let tick = 0; tick < 600; tick += 1) {
       updateTestVehicle(
         runtime.guide,
@@ -126,8 +169,29 @@ test('both M9 vehicle profiles integrate ordinarily on the finite LINEAR course'
   }
 });
 
+test('shared HUD exposes only selectors instruments request actual actuator and body-axis G values', () => {
+  const runtime = createM83LinearHighwayRuntime();
+  const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
+  vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
+  vehicle.control.throttleActuator = 0.42;
+  vehicle.control.brakeActuator = 0.08;
+  vehicle.longitudinalAcceleration = 9.80665;
+  vehicle.lateralAcceleration = -4.903325;
+  const model = createVehicleDebugHudModel(
+    'LINEAR',
+    { steering: -1, throttle: true, brake: false },
+    vehicle,
+  );
+  assert.match(model.courseSelector, /\[1\] LINEAR/);
+  assert.match(model.vehicleSelector, /\[Q\]FR\*/);
+  assert.equal(model.requestedInput, 'INPUT STEER LEFT   THR ON   BRK OFF');
+  assert.equal(model.actualInput, 'ACT STEER -12.5deg  THR  42%  BRK   8%');
+  assert.ok(Math.abs(model.longitudinalG - 1) < 1e-12);
+  assert.ok(Math.abs(model.lateralG + 0.5) < 1e-12);
+});
+
 for (const [profile, createVehicle, presentationKind] of [
-  [CAR_VEHICLE_PROFILE, createTestCar, 'car'],
+  [FR_VEHICLE_PROFILE, createTestCar, 'car'],
   [BIKE_VEHICLE_PROFILE, createTestBike, 'bike'],
 ]) {
   for (const side of ['LEFT', 'RIGHT']) {

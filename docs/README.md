@@ -2,15 +2,14 @@
 
 This directory contains current normative authority, chronological milestone records, takeover context, and historical validation evidence. Those are intentionally different document classes.
 
-The active implementation-planning handoff for the next vehicle-architecture milestone is:
+The historical M9 implementation handoff is:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
 ```
 
-It records the dirty M8.2-M8.7 preservation boundary and the staged M9 CAR/BIKE unification and
-three-channel actuator procedure. It is takeover context, not M9 normative authority; the numbered
-M9.0 document now owns the implemented supersession boundary.
+It records the dirty M8.2-M8.7 preservation boundary and staged M9.0 unification procedure. It is
+takeover context, not current task state or normative authority.
 
 ## 1. Normative frozen authority
 
@@ -23,9 +22,10 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-The current vehicle-physics, CAR control and player-camera authorities are:
+The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
+88_m9_1_four_profile_debug_hud.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 80_m8_1_car_self_steering_control.md
@@ -33,6 +33,9 @@ The current vehicle-physics, CAR control and player-camera authorities are:
 84_m8_5_downward_camera_presentation.md
 85_m8_6_two_hundred_meter_render_distance.md
 ```
+
+M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/BIKE browser profile selection and
+the shared presentation-only debug HUD. Handling values remain provisional.
 
 M9.0 is the current common vehicle-mechanics authority. It supersedes the separate M8.0 CAR/BIKE
 solver architecture and the M8.1 immediate steering-release rule within its explicit scope while
@@ -51,6 +54,7 @@ The current browser course-debug composition authority is:
 
 ```text
 82_m8_3_three_mode_course_debug.md
+88_m9_1_four_profile_debug_hud.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -61,7 +65,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `87_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `88_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -96,6 +100,7 @@ The most important current topology/runtime/physics sequence is:
 85_m8_6_two_hundred_meter_render_distance.md
 86_m8_7_varied_elevation_circuit.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
+88_m9_1_four_profile_debug_hud.md
 ```
 
 The current public CIRCUIT course geometry authority is `86_m8_7_varied_elevation_circuit.md`;
@@ -110,9 +115,9 @@ Current governing topology rule:
 
 Current governing vehicle-physics rule:
 
-> World state is authoritative; Guide/contact/tire observations are derived; CAR and BIKE produce handling through the minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
+> World state is authoritative; Guide/contact/tire observations are derived; FR, MR, RR and BIKE produce handling through the same minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
 
-Current governing CAR steering rule:
+Current governing steering rule:
 
 > Steering input is a normalized driver request; one finite actuator value makes digital press
 > duration controllable and returns monotonically to exact neutral. A stateless yaw-rate preview
@@ -191,6 +196,15 @@ validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt
 It records the independent M8.2-M8.7 preservation commit, the common-solver migration, causal and
 architecture acceptance, three-mode browser checks and the self-reference-safe exact-head CI
 procedure.
+
+M9.1 four-profile/debug-HUD candidate evidence is:
+
+```text
+validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt
+```
+
+It records the four compiled provisional profiles, compact shared HUD boundary, executable
+acceptance, three-mode browser checks and self-reference-safe exact-head CI procedure.
 
 ## 5. Historical M9 implementation handoff
 

@@ -37,7 +37,7 @@ export interface VehicleControlState {
   throttleActuator: number;
   brakeActuator: number;
   actualSteerAngle: number;
-  /** CAR-only equivalent handwheel angle derived from road-wheel angle and authored ratio. */
+  /** Four-wheel-profile handwheel angle derived from road-wheel angle and authored ratio. */
   handwheelAngle: number;
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;

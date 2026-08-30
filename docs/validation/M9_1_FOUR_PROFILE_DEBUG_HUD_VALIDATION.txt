@@ -1,0 +1,100 @@
+SUPER OUTRIDE — M9.1 FOUR-PROFILE COMMON DEBUG HUD VALIDATION
+2026-08-31 JST
+
+Scope:
+Add provisional FR, MR, RR and BIKE compiled profiles to the unchanged M9.0 Two-Station Arcade
+Vehicle Dynamics solver, replace the accumulated per-course diagnostic overlays with one compact
+shared browser HUD, and preserve all renderer, physics, topology, route and race authorities.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Independent M8.2-M8.7 preservation commit:
+c2416989eb616e2cc7450b4e8cf7503a38328aab
+
+M9.0 common-solver commit:
+c61156d
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Normative authority:
+docs/88_m9_1_four_profile_debug_hud.md
+
+Resolved architecture:
+- Q/W/E/R maps from one browser authority to FR/MR/RR/BIKE respectively;
+- every selection reconstructs the requested compiled profile through the existing safe-spawn
+  boundary and cannot convert live mechanics or manufacture route/race progress;
+- FR, MR and RR are provisional rear-drive car data profiles; BIKE remains the M9.0 motorcycle
+  seed; all four use the same common state, two stations, actuators, contact/tire/wheel chain and
+  travel-direction steering law;
+- profile identity selects presentation only and is never a mechanics branch;
+- LINEAR, BRANCHING and CIRCUIT call one browser-layer HUD renderer;
+- canonical DrivingInput remains the sole requested-input source;
+- actual front road-wheel angle and throttle/brake percentages come from the existing common
+  actuator/control telemetry;
+- the top-down G sensor derives from existing longitudinal/lateral acceleration observations and
+  adds no physical state;
+- body yaw remains a vector/label overlay above the player sprite and never rotates sprite bitmap
+  data;
+- route, lap, topology, suspension, slip, torque, depth and scale diagnostics are absent from the
+  compact overlay while their underlying gameplay/physics contracts and regressions remain live;
+- manual DEV recovery moves from R to Backspace because R is the BIKE selector.
+
+Dedicated executable acceptance:
+tests/m8-3-course-mode-debug.test.mjs
+tests/m7-0-vehicle-dynamics-architecture.test.mjs
+tests/m7-3-grip-and-instrument-hud.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact 1/2/3 and Q/W/E/R mappings from one authority each;
+- four compiled profiles on one two-station mechanics/actuator contract;
+- authored front/rear static-load ordering for provisional FR, MR and RR profiles;
+- ordinary finite LINEAR integration for every profile;
+- strict separation of requested input and actual actuator/road-wheel telemetry;
+- body-axis G derivation from existing observations;
+- one shared HUD in all three top-level compositions and absence of retired diagnostics;
+- retained complete renderer, metric, camera, route, race, recovery and topology suites.
+
+Validation-inclusive local repository result:
+npm test
+523 tests
+523 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local LINEAR rendered the compact shared HUD, top-down G sensor and body-yaw vector/label;
+- Q selected FR, W selected MR, E selected RR and R selected BIKE through safe-spawn
+  reconstruction; the BIKE selection changed to the ordinary bike sprite family;
+- 1, 2 and 3 selected LINEAR, BRANCHING and CIRCUIT and retained the same shared HUD contract;
+- all three compositions retained centered world-space player presentation and ordinary rendering;
+- the browser console emitted no warning or error entries during these checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 523 / 523 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. FR, MR, RR and BIKE values are provisional calibration seeds.

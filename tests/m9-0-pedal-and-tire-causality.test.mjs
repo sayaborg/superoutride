@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { CAR_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FR_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -16,7 +16,7 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 
 function createProbe(speed = 10) {
   return createArcadeVehicle(
-    CAR_VEHICLE_PROFILE,
+    FR_VEHICLE_PROFILE,
     highway.guide,
     flatHeight,
     highway.surfaceMap,
@@ -84,13 +84,13 @@ test('brake actuator produces partial torque, physical lock and continuous relea
   step(vehicle, { steering: 0.2, throttle: false, brake: true });
   assert.ok(vehicle.actuator.brake > 0 && vehicle.actuator.brake < 1);
   assert.ok(vehicle.control.frontBrakeTorque > 0);
-  assert.ok(vehicle.control.frontBrakeTorque < CAR_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.ok(vehicle.control.frontBrakeTorque < FR_VEHICLE_PROFILE.frontBrakeTorqueMax);
 
   for (let tick = 1; tick < 90; tick += 1) {
     step(vehicle, { steering: 0.2, throttle: false, brake: true });
   }
   assert.equal(vehicle.actuator.brake, 1);
-  assert.equal(vehicle.control.frontBrakeTorque, CAR_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.equal(vehicle.control.frontBrakeTorque, FR_VEHICLE_PROFILE.frontBrakeTorqueMax);
   assert.equal(vehicle.control.rearWheelLocked || vehicle.control.frontWheelLocked, true);
 
   let previousTorque = vehicle.control.frontBrakeTorque;
@@ -123,8 +123,8 @@ test('simultaneous throttle and brake remains finite and resolves only through w
 });
 
 test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {
-  const tire = CAR_VEHICLE_PROFILE.frontStation.tire;
-  const radius = CAR_VEHICLE_PROFILE.frontWheelRadius;
+  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
+  const radius = FR_VEHICLE_PROFILE.frontWheelRadius;
   const normalLoad = 6_000;
   const positive = evaluateTireForce(300, radius, 30, 0, normalLoad, 1, tire);
   const morePositive = evaluateTireForce(600, radius, 30, 0, normalLoad, 1, tire);

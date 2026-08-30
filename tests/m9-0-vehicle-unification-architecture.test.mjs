@@ -13,7 +13,7 @@ test('M9.0 has one common solver and no retired vehicle solver import path', asy
     'src/gameplay/recovery.ts',
   ].map((path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')));
 
-  assert.doesNotMatch(common, /kind\s*===|kind\s*!==|case\s+['"](?:CAR|BIKE)|if\s*\([^)]*(?:CAR|BIKE)/);
+  assert.doesNotMatch(common, /kind\s*===|kind\s*!==|case\s+['"](?:FR|MR|RR|BIKE)|if\s*\([^)]*(?:FR|MR|RR|BIKE)/);
   assert.doesNotMatch(common, /routeKind|CourseRouteKind|camera|screen/i);
   for (const source of sources) {
     assert.doesNotMatch(source, /physics\/(?:car-physics|motorcycle-physics)/);

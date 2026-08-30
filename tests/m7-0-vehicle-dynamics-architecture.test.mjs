@@ -10,13 +10,13 @@ import {
 } from '../dist/physics/automatic-powertrain.js';
 import {
   BIKE_VEHICLE_PROFILE,
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
 import { bodyFrameVelocity } from '../dist/physics/vehicle-dynamics.js';
-import { formatVehicleControlHud } from '../dist/render/vehicle-control-hud.js';
+import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const guide = createM2StadiumGuide();
@@ -60,16 +60,16 @@ test('M8.0 support geography does not manufacture contact below an airborne body
   assert.equal('contacts' in car, false);
 });
 
-test('M9 CAR and BIKE use the same reduced two-station state and differ only by profile', () => {
+test('M9 FR and BIKE use the same reduced two-station state and differ only by profile', () => {
   const car = createTestCar(guide, height, surfaces, 90);
   const bike = createTestBike(guide, height, surfaces, 90);
-  assert.deepEqual([CAR_VEHICLE_PROFILE.frontStation.id, CAR_VEHICLE_PROFILE.rearStation.id], ['FRONT', 'REAR']);
+  assert.deepEqual([FR_VEHICLE_PROFILE.frontStation.id, FR_VEHICLE_PROFILE.rearStation.id], ['FRONT', 'REAR']);
   assert.equal('roll' in car, false);
   assert.equal('orientation' in car, false);
   assert.equal('orientation' in bike, false);
   assert.equal('omegaBody' in bike, false);
   assert.deepEqual(Object.keys(car).sort(), Object.keys(bike).sort());
-  assert.equal(car.profile.id, 'CAR');
+  assert.equal(car.profile.id, 'FR');
   assert.equal(bike.profile.id, 'BIKE');
   assert.equal('contacts' in bike, false);
 });
@@ -78,31 +78,34 @@ test('M8.1 digital request produces continuous steering and neutral self-counter
   const car = createTestCar(guide, height, surfaces, 90);
   updateTestVehicle(guide, height, surfaces, car, { steering: 1, throttle: false, brake: false }, 1 / 60);
   const first = car.control.actualSteerAngle;
-  assert.ok(first > 0 && first < CAR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.ok(first > 0 && first < FR_VEHICLE_PROFILE.maxRoadWheelSteer);
 
   const speed = 25;
   car.yaw = 0.15;
   car.velocityX = 0;
   car.velocityY = 0;
   car.velocityZ = speed;
-  car.frontWheelOmega = speed / CAR_VEHICLE_PROFILE.frontWheelRadius;
-  car.rearWheelOmega = speed / CAR_VEHICLE_PROFILE.rearWheelRadius;
+  car.frontWheelOmega = speed / FR_VEHICLE_PROFILE.frontWheelRadius;
+  car.rearWheelOmega = speed / FR_VEHICLE_PROFILE.rearWheelRadius;
   car.frontSteerAngle = 0;
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: false, brake: false }, 1 / 60);
   assert.ok(car.control.frontSlipAngle > 0);
   assert.ok(car.control.actualSteerAngle < 0, 'neutral input must countersteer toward zero front slip');
 });
 
-test('M8.0 HUD exposes physical torque lock and utilization telemetry without hidden assists', () => {
+test('common HUD reads actuator telemetry without adding hidden assists', () => {
   const car = createTestCar(guide, height, surfaces, 300, 8, 10);
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: true, brake: false }, 1 / 60);
   assert.ok(car.control.deliveredDriveTorque >= 0);
   assert.equal('tractionControlActive' in car.control, false);
   assert.equal('absActive' in car.control, false);
-  const hud = formatVehicleControlHud(car.control, car.powertrain, car.speed);
-  assert.match(hud.steering, /^ST \[/);
-  assert.match(hud.pedals, /^ACT T\d\.\d\d B\d\.\d\d DRV\s+\d+Nm BRK \d+\/\d+Nm/);
-  assert.match(hud.instruments, /^SPD\s+\d+km\/h RPM\s+\d+ AT GEAR \d+/);
+  const hud = createVehicleDebugHudModel(
+    'LINEAR',
+    { steering: 0, throttle: true, brake: false },
+    car,
+  );
+  assert.match(hud.actualInput, /^ACT STEER [+-]\d+\.\ddeg  THR\s+\d+%  BRK\s+\d+%/);
+  assert.match(hud.instruments, /^SPD\s+\d+km\/h  RPM\s+\d+  GEAR \d+/);
 });
 
 test('M8.0 automatic transmission output is wheel torque and shifts below redline', () => {

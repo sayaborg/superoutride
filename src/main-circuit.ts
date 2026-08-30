@@ -1,12 +1,11 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
-import { COURSE_MODE_HOTKEY_LABEL } from './browser/course-mode-selection.js';
+import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
+import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
-  PLAYER_PIXELS_PER_METER,
 } from './core/presentation-scale.js';
-import { pseudoDepth, pseudoProject } from './core/projection.js';
 import {
   M7_1_HIGHWAY_RECOVERY_PROFILE,
   M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
@@ -26,18 +25,13 @@ import {
 } from './camera/m5-camera.js';
 import {
   createCircuitRaceProgressState,
-  getCircuitRaceProgressWindow,
-  getValidatedCircuitLapCount,
   resyncCircuitRaceProgress,
   updateCircuitRaceProgress,
   type CircuitRaceProgressUpdate,
 } from './gameplay/circuit-race-progress.js';
-import { decomposeCircuitChainage } from './gameplay/circuit-topology.js';
 import {
   advanceRaceSession,
   createRaceSessionState,
-  formatRaceTime,
-  rankRaceProgress,
 } from './gameplay/race-session.js';
 import {
   createM5RecoveryState,
@@ -52,22 +46,15 @@ import {
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
-import { BIKE_VEHICLE_PROFILE, CAR_VEHICLE_PROFILE } from './physics/vehicle-profiles.js';
+import {
+  FR_VEHICLE_PROFILE,
+  type CompiledArcadeVehicleProfile,
+} from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
-import {
-  drawCarSteeringHud,
-  formatVehicleControlHud,
-  formatVehicleSuspensionHud,
-} from './render/vehicle-control-hud.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
-import {
-  deriveVehicleLeanRadians,
-  deriveVehicleSpriteFamily,
-  formatVehiclePresentationName,
-} from './render/vehicle-presentation.js';
+import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
-import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
@@ -122,7 +109,7 @@ const terrainProfile: TerrainVisualProfile = {
 };
 
 let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
   guide,
   height,
   surfaces,
@@ -135,7 +122,7 @@ const raceSession = createRaceSessionState();
 const rivalRoster = createRivalRoster(M8_7_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(
-    CAR_VEHICLE_PROFILE,
+    FR_VEHICLE_PROFILE,
     guide,
     height,
     surfaces,
@@ -170,7 +157,13 @@ let camera: M5CameraState = updateM5Camera(
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
-  if (event.code === 'KeyR') {
+  const selectedProfile = browserVehicleProfileForKey(event.code);
+  if (selectedProfile !== null) {
+    if (selectedProfile.id !== vehicle.profile.id) switchVehicleAtSafeSpawn(selectedProfile);
+    return;
+  }
+  if (event.code === 'Backspace') {
+    event.preventDefault();
     recoverM5Vehicle(
       recovery,
       guide,
@@ -185,8 +178,6 @@ window.addEventListener('keydown', (event) => {
     camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
     return;
   }
-  if (event.code !== 'KeyV') return;
-  switchVehicleAtSafeSpawn();
 });
 
 let accumulator = 0;
@@ -284,91 +275,11 @@ function render(): void {
     spriteFamily,
   );
   ctx.putImageData(imageData, 0, 0);
-
-  const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.presentationY, z: vehicle.z, s: vehicle.course.s },
-    camera,
-  );
-  const dCar = pseudoDepth(vehicle.course.s, camera.s);
-  const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
-  const bodySlipAngle = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed));
-  const slipDeg = bodySlipAngle * 180 / Math.PI;
-  const bankDeg = spriteFamily === 'bike'
-    ? deriveVehicleLeanRadians(vehicle) * 180 / Math.PI
-    : 0;
-  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
-  const suspensionHud = formatVehicleSuspensionHud(vehicle);
-  const progressWindow = getCircuitRaceProgressWindow(raceProgress, raceRules);
-  const validatedLaps = getValidatedCircuitLapCount(raceProgress);
-  const unwrappedS = circuitWindowToUnwrappedChainage(windowRuntime, vehicle.course.s);
-  const topologyPosition = decomposeCircuitChainage(windowRuntime.topology, unwrappedS);
-  const standings = rankRaceProgress([
-    {
-      competitorId: 'PLAYER',
-      sProgress: raceProgress.sProgress,
-      validatedProgressFloor: raceProgress.validatedProgressFloor,
-      finishElapsedSeconds: raceProgress.status === 'FINISHED'
-        ? raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? null
-        : null,
-    },
-    ...rivals.map((rival) => ({
-      competitorId: rival.actorId,
-      sProgress: rival.raceProgress.sProgress,
-      validatedProgressFloor: rival.raceProgress.validatedProgressFloor,
-      finishElapsedSeconds: rival.raceProgress.status === 'FINISHED'
-        ? rival.raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? null
-        : null,
-    })),
-  ]);
-  const playerStanding = standings.find((entry) => entry.competitorId === 'PLAYER')!;
-  const firstRival = rivals[0] ?? null;
-  const nextGate = raceProgress.status === 'FINISHED'
-    ? null
-    : raceRules.gates[raceProgress.nextGateIndex] ?? null;
-  const finalBoundarySeconds = raceSession.boundaryTimings.at(-1)?.elapsedSeconds ?? raceSession.elapsedSeconds;
-  const raceState = raceProgress.status === 'FINISHED'
-    ? `FINISHED ${formatRaceTime(finalBoundarySeconds)}`
-    : 'RUNNING';
-
-  ctx.fillStyle = '#d7f3ff';
-  ctx.font = 'bold 13px monospace';
-  ctx.textBaseline = 'top';
-  ctx.fillText('SUPER OUTRIDE', 8, 6);
-  ctx.fillStyle = '#a6bac4';
-  ctx.font = '9px monospace';
-  ctx.fillText(`M9.0 COURSE DEBUG ${M8_7_DEV_COURSE_MODE.routeKind} / ${formatVehiclePresentationName(vehicle)} SWITCH [V] RECOVER [R]`, 8, 23);
-  ctx.fillText(controlHud.instruments, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
-  ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
-  ctx.fillText(`NEXT ${nextGate?.name ?? 'NONE'}  WIN ${progressWindow.floor.toFixed(0)}..${progressWindow.ceiling.toFixed(0)}`, 8, 72);
-  ctx.fillText(`PROG ${raceProgress.sProgress.toFixed(1)}  R1 ${firstRival?.raceProgress.sProgress.toFixed(1) ?? 'NONE'}  CUT ${raceProgress.shortcutViolationCount}`, 8, 84);
-  ctx.fillText(`TIME ${formatRaceTime(raceSession.elapsedSeconds)}  ${raceState}`, 8, 96);
-  ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 108);
-  ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
-  ctx.fillText(suspensionHud, 8, 132);
-  ctx.fillText(controlHud.pedals, 8, 144);
-  ctx.fillText(`LAP ${(raceRules.lapLength / 1000).toFixed(3)}km / WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps`, 8, 156);
-  ctx.fillText(`WINDOW ${topologyPosition.winding}/${windowRuntime.repeatCount - 1}`, 8, 168);
-  ctx.fillText('Physical CPs + forward FINISH are lap authority; winding is not.', 8, 180);
-  ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CENTER X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
-  ctx.fillStyle = raceProgress.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
-  ctx.fillText(
-    raceProgress.status === 'FINISHED'
-      ? 'THREE-LAP CIRCUIT FINISH / extra open runout remains live'
-      : `CIRCUIT FIELD: ${rivals.length} DEV rival / ordinary open runtime`,
-    8,
-    207,
-  );
-  ctx.fillStyle = '#8fa3ad';
-  ctx.fillText(COURSE_MODE_HOTKEY_LABEL, 8, 218);
-  ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
-  if (vehicle.profile.id === 'CAR') {
-    drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
-  }
+  drawVehicleDebugHud(ctx, M8_7_DEV_COURSE_MODE.routeKind, input, vehicle);
   drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
 }
 
-function switchVehicleAtSafeSpawn(): void {
+function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
   recoverM5Vehicle(
     recovery,
     guide,
@@ -382,7 +293,7 @@ function switchVehicleAtSafeSpawn(): void {
   const l = vehicle.course.l;
   const speed = vehicle.longitudinalSpeed;
   vehicle = createArcadeVehicle(
-    vehicle.profile.id === 'CAR' ? BIKE_VEHICLE_PROFILE : CAR_VEHICLE_PROFILE,
+    profile,
     guide,
     height,
     surfaces,
@@ -397,11 +308,6 @@ function switchVehicleAtSafeSpawn(): void {
 
 function raceSample(): { x: number; z: number; sWindow: number } {
   return { x: vehicle.x, z: vehicle.z, sWindow: vehicle.course.s };
-}
-
-function formatSigned(value: number, digits = 2): string {
-  const normalized = Math.abs(value) < 0.0005 ? 0 : value;
-  return `${normalized >= 0 ? '+' : '-'}${Math.abs(normalized).toFixed(digits)}`;
 }
 
 function isTouchCapable(): boolean {

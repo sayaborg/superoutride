@@ -129,7 +129,7 @@ test('M6.54 two actors independently validate every circuit boundary and retain 
   ]);
 });
 
-test('M6.54 CIRCUIT browser composes existing actor, ranking and Painter primitives only', async () => {
+test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the M9.1 HUD', async () => {
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const mode = await readFile(new URL('../src/dev/m6-54-circuit-multi-actor.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)]
@@ -140,8 +140,9 @@ test('M6.54 CIRCUIT browser composes existing actor, ranking and Painter primiti
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);
   assert.match(source, /createDynamicVehicleCourseSprite\(/);
-  assert.match(source, /rankRaceProgress\(/);
-  assert.match(source, /finishElapsedSeconds:/);
+  assert.match(source, /drawVehicleDebugHud\(/);
+  assert.doesNotMatch(source, /rankRaceProgress\(/);
+  assert.doesNotMatch(source, /finishElapsedSeconds:/);
   assert.equal(
     importSpecifiers.some((path) => /route-dag|live-route|shared-route-choice|branch-violation/.test(path)),
     false,

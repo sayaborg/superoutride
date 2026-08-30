@@ -20,15 +20,17 @@ test('visible Pages milestone labels match the package milestone', async () => {
   const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   const [, milestoneMajor, milestoneMinor] = packageJson.version.split('.');
   const milestone = `M${milestoneMajor}.${milestoneMinor}`;
-  const [index, linear, branching, circuit] = await Promise.all([
+  const [index, hud, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../src/browser/vehicle-debug-hud.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-linear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
   ]);
 
   assert.ok(index.includes(milestone), `index.html must show ${milestone}`);
-  assert.ok(linear.includes(milestone), `LINEAR HUD must show ${milestone}`);
-  assert.ok(branching.includes(milestone), `BRANCHING HUD must show ${milestone}`);
-  assert.ok(circuit.includes(milestone), `CIRCUIT HUD must show ${milestone}`);
+  assert.ok(hud.includes(milestone), `shared HUD must show ${milestone}`);
+  for (const [name, source] of [['LINEAR', linear], ['BRANCHING', branching], ['CIRCUIT', circuit]]) {
+    assert.match(source, /drawVehicleDebugHud\(/, `${name} must use the shared HUD`);
+  }
 });

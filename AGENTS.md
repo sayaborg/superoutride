@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/88_m9_1_four_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
@@ -49,6 +50,10 @@ docs/81_m8_2_body_pitch_movement_yaw_camera.md
 docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 ```
+
+M9.1 preserves the M9.0 common mechanics and supersedes only the initial two-profile browser
+identity and accumulated per-course debug overlays. It owns FR/MR/RR/BIKE compiled-profile
+selection and the shared presentation-only HUD boundary.
 
 M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
 steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction
@@ -71,6 +76,7 @@ The current browser course-debug composition authority is:
 
 ```text
 docs/82_m8_3_three_mode_course_debug.md
+docs/88_m9_1_four_profile_debug_hud.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:

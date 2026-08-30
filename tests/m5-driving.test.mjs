@@ -223,14 +223,14 @@ test('BIKE derived presentation lean selects a non-center yaw x bank sprite vari
   assert.notEqual(bankIndex, Math.floor(bankCount / 2));
 });
 
-test('CAR and BIKE profiles create independent instances of the same authoritative state shape', () => {
+test('FR and BIKE profiles create independent instances of the same authoritative state shape', () => {
   const car = createTestCar(guide, height, surfaces, 140);
   const bike = createTestBike(guide, height, surfaces, 45);
   assert.notEqual(car.course.s, bike.course.s);
   assert.equal('orientation' in car, false);
   assert.equal('pitch' in car, true);
   assert.equal('pitch' in bike, true);
-  assert.equal(car.profile.id, 'CAR');
+  assert.equal(car.profile.id, 'FR');
   assert.equal(bike.profile.id, 'BIKE');
   assert.notEqual(car.profile, bike.profile);
   assert.equal('frontLateralForce' in car, false);

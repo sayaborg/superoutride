@@ -7,7 +7,7 @@ import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recove
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   BIKE_VEHICLE_PROFILE,
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import {
@@ -24,19 +24,19 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 ]);
 
 test('M9 profiles compile to the same two-station contact and wheel contract', () => {
-  for (const profile of [CAR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
+  for (const profile of [FR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
     assert.equal(profile.frontStation.rollingRadius, profile.frontWheelRadius);
     assert.equal(profile.rearStation.rollingRadius, profile.rearWheelRadius);
     assert.ok(profile.frontStation.suspension.qTravel > profile.frontStation.suspension.qStatic);
     assert.ok(profile.rearStation.suspension.qTravel > profile.rearStation.suspension.qStatic);
   }
-  assert.notEqual(CAR_VEHICLE_PROFILE.mass, BIKE_VEHICLE_PROFILE.mass);
-  assert.notEqual(CAR_VEHICLE_PROFILE.yawInertia, BIKE_VEHICLE_PROFILE.yawInertia);
+  assert.notEqual(FR_VEHICLE_PROFILE.mass, BIKE_VEHICLE_PROFILE.mass);
+  assert.notEqual(FR_VEHICLE_PROFILE.yawInertia, BIKE_VEHICLE_PROFILE.yawInertia);
 });
 
 test('one-k tire and wheel solve remains immediate deterministic contact physics', () => {
-  const tire = CAR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
   const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   assert.deepEqual(evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire), loaded);
   assert.notEqual(loaded.fy, 0);
@@ -61,7 +61,7 @@ test('one-k tire and wheel solve remains immediate deterministic contact physics
   assert.ok(Number.isFinite(wheel.tire.fx));
 });
 
-for (const profile of [CAR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
+for (const profile of [FR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
   test(`${profile.id} common solve preserves finite world/contact state under held input`, () => {
     const vehicle = createArcadeVehicle(
       profile,
@@ -124,7 +124,7 @@ test('recovery reconstructs common state and all three actuators without manufac
 
 test('profile compiler rejects invalid mechanics without vehicle-specific fallback paths', () => {
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...CAR_VEHICLE_PROFILE, frontWheelInertia: 0 }),
+    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, frontWheelInertia: 0 }),
     /finite and > 0/,
   );
   assert.throws(
@@ -141,6 +141,6 @@ test('common mechanics owns no quaternion Rider assist or vehicle-kind branch au
   ]);
   const common = `${solver}\n${profiles}\n${dynamics}`;
   assert.doesNotMatch(common, /Quaternion|quaternion|Rider|riderK|crownRadius|ABS|TCS/);
-  assert.doesNotMatch(solver, /profile\.id|vehicle\.kind|if\s*\([^)]*(?:CAR|BIKE)/);
+  assert.doesNotMatch(solver, /profile\.id|vehicle\.kind|if\s*\([^)]*(?:FR|MR|RR|BIKE)/);
   assert.doesNotMatch(common, /tractionControlActive|absActive/);
 });

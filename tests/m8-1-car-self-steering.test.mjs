@@ -11,11 +11,10 @@ import {
 } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   BIKE_VEHICLE_PROFILE,
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
-import { createCarSteeringHudModel } from '../dist/render/vehicle-control-hud.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -32,7 +31,7 @@ const wideSurface = new SurfaceMap(highway.guide.length, [{
 }]);
 
 test('regularized front slip observation matches the one-k lateral denominator', () => {
-  const tire = CAR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
   const demand = tireLinearDemand(100, 0.33, 24, -2.4, tire);
   const angle = regularizedTireSlipAngle(24, -2.4, tire.lowSpeedRegularization);
   assert.ok(Math.abs(Math.tan(angle) - demand.sy) < 1e-12);
@@ -48,13 +47,13 @@ test('common body travel direction derives self-steering from authoritative CG v
     forward: { x: 0, y: 0, z: 1 },
     omegaWorld: { x: 0, y: 0.2, z: 0 },
   };
-  const actual = vehicleBodyTravelDirection(body, CAR_VEHICLE_PROFILE.lowSpeedRegularization);
-  const expected = Math.atan2(-3, Math.sqrt(30 ** 2 + CAR_VEHICLE_PROFILE.lowSpeedRegularization ** 2));
+  const actual = vehicleBodyTravelDirection(body, FR_VEHICLE_PROFILE.lowSpeedRegularization);
+  const expected = Math.atan2(-3, Math.sqrt(30 ** 2 + FR_VEHICLE_PROFILE.lowSpeedRegularization ** 2));
   assert.ok(Math.abs(actual - expected) < 1e-12);
   assert.ok(actual < 0);
 });
 
-for (const profile of [CAR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
+for (const profile of [FR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
   test(`${profile.id} uses the same actuator and sole front-road-wheel steering response`, () => {
     const vehicle = createArcadeVehicle(profile, highway.guide, flatHeight, wideSurface, 800, -1.75, 45);
     updateArcadeVehicle(
@@ -75,7 +74,7 @@ for (const profile of [CAR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
 test('neutral request releases the actuator and self-steers a yawed body toward travel direction', () => {
   const speed = 25;
   const vehicle = createArcadeVehicle(
-    CAR_VEHICLE_PROFILE,
+    FR_VEHICLE_PROFILE,
     highway.guide,
     flatHeight,
     wideSurface,
@@ -87,8 +86,8 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
   vehicle.velocityX = 0;
   vehicle.velocityY = 0;
   vehicle.velocityZ = speed;
-  vehicle.frontWheelOmega = speed / CAR_VEHICLE_PROFILE.frontWheelRadius;
-  vehicle.rearWheelOmega = speed / CAR_VEHICLE_PROFILE.rearWheelRadius;
+  vehicle.frontWheelOmega = speed / FR_VEHICLE_PROFILE.frontWheelRadius;
+  vehicle.rearWheelOmega = speed / FR_VEHICLE_PROFILE.rearWheelRadius;
   vehicle.actuator.steering = 0.4;
 
   for (let tick = 0; tick < 12; tick += 1) {
@@ -109,42 +108,17 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
 test('common rack has one mechanical stop and profile compilation rejects invalid steering authority', () => {
   const atStop = stepTravelDirectionSteering(
     0,
-    CAR_VEHICLE_PROFILE.steeringOffsetMax,
-    CAR_VEHICLE_PROFILE.maxRoadWheelSteer,
+    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FR_VEHICLE_PROFILE.maxRoadWheelSteer,
     0,
     DT,
-    CAR_VEHICLE_PROFILE,
+    FR_VEHICLE_PROFILE,
   );
-  assert.ok(atStop <= CAR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.ok(atStop <= FR_VEHICLE_PROFILE.maxRoadWheelSteer);
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...CAR_VEHICLE_PROFILE, steeringResponseTau: 0 }),
+    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringResponseTau: 0 }),
     /finite and > 0/,
   );
-});
-
-test('CAR HUD remains a derived presentation of the common control telemetry', () => {
-  const control = {
-    steeringRequest: -1,
-    steeringActuator: -0.5,
-    throttleActuator: 0,
-    brakeActuator: 0,
-    actualSteerAngle: -10 * Math.PI / 180,
-    handwheelAngle: -150 * Math.PI / 180,
-    frontSlipAngle: 2 * Math.PI / 180,
-    deliveredDriveTorque: 0,
-    frontBrakeTorque: 0,
-    rearBrakeTorque: 0,
-    frontWheelLocked: false,
-    rearWheelLocked: false,
-    frontUtilization: 0,
-    rearUtilization: 0,
-  };
-  const model = createCarSteeringHudModel(-1, control, -8 * Math.PI / 180);
-  assert.equal(model.inputDirection, -1);
-  assert.ok(Math.abs(model.handwheelDegrees + 150) < 1e-12);
-  assert.ok(Math.abs(model.roadWheelDegrees + 10) < 1e-12);
-  assert.ok(Math.abs(model.frontSlipDegrees - 2) < 1e-12);
-  assert.ok(Math.abs(model.bodySlipDegrees + 8) < 1e-12);
 });
 
 test('M9 retires separate CAR steering authority and all browser roots select the common solver', async () => {

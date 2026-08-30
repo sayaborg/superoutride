@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.0 Vehicle Unification Candidate
+# SUPER OUTRIDE — M9.1 Four-Profile Debug HUD Candidate
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -7,13 +7,18 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 `README.md` is an entry point and current-state index. It is not a second normative design document.
 
 The historical takeover procedure that preserved the M8.2-M8.7 candidate and began
-the common CAR/BIKE vehicle architecture is
+the common vehicle architecture is
 `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md`. It is implementation
 handoff context, not current design authority; the normative M9 authority is the numbered document linked below.
 
 ## Current milestone status
 
-M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by CAR and BIKE profiles. It
+M9.1 adds provisional FR, MR, RR and BIKE compiled profiles and one common compact debug HUD for all
+three course compositions. The HUD is limited to course/profile selection, speed/RPM/gear, requested
+and actual controls, body yaw and a top-down body-axis G sensor. It adds no physics state or
+vehicle-kind mechanics branch. The authority is `docs/88_m9_1_four_profile_debug_hud.md`.
+
+M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by every compiled profile. It
 owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
 ABS/TCS and presentation-only BIKE lean. The authority is
 `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md`; the common-solver migration is complete on
@@ -69,6 +74,7 @@ status: final exact-head release procedure recorded by Git / PR / workflow histo
 The current normative vehicle-physics architecture is, in supersession order:
 
 ```text
+docs/88_m9_1_four_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
@@ -92,12 +98,13 @@ For current vehicle work, read in this order:
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle authority.
-5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+4. `docs/88_m9_1_four_profile_debug_hud.md` — current profile-selection and shared debug-HUD authority.
+5. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle-mechanics authority.
+6. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
-6. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
+7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
    `docs/86_m8_7_varied_elevation_circuit.md` — current camera/composition/render/course authorities.
-7. Relevant source/types/compilers and regression tests — executable implementation contract.
+8. Relevant source/types/compilers and regression tests — executable implementation contract.
 
 The 2026-08-28 M8.0 and 2026-08-31 M9 handoffs remain historical checkpoint/navigation records.
 
@@ -177,6 +184,7 @@ M8.5       Downward Camera Presentation                                  current
 M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
 M8.7       Varied-Elevation Medium/High-Speed Circuit                     current CIRCUIT course-authoring authority
 M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
+M9.1       Four-Profile Common Debug HUD                                    current profile/debug composition candidate
 ```
 
 Current topology/runtime/physics design sequence:
@@ -285,7 +293,7 @@ http://localhost:8000/?mode=circuit
 The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
 composition; lower engine layers remain topology-neutral ordinary consumers.
 
-Package and visible milestone metadata are synchronized at `super-outride-m9-0@0.9.0`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
+Package and visible milestone metadata are synchronized at `super-outride-m9-1@0.9.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 
@@ -295,7 +303,8 @@ DEV_UNCALIBRATED
 
 M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. The
 ordered M8.2–M8.7 candidate is preserved independently at `c241698`; M9.0 candidate evidence is
-recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`.
+recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`; M9.1 candidate evidence is
+recorded in `docs/validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -304,6 +313,8 @@ src/boot.ts          1/2/3 and URL course-mode selection authority
 src/main-linear.ts   LINEAR composition root
 src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
+src/browser/vehicle-profile-selection.ts Q/W/E/R profile-selection authority
+src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 
 src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
 src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
@@ -317,7 +328,7 @@ src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
 src/physics/vehicle-math3.ts        minimal vector/3D math
 src/physics/vehicle-dynamics.ts     common contact/surface/suspension observations
-src/physics/vehicle-profiles.ts     compiled CAR/BIKE parameter authority
+src/physics/vehicle-profiles.ts     compiled FR/MR/RR/BIKE parameter authority
 src/physics/arcade-vehicle-physics.ts one Two-Station Arcade Vehicle Dynamics solver
 src/physics/vehicle-contract.ts     read-only consumer contracts
 src/physics/surface-map.ts         general SurfaceMap authority

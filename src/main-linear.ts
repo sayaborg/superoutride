@@ -1,4 +1,5 @@
-import { COURSE_MODE_HOTKEY_LABEL } from './browser/course-mode-selection.js';
+import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
+import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -7,8 +8,6 @@ import {
 } from './camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
-import { PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
-import { pseudoDepth, pseudoProject } from './core/projection.js';
 import {
   M8_3_LINEAR_COURSE_MODE,
   M8_3_LINEAR_PLAYER_START_L,
@@ -27,19 +26,14 @@ import {
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
-import { BIKE_VEHICLE_PROFILE, CAR_VEHICLE_PROFILE } from './physics/vehicle-profiles.js';
+import {
+  FR_VEHICLE_PROFILE,
+  type CompiledArcadeVehicleProfile,
+} from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
-import {
-  drawCarSteeringHud,
-  formatVehicleControlHud,
-  formatVehicleSuspensionHud,
-} from './render/vehicle-control-hud.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
-import {
-  deriveVehicleSpriteFamily,
-  formatVehiclePresentationName,
-} from './render/vehicle-presentation.js';
+import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 
@@ -72,7 +66,7 @@ const runtime = createM83LinearHighwayRuntime();
 const spriteAssets = createM4SpriteAssets();
 const background = createM3FarBackground();
 let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  CAR_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
   runtime.guide,
   runtime.heightProfile,
   runtime.surfaceMap,
@@ -94,7 +88,13 @@ let camera: M5CameraState = updateM5Camera(
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
-  if (event.code === 'KeyR') {
+  const selectedProfile = browserVehicleProfileForKey(event.code);
+  if (selectedProfile !== null) {
+    if (selectedProfile.id !== vehicle.profile.id) switchVehicleAtSafeSpawn(selectedProfile);
+    return;
+  }
+  if (event.code === 'Backspace') {
+    event.preventDefault();
     recoverM5Vehicle(
       recovery,
       runtime.guide,
@@ -115,7 +115,6 @@ window.addEventListener('keydown', (event) => {
     );
     return;
   }
-  if (event.code === 'KeyV') switchVehicleAtSafeSpawn();
 });
 
 let accumulator = 0;
@@ -178,38 +177,11 @@ function render(): void {
   );
   ctx.putImageData(imageData, 0, 0);
 
-  const playerProjection = pseudoProject(
-    { x: vehicle.x, y: vehicle.presentationY, z: vehicle.z, s: vehicle.course.s },
-    camera,
-  );
-  const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
-  const bodySlipAngle = Math.atan2(
-    vehicle.lateralSpeed,
-    Math.max(0.01, vehicle.longitudinalSpeed),
-  );
-
-  ctx.fillStyle = '#d7f3ff';
-  ctx.font = 'bold 16px monospace';
-  ctx.textBaseline = 'top';
-  ctx.fillText('SUPER OUTRIDE', 8, 6);
-  ctx.fillStyle = '#a6bac4';
-  ctx.font = '9px monospace';
-  ctx.fillText(`M9.0 COURSE DEBUG ${M8_3_LINEAR_COURSE_MODE.routeKind} / ${formatVehiclePresentationName(vehicle)} SWITCH [V] RECOVER [R]`, 8, 23);
-  ctx.fillText(controlHud.instruments, 8, 36);
-  ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} / ${runtime.guide.length.toFixed(0)}  L ${formatSigned(vehicle.course.l)}  ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
-  ctx.fillText(`ST ${formatSigned(input.steering, 1)}  ${input.throttle ? 'THR' : '---'}  ${input.brake ? 'BRK' : '---'}  YAW ${formatSigned(vehicle.yaw * 180 / Math.PI, 1)}deg`, 8, 60);
-  ctx.fillText(formatVehicleSuspensionHud(vehicle), 8, 72);
-  ctx.fillText('FINITE OPEN 0..8000m / NO BRANCH / NO MODULO / NO LAP', 8, 84);
-  ctx.fillText(COURSE_MODE_HOTKEY_LABEL, 8, 96);
-  ctx.fillText(`D ${pseudoDepth(vehicle.course.s, camera.s).toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CENTER X ${camera.playerScreenX.toFixed(1)}`, 8, 108);
-  ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
-  if (vehicle.profile.id === 'CAR') {
-    drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
-  }
+  drawVehicleDebugHud(ctx, M8_3_LINEAR_COURSE_MODE.routeKind, input, vehicle);
   drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
 }
 
-function switchVehicleAtSafeSpawn(): void {
+function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
   recoverM5Vehicle(
     recovery,
     runtime.guide,
@@ -223,7 +195,7 @@ function switchVehicleAtSafeSpawn(): void {
   const spawnL = vehicle.course.l;
   const speed = vehicle.longitudinalSpeed;
   vehicle = createArcadeVehicle(
-    vehicle.profile.id === 'CAR' ? BIKE_VEHICLE_PROFILE : CAR_VEHICLE_PROFILE,
+    profile,
     runtime.guide,
     runtime.heightProfile,
     runtime.surfaceMap,
@@ -241,11 +213,6 @@ function switchVehicleAtSafeSpawn(): void {
     cameraProfile,
     SIM_DT,
   );
-}
-
-function formatSigned(value: number, digits = 2): string {
-  const normalized = Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value;
-  return `${normalized >= 0 ? '+' : '-'}${Math.abs(normalized).toFixed(digits)}`;
 }
 
 function isTouchCapable(): boolean {

@@ -376,13 +376,15 @@ test('M6.52 first and second fork rank the shared physical route across PENDING,
   assert.equal(winner.progress.status, 'FINISHED');
 });
 
-test('M6.52 browser standings consume field-route progress and lower engine layers stay unchanged', () => {
+test('M6.52 browser preserves field-route progress beneath the M9.1 HUD', () => {
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const progress = fs.readFileSync(new URL('../src/gameplay/field-route-progress.ts', import.meta.url), 'utf8');
-  assert.match(main, /sProgress: playerFieldProgress\.sProgress/);
-  assert.match(main, /sProgress: rival\.fieldProgress\.sProgress/);
+  assert.match(main, /updateFieldRouteProgress\(\s*playerFieldProgress/);
+  assert.match(main, /updateFieldRouteProgress\(\s*rivalFrame\.rival\.fieldProgress/);
   assert.match(main, /resyncFieldRouteProgress/);
   assert.match(main, /createValidatedRunFinishFromRoute\(routeState, routeUpdate, playerFieldProgress\)/);
+  assert.match(main, /drawVehicleDebugHud\(/);
+  assert.doesNotMatch(main, /sProgress: playerFieldProgress\.sProgress/);
   assert.doesNotMatch(progress, /render\//);
   assert.doesNotMatch(progress, /physics\//);
   assert.doesNotMatch(progress, /camera\//);

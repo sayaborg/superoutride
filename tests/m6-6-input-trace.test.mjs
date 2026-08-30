@@ -17,7 +17,7 @@ import {
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
 } from '../dist/dev/vehicle-telemetry.js';
-import { CAR_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { FR_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 function makeProbeTrace() {
@@ -61,7 +61,7 @@ test('trace rejects non-canonical steering values rather than silently clamping 
   );
 });
 
-function replayProbe(trace, profile = CAR_VEHICLE_PROFILE) {
+function replayProbe(trace, profile = FR_VEHICLE_PROFILE) {
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);
   const surfaces = createM5DebugSurfaceMap(guide.length);
@@ -85,10 +85,10 @@ test('same immutable trace can A/B two physics parameter sets without changing t
   const before = serializeDrivingInputTrace(trace);
   const baseline = replayProbe(trace);
   const lowerDrive = replayProbe(trace, {
-    ...CAR_VEHICLE_PROFILE,
+    ...FR_VEHICLE_PROFILE,
     powertrain: {
-      ...CAR_VEHICLE_PROFILE.powertrain,
-      torqueCurve: CAR_VEHICLE_PROFILE.powertrain.torqueCurve.map((point) => ({
+      ...FR_VEHICLE_PROFILE.powertrain,
+      torqueCurve: FR_VEHICLE_PROFILE.powertrain.torqueCurve.map((point) => ({
         ...point,
         torqueNewtonMeters: point.torqueNewtonMeters * 0.55,
       })),
