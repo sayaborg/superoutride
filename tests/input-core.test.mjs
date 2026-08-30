@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { assertExclusivePedalInput, clampSteering } from '../dist/input/driving-input.js';
-import { mergeDrivingInput } from '../dist/input/input-manager.js';
-import { KeyboardInput, digitalKeyboardSteering } from '../dist/input/keyboard-input.js';
+import { KeyboardInput } from '../dist/input/keyboard-input.js';
 import { PedalInputArbiter } from '../dist/input/pedal-input-arbiter.js';
-import { TouchInput, digitalTouchSteering } from '../dist/input/touch-input.js';
+import { SteeringInputArbiter } from '../dist/input/steering-input-arbiter.js';
+import { TouchInput } from '../dist/input/touch-input.js';
 
 class FakeEventTarget {
   listeners = new Map();
@@ -44,11 +44,20 @@ test('clampSteering keeps canonical range', () => {
   assert.equal(clampSteering(0.25), 0.25);
 });
 
-test('keyboard steering publishes only digital intent', () => {
-  assert.equal(digitalKeyboardSteering(true, false), -1);
-  assert.equal(digitalKeyboardSteering(false, true), 1);
-  assert.equal(digitalKeyboardSteering(false, false), 0);
-  assert.equal(digitalKeyboardSteering(true, true), 0);
+test('steering arbiter publishes one digital source and never resumes a superseded source', () => {
+  const steering = new SteeringInputArbiter();
+  steering.press('keyboard:ArrowLeft', -1);
+  assert.equal(steering.sample(), -1);
+  steering.release('keyboard:ArrowLeft');
+  assert.equal(steering.sample(), 0);
+
+  steering.press('keyboard:ArrowRight', 1);
+  steering.press('touch:left:7', -1);
+  assert.equal(steering.sample(), -1);
+  steering.release('touch:left:7');
+  assert.equal(steering.sample(), 0);
+  steering.release('keyboard:ArrowRight');
+  assert.equal(steering.sample(), 0);
 });
 
 test('keyboard pedal aliases preserve demand until every equivalent key is released', () => {
@@ -139,32 +148,7 @@ test('keyboard throttle resumes after a later touch brake tap through one shared
   assert.deepEqual(keyboard.sample(), { steering: 0, throttle: true, brake: false });
 });
 
-test('touch steering buttons publish left neutral or right digital request', () => {
-  assert.equal(digitalTouchSteering(true, false), -1);
-  assert.equal(digitalTouchSteering(false, false), 0);
-  assert.equal(digitalTouchSteering(false, true), 1);
-  assert.equal(digitalTouchSteering(true, true), 0);
-});
-
-test('input merge gives active touch steering priority and consumes one resolved pedal request', () => {
-  const keyboard = { steering: -0.5, throttle: true, brake: false };
-  const touch = { steering: 0.25, throttle: false, brake: true };
-
-  assert.deepEqual(mergeDrivingInput(keyboard, touch, true, { throttle: false, brake: true }), {
-    steering: 0.25,
-    throttle: false,
-    brake: true,
-  });
-
-  assert.deepEqual(mergeDrivingInput(keyboard, touch, false, { throttle: true, brake: false }), {
-    steering: -0.5,
-    throttle: true,
-    brake: false,
-  });
-  assert.throws(
-    () => mergeDrivingInput(keyboard, touch, false, { throttle: true, brake: true }),
-    /mutually exclusive/,
-  );
+test('canonical pedal requests remain exclusive after steering authority is separated', () => {
   assert.throws(
     () => assertExclusivePedalInput({ throttle: true, brake: true }),
     /mutually exclusive/,
@@ -188,15 +172,13 @@ test('touch steering releases a pointer whose terminal event reaches the window'
 
   right.dispatch('pointerdown', pointerEvent(7));
   assert.equal(touch.sample().steering, 1);
-  assert.equal(touch.steeringActive, true);
 
   lifecycle.dispatch('pointerup', pointerEvent(7));
   assert.equal(touch.sample().steering, 0);
-  assert.equal(touch.steeringActive, false);
   assert.equal(right.activeClasses.has('active'), false);
 });
 
-test('touch lifecycle reset clears the exact stale-right opposite-button symptom', () => {
+test('touch opposite correction supersedes a stale pointer and releases to exact neutral', () => {
   const lifecycle = new FakeEventTarget();
   const visibility = new FakeEventTarget();
   visibility.visibilityState = 'visible';
@@ -215,24 +197,88 @@ test('touch lifecycle reset clears the exact stale-right opposite-button symptom
   right.dispatch('pointerdown', pointerEvent(11));
   assert.equal(touch.sample().steering, 1);
   left.dispatch('pointerdown', pointerEvent(12));
-  assert.equal(touch.sample().steering, 0);
+  assert.equal(touch.sample().steering, -1);
   left.dispatch('pointerup', pointerEvent(12));
-  assert.equal(touch.sample().steering, 1);
-
-  visibility.visibilityState = 'hidden';
-  visibility.dispatch('visibilitychange');
-  assert.deepEqual(touch.sample(), { steering: 0, throttle: false, brake: false });
-  assert.equal(touch.steeringActive, false);
+  assert.equal(touch.sample().steering, 0);
+  assert.equal(right.activeClasses.has('active'), false);
 });
 
-test('keyboard page lifecycle clears a key when keyup is not delivered', () => {
+test('keyboard opposite correction neutralizes a stale key and repeat cannot resurrect it', () => {
   const lifecycle = new FakeEventTarget();
   const visibility = new FakeEventTarget();
   visibility.visibilityState = 'visible';
   const keyboard = new KeyboardInput(lifecycle, visibility);
+  const key = (type, code, repeat = false) => lifecycle.dispatch(type, {
+    code,
+    repeat,
+    preventDefault() {},
+  });
 
-  lifecycle.dispatch('keydown', { code: 'ArrowRight', preventDefault() {} });
+  key('keydown', 'ArrowRight');
   assert.equal(keyboard.sample().steering, 1);
-  lifecycle.dispatch('pagehide');
-  assert.deepEqual(keyboard.sample(), { steering: 0, throttle: false, brake: false });
+  key('keydown', 'ArrowLeft');
+  assert.equal(keyboard.sample().steering, -1);
+  key('keyup', 'ArrowLeft');
+  assert.equal(keyboard.sample().steering, 0);
+  key('keydown', 'ArrowRight', true);
+  assert.equal(keyboard.sample().steering, 0);
+  key('keyup', 'ArrowRight');
+  assert.equal(keyboard.sample().steering, 0);
+});
+
+test('keyboard correction supersedes a stale touch source through one shared steering arbiter', () => {
+  const lifecycle = new FakeEventTarget();
+  const visibility = new FakeEventTarget();
+  visibility.visibilityState = 'visible';
+  const steering = new SteeringInputArbiter();
+  const keyboard = new KeyboardInput(lifecycle, visibility, new PedalInputArbiter(), steering);
+  const right = new FakeElement();
+  const touch = new TouchInput(
+    new FakeElement(),
+    right,
+    new FakeElement(),
+    new FakeElement(),
+    lifecycle,
+    visibility,
+    new PedalInputArbiter(),
+    steering,
+  );
+
+  right.dispatch('pointerdown', pointerEvent(21));
+  assert.equal(touch.sample().steering, 1);
+  lifecycle.dispatch('keydown', { code: 'ArrowLeft', repeat: false, preventDefault() {} });
+  assert.equal(keyboard.sample().steering, -1);
+  lifecycle.dispatch('keyup', { code: 'ArrowLeft', repeat: false, preventDefault() {} });
+  assert.equal(touch.sample().steering, 0);
+});
+
+test('blur pagehide and hidden visibility reset the active steering source', () => {
+  for (const lifecycleEvent of ['blur', 'pagehide']) {
+    const lifecycle = new FakeEventTarget();
+    const visibility = new FakeEventTarget();
+    visibility.visibilityState = 'visible';
+    const keyboard = new KeyboardInput(lifecycle, visibility);
+    lifecycle.dispatch('keydown', { code: 'ArrowRight', repeat: false, preventDefault() {} });
+    assert.equal(keyboard.sample().steering, 1);
+    lifecycle.dispatch(lifecycleEvent);
+    assert.equal(keyboard.sample().steering, 0);
+  }
+
+  const lifecycle = new FakeEventTarget();
+  const visibility = new FakeEventTarget();
+  visibility.visibilityState = 'visible';
+  const right = new FakeElement();
+  const touchWithRight = new TouchInput(
+    new FakeElement(),
+    right,
+    new FakeElement(),
+    new FakeElement(),
+    lifecycle,
+    visibility,
+  );
+  right.dispatch('pointerdown', pointerEvent(31));
+  assert.equal(touchWithRight.sample().steering, 1);
+  visibility.visibilityState = 'hidden';
+  visibility.dispatch('visibilitychange');
+  assert.equal(touchWithRight.sample().steering, 0);
 });

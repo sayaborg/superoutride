@@ -1,17 +1,13 @@
 import type { DrivingInput } from './driving-input.js';
 import { PedalInputArbiter, type PedalChannel } from './pedal-input-arbiter.js';
-
-export function digitalKeyboardSteering(left: boolean, right: boolean): -1 | 0 | 1 {
-  return left === right ? 0 : left ? -1 : 1;
-}
+import { SteeringInputArbiter, type SteeringDirection } from './steering-input-arbiter.js';
 
 export class KeyboardInput {
-  private readonly pressedCodes = new Set<string>();
-
   constructor(
     target: Window = window,
     visibilityDocument: Document = document,
     private readonly pedals = new PedalInputArbiter(),
+    private readonly steering = new SteeringInputArbiter(),
   ) {
     target.addEventListener('keydown', (event) => this.onKey(event, true), { passive: false });
     target.addEventListener('keyup', (event) => this.onKey(event, false), { passive: false });
@@ -29,10 +25,7 @@ export class KeyboardInput {
   sample(): DrivingInput {
     const pedals = this.pedals.sample();
     return {
-      steering: digitalKeyboardSteering(
-        this.pressedCodes.has('ArrowLeft'),
-        this.pressedCodes.has('ArrowRight'),
-      ),
+      steering: this.steering.sample(),
       ...pedals,
     };
   }
@@ -41,8 +34,7 @@ export class KeyboardInput {
     switch (event.code) {
       case 'ArrowLeft':
       case 'ArrowRight':
-        if (down) this.pressedCodes.add(event.code);
-        else this.pressedCodes.delete(event.code);
+        this.setSteering(event, down);
         event.preventDefault();
         break;
       case 'ArrowUp':
@@ -58,12 +50,23 @@ export class KeyboardInput {
     }
   }
 
+  private setSteering(event: KeyboardEvent, down: boolean): void {
+    const source = `keyboard:${event.code}`;
+    if (!down) {
+      this.steering.release(source);
+      return;
+    }
+    if (event.repeat) return;
+    const direction: SteeringDirection = event.code === 'ArrowLeft' ? -1 : 1;
+    this.steering.press(source, direction);
+  }
+
   private setPedal(code: string, pedal: PedalChannel, down: boolean): void {
     this.pedals.setSource(`keyboard:${code}`, pedal, down);
   }
 
   private reset(): void {
-    this.pressedCodes.clear();
+    this.steering.reset();
     this.pedals.reset();
   }
 }

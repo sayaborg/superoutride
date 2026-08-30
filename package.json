@@ -9,6 +9,7 @@
   "scripts": {
     "build": "node tools/clean-dist.mjs && tsc -p tsconfig.json && node tools/build-ground-map.mjs",
     "check": "tsc -p tsconfig.json --noEmit",
+    "probe:steering": "npm run build && node tools/probe-steering-self-steer.mjs",
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
