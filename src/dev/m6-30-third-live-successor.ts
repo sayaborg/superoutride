@@ -1,5 +1,8 @@
 import type { GuideCurve } from '../core/guide-curve.js';
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import {
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
@@ -258,7 +261,7 @@ function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -
     gentleTurnLimitDegrees: 5,
     minDeformationRunVertices: 5,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
-    dMax: 150,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: ROAD_HALF_WIDTH,

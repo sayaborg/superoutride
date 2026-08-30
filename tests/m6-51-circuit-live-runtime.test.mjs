@@ -16,21 +16,15 @@ import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 function cameraProfile() {
   return {
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
-    lCamMax: 12,
     height: 2.469902425419539,
-    pitch: 8 * Math.PI / 180,
+    baseDownPitch: 8 * Math.PI / 180,
     focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
     centerX: 160,
     centerY: 120,
-    kPsi: 0.65,
-    thetaLagMax: 20 * Math.PI / 180,
-    sDotMin: 8,
-    tauLat: 0.18,
+    directionSpeedMin: 0.25,
     playerTargetY: 190,
     tauVertical: 0.22,
     deltaYMax: 4,
-    playerSafeXMin: 48,
-    playerSafeXMax: 272,
   };
 }
 

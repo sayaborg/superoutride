@@ -3,11 +3,13 @@ import {
   guideCoordinateCurve,
   locateWorldOnGuideCoordinateGlobal,
 } from './core/guide-coordinate-frame.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
+import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
+import { COURSE_MODE_HOTKEY_LABEL } from './browser/course-mode-selection.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
 import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
-import { M6_43_DEV_COURSE_MODE } from './dev/m6-43-course-mode.js';
+import { M8_3_BRANCHING_COURSE_MODE } from './dev/m8-3-course-debug-mode.js';
 import {
   M7_2_DEFAULT_BRANCHING_FORK,
   M7_2_DEFAULT_BRANCHING_JUNCTION,
@@ -19,10 +21,8 @@ import {
 } from './dev/m7-2-default-branching-highway.js';
 import {
   createM5CameraRig,
-  rebaseM5CameraRigCoordinateFrame,
   resetM5CameraRig,
   updateM5Camera,
-  type M5CameraProfile,
   type M5CameraState,
 } from './camera/m5-camera.js';
 import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
@@ -71,6 +71,7 @@ import {
   formatVehicleControlHud,
   formatVehicleSuspensionHud,
 } from './render/vehicle-control-hud.js';
+import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
 import {
@@ -178,7 +179,7 @@ const routeState = playerTraveler.routeState;
 const routeHandoffState = playerTraveler.handoffState;
 const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
-const rivalRoster = createRivalRoster(M6_43_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(M8_3_BRANCHING_COURSE_MODE);
 const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createM5Car(
@@ -204,30 +205,9 @@ const rivals = rivalRoster.map((entry) => {
     routePlan: rivalRoutePlan,
   };
 });
-const sharedRouteChoices = createSharedRouteChoiceState(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode);
+const sharedRouteChoices = createSharedRouteChoiceState(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode);
 
-const cameraProfile: M5CameraProfile = {
-  dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  lCamMax: 12,
-  height: 2.469902425419539,
-  pitch: (8 * Math.PI) / 180,
-  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
-  centerX: 160,
-  centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: (20 * Math.PI) / 180,
-  sDotMin: 8,
-  tauLat: 0.18,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
-  sprungPitchGain: 0.55,
-  lateralGOffsetMetersPerG: 0.65,
-  lateralGOffsetMax: 0.8,
-  lateralGOffsetTau: 0.14,
-};
+const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
 
@@ -415,13 +395,7 @@ function frame(now: number): void {
       );
       resetM5CameraRig(cameraRig);
     } else if (playerRouteTick.committed) {
-      const runtimeAfter = activeRuntime();
       vehicle.course = { ...routeHandoffState.coordinate };
-      rebaseM5CameraRigCoordinateFrame(
-        cameraRig,
-        runtimeBefore.coordinateFrame,
-        runtimeAfter.coordinateFrame,
-      );
     }
     const playerProgressView = fieldRouteProgressTravelerView(
       playerTraveler.routeState,
@@ -535,7 +509,6 @@ function render(): void {
     vehicleKind,
     runtime.roadView ?? undefined,
   );
-  void stats;
   ctx.putImageData(imageData, 0, 0);
 
   const standings = rankRaceProgress([
@@ -591,7 +564,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M8.1 YAW-PREVIEW STEER ${M6_43_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M8.7 COURSE DEBUG ${M8_3_BRANCHING_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(6)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`${controlHud.steering}  SLIP ${formatSigned(slipDeg, 1)}deg`, 8, 60);
@@ -605,13 +578,7 @@ function render(): void {
   ctx.fillText(`ROUTE ${routeState.activeStageId} ${routeState.status} EVT ${routeState.lastEvent}`, 8, 156);
   ctx.fillText(`CHART ${routeHandoffState.activeChartId} L ${formatSigned(routeHandoffState.coordinate.l)} C${routeHandoffState.commitCount}`, 8, 168);
   ctx.fillText(`PKG ${runtime.packageId} VIEW ${runtimeView}  PENDING ${pendingHandoff}`, 8, 180);
-  if (camera.playerSafetyActive) {
-    ctx.fillStyle = '#ffd08a';
-    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
-    ctx.fillStyle = '#a6bac4';
-  } else {
-    ctx.fillText(`JCT ${junctionPhase}  BG ${backgroundDiagnosticKind}`, 8, 192);
-  }
+  ctx.fillText(`JCT ${junctionPhase}  BG ${backgroundDiagnosticKind}  CENTER X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
 
   ctx.fillStyle = runObjective.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
   ctx.fillText(
@@ -622,11 +589,12 @@ function render(): void {
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText(`FIELD RIV ${rivals.length} LOCKS ${sharedRouteChoices.locks.length}  R1 ${rivalRouteSummary}`, 8, 218);
+  ctx.fillText(`${COURSE_MODE_HOTKEY_LABEL}  R1 ${rivalRouteSummary}`, 8, 218);
   ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
   if (vehicleKind === 'car') {
     drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
   }
+  drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
 }
 
 /** DEV switch is an explicit safe-spawn reconstruction, never a running-state conversion. */
@@ -668,7 +636,7 @@ function recoverActorToLockedBranch(
   traveler: LiveRouteTravelerState,
   lockedChoiceId: string,
 ): void {
-  if (M6_43_DEV_COURSE_MODE.branchViolationPolicy !== 'RECOVER_TO_LOCKED_BRANCH') {
+  if (M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy !== 'RECOVER_TO_LOCKED_BRANCH') {
     throw new Error('branch violation reached browser without a recovery policy');
   }
   const approach = lockedBranchRecoveryApproach(

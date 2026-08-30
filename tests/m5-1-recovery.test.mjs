@@ -25,21 +25,15 @@ const visual = createM3DebugVisualProfile(guide.length);
 const surfaces = createM5DebugSurfaceMap(guide.length);
 const cameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  lCamMax: 12,
   height: 2.469902425419539,
-  pitch: deg(8),
+  baseDownPitch: deg(8),
   focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
   centerX: 160,
   centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: deg(20),
-  sDotMin: 8,
-  tauLat: 0.18,
+  directionSpeedMin: 0.25,
   playerTargetY: 190,
   tauVertical: 0.22,
   deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
 };
 const groundProfile = { groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 };
 const terrainProfile = {

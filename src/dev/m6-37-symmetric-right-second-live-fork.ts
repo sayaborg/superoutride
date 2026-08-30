@@ -1,5 +1,8 @@
 import type { GuideCurve } from '../core/guide-curve.js';
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import {
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
@@ -111,7 +114,7 @@ function forkBranchAuthoring(
       gentleTurnLimitDegrees: 5,
       minDeformationRunVertices: 5,
       dCam: CURRENT_CAMERA_DISTANCE_METERS,
-      dMax: 150,
+      dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
       finishClosureMargin: 20,
       groundMapHalfWidth: 12,
       groundHalfWidth: 4.5,

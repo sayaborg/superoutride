@@ -1,5 +1,9 @@
 import { compileGuidePath, type GuideCurve } from '../core/guide-curve.js';
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import {
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import type { M5RecoveryProfile } from '../gameplay/recovery.js';
 import { SurfaceMap } from '../physics/surface-map.js';
@@ -89,8 +93,8 @@ export function createM72DefaultBranchingParent(): M72DefaultBranchingParent {
   };
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
+    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: groundProfile.groundLeft,
     groundRight: groundProfile.groundRight,
     roadLeft: groundProfile.roadLeft,

@@ -1,4 +1,8 @@
 import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { rgba } from '../render/software-surface.js';
@@ -9,8 +13,8 @@ import type {
   M622ChildStageRuntimeSource,
 } from './m6-22-child-stage-continuation.js';
 
-const TERRAIN_D_MIN = 2.5;
-const TERRAIN_D_MAX = 150;
+const TERRAIN_D_MIN = CURRENT_RENDER_NEAR_DEPTH_METERS;
+const TERRAIN_D_MAX = CURRENT_RENDER_FAR_DEPTH_METERS;
 const GROUND_HALF_WIDTH = 12;
 const ROAD_HALF_WIDTH = 3.5;
 const SHARED_FLAT_END_S = 60;

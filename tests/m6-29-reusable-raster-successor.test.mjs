@@ -6,6 +6,7 @@ import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
 import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
 import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -26,7 +27,7 @@ function authoring(side) {
     gentleTurnLimitDegrees: 5,
     minDeformationRunVertices: 5,
     dCam: 5,
-    dMax: 150,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: 3.5,
@@ -65,6 +66,20 @@ test('M6.29 generic factory preserves exact D_cam overlap around the successor s
     near(source.x, target.x, 2e-6);
     near(source.z, target.z, 2e-6);
     near(source.heading, target.heading, 1e-8);
+  }
+});
+
+test('extending far depth adds only straight open runout and preserves authored pre-tail geometry', () => {
+  const parent = createM2StadiumGuide();
+  const base = createM622ChildStageContinuation(parent);
+  const short = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), id: 'SHORT', chartId: 'SHORT', roadViewId: 'SHORT_VIEW', dMax: 150 });
+  const extended = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), id: 'EXTENDED', chartId: 'EXTENDED', roadViewId: 'EXTENDED_VIEW', dMax: 200 });
+
+  near(short.finishS, extended.finishS);
+  assert.ok(extended.guide.raster.vertices.length > short.guide.raster.vertices.length);
+  for (let i = 0; i < short.guide.raster.vertices.length; i += 1) {
+    near(short.guide.raster.vertices[i].x, extended.guide.raster.vertices[i].x);
+    near(short.guide.raster.vertices[i].z, extended.guide.raster.vertices[i].z);
   }
 });
 

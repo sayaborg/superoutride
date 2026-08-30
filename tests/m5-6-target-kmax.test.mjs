@@ -3,6 +3,14 @@ import test from 'node:test';
 
 import { deriveGroundMapDensity } from '../dist/compiler/ground-map-lod.js';
 import {
+  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
+  CURRENT_CAMERA_HEIGHT_METERS,
+} from '../dist/camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../dist/core/presentation-scale.js';
+import {
   deriveGroundMapTargetEnvelope,
   validateTerrainFootprintsAgainstTarget,
 } from '../dist/compiler/ground-map-target-envelope.js';
@@ -22,20 +30,20 @@ const deg = (value) => value * Math.PI / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const visual = createM3DebugVisualProfile(guide.length);
-const cameraHeight = 2.469902425419539;
+const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const cameraProfile = {
   dCam: 5,
   lCamMax: 12,
   height: cameraHeight,
-  pitch: deg(8),
+  pitch: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   focalLength: 200,
   centerX: 160,
   centerY: 120,
 };
 const terrainProfile = {
   screenHeight: 240,
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: 12,
   groundRight: 12,
   roadLeft: 4.5,
@@ -48,7 +56,7 @@ const density = deriveGroundMapDensity({
   d0: 5,
   focalLength: 200,
   cameraHeight,
-  pitchRadians: deg(8),
+  pitchRadians: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
 });
 
 function linesAt(s, yawOffset = 0) {
@@ -92,14 +100,14 @@ test('depth clipping gives an absolute Delta_s_eff upper bound of dMax-dMin', ()
     qS: density.qS,
     thinSpanScreenRows: terrainProfile.thinSpanScreenRows,
   });
-  assert.equal(target.maxDeltaSEffectiveUpperBound, 147.5);
-  assert.equal(target.kMax, 6);
+  assert.equal(target.maxDeltaSEffectiveUpperBound, 197.5);
+  assert.equal(target.kMax, 7);
   assert.ok(target.previousLevelCapacity < target.maxDeltaSEffectiveUpperBound);
   assert.ok(target.kMaxCapacity >= target.maxDeltaSEffectiveUpperBound);
   assert.equal(target.sufficiencyProven, true);
 });
 
-test('current debug Road Generator output still requires k=6 after explicit thin-span collapse', () => {
+test('current debug Road Generator output requires k=7 after explicit thin-span collapse', () => {
   const summary = sweepCurrentDebugEnvelope();
   const target = deriveGroundMapTargetEnvelope({
     dMin: terrainProfile.dMin,
@@ -110,8 +118,8 @@ test('current debug Road Generator output still requires k=6 after explicit thin
   });
   validateTerrainFootprintsAgainstTarget(summary, target);
   assert.ok(summary.collapsedLineCount > 0);
-  assert.equal(summary.requiredChainageLevel, 6);
-  assert.equal(target.observedRequiredLevel, 6);
+  assert.equal(summary.requiredChainageLevel, 7);
+  assert.equal(target.observedRequiredLevel, 7);
   assert.equal(target.necessityProven, true);
   console.log('M5.6 TARGET KMAX', JSON.stringify({ summary, target }));
 });
@@ -126,11 +134,11 @@ test('compiled target rejects impossible telemetry above the depth-clip proof bo
   const impossible = {
     lineCount: 1,
     collapsedLineCount: 0,
-    maxDeltaS: 148,
+    maxDeltaS: 198,
     maxDeltaSCollapse: 0,
-    maxDeltaSEffective: 148,
+    maxDeltaSEffective: 198,
     maxDeltaL: 1,
-    requiredChainageLevel: 6,
+    requiredChainageLevel: 7,
     maxDiagnosticLateralLevel: 1,
   };
   assert.throws(() => validateTerrainFootprintsAgainstTarget(impossible, target), /exceeds compiled target envelope/);

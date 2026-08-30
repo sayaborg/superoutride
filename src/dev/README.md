@@ -6,7 +6,7 @@
 
 ### A. Current public DEV composition fixtures
 
-Files in this category assemble concrete authored content used by the current browser compositions, including BRANCHING and CIRCUIT development fixtures.
+Files in this category assemble concrete authored content used by the current browser compositions, including LINEAR, BRANCHING and CIRCUIT development fixtures.
 
 They may combine ordinary production authorities from `src/core`, `src/camera`, `src/gameplay`, `src/runtime`, `src/render`, `src/physics`, `src/visual`, `src/world`, and related general layers into a specific top-level development composition.
 
@@ -29,6 +29,7 @@ Instrumentation must observe or assemble existing authority; it must not become 
 The only current non-DEV TypeScript roots allowed to import `src/dev` are:
 
 ```text
+src/main-linear.ts
 src/main.ts
 src/main-circuit.ts
 ```

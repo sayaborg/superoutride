@@ -11,7 +11,7 @@ test('M6.42 browser keeps one post-physics multi-actor arbitration while later m
   assert.match(source, /const playerTraveler = createLiveRouteTravelerState/);
   assert.match(source, /const routeState = playerTraveler\.routeState/);
   assert.match(source, /const routeHandoffState = playerTraveler\.handoffState/);
-  assert.match(source, /createSharedRouteChoiceState\(M6_43_DEV_COURSE_MODE\.sharedRouteChoiceMode\)/);
+  assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
 
   const playerPhysics = source.indexOf('updateM5Car(\n        runtimeBefore.coordinateFrame');
   const rivalPhysics = source.indexOf('updateM5Car(\n        rivalRuntimeBefore.coordinateFrame');

@@ -7,6 +7,7 @@ import {
   compileCourseMode,
 } from '../dist/gameplay/course-mode.js';
 import { M6_43_DEV_COURSE_MODE } from '../dist/dev/m6-43-course-mode.js';
+import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
 import { createRivalRoster } from '../dist/runtime/rival-roster.js';
 
 test('M6.43 course mode contract keeps linear branching and circuit as three distinct route shapes', () => {
@@ -59,16 +60,20 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
   assert.equal(new Set(max.map((entry) => entry.actorId)).size, 16);
 });
 
-test('M6.46 current Pages fixture restores one rival after defining forbidden-branch recovery', () => {
+test('M6.46 one-rival fixture remains historical while M8.3 course debug gives branch choice to the player', () => {
   assert.equal(M6_43_DEV_COURSE_MODE.routeKind, 'BRANCHING');
   assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 1);
   assert.equal(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
   assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
+  assert.equal(M8_3_BRANCHING_COURSE_MODE.routeKind, 'BRANCHING');
+  assert.equal(M8_3_BRANCHING_COURSE_MODE.rivalCount, 0);
+  assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
+  assert.equal(M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   const source = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(source, /createRivalRoster\(M6_43_DEV_COURSE_MODE\)/);
+  assert.match(source, /createRivalRoster\(M8_3_BRANCHING_COURSE_MODE\)/);
   assert.match(source, /const rivals = rivalRoster\.map/);
-  assert.match(source, /createSharedRouteChoiceState\(M6_43_DEV_COURSE_MODE\.sharedRouteChoiceMode\)/);
+  assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
   assert.match(source, /recoverActorToLockedBranch\(/);
   assert.doesNotMatch(source, /const rival = createM5Car/);
   assert.doesNotMatch(source, /const rivalTraveler =/);

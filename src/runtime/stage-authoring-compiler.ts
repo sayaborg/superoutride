@@ -1,4 +1,8 @@
 import { guideCoordinateCurve, guideCoordinateLateralOrigin, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
@@ -46,8 +50,8 @@ export interface CompiledStageEnvironment {
 }
 
 const DEFAULT_TERRAIN = Object.freeze({
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: 12,
   groundRight: 12,
   roadLeft: 3.5,

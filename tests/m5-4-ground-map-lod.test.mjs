@@ -14,13 +14,17 @@ import {
   buildGroundMapAnisotropicPyramid,
   downsampleGroundMap2x4,
 } from '../dist/compiler/ground-map-prefilter.js';
+import {
+  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
+  CURRENT_CAMERA_HEIGHT_METERS,
+} from '../dist/camera/current-camera-profile.js';
 import { rgba } from '../dist/render/software-surface.js';
 
 const current = deriveGroundMapDensity({
   d0: 5,
   focalLength: 200,
-  cameraHeight: 2.469902425419539,
-  pitchRadians: 8 * Math.PI / 180,
+  cameraHeight: CURRENT_CAMERA_HEIGHT_METERS,
+  pitchRadians: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
 });
 
 const near = (actual, expected, tolerance = 1e-10) => {
@@ -29,15 +33,15 @@ const near = (actual, expected, tolerance = 1e-10) => {
 
 test('M5.4 current GroundMap base density is derived from d0=D_cam=5m', () => {
   near(current.qL, 0.025);
-  near(current.qS, 0.051106653147800385);
+  near(current.qS, 0.04480995901583679);
   near(current.rhoL, 40);
-  near(current.rhoS, 19.566924038402615);
+  near(current.rhoS, 22.316467632710374);
 });
 
 test('current camera height raises the 24m x 3000m unique base estimate above the old h=2m example', () => {
   const texels = estimateUniqueBaseTexels(24, 3000, current);
-  near(texels, 56352741.23059952, 1e-5);
-  assert.ok(texels > 45_700_000);
+  near(texels, 64271426.78220587, 1e-5);
+  assert.ok(texels > 64_000_000);
 });
 
 test('anisotropic pyramid footprint grows x2 laterally and x4 in chainage per level', () => {

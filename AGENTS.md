@@ -44,11 +44,31 @@ The current vehicle-physics architecture authority is:
 ```text
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
+docs/81_m8_2_body_pitch_movement_yaw_camera.md
+docs/84_m8_5_downward_camera_presentation.md
+docs/85_m8_6_two_hundred_meter_render_distance.md
 ```
 
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
 M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; the
 M8.0 mechanical model and BIKE authority remain frozen.
+M8.2 supersedes the M5 Guide-lateral/yaw-lag camera decisions within its stated scope; frozen
+renderer depth/metric authority and the M8.0/M8.1 vehicle authorities remain unchanged.
+M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning; M8.2 movement-yaw,
+body-pitch follow and centering architecture remain authoritative.
+M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5
+camera architecture and pitch/height tuning remain authoritative.
+The current browser course-debug composition authority is:
+
+```text
+docs/82_m8_3_three_mode_course_debug.md
+```
+
+The current CIRCUIT DEV course-authoring authority is:
+
+```text
+docs/86_m8_7_varied_elevation_circuit.md
+```
 
 ### Milestone design authority
 
@@ -80,6 +100,12 @@ docs/76_m7_3_grip_and_instrument_hud.md
 docs/77_m7_4_transient_tire_response.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
+docs/81_m8_2_body_pitch_movement_yaw_camera.md
+docs/82_m8_3_three_mode_course_debug.md
+docs/83_m8_4_dual_low_speed_circuit_complex.md
+docs/84_m8_5_downward_camera_presentation.md
+docs/85_m8_6_two_hundred_meter_render_distance.md
+docs/86_m8_7_varied_elevation_circuit.md
 ```
 
 ### Executable implementation contract
@@ -368,6 +394,8 @@ Wrong-branch recovery geography derives from the locked legal physical route gat
 Current top-level browser composition is explicit:
 
 ```text
+src/boot.ts          -> one browser course-mode selector
+src/main-linear.ts   -> LINEAR
 src/main.ts          -> BRANCHING
 src/main-circuit.ts  -> CIRCUIT
 ```
@@ -376,14 +404,17 @@ Boot selection belongs only at the composition root:
 
 ```text
 /              -> BRANCHING
-/?mode=circuit -> CIRCUIT
+/?mode=linear    -> LINEAR
+/?mode=branching -> BRANCHING
+/?mode=circuit   -> CIRCUIT
 ```
 
 Do not distribute `if (CIRCUIT)` / `routeKind` decisions through lower engine layers when composition can select the correct ordinary runtime objects once.
 
-`src/dev` is not a general runtime authority. General layers must not import it. The only current non-DEV TypeScript files allowed to assemble DEV fixtures are the two explicit top-level browser composition roots:
+`src/dev` is not a general runtime authority. General layers must not import it. The only current non-DEV TypeScript files allowed to assemble DEV fixtures are the three explicit top-level browser composition roots:
 
 ```text
+src/main-linear.ts
 src/main.ts
 src/main-circuit.ts
 ```
@@ -485,7 +516,7 @@ During implementation:
 - preserve world-state continuity through chart/content changes;
 - prefer finite/open composition over implicit wrapping;
 - keep DEV fixtures clearly separate from product authority;
-- do not introduce dependencies from general `src/*` layers into `src/dev`; only `src/main.ts` and `src/main-circuit.ts` may assemble DEV fixtures as explicit top-level composition roots;
+- do not introduce dependencies from general `src/*` layers into `src/dev`; only `src/main-linear.ts`, `src/main.ts` and `src/main-circuit.ts` may assemble DEV fixtures as explicit top-level composition roots;
 - do not recreate retired authority paths as compatibility re-export shims.
 
 After implementation:

@@ -15,6 +15,8 @@ import {
   M7_1_PLAYER_START_L,
   M7_1_ROAD_HALF_WIDTH_METERS,
   M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS,
+  M8_4_LOW_SPEED_COMPLEX_COUNT,
+  M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS,
   createM71HighwayCalibrationLapRaster,
   createM71HighwayCalibrationRuntime,
   createM71HighwayGroundProfile,
@@ -33,34 +35,47 @@ import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
 import { createM5Bike } from '../dist/physics/motorcycle-physics.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
-test('current circuit lap retains high-speed references and adds a post-handoff low-speed complex', () => {
+test('current circuit lap retains high-speed references and owns two post-handoff low-speed complexes', () => {
   const raster = createM71HighwayCalibrationLapRaster();
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const finiteRadii = guide.corners
     .map((corner) => corner.radius)
     .filter(Number.isFinite);
   const lowSpeedCorners = guide.corners.filter((corner) => corner.radius < 100);
+  const lowSpeedSections = lowSpeedCorners.reduce((sections, corner) => {
+    const previous = sections.at(-1);
+    if (!previous || corner.sVertex - previous.at(-1).sVertex > 100) {
+      sections.push([corner]);
+    } else {
+      previous.push(corner);
+    }
+    return sections;
+  }, []);
 
-  assert.ok(raster.length > 7_000, `expected > 7 km, got ${raster.length}`);
+  assert.ok(raster.length > 10_000 && raster.length < 10_200, `expected approximately 10.1 km, got ${raster.length}`);
   assert.equal(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, 90);
+  assert.equal(M8_4_LOW_SPEED_COMPLEX_COUNT, 2);
+  assert.equal(M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS, 200);
   assert.ok(Math.min(...finiteRadii) > 89 && Math.min(...finiteRadii) < 91);
   assert.ok(finiteRadii.some((radius) => radius >= 460));
   assert.ok(finiteRadii.some((radius) => radius >= 710));
   assert.ok(lowSpeedCorners.length > 0);
+  assert.equal(lowSpeedSections.length, M8_4_LOW_SPEED_COMPLEX_COUNT);
   assert.ok(lowSpeedCorners.every((corner) => corner.sVertex > M7_2_HANDOFF_SEAM_S));
   assert.ok(Math.max(...raster.vertexTurns.map((turn) => Math.abs(turn))) <= 5.000001 * Math.PI / 180);
   assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9), 'course needs right turns');
   assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9), 'course needs left turns');
 
-  const lowSpeedApproachS = lowSpeedCorners[0].sVertex - 80;
   assert.ok(estimateUpcomingTargetSpeed(guide, 450) >= 55.5);
-  assert.ok(
-    estimateUpcomingTargetSpeed(guide, lowSpeedApproachS) <= 26,
-    'rival speed authority must command a real low-speed approach',
-  );
+  for (const section of lowSpeedSections) {
+    assert.ok(
+      estimateUpcomingTargetSpeed(guide, section[0].sVertex - 80) <= 26,
+      'rival speed authority must command a real low-speed approach for every complex',
+    );
+  }
 });
 
-test('ordinary rival physics brakes for and clears the complete low-speed complex on asphalt', () => {
+test('ordinary rival physics brakes for and clears both low-speed complexes on asphalt', () => {
   const live = createM71HighwayCalibrationRuntime();
   const lapLength = live.window.topology.lapLength;
   const lowSpeedCorners = live.window.guide.corners.filter(
@@ -85,7 +100,7 @@ test('ordinary rival physics brakes for and clears the complete low-speed comple
   let remainedSupported = true;
   let ticks = 0;
 
-  while (car.course.s < exitTargetS && ticks < 3_000) {
+  while (car.course.s < exitTargetS && ticks < 5_000) {
     const input = sampleRivalDrivingInput(live.window.guide, car, 0);
     updateM5Car(
       live.window.guide,

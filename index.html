@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#05080c" />
-    <title>SUPER OUTRIDE — M8.1</title>
+    <title>SUPER OUTRIDE — M8.7</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main id="app" aria-label="SUPER OUTRIDE M8.1 driving">
+    <main id="app" aria-label="SUPER OUTRIDE M8.7 driving">
       <section class="control-zone steering-zone" aria-label="Steering control">
         <div class="steering-pad" role="group" aria-label="Digital steering buttons">
           <button id="steer-left-button" class="steer-button" type="button" aria-label="Steer left">◀</button>
@@ -28,11 +28,9 @@
     </main>
 
     <script type="module">
-      // Keep BRANCHING as the default product fixture while exposing the new CIRCUIT
-      // composition through one explicit top-level boot choice. Lower engine layers do
-      // not receive a mode flag or a route-kind branch.
-      const circuitMode = new URLSearchParams(location.search).get('mode') === 'circuit';
-      const entryName = circuitMode ? 'main-circuit.js' : 'main.js';
+      // One top-level boot owns LINEAR / BRANCHING / CIRCUIT selection and 1/2/3 navigation.
+      // Lower engine layers receive only the ordinary runtime objects selected by that boot.
+      const entryName = 'boot.js';
       const fallbackEntry = `./dist/${entryName}`;
       let entry = fallbackEntry;
 

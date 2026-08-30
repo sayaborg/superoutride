@@ -29,6 +29,8 @@ export const M7_1_MARKING_GAP_LENGTH_METERS = 12;
 export const M7_1_STANDARD_CURVE_RADIUS_METERS = 470;
 export const M7_1_SWEEP_CURVE_RADIUS_METERS = 720;
 export const M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS = 90;
+export const M8_4_LOW_SPEED_COMPLEX_COUNT = 2;
+export const M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS = 200;
 export const M7_1_AIRBORNE_PROBE_START_S = 250;
 
 export const M7_1_DEV_COURSE_MODE = compileCourseMode({
@@ -84,9 +86,10 @@ export function createM71HighwayGroundProfile(): GroundMapProfile {
  *
  * The 470 m end curves and 720 m alternating sweep retain the original high-speed
  * calibration loads. The second side additionally owns a 90 m right-left-right
- * complex after the BRANCHING handoff seam, so the CIRCUIT composition requires
- * real braking without changing the point-to-point route before its exit. Every
- * authored Raster turn is at most five degrees, below the frozen ten-degree limit.
+ * complexes after the BRANCHING handoff seam, so the CIRCUIT composition requires
+ * two real braking sequences without changing the point-to-point route before its
+ * exit. Every authored Raster turn is at most five degrees, below the frozen
+ * ten-degree limit.
  */
 export function createM71HighwayCalibrationLapRaster(): RasterPath {
   const vertices: RasterVertex[] = [{
@@ -127,10 +130,10 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
     turtle.heading = startHeading + turn;
   };
 
-  const appendLowSpeedComplex = (): void => {
-    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -Math.PI / 2);
-    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, Math.PI);
-    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -Math.PI / 2);
+  const appendLowSpeedComplex = (firstTurnSign: -1 | 1): void => {
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, firstTurnSign * Math.PI / 2);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -firstTurnSign * Math.PI);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, firstTurnSign * Math.PI / 2);
   };
 
   const appendHighwaySide = (includeLowSpeedFinish: boolean): void => {
@@ -140,9 +143,12 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
     appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, -20 * Math.PI / 180);
     if (includeLowSpeedFinish) {
       // Keep the M7.2 gate/seam interval unchanged, then leave enough straight
-      // exit to settle before the final high-speed end curve.
+      // between the right-left-right and mirrored left-right-left complexes for
+      // two distinct braking/acceleration cycles.
       appendStraight(610);
-      appendLowSpeedComplex();
+      appendLowSpeedComplex(-1);
+      appendStraight(M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS);
+      appendLowSpeedComplex(1);
       appendStraight(150);
     } else {
       appendStraight(700);
@@ -159,7 +165,7 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
     && Math.abs(Math.sin(turtle.heading)) < 1e-7
     && Math.cos(turtle.heading) > 1 - 1e-7
   )) {
-    throw new Error('M8.0 low-speed complex must return on the start-side axis');
+    throw new Error('M8.4 low-speed complexes must return on the start-side axis');
   }
   appendStraight(-turtle.z);
 

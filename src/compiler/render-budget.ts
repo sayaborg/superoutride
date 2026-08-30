@@ -32,50 +32,42 @@ export interface RenderBudgetViolation {
   readonly limit: number;
 }
 
-/** M5.8 normal/debug content baseline before the required tunnel/portal stress case existed. */
+/** Normal/debug content baseline re-observed under the M8.6 200 m far-depth profile. */
 export const M5_8_DEBUG_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = {
-  frameCount: 70,
-  maxTerrainLineCount: 171,
-  maxTerrainLineCountPerScreenRow: 9,
-  maxTerrainOutputPixelsPerFrame: 54720,
-  maxTerrainOutputPixelsPerScreenRow: 2880,
-  maxVisibleSpriteCount: 17,
-  maxSpriteOutputSamplesPerFrame: 18364,
-  maxSpriteOutputSamplesPerScanline: 268,
-  maxSpriteWrittenPixelsPerFrame: 12938,
-  maxSpriteWrittenPixelsPerScanline: 268,
+  frameCount: 67,
+  maxTerrainLineCount: 189,
+  maxTerrainLineCountPerScreenRow: 6,
+  maxTerrainOutputPixelsPerFrame: 60480,
+  maxTerrainOutputPixelsPerScreenRow: 1920,
+  maxVisibleSpriteCount: 22,
+  maxSpriteOutputSamplesPerFrame: 18216,
+  maxSpriteOutputSamplesPerScanline: 280,
+  maxSpriteWrittenPixelsPerFrame: 13245,
+  maxSpriteWrittenPixelsPerScanline: 222,
   maxGroundMapLevelUsed: 6,
-  groundMapLevelLineCounts: [3437, 3436, 1755, 979, 546, 173, 18],
+  groundMapLevelLineCounts: [3338, 3725, 1945, 995, 518, 230, 44, 0],
 };
 
 export const M5_8_DEBUG_HEADROOM_FACTOR = 1.25;
 
-/** Historical M5.8 provisional budget, retained to prove the tunnel is a stronger sprite stress case. */
-export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> = {
-  headroomFactor: M5_8_DEBUG_HEADROOM_FACTOR,
-  terrainLineCountMax: 214,
-  terrainLineCountPerScreenRowMax: 12,
-  terrainOutputPixelsPerFrameMax: 68400,
-  terrainOutputPixelsPerScreenRowMax: 3600,
-  visibleSpriteCountMax: 22,
-  spriteOutputSamplesPerFrameMax: 22955,
-  spriteOutputSamplesPerScanlineMax: 335,
-};
+/** Current normal/debug target with the same single explicit 25% margin. */
+export const M5_8_DEBUG_TARGET_BUDGET: Readonly<RenderTargetBudget> =
+  deriveProvisionalRenderBudget(M5_8_DEBUG_OBSERVED_BASELINE, M5_8_DEBUG_HEADROOM_FACTOR);
 
-/** M5.9 required close portal / near interior stress sweep, re-observed after M8.0 render-height alignment. */
+/** Required close portal / near interior stress sweep, re-observed under M8.6. */
 export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   frameCount: 51,
-  maxTerrainLineCount: 163,
-  maxTerrainLineCountPerScreenRow: 6,
-  maxTerrainOutputPixelsPerFrame: 52160,
-  maxTerrainOutputPixelsPerScreenRow: 1920,
-  maxVisibleSpriteCount: 13,
-  maxSpriteOutputSamplesPerFrame: 83655,
-  maxSpriteOutputSamplesPerScanline: 605,
-  maxSpriteWrittenPixelsPerFrame: 32110,
-  maxSpriteWrittenPixelsPerScanline: 276,
+  maxTerrainLineCount: 171,
+  maxTerrainLineCountPerScreenRow: 7,
+  maxTerrainOutputPixelsPerFrame: 54720,
+  maxTerrainOutputPixelsPerScreenRow: 2240,
+  maxVisibleSpriteCount: 15,
+  maxSpriteOutputSamplesPerFrame: 83575,
+  maxSpriteOutputSamplesPerScanline: 612,
+  maxSpriteWrittenPixelsPerFrame: 31500,
+  maxSpriteWrittenPixelsPerScanline: 275,
   maxGroundMapLevelUsed: 6,
-  groundMapLevelLineCounts: [2790, 2328, 1083, 476, 628, 112, 20],
+  groundMapLevelLineCounts: [2664, 2679, 1257, 537, 627, 186, 26, 0],
 };
 
 /** Combined evidence envelope: maxima across M5.8 normal content and M5.9 tunnel stress. */

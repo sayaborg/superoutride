@@ -82,22 +82,37 @@ export function createRasterStageSuccessor(
   const prefix = raster.vertices.slice(sourceStartIndex, sharedEndIndex + 1).map(copyVertex);
   const runoutStart = prefix.at(-1)!;
   const runoutHeading = raster.segments[sharedEndIndex]!.heading;
+  // Keep authored road shape independent from a presentation-only far-depth increase. The
+  // deformation covers the reusable stage/finish envelope; any extra viewing envelope is an
+  // ordinary straight open tail after the same completed deformation.
+  const deformationRunLength = Math.max(
+    2 * authoring.finishAfterSeam,
+    authoring.sourceSeamMinS + authoring.overlapMargin + authoring.finishAfterSeam,
+  );
   const runoutLength = Math.max(
+    deformationRunLength,
     2 * authoring.dMax,
     authoring.sourceSeamMinS + authoring.overlapMargin + authoring.dMax,
     authoring.finishAfterSeam + authoring.dMax,
   );
-  const runoutVertexCount = Math.max(
+  const deformationVertexCount = Math.max(
     authoring.minDeformationRunVertices,
-    Math.ceil(runoutLength / authoring.overlapMargin) + 1,
+    Math.ceil(deformationRunLength / authoring.overlapMargin) + 1,
   );
-  const runout = buildOpenRunout(
+  const deformationRunout = buildOpenRunout(
     runoutStart,
     runoutHeading,
-    runoutLength,
-    runoutVertexCount,
+    deformationRunLength,
+    deformationVertexCount,
     authoring.deformationDirection * authoring.deformationMeters,
   );
+  const straightTail = buildStraightRunout(
+    deformationRunout.at(-1)!,
+    runoutHeading,
+    runoutLength - deformationRunLength,
+    authoring.overlapMargin,
+  );
+  const runout = [...deformationRunout, ...straightTail];
 
   const successorRaster = compileRasterCourse([...prefix, ...runout]);
   const runoutTurnStart = Math.max(1, prefix.length - 1);
@@ -217,6 +232,27 @@ function buildOpenRunout(
     vertices.push({
       x: start.x + forwardX * distance + normal.x * offset,
       z: start.z + forwardZ * distance + normal.z * offset,
+    });
+  }
+  return vertices;
+}
+
+function buildStraightRunout(
+  start: RasterVertex,
+  heading: number,
+  length: number,
+  maximumSegmentLength: number,
+): RasterVertex[] {
+  if (length <= 1e-9) return [];
+  const segmentCount = Math.ceil(length / maximumSegmentLength);
+  const forwardX = Math.sin(heading);
+  const forwardZ = Math.cos(heading);
+  const vertices: RasterVertex[] = [];
+  for (let i = 1; i <= segmentCount; i += 1) {
+    const distance = length * i / segmentCount;
+    vertices.push({
+      x: start.x + forwardX * distance,
+      z: start.z + forwardZ * distance,
     });
   }
   return vertices;

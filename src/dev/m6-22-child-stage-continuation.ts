@@ -1,4 +1,8 @@
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import {
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import { compileRasterCourse, type RasterVertex } from '../core/course.js';
 import { compileGuideCurve, guideCourseToWorld, type GuideCurve } from '../core/guide-curve.js';
 import { tangentFromHeading, type Vec2 } from '../core/math.js';
@@ -300,8 +304,8 @@ function createChildRuntimeSource(
   };
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
+    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: 12,
     groundRight: 12,
     roadLeft: CHILD_ROAD_HALF_WIDTH,

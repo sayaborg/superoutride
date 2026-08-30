@@ -1,9 +1,4 @@
-import {
-  guideCoordinateCurve,
-  guideCoordinateLateralOrigin,
-  guideCoordinateToWorld,
-  type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
+import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import { sampleGuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
@@ -11,70 +6,90 @@ import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export interface M5CameraProfile {
-  dCam: number;
-  lCamMax: number;
-  height: number;
-  pitch: number;
-  focalLength: number;
-  centerX: number;
-  centerY: number;
-  kPsi: number;
-  thetaLagMax: number;
-  sDotMin: number;
-  tauLat: number;
-  playerTargetY: number;
-  tauVertical: number;
-  deltaYMax: number;
-  playerSafeXMin?: number;
-  playerSafeXMax?: number;
-  /** Presentation-only pitch cue; camera roll remains exactly zero. */
-  sprungPitchGain?: number;
-  lateralGOffsetMetersPerG?: number;
-  lateralGOffsetMax?: number;
-  lateralGOffsetTau?: number;
+  readonly dCam: number;
+  readonly height: number;
+  /** Authored downward view angle relative to the vehicle-pitch reference. */
+  readonly baseDownPitch: number;
+  readonly focalLength: number;
+  readonly centerX: number;
+  readonly centerY: number;
+  /** Minimum body-pitch-plane speed at which movement owns camera yaw. */
+  readonly directionSpeedMin: number;
+  readonly playerTargetY: number;
+  readonly tauVertical: number;
+  readonly deltaYMax: number;
 }
 
 export interface M5CameraRig {
   yaw: number;
-  lateral: number;
   verticalCorrection: number;
-  lateralGOffset: number;
   initialized: boolean;
 }
 
 export interface M5CameraState extends PseudoCamera {
-  l: number;
-  guideHeadingAtCar: number;
-  vehicleGuideYawDelta: number;
-  cameraVehicleYawDelta: number;
-  groundHeight: number;
-  estimatedSDot: number;
-  verticalCorrection: number;
-  playerFrameError: number;
-  playerScreenX: number;
-  playerSafetyActive: boolean;
+  readonly guideHeadingAtCar: number;
+  readonly vehicleGuideYawDelta: number;
+  readonly cameraVehicleYawDelta: number;
+  readonly bodyPitch: number;
+  readonly movementYawDelta: number;
+  readonly groundHeight: number;
+  readonly verticalCorrection: number;
+  readonly playerFrameError: number;
+  readonly playerScreenX: number;
+}
+
+export interface BodyPitchMovementYaw {
+  readonly yaw: number;
+  readonly yawDelta: number;
+  readonly forwardSpeed: number;
+  readonly lateralSpeed: number;
+  readonly inPlaneSpeed: number;
 }
 
 export function createM5CameraRig(): M5CameraRig {
-  return { yaw: 0, lateral: 0, verticalCorrection: 0, lateralGOffset: 0, initialized: false };
+  return { yaw: 0, verticalCorrection: 0, initialized: false };
 }
 
 export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.yaw = 0;
-  rig.lateral = 0;
   rig.verticalCorrection = 0;
-  rig.lateralGOffset = 0;
   rig.initialized = false;
 }
 
-export function rebaseM5CameraRigCoordinateFrame(
-  rig: M5CameraRig,
-  previous: GuideCoordinateSource,
-  next: GuideCoordinateSource,
-): void {
-  if (!rig.initialized) return;
-  const worldLateral = rig.lateral + guideCoordinateLateralOrigin(previous);
-  rig.lateral = worldLateral - guideCoordinateLateralOrigin(next);
+/**
+ * Express authoritative world velocity in the vehicle-pitch plane, then retain only its yaw.
+ * Camera pitch follows the body separately, so this yaw delta is the only dynamic vehicle/camera
+ * attitude difference that vehicle sprite authoring must represent.
+ */
+export function movementYawInBodyPitchFrame(
+  vehicleYaw: number,
+  bodyPitch: number,
+  velocityX: number,
+  velocityY: number,
+  velocityZ: number,
+): BodyPitchMovementYaw {
+  if (![vehicleYaw, bodyPitch, velocityX, velocityY, velocityZ].every(Number.isFinite)) {
+    throw new RangeError('camera movement-yaw inputs must be finite');
+  }
+  const cosYaw = Math.cos(vehicleYaw);
+  const sinYaw = Math.sin(vehicleYaw);
+  const cosPitch = Math.cos(bodyPitch);
+  const sinPitch = Math.sin(bodyPitch);
+  const rightX = cosYaw;
+  const rightZ = -sinYaw;
+  const forwardX = sinYaw * cosPitch;
+  const forwardY = sinPitch;
+  const forwardZ = cosYaw * cosPitch;
+  const forwardSpeed = velocityX * forwardX + velocityY * forwardY + velocityZ * forwardZ;
+  const lateralSpeed = velocityX * rightX + velocityZ * rightZ;
+  const yawDelta = Math.atan2(lateralSpeed, forwardSpeed);
+  return {
+    yaw: wrapAngle(vehicleYaw + yawDelta),
+    yawDelta,
+    forwardSpeed,
+    lateralSpeed,
+    inPlaneSpeed: Math.hypot(forwardSpeed, lateralSpeed),
+  };
 }
 
 export function updateM5Camera(
@@ -85,63 +100,69 @@ export function updateM5Camera(
   profile: M5CameraProfile,
   dt: number,
 ): M5CameraState {
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('camera dt must be finite and > 0');
+  if (!(profile.directionSpeedMin >= 0) || !Number.isFinite(profile.directionSpeedMin)) {
+    throw new RangeError('camera direction speed minimum must be finite and >= 0');
+  }
+
   const curve = guideCoordinateCurve(guide);
   const guideAtCar = sampleGuideCurve(curve, vehicle.course.s);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
-  const worldVelocityAvailable = vehicle.velocityX !== undefined && vehicle.velocityZ !== undefined;
-  const estimatedSDot = worldVelocityAvailable
-    ? vehicle.velocityX! * Math.sin(guideAtCar.heading) + vehicle.velocityZ! * Math.cos(guideAtCar.heading)
-    : vehicle.longitudinalSpeed * Math.cos(vehicleGuideYawDelta)
-      - vehicle.lateralSpeed * Math.sin(vehicleGuideYawDelta);
+  const bodyPitch = vehicle.sprungPitch ?? 0;
 
   if (!rig.initialized) {
     rig.yaw = vehicle.yaw;
-    rig.lateral = vehicle.course.l - profile.dCam * Math.sin(vehicleGuideYawDelta);
     rig.verticalCorrection = 0;
     rig.initialized = true;
   }
 
-  const tauPsi = profile.kPsi * profile.dCam / Math.max(Math.abs(estimatedSDot), profile.sDotMin);
-  const yawAlpha = 1 - Math.exp(-dt / Math.max(tauPsi, 1e-4));
-  rig.yaw = wrapAngle(rig.yaw + wrapAngle(vehicle.yaw - rig.yaw) * yawAlpha);
-  const lag = clamp(wrapAngle(rig.yaw - vehicle.yaw), -profile.thetaLagMax, profile.thetaLagMax);
-  rig.yaw = wrapAngle(vehicle.yaw + lag);
-
-  const lateralGTarget = clamp(
-    -(vehicle.lateralAcceleration ?? 0) / 9.80665 * (profile.lateralGOffsetMetersPerG ?? 0),
-    -(profile.lateralGOffsetMax ?? 0),
-    profile.lateralGOffsetMax ?? 0,
-  );
-  const lateralGAlpha = 1 - Math.exp(-dt / Math.max(profile.lateralGOffsetTau ?? 0.12, 1e-4));
-  rig.lateralGOffset += (lateralGTarget - rig.lateralGOffset) * lateralGAlpha;
-  const lTarget = vehicle.course.l
-    - profile.dCam * Math.sin(vehicleGuideYawDelta)
-    + rig.lateralGOffset;
-  const latAlpha = 1 - Math.exp(-dt / Math.max(profile.tauLat, 1e-4));
-  rig.lateral += (lTarget - rig.lateral) * latAlpha;
-  rig.lateral = clamp(rig.lateral, -profile.lCamMax, profile.lCamMax);
+  let movementYawDelta = wrapAngle(rig.yaw - vehicle.yaw);
+  if (vehicle.velocityX !== undefined && vehicle.velocityZ !== undefined) {
+    const movement = movementYawInBodyPitchFrame(
+      vehicle.yaw,
+      bodyPitch,
+      vehicle.velocityX,
+      vehicle.velocityY ?? 0,
+      vehicle.velocityZ,
+    );
+    if (movement.inPlaneSpeed >= profile.directionSpeedMin) {
+      rig.yaw = movement.yaw;
+      movementYawDelta = movement.yawDelta;
+    }
+  } else {
+    const inPlaneSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
+    if (inPlaneSpeed >= profile.directionSpeedMin) {
+      movementYawDelta = Math.atan2(vehicle.lateralSpeed, vehicle.longitudinalSpeed);
+      rig.yaw = wrapAngle(vehicle.yaw + movementYawDelta);
+    }
+  }
 
   const sCamera = vehicle.course.s - profile.dCam;
-  const plan = guideCoordinateToWorld(guide, sCamera, rig.lateral);
-
-  const scaleAtPlayer = profile.focalLength / profile.dCam;
-  const safeMinX = profile.playerSafeXMin ?? 48;
-  const safeMaxX = profile.playerSafeXMax ?? 272;
-  let playerScreenX = projectedPlayerX(vehicle.x, vehicle.z, plan.x, plan.z, rig.yaw, profile.centerX, scaleAtPlayer);
-  let playerSafetyActive = false;
-  if (playerScreenX < safeMinX || playerScreenX > safeMaxX) {
-    rig.yaw = Math.atan2(vehicle.x - plan.x, vehicle.z - plan.z);
-    playerScreenX = projectedPlayerX(vehicle.x, vehicle.z, plan.x, plan.z, rig.yaw, profile.centerX, scaleAtPlayer);
-    playerSafetyActive = true;
-  }
+  // The camera occupies the movement-yaw ray behind the authoritative vehicle position. Its
+  // camera-right displacement to the player is therefore exactly zero, so player X is centerX by
+  // construction without a safety-camera override or Guide-lateral second authority.
+  const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
+  const cameraZ = vehicle.z - profile.dCam * Math.cos(rig.yaw);
+  const playerScreenX = projectedPlayerX(
+    vehicle.x,
+    vehicle.z,
+    cameraX,
+    cameraZ,
+    rig.yaw,
+    profile.centerX,
+    profile.focalLength / profile.dCam,
+  );
 
   const groundHeight = height.sampleCamera(sCamera);
   const baseY = groundHeight + profile.height;
-  const cameraPitch = profile.pitch + (vehicle.sprungPitch ?? 0) * (profile.sprungPitchGain ?? 0);
-  const cosPitch = Math.cos(cameraPitch);
+  // Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive. Subtracting the
+  // body angle keeps the authored base view pitch constant relative to the vehicle, leaving yaw as
+  // the only dynamic camera-relative attitude required from the sprite set.
+  const cameraPitch = profile.baseDownPitch - bodyPitch;
+  const cosCameraPitch = Math.cos(cameraPitch);
   const vehiclePresentationY = vehicle.presentationY ?? vehicle.y;
   const yFrame = vehiclePresentationY
-    - (profile.dCam / (profile.focalLength * cosPitch))
+    - (profile.dCam / (profile.focalLength * cosCameraPitch))
       * (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
   const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, 1e-4));
@@ -151,28 +172,28 @@ export function updateM5Camera(
   const cameraY = baseY + rig.verticalCorrection;
   const projectedPlayerY = profile.centerY
     - profile.focalLength * Math.sin(cameraPitch)
-    - (profile.focalLength / profile.dCam) * (vehiclePresentationY - cameraY) * cosPitch;
+    - (profile.focalLength / profile.dCam)
+      * (vehiclePresentationY - cameraY) * cosCameraPitch;
 
   return {
-    x: plan.x,
+    x: cameraX,
     y: cameraY,
-    z: plan.z,
+    z: cameraZ,
     yaw: rig.yaw,
     pitch: cameraPitch,
     s: sCamera,
-    l: rig.lateral,
     focalLength: profile.focalLength,
     centerX: profile.centerX,
     centerY: profile.centerY,
     guideHeadingAtCar: guideAtCar.heading,
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
+    bodyPitch,
+    movementYawDelta,
     groundHeight,
-    estimatedSDot,
     verticalCorrection: rig.verticalCorrection,
     playerFrameError: projectedPlayerY - profile.playerTargetY,
     playerScreenX,
-    playerSafetyActive,
   };
 }
 

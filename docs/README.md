@@ -2,6 +2,16 @@
 
 This directory contains current normative authority, chronological milestone records, takeover context, and historical validation evidence. Those are intentionally different document classes.
 
+The active implementation-planning handoff for the next vehicle-architecture milestone is:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
+```
+
+It records the dirty M8.2-M8.7 preservation boundary and the staged M9 CAR/BIKE unification and
+three-channel actuator procedure. It is takeover context, not M9 normative authority; M9.0 must
+author the explicit supersession document before implementation retires M8.0/M8.1 mechanics.
+
 ## 1. Normative frozen authority
 
 The current frozen renderer/core authority is the Core Freeze plus its explicit addenda:
@@ -13,20 +23,39 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-The current vehicle-physics architecture and CAR control authorities are:
+The current vehicle-physics, CAR control and player-camera authorities are:
 
 ```text
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 80_m8_1_car_self_steering_control.md
+81_m8_2_body_pitch_movement_yaw_camera.md
+84_m8_5_downward_camera_presentation.md
+85_m8_6_two_hundred_meter_render_distance.md
 ```
 
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 while leaving those earlier milestone documents intact as historical records.
 M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; M8.0
 continues to own the mechanical model and BIKE authority.
+M8.2 supersedes the earlier M5 Guide-lateral/yaw-lag camera authority while preserving the frozen
+renderer, metric presentation and M8.0/M8.1 vehicle authorities.
+M8.5 supersedes only the M8.2 initial 8-degree base-pitch and matching camera-height tuning.
+M8.6 supersedes only the M8.5 150 m far-depth value and records the geometric-horizon audit.
+
+The current browser course-debug composition authority is:
+
+```text
+82_m8_3_three_mode_course_debug.md
+```
+
+The current CIRCUIT DEV course-authoring authority is:
+
+```text
+86_m8_7_varied_elevation_circuit.md
+```
 
 ## 2. Numbered milestone documents
 
-`01_...` through `80_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `86_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -54,11 +83,19 @@ The most important current topology/runtime/physics sequence is:
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 79_m8_0_circuit_low_speed_corner_authoring.md
 80_m8_1_car_self_steering_control.md
+81_m8_2_body_pitch_movement_yaw_camera.md
+82_m8_3_three_mode_course_debug.md
+83_m8_4_dual_low_speed_circuit_complex.md
+84_m8_5_downward_camera_presentation.md
+85_m8_6_two_hundred_meter_render_distance.md
+86_m8_7_varied_elevation_circuit.md
 ```
 
-The current public CIRCUIT course geometry follow-on is `79_m8_0_circuit_low_speed_corner_authoring.md`.
-It supersedes only the scoped all-high-speed/minimum-radius description in M7.1; it does not change
-M8.0 vehicle-physics or frozen renderer/topology authority.
+The current public CIRCUIT course geometry authority is `86_m8_7_varied_elevation_circuit.md`;
+`83_m8_4_dual_low_speed_circuit_complex.md` and
+`79_m8_0_circuit_low_speed_corner_authoring.md` remain its historical predecessors. M8.7 changes
+only CIRCUIT DEV authoring; it does not change M8.0 vehicle physics, the M7.2 BRANCHING parent, or
+frozen renderer/topology authority.
 
 Current governing topology rule:
 
@@ -75,6 +112,12 @@ Current governing CAR steering rule:
 > preview and fast rack response aim the authoritative road-wheel angle along the short-horizon
 > predicted CG travel direction plus that offset. Front slip remains tire-force/telemetry authority
 > and is not steering feedback.
+
+Current governing player-camera rule:
+
+> Camera pitch follows physical body pitch; camera yaw follows authoritative world movement
+> measured in that body-pitch plane; player X is centered by world-space camera placement while
+> chainage remains the sole renderer-depth authority.
 
 ## 3. Known historical-value supersession
 
@@ -132,7 +175,19 @@ validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt
 It records the validation-inclusive local candidate, the executable result, browser
 checks for both public compositions, and the self-reference-safe exact-head CI procedure.
 
-## 5. M8.0 implementation/finalization handoff
+## 5. Active M9 planning handoff
+
+The current next-thread procedure is:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
+```
+
+It owns navigation and execution order only. It does not supersede the current frozen vehicle
+authority. Its first required implementation milestone is an explicit M9.0 normative design and
+executable architecture boundary.
+
+## 6. M8.0 implementation/finalization handoff
 
 The M8.0 / Phase 9 implementation and finalization checkpoint is:
 
@@ -168,7 +223,7 @@ feature/phase9-vehicle-physics-freeze
 
 All four temporary refs were verified at their recorded identities/ancestry and deleted during PR #88 completion. Their historical SHAs remain recorded in the transfer audit. Do not recreate, merge or continue work from them.
 
-## 6. Codex migration handoff
+## 7. Codex migration handoff
 
 The historical repository-migration handoff is:
 
@@ -184,14 +239,15 @@ This migration handoff remains historical migration context. It does not replace
 
 Handoff documents are context/navigation snapshots. They do not override the Core Freeze/addenda, later milestone authority, types, compilers, or regression tests.
 
-## 7. Repository-level documents
+## 8. Repository-level documents
 
 ```text
 ../AGENTS.md  persistent agent/development/release contract
 ../README.md  repository entry point and current-state index
 ```
 
-For a fresh coding context, start with the working rules in `../AGENTS.md` and use the M8.0 handoff above only when its PR lineage is relevant.
+For the current next vehicle-architecture task, start with the working rules in `../AGENTS.md` and
+the active M9 planning handoff. Use the M8.0 handoff only when its PR lineage is relevant.
 
 At and after the validated FINAL CODEX MIGRATION POINT, repository contents/history—not previous ChatGPT threads—are the continuing project memory.
 

@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M8.1 CAR Predictive Travel-Direction Steering Assist
+# SUPER OUTRIDE — M8.7 Varied-Elevation Circuit
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -6,20 +6,50 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 `README.md` is an entry point and current-state index. It is not a second normative design document.
 
+The detailed next-thread procedure for preserving the current M8.2-M8.7 candidate and beginning
+the common CAR/BIKE vehicle architecture is
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md`. It is implementation
+handoff context, not yet M9 normative design authority.
+
 ## Current milestone status
 
-M8.1 replaces CAR's raw road-wheel-angle/useful-steer control with a press-slew steering offset,
-authoritative body travel direction, a stateless yaw-rate preview and one fast rack response.
-Neutral input aims the road wheel along the short-horizon predicted travel direction and produces
-damped automatic countersteer. The current authority is:
+M8.7 replaces only the CIRCUIT course with an approximately 12.076 km lap mixing 190, 320, 380,
+520 and 680 m-radius corners throughout. Its smooth physical elevation spans approximately 96 m
+and owns two straight-line crests that naturally produce brief jumps and normal recontact through
+unchanged vehicle physics. BRANCHING remains on its existing parent geometry. The authority is
+`docs/86_m8_7_varied_elevation_circuit.md`.
+
+M8.6 extends the shared camera-relative render interval from 150 m to 200 m (195 m ahead of the
+player). The geometric infinite horizon remains the exact projection limit and the Far Background
+tracks it dynamically. GroundMap depth and renderer workloads are recompiled and re-observed for
+the wider interval. The authority is `docs/85_m8_6_two_hundred_meter_render_distance.md`.
+
+M8.5 raises the shared base downward camera pitch from 8 to 12 degrees and derives the matching
+2.851878849 m flat-road camera height so player `Y=190` remains exact. LINEAR, BRANCHING and
+CIRCUIT consume one current camera profile. GroundMap density and renderer workload evidence are
+recompiled for the new presentation. The authority is `docs/84_m8_5_downward_camera_presentation.md`.
+
+M8.4 historically expanded the CIRCUIT lap from one to two separated 90 m-radius compound low-speed
+sections. The new lap is approximately 10.133 km; ordinary car physics and the existing rival
+driver braked for and cleared both sections without course-specific lower-layer behavior. Its
+historical authority is `docs/83_m8_4_dual_low_speed_circuit_complex.md`; M8.7 now supersedes its
+current CIRCUIT geometry.
+
+M8.3 exposes all three course forms through one browser boot authority:
 
 ```text
-docs/80_m8_1_car_self_steering_control.md
+[1] LINEAR  [2] BRANCHING  [3] CIRCUIT
 ```
 
-The M8.0 five-DOF/two-station mechanical model, tire law, wheel solve, suspension, powertrain and
-BIKE authority remain frozen. Vehicle feel parameters remain `DEV_UNCALIBRATED`; M8.1 establishes
-the control and telemetry boundary before the next calibration pass.
+LINEAR is one finite open 8 km debug highway. BRANCHING course debug has no leading rival, so the
+player's own first physical crossing selects either child without rival-locked wrong-branch
+recovery. CIRCUIT retains its explicit finite-window lap authority. The current course-debug
+authority is `docs/82_m8_3_three_mode_course_debug.md`.
+
+M8.2 remains the current camera architecture authority and M8.5 owns its pitch/height tuning;
+M8.1 remains the CAR steering-control authority. The
+M8.0 mechanical model and BIKE authority remain frozen. Vehicle feel parameters remain
+`DEV_UNCALIBRATED`.
 
 M8.0 / Phase 9 vehicle-physics implementation and regression migration are complete on:
 
@@ -55,7 +85,15 @@ For current vehicle work, read in this order:
 4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
 5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` — current vehicle-physics architecture authority.
 6. `docs/80_m8_1_car_self_steering_control.md` — current CAR steering-control authority.
-7. Relevant source/types/compilers and regression tests — executable implementation contract.
+7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` — current player-camera authority.
+8. `docs/82_m8_3_three_mode_course_debug.md` — current browser course-debug authority.
+9. `docs/83_m8_4_dual_low_speed_circuit_complex.md` — historical M8.4 CIRCUIT geometry authority.
+10. `docs/84_m8_5_downward_camera_presentation.md` — current camera pitch/height authority.
+11. `docs/85_m8_6_two_hundred_meter_render_distance.md` — current render-distance and horizon-audit authority.
+12. `docs/86_m8_7_varied_elevation_circuit.md` — current CIRCUIT geometry/elevation authority.
+13. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md` — next-thread M8
+    preservation and M9 vehicle-unification procedure.
+14. Relevant source/types/compilers and regression tests — executable implementation contract.
 
 Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`; it does not supersede current M8.0 authority or release evidence.
 
@@ -124,8 +162,14 @@ M7.2       Default BRANCHING Highway Integration                    complete
 M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M8.0
 M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
 M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
-M8.0       CIRCUIT Low-Speed Corner Authoring                        current public course follow-on
+M8.0       CIRCUIT Low-Speed Corner Authoring                        historical public course follow-on
 M8.1       CAR Predictive Travel-Direction Steering Assist            current control authority; handling uncalibrated
+M8.2       Body-Pitch / Movement-Yaw Chase Camera                      current player-camera authority
+M8.3       Three-Mode Course Debug                                      current browser composition authority
+M8.4       Dual Low-Speed Circuit Complex                               historical CIRCUIT course-authoring authority
+M8.5       Downward Camera Presentation                                  current camera pitch/height authority
+M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
+M8.7       Varied-Elevation Medium/High-Speed Circuit                     current CIRCUIT course-authoring authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -150,6 +194,10 @@ docs/77_m7_4_transient_tire_response.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/79_m8_0_circuit_low_speed_corner_authoring.md
 docs/80_m8_1_car_self_steering_control.md
+docs/81_m8_2_body_pitch_movement_yaw_camera.md
+docs/82_m8_3_three_mode_course_debug.md
+docs/83_m8_4_dual_low_speed_circuit_complex.md
+docs/84_m8_5_downward_camera_presentation.md
 ```
 
 Historical validation evidence under `docs/validation/` is evidence, not current design authority.
@@ -209,10 +257,16 @@ npm test
 python3 -m http.server 8000
 ```
 
-Default BRANCHING fixture:
+LINEAR debug fixture:
 
 ```text
-http://localhost:8000/
+http://localhost:8000/?mode=linear
+```
+
+Default BRANCHING debug fixture:
+
+```text
+http://localhost:8000/?mode=branching
 ```
 
 CIRCUIT DEV fixture:
@@ -221,9 +275,10 @@ CIRCUIT DEV fixture:
 http://localhost:8000/?mode=circuit
 ```
 
-The query parameter selects only the top-level browser composition. Lower engine layers remain topology-neutral ordinary consumers.
+The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
+composition; lower engine layers remain topology-neutral ordinary consumers.
 
-Package and visible milestone metadata are synchronized at `super-outride-m8-1@0.8.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
+Package and visible milestone metadata are synchronized at `super-outride-m8-7@0.8.7`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 
@@ -231,17 +286,23 @@ Vehicle handling remains:
 DEV_UNCALIBRATED
 ```
 
-The validation-inclusive local candidate passes `498 / 498` repository tests. M8.1 evidence and
-the exact-head CI/release checklist are recorded in
-`docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`.
+M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. M8.2–M8.7
+candidate validation must be recorded from the validation-inclusive exact head before release.
 
 ## Current composition and source-placement landmarks
 
 ```text
+src/boot.ts          1/2/3 and URL course-mode selection authority
+src/main-linear.ts   LINEAR composition root
 src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
 
-src/camera/m5-camera.ts            camera/presentation consumer
+src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
+src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
+src/core/presentation-scale.ts       M8.6 shared near/far render-distance authority
+src/dev/m8-7-varied-elevation-circuit.ts M8.7 CIRCUIT geometry/elevation authority
+src/render/vehicle-yaw-debug.ts    DEV body-yaw overlay
+src/input/touch-input.ts           pointer + page lifecycle authority
 src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
 src/physics/vehicle-math3.ts        minimal quaternion/3D math
@@ -256,6 +317,7 @@ src/physics/surface-map.ts         general SurfaceMap authority
 
 ```text
 src/main.ts
+src/main-linear.ts
 src/main-circuit.ts
 ```
 

@@ -1,20 +1,27 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS, PLAYER_PIXELS_PER_METER } from './core/presentation-scale.js';
+import { COURSE_MODE_HOTKEY_LABEL } from './browser/course-mode-selection.js';
+import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+  PLAYER_PIXELS_PER_METER,
+} from './core/presentation-scale.js';
 import { pseudoDepth, pseudoProject } from './core/projection.js';
 import {
-  M7_1_DEV_COURSE_MODE,
   M7_1_HIGHWAY_RECOVERY_PROFILE,
   M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
   M7_1_PLAYER_START_L,
   M7_1_RIVAL_START_L,
-  createM71HighwayCalibrationRuntime,
   createM71HighwayGroundProfile,
 } from './dev/m7-1-highway-calibration-course.js';
+import {
+  M8_7_DEV_COURSE_MODE,
+  createM87VariedElevationCircuitRuntime,
+} from './dev/m8-7-varied-elevation-circuit.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
   updateM5Camera,
-  type M5CameraProfile,
   type M5CameraState,
 } from './camera/m5-camera.js';
 import {
@@ -48,6 +55,7 @@ import {
   formatVehicleControlHud,
   formatVehicleSuspensionHud,
 } from './render/vehicle-control-hud.js';
+import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
@@ -81,7 +89,7 @@ const inputManager = new InputManager(
   brakeButton,
 );
 
-const live = createM71HighwayCalibrationRuntime();
+const live = createM87VariedElevationCircuitRuntime();
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
 const guide = windowRuntime.guide;
@@ -93,8 +101,8 @@ const spriteAssets = createM4SpriteAssets();
 const groundProfile = createM71HighwayGroundProfile();
 const terrainProfile: TerrainVisualProfile = {
   screenHeight: LOGICAL_HEIGHT,
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: groundProfile.groundLeft,
   groundRight: groundProfile.groundRight,
   roadLeft: groundProfile.roadLeft,
@@ -115,7 +123,7 @@ let vehicleKind: 'car' | 'bike' = 'car';
 let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
-const rivalRoster = createRivalRoster(M7_1_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(M8_7_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createM5Car(
     guide,
@@ -138,28 +146,7 @@ const rivals = rivalRoster.map((entry) => {
 });
 const cameraRig = createM5CameraRig();
 
-const cameraProfile: M5CameraProfile = {
-  dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  lCamMax: 12,
-  height: 2.469902425419539,
-  pitch: (8 * Math.PI) / 180,
-  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
-  centerX: 160,
-  centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: (20 * Math.PI) / 180,
-  sDotMin: 8,
-  tauLat: 0.18,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
-  sprungPitchGain: 0.55,
-  lateralGOffsetMetersPerG: 0.65,
-  lateralGOffsetMax: 0.8,
-  lateralGOffsetTau: 0.14,
-};
+const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
 let camera: M5CameraState = updateM5Camera(
@@ -289,7 +276,6 @@ function render(): void {
     spriteAssets,
     vehicleKind,
   );
-  void stats;
   ctx.putImageData(imageData, 0, 0);
 
   const playerProjection = pseudoProject(
@@ -343,7 +329,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M8.1 YAW-PREVIEW STEER ${M7_1_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M8.7 COURSE DEBUG ${M8_7_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
@@ -354,16 +340,10 @@ function render(): void {
   ctx.fillText(`YAW ${formatSigned(roadDeltaDeg, 1)}deg  RATE ${formatSigned(vehicle.yawRate * 180 / Math.PI, 1)}deg/s  BANK ${formatSigned(bankDeg, 1)}deg`, 8, 120);
   ctx.fillText(suspensionHud, 8, 132);
   ctx.fillText(controlHud.pedals, 8, 144);
-  ctx.fillText(`WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps / +1 runout`, 8, 156);
+  ctx.fillText(`LAP ${(raceRules.lapLength / 1000).toFixed(3)}km / WINDOW ${windowRuntime.repeatCount} copies / RACE ${raceRules.lapCount} laps`, 8, 156);
   ctx.fillText(`WINDOW ${topologyPosition.winding}/${windowRuntime.repeatCount - 1}`, 8, 168);
   ctx.fillText('Physical CPs + forward FINISH are lap authority; winding is not.', 8, 180);
-  if (camera.playerSafetyActive) {
-    ctx.fillStyle = '#ffd08a';
-    ctx.fillText(`PLAYER SAFETY CAMERA  X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
-    ctx.fillStyle = '#a6bac4';
-  } else {
-    ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CAR 2m=${(2 * playerProjection.scale).toFixed(0)}px`, 8, 192);
-  }
+  ctx.fillText(`D ${dCar.toFixed(2)}  ${playerProjection.scale.toFixed(2)} px/m  CENTER X ${camera.playerScreenX.toFixed(1)}`, 8, 192);
   ctx.fillStyle = raceProgress.status === 'FINISHED' ? '#ffd08a' : '#8fa3ad';
   ctx.fillText(
     raceProgress.status === 'FINISHED'
@@ -373,11 +353,12 @@ function render(): void {
     207,
   );
   ctx.fillStyle = '#8fa3ad';
-  ctx.fillText('No RouteDag / no modulo in Core / no circuit renderer path', 8, 218);
+  ctx.fillText(COURSE_MODE_HOTKEY_LABEL, 8, 218);
   ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
   if (vehicleKind === 'car') {
     drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
   }
+  drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
 }
 
 function switchVehicleAtSafeSpawn(): void {

@@ -1,4 +1,7 @@
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import {
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import type { GuideCurve } from '../core/guide-curve.js';
 import {
   compileRouteBoundaryGateSet,
@@ -38,7 +41,7 @@ const SUCCESSOR_FINISH_AFTER_SEAM = 150;
 const SUCCESSOR_DEFORMATION_METERS = 3;
 const GENTLE_TURN_LIMIT_DEGREES = 5;
 const MIN_DEFORMATION_RUN_VERTICES = 5;
-const SUCCESSOR_D_MAX = 150;
+const SUCCESSOR_D_MAX = CURRENT_RENDER_FAR_DEPTH_METERS;
 
 export type M626SuccessorRuntimeSource = RasterSuccessorRuntimeSource;
 

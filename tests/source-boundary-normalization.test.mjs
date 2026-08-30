@@ -8,6 +8,7 @@ const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const srcRoot = path.join(repositoryRoot, 'src');
 const devRoot = path.join(srcRoot, 'dev');
 const allowedDevCompositionRoots = new Set([
+  path.join(srcRoot, 'main-linear.ts'),
   path.join(srcRoot, 'main.ts'),
   path.join(srcRoot, 'main-circuit.ts'),
 ]);

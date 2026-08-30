@@ -14,6 +14,11 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
@@ -60,8 +65,8 @@ const groundProfile = {
 };
 const terrainProfile = {
   screenHeight: 240,
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: 12,
   groundRight: 12,
   roadLeft: 4.5,
@@ -70,24 +75,7 @@ const terrainProfile = {
   visual,
   thinSpanScreenRows: 1,
 };
-const cameraProfile = {
-  dCam: 5,
-  lCamMax: 12,
-  height: 2.469902425419539,
-  pitch: deg(8),
-  focalLength: 200,
-  centerX: 160,
-  centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: deg(20),
-  sDotMin: 8,
-  tauLat: 0.18,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
-};
+const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 function placeCar(car, s, yawOffset = 0) {
   const p = guideCourseToWorld(guide, s, 0);
@@ -182,16 +170,16 @@ test('M5.9 close portal/interior sweep is a real sprite-budget stress case and m
 });
 
 test('M5.9 combined target retains stronger normal terrain maxima and rebases the tunnel sprite limits with 25% headroom', () => {
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.frameCount, 121);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainLineCount, 171);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame, 54720);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxVisibleSpriteCount, 17);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerFrame, 83655);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerScanline, 605);
-  assert.equal(M5_9_TARGET_BUDGET.terrainLineCountMax, 214);
-  assert.equal(M5_9_TARGET_BUDGET.terrainOutputPixelsPerFrameMax, 68400);
-  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerFrameMax, 104569);
-  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerScanlineMax, 757);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.frameCount, 118);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainLineCount, 189);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame, 60480);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxVisibleSpriteCount, 22);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerFrame, 83575);
+  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerScanline, 612);
+  assert.equal(M5_9_TARGET_BUDGET.terrainLineCountMax, 237);
+  assert.equal(M5_9_TARGET_BUDGET.terrainOutputPixelsPerFrameMax, 75600);
+  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerFrameMax, 104469);
+  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerScanlineMax, 765);
   assert.deepEqual(validateRenderWorkload(M5_9_COMBINED_OBSERVED_BASELINE, M5_9_TARGET_BUDGET), []);
 });
 

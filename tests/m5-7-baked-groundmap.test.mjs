@@ -5,7 +5,11 @@ import test from 'node:test';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../dist/core/presentation-scale.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
@@ -41,19 +45,17 @@ const groundProfile = {
   baked,
 };
 
-const deg = (value) => value * Math.PI / 180;
-
-test('M5.7 baked asset keeps base density at least as fine as M5.4 authority and reaches kMax=6', () => {
-  assert.equal(baked.kMax, 6);
+test('current baked asset keeps base density at least as fine as authority and reaches kMax=7', () => {
+  assert.equal(baked.kMax, 7);
   assert.ok(metadata.actualBaseQL <= metadata.qLAuthority + 1e-12);
   assert.ok(metadata.actualBaseQS <= metadata.qSAuthority + 1e-12);
-  assert.equal(metadata.levels.length, 7);
-  for (let k = 1; k <= 6; k += 1) {
+  assert.equal(metadata.levels.length, 8);
+  for (let k = 1; k <= 7; k += 1) {
     assert.equal(metadata.levels[k].lateralTexels, metadata.levels[k - 1].lateralTexels / 2);
     assert.equal(metadata.levels[k].chainageTexels, metadata.levels[k - 1].chainageTexels / 4);
   }
-  assert.ok(metadata.levels[5].qSActual < 141.01635292107866);
-  assert.ok(metadata.levels[6].qSActual >= 147.5);
+  assert.ok(metadata.levels[6].qSActual < 197.5);
+  assert.ok(metadata.levels[7].qSActual >= 197.5);
 });
 
 test('level-0 baked texel centers are exactly semantically equivalent to the procedural authoring source', () => {
@@ -68,11 +70,11 @@ test('level-0 baked texel centers are exactly semantically equivalent to the pro
   }
 });
 
-test('runtime GroundMap level selection is chainage-only and reaches level 6 for the proven far footprint', () => {
+test('runtime GroundMap level selection is chainage-only and reaches level 7 for the proven far footprint', () => {
   assert.equal(baked.selectLevel(metadata.qSAuthority), 0);
-  assert.equal(baked.selectLevel(141.01635292107866), 6);
-  const sample = baked.sample(100, 0, 141.01635292107866);
-  assert.equal(sample.level, 6);
+  assert.equal(baked.selectLevel(197.5), 7);
+  const sample = baked.sample(100, 0, 197.5);
+  assert.equal(sample.level, 7);
   assert.ok(Number.isInteger(sample.color));
 });
 
@@ -103,33 +105,24 @@ test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid s
   assert.equal(metadata.binaryBytes, binary.byteLength);
   assert.ok(metadata.binaryBytes < metadata.uncompressedRgbaBytes * 0.35);
   assert.equal(metadata.levels[0].format, 'palette8');
-  for (let k = 1; k <= 6; k += 1) assert.equal(metadata.levels[k].format, 'rgb555le');
+  for (let k = 1; k <= 7; k += 1) assert.equal(metadata.levels[k].format, 'rgb555le');
 });
 
 test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap', () => {
   const surfaces = createM5DebugSurfaceMap(guide.length);
   const car = createM5Car(guide, height, surfaces, 45);
-  const cameraProfile = {
-    dCam: CURRENT_CAMERA_DISTANCE_METERS,
-    lCamMax: 12,
-    height: 2.469902425419539,
-    pitch: deg(8),
-    focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
-    centerX: 160,
-    centerY: 120,
-    kPsi: 0.65,
-    thetaLagMax: deg(20),
-    sDotMin: 8,
-    tauLat: 0.18,
-    playerTargetY: 190,
-    tauVertical: 0.22,
-    deltaYMax: 4,
-  };
-  const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateM5Camera(
+    createM5CameraRig(),
+    guide,
+    height,
+    car,
+    CURRENT_M5_CAMERA_PROFILE,
+    1 / 60,
+  );
   const terrainProfile = {
     screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
+    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,

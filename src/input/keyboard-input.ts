@@ -10,10 +10,14 @@ export class KeyboardInput {
   private throttle = false;
   private brake = false;
 
-  constructor(target: Window = window) {
+  constructor(target: Window = window, visibilityDocument: Document = document) {
     target.addEventListener('keydown', (event) => this.onKey(event, true), { passive: false });
     target.addEventListener('keyup', (event) => this.onKey(event, false), { passive: false });
     target.addEventListener('blur', () => this.reset());
+    target.addEventListener('pagehide', () => this.reset());
+    visibilityDocument.addEventListener('visibilitychange', () => {
+      if (visibilityDocument.visibilityState === 'hidden') this.reset();
+    });
   }
 
   update(_dt: number): void {

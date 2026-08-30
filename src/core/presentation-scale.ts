@@ -14,6 +14,8 @@ export const PLAYER_PIXELS_PER_METER = PLAYER_REFERENCE_WIDTH_PIXELS / CAR_WIDTH
 
 export const CURRENT_FOCAL_LENGTH_PIXELS = 200;
 export const CURRENT_CAMERA_DISTANCE_METERS = cameraDistanceForFocalLength(CURRENT_FOCAL_LENGTH_PIXELS); // 5
+export const CURRENT_RENDER_NEAR_DEPTH_METERS = 2.5;
+export const CURRENT_RENDER_FAR_DEPTH_METERS = 200;
 
 export function cameraDistanceForFocalLength(focalLengthPixels: number): number {
   if (!(focalLengthPixels > 0) || !Number.isFinite(focalLengthPixels)) {

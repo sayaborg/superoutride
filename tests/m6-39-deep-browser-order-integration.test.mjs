@@ -12,11 +12,7 @@ import { wrapPositive } from '../dist/core/math.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import {
-  createM5CameraRig,
-  rebaseM5CameraRigCoordinateFrame,
-  updateM5Camera,
-} from '../dist/camera/m5-camera.js';
+import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -54,21 +50,15 @@ const PROBE_SPEED_MAX_MPS = 14;
 
 const CAMERA_PROFILE = {
   dCam: 5,
-  lCamMax: 12,
   height: 2.469902425419539,
-  pitch: 8 * Math.PI / 180,
+  baseDownPitch: 8 * Math.PI / 180,
   focalLength: 200,
   centerX: 160,
   centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: 20 * Math.PI / 180,
-  sDotMin: 8,
-  tauLat: 0.18,
+  directionSpeedMin: 0.25,
   playerTargetY: 190,
   tauVertical: 0.22,
   deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
 };
 
 const PATHS = Object.freeze([
@@ -373,11 +363,6 @@ function driveTransition(state, choiceId) {
 
       const runtimeAfter = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
       state.car.course = { ...state.handoffState.coordinate };
-      rebaseM5CameraRigCoordinateFrame(
-        state.cameraRig,
-        runtimeBefore.coordinateFrame,
-        runtimeAfter.coordinateFrame,
-      );
       state.committedPackages.push(runtimeAfter.packageId);
       state.speedAtCommit.push(state.car.speed);
       state.previousRoutePoint = current;

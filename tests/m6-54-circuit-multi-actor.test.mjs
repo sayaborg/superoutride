@@ -135,7 +135,7 @@ test('M6.54 CIRCUIT browser composes existing actor, ranking and Painter primiti
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)]
     .map((match) => match[1]);
 
-  assert.match(source, /createRivalRoster\(M7_1_DEV_COURSE_MODE\)/);
+  assert.match(source, /createRivalRoster\(M8_7_DEV_COURSE_MODE\)/);
   assert.match(source, /sampleRivalDrivingInput\(guide, rival\.vehicle, 0\)/);
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);

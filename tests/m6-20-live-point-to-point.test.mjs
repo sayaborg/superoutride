@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCoordinateLateralOrigin } from '../dist/core/guide-coordinate-frame.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import { createM617RouteStageHandoffManifest } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
@@ -16,7 +15,7 @@ import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runti
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { rebaseM5CameraRigCoordinateFrame } from '../dist/camera/m5-camera.js';
+import { createM5CameraRig } from '../dist/camera/m5-camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
@@ -229,16 +228,12 @@ for (const side of ['LEFT', 'RIGHT']) {
   });
 }
 
-test('M6.20 camera frame rebasing preserves world lateral through child handoff', () => {
-  const { charts } = setup();
-  const rig = { yaw: 0.3, lateral: -6.8, verticalCorrection: 0.4, initialized: true };
-  const beforeWorldL = rig.lateral + guideCoordinateLateralOrigin(charts.parent);
-  rebaseM5CameraRigCoordinateFrame(rig, charts.parent, charts.left);
-  const afterWorldL = rig.lateral + guideCoordinateLateralOrigin(charts.left);
-  assert.ok(Math.abs(beforeWorldL - afterWorldL) < 1e-12);
-  assert.ok(Math.abs(rig.lateral - 0.7) < 1e-12);
-  assert.equal(rig.yaw, 0.3);
-  assert.equal(rig.verticalCorrection, 0.4);
+test('M6.20 camera rig carries no chart-local lateral authority through child handoff', () => {
+  assert.deepEqual(createM5CameraRig(), {
+    yaw: 0,
+    verticalCorrection: 0,
+    initialized: false,
+  });
 });
 
 test('M6.20 live runtime has only parent plus two terminal child packages', () => {

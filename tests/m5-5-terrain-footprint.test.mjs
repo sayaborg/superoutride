@@ -2,6 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { deriveGroundMapDensity } from '../dist/compiler/ground-map-lod.js';
+import {
+  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
+  CURRENT_CAMERA_HEIGHT_METERS,
+} from '../dist/camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../dist/core/presentation-scale.js';
 import { summarizeTerrainFootprints } from '../dist/compiler/terrain-footprint-analysis.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
@@ -18,20 +26,20 @@ const near = (actual, expected, tolerance = 1e-9) => {
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const visual = createM3DebugVisualProfile(guide.length);
-const cameraHeight = 2.469902425419539;
+const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const cameraProfile = {
   dCam: 5,
   lCamMax: 12,
   height: cameraHeight,
-  pitch: deg(8),
+  pitch: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   focalLength: 200,
   centerX: 160,
   centerY: 120,
 };
 const terrainProfile = {
   screenHeight: 240,
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: 12,
   groundRight: 12,
   roadLeft: 4.5,
@@ -43,7 +51,7 @@ const density = deriveGroundMapDensity({
   d0: 5,
   focalLength: 200,
   cameraHeight,
-  pitchRadians: deg(8),
+  pitchRadians: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
 });
 
 function linesAt(s, yawOffset = 0) {
@@ -88,7 +96,7 @@ test('flat-road ordinary Delta_s agrees with the Core d^2/(f h cosPhi) baseline'
     return !candidate.sourceFootprint.collapsed && candidate.d > 15 && candidate.d < 22 && Math.abs(sample.grade) < 1e-12;
   });
   assert.ok(line);
-  const approximate = line.d ** 2 / (200 * cameraHeight * Math.cos(deg(8)));
+  const approximate = line.d ** 2 / (200 * cameraHeight * Math.cos(CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS));
   const relativeError = Math.abs(line.sourceFootprint.deltaS - approximate) / approximate;
   assert.ok(relativeError < 0.08, `relative error ${relativeError}`);
 });

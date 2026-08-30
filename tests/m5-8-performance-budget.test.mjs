@@ -14,6 +14,11 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+} from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createM5Car } from '../dist/physics/car-physics.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
@@ -50,8 +55,8 @@ const groundProfile = {
 };
 const terrainProfile = {
   screenHeight: 240,
-  dMin: 2.5,
-  dMax: 150,
+  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
   groundLeft: 12,
   groundRight: 12,
   roadLeft: 4.5,
@@ -60,24 +65,7 @@ const terrainProfile = {
   visual,
   thinSpanScreenRows: 1,
 };
-const cameraProfile = {
-  dCam: 5,
-  lCamMax: 12,
-  height: 2.469902425419539,
-  pitch: deg(8),
-  focalLength: 200,
-  centerX: 160,
-  centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: deg(20),
-  sDotMin: 8,
-  tauLat: 0.18,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-  playerSafeXMin: 48,
-  playerSafeXMax: 272,
-};
+const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 function placeCar(car, s, l, yawOffset) {
   const p = guideCourseToWorld(guide, s, l);
@@ -154,6 +142,7 @@ test('current debug content sweep remains inside the explicit M5.8 provisional t
   const observed = currentStressSweep();
   assert.ok(observed.frameCount >= 60);
   assert.equal(observed.maxGroundMapLevelUsed, 6);
+  assert.deepEqual(observed, M5_8_DEBUG_OBSERVED_BASELINE);
   assert.deepEqual(validateRenderWorkload(observed, M5_8_DEBUG_TARGET_BUDGET), []);
   console.log('M5.8 OBSERVED RENDER WORKLOAD', JSON.stringify(observed));
   console.log('M5.8 PROVISIONAL DEBUG BUDGET', JSON.stringify(M5_8_DEBUG_TARGET_BUDGET));
