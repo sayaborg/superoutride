@@ -42,7 +42,10 @@ import {
   normalize3,
   scale3,
 } from './vehicle-math3.js';
-import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
+import {
+  drivenWheelOmega,
+  type CompiledArcadeVehicleProfile,
+} from './vehicle-profiles.js';
 
 /** One authoritative state shape for every compiled vehicle profile. */
 export interface ArcadeVehicleState extends VehicleDynamicsState {
@@ -113,7 +116,10 @@ export function createArcadeVehicle(
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
     control: createVehicleControlState(),
-    powertrain: createAutomaticPowertrainState(profile.powertrain, rearOmega),
+    powertrain: createAutomaticPowertrainState(
+      profile.powertrain,
+      drivenWheelOmega(profile, frontOmega, rearOmega),
+    ),
     frontNormalLoad: 0,
     rearNormalLoad: 0,
     frontGap: 0,
@@ -179,10 +185,12 @@ export function updateArcadeVehicle(
     const driveTorque = updateAutomaticPowertrain(
       vehicle.powertrain,
       profile.powertrain,
-      vehicle.rearWheelOmega,
+      drivenWheelOmega(profile, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
       vehicle.actuator.throttle,
       substep,
     );
+    const frontDriveTorque = driveTorque * profile.frontDriveTorqueFraction;
+    const rearDriveTorque = driveTorque - frontDriveTorque;
     const frontBrakeTorque = vehicle.actuator.brake * profile.frontBrakeTorqueMax;
     const rearBrakeTorque = vehicle.actuator.brake * profile.rearBrakeTorqueMax;
     const frontWheel = solveWheelOmega({
@@ -194,7 +202,7 @@ export function updateArcadeVehicle(
       normalLoad: front.tireFrameValid ? front.normalLoad : 0,
       gripFactor: front.surface.material.gripFactor,
       rollingResistance: front.tireFrameValid ? front.surface.material.rollingResistance : 0,
-      driveTorque: 0,
+      driveTorque: frontDriveTorque,
       brakeTorque: frontBrakeTorque,
       dt: substep,
       tire: profile.frontStation.tire,
@@ -208,7 +216,7 @@ export function updateArcadeVehicle(
       normalLoad: rear.tireFrameValid ? rear.normalLoad : 0,
       gripFactor: rear.surface.material.gripFactor,
       rollingResistance: rear.tireFrameValid ? rear.surface.material.rollingResistance : 0,
-      driveTorque,
+      driveTorque: rearDriveTorque,
       brakeTorque: rearBrakeTorque,
       dt: substep,
       tire: profile.rearStation.tire,

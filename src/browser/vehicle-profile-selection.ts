@@ -1,5 +1,7 @@
 import {
-  BIKE_VEHICLE_PROFILE,
+  AWD_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
+  BIKE2_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   MR_VEHICLE_PROFILE,
   RR_VEHICLE_PROFILE,
@@ -8,8 +10,8 @@ import {
 } from '../physics/vehicle-profiles.js';
 
 export interface BrowserVehicleProfileSelection {
-  readonly code: 'KeyQ' | 'KeyW' | 'KeyE' | 'KeyR';
-  readonly keyLabel: 'Q' | 'W' | 'E' | 'R';
+  readonly code: 'KeyQ' | 'KeyW' | 'KeyE' | 'KeyR' | 'KeyA' | 'KeyS';
+  readonly keyLabel: 'Q' | 'W' | 'E' | 'R' | 'A' | 'S';
   readonly profile: Readonly<CompiledArcadeVehicleProfile>;
 }
 
@@ -17,7 +19,9 @@ export const BROWSER_VEHICLE_PROFILES: readonly BrowserVehicleProfileSelection[]
   Object.freeze({ code: 'KeyQ', keyLabel: 'Q', profile: FR_VEHICLE_PROFILE }),
   Object.freeze({ code: 'KeyW', keyLabel: 'W', profile: MR_VEHICLE_PROFILE }),
   Object.freeze({ code: 'KeyE', keyLabel: 'E', profile: RR_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyR', keyLabel: 'R', profile: BIKE_VEHICLE_PROFILE }),
+  Object.freeze({ code: 'KeyR', keyLabel: 'R', profile: AWD_VEHICLE_PROFILE }),
+  Object.freeze({ code: 'KeyA', keyLabel: 'A', profile: BIKE1_VEHICLE_PROFILE }),
+  Object.freeze({ code: 'KeyS', keyLabel: 'S', profile: BIKE2_VEHICLE_PROFILE }),
 ]);
 
 export function browserVehicleProfileForKey(

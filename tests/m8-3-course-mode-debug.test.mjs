@@ -34,7 +34,9 @@ import {
 import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
-  BIKE_VEHICLE_PROFILE,
+  AWD_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
+  BIKE2_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   MR_VEHICLE_PROFILE,
   RR_VEHICLE_PROFILE,
@@ -81,31 +83,83 @@ test('browser course selector maps 1/2/3 and URL modes from one authority', () =
   assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
 });
 
-test('browser vehicle selector maps Q/W/E/R to FR/MR/RR/Bike from one authority', () => {
+test('browser vehicle selector maps Q/W/E/R/A/S to FR/MR/RR/AWD/Bike1/Bike2', () => {
   assert.deepEqual(
     BROWSER_VEHICLE_PROFILES.map(({ code, profile }) => [code, profile.id]),
-    [['KeyQ', 'FR'], ['KeyW', 'MR'], ['KeyE', 'RR'], ['KeyR', 'BIKE']],
+    [
+      ['KeyQ', 'FR'],
+      ['KeyW', 'MR'],
+      ['KeyE', 'RR'],
+      ['KeyR', 'AWD'],
+      ['KeyA', 'BIKE1'],
+      ['KeyS', 'BIKE2'],
+    ],
   );
   assert.equal(browserVehicleProfileForKey('KeyQ'), FR_VEHICLE_PROFILE);
   assert.equal(browserVehicleProfileForKey('KeyW'), MR_VEHICLE_PROFILE);
   assert.equal(browserVehicleProfileForKey('KeyE'), RR_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyR'), BIKE_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyR'), AWD_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyA'), BIKE1_VEHICLE_PROFILE);
+  assert.equal(browserVehicleProfileForKey('KeyS'), BIKE2_VEHICLE_PROFILE);
   assert.equal(browserVehicleProfileForKey('KeyV'), null);
-  assert.equal(formatVehicleProfileSelector('MR'), '[Q]FR [W]MR* [E]RR [R]BIKE');
+  assert.equal(
+    formatVehicleProfileSelector('MR'),
+    '[Q]FR [W]MR* [E]RR [R]AWD [A]BIKE1 [S]BIKE2',
+  );
 });
 
-test('FR MR RR and Bike are four compiled profiles on one two-station mechanics contract', () => {
+test('six profiles share one two-station mechanics contract', () => {
   const profiles = [
     FR_VEHICLE_PROFILE,
     MR_VEHICLE_PROFILE,
     RR_VEHICLE_PROFILE,
-    BIKE_VEHICLE_PROFILE,
+    AWD_VEHICLE_PROFILE,
+    BIKE1_VEHICLE_PROFILE,
+    BIKE2_VEHICLE_PROFILE,
   ];
-  assert.deepEqual(profiles.map((profile) => profile.id), ['FR', 'MR', 'RR', 'BIKE']);
+  assert.deepEqual(
+    profiles.map((profile) => profile.id),
+    ['FR', 'MR', 'RR', 'AWD', 'BIKE1', 'BIKE2'],
+  );
   for (const profile of profiles) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
     assert.equal(profile.actuator, FR_VEHICLE_PROFILE.actuator);
   }
+});
+
+test('car profiles share one engine tire and chassis package except distribution inertia and AWD drive split', () => {
+  const carProfiles = [
+    FR_VEHICLE_PROFILE,
+    MR_VEHICLE_PROFILE,
+    RR_VEHICLE_PROFILE,
+    AWD_VEHICLE_PROFILE,
+  ];
+  const sharedCarPackage = (profile) => {
+    const {
+      id: _id,
+      yawInertia: _yawInertia,
+      pitchInertia: _pitchInertia,
+      frontAxle: _frontAxle,
+      rearAxle: _rearAxle,
+      frontDriveTorqueFraction: _frontDriveTorqueFraction,
+      frontStation: _frontStation,
+      rearStation: _rearStation,
+      ...shared
+    } = profile;
+    return shared;
+  };
+  for (const profile of carProfiles.slice(1)) {
+    assert.deepEqual(sharedCarPackage(profile), sharedCarPackage(FR_VEHICLE_PROFILE));
+  }
+  assert.deepEqual(
+    carProfiles.map((profile) => profile.frontDriveTorqueFraction),
+    [0, 0, 0, 0.5],
+  );
+  assert.equal(AWD_VEHICLE_PROFILE.frontAxle, FR_VEHICLE_PROFILE.frontAxle);
+  assert.equal(AWD_VEHICLE_PROFILE.rearAxle, FR_VEHICLE_PROFILE.rearAxle);
+  assert.equal(AWD_VEHICLE_PROFILE.yawInertia, FR_VEHICLE_PROFILE.yawInertia);
+  assert.equal(AWD_VEHICLE_PROFILE.pitchInertia, FR_VEHICLE_PROFILE.pitchInertia);
+
   const rearLoadShare = (profile) => profile.frontAxle / (profile.frontAxle + profile.rearAxle);
   assert.ok(rearLoadShare(FR_VEHICLE_PROFILE) < 0.5);
   assert.ok(rearLoadShare(MR_VEHICLE_PROFILE) > 0.5);
@@ -143,16 +197,18 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(camera.playerScreenX, 160);
 });
 
-test('all four vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
+test('all six vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
   const runtime = createM83LinearHighwayRuntime();
   for (const profile of [
     FR_VEHICLE_PROFILE,
     MR_VEHICLE_PROFILE,
     RR_VEHICLE_PROFILE,
-    BIKE_VEHICLE_PROFILE,
+    AWD_VEHICLE_PROFILE,
+    BIKE1_VEHICLE_PROFILE,
+    BIKE2_VEHICLE_PROFILE,
   ]) {
-    const vehicle = profile.id === 'BIKE'
-      ? createTestBike(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20)
+    const vehicle = profile.id.startsWith('BIKE')
+      ? createTestBike(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile)
       : createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile);
     for (let tick = 0; tick < 600; tick += 1) {
       updateTestVehicle(
@@ -192,7 +248,7 @@ test('shared HUD exposes only selectors instruments request actual actuator and 
 
 for (const [profile, createVehicle, presentationKind] of [
   [FR_VEHICLE_PROFILE, createTestCar, 'car'],
-  [BIKE_VEHICLE_PROFILE, createTestBike, 'bike'],
+  [BIKE1_VEHICLE_PROFILE, createTestBike, 'bike'],
 ]) {
   for (const side of ['LEFT', 'RIGHT']) {
     test(`${profile.id} commits the current M7.2 ${side} fork and keeps physics/rendering alive`, () => {

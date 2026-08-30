@@ -16,7 +16,7 @@ import {
 } from '../dist/dev/m8-7-varied-elevation-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
-  BIKE_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
@@ -75,7 +75,7 @@ test('M8.7 height authoring owns approximately 96 m relief and two explicit phys
 
 for (const [profile, createVehicle] of [
   [FR_VEHICLE_PROFILE, createTestCar],
-  [BIKE_VEHICLE_PROFILE, createTestBike],
+  [BIKE1_VEHICLE_PROFILE, createTestBike],
 ]) {
   test(`ordinary rival-controlled ${profile.id} completes one lap and naturally clears both crests`, () => {
     const live = createM87VariedElevationCircuitRuntime();

@@ -25,7 +25,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
-88_m9_1_four_profile_debug_hud.md
+88_m9_1_six_profile_debug_hud.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 80_m8_1_car_self_steering_control.md
@@ -34,8 +34,9 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 85_m8_6_two_hundred_meter_render_distance.md
 ```
 
-M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/BIKE browser profile selection and
-the shared presentation-only debug HUD. Handling values remain provisional.
+M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
+selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
+HUD. The four cars share one engine/tire/chassis package; handling values remain provisional.
 
 M9.0 is the current common vehicle-mechanics authority. It supersedes the separate M8.0 CAR/BIKE
 solver architecture and the M8.1 immediate steering-release rule within its explicit scope while
@@ -54,7 +55,7 @@ The current browser course-debug composition authority is:
 
 ```text
 82_m8_3_three_mode_course_debug.md
-88_m9_1_four_profile_debug_hud.md
+88_m9_1_six_profile_debug_hud.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -100,7 +101,7 @@ The most important current topology/runtime/physics sequence is:
 85_m8_6_two_hundred_meter_render_distance.md
 86_m8_7_varied_elevation_circuit.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
-88_m9_1_four_profile_debug_hud.md
+88_m9_1_six_profile_debug_hud.md
 ```
 
 The current public CIRCUIT course geometry authority is `86_m8_7_varied_elevation_circuit.md`;
@@ -115,7 +116,7 @@ Current governing topology rule:
 
 Current governing vehicle-physics rule:
 
-> World state is authoritative; Guide/contact/tire observations are derived; FR, MR, RR and BIKE produce handling through the same minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
+> World state is authoritative; Guide/contact/tire observations are derived; FR, MR, RR, AWD, BIKE1 and BIKE2 produce handling through the same minimum ordinary mechanical chain rather than modes, hidden assists or duplicate state.
 
 Current governing steering rule:
 
@@ -197,7 +198,7 @@ It records the independent M8.2-M8.7 preservation commit, the common-solver migr
 architecture acceptance, three-mode browser checks and the self-reference-safe exact-head CI
 procedure.
 
-M9.1 four-profile/debug-HUD candidate evidence is:
+The original M9.1 four-profile checkpoint remains immutable historical evidence:
 
 ```text
 validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt
@@ -205,6 +206,15 @@ validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt
 
 It records the four compiled provisional profiles, compact shared HUD boundary, executable
 acceptance, three-mode browser checks and self-reference-safe exact-head CI procedure.
+
+The corrected M9.1 six-profile/drive-distribution candidate evidence is:
+
+```text
+validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt
+```
+
+It records the corrected six-profile selector, common car-package invariant, normalized AWD
+drive-torque distribution, causal handling regression, complete suite and three-mode browser checks.
 
 ## 5. Historical M9 implementation handoff
 

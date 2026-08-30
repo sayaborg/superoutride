@@ -18,7 +18,7 @@ export type VehicleSpriteFamily = 'car' | 'bike';
 export function deriveVehicleSpriteFamily(
   vehicle: VehicleIdentityPresentationRead,
 ): VehicleSpriteFamily {
-  return vehicle.profile.id === 'BIKE' ? 'bike' : 'car';
+  return vehicle.profile.id.startsWith('BIKE') ? 'bike' : 'car';
 }
 
 /** Coordinated-turn lean is presentation only and never feeds vehicle mechanics. */

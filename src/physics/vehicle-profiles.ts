@@ -14,7 +14,7 @@ import {
   type CompiledTireProfile,
 } from './tire-wheel.js';
 
-export type VehicleProfileId = 'FR' | 'MR' | 'RR' | 'BIKE';
+export type VehicleProfileId = 'FR' | 'MR' | 'RR' | 'AWD' | 'BIKE1' | 'BIKE2';
 
 export interface ArcadeVehicleProfile {
   /** Composition/presentation identity. Common mechanics never branches on this value. */
@@ -41,6 +41,8 @@ export interface ArcadeVehicleProfile {
   readonly rearWheelRadius: number;
   readonly frontWheelInertia: number;
   readonly rearWheelInertia: number;
+  /** Fixed share of total powertrain torque sent to the front station; the remainder drives rear. */
+  readonly frontDriveTorqueFraction: number;
 
   readonly muRef: number;
   readonly rhoKnee: number;
@@ -75,7 +77,7 @@ const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
   brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.10 }),
 });
 
-const FR_PROFILE_AUTHORING: ArcadeVehicleProfile = {
+const CAR_PROFILE_AUTHORING: ArcadeVehicleProfile = {
   id: 'FR',
   mass: 1310,
   yawInertia: 2350,
@@ -97,6 +99,7 @@ const FR_PROFILE_AUTHORING: ArcadeVehicleProfile = {
   rearWheelRadius: 0.33,
   frontWheelInertia: 2.2,
   rearWheelInertia: 2.4,
+  frontDriveTorqueFraction: 0,
   muRef: 1.35,
   rhoKnee: 0.74,
   lowSpeedRegularization: 1.0,
@@ -134,134 +137,109 @@ const FR_PROFILE_AUTHORING: ArcadeVehicleProfile = {
 
 /** Provisional front-engine, rear-drive reference profile. */
 export const FR_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
-  compileArcadeVehicleProfile({ ...FR_PROFILE_AUTHORING, id: 'FR' });
+  compileArcadeVehicleProfile({ ...CAR_PROFILE_AUTHORING, id: 'FR' });
 
-/** Provisional mid-engine, rear-drive profile with a rearward CG and lower yaw inertia. */
+/** Provisional mid-engine, rear-drive profile: only distribution/inertia differ from FR. */
 export const MR_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
   compileArcadeVehicleProfile({
-    ...FR_PROFILE_AUTHORING,
+    ...CAR_PROFILE_AUTHORING,
     id: 'MR',
-    mass: 1270,
     yawInertia: 2100,
     pitchInertia: 2350,
-    frontAxle: 1.42,
-    rearAxle: 1.18,
-    frontRideFrequency: 1.9,
-    rearRideFrequency: 2.0,
-    frontBumpForceMax: 82_000,
-    rearBumpForceMax: 88_000,
-    frontNormalizedStiffness: 10.0,
-    rearNormalizedStiffness: 10.8,
-    frontBrakeTorqueMax: 2_900,
-    rearBrakeTorqueMax: 2_100,
-    quadraticDrag: 0.37,
-    powertrain: {
-      ...FR_PROFILE_AUTHORING.powertrain,
-      redlineRpm: 8000,
-      upshiftRpm: 7300,
-      downshiftRpm: 2800,
-      finalDriveRatio: 3.65,
-      torqueCurve: [
-        { rpm: 850, torqueNewtonMeters: 250 },
-        { rpm: 3000, torqueNewtonMeters: 410 },
-        { rpm: 5200, torqueNewtonMeters: 480 },
-        { rpm: 7300, torqueNewtonMeters: 430 },
-        { rpm: 8000, torqueNewtonMeters: 0 },
-      ],
-    },
+    frontAxle: 1.34,
+    rearAxle: 1.26,
   });
 
-/** Provisional rear-engine, rear-drive profile with the most rearward static load distribution. */
+/** Provisional rear-engine, rear-drive profile: only distribution/inertia differ from FR. */
 export const RR_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
   compileArcadeVehicleProfile({
-    ...FR_PROFILE_AUTHORING,
+    ...CAR_PROFILE_AUTHORING,
     id: 'RR',
-    mass: 1230,
     yawInertia: 2200,
     pitchInertia: 2300,
     frontAxle: 1.55,
     rearAxle: 1.05,
-    frontRideFrequency: 1.8,
-    rearRideFrequency: 2.05,
-    frontBumpForceMax: 74_000,
-    rearBumpForceMax: 94_000,
-    frontNormalizedStiffness: 10.2,
-    rearNormalizedStiffness: 11.2,
-    frontBrakeTorqueMax: 2_700,
-    rearBrakeTorqueMax: 2_250,
-    quadraticDrag: 0.36,
-    powertrain: {
-      ...FR_PROFILE_AUTHORING.powertrain,
-      redlineRpm: 7600,
-      upshiftRpm: 6900,
-      downshiftRpm: 2600,
-      finalDriveRatio: 3.70,
-      torqueCurve: [
-        { rpm: 850, torqueNewtonMeters: 270 },
-        { rpm: 2800, torqueNewtonMeters: 390 },
-        { rpm: 5000, torqueNewtonMeters: 445 },
-        { rpm: 6900, torqueNewtonMeters: 405 },
-        { rpm: 7600, torqueNewtonMeters: 0 },
-      ],
-    },
   });
 
-export const BIKE_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
+/** AWD shares the FR package and changes only fixed front/rear drive-torque distribution. */
+export const AWD_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
   compileArcadeVehicleProfile({
-    id: 'BIKE',
-    mass: 400,
-    yawInertia: 500,
-    pitchInertia: 500,
-    frontAxle: 0.90,
-    rearAxle: 1.10,
-    desiredCgHeight: 0.55,
-    frontRideFrequency: 1.8,
-    rearRideFrequency: 1.8,
-    frontDampingRatio: 0.35,
-    rearDampingRatio: 0.35,
-    frontQBump: 0.205,
-    rearQBump: 0.205,
-    frontQTravel: 0.32,
-    rearQTravel: 0.32,
-    frontBumpForceMax: 30_000,
-    rearBumpForceMax: 26_000,
-    frontWheelRadius: 0.300,
-    rearWheelRadius: 0.335,
-    frontWheelInertia: 0.47,
-    rearWheelInertia: 0.72,
-    muRef: 1.25,
-    rhoKnee: 0.80,
-    lowSpeedRegularization: 1.0,
-    frontNormalizedStiffness: 9,
-    rearNormalizedStiffness: 10.5,
-    maxRoadWheelSteer: 31 * Math.PI / 180,
-    steeringOffsetMax: 15 * Math.PI / 180,
-    steeringResponseTau: 0.01,
-    steeringYawPreviewTime: 0.12,
-    steeringRatio: 0,
-    frontBrakeTorqueMax: 1_300,
-    rearBrakeTorqueMax: 600,
-    quadraticDrag: 0.39,
-    actuator: COMMON_ACTUATOR,
-    powertrain: {
-      idleRpm: 1200,
-      redlineRpm: 12000,
-      upshiftRpm: 10500,
-      downshiftRpm: 4200,
-      shiftDuration: 0.10,
-      engineResponseTau: 0.06,
-      torqueConverterSlipRpm: 900,
-      finalDriveRatio: 3.0,
-      efficiency: 0.92,
-      gearRatios: [2.50, 1.80, 1.40, 1.15, 1.00, 0.88],
-      torqueCurve: [
-        { rpm: 1200, torqueNewtonMeters: 75 },
-        { rpm: 4500, torqueNewtonMeters: 125 },
-        { rpm: 8000, torqueNewtonMeters: 150 },
-        { rpm: 10500, torqueNewtonMeters: 138 },
-        { rpm: 12000, torqueNewtonMeters: 0 },
-      ],
-    },
+    ...CAR_PROFILE_AUTHORING,
+    id: 'AWD',
+    frontDriveTorqueFraction: 0.5,
+  });
+
+const BIKE_PROFILE_AUTHORING: ArcadeVehicleProfile = {
+  id: 'BIKE1',
+  mass: 400,
+  yawInertia: 500,
+  pitchInertia: 500,
+  frontAxle: 0.90,
+  rearAxle: 1.10,
+  desiredCgHeight: 0.55,
+  frontRideFrequency: 1.8,
+  rearRideFrequency: 1.8,
+  frontDampingRatio: 0.35,
+  rearDampingRatio: 0.35,
+  frontQBump: 0.205,
+  rearQBump: 0.205,
+  frontQTravel: 0.32,
+  rearQTravel: 0.32,
+  frontBumpForceMax: 30_000,
+  rearBumpForceMax: 26_000,
+  frontWheelRadius: 0.300,
+  rearWheelRadius: 0.335,
+  frontWheelInertia: 0.47,
+  rearWheelInertia: 0.72,
+  frontDriveTorqueFraction: 0,
+  muRef: 1.25,
+  rhoKnee: 0.80,
+  lowSpeedRegularization: 1.0,
+  frontNormalizedStiffness: 9,
+  rearNormalizedStiffness: 10.5,
+  maxRoadWheelSteer: 31 * Math.PI / 180,
+  steeringOffsetMax: 15 * Math.PI / 180,
+  steeringResponseTau: 0.01,
+  steeringYawPreviewTime: 0.12,
+  steeringRatio: 0,
+  frontBrakeTorqueMax: 1_300,
+  rearBrakeTorqueMax: 600,
+  quadraticDrag: 0.39,
+  actuator: COMMON_ACTUATOR,
+  powertrain: {
+    idleRpm: 1200,
+    redlineRpm: 12000,
+    upshiftRpm: 10500,
+    downshiftRpm: 4200,
+    shiftDuration: 0.10,
+    engineResponseTau: 0.06,
+    torqueConverterSlipRpm: 900,
+    finalDriveRatio: 3.0,
+    efficiency: 0.92,
+    gearRatios: [2.50, 1.80, 1.40, 1.15, 1.00, 0.88],
+    torqueCurve: [
+      { rpm: 1200, torqueNewtonMeters: 75 },
+      { rpm: 4500, torqueNewtonMeters: 125 },
+      { rpm: 8000, torqueNewtonMeters: 150 },
+      { rpm: 10500, torqueNewtonMeters: 138 },
+      { rpm: 12000, torqueNewtonMeters: 0 },
+    ],
+  },
+};
+
+export const BIKE1_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
+  compileArcadeVehicleProfile(BIKE_PROFILE_AUTHORING);
+
+/** Provisional lighter bike; shared engine/tire package, distinct distribution and body inertia. */
+export const BIKE2_VEHICLE_PROFILE: Readonly<CompiledArcadeVehicleProfile> =
+  compileArcadeVehicleProfile({
+    ...BIKE_PROFILE_AUTHORING,
+    id: 'BIKE2',
+    mass: 300,
+    yawInertia: 340,
+    pitchInertia: 360,
+    frontAxle: 1.00,
+    rearAxle: 1.00,
   });
 
 export function compileArcadeVehicleProfile(
@@ -304,6 +282,10 @@ export function compileArcadeVehicleProfile(
   if (!(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0)
     || ![profile.frontBrakeTorqueMax, profile.rearBrakeTorqueMax].every(Number.isFinite)) {
     throw new RangeError('vehicle brake torques must be finite and >= 0');
+  }
+  if (!(profile.frontDriveTorqueFraction >= 0 && profile.frontDriveTorqueFraction <= 1)
+    || !Number.isFinite(profile.frontDriveTorqueFraction)) {
+    throw new RangeError('vehicle front drive torque fraction must be finite and lie in [0,1]');
   }
   if (!(profile.quadraticDrag >= 0) || !Number.isFinite(profile.quadraticDrag)) {
     throw new RangeError('vehicle quadratic drag must be finite and >= 0');
@@ -368,4 +350,14 @@ export function compileArcadeVehicleProfile(
     tire: rearTire,
   });
   return Object.freeze({ ...profile, frontStation, rearStation });
+}
+
+/** One reduced driveline observation for the single automatic powertrain state. */
+export function drivenWheelOmega(
+  profile: Pick<ArcadeVehicleProfile, 'frontDriveTorqueFraction'>,
+  frontWheelOmega: number,
+  rearWheelOmega: number,
+): number {
+  return frontWheelOmega * profile.frontDriveTorqueFraction
+    + rearWheelOmega * (1 - profile.frontDriveTorqueFraction);
 }

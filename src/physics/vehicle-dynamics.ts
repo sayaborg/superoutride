@@ -41,7 +41,7 @@ export interface VehicleControlState {
   handwheelAngle: number;
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;
-  /** Torque actually delivered by the powertrain to the driven station. */
+  /** Total torque delivered by the powertrain before profile-authored station distribution. */
   deliveredDriveTorque: number;
   frontBrakeTorque: number;
   rearBrakeTorque: number;

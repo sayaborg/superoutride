@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import {
-  BIKE_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   createTestCar,
   updateTestVehicle,
@@ -22,7 +22,7 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal(SURFACE_MATERIALS.SAND.gripFactor, 0.33);
   assert.ok(SURFACE_MATERIALS.ASPHALT.gripFactor > SURFACE_MATERIALS.SHOULDER.gripFactor);
   assert.ok(SURFACE_MATERIALS.SHOULDER.gripFactor > SURFACE_MATERIALS.GRASS.gripFactor);
-  assert.equal(BIKE_VEHICLE_PROFILE.muRef, 1.25);
+  assert.equal(BIKE1_VEHICLE_PROFILE.muRef, 1.25);
   assert.equal('friction' in SURFACE_MATERIALS.ASPHALT, false);
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });

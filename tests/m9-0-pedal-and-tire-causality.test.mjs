@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { FR_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import {
+  AWD_VEHICLE_PROFILE,
+  FR_VEHICLE_PROFILE,
+} from '../dist/physics/vehicle-profiles.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -14,9 +17,9 @@ const flatHeight = new HeightProfile(highway.guide.length, [
   { s: highway.guide.length, y: 0 },
 ]);
 
-function createProbe(speed = 10) {
+function createProbe(speed = 10, profile = FR_VEHICLE_PROFILE) {
   return createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    profile,
     highway.guide,
     flatHeight,
     highway.surfaceMap,
@@ -77,6 +80,25 @@ test('repeated digital throttle taps sustain deterministic intermediate demand',
   assert.deepEqual(result, replay());
   assert.ok(result.meanActuator > 0 && result.meanActuator < 1);
   assert.ok(result.maximumTorque > 0);
+});
+
+test('AWD fixed torque split changes tire utilization and the resulting handling trajectory', () => {
+  const rearDrive = createProbe(20, FR_VEHICLE_PROFILE);
+  const allWheelDrive = createProbe(20, AWD_VEHICLE_PROFILE);
+  for (let tick = 0; tick < 60; tick += 1) {
+    const input = { steering: 0.45, throttle: true, brake: false };
+    step(rearDrive, input);
+    step(allWheelDrive, input);
+  }
+
+  assert.ok(allWheelDrive.control.frontUtilization > rearDrive.control.frontUtilization);
+  assert.ok(allWheelDrive.control.rearUtilization < rearDrive.control.rearUtilization);
+  assert.ok(
+    Math.abs(allWheelDrive.frontWheelOmega - allWheelDrive.rearWheelOmega)
+      < Math.abs(rearDrive.frontWheelOmega - rearDrive.rearWheelOmega),
+  );
+  assert.notEqual(allWheelDrive.course.l, rearDrive.course.l);
+  assert.notEqual(allWheelDrive.yawRate, rearDrive.yawRate);
 });
 
 test('brake actuator produces partial torque, physical lock and continuous release', () => {

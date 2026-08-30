@@ -1,0 +1,104 @@
+SUPER OUTRIDE — M9.1 SIX-PROFILE COMMON DEBUG HUD CORRECTION VALIDATION
+2026-08-31 JST
+
+Scope:
+Correct the M9.1 browser vehicle selector to FR, MR, RR, AWD, BIKE1 and BIKE2; make the four car
+profiles share one engine/tire/chassis package; constrain FR/MR/RR differences to static weight
+distribution and yaw/pitch inertia; and express AWD handling through the ordinary wheel/tire path
+using one compiled front/rear drive-torque fraction.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Predecessor local checkpoints:
+1e17fd9 M9.1 initial four-profile common debug HUD
+a860006 Z/X keyboard pedal aliases
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/88_m9_1_six_profile_debug_hud.md
+
+Historical superseded checkpoint evidence:
+docs/validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt
+
+Resolved architecture:
+- Q/W/E/R/A/S maps from one browser authority to FR/MR/RR/AWD/BIKE1/BIKE2;
+- all six selections reconstruct at the existing safe-spawn boundary and cannot convert live
+  mechanical state or manufacture route/race progress;
+- FR, MR, RR and AWD share exactly one mass, engine/powertrain, tire, wheel, suspension, brake,
+  drag, steering and actuator package;
+- FR/MR/RR differ only in CG-relative axle distances and yaw/pitch inertia;
+- station spring rates and cornering stiffness are ordinary compiled derivatives of each axle's
+  static load, not additional authored profile differences;
+- AWD retains FR distribution/inertia and differs only by a provisional 50:50 drive split;
+- the common solver observes one drive-weighted wheel speed, computes total automatic-powertrain
+  torque once, then sends frontFraction*T to the front station and the remainder to the rear;
+- RWD and both bike profiles use frontFraction=0; no profile-identity mechanics branch exists;
+- AWD therefore changes combined tire utilization, wheel-speed behavior, yaw response and world
+  trajectory through the existing wheel-torque/contact/tire force chain;
+- BIKE1 preserves the M9.0 motorcycle seed; BIKE2 is a provisional lighter profile sharing the
+  bike engine/tire package with distinct distribution and inertia;
+- both Bike identities select the existing presentation-only bike sprite/lean adapter;
+- the six-profile selector fits beside the unchanged G sensor in all three 320x240 compositions.
+
+Dedicated executable acceptance:
+tests/m8-3-course-mode-debug.test.mjs
+tests/m9-0-pedal-and-tire-causality.test.mjs
+tests/m8-0-phase9-vehicle-physics.test.mjs
+tests/m9-0-vehicle-unification-architecture.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact selector mapping and active-profile formatting;
+- six profiles on one two-station mechanics/actuator contract;
+- deep equality of the four-car package outside identity, distribution, inertia and drive split;
+- front/rear static-load ordering for FR, MR and RR;
+- compiler rejection of drive fractions outside [0,1];
+- causal AWD front/rear tire-utilization, wheel-speed, yaw-rate and trajectory differences;
+- ordinary finite LINEAR integration for every profile;
+- retained complete renderer, metric, camera, input, recovery, route, race and topology suites.
+
+Validation-inclusive local repository result:
+npm test
+526 tests
+526 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local LINEAR rendered the full Q/W/E/R/A/S selector without overlapping the G sensor;
+- R selected AWD with the ordinary car sprite;
+- A selected BIKE1 and S selected BIKE2 with the ordinary bike sprite family;
+- LINEAR, BRANCHING and CIRCUIT all retained the same compact HUD, body-yaw overlay, top-down G
+  sensor and centered world-space presentation;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 526 / 526 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. All six profile values and the AWD 50:50 split remain provisional calibration
+seeds; the authority boundary and causal torque route are executable.

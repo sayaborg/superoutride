@@ -14,6 +14,7 @@ import {
 import {
   createAutomaticPowertrainState,
 } from '../physics/automatic-powertrain.js';
+import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
 import { add3, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
@@ -224,7 +225,10 @@ function reconstructVehicle(
   vehicle.rearSupportAvailable = true;
   Object.assign(
     vehicle.powertrain,
-    createAutomaticPowertrainState(p.powertrain, vehicle.rearWheelOmega),
+    createAutomaticPowertrainState(
+      p.powertrain,
+      drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+    ),
   );
 }
 

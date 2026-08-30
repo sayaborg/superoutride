@@ -9,7 +9,7 @@ import {
   updateAutomaticPowertrain,
 } from '../dist/physics/automatic-powertrain.js';
 import {
-  BIKE_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
@@ -70,7 +70,7 @@ test('M9 FR and BIKE use the same reduced two-station state and differ only by p
   assert.equal('omegaBody' in bike, false);
   assert.deepEqual(Object.keys(car).sort(), Object.keys(bike).sort());
   assert.equal(car.profile.id, 'FR');
-  assert.equal(bike.profile.id, 'BIKE');
+  assert.equal(bike.profile.id, 'BIKE1');
   assert.equal('contacts' in bike, false);
 });
 

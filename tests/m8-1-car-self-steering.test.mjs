@@ -10,7 +10,7 @@ import {
   vehicleBodyTravelDirection,
 } from '../dist/physics/arcade-vehicle-physics.js';
 import {
-  BIKE_VEHICLE_PROFILE,
+  BIKE1_VEHICLE_PROFILE,
   FR_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
@@ -53,7 +53,7 @@ test('common body travel direction derives self-steering from authoritative CG v
   assert.ok(actual < 0);
 });
 
-for (const profile of [FR_VEHICLE_PROFILE, BIKE_VEHICLE_PROFILE]) {
+for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
   test(`${profile.id} uses the same actuator and sole front-road-wheel steering response`, () => {
     const vehicle = createArcadeVehicle(profile, highway.guide, flatHeight, wideSurface, 800, -1.75, 45);
     updateArcadeVehicle(

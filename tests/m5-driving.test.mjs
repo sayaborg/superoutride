@@ -231,7 +231,7 @@ test('FR and BIKE profiles create independent instances of the same authoritativ
   assert.equal('pitch' in car, true);
   assert.equal('pitch' in bike, true);
   assert.equal(car.profile.id, 'FR');
-  assert.equal(bike.profile.id, 'BIKE');
+  assert.equal(bike.profile.id, 'BIKE1');
   assert.notEqual(car.profile, bike.profile);
   assert.equal('frontLateralForce' in car, false);
   assert.equal('contacts' in bike, false);

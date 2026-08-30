@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.1 Four-Profile Debug HUD Candidate
+# SUPER OUTRIDE — M9.1 Six-Profile Debug HUD Candidate
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -13,10 +13,12 @@ handoff context, not current design authority; the normative M9 authority is the
 
 ## Current milestone status
 
-M9.1 adds provisional FR, MR, RR and BIKE compiled profiles and one common compact debug HUD for all
-three course compositions. The HUD is limited to course/profile selection, speed/RPM/gear, requested
-and actual controls, body yaw and a top-down body-axis G sensor. It adds no physics state or
-vehicle-kind mechanics branch. The authority is `docs/88_m9_1_four_profile_debug_hud.md`.
+M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one common compact
+debug HUD for all three course compositions. The four cars share one engine/tire/chassis package;
+FR/MR/RR differ only by weight distribution and body inertia, while AWD changes ordinary tire-force
+behavior through a compiled 50:50 front/rear drive-torque split. The HUD is limited to
+course/profile selection, speed/RPM/gear, requested and actual controls, body yaw and a top-down
+body-axis G sensor. The authority is `docs/88_m9_1_six_profile_debug_hud.md`.
 
 M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by every compiled profile. It
 owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
@@ -74,7 +76,7 @@ status: final exact-head release procedure recorded by Git / PR / workflow histo
 The current normative vehicle-physics architecture is, in supersession order:
 
 ```text
-docs/88_m9_1_four_profile_debug_hud.md
+docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
@@ -98,7 +100,7 @@ For current vehicle work, read in this order:
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
 2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. `docs/88_m9_1_four_profile_debug_hud.md` — current profile-selection and shared debug-HUD authority.
+4. `docs/88_m9_1_six_profile_debug_hud.md` — current profile/drive-selection and shared debug-HUD authority.
 5. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle-mechanics authority.
 6. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
@@ -184,7 +186,7 @@ M8.5       Downward Camera Presentation                                  current
 M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
 M8.7       Varied-Elevation Medium/High-Speed Circuit                     current CIRCUIT course-authoring authority
 M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
-M9.1       Four-Profile Common Debug HUD                                    current profile/debug composition candidate
+M9.1       Six-Profile Common Debug HUD                                     current profile/debug composition candidate
 ```
 
 Current topology/runtime/physics design sequence:
@@ -306,8 +308,9 @@ DEV_UNCALIBRATED
 
 M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. The
 ordered M8.2–M8.7 candidate is preserved independently at `c241698`; M9.0 candidate evidence is
-recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`; M9.1 candidate evidence is
-recorded in `docs/validation/M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt`.
+recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`; the original four-profile
+M9.1 checkpoint remains historical, and the corrected candidate evidence is recorded in
+`docs/validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -316,7 +319,7 @@ src/boot.ts          1/2/3 and URL course-mode selection authority
 src/main-linear.ts   LINEAR composition root
 src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
-src/browser/vehicle-profile-selection.ts Q/W/E/R profile-selection authority
+src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 
 src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
@@ -331,7 +334,7 @@ src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
 src/physics/vehicle-math3.ts        minimal vector/3D math
 src/physics/vehicle-dynamics.ts     common contact/surface/suspension observations
-src/physics/vehicle-profiles.ts     compiled FR/MR/RR/BIKE parameter authority
+src/physics/vehicle-profiles.ts     compiled FR/MR/RR/AWD/BIKE1/BIKE2 authority
 src/physics/arcade-vehicle-physics.ts one Two-Station Arcade Vehicle Dynamics solver
 src/physics/vehicle-contract.ts     read-only consumer contracts
 src/physics/surface-map.ts         general SurfaceMap authority
