@@ -11,7 +11,7 @@ import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';

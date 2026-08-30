@@ -25,7 +25,6 @@ import {
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
 import {
-  POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
@@ -36,7 +35,7 @@ import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
@@ -193,7 +192,6 @@ function updateObjective(state, routeUpdate) {
   const finish = createValidatedRunFinishFromRoute(state.routeState, routeUpdate);
   const result = updateRunObjectiveFromValidatedFinish(
     state.objective,
-    POINT_TO_POINT_OBJECTIVE,
     finish,
     state.simulationTicks * DT,
   );

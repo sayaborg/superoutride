@@ -15,7 +15,7 @@ import { compileDeclarativeLiveRoute } from '../dist/runtime/declarative-live-ro
 import { compileRasterForkStageRoute } from '../dist/runtime/raster-fork-stage-route.js';
 import { compileAuthoredStageRuntimePackage } from '../dist/runtime/stage-authoring-compiler.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 

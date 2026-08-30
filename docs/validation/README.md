@@ -26,6 +26,20 @@ There is not necessarily one standalone validation text file for every numbered 
 
 Do not manufacture retrospective validation files to fill numbering gaps.
 
+## Standalone-record decision rule
+
+A new standalone validation record is required when the change is one of the following:
+
+- a normative freeze, addendum, or milestone release that changes an authority boundary;
+- an incident/hotfix whose release claim depends on preserved causal evidence;
+- a repository migration or release checkpoint that explicitly invokes a validation-inclusive
+  exact-head artifact.
+
+Ordinary refactors, cleanup, test additions, and implementation work under an unchanged normative
+authority use the PR's validation-inclusive exact-head CI as their evidence and do not create a
+new archive file. State the applicable choice in the active milestone document or PR before
+release. Never add retrospective files merely to make numbering continuous.
+
 ## Exact-head self-reference pattern
 
 Many later validation records intentionally describe the last documentation-inclusive/pre-validation head and then require a fresh CI run after the validation file itself is added.

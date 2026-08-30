@@ -1,10 +1,8 @@
-import type { RaceProgressState, RaceProgressUpdate } from './race-progress.js';
 import type { RouteDagState, RouteDagUpdate } from './route-dag.js';
 
-export type RunObjectiveKind = 'POINT_TO_POINT' | 'REPEATABLE_DEV';
 export type RunObjectiveStatus = 'RUNNING' | 'FINISHED';
-export type RunObjectiveEvent = 'NONE' | 'BOUNDARY' | 'FINISHED' | 'IGNORED_AFTER_FINISH';
-export type ValidatedRunFinishSource = 'CLOSED_RACE' | 'ROUTE_DAG';
+export type RunObjectiveEvent = 'NONE' | 'FINISHED' | 'IGNORED_AFTER_FINISH';
+export type ValidatedRunFinishSource = 'ROUTE_DAG';
 
 /**
  * Generic already-validated finish signal consumed by the run objective.
@@ -17,10 +15,6 @@ export interface ValidatedRunFinish {
   readonly source: ValidatedRunFinishSource;
   readonly id: string;
   readonly validatedProgress: number | null;
-}
-
-export interface RunObjective {
-  readonly kind: RunObjectiveKind;
 }
 
 export interface RunObjectiveState {
@@ -39,18 +33,6 @@ export interface RunObjectiveUpdate {
   readonly justFinished: boolean;
 }
 
-export const POINT_TO_POINT_OBJECTIVE: Readonly<RunObjective> = {
-  kind: 'POINT_TO_POINT',
-};
-
-/**
- * Keeps the current closed debug course useful as a repeated validation loop.
- * This is explicitly a DEV objective, not product lap-race authority.
- */
-export const REPEATABLE_DEV_OBJECTIVE: Readonly<RunObjective> = {
-  kind: 'REPEATABLE_DEV',
-};
-
 export function createRunObjectiveState(): RunObjectiveState {
   return {
     status: 'RUNNING',
@@ -61,29 +43,6 @@ export function createRunObjectiveState(): RunObjectiveState {
     finishId: null,
     lastEvent: 'NONE',
   };
-}
-
-/**
- * Adapt the existing closed-course validated race FINISH into the generic run-finish signal.
- * This compatibility path preserves M6.0–M6.7 while keeping lap bookkeeping out of the
- * product objective itself.
- */
-export function createValidatedRunFinishFromRace(
-  progress: Pick<RaceProgressState, 'validatedProgressFloor'>,
-  raceUpdate: RaceProgressUpdate | null,
-): ValidatedRunFinish | null {
-  if (!Number.isFinite(progress.validatedProgressFloor)) {
-    throw new RangeError('validated progress floor must be finite');
-  }
-
-  const gate = raceUpdate?.acceptedGate;
-  if (!gate || gate.kind !== 'finish') return null;
-
-  return Object.freeze({
-    source: 'CLOSED_RACE',
-    id: gate.name,
-    validatedProgress: progress.validatedProgressFloor,
-  });
 }
 
 /**
@@ -125,7 +84,6 @@ export function createValidatedRunFinishFromRoute(
  */
 export function updateRunObjectiveFromValidatedFinish(
   state: RunObjectiveState,
-  objective: RunObjective,
   finish: ValidatedRunFinish | null,
   elapsedSeconds: number,
 ): RunObjectiveUpdate {
@@ -146,16 +104,6 @@ export function updateRunObjectiveFromValidatedFinish(
 
   state.acceptedFinishCount += 1;
 
-  if (objective.kind === 'REPEATABLE_DEV') {
-    state.lastEvent = 'BOUNDARY';
-    return { event: state.lastEvent, status: state.status, justFinished: false };
-  }
-
-  if (objective.kind !== 'POINT_TO_POINT') {
-    const exhaustive: never = objective.kind;
-    throw new Error(`unsupported run objective: ${exhaustive}`);
-  }
-
   state.status = 'FINISHED';
   state.finishElapsedSeconds = elapsedSeconds;
   state.finishValidatedProgress = finish.validatedProgress;
@@ -165,24 +113,8 @@ export function updateRunObjectiveFromValidatedFinish(
   return { event: state.lastEvent, status: state.status, justFinished: true };
 }
 
-/**
- * Backward-compatible closed-course wrapper used by the current DEV runtime.
- * Product point-to-point route completion can instead call
- * `createValidatedRunFinishFromRoute` + `updateRunObjectiveFromValidatedFinish` directly.
- */
-export function updateRunObjective(
-  state: RunObjectiveState,
-  objective: RunObjective,
-  progress: Pick<RaceProgressState, 'validatedProgressFloor'>,
-  raceUpdate: RaceProgressUpdate | null,
-  elapsedSeconds: number,
-): RunObjectiveUpdate {
-  const finish = createValidatedRunFinishFromRace(progress, raceUpdate);
-  return updateRunObjectiveFromValidatedFinish(state, objective, finish, elapsedSeconds);
-}
-
 function validateFinish(finish: ValidatedRunFinish): void {
-  if (finish.source !== 'CLOSED_RACE' && finish.source !== 'ROUTE_DAG') {
+  if (finish.source !== 'ROUTE_DAG') {
     const exhaustive: never = finish.source;
     throw new RangeError(`unsupported run finish source: ${exhaustive}`);
   }

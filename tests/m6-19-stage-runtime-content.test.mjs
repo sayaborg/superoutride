@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
@@ -14,11 +16,9 @@ import { createM619DebugStageRuntimeRegistry } from '../dist/dev/m6-19-stage-run
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import {
-  createM6DebugRouteDag,
   createRouteDagState,
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -33,7 +33,7 @@ import {
   resolveActiveStageRuntimeContent,
 } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 const near = (actual, expected, tolerance = 2e-6) => {

@@ -1,5 +1,15 @@
 # ラスタスクロール疑似3Dレースゲーム Core Design Freeze
 
+> **現行の読み方（00b による限定的 supersession）**
+>
+> 本文書は元来の closed-course Core を記録する凍結文書である。`docs/00b_core_design_freeze_addendum_m6_44.md`
+> は、そのうち path/source の一般形、endpoint、renderer depth、closed-loop 必須条件だけを置換した。
+> したがって本文書中の全 `wrapSigned(s_render - s_camera)` / `wrapSigned(s_obj - s_cam)` 記述
+> （§4、§5、§40、§54、§76、§78 を含む）は現行 renderer authority ではない。現行式は
+> `d = s_render - s_camera`、一般 runtime domain は有限 open `[0,L]`、cyclic は上位 topology が
+> 明示的に有限 open window へ展開する。その他の renderer・metric 不変条件は、00b が明示した
+> 境界の外では引き続き本書に従う。
+
 ## 0. 設計思想
 
 本企画は、
@@ -307,6 +317,9 @@ C(s)+w_R(s)\mathbf n(s)
 
 # 4. chainage
 
+> **00b supersession:** 以下の cyclic depth 式だけは履歴記録であり、現行式は
+> `d = s_render - s_camera` である。
+
 `s` はXZ平面上のplan chainageである。
 
 3D道路表面の弧長ではない。
@@ -350,6 +363,9 @@ wrapSigned(s_{\rm render}-s_{\rm cam})
 ---
 
 # 5. closed courseとwrap
+
+> **00b supersession:** closed/cyclic は一般 Core ではなく明示的な上位 topology である。
+> renderer は wrap せず、上位層が構成した finite open chainage を消費する。
 
 コース全長を \(L_{\rm course}\) とする。
 
@@ -516,6 +532,9 @@ GroundBaseが意図的にTRANSPARENTである崖側などは、このcoverage re
 ---
 
 # 6. closed loop条件
+
+> **00b supersession:** 以下は明示的 closed-lap authoring にのみ適用する。一般 RasterPath / GuidePath
+> の成立条件ではなく、通常の open path に last-to-first segment を要求しない。
 
 単純閉曲線を前提とする。
 

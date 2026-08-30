@@ -6,18 +6,19 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 
 `README.md` is an entry point and current-state index. It is not a second normative design document.
 
-The detailed next-thread procedure for preserving the current M8.2-M8.7 candidate and beginning
+The historical takeover procedure that preserved the M8.2-M8.7 candidate and began
 the common CAR/BIKE vehicle architecture is
 `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md`. It is implementation
-handoff context; the normative M9 authority is the numbered document linked below.
+handoff context, not current design authority; the normative M9 authority is the numbered document linked below.
 
 ## Current milestone status
 
 M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by CAR and BIKE profiles. It
 owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
 ABS/TCS and presentation-only BIKE lean. The authority is
-`docs/87_m9_0_two_station_arcade_vehicle_dynamics.md`; implementation remains a candidate until
-the common-solver migration and exact-head acceptance matrix are green.
+`docs/87_m9_0_two_station_arcade_vehicle_dynamics.md`; the common-solver migration is complete on
+PR #100, while release status remains candidate pending validation-inclusive exact-head CI and the
+explicit release procedure.
 
 M8.7 replaces only the CIRCUIT course with an approximately 12.076 km lap mixing 190, 320, 380,
 520 and 680 m-radius corners throughout. Its smooth physical elevation spans approximately 96 m
@@ -65,10 +66,12 @@ PR:     #88 — M8.0 Phase 9 vehicle physics architecture freeze
 status: final exact-head release procedure recorded by Git / PR / workflow history
 ```
 
-The current normative vehicle-physics architecture is:
+The current normative vehicle-physics architecture is, in supersession order:
 
 ```text
+docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
+docs/80_m8_1_car_self_steering_control.md
 ```
 
 The M8.0 implementation/finalization checkpoint is:
@@ -77,7 +80,8 @@ The M8.0 implementation/finalization checkpoint is:
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
 ```
 
-That handoff records the audited baseline, migration history and release procedure. It is navigation/current-work context, not a second design authority.
+That handoff records the audited baseline, migration history and release procedure. PR #88 is
+released history; the handoff is historical navigation context, not current work or a second design authority.
 
 The self-reference-safe M8.0 release evidence is `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt`. Exact release identity is the validation-inclusive PR #88 commit for which GitHub records PR head = PR merge = `main`, with successful exact-head PR CI and main-push build/Pages deployment. Do not infer the SHA from this file.
 
@@ -86,20 +90,16 @@ The self-reference-safe M8.0 release evidence is `docs/validation/M8_0_PHASE9_VE
 For current vehicle work, read in this order:
 
 1. `AGENTS.md` — persistent coding-agent/development/release contract.
-2. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` — M8.0 implementation/finalization checkpoint.
-3. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
-4. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` — current vehicle-physics architecture authority.
-6. `docs/80_m8_1_car_self_steering_control.md` — current CAR steering-control authority.
-7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` — current player-camera authority.
-8. `docs/82_m8_3_three_mode_course_debug.md` — current browser course-debug authority.
-9. `docs/83_m8_4_dual_low_speed_circuit_complex.md` — historical M8.4 CIRCUIT geometry authority.
-10. `docs/84_m8_5_downward_camera_presentation.md` — current camera pitch/height authority.
-11. `docs/85_m8_6_two_hundred_meter_render_distance.md` — current render-distance and horizon-audit authority.
-12. `docs/86_m8_7_varied_elevation_circuit.md` — current CIRCUIT geometry/elevation authority.
-13. `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md` — next-thread M8
-    preservation and M9 vehicle-unification procedure.
-14. Relevant source/types/compilers and regression tests — executable implementation contract.
+2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
+3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
+4. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle authority.
+5. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+   `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
+6. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
+   `docs/86_m8_7_varied_elevation_circuit.md` — current camera/composition/render/course authorities.
+7. Relevant source/types/compilers and regression tests — executable implementation contract.
+
+The 2026-08-28 M8.0 and 2026-08-31 M9 handoffs remain historical checkpoint/navigation records.
 
 Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`; it does not supersede current M8.0 authority or release evidence.
 
@@ -162,14 +162,14 @@ M6.51      Pages branching continuation hotfix                     complete
 M6.52      Shared Field Route Progress                              complete
 M6.53      BRANCHING Session Authority Normalization                complete
 M6.54      CIRCUIT Multi-Actor Integration                          complete
-M7.0       Vehicle Dynamics Architecture Freeze                     historical / superseded in scoped physics by M8.0
+M7.0       Vehicle Dynamics Architecture Freeze                     historical / superseded in scoped physics by M9.0
 M7.1       Highway Calibration Course Authoring                     complete
 M7.2       Default BRANCHING Highway Integration                    complete
-M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M8.0
-M7.4       Transient Tire Response                                  historical / scoped physics superseded by M8.0
-M8.0       Phase 9 Ideal Vehicle Physics Architecture               current; exact release identity in Git/PR/workflow evidence
+M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M9.0
+M7.4       Transient Tire Response                                  historical / scoped physics superseded by M9.0
+M8.0       Phase 9 Ideal Vehicle Physics Architecture               retained contact/tire foundation; solver split superseded by M9.0
 M8.0       CIRCUIT Low-Speed Corner Authoring                        historical public course follow-on
-M8.1       CAR Predictive Travel-Direction Steering Assist            current control authority; handling uncalibrated
+M8.1       CAR Predictive Travel-Direction Steering Assist            retained travel-direction concept; response boundary superseded by M9.0
 M8.2       Body-Pitch / Movement-Yaw Chase Camera                      current player-camera authority
 M8.3       Three-Mode Course Debug                                      current browser composition authority
 M8.4       Dual Low-Speed Circuit Complex                               historical CIRCUIT course-authoring authority

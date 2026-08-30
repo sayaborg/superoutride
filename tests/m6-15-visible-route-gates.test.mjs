@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
@@ -13,7 +14,6 @@ import {
   observeRouteBoundaryCrossing,
 } from '../dist/gameplay/route-boundary-gates.js';
 import {
-  createM6DebugRouteDag,
   createRouteDagState,
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';

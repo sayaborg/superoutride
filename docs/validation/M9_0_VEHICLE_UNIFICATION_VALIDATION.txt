@@ -5,7 +5,7 @@ Scope:
 Ordered preservation of the complete M8.2-M8.7 candidate followed by M9.0 Two-Station Arcade
 Vehicle Dynamics, one common three-channel actuator, compiled CAR/BIKE profiles, retired-solver
 deletion, causal regression migration, browser composition verification and exact-head candidate
-procedure.
+procedure, followed by authority-boundary cleanup on the same unreleased candidate.
 
 Repository:
 sayaborg/superoutride
@@ -54,10 +54,24 @@ Resolved implementation classes:
 - top-level composition derives sprite identity from the one profile identity already owned by the
   vehicle; there is no duplicate mutable vehicle-kind state.
 
+Candidate cleanup:
+- historical closed-course race-progress and REPEATABLE_DEV objective authority are removed;
+- POINT_TO_POINT completion accepts only the validated RouteDag physical FINISH signal, while
+  CIRCUIT remains on its finite ordered physical checkpoint/FINISH authority;
+- milestone DEV fixture factories live under src/dev without compatibility re-exports;
+- representative open-route regressions instantiate open SurfaceMap/VisualProfile sources;
+- unused public entry points, dead transient reset paths and void-suppressed locals are removed;
+- TypeScript unused-local and unused-parameter checks are compiler-enforced;
+- source-boundary regressions reject retired paths, pure re-export shims, misplaced milestone DEV
+  factories and cyclic profiles in the selected open-route fixtures;
+- explicit Cyclic GroundMap/profile adapters remain because addendum 00c names them as deliberate
+  opt-in topology primitives; ordinary open composition does not select them.
+
 Dedicated executable acceptance:
 tests/m9-0-driving-actuator.test.mjs
 tests/m9-0-pedal-and-tire-causality.test.mjs
 tests/m9-0-vehicle-unification-architecture.test.mjs
+tests/source-boundary-normalization.test.mjs
 
 The acceptance matrix covers:
 - exact bounds and neutral state, one-tick versus held input, authored application/release times,
@@ -73,10 +87,10 @@ The acceptance matrix covers:
   airborne/recontact episodes through the ordinary suspension/contact path;
 - retained renderer depth, metric presentation, camera, route and topology regression suites.
 
-Full repository result before this artifact:
+Validation-inclusive local repository result:
 npm test
-537 tests
-537 pass
+521 tests
+521 pass
 0 fail
 0 skipped
 
@@ -92,7 +106,7 @@ Validation-inclusive exact-head preconditions:
 1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
 2. Push the candidate branch and open a PR targeting main.
 3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
-4. Require the complete suite to remain 537 / 537 pass, 0 fail, 0 skipped.
+4. Require the complete suite to remain 521 / 521 pass, 0 fail, 0 skipped.
 5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
 6. Never add an unvalidated merge commit or force-update main.
 7. If release is authorized, move main only to the validated exact SHA with force=false.

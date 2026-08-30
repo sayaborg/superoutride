@@ -23,7 +23,7 @@ import {
   generateTerrainLines,
   projectedTerrainSpanRows,
 } from '../dist/road/terrain-line.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 
 const deg = (value) => value * Math.PI / 180;

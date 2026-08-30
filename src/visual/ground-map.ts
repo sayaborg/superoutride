@@ -1,7 +1,7 @@
 import type { GroundMapLogicalProfileReader, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { rgba } from '../render/software-surface.js';
-import type { BakedGroundMapReader, BakedGroundMapSample } from './baked-ground-map.js';
+import type { BakedGroundMapReader } from './baked-ground-map.js';
 
 export const GROUND_COLORS = {
   grassA: rgba(45, 100, 53),
@@ -51,21 +51,6 @@ export interface GroundMapProfile {
   logical?: GroundMapLogicalProfileReader;
   /** Compiler-baked runtime source. General form is open; cyclic addressing requires an explicit adapter. */
   baked?: BakedGroundMapReader;
-}
-
-export function sampleGroundMapRuntime(
-  s: number,
-  l: number,
-  deltaSEffective: number,
-  profile: GroundMapProfile,
-  cliffSection = false,
-): BakedGroundMapSample {
-  const sourceS = s + (profile.chainageOffsetS ?? 0);
-  if (profile.baked) return profile.baked.sample(sourceS, l, deltaSEffective);
-  return {
-    color: sampleGroundMap(s, l, profile, cliffSection),
-    level: 0,
-  };
 }
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */

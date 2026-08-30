@@ -10,7 +10,7 @@ import { createSpriteAsset, countOpaqueSpriteColors, drawScaledSprite } from '..
 import { renderM4SuperScaler } from '../dist/render/m4-renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import {
   createM4SpriteAssets,

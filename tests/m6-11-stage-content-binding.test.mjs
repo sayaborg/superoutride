@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 import { readFile } from 'node:fs/promises';
 
 import {
-  createM6DebugRouteDag,
   createRouteDagState,
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';
 import {
   compileRouteStageContentManifest,
-  createM6DebugRouteStageContentManifest,
   resolveActiveRouteStageContent,
 } from '../dist/gameplay/route-stage-content.js';
 

@@ -12,7 +12,7 @@ import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { deriveVehicleLeanRadians } from '../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';

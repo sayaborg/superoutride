@@ -308,7 +308,6 @@ export function deriveContactObservation(
   body: BodyKinematics,
   station: ContactStationProfile,
   steerAngle: number,
-  steerRate: number,
   previousSegmentIndex: number,
 ): ContactObservation {
   const isFront = station.id === 'FRONT';

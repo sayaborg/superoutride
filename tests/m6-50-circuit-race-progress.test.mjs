@@ -311,13 +311,15 @@ test('M6.50 full three-lap ordered physical sequence finishes exactly at validat
 });
 
 test('M6.50 physical gate math is shared while finite ordered progress stays topology and renderer blind', async () => {
-  const legacy = await readFile(new URL('../src/gameplay/race-progress.ts', import.meta.url), 'utf8');
+  await assert.rejects(
+    readFile(new URL('../src/gameplay/race-progress.ts', import.meta.url), 'utf8'),
+    { code: 'ENOENT' },
+  );
   const physical = await readFile(new URL('../src/gameplay/physical-race-gate.ts', import.meta.url), 'utf8');
   const ordered = await readFile(new URL('../src/gameplay/ordered-race-progress.ts', import.meta.url), 'utf8');
   const circuit = await readFile(new URL('../src/gameplay/circuit-race-progress.ts', import.meta.url), 'utf8');
   const renderer = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
 
-  assert.match(legacy, /physical-race-gate/);
   assert.match(ordered, /physical-race-gate/);
   assert.match(physical, /detectPhysicalRaceGateCrossing/);
   assert.doesNotMatch(ordered, /wrapPositive|wrapSigned|CircuitTopology|CIRCUIT/);

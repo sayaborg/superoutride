@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import {
   compileRouteDag,
-  createM6DebugRouteDag,
   createRouteDagState,
   getAvailableRouteChoices,
   updateRouteDag,

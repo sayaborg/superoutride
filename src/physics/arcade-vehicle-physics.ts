@@ -147,7 +147,6 @@ export function updateArcadeVehicle(
       bodyBeforeSteer,
       profile.lowSpeedRegularization,
     );
-    const previousSteer = vehicle.frontSteerAngle;
     const steeringOffset = vehicle.actuator.steering * profile.steeringOffsetMax;
     vehicle.frontSteerAngle = stepTravelDirectionSteering(
       vehicle.frontSteerAngle,
@@ -157,8 +156,6 @@ export function updateArcadeVehicle(
       substep,
       profile,
     );
-    const steerRate = (vehicle.frontSteerAngle - previousSteer) / substep;
-
     const body = arcadeBodyKinematics(vehicle);
     const front = deriveContactObservation(
       guide,
@@ -167,7 +164,6 @@ export function updateArcadeVehicle(
       body,
       profile.frontStation,
       vehicle.frontSteerAngle,
-      steerRate,
       vehicle.course.segmentIndex,
     );
     const rear = deriveContactObservation(
@@ -176,7 +172,6 @@ export function updateArcadeVehicle(
       surfaces,
       body,
       profile.rearStation,
-      0,
       0,
       vehicle.course.segmentIndex,
     );

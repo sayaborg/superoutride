@@ -5,7 +5,7 @@ import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 test('M8.0 rival controller drives through the first crest/bend with causal release and recontact', () => {
   const guide = createM2StadiumGuide();

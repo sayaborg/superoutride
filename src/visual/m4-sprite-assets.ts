@@ -18,7 +18,7 @@ export interface M4SpriteAssets {
   bike: VehicleSpriteSet;
 }
 
-export const M4_SPRITE_COLORS = {
+const M4_SPRITE_COLORS = {
   dark: rgba(18, 23, 27),
   tire: rgba(12, 14, 16),
   chrome: rgba(196, 211, 218),
@@ -60,7 +60,7 @@ export function selectYawVariant(relativeYaw: number, count: number): number {
   return Math.round(normalized / (Math.PI * 2) * count) % count;
 }
 
-export function yawAngleForVariant(index: number, count: number): number {
+function yawAngleForVariant(index: number, count: number): number {
   if (!Number.isInteger(count) || count < 1) throw new RangeError('yaw variant count must be >= 1');
   const wrapped = ((index % count) + count) % count;
   return wrapAngle((wrapped / count) * Math.PI * 2);

@@ -77,7 +77,7 @@ export const M5_9_COMBINED_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> =
 );
 
 /** The same single explicit margin used in M5.8. */
-export const M5_9_TARGET_HEADROOM_FACTOR = 1.25;
+const M5_9_TARGET_HEADROOM_FACTOR = 1.25;
 
 /**
  * Current M5.x content-validation target including the Core-required tunnel/portal stress case.
@@ -149,7 +149,7 @@ export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): Re
 }
 
 /** Combine independent stress suites without pretending their maxima occurred in one frame. */
-export function combineRenderWorkloadEnvelopes(
+function combineRenderWorkloadEnvelopes(
   ...envelopes: readonly RenderWorkloadEnvelope[]
 ): RenderWorkloadEnvelope {
   let frameCount = 0;

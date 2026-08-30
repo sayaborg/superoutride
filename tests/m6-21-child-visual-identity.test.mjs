@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
@@ -10,11 +11,10 @@ import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point
 import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-identity.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 function setupRegistry() {

@@ -9,7 +9,7 @@ import { generateTerrainLines } from '../dist/road/terrain-line.js';
 import { renderM3VisualCore } from '../dist/render/m3-renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground, drawFarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/dev/m3-debug-visual.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
@@ -94,7 +94,6 @@ test('TerrainLine row agrees with the single Core pseudo projection for its samp
   const lines = generateTerrainLines(guide, camera, terrainProfile);
   const line = lines[Math.floor(lines.length * 0.5)];
   assert.ok(line);
-  const center = guide.raster;
   // Reconstruct the center anchor from the two projected ground edges by sampling l=0 through the existing raster helper path.
   // The terrain generator's y is a scanline center quantization, so compare to y+0.5 within half a pixel.
   const leftX = line.xGroundL;
@@ -106,7 +105,6 @@ test('TerrainLine row agrees with the single Core pseudo projection for its samp
   ).y;
   // This auxiliary projection only checks the vertical formula, which is independent of X/Z at fixed s and height.
   near(projectedY, line.y + 0.5, 0.51);
-  void center;
 });
 
 test('GroundMap source sampling distinguishes road, shoulder, marking and terrain', () => {

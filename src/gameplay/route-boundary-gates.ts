@@ -261,25 +261,6 @@ export function observeRouteBoundaryCrossing(
   return emptyObservation();
 }
 
-/**
- * Pure DEV geometry for the M6.8 route graph. Coordinates are intentionally separate from
- * the current closed renderer course; this is a world-space validator test fixture only.
- */
-export function createM6DebugRouteBoundaryGateSet(route: RouteDag): RouteBoundaryGateSet {
-  return compileRouteBoundaryGateSet(route, [
-    { id: 'G_S1_LEFT', kind: 'TRANSITION', choiceId: 'S1_LEFT', center: { x: -3, z: 10 }, heading: 0, halfWidth: 2 },
-    { id: 'G_S1_RIGHT', kind: 'TRANSITION', choiceId: 'S1_RIGHT', center: { x: 3, z: 10 }, heading: 0, halfWidth: 2 },
-    { id: 'G_S2L_LEFT', kind: 'TRANSITION', choiceId: 'S2L_LEFT', center: { x: -7, z: 20 }, heading: 0, halfWidth: 2 },
-    { id: 'G_S2L_RIGHT', kind: 'TRANSITION', choiceId: 'S2L_RIGHT', center: { x: -2, z: 20 }, heading: 0, halfWidth: 2 },
-    { id: 'G_S2R_LEFT', kind: 'TRANSITION', choiceId: 'S2R_LEFT', center: { x: 2, z: 20 }, heading: 0, halfWidth: 2 },
-    { id: 'G_S2R_RIGHT', kind: 'TRANSITION', choiceId: 'S2R_RIGHT', center: { x: 7, z: 20 }, heading: 0, halfWidth: 2 },
-    { id: 'G_GOAL_LL', kind: 'FINISH', stageId: 'GOAL_LL', center: { x: -8, z: 30 }, heading: 0, halfWidth: 2 },
-    { id: 'G_GOAL_LR', kind: 'FINISH', stageId: 'GOAL_LR', center: { x: -3, z: 30 }, heading: 0, halfWidth: 2 },
-    { id: 'G_GOAL_RL', kind: 'FINISH', stageId: 'GOAL_RL', center: { x: 3, z: 30 }, heading: 0, halfWidth: 2 },
-    { id: 'G_GOAL_RR', kind: 'FINISH', stageId: 'GOAL_RR', center: { x: 8, z: 30 }, heading: 0, halfWidth: 2 },
-  ]);
-}
-
 function getTransitionGateForChoice(
   gateSet: RouteBoundaryGateSet,
   choice: RouteChoice,

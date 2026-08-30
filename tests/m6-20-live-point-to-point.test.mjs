@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
@@ -18,7 +19,6 @@ import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-auth
 import { createM5CameraRig } from '../dist/camera/m5-camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/gameplay/route-stage-content.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -26,7 +26,6 @@ import {
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
 import {
-  POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
@@ -34,7 +33,7 @@ import {
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
 function crossing(gate, distance = 2) {
@@ -218,7 +217,6 @@ for (const side of ['LEFT', 'RIGHT']) {
     const objective = createRunObjectiveState();
     const objectiveUpdate = updateRunObjectiveFromValidatedFinish(
       objective,
-      POINT_TO_POINT_OBJECTIVE,
       finish,
       12.5,
     );
@@ -254,7 +252,7 @@ test('M6.20 fixture stays validated while browser live authority consumes the M6
   assert.doesNotMatch(source, /createM620LivePointToPointRouteDag/);
   assert.doesNotMatch(source, /createM622ChildStageContinuation/);
   assert.match(source, /resolveActiveStageRuntimeContent/);
-  assert.match(source, /POINT_TO_POINT_OBJECTIVE/);
+  assert.doesNotMatch(source, /POINT_TO_POINT_OBJECTIVE|REPEATABLE_DEV/);
   assert.doesNotMatch(source, /createM6DebugRouteDag/);
   assert.doesNotMatch(source, /createM615VisibleRouteBoundaryGateSet/);
   assert.match(source, /runtimeBefore\.coordinateFrame/);

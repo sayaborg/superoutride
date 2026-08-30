@@ -178,20 +178,6 @@ export class CyclicBakedGroundMapAsset implements BakedGroundMapReader {
   }
 }
 
-export async function loadM5BakedGroundMap(): Promise<BakedGroundMapAsset> {
-  const metadataUrl = new URL('../assets/m5-ground-map.json', import.meta.url);
-  const binaryUrl = new URL('../assets/m5-ground-map.bin', import.meta.url);
-  const [metadataResponse, binaryResponse] = await Promise.all([
-    fetch(metadataUrl),
-    fetch(binaryUrl),
-  ]);
-  if (!metadataResponse.ok) throw new Error(`failed to load GroundMap metadata: ${metadataResponse.status}`);
-  if (!binaryResponse.ok) throw new Error(`failed to load GroundMap binary: ${binaryResponse.status}`);
-  const metadata = await metadataResponse.json() as BakedGroundMapMetadata;
-  const bytes = new Uint8Array(await binaryResponse.arrayBuffer());
-  return new BakedGroundMapAsset(metadata, bytes);
-}
-
 function findChunk(chunks: readonly BakedGroundMapChunkMetadata[], row: number): BakedGroundMapChunkMetadata {
   let low = 0;
   let high = chunks.length - 1;

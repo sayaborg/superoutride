@@ -1,5 +1,3 @@
-import { clamp } from '../core/math.js';
-
 export interface CompiledTireProfile {
   readonly muRef: number;
   readonly normalizedStiffness: number;
@@ -257,8 +255,8 @@ export function validateCompiledTireProfile(tire: CompiledTireProfile): void {
 function bisectMonotone(fn: (value: number) => number, lowerInput: number, upperInput: number): number {
   let lower = lowerInput;
   let upper = upperInput;
-  let fLower = fn(lower);
-  let fUpper = fn(upper);
+  const fLower = fn(lower);
+  const fUpper = fn(upper);
   if (fLower > 0 || fUpper < 0) {
     throw new Error(`wheel root bracket invalid: [${fLower}, ${fUpper}]`);
   }
@@ -268,14 +266,10 @@ function bisectMonotone(fn: (value: number) => number, lowerInput: number, upper
     if (Math.abs(fMid) < 1e-10) return mid;
     if (fMid < 0) {
       lower = mid;
-      fLower = fMid;
     } else {
       upper = mid;
-      fUpper = fMid;
     }
   }
-  void fLower;
-  void fUpper;
   return (lower + upper) * 0.5;
 }
 

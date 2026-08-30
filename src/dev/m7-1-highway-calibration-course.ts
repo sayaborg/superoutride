@@ -179,7 +179,7 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
   return compileRasterPath(vertices);
 }
 
-export function createM71HighwayHeightProfile(courseLength: number): HeightProfile {
+function createM71HighwayHeightProfile(courseLength: number): HeightProfile {
   if (!(courseLength > 7_000)) throw new RangeError('M7.1 calibration lap must remain longer than 7 km');
   return new HeightProfile(courseLength, [
     { s: 0, y: 0 },

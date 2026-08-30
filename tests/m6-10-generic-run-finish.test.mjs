@@ -1,64 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteBoundaryGateSet } from '../dist/dev/m6-debug-route-boundary-gates.js';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM6DebugRaceRules } from '../dist/gameplay/race-progress.js';
 import {
-  POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
-  createValidatedRunFinishFromRace,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
 import {
-  createM6DebugRouteDag,
   createRouteDagState,
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';
 import {
-  createM6DebugRouteBoundaryGateSet,
   observeRouteBoundaryCrossing,
 } from '../dist/gameplay/route-boundary-gates.js';
-
-function acceptedRaceUpdate(gate, courseLength) {
-  return {
-    event: 'LAP',
-    acceptedGate: gate,
-    direction: 'FORWARD',
-    window: { floor: courseLength, ceiling: courseLength * 1.25 },
-  };
-}
-
-test('M6.10 legacy closed-course FINISH adapts into the generic validated finish signal', () => {
-  const guide = createM2StadiumGuide();
-  const rules = createM6DebugRaceRules(guide);
-  const finishGate = rules.gates.at(-1);
-
-  const finish = createValidatedRunFinishFromRace(
-    { validatedProgressFloor: guide.length },
-    acceptedRaceUpdate(finishGate, guide.length),
-  );
-
-  assert.deepEqual(finish, {
-    source: 'CLOSED_RACE',
-    id: 'FINISH',
-    validatedProgress: guide.length,
-  });
-
-  const objective = createRunObjectiveState();
-  const result = updateRunObjectiveFromValidatedFinish(
-    objective,
-    POINT_TO_POINT_OBJECTIVE,
-    finish,
-    21.25,
-  );
-
-  assert.equal(result.event, 'FINISHED');
-  assert.equal(objective.finishSource, 'CLOSED_RACE');
-  assert.equal(objective.finishId, 'FINISH');
-  assert.equal(objective.finishValidatedProgress, guide.length);
-  assert.equal(objective.finishElapsedSeconds, 21.25);
-});
 
 test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgressUpdate or lap semantics', () => {
   const route = createM6DebugRouteDag();
@@ -103,7 +59,6 @@ test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgr
 
   const result = updateRunObjectiveFromValidatedFinish(
     objective,
-    POINT_TO_POINT_OBJECTIVE,
     finish,
     32.75,
   );
@@ -133,7 +88,6 @@ test('generic objective ignores null finish and records no source/id from unvali
   const state = createRunObjectiveState();
   const result = updateRunObjectiveFromValidatedFinish(
     state,
-    POINT_TO_POINT_OBJECTIVE,
     null,
     10,
   );
@@ -145,21 +99,18 @@ test('generic objective ignores null finish and records no source/id from unvali
   assert.equal(state.finishId, null);
 });
 
-test('generic objective finishes exactly once regardless of validated finish source', () => {
+test('generic objective finishes exactly once from route authority', () => {
   const state = createRunObjectiveState();
   const routeFinish = { source: 'ROUTE_DAG', id: 'GOAL_RR', validatedProgress: null };
-  const closedFinish = { source: 'CLOSED_RACE', id: 'FINISH', validatedProgress: 1000 };
 
   const first = updateRunObjectiveFromValidatedFinish(
     state,
-    POINT_TO_POINT_OBJECTIVE,
     routeFinish,
     15,
   );
   const second = updateRunObjectiveFromValidatedFinish(
     state,
-    POINT_TO_POINT_OBJECTIVE,
-    closedFinish,
+    { source: 'ROUTE_DAG', id: 'GOAL_LL', validatedProgress: 1000 },
     20,
   );
 

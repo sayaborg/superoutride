@@ -99,10 +99,6 @@ export function minimumGuideRadius(lMax: number, mMin: number, mu: number): numb
   return lMax / (1 - mMin / mu);
 }
 
-export function guideMetric(mu: number, signedCurvature: number, l: number): number {
-  return mu * (1 - signedCurvature * l);
-}
-
 export function compileGuidePath(path: RasterPath, options: GuideCompileOptions): GuidePath {
   const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
   const lastVertexIndex = path.vertices.length - 1;

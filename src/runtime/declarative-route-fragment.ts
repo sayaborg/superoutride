@@ -1,11 +1,9 @@
 import {
-  compileDeclarativeLiveRoute,
   type DeclarativeLiveRouteAuthoring,
   type DeclarativeLiveRouteFinishAuthoring,
   type DeclarativeLiveRouteStageAuthoring,
   type DeclarativeLiveRouteTransitionAuthoring,
 } from './declarative-live-route.js';
-import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
 
 /**
  * One independently authored piece of a larger declarative point-to-point route.
@@ -82,13 +80,6 @@ export function composeDeclarativeLiveRouteAuthoring(
     transitions: Object.freeze(transitions),
     finishes: Object.freeze(finishes),
   });
-}
-
-/** Compose fragments and immediately pass the canonical rows through the existing M6.28 compiler. */
-export function compileDeclarativeRouteFragments(
-  source: DeclarativeRouteFragmentComposition,
-): LiveRouteRuntimeAssembly {
-  return compileDeclarativeLiveRoute(composeDeclarativeLiveRouteAuthoring(source));
 }
 
 function requireUnique(set: Set<string>, value: string, label: string): void {

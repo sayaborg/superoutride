@@ -14,7 +14,7 @@ import { createM628DeclarativeLiveRouteRuntime } from '../dist/dev/m6-28-declara
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
 
@@ -149,7 +149,8 @@ test('M6.28 keeps main stable and its declarative compiler remains underneath la
   assert.match(forkSource, /composeDeclarativeLiveRouteAuthoring/);
   assert.match(m630Source, /composeDeclarativeLiveRouteAuthoring/);
   assert.match(m630Source, /compileDeclarativeLiveRoute\s*\(/);
-  assert.match(fragmentSource, /compileDeclarativeLiveRoute\(composeDeclarativeLiveRouteAuthoring\(source\)\)/);
+  assert.match(fragmentSource, /export function composeDeclarativeLiveRouteAuthoring/);
+  assert.doesNotMatch(fragmentSource, /compileDeclarativeRouteFragments/);
   assert.doesNotMatch(entrySource, /createM626LiveRouteDag|createM626LiveGateSet|createM626LiveHandoffManifest/);
 });
 

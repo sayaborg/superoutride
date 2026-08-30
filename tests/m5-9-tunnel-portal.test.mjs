@@ -27,7 +27,7 @@ import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/render/spri
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import {
   createM5TunnelPresentation,
   M5_9_TUNNEL_ENTRY_S,

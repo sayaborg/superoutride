@@ -9,7 +9,7 @@ import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-auth
 import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap, SurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import {
   createM5TunnelPresentation,
   selectM5FarBackground,

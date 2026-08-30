@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createM6DebugRouteBoundaryGateSet } from '../dist/dev/m6-debug-route-boundary-gates.js';
+import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import {
-  createM6DebugRouteDag,
   createRouteDagState,
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';
 import {
   compileRouteBoundaryGateSet,
-  createM6DebugRouteBoundaryGateSet,
   observeRouteBoundaryCrossing,
 } from '../dist/gameplay/route-boundary-gates.js';
 

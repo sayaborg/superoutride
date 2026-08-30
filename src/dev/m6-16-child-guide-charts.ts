@@ -1,5 +1,5 @@
 import type { GuideCurve } from '../core/guide-curve.js';
-import type { JunctionCrossSectionProfile, JunctionSide } from '../course/junction-cross-section.js';
+import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { createGuideChart, type GuideChart } from '../gameplay/guide-chart.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 
@@ -22,8 +22,4 @@ export function createM616ChildGuideCharts(
     left: createGuideChart('LEFT_CHILD', guide, junction.separatedChildCenterL('LEFT')),
     right: createGuideChart('RIGHT_CHILD', guide, junction.separatedChildCenterL('RIGHT')),
   });
-}
-
-export function childChartForSide(charts: M616ChildGuideCharts, side: JunctionSide): GuideChart {
-  return side === 'LEFT' ? charts.left : charts.right;
 }

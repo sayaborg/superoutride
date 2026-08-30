@@ -7,7 +7,6 @@ import {
   createRaceSessionState,
 } from '../dist/gameplay/race-session.js';
 import {
-  POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
@@ -31,7 +30,6 @@ test('M6.53 point-to-point timing needs no closed-course progress authority', ()
   };
   const update = updateRunObjectiveFromValidatedFinish(
     objective,
-    POINT_TO_POINT_OBJECTIVE,
     finish,
     session.elapsedSeconds,
   );
@@ -46,7 +44,6 @@ test('M6.53 point-to-point timing needs no closed-course progress authority', ()
     advanceRaceSession(session, fieldProgress, null, DT);
     updateRunObjectiveFromValidatedFinish(
       objective,
-      POINT_TO_POINT_OBJECTIVE,
       null,
       session.elapsedSeconds,
     );

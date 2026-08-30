@@ -13,7 +13,7 @@ import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { createVehicleYawDebugModel } from '../dist/render/vehicle-yaw-debug.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 const deg = (value) => value * Math.PI / 180;
 const near = (actual, expected, epsilon = 1e-9) => {

@@ -8,7 +8,7 @@ import {
   sampleRivalDrivingInput,
 } from '../dist/gameplay/rival-driver.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
 
 function fakeCar(guide, s, l = 0, speed = 45) {

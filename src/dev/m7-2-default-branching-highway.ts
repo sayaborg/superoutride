@@ -114,7 +114,7 @@ export function createM72DefaultBranchingParent(): M72DefaultBranchingParent {
   });
 }
 
-export function createM72BranchingHeightProfile(courseLength: number): HeightProfile {
+function createM72BranchingHeightProfile(courseLength: number): HeightProfile {
   if (!(courseLength > M7_2_HANDOFF_SEAM_S + 500)) {
     throw new RangeError('M7.2 parent Guide must retain runout beyond the first handoff');
   }

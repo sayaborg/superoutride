@@ -120,22 +120,6 @@ export function resolveActiveRouteStageContent(
   return Object.freeze({ stageId: state.activeStageId, package: contentPackage });
 }
 
-/** Detached manifest for the M6.8 DEV DAG. These are opaque IDs, not real renderer packages yet. */
-export function createM6DebugRouteStageContentManifest(route: RouteDag): RouteStageContentManifest {
-  const frame = 'DEV_ROUTE_WORLD_V1';
-  return compileRouteStageContentManifest(
-    route,
-    route.stages.map((stage) => ({
-      packageId: `CONTENT_${stage.id}`,
-      worldFrameId: frame,
-    })),
-    route.stages.map((stage) => ({
-      stageId: stage.id,
-      packageId: `CONTENT_${stage.id}`,
-    })),
-  );
-}
-
 function assertNonEmpty(value: string, label: string): void {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new RangeError(`${label} must be a non-empty string`);

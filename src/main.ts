@@ -56,7 +56,6 @@ import {
   getSharedRouteChoiceLock,
 } from './gameplay/shared-route-choice-authority.js';
 import {
-  POINT_TO_POINT_OBJECTIVE,
   createRunObjectiveState,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
@@ -450,7 +449,6 @@ function frame(now: number): void {
     const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
     updateRunObjectiveFromValidatedFinish(
       runObjective,
-      POINT_TO_POINT_OBJECTIVE,
       finish,
       raceSession.elapsedSeconds,
     );

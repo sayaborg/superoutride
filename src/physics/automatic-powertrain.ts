@@ -117,7 +117,7 @@ export function updateAutomaticPowertrain(
   return state.outputDriveTorque;
 }
 
-export function sampleEngineTorque(
+function sampleEngineTorque(
   profile: AutomaticPowertrainProfile,
   rpm: number,
 ): number {
@@ -135,19 +135,13 @@ export function sampleEngineTorque(
   return curve.at(-1)!.torqueNewtonMeters;
 }
 
-export function coupledEngineRpm(
+function coupledEngineRpm(
   profile: AutomaticPowertrainProfile,
   drivenWheelOmega: number,
   gear: number,
 ): number {
   const ratio = profile.gearRatios[gear - 1]! * profile.finalDriveRatio;
   return Math.abs(drivenWheelOmega) * ratio * 60 / (2 * Math.PI);
-}
-
-export function resetAutomaticPowertrainTransient(state: AutomaticPowertrainState): void {
-  state.shiftTimer = 0;
-  state.shiftDirection = 0;
-  state.outputDriveTorque = 0;
 }
 
 function selectInitialGear(profile: AutomaticPowertrainProfile, wheelOmega: number): number {

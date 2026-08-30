@@ -77,7 +77,6 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ```text
 docs/86_m8_7_varied_elevation_circuit.md
-docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 ```
 
 ### Milestone design authority
@@ -478,7 +477,8 @@ For each milestone or hotfix:
 5. Add/update regression coverage.
 6. Open a PR targeting `main`.
 7. Obtain a complete green CI run on the exact feature-head SHA.
-8. Add/update the milestone/validation record if the milestone uses one.
+8. Apply the standalone-record decision rule in `docs/validation/README.md`; add/update a record
+   only when that policy requires one.
 9. Run the complete CI suite again on the **validation-inclusive exact head**.
 10. Re-fetch `main` before release.
 11. Compare `main` to the validated candidate. Release only when the candidate is a pure fast-forward:

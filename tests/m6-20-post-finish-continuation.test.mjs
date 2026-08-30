@@ -6,7 +6,7 @@ test('M6.20 validated point-to-point finish records result without freezing the 
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 
   assert.match(source, /updateRunObjectiveFromValidatedFinish/);
-  assert.match(source, /POINT_TO_POINT_OBJECTIVE/);
+  assert.doesNotMatch(source, /POINT_TO_POINT_OBJECTIVE|REPEATABLE_DEV/);
   assert.doesNotMatch(
     source,
     /if\s*\(runObjective\.status\s*===\s*['"]FINISHED['"]\)\s*\{[\s\S]*?continue;/,

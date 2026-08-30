@@ -11,7 +11,7 @@ import {
 } from '../dist/dev/vehicle-telemetry.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { VEHICLE_PHYSICS_CALIBRATION_STATUS } from '../dist/physics/vehicle-calibration.js';
-import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 function plainVehicle() {
   return {

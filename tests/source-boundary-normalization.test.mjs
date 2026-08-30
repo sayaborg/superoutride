@@ -13,6 +13,28 @@ const allowedDevCompositionRoots = new Set([
   path.join(srcRoot, 'main-circuit.ts'),
 ]);
 
+const retiredAuthorityPaths = [
+  'src/core/debug-course.ts',
+  'src/dev/m5-camera.ts',
+  'src/gameplay/race-progress.ts',
+  'src/input/steering-filter.ts',
+  'src/physics/car-physics.ts',
+  'src/physics/motorcycle-physics.ts',
+  'src/visual/m3-debug-visual.ts',
+  'src/world/m4-debug-world.ts',
+];
+
+const currentAuthorityPaths = [
+  'src/camera/m5-camera.ts',
+  'src/dev/debug-course.ts',
+  'src/dev/m3-debug-height-profile.ts',
+  'src/dev/m3-debug-visual.ts',
+  'src/dev/m4-debug-world.ts',
+  'src/dev/m6-debug-route-boundary-gates.ts',
+  'src/dev/m6-debug-route-dag.ts',
+  'src/dev/m6-debug-route-stage-content.ts',
+];
+
 async function collectTypeScriptFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -66,31 +88,61 @@ test('only explicit top-level composition roots may depend on src/dev', async ()
 });
 
 test('source-boundary authority paths have no compatibility shims', async () => {
-  const oldAuthorityPaths = [
-    'src/core/debug-course.ts',
-    'src/dev/m5-camera.ts',
-    'src/visual/m3-debug-visual.ts',
-    'src/world/m4-debug-world.ts',
-  ];
-  const newAuthorityPaths = [
-    'src/dev/debug-course.ts',
-    'src/camera/m5-camera.ts',
-    'src/dev/m3-debug-visual.ts',
-    'src/dev/m4-debug-world.ts',
-  ];
-
-  for (const relativePath of oldAuthorityPaths) {
+  for (const relativePath of retiredAuthorityPaths) {
     assert.equal(
       await pathExists(path.join(repositoryRoot, relativePath)),
       false,
       `${relativePath} must not remain as a compatibility shim`,
     );
   }
-  for (const relativePath of newAuthorityPaths) {
+  for (const relativePath of currentAuthorityPaths) {
     assert.equal(
       await pathExists(path.join(repositoryRoot, relativePath)),
       true,
       `${relativePath} must be the current authority`,
+    );
+  }
+});
+
+test('milestone DEV fixture factories stay under src/dev', async () => {
+  const violations = [];
+  for (const sourceFile of await collectTypeScriptFiles(srcRoot)) {
+    if (sourceFile.startsWith(`${devRoot}${path.sep}`)) continue;
+    const source = await readFile(sourceFile, 'utf8');
+    if (/\bexport\s+function\s+createM\d+Debug\w*/.test(source)) {
+      violations.push(path.relative(repositoryRoot, sourceFile));
+    }
+  }
+  assert.deepEqual(violations.sort(), []);
+});
+
+test('source modules do not revive retired authorities as pure re-export shims', async () => {
+  const violations = [];
+  for (const sourceFile of await collectTypeScriptFiles(srcRoot)) {
+    const source = await readFile(sourceFile, 'utf8');
+    const executable = source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+      .trim();
+    if (executable !== '' && /^(?:export\s+(?:\*|\{[\s\S]*?\})\s+from\s+['"][^'"]+['"];?\s*)+$/.test(executable)) {
+      violations.push(path.relative(repositoryRoot, sourceFile));
+    }
+  }
+  assert.deepEqual(violations.sort(), []);
+});
+
+test('open-route regression fixtures do not hide endpoint defects behind cyclic profiles', async () => {
+  const openRouteFixtures = [
+    'tests/live-fork-driving-regression.test.mjs',
+    'tests/m6-46-branch-violation-recovery.test.mjs',
+    'tests/m6-52-field-route-progress.test.mjs',
+  ];
+  for (const relativePath of openRouteFixtures) {
+    const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');
+    assert.doesNotMatch(
+      source,
+      /\bnew\s+Cyclic(?:HeightProfile|SurfaceMap|VisualProfile)|\bimport\s+\{\s*Cyclic(?:HeightProfile|SurfaceMap|VisualProfile)/,
+      relativePath,
     );
   }
 });
