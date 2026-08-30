@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
-import { M5_CAR_PROFILE, createM5Car } from '../dist/physics/car-physics.js';
+import { CAR_VEHICLE_PROFILE, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -14,7 +14,7 @@ function fixture() {
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
   ]);
-  return { parent, height, car: createM5Car(parent.guide, height, parent.surfaceMap, 800, -1.75) };
+  return { parent, height, car: createTestCar(parent.guide, height, parent.surfaceMap, 800, -1.75) };
 }
 
 test('M8.0 tire force is an algebraic observation with no model-specific memory state', async () => {
@@ -23,14 +23,14 @@ test('M8.0 tire force is an algebraic observation with no model-specific memory 
   assert.equal('rearLateralForce' in car, false);
   assert.equal('contacts' in car, false);
 
-  const carSource = await readFile(new URL('../src/physics/car-physics.ts', import.meta.url), 'utf8');
+  const carSource = await readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8');
   const common = await readFile(new URL('../src/physics/vehicle-dynamics.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(carSource, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
   assert.doesNotMatch(common, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
 });
 
 test('M8.0 one-k tire response is immediate deterministic and releases with zero demand', () => {
-  const tire = M5_CAR_PROFILE.frontStation.tire;
+  const tire = CAR_VEHICLE_PROFILE.frontStation.tire;
   const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   const repeated = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   const released = evaluateTireForce(30 / 0.33, 0.33, 30, 0, 6500, 1, tire);
@@ -43,12 +43,12 @@ test('M8.0 one-k tire response is immediate deterministic and releases with zero
 test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
   const force = evaluateTireForce(
     200,
-    M5_CAR_PROFILE.wheelRadius,
+    CAR_VEHICLE_PROFILE.frontWheelRadius,
     30,
     8,
     0,
     1,
-    M5_CAR_PROFILE.frontStation.tire,
+    CAR_VEHICLE_PROFILE.frontStation.tire,
   );
   assert.equal(force.fx, 0);
   assert.equal(force.fy, 0);

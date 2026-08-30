@@ -28,7 +28,13 @@ import {
 } from '../dist/gameplay/recovery.js';
 import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import {
+  BIKE_VEHICLE_PROFILE,
+  CAR_VEHICLE_PROFILE,
+  createTestBike,
+  createTestCar,
+  updateTestVehicle,
+} from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import {
@@ -73,7 +79,7 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(M8_3_LINEAR_COURSE_MODE.rivalCount, 0);
   assert.equal(runtime.guide.length, M8_3_LINEAR_LENGTH_METERS);
   assert.equal(runtime.guide.segments.length, 1);
-  const car = createM5Car(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
+  const car = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   const camera = updateM5Camera(
     createM5CameraRig(),
     runtime.guide,
@@ -98,8 +104,34 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(camera.playerScreenX, 160);
 });
 
-for (const side of ['LEFT', 'RIGHT']) {
-  test(`current M7.2 ${side} fork commits and keeps physics/rendering alive`, () => {
+test('both M9 vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
+  const runtime = createM83LinearHighwayRuntime();
+  for (const [profile, createVehicle] of [
+    [CAR_VEHICLE_PROFILE, createTestCar],
+    [BIKE_VEHICLE_PROFILE, createTestBike],
+  ]) {
+    const vehicle = createVehicle(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20);
+    for (let tick = 0; tick < 600; tick += 1) {
+      updateTestVehicle(
+        runtime.guide,
+        runtime.heightProfile,
+        runtime.surfaceMap,
+        vehicle,
+        sampleRivalDrivingInput(runtime.guide, vehicle, 0),
+        DT,
+      );
+    }
+    assert.ok(vehicle.course.s > 300, `${profile.id} stalled at s=${vehicle.course.s}`);
+    assert.ok(Math.abs(vehicle.course.l) < 4.5, `${profile.id} left LINEAR asphalt`);
+  }
+});
+
+for (const [profile, createVehicle, presentationKind] of [
+  [CAR_VEHICLE_PROFILE, createTestCar, 'car'],
+  [BIKE_VEHICLE_PROFILE, createTestBike, 'bike'],
+]) {
+  for (const side of ['LEFT', 'RIGHT']) {
+    test(`${profile.id} commits the current M7.2 ${side} fork and keeps physics/rendering alive`, () => {
     const parent = createM72DefaultBranchingParent();
     const assets = createM4SpriteAssets();
     const live = createM627LiveRouteRuntime(
@@ -115,7 +147,7 @@ for (const side of ['LEFT', 'RIGHT']) {
       assets,
       M7_2_DEFAULT_BRANCHING_FORK,
     );
-    const car = createM5Car(
+    const car = createVehicle(
       parent.guide,
       parent.heightProfile,
       parent.surfaceMap,
@@ -137,7 +169,7 @@ for (const side of ['LEFT', 'RIGHT']) {
         car,
         desiredL,
       );
-      updateM5Car(
+      updateTestVehicle(
         runtimeBefore.coordinateFrame,
         runtimeBefore.heightProfile,
         runtimeBefore.surfaceMap,
@@ -187,7 +219,7 @@ for (const side of ['LEFT', 'RIGHT']) {
           runtimeAfter.groundProfile,
           runtimeAfter.worldSprites,
           assets,
-          'car',
+          presentationKind,
           runtimeAfter.roadView ?? undefined,
         );
         renderedAfterCommit += 1;
@@ -199,7 +231,8 @@ for (const side of ['LEFT', 'RIGHT']) {
     assert.ok(renderedAfterCommit >= 30);
     assert.ok(car.course.s > 120);
     assert.ok(minSpeedAfterCommit > 8, `post-COMMIT speed fell to ${minSpeedAfterCommit}`);
-  });
+    });
+  }
 }
 
 test('boot and every course root keep route selection at the composition boundary', async () => {

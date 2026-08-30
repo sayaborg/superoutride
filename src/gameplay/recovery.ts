@@ -3,14 +3,8 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
-import {
-  M5_CAR_PROFILE,
-  type M5CarState,
-} from '../physics/car-physics.js';
-import {
-  M5_BIKE_PROFILE,
-  type M5BikeState,
-} from '../physics/motorcycle-physics.js';
+import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import {
   initializeGuideObservation,
@@ -20,10 +14,10 @@ import {
 import {
   createAutomaticPowertrainState,
 } from '../physics/automatic-powertrain.js';
-import { add3, quaternionFromYawPitchLean, scale3 } from '../physics/vehicle-math3.js';
+import { add3, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
-export type M5VehicleState = M5CarState | M5BikeState;
+export type M5VehicleState = ArcadeVehicleState;
 export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'manual' | 'wrong-course';
 
 const SURFACE_PENETRATION_TOLERANCE = 1e-3;
@@ -89,9 +83,7 @@ export function updateM5Recovery(
   }
 
   state.unsupportedTime += dt;
-  const desiredCgHeight = vehicle.kind === 'CAR'
-    ? M5_CAR_PROFILE.desiredCgHeight
-    : M5_BIKE_PROFILE.desiredCgHeight;
+  const desiredCgHeight = vehicle.profile.desiredCgHeight;
   const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
@@ -193,8 +185,7 @@ export function recoverM5VehicleToGuideCoordinate(
   vehicle.velocityY = velocity.y;
   vehicle.velocityZ = velocity.z;
 
-  if (vehicle.kind === 'CAR') reconstructCar(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
-  else reconstructBike(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
+  reconstructVehicle(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
   vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z);
 
   state.lastSafeS = target.s;
@@ -203,63 +194,38 @@ export function recoverM5VehicleToGuideCoordinate(
   state.lastReason = reason;
 }
 
-function reconstructCar(
-  car: M5CarState,
+function reconstructVehicle(
+  vehicle: ArcadeVehicleState,
   surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
   surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
   speed: number,
 ): void {
-  const p = M5_CAR_PROFILE;
+  const p = vehicle.profile;
   const wheelbase = p.frontAxle + p.rearAxle;
   const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
-  car.x = position.x;
-  car.y = position.y;
-  car.z = position.z;
-  car.yaw = yaw;
-  car.pitch = pitch;
-  car.yawRate = 0;
-  car.pitchRate = 0;
-  car.frontSteerAngle = 0;
-  car.steeringOffsetCommand = 0;
-  car.frontWheelOmega = speed / p.wheelRadius;
-  car.rearWheelOmega = speed / p.wheelRadius;
-  car.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;
-  car.rearNormalLoad = p.mass * 9.80665 * p.frontAxle / wheelbase;
-  car.frontGap = -p.frontStation.suspension.qStatic;
-  car.rearGap = -p.rearStation.suspension.qStatic;
-  car.frontSupportAvailable = true;
-  car.rearSupportAvailable = true;
-  Object.assign(car.powertrain, createAutomaticPowertrainState(p.powertrain, car.rearWheelOmega));
-}
-
-function reconstructBike(
-  bike: M5BikeState,
-  surfacePoint: { readonly x: number; readonly y: number; readonly z: number },
-  surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
-  yaw: number,
-  pitch: number,
-  speed: number,
-): void {
-  const p = M5_BIKE_PROFILE;
-  const position = add3(surfacePoint, scale3(surfaceNormal, p.desiredCgHeight));
-  bike.x = position.x;
-  bike.y = position.y;
-  bike.z = position.z;
-  bike.orientation = quaternionFromYawPitchLean(yaw, pitch, 0);
-  bike.omegaBody = { x: 0, y: 0, z: 0 };
-  bike.frontSteerAngle = 0;
-  bike.frontWheelOmega = speed / p.frontRollingRadius;
-  bike.rearWheelOmega = speed / p.rearRollingRadius;
-  bike.frontNormalLoad = p.mass * 9.80665 * p.frontWeightFraction;
-  bike.rearNormalLoad = p.mass * 9.80665 - bike.frontNormalLoad;
-  bike.frontGap = -p.frontStation.suspension.qStatic;
-  bike.rearGap = -p.rearStation.suspension.qStatic;
-  bike.frontSupportAvailable = true;
-  bike.rearSupportAvailable = true;
-  bike.referenceSurfaceNormal = { ...surfaceNormal };
-  Object.assign(bike.powertrain, createAutomaticPowertrainState(p.powertrain, bike.rearWheelOmega));
+  vehicle.x = position.x;
+  vehicle.y = position.y;
+  vehicle.z = position.z;
+  vehicle.yaw = yaw;
+  vehicle.pitch = pitch;
+  vehicle.yawRate = 0;
+  vehicle.pitchRate = 0;
+  vehicle.frontSteerAngle = 0;
+  resetDrivingActuatorState(vehicle.actuator);
+  vehicle.frontWheelOmega = speed / p.frontWheelRadius;
+  vehicle.rearWheelOmega = speed / p.rearWheelRadius;
+  vehicle.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;
+  vehicle.rearNormalLoad = p.mass * 9.80665 * p.frontAxle / wheelbase;
+  vehicle.frontGap = -p.frontStation.suspension.qStatic;
+  vehicle.rearGap = -p.rearStation.suspension.qStatic;
+  vehicle.frontSupportAvailable = true;
+  vehicle.rearSupportAvailable = true;
+  Object.assign(
+    vehicle.powertrain,
+    createAutomaticPowertrainState(p.powertrain, vehicle.rearWheelOmega),
+  );
 }
 
 function segmentIndexAt(

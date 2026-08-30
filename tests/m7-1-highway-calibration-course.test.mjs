@@ -31,8 +31,7 @@ import {
   createM5RecoveryState,
   recoverM5Vehicle,
 } from '../dist/gameplay/recovery.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
-import { createM5Bike } from '../dist/physics/motorcycle-physics.js';
+import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
 test('current circuit lap retains high-speed references and owns two post-handoff low-speed complexes', () => {
@@ -85,7 +84,7 @@ test('ordinary rival physics brakes for and clears both low-speed complexes on a
   const lastCorner = lowSpeedCorners.at(-1);
   assert.ok(firstCorner && lastCorner);
 
-  const car = createM5Car(
+  const car = createTestCar(
     live.window.guide,
     live.window.height,
     live.window.surface,
@@ -102,7 +101,7 @@ test('ordinary rival physics brakes for and clears both low-speed complexes on a
 
   while (car.course.s < exitTargetS && ticks < 5_000) {
     const input = sampleRivalDrivingInput(live.window.guide, car, 0);
-    updateM5Car(
+    updateTestVehicle(
       live.window.guide,
       live.window.height,
       live.window.surface,
@@ -152,7 +151,7 @@ test('M7.1 lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges'
 
 test('M7.1 opening section stays within the bounded highway envelope at 216 km/h', () => {
   const live = createM71HighwayCalibrationRuntime();
-  const car = createM5Car(
+  const car = createTestCar(
     live.window.guide,
     live.window.height,
     live.window.surface,
@@ -163,7 +162,7 @@ test('M7.1 opening section stays within the bounded highway envelope at 216 km/h
 
   let maxRoadRelativePresentationHeight = Number.NEGATIVE_INFINITY;
   for (let tick = 0; tick < 240; tick += 1) {
-    updateM5Car(
+    updateTestVehicle(
       live.window.guide,
       live.window.height,
       live.window.surface,
@@ -195,14 +194,14 @@ test('M7.1 opening section stays within the bounded highway envelope at 216 km/h
 
 test('M7.1 spawn and ordinary recovery target an authored lane center', () => {
   const live = createM71HighwayCalibrationRuntime();
-  const car = createM5Car(
+  const car = createTestCar(
     live.window.guide,
     live.window.height,
     live.window.surface,
     45,
     M7_1_PLAYER_START_L,
   );
-  const bike = createM5Bike(
+  const bike = createTestBike(
     live.window.guide,
     live.window.height,
     live.window.surface,

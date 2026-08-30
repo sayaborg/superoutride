@@ -17,7 +17,7 @@ import {
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
 } from '../dist/dev/vehicle-telemetry.js';
-import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { CAR_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 
 function makeProbeTrace() {
@@ -61,15 +61,15 @@ test('trace rejects non-canonical steering values rather than silently clamping 
   );
 });
 
-function replayProbe(trace, profile = M5_CAR_PROFILE) {
+function replayProbe(trace, profile = CAR_VEHICLE_PROFILE) {
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);
   const surfaces = createM5DebugSurfaceMap(guide.length);
-  const car = createM5Car(guide, height, surfaces, 45);
+  const car = createTestCar(guide, height, surfaces, 45, 0, 45, profile);
   const recorder = createVehicleTelemetryRecorder(trace.dt, guide.length, car);
 
   visitDrivingInputTrace(trace, (input) => {
-    updateM5Car(guide, height, surfaces, car, input, trace.dt, profile);
+    updateTestVehicle(guide, height, surfaces, car, input, trace.dt);
     recordVehicleTelemetryTick(recorder, input, car);
   });
   return summarizeVehicleTelemetry(recorder);
@@ -85,10 +85,10 @@ test('same immutable trace can A/B two physics parameter sets without changing t
   const before = serializeDrivingInputTrace(trace);
   const baseline = replayProbe(trace);
   const lowerDrive = replayProbe(trace, {
-    ...M5_CAR_PROFILE,
+    ...CAR_VEHICLE_PROFILE,
     powertrain: {
-      ...M5_CAR_PROFILE.powertrain,
-      torqueCurve: M5_CAR_PROFILE.powertrain.torqueCurve.map((point) => ({
+      ...CAR_VEHICLE_PROFILE.powertrain,
+      torqueCurve: CAR_VEHICLE_PROFILE.powertrain.torqueCurve.map((point) => ({
         ...point,
         torqueNewtonMeters: point.torqueNewtonMeters * 0.55,
       })),

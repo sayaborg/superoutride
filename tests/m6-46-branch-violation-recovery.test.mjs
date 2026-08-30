@@ -15,7 +15,7 @@ import {
   recoverM5VehicleToGuideCoordinate,
 } from '../dist/gameplay/recovery.js';
 import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
-import { createM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
 import {
@@ -114,7 +114,7 @@ function crossAndCommitChoice(live, traveler, choiceId) {
 
 test('M6.46 ordinary recovery backtracks to the real open start instead of wrapping to the path end', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
-  const car = createM5Car(guide, heightProfile, surfaceMap, 4);
+  const car = createTestCar(guide, heightProfile, surfaceMap, 4);
   const recovery = createM5RecoveryState(car);
   recovery.lastSafeS = 4;
 
@@ -132,7 +132,7 @@ test('M6.46 ordinary recovery backtracks to the real open start instead of wrapp
 
 test('M6.46 explicit supported Guide recovery target is reusable for wrong-course response', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
-  const car = createM5Car(guide, heightProfile, surfaceMap, 45);
+  const car = createTestCar(guide, heightProfile, surfaceMap, 45);
   const recovery = createM5RecoveryState(car);
 
   recoverM5VehicleToGuideCoordinate(
@@ -247,7 +247,7 @@ test('second-fork losing sibling recovers to the locked physical gate without ma
   assert.equal(loser.handoffState.pending, null);
 
   const runtime = resolveLiveRouteTravelerRuntime(live, loser);
-  const car = createM5Car(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, 0);
+  const car = createTestCar(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, 0);
   const recovery = createM5RecoveryState(car);
   const approach = lockedBranchRecoveryApproach(live.gates, 'S4R_FORK_B', 8);
   const target = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, approach.worldPoint, false);

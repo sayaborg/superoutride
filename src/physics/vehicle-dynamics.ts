@@ -31,14 +31,18 @@ export type VehicleContactId = 'FRONT' | 'REAR';
 
 /** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
-  /** Canonical input observation. CAR reads normalized steering request; BIKE reads lean intent. */
+  /** Canonical input observation. */
   steeringRequest: number;
+  steeringActuator: number;
+  throttleActuator: number;
+  brakeActuator: number;
   actualSteerAngle: number;
   /** CAR-only equivalent handwheel angle derived from road-wheel angle and authored ratio. */
   handwheelAngle: number;
   /** Signed regularized front contact slip angle. Derived telemetry only. */
   frontSlipAngle: number;
-  requestedDriveTorque: number;
+  /** Torque actually delivered by the powertrain to the driven station. */
+  deliveredDriveTorque: number;
   frontBrakeTorque: number;
   rearBrakeTorque: number;
   frontWheelLocked: boolean;
@@ -49,7 +53,6 @@ export interface VehicleControlState {
 
 /** Shared public world-state fields. `course` is a derived Guide cache, never world authority. */
 export interface VehicleDynamicsState {
-  readonly kind: 'CAR' | 'BIKE';
   x: number;
   y: number;
   z: number;
@@ -85,7 +88,6 @@ export interface ContactStationProfile {
   /** CG-to-free-reach distance along body down at maximum suspension extension. */
   readonly freeReachDown: number;
   readonly rollingRadius: number;
-  readonly crownRadius: number;
   readonly wheelInertia: number;
   readonly maxBrakeTorque: number;
   readonly suspension: SuspensionStationProfile;
@@ -151,10 +153,13 @@ export class VehicleOutsideModelError extends Error {
 export function createVehicleControlState(): VehicleControlState {
   return {
     steeringRequest: 0,
+    steeringActuator: 0,
+    throttleActuator: 0,
+    brakeActuator: 0,
     actualSteerAngle: 0,
     handwheelAngle: 0,
     frontSlipAngle: 0,
-    requestedDriveTorque: 0,
+    deliveredDriveTorque: 0,
     frontBrakeTorque: 0,
     rearBrakeTorque: 0,
     frontWheelLocked: false,
@@ -293,8 +298,8 @@ export function sampleSurfaceGeometryAtCoordinate(
 }
 
 /**
- * One ordinary derived contact solve for both vehicle kinds. Surface normal is frozen within the
- * substep; crown-point motion from body angular velocity and steer rate is analytic.
+ * One ordinary derived contact solve for every vehicle profile. Surface normal is frozen within
+ * the substep and both stations use their authored rolling radius directly.
  */
 export function deriveContactObservation(
   guide: GuideCoordinateSource,
@@ -325,44 +330,10 @@ export function deriveContactObservation(
     previousSegmentIndex,
   );
 
-  let reachPoint = freePoint;
-  let crownVelocity = { x: 0, y: 0, z: 0 } satisfies Vec3;
-  let crownValid = true;
-  let effectiveRollingRadius = station.rollingRadius;
-  if (station.crownRadius > 0) {
-    const nDotF = dot3(surface.normal, wheelForward);
-    const nCrossRaw = sub3(surface.normal, scale3(wheelForward, nDotF));
-    const nCrossLength = magnitude3(nCrossRaw);
-    crownValid = nCrossLength > 1e-8;
-    if (crownValid) {
-      const nCross = scale3(nCrossRaw, 1 / nCrossLength);
-      reachPoint = add3(
-        freePoint,
-        scale3(sub3(body.up, nCross), station.crownRadius),
-      );
-      effectiveRollingRadius = (station.rollingRadius - station.crownRadius)
-        + station.crownRadius * dot3(body.up, nCross);
-
-      const upDot = cross3(body.omegaWorld, body.up);
-      const wheelForwardDot = add3(
-        cross3(body.omegaWorld, wheelForward),
-        isFront ? scale3(cross3(body.up, wheelForward), steerRate) : { x: 0, y: 0, z: 0 },
-      );
-      const nCrossRawDot = scale3(add3(
-        scale3(wheelForward, dot3(surface.normal, wheelForwardDot)),
-        scale3(wheelForwardDot, nDotF),
-      ), -1);
-      const nCrossDot = scale3(
-        sub3(nCrossRawDot, scale3(nCross, dot3(nCross, nCrossRawDot))),
-        1 / nCrossLength,
-      );
-      crownVelocity = scale3(sub3(upDot, nCrossDot), station.crownRadius);
-    }
-  }
-
+  const reachPoint = freePoint;
   const reachVelocity = add3(
-    add3(body.velocity, cross3(body.omegaWorld, freeOffset)),
-    crownVelocity,
+    body.velocity,
+    cross3(body.omegaWorld, freeOffset),
   );
   const gap = dot3(sub3(reachPoint, surface.point), surface.normal);
   const supportAvailable = surface.material.supported;
@@ -379,7 +350,7 @@ export function deriveContactObservation(
   const contactPoint = sub3(reachPoint, scale3(surface.normal, gap));
 
   const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
-  const tireFrameValid = crownValid && magnitude3(tireForwardRaw) > 1e-8;
+  const tireFrameValid = magnitude3(tireForwardRaw) > 1e-8;
   const tireForward = tireFrameValid ? normalize3(tireForwardRaw, surface.tangent) : surface.tangent;
   const tireRight = tireFrameValid
     ? normalize3(cross3(surface.normal, tireForward), surface.right)
@@ -404,7 +375,7 @@ export function deriveContactObservation(
     q,
     qDot,
     normalLoad,
-    effectiveRollingRadius,
+    effectiveRollingRadius: station.rollingRadius,
     tireForward,
     tireRight,
     longitudinalVelocity,
@@ -420,6 +391,9 @@ export function compileSuspensionStation(
   qTravel: number,
   bumpForceMax: number,
 ): SuspensionStationProfile {
+  if (![staticLoad, rideFrequency, dampingRatio, qBump, qTravel, bumpForceMax].every(Number.isFinite)) {
+    throw new RangeError('suspension inputs must be finite');
+  }
   if (!(staticLoad > 0)) throw new RangeError('static station load must be > 0');
   if (!(rideFrequency > 0)) throw new RangeError('ride frequency must be > 0');
   if (!(dampingRatio >= 0)) throw new RangeError('damping ratio must be >= 0');

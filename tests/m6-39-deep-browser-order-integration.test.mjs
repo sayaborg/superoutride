@@ -30,7 +30,7 @@ import {
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -243,7 +243,7 @@ function createDeepState() {
   const parent = createParentRuntime(parentGuide);
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
-  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 320);
+  const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 320);
   car.velocityX = Math.sin(car.yaw) * PROBE_SPEED_MPS;
   car.velocityY = 0;
   car.velocityZ = Math.cos(car.yaw) * PROBE_SPEED_MPS;
@@ -301,7 +301,7 @@ function driveTransition(state, choiceId) {
     state.simulationTicks += 1;
     const runtimeBefore = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
     const input = probeInput(runtimeBefore.coordinateFrame, state.car, staged.targetL);
-    updateM5Car(
+    updateTestVehicle(
       runtimeBefore.coordinateFrame,
       runtimeBefore.heightProfile,
       runtimeBefore.surfaceMap,
@@ -388,7 +388,7 @@ function driveFinish(state, terminalStageId) {
   for (let tick = 0; tick < SEGMENT_MAX_TICKS; tick += 1) {
     state.simulationTicks += 1;
     const runtime = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
-    updateM5Car(
+    updateTestVehicle(
       runtime.coordinateFrame,
       runtime.heightProfile,
       runtime.surfaceMap,
@@ -430,7 +430,7 @@ function driveFinish(state, terminalStageId) {
   for (let frame = 0; frame < POST_FINISH_RENDER_FRAMES; frame += 1) {
     state.simulationTicks += 1;
     const runtime = resolveActiveStageRuntimeContent(state.live.registry, state.handoffState);
-    updateM5Car(
+    updateTestVehicle(
       runtime.coordinateFrame,
       runtime.heightProfile,
       runtime.surfaceMap,

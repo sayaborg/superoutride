@@ -20,7 +20,7 @@ import {
   queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -84,7 +84,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
-  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 390);
+  const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 390);
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(
     live.route,
@@ -111,7 +111,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
       ? M6_13_JUNCTION.separatedChildCenterL('LEFT')
       : 0;
     const input = sampleRivalDrivingInput(guideCoordinateCurve(runtimeBefore.coordinateFrame), car, targetL);
-    updateM5Car(runtimeBefore.coordinateFrame, runtimeBefore.heightProfile, runtimeBefore.surfaceMap, car, input, DT);
+    updateTestVehicle(runtimeBefore.coordinateFrame, runtimeBefore.heightProfile, runtimeBefore.surfaceMap, car, input, DT);
     if (runtimeBefore.packageId === 'CONTENT_STAGE_1') maxParentS = Math.max(maxParentS, car.course.s);
 
     const recovered = updateM5Recovery(

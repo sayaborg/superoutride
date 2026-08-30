@@ -1,0 +1,108 @@
+SUPER OUTRIDE — M9.0 VEHICLE UNIFICATION VALIDATION
+2026-08-31 JST
+
+Scope:
+Ordered preservation of the complete M8.2-M8.7 candidate followed by M9.0 Two-Station Arcade
+Vehicle Dynamics, one common three-channel actuator, compiled CAR/BIKE profiles, retired-solver
+deletion, causal regression migration, browser composition verification and exact-head candidate
+procedure.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Independent M8.2-M8.7 preservation commit:
+c2416989eb616e2cc7450b4e8cf7503a38328aab
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Package / visible milestone:
+super-outride-m9-0@0.9.0
+SUPER OUTRIDE M9.0
+
+Normative authority:
+docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
+
+Ordered M8.2-M8.7 preservation:
+- the dirty handoff candidate was first tested without M9 source changes;
+- the complete repository result was 526 tests / 526 pass / 0 fail / 0 skipped;
+- LINEAR, BRANCHING and CIRCUIT browser compositions rendered at the M8.7 candidate state;
+- keyboard press/release, movement-yaw camera, body-pitch follow, 200 m render distance and both
+  authored M8.7 crest jumps remained live with no browser error/warning log;
+- that exact state was committed independently before the M9 branch was stacked from it.
+
+Resolved implementation classes:
+- canonical keyboard, touch, AI and trace input remains request-only `DrivingInput`;
+- one vehicle-neutral actuator owns the only persistent normalized steering, throttle and brake
+  response values, including finite asymmetric application/release and explicit reversal;
+- one travel-direction Driver owns the sole physical front road-wheel angle for both profiles;
+- one common Two-Station Arcade Vehicle Dynamics solver owns CAR and BIKE world integration;
+- compiled profiles own mass, geometry, inertia, suspension, wheel, tire, steering, brake, drag,
+  actuator and powertrain differences without a vehicle-kind mechanics branch;
+- automatic powertrain and implicit wheel solves remain the sole drive/brake torque route, and
+  contact/tire force remains the sole route from wheel torque to body force;
+- BIKE coordinated-turn lean is a read-only render adapter and cannot affect mechanics;
+- the separate CAR/BIKE solvers and quaternion/crown/gyro/Rider-only helpers are deleted without
+  compatibility re-exports;
+- recovery reconstructs one common state and neutralizes actuator/powertrain response without
+  manufacturing route, checkpoint or lap progress;
+- every build recreates the complete ignored `dist` tree so deleted source modules cannot survive
+  as publishable historical artifacts;
+- top-level composition derives sprite identity from the one profile identity already owned by the
+  vehicle; there is no duplicate mutable vehicle-kind state.
+
+Dedicated executable acceptance:
+tests/m9-0-driving-actuator.test.mjs
+tests/m9-0-pedal-and-tire-causality.test.mjs
+tests/m9-0-vehicle-unification-architecture.test.mjs
+
+The acceptance matrix covers:
+- exact bounds and neutral state, one-tick versus held input, authored application/release times,
+  finite monotone steering release, continuous reversal, deterministic replay and recovery reset;
+- intermediate throttle torque, repeated digital taps, partial braking, physical wheel lock,
+  simultaneous throttle/brake and actuator release through ordinary wheel torque;
+- symmetric one-k longitudinal plateau, no post-peak drop and combined-slip allocation;
+- one common state/solver/contact/tire/wheel path and absence of retired imports or generated ESM;
+- profile compiler rejection of invalid finite/positive mechanics, actuator and powertrain data;
+- travel-direction countersteer, one rack stop and derived handwheel telemetry;
+- CAR and BIKE on the finite LINEAR runtime and both physical BRANCHING children;
+- full approximately 12.076 km CIRCUIT completion by both profiles, including exactly two natural
+  airborne/recontact episodes through the ordinary suspension/contact path;
+- retained renderer depth, metric presentation, camera, route and topology regression suites.
+
+Full repository result before this artifact:
+npm test
+537 tests
+537 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local LINEAR boot rendered M9.0 CAR, accepted ArrowRight press/release, returned to neutral input,
+  and switched at safe spawn to MOTORCYCLE with fixed 40 px/m player presentation;
+- local BRANCHING boot rendered M9.0 CAR and switched at safe spawn to MOTORCYCLE;
+- local CIRCUIT boot rendered M9.0 CAR and switched at safe spawn to MOTORCYCLE;
+- all three compositions retained the centered player, movement-yaw diagnostic and ordinary world
+  rendering and emitted no browser error/warning log.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 537 / 537 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. The architecture is frozen; CAR and BIKE feel values remain calibration seeds.

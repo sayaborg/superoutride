@@ -9,7 +9,7 @@ import {
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
 } from '../dist/dev/vehicle-telemetry.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { VEHICLE_PHYSICS_CALIBRATION_STATUS } from '../dist/physics/vehicle-calibration.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
 
@@ -70,14 +70,14 @@ function runCurrentDevProbe() {
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);
   const surfaces = createM5DebugSurfaceMap(guide.length);
-  const car = createM5Car(guide, height, surfaces, 45);
+  const car = createTestCar(guide, height, surfaces, 45);
   const recorder = createVehicleTelemetryRecorder(SIM_DT, guide.length, car);
 
   for (let tick = 0; tick < 180; tick += 1) {
     const input = tick < 120
       ? { steering: 0, throttle: true, brake: false }
       : { steering: 0.12, throttle: false, brake: false };
-    updateM5Car(guide, height, surfaces, car, input, SIM_DT);
+    updateTestVehicle(guide, height, surfaces, car, input, SIM_DT);
     recordVehicleTelemetryTick(recorder, input, car);
   }
   return summarizeVehicleTelemetry(recorder);

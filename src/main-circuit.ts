@@ -47,8 +47,12 @@ import {
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
-import { createM5Car, updateM5Car, type M5CarState } from './physics/car-physics.js';
-import { createM5Bike, updateM5Bike, type M5BikeState } from './physics/motorcycle-physics.js';
+import {
+  createArcadeVehicle,
+  updateArcadeVehicle,
+  type ArcadeVehicleState,
+} from './physics/arcade-vehicle-physics.js';
+import { BIKE_VEHICLE_PROFILE, CAR_VEHICLE_PROFILE } from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import {
   drawCarSteeringHud,
@@ -56,6 +60,11 @@ import {
   formatVehicleSuspensionHud,
 } from './render/vehicle-control-hud.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
+import {
+  deriveVehicleLeanRadians,
+  deriveVehicleSpriteFamily,
+  formatVehiclePresentationName,
+} from './render/vehicle-presentation.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { circuitWindowToUnwrappedChainage } from './runtime/circuit-runtime-window.js';
@@ -112,20 +121,21 @@ const terrainProfile: TerrainVisualProfile = {
   thinSpanScreenRows: 1,
 };
 
-let vehicle: M5CarState | M5BikeState = createM5Car(
+let vehicle: ArcadeVehicleState = createArcadeVehicle(
+  CAR_VEHICLE_PROFILE,
   guide,
   height,
   surfaces,
   45,
   M7_1_PLAYER_START_L,
 );
-let vehicleKind: 'car' | 'bike' = 'car';
 let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
 const rivalRoster = createRivalRoster(M8_7_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
-  const rivalVehicle = createM5Car(
+  const rivalVehicle = createArcadeVehicle(
+    CAR_VEHICLE_PROFILE,
     guide,
     height,
     surfaces,
@@ -191,11 +201,7 @@ function frame(now: number): void {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    if (vehicleKind === 'car') {
-      updateM5Car(guide, height, surfaces, vehicle as M5CarState, input, SIM_DT);
-    } else {
-      updateM5Bike(guide, height, surfaces, vehicle as M5BikeState, input, SIM_DT);
-    }
+    updateArcadeVehicle(guide, height, surfaces, vehicle, input, SIM_DT);
 
     const recovered = updateM5Recovery(
       recovery,
@@ -217,7 +223,7 @@ function frame(now: number): void {
 
     for (const rival of rivals) {
       const rivalInput = sampleRivalDrivingInput(guide, rival.vehicle, 0);
-      updateM5Car(guide, height, surfaces, rival.vehicle, rivalInput, SIM_DT);
+      updateArcadeVehicle(guide, height, surfaces, rival.vehicle, rivalInput, SIM_DT);
       const rivalRecovered = updateM5Recovery(
         rival.recovery,
         guide,
@@ -257,6 +263,7 @@ function frame(now: number): void {
 }
 
 function render(): void {
+  const spriteFamily = deriveVehicleSpriteFamily(vehicle);
   const rivalSprites = rivals.map((rival) => createDynamicVehicleCourseSprite(
     rival.actorId,
     rival.vehicle,
@@ -274,7 +281,7 @@ function render(): void {
     groundProfile,
     rivalSprites,
     spriteAssets,
-    vehicleKind,
+    spriteFamily,
   );
   ctx.putImageData(imageData, 0, 0);
 
@@ -286,8 +293,8 @@ function render(): void {
   const roadDeltaDeg = camera.vehicleGuideYawDelta * 180 / Math.PI;
   const bodySlipAngle = Math.atan2(vehicle.lateralSpeed, Math.max(0.01, vehicle.longitudinalSpeed));
   const slipDeg = bodySlipAngle * 180 / Math.PI;
-  const bankDeg = vehicleKind === 'bike'
-    ? (vehicle as M5BikeState).bankAngle * 180 / Math.PI
+  const bankDeg = spriteFamily === 'bike'
+    ? deriveVehicleLeanRadians(vehicle) * 180 / Math.PI
     : 0;
   const controlHud = formatVehicleControlHud(vehicle.control, vehicle.powertrain, vehicle.speed);
   const suspensionHud = formatVehicleSuspensionHud(vehicle);
@@ -329,7 +336,7 @@ function render(): void {
   ctx.fillText('SUPER OUTRIDE', 8, 6);
   ctx.fillStyle = '#a6bac4';
   ctx.font = '9px monospace';
-  ctx.fillText(`M8.7 COURSE DEBUG ${M8_7_DEV_COURSE_MODE.routeKind} / ${vehicleKind === 'car' ? 'CAR' : 'MOTORCYCLE'} SWITCH [V] RECOVER [R]`, 8, 23);
+  ctx.fillText(`M9.0 COURSE DEBUG ${M8_7_DEV_COURSE_MODE.routeKind} / ${formatVehiclePresentationName(vehicle)} SWITCH [V] RECOVER [R]`, 8, 23);
   ctx.fillText(controlHud.instruments, 8, 36);
   ctx.fillText(`S ${vehicle.course.s.toFixed(1).padStart(7)} L ${formatSigned(vehicle.course.l)} ${vehicle.surfaceType.padEnd(8)} ${vehicle.supported ? 'LOAD' : 'FREE'}`, 8, 48);
   ctx.fillText(`LAP ${validatedLaps}/${raceRules.lapCount}  POS ${playerStanding.rank}/${standings.length}  EVT ${raceProgress.lastEvent}`, 8, 60);
@@ -355,7 +362,7 @@ function render(): void {
   ctx.fillStyle = '#8fa3ad';
   ctx.fillText(COURSE_MODE_HOTKEY_LABEL, 8, 218);
   ctx.fillText(`World CG authority / FIXED PLAYER SCALE 2.0m=80px (${PLAYER_PIXELS_PER_METER} px/m)`, 8, 229);
-  if (vehicleKind === 'car') {
+  if (vehicle.profile.id === 'CAR') {
     drawCarSteeringHud(ctx, input.steering, vehicle.control, bodySlipAngle);
   }
   drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
@@ -374,13 +381,15 @@ function switchVehicleAtSafeSpawn(): void {
   const s = vehicle.course.s;
   const l = vehicle.course.l;
   const speed = vehicle.longitudinalSpeed;
-  if (vehicleKind === 'car') {
-    vehicle = createM5Bike(guide, height, surfaces, s, l, speed);
-    vehicleKind = 'bike';
-  } else {
-    vehicle = createM5Car(guide, height, surfaces, s, l, speed);
-    vehicleKind = 'car';
-  }
+  vehicle = createArcadeVehicle(
+    vehicle.profile.id === 'CAR' ? BIKE_VEHICLE_PROFILE : CAR_VEHICLE_PROFILE,
+    guide,
+    height,
+    surfaces,
+    s,
+    l,
+    speed,
+  );
   recovery = createM5RecoveryState(vehicle);
   resetM5CameraRig(cameraRig);
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());

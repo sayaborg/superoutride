@@ -9,8 +9,8 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
 ```
 
 It records the dirty M8.2-M8.7 preservation boundary and the staged M9 CAR/BIKE unification and
-three-channel actuator procedure. It is takeover context, not M9 normative authority; M9.0 must
-author the explicit supersession document before implementation retires M8.0/M8.1 mechanics.
+three-channel actuator procedure. It is takeover context, not M9 normative authority; the numbered
+M9.0 document now owns the implemented supersession boundary.
 
 ## 1. Normative frozen authority
 
@@ -26,6 +26,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, CAR control and player-camera authorities are:
 
 ```text
+87_m9_0_two_station_arcade_vehicle_dynamics.md
 78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 80_m8_1_car_self_steering_control.md
 81_m8_2_body_pitch_movement_yaw_camera.md
@@ -33,11 +34,16 @@ The current vehicle-physics, CAR control and player-camera authorities are:
 85_m8_6_two_hundred_meter_render_distance.md
 ```
 
+M9.0 is the current common vehicle-mechanics authority. It supersedes the separate M8.0 CAR/BIKE
+solver architecture and the M8.1 immediate steering-release rule within its explicit scope while
+retaining the M8.0 contact/tire/wheel chain and M8.1 travel-direction steering concept.
+
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 while leaving those earlier milestone documents intact as historical records.
-M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; M8.0
-continues to own the mechanical model and BIKE authority.
+Historically, M8.1 superseded only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer
+decisions. M9.0 now owns shared CAR/BIKE mechanics and finite input response while retaining the
+M8.0 contact/tire/wheel chain and M8.1 travel-direction steering concept within its stated scope.
 M8.2 supersedes the earlier M5 Guide-lateral/yaw-lag camera authority while preserving the frozen
-renderer, metric presentation and M8.0/M8.1 vehicle authorities.
+renderer, metric presentation and current M9.0 vehicle authority.
 M8.5 supersedes only the M8.2 initial 8-degree base-pitch and matching camera-height tuning.
 M8.6 supersedes only the M8.5 150 m far-depth value and records the geometric-horizon audit.
 
@@ -55,7 +61,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `86_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `87_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -89,12 +95,13 @@ The most important current topology/runtime/physics sequence is:
 84_m8_5_downward_camera_presentation.md
 85_m8_6_two_hundred_meter_render_distance.md
 86_m8_7_varied_elevation_circuit.md
+87_m9_0_two_station_arcade_vehicle_dynamics.md
 ```
 
 The current public CIRCUIT course geometry authority is `86_m8_7_varied_elevation_circuit.md`;
 `83_m8_4_dual_low_speed_circuit_complex.md` and
 `79_m8_0_circuit_low_speed_corner_authoring.md` remain its historical predecessors. M8.7 changes
-only CIRCUIT DEV authoring; it does not change M8.0 vehicle physics, the M7.2 BRANCHING parent, or
+only CIRCUIT DEV authoring; it does not change vehicle physics, the M7.2 BRANCHING parent, or
 frozen renderer/topology authority.
 
 Current governing topology rule:
@@ -107,11 +114,11 @@ Current governing vehicle-physics rule:
 
 Current governing CAR steering rule:
 
-> Steering input is a normalized driver request; one press-slew angular-offset command makes
-> digital press duration controllable and clears immediately on release. A stateless yaw-rate
-> preview and fast rack response aim the authoritative road-wheel angle along the short-horizon
-> predicted CG travel direction plus that offset. Front slip remains tire-force/telemetry authority
-> and is not steering feedback.
+> Steering input is a normalized driver request; one finite actuator value makes digital press
+> duration controllable and returns monotonically to exact neutral. A stateless yaw-rate preview
+> and fast rack response aim the authoritative road-wheel angle along the short-horizon predicted
+> CG travel direction plus that offset. Front slip remains tire-force/telemetry authority and is
+> not steering feedback.
 
 Current governing player-camera rule:
 
@@ -175,7 +182,17 @@ validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt
 It records the validation-inclusive local candidate, the executable result, browser
 checks for both public compositions, and the self-reference-safe exact-head CI procedure.
 
-## 5. Active M9 planning handoff
+M9.0 common vehicle-dynamics candidate evidence is:
+
+```text
+validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt
+```
+
+It records the independent M8.2-M8.7 preservation commit, the common-solver migration, causal and
+architecture acceptance, three-mode browser checks and the self-reference-safe exact-head CI
+procedure.
+
+## 5. M9 implementation handoff
 
 The current next-thread procedure is:
 
@@ -184,8 +201,8 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
 ```
 
 It owns navigation and execution order only. It does not supersede the current frozen vehicle
-authority. Its first required implementation milestone is an explicit M9.0 normative design and
-executable architecture boundary.
+authority. Its required normative M9.0 design and executable architecture boundary are now present
+in `87_m9_0_two_station_arcade_vehicle_dynamics.md` and the dedicated M9 regressions.
 
 ## 6. M8.0 implementation/finalization handoff
 

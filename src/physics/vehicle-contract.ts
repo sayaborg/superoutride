@@ -28,5 +28,6 @@ export interface VehicleCameraReadState extends VehicleWorldPoseRead {
 
 /** Minimum vehicle state needed by the pseudo-3D renderer. */
 export interface VehicleRenderReadState extends VehicleWorldPoseRead {
-  readonly sprungRoll: number;
+  readonly longitudinalSpeed?: number;
+  readonly yawRate?: number;
 }

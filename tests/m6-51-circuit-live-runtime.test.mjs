@@ -7,7 +7,7 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
@@ -33,11 +33,11 @@ function driveAcrossFirstSeam(live) {
   const L = window.topology.lapLength;
   // Keep this probe narrow: it proves the seam itself rather than turning into a
   // handling calibration test for the deliberately DEV_UNCALIBRATED vehicle model.
-  const car = createM5Car(window.guide, window.height, window.surface, L - 20);
+  const car = createTestCar(window.guide, window.height, window.surface, L - 20);
   let ticks = 0;
   while (car.course.s <= L + 5 && ticks < 120) {
     const input = sampleRivalDrivingInput(window.guide, car, 0);
-    updateM5Car(window.guide, window.height, window.surface, car, input, SIM_DT);
+    updateTestVehicle(window.guide, window.height, window.surface, car, input, SIM_DT);
     ticks += 1;
   }
   return { car, ticks, L };
@@ -165,7 +165,7 @@ test('M6.51 circuit browser composition uses existing open engine paths and cont
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
-  assert.match(source, /updateM5Car\(guide, height, surfaces/);
+  assert.match(source, /updateArcadeVehicle\(guide, height, surfaces/);
   assert.match(source, /updateM5Camera\(cameraRig, guide, height/);
   assert.match(source, /renderM5Driving\(/);
   assert.match(source, /updateCircuitRaceProgress/);

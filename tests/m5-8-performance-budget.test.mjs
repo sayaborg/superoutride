@@ -20,7 +20,7 @@ import {
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { drawScaledSprite } from '../dist/render/sprite.js';
@@ -86,7 +86,7 @@ function placeCar(car, s, l, yawOffset) {
 }
 
 function renderProbe(s, l, yawOffset) {
-  const car = createM5Car(guide, height, surfaces, s);
+  const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, l, yawOffset);
   const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
   return renderM5Driving(

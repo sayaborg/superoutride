@@ -157,14 +157,17 @@ function selectInitialGear(profile: AutomaticPowertrainProfile, wheelOmega: numb
   return profile.gearRatios.length;
 }
 
-function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainProfile): void {
-  if (profile.gearRatios.length === 0 || profile.gearRatios.some((ratio) => !(ratio > 0))) {
+export function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainProfile): void {
+  if (profile.gearRatios.length === 0 || profile.gearRatios.some(
+    (ratio) => !(ratio > 0) || !Number.isFinite(ratio),
+  )) {
     throw new RangeError('automatic transmission requires positive forward gear ratios');
   }
   if (profile.torqueCurve.length < 2) throw new RangeError('engine torque curve requires at least two points');
   for (let i = 0; i < profile.torqueCurve.length; i += 1) {
     const point = profile.torqueCurve[i]!;
-    if (!(point.rpm >= 0) || !(point.torqueNewtonMeters >= 0)) {
+    if (!(point.rpm >= 0) || !(point.torqueNewtonMeters >= 0)
+      || !Number.isFinite(point.rpm) || !Number.isFinite(point.torqueNewtonMeters)) {
       throw new RangeError('engine torque curve values must be non-negative');
     }
     if (i > 0 && point.rpm <= profile.torqueCurve[i - 1]!.rpm) {
@@ -176,5 +179,24 @@ function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainProfile)
   }
   if (!(profile.upshiftRpm < profile.redlineRpm)) {
     throw new RangeError('automatic upshift RPM must remain below redline');
+  }
+  if (!(profile.idleRpm > 0)
+    || !(profile.shiftDuration > 0)
+    || !(profile.engineResponseTau > 0)
+    || !(profile.torqueConverterSlipRpm >= 0)
+    || !(profile.finalDriveRatio > 0)
+    || !(profile.efficiency > 0 && profile.efficiency <= 1)
+    || ![
+      profile.idleRpm,
+      profile.redlineRpm,
+      profile.upshiftRpm,
+      profile.downshiftRpm,
+      profile.shiftDuration,
+      profile.engineResponseTau,
+      profile.torqueConverterSlipRpm,
+      profile.finalDriveRatio,
+      profile.efficiency,
+    ].every(Number.isFinite)) {
+    throw new RangeError('automatic powertrain scalar values must be finite and physically bounded');
   }
 }

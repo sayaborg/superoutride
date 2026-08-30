@@ -18,7 +18,7 @@ import {
 } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
@@ -109,7 +109,7 @@ test('M7.2 default composition owns lane-center spawn and recovery without chang
 
 test('opening section remains bounded at continuous throttle without recovery', () => {
   const parent = createM72DefaultBranchingParent();
-  const car = createM5Car(
+  const car = createTestCar(
     parent.guide,
     parent.heightProfile,
     parent.surfaceMap,
@@ -121,7 +121,7 @@ test('opening section remains bounded at continuous throttle without recovery', 
   let maximumRoadRelativePresentationHeight = Number.NEGATIVE_INFINITY;
 
   for (let tick = 0; tick < 720; tick += 1) {
-    updateM5Car(
+    updateTestVehicle(
       parent.guide,
       parent.heightProfile,
       parent.surfaceMap,
@@ -167,7 +167,7 @@ test('opening section remains bounded at continuous throttle without recovery', 
 
 test('opening section keeps the live rival inside its suspension model', () => {
   const parent = createM72DefaultBranchingParent();
-  const rival = createM5Car(
+  const rival = createTestCar(
     parent.guide,
     parent.heightProfile,
     parent.surfaceMap,
@@ -177,7 +177,7 @@ test('opening section keeps the live rival inside its suspension model', () => {
   const recovery = createM5RecoveryState(rival);
 
   for (let tick = 0; tick < 1_200 && rival.course.s <= 900; tick += 1) {
-    updateM5Car(
+    updateTestVehicle(
       parent.guide,
       parent.heightProfile,
       parent.surfaceMap,
@@ -202,7 +202,7 @@ test('opening section keeps the live rival inside its suspension model', () => {
 
 test('airborne recontact recovers before the vehicle can continue below authored terrain', () => {
   const parent = createM72DefaultBranchingParent();
-  const car = createM5Car(
+  const car = createTestCar(
     parent.guide,
     parent.heightProfile,
     parent.surfaceMap,
@@ -214,7 +214,7 @@ test('airborne recontact recovers before the vehicle can continue below authored
   const reasons = [];
 
   for (let tick = 0; tick < 1_080; tick += 1) {
-    updateM5Car(
+    updateTestVehicle(
       parent.guide,
       parent.heightProfile,
       parent.surfaceMap,

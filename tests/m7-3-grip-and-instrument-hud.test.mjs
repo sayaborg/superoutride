@@ -3,8 +3,12 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { M5_CAR_PROFILE, createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
-import { M5_BIKE_PROFILE } from '../dist/physics/motorcycle-physics.js';
+import {
+  BIKE_VEHICLE_PROFILE,
+  CAR_VEHICLE_PROFILE,
+  createTestCar,
+  updateTestVehicle,
+} from './helpers/vehicle-fixture.mjs';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
 import { radialC1Magnitude, usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
 import {
@@ -21,45 +25,45 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal(SURFACE_MATERIALS.SAND.gripFactor, 0.33);
   assert.ok(SURFACE_MATERIALS.ASPHALT.gripFactor > SURFACE_MATERIALS.SHOULDER.gripFactor);
   assert.ok(SURFACE_MATERIALS.SHOULDER.gripFactor > SURFACE_MATERIALS.GRASS.gripFactor);
-  assert.equal(M5_BIKE_PROFILE.muRef, 1.25);
+  assert.equal(BIKE_VEHICLE_PROFILE.muRef, 1.25);
   assert.equal('friction' in SURFACE_MATERIALS.ASPHALT, false);
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
 test('M8.0 front-tire linear capacity stays inside the shared one-k radial knee', () => {
-  assert.ok(M5_CAR_PROFILE.frontNormalizedStiffness < M5_CAR_PROFILE.rearNormalizedStiffness);
-  const frontNormal = M5_CAR_PROFILE.mass * 9.80665 * M5_CAR_PROFILE.rearAxle
-    / (M5_CAR_PROFILE.frontAxle + M5_CAR_PROFILE.rearAxle);
+  assert.ok(CAR_VEHICLE_PROFILE.frontNormalizedStiffness < CAR_VEHICLE_PROFILE.rearNormalizedStiffness);
+  const frontNormal = CAR_VEHICLE_PROFILE.mass * 9.80665 * CAR_VEHICLE_PROFILE.rearAxle
+    / (CAR_VEHICLE_PROFILE.frontAxle + CAR_VEHICLE_PROFILE.rearAxle);
   const capacity = usefulLateralCapacity(
     0,
     frontNormal,
     SURFACE_MATERIALS.ASPHALT.gripFactor,
-    M5_CAR_PROFILE.frontStation.tire,
+    CAR_VEHICLE_PROFILE.frontStation.tire,
   );
-  assert.ok(Math.abs(capacity - M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef * frontNormal) < 1e-9);
+  assert.ok(Math.abs(capacity - CAR_VEHICLE_PROFILE.rhoKnee * CAR_VEHICLE_PROFILE.muRef * frontNormal) < 1e-9);
 });
 
 test('CAR calibration keeps the broad shoulder with a lightweight high-grip profile', () => {
   const pureLateralAngles = (normalizedStiffness) => ({
     linearEnd: Math.atan(
-      M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef / normalizedStiffness,
+      CAR_VEHICLE_PROFILE.rhoKnee * CAR_VEHICLE_PROFILE.muRef / normalizedStiffness,
     ) * 180 / Math.PI,
     plateauStart: Math.atan(
-      (2 - M5_CAR_PROFILE.rhoKnee) * M5_CAR_PROFILE.muRef / normalizedStiffness,
+      (2 - CAR_VEHICLE_PROFILE.rhoKnee) * CAR_VEHICLE_PROFILE.muRef / normalizedStiffness,
     ) * 180 / Math.PI,
   });
-  const front = pureLateralAngles(M5_CAR_PROFILE.frontNormalizedStiffness);
-  const rear = pureLateralAngles(M5_CAR_PROFILE.rearNormalizedStiffness);
+  const front = pureLateralAngles(CAR_VEHICLE_PROFILE.frontNormalizedStiffness);
+  const rear = pureLateralAngles(CAR_VEHICLE_PROFILE.rearNormalizedStiffness);
 
   assert.ok(front.linearEnd > 6.3 && front.plateauStart > 10.6);
   assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 9.1);
   assert.ok(front.plateauStart - front.linearEnd > 4.3);
   assert.ok(rear.plateauStart - rear.linearEnd > 3.7);
-  assert.equal(M5_CAR_PROFILE.mass, 1310);
-  assert.equal(M5_CAR_PROFILE.rhoKnee, 0.74);
-  assert.equal(M5_CAR_PROFILE.muRef, 1.35);
-  assert.ok(Math.abs(M5_CAR_PROFILE.rhoKnee * M5_CAR_PROFILE.muRef - 0.999) < 1e-12);
-  assert.equal(radialC1Magnitude(20, M5_CAR_PROFILE.rhoKnee), 1);
+  assert.equal(CAR_VEHICLE_PROFILE.mass, 1310);
+  assert.equal(CAR_VEHICLE_PROFILE.rhoKnee, 0.74);
+  assert.equal(CAR_VEHICLE_PROFILE.muRef, 1.35);
+  assert.ok(Math.abs(CAR_VEHICLE_PROFILE.rhoKnee * CAR_VEHICLE_PROFILE.muRef - 0.999) < 1e-12);
+  assert.equal(radialC1Magnitude(20, CAR_VEHICLE_PROFILE.rhoKnee), 1);
 });
 
 test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {
@@ -68,11 +72,11 @@ test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-c
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
   ]);
-  const car = createM5Car(parent.guide, flatHeight, parent.surfaceMap, 800, -1.75);
+  const car = createTestCar(parent.guide, flatHeight, parent.surfaceMap, 800, -1.75);
   let maxAbsSideslipDegrees = 0;
 
   for (let tick = 0; tick < 60; tick += 1) {
-    updateM5Car(
+    updateTestVehicle(
       parent.guide,
       flatHeight,
       parent.surfaceMap,
@@ -93,7 +97,7 @@ test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-c
 
 test('M7.3 always-visible instrument line names speed RPM automatic transmission and selected gear', () => {
   const parent = createM72DefaultBranchingParent();
-  const car = createM5Car(parent.guide, parent.heightProfile, parent.surfaceMap, 45, -1.75);
+  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, -1.75);
   car.powertrain.engineRpm = 4321;
   car.powertrain.gear = 4;
   const hud = formatVehicleControlHud(car.control, car.powertrain, car.speed);

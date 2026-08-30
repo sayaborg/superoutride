@@ -13,7 +13,7 @@ import {
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset, CyclicBakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
@@ -110,7 +110,7 @@ test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid s
 
 test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap', () => {
   const surfaces = createM5DebugSurfaceMap(guide.length);
-  const car = createM5Car(guide, height, surfaces, 45);
+  const car = createTestCar(guide, height, surfaces, 45);
   const camera = updateM5Camera(
     createM5CameraRig(),
     guide,

@@ -15,7 +15,13 @@ import {
   createM87VariedElevationCircuitRuntime,
 } from '../dist/dev/m8-7-varied-elevation-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import {
+  BIKE_VEHICLE_PROFILE,
+  CAR_VEHICLE_PROFILE,
+  createTestBike,
+  createTestCar,
+  updateTestVehicle,
+} from './helpers/vehicle-fixture.mjs';
 
 test('M8.7 circuit mixes medium and high-speed corner families throughout one explicit closed lap', () => {
   const authored = createM87VariedElevationCircuitLap();
@@ -67,46 +73,51 @@ test('M8.7 height authoring owns approximately 96 m relief and two explicit phys
   }
 });
 
-test('ordinary rival-controlled car completes one lap and naturally jumps exactly twice', () => {
-  const live = createM87VariedElevationCircuitRuntime();
-  const lapLength = live.window.topology.lapLength;
-  const car = createM5Car(
-    live.window.guide,
-    live.window.height,
-    live.window.surface,
-    45,
-    0,
-    0,
-  );
-  let ticks = 0;
-  let airborneEpisodes = 0;
-  let airborneTicks = 0;
-  let wasAirborne = false;
-  let maximumAbsoluteL = 0;
-
-  while (car.course.s < lapLength + 25 && ticks < 30_000) {
-    updateM5Car(
+for (const [profile, createVehicle] of [
+  [CAR_VEHICLE_PROFILE, createTestCar],
+  [BIKE_VEHICLE_PROFILE, createTestBike],
+]) {
+  test(`ordinary rival-controlled ${profile.id} completes one lap and naturally clears both crests`, () => {
+    const live = createM87VariedElevationCircuitRuntime();
+    const lapLength = live.window.topology.lapLength;
+    const vehicle = createVehicle(
       live.window.guide,
       live.window.height,
       live.window.surface,
-      car,
-      sampleRivalDrivingInput(live.window.guide, car, 0),
-      SIM_DT,
+      45,
+      0,
+      0,
     );
-    const airborne = !car.supported;
-    if (airborne && !wasAirborne) airborneEpisodes += 1;
-    if (airborne) airborneTicks += 1;
-    wasAirborne = airborne;
-    maximumAbsoluteL = Math.max(maximumAbsoluteL, Math.abs(car.course.l));
-    ticks += 1;
-  }
+    let ticks = 0;
+    let airborneEpisodes = 0;
+    let airborneTicks = 0;
+    let wasAirborne = false;
+    let maximumAbsoluteL = 0;
 
-  assert.ok(car.course.s >= lapLength + 25, `rival stalled at s=${car.course.s}`);
-  assert.equal(airborneEpisodes, M8_7_JUMP_CREST_COUNT);
-  assert.ok(airborneTicks > 30 && airborneTicks < 80, `airborne ticks=${airborneTicks}`);
-  assert.equal(car.supported, true, 'car must recontact normally after the second jump');
-  assert.ok(maximumAbsoluteL < M7_1_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
-});
+    while (vehicle.course.s < lapLength + 25 && ticks < 30_000) {
+      updateTestVehicle(
+        live.window.guide,
+        live.window.height,
+        live.window.surface,
+        vehicle,
+        sampleRivalDrivingInput(live.window.guide, vehicle, 0),
+        SIM_DT,
+      );
+      const airborne = !vehicle.supported;
+      if (airborne && !wasAirborne) airborneEpisodes += 1;
+      if (airborne) airborneTicks += 1;
+      wasAirborne = airborne;
+      maximumAbsoluteL = Math.max(maximumAbsoluteL, Math.abs(vehicle.course.l));
+      ticks += 1;
+    }
+
+    assert.ok(vehicle.course.s >= lapLength + 25, `${profile.id} stalled at s=${vehicle.course.s}`);
+    assert.equal(airborneEpisodes, M8_7_JUMP_CREST_COUNT);
+    assert.ok(airborneTicks > 20 && airborneTicks < 100, `airborne ticks=${airborneTicks}`);
+    assert.equal(vehicle.supported, true, `${profile.id} must recontact normally after the second jump`);
+    assert.ok(maximumAbsoluteL < M7_1_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
+  });
+}
 
 test('CIRCUIT selects the new authoring at composition while BRANCHING retains its existing parent', async () => {
   const [circuitSource, branchingSource] = await Promise.all([

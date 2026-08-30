@@ -22,7 +22,7 @@ import {
   estimateUpcomingTargetSpeed,
   sampleRivalDrivingInput,
 } from '../dist/gameplay/rival-driver.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   advanceLiveRouteTraveler,
@@ -78,7 +78,7 @@ function createParentRuntime(guide) {
 test('open Guide rival lookahead never samples beyond the endpoint', () => {
   const guide = createM2StadiumGuide();
   const parent = createParentRuntime(guide);
-  const car = createM5Car(guide, parent.heightProfile, parent.surfaceMap, guide.length - 0.25);
+  const car = createTestCar(guide, parent.heightProfile, parent.surfaceMap, guide.length - 0.25);
 
   assert.doesNotThrow(() => sampleRivalDrivingInput(guide, car, 0));
   assert.doesNotThrow(() => estimateUpcomingTargetSpeed(guide, car.course.s));
@@ -89,7 +89,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
   const parentGuide = createM2StadiumGuide();
   const parent = createParentRuntime(parentGuide);
   const live = createM627LiveRouteRuntime(parentGuide, parent, createM4SpriteAssets());
-  const car = createM5Car(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
+  const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
   const recovery = createM5RecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
   const fieldProgress = createFieldRouteProgressState(
@@ -111,7 +111,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
       car.course.s,
     );
     const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, targetL);
-    updateM5Car(
+    updateTestVehicle(
       runtimeBefore.coordinateFrame,
       runtimeBefore.heightProfile,
       runtimeBefore.surfaceMap,

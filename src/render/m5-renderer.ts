@@ -14,6 +14,7 @@ import { mergeTerrainAndSprites } from './painter-merge.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { SoftwareSurface } from './software-surface.js';
+import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
 export type PlayerVisualKind = 'car' | 'bike';
 
@@ -120,7 +121,7 @@ export function renderM5Driving(
   );
   const playerSet = playerKind === 'bike' ? assets.bike : assets.car;
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
-  const normalizedBank = playerKind === 'bike' ? vehicle.sprungRoll / 0.55 : 0;
+  const normalizedBank = playerKind === 'bike' ? deriveVehicleNormalizedBank(vehicle) : 0;
   const selected = selectVehicleSprite(playerSet, relativeYaw, normalizedBank);
   const playerStats = drawScaledSprite(
     target,

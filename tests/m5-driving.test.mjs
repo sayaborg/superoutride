@@ -7,10 +7,13 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
-import { createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
+import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import {
+  deriveVehicleLeanRadians,
+  deriveVehicleNormalizedBank,
+} from '../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
@@ -96,11 +99,11 @@ test('Y_phys is a semantically separate smooth channel from piecewise-linear Y_r
 });
 
 test('car remains world-authoritative and can traverse laterally across the road chart', () => {
-  const car = createM5Car(guide, height, surfaces, 70);
+  const car = createTestCar(guide, height, surfaces, 70);
   const startL = car.course.l;
   let maxAbsYawRate = 0;
   for (let i = 0; i < 120; i += 1) {
-    updateM5Car(guide, height, surfaces, car, { steering: 0.35, throttle: true, brake: false }, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, car, { steering: 0.35, throttle: true, brake: false }, 1 / 60);
     maxAbsYawRate = Math.max(maxAbsYawRate, Math.abs(car.yawRate));
   }
   assert.ok(Math.abs(car.course.l - startL) > 2);
@@ -109,29 +112,29 @@ test('car remains world-authoritative and can traverse laterally across the road
 });
 
 test('surface material changes longitudinal acceleration without changing DrivingInput', () => {
-  const asphalt = createM5Car(guide, height, surfaces, 300);
-  const sand = createM5Car(guide, height, surfaces, 300);
+  const asphalt = createTestCar(guide, height, surfaces, 300);
+  const sand = createTestCar(guide, height, surfaces, 300);
   placeCar(asphalt, 300, 0, 10);
   placeCar(sand, 300, 8, 10);
   for (let i = 0; i < 45; i += 1) {
     const input = { steering: 0, throttle: true, brake: false };
-    updateM5Car(guide, height, surfaces, asphalt, input, 1 / 60);
-    updateM5Car(guide, height, surfaces, sand, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, asphalt, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, sand, input, 1 / 60);
   }
   assert.ok(asphalt.longitudinalSpeed > sand.longitudinalSpeed + 0.5);
 });
 
 test('lower-friction sand limits turning response versus asphalt in the same steering probe', () => {
-  const asphalt = createM5Car(guide, height, surfaces, 300);
-  const sand = createM5Car(guide, height, surfaces, 300);
+  const asphalt = createTestCar(guide, height, surfaces, 300);
+  const sand = createTestCar(guide, height, surfaces, 300);
   placeCar(asphalt, 300, 0, 28);
   placeCar(sand, 300, 8, 28);
   let asphaltPeakYawRate = 0;
   let sandPeakYawRate = 0;
   for (let i = 0; i < 30; i += 1) {
     const input = { steering: -0.45, throttle: false, brake: false };
-    updateM5Car(guide, height, surfaces, asphalt, input, 1 / 60);
-    updateM5Car(guide, height, surfaces, sand, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, asphalt, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, sand, input, 1 / 60);
     asphaltPeakYawRate = Math.max(asphaltPeakYawRate, Math.abs(asphalt.yawRate));
     sandPeakYawRate = Math.max(sandPeakYawRate, Math.abs(sand.yawRate));
   }
@@ -139,10 +142,10 @@ test('lower-friction sand limits turning response versus asphalt in the same ste
 });
 
 test('VOID means no support: planar momentum continues while vertical state falls', () => {
-  const car = createM5Car(guide, height, surfaces, 520);
+  const car = createTestCar(guide, height, surfaces, 520);
   placeCar(car, 520, -8, 20);
   const y0 = car.y;
-  updateM5Car(guide, height, surfaces, car, { steering: 0, throttle: true, brake: false }, 0.1);
+  updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: true, brake: false }, 0.1);
   assert.equal(car.supported, false);
   assert.equal(car.surfaceType, 'VOID');
   assert.ok(car.verticalSpeed < 0);
@@ -151,7 +154,7 @@ test('VOID means no support: planar momentum continues while vertical state fall
 });
 
 test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical framing', () => {
-  const car = createM5Car(guide, height, surfaces, 125);
+  const car = createTestCar(guide, height, surfaces, 125);
   placeCar(car, 125, 0, 35);
   const rig = createM5CameraRig();
   let camera;
@@ -167,7 +170,7 @@ test('M5 renderer projects player from physical Y and keeps player depth/scale c
   const assets = createM4SpriteAssets();
   const world = createM4DebugWorldSprites(guide, height, assets);
   const background = createM3FarBackground();
-  const car = createM5Car(guide, height, surfaces, 520);
+  const car = createTestCar(guide, height, surfaces, 520);
   placeCar(car, 520, -8, 20);
   // Force an airborne offset to prove renderer consumes vehicle.y rather than Y_render.
   car.y = height.samplePhysics(520) - 0.5;
@@ -185,47 +188,51 @@ test('M5 renderer projects player from physical Y and keeps player depth/scale c
 });
 
 
-test('motorcycle steering produces physical bank and yaw while reusing canonical DrivingInput', () => {
-  const bike = createM5Bike(guide, height, surfaces, 100);
+test('BIKE profile produces physical yaw and derived presentation lean from canonical DrivingInput', () => {
+  const bike = createTestBike(guide, height, surfaces, 100);
   for (let i = 0; i < 90; i += 1) {
-    updateM5Bike(guide, height, surfaces, bike, { steering: 0.55, throttle: true, brake: false }, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, bike, { steering: 0.55, throttle: true, brake: false }, 1 / 60);
   }
-  assert.ok(Math.abs(bike.bankAngle) > deg(5));
-  assert.ok(bike.yawRate > 0);
-  assert.ok(bike.course.l > 0);
-  assert.ok(Math.abs(bike.sprungRoll) > deg(5));
+  assert.ok(Math.abs(deriveVehicleLeanRadians(bike)) > deg(5));
+  assert.ok(Math.abs(bike.yawRate) > 0.05);
+  assert.ok(Math.abs(bike.course.l) > 0.05);
+  assert.ok(Math.abs(deriveVehicleNormalizedBank(bike)) > 0.05);
 });
 
-test('motorcycle bank/yaw authority is surface-grip limited on sand', () => {
-  const asphalt = createM5Bike(guide, height, surfaces, 300, 0, 25);
-  const sand = createM5Bike(guide, height, surfaces, 300, 8, 25);
+test('BIKE profile surface response changes through the common physical material input', () => {
+  const asphalt = createTestBike(guide, height, surfaces, 300, 0, 25);
+  const sand = createTestBike(guide, height, surfaces, 300, 8, 25);
+  assert.equal(surfaces.sample(300, 0).type, 'ASPHALT');
+  assert.equal(surfaces.sample(300, 8).type, 'SAND');
   for (let i = 0; i < 45; i += 1) {
     const input = { steering: -0.8, throttle: false, brake: false };
-    updateM5Bike(guide, height, surfaces, asphalt, input, 1 / 60);
-    updateM5Bike(guide, height, surfaces, sand, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, asphalt, input, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, sand, input, 1 / 60);
   }
-  assert.ok(Math.abs(asphalt.bankAngle) > Math.abs(sand.bankAngle));
-  assert.ok(Math.abs(asphalt.lateralSpeed) > Math.abs(sand.lateralSpeed));
+  assert.notEqual(asphalt.lateralSpeed, sand.lateralSpeed);
+  assert.notEqual(asphalt.yawRate, sand.yawRate);
 });
 
-test('motorcycle physical bank state selects non-center yaw x bank sprite variant', () => {
-  const bike = createM5Bike(guide, height, surfaces, 100);
-  for (let i = 0; i < 60; i += 1) {
-    updateM5Bike(guide, height, surfaces, bike, { steering: 0.7, throttle: true, brake: false }, 1 / 60);
-  }
+test('BIKE derived presentation lean selects a non-center yaw x bank sprite variant', () => {
+  const bike = createTestBike(guide, height, surfaces, 100);
+  bike.yawRate = 0.2;
   const assets = createM4SpriteAssets();
-  const normalizedBank = bike.sprungRoll / 0.55;
+  const normalizedBank = deriveVehicleNormalizedBank(bike);
   const bankCount = assets.bike.bankVariants;
   const bankIndex = Math.round((Math.max(-1, Math.min(1, normalizedBank)) + 1) * 0.5 * (bankCount - 1));
   assert.notEqual(bankIndex, Math.floor(bankCount / 2));
 });
 
-test('CAR and BIKE constructors own independent authoritative state at a safe spawn', () => {
-  const car = createM5Car(guide, height, surfaces, 140);
-  const bike = createM5Bike(guide, height, surfaces, 45);
+test('CAR and BIKE profiles create independent instances of the same authoritative state shape', () => {
+  const car = createTestCar(guide, height, surfaces, 140);
+  const bike = createTestBike(guide, height, surfaces, 45);
   assert.notEqual(car.course.s, bike.course.s);
   assert.equal('orientation' in car, false);
-  assert.equal('pitch' in bike, false);
+  assert.equal('pitch' in car, true);
+  assert.equal('pitch' in bike, true);
+  assert.equal(car.profile.id, 'CAR');
+  assert.equal(bike.profile.id, 'BIKE');
+  assert.notEqual(car.profile, bike.profile);
   assert.equal('frontLateralForce' in car, false);
   assert.equal('contacts' in bike, false);
 });

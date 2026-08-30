@@ -6,8 +6,7 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createM5Car } from '../dist/physics/car-physics.js';
-import { createM5Bike } from '../dist/physics/motorcycle-physics.js';
+import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { CyclicSurfaceMap, SurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
@@ -78,8 +77,8 @@ test('M6.47 M5.9 tunnel background is one ordinary open interval and never wraps
 
 test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reader directly', () => {
   const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
-  const car = createM5Car(guide, height, surfaces, 45);
-  const bike = createM5Bike(guide, height, surfaces, 45);
+  const car = createTestCar(guide, height, surfaces, 45);
+  const bike = createTestBike(guide, height, surfaces, 45);
   const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
 
   assert.equal(Number.isFinite(car.y), true);
@@ -94,8 +93,7 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
     '../src/dev/m4-camera.ts',
     '../src/camera/m5-camera.ts',
     '../src/dev/m6-20-live-runtime-content.ts',
-    '../src/physics/car-physics.ts',
-    '../src/physics/motorcycle-physics.ts',
+    '../src/physics/arcade-vehicle-physics.ts',
     '../src/dev/m4-debug-world.ts',
     '../src/world/m5-9-tunnel-world.ts',
   ];

@@ -247,6 +247,6 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
   }
   assert.doesNotMatch(main, /advanceLiveRouteTraveler\(/);
   assert.doesNotMatch(main, /sampleM613RightBranchTargetL\(rival\.course\.s\)/);
-  assert.doesNotMatch(main, /updateM5Car\(guide, heightProfile, surfaceMap, rival/);
+  assert.doesNotMatch(main, /updateTestVehicle\(guide, heightProfile, surfaceMap, rival/);
   assert.doesNotMatch(renderer, /M6_40|M6\.40|M6_42|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
 });

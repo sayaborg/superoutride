@@ -5,7 +5,7 @@ import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import {
   createRenderSpaceCamera,
@@ -49,7 +49,7 @@ test('render height adapter removes the public-course 3.37 m physics/render spli
 test('M5 player and camera share render height space while suspension displacement remains visible', () => {
   const parent = createM72DefaultBranchingParent();
   const height = parent.heightProfile;
-  const car = createM5Car(parent.guide, height, parent.surfaceMap, 2_298, -1.75);
+  const car = createTestCar(parent.guide, height, parent.surfaceMap, 2_298, -1.75);
   const camera = updateM5Camera(
     createM5CameraRig(),
     parent.guide,
@@ -95,7 +95,7 @@ test('M5 player and camera share render height space while suspension displaceme
 
 test('dynamic rival adapter maps physical anchors into the same render road space', () => {
   const parent = createM72DefaultBranchingParent();
-  const car = createM5Car(parent.guide, parent.heightProfile, parent.surfaceMap, 2_298, 1.75);
+  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 2_298, 1.75);
   const sprite = createDynamicVehicleCourseSprite(
     'RIVAL',
     car,

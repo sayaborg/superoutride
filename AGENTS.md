@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
 docs/81_m8_2_body_pitch_movement_yaw_camera.md
@@ -49,11 +50,19 @@ docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 ```
 
+M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
+steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction
+steering concept inside one Two-Station Arcade Vehicle Dynamics solver with compiled profiles and
+three finite normalized actuators. The M8 documents remain historical authority for retained and
+superseded details within the exact boundary stated by M9.0.
+
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
-M8.1 supersedes only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer decisions; the
-M8.0 mechanical model and BIKE authority remain frozen.
+Historically, M8.1 superseded only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer
+decisions. M9.0 now owns the shared CAR/BIKE mechanics and input-response boundary while retaining
+the M8.0 contact/tire/wheel chain and M8.1 travel-direction steering concept explicitly listed in
+its scope.
 M8.2 supersedes the M5 Guide-lateral/yaw-lag camera decisions within its stated scope; frozen
-renderer depth/metric authority and the M8.0/M8.1 vehicle authorities remain unchanged.
+renderer depth/metric authority and the current M9.0 vehicle authority remain unchanged.
 M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning; M8.2 movement-yaw,
 body-pitch follow and centering architecture remain authoritative.
 M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5
@@ -68,6 +77,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ```text
 docs/86_m8_7_varied_elevation_circuit.md
+docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 ```
 
 ### Milestone design authority

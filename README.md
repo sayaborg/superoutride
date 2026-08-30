@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M8.7 Varied-Elevation Circuit
+# SUPER OUTRIDE — M9.0 Vehicle Unification Candidate
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -9,9 +9,15 @@ Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out 
 The detailed next-thread procedure for preserving the current M8.2-M8.7 candidate and beginning
 the common CAR/BIKE vehicle architecture is
 `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md`. It is implementation
-handoff context, not yet M9 normative design authority.
+handoff context; the normative M9 authority is the numbered document linked below.
 
 ## Current milestone status
+
+M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by CAR and BIKE profiles. It
+owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
+ABS/TCS and presentation-only BIKE lean. The authority is
+`docs/87_m9_0_two_station_arcade_vehicle_dynamics.md`; implementation remains a candidate until
+the common-solver migration and exact-head acceptance matrix are green.
 
 M8.7 replaces only the CIRCUIT course with an approximately 12.076 km lap mixing 190, 320, 380,
 520 and 680 m-radius corners throughout. Its smooth physical elevation spans approximately 96 m
@@ -46,10 +52,10 @@ player's own first physical crossing selects either child without rival-locked w
 recovery. CIRCUIT retains its explicit finite-window lap authority. The current course-debug
 authority is `docs/82_m8_3_three_mode_course_debug.md`.
 
-M8.2 remains the current camera architecture authority and M8.5 owns its pitch/height tuning;
-M8.1 remains the CAR steering-control authority. The
-M8.0 mechanical model and BIKE authority remain frozen. Vehicle feel parameters remain
-`DEV_UNCALIBRATED`.
+M8.2 remains the current camera architecture authority and M8.5 owns its pitch/height tuning.
+M9.0 supersedes the scoped M8.0 CAR/BIKE mechanical split and M8.1 input-response decisions while
+retaining their stated world/contact/tire and travel-direction steering foundations. Vehicle feel
+parameters remain `DEV_UNCALIBRATED`.
 
 M8.0 / Phase 9 vehicle-physics implementation and regression migration are complete on:
 
@@ -170,6 +176,7 @@ M8.4       Dual Low-Speed Circuit Complex                               historic
 M8.5       Downward Camera Presentation                                  current camera pitch/height authority
 M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
 M8.7       Varied-Elevation Medium/High-Speed Circuit                     current CIRCUIT course-authoring authority
+M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
 ```
 
 Current topology/runtime/physics design sequence:
@@ -278,7 +285,7 @@ http://localhost:8000/?mode=circuit
 The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
 composition; lower engine layers remain topology-neutral ordinary consumers.
 
-Package and visible milestone metadata are synchronized at `super-outride-m8-7@0.8.7`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
+Package and visible milestone metadata are synchronized at `super-outride-m9-0@0.9.0`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 
@@ -286,8 +293,9 @@ Vehicle handling remains:
 DEV_UNCALIBRATED
 ```
 
-M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. M8.2–M8.7
-candidate validation must be recorded from the validation-inclusive exact head before release.
+M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. The
+ordered M8.2–M8.7 candidate is preserved independently at `c241698`; M9.0 candidate evidence is
+recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -302,13 +310,15 @@ src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
 src/core/presentation-scale.ts       M8.6 shared near/far render-distance authority
 src/dev/m8-7-varied-elevation-circuit.ts M8.7 CIRCUIT geometry/elevation authority
 src/render/vehicle-yaw-debug.ts    DEV body-yaw overlay
+src/render/vehicle-presentation.ts derived sprite/handwheel/BIKE-lean presentation
 src/input/touch-input.ts           pointer + page lifecycle authority
+src/physics/driving-actuator.ts    one finite steering/throttle/brake response authority
 src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
 src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
-src/physics/vehicle-math3.ts        minimal quaternion/3D math
-src/physics/vehicle-dynamics.ts     common M8.0 contact/surface/suspension observations
-src/physics/car-physics.ts          M8.0 CAR mechanics + M8.1 predictive travel-direction Driver
-src/physics/motorcycle-physics.ts   M8.0 BIKE solver
+src/physics/vehicle-math3.ts        minimal vector/3D math
+src/physics/vehicle-dynamics.ts     common contact/surface/suspension observations
+src/physics/vehicle-profiles.ts     compiled CAR/BIKE parameter authority
+src/physics/arcade-vehicle-physics.ts one Two-Station Arcade Vehicle Dynamics solver
 src/physics/vehicle-contract.ts     read-only consumer contracts
 src/physics/surface-map.ts         general SurfaceMap authority
 ```

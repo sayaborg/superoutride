@@ -1,5 +1,5 @@
 export interface DrivingInput {
-  /** Normalized canonical intent: CAR steering request; BIKE rider lean intent. */
+  /** Device-independent normalized driver request; response state belongs to vehicle mechanics. */
   steering: number;
   throttle: boolean;
   brake: boolean;

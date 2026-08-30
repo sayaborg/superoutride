@@ -7,10 +7,9 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../
 import { pseudoProject } from '../dist/core/projection.js';
 import { createM5CameraRig, resetM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from '../dist/gameplay/recovery.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
-import { createM5Bike, updateM5Bike } from '../dist/physics/motorcycle-physics.js';
-import { quaternionFromYawPitchLean } from '../dist/physics/vehicle-math3.js';
+import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { deriveVehicleLeanRadians } from '../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/visual/height-profile.js';
@@ -54,7 +53,7 @@ function updateCameraAfterRecovery(rig, vehicle, recoveryReason) {
 }
 
 test('sustained steering into VOID recovers before the player sprite can disappear', () => {
-  const car = createM5Car(guide, height, surfaces, 45);
+  const car = createTestCar(guide, height, surfaces, 45);
   const recovery = createM5RecoveryState(car);
   const rig = createM5CameraRig();
   const assets = createM4SpriteAssets();
@@ -65,7 +64,7 @@ test('sustained steering into VOID recovers before the player sprite can disappe
   let minimumWritten = Infinity;
 
   for (let i = 0; i < 1200; i += 1) {
-    updateM5Car(guide, height, surfaces, car, { steering: 1, throttle: true, brake: false }, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, car, { steering: 1, throttle: true, brake: false }, 1 / 60);
     const reason = updateM5Recovery(recovery, guide, height, surfaces, car, 1 / 60);
     camera = updateCameraAfterRecovery(rig, car, reason);
     const projected = pseudoProject({ x: car.x, y: car.y, z: car.z, s: car.course.s }, camera);
@@ -80,7 +79,7 @@ test('sustained steering into VOID recovers before the player sprite can disappe
 });
 
 test('automatic recovery returns a fallen car to supported road center and resets unsafe motion', () => {
-  const car = createM5Car(guide, height, surfaces, 520);
+  const car = createTestCar(guide, height, surfaces, 520);
   car.course = { ...car.course, s: 520, l: -8 };
   car.frontNormalLoad = 0;
   car.rearNormalLoad = 0;
@@ -106,10 +105,11 @@ test('automatic recovery returns a fallen car to supported road center and reset
   assert.equal(recovery.recoveries, 1);
 });
 
-test('bike recovery clears bank state instead of carrying a crash lean into respawn', () => {
-  const bike = createM5Bike(guide, height, surfaces, 520);
-  bike.orientation = quaternionFromYawPitchLean(bike.yaw, bike.sprungPitch, deg(40));
-  bike.omegaBody = { x: 2, y: 0, z: 0 };
+test('common recovery clears dynamic state instead of carrying a crash response into respawn', () => {
+  const bike = createTestBike(guide, height, surfaces, 520);
+  bike.yawRate = 2;
+  bike.pitchRate = -1;
+  bike.actuator.steering = 1;
   bike.frontNormalLoad = 0;
   bike.rearNormalLoad = 0;
   bike.frontSupportAvailable = false;
@@ -121,14 +121,15 @@ test('bike recovery clears bank state instead of carrying a crash lean into resp
 
   const reason = updateM5Recovery(recovery, guide, height, surfaces, bike, 1 / 60);
   assert.equal(reason, 'chart-excursion');
-  assert.ok(Math.abs(bike.bankAngle) < 1e-12);
-  assert.ok(Math.abs(bike.bankRate) < 1e-12);
-  assert.ok(Math.abs(bike.sprungRoll) < 1e-12);
+  assert.equal(bike.yawRate, 0);
+  assert.equal(bike.pitchRate, 0);
+  assert.equal(bike.actuator.steering, 0);
+  assert.ok(Math.abs(deriveVehicleLeanRadians(bike)) < 1e-12);
   assert.ok(Math.abs(bike.course.l) < 1e-12);
 });
 
 test('manual recovery is presentation/gameplay reset and preserves chainage pseudo-projection afterward', () => {
-  const car = createM5Car(guide, height, surfaces, 100);
+  const car = createTestCar(guide, height, surfaces, 100);
   const recovery = createM5RecoveryState(car);
   recovery.lastSafeS = 100;
   car.course = { ...car.course, l: 35 };
@@ -145,10 +146,10 @@ test('manual recovery is presentation/gameplay reset and preserves chainage pseu
 });
 
 test('supported bike remains controllable without recovery firing spuriously', () => {
-  const bike = createM5Bike(guide, height, surfaces, 80);
+  const bike = createTestBike(guide, height, surfaces, 80);
   const recovery = createM5RecoveryState(bike);
   for (let i = 0; i < 30; i += 1) {
-    updateM5Bike(guide, height, surfaces, bike, { steering: 0.15, throttle: true, brake: false }, 1 / 60);
+    updateTestVehicle(guide, height, surfaces, bike, { steering: 0.15, throttle: true, brake: false }, 1 / 60);
     const reason = updateM5Recovery(recovery, guide, height, surfaces, bike, 1 / 60);
     assert.equal(reason, null);
   }

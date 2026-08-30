@@ -25,7 +25,7 @@ import {
   observePendingRouteStageHandoff,
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { createM5Car, updateM5Car } from '../dist/physics/car-physics.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
 import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
 import {
@@ -213,10 +213,10 @@ test('validated seam atomically changes package, Guide coordinate frame and road
 test('ordinary M5 car physics consumes a committed child Guide frame and child SurfaceMap without snapping', () => {
   const { charts, roadViews, surfaceMap, heightProfile } = setup();
   const leftSurface = new StageSurfaceMapView(surfaceMap, roadViews.left);
-  const car = createM5Car(charts.left, heightProfile, leftSurface, 600, 0, 0);
+  const car = createTestCar(charts.left, heightProfile, leftSurface, 600, 0, 0);
   const before = { x: car.x, z: car.z, yaw: car.yaw };
 
-  updateM5Car(
+  updateTestVehicle(
     charts.left,
     heightProfile,
     leftSurface,

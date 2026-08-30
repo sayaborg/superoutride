@@ -75,7 +75,7 @@ test('M6.46 one-rival fixture remains historical while M8.3 course debug gives b
   assert.match(source, /const rivals = rivalRoster\.map/);
   assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
   assert.match(source, /recoverActorToLockedBranch\(/);
-  assert.doesNotMatch(source, /const rival = createM5Car/);
+  assert.doesNotMatch(source, /const rival = createTestCar/);
   assert.doesNotMatch(source, /const rivalTraveler =/);
 });
 
