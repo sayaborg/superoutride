@@ -1,5 +1,7 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
+import { mountMobileVehicleSelector } from './browser/mobile-selector-controls.js';
+import { browserUsesTouchInterface } from './browser/touch-interface.js';
 import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import {
@@ -65,10 +67,11 @@ const steerLeftButton = mustGet<HTMLElement>('steer-left-button');
 const steerRightButton = mustGet<HTMLElement>('steer-right-button');
 const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
+const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
 
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
-document.documentElement.classList.toggle('touch-capable', isTouchCapable());
+document.documentElement.classList.toggle('touch-capable', browserUsesTouchInterface());
 
 const maybeContext = canvas.getContext('2d', { alpha: false });
 if (!maybeContext) throw new Error('2D canvas context unavailable');
@@ -154,12 +157,17 @@ let camera: M5CameraState = updateM5Camera(
   cameraProfile,
   SIM_DT,
 );
+const vehicleSelector = mountMobileVehicleSelector(
+  vehicleSelectorButtons,
+  vehicle.profile.id,
+  selectVehicleProfile,
+);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
-    if (selectedProfile.id !== vehicle.profile.id) switchVehicleAtSafeSpawn(selectedProfile);
+    selectVehicleProfile(selectedProfile);
     return;
   }
   if (event.code === 'Backspace') {
@@ -179,6 +187,12 @@ window.addEventListener('keydown', (event) => {
     return;
   }
 });
+
+function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): void {
+  if (profile.id === vehicle.profile.id) return;
+  switchVehicleAtSafeSpawn(profile);
+  vehicleSelector.setActive(vehicle.profile.id);
+}
 
 let accumulator = 0;
 let previousTime = performance.now();
@@ -308,10 +322,6 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
 
 function raceSample(): { x: number; z: number; sWindow: number } {
   return { x: vehicle.x, z: vehicle.z, sWindow: vehicle.course.s };
-}
-
-function isTouchCapable(): boolean {
-  return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
 }
 
 function mustGet<T extends HTMLElement>(id: string): T {

@@ -9,6 +9,17 @@
   </head>
   <body>
     <main id="app" aria-label="SUPER OUTRIDE M9.1 driving">
+      <nav class="mobile-selector-zone" aria-label="Course and vehicle selection">
+        <section class="selector-group" aria-labelledby="course-selector-label">
+          <span id="course-selector-label" class="selector-label">COURSE</span>
+          <div id="course-selector-buttons" class="selector-buttons course-selector-buttons"></div>
+        </section>
+        <section class="selector-group" aria-labelledby="vehicle-selector-label">
+          <span id="vehicle-selector-label" class="selector-label">VEHICLE</span>
+          <div id="vehicle-selector-buttons" class="selector-buttons vehicle-selector-buttons"></div>
+        </section>
+      </nav>
+
       <section class="control-zone steering-zone" aria-label="Steering control">
         <div class="steering-pad" role="group" aria-label="Digital steering buttons">
           <button id="steer-left-button" class="steer-button" type="button" aria-label="Steer left">◀</button>

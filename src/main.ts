@@ -6,6 +6,8 @@ import {
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
+import { mountMobileVehicleSelector } from './browser/mobile-selector-controls.js';
+import { browserUsesTouchInterface } from './browser/touch-interface.js';
 import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
 import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
 import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
@@ -101,10 +103,11 @@ const steerLeftButton = mustGet<HTMLElement>('steer-left-button');
 const steerRightButton = mustGet<HTMLElement>('steer-right-button');
 const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
+const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
 
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
-document.documentElement.classList.toggle('touch-capable', isTouchCapable());
+document.documentElement.classList.toggle('touch-capable', browserUsesTouchInterface());
 
 const maybeContext = canvas.getContext('2d', { alpha: false });
 if (!maybeContext) throw new Error('2D canvas context unavailable');
@@ -208,12 +211,17 @@ const sharedRouteChoices = createSharedRouteChoiceState(M8_3_BRANCHING_COURSE_MO
 const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
+const vehicleSelector = mountMobileVehicleSelector(
+  vehicleSelectorButtons,
+  vehicle.profile.id,
+  selectVehicleProfile,
+);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
-    if (selectedProfile.id !== vehicle.profile.id) switchVehicleAtSafeSpawn(selectedProfile);
+    selectVehicleProfile(selectedProfile);
     return;
   }
   if (event.code === 'Backspace') {
@@ -246,6 +254,12 @@ window.addEventListener('keydown', (event) => {
     return;
   }
 });
+
+function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): void {
+  if (profile.id === vehicle.profile.id) return;
+  switchVehicleAtSafeSpawn(profile);
+  vehicleSelector.setActive(vehicle.profile.id);
+}
 
 let accumulator = 0;
 let previousTime = performance.now();
@@ -569,10 +583,6 @@ function recoverActorToLockedBranch(
 
 function activeRuntime(): StageRuntimeContentPackage {
   return resolveActiveStageRuntimeContent(stageRuntimeRegistry, routeHandoffState);
-}
-
-function isTouchCapable(): boolean {
-  return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
 }
 
 function mustGet<T extends HTMLElement>(id: string): T {

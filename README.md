@@ -37,6 +37,12 @@ reaches approximately 18.42% grade. Drift opportunity arises only from ordinary 
 and tire forces. BRANCHING remains on its existing parent geometry. The authority is
 `docs/89_m9_1_low_mid_speed_mountain_circuit.md`.
 
+M9.1 exposes the same course and vehicle selectors as 44px-minimum touch buttons on phone/coarse
+pointer layouts. Buttons are generated from the existing course/profile arrays: course taps use
+the top-level URL composition transition and vehicle taps use the existing safe-spawn profile
+reconstruction. There is no separate mobile selection state. The authority is
+`docs/90_m9_1_mobile_touch_selectors.md`.
+
 M8.6 extends the shared camera-relative render interval from 150 m to 200 m (195 m ahead of the
 player). The geometric infinite horizon remains the exact projection limit and the Far Background
 tracks it dynamically. GroundMap depth and renderer workloads are recompiled and re-observed for
@@ -110,8 +116,9 @@ For current vehicle work, read in this order:
    `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
 7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
    `docs/86_m8_7_varied_elevation_circuit.md`, then
-   `docs/89_m9_1_low_mid_speed_mountain_circuit.md` — current camera/composition/render/course
-   authorities and course supersession.
+   `docs/89_m9_1_low_mid_speed_mountain_circuit.md` and
+   `docs/90_m9_1_mobile_touch_selectors.md` — current camera/composition/render/course/touch
+   authorities and scoped supersession.
 8. Relevant source/types/compilers and regression tests — executable implementation contract.
 
 The 2026-08-28 M8.0 and 2026-08-31 M9 handoffs remain historical checkpoint/navigation records.
@@ -194,6 +201,7 @@ M8.7       Varied-Elevation Medium/High-Speed Circuit                     histor
 M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
 M9.1       Six-Profile Common Debug HUD                                     current profile/debug composition candidate
 M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
+M9.1       Mobile Touch Selectors                                            current browser touch-selection authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -302,6 +310,10 @@ http://localhost:8000/?mode=circuit
 The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
 composition; lower engine layers remain topology-neutral ordinary consumers.
 
+Phone/coarse-pointer layouts expose the same three course choices and all six vehicle profiles as
+tappable buttons above the game. Their values are generated from the keyboard selector authority,
+not maintained as a mobile-only mapping.
+
 Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `Down` or `Z`
 brake. Equivalent pedal keys and touch pointers may remain held independently, but one input-layer
 arbiter publishes only the most recently pressed still-held pedal as canonical input.
@@ -326,6 +338,8 @@ HUD evidence is recorded in
 `docs/validation/M9_1_EXCLUSIVE_PEDAL_INPUT_VALIDATION.txt`.
 The low/mid-speed mountain CIRCUIT correction is recorded independently in
 `docs/validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt`.
+The authority-derived mobile selector controls are recorded independently in
+`docs/validation/M9_1_MOBILE_TOUCH_SELECTORS_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -335,6 +349,8 @@ src/main-linear.ts   LINEAR composition root
 src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
 src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
+src/browser/mobile-selector-controls.ts  authority-derived touch selector adapter
+src/browser/touch-interface.ts           shared touch/coarse/phone-size layout decision
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
 

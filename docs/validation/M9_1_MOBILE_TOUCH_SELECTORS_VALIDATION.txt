@@ -1,0 +1,89 @@
+SUPER OUTRIDE — M9.1 MOBILE TOUCH SELECTORS VALIDATION
+2026-08-31 JST
+
+Scope:
+Expose the existing three course choices and six vehicle profiles as responsive tappable browser
+controls without introducing mobile-only selection, vehicle, route, race or mechanics authority.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Immediate predecessor local checkpoint:
+b9b21806d65880e9a7e02815448635bad2b8866a M9.1 low/mid-speed mountain circuit
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/90_m9_1_mobile_touch_selectors.md
+
+Resolved architecture:
+- mobile course buttons are generated from BROWSER_COURSE_MODES;
+- mobile vehicle buttons are generated from BROWSER_VEHICLE_PROFILES;
+- HTML owns only semantic empty mounting regions and contains no duplicate choice mapping;
+- course keys and course taps converge on one boot-owned URL navigation function;
+- vehicle keys and vehicle taps converge on one profile-selection function in each explicit
+  composition root;
+- profile switching retains the existing safe-spawn reconstruction and cannot convert live
+  mechanical state or manufacture route/race progress;
+- touch/coarse/phone-size layout detection is one shared browser-layer function;
+- the phone fallback uses viewport short side <=720 px for embedded browsers without pointer
+  metadata and therefore works from either initial orientation;
+- portrait and landscape selector buttons have a minimum 44x44 px hit area;
+- active styling and aria-pressed are presentation state only;
+- no lower renderer, physics, camera, topology, route, gameplay or DEV-fixture branch is added.
+
+Dedicated executable acceptance:
+tests/m9-1-mobile-selector-controls.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact authority-derived 1/2/3 course models;
+- exact authority-derived FR/MR/RR/AWD/BIKE1/BIKE2 vehicle models;
+- touch-hardware, coarse-pointer and <=720 px viewport-short-side phone fallback selection;
+- click publication of canonical course/profile objects;
+- exactly one active aria-pressed vehicle presentation;
+- shared adapter use by LINEAR, BRANCHING and CIRCUIT;
+- absence of duplicated course/profile values in index.html;
+- retained complete renderer, input, vehicle, camera, recovery, route, race and topology suites.
+
+Validation-inclusive local repository result:
+npm test
+540 tests
+540 pass
+0 fail
+0 skipped
+
+Browser verification:
+- a 390x844 portrait viewport displayed three course buttons, six vehicle buttons, the ordinary
+  game canvas and existing steering/pedal touch controls without overlap;
+- tapping BIKE1 selected the BIKE1 profile and moved aria-pressed from FR to BIKE1;
+- tapping LINEAR changed the URL from mode=circuit to mode=linear and selected the LINEAR course;
+- the same active touch layout at 844x390 landscape fit the two selector groups above the
+  steering/game/pedal columns without overlap;
+- all visible selector labels and selected states remained readable in both orientations.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 540 / 540 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.

@@ -59,8 +59,73 @@ body {
   min-height: 0;
 }
 
+.mobile-selector-zone {
+  display: none;
+  min-width: 0;
+}
+
 .touch-capable .control-zone {
   display: flex;
+}
+
+.touch-capable .mobile-selector-zone {
+  display: grid;
+}
+
+.selector-group {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.selector-label {
+  color: #9eb8c5;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.selector-buttons {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.course-selector-buttons {
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+}
+
+.vehicle-selector-buttons {
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+}
+
+.selector-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid #49616e;
+  border-radius: 9px;
+  background: #111a21;
+  color: #b7cbd5;
+  font: inherit;
+  font-size: clamp(9px, 2.3vw, 12px);
+  font-weight: 700;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.selector-button:active {
+  transform: translateY(1px);
+}
+
+.selector-button.active {
+  border-color: #ffd08a;
+  background: #263744;
+  color: #ffd08a;
 }
 
 .steering-pad,
@@ -130,23 +195,33 @@ body {
 @media (orientation: landscape) {
   .touch-capable #app {
     grid-template-columns: minmax(96px, 1fr) minmax(0, calc(100dvh * 4 / 3)) minmax(96px, 1fr);
-    grid-template-rows: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: clamp(6px, 1.5vw, 20px);
     padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right));
   }
 
+  .touch-capable .mobile-selector-zone {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: min(100%, 900px);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 12px;
+  }
+
   .touch-capable .game-zone {
     grid-column: 2;
+    grid-row: 2;
     width: 100%;
   }
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 
   .touch-capable .steering-zone {
     grid-column: 1;
+    grid-row: 2;
     width: 100%;
     align-items: center;
     justify-content: center;
@@ -154,6 +229,7 @@ body {
 
   .touch-capable .pedal-zone {
     grid-column: 3;
+    grid-row: 2;
     width: 100%;
     flex-direction: column;
     align-items: center;
@@ -169,33 +245,41 @@ body {
 @media (orientation: portrait) {
   .touch-capable #app {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto minmax(124px, 1fr);
+    grid-template-rows: auto auto minmax(124px, 1fr);
     gap: 10px 14px;
     align-content: center;
     padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
-  .touch-capable .game-zone {
+  .touch-capable .mobile-selector-zone {
     grid-column: 1 / -1;
     grid-row: 1;
-    width: min(100%, calc((100dvh - 150px) * 4 / 3));
+    width: 100%;
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .touch-capable .game-zone {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: min(100%, calc((100dvh - 260px) * 4 / 3));
   }
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - 150px);
+    max-height: calc(100dvh - 260px);
   }
 
   .touch-capable .steering-zone {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     width: 100%;
     align-items: center;
   }
 
   .touch-capable .pedal-zone {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
     flex-direction: column;
     align-items: stretch;
     justify-content: center;

@@ -84,6 +84,7 @@ The current browser course-debug composition authority is:
 ```text
 docs/82_m8_3_three_mode_course_debug.md
 docs/88_m9_1_six_profile_debug_hud.md
+docs/90_m9_1_mobile_touch_selectors.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -134,6 +135,7 @@ docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/86_m8_7_varied_elevation_circuit.md
 docs/89_m9_1_low_mid_speed_mountain_circuit.md
+docs/90_m9_1_mobile_touch_selectors.md
 ```
 
 ### Executable implementation contract

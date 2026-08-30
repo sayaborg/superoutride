@@ -61,6 +61,7 @@ The current browser course-debug composition authority is:
 ```text
 82_m8_3_three_mode_course_debug.md
 88_m9_1_six_profile_debug_hud.md
+90_m9_1_mobile_touch_selectors.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -71,7 +72,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `89_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `90_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -108,7 +109,14 @@ The most important current topology/runtime/physics sequence is:
 87_m9_0_two_station_arcade_vehicle_dynamics.md
 88_m9_1_six_profile_debug_hud.md
 89_m9_1_low_mid_speed_mountain_circuit.md
+90_m9_1_mobile_touch_selectors.md
 ```
+
+The current browser touch-selection authority is
+`90_m9_1_mobile_touch_selectors.md`. It derives tappable course and vehicle buttons from the same
+arrays used by keyboard selection, keeps URL navigation in `boot.ts`, and keeps profile
+reconstruction in the three composition roots. It adds no mobile-only selection or mechanics
+state.
 
 The current public CIRCUIT course geometry authority is
 `89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
@@ -250,6 +258,16 @@ validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt
 It proves the 95–240 m corner distribution, curved-length share, repeated smooth mountain
 elevation, ordinary FR/BIKE1 completion, CIRCUIT-only composition boundary, complete suite and
 browser rendering.
+
+The current M9.1 mobile touch-selector evidence is:
+
+```text
+validation/M9_1_MOBILE_TOUCH_SELECTORS_VALIDATION.txt
+```
+
+It proves authority-derived course/profile buttons, shared tap/keyboard selection paths,
+single-active accessible presentation, complete-suite acceptance and portrait/landscape browser
+operation.
 
 ## 5. Historical M9 implementation handoff
 
