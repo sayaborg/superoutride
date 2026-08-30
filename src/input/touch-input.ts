@@ -1,4 +1,5 @@
 import type { DrivingInput } from './driving-input.js';
+import { PedalInputArbiter } from './pedal-input-arbiter.js';
 
 export function digitalTouchSteering(left: boolean, right: boolean): -1 | 0 | 1 {
   return left === right ? 0 : left ? -1 : 1;
@@ -21,6 +22,7 @@ export class TouchInput {
     brakeButton: HTMLElement,
     lifecycleTarget: Window = window,
     visibilityDocument: Document = document,
+    private readonly pedals = new PedalInputArbiter(),
   ) {
     this.steerLeftButton = steerLeftButton;
     this.steerRightButton = steerRightButton;
@@ -47,10 +49,10 @@ export class TouchInput {
   }
 
   sample(): DrivingInput {
+    const pedals = this.pedals.sample();
     return {
       steering: digitalTouchSteering(this.leftPointers.size > 0, this.rightPointers.size > 0),
-      throttle: this.throttlePointers.size > 0,
-      brake: this.brakePointers.size > 0,
+      ...pedals,
     };
   }
 
@@ -85,6 +87,7 @@ export class TouchInput {
 
     element.addEventListener('pointerdown', (event) => {
       pointers.add(event.pointerId);
+      this.pedals.setSource(touchPedalSource(key, event.pointerId), key, true);
       try {
         element.setPointerCapture(event.pointerId);
       } catch {
@@ -95,6 +98,7 @@ export class TouchInput {
 
     const release = (event: PointerEvent) => {
       pointers.delete(event.pointerId);
+      this.pedals.setSource(touchPedalSource(key, event.pointerId), key, false);
       event.preventDefault();
     };
 
@@ -110,6 +114,8 @@ export class TouchInput {
     this.rightPointers.delete(pointerId);
     this.throttlePointers.delete(pointerId);
     this.brakePointers.delete(pointerId);
+    this.pedals.setSource(touchPedalSource('throttle', pointerId), 'throttle', false);
+    this.pedals.setSource(touchPedalSource('brake', pointerId), 'brake', false);
     if (this.leftPointers.size === 0) this.steerLeftButton.classList.remove('active');
     if (this.rightPointers.size === 0) this.steerRightButton.classList.remove('active');
   }
@@ -119,7 +125,12 @@ export class TouchInput {
     this.rightPointers.clear();
     this.throttlePointers.clear();
     this.brakePointers.clear();
+    this.pedals.reset();
     this.steerLeftButton.classList.remove('active');
     this.steerRightButton.classList.remove('active');
   }
+}
+
+function touchPedalSource(key: MomentaryKey, pointerId: number): string {
+  return `touch:${key}:${pointerId}`;
 }

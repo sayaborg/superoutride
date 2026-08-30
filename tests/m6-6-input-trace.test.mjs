@@ -61,6 +61,14 @@ test('trace rejects non-canonical steering values rather than silently clamping 
   );
 });
 
+test('trace rejects contradictory pedals because event order must be resolved before recording', () => {
+  const trace = createDrivingInputTrace(1 / 60);
+  assert.throws(
+    () => appendDrivingInput(trace, { steering: 0, throttle: true, brake: true }),
+    /mutually exclusive/,
+  );
+});
+
 function replayProbe(trace, profile = FR_VEHICLE_PROFILE) {
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);

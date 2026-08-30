@@ -52,12 +52,15 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 ```
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
-drive-station distribution assumption and accumulated per-course debug overlays. It owns
+drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
+simultaneous-pedal request rule. It owns
 FR/MR/RR/AWD/BIKE1/BIKE2 compiled-profile selection, the normalized station drive-torque split and
 the shared presentation-only HUD boundary. The four car profiles share one engine/tire/chassis
 package; FR/MR/RR differ only by weight distribution/inertia, while AWD additionally uses 50:50
 front/rear drive torque. The common `18:1` steering ratio is a HUD-only handwheel conversion and
-must never be consumed by steering mechanics.
+must never be consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one
+input-layer arbiter gives priority to the latest source that remains held across keyboard aliases
+and touch pointers. Actuators own finite response only and must not own pedal order or arbitration.
 
 M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
 steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction

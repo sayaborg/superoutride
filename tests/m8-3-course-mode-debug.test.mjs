@@ -47,8 +47,11 @@ import {
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import {
+  HUD_INPUT_ACCEL_COLOR,
+  HUD_INPUT_BRAKE_COLOR,
   createVehicleDebugHudModel,
   drawTopDownGSensor,
+  drawVehicleControlGraphics,
   gSensorPoint,
 } from '../dist/browser/vehicle-debug-hud.js';
 import {
@@ -276,6 +279,50 @@ test('G sensor draws only one cross and one dot in the felt inertial-load direct
   assert.equal(operations.filter((operation) => operation === 'arc').length, 1);
   assert.equal(operations.filter((operation) => operation === 'stroke').length, 1);
   assert.equal(operations.filter((operation) => operation === 'fill').length, 1);
+});
+
+test('pedal input graphics show exactly blue accel red brake or no active color', () => {
+  const fillColors = (requestedThrottle, requestedBrake) => {
+    const colors = [];
+    let fillStyle = '';
+    const context = {
+      get fillStyle() { return fillStyle; },
+      set fillStyle(value) { fillStyle = value; },
+      strokeStyle: '',
+      lineWidth: 1,
+      font: '',
+      textBaseline: '',
+      fillRect: () => colors.push(fillStyle),
+      strokeRect() {},
+      fillText() {},
+      beginPath() {},
+      arc() {},
+      moveTo() {},
+      lineTo() {},
+      stroke() {},
+    };
+    drawVehicleControlGraphics(context, {
+      requestedSteering: 0,
+      requestedThrottle,
+      requestedBrake,
+      actualSteering: 0,
+      actualThrottle: 0,
+      actualBrake: 0,
+      handwheelAngle: 0,
+    }, 0, 0);
+    return colors;
+  };
+
+  const accel = fillColors(1, 0);
+  assert.equal(accel.includes(HUD_INPUT_ACCEL_COLOR), true);
+  assert.equal(accel.includes(HUD_INPUT_BRAKE_COLOR), false);
+  const brake = fillColors(0, 1);
+  assert.equal(brake.includes(HUD_INPUT_ACCEL_COLOR), false);
+  assert.equal(brake.includes(HUD_INPUT_BRAKE_COLOR), true);
+  const neutral = fillColors(0, 0);
+  assert.equal(neutral.includes(HUD_INPUT_ACCEL_COLOR), false);
+  assert.equal(neutral.includes(HUD_INPUT_BRAKE_COLOR), false);
+  assert.throws(() => fillColors(1, 1), /mutually exclusive/);
 });
 
 for (const [profile, createVehicle, presentationKind] of [

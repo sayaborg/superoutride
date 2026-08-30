@@ -1,13 +1,18 @@
 import { COURSE_MODE_HOTKEY_LABEL } from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
-import type { DrivingInput } from '../input/driving-input.js';
+import {
+  assertExclusivePedalInput,
+  type DrivingInput,
+} from '../input/driving-input.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 
 const G_SENSOR_RANGE = 2;
 const CONTROL_METER_WIDTH = 58;
 const CONTROL_METER_HEIGHT = 7;
+export const HUD_INPUT_ACCEL_COLOR = '#4c9cff';
+export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
 
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
@@ -29,6 +34,7 @@ export function createVehicleDebugHudModel(
   input: DrivingInput,
   vehicle: ArcadeVehicleState,
 ): VehicleDebugHudModel {
+  assertExclusivePedalInput(input);
   return {
     courseSelector: `COURSE ${COURSE_MODE_HOTKEY_LABEL}  ACTIVE ${routeKind}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
@@ -89,6 +95,10 @@ export function drawVehicleControlGraphics(
   x: number,
   y: number,
 ): void {
+  assertExclusivePedalInput({
+    throttle: model.requestedThrottle > 0,
+    brake: model.requestedBrake > 0,
+  });
   ctx.fillStyle = '#071016';
   ctx.fillRect(x, y, 251, 35);
   ctx.font = '6px monospace';
@@ -103,11 +113,38 @@ export function drawVehicleControlGraphics(
 
   drawControlMeter(ctx, x + 35, y + 8, model.requestedSteering, true, '#ffd08a');
   drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, '#7ee0ff');
-  drawControlMeter(ctx, x + 105, y + 8, model.requestedThrottle, false, '#ffd08a');
+  drawPedalIndicator(
+    ctx,
+    x + 105,
+    y + 8,
+    model.requestedThrottle > 0,
+    HUD_INPUT_ACCEL_COLOR,
+  );
   drawControlMeter(ctx, x + 105, y + 22, model.actualThrottle, false, '#7ee0ff');
-  drawControlMeter(ctx, x + 170, y + 8, model.requestedBrake, false, '#ffd08a');
+  drawPedalIndicator(
+    ctx,
+    x + 170,
+    y + 8,
+    model.requestedBrake > 0,
+    HUD_INPUT_BRAKE_COLOR,
+  );
   drawControlMeter(ctx, x + 170, y + 22, model.actualBrake, false, '#7ee0ff');
   drawHandwheel(ctx, x + 240, y + 22, model.handwheelAngle);
+}
+
+function drawPedalIndicator(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  active: boolean,
+  color: string,
+): void {
+  ctx.strokeStyle = '#49616e';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, CONTROL_METER_WIDTH - 1, CONTROL_METER_HEIGHT - 1);
+  if (!active) return;
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 2, y + 2, CONTROL_METER_WIDTH - 4, CONTROL_METER_HEIGHT - 4);
 }
 
 export function drawTopDownGSensor(

@@ -1,4 +1,7 @@
-import type { DrivingInput } from '../input/driving-input.js';
+import {
+  assertExclusivePedalInput,
+  type DrivingInput,
+} from '../input/driving-input.js';
 
 export const DRIVING_INPUT_TRACE_FORMAT = 'SUPER_OUTRIDE_INPUT_TRACE_V1' as const;
 
@@ -109,6 +112,7 @@ function validateInput(input: Readonly<DrivingInput>): void {
   if (typeof input.throttle !== 'boolean' || typeof input.brake !== 'boolean') {
     throw new TypeError('trace throttle/brake must be boolean');
   }
+  assertExclusivePedalInput(input);
 }
 
 function cloneInput(input: Readonly<DrivingInput>): Readonly<DrivingInput> {

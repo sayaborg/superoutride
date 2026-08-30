@@ -18,7 +18,9 @@ debug HUD for all three course compositions. The four cars share one engine/tire
 FR/MR/RR differ only by weight distribution and body inertia, while AWD changes ordinary tire-force
 behavior through a compiled 50:50 front/rear drive-torque split. The HUD is limited to
 course/profile selection, speed/RPM/gear, graphical requested/actual controls, an `18:1` HUD-only
-handwheel graphic, body yaw and a body-axis inertial-load G cross/dot. The authority is
+handwheel graphic, body yaw and a body-axis inertial-load G cross/dot. ACCEL/BRAKE canonical input
+is exclusive and latest-held-source wins across keyboard/touch; its HUD request state is
+blue/red/uncolored. The authority is
 `docs/88_m9_1_six_profile_debug_hud.md`.
 
 M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by every compiled profile. It
@@ -297,7 +299,8 @@ The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the
 composition; lower engine layers remain topology-neutral ordinary consumers.
 
 Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `Down` or `Z`
-brake. Equivalent pedal keys feed the same canonical input and may be held independently.
+brake. Equivalent pedal keys and touch pointers may remain held independently, but one input-layer
+arbiter publishes only the most recently pressed still-held pedal as canonical input.
 
 Package and visible milestone metadata are synchronized at `super-outride-m9-1@0.9.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
@@ -314,6 +317,9 @@ M9.1 checkpoint remains historical, and the corrected candidate evidence is reco
 `docs/validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt`. The subsequent graphical-control,
 inertial-G and HUD-only 18:1 correction is recorded independently in
 `docs/validation/M9_1_CONTROL_GRAPHICS_G_SENSOR_VALIDATION.txt`.
+The subsequent exclusive last-pressed pedal-input correction and blue/red/uncolored requested-pedal
+HUD evidence is recorded in
+`docs/validation/M9_1_EXCLUSIVE_PEDAL_INPUT_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -324,6 +330,7 @@ src/main.ts          BRANCHING composition root
 src/main-circuit.ts  CIRCUIT composition root
 src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
+src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
 
 src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
 src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority

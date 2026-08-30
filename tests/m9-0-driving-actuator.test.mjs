@@ -41,15 +41,19 @@ test('zero request stays exactly neutral and all channels remain normalized', ()
 
 test('one-tick request is smaller than held request and authored apply times reach full scale', () => {
   const oneTick = createDrivingActuatorState();
-  updateDrivingActuators(oneTick, { steering: 1, throttle: true, brake: true }, DT, PROFILE);
+  updateDrivingActuators(oneTick, { steering: 1, throttle: true, brake: false }, DT, PROFILE);
   const held = createDrivingActuatorState();
-  run(held, { steering: 1, throttle: true, brake: true }, 0.625);
+  run(held, { steering: 1, throttle: true, brake: false }, 0.625);
+  const oneTickBrake = createDrivingActuatorState();
+  updateDrivingActuators(oneTickBrake, { steering: 0, throttle: false, brake: true }, DT, PROFILE);
+  const heldBrake = createDrivingActuatorState();
+  run(heldBrake, { steering: 0, throttle: false, brake: true }, 0.625);
   assert.ok(oneTick.steering < held.steering);
   assert.ok(oneTick.throttle < held.throttle);
-  assert.ok(oneTick.brake < held.brake);
+  assert.ok(oneTickBrake.brake < heldBrake.brake);
   assert.equal(held.steering, 1);
   assert.equal(held.throttle, 1);
-  assert.equal(held.brake, 1);
+  assert.equal(heldBrake.brake, 1);
 });
 
 test('release is finite monotone and exact with steering faster than application', () => {
@@ -62,6 +66,22 @@ test('release is finite monotone and exact with steering faster than application
   run(state, neutral, 0.25);
   assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
   assert.ok(first.steering < 1 - PROFILE.steering.applyRate * DT + 1e-12);
+});
+
+test('exclusive pedal handoff preserves ordinary independent finite actuator response', () => {
+  const state = createDrivingActuatorState();
+  run(state, { steering: 0, throttle: true, brake: false }, 0.25);
+  assert.equal(state.throttle, 1);
+  assert.equal(state.brake, 0);
+
+  updateDrivingActuators(
+    state,
+    { steering: 0, throttle: false, brake: true },
+    DT,
+    PROFILE,
+  );
+  assert.ok(state.throttle > 0 && state.throttle < 1);
+  assert.ok(state.brake > 0 && state.brake < 1);
 });
 
 test('opposite steering request uses apply rate continuously through neutral', () => {
@@ -79,7 +99,7 @@ test('opposite steering request uses apply rate continuously through neutral', (
 test('fixed-tick actuator replay is deterministic and reset neutralizes every channel', () => {
   const trace = Array.from({ length: 600 }, (_, tick) => ({
     steering: tick < 180 ? 1 : tick < 360 ? -1 : 0,
-    throttle: tick % 12 < 5,
+    throttle: tick < 420 && tick % 12 < 5,
     brake: tick >= 420,
   }));
   const replay = () => {
@@ -90,6 +110,20 @@ test('fixed-tick actuator replay is deterministic and reset neutralizes every ch
   assert.deepEqual(replay(), replay());
   const state = replay();
   resetDrivingActuatorState(state);
+  assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
+});
+
+test('actuator boundary rejects contradictory canonical pedal requests instead of choosing a winner', () => {
+  const state = createDrivingActuatorState();
+  assert.throws(
+    () => updateDrivingActuators(
+      state,
+      { steering: 0, throttle: true, brake: true },
+      DT,
+      PROFILE,
+    ),
+    /mutually exclusive/,
+  );
   assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
 });
 

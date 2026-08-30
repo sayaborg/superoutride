@@ -1,0 +1,100 @@
+SUPER OUTRIDE — M9.1 EXCLUSIVE PEDAL INPUT VALIDATION
+2026-08-31 JST
+
+Scope:
+Make canonical ACCEL and BRAKE input mutually exclusive; give priority to the most recently
+pressed source that remains held across keyboard aliases and touch pointers; and present requested
+ACCEL/BRAKE as blue/red/uncolored exclusive HUD indicators without moving input-order authority
+into vehicle mechanics.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Immediate predecessor checkpoint:
+c19a307de5c6946c78b40dbd80850fad702ac795 Refine M9.1 control graphics and G sensor
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/88_m9_1_six_profile_debug_hud.md
+
+Resolved architecture:
+- keyboard aliases and touch pointers publish exact held-source press/release events into one
+  device-independent input-layer arbiter;
+- a rising edge receives one monotonic order observation; key-repeat for an already-held source
+  does not refresh priority;
+- the newest source that remains held is the sole canonical pedal request;
+- releasing the winner reveals the next-newest source that remains held, so held ACCEL resumes
+  after a later BRAKE tap and the inverse sequence behaves symmetrically;
+- blur, page-hide and hidden-document lifecycle paths clear every source and order observation;
+- InputManager consumes the arbiter result directly instead of OR-merging device pedal booleans;
+- canonical DrivingInput, recorded traces and the common vehicle boundary reject simultaneous
+  throttle=true/brake=true because event order cannot be reconstructed downstream;
+- steering remains independently merged under the existing touch-steering priority rule;
+- throttle and brake actuators remain independent finite response states, so actual values may
+  briefly overlap during a request handoff through ordinary release/apply rates;
+- physics owns no pedal winner, held-source map, event history, torque cut or brake override;
+- the shared HUD keeps requested steering and all three actual values as graphical meters, while
+  requested ACCEL is blue, requested BRAKE is red and neutral has no active pedal color.
+
+Dedicated executable acceptance:
+tests/input-core.test.mjs
+tests/m6-6-input-trace.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+tests/m9-0-driving-actuator.test.mjs
+tests/m9-0-pedal-and-tire-causality.test.mjs
+tests/m9-0-vehicle-unification-architecture.test.mjs
+
+The acceptance matrix covers:
+- last-pressed-wins and held-pedal resumption for X/Z and ArrowUp/ArrowDown;
+- exact priority across keyboard aliases and touch pointers through one shared arbiter;
+- repeated-key and non-winning-source release stability;
+- InputManager consumption of one resolved pedal request rather than device OR composition;
+- rejection of contradictory canonical input at merge, trace, actuator and vehicle boundaries;
+- no mutation of actuator state after contradictory-input rejection;
+- blue-only ACCEL, red-only BRAKE and uncolored neutral requested indicators;
+- rejection of any simultaneous requested-pedal HUD state;
+- retained independent finite actuator response and the complete renderer, metric, camera,
+  recovery, vehicle, route, race, topology and Pages suites.
+
+Validation-inclusive local repository result:
+npm test
+535 tests
+535 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local CIRCUIT rendered the shared compact HUD inside the 320x240 frame;
+- neutral rendered both requested pedal indicator frames without an active fill color;
+- requested-pedal indicators remained separate from the three actual finite-response meters;
+- course/profile selectors, speed/RPM/gear, body-yaw overlay and G cross/dot remained intact;
+- the browser console emitted no warning or error entries during the completed check.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 535 / 535 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. Pedal arbitration changes canonical player request semantics only. Actuator,
+powertrain, brake, tire and vehicle calibration values remain unchanged.

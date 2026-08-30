@@ -1,5 +1,8 @@
 import { clamp } from '../core/math.js';
-import type { DrivingInput } from '../input/driving-input.js';
+import {
+  assertExclusivePedalInput,
+  type DrivingInput,
+} from '../input/driving-input.js';
 
 export interface NormalizedActuatorRateProfile {
   /** Normalized units per second toward any non-neutral target, including steering reversal. */
@@ -83,6 +86,7 @@ export function updateDrivingActuators(
   dt: number,
   profile: DrivingActuatorProfile,
 ): void {
+  assertExclusivePedalInput(input);
   state.steering = stepNormalizedActuator(
     state.steering,
     clamp(input.steering, -1, 1),

@@ -125,23 +125,13 @@ test('brake actuator produces partial torque, physical lock and continuous relea
   assert.equal(vehicle.control.rearBrakeTorque, 0);
 });
 
-test('simultaneous throttle and brake remains finite and resolves only through wheel torque', () => {
+test('common vehicle boundary rejects contradictory canonical pedals before actuator or wheel torque', () => {
   const vehicle = createProbe(20);
-  for (let tick = 0; tick < 30; tick += 1) {
-    step(vehicle, { steering: 0.3, throttle: true, brake: true });
-  }
-  assert.equal(vehicle.actuator.throttle, 1);
-  assert.equal(vehicle.actuator.brake, 1);
-  for (const value of [
-    vehicle.control.deliveredDriveTorque,
-    vehicle.control.frontBrakeTorque,
-    vehicle.control.rearBrakeTorque,
-    vehicle.frontWheelOmega,
-    vehicle.rearWheelOmega,
-    vehicle.velocityX,
-    vehicle.velocityY,
-    vehicle.velocityZ,
-  ]) assert.ok(Number.isFinite(value));
+  assert.throws(
+    () => step(vehicle, { steering: 0.3, throttle: true, brake: true }),
+    /mutually exclusive/,
+  );
+  assert.deepEqual(vehicle.actuator, { steering: 0, throttle: 0, brake: 0 });
 });
 
 test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {

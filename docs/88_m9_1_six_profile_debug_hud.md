@@ -14,7 +14,9 @@ supersedes only:
 - the per-course accumulation of unrelated browser diagnostic text;
 - the temporary `V` two-vehicle toggle and `R` recovery binding;
 - the M8.1 provisional `15:1` handwheel-presentation conversion, replaced by the HUD-only `18:1`
-  conversion below.
+  conversion below;
+- the M9.0 independent/simultaneous throttle-and-brake request rule, replaced by the canonical
+  exclusive last-pressed-pedal rule below.
 
 M8.3 remains the course-selector authority. M9.1 adds one parallel vehicle-selector authority and
 one shared presentation-only HUD. No selector or HUD value is consumed by mechanics.
@@ -65,7 +67,8 @@ only:
 course selector: 1 / 2 / 3 and active course
 vehicle selector: Q / W / E / R / A / S and active profile
 speed / RPM / selected gear
-graphical requested steering / throttle / brake meters
+graphical requested steering meter
+exclusive requested ACCEL blue / BRAKE red / neutral uncolored indicators
 graphical actual steering / throttle-actuator / brake-actuator meters
 actual handwheel graphic
 body-yaw vector over the player sprite
@@ -73,9 +76,11 @@ body-axis inertial-load G cross and dot
 ```
 
 Requested input comes only from canonical `DrivingInput`. Actual values come only from the common
-vehicle control telemetry. Requested and actual controls are six distinct graphical meters; they
-are not formatted as textual direction, on/off state, degree or percentage rows. The handwheel
-graphic reads the existing derived presentation observation:
+vehicle control telemetry. Requested steering remains a graphical signed meter. Requested ACCEL
+and BRAKE are mutually exclusive indicators: ACCEL is blue, BRAKE is red, and neutral has no active
+color. Actual steering/throttle/brake remain three independent graphical response meters. None are
+formatted as textual direction, on/off state, degree or percentage rows. The handwheel graphic
+reads the existing derived presentation observation:
 
 ```text
 handwheel-to-road-wheel ratio = 18:1
@@ -105,7 +110,29 @@ ArrowDown or Z = brake
 ```
 
 Equivalent keys are independent held inputs: releasing one alias does not cancel the request while
-the other remains held. Blur, page hide and hidden-document lifecycle resets clear all held keys.
+the other remains held. Keyboard aliases and touch pointers all publish source-level press/release
+events to one device-independent pedal arbiter. Among sources that remain held, the most recently
+pressed source wins:
+
+```text
+hold ACCEL -> press BRAKE -> ACCEL=false, BRAKE=true
+release BRAKE while ACCEL remains held -> ACCEL=true, BRAKE=false
+hold BRAKE -> press ACCEL -> ACCEL=true, BRAKE=false
+release ACCEL while BRAKE remains held -> ACCEL=false, BRAKE=true
+```
+
+Repeated keydown for an already-held source does not manufacture newer priority. Releasing a
+non-winning source does not disturb the winner. Blur, page hide and hidden-document lifecycle
+resets clear every held source and priority observation.
+
+Canonical `DrivingInput` never contains `throttle=true` and `brake=true` together. Traces and the
+vehicle boundary reject that contradictory state rather than guessing an order after event history
+has been lost. This validation does not move arbitration into physics.
+
+The three physical actuator values remain independent finite response states. On an ACCEL-to-BRAKE
+handoff, the throttle actuator follows its ordinary release rate while the brake actuator follows
+its ordinary apply rate, so their derived actual values may overlap briefly. No immediate torque
+cut, brake override, pedal interlock force or actuator-side winner state is introduced.
 
 Vehicle nose is screen-up and vehicle right is screen-right. Forward acceleration therefore moves
 the dot rearward; acceleration to vehicle right moves it left. Braking and leftward acceleration
@@ -117,16 +144,22 @@ depth and scale diagnostics are not part of this common overlay.
 ## 4. Architecture boundary
 
 ```text
-DrivingInput + common vehicle telemetry + route/profile identity
-                         |
-                         v
-              read-only HUD model/drawing
+keyboard/touch held-source events
+              |
+              v
+last-pressed pedal arbiter -> exclusive DrivingInput -> ordinary finite actuators
+                                      |
+common vehicle telemetry + route/profile identity
+                                      |
+                                      v
+                           read-only HUD model/drawing
 ```
 
 M9.1 adds no coordinate authority, renderer depth path, runtime sprite rotation, route branch or
 course-specific lower-layer behavior. Drive distribution is one compiled scalar consumed by the
 ordinary wheel-torque chain; profile identity remains presentation/composition data only. The
-18:1 ratio and every HUD meter remain read-only presentation observations.
+pedal winner exists only in input, while mechanics accepts only the resolved one-hot request. The
+18:1 ratio and every HUD graphic remain read-only presentation observations.
 
 ## 5. Executable acceptance
 
@@ -142,8 +175,15 @@ Regression coverage must prove:
   ordinary wheel/tire force path;
 - all six profiles integrate ordinarily on the finite LINEAR course;
 - all three browser roots call the same common HUD;
-- requested and actual controls remain distinct numerical observations and draw as six graphical
-  meters rather than textual state rows;
+- requested and actual controls remain distinct numerical observations rather than textual state
+  rows;
+- requested ACCEL/BRAKE draws exactly blue/red/uncolored exclusive indicator states while actual
+  actuator values remain graphical response meters;
+- the latest held keyboard alias or touch pointer wins across devices, and releasing it resumes the
+  next-most-recent source that remains held;
+- canonical input, trace and vehicle boundaries reject contradictory simultaneous pedals instead
+  of recreating event-order authority downstream;
+- actuator response stays finite and owns no pedal winner/history state;
 - every profile derives the HUD handwheel graphic at `18:1` without changing physical steering;
 - G values derive from existing acceleration observations, while the drawn dot uses the opposite
   inertial-load direction;

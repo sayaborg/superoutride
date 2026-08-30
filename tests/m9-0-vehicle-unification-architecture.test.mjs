@@ -65,8 +65,10 @@ test('BIKE lean is a read-only render adapter with no route contact tire or forc
 });
 
 test('canonical input remains request-only and response belongs to one common actuator module', async () => {
-  const [input, actuator, dynamics] = await Promise.all([
+  const [input, manager, arbiter, actuator, dynamics] = await Promise.all([
     readFile(new URL('../src/input/driving-input.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/input/input-manager.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/input/pedal-input-arbiter.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/driving-actuator.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/vehicle-dynamics.ts', import.meta.url), 'utf8'),
   ]);
@@ -75,9 +77,13 @@ test('canonical input remains request-only and response belongs to one common ac
   assert.match(input, /throttle:\s*boolean/);
   assert.match(input, /brake:\s*boolean/);
   assert.doesNotMatch(input, /applyRate|releaseRate|actuator/i);
+  assert.match(manager, /PedalInputArbiter/);
+  assert.match(arbiter, /heldSources/);
+  assert.match(arbiter, /order/);
   assert.match(actuator, /interface DrivingActuatorState/);
   assert.match(actuator, /steering:\s*number/);
   assert.match(actuator, /throttle:\s*number/);
   assert.match(actuator, /brake:\s*number/);
+  assert.doesNotMatch(actuator, /PedalInputArbiter|lastPressed|heldSources/);
   assert.doesNotMatch(dynamics, /requestedDriveTorque/);
 });
