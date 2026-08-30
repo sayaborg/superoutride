@@ -293,6 +293,9 @@ http://localhost:8000/?mode=circuit
 The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
 composition; lower engine layers remain topology-neutral ordinary consumers.
 
+Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `Down` or `Z`
+brake. Equivalent pedal keys feed the same canonical input and may be held independently.
+
 Package and visible milestone metadata are synchronized at `super-outride-m9-1@0.9.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:

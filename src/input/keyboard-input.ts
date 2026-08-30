@@ -5,10 +5,7 @@ export function digitalKeyboardSteering(left: boolean, right: boolean): -1 | 0 |
 }
 
 export class KeyboardInput {
-  private left = false;
-  private right = false;
-  private throttle = false;
-  private brake = false;
+  private readonly pressedCodes = new Set<string>();
 
   constructor(target: Window = window, visibilityDocument: Document = document) {
     target.addEventListener('keydown', (event) => this.onKey(event, true), { passive: false });
@@ -26,38 +23,31 @@ export class KeyboardInput {
 
   sample(): DrivingInput {
     return {
-      steering: digitalKeyboardSteering(this.left, this.right),
-      throttle: this.throttle,
-      brake: this.brake,
+      steering: digitalKeyboardSteering(
+        this.pressedCodes.has('ArrowLeft'),
+        this.pressedCodes.has('ArrowRight'),
+      ),
+      throttle: this.pressedCodes.has('ArrowUp') || this.pressedCodes.has('KeyX'),
+      brake: this.pressedCodes.has('ArrowDown') || this.pressedCodes.has('KeyZ'),
     };
   }
 
   private onKey(event: KeyboardEvent, down: boolean): void {
-    let handled = true;
     switch (event.code) {
       case 'ArrowLeft':
-        this.left = down;
-        break;
       case 'ArrowRight':
-        this.right = down;
-        break;
       case 'ArrowUp':
-        this.throttle = down;
-        break;
       case 'ArrowDown':
-        this.brake = down;
+      case 'KeyX':
+      case 'KeyZ':
+        if (down) this.pressedCodes.add(event.code);
+        else this.pressedCodes.delete(event.code);
+        event.preventDefault();
         break;
-      default:
-        handled = false;
     }
-
-    if (handled) event.preventDefault();
   }
 
   private reset(): void {
-    this.left = false;
-    this.right = false;
-    this.throttle = false;
-    this.brake = false;
+    this.pressedCodes.clear();
   }
 }

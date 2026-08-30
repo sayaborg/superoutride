@@ -55,6 +55,16 @@ vehicle control telemetry. The G sensor reads existing body-frame longitudinal a
 acceleration caches, divides by standard gravity and clamps only the drawn dot to a +/-2 g display
 range; numeric values remain unclamped.
 
+Keyboard pedal aliases publish the same canonical request:
+
+```text
+ArrowUp or X   = throttle
+ArrowDown or Z = brake
+```
+
+Equivalent keys are independent held inputs: releasing one alias does not cancel the request while
+the other remains held. Blur, page hide and hidden-document lifecycle resets clear all held keys.
+
 The G diagram is a plan view: vehicle nose is screen-up and vehicle right is screen-right. Positive
 longitudinal G moves the dot forward; positive lateral G moves it right.
 

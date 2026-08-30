@@ -50,6 +50,34 @@ test('keyboard steering publishes only digital intent', () => {
   assert.equal(digitalKeyboardSteering(true, true), 0);
 });
 
+test('keyboard pedal aliases preserve demand until every equivalent key is released', () => {
+  const lifecycle = new FakeEventTarget();
+  const visibility = new FakeEventTarget();
+  visibility.visibilityState = 'visible';
+  const keyboard = new KeyboardInput(lifecycle, visibility);
+  const dispatchKey = (type, code) => {
+    let prevented = false;
+    lifecycle.dispatch(type, { code, preventDefault: () => { prevented = true; } });
+    assert.equal(prevented, true, `${code} must suppress browser default behavior`);
+  };
+
+  dispatchKey('keydown', 'KeyX');
+  dispatchKey('keydown', 'ArrowUp');
+  assert.equal(keyboard.sample().throttle, true);
+  dispatchKey('keyup', 'KeyX');
+  assert.equal(keyboard.sample().throttle, true);
+  dispatchKey('keyup', 'ArrowUp');
+  assert.equal(keyboard.sample().throttle, false);
+
+  dispatchKey('keydown', 'KeyZ');
+  dispatchKey('keydown', 'ArrowDown');
+  assert.equal(keyboard.sample().brake, true);
+  dispatchKey('keyup', 'KeyZ');
+  assert.equal(keyboard.sample().brake, true);
+  lifecycle.dispatch('blur');
+  assert.deepEqual(keyboard.sample(), { steering: 0, throttle: false, brake: false });
+});
+
 test('touch steering buttons publish left neutral or right digital request', () => {
   assert.equal(digitalTouchSteering(true, false), -1);
   assert.equal(digitalTouchSteering(false, false), 0);
