@@ -11,14 +11,14 @@ import {
   createM71HighwaySurfaceMap,
 } from './m7-1-highway-calibration-course.js';
 
-export const M8_7_HIGH_SPEED_RADIUS_METERS = 680;
-export const M8_7_MEDIUM_FAST_RADIUS_METERS = 520;
-export const M8_7_MEDIUM_RADIUS_METERS = 320;
-export const M8_7_TIGHT_MEDIUM_RADIUS_METERS = 190;
-export const M8_7_END_CURVE_RADIUS_METERS = 380;
+const M8_7_HIGH_SPEED_RADIUS_METERS = 680;
+const M8_7_MEDIUM_FAST_RADIUS_METERS = 520;
+const M8_7_MEDIUM_RADIUS_METERS = 320;
+const M8_7_TIGHT_MEDIUM_RADIUS_METERS = 190;
+const M8_7_END_CURVE_RADIUS_METERS = 380;
 export const M8_7_JUMP_CREST_COUNT = 2;
 export const M8_7_JUMP_DROP_LENGTH_METERS = 85;
-export const M8_7_JUMP_CREST_LIFT_METERS = 8;
+const M8_7_JUMP_CREST_LIFT_METERS = 8;
 export const M8_7_JUMP_DROP_METERS = 6;
 export const M8_7_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_M8_7_VARIED_ELEVATION_THREE_LAP_ONE_RIVAL',
@@ -116,7 +116,7 @@ export function createM87VariedElevationCircuitLap(): M87VariedElevationCircuitL
   });
 }
 
-export function createM87VariedElevationHeightProfile(
+function createM87VariedElevationHeightProfile(
   courseLength: number,
   jumpCrestChainages: readonly number[],
 ): HeightProfile {

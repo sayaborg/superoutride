@@ -83,6 +83,7 @@ test('M6.34 GroundMap junction is evaluated in stage-local l before source later
 
 test('M6.34 SurfaceMap consumes the same stage-local junction cross-section', () => {
   const compiled = setup();
+  assert.equal(compiled.surfaceMap.sample(0, 0).type, 'ASPHALT');
   assert.equal(compiled.surfaceMap.sample(20, 0).type, 'ASPHALT');
   assert.equal(compiled.surfaceMap.sample(20, 4).type, 'SHOULDER');
   assert.equal(compiled.surfaceMap.sample(20, 5).type, 'GRASS');
@@ -91,6 +92,10 @@ test('M6.34 SurfaceMap consumes the same stage-local junction cross-section', ()
   assert.equal(compiled.surfaceMap.sample(120, 0).type, 'GRASS');
   assert.equal(compiled.surfaceMap.sample(120, 8.5).type, 'SHOULDER');
   assert.equal(compiled.surfaceMap.sample(120, 9.1).type, 'VOID');
+  assert.equal(compiled.surfaceMap.sample(400, 0).type, 'GRASS');
+
+  assert.throws(() => compiled.surfaceMap.sample(-1, 0), /outside \[0, 400\]/);
+  assert.throws(() => compiled.surfaceMap.sample(401, 0), /outside \[0, 400\]/);
 });
 
 test('M6.34 rejects a junction whose incoming width does not match the active stage road', () => {
@@ -123,5 +128,6 @@ test('M6.34 reusable junction layer adds no RouteDag, renderer, camera or vehicl
     .join('\n');
   assert.doesNotMatch(implementationImports, /\.\.\/(?:gameplay|render|dev)\//);
   assert.doesNotMatch(implementationImports, /car-physics|motorcycle-physics|camera/i);
+  assert.doesNotMatch(surfaceSource, /wrapPositive/);
   assert.doesNotMatch(groundSource, /STAGE_2_[LR]|STAGE_3_[LR]|GOAL_[LR]|S[123][LR]_/);
 });

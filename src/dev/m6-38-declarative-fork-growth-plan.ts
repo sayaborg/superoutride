@@ -124,7 +124,7 @@ export function createM638DeclarativeForkGrowthPlan(
   ]);
 }
 
-export function createM638DeclarativeForkGrowthAuthoring(
+function createM638DeclarativeForkGrowthAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,

@@ -33,7 +33,7 @@ const FORK_SOURCE_SEAM_MIN_S = 235;
  * RIGHT terminal. Both route sides therefore own a real second physical fork without adding route
  * decisions to main.ts, renderer Core, camera, or vehicle physics.
  */
-export function createM637SymmetricSecondLiveForkAuthoring(
+function createM637SymmetricSecondLiveForkAuthoring(
   parentGuide: GuideCurve,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,

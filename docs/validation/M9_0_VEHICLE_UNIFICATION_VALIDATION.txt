@@ -62,6 +62,12 @@ Candidate cleanup:
 - representative open-route regressions instantiate open SurfaceMap/VisualProfile sources;
 - unused public entry points, dead transient reset paths and void-suppressed locals are removed;
 - TypeScript unused-local and unused-parameter checks are compiler-enforced;
+- the reusable stage-junction SurfaceMap now enforces the ordinary open [0, courseLength] domain
+  and has no hidden periodic addressing;
+- historical milestone and handoff documents retain their evidence while current-authority notes
+  prevent retired paths and pre-implementation status from masquerading as current state;
+- GitHub Actions and the package runtime target Node.js 24 LTS, action runtimes use their Node 24
+  majors, and CI installs the exact lockfile with `npm ci`;
 - source-boundary regressions reject retired paths, pure re-export shims, misplaced milestone DEV
   factories and cyclic profiles in the selected open-route fixtures;
 - explicit Cyclic GroundMap/profile adapters remain because addendum 00c names them as deliberate

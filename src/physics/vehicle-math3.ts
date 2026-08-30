@@ -4,12 +4,7 @@ export interface Vec3 {
   readonly z: number;
 }
 
-export const VEC3_ZERO: Vec3 = Object.freeze({ x: 0, y: 0, z: 0 });
 export const WORLD_UP: Vec3 = Object.freeze({ x: 0, y: 1, z: 0 });
-
-export function vec3(x: number, y: number, z: number): Vec3 {
-  return { x, y, z };
-}
 
 export function add3(a: Vec3, b: Vec3): Vec3 {
   return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
@@ -43,10 +38,6 @@ export function normalize3(v: Vec3, fallback: Vec3 = WORLD_UP): Vec3 {
   const length = magnitude3(v);
   if (!(length > 1e-12) || !Number.isFinite(length)) return { ...fallback };
   return scale3(v, 1 / length);
-}
-
-export function projectOnPlane(v: Vec3, normal: Vec3): Vec3 {
-  return sub3(v, scale3(normal, dot3(v, normal)));
 }
 
 export function rotateAroundAxis(v: Vec3, axis: Vec3, angle: number): Vec3 {

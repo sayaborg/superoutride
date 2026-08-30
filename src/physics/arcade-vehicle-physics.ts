@@ -328,7 +328,7 @@ export function vehicleBodyTravelDirection(
   );
 }
 
-export function arcadeBodyKinematics(vehicle: ArcadeVehicleState): BodyKinematics {
+function arcadeBodyKinematics(vehicle: ArcadeVehicleState): BodyKinematics {
   const right = { x: Math.cos(vehicle.yaw), y: 0, z: -Math.sin(vehicle.yaw) };
   const forward = normalize3({
     x: Math.sin(vehicle.yaw) * Math.cos(vehicle.pitch),
@@ -403,10 +403,6 @@ function locateSegmentIndex(guide: GuideCoordinateSource, s: number): number {
     if (s >= segment.sStart - 1e-9 && s <= segment.sEnd + 1e-9) return segment.index;
   }
   throw new RangeError('vehicle spawn s is outside Guide');
-}
-
-export function ensureArcadeVehicleDerivedAccessors<T extends ArcadeVehicleState>(state: T): T {
-  return installArcadeVehicleDerivedAccessors(state) as T;
 }
 
 export type { VehicleControlState };

@@ -13,8 +13,8 @@ export interface M3RenderResult {
   activeSection: string;
 }
 
-export const PLAYER_COLOR = rgba(240, 209, 90);
-export const PLAYER_DARK = rgba(18, 23, 27);
+const PLAYER_COLOR = rgba(240, 209, 90);
+const PLAYER_DARK = rgba(18, 23, 27);
 
 export function renderM3VisualCore(
   target: SoftwareSurface,

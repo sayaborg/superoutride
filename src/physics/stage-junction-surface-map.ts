@@ -1,6 +1,5 @@
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { classifyStageRoadLocalL, type StageRoadView } from '../course/stage-road-view.js';
-import { wrapPositive } from '../core/math.js';
 import {
   SURFACE_MATERIALS,
   type SurfaceMapReader,
@@ -35,12 +34,14 @@ export class StageJunctionSurfaceMap implements SurfaceMapReader {
   }
 
   sample(s: number, localL: number): SurfaceSample {
-    const localS = wrapPositive(s, this.courseLength);
+    if (!Number.isFinite(s) || s < 0 || s > this.courseLength) {
+      throw new RangeError(`stage junction surface chainage ${s} outside [0, ${this.courseLength}]`);
+    }
     if (classifyStageRoadLocalL(this.roadView, localL) === 'OUTSIDE') {
       return sample('VOID', `${this.sectionName} / OUTSIDE`);
     }
 
-    const junctionClass = this.junction.classify(localS, localL);
+    const junctionClass = this.junction.classify(s, localL);
     if (
       junctionClass === 'ASPHALT_SINGLE'
       || junctionClass === 'ASPHALT_LEFT'

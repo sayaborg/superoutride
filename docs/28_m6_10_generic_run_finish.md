@@ -1,5 +1,9 @@
 # M6.10 — Generic Validated Run Finish
 
+> Current authority note: this document records the M6.10 historical design. The compatibility
+> wrapper described below was subsequently removed; current callers consume the generic validated
+> finish authority directly.
+
 ## Purpose
 
 M6.7 introduced point-to-point completion but its public input was still the closed-course `RaceProgressUpdate` shape. M6.8/M6.9 then introduced a separate route authority chain. M6.10 removes the remaining product-completion dependency on closed-course lap semantics.

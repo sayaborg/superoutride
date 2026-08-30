@@ -3,6 +3,9 @@
   "version": "0.9.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "build": "node tools/clean-dist.mjs && tsc -p tsconfig.json && node tools/build-ground-map.mjs",
     "check": "tsc -p tsconfig.json --noEmit",

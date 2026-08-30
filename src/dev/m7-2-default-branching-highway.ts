@@ -23,8 +23,8 @@ import {
 } from './m7-1-highway-calibration-course.js';
 
 export const M7_2_FORK_WIDEN_START_S = 5_800;
-export const M7_2_FORK_MEDIAN_START_S = 5_900;
-export const M7_2_FORK_SEPARATED_START_S = 6_000;
+const M7_2_FORK_MEDIAN_START_S = 5_900;
+const M7_2_FORK_SEPARATED_START_S = 6_000;
 export const M7_2_ROUTE_GATE_S = 6_060;
 export const M7_2_HANDOFF_SEAM_S = 6_120;
 

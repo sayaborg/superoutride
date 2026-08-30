@@ -1,5 +1,9 @@
 # M6.50 Circuit Race Progress
 
+> Current authority note: this document records the M6.50 introduction. Its historical
+> `src/gameplay/race-progress.ts` ownership statement no longer describes the current tree; explicit
+> circuit race progress now lives in the ordinary circuit gameplay modules and executable tests.
+
 ## 0. Status
 
 M6.50 connects the explicit M6.48 CircuitTopology and the finite open M6.49 runtime window to product-style lap race progress.

@@ -1,5 +1,9 @@
 # SUPER OUTRIDE — M5 Driving / Car + Motorcycle Physics
 
+> Current authority note: this document is historical M5 lineage. M9.0 superseded its separate
+> CAR/BIKE solver paths with the common Two-Station Arcade Vehicle Dynamics architecture; deleted
+> solver filenames below are historical references, not current modules.
+
 Status: implemented DEV Car + Motorcycle physics layer.  
 Core authority remains `00_core_design_freeze.md`.
 

@@ -143,7 +143,7 @@ export interface ContactObservation {
   readonly lateralVelocity: number;
 }
 
-export class VehicleOutsideModelError extends Error {
+class VehicleOutsideModelError extends Error {
   constructor(readonly contactId: VehicleContactId, readonly compression: number, readonly travel: number) {
     super(`${contactId} suspension compression ${compression} reached/exceeded qTravel ${travel}`);
     this.name = 'VehicleOutsideModelError';
@@ -210,7 +210,7 @@ export function refreshGuideObservation(
   vehicle.course = coordinate;
 }
 
-export function sampleSurfaceGeometryAtWorld(
+function sampleSurfaceGeometryAtWorld(
   guide: GuideCoordinateSource,
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,

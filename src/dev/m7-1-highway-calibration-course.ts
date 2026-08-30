@@ -1,7 +1,6 @@
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
-import { compileCourseMode } from '../gameplay/course-mode.js';
 import { M5_RECOVERY_PROFILE, type M5RecoveryProfile } from '../gameplay/recovery.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
@@ -16,7 +15,7 @@ import { VisualProfile } from '../visual/visual-profile.js';
 export const M7_1_LANE_COUNT = 4;
 export const M7_1_LANE_WIDTH_METERS = 3.5;
 export const M7_1_ROAD_HALF_WIDTH_METERS = M7_1_LANE_COUNT * M7_1_LANE_WIDTH_METERS * 0.5;
-export const M7_1_SHOULDER_WIDTH_METERS = 1.5;
+const M7_1_SHOULDER_WIDTH_METERS = 1.5;
 export const M7_1_GROUND_HALF_WIDTH_METERS = 12;
 export const M7_1_PLAYER_START_L = -M7_1_LANE_WIDTH_METERS * 0.5;
 export const M7_1_RIVAL_START_L = M7_1_LANE_WIDTH_METERS * 0.5;
@@ -26,18 +25,12 @@ export const M7_1_EDGE_MARKING_WIDTH_METERS = 0.20;
 export const M7_1_MARKING_DASH_LENGTH_METERS = 8;
 export const M7_1_MARKING_GAP_LENGTH_METERS = 12;
 
-export const M7_1_STANDARD_CURVE_RADIUS_METERS = 470;
-export const M7_1_SWEEP_CURVE_RADIUS_METERS = 720;
+const M7_1_STANDARD_CURVE_RADIUS_METERS = 470;
+const M7_1_SWEEP_CURVE_RADIUS_METERS = 720;
 export const M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS = 90;
 export const M8_4_LOW_SPEED_COMPLEX_COUNT = 2;
 export const M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS = 200;
 export const M7_1_AIRBORNE_PROBE_START_S = 250;
-
-export const M7_1_DEV_COURSE_MODE = compileCourseMode({
-  id: 'DEV_HIGHWAY_CALIBRATION_THREE_LAP_ONE_RIVAL',
-  routeKind: 'CIRCUIT',
-  rivalCount: 1,
-});
 
 export const M7_1_HIGHWAY_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
   ...M5_RECOVERY_PROFILE,

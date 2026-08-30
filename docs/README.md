@@ -192,17 +192,18 @@ It records the independent M8.2-M8.7 preservation commit, the common-solver migr
 architecture acceptance, three-mode browser checks and the self-reference-safe exact-head CI
 procedure.
 
-## 5. M9 implementation handoff
+## 5. Historical M9 implementation handoff
 
-The current next-thread procedure is:
+The M9 implementation takeover procedure was:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
 ```
 
-It owns navigation and execution order only. It does not supersede the current frozen vehicle
-authority. Its required normative M9.0 design and executable architecture boundary are now present
-in `87_m9_0_two_station_arcade_vehicle_dynamics.md` and the dedicated M9 regressions.
+It remains historical navigation and execution-order context only. It does not supersede the
+current frozen vehicle authority. Its required normative M9.0 design and executable architecture
+boundary are now present in `87_m9_0_two_station_arcade_vehicle_dynamics.md` and the dedicated M9
+regressions.
 
 ## 6. M8.0 implementation/finalization handoff
 
@@ -263,8 +264,9 @@ Handoff documents are context/navigation snapshots. They do not override the Cor
 ../README.md  repository entry point and current-state index
 ```
 
-For the current next vehicle-architecture task, start with the working rules in `../AGENTS.md` and
-the active M9 planning handoff. Use the M8.0 handoff only when its PR lineage is relevant.
+For current work, start with the working rules in `../AGENTS.md`, this authority index and the
+latest relevant milestone authority. Use either implementation handoff only when its historical PR
+lineage is relevant.
 
 At and after the validated FINAL CODEX MIGRATION POINT, repository contents/history—not previous ChatGPT threads—are the continuing project memory.
 

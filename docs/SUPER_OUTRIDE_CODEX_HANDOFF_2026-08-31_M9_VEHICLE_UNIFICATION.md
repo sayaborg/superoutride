@@ -1,6 +1,10 @@
 # SUPER OUTRIDE — M9 Vehicle Unification Implementation Handoff
 
-Status: product/design discussion complete; M9 normative design and implementation have not started.
+Historical checkpoint notice: M9.0 was subsequently implemented on PR #100. The status and
+procedure below record the takeover boundary before implementation and are not current task state.
+
+Historical checkpoint status: product/design discussion complete; M9 normative design and
+implementation have not started.
 
 This document is takeover context and an implementation procedure. It records the user-approved
 direction, the current dirty-worktree boundary, the architecture questions that must be resolved in

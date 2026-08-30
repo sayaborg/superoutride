@@ -1,5 +1,9 @@
 # M6.7 — Validated Run Objective / Point-to-Point Completion
 
+> Current authority note: this document records the M6.7 historical design. The temporary
+> `REPEATABLE_DEV` objective described below was retired when explicit CIRCUIT topology and race
+> progress became the upper-level authority; it is not a current runtime objective kind.
+
 ## Purpose
 
 The current stadium is a closed DEV validation course, but SUPER OUTRIDE is not required to be a lap-racing game. M6.7 separates the geometry/race-progress loop from product run-completion semantics.

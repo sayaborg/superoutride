@@ -1,5 +1,9 @@
 # M6.47 — Open Parent Stage Integration
 
+> Current authority note: this document is historical M6.47 integration evidence. M9.0 superseded
+> the separate CAR/BIKE solver paths named below; those deleted filenames are not current runtime
+> authorities.
+
 ## 0. Status
 
 **Complete candidate; release requires docs-inclusive exact-head CI and validation-file-inclusive exact-head CI before main fast-forward.**
