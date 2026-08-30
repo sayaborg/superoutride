@@ -36,10 +36,12 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.2 supersedes only the implicit unit gain on M9.0 travel-direction steering feedback. It adds
-one common finite vehicle-instance calibration value, defaults to the released `1.0`, and exposes
-the exact browser comparison set `0.5` through `1.0` in `0.1` steps. It does not change yaw-rate
-preview, driver input, actuator response, tires, camera, route or topology.
+M9.2 supersedes the implicit unit gain on M9.0 travel-direction steering feedback and the M9.0
+steering-actuator neutral-release rate. It adds one common finite vehicle-instance calibration
+value, gives the browser player default `0.5`, and exposes the exact comparison set `0.3` through
+`0.7` in `0.1` steps. Steering apply remains `1.6 normalized/s` and neutral release becomes `8`
+normalized/s. It does not change yaw-rate preview, final road-wheel response, tires, camera, route
+or topology; ordinary mechanics construction and rivals retain gain `1.0`.
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
 selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
@@ -137,7 +139,7 @@ arrow show travel direction while body lock is active. Body-pitch follow and all
 renderer/metric rules remain unchanged.
 
 The current selectable self-steer calibration authority is
-`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9` and the shared touch
+`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `8` and the shared touch
 selector one exact gain table while the common mechanics owns the sole current value.
 
 The current public CIRCUIT course geometry authority is

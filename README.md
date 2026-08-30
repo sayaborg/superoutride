@@ -13,11 +13,12 @@ handoff context, not current design authority; the normative M9 authority is the
 
 ## Current milestone status
 
-M9.2 makes the common travel-direction self-steer feedback selectable at `0.5`, `0.6`, `0.7`,
-`0.8`, `0.9` and `1.0`. Keys/numpad `4` through `9`, shared touch buttons and the common HUD derive
-from one table. The selected player value survives recovery and profile switching; the common
-formula scales only `betaTravel`, while yaw preview, actuator response, tires and camera remain
-unchanged. The authority is `docs/92_m9_2_selectable_self_steer_gain.md`.
+M9.2 makes the common travel-direction self-steer feedback selectable at `0.3`, `0.4`, `0.5`,
+`0.6` and `0.7`, with browser-player default `0.5`. Keys/numpad `4` through `8`, shared touch buttons
+and the common HUD derive from one table. The selected player value survives recovery and profile
+switching; the common formula scales only `betaTravel`. Common steering input apply remains
+`1.6 normalized/s`, while neutral release is now `8 normalized/s`; yaw preview, tires and camera
+remain unchanged. The authority is `docs/92_m9_2_selectable_self_steer_gain.md`.
 
 M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one common compact
 debug HUD for all three course compositions. The four cars share one engine/tire/chassis package;
@@ -339,7 +340,7 @@ Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `
 brake. Equivalent pedal keys and touch pointers may remain held independently, but one input-layer
 arbiter publishes only the most recently pressed still-held pedal as canonical input.
 
-Package and visible milestone metadata are synchronized at `super-outride-m9-1@0.9.1`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
+Package and visible milestone metadata are synchronized at `super-outride-m9-2@0.9.2`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
 
 Vehicle handling remains:
 

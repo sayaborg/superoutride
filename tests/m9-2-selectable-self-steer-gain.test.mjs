@@ -21,18 +21,19 @@ import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const DT = 1 / 60;
 
-test('browser keys 4 through 9 own exactly the requested six self-steer gains', () => {
-  assert.equal(DEFAULT_BROWSER_SELF_STEER_GAIN, 1);
-  assert.deepEqual(BROWSER_SELF_STEER_GAINS.map(({ gain }) => gain), [0.5, 0.6, 0.7, 0.8, 0.9, 1]);
+test('browser keys 4 through 8 own exactly the requested five self-steer gains', () => {
+  assert.equal(DEFAULT_BROWSER_SELF_STEER_GAIN, 0.5);
+  assert.deepEqual(BROWSER_SELF_STEER_GAINS.map(({ gain }) => gain), [0.3, 0.4, 0.5, 0.6, 0.7]);
   for (let index = 0; index < BROWSER_SELF_STEER_GAINS.length; index += 1) {
     const digit = index + 4;
-    const gain = 0.5 + index * 0.1;
+    const gain = 0.3 + index * 0.1;
     assert.ok(Math.abs(browserSelfSteerGainForKey(`Digit${digit}`) - gain) < 1e-12);
     assert.ok(Math.abs(browserSelfSteerGainForKey(`Numpad${digit}`) - gain) < 1e-12);
   }
   assert.equal(browserSelfSteerGainForKey('Digit3'), null);
+  assert.equal(browserSelfSteerGainForKey('Digit9'), null);
   assert.equal(browserSelfSteerGainForKey('KeyP'), null);
-  assert.match(formatSelfSteerGainSelector(0.7), /\[6\]0\.7\*/);
+  assert.match(formatSelfSteerGainSelector(0.5), /\[6\]0\.5\*/);
 });
 
 test('travel-direction gain scales only beta feedback and preserves yaw preview and driver offset', () => {
@@ -102,7 +103,7 @@ test('gain authority stays in common mechanics and shared browser composition', 
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(solver, /travelDirectionGain \* bodyTravelDirection/);
-  assert.doesNotMatch(solver, /Digit4|Numpad9|camera|routeKind|CIRCUIT/);
+  assert.doesNotMatch(solver, /Digit4|Numpad8|camera|routeKind|CIRCUIT/);
   assert.doesNotMatch(selection, /camera|vehicle\.yaw|yawRate|tire|routeKind/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /browserSelfSteerGainForKey/);

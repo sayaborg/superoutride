@@ -71,7 +71,7 @@ export interface CompiledArcadeVehicleProfile extends ArcadeVehicleProfile {
 const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
   steering: Object.freeze({
     applyRate: (24 * Math.PI / 180) / (15 * Math.PI / 180),
-    releaseRate: (60 * Math.PI / 180) / (15 * Math.PI / 180),
+    releaseRate: (120 * Math.PI / 180) / (15 * Math.PI / 180),
   }),
   throttle: Object.freeze({ applyRate: 1 / 0.25, releaseRate: 1 / 0.125 }),
   brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.10 }),

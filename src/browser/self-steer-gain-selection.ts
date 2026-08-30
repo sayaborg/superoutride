@@ -1,20 +1,19 @@
-export type BrowserSelfSteerGain = 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0;
+export type BrowserSelfSteerGain = 0.3 | 0.4 | 0.5 | 0.6 | 0.7;
 
 export interface BrowserSelfSteerGainSelection {
-  readonly code: 'Digit4' | 'Digit5' | 'Digit6' | 'Digit7' | 'Digit8' | 'Digit9';
-  readonly numpadCode: 'Numpad4' | 'Numpad5' | 'Numpad6' | 'Numpad7' | 'Numpad8' | 'Numpad9';
+  readonly code: 'Digit4' | 'Digit5' | 'Digit6' | 'Digit7' | 'Digit8';
+  readonly numpadCode: 'Numpad4' | 'Numpad5' | 'Numpad6' | 'Numpad7' | 'Numpad8';
   readonly gain: BrowserSelfSteerGain;
 }
 
-export const DEFAULT_BROWSER_SELF_STEER_GAIN: BrowserSelfSteerGain = 1.0;
+export const DEFAULT_BROWSER_SELF_STEER_GAIN: BrowserSelfSteerGain = 0.5;
 
 export const BROWSER_SELF_STEER_GAINS: readonly BrowserSelfSteerGainSelection[] = Object.freeze([
-  Object.freeze({ code: 'Digit4', numpadCode: 'Numpad4', gain: 0.5 }),
-  Object.freeze({ code: 'Digit5', numpadCode: 'Numpad5', gain: 0.6 }),
-  Object.freeze({ code: 'Digit6', numpadCode: 'Numpad6', gain: 0.7 }),
-  Object.freeze({ code: 'Digit7', numpadCode: 'Numpad7', gain: 0.8 }),
-  Object.freeze({ code: 'Digit8', numpadCode: 'Numpad8', gain: 0.9 }),
-  Object.freeze({ code: 'Digit9', numpadCode: 'Numpad9', gain: 1.0 }),
+  Object.freeze({ code: 'Digit4', numpadCode: 'Numpad4', gain: 0.3 }),
+  Object.freeze({ code: 'Digit5', numpadCode: 'Numpad5', gain: 0.4 }),
+  Object.freeze({ code: 'Digit6', numpadCode: 'Numpad6', gain: 0.5 }),
+  Object.freeze({ code: 'Digit7', numpadCode: 'Numpad7', gain: 0.6 }),
+  Object.freeze({ code: 'Digit8', numpadCode: 'Numpad8', gain: 0.7 }),
 ]);
 
 export function browserSelfSteerGainForKey(code: string): BrowserSelfSteerGain | null {

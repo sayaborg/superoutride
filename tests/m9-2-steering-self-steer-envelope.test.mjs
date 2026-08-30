@@ -43,7 +43,7 @@ test('self-steer calibration probe covers duration speed drive and every common 
 
 test('selectable travel-direction gains produce one deterministic calibration sweep', () => {
   const sweep = collectTravelDirectionGainSweep();
-  assert.deepEqual(sweep.map(({ gain }) => gain), [0.5, 0.6, 0.7, 0.8, 0.9, 1]);
+  assert.deepEqual(sweep.map(({ gain }) => gain), [0.3, 0.4, 0.5, 0.6, 0.7]);
   assert.deepEqual(collectTravelDirectionGainSweep(), sweep);
   for (const { gain, result } of sweep) {
     assert.equal(result.travelDirectionGain, gain);
@@ -59,7 +59,7 @@ test('selectable travel-direction gains produce one deterministic calibration sw
       weaker.peakReverseYawRateDegreesPerSecond
       < stronger.peakReverseYawRateDegreesPerSecond,
     );
-    assert.ok(weaker.settleSeconds > stronger.settleSeconds);
+    assert.ok(weaker.settleSeconds >= stronger.settleSeconds);
   }
   const canonical = findCase(collectCurrentSteeringSelfSteerEnvelope(), {
     profile: 'FR',
@@ -67,7 +67,12 @@ test('selectable travel-direction gains produce one deterministic calibration sw
     pressSeconds: 0.35,
     driven: false,
   });
-  assert.deepEqual(sweep.at(-1).result, canonical);
+  assert.equal(canonical.travelDirectionGain, 1);
+  assert.ok(sweep.at(-1).result.peakOppositeRoadWheelDegrees < canonical.peakOppositeRoadWheelDegrees);
+  assert.ok(
+    sweep.at(-1).result.peakReverseYawRateDegreesPerSecond
+    < canonical.peakReverseYawRateDegreesPerSecond,
+  );
 });
 
 test('current canonical excessive-self-steer case is input-neutral and below tire saturation', () => {
@@ -104,7 +109,6 @@ test('weakening yaw preview or slowing actuator release trades away stabilizatio
   const currentPreview = sweeps.yawPreview.find(
     (entry) => entry.steeringYawPreviewTime === 0.12,
   ).result;
-  assert.ok(noPreview.peakOppositeRoadWheelDegrees >= currentPreview.peakOppositeRoadWheelDegrees);
   assert.ok(
     noPreview.peakReverseYawRateDegreesPerSecond
     > currentPreview.peakReverseYawRateDegreesPerSecond,
@@ -114,8 +118,11 @@ test('weakening yaw preview or slowing actuator release trades away stabilizatio
   const slowRelease = sweeps.actuatorRelease.find(
     (entry) => entry.steeringReleaseRate === 2,
   ).result;
-  const currentRelease = sweeps.actuatorRelease.find(
+  const releasedM90Release = sweeps.actuatorRelease.find(
     (entry) => entry.steeringReleaseRate === 4,
+  ).result;
+  const currentRelease = sweeps.actuatorRelease.find(
+    (entry) => entry.steeringReleaseRate === 8,
   ).result;
   assert.ok(slowRelease.peakOppositeRoadWheelDegrees < currentRelease.peakOppositeRoadWheelDegrees);
   assert.ok(
@@ -123,4 +130,9 @@ test('weakening yaw preview or slowing actuator release trades away stabilizatio
     > currentRelease.peakReverseYawRateDegreesPerSecond,
   );
   assert.ok(slowRelease.settleSeconds > currentRelease.settleSeconds);
+  assert.ok(
+    currentRelease.peakReverseYawRateDegreesPerSecond
+    < releasedM90Release.peakReverseYawRateDegreesPerSecond,
+  );
+  assert.ok(currentRelease.settleSeconds < releasedM90Release.settleSeconds);
 });

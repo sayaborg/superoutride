@@ -46,6 +46,7 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
+import { setArcadeVehicleTravelDirectionSteeringGain } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   HUD_INPUT_ACCEL_COLOR,
   HUD_INPUT_BRAKE_COLOR,
@@ -236,6 +237,7 @@ test('all six vehicle profiles integrate ordinarily on the finite LINEAR course'
 test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
   const runtime = createM83LinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
+  setArcadeVehicleTravelDirectionSteeringGain(vehicle, 0.5);
   vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
   vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
   vehicle.control.throttleActuator = 0.42;
@@ -249,7 +251,7 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.match(model.vehicleSelector, /\[Q\]FR\*/);
-  assert.match(model.selfSteerSelector, /\[9\]1\.0\*/);
+  assert.match(model.selfSteerSelector, /\[6\]0\.5\*/);
   assert.equal(model.requestedSteering, -1);
   assert.equal(model.requestedThrottle, 1);
   assert.equal(model.requestedBrake, 0);

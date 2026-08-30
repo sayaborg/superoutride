@@ -11,7 +11,7 @@ import {
 
 const DT = 1 / 720;
 const PROFILE = Object.freeze({
-  steering: Object.freeze({ applyRate: 1.6, releaseRate: 4 }),
+  steering: Object.freeze({ applyRate: 1.6, releaseRate: 8 }),
   throttle: Object.freeze({ applyRate: 4, releaseRate: 8 }),
   brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 10 }),
 });
@@ -66,6 +66,16 @@ test('release is finite monotone and exact with steering faster than application
   run(state, neutral, 0.25);
   assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
   assert.ok(first.steering < 1 - PROFILE.steering.applyRate * DT + 1e-12);
+});
+
+test('common steering releases full-scale driver offset in exactly 0.125 seconds', () => {
+  const before = { steering: 1, throttle: 0, brake: 0 };
+  run(before, neutral, 89 * DT);
+  assert.ok(before.steering > 0);
+
+  const at = { steering: 1, throttle: 0, brake: 0 };
+  run(at, neutral, 0.125);
+  assert.equal(at.steering, 0);
 });
 
 test('exclusive pedal handoff preserves ordinary independent finite actuator response', () => {

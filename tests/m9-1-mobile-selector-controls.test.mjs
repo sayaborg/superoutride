@@ -133,14 +133,13 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile self-steer buttons expose the six canonical calibration gains', () => {
+test('mobile self-steer buttons expose the five canonical calibration gains', () => {
   assert.deepEqual(createMobileSelfSteerGainSelectorModel(0.7), [
+    { value: 0.3, label: '0.3', ariaLabel: 'Set self-steer gain to 0.3', active: false },
+    { value: 0.4, label: '0.4', ariaLabel: 'Set self-steer gain to 0.4', active: false },
     { value: 0.5, label: '0.5', ariaLabel: 'Set self-steer gain to 0.5', active: false },
     { value: 0.6, label: '0.6', ariaLabel: 'Set self-steer gain to 0.6', active: false },
     { value: 0.7, label: '0.7', ariaLabel: 'Set self-steer gain to 0.7', active: true },
-    { value: 0.8, label: '0.8', ariaLabel: 'Set self-steer gain to 0.8', active: false },
-    { value: 0.9, label: '0.9', ariaLabel: 'Set self-steer gain to 0.9', active: false },
-    { value: 1.0, label: '1.0', ariaLabel: 'Set self-steer gain to 1.0', active: false },
   ]);
 });
 
@@ -180,16 +179,16 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   let selectedGain = null;
   const gainController = mountMobileSelfSteerGainSelector(
     gainContainer,
-    1.0,
+    0.5,
     (gain) => { selectedGain = gain; },
     fakeDocument,
   );
-  gainContainer.children[2].click();
+  gainContainer.children[4].click();
   assert.equal(selectedGain, 0.7);
   gainController.setActive(selectedGain);
   assert.deepEqual(
     gainContainer.children.map((button) => button.attributes.get('aria-pressed')),
-    ['false', 'false', 'true', 'false', 'false', 'false'],
+    ['false', 'false', 'false', 'false', 'true'],
   );
   assert.equal(vehicleContainer.children[4].classList.contains('active'), true);
 

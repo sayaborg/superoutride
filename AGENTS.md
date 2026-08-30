@@ -53,12 +53,14 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.2 supersedes only the M9.0 implicit unit coefficient on travel-direction steering feedback. It
-owns one finite common vehicle-instance gain in `[0,1]`, default `1.0`, and the browser calibration
-choices `0.5/0.6/0.7/0.8/0.9/1.0`. The gain scales only `betaTravel`; yaw preview, driver offset,
-actuator response, tires and camera remain separate authorities. One shared browser table owns
-keyboard/numpad/touch/HUD selection, and profile safe-spawn reconstruction preserves the selected
-player value without adding a vehicle-kind branch.
+M9.2 supersedes the M9.0 implicit unit coefficient on travel-direction steering feedback and its
+steering-actuator neutral-release rate. It owns one finite common vehicle-instance gain in `[0,1]`;
+the browser player defaults to `0.5` and exposes `0.3/0.4/0.5/0.6/0.7`, while ordinary mechanics
+construction and rivals retain the `1.0` default. The gain scales only `betaTravel`; yaw preview,
+driver offset, tires and camera remain separate authorities. Steering apply remains `1.6`
+normalized/s and neutral release is `8` normalized/s. One shared browser table owns keyboard/
+numpad/touch/HUD selection, and profile safe-spawn reconstruction preserves the selected player
+value without adding a vehicle-kind branch.
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
 drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
