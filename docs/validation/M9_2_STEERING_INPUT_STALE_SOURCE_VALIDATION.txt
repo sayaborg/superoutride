@@ -1,0 +1,136 @@
+SUPER OUTRIDE — STEERING INPUT STALE-SOURCE HOTFIX VALIDATION
+2026-08-31 JST
+
+Scope:
+Fix the confirmed stale steering-source defect at the input-adapter boundary, preserve its causal
+evidence, and establish a deterministic envelope for the separate excessive neutral-input
+self-steer investigation without changing camera or vehicle physics.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+c7a862547530622f50a7a82e62cbf8e608141210
+
+Candidate branch:
+codex/m9-2-steering-input-stale-source
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
+docs/91_m9_1_dual_yaw_camera_modes.md
+
+Reproduced input root cause:
+- keyboard and touch each retained LEFT and RIGHT independently;
+- their local equality rule resolved stale RIGHT + corrective LEFT as neutral;
+- releasing LEFT exposed the older stale RIGHT again;
+- lifecycle reset could eventually clear the symptom but did not repair ordinary source order;
+- camera and vehicle physics neither caused nor owned that retained input state.
+
+Resolved input architecture:
+- InputManager owns one device-independent SteeringInputArbiter shared by keyboard and touch;
+- exactly one latest non-repeat steering source is active at a time;
+- a new steering press supersedes the older source instead of retaining a second direction truth;
+- releasing the active source returns exactly to neutral;
+- releasing or repeating a superseded source cannot restore it;
+- blur, page-hide and hidden-document lifecycle paths reset the one shared authority;
+- the arbiter imports no camera, vehicle, route, physics or screen authority;
+- three finite vehicle actuators remain the sole response authority after canonical input.
+
+Direct incident regressions:
+tests/input-core.test.mjs
+tests/m9-0-vehicle-unification-architecture.test.mjs
+
+The causal matrix covers:
+- stale keyboard RIGHT -> LEFT press -> LEFT release remains neutral;
+- key-repeat from superseded RIGHT cannot resurrect it;
+- stale touch RIGHT -> LEFT pointer -> LEFT release remains neutral;
+- touch RIGHT superseded by keyboard LEFT remains neutral after keyboard release;
+- active-source release, blur, page-hide and hidden visibility all produce exact neutral;
+- isolated LEFT and RIGHT remain exact digital -1 / 0 / +1 requests;
+- one shared steering authority and absence of lower-layer or presentation dependencies.
+
+Separate self-steer investigation:
+tools/probe-steering-self-steer.mjs
+tests/m9-2-steering-self-steer-envelope.test.mjs
+
+The deterministic 60 Hz probe covers:
+- FR at 15 / 25 / 35 m/s and 0.10 / 0.35 / 0.60 second presses;
+- coast and driven cases;
+- FR / MR / RR / AWD / BIKE1 / BIKE2 compatibility;
+- peak opposite road-wheel angle, same/reverse yaw rate, sideslip, settle time and tire utilization;
+- yaw-preview and steering-actuator-release sweeps.
+
+Canonical FR 25 m/s, 0.35 second coast observation:
+- peak opposite road-wheel angle after neutral request: 3.868728 degrees;
+- peak same-direction yaw rate: 22.973319 degrees/second;
+- peak reverse yaw rate: 6.926319 degrees/second;
+- maximum front/rear utilization: 0.546336 / 0.452839;
+- residual driver offset at the opposite peak: exactly zero.
+
+The envelope confirms that the visible countersteer is separate from stale canonical input and
+exists below tire saturation. Removing yaw preview or slowing actuator release trades away yaw
+stabilization/settling rather than removing the cause. No steering gain, preview, actuator, tire,
+camera or profile calibration is changed by this hotfix. A future calibration change requires an
+explicit normative/profile decision; the strongest measured candidate is an explicit profile-owned
+travel-direction feedback gain rather than an ad hoc camera or tire mask.
+
+Validation-inclusive local repository result before this record:
+npm test
+548 tests
+548 pass
+0 fail
+0 skipped
+
+Browser verification before this record:
+- local LINEAR composition loaded the ordinary M9.1 browser runtime without console warnings or
+  errors;
+- touch RIGHT -> LEFT -> LEFT release returned both steering buttons to neutral;
+- camera and physics were unchanged.
+
+Pre-validation exact-head CI:
+Feature head:
+  cf64dc5cf36f3a69bc22dce0d8b4fbe656c8a32b
+
+PR:
+  #101 Fix stale steering input arbitration
+
+Workflow:
+  Test and Deploy GitHub Pages
+  run id 33335452466
+  build job 99321421376
+
+Exact checkout:
+  expected=cf64dc5cf36f3a69bc22dce0d8b4fbe656c8a32b
+  actual=cf64dc5cf36f3a69bc22dce0d8b4fbe656c8a32b
+
+Result:
+  tests 548
+  pass 548
+  fail 0
+  cancelled 0
+  skipped 0
+  todo 0
+
+Validation-inclusive exact-head release rule:
+1. This record is part of the candidate; the commit containing it is the only release candidate.
+2. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+3. Require the complete suite to remain 548 / 548 pass, 0 fail, 0 skipped.
+4. Re-fetch main before release and require ahead_by > 0, behind_by = 0 and merge base = main.
+5. Never add an unvalidated merge commit or force-update main.
+6. Move main only to the validated exact SHA with force=false.
+7. Verify main SHA = validated SHA = PR head SHA = PR merge SHA.
+8. Verify the main-push build and Pages deployment on that same SHA, then inspect the public
+   version and runtime.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert the later validation-inclusive SHA, CI run id, PR merge
+identity or Pages identity. Those facts are supplied by immutable Git/PR/ref/workflow history
+together with this validation record.
+
+Handling status:
+DEV_UNCALIBRATED. Canonical steering-source arbitration is corrected. Vehicle-control calibration
+remains unchanged and the excessive self-steer finding remains an explicitly separate investigation.
