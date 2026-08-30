@@ -36,7 +36,9 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
 selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
-HUD. The four cars share one engine/tire/chassis package; handling values remain provisional.
+HUD. The HUD owns six graphical request/actual control meters, one common `18:1` presentation-only
+handwheel conversion and a minimal inertial-load G cross/dot. The four cars share one
+engine/tire/chassis package; handling values remain provisional.
 
 M9.0 is the current common vehicle-mechanics authority. It supersedes the separate M8.0 CAR/BIKE
 solver architecture and the M8.1 immediate steering-release rule within its explicit scope while
@@ -215,6 +217,15 @@ validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt
 
 It records the corrected six-profile selector, common car-package invariant, normalized AWD
 drive-torque distribution, causal handling regression, complete suite and three-mode browser checks.
+
+The current M9.1 control-graphics and inertial-G correction evidence is:
+
+```text
+validation/M9_1_CONTROL_GRAPHICS_G_SENSOR_VALIDATION.txt
+```
+
+It proves six graphical request/actual controls, the cross-and-dot inertial-load direction, the
+HUD-only 18:1 handwheel conversion, mechanical invariance, complete suite and browser layout.
 
 ## 5. Historical M9 implementation handoff
 

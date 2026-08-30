@@ -54,7 +54,7 @@ export interface ArcadeVehicleProfile {
   readonly steeringOffsetMax: number;
   readonly steeringResponseTau: number;
   readonly steeringYawPreviewTime: number;
-  /** Derived handwheel presentation conversion; zero means no handwheel HUD. */
+  /** HUD-only handwheel presentation conversion; never consumed by mechanics. */
   readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
@@ -109,7 +109,7 @@ const CAR_PROFILE_AUTHORING: ArcadeVehicleProfile = {
   steeringOffsetMax: 15 * Math.PI / 180,
   steeringResponseTau: 0.01,
   steeringYawPreviewTime: 0.12,
-  steeringRatio: 15,
+  steeringRatio: 18,
   frontBrakeTorqueMax: 3_070,
   rearBrakeTorqueMax: 1_880,
   quadraticDrag: 0.39,
@@ -201,7 +201,7 @@ const BIKE_PROFILE_AUTHORING: ArcadeVehicleProfile = {
   steeringOffsetMax: 15 * Math.PI / 180,
   steeringResponseTau: 0.01,
   steeringYawPreviewTime: 0.12,
-  steeringRatio: 0,
+  steeringRatio: 18,
   frontBrakeTorqueMax: 1_300,
   rearBrakeTorqueMax: 600,
   quadraticDrag: 0.39,

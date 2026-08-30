@@ -56,7 +56,8 @@ drive-station distribution assumption and accumulated per-course debug overlays.
 FR/MR/RR/AWD/BIKE1/BIKE2 compiled-profile selection, the normalized station drive-torque split and
 the shared presentation-only HUD boundary. The four car profiles share one engine/tire/chassis
 package; FR/MR/RR differ only by weight distribution/inertia, while AWD additionally uses 50:50
-front/rear drive torque.
+front/rear drive torque. The common `18:1` steering ratio is a HUD-only handwheel conversion and
+must never be consumed by steering mechanics.
 
 M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
 steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction

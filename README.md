@@ -17,8 +17,9 @@ M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one
 debug HUD for all three course compositions. The four cars share one engine/tire/chassis package;
 FR/MR/RR differ only by weight distribution and body inertia, while AWD changes ordinary tire-force
 behavior through a compiled 50:50 front/rear drive-torque split. The HUD is limited to
-course/profile selection, speed/RPM/gear, requested and actual controls, body yaw and a top-down
-body-axis G sensor. The authority is `docs/88_m9_1_six_profile_debug_hud.md`.
+course/profile selection, speed/RPM/gear, graphical requested/actual controls, an `18:1` HUD-only
+handwheel graphic, body yaw and a body-axis inertial-load G cross/dot. The authority is
+`docs/88_m9_1_six_profile_debug_hud.md`.
 
 M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by every compiled profile. It
 owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
@@ -310,7 +311,9 @@ M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDAT
 ordered M8.2–M8.7 candidate is preserved independently at `c241698`; M9.0 candidate evidence is
 recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`; the original four-profile
 M9.1 checkpoint remains historical, and the corrected candidate evidence is recorded in
-`docs/validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt`.
+`docs/validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt`. The subsequent graphical-control,
+inertial-G and HUD-only 18:1 correction is recorded independently in
+`docs/validation/M9_1_CONTROL_GRAPHICS_G_SENSOR_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 

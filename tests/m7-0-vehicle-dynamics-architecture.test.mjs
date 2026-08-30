@@ -104,7 +104,10 @@ test('common HUD reads actuator telemetry without adding hidden assists', () => 
     { steering: 0, throttle: true, brake: false },
     car,
   );
-  assert.match(hud.actualInput, /^ACT STEER [+-]\d+\.\ddeg  THR\s+\d+%  BRK\s+\d+%/);
+  assert.equal(hud.requestedThrottle, 1);
+  assert.ok(hud.actualThrottle > 0 && hud.actualThrottle < 1);
+  assert.equal(hud.actualBrake, 0);
+  assert.ok(hud.actualSteering >= -1 && hud.actualSteering <= 1);
   assert.match(hud.instruments, /^SPD\s+\d+km\/h  RPM\s+\d+  GEAR \d+/);
 });
 

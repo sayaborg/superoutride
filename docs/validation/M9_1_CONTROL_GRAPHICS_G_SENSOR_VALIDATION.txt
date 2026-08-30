@@ -1,0 +1,97 @@
+SUPER OUTRIDE — M9.1 CONTROL GRAPHICS / INERTIAL G SENSOR VALIDATION
+2026-08-31 JST
+
+Scope:
+Replace textual request/actual control rows with compact graphical meters; reduce the G sensor to
+one cross and one dot; correct that dot to the felt inertial-load direction opposite vehicle
+acceleration; and change the derived handwheel HUD conversion from 15:1 to 18:1 without changing
+steering mechanics.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Immediate predecessor checkpoint:
+3a60663e68ea3d76019e1ecdece0f6f6cffb56be Correct M9.1 vehicle profiles and AWD handling
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/88_m9_1_six_profile_debug_hud.md
+
+Resolved architecture:
+- the shared HUD model carries three normalized canonical request observations and three normalized
+  actual actuator/rack observations rather than formatted input/actual text rows;
+- one shared meter primitive draws requested steering/throttle/brake and actual
+  steering/throttle/brake for LINEAR, BRANCHING and CIRCUIT;
+- the actual handwheel graphic reads the existing derived handwheelAngle telemetry;
+- every compiled profile uses an 18:1 presentation conversion;
+- steeringRatio is consumed only to derive HUD telemetry after the physical rack/contact/tire solve;
+- a causal A/B regression proves 18:1 and 1:1 profiles produce byte-identical physical position,
+  velocity, attitude, wheel, actuator, powertrain, Guide and acceleration observations after the
+  same 90-tick drive, while only handwheel HUD telemetry differs;
+- the G model retains existing body-frame acceleration observations divided by standard gravity;
+- the drawn G point is the opposite inertial load: x=center-lateralG*scale and
+  y=center+longitudinalG*scale;
+- the G renderer performs exactly two cross line segments and one dot arc, with no sensor-local
+  panel, rings, vehicle outline, labels or numeric G text;
+- no display value is consumed by input, steering mechanics, vehicle physics, camera, renderer
+  depth, route, race or topology authority.
+
+Dedicated executable acceptance:
+tests/m7-0-vehicle-dynamics-architecture.test.mjs
+tests/m7-3-grip-and-instrument-hud.test.mjs
+tests/m8-1-car-self-steering.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+
+The acceptance matrix covers:
+- requested and actual values remain distinct normalized observations;
+- all six profiles own exactly the 18:1 HUD-only conversion;
+- changing the conversion cannot change mechanics;
+- forward/right acceleration moves the G point rearward/left;
+- the G drawing contains exactly one cross and one dot;
+- retired textual control rows and old numeric G decorations remain absent;
+- the complete renderer, metric, camera, input, recovery, vehicle, route, race, topology and Pages
+  regression suites remain intact.
+
+Validation-inclusive local repository result:
+npm test
+528 tests
+528 pass
+0 fail
+0 skipped
+
+Browser verification:
+- LINEAR and BRANCHING rendered the same compact six-meter control panel;
+- FR and AWD retained the same presentation boundary and ordinary vehicle sprite selection;
+- the actual handwheel graphic, control meters and G cross/dot fit the 320x240 frame without
+  overlapping each other or the player sprite/body-yaw overlay;
+- the G sensor visibly contains only the cross and dot;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 528 / 528 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. The 18:1 value affects HUD handwheel presentation only and is not handling
+calibration.

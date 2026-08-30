@@ -121,6 +121,53 @@ test('common rack has one mechanical stop and profile compilation rejects invali
   );
 });
 
+test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics', () => {
+  const directHudRatio = compileArcadeVehicleProfile({
+    ...FR_VEHICLE_PROFILE,
+    steeringRatio: 1,
+  });
+  const standard = createArcadeVehicle(
+    FR_VEHICLE_PROFILE,
+    highway.guide,
+    flatHeight,
+    wideSurface,
+    800,
+    -1.75,
+    35,
+  );
+  const presentationVariant = createArcadeVehicle(
+    directHudRatio,
+    highway.guide,
+    flatHeight,
+    wideSurface,
+    800,
+    -1.75,
+    35,
+  );
+  const input = { steering: 0.6, throttle: true, brake: false };
+  for (let tick = 0; tick < 90; tick += 1) {
+    updateArcadeVehicle(highway.guide, flatHeight, wideSurface, standard, input, DT);
+    updateArcadeVehicle(highway.guide, flatHeight, wideSurface, presentationVariant, input, DT);
+  }
+
+  const physicalSnapshot = (vehicle) => ({
+    position: [vehicle.x, vehicle.y, vehicle.z],
+    velocity: [vehicle.velocityX, vehicle.velocityY, vehicle.velocityZ],
+    attitude: [vehicle.yaw, vehicle.pitch, vehicle.yawRate, vehicle.pitchRate],
+    wheels: [vehicle.frontSteerAngle, vehicle.frontWheelOmega, vehicle.rearWheelOmega],
+    actuator: { ...vehicle.actuator },
+    powertrain: { ...vehicle.powertrain },
+    course: { ...vehicle.course },
+    acceleration: [vehicle.longitudinalAcceleration, vehicle.lateralAcceleration],
+  });
+  assert.deepEqual(physicalSnapshot(standard), physicalSnapshot(presentationVariant));
+  assert.equal(standard.control.actualSteerAngle, presentationVariant.control.actualSteerAngle);
+  assert.equal(
+    standard.control.handwheelAngle,
+    presentationVariant.control.handwheelAngle * 18,
+  );
+});
+
 test('M9 retires separate CAR steering authority and all browser roots select the common solver', async () => {
   const [solver, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),

@@ -46,7 +46,11 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
+import {
+  createVehicleDebugHudModel,
+  drawTopDownGSensor,
+  gSensorPoint,
+} from '../dist/browser/vehicle-debug-hud.js';
 import {
   advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
@@ -124,6 +128,7 @@ test('six profiles share one two-station mechanics contract', () => {
   for (const profile of profiles) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
     assert.equal(profile.actuator, FR_VEHICLE_PROFILE.actuator);
+    assert.equal(profile.steeringRatio, 18);
   }
 });
 
@@ -225,10 +230,11 @@ test('all six vehicle profiles integrate ordinarily on the finite LINEAR course'
   }
 });
 
-test('shared HUD exposes only selectors instruments request actual actuator and body-axis G values', () => {
+test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
   const runtime = createM83LinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
+  vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
   vehicle.control.throttleActuator = 0.42;
   vehicle.control.brakeActuator = 0.08;
   vehicle.longitudinalAcceleration = 9.80665;
@@ -240,10 +246,36 @@ test('shared HUD exposes only selectors instruments request actual actuator and 
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.match(model.vehicleSelector, /\[Q\]FR\*/);
-  assert.equal(model.requestedInput, 'INPUT STEER LEFT   THR ON   BRK OFF');
-  assert.equal(model.actualInput, 'ACT STEER -12.5deg  THR  42%  BRK   8%');
+  assert.equal(model.requestedSteering, -1);
+  assert.equal(model.requestedThrottle, 1);
+  assert.equal(model.requestedBrake, 0);
+  assert.ok(Math.abs(model.actualSteering + 12.5 / 31) < 1e-12);
+  assert.equal(model.actualThrottle, 0.42);
+  assert.equal(model.actualBrake, 0.08);
+  assert.ok(Math.abs(model.handwheelAngle + 225 * Math.PI / 180) < 1e-12);
   assert.ok(Math.abs(model.longitudinalG - 1) < 1e-12);
   assert.ok(Math.abs(model.lateralG + 0.5) < 1e-12);
+});
+
+test('G sensor draws only one cross and one dot in the felt inertial-load direction', () => {
+  const point = gSensorPoint({ longitudinalG: 1, lateralG: 0.5 }, 100, 80, 20);
+  assert.deepEqual(point, { x: 95, y: 90 });
+
+  const operations = [];
+  const context = {
+    beginPath: () => operations.push('beginPath'),
+    moveTo: () => operations.push('moveTo'),
+    lineTo: () => operations.push('lineTo'),
+    stroke: () => operations.push('stroke'),
+    arc: () => operations.push('arc'),
+    fill: () => operations.push('fill'),
+  };
+  drawTopDownGSensor(context, { longitudinalG: 1, lateralG: 0.5 }, 100, 80);
+  assert.equal(operations.filter((operation) => operation === 'moveTo').length, 2);
+  assert.equal(operations.filter((operation) => operation === 'lineTo').length, 2);
+  assert.equal(operations.filter((operation) => operation === 'arc').length, 1);
+  assert.equal(operations.filter((operation) => operation === 'stroke').length, 1);
+  assert.equal(operations.filter((operation) => operation === 'fill').length, 1);
 });
 
 for (const [profile, createVehicle, presentationKind] of [

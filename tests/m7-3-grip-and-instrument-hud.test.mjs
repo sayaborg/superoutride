@@ -113,4 +113,6 @@ test('shared compact HUD names speed RPM and selected gear', () => {
 test('shared compact HUD omits retired suspension torque slip route and topology overlays', () => {
   const source = fs.readFileSync(new URL('../src/browser/vehicle-debug-hud.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /SUSP|DRV|TORQUE|SLIP|ROUTE|PENDING|WINDOW|CHECKPOINT/);
+  assert.doesNotMatch(source, /requestedInput|actualInput|formatPercent/);
+  assert.match(source, /drawVehicleControlGraphics\(/);
 });

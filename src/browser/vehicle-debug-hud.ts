@@ -6,13 +6,20 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 
 const G_SENSOR_RANGE = 2;
+const CONTROL_METER_WIDTH = 58;
+const CONTROL_METER_HEIGHT = 7;
 
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
   readonly instruments: string;
-  readonly requestedInput: string;
-  readonly actualInput: string;
+  readonly requestedSteering: number;
+  readonly requestedThrottle: number;
+  readonly requestedBrake: number;
+  readonly actualSteering: number;
+  readonly actualThrottle: number;
+  readonly actualBrake: number;
+  readonly handwheelAngle: number;
   readonly longitudinalG: number;
   readonly lateralG: number;
 }
@@ -22,13 +29,21 @@ export function createVehicleDebugHudModel(
   input: DrivingInput,
   vehicle: ArcadeVehicleState,
 ): VehicleDebugHudModel {
-  const steeringDegrees = vehicle.control.actualSteerAngle * 180 / Math.PI;
   return {
     courseSelector: `COURSE ${COURSE_MODE_HOTKEY_LABEL}  ACTIVE ${routeKind}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
-    requestedInput: `INPUT STEER ${formatRequestSteering(input.steering)}  THR ${input.throttle ? 'ON ' : 'OFF'}  BRK ${input.brake ? 'ON ' : 'OFF'}`,
-    actualInput: `ACT STEER ${formatSigned(steeringDegrees, 1)}deg  THR ${formatPercent(vehicle.control.throttleActuator)}  BRK ${formatPercent(vehicle.control.brakeActuator)}`,
+    requestedSteering: clampSigned(input.steering),
+    requestedThrottle: input.throttle ? 1 : 0,
+    requestedBrake: input.brake ? 1 : 0,
+    actualSteering: clampSigned(
+      vehicle.control.actualSteerAngle / vehicle.profile.maxRoadWheelSteer,
+    ),
+    actualThrottle: clampUnit(vehicle.control.throttleActuator),
+    actualBrake: clampUnit(vehicle.control.brakeActuator),
+    handwheelAngle: Number.isFinite(vehicle.control.handwheelAngle)
+      ? vehicle.control.handwheelAngle
+      : 0,
     longitudinalG: finiteG(vehicle.longitudinalAcceleration),
     lateralG: finiteG(vehicle.lateralAcceleration),
   };
@@ -45,8 +60,6 @@ export function drawVehicleDebugHud(
     `M9.1 ${model.courseSelector}`,
     model.vehicleSelector,
     model.instruments,
-    model.requestedInput,
-    model.actualInput,
   ];
 
   ctx.save();
@@ -54,11 +67,47 @@ export function drawVehicleDebugHud(
   ctx.textBaseline = 'top';
   const width = Math.ceil(Math.max(...lines.map((line) => ctx.measureText(line).width))) + 6;
   ctx.fillStyle = '#071016';
-  ctx.fillRect(3, 3, width, 48);
+  ctx.fillRect(3, 3, width, 29);
   ctx.fillStyle = '#d7f3ff';
   lines.forEach((line, index) => ctx.fillText(line, 6, 5 + index * 9));
-  drawTopDownGSensor(ctx, model, 286, 84);
+  drawVehicleControlGraphics(ctx, model, 3, 34);
+  drawTopDownGSensor(ctx, model, 286, 65);
   ctx.restore();
+}
+
+/** Read-only request/response graphics. No drawn value feeds input or mechanics. */
+export function drawVehicleControlGraphics(
+  ctx: CanvasRenderingContext2D,
+  model: Pick<VehicleDebugHudModel,
+    | 'requestedSteering'
+    | 'requestedThrottle'
+    | 'requestedBrake'
+    | 'actualSteering'
+    | 'actualThrottle'
+    | 'actualBrake'
+    | 'handwheelAngle'>,
+  x: number,
+  y: number,
+): void {
+  ctx.fillStyle = '#071016';
+  ctx.fillRect(x, y, 251, 35);
+  ctx.font = '6px monospace';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#a6bac4';
+  ctx.fillText('INPUT', x + 3, y + 7);
+  ctx.fillText('ACT', x + 3, y + 21);
+  ctx.fillText('STEER', x + 36, y + 1);
+  ctx.fillText('ACCEL', x + 109, y + 1);
+  ctx.fillText('BRAKE', x + 174, y + 1);
+  ctx.fillText('HW', x + 232, y + 1);
+
+  drawControlMeter(ctx, x + 35, y + 8, model.requestedSteering, true, '#ffd08a');
+  drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, '#7ee0ff');
+  drawControlMeter(ctx, x + 105, y + 8, model.requestedThrottle, false, '#ffd08a');
+  drawControlMeter(ctx, x + 105, y + 22, model.actualThrottle, false, '#7ee0ff');
+  drawControlMeter(ctx, x + 170, y + 8, model.requestedBrake, false, '#ffd08a');
+  drawControlMeter(ctx, x + 170, y + 22, model.actualBrake, false, '#7ee0ff');
+  drawHandwheel(ctx, x + 240, y + 22, model.handwheelAngle);
 }
 
 export function drawTopDownGSensor(
@@ -67,54 +116,82 @@ export function drawTopDownGSensor(
   centerX: number,
   centerY: number,
 ): void {
-  const radius = 27;
-  const dotX = centerX + clampSensor(model.lateralG) * radius / G_SENSOR_RANGE;
-  const dotY = centerY - clampSensor(model.longitudinalG) * radius / G_SENSOR_RANGE;
+  const radius = 21;
+  const point = gSensorPoint(model, centerX, centerY, radius);
 
-  ctx.fillStyle = '#071016';
-  ctx.fillRect(centerX - 32, centerY - 38, 64, 75);
-  ctx.strokeStyle = '#49616e';
+  ctx.strokeStyle = '#d7f3ff';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.arc(centerX, centerY, radius / 2, 0, Math.PI * 2);
   ctx.moveTo(centerX - radius, centerY);
   ctx.lineTo(centerX + radius, centerY);
   ctx.moveTo(centerX, centerY - radius);
   ctx.lineTo(centerX, centerY + radius);
   ctx.stroke();
 
-  // Vehicle plan-view axis: nose is upward, screen right is vehicle right.
-  ctx.strokeStyle = '#d7f3ff';
-  ctx.strokeRect(centerX - 3.5, centerY - 8.5, 7, 17);
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY - 12);
-  ctx.lineTo(centerX - 3, centerY - 7);
-  ctx.lineTo(centerX + 3, centerY - 7);
-  ctx.closePath();
-  ctx.stroke();
-
   ctx.fillStyle = '#ffd08a';
   ctx.beginPath();
-  ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+  ctx.arc(point.x, point.y, 2.5, 0, Math.PI * 2);
   ctx.fill();
-
-  ctx.font = '7px monospace';
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#a6bac4';
-  ctx.fillText('G TOP', centerX - 18, centerY - 36);
-  ctx.fillText(`F ${formatSigned(model.longitudinalG, 1)}`, centerX - 29, centerY + 29);
-  ctx.fillText(`R ${formatSigned(model.lateralG, 1)}`, centerX + 1, centerY + 29);
 }
 
-function formatRequestSteering(steering: number): string {
-  if (steering < -1e-9) return 'LEFT ';
-  if (steering > 1e-9) return 'RIGHT';
-  return 'NEUTR';
+/** Felt inertial load is opposite body acceleration: forward acceleration moves the dot rearward. */
+export function gSensorPoint(
+  model: Pick<VehicleDebugHudModel, 'longitudinalG' | 'lateralG'>,
+  centerX: number,
+  centerY: number,
+  radius: number,
+): Readonly<{ x: number; y: number }> {
+  return Object.freeze({
+    x: centerX - clampSensor(model.lateralG) * radius / G_SENSOR_RANGE,
+    y: centerY + clampSensor(model.longitudinalG) * radius / G_SENSOR_RANGE,
+  });
 }
 
-function formatPercent(value: number): string {
-  return `${Math.round(Math.max(0, Math.min(1, value)) * 100).toString().padStart(3)}%`;
+function drawControlMeter(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  value: number,
+  signed: boolean,
+  color: string,
+): void {
+  ctx.strokeStyle = '#49616e';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, CONTROL_METER_WIDTH - 1, CONTROL_METER_HEIGHT - 1);
+  const normalized = signed ? clampSigned(value) : clampUnit(value);
+  const innerWidth = CONTROL_METER_WIDTH - 4;
+  ctx.fillStyle = color;
+  if (signed) {
+    const center = x + CONTROL_METER_WIDTH / 2;
+    const amount = normalized * innerWidth / 2;
+    ctx.fillRect(Math.min(center, center + amount), y + 2, Math.abs(amount), CONTROL_METER_HEIGHT - 4);
+    ctx.fillStyle = '#a6bac4';
+    ctx.fillRect(center, y + 1, 1, CONTROL_METER_HEIGHT - 2);
+  } else {
+    ctx.fillRect(x + 2, y + 2, normalized * innerWidth, CONTROL_METER_HEIGHT - 4);
+  }
+}
+
+function drawHandwheel(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  angle: number,
+): void {
+  const radius = 8;
+  ctx.strokeStyle = '#7ee0ff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  for (const spoke of [-Math.PI / 2, Math.PI / 6, 5 * Math.PI / 6]) {
+    const rotated = spoke + angle;
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+      centerX + Math.cos(rotated) * (radius - 1),
+      centerY + Math.sin(rotated) * (radius - 1),
+    );
+  }
+  ctx.stroke();
 }
 
 function finiteG(acceleration: number): number {
@@ -125,7 +202,10 @@ function clampSensor(value: number): number {
   return Math.max(-G_SENSOR_RANGE, Math.min(G_SENSOR_RANGE, value));
 }
 
-function formatSigned(value: number, digits: number): string {
-  const normalized = Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value;
-  return `${normalized >= 0 ? '+' : '-'}${Math.abs(normalized).toFixed(digits)}`;
+function clampSigned(value: number): number {
+  return Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
+}
+
+function clampUnit(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
 }

@@ -12,7 +12,9 @@ supersedes only:
 - the M9.0 initial two-profile `CAR`/`BIKE` composition identity and the earlier provisional
   four-profile M9.1 selector;
 - the per-course accumulation of unrelated browser diagnostic text;
-- the temporary `V` two-vehicle toggle and `R` recovery binding.
+- the temporary `V` two-vehicle toggle and `R` recovery binding;
+- the M8.1 provisional `15:1` handwheel-presentation conversion, replaced by the HUD-only `18:1`
+  conversion below.
 
 M8.3 remains the course-selector authority. M9.1 adds one parallel vehicle-selector authority and
 one shared presentation-only HUD. No selector or HUD value is consumed by mechanics.
@@ -63,16 +65,37 @@ only:
 course selector: 1 / 2 / 3 and active course
 vehicle selector: Q / W / E / R / A / S and active profile
 speed / RPM / selected gear
-requested steering / throttle / brake
-actual road-wheel angle / throttle actuator % / brake actuator %
+graphical requested steering / throttle / brake meters
+graphical actual steering / throttle-actuator / brake-actuator meters
+actual handwheel graphic
 body-yaw vector over the player sprite
-top-down body-axis G sensor
+body-axis inertial-load G cross and dot
 ```
 
 Requested input comes only from canonical `DrivingInput`. Actual values come only from the common
-vehicle control telemetry. The G sensor reads existing body-frame longitudinal and lateral
-acceleration caches, divides by standard gravity and clamps only the drawn dot to a +/-2 g display
-range; numeric values remain unclamped.
+vehicle control telemetry. Requested and actual controls are six distinct graphical meters; they
+are not formatted as textual direction, on/off state, degree or percentage rows. The handwheel
+graphic reads the existing derived presentation observation:
+
+```text
+handwheel-to-road-wheel ratio = 18:1
+handwheel angle = actual road-wheel angle * 18
+```
+
+This ratio is HUD-only. It does not change steering input, the normalized actuator, driver offset,
+rack target/response, mechanical road-wheel limit, contact geometry or tire force. The same
+presentation conversion is used for every selected profile so the common overlay has no vehicle
+branch.
+
+The G sensor reads existing body-frame longitudinal and lateral acceleration caches and divides by
+standard gravity. It draws only one cross and one dot; there is no panel, circle, vehicle outline,
+axis label or numeric G text. The dot is the inertial load felt by the driver, opposite the vehicle
+acceleration vector, and clamps only its drawn position to a +/-2 g range:
+
+```text
+screen_x = center_x - lateral_acceleration_g * scale
+screen_y = center_y + longitudinal_acceleration_g * scale
+```
 
 Keyboard pedal aliases publish the same canonical request:
 
@@ -84,8 +107,9 @@ ArrowDown or Z = brake
 Equivalent keys are independent held inputs: releasing one alias does not cancel the request while
 the other remains held. Blur, page hide and hidden-document lifecycle resets clear all held keys.
 
-The G diagram is a plan view: vehicle nose is screen-up and vehicle right is screen-right. Positive
-longitudinal G moves the dot forward; positive lateral G moves it right.
+Vehicle nose is screen-up and vehicle right is screen-right. Forward acceleration therefore moves
+the dot rearward; acceleration to vehicle right moves it left. Braking and leftward acceleration
+move it forward and right respectively.
 
 The former suspension, contact, slip, torque, route, chart, package, checkpoint, lap, topology,
 depth and scale diagnostics are not part of this common overlay.
@@ -101,7 +125,8 @@ DrivingInput + common vehicle telemetry + route/profile identity
 
 M9.1 adds no coordinate authority, renderer depth path, runtime sprite rotation, route branch or
 course-specific lower-layer behavior. Drive distribution is one compiled scalar consumed by the
-ordinary wheel-torque chain; profile identity remains presentation/composition data only.
+ordinary wheel-torque chain; profile identity remains presentation/composition data only. The
+18:1 ratio and every HUD meter remain read-only presentation observations.
 
 ## 5. Executable acceptance
 
@@ -117,6 +142,10 @@ Regression coverage must prove:
   ordinary wheel/tire force path;
 - all six profiles integrate ordinarily on the finite LINEAR course;
 - all three browser roots call the same common HUD;
-- requested and actual controls remain distinct;
-- G values are derived from the existing acceleration observations;
+- requested and actual controls remain distinct numerical observations and draw as six graphical
+  meters rather than textual state rows;
+- every profile derives the HUD handwheel graphic at `18:1` without changing physical steering;
+- G values derive from existing acceleration observations, while the drawn dot uses the opposite
+  inertial-load direction;
+- the G sensor draws exactly one cross and one dot;
 - retired diagnostic categories do not re-enter the common HUD.
