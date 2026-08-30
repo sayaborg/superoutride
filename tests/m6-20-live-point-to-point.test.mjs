@@ -228,7 +228,9 @@ for (const side of ['LEFT', 'RIGHT']) {
 
 test('M6.20 camera rig carries no chart-local lateral authority through child handoff', () => {
   assert.deepEqual(createM5CameraRig(), {
+    yawMode: 'BODY_FIXED',
     yaw: 0,
+    movementYaw: 0,
     verticalCorrection: 0,
     initialized: false,
   });

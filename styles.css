@@ -100,6 +100,10 @@ body {
   grid-template-columns: repeat(6, minmax(44px, 1fr));
 }
 
+.camera-selector-buttons {
+  grid-template-columns: repeat(2, minmax(44px, 1fr));
+}
+
 .selector-button {
   min-width: 44px;
   min-height: 44px;
@@ -204,7 +208,7 @@ body {
     grid-column: 1 / -1;
     grid-row: 1;
     width: min(100%, 900px);
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr) minmax(0, 3fr);
     gap: 12px;
   }
 

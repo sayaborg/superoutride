@@ -32,6 +32,7 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 81_m8_2_body_pitch_movement_yaw_camera.md
 84_m8_5_downward_camera_presentation.md
 85_m8_6_two_hundred_meter_render_distance.md
+91_m9_1_dual_yaw_camera_modes.md
 ```
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
@@ -55,6 +56,8 @@ M8.2 supersedes the earlier M5 Guide-lateral/yaw-lag camera authority while pres
 renderer, metric presentation and current M9.0 vehicle authority.
 M8.5 supersedes only the M8.2 initial 8-degree base-pitch and matching camera-height tuning.
 M8.6 supersedes only the M8.5 150 m far-depth value and records the geometric-horizon audit.
+M9.1 dual-yaw-camera mode supersedes only M8.2's mandatory movement-yaw default. It retains the
+same derived movement yaw as an alternate and preserves body-pitch follow and exact centering.
 
 The current browser course-debug composition authority is:
 
@@ -62,6 +65,7 @@ The current browser course-debug composition authority is:
 82_m8_3_three_mode_course_debug.md
 88_m9_1_six_profile_debug_hud.md
 90_m9_1_mobile_touch_selectors.md
+91_m9_1_dual_yaw_camera_modes.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -72,7 +76,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `90_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `91_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -110,6 +114,7 @@ The most important current topology/runtime/physics sequence is:
 88_m9_1_six_profile_debug_hud.md
 89_m9_1_low_mid_speed_mountain_circuit.md
 90_m9_1_mobile_touch_selectors.md
+91_m9_1_dual_yaw_camera_modes.md
 ```
 
 The current browser touch-selection authority is
@@ -117,6 +122,11 @@ The current browser touch-selection authority is
 arrays used by keyboard selection, keeps URL navigation in `boot.ts`, and keeps profile
 reconstruction in the three composition roots. It adds no mobile-only selection or mechanics
 state.
+
+The current camera-yaw mode authority is `91_m9_1_dual_yaw_camera_modes.md`. It makes exact
+body-yaw lock the default, retains M8.2 movement-yaw follow as the alternate, and makes the DEV
+arrow show travel direction while body lock is active. Body-pitch follow and all frozen
+renderer/metric rules remain unchanged.
 
 The current public CIRCUIT course geometry authority is
 `89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
@@ -142,9 +152,10 @@ Current governing steering rule:
 
 Current governing player-camera rule:
 
-> Camera pitch follows physical body pitch; camera yaw follows authoritative world movement
-> measured in that body-pitch plane; player X is centered by world-space camera placement while
-> chainage remains the sole renderer-depth authority.
+> Camera pitch follows physical body pitch. Camera yaw defaults to exact body-yaw lock and can
+> switch to authoritative world-movement yaw measured in that body-pitch plane. Player X is
+> centered by world-space camera placement while chainage remains the sole renderer-depth
+> authority.
 
 ## 3. Known historical-value supersession
 
@@ -268,6 +279,16 @@ validation/M9_1_MOBILE_TOUCH_SELECTORS_VALIDATION.txt
 It proves authority-derived course/profile buttons, shared tap/keyboard selection paths,
 single-active accessible presentation, complete-suite acceptance and portrait/landscape browser
 operation.
+
+The current M9.1 dual yaw-camera evidence is:
+
+```text
+validation/M9_1_DUAL_YAW_CAMERA_MODES_VALIDATION.txt
+```
+
+It proves exact default body-yaw lock, retained M8.2 movement follow, P/touch selection,
+mode-dependent TRAVEL/BODY arrow meaning, complete-suite acceptance and portrait/landscape
+browser operation.
 
 ## 5. Historical M9 implementation handoff
 

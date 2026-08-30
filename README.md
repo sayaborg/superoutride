@@ -43,6 +43,11 @@ the top-level URL composition transition and vehicle taps use the existing safe-
 reconstruction. There is no separate mobile selection state. The authority is
 `docs/90_m9_1_mobile_touch_selectors.md`.
 
+M9.1 adds two camera-yaw modes. `BODY_FIXED` is the default and locks camera yaw exactly to vehicle
+body yaw; `MOVEMENT_FOLLOW` retains the M8.2 velocity-direction view. `P` toggles them and the
+mobile selector exposes `BODY / MOVE`. In body-fixed mode the player overlay arrow shows actual
+travel direction. The authority is `docs/91_m9_1_dual_yaw_camera_modes.md`.
+
 M8.6 extends the shared camera-relative render interval from 150 m to 200 m (195 m ahead of the
 player). The geometric infinite horizon remains the exact projection limit and the Far Background
 tracks it dynamically. GroundMap depth and renderer workloads are recompiled and re-observed for
@@ -70,7 +75,8 @@ player's own first physical crossing selects either child without rival-locked w
 recovery. CIRCUIT retains its explicit finite-window lap authority. The current course-debug
 authority is `docs/82_m8_3_three_mode_course_debug.md`.
 
-M8.2 remains the current camera architecture authority and M8.5 owns its pitch/height tuning.
+M8.2 remains the body-pitch/world-placement camera foundation, M8.5 owns pitch/height tuning and
+M9.1 owns the selectable camera-yaw mode and body-fixed default.
 M9.0 supersedes the scoped M8.0 CAR/BIKE mechanical split and M8.1 input-response decisions while
 retaining their stated world/contact/tire and travel-direction steering foundations. Vehicle feel
 parameters remain `DEV_UNCALIBRATED`.
@@ -117,7 +123,8 @@ For current vehicle work, read in this order:
 7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
    `docs/86_m8_7_varied_elevation_circuit.md`, then
    `docs/89_m9_1_low_mid_speed_mountain_circuit.md` and
-   `docs/90_m9_1_mobile_touch_selectors.md` — current camera/composition/render/course/touch
+   `docs/90_m9_1_mobile_touch_selectors.md` and
+   `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera/composition/render/course/touch
    authorities and scoped supersession.
 8. Relevant source/types/compilers and regression tests — executable implementation contract.
 
@@ -192,7 +199,7 @@ M7.4       Transient Tire Response                                  historical /
 M8.0       Phase 9 Ideal Vehicle Physics Architecture               retained contact/tire foundation; solver split superseded by M9.0
 M8.0       CIRCUIT Low-Speed Corner Authoring                        historical public course follow-on
 M8.1       CAR Predictive Travel-Direction Steering Assist            retained travel-direction concept; response boundary superseded by M9.0
-M8.2       Body-Pitch / Movement-Yaw Chase Camera                      current player-camera authority
+M8.2       Body-Pitch / Movement-Yaw Chase Camera                      retained player-camera foundation
 M8.3       Three-Mode Course Debug                                      current browser composition authority
 M8.4       Dual Low-Speed Circuit Complex                               historical CIRCUIT course-authoring authority
 M8.5       Downward Camera Presentation                                  current camera pitch/height authority
@@ -202,6 +209,7 @@ M9.0       Two-Station Arcade Vehicle Dynamics                             curre
 M9.1       Six-Profile Common Debug HUD                                     current profile/debug composition candidate
 M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
 M9.1       Mobile Touch Selectors                                            current browser touch-selection authority
+M9.1       Dual Yaw Camera Modes                                             current player-camera yaw-mode authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -314,6 +322,9 @@ Phone/coarse-pointer layouts expose the same three course choices and all six ve
 tappable buttons above the game. Their values are generated from the keyboard selector authority,
 not maintained as a mobile-only mapping.
 
+`P` toggles camera yaw between default vehicle-body lock and M8.2 movement-direction follow.
+Phone/coarse-pointer layouts expose the same choice as `BODY / MOVE` buttons.
+
 Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `Down` or `Z`
 brake. Equivalent pedal keys and touch pointers may remain held independently, but one input-layer
 arbiter publishes only the most recently pressed still-held pedal as canonical input.
@@ -340,6 +351,8 @@ The low/mid-speed mountain CIRCUIT correction is recorded independently in
 `docs/validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt`.
 The authority-derived mobile selector controls are recorded independently in
 `docs/validation/M9_1_MOBILE_TOUCH_SELECTORS_VALIDATION.txt`.
+The default body-fixed and alternate movement-follow camera modes are recorded independently in
+`docs/validation/M9_1_DUAL_YAW_CAMERA_MODES_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -351,10 +364,11 @@ src/main-circuit.ts  CIRCUIT composition root
 src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
 src/browser/mobile-selector-controls.ts  authority-derived touch selector adapter
 src/browser/touch-interface.ts           shared touch/coarse/phone-size layout decision
+src/browser/camera-yaw-mode-selection.ts P camera-yaw toggle binding
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
 
-src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
+src/camera/m5-camera.ts            body-pitch / selectable-yaw camera authority
 src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
 src/core/presentation-scale.ts       M8.6 shared near/far render-distance authority
 src/dev/m9-1-low-mid-speed-mountain-circuit.ts current CIRCUIT geometry/elevation authority

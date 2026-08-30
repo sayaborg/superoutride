@@ -1,11 +1,18 @@
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
-import { mountMobileVehicleSelector } from './browser/mobile-selector-controls.js';
+import {
+  mountMobileCameraYawSelector,
+  mountMobileVehicleSelector,
+} from './browser/mobile-selector-controls.js';
+import { browserRequestsCameraYawToggle } from './browser/camera-yaw-mode-selection.js';
 import { browserUsesTouchInterface } from './browser/touch-interface.js';
 import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
+  setM5CameraYawMode,
+  toggleM5CameraYawMode,
   updateM5Camera,
+  type M5CameraYawMode,
   type M5CameraState,
 } from './camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
@@ -45,6 +52,7 @@ const steerRightButton = mustGet<HTMLElement>('steer-right-button');
 const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
 const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
+const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
 
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
@@ -93,9 +101,18 @@ const vehicleSelector = mountMobileVehicleSelector(
   vehicle.profile.id,
   selectVehicleProfile,
 );
+const cameraYawSelector = mountMobileCameraYawSelector(
+  cameraSelectorButtons,
+  cameraRig.yawMode,
+  selectCameraYawMode,
+);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
+  if (browserRequestsCameraYawToggle(event.code)) {
+    cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));
+    return;
+  }
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
     selectVehicleProfile(selectedProfile);
@@ -129,6 +146,11 @@ function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): 
   if (profile.id === vehicle.profile.id) return;
   switchVehicleAtSafeSpawn(profile);
   vehicleSelector.setActive(vehicle.profile.id);
+}
+
+function selectCameraYawMode(mode: M5CameraYawMode): void {
+  setM5CameraYawMode(cameraRig, mode);
+  cameraYawSelector.setActive(mode);
 }
 
 let accumulator = 0;
@@ -192,7 +214,15 @@ function render(): void {
   ctx.putImageData(imageData, 0, 0);
 
   drawVehicleDebugHud(ctx, M8_3_LINEAR_COURSE_MODE.routeKind, input, vehicle);
-  drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
+  drawVehicleYawDebug(
+    ctx,
+    camera.playerScreenX,
+    stats.playerScreenY,
+    vehicle.yaw,
+    camera.movementYaw,
+    camera.yaw,
+    camera.yawMode,
+  );
 }
 
 function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {

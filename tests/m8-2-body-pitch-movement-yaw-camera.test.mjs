@@ -3,8 +3,11 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
+  DEFAULT_M5_CAMERA_YAW_MODE,
   createM5CameraRig,
   movementYawInBodyPitchFrame,
+  resetM5CameraRig,
+  toggleM5CameraYawMode,
   updateM5Camera,
 } from '../dist/camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
@@ -12,7 +15,14 @@ import { wrapAngle } from '../dist/core/math.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { createVehicleYawDebugModel } from '../dist/render/vehicle-yaw-debug.js';
+import {
+  createCameraYawDebugModel,
+  createVehicleYawDebugModel,
+} from '../dist/render/vehicle-yaw-debug.js';
+import {
+  BROWSER_CAMERA_YAW_TOGGLE_CODE,
+  browserRequestsCameraYawToggle,
+} from '../dist/browser/camera-yaw-mode-selection.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 const deg = (value) => value * Math.PI / 180;
@@ -61,7 +71,14 @@ test('camera pitch follows physical body pitch while player X remains exactly ce
   car.velocityY = velocity.y;
   car.velocityZ = velocity.z;
 
-  const camera = updateM5Camera(createM5CameraRig(), guide, height, car, profile, 1 / 60);
+  const camera = updateM5Camera(
+    createM5CameraRig('MOVEMENT_FOLLOW'),
+    guide,
+    height,
+    car,
+    profile,
+    1 / 60,
+  );
   const expectedMovementDelta = Math.atan2(-5, 28);
   near(camera.yaw, wrapAngle(car.yaw + expectedMovementDelta));
   near(camera.pitch, profile.baseDownPitch - car.pitch);
@@ -75,7 +92,7 @@ test('camera holds the last valid movement yaw when speed has no stable directio
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);
   const car = createTestCar(guide, height, createM5DebugSurfaceMap(guide.length), 100);
-  const rig = createM5CameraRig();
+  const rig = createM5CameraRig('MOVEMENT_FOLLOW');
   car.yaw = deg(15);
   let velocity = worldVelocityInBodyPitchPlane(car.yaw, car.pitch, 18, 8);
   car.velocityX = velocity.x;
@@ -90,6 +107,34 @@ test('camera holds the last valid movement yaw when speed has no stable directio
   car.velocityZ = velocity.z;
   const stoppedCamera = updateM5Camera(rig, guide, height, car, profile, 1 / 60);
   near(stoppedCamera.yaw, movingCamera.yaw);
+});
+
+test('body-fixed yaw is default exact and toggles to retained movement-follow yaw', () => {
+  const guide = createM2StadiumGuide();
+  const height = createM3DebugHeightProfile(guide.length);
+  const car = createTestCar(guide, height, createM5DebugSurfaceMap(guide.length), 100);
+  car.yaw = deg(22);
+  const velocity = worldVelocityInBodyPitchPlane(car.yaw, car.pitch, 24, 9);
+  car.velocityX = velocity.x;
+  car.velocityY = velocity.y;
+  car.velocityZ = velocity.z;
+
+  const rig = createM5CameraRig();
+  assert.equal(DEFAULT_M5_CAMERA_YAW_MODE, 'BODY_FIXED');
+  const fixed = updateM5Camera(rig, guide, height, car, profile, 1 / 60);
+  assert.equal(fixed.yawMode, 'BODY_FIXED');
+  assert.equal(fixed.yaw, car.yaw);
+  near(fixed.movementYaw, wrapAngle(car.yaw + Math.atan2(9, 24)));
+  near(fixed.playerScreenX, profile.centerX, 1e-12);
+
+  assert.equal(toggleM5CameraYawMode(rig), 'MOVEMENT_FOLLOW');
+  const movement = updateM5Camera(rig, guide, height, car, profile, 1 / 60);
+  assert.equal(movement.yawMode, 'MOVEMENT_FOLLOW');
+  near(movement.yaw, fixed.movementYaw);
+
+  resetM5CameraRig(rig);
+  assert.equal(rig.yawMode, 'MOVEMENT_FOLLOW');
+  assert.equal(rig.initialized, false);
 });
 
 test('debug yaw arrow expresses only body yaw relative to movement-facing camera', () => {
@@ -110,6 +155,24 @@ test('debug yaw arrow expresses only body yaw relative to movement-facing camera
   near(reversed.directionY, 1);
 });
 
+test('body-fixed camera overlay points along actual travel while movement camera overlay points along body', () => {
+  const fixed = createCameraYawDebugModel(0, Math.PI / 2, 0, 'BODY_FIXED');
+  assert.equal(fixed.subject, 'TRAVEL');
+  near(fixed.directionX, 1);
+  near(fixed.directionY, 0);
+
+  const movement = createCameraYawDebugModel(Math.PI / 2, 0, 0, 'MOVEMENT_FOLLOW');
+  assert.equal(movement.subject, 'BODY');
+  near(movement.directionX, 1);
+  near(movement.directionY, 0);
+});
+
+test('P is the sole browser camera-yaw toggle key', () => {
+  assert.equal(BROWSER_CAMERA_YAW_TOGGLE_CODE, 'KeyP');
+  assert.equal(browserRequestsCameraYawToggle('KeyP'), true);
+  assert.equal(browserRequestsCameraYawToggle('KeyQ'), false);
+});
+
 test('browser compositions overlay the yaw diagnostic at the renderer player anchor', async () => {
   const [linear, branching, circuit, cameraSource] = await Promise.all([
     readFile(new URL('../src/main-linear.ts', import.meta.url), 'utf8'),
@@ -119,7 +182,12 @@ test('browser compositions overlay the yaw diagnostic at the renderer player anc
   ]);
 
   for (const source of [linear, branching, circuit]) {
-    assert.match(source, /drawVehicleYawDebug\(ctx, camera\.playerScreenX, stats\.playerScreenY, vehicle\.yaw, camera\.yaw\)/);
+    assert.match(
+      source,
+      /drawVehicleYawDebug\(\s*ctx,\s*camera\.playerScreenX,\s*stats\.playerScreenY,\s*vehicle\.yaw,\s*camera\.movementYaw,\s*camera\.yaw,\s*camera\.yawMode,\s*\)/,
+    );
+    assert.match(source, /browserRequestsCameraYawToggle\(event\.code\)/);
+    assert.match(source, /mountMobileCameraYawSelector/);
   }
   assert.doesNotMatch(cameraSource, /lCamMax|tauLat|thetaLagMax|playerSafeX|lateralG/);
   assert.doesNotMatch(cameraSource, /rebaseM5CameraRigCoordinateFrame/);

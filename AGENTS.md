@@ -49,6 +49,7 @@ docs/80_m8_1_car_self_steering_control.md
 docs/81_m8_2_body_pitch_movement_yaw_camera.md
 docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
+docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
@@ -75,8 +76,9 @@ the M8.0 contact/tire/wheel chain and M8.1 travel-direction steering concept exp
 its scope.
 M8.2 supersedes the M5 Guide-lateral/yaw-lag camera decisions within its stated scope; frozen
 renderer depth/metric authority and the current M9.0 vehicle authority remain unchanged.
-M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning; M8.2 movement-yaw,
-body-pitch follow and centering architecture remain authoritative.
+M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning. M9.1 dual-yaw-camera mode
+authority supersedes M8.2's mandatory movement-yaw default while retaining its movement-yaw
+derivation as an alternate; M8.2 body-pitch follow and centering architecture remain authoritative.
 M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5
 camera architecture and pitch/height tuning remain authoritative.
 The current browser course-debug composition authority is:
@@ -85,6 +87,7 @@ The current browser course-debug composition authority is:
 docs/82_m8_3_three_mode_course_debug.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/90_m9_1_mobile_touch_selectors.md
+docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -136,6 +139,7 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/86_m8_7_varied_elevation_circuit.md
 docs/89_m9_1_low_mid_speed_mountain_circuit.md
 docs/90_m9_1_mobile_touch_selectors.md
+docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
 ### Executable implementation contract

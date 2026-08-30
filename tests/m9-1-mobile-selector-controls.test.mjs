@@ -4,7 +4,9 @@ import test from 'node:test';
 
 import {
   createMobileCourseSelectorModel,
+  createMobileCameraYawSelectorModel,
   createMobileVehicleSelectorModel,
+  mountMobileCameraYawSelector,
   mountMobileCourseSelector,
   mountMobileVehicleSelector,
 } from '../dist/browser/mobile-selector-controls.js';
@@ -66,19 +68,19 @@ test('mobile course buttons derive labels and active state from the canonical co
   assert.deepEqual(createMobileCourseSelectorModel('circuit'), [
     {
       value: 'linear',
-      label: '1 LINEAR',
+      label: '1',
       ariaLabel: 'Select LINEAR course',
       active: false,
     },
     {
       value: 'branching',
-      label: '2 BRANCHING',
+      label: '2',
       ariaLabel: 'Select BRANCHING course',
       active: false,
     },
     {
       value: 'circuit',
-      label: '3 CIRCUIT',
+      label: '3',
       ariaLabel: 'Select CIRCUIT course',
       active: true,
     },
@@ -110,6 +112,23 @@ test('mobile vehicle buttons derive all six profiles from the canonical profile 
       { value: 'BIKE2', label: 'BIKE2', active: false },
     ],
   );
+});
+
+test('mobile camera buttons expose body-fixed default and movement-follow alternate', () => {
+  assert.deepEqual(createMobileCameraYawSelectorModel('BODY_FIXED'), [
+    {
+      value: 'BODY_FIXED',
+      label: 'BODY',
+      ariaLabel: 'Lock camera yaw to vehicle body',
+      active: true,
+    },
+    {
+      value: 'MOVEMENT_FOLLOW',
+      label: 'MOVE',
+      ariaLabel: 'Follow vehicle movement direction with camera yaw',
+      active: false,
+    },
+  ]);
 });
 
 test('mobile selector taps publish canonical selections and expose exactly one active button', () => {
@@ -144,6 +163,23 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     ['false', 'false', 'false', 'false', 'true', 'false'],
   );
   assert.equal(vehicleContainer.children[4].classList.contains('active'), true);
+
+  const cameraContainer = new FakeContainer();
+  let selectedCameraMode = null;
+  const cameraController = mountMobileCameraYawSelector(
+    cameraContainer,
+    'BODY_FIXED',
+    (mode) => { selectedCameraMode = mode; },
+    fakeDocument,
+  );
+  assert.equal(cameraContainer.children.length, 2);
+  cameraContainer.children[1].click();
+  assert.equal(selectedCameraMode, 'MOVEMENT_FOLLOW');
+  cameraController.setActive(selectedCameraMode);
+  assert.deepEqual(
+    cameraContainer.children.map((button) => button.attributes.get('aria-pressed')),
+    ['false', 'true'],
+  );
 });
 
 test('browser compositions mount the shared mobile selector adapter without duplicating choices in HTML', async () => {
@@ -156,6 +192,7 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   ]);
   assert.match(index, /id="course-selector-buttons"/);
   assert.match(index, /id="vehicle-selector-buttons"/);
+  assert.match(index, /id="camera-selector-buttons"/);
   assert.doesNotMatch(index, /data-(?:course|vehicle)-/);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {

@@ -8,6 +8,10 @@ import {
   type BrowserVehicleProfileSelection,
 } from './vehicle-profile-selection.js';
 import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
+import {
+  M5_CAMERA_YAW_MODES,
+  type M5CameraYawMode,
+} from '../camera/m5-camera.js';
 
 export interface MobileSelectorButtonModel<Value extends string> {
   readonly value: Value;
@@ -25,7 +29,7 @@ export function createMobileCourseSelectorModel(
 ): readonly MobileSelectorButtonModel<BrowserCourseModeQuery>[] {
   return BROWSER_COURSE_MODES.map((mode) => ({
     value: mode.query,
-    label: `${mode.digitCode.slice(-1)} ${mode.routeKind}`,
+    label: mode.digitCode.slice(-1),
     ariaLabel: `Select ${mode.routeKind} course`,
     active: mode.query === activeQuery,
   }));
@@ -39,6 +43,19 @@ export function createMobileVehicleSelectorModel(
     label: profile.id,
     ariaLabel: `Select ${profile.id} vehicle`,
     active: profile.id === activeId,
+  }));
+}
+
+export function createMobileCameraYawSelectorModel(
+  activeMode: M5CameraYawMode,
+): readonly MobileSelectorButtonModel<M5CameraYawMode>[] {
+  return M5_CAMERA_YAW_MODES.map((mode) => ({
+    value: mode,
+    label: mode === 'BODY_FIXED' ? 'BODY' : 'MOVE',
+    ariaLabel: mode === 'BODY_FIXED'
+      ? 'Lock camera yaw to vehicle body'
+      : 'Follow vehicle movement direction with camera yaw',
+    active: mode === activeMode,
   }));
 }
 
@@ -70,6 +87,20 @@ export function mountMobileVehicleSelector(
     container,
     createMobileVehicleSelectorModel(activeId),
     (id) => onSelect(mustSelect(selections, id, 'vehicle').profile),
+    documentRef,
+  );
+}
+
+export function mountMobileCameraYawSelector(
+  container: HTMLElement,
+  activeMode: M5CameraYawMode,
+  onSelect: (mode: M5CameraYawMode) => void,
+  documentRef: Document = document,
+): MobileSelectorController<M5CameraYawMode> {
+  return mountMobileSelector(
+    container,
+    createMobileCameraYawSelectorModel(activeMode),
+    onSelect,
     documentRef,
   );
 }

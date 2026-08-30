@@ -26,7 +26,7 @@ selectors. It does not replace the canonical `1/2/3` course mapping or the
 
 ```text
 BROWSER_COURSE_MODES
-        -> generated 1 LINEAR / 2 BRANCHING / 3 CIRCUIT buttons
+        -> generated 1 / 2 / 3 buttons with full accessible route names
         -> boot URL selection
 
 BROWSER_VEHICLE_PROFILES

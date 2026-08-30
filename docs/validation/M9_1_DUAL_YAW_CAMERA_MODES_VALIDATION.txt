@@ -1,0 +1,94 @@
+SUPER OUTRIDE — M9.1 DUAL YAW CAMERA MODES VALIDATION
+2026-08-31 JST
+
+Scope:
+Add an exact vehicle-body-yaw camera mode as the default, retain M8.2 movement-yaw follow as the
+alternate, bind one P-key toggle and shared mobile selector, and make the yaw overlay show actual
+travel direction while body lock is active.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Immediate predecessor local checkpoint:
+41c329cf8bbf28c28412fa30fc70f1ff75a69ace Add mobile course and vehicle selectors
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/91_m9_1_dual_yaw_camera_modes.md
+
+Resolved architecture:
+- M5CameraRig owns exactly one finite BODY_FIXED / MOVEMENT_FOLLOW mode;
+- BODY_FIXED is the default and assigns camera yaw exactly from authoritative vehicle body yaw on
+  every camera update;
+- MOVEMENT_FOLLOW retains the existing M8.2 body-pitch-plane world-velocity derivation and
+  low-speed last-valid-direction hold;
+- retained movement yaw is derived presentation memory only and is never consumed by vehicle
+  physics, route, race or topology;
+- reset clears derived yaw/vertical history without changing the selected mode;
+- P is the sole keyboard camera-mode binding and all three browser composition roots use it;
+- mobile BODY/MOVE buttons derive from the same two camera modes and mutate the same rig field;
+- BODY_FIXED draws TRAVEL YAW from actual derived movement direction relative to the body camera;
+- MOVEMENT_FOLLOW draws BODY YAW relative to the movement camera;
+- no Guide correction, yaw damping, safety camera, vehicle-specific branch or hidden view recovery
+  is introduced;
+- chainage depth, D_cam, player centering, body-pitch follow, zero roll and sprite authority remain
+  unchanged.
+
+Dedicated executable acceptance:
+tests/m8-2-body-pitch-movement-yaw-camera.test.mjs
+tests/m9-1-mobile-selector-controls.test.mjs
+tests/m6-20-live-point-to-point.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- BODY_FIXED as the compiled default;
+- exact camera.yaw == vehicle.yaw under nonzero lateral velocity;
+- preserved M8.2 full-quadrant movement yaw and low-speed hold;
+- deterministic BODY_FIXED -> MOVEMENT_FOLLOW toggle;
+- selected-mode persistence through camera reset/recovery;
+- P as the only browser toggle key;
+- authority-derived BODY/MOVE touch buttons and exactly one aria-pressed mode;
+- TRAVEL arrow semantics in body-fixed mode and BODY arrow semantics in movement mode;
+- shared browser-root wiring and unchanged frozen camera/renderer boundaries;
+- retained complete input, vehicle, camera, renderer, recovery, route, race and topology suites.
+
+Validation-inclusive local repository result:
+npm test
+544 tests
+544 pass
+0 fail
+0 skipped
+
+Browser verification:
+- 390x844 portrait CIRCUIT loaded with BODY selected by default and visible TRAVEL YAW overlay;
+- tapping MOVE moved aria-pressed from BODY to MOVE and changed the overlay to BODY YAW;
+- pressing P while MOVE was focused returned the one rig mode and active button to BODY;
+- 844x390 landscape fit 1/2/3, six vehicles and BODY/MOVE above steering/game/pedals without
+  overlap after compact numeric course labels;
+- both orientations retained the ordinary 320x240 game view and existing touch driving controls.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and update PR #100 targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 544 / 544 pass, 0 fail, 0 skipped.
+5. Re-fetch main before release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. Move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow and public version.txt on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.

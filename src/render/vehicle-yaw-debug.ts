@@ -1,6 +1,10 @@
 import { wrapAngle } from '../core/math.js';
+import type { M5CameraYawMode } from '../camera/m5-camera.js';
+
+export type VehicleYawDebugSubject = 'BODY' | 'TRAVEL';
 
 export interface VehicleYawDebugModel {
+  readonly subject: VehicleYawDebugSubject;
   readonly relativeYaw: number;
   readonly relativeYawDegrees: number;
   /** Screen-right component; zero means the body points with camera movement yaw. */
@@ -10,19 +14,32 @@ export interface VehicleYawDebugModel {
 }
 
 export function createVehicleYawDebugModel(
-  vehicleYaw: number,
+  directionYaw: number,
   cameraYaw: number,
+  subject: VehicleYawDebugSubject = 'BODY',
 ): VehicleYawDebugModel {
-  if (![vehicleYaw, cameraYaw].every(Number.isFinite)) {
-    throw new RangeError('vehicle yaw debug angles must be finite');
+  if (![directionYaw, cameraYaw].every(Number.isFinite)) {
+    throw new RangeError('yaw debug angles must be finite');
   }
-  const relativeYaw = wrapAngle(vehicleYaw - cameraYaw);
+  const relativeYaw = wrapAngle(directionYaw - cameraYaw);
   return {
+    subject,
     relativeYaw,
     relativeYawDegrees: relativeYaw * 180 / Math.PI,
     directionX: Math.sin(relativeYaw),
     directionY: -Math.cos(relativeYaw),
   };
+}
+
+export function createCameraYawDebugModel(
+  vehicleYaw: number,
+  movementYaw: number,
+  cameraYaw: number,
+  yawMode: M5CameraYawMode,
+): VehicleYawDebugModel {
+  return yawMode === 'BODY_FIXED'
+    ? createVehicleYawDebugModel(movementYaw, cameraYaw, 'TRAVEL')
+    : createVehicleYawDebugModel(vehicleYaw, cameraYaw, 'BODY');
 }
 
 /** DEV-only HUD overlay. This rotates vector geometry, never a vehicle sprite bitmap. */
@@ -31,9 +48,11 @@ export function drawVehicleYawDebug(
   playerAnchorX: number,
   playerAnchorY: number,
   vehicleYaw: number,
+  movementYaw: number,
   cameraYaw: number,
+  yawMode: M5CameraYawMode,
 ): void {
-  const model = createVehicleYawDebugModel(vehicleYaw, cameraYaw);
+  const model = createCameraYawDebugModel(vehicleYaw, movementYaw, cameraYaw, yawMode);
   const centerX = playerAnchorX;
   const centerY = playerAnchorY - 28;
   const shaftBack = 8;
@@ -72,7 +91,7 @@ export function drawVehicleYawDebug(
   ctx.lineTo(headBackX - perpendicularX * 5, headBackY - perpendicularY * 5);
   ctx.stroke();
 
-  const label = `BODY YAW ${formatSigned(model.relativeYawDegrees)}deg`;
+  const label = `${model.subject} YAW ${formatSigned(model.relativeYawDegrees)}deg`;
   ctx.font = 'bold 7px monospace';
   ctx.textBaseline = 'bottom';
   const labelWidth = ctx.measureText(label).width;

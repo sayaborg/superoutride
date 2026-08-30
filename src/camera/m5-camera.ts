@@ -20,8 +20,19 @@ export interface M5CameraProfile {
   readonly deltaYMax: number;
 }
 
+export const M5_CAMERA_YAW_MODES = Object.freeze([
+  'BODY_FIXED',
+  'MOVEMENT_FOLLOW',
+] as const);
+
+export type M5CameraYawMode = typeof M5_CAMERA_YAW_MODES[number];
+
+export const DEFAULT_M5_CAMERA_YAW_MODE: M5CameraYawMode = 'BODY_FIXED';
+
 export interface M5CameraRig {
+  yawMode: M5CameraYawMode;
   yaw: number;
+  movementYaw: number;
   verticalCorrection: number;
   initialized: boolean;
 }
@@ -31,6 +42,8 @@ export interface M5CameraState extends PseudoCamera {
   readonly vehicleGuideYawDelta: number;
   readonly cameraVehicleYawDelta: number;
   readonly bodyPitch: number;
+  readonly yawMode: M5CameraYawMode;
+  readonly movementYaw: number;
   readonly movementYawDelta: number;
   readonly groundHeight: number;
   readonly verticalCorrection: number;
@@ -46,20 +59,36 @@ export interface BodyPitchMovementYaw {
   readonly inPlaneSpeed: number;
 }
 
-export function createM5CameraRig(): M5CameraRig {
-  return { yaw: 0, verticalCorrection: 0, initialized: false };
+export function createM5CameraRig(
+  yawMode: M5CameraYawMode = DEFAULT_M5_CAMERA_YAW_MODE,
+): M5CameraRig {
+  return { yawMode, yaw: 0, movementYaw: 0, verticalCorrection: 0, initialized: false };
 }
 
 export function resetM5CameraRig(rig: M5CameraRig): void {
   rig.yaw = 0;
+  rig.movementYaw = 0;
   rig.verticalCorrection = 0;
   rig.initialized = false;
 }
 
+export function setM5CameraYawMode(
+  rig: M5CameraRig,
+  yawMode: M5CameraYawMode,
+): void {
+  rig.yawMode = yawMode;
+}
+
+export function toggleM5CameraYawMode(rig: M5CameraRig): M5CameraYawMode {
+  const yawMode = rig.yawMode === 'BODY_FIXED' ? 'MOVEMENT_FOLLOW' : 'BODY_FIXED';
+  setM5CameraYawMode(rig, yawMode);
+  return yawMode;
+}
+
 /**
  * Express authoritative world velocity in the vehicle-pitch plane, then retain only its yaw.
- * Camera pitch follows the body separately, so this yaw delta is the only dynamic vehicle/camera
- * attitude difference that vehicle sprite authoring must represent.
+ * Camera pitch follows the body separately. Movement yaw remains the alternate camera direction
+ * and the body-fixed overlay direction; neither use changes authoritative vehicle attitude.
  */
 export function movementYawInBodyPitchFrame(
   vehicleYaw: number,
@@ -112,11 +141,12 @@ export function updateM5Camera(
 
   if (!rig.initialized) {
     rig.yaw = vehicle.yaw;
+    rig.movementYaw = vehicle.yaw;
     rig.verticalCorrection = 0;
     rig.initialized = true;
   }
 
-  let movementYawDelta = wrapAngle(rig.yaw - vehicle.yaw);
+  let movementYawDelta = wrapAngle(rig.movementYaw - vehicle.yaw);
   if (vehicle.velocityX !== undefined && vehicle.velocityZ !== undefined) {
     const movement = movementYawInBodyPitchFrame(
       vehicle.yaw,
@@ -126,19 +156,20 @@ export function updateM5Camera(
       vehicle.velocityZ,
     );
     if (movement.inPlaneSpeed >= profile.directionSpeedMin) {
-      rig.yaw = movement.yaw;
+      rig.movementYaw = movement.yaw;
       movementYawDelta = movement.yawDelta;
     }
   } else {
     const inPlaneSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
     if (inPlaneSpeed >= profile.directionSpeedMin) {
       movementYawDelta = Math.atan2(vehicle.lateralSpeed, vehicle.longitudinalSpeed);
-      rig.yaw = wrapAngle(vehicle.yaw + movementYawDelta);
+      rig.movementYaw = wrapAngle(vehicle.yaw + movementYawDelta);
     }
   }
+  rig.yaw = rig.yawMode === 'BODY_FIXED' ? vehicle.yaw : rig.movementYaw;
 
   const sCamera = vehicle.course.s - profile.dCam;
-  // The camera occupies the movement-yaw ray behind the authoritative vehicle position. Its
+  // The camera occupies the selected yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so player X is centerX by
   // construction without a safety-camera override or Guide-lateral second authority.
   const cameraX = vehicle.x - profile.dCam * Math.sin(rig.yaw);
@@ -189,6 +220,8 @@ export function updateM5Camera(
     vehicleGuideYawDelta,
     cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
     bodyPitch,
+    yawMode: rig.yawMode,
+    movementYaw: rig.movementYaw,
     movementYawDelta,
     groundHeight,
     verticalCorrection: rig.verticalCorrection,
