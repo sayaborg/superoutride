@@ -1,0 +1,113 @@
+SUPER OUTRIDE — M9.1 LOW/MID-SPEED MOUNTAIN CIRCUIT VALIDATION
+2026-08-31 JST
+
+Scope:
+Replace the current public CIRCUIT medium/high-speed sweep-and-jump authoring with a predominantly
+low/mid-speed mountain lap that creates ordinary drift-control opportunities through corner
+cadence and stronger repeated elevation, without changing vehicle mechanics or lower engine
+layers.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+f660f41b1dfe625671ca27abd955e916161b77f1
+
+Candidate branch:
+codex/m9-vehicle-unification
+
+Immediate predecessor checkpoint:
+554a080f78581a85eba77c557e52311c45d9cfde Make pedal input exclusive by press order
+
+Package / visible milestone:
+super-outride-m9-1@0.9.1
+SUPER OUTRIDE M9.1
+
+Current normative authority:
+docs/89_m9_1_low_mid_speed_mountain_circuit.md
+
+Historical superseded course authority:
+docs/86_m8_7_varied_elevation_circuit.md
+
+Resolved architecture:
+- CIRCUIT composition selects one new ordinary DEV authoring source;
+- the source uses only straight and circular Raster vertices, one smooth HeightProfile, existing
+  CircuitTopology compilation and the existing finite open runtime window;
+- two mirrored half-laps cancel world displacement and close only through one explicitly
+  duplicated endpoint;
+- four balanced left/right complexes per half-lap use 95 m, 135 m, 180 m and 240 m radii;
+- each half-lap ends in one ordinary 150 m-radius 180-degree hairpin;
+- finite Guide radius remains below 240 m and curved Guide length is approximately 66.18 percent;
+- the 7.077 km lap owns ten smooth grade-direction changes, approximately 105 m relief and an
+  approximately 18.42 percent maximum physical grade;
+- former localized jump windows are removed; elevation is one continuous ordinary source;
+- no drift zone, grip override, handling override, speed override, jump trigger, recovery trigger,
+  course-section mode or lower-layer route-kind branch exists;
+- LINEAR and BRANCHING composition, M7.2 route content and every vehicle profile remain unchanged;
+- the retired M8.7 implementation path is removed rather than retained as a compatibility shim.
+
+Dedicated executable acceptance:
+tests/m9-1-low-mid-speed-mountain-circuit.test.mjs
+tests/m6-54-circuit-multi-actor.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact explicit lap closure and a 7.077 km length envelope;
+- 95 m, 135 m, 150 m, 180 m and 240 m low/mid-speed radius families;
+- no finite Guide radius at or above 250 m;
+- more than 60 percent curved Guide length, both turn signs and the frozen Raster-turn bound;
+- more than 100 m relief, 15–22 percent maximum smooth grade and at least eight grade reversals;
+- ordinary recovery-free FR and BIKE1 traversal through the unchanged rival Driver and common
+  vehicle solver;
+- both vehicles finishing supported inside the existing 7 m asphalt half-width and observing
+  corner speeds below 31 m/s;
+- CIRCUIT-only composition selection and BRANCHING parent isolation;
+- retained input, HUD, renderer, metric, camera, recovery, vehicle, race, topology and Pages suites.
+
+Recorded causal probe:
+lap length              7076.777343820672 m
+finite Guide radius     94.90958105027642 m to 239.9428864991782 m
+curved Guide share      0.6618048104554521
+height                  approximately -50 m to +55 m
+relief                  approximately 105 m
+maximum smooth grade    0.18423067916611358
+grade sign changes      10
+FR max |l|              4.0977394959588915 m
+FR min corner speed     20.609473277614256 m/s
+BIKE1 max |l|           3.6337042698491913 m
+BIKE1 min corner speed  20.56368887791019 m/s
+
+Validation-inclusive local repository result:
+npm test
+535 tests
+535 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local CIRCUIT loaded the new m9-1-low-mid-speed-mountain-circuit ESM source;
+- the initial straight visibly climbed into the first low/mid-speed corner sequence;
+- the shared selector/control HUD, body-yaw overlay, G sensor, road Painter and rival remained
+  present in the 320x240 frame;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only CI candidate.
+2. Push the candidate branch and open or update a PR targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 535 / 535 pass, 0 fail, 0 skipped.
+5. Re-fetch main before any release and require behind_by=0 and merge base=current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. If release is authorized, move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push
+   Pages workflow on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert a later candidate SHA, run id, PR merge identity or Pages
+identity. Those facts are supplied by immutable Git/PR/ref/workflow history together with this
+validation record.
+
+Handling status:
+DEV_UNCALIBRATED. This milestone changes only CIRCUIT geometry/elevation authoring. Drift behavior
+remains an ordinary result of the provisional common vehicle profiles and existing tire forces.

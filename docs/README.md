@@ -66,12 +66,12 @@ The current browser course-debug composition authority is:
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
-86_m8_7_varied_elevation_circuit.md
+89_m9_1_low_mid_speed_mountain_circuit.md
 ```
 
 ## 2. Numbered milestone documents
 
-`01_...` through `88_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `89_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -107,13 +107,14 @@ The most important current topology/runtime/physics sequence is:
 86_m8_7_varied_elevation_circuit.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
 88_m9_1_six_profile_debug_hud.md
+89_m9_1_low_mid_speed_mountain_circuit.md
 ```
 
-The current public CIRCUIT course geometry authority is `86_m8_7_varied_elevation_circuit.md`;
-`83_m8_4_dual_low_speed_circuit_complex.md` and
-`79_m8_0_circuit_low_speed_corner_authoring.md` remain its historical predecessors. M8.7 changes
-only CIRCUIT DEV authoring; it does not change vehicle physics, the M7.2 BRANCHING parent, or
-frozen renderer/topology authority.
+The current public CIRCUIT course geometry authority is
+`89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
+course with a predominantly 95–240 m low/mid-speed mountain lap. M8.7, M8.4 and M8.0 remain its
+historical predecessors. The change is CIRCUIT DEV authoring only; it does not change vehicle
+physics, the M7.2 BRANCHING parent, or frozen renderer/topology authority.
 
 Current governing topology rule:
 
@@ -239,6 +240,16 @@ validation/M9_1_EXCLUSIVE_PEDAL_INPUT_VALIDATION.txt
 It proves one cross-device latest-held-source arbiter, exclusive canonical pedal requests,
 finite actuator handoff without actuator-side arbitration, blue/red/uncolored requested-pedal
 indicators, complete-suite acceptance and browser layout.
+
+The current M9.1 low/mid-speed mountain CIRCUIT evidence is:
+
+```text
+validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt
+```
+
+It proves the 95–240 m corner distribution, curved-length share, repeated smooth mountain
+elevation, ordinary FR/BIKE1 completion, CIRCUIT-only composition boundary, complete suite and
+browser rendering.
 
 ## 5. Historical M9 implementation handoff
 

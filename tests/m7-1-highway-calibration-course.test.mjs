@@ -34,7 +34,7 @@ import {
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
-test('current circuit lap retains high-speed references and owns two post-handoff low-speed complexes', () => {
+test('M7.1 calibration lap retains high-speed references and two post-handoff low-speed complexes', () => {
   const raster = createM71HighwayCalibrationLapRaster();
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const finiteRadii = guide.corners

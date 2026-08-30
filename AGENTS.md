@@ -89,8 +89,13 @@ docs/88_m9_1_six_profile_debug_hud.md
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
-docs/86_m8_7_varied_elevation_circuit.md
+docs/89_m9_1_low_mid_speed_mountain_circuit.md
 ```
+
+M9.1 mountain-circuit authoring supersedes only the M8.7 public CIRCUIT geometry and elevation.
+It replaces the medium/high-speed sweep-and-jump composition with one 95–240 m low/mid-speed lap
+and a frequent smooth mountain HeightProfile. It adds no drift mode, grip change, physics branch,
+camera branch or renderer branch.
 
 ### Milestone design authority
 
@@ -128,6 +133,7 @@ docs/83_m8_4_dual_low_speed_circuit_complex.md
 docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/86_m8_7_varied_elevation_circuit.md
+docs/89_m9_1_low_mid_speed_mountain_circuit.md
 ```
 
 ### Executable implementation contract

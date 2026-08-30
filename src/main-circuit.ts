@@ -14,9 +14,9 @@ import {
   createM71HighwayGroundProfile,
 } from './dev/m7-1-highway-calibration-course.js';
 import {
-  M8_7_DEV_COURSE_MODE,
-  createM87VariedElevationCircuitRuntime,
-} from './dev/m8-7-varied-elevation-circuit.js';
+  M9_1_DEV_COURSE_MODE,
+  createM91LowMidSpeedMountainCircuitRuntime,
+} from './dev/m9-1-low-mid-speed-mountain-circuit.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -85,7 +85,7 @@ const inputManager = new InputManager(
   brakeButton,
 );
 
-const live = createM87VariedElevationCircuitRuntime();
+const live = createM91LowMidSpeedMountainCircuitRuntime();
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
 const guide = windowRuntime.guide;
@@ -119,7 +119,7 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
 let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
-const rivalRoster = createRivalRoster(M8_7_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(M9_1_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(
     FR_VEHICLE_PROFILE,
@@ -275,7 +275,7 @@ function render(): void {
     spriteFamily,
   );
   ctx.putImageData(imageData, 0, 0);
-  drawVehicleDebugHud(ctx, M8_7_DEV_COURSE_MODE.routeKind, input, vehicle);
+  drawVehicleDebugHud(ctx, M9_1_DEV_COURSE_MODE.routeKind, input, vehicle);
   drawVehicleYawDebug(ctx, camera.playerScreenX, stats.playerScreenY, vehicle.yaw, camera.yaw);
 }
 

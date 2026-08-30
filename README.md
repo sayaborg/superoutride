@@ -30,11 +30,12 @@ ABS/TCS and presentation-only BIKE lean. The authority is
 PR #100, while release status remains candidate pending validation-inclusive exact-head CI and the
 explicit release procedure.
 
-M8.7 replaces only the CIRCUIT course with an approximately 12.076 km lap mixing 190, 320, 380,
-520 and 680 m-radius corners throughout. Its smooth physical elevation spans approximately 96 m
-and owns two straight-line crests that naturally produce brief jumps and normal recontact through
-unchanged vehicle physics. BRANCHING remains on its existing parent geometry. The authority is
-`docs/86_m8_7_varied_elevation_circuit.md`.
+M9.1 also replaces only the CIRCUIT authoring with an approximately 7.077 km mountain lap made
+entirely from 95–240 m low/mid-speed corner families. Approximately 66% of its Guide length is
+curved; its smooth physical elevation changes direction ten times, spans approximately 105 m and
+reaches approximately 18.42% grade. Drift opportunity arises only from ordinary corner cadence
+and tire forces. BRANCHING remains on its existing parent geometry. The authority is
+`docs/89_m9_1_low_mid_speed_mountain_circuit.md`.
 
 M8.6 extends the shared camera-relative render interval from 150 m to 200 m (195 m ahead of the
 player). The geometric infinite horizon remains the exact projection limit and the Far Background
@@ -49,8 +50,8 @@ recompiled for the new presentation. The authority is `docs/84_m8_5_downward_cam
 M8.4 historically expanded the CIRCUIT lap from one to two separated 90 m-radius compound low-speed
 sections. The new lap is approximately 10.133 km; ordinary car physics and the existing rival
 driver braked for and cleared both sections without course-specific lower-layer behavior. Its
-historical authority is `docs/83_m8_4_dual_low_speed_circuit_complex.md`; M8.7 now supersedes its
-current CIRCUIT geometry.
+historical authority is `docs/83_m8_4_dual_low_speed_circuit_complex.md`; M8.7 superseded it and
+the current M9.1 mountain circuit now supersedes M8.7.
 
 M8.3 exposes all three course forms through one browser boot authority:
 
@@ -108,7 +109,9 @@ For current vehicle work, read in this order:
 6. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
 7. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
-   `docs/86_m8_7_varied_elevation_circuit.md` — current camera/composition/render/course authorities.
+   `docs/86_m8_7_varied_elevation_circuit.md`, then
+   `docs/89_m9_1_low_mid_speed_mountain_circuit.md` — current camera/composition/render/course
+   authorities and course supersession.
 8. Relevant source/types/compilers and regression tests — executable implementation contract.
 
 The 2026-08-28 M8.0 and 2026-08-31 M9 handoffs remain historical checkpoint/navigation records.
@@ -187,9 +190,10 @@ M8.3       Three-Mode Course Debug                                      current 
 M8.4       Dual Low-Speed Circuit Complex                               historical CIRCUIT course-authoring authority
 M8.5       Downward Camera Presentation                                  current camera pitch/height authority
 M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
-M8.7       Varied-Elevation Medium/High-Speed Circuit                     current CIRCUIT course-authoring authority
+M8.7       Varied-Elevation Medium/High-Speed Circuit                     historical CIRCUIT course-authoring authority
 M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
 M9.1       Six-Profile Common Debug HUD                                     current profile/debug composition candidate
+M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -320,6 +324,8 @@ inertial-G and HUD-only 18:1 correction is recorded independently in
 The subsequent exclusive last-pressed pedal-input correction and blue/red/uncolored requested-pedal
 HUD evidence is recorded in
 `docs/validation/M9_1_EXCLUSIVE_PEDAL_INPUT_VALIDATION.txt`.
+The low/mid-speed mountain CIRCUIT correction is recorded independently in
+`docs/validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt`.
 
 ## Current composition and source-placement landmarks
 
@@ -335,7 +341,7 @@ src/input/pedal-input-arbiter.ts          shared latest-held-source pedal author
 src/camera/m5-camera.ts            M8.2 body-pitch / movement-yaw camera authority
 src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
 src/core/presentation-scale.ts       M8.6 shared near/far render-distance authority
-src/dev/m8-7-varied-elevation-circuit.ts M8.7 CIRCUIT geometry/elevation authority
+src/dev/m9-1-low-mid-speed-mountain-circuit.ts current CIRCUIT geometry/elevation authority
 src/render/vehicle-yaw-debug.ts    DEV body-yaw overlay
 src/render/vehicle-presentation.ts derived sprite/handwheel/BIKE-lean presentation
 src/input/touch-input.ts           pointer + page lifecycle authority
