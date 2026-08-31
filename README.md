@@ -17,8 +17,8 @@ controls:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
-| Travel-direction gain | `0.3 / 0.4 / 0.5 / 0.6 / 0.7` | `0.5` | `4`–`8` |
-| Yaw-preview time | `0 / 0.06 / 0.09 / 0.12 / 0.15 / 0.18 s` | `0.12 s` | `Y` cycles |
+| Travel-direction gain | `0 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0` | `0.4` | `4`–`9` |
+| Yaw-preview time | `0 / 0.06 / 0.12 / 0.18 / 0.24 / 0.30 s` | `0.12 s` | `Y` cycles |
 | Symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.375 s` | `T` cycles |
 
 Touch layouts expose every value directly. One vehicle-instance calibration state survives recovery

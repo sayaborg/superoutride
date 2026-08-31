@@ -56,7 +56,7 @@ docs/91_m9_1_dual_yaw_camera_modes.md
 M9.2 supersedes the M9.0 implicit unit coefficient on travel-direction steering feedback and its
 asymmetric steering-actuator rates. One common vehicle-instance calibration state owns
 travel-direction gain, yaw-preview time and symmetric steering-actuator response. Browser defaults
-are `0.5`, `0.12 s` and `0.375 s` full traversal; ordinary construction and rivals retain profile
+are `0.4`, `0.12 s` and `0.375 s` full traversal; ordinary construction and rivals retain profile
 defaults. The current additive steering formula is unchanged: the gain scales only `betaTravel`,
 yaw preview remains a separate term, and driver offset remains the actuator output. One shared
 browser authority owns keys/numpad/touch/HUD selection, and profile safe-spawn reconstruction

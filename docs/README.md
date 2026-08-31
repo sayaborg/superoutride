@@ -41,7 +41,7 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 M9.2 supersedes the implicit unit gain on M9.0 travel-direction steering feedback and the M9.0
 asymmetric steering-actuator rates. One common vehicle-instance state owns travel-direction gain,
 yaw-preview time and symmetric steering-actuator response. The browser exposes exact comparison
-tables for all three, defaulting to `0.5`, `0.12 s` and `0.375 s` traversal. It preserves the current
+tables for all three, defaulting to `0.4`, `0.12 s` and `0.375 s` traversal. It preserves the current
 additive steering formula and does not change input arbitration, final road-wheel response, tires,
 camera, route or topology; ordinary mechanics construction and rivals retain profile defaults.
 
@@ -141,7 +141,7 @@ arrow show travel direction while body lock is active. Body-pitch follow and all
 renderer/metric rules remain unchanged.
 
 The current selectable steering calibration authority is
-`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `8`, `Y`, `T` and shared
+`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9`, `Y`, `T` and shared
 touch selectors one common browser authority while common mechanics owns the sole current state.
 
 The current public CIRCUIT course geometry authority is

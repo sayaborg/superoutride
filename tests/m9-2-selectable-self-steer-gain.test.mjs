@@ -45,14 +45,14 @@ const surface = new SurfaceMap(highway.guide.length, [{
 }]);
 
 test('one browser authority owns all three requested steering calibration selectors', () => {
-  assert.deepEqual(BROWSER_SELF_STEER_GAINS.map(({ gain }) => gain), [0.3, 0.4, 0.5, 0.6, 0.7]);
-  assert.deepEqual(BROWSER_YAW_PREVIEW_TIMES, [0, 0.06, 0.09, 0.12, 0.15, 0.18]);
+  assert.deepEqual(BROWSER_SELF_STEER_GAINS.map(({ gain }) => gain), [0, 0.2, 0.4, 0.6, 0.8, 1]);
+  assert.deepEqual(BROWSER_YAW_PREVIEW_TIMES, [0, 0.06, 0.12, 0.18, 0.24, 0.3]);
   assert.deepEqual(
     BROWSER_STEERING_RESPONSES.map(({ traversalSeconds }) => traversalSeconds),
     [0.25, 0.375, 0.5, 0.625],
   );
   assert.deepEqual(DEFAULT_BROWSER_STEERING_CALIBRATION, {
-    travelDirectionGain: 0.5,
+    travelDirectionGain: 0.4,
     yawPreviewTime: 0.12,
     steeringActuatorResponse: { applyRate: 8 / 3, releaseRate: 8 / 3 },
   });
@@ -61,17 +61,18 @@ test('one browser authority owns all three requested steering calibration select
 
   for (let index = 0; index < BROWSER_SELF_STEER_GAINS.length; index += 1) {
     const digit = index + 4;
-    const gain = 0.3 + index * 0.1;
+    const gain = index * 0.2;
     assert.ok(Math.abs(browserSelfSteerGainForKey(`Digit${digit}`) - gain) < 1e-12);
     assert.ok(Math.abs(browserSelfSteerGainForKey(`Numpad${digit}`) - gain) < 1e-12);
   }
   assert.equal(browserSelfSteerGainForKey('Digit3'), null);
-  assert.equal(browserSelfSteerGainForKey('Digit9'), null);
-  assert.equal(nextBrowserYawPreviewTime(0.12), 0.15);
-  assert.equal(nextBrowserYawPreviewTime(0.18), 0);
+  assert.equal(browserSelfSteerGainForKey('Digit9'), 1);
+  assert.equal(browserSelfSteerGainForKey('Digit0'), null);
+  assert.equal(nextBrowserYawPreviewTime(0.12), 0.18);
+  assert.equal(nextBrowserYawPreviewTime(0.3), 0);
   assert.equal(nextBrowserSteeringResponseRate(8 / 3), 2);
   assert.equal(nextBrowserSteeringResponseRate(1.6), 4);
-  assert.match(formatSelfSteerGainSelector(0.5), /\[6\]0\.5\*/);
+  assert.match(formatSelfSteerGainSelector(0.4), /\[6\]0\.4\*/);
   assert.equal(formatYawPreviewSelector(0.12), 'YAW [Y] 0.12s');
   assert.equal(formatSteeringResponseSelector(8 / 3), 'ACT [T] 0.375s');
 });

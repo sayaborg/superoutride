@@ -46,7 +46,7 @@ The final target is still followed through the existing first-order road-wheel r
 The browser player begins with:
 
 ```text
-travelDirectionGain = 0.5
+travelDirectionGain = 0.4
 yawPreviewTime      = 0.12 s
 steering traversal  = 0.375 s
 ```
@@ -54,13 +54,13 @@ steering traversal  = 0.375 s
 The travel-direction choices are:
 
 ```text
-0.3  0.4  0.5  0.6  0.7
+0.0  0.2  0.4  0.6  0.8  1.0
 ```
 
 The yaw-preview choices are:
 
 ```text
-0.00  0.06  0.09  0.12  0.15  0.18 s
+0.00  0.06  0.12  0.18  0.24  0.30 s
 ```
 
 The symmetric steering-actuator choices are expressed as normalized zero-to-full traversal time:
@@ -129,12 +129,12 @@ route, topology, input-source or tire branch.
 One browser selection module owns keyboard, touch labels, defaults, cycling and HUD formatting.
 
 ```text
-[4] 0.3   [5] 0.4   [6] 0.5   [7] 0.6   [8] 0.7
+[4] 0.0   [5] 0.2   [6] 0.4   [7] 0.6   [8] 0.8   [9] 1.0
 [Y] cycle yaw preview
 [T] cycle symmetric steering traversal time
 ```
 
-Numpad `4` through `8` mirror the gain keys. Touch exposes every value directly. All three top-level
+Numpad `4` through `9` mirror the gain keys. Touch exposes every value directly. All three top-level
 compositions consume the same selection authority, while the shared HUD reads only the current
 vehicle state.
 
@@ -161,7 +161,7 @@ until a later authority chooses final product values.
 
 Executable acceptance must prove:
 
-1. Keys/numpad `4` through `8` map to the five exact travel-direction gains.
+1. Keys/numpad `4` through `9` map to the six exact travel-direction gains.
 2. `Y` and `T` cycle their canonical tables and touch exposes the same exact values.
 3. The common formula keeps gain, yaw preview and driver offset as independent additive terms.
 4. Invalid or non-finite mechanics calibration is rejected before state mutation.

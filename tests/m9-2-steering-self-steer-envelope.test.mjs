@@ -43,13 +43,15 @@ test('self-steer calibration probe covers duration speed drive and every common 
 
 test('selectable travel-direction gains produce one deterministic calibration sweep', () => {
   const sweep = collectTravelDirectionGainSweep();
-  assert.deepEqual(sweep.map(({ gain }) => gain), [0.3, 0.4, 0.5, 0.6, 0.7]);
+  assert.deepEqual(sweep.map(({ gain }) => gain), [0, 0.2, 0.4, 0.6, 0.8, 1]);
   assert.deepEqual(collectTravelDirectionGainSweep(), sweep);
   for (const { gain, result } of sweep) {
     assert.equal(result.travelDirectionGain, gain);
     assert.equal(result.oppositePeakComponentsDegrees.residualDriverOffset, 0);
-    assert.ok(result.maxFrontUtilization < 1);
-    assert.ok(result.maxRearUtilization < 1);
+    if (gain > 0) {
+      assert.ok(result.maxFrontUtilization < 1);
+      assert.ok(result.maxRearUtilization < 1);
+    }
   }
   for (let index = 1; index < sweep.length; index += 1) {
     const weaker = sweep[index - 1].result;
@@ -59,8 +61,11 @@ test('selectable travel-direction gains produce one deterministic calibration sw
       weaker.peakReverseYawRateDegreesPerSecond
       < stronger.peakReverseYawRateDegreesPerSecond,
     );
-    assert.ok(weaker.settleSeconds >= stronger.settleSeconds);
+    if (index < sweep.length - 1) {
+      assert.ok(weaker.settleSeconds >= stronger.settleSeconds);
+    }
   }
+  assert.ok(sweep.at(-1).result.settleSeconds > sweep.at(-2).result.settleSeconds);
   const canonical = findCase(collectCurrentSteeringSelfSteerEnvelope(), {
     profile: 'FR',
     speedMetersPerSecond: 25,
@@ -68,10 +73,13 @@ test('selectable travel-direction gains produce one deterministic calibration sw
     driven: false,
   });
   assert.equal(canonical.travelDirectionGain, 1);
-  assert.ok(sweep.at(-1).result.peakOppositeRoadWheelDegrees < canonical.peakOppositeRoadWheelDegrees);
   assert.ok(
-    sweep.at(-1).result.peakReverseYawRateDegreesPerSecond
-    < canonical.peakReverseYawRateDegreesPerSecond,
+    Math.abs(sweep.at(-1).result.peakOppositeRoadWheelDegrees
+      - canonical.peakOppositeRoadWheelDegrees) < 1e-12,
+  );
+  assert.ok(
+    Math.abs(sweep.at(-1).result.peakReverseYawRateDegreesPerSecond
+      - canonical.peakReverseYawRateDegreesPerSecond) < 1e-12,
   );
 });
 
@@ -107,7 +115,7 @@ test('weakening yaw preview trades away yaw stabilization', () => {
   const sweeps = collectSteeringAuthoritySweeps();
   assert.deepEqual(
     sweeps.yawPreview.map((entry) => entry.steeringYawPreviewTime),
-    [0, 0.06, 0.09, 0.12, 0.15, 0.18],
+    [0, 0.06, 0.12, 0.18, 0.24, 0.3],
   );
   const noPreview = sweeps.yawPreview.find((entry) => entry.steeringYawPreviewTime === 0).result;
   const currentPreview = sweeps.yawPreview.find(

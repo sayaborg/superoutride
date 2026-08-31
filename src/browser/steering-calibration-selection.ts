@@ -1,12 +1,12 @@
 import type { ArcadeSteeringCalibrationInput } from '../physics/vehicle-calibration.js';
 
-export type BrowserSelfSteerGain = 0.3 | 0.4 | 0.5 | 0.6 | 0.7;
-export type BrowserYawPreviewTime = 0 | 0.06 | 0.09 | 0.12 | 0.15 | 0.18;
+export type BrowserSelfSteerGain = 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1;
+export type BrowserYawPreviewTime = 0 | 0.06 | 0.12 | 0.18 | 0.24 | 0.3;
 export type BrowserSteeringTraversalSeconds = 0.25 | 0.375 | 0.5 | 0.625;
 
 export interface BrowserSelfSteerGainSelection {
-  readonly code: 'Digit4' | 'Digit5' | 'Digit6' | 'Digit7' | 'Digit8';
-  readonly numpadCode: 'Numpad4' | 'Numpad5' | 'Numpad6' | 'Numpad7' | 'Numpad8';
+  readonly code: 'Digit4' | 'Digit5' | 'Digit6' | 'Digit7' | 'Digit8' | 'Digit9';
+  readonly numpadCode: 'Numpad4' | 'Numpad5' | 'Numpad6' | 'Numpad7' | 'Numpad8' | 'Numpad9';
   readonly gain: BrowserSelfSteerGain;
 }
 
@@ -17,25 +17,26 @@ export interface BrowserSteeringResponseSelection {
 
 export const BROWSER_YAW_PREVIEW_CYCLE_CODE = 'KeyY';
 export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
-export const DEFAULT_BROWSER_SELF_STEER_GAIN: BrowserSelfSteerGain = 0.5;
+export const DEFAULT_BROWSER_SELF_STEER_GAIN: BrowserSelfSteerGain = 0.4;
 export const DEFAULT_BROWSER_YAW_PREVIEW_TIME: BrowserYawPreviewTime = 0.12;
 export const DEFAULT_BROWSER_STEERING_TRAVERSAL_SECONDS: BrowserSteeringTraversalSeconds = 0.375;
 
 export const BROWSER_SELF_STEER_GAINS: readonly BrowserSelfSteerGainSelection[] = Object.freeze([
-  Object.freeze({ code: 'Digit4', numpadCode: 'Numpad4', gain: 0.3 }),
-  Object.freeze({ code: 'Digit5', numpadCode: 'Numpad5', gain: 0.4 }),
-  Object.freeze({ code: 'Digit6', numpadCode: 'Numpad6', gain: 0.5 }),
+  Object.freeze({ code: 'Digit4', numpadCode: 'Numpad4', gain: 0 }),
+  Object.freeze({ code: 'Digit5', numpadCode: 'Numpad5', gain: 0.2 }),
+  Object.freeze({ code: 'Digit6', numpadCode: 'Numpad6', gain: 0.4 }),
   Object.freeze({ code: 'Digit7', numpadCode: 'Numpad7', gain: 0.6 }),
-  Object.freeze({ code: 'Digit8', numpadCode: 'Numpad8', gain: 0.7 }),
+  Object.freeze({ code: 'Digit8', numpadCode: 'Numpad8', gain: 0.8 }),
+  Object.freeze({ code: 'Digit9', numpadCode: 'Numpad9', gain: 1 }),
 ]);
 
 export const BROWSER_YAW_PREVIEW_TIMES: readonly BrowserYawPreviewTime[] = Object.freeze([
   0,
   0.06,
-  0.09,
   0.12,
-  0.15,
   0.18,
+  0.24,
+  0.3,
 ]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([

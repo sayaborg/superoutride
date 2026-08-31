@@ -238,7 +238,7 @@ test('all six vehicle profiles integrate ordinarily on the finite LINEAR course'
 test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
   const runtime = createM83LinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
-  setArcadeVehicleTravelDirectionSteeringGain(vehicle, 0.5);
+  setArcadeVehicleTravelDirectionSteeringGain(vehicle, 0.4);
   vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
   vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
   vehicle.control.throttleActuator = 0.42;
@@ -252,7 +252,7 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.match(model.vehicleSelector, /\[Q\]FR\*/);
-  assert.match(model.selfSteerSelector, /\[6\]0\.5\*/);
+  assert.match(model.selfSteerSelector, /\[6\]0\.4\*/);
   assert.equal(model.yawPreviewSelector, 'YAW [Y] 0.12s');
   assert.equal(model.steeringResponseSelector, 'ACT [T] 0.375s');
   assert.equal(model.requestedSteering, -1);

@@ -105,7 +105,7 @@ body {
 }
 
 .self-steer-selector-buttons {
-  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
 }
 
 .yaw-preview-selector-buttons {
