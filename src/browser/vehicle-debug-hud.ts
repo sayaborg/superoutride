@@ -5,6 +5,7 @@ import {
   formatSteeringResponseSelector,
   formatYawPreviewSelector,
 } from './steering-calibration-selection.js';
+import { formatTireFrictionSelector } from './tire-friction-selection.js';
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
 import {
   assertExclusivePedalInput,
@@ -25,6 +26,7 @@ export interface VehicleDebugHudModel {
   readonly selfSteerSelector: string;
   readonly yawPreviewSelector: string;
   readonly steeringResponseSelector: string;
+  readonly tireFrictionSelector: string;
   readonly instruments: string;
   readonly requestedSteering: number;
   readonly requestedThrottle: number;
@@ -53,6 +55,9 @@ export function createVehicleDebugHudModel(
     steeringResponseSelector: formatSteeringResponseSelector(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
     ),
+    tireFrictionSelector: formatTireFrictionSelector(
+      vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
+    ),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: input.throttle ? 1 : 0,
@@ -78,11 +83,12 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(routeKind, input, vehicle);
   const lines = [
-    `M9.3 ${model.courseSelector}`,
+    `M9.4 ${model.courseSelector}`,
     model.vehicleSelector,
     model.selfSteerSelector,
     model.yawPreviewSelector,
     model.steeringResponseSelector,
+    model.tireFrictionSelector,
     model.instruments,
   ];
 
@@ -90,8 +96,8 @@ export function drawVehicleDebugHud(
   ctx.font = '7px monospace';
   ctx.textBaseline = 'top';
   lines.forEach((line, index) => drawHudText(ctx, line, 6, 5 + index * 9, '#d7f3ff'));
-  drawVehicleControlGraphics(ctx, model, 3, 61);
-  drawTopDownGSensor(ctx, model, 286, 65);
+  drawVehicleControlGraphics(ctx, model, 3, 70);
+  drawTopDownGSensor(ctx, model, 286, 74);
   ctx.restore();
 }
 

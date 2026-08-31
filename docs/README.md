@@ -27,6 +27,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
+94_m9_4_selectable_tire_friction.md
 92_m9_2_selectable_self_steer_gain.md
 88_m9_1_six_profile_debug_hud.md
 87_m9_0_two_station_arcade_vehicle_dynamics.md
@@ -37,6 +38,13 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 85_m8_6_two_hundred_meter_render_distance.md
 91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.4 supersedes only M9.0's prohibition on a control path changing `mu`: one explicit
+vehicle-instance tire calibration now multiplies compiled tire `muRef` before the unchanged
+relative SurfaceMap factor and normal load. The browser player selects `SEMI / 1.5x / 2.0x /
+2.5x`, defaulting to the retained `SEMI=1.0x`; rivals and ordinary construction remain `1.0x`.
+The one-k demand, stiffness, `rhoKnee`, combined-slip transition, wheel solve and all SurfaceMap
+materials remain unchanged.
 
 M9.2 supersedes the implicit unit gain on M9.0 travel-direction steering feedback and the M9.0
 asymmetric steering-actuator rates. One common vehicle-instance state owns travel-direction gain,
@@ -77,6 +85,7 @@ The current browser course-debug composition authority is:
 90_m9_1_mobile_touch_selectors.md
 91_m9_1_dual_yaw_camera_modes.md
 92_m9_2_selectable_self_steer_gain.md
+94_m9_4_selectable_tire_friction.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -87,7 +96,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `93_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `94_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -128,6 +137,7 @@ The most important current topology/runtime/physics sequence is:
 91_m9_1_dual_yaw_camera_modes.md
 92_m9_2_selectable_self_steer_gain.md
 93_m9_3_tsukuba_circuit.md
+94_m9_4_selectable_tire_friction.md
 ```
 
 The current browser touch-selection authority is
@@ -144,6 +154,11 @@ renderer/metric rules remain unchanged.
 The current selectable steering calibration authority is
 `92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9`, `Y`, `T` and shared
 touch selectors one common browser authority while common mechanics owns the sole current state.
+
+The current selectable tire-friction authority is
+`94_m9_4_selectable_tire_friction.md`. It gives keyboard `G`, shared touch buttons and the HUD one
+browser choice table while common tire calibration owns the sole active multiplier. It changes
+only reference-friction capacity and preserves the compiled tire package and SurfaceMap authority.
 
 The current public CIRCUIT course-authoring authority is `93_m9_3_tsukuba_circuit.md`. It replaces
 M9.1's low/mid-speed mountain fixture with a functional four-wheel Tsukuba Course 2000

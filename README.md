@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.3 Tsukuba Circuit
+# SUPER OUTRIDE — M9.4 Selectable Tire Friction
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,7 +12,14 @@ tests.
 
 ## Current release
 
-M9.3 replaces only the CIRCUIT DEV course with a researched functional reconstruction of the
+M9.4 adds one vehicle-instance tire reference-friction multiplier without changing the existing
+one-k tire law, compiled tire packages or relative SurfaceMap materials. The browser player can
+select `SEMI / 1.5x / 2.0x / 2.5x`; `SEMI` is the previous `1.0x` behavior and remains the default.
+Keyboard `G`, touch buttons and the common HUD derive from one browser selection authority.
+Selections apply immediately and survive recovery/profile switching. Rivals and ordinary vehicle
+construction retain `1.0x`.
+
+M9.3 continues to own the CIRCUIT DEV course as a researched functional reconstruction of the
 four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 282 m home straight,
 437 m back straight, clockwise corner sequence, named radius families and near-flat character.
 The track uses a 12 m nominal asphalt width inside JAF's published 10–15 m range. Exact unlabelled
@@ -25,6 +32,7 @@ M9.2's common steering law and three independent browser-player calibration cont
 | Travel-direction gain | `0 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0` | `0.4` | `4`–`9` |
 | Yaw-preview time | `0 / 0.06 / 0.12 / 0.18 / 0.24 / 0.30 s` | `0.12 s` | `Y` cycles |
 | Symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.375 s` | `T` cycles |
+| Tire reference friction | `SEMI / 1.5x / 2.0x / 2.5x` | `SEMI` | `G` cycles |
 
 Touch layouts expose every value directly. One vehicle-instance calibration state survives recovery
 and DEV profile switching. Steering apply and release remain equal for every response choice.
@@ -49,14 +57,15 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/93_m9_3_tsukuba_circuit.md` — current CIRCUIT DEV course-authoring authority.
-5. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
-6. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
-7. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
-8. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+4. `docs/94_m9_4_selectable_tire_friction.md` — current selectable tire-friction authority.
+5. `docs/93_m9_3_tsukuba_circuit.md` — current CIRCUIT DEV course-authoring authority.
+6. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
+7. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
+8. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
+9. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-9. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+10. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -76,6 +85,8 @@ terminology.
 - Canonical ACCEL/BRAKE is exclusive and resolved by the shared latest-held pedal arbiter.
 - Finite actuator response belongs only to `src/physics/driving-actuator.ts`.
 - Steering calibration state and validation belong only to `src/physics/vehicle-calibration.ts`.
+- Tire reference-friction calibration belongs only to
+  `src/physics/tire-friction-calibration.ts`; the tire law consumes its multiplier explicitly.
 
 ### Camera and presentation
 
@@ -125,10 +136,11 @@ One top-level boot selects one explicit composition root:
 | Steering | `Left / Right` |
 | Throttle | `Up` or `X` |
 | Brake | `Down` or `Z` |
+| Tire friction | `G` cycles `SEMI / 1.5x / 2.0x / 2.5x` |
 | Recovery | `Backspace` |
 
-Phone/coarse-pointer layouts expose the same authority-derived course, vehicle, camera and steering
-calibration selectors plus touch driving controls. There is no mobile-only mechanics state.
+Phone/coarse-pointer layouts expose the same authority-derived course, vehicle, camera, steering
+and tire-calibration selectors plus touch driving controls. There is no mobile-only mechanics state.
 
 ## Run and test
 
@@ -160,10 +172,13 @@ src/main-circuit.ts                          CIRCUIT composition root
 src/dev/m9-3-tsukuba-circuit.ts              current Tsukuba Course 2000 DEV authoring
 src/browser/steering-calibration-selection.ts choice/default/format authority
 src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
+src/browser/tire-friction-selection.ts        tire choice/default/format authority
+src/browser/tire-friction-controls.ts         shared keyboard/touch tire adapter
 src/browser/mobile-selector-controls.ts       authority-derived touch presentation
 src/input/steering-input-arbiter.ts            shared steering-source authority
 src/input/pedal-input-arbiter.ts               shared pedal-source authority
 src/physics/vehicle-calibration.ts              calibration state rules and DEV status
+src/physics/tire-friction-calibration.ts        vehicle-owned tire multiplier rules
 src/physics/driving-actuator.ts                 finite response primitive
 src/physics/arcade-vehicle-physics.ts           common two-station solver
 src/physics/vehicle-profiles.ts                 compiled six-profile authority
@@ -178,8 +193,8 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-Current M9.3 release evidence is
-`docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration
+Current M9.3 circuit evidence is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained
+M9.2 steering-calibration
 evidence is `docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`.
 
 Historical validation evidence is immutable. Interpret it through `docs/validation/README.md`; do

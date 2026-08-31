@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/94_m9_4_selectable_tire_friction.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
@@ -52,6 +53,13 @@ docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.4 supersedes only M9.0's prohibition on a control path changing `mu`. One explicit common
+vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
+Browser choices are `SEMI=1.0x`, `1.5x`, `2.0x` and `2.5x`; ordinary construction and rivals retain
+`1.0x`. The multiplier scales compiled `muRef` before the unchanged relative SurfaceMap factor.
+Tire stiffness, `rhoKnee`, demand, combined-slip transition, wheel solve and surface materials
+remain separate unchanged authorities.
 
 M9.2 supersedes the M9.0 implicit unit coefficient on travel-direction steering feedback and its
 asymmetric steering-actuator rates. One common vehicle-instance calibration state owns
@@ -103,6 +111,7 @@ docs/88_m9_1_six_profile_debug_hud.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
+docs/94_m9_4_selectable_tire_friction.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -159,6 +168,7 @@ docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/93_m9_3_tsukuba_circuit.md
+docs/94_m9_4_selectable_tire_friction.md
 ```
 
 ### Executable implementation contract

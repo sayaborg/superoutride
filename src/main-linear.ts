@@ -1,6 +1,8 @@
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
 import { DEFAULT_BROWSER_STEERING_CALIBRATION } from './browser/steering-calibration-selection.js';
 import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
+import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './browser/tire-friction-selection.js';
+import { mountBrowserTireFrictionControls } from './browser/tire-friction-controls.js';
 import {
   mountMobileCameraYawSelector,
   mountMobileVehicleSelector,
@@ -58,6 +60,7 @@ const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
 const selfSteerSelectorButtons = mustGet<HTMLElement>('self-steer-selector-buttons');
 const yawPreviewSelectorButtons = mustGet<HTMLElement>('yaw-preview-selector-buttons');
 const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
+const tireFrictionSelectorButtons = mustGet<HTMLElement>('tire-friction-selector-buttons');
 
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
@@ -89,7 +92,8 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   45,
   M8_3_LINEAR_PLAYER_START_L,
   45,
-  DEFAULT_BROWSER_STEERING_CALIBRATION,
+    DEFAULT_BROWSER_STEERING_CALIBRATION,
+    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
 );
 let recovery = createM5RecoveryState(vehicle);
 const cameraRig = createM5CameraRig();
@@ -121,6 +125,10 @@ const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
   },
   () => vehicle,
 );
+const tireFrictionControls = mountBrowserTireFrictionControls(
+  tireFrictionSelectorButtons,
+  () => vehicle,
+);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
@@ -129,6 +137,7 @@ window.addEventListener('keydown', (event) => {
     return;
   }
   if (steeringCalibrationControls.handleKey(event.code)) return;
+  if (tireFrictionControls.handleKey(event.code)) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
     selectVehicleProfile(selectedProfile);
@@ -255,6 +264,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   const spawnL = vehicle.course.l;
   const speed = vehicle.longitudinalSpeed;
   const steeringCalibration = vehicle.steeringCalibration;
+  const tireFrictionCalibration = vehicle.tireFrictionCalibration;
   vehicle = createArcadeVehicle(
     profile,
     runtime.guide,
@@ -264,6 +274,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     spawnL,
     speed,
     steeringCalibration,
+    tireFrictionCalibration,
   );
   recovery = createM5RecoveryState(vehicle);
   resetM5CameraRig(cameraRig);

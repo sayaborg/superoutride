@@ -334,15 +334,19 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   assert.match(index, /id="self-steer-selector-buttons"/);
   assert.match(index, /id="yaw-preview-selector-buttons"/);
   assert.match(index, /id="steering-response-selector-buttons"/);
-  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer|yaw-preview|steering-response)-/);
+  assert.match(index, /id="tire-friction-selector-buttons"/);
+  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer|yaw-preview|steering-response|tire-friction)-/);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /mountMobileVehicleSelector/);
     assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
     assert.match(source, /mountBrowserSteeringCalibrationControls/);
     assert.match(source, /steeringCalibrationControls\.handleKey/);
+    assert.match(source, /mountBrowserTireFrictionControls/);
+    assert.match(source, /tireFrictionControls\.handleKey/);
     assert.doesNotMatch(source, /mountMobileSelfSteerGainSelector/);
     assert.doesNotMatch(source, /mountMobileYawPreviewSelector/);
     assert.doesNotMatch(source, /mountMobileSteeringResponseSelector/);
+    assert.doesNotMatch(source, /mountMobileTireFrictionSelector/);
   }
 });

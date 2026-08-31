@@ -28,6 +28,7 @@ export interface WheelSolveInput {
   readonly lateralVelocity: number;
   readonly normalLoad: number;
   readonly gripFactor: number;
+  readonly referenceFrictionMultiplier?: number;
   readonly rollingResistance: number;
   readonly driveTorque: number;
   readonly brakeTorque: number;
@@ -88,6 +89,7 @@ export function evaluateTireForce(
   normalLoad: number,
   gripFactor: number,
   tire: CompiledTireProfile,
+  referenceFrictionMultiplier = 1,
 ): TireForceResult {
   const demand = tireLinearDemand(
     omega,
@@ -96,7 +98,12 @@ export function evaluateTireForce(
     lateralVelocity,
     tire,
   );
-  const fmax = Math.max(0, tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad));
+  const fmax = tireForceCapacity(
+    normalLoad,
+    gripFactor,
+    referenceFrictionMultiplier,
+    tire,
+  );
   const magnitude = Math.hypot(demand.dx, demand.dy);
   if (!(fmax > 0) || !(magnitude > 0)) {
     return {
@@ -164,6 +171,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     rollingRadius,
     normalLoad,
     gripFactor,
+    referenceFrictionMultiplier = 1,
     rollingResistance,
     driveTorque,
     brakeTorque,
@@ -180,6 +188,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
       normalLoad,
       gripFactor,
       tire,
+      referenceFrictionMultiplier,
     );
     return inertia / dt * (omega - omegaPrevious)
       - driveTorque
@@ -200,7 +209,12 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     omega = 0;
     locked = brakeTorque > 0;
   } else {
-    const fmax = tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad);
+    const fmax = tireForceCapacity(
+      normalLoad,
+      gripFactor,
+      referenceFrictionMultiplier,
+      tire,
+    );
     const maxRoadTorque = rollingRadius * fmax;
     const maxRollingTorque = rollingResistance * Math.max(0, normalLoad) * rollingRadius;
     const span = Math.abs(omegaPrevious)
@@ -224,6 +238,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     normalLoad,
     gripFactor,
     tire,
+    referenceFrictionMultiplier,
   );
   return {
     omega,
@@ -238,8 +253,14 @@ export function usefulLateralCapacity(
   normalLoad: number,
   gripFactor: number,
   tire: CompiledTireProfile,
+  referenceFrictionMultiplier = 1,
 ): number {
-  const fmax = tire.muRef * Math.max(0, gripFactor) * Math.max(0, normalLoad);
+  const fmax = tireForceCapacity(
+    normalLoad,
+    gripFactor,
+    referenceFrictionMultiplier,
+    tire,
+  );
   const useful = tire.rhoKnee * fmax;
   return Math.sqrt(Math.max(0, useful ** 2 - longitudinalLinearDemand ** 2));
 }
@@ -283,4 +304,27 @@ function validateWheelSolveInput(input: WheelSolveInput): void {
     throw new RangeError('wheel solve inputs must be finite');
   }
   validateCompiledTireProfile(input.tire);
+  assertReferenceFrictionMultiplier(input.referenceFrictionMultiplier ?? 1);
+}
+
+function tireForceCapacity(
+  normalLoad: number,
+  gripFactor: number,
+  referenceFrictionMultiplier: number,
+  tire: CompiledTireProfile,
+): number {
+  assertReferenceFrictionMultiplier(referenceFrictionMultiplier);
+  return Math.max(
+    0,
+    tire.muRef
+      * referenceFrictionMultiplier
+      * Math.max(0, gripFactor)
+      * Math.max(0, normalLoad),
+  );
+}
+
+export function assertReferenceFrictionMultiplier(multiplier: number): void {
+  if (!(multiplier > 0) || !Number.isFinite(multiplier)) {
+    throw new RangeError('tire reference-friction multiplier must be finite and > 0');
+  }
 }

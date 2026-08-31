@@ -20,6 +20,10 @@ import {
   type BrowserYawPreviewTime,
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
+import {
+  BROWSER_TIRE_FRICTION_PROFILES,
+  type BrowserTireFrictionMultiplier,
+} from './tire-friction-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -97,6 +101,19 @@ export function createMobileSteeringResponseSelectorModel(
     label: formatTraversalSeconds(traversalSeconds),
     ariaLabel: `Set symmetric steering traversal to ${formatTraversalSeconds(traversalSeconds)} seconds`,
     active: approximatelyEqual(rate, activeRate),
+  }));
+}
+
+export function createMobileTireFrictionSelectorModel(
+  activeMultiplier: number,
+): readonly MobileSelectorButtonModel<BrowserTireFrictionMultiplier>[] {
+  return BROWSER_TIRE_FRICTION_PROFILES.map(({ multiplier, label }) => ({
+    value: multiplier,
+    label,
+    ariaLabel: multiplier === 1
+      ? 'Select current semi-slick tire friction'
+      : `Set tire reference friction to ${label}`,
+    active: multiplier === activeMultiplier,
   }));
 }
 
@@ -183,6 +200,20 @@ export function mountMobileSteeringResponseSelector(
   return mountMobileSelector(
     container,
     createMobileSteeringResponseSelectorModel(activeRate),
+    onSelect,
+    documentRef,
+  );
+}
+
+export function mountMobileTireFrictionSelector(
+  container: HTMLElement,
+  activeMultiplier: number,
+  onSelect: (multiplier: BrowserTireFrictionMultiplier) => void,
+  documentRef: Document = document,
+): MobileSelectorController<BrowserTireFrictionMultiplier> {
+  return mountMobileSelector(
+    container,
+    createMobileTireFrictionSelectorModel(activeMultiplier),
     onSelect,
     documentRef,
   );

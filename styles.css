@@ -116,6 +116,10 @@ body {
   grid-template-columns: repeat(4, minmax(44px, 1fr));
 }
 
+.tire-friction-selector-buttons {
+  grid-template-columns: repeat(4, minmax(44px, 1fr));
+}
+
 .selector-button {
   min-width: 44px;
   min-height: 44px;
@@ -232,7 +236,7 @@ body {
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - 172px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 228px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 
   .touch-capable .steering-zone {
@@ -278,12 +282,12 @@ body {
   .touch-capable .game-zone {
     grid-column: 1 / -1;
     grid-row: 2;
-    width: min(100%, calc((100dvh - 360px) * 4 / 3));
+    width: min(100%, calc((100dvh - 409px) * 4 / 3));
   }
 
   .touch-capable #game {
     width: 100%;
-    max-height: calc(100dvh - 410px);
+    max-height: calc(100dvh - 459px);
   }
 
   .touch-capable .steering-zone {
