@@ -72,6 +72,7 @@ test('current entry documents contain no release-candidate residue or broken rep
     'README.md',
     'docs/README.md',
     'docs/92_m9_2_selectable_self_steer_gain.md',
+    'docs/93_m9_3_tsukuba_circuit.md',
   ];
   const missing = [];
   for (const relativeDocument of currentDocuments) {

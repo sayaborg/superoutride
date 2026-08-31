@@ -129,13 +129,13 @@ test('M6.54 two actors independently validate every circuit boundary and retain 
   ]);
 });
 
-test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the M9.1 HUD', async () => {
+test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the current HUD', async () => {
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const mode = await readFile(new URL('../src/dev/m6-54-circuit-multi-actor.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)]
     .map((match) => match[1]);
 
-  assert.match(source, /createRivalRoster\(M9_1_DEV_COURSE_MODE\)/);
+  assert.match(source, /createRivalRoster\(M9_3_DEV_COURSE_MODE\)/);
   assert.match(source, /sampleRivalDrivingInput\(guide, rival\.vehicle, 0\)/);
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);

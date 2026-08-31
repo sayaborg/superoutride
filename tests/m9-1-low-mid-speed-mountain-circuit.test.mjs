@@ -114,12 +114,13 @@ for (const [profile, createVehicle] of [
   });
 }
 
-test('CIRCUIT selects the mountain authoring while BRANCHING retains its existing parent', async () => {
+test('M9.1 mountain remains a historical fixture while current compositions do not select it', async () => {
   const [circuitSource, branchingSource] = await Promise.all([
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(circuitSource, /createM91LowMidSpeedMountainCircuitRuntime/);
+  assert.doesNotMatch(circuitSource, /createM91LowMidSpeedMountainCircuitRuntime/);
+  assert.match(circuitSource, /createM93TsukubaCourse2000Runtime/);
   assert.doesNotMatch(circuitSource, /createM87VariedElevationCircuitRuntime/);
   assert.match(branchingSource, /createM71HighwayCalibrationLapRaster/);
   assert.doesNotMatch(branchingSource, /m9-1-low-mid-speed-mountain-circuit/);

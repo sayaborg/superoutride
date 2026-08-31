@@ -108,13 +108,15 @@ docs/92_m9_2_selectable_self_steer_gain.md
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
-docs/89_m9_1_low_mid_speed_mountain_circuit.md
+docs/93_m9_3_tsukuba_circuit.md
 ```
 
-M9.1 mountain-circuit authoring supersedes only the M8.7 public CIRCUIT geometry and elevation.
-It replaces the medium/high-speed sweep-and-jump composition with one 95–240 m low/mid-speed lap
-and a frequent smooth mountain HeightProfile. It adds no drift mode, grip change, physics branch,
-camera branch or renderer branch.
+M9.3 Tsukuba authoring supersedes only the M9.1 public CIRCUIT geometry, elevation and track
+cross-section. It selects a functional four-wheel Course 2000 reconstruction using published
+2045 m lap, straight lengths, direction, width range, corner sequence/radius families and near-flat
+profile. Exact unlabelled connectors and arc angles are original simplified authoring. It adds no
+handling, grip, input, physics, camera, recovery, race-progress or renderer branch. M9.1 remains the
+historical predecessor.
 
 ### Milestone design authority
 
@@ -156,6 +158,7 @@ docs/89_m9_1_low_mid_speed_mountain_circuit.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
+docs/93_m9_3_tsukuba_circuit.md
 ```
 
 ### Executable implementation contract

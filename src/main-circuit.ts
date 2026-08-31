@@ -15,16 +15,14 @@ import {
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from './core/presentation-scale.js';
 import {
-  M7_1_HIGHWAY_RECOVERY_PROFILE,
-  M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
-  M7_1_PLAYER_START_L,
-  M7_1_RIVAL_START_L,
-  createM71HighwayGroundProfile,
-} from './dev/m7-1-highway-calibration-course.js';
-import {
-  M9_1_DEV_COURSE_MODE,
-  createM91LowMidSpeedMountainCircuitRuntime,
-} from './dev/m9-1-low-mid-speed-mountain-circuit.js';
+  M9_3_DEV_COURSE_MODE,
+  M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
+  M9_3_TSUKUBA_PLAYER_START_L,
+  M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
+  M9_3_TSUKUBA_RIVAL_START_L,
+  createM93TsukubaCourse2000Runtime,
+  createM93TsukubaGroundProfile,
+} from './dev/m9-3-tsukuba-circuit.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -101,7 +99,7 @@ const inputManager = new InputManager(
   brakeButton,
 );
 
-const live = createM91LowMidSpeedMountainCircuitRuntime();
+const live = createM93TsukubaCourse2000Runtime();
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
 const guide = windowRuntime.guide;
@@ -110,7 +108,7 @@ const surfaces = windowRuntime.surface;
 const background = createM3FarBackground();
 const spriteAssets = createM4SpriteAssets();
 
-const groundProfile = createM71HighwayGroundProfile();
+const groundProfile = createM93TsukubaGroundProfile();
 const terrainProfile: TerrainVisualProfile = {
   screenHeight: LOGICAL_HEIGHT,
   dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -130,14 +128,14 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   height,
   surfaces,
   45,
-  M7_1_PLAYER_START_L,
+  M9_3_TSUKUBA_PLAYER_START_L,
   45,
   DEFAULT_BROWSER_STEERING_CALIBRATION,
 );
 let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
-const rivalRoster = createRivalRoster(M9_1_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(M9_3_DEV_COURSE_MODE);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(
     FR_VEHICLE_PROFILE,
@@ -145,7 +143,7 @@ const rivals = rivalRoster.map((entry) => {
     height,
     surfaces,
     95 + entry.rivalIndex * 6,
-    M7_1_RIVAL_START_L,
+    M9_3_TSUKUBA_RIVAL_START_L,
   );
   return {
     actorId: entry.actorId,
@@ -212,7 +210,7 @@ window.addEventListener('keydown', (event) => {
       surfaces,
       vehicle,
       'manual',
-      M7_1_HIGHWAY_RECOVERY_PROFILE,
+      M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
     );
     resetM5CameraRig(cameraRig);
     resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
@@ -253,7 +251,7 @@ function frame(now: number): void {
       surfaces,
       vehicle,
       SIM_DT,
-      M7_1_HIGHWAY_RECOVERY_PROFILE,
+      M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
     );
     let raceUpdate: CircuitRaceProgressUpdate | null = null;
     if (recovered !== null) {
@@ -274,7 +272,7 @@ function frame(now: number): void {
         surfaces,
         rival.vehicle,
         SIM_DT,
-        M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
+        M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
       );
       let rivalRaceUpdate: CircuitRaceProgressUpdate | null = null;
       if (rivalRecovered !== null) {
@@ -327,7 +325,7 @@ function render(): void {
     spriteFamily,
   );
   ctx.putImageData(imageData, 0, 0);
-  drawVehicleDebugHud(ctx, M9_1_DEV_COURSE_MODE.routeKind, input, vehicle);
+  drawVehicleDebugHud(ctx, M9_3_DEV_COURSE_MODE.routeKind, input, vehicle);
   drawVehicleYawDebug(
     ctx,
     camera.playerScreenX,
@@ -347,7 +345,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     surfaces,
     vehicle,
     'manual',
-    M7_1_HIGHWAY_RECOVERY_PROFILE,
+    M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
   );
   const s = vehicle.course.s;
   const l = vehicle.course.l;

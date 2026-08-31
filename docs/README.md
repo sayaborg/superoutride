@@ -82,12 +82,12 @@ The current browser course-debug composition authority is:
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
-89_m9_1_low_mid_speed_mountain_circuit.md
+93_m9_3_tsukuba_circuit.md
 ```
 
 ## 2. Numbered milestone documents
 
-`01_...` through `92_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `93_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -127,6 +127,7 @@ The most important current topology/runtime/physics sequence is:
 90_m9_1_mobile_touch_selectors.md
 91_m9_1_dual_yaw_camera_modes.md
 92_m9_2_selectable_self_steer_gain.md
+93_m9_3_tsukuba_circuit.md
 ```
 
 The current browser touch-selection authority is
@@ -144,11 +145,12 @@ The current selectable steering calibration authority is
 `92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9`, `Y`, `T` and shared
 touch selectors one common browser authority while common mechanics owns the sole current state.
 
-The current public CIRCUIT course geometry authority is
-`89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
-course with a predominantly 95–240 m low/mid-speed mountain lap. M8.7, M8.4 and M8.0 remain its
-historical predecessors. The change is CIRCUIT DEV authoring only; it does not change vehicle
-physics, the M7.2 BRANCHING parent, or frozen renderer/topology authority.
+The current public CIRCUIT course-authoring authority is `93_m9_3_tsukuba_circuit.md`. It replaces
+M9.1's low/mid-speed mountain fixture with a functional four-wheel Tsukuba Course 2000
+reconstruction based on published lap/straight dimensions, direction, width range, corner order,
+radius families and longitudinal character. M9.1 and its predecessors remain historical. The
+change is CIRCUIT DEV authoring only; it does not change vehicle physics, input, the M7.2 BRANCHING
+parent, or frozen renderer/topology authority.
 
 Current governing topology rule:
 

@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.2 Selectable Steering Calibration
+# SUPER OUTRIDE — M9.3 Tsukuba Circuit
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,8 +12,13 @@ tests.
 
 ## Current release
 
-M9.2 preserves the common steering law and exposes three independent browser-player calibration
-controls:
+M9.3 replaces only the CIRCUIT DEV course with a researched functional reconstruction of the
+four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 282 m home straight,
+437 m back straight, clockwise corner sequence, named radius families and near-flat character.
+The track uses a 12 m nominal asphalt width inside JAF's published 10–15 m range. Exact unlabelled
+connectors and arc angles are original simplified authoring, not survey geometry.
+
+M9.2's common steering law and three independent browser-player calibration controls remain:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
@@ -44,13 +49,14 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
-5. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
-6. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
-7. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+4. `docs/93_m9_3_tsukuba_circuit.md` — current CIRCUIT DEV course-authoring authority.
+5. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
+6. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
+7. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
+8. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-8. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+9. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -151,6 +157,7 @@ src/boot.ts                                  course composition selection
 src/main-linear.ts                           LINEAR composition root
 src/main.ts                                  BRANCHING composition root
 src/main-circuit.ts                          CIRCUIT composition root
+src/dev/m9-3-tsukuba-circuit.ts              current Tsukuba Course 2000 DEV authoring
 src/browser/steering-calibration-selection.ts choice/default/format authority
 src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
 src/browser/mobile-selector-controls.ts       authority-derived touch presentation
@@ -171,9 +178,9 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-Current M9.2 release evidence is
-`docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`. The preceding input incident
-evidence is `docs/validation/M9_2_STEERING_INPUT_STALE_SOURCE_VALIDATION.txt`.
+The latest retained release evidence is
+`docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`. M9.3 requires its own
+validation-inclusive exact-head record under `docs/validation/README.md` before release.
 
 Historical validation evidence is immutable. Interpret it through `docs/validation/README.md`; do
 not revive old source paths or rewrite evidence to match later terminology.
