@@ -102,6 +102,11 @@ screen_x = center_x - lateral_acceleration_g * scale
 screen_y = center_y + longitudinal_acceleration_g * scale
 ```
 
+The common text and control overlay draws no opaque rectangular backdrop over the driving view.
+Text uses opaque light glyphs with an opaque dark outline, and control graphics paint only their
+ordinary outlines and active value areas. This is binary glyph/graphic coverage, not alpha-blended
+or semi-transparent panel rendering.
+
 Keyboard pedal aliases publish the same canonical request:
 
 ```text
@@ -188,4 +193,5 @@ Regression coverage must prove:
 - G values derive from existing acceleration observations, while the drawn dot uses the opposite
   inertial-load direction;
 - the G sensor draws exactly one cross and one dot;
+- the shared text/control HUD draws no opaque full-panel backdrop and introduces no alpha blending;
 - retired diagnostic categories do not re-enter the common HUD.

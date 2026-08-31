@@ -51,6 +51,7 @@ import {
   HUD_INPUT_ACCEL_COLOR,
   HUD_INPUT_BRAKE_COLOR,
   createVehicleDebugHudModel,
+  drawVehicleDebugHud,
   drawTopDownGSensor,
   drawVehicleControlGraphics,
   gSensorPoint,
@@ -265,6 +266,47 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   assert.ok(Math.abs(model.lateralG + 0.5) < 1e-12);
 });
 
+test('shared HUD leaves the driving view transparent behind outlined text and control graphics', () => {
+  const runtime = createM83LinearHighwayRuntime();
+  const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
+  const rectangles = [];
+  const outlinedText = [];
+  const context = {
+    save() {},
+    restore() {},
+    font: '',
+    textBaseline: '',
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    lineJoin: '',
+    fillText() {},
+    strokeText: (text) => outlinedText.push(text),
+    fillRect: (x, y, width, height) => rectangles.push({ x, y, width, height }),
+    strokeRect() {},
+    beginPath() {},
+    arc() {},
+    moveTo() {},
+    lineTo() {},
+    stroke() {},
+    fill() {},
+  };
+
+  drawVehicleDebugHud(
+    context,
+    'LINEAR',
+    { steering: 0, throttle: false, brake: false },
+    vehicle,
+  );
+
+  assert.equal(outlinedText.length, 12);
+  assert.equal(
+    rectangles.some(({ width, height }) => width > 60 || height > 10),
+    false,
+    'HUD must not paint an opaque full text/control panel over the driving view',
+  );
+});
+
 test('G sensor draws only one cross and one dot in the felt inertial-load direction', () => {
   const point = gSensorPoint({ longitudinalG: 1, lateralG: 0.5 }, 100, 80, 20);
   assert.deepEqual(point, { x: 95, y: 90 });
@@ -300,6 +342,7 @@ test('pedal input graphics show exactly blue accel red brake or no active color'
       fillRect: () => colors.push(fillStyle),
       strokeRect() {},
       fillText() {},
+      strokeText() {},
       beginPath() {},
       arc() {},
       moveTo() {},

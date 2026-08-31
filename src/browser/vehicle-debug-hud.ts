@@ -89,11 +89,7 @@ export function drawVehicleDebugHud(
   ctx.save();
   ctx.font = '7px monospace';
   ctx.textBaseline = 'top';
-  const width = Math.ceil(Math.max(...lines.map((line) => ctx.measureText(line).width))) + 6;
-  ctx.fillStyle = '#071016';
-  ctx.fillRect(3, 3, width, 56);
-  ctx.fillStyle = '#d7f3ff';
-  lines.forEach((line, index) => ctx.fillText(line, 6, 5 + index * 9));
+  lines.forEach((line, index) => drawHudText(ctx, line, 6, 5 + index * 9, '#d7f3ff'));
   drawVehicleControlGraphics(ctx, model, 3, 61);
   drawTopDownGSensor(ctx, model, 286, 65);
   ctx.restore();
@@ -117,17 +113,14 @@ export function drawVehicleControlGraphics(
     throttle: model.requestedThrottle > 0,
     brake: model.requestedBrake > 0,
   });
-  ctx.fillStyle = '#071016';
-  ctx.fillRect(x, y, 251, 35);
   ctx.font = '6px monospace';
   ctx.textBaseline = 'top';
-  ctx.fillStyle = '#a6bac4';
-  ctx.fillText('INPUT', x + 3, y + 7);
-  ctx.fillText('ACT', x + 3, y + 21);
-  ctx.fillText('STEER', x + 36, y + 1);
-  ctx.fillText('ACCEL', x + 109, y + 1);
-  ctx.fillText('BRAKE', x + 174, y + 1);
-  ctx.fillText('HW', x + 232, y + 1);
+  drawHudText(ctx, 'INPUT', x + 3, y + 7, '#a6bac4');
+  drawHudText(ctx, 'ACT', x + 3, y + 21, '#a6bac4');
+  drawHudText(ctx, 'STEER', x + 36, y + 1, '#a6bac4');
+  drawHudText(ctx, 'ACCEL', x + 109, y + 1, '#a6bac4');
+  drawHudText(ctx, 'BRAKE', x + 174, y + 1, '#a6bac4');
+  drawHudText(ctx, 'HW', x + 232, y + 1, '#a6bac4');
 
   drawControlMeter(ctx, x + 35, y + 8, model.requestedSteering, true, '#ffd08a');
   drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, '#7ee0ff');
@@ -148,6 +141,22 @@ export function drawVehicleControlGraphics(
   );
   drawControlMeter(ctx, x + 170, y + 22, model.actualBrake, false, '#7ee0ff');
   drawHandwheel(ctx, x + 240, y + 22, model.handwheelAngle);
+}
+
+/** Opaque glyphs only: preserve readability without an opaque or alpha-blended panel. */
+function drawHudText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  color: string,
+): void {
+  ctx.strokeStyle = '#071016';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
 }
 
 function drawPedalIndicator(
