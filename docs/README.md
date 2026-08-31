@@ -344,6 +344,15 @@ It proves the published 2045 m lap and straight dimensions, four-wheel corner/ra
 exact non-self-intersecting Raster closure, restrained elevation, circuit cross-section, finite
 N+1 runtime, CIRCUIT-only composition boundary, complete suite and browser layout/rendering.
 
+The current M9.4 selectable tire-friction evidence is:
+
+```text
+validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt
+```
+
+It proves exact browser choices, vehicle-instance persistence, unchanged tire/surface authorities,
+causal common-wheel behavior, complete-suite acceptance and browser operation.
+
 The preceding stale steering-source incident evidence is:
 
 ```text

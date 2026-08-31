@@ -193,8 +193,9 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-Current M9.3 circuit evidence is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained
-M9.2 steering-calibration
+Current M9.4 release evidence is
+`docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence
+is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration
 evidence is `docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`.
 
 Historical validation evidence is immutable. Interpret it through `docs/validation/README.md`; do
