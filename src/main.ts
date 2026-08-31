@@ -7,14 +7,21 @@ import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
 import {
-  DEFAULT_BROWSER_SELF_STEER_GAIN,
+  BROWSER_STEERING_RESPONSE_CYCLE_CODE,
+  BROWSER_YAW_PREVIEW_CYCLE_CODE,
+  DEFAULT_BROWSER_STEERING_CALIBRATION,
   browserSelfSteerGainForKey,
+  nextBrowserSteeringResponseRate,
+  nextBrowserYawPreviewTime,
   type BrowserSelfSteerGain,
-} from './browser/self-steer-gain-selection.js';
+  type BrowserYawPreviewTime,
+} from './browser/steering-calibration-selection.js';
 import {
   mountMobileCameraYawSelector,
   mountMobileSelfSteerGainSelector,
+  mountMobileSteeringResponseSelector,
   mountMobileVehicleSelector,
+  mountMobileYawPreviewSelector,
 } from './browser/mobile-selector-controls.js';
 import { browserRequestsCameraYawToggle } from './browser/camera-yaw-mode-selection.js';
 import { browserUsesTouchInterface } from './browser/touch-interface.js';
@@ -75,6 +82,8 @@ import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import {
   createArcadeVehicle,
+  setArcadeVehicleSteeringYawPreviewTime,
+  setArcadeVehicleSymmetricSteeringActuatorRate,
   setArcadeVehicleTravelDirectionSteeringGain,
   updateArcadeVehicle,
   type ArcadeVehicleState,
@@ -120,6 +129,8 @@ const brakeButton = mustGet<HTMLElement>('brake-button');
 const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
 const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
 const selfSteerSelectorButtons = mustGet<HTMLElement>('self-steer-selector-buttons');
+const yawPreviewSelectorButtons = mustGet<HTMLElement>('yaw-preview-selector-buttons');
+const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
 
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
@@ -163,6 +174,8 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   surfaceMap,
   45,
   M7_2_PLAYER_START_L,
+  45,
+  DEFAULT_BROWSER_STEERING_CALIBRATION,
 );
 const cameraRig = createM5CameraRig();
 let recovery = createM5RecoveryState(vehicle);
@@ -239,14 +252,34 @@ const cameraYawSelector = mountMobileCameraYawSelector(
 );
 const selfSteerGainSelector = mountMobileSelfSteerGainSelector(
   selfSteerSelectorButtons,
-  DEFAULT_BROWSER_SELF_STEER_GAIN,
+  vehicle.steeringCalibration.travelDirectionGain,
   selectSelfSteerGain,
+);
+const yawPreviewSelector = mountMobileYawPreviewSelector(
+  yawPreviewSelectorButtons,
+  vehicle.steeringCalibration.yawPreviewTime,
+  selectYawPreviewTime,
+);
+const steeringResponseSelector = mountMobileSteeringResponseSelector(
+  steeringResponseSelectorButtons,
+  vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
+  selectSteeringResponseRate,
 );
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
   if (browserRequestsCameraYawToggle(event.code)) {
     cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));
+    return;
+  }
+  if (event.code === BROWSER_YAW_PREVIEW_CYCLE_CODE) {
+    selectYawPreviewTime(nextBrowserYawPreviewTime(vehicle.steeringCalibration.yawPreviewTime));
+    return;
+  }
+  if (event.code === BROWSER_STEERING_RESPONSE_CYCLE_CODE) {
+    selectSteeringResponseRate(nextBrowserSteeringResponseRate(
+      vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
+    ));
     return;
   }
   const selectedSelfSteerGain = browserSelfSteerGainForKey(event.code);
@@ -304,6 +337,16 @@ function selectCameraYawMode(mode: M5CameraYawMode): void {
 function selectSelfSteerGain(gain: BrowserSelfSteerGain): void {
   setArcadeVehicleTravelDirectionSteeringGain(vehicle, gain);
   selfSteerGainSelector.setActive(gain);
+}
+
+function selectYawPreviewTime(yawPreviewTime: BrowserYawPreviewTime): void {
+  setArcadeVehicleSteeringYawPreviewTime(vehicle, yawPreviewTime);
+  yawPreviewSelector.setActive(yawPreviewTime);
+}
+
+function selectSteeringResponseRate(rate: number): void {
+  setArcadeVehicleSymmetricSteeringActuatorRate(vehicle, rate);
+  steeringResponseSelector.setActive(rate);
 }
 
 let accumulator = 0;
@@ -579,7 +622,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   const s = vehicle.course.s;
   const l = vehicle.course.l;
   const speed = vehicle.longitudinalSpeed;
-  const travelDirectionSteeringGain = vehicle.travelDirectionSteeringGain;
+  const steeringCalibration = vehicle.steeringCalibration;
   vehicle = createArcadeVehicle(
     profile,
     runtime.coordinateFrame,
@@ -588,7 +631,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     s,
     l,
     speed,
-    travelDirectionSteeringGain,
+    steeringCalibration,
   );
   recovery = createM5RecoveryState(vehicle);
   resetM5CameraRig(cameraRig);

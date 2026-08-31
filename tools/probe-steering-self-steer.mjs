@@ -1,7 +1,11 @@
 import { pathToFileURL } from 'node:url';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { BROWSER_SELF_STEER_GAINS } from '../dist/browser/self-steer-gain-selection.js';
+import {
+  BROWSER_SELF_STEER_GAINS,
+  BROWSER_STEERING_RESPONSES,
+  BROWSER_YAW_PREVIEW_TIMES,
+} from '../dist/browser/steering-calibration-selection.js';
 import {
   createArcadeVehicle,
   updateArcadeVehicle,
@@ -14,7 +18,6 @@ import {
   FR_VEHICLE_PROFILE,
   MR_VEHICLE_PROFILE,
   RR_VEHICLE_PROFILE,
-  compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -50,6 +53,8 @@ export function runSteeringSelfSteerProbe({
   pressSeconds,
   driven,
   travelDirectionGain = 1,
+  yawPreviewTime = profile.steeringYawPreviewTime,
+  steeringActuatorResponse = profile.actuator.steering,
 }) {
   const vehicle = createArcadeVehicle(
     profile,
@@ -59,7 +64,7 @@ export function runSteeringSelfSteerProbe({
     800,
     -1.75,
     speed,
-    travelDirectionGain,
+    { travelDirectionGain, yawPreviewTime, steeringActuatorResponse },
   );
   const pressTicks = Math.round(pressSeconds / DT);
   const totalTicks = pressTicks + Math.round(POST_RELEASE_SECONDS / DT);
@@ -94,6 +99,8 @@ export function runSteeringSelfSteerProbe({
     pressSeconds,
     driven,
     travelDirectionGain,
+    yawPreviewTime,
+    steeringActuatorResponse,
     peakOppositeRoadWheelDegrees: Math.max(0, -oppositePeak.roadWheelAngle * RAD_TO_DEG),
     peakSameYawRateDegreesPerSecond: peakSameYawRate * RAD_TO_DEG,
     peakReverseYawRateDegreesPerSecond: Math.max(
@@ -144,49 +151,37 @@ export function collectCurrentSteeringSelfSteerEnvelope() {
 
 export function collectSteeringAuthoritySweeps() {
   const yawPreview = [];
-  for (const steeringYawPreviewTime of [0, 0.06, 0.12, 0.18, 0.24]) {
-    const profile = compileArcadeVehicleProfile({
-      ...FR_VEHICLE_PROFILE,
-      id: 'FR',
-      steeringYawPreviewTime,
-    });
+  for (const steeringYawPreviewTime of BROWSER_YAW_PREVIEW_TIMES) {
     yawPreview.push(Object.freeze({
       steeringYawPreviewTime,
       result: runSteeringSelfSteerProbe({
-        profile,
+        profile: FR_VEHICLE_PROFILE,
         speed: 25,
         pressSeconds: 0.35,
         driven: false,
+        yawPreviewTime: steeringYawPreviewTime,
       }),
     }));
   }
 
-  const actuatorRelease = [];
-  for (const steeringReleaseRate of [2, 8 / 3, 3, 4, 6, 8]) {
-    const profile = compileArcadeVehicleProfile({
-      ...FR_VEHICLE_PROFILE,
-      id: 'FR',
-      actuator: {
-        ...FR_VEHICLE_PROFILE.actuator,
-        steering: {
-          ...FR_VEHICLE_PROFILE.actuator.steering,
-          releaseRate: steeringReleaseRate,
-        },
-      },
-    });
-    actuatorRelease.push(Object.freeze({
-      steeringReleaseRate,
+  const actuatorResponse = [];
+  for (const { traversalSeconds, rate } of BROWSER_STEERING_RESPONSES) {
+    const steeringActuatorResponse = Object.freeze({ applyRate: rate, releaseRate: rate });
+    actuatorResponse.push(Object.freeze({
+      traversalSeconds,
+      steeringActuatorRate: rate,
       result: runSteeringSelfSteerProbe({
-        profile,
+        profile: FR_VEHICLE_PROFILE,
         speed: 25,
         pressSeconds: 0.35,
         driven: false,
+        steeringActuatorResponse,
       }),
     }));
   }
   return Object.freeze({
     yawPreview: Object.freeze(yawPreview),
-    actuatorRelease: Object.freeze(actuatorRelease),
+    actuatorResponse: Object.freeze(actuatorResponse),
   });
 }
 
@@ -217,7 +212,7 @@ function observePostRelease(vehicle, tickAfterRelease) {
     yawRate: vehicle.yawRate,
     bodySideslip,
     driverOffset: vehicle.actuator.steering * vehicle.profile.steeringOffsetMax,
-    yawPreview: -vehicle.yawRate * vehicle.profile.steeringYawPreviewTime,
+    yawPreview: -vehicle.yawRate * vehicle.steeringCalibration.yawPreviewTime,
   };
 }
 

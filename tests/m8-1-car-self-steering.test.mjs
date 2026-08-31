@@ -111,7 +111,7 @@ test('common rack has one mechanical stop and profile compilation rejects invali
     FR_VEHICLE_PROFILE.steeringOffsetMax,
     FR_VEHICLE_PROFILE.maxRoadWheelSteer,
     0,
-    1,
+    { travelDirectionGain: 1, yawPreviewTime: FR_VEHICLE_PROFILE.steeringYawPreviewTime },
     DT,
     FR_VEHICLE_PROFILE,
   );
@@ -179,7 +179,7 @@ test('M9 retires separate CAR steering authority and all browser roots select th
   assert.doesNotMatch(solver, /usefulLateralCapacity|countersteerMode|steeringOffsetCommand/);
   assert.match(
     solver,
-    /travelDirectionGain \* bodyTravelDirection\s*- yawRate \* profile\.steeringYawPreviewTime\s*\+ steeringOffset/,
+    /calibration\.travelDirectionGain \* bodyTravelDirection\s*- yawRate \* calibration\.yawPreviewTime\s*\+ steeringOffset/,
   );
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /createArcadeVehicle/);

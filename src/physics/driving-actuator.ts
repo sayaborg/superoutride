@@ -85,13 +85,14 @@ export function updateDrivingActuators(
   input: DrivingInput,
   dt: number,
   profile: DrivingActuatorProfile,
+  steeringResponse: NormalizedActuatorRateProfile = profile.steering,
 ): void {
   assertExclusivePedalInput(input);
   state.steering = stepNormalizedActuator(
     state.steering,
     clamp(input.steering, -1, 1),
     dt,
-    profile.steering,
+    steeringResponse,
     -1,
     1,
   );

@@ -14,8 +14,12 @@ import {
 } from '../camera/m5-camera.js';
 import {
   BROWSER_SELF_STEER_GAINS,
+  BROWSER_STEERING_RESPONSES,
+  BROWSER_YAW_PREVIEW_TIMES,
   type BrowserSelfSteerGain,
-} from './self-steer-gain-selection.js';
+  type BrowserYawPreviewTime,
+  formatTraversalSeconds,
+} from './steering-calibration-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -64,13 +68,35 @@ export function createMobileCameraYawSelectorModel(
 }
 
 export function createMobileSelfSteerGainSelectorModel(
-  activeGain: BrowserSelfSteerGain,
+  activeGain: number,
 ): readonly MobileSelectorButtonModel<BrowserSelfSteerGain>[] {
   return BROWSER_SELF_STEER_GAINS.map(({ gain }) => ({
     value: gain,
     label: gain.toFixed(1),
     ariaLabel: `Set self-steer gain to ${gain.toFixed(1)}`,
     active: gain === activeGain,
+  }));
+}
+
+export function createMobileYawPreviewSelectorModel(
+  activeTime: number,
+): readonly MobileSelectorButtonModel<BrowserYawPreviewTime>[] {
+  return BROWSER_YAW_PREVIEW_TIMES.map((yawPreviewTime) => ({
+    value: yawPreviewTime,
+    label: yawPreviewTime.toFixed(2),
+    ariaLabel: `Set steering yaw preview to ${yawPreviewTime.toFixed(2)} seconds`,
+    active: yawPreviewTime === activeTime,
+  }));
+}
+
+export function createMobileSteeringResponseSelectorModel(
+  activeRate: number,
+): readonly MobileSelectorButtonModel<number>[] {
+  return BROWSER_STEERING_RESPONSES.map(({ traversalSeconds, rate }) => ({
+    value: rate,
+    label: formatTraversalSeconds(traversalSeconds),
+    ariaLabel: `Set symmetric steering traversal to ${formatTraversalSeconds(traversalSeconds)} seconds`,
+    active: approximatelyEqual(rate, activeRate),
   }));
 }
 
@@ -122,13 +148,41 @@ export function mountMobileCameraYawSelector(
 
 export function mountMobileSelfSteerGainSelector(
   container: HTMLElement,
-  activeGain: BrowserSelfSteerGain,
+  activeGain: number,
   onSelect: (gain: BrowserSelfSteerGain) => void,
   documentRef: Document = document,
 ): MobileSelectorController<BrowserSelfSteerGain> {
   return mountMobileSelector(
     container,
     createMobileSelfSteerGainSelectorModel(activeGain),
+    onSelect,
+    documentRef,
+  );
+}
+
+export function mountMobileYawPreviewSelector(
+  container: HTMLElement,
+  activeTime: number,
+  onSelect: (yawPreviewTime: BrowserYawPreviewTime) => void,
+  documentRef: Document = document,
+): MobileSelectorController<BrowserYawPreviewTime> {
+  return mountMobileSelector(
+    container,
+    createMobileYawPreviewSelectorModel(activeTime),
+    onSelect,
+    documentRef,
+  );
+}
+
+export function mountMobileSteeringResponseSelector(
+  container: HTMLElement,
+  activeRate: number,
+  onSelect: (rate: number) => void,
+  documentRef: Document = document,
+): MobileSelectorController<number> {
+  return mountMobileSelector(
+    container,
+    createMobileSteeringResponseSelectorModel(activeRate),
     onSelect,
     documentRef,
   );
@@ -174,4 +228,8 @@ function mustSelect<Key, Value>(
   const selection = selections.get(key);
   if (selection === undefined) throw new Error(`Unknown mobile ${kind} selection`);
   return selection;
+}
+
+function approximatelyEqual(a: number, b: number): boolean {
+  return Math.abs(a - b) < 1e-12;
 }

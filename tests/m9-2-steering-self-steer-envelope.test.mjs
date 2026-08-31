@@ -105,6 +105,10 @@ test('current canonical excessive-self-steer case is input-neutral and below tir
 
 test('weakening yaw preview trades away yaw stabilization', () => {
   const sweeps = collectSteeringAuthoritySweeps();
+  assert.deepEqual(
+    sweeps.yawPreview.map((entry) => entry.steeringYawPreviewTime),
+    [0, 0.06, 0.09, 0.12, 0.15, 0.18],
+  );
   const noPreview = sweeps.yawPreview.find((entry) => entry.steeringYawPreviewTime === 0).result;
   const currentPreview = sweeps.yawPreview.find(
     (entry) => entry.steeringYawPreviewTime === 0.12,
@@ -115,4 +119,18 @@ test('weakening yaw preview trades away yaw stabilization', () => {
   );
   assert.ok(noPreview.settleSeconds > currentPreview.settleSeconds);
 
+});
+
+test('steering-response sweep keeps apply and release symmetric for every selector value', () => {
+  const { actuatorResponse } = collectSteeringAuthoritySweeps();
+  assert.deepEqual(
+    actuatorResponse.map(({ traversalSeconds }) => traversalSeconds),
+    [0.25, 0.375, 0.5, 0.625],
+  );
+  for (const { steeringActuatorRate, result } of actuatorResponse) {
+    assert.deepEqual(result.steeringActuatorResponse, {
+      applyRate: steeringActuatorRate,
+      releaseRate: steeringActuatorRate,
+    });
+  }
 });

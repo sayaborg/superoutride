@@ -7,10 +7,14 @@ import {
   createMobileCameraYawSelectorModel,
   createMobileVehicleSelectorModel,
   createMobileSelfSteerGainSelectorModel,
+  createMobileSteeringResponseSelectorModel,
+  createMobileYawPreviewSelectorModel,
   mountMobileCameraYawSelector,
   mountMobileCourseSelector,
   mountMobileVehicleSelector,
   mountMobileSelfSteerGainSelector,
+  mountMobileSteeringResponseSelector,
+  mountMobileYawPreviewSelector,
 } from '../dist/browser/mobile-selector-controls.js';
 import {
   TOUCH_INTERFACE_MAX_SHORT_SIDE_PX,
@@ -143,6 +147,37 @@ test('mobile self-steer buttons expose the five canonical calibration gains', ()
   ]);
 });
 
+test('mobile yaw-preview and symmetric-response buttons expose canonical calibration choices', () => {
+  assert.deepEqual(
+    createMobileYawPreviewSelectorModel(0.12).map(({ value, label, active }) => ({
+      value,
+      label,
+      active,
+    })),
+    [
+      { value: 0, label: '0.00', active: false },
+      { value: 0.06, label: '0.06', active: false },
+      { value: 0.09, label: '0.09', active: false },
+      { value: 0.12, label: '0.12', active: true },
+      { value: 0.15, label: '0.15', active: false },
+      { value: 0.18, label: '0.18', active: false },
+    ],
+  );
+  assert.deepEqual(
+    createMobileSteeringResponseSelectorModel(8 / 3).map(({ value, label, active }) => ({
+      value,
+      label,
+      active,
+    })),
+    [
+      { value: 4, label: '0.25', active: false },
+      { value: 8 / 3, label: '0.375', active: true },
+      { value: 2, label: '0.5', active: false },
+      { value: 1.6, label: '0.625', active: false },
+    ],
+  );
+});
+
 test('mobile selector taps publish canonical selections and expose exactly one active button', () => {
   const fakeDocument = new FakeDocument();
   const courseContainer = new FakeContainer();
@@ -192,6 +227,32 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   );
   assert.equal(vehicleContainer.children[4].classList.contains('active'), true);
 
+  const yawContainer = new FakeContainer();
+  let selectedYawPreview = null;
+  const yawController = mountMobileYawPreviewSelector(
+    yawContainer,
+    0.12,
+    (yawPreviewTime) => { selectedYawPreview = yawPreviewTime; },
+    fakeDocument,
+  );
+  yawContainer.children[5].click();
+  assert.equal(selectedYawPreview, 0.18);
+  yawController.setActive(selectedYawPreview);
+  assert.equal(yawContainer.children[5].attributes.get('aria-pressed'), 'true');
+
+  const responseContainer = new FakeContainer();
+  let selectedResponseRate = null;
+  const responseController = mountMobileSteeringResponseSelector(
+    responseContainer,
+    8 / 3,
+    (rate) => { selectedResponseRate = rate; },
+    fakeDocument,
+  );
+  responseContainer.children[3].click();
+  assert.equal(selectedResponseRate, 1.6);
+  responseController.setActive(selectedResponseRate);
+  assert.equal(responseContainer.children[3].attributes.get('aria-pressed'), 'true');
+
   const cameraContainer = new FakeContainer();
   let selectedCameraMode = null;
   const cameraController = mountMobileCameraYawSelector(
@@ -222,12 +283,16 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   assert.match(index, /id="vehicle-selector-buttons"/);
   assert.match(index, /id="camera-selector-buttons"/);
   assert.match(index, /id="self-steer-selector-buttons"/);
-  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer)-/);
+  assert.match(index, /id="yaw-preview-selector-buttons"/);
+  assert.match(index, /id="steering-response-selector-buttons"/);
+  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer|yaw-preview|steering-response)-/);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /mountMobileVehicleSelector/);
     assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
     assert.match(source, /selectSelfSteerGain\(selectedSelfSteerGain\)/);
     assert.match(source, /mountMobileSelfSteerGainSelector/);
+    assert.match(source, /mountMobileYawPreviewSelector/);
+    assert.match(source, /mountMobileSteeringResponseSelector/);
   }
 });

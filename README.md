@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.2 Selectable Self-Steer Gain Candidate
+# SUPER OUTRIDE — M9.2 Selectable Steering Calibration Candidate
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
 
@@ -13,12 +13,12 @@ handoff context, not current design authority; the normative M9 authority is the
 
 ## Current milestone status
 
-M9.2 makes the common travel-direction self-steer feedback selectable at `0.3`, `0.4`, `0.5`,
-`0.6` and `0.7`, with browser-player default `0.5`. Keys/numpad `4` through `8`, shared touch buttons
-and the common HUD derive from one table. The selected player value survives recovery and profile
-switching; the common formula scales only `betaTravel`. Common steering input apply and neutral
-release are both `8/3 normalized/s` (`0.375 s` full traversal); yaw preview, final road-wheel
-response, tires and camera remain unchanged. The authority is
+M9.2 makes travel-direction self-steer gain, yaw preview and the symmetric steering-actuator
+response independently selectable without changing the common steering formula. Browser defaults
+are `0.5`, `0.12 s` and `0.375 s`; gain uses keys/numpad `4` through `8`, yaw preview cycles with
+`Y`, and symmetric zero-to-full traversal time cycles with `T`. Shared touch buttons expose every
+value directly. One vehicle-instance calibration state survives recovery and profile switching;
+input arbitration, tires, final road-wheel response and camera remain separate and unchanged. The authority is
 `docs/92_m9_2_selectable_self_steer_gain.md`.
 
 M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one common compact
@@ -221,7 +221,7 @@ M9.1       Six-Profile Common Debug HUD                                     curr
 M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
 M9.1       Mobile Touch Selectors                                            current browser touch-selection authority
 M9.1       Dual Yaw Camera Modes                                             current player-camera yaw-mode authority
-M9.2       Selectable Travel-Direction Self-Steer Gain                       current calibration/debug authority
+M9.2       Selectable Steering Calibration                                    current calibration/debug authority
 ```
 
 Current topology/runtime/physics design sequence:
@@ -377,7 +377,7 @@ src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
 src/browser/mobile-selector-controls.ts  authority-derived touch selector adapter
 src/browser/touch-interface.ts           shared touch/coarse/phone-size layout decision
 src/browser/camera-yaw-mode-selection.ts P camera-yaw toggle binding
-src/browser/self-steer-gain-selection.ts 4/5/6/7/8/9 self-steer calibration authority
+src/browser/steering-calibration-selection.ts 4–8/Y/T steering calibration authority
 src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
 src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
 

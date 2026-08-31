@@ -37,11 +37,11 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 ```
 
 M9.2 supersedes the implicit unit gain on M9.0 travel-direction steering feedback and the M9.0
-asymmetric steering-actuator rates. It adds one common finite vehicle-instance calibration
-value, gives the browser player default `0.5`, and exposes the exact comparison set `0.3` through
-`0.7` in `0.1` steps. Steering apply and neutral release are both `8/3 normalized/s`. It does not
-change yaw-rate preview, final road-wheel response, tires, camera, route
-or topology; ordinary mechanics construction and rivals retain gain `1.0`.
+asymmetric steering-actuator rates. One common vehicle-instance state owns travel-direction gain,
+yaw-preview time and symmetric steering-actuator response. The browser exposes exact comparison
+tables for all three, defaulting to `0.5`, `0.12 s` and `0.375 s` traversal. It preserves the current
+additive steering formula and does not change input arbitration, final road-wheel response, tires,
+camera, route or topology; ordinary mechanics construction and rivals retain profile defaults.
 
 M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
 selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
@@ -138,9 +138,9 @@ body-yaw lock the default, retains M8.2 movement-yaw follow as the alternate, an
 arrow show travel direction while body lock is active. Body-pitch follow and all frozen
 renderer/metric rules remain unchanged.
 
-The current selectable self-steer calibration authority is
-`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `8` and the shared touch
-selector one exact gain table while the common mechanics owns the sole current value.
+The current selectable steering calibration authority is
+`92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `8`, `Y`, `T` and shared
+touch selectors one common browser authority while common mechanics owns the sole current state.
 
 The current public CIRCUIT course geometry authority is
 `89_m9_1_low_mid_speed_mountain_circuit.md`. It replaces M8.7's medium/high-speed sweep-and-jump
