@@ -178,9 +178,9 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The latest retained release evidence is
-`docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`. M9.3 requires its own
-validation-inclusive exact-head record under `docs/validation/README.md` before release.
+Current M9.3 release evidence is
+`docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration
+evidence is `docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`.
 
 Historical validation evidence is immutable. Interpret it through `docs/validation/README.md`; do
 not revive old source paths or rewrite evidence to match later terminology.

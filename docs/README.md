@@ -319,6 +319,16 @@ It proves the independent gain/yaw-preview/symmetric-response selectors, one veh
 calibration state, recovery/profile-switch preservation, unchanged additive steering law,
 deterministic sweeps, complete-suite acceptance and portrait/landscape browser operation.
 
+The current M9.3 Tsukuba CIRCUIT evidence is:
+
+```text
+validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt
+```
+
+It proves the published 2045 m lap and straight dimensions, four-wheel corner/radius sequence,
+exact non-self-intersecting Raster closure, restrained elevation, circuit cross-section, finite
+N+1 runtime, CIRCUIT-only composition boundary, complete suite and browser layout/rendering.
+
 The preceding stale steering-source incident evidence is:
 
 ```text

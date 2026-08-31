@@ -1,0 +1,121 @@
+SUPER OUTRIDE — M9.3 TSUKUBA CIRCUIT VALIDATION
+2026-09-01 JST
+
+Scope:
+Replace only the public CIRCUIT DEV authoring with a researched functional reconstruction of the
+four-wheel Tsukuba Course 2000 layout. Preserve published course identity while keeping vehicle
+mechanics, tires, input, camera, renderer, recovery, race progress and lower topology primitives
+unchanged.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+b3ce5016767bf62ad5c5b034e731f6c6ec8f9704
+
+Candidate branch:
+codex/m9-3-tsukuba-circuit
+
+Pre-validation candidate head:
+57931e2a7ccd32863eccc874aa0f403713dc2218 feat: author Tsukuba Course 2000 circuit
+
+Pre-validation exact-head CI:
+GitHub Actions run 33426701979
+build job 99601912975
+expected head SHA = run head SHA = 57931e2a7ccd32863eccc874aa0f403713dc2218
+conclusion = success
+
+Package / visible milestone:
+super-outride-m9-3@0.9.3
+SUPER OUTRIDE M9.3
+
+Current normative authority:
+docs/93_m9_3_tsukuba_circuit.md
+
+Primary course references:
+https://www.tsukuba-circuit.jp/guide/course-spec.html
+https://www.tsukuba-circuit.jp/guide/img/course-spec_2000.pdf
+https://motorsports.jaf.or.jp/course/circuit/tsukuba/
+
+Resolved architecture:
+- the CIRCUIT composition selects one ordinary DEV Course 2000 source;
+- published facts retained are the 2045 m clockwise lap, 282 m home straight, 437 m back straight,
+  10–15 m width range, four-wheel corner order/radius families and near-flat longitudinal character;
+- the motorcycle-only MC/Asia chicane is absent;
+- exact unlabelled connectors and arc angles are an original simplified reconstruction, not survey
+  or homologation geometry;
+- the Raster lap closes through one explicit duplicated endpoint and compiles to exactly 2045 m;
+- the authoring contains 199 Raster segments, no non-adjacent self-intersection, both turn signs
+  and no authored turn above five degrees;
+- represented Guide radius families are 25R, 35R, 55R, 75R, 80R, 90R, 100R, 105R and 170R;
+- the nominal asphalt width is 12 m with 1.5 m shoulders, solid edge lines and no highway center
+  or lane marking;
+- GroundMap visual paint and SurfaceMap physical support remain independent authorities;
+- the smooth relative HeightProfile spans -0.6 m to +1.6 m, 2.2 m relief and less than 1.3 percent
+  maximum grade, with equal zero start/end datum;
+- a three-lap race compiles four finite ordinary open copies and retains ordered physical
+  checkpoints/FINISH authority;
+- Tsukuba-specific start/recovery lateral positions belong to the same CIRCUIT DEV authoring and
+  use ordinary common recovery;
+- LINEAR and BRANCHING retain their existing composition and authoring;
+- there is no course-specific vehicle, handling, tire, input, camera, recovery, race-progress or
+  renderer branch.
+
+Dedicated executable acceptance:
+tests/m9-3-tsukuba-circuit.test.mjs
+tests/m9-1-low-mid-speed-mountain-circuit.test.mjs
+tests/m6-54-circuit-multi-actor.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/repository-hygiene.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact 2045 m lap, explicit closure and published 282 m / 437 m straight lengths;
+- published four-wheel radius families and ordered named landmark chainages;
+- both turn signs, five-degree authored maximum and absence of non-adjacent Raster crossings;
+- restrained relief/grade, start/end height continuity and 12 m asphalt/shoulder/grass support;
+- solid edge paint without a highway center marking;
+- three scored laps expanded into an N+1 finite open window with physical checkpoint gates;
+- ordinary FR and BIKE1 mechanics advancing supported on the home straight;
+- current CIRCUIT composition selection, historical M9.1 fixture preservation and BRANCHING
+  isolation;
+- retained vehicle, input, tire, camera, renderer, recovery, race, topology and Pages suites.
+
+Validation-inclusive local repository result before this record:
+npm test
+569 tests
+569 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local ?mode=circuit loaded the M9.3 ESM tree and selected CIRCUIT / FR / BODY with the retained
+  steering calibration defaults;
+- two screenshots 1.5 seconds apart had different byte hashes, proving live frame progression;
+- the road, circuit edge markings, player, rival-capable Painter path, transparent debug HUD and
+  travel-yaw overlay rendered in the 320x240 frame;
+- 390x844 portrait exposed all three course buttons, six vehicle buttons, six self-steer choices,
+  game canvas and throttle control;
+- 844x390 landscape retained the CIRCUIT/FR active states, canvas, brake and throttle controls;
+- BIKE1 selection became solely active, then FR reconstruction restored solely active FR;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact is part of the candidate; the commit containing it is the only release candidate.
+2. Push the candidate branch and update PR #107 targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 569 / 569 pass, 0 fail, 0 skipped.
+5. Re-fetch main before release and require ahead_by > 0, behind_by = 0 and merge base = current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. Move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push Pages
+   workflow and public version.txt on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert the later validation-inclusive candidate SHA, run id, PR
+merge identity or Pages identity. Those facts are supplied by immutable Git/PR/ref/workflow history
+together with this validation record.
+
+Handling status:
+DEV_UNCALIBRATED. M9.3 changes CIRCUIT DEV course authoring only and does not calibrate or freeze
+vehicle handling.
