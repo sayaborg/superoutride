@@ -46,7 +46,7 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { setArcadeVehicleTravelDirectionSteeringGain } from '../dist/physics/arcade-vehicle-physics.js';
+import { setArcadeVehicleTravelDirectionSteeringGain } from '../dist/physics/vehicle-calibration.js';
 import {
   HUD_INPUT_ACCEL_COLOR,
   HUD_INPUT_BRAKE_COLOR,

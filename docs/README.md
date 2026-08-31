@@ -2,14 +2,16 @@
 
 This directory contains current normative authority, chronological milestone records, takeover context, and historical validation evidence. Those are intentionally different document classes.
 
-The historical M9 implementation handoff is:
+The historical M9 implementation handoffs are:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_STEERING_INPUT_AND_SELF_STEER.md
 ```
 
-It records the dirty M8.2-M8.7 preservation boundary and staged M9.0 unification procedure. It is
-takeover context, not current task state or normative authority.
+They record the dirty M8.2-M8.7 preservation boundary, staged M9.0 unification procedure and the
+later separated steering-input/self-steer investigation. Both are resolved historical context,
+not current task state or normative authority.
 
 ## 1. Normative frozen authority
 
@@ -160,9 +162,10 @@ Current governing steering rule:
 
 > Steering input is a normalized driver request; one finite actuator value makes digital press
 > duration controllable and returns monotonically to exact neutral. A stateless yaw-rate preview
-> and fast rack response aim the authoritative road-wheel angle along a selectable `[0,1]`
-> fraction of CG travel direction plus that offset. Front slip remains tire-force/telemetry
-> authority and is not steering feedback.
+> and fast rack response aim the authoritative road-wheel angle from independent travel-direction,
+> yaw-preview and driver-offset terms. Browser calibration selects the first two coefficients and a
+> symmetric driver-actuator traversal without changing final road-wheel response. Front slip remains
+> tire-force/telemetry authority and is not steering feedback.
 
 Current governing player-camera rule:
 
@@ -202,7 +205,7 @@ validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
 
 The first records the Step 7 repository-only audit findings before correction. The second records the self-reference-safe Step 8 final candidate and release contract. Exact final SHA/run identity is completed by Git/PR/main-ref and workflow history without rewriting an already-validated artifact.
 
-The Codex-transfer audit for the active M8.0 candidate is:
+The historical Codex-transfer audit for the M8.0 candidate is:
 
 ```text
 validation/M8_0_CODEX_TRANSFER_AUDIT_2026_08_28.txt
@@ -304,7 +307,26 @@ It proves exact default body-yaw lock, retained M8.2 movement follow, P/touch se
 mode-dependent TRAVEL/BODY arrow meaning, complete-suite acceptance and portrait/landscape
 browser operation.
 
-## 5. Historical M9 implementation handoff
+The released M9.2 selectable steering-calibration evidence is:
+
+```text
+validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt
+```
+
+It proves the independent gain/yaw-preview/symmetric-response selectors, one vehicle-instance
+calibration state, recovery/profile-switch preservation, unchanged additive steering law,
+deterministic sweeps, complete-suite acceptance and portrait/landscape browser operation.
+
+The preceding stale steering-source incident evidence is:
+
+```text
+validation/M9_2_STEERING_INPUT_STALE_SOURCE_VALIDATION.txt
+```
+
+It proves that the input-layer arbiter fixes superseded keyboard/touch steering sources without a
+camera, tire or physics mask.
+
+## 5. Historical M9 implementation handoffs
 
 The M9 implementation takeover procedure was:
 
@@ -316,6 +338,16 @@ It remains historical navigation and execution-order context only. It does not s
 current frozen vehicle authority. Its required normative M9.0 design and executable architecture
 boundary are now present in `87_m9_0_two_station_arcade_vehicle_dynamics.md` and the dedicated M9
 regressions.
+
+The later steering investigation handoff was:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_STEERING_INPUT_AND_SELF_STEER.md
+```
+
+Its staged input-defect and self-steer work is complete. The causal history remains useful, but
+current input authority is executable in `src/input/steering-input-arbiter.ts` and current
+calibration authority is `92_m9_2_selectable_self_steer_gain.md`.
 
 ## 6. M8.0 implementation/finalization handoff
 

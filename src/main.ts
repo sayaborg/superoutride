@@ -6,22 +6,11 @@ import {
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
-import {
-  BROWSER_STEERING_RESPONSE_CYCLE_CODE,
-  BROWSER_YAW_PREVIEW_CYCLE_CODE,
-  DEFAULT_BROWSER_STEERING_CALIBRATION,
-  browserSelfSteerGainForKey,
-  nextBrowserSteeringResponseRate,
-  nextBrowserYawPreviewTime,
-  type BrowserSelfSteerGain,
-  type BrowserYawPreviewTime,
-} from './browser/steering-calibration-selection.js';
+import { DEFAULT_BROWSER_STEERING_CALIBRATION } from './browser/steering-calibration-selection.js';
+import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
 import {
   mountMobileCameraYawSelector,
-  mountMobileSelfSteerGainSelector,
-  mountMobileSteeringResponseSelector,
   mountMobileVehicleSelector,
-  mountMobileYawPreviewSelector,
 } from './browser/mobile-selector-controls.js';
 import { browserRequestsCameraYawToggle } from './browser/camera-yaw-mode-selection.js';
 import { browserUsesTouchInterface } from './browser/touch-interface.js';
@@ -82,9 +71,6 @@ import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import {
   createArcadeVehicle,
-  setArcadeVehicleSteeringYawPreviewTime,
-  setArcadeVehicleSymmetricSteeringActuatorRate,
-  setArcadeVehicleTravelDirectionSteeringGain,
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
@@ -250,20 +236,13 @@ const cameraYawSelector = mountMobileCameraYawSelector(
   cameraRig.yawMode,
   selectCameraYawMode,
 );
-const selfSteerGainSelector = mountMobileSelfSteerGainSelector(
-  selfSteerSelectorButtons,
-  vehicle.steeringCalibration.travelDirectionGain,
-  selectSelfSteerGain,
-);
-const yawPreviewSelector = mountMobileYawPreviewSelector(
-  yawPreviewSelectorButtons,
-  vehicle.steeringCalibration.yawPreviewTime,
-  selectYawPreviewTime,
-);
-const steeringResponseSelector = mountMobileSteeringResponseSelector(
-  steeringResponseSelectorButtons,
-  vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-  selectSteeringResponseRate,
+const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
+  {
+    selfSteer: selfSteerSelectorButtons,
+    yawPreview: yawPreviewSelectorButtons,
+    steeringResponse: steeringResponseSelectorButtons,
+  },
+  () => vehicle,
 );
 
 window.addEventListener('keydown', (event) => {
@@ -272,21 +251,7 @@ window.addEventListener('keydown', (event) => {
     cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));
     return;
   }
-  if (event.code === BROWSER_YAW_PREVIEW_CYCLE_CODE) {
-    selectYawPreviewTime(nextBrowserYawPreviewTime(vehicle.steeringCalibration.yawPreviewTime));
-    return;
-  }
-  if (event.code === BROWSER_STEERING_RESPONSE_CYCLE_CODE) {
-    selectSteeringResponseRate(nextBrowserSteeringResponseRate(
-      vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-    ));
-    return;
-  }
-  const selectedSelfSteerGain = browserSelfSteerGainForKey(event.code);
-  if (selectedSelfSteerGain !== null) {
-    selectSelfSteerGain(selectedSelfSteerGain);
-    return;
-  }
+  if (steeringCalibrationControls.handleKey(event.code)) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
     selectVehicleProfile(selectedProfile);
@@ -332,21 +297,6 @@ function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): 
 function selectCameraYawMode(mode: M5CameraYawMode): void {
   setM5CameraYawMode(cameraRig, mode);
   cameraYawSelector.setActive(mode);
-}
-
-function selectSelfSteerGain(gain: BrowserSelfSteerGain): void {
-  setArcadeVehicleTravelDirectionSteeringGain(vehicle, gain);
-  selfSteerGainSelector.setActive(gain);
-}
-
-function selectYawPreviewTime(yawPreviewTime: BrowserYawPreviewTime): void {
-  setArcadeVehicleSteeringYawPreviewTime(vehicle, yawPreviewTime);
-  yawPreviewSelector.setActive(yawPreviewTime);
-}
-
-function selectSteeringResponseRate(rate: number): void {
-  setArcadeVehicleSymmetricSteeringActuatorRate(vehicle, rate);
-  steeringResponseSelector.setActive(rate);
 }
 
 let accumulator = 0;

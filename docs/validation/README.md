@@ -26,6 +26,22 @@ There is not necessarily one standalone validation text file for every numbered 
 
 Do not manufacture retrospective validation files to fill numbering gaps.
 
+## Evidence-reference annotations
+
+Immutable evidence may name a path that was later retired, moved, or transcribed incorrectly. Do
+not recreate a compatibility file merely to make such a historical reference resolve, and do not
+edit the evidence bytes. Interpret these known cases as follows:
+
+- `M9_1_FOUR_PROFILE_DEBUG_HUD_VALIDATION.txt` names the superseded draft path
+  `docs/88_m9_1_four_profile_debug_hud.md`; the released current authority is
+  `docs/88_m9_1_six_profile_debug_hud.md`.
+- `M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt` names `tests/input.test.mjs`; this is a
+  filename transcription error. The exact-head suite and stale-source causal regressions are in
+  `tests/input-core.test.mjs`.
+
+Other missing source paths in older evidence normally document intentional authority retirement.
+Use Git history and the current source-boundary tests rather than manufacturing the old module.
+
 ## Standalone-record decision rule
 
 A new standalone validation record is required when the change is one of the following:

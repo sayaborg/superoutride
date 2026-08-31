@@ -1,306 +1,130 @@
-# SUPER OUTRIDE — M9.2 Selectable Steering Calibration Candidate
+# SUPER OUTRIDE — M9.2 Selectable Steering Calibration
 
-Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
+Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
+Super Hang-On, OutRunners and the Super Scaler era.
 
-> **Physics is world-space. Renderer is chainage-driven raster pseudo-3D. Topology stays above Core. Open is the general runtime model.**
+> Physics is world-space. Renderer depth is chainage. Topology stays above Core. Open is the
+> general runtime model.
 
-`README.md` is an entry point and current-state index. It is not a second normative design document.
+`README.md` is the repository entry point and current-state index. Normative decisions belong to
+the authority documents below; executable behavior belongs to types, compilers and regression
+tests.
 
-The historical takeover procedure that preserved the M8.2-M8.7 candidate and began
-the common vehicle architecture is
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md`. It is implementation
-handoff context, not current design authority; the normative M9 authority is the numbered document linked below.
+## Current release
 
-## Current milestone status
+M9.2 preserves the common steering law and exposes three independent browser-player calibration
+controls:
 
-M9.2 makes travel-direction self-steer gain, yaw preview and the symmetric steering-actuator
-response independently selectable without changing the common steering formula. Browser defaults
-are `0.5`, `0.12 s` and `0.375 s`; gain uses keys/numpad `4` through `8`, yaw preview cycles with
-`Y`, and symmetric zero-to-full traversal time cycles with `T`. Shared touch buttons expose every
-value directly. One vehicle-instance calibration state survives recovery and profile switching;
-input arbitration, tires, final road-wheel response and camera remain separate and unchanged. The authority is
-`docs/92_m9_2_selectable_self_steer_gain.md`.
+| Control | Choices | Default | Keyboard |
+|---|---|---:|---|
+| Travel-direction gain | `0.3 / 0.4 / 0.5 / 0.6 / 0.7` | `0.5` | `4`–`8` |
+| Yaw-preview time | `0 / 0.06 / 0.09 / 0.12 / 0.15 / 0.18 s` | `0.12 s` | `Y` cycles |
+| Symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.375 s` | `T` cycles |
 
-M9.1 adds provisional FR, MR, RR, AWD, BIKE1 and BIKE2 compiled profiles and one common compact
-debug HUD for all three course compositions. The four cars share one engine/tire/chassis package;
-FR/MR/RR differ only by weight distribution and body inertia, while AWD changes ordinary tire-force
-behavior through a compiled 50:50 front/rear drive-torque split. The HUD is limited to
-course/profile selection, speed/RPM/gear, graphical requested/actual controls, an `18:1` HUD-only
-handwheel graphic, body yaw and a body-axis inertial-load G cross/dot. ACCEL/BRAKE canonical input
-is exclusive and latest-held-source wins across keyboard/touch; its HUD request state is
-blue/red/uncolored. The authority is
-`docs/88_m9_1_six_profile_debug_hud.md`.
+Touch layouts expose every value directly. One vehicle-instance calibration state survives recovery
+and DEV profile switching. Steering apply and release remain equal for every response choice.
+Input arbitration, tire/contact/wheel mechanics, final road-wheel response and camera remain
+separate authorities.
 
-M9.0 freezes one Two-Station Arcade Vehicle Dynamics solver shared by every compiled profile. It
-owns three finite normalized actuator channels, wheel-torque-only drive/braking, no baseline
-ABS/TCS and presentation-only BIKE lean. The authority is
-`docs/87_m9_0_two_station_arcade_vehicle_dynamics.md`; the common-solver migration is complete on
-PR #100, while release status remains candidate pending validation-inclusive exact-head CI and the
-explicit release procedure.
+The released browser build is [GitHub Pages](https://sayaborg.github.io/superoutride/). Exact
+release identity comes from `main`, PR and main-push workflow history; it is not duplicated as a
+mutable SHA in this entry document.
 
-M9.1 also replaces only the CIRCUIT authoring with an approximately 7.077 km mountain lap made
-entirely from 95–240 m low/mid-speed corner families. Approximately 66% of its Guide length is
-curved; its smooth physical elevation changes direction ten times, spans approximately 105 m and
-reaches approximately 18.42% grade. Drift opportunity arises only from ordinary corner cadence
-and tire forces. BRANCHING remains on its existing parent geometry. The authority is
-`docs/89_m9_1_low_mid_speed_mountain_circuit.md`.
-
-M9.1 exposes the same course and vehicle selectors as 44px-minimum touch buttons on phone/coarse
-pointer layouts. Buttons are generated from the existing course/profile arrays: course taps use
-the top-level URL composition transition and vehicle taps use the existing safe-spawn profile
-reconstruction. There is no separate mobile selection state. The authority is
-`docs/90_m9_1_mobile_touch_selectors.md`.
-
-M9.1 adds two camera-yaw modes. `BODY_FIXED` is the default and locks camera yaw exactly to vehicle
-body yaw; `MOVEMENT_FOLLOW` retains the M8.2 velocity-direction view. `P` toggles them and the
-mobile selector exposes `BODY / MOVE`. In body-fixed mode the player overlay arrow shows actual
-travel direction. The authority is `docs/91_m9_1_dual_yaw_camera_modes.md`.
-
-M8.6 extends the shared camera-relative render interval from 150 m to 200 m (195 m ahead of the
-player). The geometric infinite horizon remains the exact projection limit and the Far Background
-tracks it dynamically. GroundMap depth and renderer workloads are recompiled and re-observed for
-the wider interval. The authority is `docs/85_m8_6_two_hundred_meter_render_distance.md`.
-
-M8.5 raises the shared base downward camera pitch from 8 to 12 degrees and derives the matching
-2.851878849 m flat-road camera height so player `Y=190` remains exact. LINEAR, BRANCHING and
-CIRCUIT consume one current camera profile. GroundMap density and renderer workload evidence are
-recompiled for the new presentation. The authority is `docs/84_m8_5_downward_camera_presentation.md`.
-
-M8.4 historically expanded the CIRCUIT lap from one to two separated 90 m-radius compound low-speed
-sections. The new lap is approximately 10.133 km; ordinary car physics and the existing rival
-driver braked for and cleared both sections without course-specific lower-layer behavior. Its
-historical authority is `docs/83_m8_4_dual_low_speed_circuit_complex.md`; M8.7 superseded it and
-the current M9.1 mountain circuit now supersedes M8.7.
-
-M8.3 exposes all three course forms through one browser boot authority:
+Vehicle handling remains:
 
 ```text
-[1] LINEAR  [2] BRANCHING  [3] CIRCUIT
+DEV_UNCALIBRATED
 ```
 
-LINEAR is one finite open 8 km debug highway. BRANCHING course debug has no leading rival, so the
-player's own first physical crossing selects either child without rival-locked wrong-branch
-recovery. CIRCUIT retains its explicit finite-window lap authority. The current course-debug
-authority is `docs/82_m8_3_three_mode_course_debug.md`.
+## Authority entry order
 
-M8.2 remains the body-pitch/world-placement camera foundation, M8.5 owns pitch/height tuning and
-M9.1 owns the selectable camera-yaw mode and body-fixed default.
-M9.0 supersedes the scoped M8.0 CAR/BIKE mechanical split and M8.1 input-response decisions while
-retaining their stated world/contact/tire and travel-direction steering foundations. Vehicle feel
-parameters remain `DEV_UNCALIBRATED`.
+Read these before changing current behavior:
 
-M8.0 / Phase 9 vehicle-physics implementation and regression migration are complete on:
-
-```text
-branch: feature/phase9-vehicle-physics-freeze
-PR:     #88 — M8.0 Phase 9 vehicle physics architecture freeze
-status: final exact-head release procedure recorded by Git / PR / workflow history
-```
-
-The current normative vehicle-physics architecture is, in supersession order:
-
-```text
-docs/92_m9_2_selectable_self_steer_gain.md
-docs/88_m9_1_six_profile_debug_hud.md
-docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
-docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
-docs/80_m8_1_car_self_steering_control.md
-```
-
-The M8.0 implementation/finalization checkpoint is:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
-```
-
-That handoff records the audited baseline, migration history and release procedure. PR #88 is
-released history; the handoff is historical navigation context, not current work or a second design authority.
-
-The self-reference-safe M8.0 release evidence is `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt`. Exact release identity is the validation-inclusive PR #88 commit for which GitHub records PR head = PR merge = `main`, with successful exact-head PR CI and main-push build/Pages deployment. Do not infer the SHA from this file.
-
-## Development entry point
-
-For current vehicle work, read in this order:
-
-1. `AGENTS.md` — persistent coding-agent/development/release contract.
-2. `docs/README.md` — documentation authority, supersession and validation-evidence policy.
-3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer/metric/open-model authority.
-4. `docs/88_m9_1_six_profile_debug_hud.md` — current profile/drive-selection and shared debug-HUD authority.
-5. `docs/92_m9_2_selectable_self_steer_gain.md` — current self-steer calibration and selector authority.
-6. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — current shared vehicle-mechanics authority.
+1. `AGENTS.md` — persistent development, architecture and release contract.
+2. `docs/README.md` — document classes, supersession and evidence index.
+3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
+   open-model authority.
+4. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
+5. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
+6. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
 7. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
-   `docs/80_m8_1_car_self_steering_control.md` — retained foundations and explicitly superseded history.
-8. `docs/81_m8_2_body_pitch_movement_yaw_camera.md` through
-   `docs/86_m8_7_varied_elevation_circuit.md`, then
-   `docs/89_m9_1_low_mid_speed_mountain_circuit.md` and
-   `docs/90_m9_1_mobile_touch_selectors.md` and
-   `docs/91_m9_1_dual_yaw_camera_modes.md` and
-   `docs/92_m9_2_selectable_self_steer_gain.md` — current camera/composition/render/course/touch/steering-calibration
-   authorities and scoped supersession.
-8. Relevant source/types/compilers and regression tests — executable implementation contract.
+   `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
+   foundations within their explicitly superseded scope.
+8. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+   `docs/84_m8_5_downward_camera_presentation.md`,
+   `docs/85_m8_6_two_hundred_meter_render_distance.md` and
+   `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
 
-The 2026-08-28 M8.0 and 2026-08-31 M9 handoffs remain historical checkpoint/navigation records.
+Earlier numbered milestones remain chronological records. Historical handoffs and validation files
+are navigation/evidence, not current design authority. Do not rewrite them merely to use current
+terminology.
 
-Historical migration context remains in `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md`; it does not supersede current M8.0 authority or release evidence.
+## Current architecture snapshot
 
-At and after the validated FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT/Codex transcript—is the continuing project memory.
+### Vehicle and input
 
-## Codex migration freeze lineage
+- FR, MR, RR, AWD, BIKE1 and BIKE2 use one Two-Station Arcade Vehicle Dynamics solver.
+- The four cars share one engine/tire/chassis package; distribution, inertia and AWD drive split
+  produce their ordinary differences.
+- Canonical steering is one digital request from the shared latest-source steering arbiter.
+- Canonical ACCEL/BRAKE is exclusive and resolved by the shared latest-held pedal arbiter.
+- Finite actuator response belongs only to `src/physics/driving-actuator.ts`.
+- Steering calibration state and validation belong only to `src/physics/vehicle-calibration.ts`.
 
-PR-C completed at this exact baseline:
+### Camera and presentation
 
-```text
-main SHA after PR-C:
-3956c23c7209ec271b42ee4a98e5c9510919f19d
+- `BODY_FIXED` is the default camera-yaw mode; `MOVEMENT_FOLLOW` retains velocity-direction yaw.
+- Camera pitch follows physical body pitch; camera roll remains zero.
+- The common `18:1` steering ratio is HUD-only handwheel presentation.
+- BIKE lean and sprite selection are derived presentation; they do not feed physics.
 
-package:
-super-outride-m6-51@0.6.51
-
-tests:
-433 / 433 pass / 0 fail / 0 skipped
-
-PR-C:
-#75 Freeze Codex migration authority
-```
-
-That SHA is the **PR-C completion baseline**, not the FINAL CODEX MIGRATION POINT. The later final clean-room audit, final validation-inclusive CI, pure fast-forward release and main-push Pages verification establish the final migration point.
-
-The exact released final migration SHA belongs to:
+### Renderer and topology
 
 ```text
-docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
-Git / PR / main-ref identity
-main-push Pages workflow identity
+world X/Y/Z = vehicle-physics authority
+d = s_render - s_camera = renderer-depth authority
+
+Open     = general data/runtime model
+Cyclic   = explicit upper-level topology choice
+Renderer = topology-blind
 ```
 
-rather than a self-referential README edit.
-
-The last pre-M7 runtime-changing baseline recorded by the migration sequence remains:
+Player-depth metric presentation remains:
 
 ```text
-6e15c374ba6679eec16b589c68941154c67665fd
-PR #70 M6.51 Pages branching continuation hotfix
-431 / 431 tests
+2.0 m = 80 px
+1.0 m = 40 px
+f = 200 px
+D_cam = 5.0 m = f / 40
 ```
 
-PRs #71–#75 changed takeover documentation, repository organization, documentation/evidence authority, behavior-preserving source placement and migration authority. They did not intentionally change gameplay/runtime algorithms or tuning.
+Do not use this summary instead of the Core Freeze and addenda.
 
-## Current milestone state
+## Browser composition and controls
+
+One top-level boot selects one explicit composition root:
 
 ```text
-M0–M5      browser / geometry / visual / driving foundations      complete
-M6.0–43    race progress / route / runtime / rival foundations    complete
-M6.44      Open Path Core                                          complete
-M6.45      Open Source Profiles                                    complete
-M6.46      Branch Violation Recovery                               complete
-M6.47      Open Parent Stage Integration                           complete
-M6.48      Explicit Circuit Topology Foundation                    complete
-M6.49      Circuit Runtime Window Integration                      complete
-M6.50      Circuit Race Progress                                   complete
-M6.51      Circuit Live Runtime Integration                        complete
-M6.51      Pages branching continuation hotfix                     complete
-M6.52      Shared Field Route Progress                              complete
-M6.53      BRANCHING Session Authority Normalization                complete
-M6.54      CIRCUIT Multi-Actor Integration                          complete
-M7.0       Vehicle Dynamics Architecture Freeze                     historical / superseded in scoped physics by M9.0
-M7.1       Highway Calibration Course Authoring                     complete
-M7.2       Default BRANCHING Highway Integration                    complete
-M7.3       Grip Calibration Pass 1 + Instrument HUD                 historical / scoped physics superseded by M9.0
-M7.4       Transient Tire Response                                  historical / scoped physics superseded by M9.0
-M8.0       Phase 9 Ideal Vehicle Physics Architecture               retained contact/tire foundation; solver split superseded by M9.0
-M8.0       CIRCUIT Low-Speed Corner Authoring                        historical public course follow-on
-M8.1       CAR Predictive Travel-Direction Steering Assist            retained travel-direction concept; response boundary superseded by M9.0
-M8.2       Body-Pitch / Movement-Yaw Chase Camera                      retained player-camera foundation
-M8.3       Three-Mode Course Debug                                      current browser composition authority
-M8.4       Dual Low-Speed Circuit Complex                               historical CIRCUIT course-authoring authority
-M8.5       Downward Camera Presentation                                  current camera pitch/height authority
-M8.6       200 m Render Distance + Horizon Audit                          current render-distance authority
-M8.7       Varied-Elevation Medium/High-Speed Circuit                     historical CIRCUIT course-authoring authority
-M9.0       Two-Station Arcade Vehicle Dynamics                             current vehicle architecture; implementation candidate
-M9.1       Six-Profile Common Debug HUD                                     current profile/debug composition candidate
-M9.1       Low/Mid-Speed Mountain Circuit                                   current CIRCUIT course-authoring authority
-M9.1       Mobile Touch Selectors                                            current browser touch-selection authority
-M9.1       Dual Yaw Camera Modes                                             current player-camera yaw-mode authority
-M9.2       Selectable Steering Calibration                                    current calibration/debug authority
+/               -> BRANCHING
+/?mode=linear   -> LINEAR
+/?mode=branching -> BRANCHING
+/?mode=circuit  -> CIRCUIT
 ```
 
-Current topology/runtime/physics design sequence:
+| Function | Keyboard |
+|---|---|
+| Course | `1 / 2 / 3` |
+| Vehicle | `Q / W / E / R / A / S` = FR / MR / RR / AWD / BIKE1 / BIKE2 |
+| Camera yaw | `P` = BODY / MOVE |
+| Steering | `Left / Right` |
+| Throttle | `Up` or `X` |
+| Brake | `Down` or `Z` |
+| Recovery | `Backspace` |
 
-```text
-docs/62_m6_44_open_path_core.md
-docs/63_m6_45_open_source_profiles.md
-docs/64_m6_46_branch_violation_recovery.md
-docs/65_m6_47_open_parent_stage_integration.md
-docs/66_m6_48_explicit_circuit_topology.md
-docs/67_m6_49_circuit_runtime_window.md
-docs/68_m6_50_circuit_race_progress.md
-docs/69_m6_51_circuit_live_runtime.md
-docs/70_m6_52_field_route_progress.md
-docs/71_m6_53_branching_session_normalization.md
-docs/72_m6_54_circuit_multi_actor_integration.md
-docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
-docs/74_m7_1_highway_calibration_course_authoring.md
-docs/75_m7_2_default_branching_highway_integration.md
-docs/76_m7_3_grip_and_instrument_hud.md
-docs/77_m7_4_transient_tire_response.md
-docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
-docs/79_m8_0_circuit_low_speed_corner_authoring.md
-docs/80_m8_1_car_self_steering_control.md
-docs/81_m8_2_body_pitch_movement_yaw_camera.md
-docs/82_m8_3_three_mode_course_debug.md
-docs/83_m8_4_dual_low_speed_circuit_complex.md
-docs/84_m8_5_downward_camera_presentation.md
-```
+Phone/coarse-pointer layouts expose the same authority-derived course, vehicle, camera and steering
+calibration selectors plus touch driving controls. There is no mobile-only mechanics state.
 
-Historical validation evidence under `docs/validation/` is evidence, not current design authority.
-
-## M8.0 validation checkpoint
-
-The audited `main` baseline for PR #88 is:
-
-```text
-dd2b35c6e2187770ba71d0a8a29a5ae65a9298b1
-```
-
-The pre-validation implementation candidate is:
-
-```text
-b36ab494585d36eac58712d3e200297c4f46694e
-GitHub Actions run 33164042964
-```
-
-That exact PR run verified its checkout, compiled successfully and completed:
-
-```text
-483 tests
-483 pass
-0 fail
-0 skipped
-```
-
-Adding the validation record changes the head, so the final validation-inclusive SHA and its PR/main-push runs are intentionally completed by GitHub history rather than embedded self-reference. See the validation record for the exact release contract and covered mechanics.
-
-Always inspect the current PR head and latest CI on takeover; the embedded tested SHA above is evidence for the checkpoint, not a self-referential current-head declaration.
-
-## Final migration state
-
-The original one-time takeover audit and cleanup PR-A/PR-B/PR-C are historical predecessors to the final repository migration freeze. They must not be confused with current M8.0 development.
-
-The clean-room manifest is:
-
-```text
-docs/validation/REPOSITORY_FINAL_CLEAN_ROOM_AUDIT_MANIFEST.txt
-```
-
-The final migration release evidence is:
-
-```text
-docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt
-```
-
-Normal development proceeds under `AGENTS.md`; previous ChatGPT threads are not authority.
-
-## Run / test
+## Run and test
 
 ```bash
 npm install
@@ -309,144 +133,51 @@ npm test
 python3 -m http.server 8000
 ```
 
-LINEAR debug fixture:
+Open one of:
 
 ```text
 http://localhost:8000/?mode=linear
-```
-
-Default BRANCHING debug fixture:
-
-```text
 http://localhost:8000/?mode=branching
-```
-
-CIRCUIT DEV fixture:
-
-```text
 http://localhost:8000/?mode=circuit
 ```
 
-The `1` / `2` / `3` keys switch these same URL modes. Selection changes only the top-level browser
-composition; lower engine layers remain topology-neutral ordinary consumers.
+The Pages boot imports one commit-versioned complete ESM tree. Do not replace it with an
+unversioned cache workaround.
 
-Phone/coarse-pointer layouts expose the same three course choices and all six vehicle profiles as
-tappable buttons above the game. Their values are generated from the keyboard selector authority,
-not maintained as a mobile-only mapping.
-
-`P` toggles camera yaw between default vehicle-body lock and M8.2 movement-direction follow.
-Phone/coarse-pointer layouts expose the same choice as `BODY / MOVE` buttons.
-
-Keyboard driving controls are `Left/Right` steering, `Up` or `X` throttle, and `Down` or `Z`
-brake. Equivalent pedal keys and touch pointers may remain held independently, but one input-layer
-arbiter publishes only the most recently pressed still-held pedal as canonical input.
-
-Package and visible milestone metadata are synchronized at `super-outride-m9-2@0.9.2`. Exact release status still comes from Git/PR/main/workflow identity, not a package string alone.
-
-Vehicle handling remains:
+## Source landmarks
 
 ```text
-DEV_UNCALIBRATED
+src/boot.ts                                  course composition selection
+src/main-linear.ts                           LINEAR composition root
+src/main.ts                                  BRANCHING composition root
+src/main-circuit.ts                          CIRCUIT composition root
+src/browser/steering-calibration-selection.ts choice/default/format authority
+src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
+src/browser/mobile-selector-controls.ts       authority-derived touch presentation
+src/input/steering-input-arbiter.ts            shared steering-source authority
+src/input/pedal-input-arbiter.ts               shared pedal-source authority
+src/physics/vehicle-calibration.ts              calibration state rules and DEV status
+src/physics/driving-actuator.ts                 finite response primitive
+src/physics/arcade-vehicle-physics.ts           common two-station solver
+src/physics/vehicle-profiles.ts                 compiled six-profile authority
+src/physics/tire-wheel.ts                       retained tire/wheel primitives
+src/camera/m5-camera.ts                         body-pitch/selectable-yaw camera
+src/render/m5-renderer.ts                       shared raster renderer
 ```
 
-M8.1 release evidence remains in `docs/validation/M8_1_CAR_SELF_STEERING_VALIDATION.txt`. The
-ordered M8.2–M8.7 candidate is preserved independently at `c241698`; M9.0 candidate evidence is
-recorded in `docs/validation/M9_0_VEHICLE_UNIFICATION_VALIDATION.txt`; the original four-profile
-M9.1 checkpoint remains historical, and the corrected candidate evidence is recorded in
-`docs/validation/M9_1_SIX_PROFILE_DEBUG_HUD_VALIDATION.txt`. The subsequent graphical-control,
-inertial-G and HUD-only 18:1 correction is recorded independently in
-`docs/validation/M9_1_CONTROL_GRAPHICS_G_SENSOR_VALIDATION.txt`.
-The subsequent exclusive last-pressed pedal-input correction and blue/red/uncolored requested-pedal
-HUD evidence is recorded in
-`docs/validation/M9_1_EXCLUSIVE_PEDAL_INPUT_VALIDATION.txt`.
-The low/mid-speed mountain CIRCUIT correction is recorded independently in
-`docs/validation/M9_1_LOW_MID_SPEED_MOUNTAIN_CIRCUIT_VALIDATION.txt`.
-The authority-derived mobile selector controls are recorded independently in
-`docs/validation/M9_1_MOBILE_TOUCH_SELECTORS_VALIDATION.txt`.
-The default body-fixed and alternate movement-follow camera modes are recorded independently in
-`docs/validation/M9_1_DUAL_YAW_CAMERA_MODES_VALIDATION.txt`.
+`src/dev` contains composition fixtures, historical regression fixtures and instrumentation. General
+layers must not import it. Only `src/main-linear.ts`, `src/main.ts` and `src/main-circuit.ts` may
+assemble DEV fixtures as top-level composition roots; regression coverage enforces this boundary.
 
-## Current composition and source-placement landmarks
+## Evidence and release discipline
 
-```text
-src/boot.ts          1/2/3 and URL course-mode selection authority
-src/main-linear.ts   LINEAR composition root
-src/main.ts          BRANCHING composition root
-src/main-circuit.ts  CIRCUIT composition root
-src/browser/vehicle-profile-selection.ts Q/W/E/R/A/S profile-selection authority
-src/browser/mobile-selector-controls.ts  authority-derived touch selector adapter
-src/browser/touch-interface.ts           shared touch/coarse/phone-size layout decision
-src/browser/camera-yaw-mode-selection.ts P camera-yaw toggle binding
-src/browser/steering-calibration-selection.ts 4–8/Y/T steering calibration authority
-src/browser/vehicle-debug-hud.ts          one shared compact vehicle HUD
-src/input/pedal-input-arbiter.ts          shared latest-held-source pedal authority
+Current M9.2 release evidence is
+`docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`. The preceding input incident
+evidence is `docs/validation/M9_2_STEERING_INPUT_STALE_SOURCE_VALIDATION.txt`.
 
-src/camera/m5-camera.ts            body-pitch / selectable-yaw camera authority
-src/camera/current-camera-profile.ts M8.5 shared pitch/height tuning authority
-src/core/presentation-scale.ts       M8.6 shared near/far render-distance authority
-src/dev/m9-1-low-mid-speed-mountain-circuit.ts current CIRCUIT geometry/elevation authority
-src/render/vehicle-yaw-debug.ts    DEV body-yaw overlay
-src/render/vehicle-presentation.ts derived sprite/handwheel/BIKE-lean presentation
-src/input/touch-input.ts           pointer + page lifecycle authority
-src/physics/driving-actuator.ts    one finite steering/throttle/brake response authority
-src/physics/automatic-powertrain.ts wheel-torque powertrain boundary
-src/physics/tire-wheel.ts           M8.0 tire/wheel primitives
-src/physics/vehicle-math3.ts        minimal vector/3D math
-src/physics/vehicle-dynamics.ts     common contact/surface/suspension observations
-src/physics/vehicle-profiles.ts     compiled FR/MR/RR/AWD/BIKE1/BIKE2 authority
-src/physics/arcade-vehicle-physics.ts one Two-Station Arcade Vehicle Dynamics solver
-src/physics/vehicle-contract.ts     read-only consumer contracts
-src/physics/surface-map.ts         general SurfaceMap authority
-```
+Historical validation evidence is immutable. Interpret it through `docs/validation/README.md`; do
+not revive old source paths or rewrite evidence to match later terminology.
 
-`src/dev` is not a general runtime authority. General layers must not import it. The only non-DEV TypeScript files allowed to assemble DEV fixtures are the explicit top-level browser composition roots:
-
-```text
-src/main.ts
-src/main-linear.ts
-src/main-circuit.ts
-```
-
-`src/dev/**` may depend on ordinary general layers; that dependency direction must not be reversed. `tests/source-boundary-normalization.test.mjs` enforces the boundary.
-
-Retired authority paths must not be recreated as compatibility shims merely to satisfy superseded tests.
-
-## Core orientation
-
-The minimum renderer/topology orientation remains:
-
-```text
-world X/Y/Z = vehicle physics authority
-
-d = s_render - s_camera
-  = renderer pseudo-depth authority
-
-Open   = general data/runtime model
-Cyclic = explicit upper-level topology choice
-Renderer = topology-blind
-
-player-depth presentation:
-2.0 m = 80 px
-1.0 m = 40 px
-f = 200 px
-D_cam = 5.0 m = f / 40
-```
-
-Do not use this summary to replace the Core Freeze/addenda or executable tests.
-
-## Release discipline
-
-The full release contract is in `AGENTS.md`:
-
-```text
-exact main
--> dedicated branch
--> PR exact-head full green CI
--> validation-inclusive exact-head full green CI
--> pure fast-forward check
--> force=false main update to validated SHA
--> verify main == PR head == validated SHA as required by the repository contract
--> verify main-push build/deploy on the same SHA
-```
-
-Do not release an unvalidated SHA, do not force `main`, and do not create compatibility authority merely to make an obsolete regression green.
+Every release follows `AGENTS.md`: exact main, dedicated branch, complete exact-head CI,
+validation-inclusive exact-head CI when required, pure non-force fast-forward, identical
+main/PR/validated SHA, then same-SHA Pages build/deploy verification.

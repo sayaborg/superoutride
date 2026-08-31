@@ -16,6 +16,7 @@ import {
   mountMobileSteeringResponseSelector,
   mountMobileYawPreviewSelector,
 } from '../dist/browser/mobile-selector-controls.js';
+import { mountBrowserSteeringCalibrationControls } from '../dist/browser/steering-calibration-controls.js';
 import {
   TOUCH_INTERFACE_MAX_SHORT_SIDE_PX,
   isTouchInterface,
@@ -271,6 +272,53 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   );
 });
 
+test('one browser steering adapter owns keyboard touch and the current vehicle instance', () => {
+  const fakeDocument = new FakeDocument();
+  const containers = {
+    selfSteer: new FakeContainer(),
+    yawPreview: new FakeContainer(),
+    steeringResponse: new FakeContainer(),
+  };
+  let vehicle = {
+    steeringCalibration: {
+      travelDirectionGain: 0.5,
+      yawPreviewTime: 0.12,
+      steeringActuatorResponse: { applyRate: 8 / 3, releaseRate: 8 / 3 },
+    },
+  };
+  const controls = mountBrowserSteeringCalibrationControls(
+    containers,
+    () => vehicle,
+    fakeDocument,
+  );
+
+  assert.equal(controls.handleKey('Digit8'), true);
+  assert.equal(vehicle.steeringCalibration.travelDirectionGain, 0.7);
+  assert.equal(controls.handleKey('KeyY'), true);
+  assert.equal(vehicle.steeringCalibration.yawPreviewTime, 0.15);
+  assert.equal(controls.handleKey('KeyT'), true);
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
+    applyRate: 2,
+    releaseRate: 2,
+  });
+  assert.equal(controls.handleKey('KeyV'), false);
+
+  vehicle = {
+    steeringCalibration: {
+      travelDirectionGain: vehicle.steeringCalibration.travelDirectionGain,
+      yawPreviewTime: vehicle.steeringCalibration.yawPreviewTime,
+      steeringActuatorResponse: vehicle.steeringCalibration.steeringActuatorResponse,
+    },
+  };
+  containers.yawPreview.children[1].click();
+  containers.steeringResponse.children[3].click();
+  assert.equal(vehicle.steeringCalibration.yawPreviewTime, 0.06);
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
+    applyRate: 1.6,
+    releaseRate: 1.6,
+  });
+});
+
 test('browser compositions mount the shared mobile selector adapter without duplicating choices in HTML', async () => {
   const [index, boot, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
@@ -290,9 +338,10 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /mountMobileVehicleSelector/);
     assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
-    assert.match(source, /selectSelfSteerGain\(selectedSelfSteerGain\)/);
-    assert.match(source, /mountMobileSelfSteerGainSelector/);
-    assert.match(source, /mountMobileYawPreviewSelector/);
-    assert.match(source, /mountMobileSteeringResponseSelector/);
+    assert.match(source, /mountBrowserSteeringCalibrationControls/);
+    assert.match(source, /steeringCalibrationControls\.handleKey/);
+    assert.doesNotMatch(source, /mountMobileSelfSteerGainSelector/);
+    assert.doesNotMatch(source, /mountMobileYawPreviewSelector/);
+    assert.doesNotMatch(source, /mountMobileSteeringResponseSelector/);
   }
 });

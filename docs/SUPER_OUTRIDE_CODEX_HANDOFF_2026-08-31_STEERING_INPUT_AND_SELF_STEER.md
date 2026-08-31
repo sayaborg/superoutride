@@ -1,9 +1,11 @@
 # SUPER OUTRIDE — Steering Input Residual and Self-Steer Handoff
 
-This is active takeover context for the post-M9.1 steering investigation. It is not normative
-physics authority and it does not authorize weakening M9.0, M9.1 or frozen renderer invariants.
+This is resolved historical takeover context for the post-M9.1 steering investigation. It is not
+current task state or normative physics authority, and it does not authorize weakening M9.0, M9.1,
+M9.2 or frozen renderer invariants. Sections 1 through 5 preserve the original diagnosis and staged
+plan; they are not instructions to repeat completed work.
 
-## Current resolution status
+## Completion status
 
 The stale steering-source defect described below was subsequently fixed in the input layer and
 released on `main` at `69cb666fab2be3cc3039c8e52b8f6239a8fe9bd9`. One shared steering arbiter now owns keyboard
@@ -11,13 +13,14 @@ and touch correction semantics; the causal cases in section 3 are executable reg
 1 through 3 remain the historical diagnosis and must not be interpreted as an instruction to redo
 or relocate that fix.
 
-The separate self-steer investigation became M9.2 authority in
-`92_m9_2_selectable_self_steer_gain.md`. The current calibration candidate preserves the accepted
-additive formula and independently selects travel-direction gain, yaw-preview time and symmetric
-driver-steering actuator response. It does not change the input arbiter, tires, final road-wheel
-response or camera.
+The separate self-steer investigation became released M9.2 authority in
+`92_m9_2_selectable_self_steer_gain.md`. PR #102 released exact head
+`a985d829a12059b945130dbe4655f0ab65836bce` with 559/559 tests and successful main-push Pages
+workflow `33351513465`. The implementation preserves the accepted additive formula and independently
+selects travel-direction gain, yaw-preview time and symmetric driver-steering actuator response. It
+does not change the input arbiter, tires, final road-wheel response or camera.
 
-## 0. Minimal instruction for the next thread
+## 0. Original handoff instruction — completed
 
 ```text
 Read AGENTS.md,
@@ -30,7 +33,10 @@ investigate excessive neutral-input countersteer as a separate vehicle-control c
 Do not combine the two causes in one ad hoc patch.
 ```
 
-## 1. Exact checkpoint
+Both ordered stages are complete. Current work starts from `AGENTS.md`, `docs/README.md` and the
+numbered authority documents; it must not execute this historical instruction again.
+
+## 1. Original exact checkpoint
 
 Repository:
 

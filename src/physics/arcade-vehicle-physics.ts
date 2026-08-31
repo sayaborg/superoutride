@@ -9,7 +9,6 @@ import {
 import {
   createDrivingActuatorState,
   updateDrivingActuators,
-  type NormalizedActuatorRateProfile,
   type DrivingActuatorState,
 } from './driving-actuator.js';
 import type { SurfaceMapReader } from './surface-map.js';
@@ -47,18 +46,13 @@ import {
   drivenWheelOmega,
   type CompiledArcadeVehicleProfile,
 } from './vehicle-profiles.js';
-
-export interface ArcadeSteeringCalibrationInput {
-  readonly travelDirectionGain?: number;
-  readonly yawPreviewTime?: number;
-  readonly steeringActuatorResponse?: NormalizedActuatorRateProfile;
-}
-
-export interface ArcadeSteeringCalibrationState {
-  travelDirectionGain: number;
-  yawPreviewTime: number;
-  steeringActuatorResponse: Readonly<NormalizedActuatorRateProfile>;
-}
+import {
+  assertArcadeSteeringFeedbackCalibration,
+  createArcadeSteeringCalibration,
+  type ArcadeSteeringCalibrationInput,
+  type ArcadeSteeringCalibrationState,
+  type ArcadeSteeringFeedbackCalibration,
+} from './vehicle-calibration.js';
 
 /** One authoritative state shape for every compiled vehicle profile. */
 export interface ArcadeVehicleState extends VehicleDynamicsState {
@@ -102,7 +96,7 @@ export function createArcadeVehicle(
   initialSpeed = 45,
   steeringCalibration: ArcadeSteeringCalibrationInput = {},
 ): ArcadeVehicleState {
-  const resolvedSteeringCalibration = resolveArcadeSteeringCalibration(
+  const resolvedSteeringCalibration = createArcadeSteeringCalibration(
     profile,
     steeringCalibration,
   );
@@ -327,7 +321,7 @@ export function stepTravelDirectionSteering(
   steeringOffset: number,
   bodyTravelDirection: number,
   yawRate: number,
-  calibration: Pick<ArcadeSteeringCalibrationState, 'travelDirectionGain' | 'yawPreviewTime'>,
+  calibration: ArcadeSteeringFeedbackCalibration,
   dt: number,
   profile: Pick<CompiledArcadeVehicleProfile,
     'steeringResponseTau' | 'maxRoadWheelSteer'>,
@@ -336,8 +330,7 @@ export function stepTravelDirectionSteering(
   if (![roadWheelAngle, steeringOffset, bodyTravelDirection, yawRate].every(Number.isFinite)) {
     throw new RangeError('vehicle steering inputs must be finite');
   }
-  assertTravelDirectionSteeringGain(calibration.travelDirectionGain);
-  assertSteeringYawPreviewTime(calibration.yawPreviewTime);
+  assertArcadeSteeringFeedbackCalibration(calibration);
   const target = clamp(
     calibration.travelDirectionGain * bodyTravelDirection
       - yawRate * calibration.yawPreviewTime
@@ -351,72 +344,6 @@ export function stepTravelDirectionSteering(
     -profile.maxRoadWheelSteer,
     profile.maxRoadWheelSteer,
   );
-}
-
-export function setArcadeVehicleTravelDirectionSteeringGain(
-  vehicle: ArcadeVehicleState,
-  gain: number,
-): void {
-  assertTravelDirectionSteeringGain(gain);
-  vehicle.steeringCalibration.travelDirectionGain = gain;
-}
-
-export function setArcadeVehicleSteeringYawPreviewTime(
-  vehicle: ArcadeVehicleState,
-  yawPreviewTime: number,
-): void {
-  assertSteeringYawPreviewTime(yawPreviewTime);
-  vehicle.steeringCalibration.yawPreviewTime = yawPreviewTime;
-}
-
-export function setArcadeVehicleSymmetricSteeringActuatorRate(
-  vehicle: ArcadeVehicleState,
-  rate: number,
-): void {
-  assertPositiveFiniteSteeringActuatorRate(rate);
-  vehicle.steeringCalibration.steeringActuatorResponse = Object.freeze({
-    applyRate: rate,
-    releaseRate: rate,
-  });
-}
-
-function assertTravelDirectionSteeringGain(gain: number): void {
-  if (!(gain >= 0 && gain <= 1) || !Number.isFinite(gain)) {
-    throw new RangeError('vehicle travel-direction steering gain must be finite and lie in [0,1]');
-  }
-}
-
-function resolveArcadeSteeringCalibration(
-  profile: CompiledArcadeVehicleProfile,
-  input: ArcadeSteeringCalibrationInput,
-): ArcadeSteeringCalibrationState {
-  const travelDirectionGain = input.travelDirectionGain ?? 1;
-  const yawPreviewTime = input.yawPreviewTime ?? profile.steeringYawPreviewTime;
-  const steeringActuatorResponse = input.steeringActuatorResponse ?? profile.actuator.steering;
-  assertTravelDirectionSteeringGain(travelDirectionGain);
-  assertSteeringYawPreviewTime(yawPreviewTime);
-  assertPositiveFiniteSteeringActuatorRate(steeringActuatorResponse.applyRate);
-  assertPositiveFiniteSteeringActuatorRate(steeringActuatorResponse.releaseRate);
-  return {
-    travelDirectionGain,
-    yawPreviewTime,
-    steeringActuatorResponse: Object.freeze({
-      applyRate: steeringActuatorResponse.applyRate,
-      releaseRate: steeringActuatorResponse.releaseRate,
-    }),
-  };
-}
-
-function assertSteeringYawPreviewTime(yawPreviewTime: number): void {
-  if (!(yawPreviewTime >= 0) || !Number.isFinite(yawPreviewTime)) {
-    throw new RangeError('vehicle steering yaw preview time must be finite and >= 0');
-  }
-}
-
-function assertPositiveFiniteSteeringActuatorRate(rate: number): void {
-  if (!(rate > 0) || !Number.isFinite(rate)) {
-    throw new RangeError('vehicle steering actuator rate must be finite and > 0');
-  }
 }
 
 /** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */

@@ -1,4 +1,4 @@
-import type { ArcadeSteeringCalibrationInput } from '../physics/arcade-vehicle-physics.js';
+import type { ArcadeSteeringCalibrationInput } from '../physics/vehicle-calibration.js';
 
 export type BrowserSelfSteerGain = 0.3 | 0.4 | 0.5 | 0.6 | 0.7;
 export type BrowserYawPreviewTime = 0 | 0.06 | 0.09 | 0.12 | 0.15 | 0.18;

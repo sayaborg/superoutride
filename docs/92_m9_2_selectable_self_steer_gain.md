@@ -174,6 +174,6 @@ Executable acceptance must prove:
 10. Input arbitration, tire/contact/wheel behavior, final road-wheel response, camera, renderer,
     route and topology invariants remain unchanged.
 
-Because M9.2 changes a normative calibration authority boundary, its release requires a standalone
-validation record under `docs/validation/` followed by complete CI on the validation-inclusive
-exact head.
+M9.2 release evidence is recorded in
+`docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`; immutable Git/PR/main/workflow
+history supplies the validation-inclusive exact-head and Pages identities.

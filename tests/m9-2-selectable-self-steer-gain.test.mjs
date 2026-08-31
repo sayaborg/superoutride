@@ -18,12 +18,14 @@ import {
 } from '../dist/browser/steering-calibration-selection.js';
 import {
   createArcadeVehicle,
-  setArcadeVehicleSteeringYawPreviewTime,
-  setArcadeVehicleSymmetricSteeringActuatorRate,
-  setArcadeVehicleTravelDirectionSteeringGain,
   stepTravelDirectionSteering,
   updateArcadeVehicle,
 } from '../dist/physics/arcade-vehicle-physics.js';
+import {
+  setArcadeVehicleSteeringYawPreviewTime,
+  setArcadeVehicleSymmetricSteeringActuatorRate,
+  setArcadeVehicleTravelDirectionSteeringGain,
+} from '../dist/physics/vehicle-calibration.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
@@ -195,10 +197,12 @@ test('the selected symmetric response is consumed by the ordinary steering actua
   assert.equal(slow.actuator.brake, fast.actuator.brake);
 });
 
-test('calibration authority stays in common mechanics and shared browser composition', async () => {
-  const [solver, selection, actuator, linear, branching, circuit] = await Promise.all([
+test('calibration authority stays in common mechanics and one shared browser adapter', async () => {
+  const [solver, calibration, selection, controls, actuator, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/browser/steering-calibration-selection.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/browser/steering-calibration-controls.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/driving-actuator.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-linear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
@@ -207,13 +211,21 @@ test('calibration authority stays in common mechanics and shared browser composi
   assert.match(solver, /calibration\.travelDirectionGain \* bodyTravelDirection/);
   assert.match(solver, /yawRate \* calibration\.yawPreviewTime/);
   assert.doesNotMatch(solver, /Digit4|Numpad8|KeyY|KeyT|camera|routeKind|CIRCUIT/);
+  assert.match(calibration, /setArcadeVehicleTravelDirectionSteeringGain/);
+  assert.match(calibration, /setArcadeVehicleSteeringYawPreviewTime/);
+  assert.match(calibration, /setArcadeVehicleSymmetricSteeringActuatorRate/);
   assert.doesNotMatch(actuator, /yawPreview|travelDirectionGain|camera|routeKind/);
   assert.doesNotMatch(selection, /vehicle\.yaw|yawRate|tire|routeKind/);
+  assert.match(controls, /mountMobileSelfSteerGainSelector/);
+  assert.match(controls, /mountMobileYawPreviewSelector/);
+  assert.match(controls, /mountMobileSteeringResponseSelector/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /DEFAULT_BROWSER_STEERING_CALIBRATION/);
-    assert.match(source, /setArcadeVehicleTravelDirectionSteeringGain/);
-    assert.match(source, /setArcadeVehicleSteeringYawPreviewTime/);
-    assert.match(source, /setArcadeVehicleSymmetricSteeringActuatorRate/);
+    assert.match(source, /mountBrowserSteeringCalibrationControls/);
+    assert.match(source, /steeringCalibrationControls\.handleKey/);
+    assert.doesNotMatch(source, /setArcadeVehicleTravelDirectionSteeringGain/);
+    assert.doesNotMatch(source, /setArcadeVehicleSteeringYawPreviewTime/);
+    assert.doesNotMatch(source, /setArcadeVehicleSymmetricSteeringActuatorRate/);
     assert.match(source, /const steeringCalibration = vehicle\.steeringCalibration/);
   }
 });

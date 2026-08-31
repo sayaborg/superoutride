@@ -61,7 +61,10 @@ defaults. The current additive steering formula is unchanged: the gain scales on
 yaw preview remains a separate term, and driver offset remains the actuator output. One shared
 browser authority owns keys/numpad/touch/HUD selection, and profile safe-spawn reconstruction
 preserves all three values without adding a vehicle-kind branch. Tires, input and camera remain
-separate authorities.
+separate authorities. `src/physics/vehicle-calibration.ts` owns calibration state rules;
+`src/browser/steering-calibration-selection.ts` owns the browser choice table; and one
+`src/browser/steering-calibration-controls.ts` adapter connects all three composition roots without
+duplicating active state.
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
 drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
