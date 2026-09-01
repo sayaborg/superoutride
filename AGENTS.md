@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/99_m9_9_controllable_drift_foundation.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
@@ -56,32 +57,45 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
+M9.9 is the current common tire-balance and deep-sideslip acceptance authority. It preserves
+M9.7's exact unit-coefficient travel-direction steering and zero-DC washout law, but supersedes the
+old requirement that a deep-beta seed self-release under either held full steering sign. The
+explicit recovery input must recover; neutral, wrong or intentionally sustaining input is not
+required to self-recover. The product rule is **uncontrollable slide is forbidden; controllable
+drift is allowed**. The shared preset-1 normalized tire seed is axle-neutral at `9.75 / 9.75`, the
+arithmetic mean of the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and
+drive torque remain the only axle-behavior causes. M9.5 preset `2/3` retain effective slope `10.3`
+and exact `12 deg / 15 deg` reference plateau targets through a derived `10.3 / 9.75` multiplier.
+No drift mode, travel-direction gain, post-peak drop, roll DOF, new dynamic state or vehicle/drive-
+layout branch is added. Handling remains `DEV_UNCALIBRATED`.
+
 M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
 selector, player default and rival-profile identity. One structured catalog owns nine production
 identities and references nine distinct compiled profiles. Manufacturer/model, identifier,
-selected specification and period remain separate. Only the normalized preset-1 tire law is
-common; mass, CG geometry, inertia, suspension, wheel, brake, drag, fixed drive split and
-automatic-shifted powertrain data are profile-owned. Keyboard/touch/HUD derive from the catalog,
-Testarossa is the default and fixed rival profile, and generic CAR/BIKE presentation uses explicit
-metadata instead of ID/name parsing. Common mechanics, M9.5 tire calibration and M9.7 steering
-remain unchanged. Handling remains `DEV_UNCALIBRATED`.
+selected specification and period remain separate. The normalized reference tire package remains
+common, with its current axle balance superseded by M9.9; mass, CG geometry, inertia, suspension,
+wheel, brake, drag, fixed drive split and automatic-shifted powertrain data are profile-owned.
+Keyboard/touch/HUD derive from the catalog, Testarossa is the default and fixed rival profile, and
+generic CAR/BIKE presentation uses explicit metadata instead of ID/name parsing. Handling remains
+`DEV_UNCALIBRATED`.
 
 M9.5 supersedes M9.4's exact browser choices and its prohibition on calibrating linear tire demand.
-The browser exposes debug presets `1 / 2 / 3`, defaulting to exact current tire preset `1`. One
-common vehicle-instance tire-calibration state atomically owns positive finite reference-friction
-and linear-stiffness multipliers. Presets `2` and `3` retain the same initial slope and target
-`12 deg` and provisional `15 deg` plateau starts on the current car front reference. Compiled tire
-profiles, `rhoKnee`, the radial law, wheel solve and relative SurfaceMap materials remain unchanged;
-ordinary construction and rivals retain unit/unit calibration.
+The browser exposes debug presets `1 / 2 / 3`. One common vehicle-instance tire-calibration state
+atomically owns positive finite reference-friction and linear-stiffness multipliers. M9.9 owns the
+current preset-1 `9.75 / 9.75` base and re-derives preset `2/3`'s linear multiplier; presets `2` and
+`3` retain effective initial slope `10.3` and target `12 deg` / provisional `15 deg` plateau starts.
+`rhoKnee`, the radial law, wheel solve and relative SurfaceMap materials remain unchanged; ordinary
+construction and rivals retain unit/unit calibration.
 
 M9.7 supersedes M9.2 in full as the current steering-control calibration and browser-selector
 authority, while retaining M9.2's symmetric actuator-traversal choices. Travel-direction feedback
 is the exact unit-coefficient body-to-CG-travel coordinate transformation and is no longer state or
 a selector. One Driver-owned yaw-rate baseline supplies zero-DC washout damping; the washout acts
 inside a bounded automatic-steering allocation before the driver offset and one final mechanical
-rack clamp. The automatic bound is derived as `maxRoadWheelSteer - steeringOffsetMax` and is safe
-only together with the compiled offset and a deep-beta attractor-exclusion regression. The only
-runtime steering selectors are yaw-transient gain, yaw-washout time and symmetric actuator
+rack clamp. The automatic bound is derived as `maxRoadWheelSteer - steeringOffsetMax`. M9.9
+supersedes only the old both-sign deep-beta release criterion; explicit recovery-input
+controllability and the retained uncontrollable-control negative fixture now own that acceptance.
+The only runtime steering selectors are yaw-transient gain, yaw-washout time and symmetric actuator
 traversal, defaulting to `0.18 s`, `0.35 s` and `0.375 s`. Compiled profiles separately own
 driver-offset, mechanical-rack, rack-response and steering-only low-speed regularization. M9.8's
 five CAR profiles currently use provisional `D=9.5 deg`; its four BIKE profiles use `D=9 deg`
@@ -89,13 +103,12 @@ through the same fields and solver. M9.7 also removed the DEV rival's absolute-y
 term and replaces its sparse instantaneous curve-speed window with one general contiguous braking-
 distance envelope: `0.42 g`, `4 m/s^2`, `12..56 m/s`, derived `400 m` coverage. It retains the
 `36 m` steering lookahead and uses a derived `0.72` request cap, planar speed and preserved
-coordinate frames; it adds no profile, vehicle-kind or course branch. The then-current
-FR/BIKE1/BIKE2 integration result is historical M9.7 evidence. M9.8 product rivals are fixed to the
-Testarossa profile pending later roster design. These remain `DEV_UNCALIBRATED` values. Ordinary
-player/rival construction shares profile defaults;
-recovery preserves selectable calibration but resets the yaw baseline to reconstructed physical
-yaw rate. Common Driver control consumes no tire force, slip, utilization, acceleration cache,
-Guide, camera, route or screen observation.
+coordinate frames; it adds no profile, vehicle-kind or course branch. M9.8 product rivals are fixed
+to the Testarossa profile pending later roster design. These remain `DEV_UNCALIBRATED` values.
+Ordinary player/rival construction shares profile defaults; recovery preserves selectable
+calibration but resets the yaw baseline to reconstructed physical yaw rate. Common Driver control
+consumes no tire force, slip, utilization, acceleration cache, Guide, camera, route or screen
+observation.
 
 M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
 common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
@@ -149,6 +162,7 @@ docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
+docs/99_m9_9_controllable_drift_foundation.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -218,6 +232,7 @@ docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
+docs/99_m9_9_controllable_drift_foundation.md
 ```
 
 ### Executable implementation contract
