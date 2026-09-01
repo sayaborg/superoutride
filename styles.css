@@ -40,6 +40,7 @@ body {
   min-height: 0;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
 #game {
@@ -217,6 +218,7 @@ body {
     grid-template-columns: minmax(96px, 1fr) minmax(0, calc(100dvh * 4 / 3)) minmax(96px, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     gap: clamp(6px, 1.5vw, 20px);
+    align-items: stretch;
     padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right));
   }
 
@@ -224,19 +226,96 @@ body {
     grid-column: 1 / -1;
     grid-row: 1;
     width: min(100%, 900px);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 6px 8px;
+  }
+
+  .touch-capable .selector-group {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 2px;
+  }
+
+  .touch-capable .selector-group-course {
+    grid-column: 1 / span 3;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-vehicle {
+    grid-column: 4 / span 4;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-camera {
+    grid-column: 8 / span 2;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-tire {
+    grid-column: 10 / span 3;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-yaw {
+    grid-column: 1 / span 5;
+    grid-row: 2;
+  }
+
+  .touch-capable .selector-group-wash {
+    grid-column: 6 / span 3;
+    grid-row: 2;
+  }
+
+  .touch-capable .selector-group-act {
+    grid-column: 9 / span 3;
+    grid-row: 2;
+  }
+
+  .touch-capable .selector-button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 2px;
+    font-size: clamp(8px, 1.55vw, 10px);
+  }
+
+  .touch-capable .course-selector-buttons {
+    grid-template-columns: repeat(4, minmax(36px, 1fr));
+  }
+
+  .touch-capable .vehicle-selector-buttons {
+    grid-template-columns: repeat(5, minmax(36px, 1fr));
+  }
+
+  .touch-capable .camera-selector-buttons {
+    grid-template-columns: repeat(2, minmax(36px, 1fr));
+  }
+
+  .touch-capable .yaw-transient-selector-buttons {
+    grid-template-columns: repeat(6, minmax(36px, 1fr));
+  }
+
+  .touch-capable .yaw-washout-selector-buttons,
+  .touch-capable .steering-response-selector-buttons {
+    grid-template-columns: repeat(4, minmax(36px, 1fr));
+  }
+
+  .touch-capable .tire-friction-selector-buttons {
+    grid-template-columns: repeat(3, minmax(36px, 1fr));
   }
 
   .touch-capable .game-zone {
     grid-column: 2;
     grid-row: 2;
     width: 100%;
+    height: 100%;
   }
 
   .touch-capable #game {
-    width: 100%;
-    max-height: calc(100dvh - 228px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .touch-capable .steering-zone {
@@ -265,9 +344,10 @@ body {
 @media (orientation: portrait) {
   .touch-capable #app {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto minmax(124px, 1fr);
-    gap: 10px 14px;
-    align-content: center;
+    grid-template-rows: auto minmax(0, 1fr) 124px;
+    gap: 8px 14px;
+    align-content: stretch;
+    align-items: stretch;
     padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
@@ -275,19 +355,93 @@ body {
     grid-column: 1 / -1;
     grid-row: 1;
     width: 100%;
-    grid-template-columns: 1fr;
-    gap: 5px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
+    gap: 4px 8px;
+  }
+
+  .touch-capable .selector-group {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 2px;
+  }
+
+  .touch-capable .selector-group-course {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-camera {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .touch-capable .selector-group-vehicle {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .touch-capable .selector-group-yaw {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .touch-capable .selector-group-wash {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .touch-capable .selector-group-act {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .touch-capable .selector-group-tire {
+    grid-column: 1;
+    grid-row: 5;
+  }
+
+  .touch-capable .selector-button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 2px;
+    font-size: clamp(8px, 2.3vw, 10px);
+  }
+
+  .touch-capable .course-selector-buttons,
+  .touch-capable .yaw-washout-selector-buttons,
+  .touch-capable .steering-response-selector-buttons {
+    grid-template-columns: repeat(4, minmax(32px, 1fr));
+  }
+
+  .touch-capable .vehicle-selector-buttons {
+    grid-template-columns: repeat(9, minmax(32px, 1fr));
+  }
+
+  .touch-capable .camera-selector-buttons {
+    grid-template-columns: repeat(2, minmax(32px, 1fr));
+  }
+
+  .touch-capable .yaw-transient-selector-buttons {
+    grid-template-columns: repeat(6, minmax(32px, 1fr));
+  }
+
+  .touch-capable .tire-friction-selector-buttons {
+    grid-template-columns: repeat(3, minmax(32px, 1fr));
   }
 
   .touch-capable .game-zone {
     grid-column: 1 / -1;
     grid-row: 2;
-    width: min(100%, calc((100dvh - 409px) * 4 / 3));
+    width: 100%;
+    height: 100%;
   }
 
   .touch-capable #game {
-    width: 100%;
-    max-height: calc(100dvh - 459px);
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .touch-capable .steering-zone {
@@ -303,6 +457,7 @@ body {
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
+    gap: 8px;
   }
 
   .touch-capable .steering-pad {
