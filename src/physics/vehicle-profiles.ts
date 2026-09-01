@@ -94,15 +94,16 @@ export interface CompiledArcadeVehicleProfile extends ArcadeVehicleProfile {
 const DEG = Math.PI / 180;
 
 /**
- * M9.8 common normalized reference tire law. Absolute corner stiffness remains load-derived and
- * wheel radius/inertia remain vehicle-specific. Preset 1 therefore preserves the M9.5 CAR basis.
+ * M9.9 common normalized reference tire law. Absolute corner stiffness remains load-derived and
+ * wheel radius/inertia remain vehicle-specific. Equal axle normalization removes the former
+ * common understeer bias so vehicle geometry, load transfer and drive torque own axle behavior.
  */
 export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
   muRef: 1.35,
   rhoKnee: 0.74,
   lowSpeedRegularization: 1.0,
-  frontNormalizedStiffness: 9,
-  rearNormalizedStiffness: 10.5,
+  frontNormalizedStiffness: 9.75,
+  rearNormalizedStiffness: 9.75,
 });
 
 const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
