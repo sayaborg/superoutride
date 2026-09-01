@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('M9.8 touch debug selectors use explicit responsive groups instead of fixed viewport subtraction', async () => {
+test('M9.8 debug selectors are device-independent while touch driving controls stay gated', async () => {
   const [index, styles] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
     readFile(new URL('../styles.css', import.meta.url), 'utf8'),
@@ -10,14 +10,27 @@ test('M9.8 touch debug selectors use explicit responsive groups instead of fixed
 
   for (const group of ['course', 'vehicle', 'camera', 'yaw', 'wash', 'act', 'tire']) {
     assert.match(index, new RegExp(`selector-group selector-group-${group}`));
-    assert.match(styles, new RegExp(`\\.touch-capable \\.selector-group-${group}`));
+    assert.match(styles, new RegExp(`\\.selector-group-${group}`));
   }
 
+  assert.match(
+    styles,
+    /\.mobile-selector-zone\s*\{[^}]*display:\s*grid;[^}]*\}/s,
+  );
+  assert.doesNotMatch(
+    styles,
+    /\.mobile-selector-zone\s*\{[^}]*display:\s*none;[^}]*\}/s,
+  );
+  assert.match(styles, /\.control-zone\s*\{[^}]*display:\s*none;/s);
+  assert.match(styles, /\.touch-capable \.control-zone\s*\{[^}]*display:\s*flex;/s);
+  assert.doesNotMatch(styles, /\.touch-capable \.mobile-selector-zone\s*\{[^}]*display:/s);
+
   assert.doesNotMatch(styles, /100dvh\s*-\s*(?:228|409|459)px/);
+  assert.match(styles, /#app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
   assert.match(styles, /grid-template-columns:\s*repeat\(12, minmax\(0, 1fr\)\)/);
   assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /grid-template-rows:\s*auto minmax\(0, 1fr\) 124px/);
-  assert.match(styles, /\.touch-capable #game\s*\{[^}]*width:\s*auto;[^}]*height:\s*100%;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s);
+  assert.match(styles, /\.touch-capable #app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) 124px;/s);
+  assert.match(styles, /#game\s*\{[^}]*width:\s*auto;[^}]*height:\s*100%;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s);
 });
 
 test('reference touch viewports have enough selector width for every direct M9.8 choice', () => {
