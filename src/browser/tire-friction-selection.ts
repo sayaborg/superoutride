@@ -88,7 +88,8 @@ export function browserTirePresetCalibration(
 export function formatTirePresetSelector(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): string {
-  return `SLIDE [G] ${browserTirePresetIdForCalibration(calibration) ?? '?'}%`;
+  const percent = Math.round(calibration.slidingFrictionRatio * 100);
+  return `SLIDE [G] ${percent}%`;
 }
 
 function mustPreset(id: BrowserTirePresetId): BrowserTireCharacteristicPreset {
