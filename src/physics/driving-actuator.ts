@@ -45,6 +45,19 @@ export function validateDrivingActuatorProfile(profile: DrivingActuatorProfile):
   }
 }
 
+/** Current steering calibration permits one traversal rate, never separate apply/release authority. */
+export function validateSymmetricSteeringActuatorRateProfile(
+  profile: NormalizedActuatorRateProfile,
+): void {
+  if (!(profile.applyRate > 0) || !Number.isFinite(profile.applyRate)
+    || !(profile.releaseRate > 0) || !Number.isFinite(profile.releaseRate)) {
+    throw new RangeError('vehicle steering actuator rates must be finite and > 0');
+  }
+  if (profile.applyRate !== profile.releaseRate) {
+    throw new RangeError('vehicle steering actuator apply/release rates must be symmetric');
+  }
+}
+
 /**
  * One bounded asymmetric response primitive for steering, throttle and brake.
  * A nonzero steering reversal uses applyRate continuously through neutral.

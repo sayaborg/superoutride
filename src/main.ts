@@ -6,7 +6,6 @@ import {
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
-import { DEFAULT_BROWSER_STEERING_CALIBRATION } from './browser/steering-calibration-selection.js';
 import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './browser/tire-friction-selection.js';
 import { mountBrowserTireFrictionControls } from './browser/tire-friction-controls.js';
@@ -116,8 +115,8 @@ const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
 const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
 const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
-const selfSteerSelectorButtons = mustGet<HTMLElement>('self-steer-selector-buttons');
-const yawPreviewSelectorButtons = mustGet<HTMLElement>('yaw-preview-selector-buttons');
+const yawTransientSelectorButtons = mustGet<HTMLElement>('yaw-transient-selector-buttons');
+const yawWashoutSelectorButtons = mustGet<HTMLElement>('yaw-washout-selector-buttons');
 const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
 const tireFrictionSelectorButtons = mustGet<HTMLElement>('tire-friction-selector-buttons');
 
@@ -164,7 +163,7 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   45,
   M7_2_PLAYER_START_L,
   45,
-  DEFAULT_BROWSER_STEERING_CALIBRATION,
+  undefined,
   DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
 );
 const cameraRig = createM5CameraRig();
@@ -242,8 +241,8 @@ const cameraYawSelector = mountMobileCameraYawSelector(
 );
 const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
   {
-    selfSteer: selfSteerSelectorButtons,
-    yawPreview: yawPreviewSelectorButtons,
+    yawTransient: yawTransientSelectorButtons,
+    yawWashout: yawWashoutSelectorButtons,
     steeringResponse: steeringResponseSelectorButtons,
   },
   () => vehicle,

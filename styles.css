@@ -104,12 +104,12 @@ body {
   grid-template-columns: repeat(2, minmax(44px, 1fr));
 }
 
-.self-steer-selector-buttons {
+.yaw-transient-selector-buttons {
   grid-template-columns: repeat(6, minmax(44px, 1fr));
 }
 
-.yaw-preview-selector-buttons {
-  grid-template-columns: repeat(6, minmax(44px, 1fr));
+.yaw-washout-selector-buttons {
+  grid-template-columns: repeat(4, minmax(44px, 1fr));
 }
 
 .steering-response-selector-buttons {

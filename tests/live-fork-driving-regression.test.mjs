@@ -110,7 +110,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
     const targetL = runtimeBefore.packageId === 'CONTENT_STAGE_1'
       ? M6_13_JUNCTION.separatedChildCenterL('LEFT')
       : 0;
-    const input = sampleRivalDrivingInput(guideCoordinateCurve(runtimeBefore.coordinateFrame), car, targetL);
+    const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, targetL);
     updateTestVehicle(runtimeBefore.coordinateFrame, runtimeBefore.heightProfile, runtimeBefore.surfaceMap, car, input, DT);
     if (runtimeBefore.packageId === 'CONTENT_STAGE_1') maxParentS = Math.max(maxParentS, car.course.s);
 

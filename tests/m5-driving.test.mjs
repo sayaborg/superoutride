@@ -132,13 +132,15 @@ test('lower-friction sand limits turning response versus asphalt in the same ste
   let asphaltPeakYawRate = 0;
   let sandPeakYawRate = 0;
   for (let i = 0; i < 30; i += 1) {
-    const input = { steering: -0.45, throttle: false, brake: false };
+    // M9.7's smaller reserved driver offset requires full request to exercise the friction limit;
+    // a partial request can remain below asphalt capacity while sand over-rotates in saturation.
+    const input = { steering: -1, throttle: false, brake: false };
     updateTestVehicle(guide, height, surfaces, asphalt, input, 1 / 60);
     updateTestVehicle(guide, height, surfaces, sand, input, 1 / 60);
     asphaltPeakYawRate = Math.max(asphaltPeakYawRate, Math.abs(asphalt.yawRate));
     sandPeakYawRate = Math.max(sandPeakYawRate, Math.abs(sand.yawRate));
   }
-  assert.ok(asphaltPeakYawRate > sandPeakYawRate);
+  assert.ok(asphaltPeakYawRate > sandPeakYawRate * 1.3);
 });
 
 test('VOID means no support: planar momentum continues while vertical state falls', () => {

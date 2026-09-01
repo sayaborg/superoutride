@@ -1,4 +1,7 @@
-import type { NormalizedActuatorRateProfile } from './driving-actuator.js';
+import {
+  validateSymmetricSteeringActuatorRateProfile,
+  type NormalizedActuatorRateProfile,
+} from './driving-actuator.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 
 export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
@@ -12,20 +15,20 @@ export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
  */
 export type VehiclePhysicsCalibrationStatus = typeof VEHICLE_PHYSICS_CALIBRATION_STATUS;
 
-export interface ArcadeSteeringFeedbackCalibration {
-  readonly travelDirectionGain: number;
-  readonly yawPreviewTime: number;
+export interface ArcadeSteeringTransientCalibration {
+  readonly yawTransientGain: number;
+  readonly yawWashoutTime: number;
 }
 
 export interface ArcadeSteeringCalibrationInput {
-  readonly travelDirectionGain?: number;
-  readonly yawPreviewTime?: number;
+  readonly yawTransientGain?: number;
+  readonly yawWashoutTime?: number;
   readonly steeringActuatorResponse?: NormalizedActuatorRateProfile;
 }
 
-export interface ArcadeSteeringCalibrationState extends ArcadeSteeringFeedbackCalibration {
-  travelDirectionGain: number;
-  yawPreviewTime: number;
+export interface ArcadeSteeringCalibrationState extends ArcadeSteeringTransientCalibration {
+  yawTransientGain: number;
+  yawWashoutTime: number;
   steeringActuatorResponse: Readonly<NormalizedActuatorRateProfile>;
 }
 
@@ -37,40 +40,39 @@ export function createArcadeSteeringCalibration(
   profile: CompiledArcadeVehicleProfile,
   input: ArcadeSteeringCalibrationInput = {},
 ): ArcadeSteeringCalibrationState {
-  const travelDirectionGain = input.travelDirectionGain ?? 1;
-  const yawPreviewTime = input.yawPreviewTime ?? profile.steeringYawPreviewTime;
+  const yawTransientGain = input.yawTransientGain ?? profile.steeringYawTransientGain;
+  const yawWashoutTime = input.yawWashoutTime ?? profile.steeringYawWashoutTime;
   const steeringActuatorResponse = input.steeringActuatorResponse ?? profile.actuator.steering;
-  assertArcadeSteeringFeedbackCalibration({ travelDirectionGain, yawPreviewTime });
-  assertPositiveFiniteSteeringActuatorRate(steeringActuatorResponse.applyRate);
-  assertPositiveFiniteSteeringActuatorRate(steeringActuatorResponse.releaseRate);
+  assertArcadeSteeringTransientCalibration({ yawTransientGain, yawWashoutTime });
+  validateSymmetricSteeringActuatorRateProfile(steeringActuatorResponse);
   return {
-    travelDirectionGain,
-    yawPreviewTime,
+    yawTransientGain,
+    yawWashoutTime,
     steeringActuatorResponse: immutableRateProfile(steeringActuatorResponse),
   };
 }
 
-export function assertArcadeSteeringFeedbackCalibration(
-  calibration: ArcadeSteeringFeedbackCalibration,
+export function assertArcadeSteeringTransientCalibration(
+  calibration: ArcadeSteeringTransientCalibration,
 ): void {
-  assertTravelDirectionSteeringGain(calibration.travelDirectionGain);
-  assertSteeringYawPreviewTime(calibration.yawPreviewTime);
+  assertNonNegativeFiniteYawTransientGain(calibration.yawTransientGain);
+  assertPositiveFiniteYawWashoutTime(calibration.yawWashoutTime);
 }
 
-export function setArcadeVehicleTravelDirectionSteeringGain(
+export function setArcadeVehicleSteeringYawTransientGain(
   vehicle: ArcadeSteeringCalibrationOwner,
-  gain: number,
+  yawTransientGain: number,
 ): void {
-  assertTravelDirectionSteeringGain(gain);
-  vehicle.steeringCalibration.travelDirectionGain = gain;
+  assertNonNegativeFiniteYawTransientGain(yawTransientGain);
+  vehicle.steeringCalibration.yawTransientGain = yawTransientGain;
 }
 
-export function setArcadeVehicleSteeringYawPreviewTime(
+export function setArcadeVehicleSteeringYawWashoutTime(
   vehicle: ArcadeSteeringCalibrationOwner,
-  yawPreviewTime: number,
+  yawWashoutTime: number,
 ): void {
-  assertSteeringYawPreviewTime(yawPreviewTime);
-  vehicle.steeringCalibration.yawPreviewTime = yawPreviewTime;
+  assertPositiveFiniteYawWashoutTime(yawWashoutTime);
+  vehicle.steeringCalibration.yawWashoutTime = yawWashoutTime;
 }
 
 export function setArcadeVehicleSymmetricSteeringActuatorRate(
@@ -93,15 +95,15 @@ function immutableRateProfile(
   });
 }
 
-function assertTravelDirectionSteeringGain(gain: number): void {
-  if (!(gain >= 0 && gain <= 1) || !Number.isFinite(gain)) {
-    throw new RangeError('vehicle travel-direction steering gain must be finite and lie in [0,1]');
+function assertNonNegativeFiniteYawTransientGain(gain: number): void {
+  if (!(gain >= 0) || !Number.isFinite(gain)) {
+    throw new RangeError('vehicle steering yaw transient gain must be finite and >= 0');
   }
 }
 
-function assertSteeringYawPreviewTime(yawPreviewTime: number): void {
-  if (!(yawPreviewTime >= 0) || !Number.isFinite(yawPreviewTime)) {
-    throw new RangeError('vehicle steering yaw preview time must be finite and >= 0');
+function assertPositiveFiniteYawWashoutTime(time: number): void {
+  if (!(time > 0) || !Number.isFinite(time)) {
+    throw new RangeError('vehicle steering yaw washout time must be finite and > 0');
   }
 }
 

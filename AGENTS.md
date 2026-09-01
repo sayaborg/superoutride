@@ -42,9 +42,9 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/97_m9_7_bounded_washout_steering_assist.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/94_m9_4_selectable_tire_friction.md
-docs/92_m9_2_selectable_self_steer_gain.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
@@ -63,6 +63,30 @@ and linear-stiffness multipliers. Presets `2` and `3` retain the same initial sl
 profiles, `rhoKnee`, the radial law, wheel solve and relative SurfaceMap materials remain unchanged;
 ordinary construction and rivals retain unit/unit calibration.
 
+M9.7 supersedes M9.2 in full as the current steering-control calibration and browser-selector
+authority, while retaining M9.2's symmetric actuator-traversal choices. Travel-direction feedback
+is the exact unit-coefficient body-to-CG-travel coordinate transformation and is no longer state or
+a selector. One Driver-owned yaw-rate baseline supplies zero-DC washout damping; the washout acts
+inside a bounded automatic-steering allocation before the driver offset and one final mechanical
+rack clamp. The automatic bound is derived as `maxRoadWheelSteer - steeringOffsetMax` and is safe
+only together with the compiled offset and a deep-beta attractor-exclusion regression. The only
+runtime steering selectors are yaw-transient gain, yaw-washout time and symmetric actuator
+traversal, defaulting to `0.18 s`, `0.35 s` and `0.375 s`. Compiled profiles separately own
+driver-offset, mechanical-rack, rack-response and steering-only low-speed regularization. The four
+CAR profiles currently retain provisional `D=9.5 deg / A=21.5 deg`; BIKE1/BIKE2 retain
+`D=9 deg / A=22 deg`. BIKE flat
+steady/deep-seed/pulse probes are measured. M9.7 also removes the DEV rival's absolute-yaw request
+term and replaces its sparse instantaneous curve-speed window with one general contiguous braking-
+distance envelope: `0.42 g`, `4 m/s^2`, `12..56 m/s`, derived `400 m` coverage. It retains the
+`36 m` steering lookahead and uses a derived `0.72` request cap, planar speed and preserved
+coordinate frames; it adds no profile, vehicle-kind or course branch. FR/BIKE1/BIKE2 complete
+mountain, Tsukuba and FISCO
+recovery-free within road width, below `15 deg` sideslip and with zero unsupported ticks. These
+remain `DEV_UNCALIBRATED` values. Ordinary player/rival construction shares profile defaults;
+recovery preserves selectable calibration but resets the yaw baseline to reconstructed physical
+yaw rate. Common Driver control consumes no tire force, slip, utilization, acceleration cache,
+Guide, camera, route or screen observation.
+
 M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
 common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
 Browser choices are `SEMI=1.0x`, `1.5x`, `2.0x` and `2.5x`; ordinary construction and rivals retain
@@ -70,18 +94,12 @@ Browser choices are `SEMI=1.0x`, `1.5x`, `2.0x` and `2.5x`; ordinary constructio
 Tire stiffness, `rhoKnee`, demand, combined-slip transition, wheel solve and surface materials
 remain separate unchanged authorities.
 
-M9.2 supersedes the M9.0 implicit unit coefficient on travel-direction steering feedback and its
-asymmetric steering-actuator rates. One common vehicle-instance calibration state owns
-travel-direction gain, yaw-preview time and symmetric steering-actuator response. Browser defaults
-are `0.4`, `0.12 s` and `0.375 s` full traversal; ordinary construction and rivals retain profile
-defaults. The current additive steering formula is unchanged: the gain scales only `betaTravel`,
-yaw preview remains a separate term, and driver offset remains the actuator output. One shared
-browser authority owns keys/numpad/touch/HUD selection, and profile safe-spawn reconstruction
-preserves all three values without adding a vehicle-kind branch. Tires, input and camera remain
-separate authorities. `src/physics/vehicle-calibration.ts` owns calibration state rules;
-`src/browser/steering-calibration-selection.ts` owns the browser choice table; and one
-`src/browser/steering-calibration-controls.ts` adapter connects all three composition roots without
-duplicating active state.
+M9.2 historically superseded the M9.0 implicit unit coefficient on travel-direction steering
+feedback and its asymmetric steering-actuator rates, and exposed gain/yaw-preview/response as three
+browser comparisons. M9.7 now supersedes its gain and absolute-yaw-preview authority, deletes the
+gain selector completely and restates the retained symmetric-response choices beside the two new
+washout calibration selectors. Do not recreate an M9.2 compatibility state, setter, key path or
+presentation row.
 
 M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
 drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
@@ -119,10 +137,10 @@ docs/82_m8_3_three_mode_course_debug.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
-docs/92_m9_2_selectable_self_steer_gain.md
 docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
+docs/97_m9_7_bounded_washout_steering_assist.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -190,6 +208,7 @@ docs/93_m9_3_tsukuba_circuit.md
 docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
+docs/97_m9_7_bounded_washout_steering_assist.md
 ```
 
 ### Executable implementation contract

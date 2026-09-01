@@ -108,6 +108,7 @@ test('automatic recovery returns a fallen car to supported road center and reset
 test('common recovery clears dynamic state instead of carrying a crash response into respawn', () => {
   const bike = createTestBike(guide, height, surfaces, 520);
   bike.yawRate = 2;
+  bike.steeringAssist.yawRateBaseline = -3;
   bike.pitchRate = -1;
   bike.actuator.steering = 1;
   bike.frontNormalLoad = 0;
@@ -122,6 +123,7 @@ test('common recovery clears dynamic state instead of carrying a crash response 
   const reason = updateM5Recovery(recovery, guide, height, surfaces, bike, 1 / 60);
   assert.equal(reason, 'chart-excursion');
   assert.equal(bike.yawRate, 0);
+  assert.equal(bike.steeringAssist.yawRateBaseline, bike.yawRate);
   assert.equal(bike.pitchRate, 0);
   assert.equal(bike.actuator.steering, 0);
   assert.ok(Math.abs(deriveVehicleLeanRadians(bike)) < 1e-12);

@@ -6,15 +6,15 @@ import {
   createMobileCourseSelectorModel,
   createMobileCameraYawSelectorModel,
   createMobileVehicleSelectorModel,
-  createMobileSelfSteerGainSelectorModel,
   createMobileSteeringResponseSelectorModel,
-  createMobileYawPreviewSelectorModel,
+  createMobileYawTransientSelectorModel,
+  createMobileYawWashoutSelectorModel,
   mountMobileCameraYawSelector,
   mountMobileCourseSelector,
   mountMobileVehicleSelector,
-  mountMobileSelfSteerGainSelector,
   mountMobileSteeringResponseSelector,
-  mountMobileYawPreviewSelector,
+  mountMobileYawTransientSelector,
+  mountMobileYawWashoutSelector,
 } from '../dist/browser/mobile-selector-controls.js';
 import { mountBrowserSteeringCalibrationControls } from '../dist/browser/steering-calibration-controls.js';
 import {
@@ -144,44 +144,34 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile self-steer buttons expose the six canonical calibration gains', () => {
-  assert.deepEqual(createMobileSelfSteerGainSelectorModel(0.8), [
-    { value: 0, label: '0.0', ariaLabel: 'Set self-steer gain to 0.0', active: false },
-    { value: 0.2, label: '0.2', ariaLabel: 'Set self-steer gain to 0.2', active: false },
-    { value: 0.4, label: '0.4', ariaLabel: 'Set self-steer gain to 0.4', active: false },
-    { value: 0.6, label: '0.6', ariaLabel: 'Set self-steer gain to 0.6', active: false },
-    { value: 0.8, label: '0.8', ariaLabel: 'Set self-steer gain to 0.8', active: true },
-    { value: 1, label: '1.0', ariaLabel: 'Set self-steer gain to 1.0', active: false },
-  ]);
-});
-
-test('mobile yaw-preview and symmetric-response buttons expose canonical calibration choices', () => {
+test('mobile yaw-transient, yaw-washout and symmetric-response buttons expose canonical choices', () => {
   assert.deepEqual(
-    createMobileYawPreviewSelectorModel(0.12).map(({ value, label, active }) => ({
-      value,
-      label,
-      active,
-    })),
+    createMobileYawTransientSelectorModel(0.18),
     [
-      { value: 0, label: '0.00', active: false },
-      { value: 0.06, label: '0.06', active: false },
-      { value: 0.12, label: '0.12', active: true },
-      { value: 0.18, label: '0.18', active: false },
-      { value: 0.24, label: '0.24', active: false },
-      { value: 0.3, label: '0.30', active: false },
+      { value: 0, label: '0.00', ariaLabel: 'Set steering yaw transient gain to 0.00 seconds', active: false },
+      { value: 0.06, label: '0.06', ariaLabel: 'Set steering yaw transient gain to 0.06 seconds', active: false },
+      { value: 0.12, label: '0.12', ariaLabel: 'Set steering yaw transient gain to 0.12 seconds', active: false },
+      { value: 0.18, label: '0.18', ariaLabel: 'Set steering yaw transient gain to 0.18 seconds', active: true },
+      { value: 0.24, label: '0.24', ariaLabel: 'Set steering yaw transient gain to 0.24 seconds', active: false },
+      { value: 0.3, label: '0.30', ariaLabel: 'Set steering yaw transient gain to 0.30 seconds', active: false },
     ],
   );
   assert.deepEqual(
-    createMobileSteeringResponseSelectorModel(8 / 3).map(({ value, label, active }) => ({
-      value,
-      label,
-      active,
-    })),
+    createMobileYawWashoutSelectorModel(0.35),
     [
-      { value: 4, label: '0.25', active: false },
-      { value: 8 / 3, label: '0.375', active: true },
-      { value: 2, label: '0.5', active: false },
-      { value: 1.6, label: '0.625', active: false },
+      { value: 0.2, label: '0.20', ariaLabel: 'Set steering yaw washout time to 0.20 seconds', active: false },
+      { value: 0.35, label: '0.35', ariaLabel: 'Set steering yaw washout time to 0.35 seconds', active: true },
+      { value: 0.5, label: '0.50', ariaLabel: 'Set steering yaw washout time to 0.50 seconds', active: false },
+      { value: 0.65, label: '0.65', ariaLabel: 'Set steering yaw washout time to 0.65 seconds', active: false },
+    ],
+  );
+  assert.deepEqual(
+    createMobileSteeringResponseSelectorModel(8 / 3),
+    [
+      { value: 4, label: '0.25', ariaLabel: 'Set symmetric steering traversal to 0.25 seconds', active: false },
+      { value: 8 / 3, label: '0.375', ariaLabel: 'Set symmetric steering traversal to 0.375 seconds', active: true },
+      { value: 2, label: '0.5', ariaLabel: 'Set symmetric steering traversal to 0.5 seconds', active: false },
+      { value: 1.6, label: '0.625', ariaLabel: 'Set symmetric steering traversal to 0.625 seconds', active: false },
     ],
   );
 });
@@ -220,35 +210,35 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     ['false', 'false', 'false', 'false', 'true', 'false'],
   );
 
-  const gainContainer = new FakeContainer();
-  let selectedGain = null;
-  const gainController = mountMobileSelfSteerGainSelector(
-    gainContainer,
-    0.4,
-    (gain) => { selectedGain = gain; },
+  const yawTransientContainer = new FakeContainer();
+  let selectedYawTransient = null;
+  const yawTransientController = mountMobileYawTransientSelector(
+    yawTransientContainer,
+    0.18,
+    (gain) => { selectedYawTransient = gain; },
     fakeDocument,
   );
-  gainContainer.children[4].click();
-  assert.equal(selectedGain, 0.8);
-  gainController.setActive(selectedGain);
+  yawTransientContainer.children[4].click();
+  assert.equal(selectedYawTransient, 0.24);
+  yawTransientController.setActive(selectedYawTransient);
   assert.deepEqual(
-    gainContainer.children.map((button) => button.attributes.get('aria-pressed')),
+    yawTransientContainer.children.map((button) => button.attributes.get('aria-pressed')),
     ['false', 'false', 'false', 'false', 'true', 'false'],
   );
   assert.equal(vehicleContainer.children[4].classList.contains('active'), true);
 
-  const yawContainer = new FakeContainer();
-  let selectedYawPreview = null;
-  const yawController = mountMobileYawPreviewSelector(
-    yawContainer,
-    0.12,
-    (yawPreviewTime) => { selectedYawPreview = yawPreviewTime; },
+  const yawWashoutContainer = new FakeContainer();
+  let selectedYawWashout = null;
+  const yawWashoutController = mountMobileYawWashoutSelector(
+    yawWashoutContainer,
+    0.35,
+    (yawWashoutTime) => { selectedYawWashout = yawWashoutTime; },
     fakeDocument,
   );
-  yawContainer.children[5].click();
-  assert.equal(selectedYawPreview, 0.3);
-  yawController.setActive(selectedYawPreview);
-  assert.equal(yawContainer.children[5].attributes.get('aria-pressed'), 'true');
+  yawWashoutContainer.children[3].click();
+  assert.equal(selectedYawWashout, 0.65);
+  yawWashoutController.setActive(selectedYawWashout);
+  assert.equal(yawWashoutContainer.children[3].attributes.get('aria-pressed'), 'true');
 
   const responseContainer = new FakeContainer();
   let selectedResponseRate = null;
@@ -284,14 +274,14 @@ test('mobile selector taps publish canonical selections and expose exactly one a
 test('one browser steering adapter owns keyboard touch and the current vehicle instance', () => {
   const fakeDocument = new FakeDocument();
   const containers = {
-    selfSteer: new FakeContainer(),
-    yawPreview: new FakeContainer(),
+    yawTransient: new FakeContainer(),
+    yawWashout: new FakeContainer(),
     steeringResponse: new FakeContainer(),
   };
   let vehicle = {
     steeringCalibration: {
-      travelDirectionGain: 0.4,
-      yawPreviewTime: 0.12,
+      yawTransientGain: 0.18,
+      yawWashoutTime: 0.35,
       steeringActuatorResponse: { applyRate: 8 / 3, releaseRate: 8 / 3 },
     },
   };
@@ -301,10 +291,14 @@ test('one browser steering adapter owns keyboard touch and the current vehicle i
     fakeDocument,
   );
 
-  assert.equal(controls.handleKey('Digit8'), true);
-  assert.equal(vehicle.steeringCalibration.travelDirectionGain, 0.8);
+  for (let digit = 4; digit <= 9; digit += 1) {
+    assert.equal(controls.handleKey(`Digit${digit}`), false);
+    assert.equal(controls.handleKey(`Numpad${digit}`), false);
+  }
   assert.equal(controls.handleKey('KeyY'), true);
-  assert.equal(vehicle.steeringCalibration.yawPreviewTime, 0.18);
+  assert.equal(vehicle.steeringCalibration.yawTransientGain, 0.24);
+  assert.equal(controls.handleKey('KeyU'), true);
+  assert.equal(vehicle.steeringCalibration.yawWashoutTime, 0.5);
   assert.equal(controls.handleKey('KeyT'), true);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
     applyRate: 2,
@@ -314,14 +308,16 @@ test('one browser steering adapter owns keyboard touch and the current vehicle i
 
   vehicle = {
     steeringCalibration: {
-      travelDirectionGain: vehicle.steeringCalibration.travelDirectionGain,
-      yawPreviewTime: vehicle.steeringCalibration.yawPreviewTime,
+      yawTransientGain: vehicle.steeringCalibration.yawTransientGain,
+      yawWashoutTime: vehicle.steeringCalibration.yawWashoutTime,
       steeringActuatorResponse: vehicle.steeringCalibration.steeringActuatorResponse,
     },
   };
-  containers.yawPreview.children[1].click();
+  containers.yawTransient.children[1].click();
+  containers.yawWashout.children[1].click();
   containers.steeringResponse.children[3].click();
-  assert.equal(vehicle.steeringCalibration.yawPreviewTime, 0.06);
+  assert.equal(vehicle.steeringCalibration.yawTransientGain, 0.06);
+  assert.equal(vehicle.steeringCalibration.yawWashoutTime, 0.35);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
     applyRate: 1.6,
     releaseRate: 1.6,
@@ -339,11 +335,12 @@ test('browser compositions mount the shared mobile selector adapter without dupl
   assert.match(index, /id="course-selector-buttons"/);
   assert.match(index, /id="vehicle-selector-buttons"/);
   assert.match(index, /id="camera-selector-buttons"/);
-  assert.match(index, /id="self-steer-selector-buttons"/);
-  assert.match(index, /id="yaw-preview-selector-buttons"/);
+  assert.match(index, /id="yaw-transient-selector-buttons"/);
+  assert.match(index, /id="yaw-washout-selector-buttons"/);
   assert.match(index, /id="steering-response-selector-buttons"/);
   assert.match(index, /id="tire-friction-selector-buttons"/);
-  assert.doesNotMatch(index, /data-(?:course|vehicle|self-steer|yaw-preview|steering-response|tire-friction)-/);
+  assert.doesNotMatch(index, /self-steer|yaw-preview|>SELF</i);
+  assert.doesNotMatch(index, /data-(?:course|vehicle|yaw-transient|yaw-washout|steering-response|tire-friction)-/);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /mountMobileVehicleSelector/);
@@ -352,8 +349,10 @@ test('browser compositions mount the shared mobile selector adapter without dupl
     assert.match(source, /steeringCalibrationControls\.handleKey/);
     assert.match(source, /mountBrowserTireFrictionControls/);
     assert.match(source, /tireFrictionControls\.handleKey/);
-    assert.doesNotMatch(source, /mountMobileSelfSteerGainSelector/);
-    assert.doesNotMatch(source, /mountMobileYawPreviewSelector/);
+    assert.match(source, /yawTransient: yawTransientSelectorButtons/);
+    assert.match(source, /yawWashout: yawWashoutSelectorButtons/);
+    assert.doesNotMatch(source, /mountMobileYawTransientSelector/);
+    assert.doesNotMatch(source, /mountMobileYawWashoutSelector/);
     assert.doesNotMatch(source, /mountMobileSteeringResponseSelector/);
     assert.doesNotMatch(source, /mountMobileTireFrictionSelector/);
   }

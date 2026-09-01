@@ -17,7 +17,6 @@ import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
 import {
   M7_2_DEFAULT_BRANCHING_FORK,
-  M7_2_DEFAULT_BRANCHING_JUNCTION,
   createM72DefaultBranchingParent,
 } from '../dist/dev/m7-2-default-branching-highway.js';
 import {
@@ -46,7 +45,6 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { setArcadeVehicleTravelDirectionSteeringGain } from '../dist/physics/vehicle-calibration.js';
 import {
   HUD_INPUT_ACCEL_COLOR,
   HUD_INPUT_BRAKE_COLOR,
@@ -61,6 +59,7 @@ import {
   createLiveRouteTravelerState,
   resyncLiveRouteTraveler,
   resolveLiveRouteTravelerRuntime,
+  sampleLiveRouteChoiceTargetL,
 } from '../dist/runtime/live-route-traveler.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
@@ -240,7 +239,6 @@ test('all six vehicle profiles integrate ordinarily on the finite LINEAR course'
 test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
   const runtime = createM83LinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
-  setArcadeVehicleTravelDirectionSteeringGain(vehicle, 0.4);
   vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
   vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
   vehicle.control.throttleActuator = 0.42;
@@ -254,8 +252,8 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.match(model.vehicleSelector, /\[Q\]FR\*/);
-  assert.match(model.selfSteerSelector, /\[6\]0\.4\*/);
-  assert.equal(model.yawPreviewSelector, 'YAW [Y] 0.12s');
+  assert.equal(model.yawTransientSelector, 'YAW [Y] 0.18s');
+  assert.equal(model.yawWashoutSelector, 'WASH [U] 0.35s');
   assert.equal(model.steeringResponseSelector, 'ACT [T] 0.375s');
   assert.equal(model.tireFrictionSelector, 'TIRE [G] 1');
   assert.equal(model.requestedSteering, -1);
@@ -406,16 +404,18 @@ for (const [profile, createVehicle, presentationKind] of [
     const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
     const recovery = createM5RecoveryState(car);
     const cameraRig = createM5CameraRig();
-    const targetL = M7_2_DEFAULT_BRANCHING_JUNCTION.separatedChildCenterL(side);
+    const choiceId = `S1_${side}`;
     let committed = false;
     let renderedAfterCommit = 0;
     let minSpeedAfterCommit = Infinity;
 
     for (let tick = 0; tick < 1_800; tick += 1) {
       const runtimeBefore = resolveLiveRouteTravelerRuntime(live, traveler);
-      const desiredL = runtimeBefore.packageId === 'CONTENT_STAGE_1' ? targetL : 0;
+      const desiredL = runtimeBefore.packageId === 'CONTENT_STAGE_1'
+        ? sampleLiveRouteChoiceTargetL(live, traveler, choiceId, car.course.s)
+        : 0;
       const input = sampleRivalDrivingInput(
-        guideCoordinateCurve(runtimeBefore.coordinateFrame),
+        runtimeBefore.coordinateFrame,
         car,
         desiredL,
       );
@@ -481,6 +481,11 @@ for (const [profile, createVehicle, presentationKind] of [
     assert.ok(renderedAfterCommit >= 30);
     assert.ok(car.course.s > 120);
     assert.ok(minSpeedAfterCommit > 8, `post-COMMIT speed fell to ${minSpeedAfterCommit}`);
+    assert.equal(
+      recovery.recoveries,
+      0,
+      `${profile.id} ${side} fork must not use recovery as hidden path-following authority`,
+    );
     });
   }
 }

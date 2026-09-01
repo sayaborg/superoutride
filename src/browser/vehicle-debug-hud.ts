@@ -4,9 +4,9 @@ import {
 } from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
 import {
-  formatSelfSteerGainSelector,
   formatSteeringResponseSelector,
-  formatYawPreviewSelector,
+  formatYawTransientSelector,
+  formatYawWashoutSelector,
 } from './steering-calibration-selection.js';
 import { formatTirePresetSelector } from './tire-friction-selection.js';
 import {
@@ -25,8 +25,8 @@ export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
-  readonly selfSteerSelector: string;
-  readonly yawPreviewSelector: string;
+  readonly yawTransientSelector: string;
+  readonly yawWashoutSelector: string;
   readonly steeringResponseSelector: string;
   readonly tireFrictionSelector: string;
   readonly instruments: string;
@@ -50,10 +50,12 @@ export function createVehicleDebugHudModel(
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
-    selfSteerSelector: `SELF ${formatSelfSteerGainSelector(
-      vehicle.steeringCalibration.travelDirectionGain,
-    )}`,
-    yawPreviewSelector: formatYawPreviewSelector(vehicle.steeringCalibration.yawPreviewTime),
+    yawTransientSelector: formatYawTransientSelector(
+      vehicle.steeringCalibration.yawTransientGain,
+    ),
+    yawWashoutSelector: formatYawWashoutSelector(
+      vehicle.steeringCalibration.yawWashoutTime,
+    ),
     steeringResponseSelector: formatSteeringResponseSelector(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
     ),
@@ -83,10 +85,10 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.6 ${model.courseSelector}`,
+    `M9.7 ${model.courseSelector}`,
     model.vehicleSelector,
-    model.selfSteerSelector,
-    model.yawPreviewSelector,
+    model.yawTransientSelector,
+    model.yawWashoutSelector,
     model.steeringResponseSelector,
     model.tireFrictionSelector,
     model.instruments,

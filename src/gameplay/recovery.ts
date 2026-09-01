@@ -5,6 +5,7 @@ import {
 import { clamp } from '../core/math.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
+import { resetArcadeSteeringAssistState } from '../physics/steering-assist.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import {
   initializeGuideObservation,
@@ -144,8 +145,8 @@ export function recoverM5Vehicle(
 
 /**
  * Explicit gameplay discontinuity: reconstruct a complete safe authoritative vehicle state at one
- * authored supported coordinate. No contact phase, tire memory, assist state or route progress is
- * manufactured.
+ * authored supported coordinate. No contact phase, tire memory or route progress is manufactured;
+ * Driver washout memory is synchronized to the reconstructed physical yaw rate.
  */
 export function recoverM5VehicleToGuideCoordinate(
   state: M5RecoveryState,
@@ -214,6 +215,7 @@ function reconstructVehicle(
   vehicle.yawRate = 0;
   vehicle.pitchRate = 0;
   vehicle.frontSteerAngle = 0;
+  resetArcadeSteeringAssistState(vehicle.steeringAssist, vehicle.yawRate);
   resetDrivingActuatorState(vehicle.actuator);
   vehicle.frontWheelOmega = speed / p.frontWheelRadius;
   vehicle.rearWheelOmega = speed / p.rearWheelRadius;

@@ -6,6 +6,7 @@ import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branch
 import {
   createArcadeVehicle,
   stepTravelDirectionSteering,
+  travelDirectionSteeringTarget,
   updateArcadeVehicle,
   vehicleBodyTravelDirection,
 } from '../dist/physics/arcade-vehicle-physics.js';
@@ -47,8 +48,14 @@ test('common body travel direction derives self-steering from authoritative CG v
     forward: { x: 0, y: 0, z: 1 },
     omegaWorld: { x: 0, y: 0.2, z: 0 },
   };
-  const actual = vehicleBodyTravelDirection(body, FR_VEHICLE_PROFILE.lowSpeedRegularization);
-  const expected = Math.atan2(-3, Math.sqrt(30 ** 2 + FR_VEHICLE_PROFILE.lowSpeedRegularization ** 2));
+  const actual = vehicleBodyTravelDirection(
+    body,
+    FR_VEHICLE_PROFILE.steeringLowSpeedRegularization,
+  );
+  const expected = Math.atan2(
+    -3,
+    Math.sqrt(30 ** 2 + FR_VEHICLE_PROFILE.steeringLowSpeedRegularization ** 2),
+  );
   assert.ok(Math.abs(actual - expected) < 1e-12);
   assert.ok(actual < 0);
 });
@@ -111,11 +118,40 @@ test('common rack has one mechanical stop and profile compilation rejects invali
     FR_VEHICLE_PROFILE.steeringOffsetMax,
     FR_VEHICLE_PROFILE.maxRoadWheelSteer,
     0,
-    { travelDirectionGain: 1, yawPreviewTime: FR_VEHICLE_PROFILE.steeringYawPreviewTime },
+    {
+      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+    },
     DT,
     FR_VEHICLE_PROFILE,
   );
   assert.ok(atStop <= FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.equal(
+    FR_VEHICLE_PROFILE.steeringAutomaticMax,
+    FR_VEHICLE_PROFILE.maxRoadWheelSteer - FR_VEHICLE_PROFILE.steeringOffsetMax,
+  );
+  const saturatedWithoutYaw = travelDirectionSteeringTarget(
+    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    Math.PI / 3,
+    0,
+    {
+      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+    },
+    FR_VEHICLE_PROFILE,
+  );
+  const saturatedWithYaw = travelDirectionSteeringTarget(
+    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    Math.PI / 3,
+    1,
+    {
+      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+    },
+    FR_VEHICLE_PROFILE,
+  );
+  assert.equal(saturatedWithYaw, saturatedWithoutYaw);
+  assert.equal(saturatedWithoutYaw, FR_VEHICLE_PROFILE.maxRoadWheelSteer);
   assert.throws(
     () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringResponseTau: 0 }),
     /finite and > 0/,
@@ -179,8 +215,9 @@ test('M9 retires separate CAR steering authority and all browser roots select th
   assert.doesNotMatch(solver, /usefulLateralCapacity|countersteerMode|steeringOffsetCommand/);
   assert.match(
     solver,
-    /calibration\.travelDirectionGain \* bodyTravelDirection\s*- yawRate \* calibration\.yawPreviewTime\s*\+ steeringOffset/,
+    /bodyTravelDirection - calibration\.yawTransientGain \* transientYawRate/,
   );
+  assert.doesNotMatch(solver, /travelDirectionGain|yawPreviewTime/);
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /createArcadeVehicle/);
     assert.match(source, /updateArcadeVehicle/);

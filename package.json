@@ -1,6 +1,6 @@
 {
-  "name": "super-outride-m9-6",
-  "version": "0.9.6",
+  "name": "super-outride-m9-7",
+  "version": "0.9.7",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node tools/clean-dist.mjs && tsc -p tsconfig.json && node tools/build-ground-map.mjs",
     "check": "tsc -p tsconfig.json --noEmit",
-    "probe:steering": "npm run build && node tools/probe-steering-self-steer.mjs",
+    "probe:steering": "npm run build && node tools/probe-steering-assist.mjs",
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {

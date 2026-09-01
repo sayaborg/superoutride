@@ -1,27 +1,28 @@
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import {
-  setArcadeVehicleSteeringYawPreviewTime,
+  setArcadeVehicleSteeringYawTransientGain,
+  setArcadeVehicleSteeringYawWashoutTime,
   setArcadeVehicleSymmetricSteeringActuatorRate,
-  setArcadeVehicleTravelDirectionSteeringGain,
 } from '../physics/vehicle-calibration.js';
 import {
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
-  BROWSER_YAW_PREVIEW_CYCLE_CODE,
-  browserSelfSteerGainForKey,
+  BROWSER_YAW_TRANSIENT_CYCLE_CODE,
+  BROWSER_YAW_WASHOUT_CYCLE_CODE,
   nextBrowserSteeringResponseRate,
-  nextBrowserYawPreviewTime,
-  type BrowserSelfSteerGain,
-  type BrowserYawPreviewTime,
+  nextBrowserYawTransientGain,
+  nextBrowserYawWashoutTime,
+  type BrowserYawTransientGain,
+  type BrowserYawWashoutTime,
 } from './steering-calibration-selection.js';
 import {
-  mountMobileSelfSteerGainSelector,
   mountMobileSteeringResponseSelector,
-  mountMobileYawPreviewSelector,
+  mountMobileYawTransientSelector,
+  mountMobileYawWashoutSelector,
 } from './mobile-selector-controls.js';
 
 export interface BrowserSteeringCalibrationContainers {
-  readonly selfSteer: HTMLElement;
-  readonly yawPreview: HTMLElement;
+  readonly yawTransient: HTMLElement;
+  readonly yawWashout: HTMLElement;
   readonly steeringResponse: HTMLElement;
 }
 
@@ -36,16 +37,16 @@ export function mountBrowserSteeringCalibrationControls(
   documentRef: Document = document,
 ): BrowserSteeringCalibrationControls {
   const initial = getVehicle().steeringCalibration;
-  const gainSelector = mountMobileSelfSteerGainSelector(
-    containers.selfSteer,
-    initial.travelDirectionGain,
-    selectGain,
+  const yawTransientSelector = mountMobileYawTransientSelector(
+    containers.yawTransient,
+    initial.yawTransientGain,
+    selectYawTransient,
     documentRef,
   );
-  const yawPreviewSelector = mountMobileYawPreviewSelector(
-    containers.yawPreview,
-    initial.yawPreviewTime,
-    selectYawPreview,
+  const yawWashoutSelector = mountMobileYawWashoutSelector(
+    containers.yawWashout,
+    initial.yawWashoutTime,
+    selectYawWashout,
     documentRef,
   );
   const responseSelector = mountMobileSteeringResponseSelector(
@@ -55,14 +56,14 @@ export function mountBrowserSteeringCalibrationControls(
     documentRef,
   );
 
-  function selectGain(gain: BrowserSelfSteerGain): void {
-    setArcadeVehicleTravelDirectionSteeringGain(getVehicle(), gain);
-    gainSelector.setActive(gain);
+  function selectYawTransient(yawTransientGain: BrowserYawTransientGain): void {
+    setArcadeVehicleSteeringYawTransientGain(getVehicle(), yawTransientGain);
+    yawTransientSelector.setActive(yawTransientGain);
   }
 
-  function selectYawPreview(yawPreviewTime: BrowserYawPreviewTime): void {
-    setArcadeVehicleSteeringYawPreviewTime(getVehicle(), yawPreviewTime);
-    yawPreviewSelector.setActive(yawPreviewTime);
+  function selectYawWashout(yawWashoutTime: BrowserYawWashoutTime): void {
+    setArcadeVehicleSteeringYawWashoutTime(getVehicle(), yawWashoutTime);
+    yawWashoutSelector.setActive(yawWashoutTime);
   }
 
   function selectResponse(rate: number): void {
@@ -72,15 +73,16 @@ export function mountBrowserSteeringCalibrationControls(
 
   return Object.freeze({
     handleKey(code: string): boolean {
-      const gain = browserSelfSteerGainForKey(code);
-      if (gain !== null) {
-        selectGain(gain);
+      const vehicle = getVehicle();
+      if (code === BROWSER_YAW_TRANSIENT_CYCLE_CODE) {
+        selectYawTransient(nextBrowserYawTransientGain(
+          vehicle.steeringCalibration.yawTransientGain,
+        ));
         return true;
       }
-      const vehicle = getVehicle();
-      if (code === BROWSER_YAW_PREVIEW_CYCLE_CODE) {
-        selectYawPreview(nextBrowserYawPreviewTime(
-          vehicle.steeringCalibration.yawPreviewTime,
+      if (code === BROWSER_YAW_WASHOUT_CYCLE_CODE) {
+        selectYawWashout(nextBrowserYawWashoutTime(
+          vehicle.steeringCalibration.yawWashoutTime,
         ));
         return true;
       }

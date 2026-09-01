@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.6 FISCO Circuit
+# SUPER OUTRIDE — M9.7 Bounded Washout Steering Assist
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -11,6 +11,23 @@ the authority documents below; executable behavior belongs to types, compilers a
 tests.
 
 ## Current release
+
+M9.7 replaces the former selectable travel-direction gain and absolute-yaw preview with one bounded
+zero-DC washout steering law. The travel-direction coefficient is structurally `1`; it has no
+state, key, touch button or HUD row. The Driver filters authoritative yaw rate through one scalar
+low-frequency baseline, combines only its transient remainder with `betaTravel`, clamps that
+automatic term before adding the reserved driver offset, and follows the result through the same
+single physical rack. Tire force, acceleration telemetry, Guide, camera, route and topology remain
+outside Driver control.
+
+The four CAR profiles currently share provisional `D=9.5 deg / A=21.5 deg`; BIKE1/BIKE2 share
+`D=9 deg / A=22 deg` under the common `31 deg` mechanical limit. BIKE1/BIKE2 flat steady, deep
+`+/-43 deg` seed and pulse probes were measured and remained inside their allocation. Full-course
+testing falsified the old sparse rival speed window, then fixed the general canonical-input
+publisher with a contiguous braking-distance envelope rather than profile- or course-specific
+mechanics. FR/BIKE1/BIKE2 now complete mountain, Tsukuba and FISCO recovery-free within road width,
+below `15 deg` sideslip and with zero unsupported ticks. The steering travel-direction regularizer
+is independent of tire regularization. All handling remains `DEV_UNCALIBRATED`.
 
 M9.6 adds the current Fuji Speedway main racing course (FISCO) as browser course `4`. It preserves
 the published 4563 m clockwise lap, 1475 m home straight, 17-corner sequence, 15–25 m width range
@@ -31,19 +48,20 @@ four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 28
 The track uses a 12 m nominal asphalt width inside JAF's published 10–15 m range. Exact unlabelled
 connectors and arc angles are original simplified authoring, not survey geometry.
 
-M9.2's common steering law and three independent browser-player calibration controls remain:
+M9.7 exposes only the three adjustable vehicle-instance steering values:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
-| Travel-direction gain | `0 / 0.2 / 0.4 / 0.6 / 0.8 / 1.0` | `0.4` | `4`–`9` |
-| Yaw-preview time | `0 / 0.06 / 0.12 / 0.18 / 0.24 / 0.30 s` | `0.12 s` | `Y` cycles |
+| Yaw-transient gain | `0 / 0.06 / 0.12 / 0.18 / 0.24 / 0.30 s` | `0.18 s` | `Y` cycles |
+| Yaw-washout time | `0.20 / 0.35 / 0.50 / 0.65 s` | `0.35 s` | `U` cycles |
 | Symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.375 s` | `T` cycles |
 | Debug tire preset | `1 / 2 / 3` | `1` | `G` cycles |
 
 Touch layouts expose every value directly. One vehicle-instance calibration state survives recovery
-and DEV profile switching. Steering apply and release remain equal for every response choice.
-Input arbitration, tire/contact/wheel mechanics, final road-wheel response and camera remain
-separate authorities.
+and DEV profile switching; the private washout baseline resets to reconstructed physical yaw rate.
+Steering apply and release remain equal for every response choice. Digits/numpad `4` through `9`
+have no steering meaning, so `4` remains unambiguously FISCO. Input arbitration,
+tire/contact/wheel mechanics, final road-wheel response and camera remain separate authorities.
 
 The released browser build is [GitHub Pages](https://sayaborg.github.io/superoutride/). Exact
 release identity comes from `main`, PR and main-push workflow history; it is not duplicated as a
@@ -70,16 +88,18 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
-5. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
-6. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
-7. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
+4. `docs/97_m9_7_bounded_washout_steering_assist.md` — current steering law and calibration
+   selector authority.
+5. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
+6. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
+7. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
 8. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
-9. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
-10. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+9. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+10. `docs/92_m9_2_selectable_self_steer_gain.md` — historical predecessor superseded by M9.7.
+11. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-11. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+12. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -98,7 +118,14 @@ terminology.
 - Canonical steering is one digital request from the shared latest-source steering arbiter.
 - Canonical ACCEL/BRAKE is exclusive and resolved by the shared latest-held pedal arbiter.
 - Finite actuator response belongs only to `src/physics/driving-actuator.ts`.
-- Steering calibration state and validation belong only to `src/physics/vehicle-calibration.ts`.
+- Steering calibration state and validation belong only to `src/physics/vehicle-calibration.ts`;
+  yaw-transient gain, yaw-washout time and symmetric actuator response are its only selectable
+  values.
+- Zero-DC filter memory belongs only to `src/physics/steering-assist.ts`. It is not physical yaw,
+  HUD telemetry or calibration state.
+- Compiled profiles own driver offset, mechanical rack, rack response and steering-only low-speed
+  regularization. Automatic steering authority is derived as mechanical maximum minus driver
+  offset.
 - Tire characteristic calibration belongs only to `src/physics/tire-friction-calibration.ts`; the
   tire law explicitly consumes its reference-friction and linear-stiffness multipliers.
 
@@ -151,6 +178,9 @@ One top-level boot selects one explicit composition root:
 | Steering | `Left / Right` |
 | Throttle | `Up` or `X` |
 | Brake | `Down` or `Z` |
+| Yaw-transient gain | `Y` cycles |
+| Yaw-washout time | `U` cycles |
+| Steering traversal | `T` cycles |
 | Debug tire preset | `G` cycles `1 / 2 / 3` |
 | Recovery | `Backspace` |
 
@@ -187,7 +217,7 @@ src/main.ts                                  BRANCHING composition root
 src/main-circuit.ts                          CIRCUIT composition root
 src/dev/m9-3-tsukuba-circuit.ts              current Tsukuba Course 2000 DEV authoring
 src/dev/m9-6-fisco-circuit.ts                current FISCO DEV authoring
-src/browser/steering-calibration-selection.ts choice/default/format authority
+src/browser/steering-calibration-selection.ts three adjustable choice/default/format authority
 src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
 src/browser/tire-friction-selection.ts        debug tire preset/default/format authority
 src/browser/tire-friction-controls.ts         shared keyboard/touch tire adapter
@@ -195,6 +225,7 @@ src/browser/mobile-selector-controls.ts       authority-derived touch presentati
 src/input/steering-input-arbiter.ts            shared steering-source authority
 src/input/pedal-input-arbiter.ts               shared pedal-source authority
 src/physics/vehicle-calibration.ts              calibration state rules and DEV status
+src/physics/steering-assist.ts                   Driver-owned zero-DC yaw filter memory
 src/physics/tire-friction-calibration.ts        vehicle-owned tire calibration rules
 src/physics/driving-actuator.ts                 finite response primitive
 src/physics/arcade-vehicle-physics.ts           common two-station solver
@@ -210,7 +241,11 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-Current M9.6 release evidence is
+M9.7 changes a normative authority boundary, so release requires a new standalone M9.7 validation
+record under `docs/validation/README.md` after the implementation-inclusive exact head is green.
+The record is not created or claimed before that checkpoint.
+
+The latest completed public release evidence remains
 `docs/validation/M9_6_FISCO_CIRCUIT_VALIDATION.txt`. The retained M9.5 tire evidence is
 `docs/validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt`. The retained M9.4 tire evidence is
 `docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence

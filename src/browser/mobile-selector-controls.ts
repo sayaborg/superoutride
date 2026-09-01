@@ -13,11 +13,11 @@ import {
   type M5CameraYawMode,
 } from '../camera/m5-camera.js';
 import {
-  BROWSER_SELF_STEER_GAINS,
   BROWSER_STEERING_RESPONSES,
-  BROWSER_YAW_PREVIEW_TIMES,
-  type BrowserSelfSteerGain,
-  type BrowserYawPreviewTime,
+  BROWSER_YAW_TRANSIENT_GAINS,
+  BROWSER_YAW_WASHOUT_TIMES,
+  type BrowserYawTransientGain,
+  type BrowserYawWashoutTime,
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import {
@@ -71,25 +71,25 @@ export function createMobileCameraYawSelectorModel(
   }));
 }
 
-export function createMobileSelfSteerGainSelectorModel(
+export function createMobileYawTransientSelectorModel(
   activeGain: number,
-): readonly MobileSelectorButtonModel<BrowserSelfSteerGain>[] {
-  return BROWSER_SELF_STEER_GAINS.map(({ gain }) => ({
-    value: gain,
-    label: gain.toFixed(1),
-    ariaLabel: `Set self-steer gain to ${gain.toFixed(1)}`,
-    active: gain === activeGain,
+): readonly MobileSelectorButtonModel<BrowserYawTransientGain>[] {
+  return BROWSER_YAW_TRANSIENT_GAINS.map((yawTransientGain) => ({
+    value: yawTransientGain,
+    label: yawTransientGain.toFixed(2),
+    ariaLabel: `Set steering yaw transient gain to ${yawTransientGain.toFixed(2)} seconds`,
+    active: yawTransientGain === activeGain,
   }));
 }
 
-export function createMobileYawPreviewSelectorModel(
+export function createMobileYawWashoutSelectorModel(
   activeTime: number,
-): readonly MobileSelectorButtonModel<BrowserYawPreviewTime>[] {
-  return BROWSER_YAW_PREVIEW_TIMES.map((yawPreviewTime) => ({
-    value: yawPreviewTime,
-    label: yawPreviewTime.toFixed(2),
-    ariaLabel: `Set steering yaw preview to ${yawPreviewTime.toFixed(2)} seconds`,
-    active: yawPreviewTime === activeTime,
+): readonly MobileSelectorButtonModel<BrowserYawWashoutTime>[] {
+  return BROWSER_YAW_WASHOUT_TIMES.map((yawWashoutTime) => ({
+    value: yawWashoutTime,
+    label: yawWashoutTime.toFixed(2),
+    ariaLabel: `Set steering yaw washout time to ${yawWashoutTime.toFixed(2)} seconds`,
+    active: yawWashoutTime === activeTime,
   }));
 }
 
@@ -161,29 +161,29 @@ export function mountMobileCameraYawSelector(
   );
 }
 
-export function mountMobileSelfSteerGainSelector(
+export function mountMobileYawTransientSelector(
   container: HTMLElement,
   activeGain: number,
-  onSelect: (gain: BrowserSelfSteerGain) => void,
+  onSelect: (gain: BrowserYawTransientGain) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserSelfSteerGain> {
+): MobileSelectorController<BrowserYawTransientGain> {
   return mountMobileSelector(
     container,
-    createMobileSelfSteerGainSelectorModel(activeGain),
+    createMobileYawTransientSelectorModel(activeGain),
     onSelect,
     documentRef,
   );
 }
 
-export function mountMobileYawPreviewSelector(
+export function mountMobileYawWashoutSelector(
   container: HTMLElement,
   activeTime: number,
-  onSelect: (yawPreviewTime: BrowserYawPreviewTime) => void,
+  onSelect: (yawWashoutTime: BrowserYawWashoutTime) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserYawPreviewTime> {
+): MobileSelectorController<BrowserYawWashoutTime> {
   return mountMobileSelector(
     container,
-    createMobileYawPreviewSelectorModel(activeTime),
+    createMobileYawWashoutSelectorModel(activeTime),
     onSelect,
     documentRef,
   );

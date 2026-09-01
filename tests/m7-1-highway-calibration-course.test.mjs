@@ -65,11 +65,18 @@ test('M7.1 calibration lap retains high-speed references and two post-handoff lo
   assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9), 'course needs right turns');
   assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9), 'course needs left turns');
 
-  assert.ok(estimateUpcomingTargetSpeed(guide, 450) >= 55.5);
   for (const section of lowSpeedSections) {
+    const cornerS = section[0].sVertex;
+    const targetAt200 = estimateUpcomingTargetSpeed(guide, cornerS - 200);
+    const targetAt80 = estimateUpcomingTargetSpeed(guide, cornerS - 80);
+    const targetAtCorner = estimateUpcomingTargetSpeed(guide, cornerS);
+    const impliedBrakingDeceleration = (
+      targetAt80 ** 2 - targetAtCorner ** 2
+    ) / (2 * 80);
+    assert.ok(targetAt200 > targetAt80 && targetAt80 > targetAtCorner);
     assert.ok(
-      estimateUpcomingTargetSpeed(guide, section[0].sVertex - 80) <= 26,
-      'rival speed authority must command a real low-speed approach for every complex',
+      Math.abs(impliedBrakingDeceleration - 4) < 0.05,
+      `expected the M9.7 braking envelope, got ${impliedBrakingDeceleration}`,
     );
   }
 });

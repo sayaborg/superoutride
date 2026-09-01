@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { compileRasterPath } from '../dist/core/course.js';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { guideCourseToWorld } from '../dist/core/guide-curve.js';
 import {
   estimateUpcomingTargetSpeed,
@@ -52,19 +54,23 @@ test('rival driver steers back toward Guide center from a right-side offset on a
 
 test('rival speed control uses 200+ km/h straight target but brakes for physically tighter upcoming curvature', () => {
   const guide = createM2StadiumGuide();
-  const straightTarget = estimateUpcomingTargetSpeed(guide, 450);
+  const longStraight = compileGuidePath(
+    compileRasterPath([{ x: 0, z: 0 }, { x: 0, z: 1_000 }]),
+    { lMax: 12, mMin: 0.25, dCam: 5 },
+  );
+  const straightTarget = estimateUpcomingTargetSpeed(longStraight, 100);
   const preCurveTarget = estimateUpcomingTargetSpeed(guide, 120);
-  assert.ok(straightTarget >= 55.5);
+  assert.equal(straightTarget, 56);
   assert.ok(preCurveTarget < straightTarget);
 
-  const slowStraight = fakeCar(guide, 450, 0, 40);
-  const fastStraight = fakeCar(guide, 450, 0, 70);
+  const slowStraight = fakeCar(longStraight, 100, 0, 40);
+  const fastStraight = fakeCar(longStraight, 100, 0, 70);
   assert.deepEqual(
-    { throttle: sampleRivalDrivingInput(guide, slowStraight).throttle, brake: sampleRivalDrivingInput(guide, slowStraight).brake },
+    { throttle: sampleRivalDrivingInput(longStraight, slowStraight).throttle, brake: sampleRivalDrivingInput(longStraight, slowStraight).brake },
     { throttle: true, brake: false },
   );
   assert.deepEqual(
-    { throttle: sampleRivalDrivingInput(guide, fastStraight).throttle, brake: sampleRivalDrivingInput(guide, fastStraight).brake },
+    { throttle: sampleRivalDrivingInput(longStraight, fastStraight).throttle, brake: sampleRivalDrivingInput(longStraight, fastStraight).brake },
     { throttle: false, brake: true },
   );
 

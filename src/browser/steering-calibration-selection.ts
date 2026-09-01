@@ -1,42 +1,30 @@
-import type { ArcadeSteeringCalibrationInput } from '../physics/vehicle-calibration.js';
-
-export type BrowserSelfSteerGain = 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1;
-export type BrowserYawPreviewTime = 0 | 0.06 | 0.12 | 0.18 | 0.24 | 0.3;
+export type BrowserYawTransientGain = 0 | 0.06 | 0.12 | 0.18 | 0.24 | 0.3;
+export type BrowserYawWashoutTime = 0.2 | 0.35 | 0.5 | 0.65;
 export type BrowserSteeringTraversalSeconds = 0.25 | 0.375 | 0.5 | 0.625;
-
-export interface BrowserSelfSteerGainSelection {
-  readonly code: 'Digit4' | 'Digit5' | 'Digit6' | 'Digit7' | 'Digit8' | 'Digit9';
-  readonly numpadCode: 'Numpad4' | 'Numpad5' | 'Numpad6' | 'Numpad7' | 'Numpad8' | 'Numpad9';
-  readonly gain: BrowserSelfSteerGain;
-}
 
 export interface BrowserSteeringResponseSelection {
   readonly traversalSeconds: BrowserSteeringTraversalSeconds;
   readonly rate: number;
 }
 
-export const BROWSER_YAW_PREVIEW_CYCLE_CODE = 'KeyY';
+export const BROWSER_YAW_TRANSIENT_CYCLE_CODE = 'KeyY';
+export const BROWSER_YAW_WASHOUT_CYCLE_CODE = 'KeyU';
 export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
-export const DEFAULT_BROWSER_SELF_STEER_GAIN: BrowserSelfSteerGain = 0.4;
-export const DEFAULT_BROWSER_YAW_PREVIEW_TIME: BrowserYawPreviewTime = 0.12;
-export const DEFAULT_BROWSER_STEERING_TRAVERSAL_SECONDS: BrowserSteeringTraversalSeconds = 0.375;
 
-export const BROWSER_SELF_STEER_GAINS: readonly BrowserSelfSteerGainSelection[] = Object.freeze([
-  Object.freeze({ code: 'Digit4', numpadCode: 'Numpad4', gain: 0 }),
-  Object.freeze({ code: 'Digit5', numpadCode: 'Numpad5', gain: 0.2 }),
-  Object.freeze({ code: 'Digit6', numpadCode: 'Numpad6', gain: 0.4 }),
-  Object.freeze({ code: 'Digit7', numpadCode: 'Numpad7', gain: 0.6 }),
-  Object.freeze({ code: 'Digit8', numpadCode: 'Numpad8', gain: 0.8 }),
-  Object.freeze({ code: 'Digit9', numpadCode: 'Numpad9', gain: 1 }),
-]);
-
-export const BROWSER_YAW_PREVIEW_TIMES: readonly BrowserYawPreviewTime[] = Object.freeze([
+export const BROWSER_YAW_TRANSIENT_GAINS: readonly BrowserYawTransientGain[] = Object.freeze([
   0,
   0.06,
   0.12,
   0.18,
   0.24,
   0.3,
+]);
+
+export const BROWSER_YAW_WASHOUT_TIMES: readonly BrowserYawWashoutTime[] = Object.freeze([
+  0.2,
+  0.35,
+  0.5,
+  0.65,
 ]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
@@ -46,24 +34,12 @@ export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelecti
   response(0.625),
 ]);
 
-export const DEFAULT_BROWSER_STEERING_CALIBRATION: Readonly<ArcadeSteeringCalibrationInput> =
-  Object.freeze({
-    travelDirectionGain: DEFAULT_BROWSER_SELF_STEER_GAIN,
-    yawPreviewTime: DEFAULT_BROWSER_YAW_PREVIEW_TIME,
-    steeringActuatorResponse: Object.freeze({
-      applyRate: 1 / DEFAULT_BROWSER_STEERING_TRAVERSAL_SECONDS,
-      releaseRate: 1 / DEFAULT_BROWSER_STEERING_TRAVERSAL_SECONDS,
-    }),
-  });
-
-export function browserSelfSteerGainForKey(code: string): BrowserSelfSteerGain | null {
-  return BROWSER_SELF_STEER_GAINS.find(
-    (selection) => selection.code === code || selection.numpadCode === code,
-  )?.gain ?? null;
+export function nextBrowserYawTransientGain(current: number): BrowserYawTransientGain {
+  return nextNumericChoice(BROWSER_YAW_TRANSIENT_GAINS, current);
 }
 
-export function nextBrowserYawPreviewTime(current: number): BrowserYawPreviewTime {
-  return nextNumericChoice(BROWSER_YAW_PREVIEW_TIMES, current);
+export function nextBrowserYawWashoutTime(current: number): BrowserYawWashoutTime {
+  return nextNumericChoice(BROWSER_YAW_WASHOUT_TIMES, current);
 }
 
 export function nextBrowserSteeringResponseRate(currentRate: number): number {
@@ -76,14 +52,12 @@ export function nextBrowserSteeringResponseRate(currentRate: number): number {
   ).rate;
 }
 
-export function formatSelfSteerGainSelector(activeGain: number): string {
-  return BROWSER_SELF_STEER_GAINS
-    .map(({ code, gain }) => `[${code.slice(-1)}]${gain.toFixed(1)}${gain === activeGain ? '*' : ''}`)
-    .join(' ');
+export function formatYawTransientSelector(activeGain: number): string {
+  return `YAW [Y] ${activeGain.toFixed(2)}s`;
 }
 
-export function formatYawPreviewSelector(activeTime: number): string {
-  return `YAW [Y] ${activeTime.toFixed(2)}s`;
+export function formatYawWashoutSelector(activeTime: number): string {
+  return `WASH [U] ${activeTime.toFixed(2)}s`;
 }
 
 export function formatSteeringResponseSelector(activeRate: number): string {
