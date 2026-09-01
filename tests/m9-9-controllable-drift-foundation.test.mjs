@@ -3,14 +3,11 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  BROWSER_TIRE_CHARACTERISTIC_PRESETS,
-} from '../dist/browser/tire-friction-selection.js';
-import {
   COMMON_SELECTABLE_VEHICLE_TIRE,
 } from '../dist/physics/vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
-test('M9.9 removes the common axle stiffness bias without adding vehicle-specific tire branches', () => {
+test('M9.9 axle-neutral compiled reference remains common beneath later browser tire calibration', () => {
   assert.deepEqual(COMMON_SELECTABLE_VEHICLE_TIRE, {
     muRef: 1.35,
     rhoKnee: 0.74,
@@ -25,17 +22,6 @@ test('M9.9 removes the common axle stiffness bias without adding vehicle-specifi
     assert.equal(profile.frontStation.tire.normalizedStiffness, 9.75, profile.id);
     assert.equal(profile.rearStation.tire.normalizedStiffness, 9.75, profile.id);
   }
-});
-
-test('M9.9 keeps M9.5 preset 2 and 3 effective slope targets unchanged', () => {
-  const [, preset2, preset3] = BROWSER_TIRE_CHARACTERISTIC_PRESETS;
-  assert.ok(Math.abs(9.75 * preset2.calibration.linearStiffnessMultiplier - 10.3) < 1e-12);
-  assert.ok(Math.abs(9.75 * preset3.calibration.linearStiffnessMultiplier - 10.3) < 1e-12);
-  assert.ok(Math.abs(preset2.calibration.linearStiffnessMultiplier - 10.3 / 9.75) < 1e-15);
-  assert.equal(
-    preset3.calibration.linearStiffnessMultiplier,
-    preset2.calibration.linearStiffnessMultiplier,
-  );
 });
 
 test('M9.9 preserves unit travel-direction steering and adds no drift mode or gain authority', async () => {
