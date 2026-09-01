@@ -160,6 +160,33 @@ record. This file follows the archive self-reference rule: after this evidence f
 resulting validation-inclusive exact head must receive a fresh complete GitHub Actions run before
 release.
 
+6A. Pre-validation hygiene falsification
+
+The documentation-inclusive head immediately before this validation file existed was:
+  cef8e0db457d6c158191d1479bd639dee5527448
+
+GitHub Actions run:
+  33518107516
+  workflow run #699
+  build job 99890165833
+
+Result:
+  602 tests
+  601 pass
+  1 fail
+  0 skipped
+
+The only failure was repository-hygiene path validation. README.md and docs/README.md correctly
+referenced the required new M9.9 validation path before the archive file had been created, so the
+hygiene regression reported exactly these two temporarily unresolved references:
+
+  README.md: docs/validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
+  docs/README.md: validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
+
+All physics, steering, tire, all-nine envelope, architecture and Pages-versioned-boot tests passed
+on that head. Creating this standalone record resolves the sole causal failure rather than weakening
+the hygiene regression.
+
 7. Required validation-inclusive release procedure
 
 Release is permitted only after all of the following are true for the post-record exact feature
