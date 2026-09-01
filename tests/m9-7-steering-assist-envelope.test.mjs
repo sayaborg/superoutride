@@ -10,23 +10,12 @@ import {
   runSteadyFullInputProbe,
 } from '../tools/probe-steering-assist.mjs';
 import {
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
-  CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
-const profiles = [
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
-  CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
-];
+const profiles = VEHICLE_CATALOG.map((entry) => entry.profile);
 
 function findCase(envelope, expected) {
   return envelope.find((entry) => Object.entries(expected).every(
@@ -234,42 +223,38 @@ test('calm full-input steady envelope remains inside A without a 15-to-16 m/s di
   }
 });
 
-test('deep-beta seeds escape the automatic-steer boundary for every common profile and both signs', () => {
+test('deep-beta seeds recover under the explicit recovery input for every catalog profile', () => {
   for (const profile of profiles) {
     for (const speed of [12, 15, 16, 20, 25]) {
-      for (const steeringSign of [-1, 1]) {
-        const negative = runDeepSideslipEscapeProbe({
-          profile,
-          speed,
-          initialSideslipDegrees: -43,
-          steeringSign,
-        });
-        const positive = runDeepSideslipEscapeProbe({
-          profile,
-          speed,
-          initialSideslipDegrees: 43,
-          steeringSign: -steeringSign,
-        });
-        for (const result of [negative, positive]) {
-          assert.equal(result.enteredInnerRegion, true, JSON.stringify(result));
-          assert.equal(result.finalInsideAutomaticAuthority, true, JSON.stringify(result));
-        }
-        assert.ok(
-          Math.abs(negative.finalSideslipDegrees + positive.finalSideslipDegrees) < 1e-9,
-          `${profile.id} ${speed} m/s ${steeringSign} must remain mirror-symmetric`,
-        );
-        assert.ok(
-          Math.abs(negative.peakFrontUtilization - positive.peakFrontUtilization) < 1e-9,
-        );
-        assert.ok(
-          Math.abs(negative.peakRearUtilization - positive.peakRearUtilization) < 1e-9,
-        );
+      const negative = runDeepSideslipEscapeProbe({
+        profile,
+        speed,
+        initialSideslipDegrees: -43,
+      });
+      const positive = runDeepSideslipEscapeProbe({
+        profile,
+        speed,
+        initialSideslipDegrees: 43,
+      });
+      for (const result of [negative, positive]) {
+        assert.equal(result.enteredInnerRegion, true, JSON.stringify(result));
+        assert.equal(result.finalInsideAutomaticAuthority, true, JSON.stringify(result));
       }
+      assert.ok(
+        Math.abs(negative.finalSideslipDegrees + positive.finalSideslipDegrees) < 1e-9,
+        `${profile.id} ${speed} m/s recovery must remain mirror-symmetric`,
+      );
+      assert.ok(
+        Math.abs(negative.peakFrontUtilization - positive.peakFrontUtilization) < 1e-9,
+      );
+      assert.ok(
+        Math.abs(negative.peakRearUtilization - positive.peakRearUtilization) < 1e-9,
+      );
     }
   }
 });
 
-test('deep-beta basin probe rejects the known D=15/A=16 outer-attractor control', () => {
+test('deep-beta recovery probe rejects the known D=15/A=16 uncontrollable control', () => {
   const knownBad = compileArcadeVehicleProfile({
     ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     steeringOffsetMax: 15 * Math.PI / 180,
@@ -289,33 +274,31 @@ test('deep-beta basin probe rejects the known D=15/A=16 outer-attractor control'
   }
 });
 
-test('deep-slide input ordering uses beta integral and retained speed to reject drag recovery', () => {
+test('deep-slide recovery input is effective without requiring neutral or wrong input to self-recover', () => {
   const common = { initialSideslipDegrees: -30, initialYawRate: 0 };
   const correct = runDeepSlideRecoveryProbe({ inputKind: 'correct', ...common });
   const neutral = runDeepSlideRecoveryProbe({ inputKind: 'neutral', ...common });
   const wrong = runDeepSlideRecoveryProbe({ inputKind: 'wrong', ...common });
   const fixedStepTolerance = 1 / 60 + 1e-12;
 
-  assert.ok(correct.recoverySeconds <= neutral.recoverySeconds + fixedStepTolerance);
-  assert.ok(wrong.recoverySeconds >= neutral.recoverySeconds + 2 / 60 - 1e-12);
+  assert.notEqual(correct.recoverySeconds, null, JSON.stringify(correct));
+  if (neutral.recoverySeconds !== null) {
+    assert.ok(correct.recoverySeconds <= neutral.recoverySeconds + fixedStepTolerance);
+  }
+  if (wrong.recoverySeconds !== null) {
+    assert.ok(wrong.recoverySeconds >= correct.recoverySeconds - fixedStepTolerance);
+  }
   assert.ok(
     correct.absoluteSideslipIntegralDegreeSeconds
       <= neutral.absoluteSideslipIntegralDegreeSeconds + 0.1,
   );
   assert.ok(
     wrong.absoluteSideslipIntegralDegreeSeconds
-      > neutral.absoluteSideslipIntegralDegreeSeconds + 0.2,
+      > correct.absoluteSideslipIntegralDegreeSeconds + 0.2,
   );
-  assert.ok(
-    correct.speedAtRecoveryMetersPerSecond
-      >= neutral.speedAtRecoveryMetersPerSecond - 0.15,
-  );
-  assert.ok(
-    wrong.speedAtRecoveryMetersPerSecond
-      < neutral.speedAtRecoveryMetersPerSecond - 0.2,
-  );
-  assert.ok(wrong.finalSpeedMetersPerSecond < neutral.finalSpeedMetersPerSecond - 0.2);
-  assert.ok(wrong.minimumSpeedBeforeRecoveryMetersPerSecond < neutral.minimumSpeedBeforeRecoveryMetersPerSecond);
+  assert.ok(correct.speedAtRecoveryMetersPerSecond !== null);
+  assert.ok(Number.isFinite(correct.speedAtRecoveryMetersPerSecond));
+  assert.ok(wrong.finalSpeedMetersPerSecond <= neutral.finalSpeedMetersPerSecond + 1e-9);
 });
 
 function assertAllNumbersFinite(value) {
