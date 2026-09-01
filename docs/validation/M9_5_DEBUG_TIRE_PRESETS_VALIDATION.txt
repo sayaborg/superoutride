@@ -1,0 +1,121 @@
+SUPER OUTRIDE — M9.5 DEBUG TIRE CHARACTERISTIC PRESETS VALIDATION
+2026-09-01 JST
+
+Scope:
+Replace the M9.4 reference-friction comparison table with three numbered DEV tire-characteristic
+presets. Preserve the one-k radial law, compiled vehicle profiles, rhoKnee, relative SurfaceMap
+materials and the common contact/wheel mechanics.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+74adbc1bbca3d30382c31e88c4a7680ce4dd70b5
+
+Candidate branch:
+codex/m9-5-debug-tire-presets
+
+Pre-validation candidate head:
+1e3f8bd9cae15f5b4128731ca2d6ecc48a7b6559 feat: add debug tire characteristic presets
+
+Pre-validation exact-head CI:
+GitHub Actions run 33478354696
+build job 99762272802
+expected head SHA = run head SHA = PR #109 head SHA =
+1e3f8bd9cae15f5b4128731ca2d6ecc48a7b6559
+checkout exact source commit = success
+verify exact checkout = success
+conclusion = success
+
+Package / visible milestone:
+super-outride-m9-5@0.9.5
+SUPER OUTRIDE M9.5
+
+Current normative authority:
+docs/95_m9_5_debug_tire_characteristic_presets.md
+
+Resolved architecture:
+- one ArcadeVehicleState.tireFrictionCalibration owns one positive finite
+  referenceFrictionMultiplier and one positive finite linearStiffnessMultiplier;
+- browser preset identity is derived from that pair and is not a second mechanics state;
+- both values validate before either vehicle field mutates;
+- the selected demand is C * linearStiffnessMultiplier * slip;
+- the selected capacity is muRef * referenceFrictionMultiplier * surface.gripFactor * N;
+- preset 1 is exact unit/unit current-tire behavior and remains the default;
+- preset 2 uses stiffness multiplier 1.1444444444444446 and reference-friction multiplier
+  1.2870855880077763;
+- preset 3 retains the same stiffness multiplier and uses reference-friction multiplier
+  1.6225024585776389;
+- on the current car front reference, presets 2 and 3 both have normalized initial slope 10.3 and
+  reach the unchanged radial-law plateau at exactly 12 degrees and provisional 15 degrees;
+- compiled car/bike muRef, normalized/corner stiffness, rhoKnee, low-speed regularization, radial
+  C1 transition, combined-slip allocation, rolling resistance and implicit wheel solve remain the
+  existing ordinary authorities;
+- SurfaceMap retains relative gripFactor only and gains no absolute mu or selector state;
+- keyboard G cycles 1 -> 2 -> 3 -> 1 and touch exposes all three values directly;
+- the common HUD derives the displayed number from the current vehicle-owned pair;
+- selections apply immediately, survive recovery and pass through DEV safe-spawn profile
+  reconstruction without shared mutable state;
+- FR, MR, RR, AWD, BIKE1 and BIKE2 use the same tire/contact/wheel path with no vehicle-kind branch;
+- ordinary construction and rivals retain unit/unit calibration;
+- input, steering calibration, camera, renderer, route, race and topology remain unchanged.
+
+Dedicated executable acceptance:
+tests/m9-5-debug-tire-presets.test.mjs
+tests/m9-0-pedal-and-tire-causality.test.mjs
+tests/m7-3-grip-and-instrument-hud.test.mjs
+tests/m7-4-transient-tire-response.test.mjs
+tests/m9-1-mobile-selector-controls.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/repository-hygiene.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact numbered choices, default 1, G cycling and wrap;
+- exact preset multipliers and unchanged preset-1 output;
+- equal preset-2/preset-3 initial slope and exact reference-car 12/15-degree plateau causality;
+- unchanged multiplicative SurfaceMap ratios and compiled profile values;
+- causal lateral-acceleration and trajectory differences through the common wheel path;
+- invalid value rejection before atomic mutation;
+- recovery and FR-to-MR reconstruction persistence with independent state objects;
+- shared keyboard/touch/HUD authority and all three browser composition roots;
+- ordinary unit/unit construction defaults and retained vehicle, tire, input, camera, renderer,
+  recovery, route, race, topology and Pages suites.
+
+Pre-validation local repository result:
+npm test
+575 tests
+575 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local LINEAR, BRANCHING and CIRCUIT loaded the M9.5 ESM tree with matching active course,
+  320x240 canvas and tire preset 1 default;
+- keyboard G advanced 1 -> 2 -> 3 -> 1 with exactly one active tire button;
+- direct touch selected preset 3, and MR safe-spawn reconstruction retained preset 3;
+- 390x844 portrait kept all primary selectors, 320x240-aspect canvas and driving controls within
+  the viewport with no document overflow;
+- 844x390 landscape kept the same primary UI within the viewport with no document overflow;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact and its entry-document references are part of the only release candidate.
+2. Push the validation-inclusive head to PR #109 targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 575 / 575 pass, 0 fail, 0 skipped.
+5. Re-fetch main before release and require ahead_by > 0, behind_by = 0 and merge base = current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. Move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push Pages
+   workflow and public version.txt on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert the later validation-inclusive candidate SHA, run id, PR
+merge identity or Pages identity. Those facts are supplied by immutable Git/PR/ref/workflow history
+together with this validation record.
+
+Handling status:
+DEV_UNCALIBRATED. These are controlled debug comparisons and do not freeze a final product tire or
+vehicle handling specification. Preset 3's 15-degree plateau target remains explicitly provisional.

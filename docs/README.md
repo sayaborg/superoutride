@@ -358,6 +358,16 @@ It proves the published 2045 m lap and straight dimensions, four-wheel corner/ra
 exact non-self-intersecting Raster closure, restrained elevation, circuit cross-section, finite
 N+1 runtime, CIRCUIT-only composition boundary, complete suite and browser layout/rendering.
 
+The current M9.5 debug tire-preset evidence is:
+
+```text
+validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt
+```
+
+It proves the numbered default/cycle, exact slope and reference-car plateau targets, atomic
+vehicle-instance persistence, unchanged compiled tire/SurfaceMap authorities, causal common-wheel
+behavior, complete-suite acceptance and browser operation.
+
 The retained M9.4 selectable tire-friction evidence is:
 
 ```text

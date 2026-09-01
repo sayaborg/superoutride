@@ -194,7 +194,8 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The retained M9.4 tire evidence is
+Current M9.5 release evidence is
+`docs/validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt`. The retained M9.4 tire evidence is
 `docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence
 is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration
 evidence is `docs/validation/M9_2_SELECTABLE_STEERING_CALIBRATION_VALIDATION.txt`.
