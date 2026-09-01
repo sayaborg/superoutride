@@ -1,6 +1,7 @@
 import {
   assertLinearStiffnessMultiplier,
   assertReferenceFrictionMultiplier,
+  assertSlidingFrictionRatio,
 } from './tire-friction-calibration.js';
 
 export interface CompiledTireProfile {
@@ -35,6 +36,7 @@ export interface WheelSolveInput {
   readonly gripFactor: number;
   readonly referenceFrictionMultiplier?: number;
   readonly linearStiffnessMultiplier?: number;
+  readonly slidingFrictionRatio?: number;
   readonly rollingResistance: number;
   readonly driveTorque: number;
   readonly brakeTorque: number;
@@ -99,7 +101,9 @@ export function evaluateTireForce(
   tire: CompiledTireProfile,
   referenceFrictionMultiplier = 1,
   linearStiffnessMultiplier = 1,
+  slidingFrictionRatio = 1,
 ): TireForceResult {
+  assertSlidingFrictionRatio(slidingFrictionRatio);
   const demand = tireLinearDemand(
     omega,
     rollingRadius,
@@ -126,7 +130,13 @@ export function evaluateTireForce(
   }
   const rho = magnitude / fmax;
   const saturatedMagnitude = radialC1Magnitude(rho, tire.rhoKnee) * fmax;
-  const scale = saturatedMagnitude / magnitude;
+  const lateralDemandRatio = Math.abs(demand.dy) / fmax;
+  const slidingScale = lateralPostPeakScale(
+    lateralDemandRatio,
+    tire.rhoKnee,
+    slidingFrictionRatio,
+  );
+  const scale = saturatedMagnitude / magnitude * slidingScale;
   return {
     ...demand,
     fx: demand.dx * scale,
@@ -136,7 +146,7 @@ export function evaluateTireForce(
   };
 }
 
-/** C1 radial transition: linear through rhoKnee, constant magnitude from 2-rhoKnee onward. */
+/** C1 radial transition: linear through rhoKnee, constant peak magnitude from 2-rhoKnee onward. */
 export function radialC1Magnitude(rho: number, rhoKnee: number): number {
   if (!(rho > 0)) return 0;
   const a = rhoKnee;
@@ -149,6 +159,39 @@ export function radialC1Magnitude(rho: number, rhoKnee: number): number {
   const h10 = t ** 3 - 2 * t ** 2 + t;
   const h01 = -2 * t ** 3 + 3 * t ** 2;
   return h00 * a + h10 * width + h01;
+}
+
+/**
+ * M9.10 stateless lateral post-peak falloff.
+ *
+ * The peak begins at the same pure-lateral demand ratio b=2-rhoKnee used by the retained one-k
+ * radial shoulder. Beyond b, one equal-width C1 shoulder falls to slidingFrictionRatio and then
+ * remains constant. The scale depends only on lateral demand, never wheel omega, so for one wheel
+ * solve it is constant with respect to the scalar root variable. This preserves the retained
+ * monotone backward-Euler wheel equation while reducing large-angle scrub force.
+ */
+export function lateralPostPeakScale(
+  lateralDemandRatio: number,
+  rhoKnee: number,
+  slidingFrictionRatio: number,
+): number {
+  assertSlidingFrictionRatio(slidingFrictionRatio);
+  if (!(rhoKnee > 0 && rhoKnee < 1) || !Number.isFinite(rhoKnee)) {
+    throw new RangeError('rhoKnee must lie in (0,1)');
+  }
+  if (!Number.isFinite(lateralDemandRatio)) {
+    throw new RangeError('lateral demand ratio must be finite');
+  }
+  const rhoLat = Math.abs(lateralDemandRatio);
+  const a = rhoKnee;
+  const peak = 2 - a;
+  if (rhoLat <= peak || slidingFrictionRatio === 1) return 1;
+  const width = peak - a;
+  const plateau = peak + width;
+  if (rhoLat >= plateau) return slidingFrictionRatio;
+  const t = (rhoLat - peak) / width;
+  const smooth = t * t * (3 - 2 * t);
+  return 1 - (1 - slidingFrictionRatio) * smooth;
 }
 
 /**
@@ -170,8 +213,9 @@ export function rollingResistanceTorque(
 
 /**
  * Unique scalar backward-Euler wheel root with a Coulomb brake atom at Omega=0.
- * The no-brake residual is monotone; bounded tire and rolling torques make the finite bracket
- * explicit rather than heuristic.
+ * The no-brake residual stays monotone: the M9.10 post-peak scale depends on fixed lateral demand,
+ * not Omega. Bounded tire and rolling torques make the finite bracket explicit rather than
+ * heuristic.
  */
 export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
   validateWheelSolveInput(input);
@@ -183,6 +227,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     gripFactor,
     referenceFrictionMultiplier = 1,
     linearStiffnessMultiplier = 1,
+    slidingFrictionRatio = 1,
     rollingResistance,
     driveTorque,
     brakeTorque,
@@ -201,6 +246,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
       tire,
       referenceFrictionMultiplier,
       linearStiffnessMultiplier,
+      slidingFrictionRatio,
     );
     return inertia / dt * (omega - omegaPrevious)
       - driveTorque
@@ -252,6 +298,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     tire,
     referenceFrictionMultiplier,
     linearStiffnessMultiplier,
+    slidingFrictionRatio,
   );
   return {
     omega,
@@ -319,6 +366,7 @@ function validateWheelSolveInput(input: WheelSolveInput): void {
   validateCompiledTireProfile(input.tire);
   assertReferenceFrictionMultiplier(input.referenceFrictionMultiplier ?? 1);
   assertLinearStiffnessMultiplier(input.linearStiffnessMultiplier ?? 1);
+  assertSlidingFrictionRatio(input.slidingFrictionRatio ?? 1);
 }
 
 function tireForceCapacity(
