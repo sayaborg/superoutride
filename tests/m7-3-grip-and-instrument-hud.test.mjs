@@ -98,7 +98,7 @@ test('shared compact HUD names speed RPM and selected gear', () => {
   car.powertrain.engineRpm = 4321;
   car.powertrain.gear = 4;
   const hud = createVehicleDebugHudModel(
-    'BRANCHING',
+    'branching',
     { steering: 0, throttle: false, brake: false },
     car,
   );

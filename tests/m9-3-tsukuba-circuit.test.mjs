@@ -154,7 +154,7 @@ for (const [profile, createVehicle] of [
   });
 }
 
-test('CIRCUIT selects Tsukuba while BRANCHING retains its existing parent', async () => {
+test('course 3 retains Tsukuba while BRANCHING retains its existing parent', async () => {
   const [circuitSource, branchingSource] = await Promise.all([
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
@@ -163,4 +163,5 @@ test('CIRCUIT selects Tsukuba while BRANCHING retains its existing parent', asyn
   assert.doesNotMatch(circuitSource, /createM91LowMidSpeedMountainCircuitRuntime/);
   assert.match(branchingSource, /createM71HighwayCalibrationLapRaster/);
   assert.doesNotMatch(branchingSource, /m9-3-tsukuba-circuit/);
+  assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit/);
 });

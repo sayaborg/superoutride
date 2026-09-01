@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.5 Debug Tire Characteristic Presets
+# SUPER OUTRIDE — M9.6 FISCO Circuit
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,7 +12,12 @@ tests.
 
 ## Current release
 
-M9.5 replaces the earlier friction-multiplier table with three numbered DEV tire-characteristic
+M9.6 adds the current Fuji Speedway main racing course (FISCO) as browser course `4`. It preserves
+the published 4563 m clockwise lap, 1475 m home straight, 17-corner sequence, 15–25 m width range
+and 40 m elevation envelope. The exact unpublished centerline, arc angles and connectors are an
+original simplified reconstruction rather than survey geometry. Course `3` remains Tsukuba.
+
+M9.5 replaced the earlier friction-multiplier table with three numbered DEV tire-characteristic
 presets. Preset `1` is exactly the previous current tire and remains the default. Presets `2` and
 `3` share the same higher initial slope; on the current car front-tire reference they begin their
 constant plateaus at `12 deg` and provisional `15 deg`. Keyboard `G`, touch and the common HUD
@@ -20,7 +25,7 @@ derive from one browser authority. The vehicle owns one atomic two-value calibra
 recovery/profile switching. Compiled tire packages, `rhoKnee`, the one-k radial law and relative
 SurfaceMap materials remain unchanged; ordinary construction and rivals retain unit calibration.
 
-M9.3 continues to own the CIRCUIT DEV course as a researched functional reconstruction of the
+M9.3 continues to own CIRCUIT DEV course `3` as a researched functional reconstruction of the
 four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 282 m home straight,
 437 m back straight, clockwise corner sequence, named radius families and near-flat character.
 The track uses a 12 m nominal asphalt width inside JAF's published 10–15 m range. Exact unlabelled
@@ -58,15 +63,16 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
-5. `docs/93_m9_3_tsukuba_circuit.md` — current CIRCUIT DEV course-authoring authority.
-6. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
-7. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
-8. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
-9. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+4. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
+5. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
+6. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
+7. `docs/92_m9_2_selectable_self_steer_gain.md` — current steering calibration authority.
+8. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
+9. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — common vehicle mechanics.
+10. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-10. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+11. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -126,12 +132,13 @@ One top-level boot selects one explicit composition root:
 /               -> BRANCHING
 /?mode=linear   -> LINEAR
 /?mode=branching -> BRANCHING
-/?mode=circuit  -> CIRCUIT
+/?mode=circuit  -> CIRCUIT / TSUKUBA
+/?mode=fisco    -> CIRCUIT / FISCO
 ```
 
 | Function | Keyboard |
 |---|---|
-| Course | `1 / 2 / 3` |
+| Course | `1 / 2 / 3 / 4` = LINEAR / BRANCHING / TSUKUBA / FISCO |
 | Vehicle | `Q / W / E / R / A / S` = FR / MR / RR / AWD / BIKE1 / BIKE2 |
 | Camera yaw | `P` = BODY / MOVE |
 | Steering | `Left / Right` |
@@ -158,6 +165,7 @@ Open one of:
 http://localhost:8000/?mode=linear
 http://localhost:8000/?mode=branching
 http://localhost:8000/?mode=circuit
+http://localhost:8000/?mode=fisco
 ```
 
 The Pages boot imports one commit-versioned complete ESM tree. Do not replace it with an
@@ -171,6 +179,7 @@ src/main-linear.ts                           LINEAR composition root
 src/main.ts                                  BRANCHING composition root
 src/main-circuit.ts                          CIRCUIT composition root
 src/dev/m9-3-tsukuba-circuit.ts              current Tsukuba Course 2000 DEV authoring
+src/dev/m9-6-fisco-circuit.ts                current FISCO DEV authoring
 src/browser/steering-calibration-selection.ts choice/default/format authority
 src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
 src/browser/tire-friction-selection.ts        debug tire preset/default/format authority
@@ -194,7 +203,7 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-Current M9.5 release evidence is
+The latest retained release evidence is
 `docs/validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt`. The retained M9.4 tire evidence is
 `docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence
 is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration

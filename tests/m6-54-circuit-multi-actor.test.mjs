@@ -135,7 +135,7 @@ test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the 
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)]
     .map((match) => match[1]);
 
-  assert.match(source, /createRivalRoster\(M9_3_DEV_COURSE_MODE\)/);
+  assert.match(source, /createRivalRoster\(selectedCircuit\.courseMode\)/);
   assert.match(source, /sampleRivalDrivingInput\(guide, rival\.vehicle, 0\)/);
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);

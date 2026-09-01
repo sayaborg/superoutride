@@ -1,4 +1,7 @@
-import { COURSE_MODE_HOTKEY_LABEL } from './course-mode-selection.js';
+import {
+  formatBrowserCourseSelector,
+  type BrowserCourseModeQuery,
+} from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
 import {
   formatSelfSteerGainSelector,
@@ -6,7 +9,6 @@ import {
   formatYawPreviewSelector,
 } from './steering-calibration-selection.js';
 import { formatTirePresetSelector } from './tire-friction-selection.js';
-import type { CourseRouteKind } from '../gameplay/course-mode.js';
 import {
   assertExclusivePedalInput,
   type DrivingInput,
@@ -40,13 +42,13 @@ export interface VehicleDebugHudModel {
 }
 
 export function createVehicleDebugHudModel(
-  routeKind: CourseRouteKind,
+  activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: ArcadeVehicleState,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
   return {
-    courseSelector: `COURSE ${COURSE_MODE_HOTKEY_LABEL}  ACTIVE ${routeKind}`,
+    courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
     selfSteerSelector: `SELF ${formatSelfSteerGainSelector(
       vehicle.steeringCalibration.travelDirectionGain,
@@ -75,13 +77,13 @@ export function createVehicleDebugHudModel(
 
 export function drawVehicleDebugHud(
   ctx: CanvasRenderingContext2D,
-  routeKind: CourseRouteKind,
+  activeCourseQuery: BrowserCourseModeQuery,
   input: DrivingInput,
   vehicle: ArcadeVehicleState,
 ): void {
-  const model = createVehicleDebugHudModel(routeKind, input, vehicle);
+  const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.5 ${model.courseSelector}`,
+    `M9.6 ${model.courseSelector}`,
     model.vehicleSelector,
     model.selfSteerSelector,
     model.yawPreviewSelector,

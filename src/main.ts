@@ -554,7 +554,7 @@ function render(): void {
     runtime.roadView ?? undefined,
   );
   ctx.putImageData(imageData, 0, 0);
-  drawVehicleDebugHud(ctx, M8_3_BRANCHING_COURSE_MODE.routeKind, input, vehicle);
+  drawVehicleDebugHud(ctx, 'branching', input, vehicle);
   drawVehicleYawDebug(
     ctx,
     camera.playerScreenX,

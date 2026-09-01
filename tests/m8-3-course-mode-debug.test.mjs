@@ -68,7 +68,7 @@ import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 const DT = 1 / 60;
 const CAMERA_PROFILE = CURRENT_M5_CAMERA_PROFILE;
 
-test('browser course selector maps 1/2/3 and URL modes from one authority', () => {
+test('browser course selector maps 1/2/3/4 and URL modes from one authority', () => {
   assert.deepEqual(
     BROWSER_COURSE_MODES.map(({ digitCode, query, routeKind, entryName }) => ({
       digitCode,
@@ -80,11 +80,13 @@ test('browser course selector maps 1/2/3 and URL modes from one authority', () =
       { digitCode: 'Digit1', query: 'linear', routeKind: 'LINEAR', entryName: 'main-linear.js' },
       { digitCode: 'Digit2', query: 'branching', routeKind: 'BRANCHING', entryName: 'main.js' },
       { digitCode: 'Digit3', query: 'circuit', routeKind: 'CIRCUIT', entryName: 'main-circuit.js' },
+      { digitCode: 'Digit4', query: 'fisco', routeKind: 'CIRCUIT', entryName: 'main-circuit.js' },
     ],
   );
   assert.equal(browserCourseModeForKey('Digit1')?.routeKind, 'LINEAR');
   assert.equal(browserCourseModeForKey('Numpad2')?.routeKind, 'BRANCHING');
   assert.equal(browserCourseModeForKey('Digit3')?.routeKind, 'CIRCUIT');
+  assert.equal(browserCourseModeForKey('Numpad4')?.query, 'fisco');
   assert.equal(browserCourseModeForKey('KeyV'), null);
   assert.equal(selectBrowserCourseMode(null).routeKind, 'BRANCHING');
   assert.equal(selectBrowserCourseMode('unknown').routeKind, 'BRANCHING');
@@ -246,7 +248,7 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   vehicle.longitudinalAcceleration = 9.80665;
   vehicle.lateralAcceleration = -4.903325;
   const model = createVehicleDebugHudModel(
-    'LINEAR',
+    'linear',
     { steering: -1, throttle: true, brake: false },
     vehicle,
   );
@@ -295,7 +297,7 @@ test('shared HUD leaves the driving view transparent behind outlined text and co
 
   drawVehicleDebugHud(
     context,
-    'LINEAR',
+    'linear',
     { steering: 0, throttle: false, brake: false },
     vehicle,
   );

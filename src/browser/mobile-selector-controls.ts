@@ -42,7 +42,7 @@ export function createMobileCourseSelectorModel(
   return BROWSER_COURSE_MODES.map((mode) => ({
     value: mode.query,
     label: mode.digitCode.slice(-1),
-    ariaLabel: `Select ${mode.routeKind} course`,
+    ariaLabel: `Select ${mode.label} course`,
     active: mode.query === activeQuery,
   }));
 }

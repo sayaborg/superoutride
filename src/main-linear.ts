@@ -22,7 +22,6 @@ import {
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import {
-  M8_3_LINEAR_COURSE_MODE,
   M8_3_LINEAR_PLAYER_START_L,
   M8_3_LINEAR_RECOVERY_PROFILE,
   createM83LinearHighwayRuntime,
@@ -238,7 +237,7 @@ function render(): void {
   );
   ctx.putImageData(imageData, 0, 0);
 
-  drawVehicleDebugHud(ctx, M8_3_LINEAR_COURSE_MODE.routeKind, input, vehicle);
+  drawVehicleDebugHud(ctx, 'linear', input, vehicle);
   drawVehicleYawDebug(
     ctx,
     camera.playerScreenX,

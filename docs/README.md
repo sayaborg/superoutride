@@ -96,17 +96,19 @@ The current browser course-debug composition authority is:
 92_m9_2_selectable_self_steer_gain.md
 94_m9_4_selectable_tire_friction.md
 95_m9_5_debug_tire_characteristic_presets.md
+96_m9_6_fisco_circuit.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
 93_m9_3_tsukuba_circuit.md
+96_m9_6_fisco_circuit.md
 ```
 
 ## 2. Numbered milestone documents
 
-`01_...` through `95_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `96_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -149,6 +151,7 @@ The most important current topology/runtime/physics sequence is:
 93_m9_3_tsukuba_circuit.md
 94_m9_4_selectable_tire_friction.md
 95_m9_5_debug_tire_characteristic_presets.md
+96_m9_6_fisco_circuit.md
 ```
 
 The current browser touch-selection authority is
@@ -174,12 +177,12 @@ current car front-reference plateau to `12 deg` and provisional `15 deg`. Compil
 `rhoKnee`, the radial law and SurfaceMap authority remain unchanged. M9.4 is its historical
 reference-friction-only predecessor.
 
-The current public CIRCUIT course-authoring authority is `93_m9_3_tsukuba_circuit.md`. It replaces
-M9.1's low/mid-speed mountain fixture with a functional four-wheel Tsukuba Course 2000
-reconstruction based on published lap/straight dimensions, direction, width range, corner order,
-radius families and longitudinal character. M9.1 and its predecessors remain historical. The
-change is CIRCUIT DEV authoring only; it does not change vehicle physics, input, the M7.2 BRANCHING
-parent, or frozen renderer/topology authority.
+The current public CIRCUIT course-authoring authorities are `93_m9_3_tsukuba_circuit.md` and
+`96_m9_6_fisco_circuit.md`. Course `3` retains M9.3's functional four-wheel Tsukuba Course 2000
+reconstruction. Course `4` adds M9.6's functional current Fuji Speedway main-course reconstruction
+using published lap/home-straight dimensions, direction, width/elevation ranges and corner
+sequence. Both are CIRCUIT DEV authoring only; they do not change vehicle physics, input, the M7.2
+BRANCHING parent, or frozen renderer/topology authority.
 
 Current governing topology rule:
 

@@ -122,13 +122,22 @@ docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
+docs/96_m9_6_fisco_circuit.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
 
 ```text
 docs/93_m9_3_tsukuba_circuit.md
+docs/96_m9_6_fisco_circuit.md
 ```
+
+M9.6 adds the current Fuji Speedway main racing course as browser course `4` while retaining
+M9.3 Tsukuba as course `3`. Both selections remain route kind `CIRCUIT` and use the existing
+`src/main-circuit.ts` composition root. FISCO uses published 4563 m lap, 1475 m home straight,
+direction, width/elevation ranges and 17-corner sequence; exact unpublished connectors and arc
+angles are original simplified authoring. It adds no handling, grip, input, physics, camera,
+recovery, race-progress, topology-compiler or renderer branch.
 
 M9.3 Tsukuba authoring supersedes only the M9.1 public CIRCUIT geometry, elevation and track
 cross-section. It selects a functional four-wheel Course 2000 reconstruction using published
@@ -180,6 +189,7 @@ docs/92_m9_2_selectable_self_steer_gain.md
 docs/93_m9_3_tsukuba_circuit.md
 docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
+docs/96_m9_6_fisco_circuit.md
 ```
 
 ### Executable implementation contract

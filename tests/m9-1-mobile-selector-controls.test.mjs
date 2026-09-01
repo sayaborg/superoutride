@@ -88,8 +88,14 @@ test('mobile course buttons derive labels and active state from the canonical co
     {
       value: 'circuit',
       label: '3',
-      ariaLabel: 'Select CIRCUIT course',
+      ariaLabel: 'Select TSUKUBA course',
       active: true,
+    },
+    {
+      value: 'fisco',
+      label: '4',
+      ariaLabel: 'Select FISCO course',
+      active: false,
     },
   ]);
 });
@@ -190,10 +196,12 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     (selection) => { selectedCourse = selection; },
     fakeDocument,
   );
-  assert.equal(courseContainer.children.length, 3);
+  assert.equal(courseContainer.children.length, 4);
   assert.equal(courseContainer.children[1].attributes.get('aria-pressed'), 'true');
   courseContainer.children[2].click();
   assert.equal(selectedCourse.query, 'circuit');
+  courseContainer.children[3].click();
+  assert.equal(selectedCourse.query, 'fisco');
 
   const vehicleContainer = new FakeContainer();
   let selectedVehicle = null;

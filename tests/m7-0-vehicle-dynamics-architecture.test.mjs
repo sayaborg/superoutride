@@ -100,7 +100,7 @@ test('common HUD reads actuator telemetry without adding hidden assists', () => 
   assert.equal('tractionControlActive' in car.control, false);
   assert.equal('absActive' in car.control, false);
   const hud = createVehicleDebugHudModel(
-    'LINEAR',
+    'linear',
     { steering: 0, throttle: true, brake: false },
     car,
   );

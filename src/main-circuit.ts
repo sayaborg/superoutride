@@ -1,5 +1,6 @@
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
 import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
+import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { DEFAULT_BROWSER_STEERING_CALIBRATION } from './browser/steering-calibration-selection.js';
 import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './browser/tire-friction-selection.js';
@@ -25,6 +26,15 @@ import {
   createM93TsukubaCourse2000Runtime,
   createM93TsukubaGroundProfile,
 } from './dev/m9-3-tsukuba-circuit.js';
+import {
+  M9_6_FISCO_DEV_COURSE_MODE,
+  M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
+  M9_6_FISCO_PLAYER_START_L,
+  M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
+  M9_6_FISCO_RIVAL_START_L,
+  createM96FiscoGroundProfile,
+  createM96FiscoRuntime,
+} from './dev/m9-6-fisco-circuit.js';
 import {
   createM5CameraRig,
   resetM5CameraRig,
@@ -83,6 +93,34 @@ const yawPreviewSelectorButtons = mustGet<HTMLElement>('yaw-preview-selector-but
 const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
 const tireFrictionSelectorButtons = mustGet<HTMLElement>('tire-friction-selector-buttons');
 
+const selectedCourseMode = selectBrowserCourseMode(
+  new URLSearchParams(location.search).get('mode'),
+);
+if (selectedCourseMode.query !== 'circuit' && selectedCourseMode.query !== 'fisco') {
+  throw new Error(`main-circuit cannot compose ${selectedCourseMode.query}`);
+}
+const selectedCircuit = selectedCourseMode.query === 'fisco'
+  ? Object.freeze({
+    query: 'fisco' as const,
+    courseMode: M9_6_FISCO_DEV_COURSE_MODE,
+    playerRecoveryProfile: M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
+    playerStartL: M9_6_FISCO_PLAYER_START_L,
+    rivalRecoveryProfile: M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
+    rivalStartL: M9_6_FISCO_RIVAL_START_L,
+    live: createM96FiscoRuntime(),
+    groundProfile: createM96FiscoGroundProfile(),
+  })
+  : Object.freeze({
+    query: 'circuit' as const,
+    courseMode: M9_3_DEV_COURSE_MODE,
+    playerRecoveryProfile: M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
+    playerStartL: M9_3_TSUKUBA_PLAYER_START_L,
+    rivalRecoveryProfile: M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
+    rivalStartL: M9_3_TSUKUBA_RIVAL_START_L,
+    live: createM93TsukubaCourse2000Runtime(),
+    groundProfile: createM93TsukubaGroundProfile(),
+  });
+
 canvas.width = LOGICAL_WIDTH;
 canvas.height = LOGICAL_HEIGHT;
 document.documentElement.classList.toggle('touch-capable', browserUsesTouchInterface());
@@ -102,7 +140,7 @@ const inputManager = new InputManager(
   brakeButton,
 );
 
-const live = createM93TsukubaCourse2000Runtime();
+const live = selectedCircuit.live;
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
 const guide = windowRuntime.guide;
@@ -111,7 +149,7 @@ const surfaces = windowRuntime.surface;
 const background = createM3FarBackground();
 const spriteAssets = createM4SpriteAssets();
 
-const groundProfile = createM93TsukubaGroundProfile();
+const groundProfile = selectedCircuit.groundProfile;
 const terrainProfile: TerrainVisualProfile = {
   screenHeight: LOGICAL_HEIGHT,
   dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -131,15 +169,15 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   height,
   surfaces,
   45,
-  M9_3_TSUKUBA_PLAYER_START_L,
+  selectedCircuit.playerStartL,
   45,
-    DEFAULT_BROWSER_STEERING_CALIBRATION,
-    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+  DEFAULT_BROWSER_STEERING_CALIBRATION,
+  DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
 );
 let recovery = createM5RecoveryState(vehicle);
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
-const rivalRoster = createRivalRoster(M9_3_DEV_COURSE_MODE);
+const rivalRoster = createRivalRoster(selectedCircuit.courseMode);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(
     FR_VEHICLE_PROFILE,
@@ -147,7 +185,7 @@ const rivals = rivalRoster.map((entry) => {
     height,
     surfaces,
     95 + entry.rivalIndex * 6,
-    M9_3_TSUKUBA_RIVAL_START_L,
+    selectedCircuit.rivalStartL,
   );
   return {
     actorId: entry.actorId,
@@ -219,7 +257,7 @@ window.addEventListener('keydown', (event) => {
       surfaces,
       vehicle,
       'manual',
-      M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
+      selectedCircuit.playerRecoveryProfile,
     );
     resetM5CameraRig(cameraRig);
     resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
@@ -260,7 +298,7 @@ function frame(now: number): void {
       surfaces,
       vehicle,
       SIM_DT,
-      M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
+      selectedCircuit.playerRecoveryProfile,
     );
     let raceUpdate: CircuitRaceProgressUpdate | null = null;
     if (recovered !== null) {
@@ -281,7 +319,7 @@ function frame(now: number): void {
         surfaces,
         rival.vehicle,
         SIM_DT,
-        M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
+        selectedCircuit.rivalRecoveryProfile,
       );
       let rivalRaceUpdate: CircuitRaceProgressUpdate | null = null;
       if (rivalRecovered !== null) {
@@ -334,7 +372,7 @@ function render(): void {
     spriteFamily,
   );
   ctx.putImageData(imageData, 0, 0);
-  drawVehicleDebugHud(ctx, M9_3_DEV_COURSE_MODE.routeKind, input, vehicle);
+  drawVehicleDebugHud(ctx, selectedCircuit.query, input, vehicle);
   drawVehicleYawDebug(
     ctx,
     camera.playerScreenX,
@@ -354,7 +392,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     surfaces,
     vehicle,
     'manual',
-    M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
+    selectedCircuit.playerRecoveryProfile,
   );
   const s = vehicle.course.s;
   const l = vehicle.course.l;
