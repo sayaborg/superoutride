@@ -3,7 +3,7 @@ import type {
   ArcadeTireFrictionCalibrationState,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTirePresetId = '1' | '2' | '3';
+export type BrowserTirePresetId = '100' | '85' | '80' | '75' | '70';
 
 export interface BrowserTireCharacteristicPreset {
   readonly id: BrowserTirePresetId;
@@ -12,38 +12,34 @@ export interface BrowserTireCharacteristicPreset {
 }
 
 export const BROWSER_TIRE_FRICTION_CYCLE_CODE = 'KeyG';
-export const DEFAULT_BROWSER_TIRE_PRESET_ID: BrowserTirePresetId = '1';
+export const DEFAULT_BROWSER_TIRE_PRESET_ID: BrowserTirePresetId = '100';
 
-const ADJUSTED_LINEAR_STIFFNESS_MULTIPLIER = 10.3 / 9.75;
-const TWELVE_DEGREE_REFERENCE_FRICTION_MULTIPLIER = 1.2870855880077763;
-const FIFTEEN_DEGREE_REFERENCE_FRICTION_MULTIPLIER = 1.6225024585776389;
+/** M9.10 browser baseline preserves the exact former M9.9 TIRE 2 peak characteristics. */
+export const M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER = 1.2870855880077763;
+export const M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER = 10.3 / 9.75;
+
+function tire2SlidingPreset(
+  id: BrowserTirePresetId,
+  slidingFrictionRatio: number,
+): BrowserTireCharacteristicPreset {
+  return Object.freeze({
+    id,
+    label: id,
+    calibration: Object.freeze({
+      referenceFrictionMultiplier: M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
+      linearStiffnessMultiplier: M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
+      slidingFrictionRatio,
+    }),
+  });
+}
 
 export const BROWSER_TIRE_CHARACTERISTIC_PRESETS:
 readonly BrowserTireCharacteristicPreset[] = Object.freeze([
-  Object.freeze({
-    id: '1',
-    label: '1',
-    calibration: Object.freeze({
-      referenceFrictionMultiplier: 1,
-      linearStiffnessMultiplier: 1,
-    }),
-  }),
-  Object.freeze({
-    id: '2',
-    label: '2',
-    calibration: Object.freeze({
-      referenceFrictionMultiplier: TWELVE_DEGREE_REFERENCE_FRICTION_MULTIPLIER,
-      linearStiffnessMultiplier: ADJUSTED_LINEAR_STIFFNESS_MULTIPLIER,
-    }),
-  }),
-  Object.freeze({
-    id: '3',
-    label: '3',
-    calibration: Object.freeze({
-      referenceFrictionMultiplier: FIFTEEN_DEGREE_REFERENCE_FRICTION_MULTIPLIER,
-      linearStiffnessMultiplier: ADJUSTED_LINEAR_STIFFNESS_MULTIPLIER,
-    }),
-  }),
+  tire2SlidingPreset('100', 1.00),
+  tire2SlidingPreset('85', 0.85),
+  tire2SlidingPreset('80', 0.80),
+  tire2SlidingPreset('75', 0.75),
+  tire2SlidingPreset('70', 0.70),
 ]);
 
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION:
@@ -62,6 +58,10 @@ export function browserTirePresetIdForCalibration(
       && approximatelyEqual(
         candidate.linearStiffnessMultiplier,
         calibration.linearStiffnessMultiplier,
+      )
+      && approximatelyEqual(
+        candidate.slidingFrictionRatio,
+        calibration.slidingFrictionRatio,
       )
   ))?.id;
 }
@@ -88,7 +88,7 @@ export function browserTirePresetCalibration(
 export function formatTirePresetSelector(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): string {
-  return `TIRE [G] ${browserTirePresetIdForCalibration(calibration) ?? '?'}`;
+  return `SLIDE [G] ${browserTirePresetIdForCalibration(calibration) ?? '?'}%`;
 }
 
 function mustPreset(id: BrowserTirePresetId): BrowserTireCharacteristicPreset {
