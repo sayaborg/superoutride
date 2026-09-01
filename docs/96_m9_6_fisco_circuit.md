@@ -98,7 +98,8 @@ the home straight to the low Dunlop area followed by the steep technical climb:
 relative minimum height   = 0 m
 relative maximum height   = 40 m
 authored relief           = 40 m
-maximum smooth grade      = 9.54 percent
+maximum smooth uphill     = 8.59 percent
+maximum smooth downhill   = 9.53 percent
 start/end relative height = 40 m
 ```
 

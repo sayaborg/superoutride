@@ -83,16 +83,25 @@ test('M9.6 FISCO preserves the published elevation envelope and circuit cross-se
   const lapLength = live.window.topology.lapLength;
   let minimumY = Number.POSITIVE_INFINITY;
   let maximumY = Number.NEGATIVE_INFINITY;
-  let maximumGrade = 0;
+  let maximumUphillGrade = 0;
+  let maximumDownhillGrade = 0;
   for (let s = 0; s <= lapLength; s += 1) {
     const sample = live.window.height.samplePhysicsDifferential(s);
     minimumY = Math.min(minimumY, sample.y);
     maximumY = Math.max(maximumY, sample.y);
-    maximumGrade = Math.max(maximumGrade, Math.abs(sample.dYdS));
+    maximumUphillGrade = Math.max(maximumUphillGrade, sample.dYdS);
+    maximumDownhillGrade = Math.max(maximumDownhillGrade, -sample.dYdS);
   }
 
   assert.ok(Math.abs(maximumY - minimumY - 40) < 0.001, `relief=${maximumY - minimumY}`);
-  assert.ok(maximumGrade > 0.0888 && maximumGrade <= 0.1005, `maximum grade=${maximumGrade}`);
+  assert.ok(
+    maximumUphillGrade > 0.08 && maximumUphillGrade <= 0.0888,
+    `maximum uphill grade=${maximumUphillGrade}`,
+  );
+  assert.ok(
+    maximumDownhillGrade > 0.09 && maximumDownhillGrade <= 0.1005,
+    `maximum downhill grade=${maximumDownhillGrade}`,
+  );
   assert.equal(live.window.height.samplePhysics(0), 40);
   assert.ok(Math.abs(live.window.height.samplePhysics(lapLength) - 40) < 1e-9);
 

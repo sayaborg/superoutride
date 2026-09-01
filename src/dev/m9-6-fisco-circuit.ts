@@ -228,7 +228,7 @@ function createM96FiscoHeightProfile(
     { s: landmarks.dunlopComplexEndS, y: 0 },
     { s: landmarks.turnThirteenEndS, y: 8 },
     { s: landmarks.turnFourteenEndS, y: 30 },
-    { s: landmarks.turnFifteenEndS, y: 35 },
+    { s: landmarks.turnFifteenEndS, y: 34.5 },
     { s: courseLength, y: 40 },
   ]);
 }
