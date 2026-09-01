@@ -22,13 +22,9 @@ import {
   createArcadeVehicle,
   updateArcadeVehicle,
 } from '../dist/physics/arcade-vehicle-physics.js';
-import {
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
-} from '../dist/physics/vehicle-profiles.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
 
-const profiles = [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE, BIKE2_VEHICLE_PROFILE];
+const profiles = [DEFAULT_VEHICLE_CATALOG_ENTRY.profile];
 const courses = [
   {
     name: 'mountain',
@@ -58,7 +54,7 @@ const courses = [
 
 for (const course of courses) {
   for (const profile of profiles) {
-    test(`M9.7 general rival drives ${profile.id} around ${course.name} without recovery`, () => {
+    test(`M9.8 fixed product rival drives ${profile.id} around ${course.name} without recovery`, () => {
       const live = course.createRuntime();
       const lapLength = live.window.topology.lapLength;
       const vehicle = createArcadeVehicle(

@@ -17,7 +17,7 @@ import {
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
 } from '../dist/dev/vehicle-telemetry.js';
-import { FR_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 
 function makeProbeTrace() {
@@ -69,7 +69,7 @@ test('trace rejects contradictory pedals because event order must be resolved be
   );
 });
 
-function replayProbe(trace, profile = FR_VEHICLE_PROFILE) {
+function replayProbe(trace, profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE) {
   const guide = createM2StadiumGuide();
   const height = createM3DebugHeightProfile(guide.length);
   const surfaces = createM5DebugSurfaceMap(guide.length);
@@ -93,10 +93,10 @@ test('same immutable trace can A/B two physics parameter sets without changing t
   const before = serializeDrivingInputTrace(trace);
   const baseline = replayProbe(trace);
   const lowerDrive = replayProbe(trace, {
-    ...FR_VEHICLE_PROFILE,
+    ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     powertrain: {
-      ...FR_VEHICLE_PROFILE.powertrain,
-      torqueCurve: FR_VEHICLE_PROFILE.powertrain.torqueCurve.map((point) => ({
+      ...FERRARI_TESTAROSSA_VEHICLE_PROFILE.powertrain,
+      torqueCurve: FERRARI_TESTAROSSA_VEHICLE_PROFILE.powertrain.torqueCurve.map((point) => ({
         ...point,
         torqueNewtonMeters: point.torqueNewtonMeters * 0.55,
       })),

@@ -25,7 +25,7 @@ import {
   setArcadeVehicleTireFrictionCalibration,
 } from '../dist/physics/tire-friction-calibration.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { FR_VEHICLE_PROFILE, MR_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
 class FakeClassList {
@@ -124,7 +124,7 @@ test('one debug browser authority owns exact tire presets 1, 2 and 3 with defaul
 });
 
 test('presets preserve the one-k law while changing slope and plateau causally', () => {
-  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const preset1 = browserTirePresetCalibration('1');
   const preset2 = browserTirePresetCalibration('2');
   const preset3 = browserTirePresetCalibration('3');
@@ -167,7 +167,7 @@ test('presets preserve the one-k law while changing slope and plateau causally',
 
 test('vehicle-owned tire calibration updates atomically and survives reconstruction', () => {
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     highway.guide,
     height,
     surface,
@@ -184,7 +184,7 @@ test('vehicle-owned tire calibration updates atomically and survives reconstruct
   assert.deepEqual(vehicle.tireFrictionCalibration, preset3);
 
   const replacement = createArcadeVehicle(
-    MR_VEHICLE_PROFILE,
+    PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
     highway.guide,
     height,
     surface,
@@ -223,7 +223,7 @@ test('vehicle-owned tire calibration updates atomically and survives reconstruct
 
 test('the common wheel path consumes both calibration values and changes handling causally', () => {
   const vehicles = ['1', '2', '3'].map((id) => createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     highway.guide,
     height,
     surface,

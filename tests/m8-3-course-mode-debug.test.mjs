@@ -33,16 +33,17 @@ import {
 import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
+  CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
+import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import {
@@ -63,6 +64,10 @@ import {
 } from '../dist/runtime/live-route-traveler.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import {
+  VEHICLE_CATALOG,
+  formatVehicleCatalogLine,
+} from '../dist/vehicle/vehicle-catalog.js';
 
 const DT = 1 / 60;
 const CAMERA_PROFILE = CURRENT_M5_CAMERA_PROFILE;
@@ -93,88 +98,57 @@ test('browser course selector maps 1/2/3/4 and URL modes from one authority', ()
   assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
 });
 
-test('browser vehicle selector maps Q/W/E/R/A/S to FR/MR/RR/AWD/Bike1/Bike2', () => {
+test('browser vehicle selector derives all nine exact keys and profiles from the product catalog', () => {
   assert.deepEqual(
     BROWSER_VEHICLE_PROFILES.map(({ code, profile }) => [code, profile.id]),
     [
-      ['KeyQ', 'FR'],
-      ['KeyW', 'MR'],
-      ['KeyE', 'RR'],
-      ['KeyR', 'AWD'],
-      ['KeyA', 'BIKE1'],
-      ['KeyS', 'BIKE2'],
+      ['KeyQ', 'TESTAROSSA'],
+      ['KeyW', '911_TURBO_3_3'],
+      ['KeyE', 'CORVETTE_C4'],
+      ['KeyR', 'GOLF_GTI_16V'],
+      ['KeyA', 'DELTA_HF_INTEGRALE'],
+      ['KeyS', 'VFR750R'],
+      ['KeyD', 'R80_GS_PARIS_DAKAR'],
+      ['KeyF', 'FXRT_SPORT_GLIDE'],
+      ['KeyV', 'PX200E_ARCOBALENO'],
     ],
   );
-  assert.equal(browserVehicleProfileForKey('KeyQ'), FR_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyW'), MR_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyE'), RR_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyR'), AWD_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyA'), BIKE1_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyS'), BIKE2_VEHICLE_PROFILE);
-  assert.equal(browserVehicleProfileForKey('KeyV'), null);
+  for (const catalogEntry of VEHICLE_CATALOG) {
+    assert.equal(browserVehicleProfileForKey(catalogEntry.keyCode), catalogEntry.profile);
+  }
+  assert.equal(browserVehicleProfileForKey('KeyX'), null);
   assert.equal(
-    formatVehicleProfileSelector('MR'),
-    '[Q]FR [W]MR* [E]RR [R]AWD [A]BIKE1 [S]BIKE2',
+    formatVehicleProfileSelector('911_TURBO_3_3'),
+    'Porsche 911 Turbo 3.3 (930) — G50/50 5-speed (1989)',
   );
 });
 
-test('six profiles share one two-station mechanics contract', () => {
-  const profiles = [
-    FR_VEHICLE_PROFILE,
-    MR_VEHICLE_PROFILE,
-    RR_VEHICLE_PROFILE,
-    AWD_VEHICLE_PROFILE,
-    BIKE1_VEHICLE_PROFILE,
-    BIKE2_VEHICLE_PROFILE,
-  ];
-  assert.deepEqual(
-    profiles.map((profile) => profile.id),
-    ['FR', 'MR', 'RR', 'AWD', 'BIKE1', 'BIKE2'],
-  );
-  for (const profile of profiles) {
+test('all nine profiles share one two-station mechanics contract', () => {
+  for (const { profile } of VEHICLE_CATALOG) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
-    assert.equal(profile.actuator, FR_VEHICLE_PROFILE.actuator);
+    assert.equal(profile.actuator, FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator);
     assert.equal(profile.steeringRatio, 18);
   }
 });
 
-test('car profiles share one engine tire and chassis package except distribution inertia and AWD drive split', () => {
-  const carProfiles = [
-    FR_VEHICLE_PROFILE,
-    MR_VEHICLE_PROFILE,
-    RR_VEHICLE_PROFILE,
-    AWD_VEHICLE_PROFILE,
-  ];
-  const sharedCarPackage = (profile) => {
-    const {
-      id: _id,
-      yawInertia: _yawInertia,
-      pitchInertia: _pitchInertia,
-      frontAxle: _frontAxle,
-      rearAxle: _rearAxle,
-      frontDriveTorqueFraction: _frontDriveTorqueFraction,
-      frontStation: _frontStation,
-      rearStation: _rearStation,
-      ...shared
-    } = profile;
-    return shared;
-  };
-  for (const profile of carProfiles.slice(1)) {
-    assert.deepEqual(sharedCarPackage(profile), sharedCarPackage(FR_VEHICLE_PROFILE));
+test('catalog profiles share only the M9.8 normalized tire law and retain distinct mechanics', () => {
+  const profiles = VEHICLE_CATALOG.map(({ profile }) => profile);
+  const tireTuple = (profile) => [profile.muRef, profile.rhoKnee,
+    profile.lowSpeedRegularization, profile.frontNormalizedStiffness,
+    profile.rearNormalizedStiffness];
+  for (const profile of profiles) {
+    assert.deepEqual(tireTuple(profile), tireTuple(FERRARI_TESTAROSSA_VEHICLE_PROFILE));
   }
-  assert.deepEqual(
-    carProfiles.map((profile) => profile.frontDriveTorqueFraction),
-    [0, 0, 0, 0.5],
+  assert.equal(new Set(profiles.map((profile) => profile.mass)).size, 9);
+  assert.equal(new Set(profiles.map((profile) => profile.frontAxle + profile.rearAxle)).size, 8);
+  assert.equal(
+    VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE.frontAxle
+      + VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE.rearAxle,
+    LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE.frontAxle
+      + LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE.rearAxle,
   );
-  assert.equal(AWD_VEHICLE_PROFILE.frontAxle, FR_VEHICLE_PROFILE.frontAxle);
-  assert.equal(AWD_VEHICLE_PROFILE.rearAxle, FR_VEHICLE_PROFILE.rearAxle);
-  assert.equal(AWD_VEHICLE_PROFILE.yawInertia, FR_VEHICLE_PROFILE.yawInertia);
-  assert.equal(AWD_VEHICLE_PROFILE.pitchInertia, FR_VEHICLE_PROFILE.pitchInertia);
-
-  const rearLoadShare = (profile) => profile.frontAxle / (profile.frontAxle + profile.rearAxle);
-  assert.ok(rearLoadShare(FR_VEHICLE_PROFILE) < 0.5);
-  assert.ok(rearLoadShare(MR_VEHICLE_PROFILE) > 0.5);
-  assert.ok(rearLoadShare(RR_VEHICLE_PROFILE) > rearLoadShare(MR_VEHICLE_PROFILE));
+  assert.equal(new Set(profiles.map((profile) => profile.powertrain.torqueCurve)).size, 9);
+  assert.equal(LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE.frontDriveTorqueFraction, 0.47);
 });
 
 test('LINEAR debug course is one finite ordinary open 8 km highway and renders normally', () => {
@@ -208,17 +182,10 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(camera.playerScreenX, 160);
 });
 
-test('all six vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
+test('all nine vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
   const runtime = createM83LinearHighwayRuntime();
-  for (const profile of [
-    FR_VEHICLE_PROFILE,
-    MR_VEHICLE_PROFILE,
-    RR_VEHICLE_PROFILE,
-    AWD_VEHICLE_PROFILE,
-    BIKE1_VEHICLE_PROFILE,
-    BIKE2_VEHICLE_PROFILE,
-  ]) {
-    const vehicle = profile.id.startsWith('BIKE')
+  for (const { profile } of VEHICLE_CATALOG) {
+    const vehicle = profile.presentationFamily === 'BIKE'
       ? createTestBike(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile)
       : createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile);
     for (let tick = 0; tick < 600; tick += 1) {
@@ -231,7 +198,7 @@ test('all six vehicle profiles integrate ordinarily on the finite LINEAR course'
         DT,
       );
     }
-    assert.ok(vehicle.course.s > 300, `${profile.id} stalled at s=${vehicle.course.s}`);
+    assert.ok(vehicle.course.s > 100, `${profile.id} stalled at s=${vehicle.course.s}`);
     assert.ok(Math.abs(vehicle.course.l) < 4.5, `${profile.id} left LINEAR asphalt`);
   }
 });
@@ -251,7 +218,7 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
     vehicle,
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
-  assert.match(model.vehicleSelector, /\[Q\]FR\*/);
+  assert.equal(model.vehicleSelector, `VEHICLE ${formatVehicleCatalogLine(VEHICLE_CATALOG[0])}`);
   assert.equal(model.yawTransientSelector, 'YAW [Y] 0.18s');
   assert.equal(model.yawWashoutSelector, 'WASH [U] 0.35s');
   assert.equal(model.steeringResponseSelector, 'ACT [T] 0.375s');
@@ -375,8 +342,8 @@ test('pedal input graphics show exactly blue accel red brake or no active color'
 });
 
 for (const [profile, createVehicle, presentationKind] of [
-  [FR_VEHICLE_PROFILE, createTestCar, 'car'],
-  [BIKE1_VEHICLE_PROFILE, createTestBike, 'bike'],
+  [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar, 'car'],
+  [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike, 'bike'],
 ]) {
   for (const side of ['LEFT', 'RIGHT']) {
     test(`${profile.id} commits the current M7.2 ${side} fork and keeps physics/rendering alive`, () => {

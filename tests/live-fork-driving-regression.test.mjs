@@ -21,6 +21,7 @@ import {
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -84,7 +85,15 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
   const parent = parentShared(parentGuide);
   const assets = createM4SpriteAssets();
   const live = createM627LiveRouteRuntime(parentGuide, parent, assets);
-  const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 390);
+  const car = createTestCar(
+    parentGuide,
+    parent.heightProfile,
+    parent.surfaceMap,
+    390,
+    0,
+    45,
+    LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+  );
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(
     live.route,

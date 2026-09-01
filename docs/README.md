@@ -37,6 +37,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
+98_m9_8_selectable_production_vehicle_catalog.md
 97_m9_7_bounded_washout_steering_assist.md
 95_m9_5_debug_tire_characteristic_presets.md
 94_m9_4_selectable_tire_friction.md
@@ -49,6 +50,16 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 85_m8_6_two_hundred_meter_render_distance.md
 91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
+vehicle selector, player default and rival-profile identity. One structured catalog owns nine
+production identities and references nine distinct compiled profiles. Manufacturer/model,
+identifier, selected specification and period remain separate data roles. Only the normalized
+preset-1 tire law is shared; mass, CG geometry, inertia, suspension, wheel, brake, drag, fixed
+drive split and automatic-shifted powertrain data are profile-owned. Keyboard/touch/HUD derive
+from the catalog, Testarossa is the default/fixed rival profile, and generic CAR/BIKE art derives
+from explicit presentation metadata rather than an ID prefix. The common solver, M9.5 tire state
+and M9.7 steering law remain unchanged. Handling remains `DEV_UNCALIBRATED`.
 
 M9.5 supersedes M9.4's exact browser comparison table and its prohibition on calibrating linear
 tire demand. The browser exposes numbered DEV presets `1 / 2 / 3`, defaulting to the exact current
@@ -68,13 +79,12 @@ deep-beta bad-attractor exclusion, not merely demonstrate one healthy equilibriu
 runtime steering selectors remain: yaw-transient gain, yaw-washout time and symmetric actuator
 traversal. Compiled profiles separately own driver offset, rack limits/response and steering-only
 low-speed regularization. Tires, acceleration caches, Guide, camera, route and topology remain
-outside Driver control. The four CAR profiles currently retain provisional
-`D=9.5 deg / A=21.5 deg`; BIKE1/BIKE2 retain `D=9 deg / A=22 deg`. BIKE flat
-steady/deep-seed/pulse probes have been measured. The general rival removes
+outside Driver control. M9.8's five CAR profiles currently use provisional `D=9.5 deg`; its four
+BIKE profiles use `D=9 deg` through the same fields and solver. The general rival removes
 its absolute-yaw request term and uses one contiguous `0.42 g / 4 m/s^2 / 12..56 m/s` braking-
 distance envelope over derived `400 m` coverage without a profile, vehicle-kind or course branch.
-FR/BIKE1/BIKE2 complete mountain, Tsukuba and FISCO recovery-free inside road width, below `15 deg`
-sideslip and with zero unsupported ticks. All handling remains `DEV_UNCALIBRATED`.
+The then-current FR/BIKE1/BIKE2 completion result is historical M9.7 evidence; M9.8 product rivals
+are fixed to Testarossa pending later roster design. All handling remains `DEV_UNCALIBRATED`.
 
 M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`: one explicit
 vehicle-instance tire calibration now multiplies compiled tire `muRef` before the unchanged
@@ -88,9 +98,9 @@ the M9.0 asymmetric steering-actuator rates. Its gain and absolute-yaw-preview c
 superseded and removed by M9.7. Its symmetric actuator comparison survives only because M9.7
 restates it; M9.2 is no longer a partially current browser authority.
 
-M9.1 preserves M9.0 common mechanics and owns current FR/MR/RR/AWD/BIKE1/BIKE2 browser profile
-selection, normalized front/rear drive-torque distribution and the shared presentation-only debug
-HUD. M9.1 supersedes M9.0 simultaneous pedal requests: one input-layer arbiter resolves keyboard
+M9.1 historically introduced FR/MR/RR/AWD/BIKE1/BIKE2 browser selection; that identity and shared
+package are superseded by M9.8. Its retained scope is the normalized front/rear drive-torque
+primitive, shared presentation-only debug HUD and exclusive pedal rule. One input-layer arbiter resolves keyboard
 aliases and touch pointers to an exclusive latest-held-source ACCEL/BRAKE request before ordinary
 finite actuators. The HUD shows that request as blue/red/uncolored indicators, alongside actual
 response meters, one common `18:1` presentation-only handwheel conversion and a minimal
@@ -123,6 +133,7 @@ The current browser course-debug composition authority is:
 95_m9_5_debug_tire_characteristic_presets.md
 96_m9_6_fisco_circuit.md
 97_m9_7_bounded_washout_steering_assist.md
+98_m9_8_selectable_production_vehicle_catalog.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:

@@ -66,10 +66,8 @@ import {
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
-import {
-  FR_VEHICLE_PROFILE,
-  type CompiledArcadeVehicleProfile,
-} from './physics/vehicle-profiles.js';
+import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -163,7 +161,7 @@ const terrainProfile: TerrainVisualProfile = {
 };
 
 let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  FR_VEHICLE_PROFILE,
+  DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
   guide,
   height,
   surfaces,
@@ -179,7 +177,7 @@ const raceSession = createRaceSessionState();
 const rivalRoster = createRivalRoster(selectedCircuit.courseMode);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
     guide,
     height,
     surfaces,

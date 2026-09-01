@@ -4,8 +4,8 @@ import test from 'node:test';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
-  AWD_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
 } from '../dist/physics/vehicle-profiles.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -17,7 +17,7 @@ const flatHeight = new HeightProfile(highway.guide.length, [
   { s: highway.guide.length, y: 0 },
 ]);
 
-function createProbe(speed = 10, profile = FR_VEHICLE_PROFILE) {
+function createProbe(speed = 10, profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE) {
   return createArcadeVehicle(
     profile,
     highway.guide,
@@ -83,8 +83,8 @@ test('repeated digital throttle taps sustain deterministic intermediate demand',
 });
 
 test('AWD fixed torque split changes tire utilization and the resulting handling trajectory', () => {
-  const rearDrive = createProbe(20, FR_VEHICLE_PROFILE);
-  const allWheelDrive = createProbe(20, AWD_VEHICLE_PROFILE);
+  const rearDrive = createProbe(20, FERRARI_TESTAROSSA_VEHICLE_PROFILE);
+  const allWheelDrive = createProbe(20, LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE);
   for (let tick = 0; tick < 60; tick += 1) {
     const input = { steering: 0.45, throttle: true, brake: false };
     step(rearDrive, input);
@@ -106,13 +106,13 @@ test('brake actuator produces partial torque, physical lock and continuous relea
   step(vehicle, { steering: 0.2, throttle: false, brake: true });
   assert.ok(vehicle.actuator.brake > 0 && vehicle.actuator.brake < 1);
   assert.ok(vehicle.control.frontBrakeTorque > 0);
-  assert.ok(vehicle.control.frontBrakeTorque < FR_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.ok(vehicle.control.frontBrakeTorque < FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontBrakeTorqueMax);
 
   for (let tick = 1; tick < 90; tick += 1) {
     step(vehicle, { steering: 0.2, throttle: false, brake: true });
   }
   assert.equal(vehicle.actuator.brake, 1);
-  assert.equal(vehicle.control.frontBrakeTorque, FR_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.equal(vehicle.control.frontBrakeTorque, FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontBrakeTorqueMax);
   assert.equal(vehicle.control.rearWheelLocked || vehicle.control.frontWheelLocked, true);
 
   let previousTorque = vehicle.control.frontBrakeTorque;
@@ -135,8 +135,8 @@ test('common vehicle boundary rejects contradictory canonical pedals before actu
 });
 
 test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {
-  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
-  const radius = FR_VEHICLE_PROFILE.frontWheelRadius;
+  const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
+  const radius = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
   const normalLoad = 6_000;
   const positive = evaluateTireForce(300, radius, 30, 0, normalLoad, 1, tire);
   const morePositive = evaluateTireForce(600, radius, 30, 0, normalLoad, 1, tire);

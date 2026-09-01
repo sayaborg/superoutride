@@ -35,15 +35,16 @@ import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branch
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
+  CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const DT = 1 / 60;
 const highway = createM72DefaultBranchingParent();
@@ -56,14 +57,7 @@ const surface = new SurfaceMap(highway.guide.length, [{
   name: 'M9.7 STEERING CALIBRATION TEST',
   bands: [{ lMin: -100, lMax: 100, type: 'ASPHALT' }],
 }]);
-const profiles = [
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-];
+const profiles = VEHICLE_CATALOG.map((entry) => entry.profile);
 
 test('browser authority exposes only the three adjustable steering parameters', () => {
   assert.deepEqual(BROWSER_YAW_TRANSIENT_GAINS, [0, 0.06, 0.12, 0.18, 0.24, 0.3]);
@@ -88,8 +82,8 @@ test('browser authority exposes only the three adjustable steering parameters', 
 
 test('all common profiles retain the provisional family offsets and zero-DC steering defaults', () => {
   for (const profile of profiles) {
-    const expectedOffsetDegrees = profile.id.startsWith('BIKE') ? 9 : 9.5;
-    assert.equal(profile.steeringOffsetMax, expectedOffsetDegrees * Math.PI / 180);
+    const expectedOffsetDegrees = profile.presentationFamily === 'BIKE' ? 9 : 9.5;
+    assert.ok(Math.abs(profile.steeringOffsetMax - expectedOffsetDegrees * Math.PI / 180) < 1e-15);
     assert.equal(profile.steeringYawTransientGain, 0.18);
     assert.equal(profile.steeringYawWashoutTime, 0.35);
     assert.equal(profile.steeringLowSpeedRegularization, 1);
@@ -104,11 +98,11 @@ test('all common profiles retain the provisional family offsets and zero-DC stee
 
 test('steering travel-direction regularization is causally independent from tire regularization', () => {
   const tireOnly = compileArcadeVehicleProfile({
-    ...FR_VEHICLE_PROFILE,
+    ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     lowSpeedRegularization: 4,
   });
   const steeringOnly = compileArcadeVehicleProfile({
-    ...FR_VEHICLE_PROFILE,
+    ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     steeringLowSpeedRegularization: 4,
   });
   const body = {
@@ -121,7 +115,7 @@ test('steering travel-direction regularization is causally independent from tire
   };
   const baseline = vehicleBodyTravelDirection(
     body,
-    FR_VEHICLE_PROFILE.steeringLowSpeedRegularization,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization,
   );
   const tireOnlyResult = vehicleBodyTravelDirection(
     body,
@@ -132,10 +126,10 @@ test('steering travel-direction regularization is causally independent from tire
     steeringOnly.steeringLowSpeedRegularization,
   );
 
-  assert.notEqual(tireOnly.lowSpeedRegularization, FR_VEHICLE_PROFILE.lowSpeedRegularization);
+  assert.notEqual(tireOnly.lowSpeedRegularization, FERRARI_TESTAROSSA_VEHICLE_PROFILE.lowSpeedRegularization);
   assert.equal(
     tireOnly.steeringLowSpeedRegularization,
-    FR_VEHICLE_PROFILE.steeringLowSpeedRegularization,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization,
   );
   assert.equal(tireOnlyResult, baseline);
   assert.notEqual(steeringOnlyResult, baseline);
@@ -173,7 +167,7 @@ test('yaw washout is exact, zero-DC, finite and left-right symmetric', () => {
 
 test('airborne common mechanics advances the washout baseline by the exact exponential law', () => {
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
   );
   const yawRate = 1.2;
   const initialBaseline = 0.2;
@@ -207,62 +201,62 @@ test('G=1 travel-direction geometry and A-before-driver allocation are structura
     0.12,
     0.15,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   assert.ok(Math.abs(ordinary - (0.12 - 0.18 * 0.15 + 0.04)) < 1e-12);
 
   const saturatedPositive = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     1,
     0,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   const saturatedPositiveWithYaw = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     1,
     1,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
-  assert.equal(saturatedPositive, FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.equal(saturatedPositive, FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
   assert.equal(saturatedPositiveWithYaw, saturatedPositive);
 
   const saturatedState = createArcadeSteeringAssistState(0);
   const firstTransient = stepArcadeSteeringYawWashout(saturatedState, 1, 0.35, 1 / 720);
   const firstBaseline = saturatedState.yawRateBaseline;
   const firstTarget = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     1,
     firstTransient,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   const secondTransient = stepArcadeSteeringYawWashout(saturatedState, 1, 0.35, 1 / 720);
   const secondTarget = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     1,
     secondTransient,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   assert.ok(saturatedState.yawRateBaseline > firstBaseline);
   assert.equal(secondTarget, firstTarget);
-  assert.equal(secondTarget, FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.equal(secondTarget, FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
 
   const saturatedNegative = travelDirectionSteeringTarget(
-    -FR_VEHICLE_PROFILE.steeringOffsetMax,
+    -FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     -1,
     0,
     calibration,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   assert.equal(saturatedNegative, -saturatedPositive);
 });
 
 test('one vehicle owns adjustable calibration while recovery resets only washout memory', () => {
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
   );
   assert.deepEqual(vehicle.steeringCalibration, {
     yawTransientGain: 0.18,
@@ -302,7 +296,7 @@ test('one vehicle owns adjustable calibration while recovery resets only washout
   assert.equal(vehicle.steeringAssist.yawRateBaseline, vehicle.yawRate);
 
   const replacement = createArcadeVehicle(
-    MR_VEHICLE_PROFILE,
+    PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
     highway.guide,
     height,
     surface,
@@ -322,10 +316,10 @@ test('one vehicle owns adjustable calibration while recovery resets only washout
 
 test('ordinary same-profile actors receive equal defaults without sharing calibration or assist state', () => {
   const player = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
   );
   const rival = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 806, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 806, 0, 25,
   );
   assert.deepEqual(player.steeringCalibration, rival.steeringCalibration);
   assert.notEqual(player.steeringCalibration, rival.steeringCalibration);
@@ -343,7 +337,7 @@ test('ordinary same-profile actors receive equal defaults without sharing calibr
 
 test('calibration and compiler validation reject invalid values before mutation', () => {
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
   );
   const original = structuredClone(vehicle.steeringCalibration);
   for (const invalid of [-0.1, Number.NaN, Number.POSITIVE_INFINITY]) {
@@ -367,28 +361,28 @@ test('calibration and compiler validation reject invalid values before mutation'
   assert.deepEqual(vehicle.steeringCalibration, original);
   assert.throws(
     () => compileArcadeVehicleProfile({
-      ...FR_VEHICLE_PROFILE,
-      steeringOffsetMax: FR_VEHICLE_PROFILE.maxRoadWheelSteer,
+      ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+      steeringOffsetMax: FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer,
     }),
     /below the mechanical road-wheel limit/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringLowSpeedRegularization: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringLowSpeedRegularization: 0 }),
     /finite and > 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringYawTransientGain: -0.01 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringYawTransientGain: -0.01 }),
     /finite and >= 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringYawWashoutTime: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringYawWashoutTime: 0 }),
     /finite and > 0/,
   );
   assert.throws(
     () => compileArcadeVehicleProfile({
-      ...FR_VEHICLE_PROFILE,
+      ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
       actuator: {
-        ...FR_VEHICLE_PROFILE.actuator,
+        ...FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator,
         steering: { applyRate: 2, releaseRate: 3 },
       },
     }),
@@ -396,7 +390,7 @@ test('calibration and compiler validation reject invalid values before mutation'
   );
   assert.throws(
     () => createArcadeVehicle(
-      FR_VEHICLE_PROFILE,
+      FERRARI_TESTAROSSA_VEHICLE_PROFILE,
       highway.guide,
       height,
       surface,
@@ -411,11 +405,11 @@ test('calibration and compiler validation reject invalid values before mutation'
 
 test('the selected symmetric response is consumed by the ordinary steering actuator only', () => {
   const slow = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
     { steeringActuatorResponse: { applyRate: 1.6, releaseRate: 1.6 } },
   );
   const fast = createArcadeVehicle(
-    FR_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25,
     { steeringActuatorResponse: { applyRate: 4, releaseRate: 4 } },
   );
   updateArcadeVehicle(

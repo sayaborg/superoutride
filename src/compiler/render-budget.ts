@@ -40,12 +40,12 @@ export const M5_8_DEBUG_OBSERVED_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   maxTerrainOutputPixelsPerFrame: 60480,
   maxTerrainOutputPixelsPerScreenRow: 1920,
   maxVisibleSpriteCount: 22,
-  maxSpriteOutputSamplesPerFrame: 18216,
+  maxSpriteOutputSamplesPerFrame: 18203,
   maxSpriteOutputSamplesPerScanline: 280,
-  maxSpriteWrittenPixelsPerFrame: 13245,
+  maxSpriteWrittenPixelsPerFrame: 13224,
   maxSpriteWrittenPixelsPerScanline: 222,
   maxGroundMapLevelUsed: 6,
-  groundMapLevelLineCounts: [3338, 3725, 1945, 995, 518, 230, 44, 0],
+  groundMapLevelLineCounts: [3338, 3722, 1948, 995, 518, 230, 44, 0],
 };
 
 export const M5_8_DEBUG_HEADROOM_FACTOR = 1.25;
@@ -67,7 +67,7 @@ export const M5_9_TUNNEL_STRESS_BASELINE: Readonly<RenderWorkloadEnvelope> = {
   maxSpriteWrittenPixelsPerFrame: 31500,
   maxSpriteWrittenPixelsPerScanline: 275,
   maxGroundMapLevelUsed: 6,
-  groundMapLevelLineCounts: [2664, 2679, 1257, 537, 627, 186, 26, 0],
+  groundMapLevelLineCounts: [2655, 2685, 1260, 534, 624, 186, 26, 0],
 };
 
 /** Combined evidence envelope: maxima across M5.8 normal content and M5.9 tunnel stress. */

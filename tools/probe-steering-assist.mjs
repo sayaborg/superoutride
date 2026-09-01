@@ -12,13 +12,9 @@ import {
 } from '../dist/physics/arcade-vehicle-physics.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
-} from '../dist/physics/vehicle-profiles.js';
+  DEFAULT_VEHICLE_CATALOG_ENTRY,
+  VEHICLE_CATALOG,
+} from '../dist/vehicle/vehicle-catalog.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const DT = 1 / 60;
@@ -35,17 +31,11 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 ]);
 const wideAsphalt = new SurfaceMap(highway.guide.length, [{
   sStart: 0,
-  name: 'M9.7 BOUNDED WASHOUT STEERING ASSIST PROBE',
+  name: 'M9.8 SELECTABLE VEHICLE STEERING ASSIST PROBE',
   bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
 }]);
-const profiles = [
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-];
+const profiles = VEHICLE_CATALOG.map((entry) => entry.profile);
+const defaultProfile = DEFAULT_VEHICLE_CATALOG_ENTRY.profile;
 
 export function runSteeringAssistProbe({
   profile,
@@ -128,7 +118,7 @@ export function collectCurrentSteeringAssistEnvelope() {
     for (const pressSeconds of [0.1, 0.35, 0.6]) {
       for (const driven of [false, true]) {
         cases.push(runSteeringAssistProbe({
-          profile: FR_VEHICLE_PROFILE,
+          profile: defaultProfile,
           speed,
           pressSeconds,
           driven,
@@ -153,7 +143,7 @@ export function collectSteeringAuthoritySweeps() {
   const yawTransient = BROWSER_YAW_TRANSIENT_GAINS.map((yawTransientGain) => Object.freeze({
     yawTransientGain,
     result: runSteeringAssistProbe({
-      profile: FR_VEHICLE_PROFILE,
+      profile: defaultProfile,
       speed: 25,
       pressSeconds: 0.35,
       driven: false,
@@ -163,7 +153,7 @@ export function collectSteeringAuthoritySweeps() {
   const yawWashout = BROWSER_YAW_WASHOUT_TIMES.map((yawWashoutTime) => Object.freeze({
     yawWashoutTime,
     result: runSteeringAssistProbe({
-      profile: FR_VEHICLE_PROFILE,
+      profile: defaultProfile,
       speed: 25,
       pressSeconds: 0.35,
       driven: false,
@@ -176,7 +166,7 @@ export function collectSteeringAuthoritySweeps() {
       traversalSeconds,
       steeringActuatorRate: rate,
       result: runSteeringAssistProbe({
-        profile: FR_VEHICLE_PROFILE,
+        profile: defaultProfile,
         speed: 25,
         pressSeconds: 0.35,
         driven: false,
@@ -201,7 +191,7 @@ export function collectSteeringSelectorCrossProduct() {
           yawWashoutTime,
           traversalSeconds,
           result: runSteeringAssistProbe({
-            profile: FR_VEHICLE_PROFILE,
+            profile: defaultProfile,
             speed: 25,
             pressSeconds: 0.1,
             driven: false,
@@ -284,7 +274,7 @@ export function runDeepSlideRecoveryProbe({
     throw new RangeError('deep-slide recovery input must be correct, neutral or wrong');
   }
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    defaultProfile,
     highway.guide,
     flatHeight,
     wideAsphalt,

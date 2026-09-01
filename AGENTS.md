@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/94_m9_4_selectable_tire_friction.md
@@ -54,6 +55,16 @@ docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
+
+M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
+selector, player default and rival-profile identity. One structured catalog owns nine production
+identities and references nine distinct compiled profiles. Manufacturer/model, identifier,
+selected specification and period remain separate. Only the normalized preset-1 tire law is
+common; mass, CG geometry, inertia, suspension, wheel, brake, drag, fixed drive split and
+automatic-shifted powertrain data are profile-owned. Keyboard/touch/HUD derive from the catalog,
+Testarossa is the default and fixed rival profile, and generic CAR/BIKE presentation uses explicit
+metadata instead of ID/name parsing. Common mechanics, M9.5 tire calibration and M9.7 steering
+remain unchanged. Handling remains `DEV_UNCALIBRATED`.
 
 M9.5 supersedes M9.4's exact browser choices and its prohibition on calibrating linear tire demand.
 The browser exposes debug presets `1 / 2 / 3`, defaulting to exact current tire preset `1`. One
@@ -72,17 +83,16 @@ rack clamp. The automatic bound is derived as `maxRoadWheelSteer - steeringOffse
 only together with the compiled offset and a deep-beta attractor-exclusion regression. The only
 runtime steering selectors are yaw-transient gain, yaw-washout time and symmetric actuator
 traversal, defaulting to `0.18 s`, `0.35 s` and `0.375 s`. Compiled profiles separately own
-driver-offset, mechanical-rack, rack-response and steering-only low-speed regularization. The four
-CAR profiles currently retain provisional `D=9.5 deg / A=21.5 deg`; BIKE1/BIKE2 retain
-`D=9 deg / A=22 deg`. BIKE flat
-steady/deep-seed/pulse probes are measured. M9.7 also removes the DEV rival's absolute-yaw request
+driver-offset, mechanical-rack, rack-response and steering-only low-speed regularization. M9.8's
+five CAR profiles currently use provisional `D=9.5 deg`; its four BIKE profiles use `D=9 deg`
+through the same fields and solver. M9.7 also removed the DEV rival's absolute-yaw request
 term and replaces its sparse instantaneous curve-speed window with one general contiguous braking-
 distance envelope: `0.42 g`, `4 m/s^2`, `12..56 m/s`, derived `400 m` coverage. It retains the
 `36 m` steering lookahead and uses a derived `0.72` request cap, planar speed and preserved
-coordinate frames; it adds no profile, vehicle-kind or course branch. FR/BIKE1/BIKE2 complete
-mountain, Tsukuba and FISCO
-recovery-free within road width, below `15 deg` sideslip and with zero unsupported ticks. These
-remain `DEV_UNCALIBRATED` values. Ordinary player/rival construction shares profile defaults;
+coordinate frames; it adds no profile, vehicle-kind or course branch. The then-current
+FR/BIKE1/BIKE2 integration result is historical M9.7 evidence. M9.8 product rivals are fixed to the
+Testarossa profile pending later roster design. These remain `DEV_UNCALIBRATED` values. Ordinary
+player/rival construction shares profile defaults;
 recovery preserves selectable calibration but resets the yaw baseline to reconstructed physical
 yaw rate. Common Driver control consumes no tire force, slip, utilization, acceleration cache,
 Guide, camera, route or screen observation.
@@ -101,13 +111,10 @@ gain selector completely and restates the retained symmetric-response choices be
 washout calibration selectors. Do not recreate an M9.2 compatibility state, setter, key path or
 presentation row.
 
-M9.1 preserves the M9.0 common mechanics and supersedes only the initial browser-profile identity,
-drive-station distribution assumption, accumulated per-course debug overlays and the M9.0
-simultaneous-pedal request rule. It owns
-FR/MR/RR/AWD/BIKE1/BIKE2 compiled-profile selection, the normalized station drive-torque split and
-the shared presentation-only HUD boundary. The four car profiles share one engine/tire/chassis
-package; FR/MR/RR differ only by weight distribution/inertia, while AWD additionally uses 50:50
-front/rear drive torque. The common `18:1` steering ratio is a HUD-only handwheel conversion and
+M9.1 historically introduced FR/MR/RR/AWD/BIKE1/BIKE2 selection and a shared four-car package;
+those identities and package are superseded by M9.8. Its retained scope includes the normalized
+station drive-torque primitive, shared presentation-only HUD boundary and exclusive simultaneous-
+pedal rule. The common `18:1` steering ratio is a HUD-only handwheel conversion and
 must never be consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one
 input-layer arbiter gives priority to the latest source that remains held across keyboard aliases
 and touch pointers. Actuators own finite response only and must not own pedal order or arbitration.
@@ -141,6 +148,7 @@ docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
+docs/98_m9_8_selectable_production_vehicle_catalog.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -209,6 +217,7 @@ docs/94_m9_4_selectable_tire_friction.md
 docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
+docs/98_m9_8_selectable_production_vehicle_catalog.md
 ```
 
 ### Executable implementation contract

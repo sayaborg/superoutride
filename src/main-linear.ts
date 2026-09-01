@@ -37,10 +37,8 @@ import {
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
-import {
-  FR_VEHICLE_PROFILE,
-  type CompiledArcadeVehicleProfile,
-} from './physics/vehicle-profiles.js';
+import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { SoftwareSurface } from './render/software-surface.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
@@ -83,7 +81,7 @@ const runtime = createM83LinearHighwayRuntime();
 const spriteAssets = createM4SpriteAssets();
 const background = createM3FarBackground();
 let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  FR_VEHICLE_PROFILE,
+  DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
   runtime.guide,
   runtime.heightProfile,
   runtime.surfaceMap,

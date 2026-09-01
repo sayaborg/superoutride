@@ -109,20 +109,23 @@ test('touch layout uses touch hardware or a phone-size fallback from one browser
   assert.equal(isTouchInterface(0, false, 1200, 721), false);
 });
 
-test('mobile vehicle buttons derive all six profiles from the canonical profile authority', () => {
+test('mobile vehicle buttons derive all nine entries from the canonical catalog authority', () => {
   assert.deepEqual(
-    createMobileVehicleSelectorModel('AWD').map(({ value, label, active }) => ({
+    createMobileVehicleSelectorModel('DELTA_HF_INTEGRALE').map(({ value, label, active }) => ({
       value,
       label,
       active,
     })),
     [
-      { value: 'FR', label: 'FR', active: false },
-      { value: 'MR', label: 'MR', active: false },
-      { value: 'RR', label: 'RR', active: false },
-      { value: 'AWD', label: 'AWD', active: true },
-      { value: 'BIKE1', label: 'BIKE1', active: false },
-      { value: 'BIKE2', label: 'BIKE2', active: false },
+      { value: 'TESTAROSSA', label: 'F110', active: false },
+      { value: '911_TURBO_3_3', label: '930', active: false },
+      { value: 'CORVETTE_C4', label: 'C4', active: false },
+      { value: 'GOLF_GTI_16V', label: 'GTI', active: false },
+      { value: 'DELTA_HF_INTEGRALE', label: 'DELTA', active: true },
+      { value: 'VFR750R', label: 'RC30', active: false },
+      { value: 'R80_GS_PARIS_DAKAR', label: 'R80', active: false },
+      { value: 'FXRT_SPORT_GLIDE', label: 'FXRT', active: false },
+      { value: 'PX200E_ARCOBALENO', label: 'PX200', active: false },
     ],
   );
 });
@@ -197,17 +200,17 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   let selectedVehicle = null;
   const vehicleController = mountMobileVehicleSelector(
     vehicleContainer,
-    'FR',
+    'TESTAROSSA',
     (profile) => { selectedVehicle = profile; },
     fakeDocument,
   );
-  assert.equal(vehicleContainer.children.length, 6);
+  assert.equal(vehicleContainer.children.length, 9);
   vehicleContainer.children[4].click();
-  assert.equal(selectedVehicle.id, 'BIKE1');
+  assert.equal(selectedVehicle.id, 'DELTA_HF_INTEGRALE');
   vehicleController.setActive(selectedVehicle.id);
   assert.deepEqual(
     vehicleContainer.children.map((button) => button.attributes.get('aria-pressed')),
-    ['false', 'false', 'false', 'false', 'true', 'false'],
+    ['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false', 'false'],
   );
 
   const yawTransientContainer = new FakeContainer();

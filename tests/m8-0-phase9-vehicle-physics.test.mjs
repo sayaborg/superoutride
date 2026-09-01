@@ -6,8 +6,8 @@ import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branch
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import {
@@ -24,19 +24,19 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 ]);
 
 test('M9 profiles compile to the same two-station contact and wheel contract', () => {
-  for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
+  for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_PROFILE]) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
     assert.equal(profile.frontStation.rollingRadius, profile.frontWheelRadius);
     assert.equal(profile.rearStation.rollingRadius, profile.rearWheelRadius);
     assert.ok(profile.frontStation.suspension.qTravel > profile.frontStation.suspension.qStatic);
     assert.ok(profile.rearStation.suspension.qTravel > profile.rearStation.suspension.qStatic);
   }
-  assert.notEqual(FR_VEHICLE_PROFILE.mass, BIKE1_VEHICLE_PROFILE.mass);
-  assert.notEqual(FR_VEHICLE_PROFILE.yawInertia, BIKE1_VEHICLE_PROFILE.yawInertia);
+  assert.notEqual(FERRARI_TESTAROSSA_VEHICLE_PROFILE.mass, HONDA_VFR750R_VEHICLE_PROFILE.mass);
+  assert.notEqual(FERRARI_TESTAROSSA_VEHICLE_PROFILE.yawInertia, HONDA_VFR750R_VEHICLE_PROFILE.yawInertia);
 });
 
 test('one-k tire and wheel solve remains immediate deterministic contact physics', () => {
-  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   assert.deepEqual(evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire), loaded);
   assert.notEqual(loaded.fy, 0);
@@ -61,7 +61,7 @@ test('one-k tire and wheel solve remains immediate deterministic contact physics
   assert.ok(Number.isFinite(wheel.tire.fx));
 });
 
-for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
+for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_PROFILE]) {
   test(`${profile.id} common solve preserves finite world/contact state under held input`, () => {
     const vehicle = createArcadeVehicle(
       profile,
@@ -100,7 +100,7 @@ for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
 
 test('recovery reconstructs common state and all three actuators without manufacturing progress', () => {
   const vehicle = createArcadeVehicle(
-    BIKE1_VEHICLE_PROFILE,
+    HONDA_VFR750R_VEHICLE_PROFILE,
     highway.guide,
     flatHeight,
     highway.surfaceMap,
@@ -126,15 +126,15 @@ test('recovery reconstructs common state and all three actuators without manufac
 
 test('profile compiler rejects invalid mechanics without vehicle-specific fallback paths', () => {
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, frontWheelInertia: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, frontWheelInertia: 0 }),
     /finite and > 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...BIKE1_VEHICLE_PROFILE, rhoKnee: 1 }),
+    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_PROFILE, rhoKnee: 1 }),
     /rhoKnee/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, frontDriveTorqueFraction: 1.1 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, frontDriveTorqueFraction: 1.1 }),
     /front drive torque fraction/,
   );
 });

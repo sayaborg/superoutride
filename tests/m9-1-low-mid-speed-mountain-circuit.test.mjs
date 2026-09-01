@@ -13,8 +13,8 @@ import {
 } from '../dist/dev/m9-1-low-mid-speed-mountain-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
@@ -72,8 +72,7 @@ test('M9.1 mountain height owns stronger repeated smooth elevation changes', () 
 });
 
 for (const [profile, createVehicle] of [
-  [FR_VEHICLE_PROFILE, createTestCar],
-  [BIKE1_VEHICLE_PROFILE, createTestBike],
+  [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar],
 ]) {
   test(`ordinary rival-controlled ${profile.id} completes the low/mid-speed mountain lap`, () => {
     const live = createM91LowMidSpeedMountainCircuitRuntime();

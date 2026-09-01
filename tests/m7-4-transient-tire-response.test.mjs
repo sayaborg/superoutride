@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
-import { FR_VEHICLE_PROFILE, createTestCar } from './helpers/vehicle-fixture.mjs';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -30,7 +30,7 @@ test('M8.0 tire force is an algebraic observation with no model-specific memory 
 });
 
 test('M8.0 one-k tire response is immediate deterministic and releases with zero demand', () => {
-  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   const repeated = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   const released = evaluateTireForce(30 / 0.33, 0.33, 30, 0, 6500, 1, tire);
@@ -43,12 +43,12 @@ test('M8.0 one-k tire response is immediate deterministic and releases with zero
 test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
   const force = evaluateTireForce(
     200,
-    FR_VEHICLE_PROFILE.frontWheelRadius,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius,
     30,
     8,
     0,
     1,
-    FR_VEHICLE_PROFILE.frontStation.tire,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire,
   );
   assert.equal(force.fx, 0);
   assert.equal(force.fy, 0);

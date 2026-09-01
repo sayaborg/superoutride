@@ -50,10 +50,10 @@ export function createMobileCourseSelectorModel(
 export function createMobileVehicleSelectorModel(
   activeId: VehicleProfileId,
 ): readonly MobileSelectorButtonModel<VehicleProfileId>[] {
-  return BROWSER_VEHICLE_PROFILES.map(({ profile }) => ({
+  return BROWSER_VEHICLE_PROFILES.map(({ profile, mobileLabel, accessibleName }) => ({
     value: profile.id,
-    label: profile.id,
-    ariaLabel: `Select ${profile.id} vehicle`,
+    label: mobileLabel,
+    ariaLabel: `Select ${accessibleName}`,
     active: profile.id === activeId,
   }));
 }

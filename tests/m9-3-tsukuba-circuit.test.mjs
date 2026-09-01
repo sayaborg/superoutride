@@ -16,8 +16,8 @@ import {
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
@@ -123,8 +123,8 @@ test('M9.3 Tsukuba remains an ordinary finite open runtime for a three-lap race'
 });
 
 for (const [profile, createVehicle] of [
-  [FR_VEHICLE_PROFILE, createTestCar],
-  [BIKE1_VEHICLE_PROFILE, createTestBike],
+  [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar],
+  [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike],
 ]) {
   test(`ordinary ${profile.id} mechanics advance on the Tsukuba home straight`, () => {
     const live = createM93TsukubaCourse2000Runtime();

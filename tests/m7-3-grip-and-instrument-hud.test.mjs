@@ -4,8 +4,8 @@ import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestCar,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
@@ -22,45 +22,45 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal(SURFACE_MATERIALS.SAND.gripFactor, 0.33);
   assert.ok(SURFACE_MATERIALS.ASPHALT.gripFactor > SURFACE_MATERIALS.SHOULDER.gripFactor);
   assert.ok(SURFACE_MATERIALS.SHOULDER.gripFactor > SURFACE_MATERIALS.GRASS.gripFactor);
-  assert.equal(BIKE1_VEHICLE_PROFILE.muRef, 1.25);
+  assert.equal(HONDA_VFR750R_VEHICLE_PROFILE.muRef, FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef);
   assert.equal('friction' in SURFACE_MATERIALS.ASPHALT, false);
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
 test('M8.0 front-tire linear capacity stays inside the shared one-k radial knee', () => {
-  assert.ok(FR_VEHICLE_PROFILE.frontNormalizedStiffness < FR_VEHICLE_PROFILE.rearNormalizedStiffness);
-  const frontNormal = FR_VEHICLE_PROFILE.mass * 9.80665 * FR_VEHICLE_PROFILE.rearAxle
-    / (FR_VEHICLE_PROFILE.frontAxle + FR_VEHICLE_PROFILE.rearAxle);
+  assert.ok(FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness < FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearNormalizedStiffness);
+  const frontNormal = FERRARI_TESTAROSSA_VEHICLE_PROFILE.mass * 9.80665 * FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearAxle
+    / (FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontAxle + FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearAxle);
   const capacity = usefulLateralCapacity(
     0,
     frontNormal,
     SURFACE_MATERIALS.ASPHALT.gripFactor,
-    FR_VEHICLE_PROFILE.frontStation.tire,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire,
   );
-  assert.ok(Math.abs(capacity - FR_VEHICLE_PROFILE.rhoKnee * FR_VEHICLE_PROFILE.muRef * frontNormal) < 1e-9);
+  assert.ok(Math.abs(capacity - FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef * frontNormal) < 1e-9);
 });
 
-test('FR calibration keeps the broad shoulder with a lightweight high-grip profile', () => {
+test('M9.8 common selectable tire calibration keeps the broad shoulder', () => {
   const pureLateralAngles = (normalizedStiffness) => ({
     linearEnd: Math.atan(
-      FR_VEHICLE_PROFILE.rhoKnee * FR_VEHICLE_PROFILE.muRef / normalizedStiffness,
+      FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef / normalizedStiffness,
     ) * 180 / Math.PI,
     plateauStart: Math.atan(
-      (2 - FR_VEHICLE_PROFILE.rhoKnee) * FR_VEHICLE_PROFILE.muRef / normalizedStiffness,
+      (2 - FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee) * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef / normalizedStiffness,
     ) * 180 / Math.PI,
   });
-  const front = pureLateralAngles(FR_VEHICLE_PROFILE.frontNormalizedStiffness);
-  const rear = pureLateralAngles(FR_VEHICLE_PROFILE.rearNormalizedStiffness);
+  const front = pureLateralAngles(FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness);
+  const rear = pureLateralAngles(FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearNormalizedStiffness);
 
   assert.ok(front.linearEnd > 6.3 && front.plateauStart > 10.6);
   assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 9.1);
   assert.ok(front.plateauStart - front.linearEnd > 4.3);
   assert.ok(rear.plateauStart - rear.linearEnd > 3.7);
-  assert.equal(FR_VEHICLE_PROFILE.mass, 1310);
-  assert.equal(FR_VEHICLE_PROFILE.rhoKnee, 0.74);
-  assert.equal(FR_VEHICLE_PROFILE.muRef, 1.35);
-  assert.ok(Math.abs(FR_VEHICLE_PROFILE.rhoKnee * FR_VEHICLE_PROFILE.muRef - 0.999) < 1e-12);
-  assert.equal(radialC1Magnitude(20, FR_VEHICLE_PROFILE.rhoKnee), 1);
+  assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.mass, 1625);
+  assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee, 0.74);
+  assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef, 1.35);
+  assert.ok(Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef - 0.999) < 1e-12);
+  assert.equal(radialC1Magnitude(20, FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee), 1);
 });
 
 test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {

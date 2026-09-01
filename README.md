@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.7 Bounded Washout Steering Assist
+# SUPER OUTRIDE — M9.8 Selectable Production Vehicle Catalog
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,7 +12,16 @@ tests.
 
 ## Current release
 
-M9.7 replaces the former selectable travel-direction gain and absolute-yaw preview with one bounded
+M9.8 replaces the six abstract FR/MR/RR/AWD/BIKE debug identities with nine selectable production
+vehicle profiles. One structured catalog keeps manufacturer/model, identifier, selected
+specification and period in separate fields, then derives keyboard/touch selection and the active
+HUD line. Every profile owns distinct mass, CG geometry, inertia, suspension, wheel, braking,
+drag, drive split and automatic-shifted engine/gearing data. Only the normalized preset-1 tire law
+is shared deliberately. Ferrari Testarossa is the player and fixed rival default; generic CAR/BIKE
+programmer art remains under the frozen metric. Handling and derived engineering seeds remain
+`DEV_UNCALIBRATED`.
+
+M9.7 replaced the former selectable travel-direction gain and absolute-yaw preview with one bounded
 zero-DC washout steering law. The travel-direction coefficient is structurally `1`; it has no
 state, key, touch button or HUD row. The Driver filters authoritative yaw rate through one scalar
 low-frequency baseline, combines only its transient remainder with `betaTravel`, clamps that
@@ -20,14 +29,11 @@ automatic term before adding the reserved driver offset, and follows the result 
 single physical rack. Tire force, acceleration telemetry, Guide, camera, route and topology remain
 outside Driver control.
 
-The four CAR profiles currently share provisional `D=9.5 deg / A=21.5 deg`; BIKE1/BIKE2 share
-`D=9 deg / A=22 deg` under the common `31 deg` mechanical limit. BIKE1/BIKE2 flat steady, deep
-`+/-43 deg` seed and pulse probes were measured and remained inside their allocation. Full-course
-testing falsified the old sparse rival speed window, then fixed the general canonical-input
-publisher with a contiguous braking-distance envelope rather than profile- or course-specific
-mechanics. FR/BIKE1/BIKE2 now complete mountain, Tsukuba and FISCO recovery-free within road width,
-below `15 deg` sideslip and with zero unsupported ticks. The steering travel-direction regularizer
-is independent of tire regularization. All handling remains `DEV_UNCALIBRATED`.
+The five CAR catalog profiles currently use provisional `D=9.5 deg`; the four BIKE profiles use
+`D=9 deg`, all through the same compiled fields and common solver. M9.8 steering steady/deep probes
+cover all nine profiles. Product rivals are intentionally fixed to the Testarossa profile pending
+later rival-roster design. The steering travel-direction regularizer remains independent of tire
+regularization.
 
 M9.6 adds the current Fuji Speedway main racing course (FISCO) as browser course `4`. It preserves
 the published 4563 m clockwise lap, 1475 m home straight, 17-corner sequence, 15–25 m width range
@@ -88,18 +94,20 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/97_m9_7_bounded_washout_steering_assist.md` — current steering law and calibration
+4. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — current vehicle catalog, compiled
+   profile and vehicle-selection authority.
+5. `docs/97_m9_7_bounded_washout_steering_assist.md` — current steering law and calibration
    selector authority.
-5. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
-6. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
-7. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
-8. `docs/88_m9_1_six_profile_debug_hud.md` — current six-profile and HUD authority.
-9. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-10. `docs/92_m9_2_selectable_self_steer_gain.md` — historical predecessor superseded by M9.7.
-11. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+6. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
+7. `docs/95_m9_5_debug_tire_characteristic_presets.md` — current debug tire-preset authority.
+8. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
+9. `docs/88_m9_1_six_profile_debug_hud.md` — historical profile predecessor; retained HUD boundary.
+10. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+11. `docs/92_m9_2_selectable_self_steer_gain.md` — historical predecessor superseded by M9.7.
+12. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-12. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+13. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -112,9 +120,11 @@ terminology.
 
 ### Vehicle and input
 
-- FR, MR, RR, AWD, BIKE1 and BIKE2 use one Two-Station Arcade Vehicle Dynamics solver.
-- The four cars share one engine/tire/chassis package; distribution, inertia and AWD drive split
-  produce their ordinary differences.
+- All nine production profiles use one Two-Station Arcade Vehicle Dynamics solver.
+- The profiles share only one provisional normalized tire law; mass, geometry, inertia,
+  suspension, wheels, brakes, drag, drive layout and powertrain remain vehicle-owned.
+- Product identity belongs to `src/vehicle/vehicle-catalog.ts`; mechanics owns no manufacturer or
+  model-name branch.
 - Canonical steering is one digital request from the shared latest-source steering arbiter.
 - Canonical ACCEL/BRAKE is exclusive and resolved by the shared latest-held pedal arbiter.
 - Finite actuator response belongs only to `src/physics/driving-actuator.ts`.
@@ -173,7 +183,7 @@ One top-level boot selects one explicit composition root:
 | Function | Keyboard |
 |---|---|
 | Course | `1 / 2 / 3 / 4` = LINEAR / BRANCHING / TSUKUBA / FISCO |
-| Vehicle | `Q / W / E / R / A / S` = FR / MR / RR / AWD / BIKE1 / BIKE2 |
+| Vehicle | `Q/W/E/R/A/S/D/F/V` = F110/930/C4/GTI/Delta/RC30/R80/FXRT/PX200 |
 | Camera yaw | `P` = BODY / MOVE |
 | Steering | `Left / Right` |
 | Throttle | `Up` or `X` |
@@ -229,7 +239,8 @@ src/physics/steering-assist.ts                   Driver-owned zero-DC yaw filter
 src/physics/tire-friction-calibration.ts        vehicle-owned tire calibration rules
 src/physics/driving-actuator.ts                 finite response primitive
 src/physics/arcade-vehicle-physics.ts           common two-station solver
-src/physics/vehicle-profiles.ts                 compiled six-profile authority
+src/vehicle/vehicle-catalog.ts                  structured product identity/selection authority
+src/physics/vehicle-profiles.ts                 compiled nine-profile mechanics authority
 src/physics/tire-wheel.ts                       retained tire/wheel primitives
 src/camera/m5-camera.ts                         body-pitch/selectable-yaw camera
 src/render/m5-renderer.ts                       shared raster renderer
@@ -241,7 +252,10 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The M9.7 standalone validation record is
+The current implementation milestone is M9.8. Its standalone validation record is added only after
+the implementation-inclusive exact head passes complete CI under `docs/validation/README.md`.
+
+The retained M9.7 standalone validation record is
 `docs/validation/M9_7_BOUNDED_WASHOUT_STEERING_ASSIST_VALIDATION.txt`. It was created only after the
 implementation-inclusive exact head passed 599/599 in CI. Release still requires the complete suite
 on the validation-inclusive exact head and exact-SHA main/PR/Pages identity.

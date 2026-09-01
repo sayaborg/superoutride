@@ -9,8 +9,8 @@ import {
   updateAutomaticPowertrain,
 } from '../dist/physics/automatic-powertrain.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
   updateTestVehicle,
@@ -60,17 +60,17 @@ test('M8.0 support geography does not manufacture contact below an airborne body
   assert.equal('contacts' in car, false);
 });
 
-test('M9 FR and BIKE use the same reduced two-station state and differ only by profile', () => {
+test('M9 car and motorcycle use the same reduced two-station state and differ only by profile', () => {
   const car = createTestCar(guide, height, surfaces, 90);
   const bike = createTestBike(guide, height, surfaces, 90);
-  assert.deepEqual([FR_VEHICLE_PROFILE.frontStation.id, FR_VEHICLE_PROFILE.rearStation.id], ['FRONT', 'REAR']);
+  assert.deepEqual([FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.id, FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.id], ['FRONT', 'REAR']);
   assert.equal('roll' in car, false);
   assert.equal('orientation' in car, false);
   assert.equal('orientation' in bike, false);
   assert.equal('omegaBody' in bike, false);
   assert.deepEqual(Object.keys(car).sort(), Object.keys(bike).sort());
-  assert.equal(car.profile.id, 'FR');
-  assert.equal(bike.profile.id, 'BIKE1');
+  assert.equal(car.profile.id, 'TESTAROSSA');
+  assert.equal(bike.profile.id, 'VFR750R');
   assert.equal('contacts' in bike, false);
 });
 
@@ -78,15 +78,15 @@ test('M8.1 digital request produces continuous steering and neutral self-counter
   const car = createTestCar(guide, height, surfaces, 90);
   updateTestVehicle(guide, height, surfaces, car, { steering: 1, throttle: false, brake: false }, 1 / 60);
   const first = car.control.actualSteerAngle;
-  assert.ok(first > 0 && first < FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.ok(first > 0 && first < FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
 
   const speed = 25;
   car.yaw = 0.15;
   car.velocityX = 0;
   car.velocityY = 0;
   car.velocityZ = speed;
-  car.frontWheelOmega = speed / FR_VEHICLE_PROFILE.frontWheelRadius;
-  car.rearWheelOmega = speed / FR_VEHICLE_PROFILE.rearWheelRadius;
+  car.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
+  car.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearWheelRadius;
   car.frontSteerAngle = 0;
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: false, brake: false }, 1 / 60);
   assert.ok(car.control.frontSlipAngle > 0);
@@ -119,7 +119,7 @@ test('M8.0 automatic transmission output is wheel torque and shifts below redlin
     downshiftRpm: 30,
     shiftDuration: 0.1,
     engineResponseTau: 0.001,
-    torqueConverterSlipRpm: 0,
+    launchCouplingSlipRpm: 0,
     finalDriveRatio: 1,
     efficiency: 1,
     gearRatios: [2, 1],

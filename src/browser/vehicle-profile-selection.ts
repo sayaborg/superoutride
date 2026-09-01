@@ -1,28 +1,28 @@
+import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
 import {
-  AWD_VEHICLE_PROFILE,
-  BIKE1_VEHICLE_PROFILE,
-  BIKE2_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
-  MR_VEHICLE_PROFILE,
-  RR_VEHICLE_PROFILE,
-  type CompiledArcadeVehicleProfile,
-  type VehicleProfileId,
-} from '../physics/vehicle-profiles.js';
+  VEHICLE_CATALOG,
+  formatVehicleCatalogLine,
+  vehicleCatalogEntryForId,
+  type VehicleSelectionKeyCode,
+} from '../vehicle/vehicle-catalog.js';
 
 export interface BrowserVehicleProfileSelection {
-  readonly code: 'KeyQ' | 'KeyW' | 'KeyE' | 'KeyR' | 'KeyA' | 'KeyS';
-  readonly keyLabel: 'Q' | 'W' | 'E' | 'R' | 'A' | 'S';
+  readonly code: VehicleSelectionKeyCode;
+  readonly keyLabel: string;
+  readonly mobileLabel: string;
+  readonly accessibleName: string;
   readonly profile: Readonly<CompiledArcadeVehicleProfile>;
 }
 
-export const BROWSER_VEHICLE_PROFILES: readonly BrowserVehicleProfileSelection[] = Object.freeze([
-  Object.freeze({ code: 'KeyQ', keyLabel: 'Q', profile: FR_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyW', keyLabel: 'W', profile: MR_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyE', keyLabel: 'E', profile: RR_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyR', keyLabel: 'R', profile: AWD_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyA', keyLabel: 'A', profile: BIKE1_VEHICLE_PROFILE }),
-  Object.freeze({ code: 'KeyS', keyLabel: 'S', profile: BIKE2_VEHICLE_PROFILE }),
-]);
+export const BROWSER_VEHICLE_PROFILES: readonly BrowserVehicleProfileSelection[] = Object.freeze(
+  VEHICLE_CATALOG.map((catalogEntry) => Object.freeze({
+    code: catalogEntry.keyCode,
+    keyLabel: catalogEntry.keyLabel,
+    mobileLabel: catalogEntry.mobileLabel,
+    accessibleName: formatVehicleCatalogLine(catalogEntry),
+    profile: catalogEntry.profile,
+  })),
+);
 
 export function browserVehicleProfileForKey(
   code: string,
@@ -31,7 +31,5 @@ export function browserVehicleProfileForKey(
 }
 
 export function formatVehicleProfileSelector(activeId: VehicleProfileId): string {
-  return BROWSER_VEHICLE_PROFILES
-    .map(({ keyLabel, profile }) => `[${keyLabel}]${profile.id}${profile.id === activeId ? '*' : ''}`)
-    .join(' ');
+  return formatVehicleCatalogLine(vehicleCatalogEntryForId(activeId));
 }

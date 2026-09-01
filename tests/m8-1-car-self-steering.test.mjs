@@ -11,8 +11,8 @@ import {
   vehicleBodyTravelDirection,
 } from '../dist/physics/arcade-vehicle-physics.js';
 import {
-  BIKE1_VEHICLE_PROFILE,
-  FR_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
 import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
@@ -32,7 +32,7 @@ const wideSurface = new SurfaceMap(highway.guide.length, [{
 }]);
 
 test('regularized front slip observation matches the one-k lateral denominator', () => {
-  const tire = FR_VEHICLE_PROFILE.frontStation.tire;
+  const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const demand = tireLinearDemand(100, 0.33, 24, -2.4, tire);
   const angle = regularizedTireSlipAngle(24, -2.4, tire.lowSpeedRegularization);
   assert.ok(Math.abs(Math.tan(angle) - demand.sy) < 1e-12);
@@ -50,17 +50,17 @@ test('common body travel direction derives self-steering from authoritative CG v
   };
   const actual = vehicleBodyTravelDirection(
     body,
-    FR_VEHICLE_PROFILE.steeringLowSpeedRegularization,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization,
   );
   const expected = Math.atan2(
     -3,
-    Math.sqrt(30 ** 2 + FR_VEHICLE_PROFILE.steeringLowSpeedRegularization ** 2),
+    Math.sqrt(30 ** 2 + FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization ** 2),
   );
   assert.ok(Math.abs(actual - expected) < 1e-12);
   assert.ok(actual < 0);
 });
 
-for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
+for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_PROFILE]) {
   test(`${profile.id} uses the same actuator and sole front-road-wheel steering response`, () => {
     const vehicle = createArcadeVehicle(profile, highway.guide, flatHeight, wideSurface, 800, -1.75, 45);
     updateArcadeVehicle(
@@ -81,7 +81,7 @@ for (const profile of [FR_VEHICLE_PROFILE, BIKE1_VEHICLE_PROFILE]) {
 test('neutral request releases the actuator and self-steers a yawed body toward travel direction', () => {
   const speed = 25;
   const vehicle = createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     highway.guide,
     flatHeight,
     wideSurface,
@@ -93,8 +93,8 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
   vehicle.velocityX = 0;
   vehicle.velocityY = 0;
   vehicle.velocityZ = speed;
-  vehicle.frontWheelOmega = speed / FR_VEHICLE_PROFILE.frontWheelRadius;
-  vehicle.rearWheelOmega = speed / FR_VEHICLE_PROFILE.rearWheelRadius;
+  vehicle.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
+  vehicle.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearWheelRadius;
   vehicle.actuator.steering = 0.4;
 
   for (let tick = 0; tick < 12; tick += 1) {
@@ -115,56 +115,56 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
 test('common rack has one mechanical stop and profile compilation rejects invalid steering authority', () => {
   const atStop = stepTravelDirectionSteering(
     0,
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
-    FR_VEHICLE_PROFILE.maxRoadWheelSteer,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer,
     0,
     {
-      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
     },
     DT,
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
-  assert.ok(atStop <= FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.ok(atStop <= FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
   assert.equal(
-    FR_VEHICLE_PROFILE.steeringAutomaticMax,
-    FR_VEHICLE_PROFILE.maxRoadWheelSteer - FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringAutomaticMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer - FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
   );
   const saturatedWithoutYaw = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     Math.PI / 3,
     0,
     {
-      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
     },
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   const saturatedWithYaw = travelDirectionSteeringTarget(
-    FR_VEHICLE_PROFILE.steeringOffsetMax,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
     Math.PI / 3,
     1,
     {
-      yawTransientGain: FR_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FR_VEHICLE_PROFILE.steeringYawWashoutTime,
+      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
+      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
     },
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
   assert.equal(saturatedWithYaw, saturatedWithoutYaw);
-  assert.equal(saturatedWithoutYaw, FR_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.equal(saturatedWithoutYaw, FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FR_VEHICLE_PROFILE, steeringResponseTau: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringResponseTau: 0 }),
     /finite and > 0/,
   );
 });
 
 test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics', () => {
   const directHudRatio = compileArcadeVehicleProfile({
-    ...FR_VEHICLE_PROFILE,
+    ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     steeringRatio: 1,
   });
   const standard = createArcadeVehicle(
-    FR_VEHICLE_PROFILE,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     highway.guide,
     flatHeight,
     wideSurface,

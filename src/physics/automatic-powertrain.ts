@@ -16,7 +16,8 @@ export interface AutomaticPowertrainProfile {
   readonly downshiftRpm: number;
   readonly shiftDuration: number;
   readonly engineResponseTau: number;
-  readonly torqueConverterSlipRpm: number;
+  /** Reduced launch coupling slip; represents clutch take-up without adding clutch state. */
+  readonly launchCouplingSlipRpm: number;
   readonly finalDriveRatio: number;
   readonly efficiency: number;
   readonly gearRatios: readonly number[];
@@ -89,10 +90,10 @@ export function updateAutomaticPowertrain(
   }
 
   const coupledRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
-  const converterSlip = pedal * profile.torqueConverterSlipRpm
+  const couplingSlip = pedal * profile.launchCouplingSlipRpm
     * clamp(1 - coupledRpm / profile.upshiftRpm, 0, 1);
   const rpmTarget = clamp(
-    Math.max(profile.idleRpm, coupledRpm + converterSlip),
+    Math.max(profile.idleRpm, coupledRpm + couplingSlip),
     profile.idleRpm,
     profile.redlineRpm,
   );
@@ -177,7 +178,7 @@ export function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainP
   if (!(profile.idleRpm > 0)
     || !(profile.shiftDuration > 0)
     || !(profile.engineResponseTau > 0)
-    || !(profile.torqueConverterSlipRpm >= 0)
+    || !(profile.launchCouplingSlipRpm >= 0)
     || !(profile.finalDriveRatio > 0)
     || !(profile.efficiency > 0 && profile.efficiency <= 1)
     || ![
@@ -187,7 +188,7 @@ export function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainP
       profile.downshiftRpm,
       profile.shiftDuration,
       profile.engineResponseTau,
-      profile.torqueConverterSlipRpm,
+      profile.launchCouplingSlipRpm,
       profile.finalDriveRatio,
       profile.efficiency,
     ].every(Number.isFinite)) {

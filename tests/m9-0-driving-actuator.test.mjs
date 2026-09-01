@@ -8,7 +8,7 @@ import {
   updateDrivingActuators,
   validateDrivingActuatorProfile,
 } from '../dist/physics/driving-actuator.js';
-import { FR_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
 
 const DT = 1 / 720;
 const PROFILE = Object.freeze({
@@ -59,11 +59,11 @@ test('one-tick request is smaller than held request and authored apply times rea
 
 test('steering apply and neutral release use the same finite rate', () => {
   assert.equal(
-    FR_VEHICLE_PROFILE.actuator.steering.applyRate,
-    FR_VEHICLE_PROFILE.actuator.steering.releaseRate,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.releaseRate,
   );
   assert.ok(
-    Math.abs(FR_VEHICLE_PROFILE.actuator.steering.applyRate - 8 / 3) < 1e-12,
+    Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate - 8 / 3) < 1e-12,
   );
   const state = { steering: 1, throttle: 1, brake: 1 };
   updateDrivingActuators(state, neutral, DT, PROFILE);
