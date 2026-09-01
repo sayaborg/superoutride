@@ -27,8 +27,12 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
-test('M8.0 front-tire linear capacity stays inside the shared one-k radial knee', () => {
-  assert.ok(FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness < FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearNormalizedStiffness);
+test('M9.9 axle-neutral tire still keeps useful linear capacity inside the shared one-k radial knee', () => {
+  assert.equal(
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearNormalizedStiffness,
+  );
+  assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness, 9.75);
   const frontNormal = FERRARI_TESTAROSSA_VEHICLE_PROFILE.mass * 9.80665 * FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearAxle
     / (FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontAxle + FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearAxle);
   const capacity = usefulLateralCapacity(
@@ -40,7 +44,7 @@ test('M8.0 front-tire linear capacity stays inside the shared one-k radial knee'
   assert.ok(Math.abs(capacity - FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef * frontNormal) < 1e-9);
 });
 
-test('M9.8 common selectable tire calibration keeps the broad shoulder', () => {
+test('M9.9 common preset-1 tire keeps one broad symmetric transition shoulder', () => {
   const pureLateralAngles = (normalizedStiffness) => ({
     linearEnd: Math.atan(
       FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee * FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef / normalizedStiffness,
@@ -52,10 +56,10 @@ test('M9.8 common selectable tire calibration keeps the broad shoulder', () => {
   const front = pureLateralAngles(FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontNormalizedStiffness);
   const rear = pureLateralAngles(FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearNormalizedStiffness);
 
-  assert.ok(front.linearEnd > 6.3 && front.plateauStart > 10.6);
-  assert.ok(rear.linearEnd > 5.4 && rear.plateauStart > 9.1);
-  assert.ok(front.plateauStart - front.linearEnd > 4.3);
-  assert.ok(rear.plateauStart - rear.linearEnd > 3.7);
+  assert.deepEqual(front, rear);
+  assert.ok(front.linearEnd > 5.8 && front.linearEnd < 5.9);
+  assert.ok(front.plateauStart > 9.8 && front.plateauStart < 10.0);
+  assert.ok(front.plateauStart - front.linearEnd > 4.0);
   assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.mass, 1625);
   assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.rhoKnee, 0.74);
   assert.equal(FERRARI_TESTAROSSA_VEHICLE_PROFILE.muRef, 1.35);
