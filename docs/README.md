@@ -2,6 +2,16 @@
 
 This directory contains current normative authority, chronological milestone records, takeover context, and historical validation evidence. Those are intentionally different document classes.
 
+The current takeover checkpoint is:
+
+```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
+```
+
+It records the released M9.6 source/PR/CI/Pages identity, completed-work boundary and fresh-thread
+restart procedure. It is navigation context only and does not replace numbered authority, source,
+tests or current Git/PR/workflow state.
+
 The historical M9 implementation handoffs are:
 
 ```text

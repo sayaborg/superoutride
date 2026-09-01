@@ -55,6 +55,13 @@ Vehicle handling remains:
 DEV_UNCALIBRATED
 ```
 
+## Current takeover checkpoint
+
+For continuation in a fresh thread, read
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md` after this entry document and
+`docs/README.md`. It records the released M9.6 Git/PR/CI/Pages checkpoint and restart procedure.
+It is navigation context, not numbered design authority.
+
 ## Authority entry order
 
 Read these before changing current behavior:
