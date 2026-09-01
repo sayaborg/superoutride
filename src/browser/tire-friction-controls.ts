@@ -21,7 +21,7 @@ export function mountBrowserTireFrictionControls(
 ): BrowserTireFrictionControls {
   const selector = mountMobileTireFrictionSelector(
     container,
-    browserTirePresetIdForCalibration(getVehicle().tireFrictionCalibration) ?? '1',
+    browserTirePresetIdForCalibration(getVehicle().tireFrictionCalibration) ?? '100',
     selectPreset,
     documentRef,
   );
