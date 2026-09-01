@@ -110,7 +110,7 @@ export function createMobileTireFrictionSelectorModel(
   return BROWSER_TIRE_CHARACTERISTIC_PRESETS.map(({ id, label }) => ({
     value: id,
     label,
-    ariaLabel: `Select debug tire preset ${label}`,
+    ariaLabel: `Set sliding friction plateau to ${label} percent of peak`,
     active: id === activeId,
   }));
 }
