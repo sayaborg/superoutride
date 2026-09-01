@@ -471,7 +471,8 @@ M9.7 adds no:
 ## 12. Validation-record decision
 
 This milestone changes a normative authority boundary. Under
-`docs/validation/README.md`, release therefore requires a standalone M9.7 validation record. That
-record is added only after the implementation-inclusive candidate receives complete exact-head CI,
-then the validation-inclusive exact head must receive the complete suite again. No retrospective
-or historical validation artifact is edited.
+`docs/validation/README.md`, release therefore requires the standalone record
+`docs/validation/M9_7_BOUNDED_WASHOUT_STEERING_ASSIST_VALIDATION.txt`. It is added only after the
+implementation-inclusive candidate receives complete exact-head CI. The validation-inclusive exact
+head must then receive the complete suite again. No retrospective or historical validation artifact
+is edited.

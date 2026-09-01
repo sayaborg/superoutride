@@ -371,9 +371,16 @@ It proves exact default body-yaw lock, retained M8.2 movement follow, P/touch se
 mode-dependent TRAVEL/BODY arrow meaning, complete-suite acceptance and portrait/landscape
 browser operation.
 
-M9.7 changes a normative authority boundary. The standalone-record rule therefore requires a new
-M9.7 validation record after its implementation-inclusive exact head is green, followed by a
-complete validation-inclusive exact-head run. No record is claimed before that checkpoint.
+The current M9.7 bounded washout steering-assist evidence is:
+
+```text
+validation/M9_7_BOUNDED_WASHOUT_STEERING_ASSIST_VALIDATION.txt
+```
+
+It records the implementation-inclusive exact-head CI, zero-DC/bounded-allocation architecture,
+three-selector authority, Cartesian deep-beta exclusion, recovery ordering, general rival
+recalibration and recovery-free fork/course integration. The validation-inclusive final identity
+is supplied by Git, PR and workflow history under the archive self-reference rule.
 
 The historical released M9.2 selectable steering-calibration evidence is:
 

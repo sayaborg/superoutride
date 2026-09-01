@@ -241,11 +241,12 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-M9.7 changes a normative authority boundary, so release requires a new standalone M9.7 validation
-record under `docs/validation/README.md` after the implementation-inclusive exact head is green.
-The record is not created or claimed before that checkpoint.
+The M9.7 standalone validation record is
+`docs/validation/M9_7_BOUNDED_WASHOUT_STEERING_ASSIST_VALIDATION.txt`. It was created only after the
+implementation-inclusive exact head passed 599/599 in CI. Release still requires the complete suite
+on the validation-inclusive exact head and exact-SHA main/PR/Pages identity.
 
-The latest completed public release evidence remains
+The prior completed public release evidence is
 `docs/validation/M9_6_FISCO_CIRCUIT_VALIDATION.txt`. The retained M9.5 tire evidence is
 `docs/validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt`. The retained M9.4 tire evidence is
 `docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence
