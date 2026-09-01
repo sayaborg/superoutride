@@ -1,11 +1,13 @@
 export interface ArcadeTireFrictionCalibrationInput {
   readonly referenceFrictionMultiplier?: number;
   readonly linearStiffnessMultiplier?: number;
+  readonly slidingFrictionRatio?: number;
 }
 
 export interface ArcadeTireFrictionCalibrationState {
   referenceFrictionMultiplier: number;
   linearStiffnessMultiplier: number;
+  slidingFrictionRatio: number;
 }
 
 export interface ArcadeTireFrictionCalibrationOwner {
@@ -17,9 +19,11 @@ export function createArcadeTireFrictionCalibration(
 ): ArcadeTireFrictionCalibrationState {
   const referenceFrictionMultiplier = input.referenceFrictionMultiplier ?? 1;
   const linearStiffnessMultiplier = input.linearStiffnessMultiplier ?? 1;
+  const slidingFrictionRatio = input.slidingFrictionRatio ?? 1;
   assertReferenceFrictionMultiplier(referenceFrictionMultiplier);
   assertLinearStiffnessMultiplier(linearStiffnessMultiplier);
-  return { referenceFrictionMultiplier, linearStiffnessMultiplier };
+  assertSlidingFrictionRatio(slidingFrictionRatio);
+  return { referenceFrictionMultiplier, linearStiffnessMultiplier, slidingFrictionRatio };
 }
 
 export function setArcadeVehicleTireFrictionCalibration(
@@ -31,6 +35,8 @@ export function setArcadeVehicleTireFrictionCalibration(
     resolved.referenceFrictionMultiplier;
   vehicle.tireFrictionCalibration.linearStiffnessMultiplier =
     resolved.linearStiffnessMultiplier;
+  vehicle.tireFrictionCalibration.slidingFrictionRatio =
+    resolved.slidingFrictionRatio;
 }
 
 export function assertReferenceFrictionMultiplier(multiplier: number): void {
@@ -42,5 +48,11 @@ export function assertReferenceFrictionMultiplier(multiplier: number): void {
 export function assertLinearStiffnessMultiplier(multiplier: number): void {
   if (!(multiplier > 0) || !Number.isFinite(multiplier)) {
     throw new RangeError('tire linear-stiffness multiplier must be finite and > 0');
+  }
+}
+
+export function assertSlidingFrictionRatio(ratio: number): void {
+  if (!(ratio > 0 && ratio <= 1) || !Number.isFinite(ratio)) {
+    throw new RangeError('tire sliding-friction ratio must be finite and lie in (0, 1]');
   }
 }
