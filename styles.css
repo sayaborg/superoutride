@@ -31,11 +31,19 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   display: grid;
-  place-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  justify-items: center;
   background: #05080c;
 }
 
 .game-zone {
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   display: grid;
@@ -45,9 +53,10 @@ body {
 
 #game {
   display: block;
-  width: min(100vw, calc(100dvh * 4 / 3));
-  height: auto;
-  max-height: 100dvh;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 4 / 3;
   background: #000;
   image-rendering: pixelated;
@@ -61,24 +70,23 @@ body {
 }
 
 .mobile-selector-zone {
-  display: none;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: min(100%, 1100px);
   min-width: 0;
+  display: grid;
+  justify-self: center;
 }
 
 .touch-capable .control-zone {
   display: flex;
 }
 
-.touch-capable .mobile-selector-zone {
-  display: grid;
-}
-
 .selector-group {
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
+  align-items: start;
+  gap: 2px;
 }
 
 .selector-label {
@@ -93,44 +101,12 @@ body {
   gap: 4px;
 }
 
-.course-selector-buttons {
-  grid-template-columns: repeat(4, minmax(44px, 1fr));
-}
-
-.vehicle-selector-buttons {
-  grid-template-columns: repeat(3, minmax(44px, 1fr));
-}
-
-.camera-selector-buttons {
-  grid-template-columns: repeat(2, minmax(44px, 1fr));
-}
-
-.yaw-transient-selector-buttons {
-  grid-template-columns: repeat(6, minmax(44px, 1fr));
-}
-
-.yaw-washout-selector-buttons {
-  grid-template-columns: repeat(4, minmax(44px, 1fr));
-}
-
-.steering-response-selector-buttons {
-  grid-template-columns: repeat(4, minmax(44px, 1fr));
-}
-
-.tire-friction-selector-buttons {
-  grid-template-columns: repeat(3, minmax(44px, 1fr));
-}
-
 .selector-button {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 4px;
   border: 1px solid #49616e;
   border-radius: 9px;
   background: #111a21;
   color: #b7cbd5;
   font: inherit;
-  font-size: clamp(9px, 2.3vw, 12px);
   font-weight: 700;
   white-space: nowrap;
   user-select: none;
@@ -214,108 +190,94 @@ body {
 }
 
 @media (orientation: landscape) {
-  .touch-capable #app {
-    grid-template-columns: minmax(96px, 1fr) minmax(0, calc(100dvh * 4 / 3)) minmax(96px, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: clamp(6px, 1.5vw, 20px);
-    align-items: stretch;
-    padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right));
-  }
-
-  .touch-capable .mobile-selector-zone {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    width: min(100%, 900px);
+  .mobile-selector-zone {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-template-rows: auto auto;
     gap: 6px 8px;
   }
 
-  .touch-capable .selector-group {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: 2px;
-  }
-
-  .touch-capable .selector-group-course {
+  .selector-group-course {
     grid-column: 1 / span 3;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-vehicle {
+  .selector-group-vehicle {
     grid-column: 4 / span 4;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-camera {
+  .selector-group-camera {
     grid-column: 8 / span 2;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-tire {
+  .selector-group-tire {
     grid-column: 10 / span 3;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-yaw {
+  .selector-group-yaw {
     grid-column: 1 / span 5;
     grid-row: 2;
   }
 
-  .touch-capable .selector-group-wash {
+  .selector-group-wash {
     grid-column: 6 / span 3;
     grid-row: 2;
   }
 
-  .touch-capable .selector-group-act {
+  .selector-group-act {
     grid-column: 9 / span 3;
     grid-row: 2;
   }
 
-  .touch-capable .selector-button {
+  .selector-button {
     min-width: 36px;
     min-height: 36px;
     padding: 2px;
     font-size: clamp(8px, 1.55vw, 10px);
   }
 
-  .touch-capable .course-selector-buttons {
+  .course-selector-buttons {
     grid-template-columns: repeat(4, minmax(36px, 1fr));
   }
 
-  .touch-capable .vehicle-selector-buttons {
+  .vehicle-selector-buttons {
     grid-template-columns: repeat(5, minmax(36px, 1fr));
   }
 
-  .touch-capable .camera-selector-buttons {
+  .camera-selector-buttons {
     grid-template-columns: repeat(2, minmax(36px, 1fr));
   }
 
-  .touch-capable .yaw-transient-selector-buttons {
+  .yaw-transient-selector-buttons {
     grid-template-columns: repeat(6, minmax(36px, 1fr));
   }
 
-  .touch-capable .yaw-washout-selector-buttons,
-  .touch-capable .steering-response-selector-buttons {
+  .yaw-washout-selector-buttons,
+  .steering-response-selector-buttons {
     grid-template-columns: repeat(4, minmax(36px, 1fr));
   }
 
-  .touch-capable .tire-friction-selector-buttons {
+  .tire-friction-selector-buttons {
     grid-template-columns: repeat(3, minmax(36px, 1fr));
+  }
+
+  .touch-capable #app {
+    grid-template-columns: minmax(96px, 1fr) minmax(0, calc(100dvh * 4 / 3)) minmax(96px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: clamp(6px, 1.5vw, 20px);
+    padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right));
+  }
+
+  .touch-capable .mobile-selector-zone {
+    grid-column: 1 / -1;
+    grid-row: 1;
   }
 
   .touch-capable .game-zone {
     grid-column: 2;
     grid-row: 2;
-    width: 100%;
-    height: 100%;
-  }
-
-  .touch-capable #game {
-    width: auto;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
   }
 
   .touch-capable .steering-zone {
@@ -342,106 +304,91 @@ body {
 }
 
 @media (orientation: portrait) {
-  .touch-capable #app {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto minmax(0, 1fr) 124px;
-    gap: 8px 14px;
-    align-content: stretch;
-    align-items: stretch;
-    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-  }
-
-  .touch-capable .mobile-selector-zone {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    width: 100%;
+  .mobile-selector-zone {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(5, auto);
     gap: 4px 8px;
   }
 
-  .touch-capable .selector-group {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: 2px;
-  }
-
-  .touch-capable .selector-group-course {
+  .selector-group-course {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-camera {
+  .selector-group-camera {
     grid-column: 2;
     grid-row: 1;
   }
 
-  .touch-capable .selector-group-vehicle {
+  .selector-group-vehicle {
     grid-column: 1 / -1;
     grid-row: 2;
   }
 
-  .touch-capable .selector-group-yaw {
+  .selector-group-yaw {
     grid-column: 1 / -1;
     grid-row: 3;
   }
 
-  .touch-capable .selector-group-wash {
+  .selector-group-wash {
     grid-column: 1;
     grid-row: 4;
   }
 
-  .touch-capable .selector-group-act {
+  .selector-group-act {
     grid-column: 2;
     grid-row: 4;
   }
 
-  .touch-capable .selector-group-tire {
+  .selector-group-tire {
     grid-column: 1;
     grid-row: 5;
   }
 
-  .touch-capable .selector-button {
+  .selector-button {
     min-width: 32px;
     min-height: 32px;
     padding: 2px;
     font-size: clamp(8px, 2.3vw, 10px);
   }
 
-  .touch-capable .course-selector-buttons,
-  .touch-capable .yaw-washout-selector-buttons,
-  .touch-capable .steering-response-selector-buttons {
+  .course-selector-buttons,
+  .yaw-washout-selector-buttons,
+  .steering-response-selector-buttons {
     grid-template-columns: repeat(4, minmax(32px, 1fr));
   }
 
-  .touch-capable .vehicle-selector-buttons {
+  .vehicle-selector-buttons {
     grid-template-columns: repeat(9, minmax(32px, 1fr));
   }
 
-  .touch-capable .camera-selector-buttons {
+  .camera-selector-buttons {
     grid-template-columns: repeat(2, minmax(32px, 1fr));
   }
 
-  .touch-capable .yaw-transient-selector-buttons {
+  .yaw-transient-selector-buttons {
     grid-template-columns: repeat(6, minmax(32px, 1fr));
   }
 
-  .touch-capable .tire-friction-selector-buttons {
+  .tire-friction-selector-buttons {
     grid-template-columns: repeat(3, minmax(32px, 1fr));
+  }
+
+  .touch-capable #app {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto minmax(0, 1fr) 124px;
+    gap: 8px 14px;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+
+  .touch-capable .mobile-selector-zone {
+    grid-column: 1 / -1;
+    grid-row: 1;
   }
 
   .touch-capable .game-zone {
     grid-column: 1 / -1;
     grid-row: 2;
-    width: 100%;
-    height: 100%;
-  }
-
-  .touch-capable #game {
-    width: auto;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
   }
 
   .touch-capable .steering-zone {
