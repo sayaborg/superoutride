@@ -254,6 +254,8 @@ export function updateArcadeVehicle(
         vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
       linearStiffnessMultiplier:
         vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
+      slidingFrictionRatio:
+        vehicle.tireFrictionCalibration.slidingFrictionRatio,
       rollingResistance: front.tireFrameValid ? front.surface.material.rollingResistance : 0,
       driveTorque: frontDriveTorque,
       brakeTorque: frontBrakeTorque,
@@ -272,6 +274,8 @@ export function updateArcadeVehicle(
         vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
       linearStiffnessMultiplier:
         vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
+      slidingFrictionRatio:
+        vehicle.tireFrictionCalibration.slidingFrictionRatio,
       rollingResistance: rear.tireFrameValid ? rear.surface.material.rollingResistance : 0,
       driveTorque: rearDriveTorque,
       brakeTorque: rearBrakeTorque,
