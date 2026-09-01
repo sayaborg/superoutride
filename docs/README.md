@@ -393,6 +393,18 @@ three-selector authority, Cartesian deep-beta exclusion, recovery ordering, gene
 recalibration and recovery-free fork/course integration. The validation-inclusive final identity
 is supplied by Git, PR and workflow history under the archive self-reference rule.
 
+The current M9.8 selectable production-vehicle catalog evidence is:
+
+```text
+validation/M9_8_SELECTABLE_PRODUCTION_VEHICLE_CATALOG_VALIDATION.txt
+```
+
+It records the implementation-inclusive exact-head CI, nine-entry structured catalog, common-tire
+boundary, distinct compiled mechanics, selector/default/presentation derivation, retired six-
+profile authority, all-nine steering envelopes and Testarossa-default renderer baseline recheck.
+The validation-inclusive final identity is supplied by Git, PR and workflow history under the
+archive self-reference rule.
+
 The historical released M9.2 selectable steering-calibration evidence is:
 
 ```text

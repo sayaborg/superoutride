@@ -252,8 +252,10 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The current implementation milestone is M9.8. Its standalone validation record is added only after
-the implementation-inclusive exact head passes complete CI under `docs/validation/README.md`.
+The M9.8 standalone validation record is
+`docs/validation/M9_8_SELECTABLE_PRODUCTION_VEHICLE_CATALOG_VALIDATION.txt`. It records the
+implementation-inclusive exact-head CI and requires a fresh complete run on the validation-
+inclusive head before release.
 
 The retained M9.7 standalone validation record is
 `docs/validation/M9_7_BOUNDED_WASHOUT_STEERING_ASSIST_VALIDATION.txt`. It was created only after the

@@ -1,0 +1,164 @@
+SUPER OUTRIDE — M9.8 SELECTABLE PRODUCTION VEHICLE CATALOG VALIDATION
+2026-09-01 JST
+
+Scope:
+Replace the six abstract debug profile identities with the approved nine production vehicles.
+Keep model metadata roles separate, compile distinct mechanics and powertrains, share only the
+provisional normalized preset-1 tire law, and derive keyboard/touch/HUD/default/presentation from
+one structured catalog without adding a vehicle-specific solver branch.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+0a4cc633e5b387bfe76bf9895bc25895613d1983
+
+Candidate branch:
+codex/m9-8-selectable-vehicle-catalog
+
+Pull request:
+#113
+https://github.com/sayaborg/superoutride/pull/113
+
+Pre-validation candidate head:
+8e8e017b60751ece5e64634feb1da2b3ba871897 Implement M9.8 selectable production vehicle catalog
+
+Pre-validation exact-head CI:
+GitHub Actions run 33498456201
+build job 99825974961
+expected head SHA = run head SHA = PR #113 head SHA =
+8e8e017b60751ece5e64634feb1da2b3ba871897
+checkout exact source commit = success
+verify exact checkout = success
+test and build = success
+597 tests
+597 pass
+0 fail
+0 skipped
+conclusion = success
+
+Package / visible milestone:
+super-outride-m9-8@0.9.8
+SUPER OUTRIDE M9.8
+
+Current normative authority:
+docs/98_m9_8_selectable_production_vehicle_catalog.md
+
+Resolved architecture:
+- src/vehicle/vehicle-catalog.ts is the sole product identity/list authority;
+- manufacturer/model, identifier, selected specification, period and physics anchor remain
+  separate fields and are combined only by one formatter;
+- the catalog references exactly one compiled profile per vehicle and every browser/touch/HUD
+  selection derives from it;
+- Ferrari Testarossa is the default player and fixed rival profile at all composition roots;
+- explicit presentationFamily selects only existing generic CAR/BIKE programmer art and is never
+  mechanics input;
+- the common Two-Station Arcade Vehicle Dynamics solver contains no manufacturer, model, profile
+  ID, CAR/BIKE, market, route or course branch;
+- the retired FR/MR/RR/AWD/BIKE1/BIKE2 exports and all compatibility aliases are absent;
+- torqueConverterSlipRpm is retired in favor of generic launchCouplingSlipRpm, which adds no
+  clutch state;
+- all world-space, renderer-depth, fixed-metric, open-runtime and topology authorities remain
+  unchanged.
+
+Canonical catalog order and keys:
+Q Ferrari Testarossa / Tipo F110 / 5-bolt wheels / 1988½–1991
+W Porsche 911 Turbo 3.3 / Type 930 / G50/50 5-speed / 1989
+E Chevrolet Corvette / C4 / L98, ZF 6-speed, pre-facelift / 1989–1990
+R Volkswagen Golf GTI 16V / Mk2 / small bumpers / 1986–1989
+A Lancia Delta HF Integrale / 8V, 185 PS / 1988–1989
+S Honda VFR750R / RC30 / 1987–1990
+D BMW R 80 G/S Paris-Dakar / 1984–1987
+F Harley-Davidson FXRT Sport Glide / Evolution 1340 / 1984–1992
+V Vespa PX 200 E Arcobaleno / VSX1T / 200 cc full-power / 1983–1997
+
+Common tire boundary:
+- muRef = 1.35;
+- rhoKnee = 0.74;
+- tire low-speed regularization = 1.0 m/s;
+- front normalized stiffness = 9.0;
+- rear normalized stiffness = 10.5;
+- compiled absolute stiffness still derives from each profile's own static station load;
+- wheel radius and inertia remain vehicle-specific;
+- M9.5 tire presets remain a separate vehicle-instance DEV comparison authority.
+
+Vehicle-specific compiled data:
+- ready-to-drive vehicle mass plus one 75 kg operator;
+- longitudinal CG decomposition, desired CG height, yaw/pitch inertia;
+- suspension frequency/damping/bump/travel capacity;
+- wheel radius/inertia, brake capacity and quadratic drag;
+- fixed front drive-torque fraction, including Delta nominal 0.47 front / 0.53 rear;
+- engine response, launch coupling, final drive, real-model gear counts/ratios and distinct torque
+  curves;
+- published anchors and engineering-derived values are explicitly separated in the normative
+  source/derivation ledger;
+- all derived handling values remain DEV_UNCALIBRATED.
+
+Selection and presentation:
+- keyboard order is Q/W/E/R/A/S/D/F/V;
+- touch derives the same nine entries as a 3x3 grid with one active accessible button;
+- HUD shows only the active canonical full line;
+- codes already present in a model name are not duplicated by the formatter;
+- generic CAR/BIKE art and the frozen 2.0 m / 80 px player metric remain unchanged;
+- no unique vehicle art, physical motorcycle lean or real collision width is introduced.
+
+Steering and adjustable values:
+- M9.7 unit travel-direction coefficient, bounded zero-DC washout and driver reservation remain;
+- all nine profiles pass the calm steady and Cartesian deep-beta steering envelopes;
+- no new M9.8 tuning selector exists;
+- the only steering selectors remain yaw-transient gain, yaw-washout time and symmetric steering
+  traversal;
+- the M9.5 tire preset remains separate;
+- profile mass/geometry/inertia/powertrain/brakes/drag/rack data are compiled, not live selectors.
+
+Renderer workload evidence:
+- changing the physical default changes body-pitch camera samples and therefore exact deterministic
+  TerrainLine/LOD/player-sprite observations;
+- M5.8 and M5.9 observed baselines were re-recorded for the Testarossa default;
+- the derived budget equations, headroom factor and frozen renderer architecture are unchanged;
+- the observed maxima remain within their retained derived budgets.
+
+Dedicated executable acceptance:
+tests/m9-8-selectable-vehicle-catalog.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+tests/m9-1-mobile-selector-controls.test.mjs
+tests/m9-7-bounded-washout-steering-assist.test.mjs
+tests/m9-7-steering-assist-envelope.test.mjs
+tests/m9-7-rival-controller-integration.test.mjs
+tests/m5-8-performance-budget.test.mjs
+tests/m5-9-tunnel-portal.test.mjs
+tests/live-fork-driving-regression.test.mjs
+tests/source-boundary-normalization.test.mjs
+tests/repository-hygiene.test.mjs
+tests/pages-versioned-boot.test.mjs
+tools/probe-steering-assist.mjs
+
+Pre-validation local repository result:
+npm run check
+success
+
+npm test
+597 tests
+597 pass
+0 fail
+0 skipped
+
+Validation-inclusive exact-head preconditions:
+1. This artifact and its entry-document references are part of the only release candidate.
+2. Push the validation-inclusive head to PR #113 targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 597 / 597 pass, 0 fail, 0 skipped.
+5. Re-fetch main before release and require ahead_by > 0, behind_by = 0 and merge base = current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. Move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push Pages
+   workflow and public version.txt on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert the later validation-inclusive candidate SHA, run id,
+PR merge identity or Pages identity. Those facts are supplied by immutable Git/PR/ref/workflow
+history together with this validation record.
+
+Handling status:
+DEV_UNCALIBRATED. M9.8 freezes catalog identity, authority boundaries and initial researched/
+derived profile seeds, not final production handling or final vehicle-specific tire behavior.
