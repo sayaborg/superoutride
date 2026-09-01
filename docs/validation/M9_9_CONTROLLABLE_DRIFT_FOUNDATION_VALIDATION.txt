@@ -1,0 +1,184 @@
+SUPER OUTRIDE — M9.9 CONTROLLABLE DRIFT FOUNDATION VALIDATION
+
+Status: standalone historical release evidence for the M9.9 normative handling-authority change.
+This file is evidence, not current design authority. Current authority is resolved through
+AGENTS.md, README.md, docs/README.md, docs/99_m9_9_controllable_drift_foundation.md, source and
+regression tests.
+
+1. Release scope
+
+M9.9 deliberately changes only three coupled handling assumptions:
+
+- preserve M9.7's exact unit-coefficient travel-direction steering law and zero-DC washout;
+- replace the shared preset-1 normalized tire stiffness pair 9.0 / 10.5 with axle-neutral
+  9.75 / 9.75;
+- replace M9.7's both-held-sign deep-beta self-recovery release criterion with explicit
+  recovery-input controllability.
+
+The governing product rule is:
+
+  Uncontrollable slide is forbidden. Controllable drift is allowed.
+
+No drift mode, drift assist, target sideslip, travel-direction gain, alternate tire law, new
+dynamic state, CAR/BIKE branch, drive-layout branch, TCS/ABS, roll DOF, handbrake, clutch,
+renderer, camera, route or topology change is introduced. Handling remains DEV_UNCALIBRATED.
+
+2. Repository / PR identity
+
+Repository:
+  sayaborg/superoutride
+
+Audited base main:
+  fc6bc4c4fb7638fc6c4f5558b017fee073d68286
+
+Feature branch:
+  codex/m9-9-controllable-drift-foundation
+
+Pull request:
+  #116 — M9.9: controllable drift foundation
+
+Implementation-inclusive exact head used for the primary acceptance run:
+  9607db91467dd43bf751b10047df4d644775bff1
+
+That SHA was checked out exactly by GitHub Actions.
+
+3. Falsification history
+
+The first implementation candidate head was:
+  074bbcb71197c9a7ac5383d693064e5f57a854a9
+
+GitHub Actions run:
+  33516759433
+  workflow run #694
+  build job 99885616570
+
+Result:
+  602 tests
+  599 pass
+  3 fail
+  0 skipped
+
+The three failures were intentionally inspected rather than hidden:
+
+- an older regression directly required frontNormalizedStiffness < rearNormalizedStiffness;
+- an older preset-1 shoulder regression encoded the former 9.0 front stiffness threshold;
+- the Testarossa transient probe encoded the former <=0.8 s single-case settle threshold.
+
+The new M9.9-specific acceptance itself passed in that failed run, including:
+
+- exact common axle-neutral 9.75 / 9.75 tire seed;
+- preserved M9.5 preset-2/3 effective slope target;
+- no travelDirectionGain / driftMode / driftAssist authority;
+- all-nine calm steady envelope;
+- all-nine explicit-recovery deep-beta envelope;
+- retained rejection of the known D=15 deg / A=16 deg uncontrollable negative fixture;
+- deep-slide correct-input effectiveness without requiring neutral/wrong input to self-recover.
+
+The obsolete assertions were then rebased to the later M9.9 authority. The transient regression
+retained its reverse-yaw, opposite-steer and utilization bounds while using the existing <=1.2 s
+M9.7 transient-envelope ceiling consistently.
+
+4. Implementation-inclusive exact-head CI
+
+Validated implementation head:
+  9607db91467dd43bf751b10047df4d644775bff1
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run id:   33517246717
+  run no.:  696
+  event:    pull_request
+  build job: 99887466432
+
+Exact checkout evidence:
+  expected=9607db91467dd43bf751b10047df4d644775bff1
+  actual=9607db91467dd43bf751b10047df4d644775bff1
+
+Package identity in that run:
+  super-outride-m9-9@0.9.9
+
+Complete suite result:
+  tests:     602
+  pass:      602
+  fail:      0
+  cancelled: 0
+  skipped:   0
+  todo:      0
+
+5. Executable acceptance recorded by the green run
+
+The implementation-inclusive exact head proves the M9.9 acceptance matrix, including:
+
+A. Common tire authority
+- common preset-1 reference values are muRef=1.35, rhoKnee=0.74,
+  lowSpeedRegularization=1.0, frontNormalizedStiffness=9.75,
+  rearNormalizedStiffness=9.75;
+- all nine catalog profiles consume that one common normalized tire law;
+- no vehicle-specific or drive-layout tire branch is added.
+
+B. M9.5 comparison preservation
+- preset 2 and preset 3 use the re-derived linear multiplier 10.3 / 9.75;
+- both retain effective normalized slope 10.3;
+- their established reference plateau starts remain exactly 12 deg and 15 deg;
+- preset 1 intentionally changes to the new axle-neutral reference and begins its reference
+  plateau at approximately 9.8963079524 deg.
+
+C. Steering architecture preservation
+- betaTravel remains structural coefficient 1 in the common steering law;
+- the existing bounded automatic allocation and zero-DC yaw washout remain intact;
+- no travelDirectionGain, driftMode or driftAssist mechanics authority exists.
+
+D. Controllable-slide acceptance
+- calm full-input steady probes cover every one of the nine selectable production profiles;
+- deep +/-43 deg beta seeds at 12 / 15 / 16 / 20 / 25 m/s cover every catalog profile;
+- the explicit recovery input enters the inner region and finishes inside compiled automatic
+  authority with mirror symmetry;
+- neutral/wrong/sustaining input is not required to self-recover;
+- the known D=15 deg / A=16 deg mutation remains rejected because even the explicit recovery
+  input cannot escape its outer state.
+
+E. Architecture boundaries
+- the common two-station solver remains shared by CAR and BIKE;
+- one-k combined-slip, wheel solve, SurfaceMap, suspension, powertrain and input boundaries remain
+  unchanged;
+- frozen world-space physics, chainage renderer depth, metric presentation, open runtime and
+  topology invariants remain green;
+- repository source-boundary and Pages-versioned-boot regressions remain green.
+
+6. Documentation / authority alignment after implementation CI
+
+After the implementation-inclusive green run, the repository entry/authority documents were
+aligned to M9.9, including:
+
+- README.md
+- docs/README.md
+- AGENTS.md
+- docs/99_m9_9_controllable_drift_foundation.md
+
+These documentation commits are intentionally not claimed as the final release identity in this
+record. This file follows the archive self-reference rule: after this evidence file is added, the
+resulting validation-inclusive exact head must receive a fresh complete GitHub Actions run before
+release.
+
+7. Required validation-inclusive release procedure
+
+Release is permitted only after all of the following are true for the post-record exact feature
+head:
+
+1. the complete CI suite succeeds on that exact SHA;
+2. GitHub Actions exact checkout reports expected SHA == actual SHA;
+3. main is re-fetched immediately before release;
+4. compare(main, candidate) proves:
+     ahead_by > 0
+     behind_by = 0
+     merge base = current main
+5. main is moved to the validated exact feature SHA with force=false;
+6. PR head SHA, PR merge SHA and main SHA are verified against the same validated release SHA;
+7. the main-push workflow succeeds on that same SHA;
+8. the Pages artifact/version.txt and deployment are verified to use that same SHA.
+
+If main moves before release, this candidate must not be forced onto main. A new candidate must be
+reconstructed from the newer main and revalidated.
+
+Final validation-inclusive SHA/run identity is intentionally supplied by Git/PR/main/workflow
+history rather than rewritten into this immutable evidence file.
