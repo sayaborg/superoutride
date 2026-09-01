@@ -361,6 +361,16 @@ It proves the published 2045 m lap and straight dimensions, four-wheel corner/ra
 exact non-self-intersecting Raster closure, restrained elevation, circuit cross-section, finite
 N+1 runtime, CIRCUIT-only composition boundary, complete suite and browser layout/rendering.
 
+The current M9.6 FISCO CIRCUIT evidence is:
+
+```text
+validation/M9_6_FISCO_CIRCUIT_VALIDATION.txt
+```
+
+It proves the researched 4563 m current-layout reconstruction, published home-straight/corner/
+width/elevation identity, exact non-self-intersecting Raster closure, finite N+1 runtime, course-4
+composition boundary, retained course-3 Tsukuba, complete suite and browser operation.
+
 The current M9.5 debug tire-preset evidence is:
 
 ```text

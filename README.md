@@ -203,7 +203,8 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The latest retained release evidence is
+Current M9.6 release evidence is
+`docs/validation/M9_6_FISCO_CIRCUIT_VALIDATION.txt`. The retained M9.5 tire evidence is
 `docs/validation/M9_5_DEBUG_TIRE_PRESETS_VALIDATION.txt`. The retained M9.4 tire evidence is
 `docs/validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt`. The retained M9.3 circuit evidence
 is `docs/validation/M9_3_TSUKUBA_CIRCUIT_VALIDATION.txt`. The retained M9.2 steering-calibration

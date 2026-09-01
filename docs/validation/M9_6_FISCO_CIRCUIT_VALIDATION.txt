@@ -1,0 +1,129 @@
+SUPER OUTRIDE — M9.6 FISCO CIRCUIT VALIDATION
+2026-09-01 JST
+
+Scope:
+Add a functional reconstruction of the current Fuji Speedway main racing course (FISCO) as
+browser course 4. Retain Tsukuba as course 3 and preserve the existing CIRCUIT topology/runtime,
+vehicle, input, camera and renderer authorities.
+
+Repository:
+sayaborg/superoutride
+
+Audited main baseline:
+29efd04b85cc702e63e00ef43f659396d24689d1
+
+Candidate branch:
+codex/m9-6-fisco-circuit
+
+Pre-validation candidate head:
+ffec32d21b591dd617b10bc36cacfb5b31fe158c fix: bound FISCO grades by published direction
+
+Pre-validation exact-head CI:
+GitHub Actions run 33480335982
+build job 99768307182
+expected head SHA = run head SHA = PR #110 head SHA =
+ffec32d21b591dd617b10bc36cacfb5b31fe158c
+checkout exact source commit = success
+verify exact checkout = success
+conclusion = success
+
+Package / visible milestone:
+super-outride-m9-6@0.9.6
+SUPER OUTRIDE M9.6
+
+Current normative authority:
+docs/96_m9_6_fisco_circuit.md
+
+Research basis:
+- Fuji Speedway official racing-course page:
+  https://fsw.tv/guide/facility/racing.html
+- Fuji Speedway official course-data plan:
+  https://www.fsw.tv/freeinfo/pdf-cms/54dcc2b0d22984499fdd616b3cb3d54a2edc80aa.pdf
+- JAF circuit registry and current-layout history:
+  https://motorsports.jaf.or.jp/course/circuit/fuji/
+
+Resolved architecture:
+- course 4 is the current post-2005 Fuji Speedway main racing course, not the historic banked
+  layout;
+- one authored lap is exactly 4563 m, clockwise, with the published 1475 m home straight and 17
+  authored corners;
+- the simplified sequence retains TGR, Coca-Cola, 100R, ADVAN, 300R, Dunlop, the uphill technical
+  section and Panasonic identities, including the published 75R, 80R, 100R and 300R families;
+- exact unpublished centerline coordinates, arc angles, connectors and minor radius choices are
+  explicitly original simplified authoring and make no survey/homologation claim;
+- 18 m nominal asphalt sits inside the published 15–25 m width range, with independent shoulder,
+  grass and solid visual edge markings and no highway center line;
+- relative elevation retains the published 40 m envelope and downhill/uphill character with
+  9.53 percent maximum smooth downhill and 8.59 percent maximum smooth uphill inside the
+  respective published 10.05 and 8.88 percent limits;
+- one-lap authoring closes exactly without a runtime correction, self-intersection or Raster turn
+  above 5 degrees;
+- the ordinary explicit CircuitTopology compiles four finite open copies for the three-lap race;
+- browser 1/2/3/4 maps to LINEAR/BRANCHING/TSUKUBA/FISCO from one table;
+- both Tsukuba and FISCO retain route kind CIRCUIT and use the existing main-circuit composition
+  root;
+- main-circuit selects the complete fixture once before ordinary runtime use;
+- no FISCO or course-4 branch is added to physics, tires, input, camera, renderer, recovery, race
+  progress, topology compilers, LINEAR or BRANCHING;
+- frozen world-space physics, chainage pseudo-depth, metric presentation, open Core, zero camera
+  roll, 200 m far depth and transparency invariants remain unchanged.
+
+Dedicated executable acceptance:
+tests/m9-6-fisco-circuit.test.mjs
+tests/m9-3-tsukuba-circuit.test.mjs
+tests/m8-3-course-mode-debug.test.mjs
+tests/m9-1-mobile-selector-controls.test.mjs
+tests/m6-54-circuit-multi-actor.test.mjs
+tests/pages-versioned-boot.test.mjs
+tests/repository-hygiene.test.mjs
+tests/source-boundary-normalization.test.mjs
+
+The acceptance matrix covers:
+- exact length, straight and corner-count constants;
+- clockwise/left-right turn content, exact closed endpoint and non-intersecting Raster geometry;
+- maximum five-degree Raster turns and published radius-family presence;
+- landmark order, 40 m elevation envelope and bounded maximum grade;
+- circuit visual/physical cross-section and independent SurfaceMap/GroundMap semantics;
+- four-copy finite-open three-lap runtime and ordered checkpoint gates;
+- ordinary FR and BIKE1 traversal on the 1475 m home straight;
+- canonical Digit4/Numpad4/touch/HUD FISCO selection and distinct course-3 Tsukuba identity;
+- single main-circuit composition boundary with unchanged lower mechanics, camera, renderer and
+  topology layers;
+- retained complete repository, Pages, vehicle, tire, input, camera, renderer, recovery, route,
+  race and topology suites.
+
+Pre-validation local repository result:
+npm test
+581 tests
+581 pass
+0 fail
+0 skipped
+
+Browser verification:
+- local ?mode=fisco loaded the M9.6 ESM tree, exposed course buttons 1/2/3/4, selected FISCO 4 and
+  rendered the ordinary 320x240 driving view;
+- touch navigation changed 4 -> 3 Tsukuba -> 4 FISCO with exactly one active course button and the
+  expected URL each time;
+- 390x844 portrait and 844x390 landscape exposed the FISCO button and driving canvas without
+  horizontal document overflow;
+- the browser console emitted no warning or error entries during the completed checks.
+
+Validation-inclusive exact-head preconditions:
+1. This artifact and its entry-document references are part of the only release candidate.
+2. Push the validation-inclusive head to PR #110 targeting main.
+3. Require expected SHA = actual Actions checkout SHA = PR head SHA.
+4. Require the complete suite to remain 581 / 581 pass, 0 fail, 0 skipped.
+5. Re-fetch main before release and require ahead_by > 0, behind_by = 0 and merge base = current main.
+6. Never add an unvalidated merge commit or force-update main.
+7. Move main only to the validated exact SHA with force=false.
+8. Verify main SHA = validated SHA = PR head SHA = PR merge SHA and then verify the main-push Pages
+   workflow and public version.txt on that same SHA.
+
+Self-reference avoidance:
+Do not edit this artifact merely to insert the later validation-inclusive candidate SHA, run id, PR
+merge identity or Pages identity. Those facts are supplied by immutable Git/PR/ref/workflow history
+together with this validation record.
+
+Handling status:
+DEV_UNCALIBRATED. This milestone changes course authoring and debug selection only. It does not
+freeze or recalibrate vehicle handling, tire behavior, steering, recovery or camera behavior.
