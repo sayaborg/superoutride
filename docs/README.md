@@ -27,6 +27,7 @@ The current frozen renderer/core authority is the Core Freeze plus its explicit 
 The current vehicle-physics, vehicle-debug and player-camera authorities are:
 
 ```text
+95_m9_5_debug_tire_characteristic_presets.md
 94_m9_4_selectable_tire_friction.md
 92_m9_2_selectable_self_steer_gain.md
 88_m9_1_six_profile_debug_hud.md
@@ -39,7 +40,15 @@ The current vehicle-physics, vehicle-debug and player-camera authorities are:
 91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.4 supersedes only M9.0's prohibition on a control path changing `mu`: one explicit
+M9.5 supersedes M9.4's exact browser comparison table and its prohibition on calibrating linear
+tire demand. The browser exposes numbered DEV presets `1 / 2 / 3`, defaulting to the exact current
+tire as `1`. One vehicle-instance state atomically owns reference-friction and linear-stiffness
+multipliers. Presets `2` and `3` share the same initial slope and delay the current car front-tire
+plateau to `12 deg` and provisional `15 deg`; compiled profiles, `rhoKnee`, the radial law and
+relative SurfaceMap materials remain unchanged. Ordinary construction and rivals retain unit/unit
+calibration.
+
+M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`: one explicit
 vehicle-instance tire calibration now multiplies compiled tire `muRef` before the unchanged
 relative SurfaceMap factor and normal load. The browser player selects `SEMI / 1.5x / 2.0x /
 2.5x`, defaulting to the retained `SEMI=1.0x`; rivals and ordinary construction remain `1.0x`.
@@ -86,6 +95,7 @@ The current browser course-debug composition authority is:
 91_m9_1_dual_yaw_camera_modes.md
 92_m9_2_selectable_self_steer_gain.md
 94_m9_4_selectable_tire_friction.md
+95_m9_5_debug_tire_characteristic_presets.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -96,7 +106,7 @@ The current CIRCUIT DEV course-authoring authority is:
 
 ## 2. Numbered milestone documents
 
-`01_...` through `94_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
+`01_...` through `95_...` are chronological milestone records. They describe the authority and implementation boundary that existed at each milestone.
 
 They are historical snapshots, not a flat set of simultaneously current specifications. A later milestone/addendum may supersede a scoped assumption in an earlier document without making the earlier document incorrect as history.
 
@@ -138,6 +148,7 @@ The most important current topology/runtime/physics sequence is:
 92_m9_2_selectable_self_steer_gain.md
 93_m9_3_tsukuba_circuit.md
 94_m9_4_selectable_tire_friction.md
+95_m9_5_debug_tire_characteristic_presets.md
 ```
 
 The current browser touch-selection authority is
@@ -155,10 +166,13 @@ The current selectable steering calibration authority is
 `92_m9_2_selectable_self_steer_gain.md`. It gives keys/numpad `4` through `9`, `Y`, `T` and shared
 touch selectors one common browser authority while common mechanics owns the sole current state.
 
-The current selectable tire-friction authority is
-`94_m9_4_selectable_tire_friction.md`. It gives keyboard `G`, shared touch buttons and the HUD one
-browser choice table while common tire calibration owns the sole active multiplier. It changes
-only reference-friction capacity and preserves the compiled tire package and SurfaceMap authority.
+The current debug tire-preset authority is
+`95_m9_5_debug_tire_characteristic_presets.md`. It gives keyboard `G`, shared touch buttons and the
+HUD one numbered browser table while common tire calibration owns one atomic two-value state.
+Preset `1` is the exact prior tire; presets `2` and `3` share a higher initial slope and delay the
+current car front-reference plateau to `12 deg` and provisional `15 deg`. Compiled profiles,
+`rhoKnee`, the radial law and SurfaceMap authority remain unchanged. M9.4 is its historical
+reference-friction-only predecessor.
 
 The current public CIRCUIT course-authoring authority is `93_m9_3_tsukuba_circuit.md`. It replaces
 M9.1's low/mid-speed mountain fixture with a functional four-wheel Tsukuba Course 2000
@@ -344,7 +358,7 @@ It proves the published 2045 m lap and straight dimensions, four-wheel corner/ra
 exact non-self-intersecting Raster closure, restrained elevation, circuit cross-section, finite
 N+1 runtime, CIRCUIT-only composition boundary, complete suite and browser layout/rendering.
 
-The current M9.4 selectable tire-friction evidence is:
+The retained M9.4 selectable tire-friction evidence is:
 
 ```text
 validation/M9_4_SELECTABLE_TIRE_FRICTION_VALIDATION.txt

@@ -5,7 +5,7 @@ import {
   formatSteeringResponseSelector,
   formatYawPreviewSelector,
 } from './steering-calibration-selection.js';
-import { formatTireFrictionSelector } from './tire-friction-selection.js';
+import { formatTirePresetSelector } from './tire-friction-selection.js';
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
 import {
   assertExclusivePedalInput,
@@ -55,9 +55,7 @@ export function createVehicleDebugHudModel(
     steeringResponseSelector: formatSteeringResponseSelector(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
     ),
-    tireFrictionSelector: formatTireFrictionSelector(
-      vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
-    ),
+    tireFrictionSelector: formatTirePresetSelector(vehicle.tireFrictionCalibration),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: input.throttle ? 1 : 0,
@@ -83,7 +81,7 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(routeKind, input, vehicle);
   const lines = [
-    `M9.4 ${model.courseSelector}`,
+    `M9.5 ${model.courseSelector}`,
     model.vehicleSelector,
     model.selfSteerSelector,
     model.yawPreviewSelector,

@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/94_m9_4_selectable_tire_friction.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/88_m9_1_six_profile_debug_hud.md
@@ -54,8 +55,16 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.4 supersedes only M9.0's prohibition on a control path changing `mu`. One explicit common
-vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
+M9.5 supersedes M9.4's exact browser choices and its prohibition on calibrating linear tire demand.
+The browser exposes debug presets `1 / 2 / 3`, defaulting to exact current tire preset `1`. One
+common vehicle-instance tire-calibration state atomically owns positive finite reference-friction
+and linear-stiffness multipliers. Presets `2` and `3` retain the same initial slope and target
+`12 deg` and provisional `15 deg` plateau starts on the current car front reference. Compiled tire
+profiles, `rhoKnee`, the radial law, wheel solve and relative SurfaceMap materials remain unchanged;
+ordinary construction and rivals retain unit/unit calibration.
+
+M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
+common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
 Browser choices are `SEMI=1.0x`, `1.5x`, `2.0x` and `2.5x`; ordinary construction and rivals retain
 `1.0x`. The multiplier scales compiled `muRef` before the unchanged relative SurfaceMap factor.
 Tire stiffness, `rhoKnee`, demand, combined-slip transition, wheel solve and surface materials
@@ -112,6 +121,7 @@ docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/94_m9_4_selectable_tire_friction.md
+docs/95_m9_5_debug_tire_characteristic_presets.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -169,6 +179,7 @@ docs/91_m9_1_dual_yaw_camera_modes.md
 docs/92_m9_2_selectable_self_steer_gain.md
 docs/93_m9_3_tsukuba_circuit.md
 docs/94_m9_4_selectable_tire_friction.md
+docs/95_m9_5_debug_tire_characteristic_presets.md
 ```
 
 ### Executable implementation contract

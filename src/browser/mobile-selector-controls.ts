@@ -21,8 +21,8 @@ import {
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import {
-  BROWSER_TIRE_FRICTION_PROFILES,
-  type BrowserTireFrictionMultiplier,
+  BROWSER_TIRE_CHARACTERISTIC_PRESETS,
+  type BrowserTirePresetId,
 } from './tire-friction-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
@@ -105,15 +105,13 @@ export function createMobileSteeringResponseSelectorModel(
 }
 
 export function createMobileTireFrictionSelectorModel(
-  activeMultiplier: number,
-): readonly MobileSelectorButtonModel<BrowserTireFrictionMultiplier>[] {
-  return BROWSER_TIRE_FRICTION_PROFILES.map(({ multiplier, label }) => ({
-    value: multiplier,
+  activeId: BrowserTirePresetId,
+): readonly MobileSelectorButtonModel<BrowserTirePresetId>[] {
+  return BROWSER_TIRE_CHARACTERISTIC_PRESETS.map(({ id, label }) => ({
+    value: id,
     label,
-    ariaLabel: multiplier === 1
-      ? 'Select current semi-slick tire friction'
-      : `Set tire reference friction to ${label}`,
-    active: multiplier === activeMultiplier,
+    ariaLabel: `Select debug tire preset ${label}`,
+    active: id === activeId,
   }));
 }
 
@@ -207,13 +205,13 @@ export function mountMobileSteeringResponseSelector(
 
 export function mountMobileTireFrictionSelector(
   container: HTMLElement,
-  activeMultiplier: number,
-  onSelect: (multiplier: BrowserTireFrictionMultiplier) => void,
+  activeId: BrowserTirePresetId,
+  onSelect: (id: BrowserTirePresetId) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserTireFrictionMultiplier> {
+): MobileSelectorController<BrowserTirePresetId> {
   return mountMobileSelector(
     container,
-    createMobileTireFrictionSelectorModel(activeMultiplier),
+    createMobileTireFrictionSelectorModel(activeId),
     onSelect,
     documentRef,
   );

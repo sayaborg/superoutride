@@ -69,7 +69,7 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   frontSteerAngle: number;
   /** Sole current runtime authority for the three steering calibration controls. */
   readonly steeringCalibration: ArcadeSteeringCalibrationState;
-  /** Sole runtime authority for the selected tire reference-friction multiplier. */
+  /** Sole runtime authority for the selected tire characteristic calibration. */
   readonly tireFrictionCalibration: ArcadeTireFrictionCalibrationState;
   frontWheelOmega: number;
   rearWheelOmega: number;
@@ -237,6 +237,8 @@ export function updateArcadeVehicle(
       gripFactor: front.surface.material.gripFactor,
       referenceFrictionMultiplier:
         vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
+      linearStiffnessMultiplier:
+        vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
       rollingResistance: front.tireFrameValid ? front.surface.material.rollingResistance : 0,
       driveTorque: frontDriveTorque,
       brakeTorque: frontBrakeTorque,
@@ -253,6 +255,8 @@ export function updateArcadeVehicle(
       gripFactor: rear.surface.material.gripFactor,
       referenceFrictionMultiplier:
         vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
+      linearStiffnessMultiplier:
+        vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
       rollingResistance: rear.tireFrameValid ? rear.surface.material.rollingResistance : 0,
       driveTorque: rearDriveTorque,
       brakeTorque: rearBrakeTorque,

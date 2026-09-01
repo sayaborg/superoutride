@@ -117,7 +117,7 @@ body {
 }
 
 .tire-friction-selector-buttons {
-  grid-template-columns: repeat(4, minmax(44px, 1fr));
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
 }
 
 .selector-button {

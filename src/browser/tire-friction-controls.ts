@@ -1,9 +1,11 @@
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
-import { setArcadeVehicleReferenceFrictionMultiplier } from '../physics/tire-friction-calibration.js';
+import { setArcadeVehicleTireFrictionCalibration } from '../physics/tire-friction-calibration.js';
 import {
   BROWSER_TIRE_FRICTION_CYCLE_CODE,
-  nextBrowserTireFrictionMultiplier,
-  type BrowserTireFrictionMultiplier,
+  browserTirePresetCalibration,
+  browserTirePresetIdForCalibration,
+  nextBrowserTirePresetId,
+  type BrowserTirePresetId,
 } from './tire-friction-selection.js';
 import { mountMobileTireFrictionSelector } from './mobile-selector-controls.js';
 
@@ -19,22 +21,20 @@ export function mountBrowserTireFrictionControls(
 ): BrowserTireFrictionControls {
   const selector = mountMobileTireFrictionSelector(
     container,
-    getVehicle().tireFrictionCalibration.referenceFrictionMultiplier,
-    selectMultiplier,
+    browserTirePresetIdForCalibration(getVehicle().tireFrictionCalibration) ?? '1',
+    selectPreset,
     documentRef,
   );
 
-  function selectMultiplier(multiplier: BrowserTireFrictionMultiplier): void {
-    setArcadeVehicleReferenceFrictionMultiplier(getVehicle(), multiplier);
-    selector.setActive(multiplier);
+  function selectPreset(id: BrowserTirePresetId): void {
+    setArcadeVehicleTireFrictionCalibration(getVehicle(), browserTirePresetCalibration(id));
+    selector.setActive(id);
   }
 
   return Object.freeze({
     handleKey(code: string): boolean {
       if (code !== BROWSER_TIRE_FRICTION_CYCLE_CODE) return false;
-      selectMultiplier(nextBrowserTireFrictionMultiplier(
-        getVehicle().tireFrictionCalibration.referenceFrictionMultiplier,
-      ));
+      selectPreset(nextBrowserTirePresetId(getVehicle().tireFrictionCalibration));
       return true;
     },
   });
