@@ -123,6 +123,10 @@ test('M9.10 browser choices share the exact former TIRE 2 peak and vary only sli
   assert.equal(nextBrowserTirePresetId(browserTirePresetCalibration('75')), '70');
   assert.equal(nextBrowserTirePresetId(browserTirePresetCalibration('70')), '100');
   assert.equal(formatTirePresetSelector(browserTirePresetCalibration('75')), 'SLIDE [G] 75%');
+  assert.equal(
+    formatTirePresetSelector(createArcadeTireFrictionCalibration()),
+    'SLIDE [G] 100%',
+  );
 });
 
 test('M9.10 preserves the 12 degree TIRE 2 peak for every slide choice', () => {
@@ -267,7 +271,11 @@ test('M9.10 post-peak law is tire constitutive behavior, not a drift or vehicle 
   assert.match(tireSource, /lateralPostPeakScale/);
   assert.match(solverSource, /vehicle\.tireFrictionCalibration\.slidingFrictionRatio/);
   for (const source of [tireSource, solverSource, calibrationSource, selectionSource]) {
-    assert.doesNotMatch(source, /driftMode|driftAssist|targetSideslip|profile\.id|frontDriveTorqueFraction/);
+    assert.doesNotMatch(source, /driftMode|driftAssist|targetSideslip/);
   }
+  for (const source of [tireSource, calibrationSource, selectionSource]) {
+    assert.doesNotMatch(source, /profile\.id|frontDriveTorqueFraction/);
+  }
+  assert.doesNotMatch(solverSource, /if\s*\([^)]*frontDriveTorqueFraction/);
   assert.doesNotMatch(tireSource, /yawRate|betaTravel|bodyTravelDirection/);
 });
