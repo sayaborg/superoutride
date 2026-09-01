@@ -103,7 +103,7 @@ test('one debug browser authority owns exact tire presets 1, 2 and 3 with defaul
     linearStiffnessMultiplier: 1,
   });
   assert.deepEqual(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION, preset1.calibration);
-  assert.ok(Math.abs(preset2.calibration.linearStiffnessMultiplier - 10.3 / 9) < 1e-15);
+  assert.ok(Math.abs(preset2.calibration.linearStiffnessMultiplier - 10.3 / 9.75) < 1e-15);
   assert.equal(
     preset3.calibration.linearStiffnessMultiplier,
     preset2.calibration.linearStiffnessMultiplier,
@@ -139,15 +139,19 @@ test('presets preserve the one-k law while changing slope and plateau causally',
     / Math.tan(Math.PI / 180);
   const normalizedSlope3 = Math.abs(force3AtOneDegree.fy) / normalLoad
     / Math.tan(Math.PI / 180);
-  assert.ok(Math.abs(normalizedSlope1 - 9) < 1e-12);
+  assert.ok(Math.abs(normalizedSlope1 - 9.75) < 1e-12);
   assert.ok(Math.abs(normalizedSlope2 - 10.3) < 1e-12);
   assert.ok(Math.abs(normalizedSlope3 - normalizedSlope2) < 1e-12);
 
+  const preset1PlateauDegrees = Math.atan(1.26 * 1.35 / 9.75) * 180 / Math.PI;
+  const preset1AtPlateau = forceAtSlipAngle(tire, preset1, preset1PlateauDegrees);
   const preset2BeforePlateau = forceAtSlipAngle(tire, preset2, 11.9);
   const preset2AtPlateau = forceAtSlipAngle(tire, preset2, 12);
   const preset3AtTwelve = forceAtSlipAngle(tire, preset3, 12);
   const preset3BeforePlateau = forceAtSlipAngle(tire, preset3, 14.9);
   const preset3AtPlateau = forceAtSlipAngle(tire, preset3, 15);
+  assert.ok(Math.abs(preset1PlateauDegrees - 9.89630795243453) < 1e-12);
+  assert.ok(Math.abs(preset1AtPlateau.rho - 1.26) < 1e-12);
   assert.ok(Math.abs(preset2AtPlateau.rho - 1.26) < 1e-12);
   assert.ok(Math.abs(Math.abs(preset2AtPlateau.fy) - preset2AtPlateau.fmax) < 1e-9);
   assert.ok(Math.abs(preset2BeforePlateau.fy) < preset2BeforePlateau.fmax);
@@ -161,7 +165,7 @@ test('presets preserve the one-k law while changing slope and plateau causally',
   const dry = forceAtSlipAngle(tire, preset3, 20, 1);
   assert.ok(Math.abs(wet.fmax - dry.fmax * 0.78) < 1e-9);
   assert.equal(tire.muRef, 1.35);
-  assert.equal(tire.normalizedStiffness, 9);
+  assert.equal(tire.normalizedStiffness, 9.75);
   assert.equal(tire.rhoKnee, 0.74);
 });
 
