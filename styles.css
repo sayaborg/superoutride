@@ -216,18 +216,18 @@ body {
     grid-row: 1;
   }
 
-  .selector-group-yaw {
-    grid-column: 1 / span 5;
+  .selector-group-steering-offset {
+    grid-column: 1 / span 4;
     grid-row: 2;
   }
 
-  .selector-group-wash {
-    grid-column: 6 / span 3;
+  .selector-group-max-steer {
+    grid-column: 5 / span 4;
     grid-row: 2;
   }
 
   .selector-group-act {
-    grid-column: 9 / span 3;
+    grid-column: 9 / span 4;
     grid-row: 2;
   }
 
@@ -250,17 +250,14 @@ body {
     grid-template-columns: repeat(2, minmax(36px, 1fr));
   }
 
-  .yaw-transient-selector-buttons {
-    grid-template-columns: repeat(6, minmax(36px, 1fr));
+  .steering-offset-selector-buttons,
+  .max-steer-selector-buttons,
+  .tire-friction-selector-buttons {
+    grid-template-columns: repeat(5, minmax(36px, 1fr));
   }
 
-  .yaw-washout-selector-buttons,
   .steering-response-selector-buttons {
     grid-template-columns: repeat(4, minmax(36px, 1fr));
-  }
-
-  .tire-friction-selector-buttons {
-    grid-template-columns: repeat(3, minmax(36px, 1fr));
   }
 
   .touch-capable #app {
@@ -325,12 +322,12 @@ body {
     grid-row: 2;
   }
 
-  .selector-group-yaw {
+  .selector-group-steering-offset {
     grid-column: 1 / -1;
     grid-row: 3;
   }
 
-  .selector-group-wash {
+  .selector-group-max-steer {
     grid-column: 1;
     grid-row: 4;
   }
@@ -341,7 +338,7 @@ body {
   }
 
   .selector-group-tire {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 5;
   }
 
@@ -353,7 +350,6 @@ body {
   }
 
   .course-selector-buttons,
-  .yaw-washout-selector-buttons,
   .steering-response-selector-buttons {
     grid-template-columns: repeat(4, minmax(32px, 1fr));
   }
@@ -366,12 +362,10 @@ body {
     grid-template-columns: repeat(2, minmax(32px, 1fr));
   }
 
-  .yaw-transient-selector-buttons {
-    grid-template-columns: repeat(6, minmax(32px, 1fr));
-  }
-
+  .steering-offset-selector-buttons,
+  .max-steer-selector-buttons,
   .tire-friction-selector-buttons {
-    grid-template-columns: repeat(3, minmax(32px, 1fr));
+    grid-template-columns: repeat(5, minmax(32px, 1fr));
   }
 
   .touch-capable #app {
