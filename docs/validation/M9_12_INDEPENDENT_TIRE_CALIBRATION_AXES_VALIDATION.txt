@@ -1,0 +1,77 @@
+SUPER OUTRIDE — M9.12 Independent Tire Calibration Axes
+Implementation / Documentation Validation Evidence
+
+Status: GREEN implementation/documentation-inclusive validation head.
+This file is immutable release evidence, not design authority.
+
+Milestone:
+M9.12 — Independent Tire Calibration Axes
+
+Pull request:
+#120 — M9.12: independent tire calibration axes
+
+Implementation/documentation-inclusive validated head:
+dd73b56197802156f569fb935718026af3bdc055
+
+GitHub Actions:
+Workflow: Test and Deploy GitHub Pages
+PR run number: 743
+Run id: 33642926541
+Exact checkout: dd73b56197802156f569fb935718026af3bdc055
+Build job: success
+npm test: success
+Tests: 599
+Pass: 599
+Fail: 0
+
+Validated scope:
+- Browser tire calibration is exposed as three independently interpretable DEV axes:
+  GRIP, PEAK and SLIDE.
+- GRIP choices are current exact effective mu 1.737565543810498 (display 1.74),
+  1.80, 1.90 and 2.00.
+- PEAK choices are current exact normalized slip 0.21255656167002204
+  (display 21.3%, pure-lateral equivalent 12.0 deg), then 18%, 15%, 12%, 9% and 6%.
+- SLIDE choices are 70%, 75%, 80%, 85% and 90%; the current evaluated 80% setting is
+  the M9.12 DEV default.
+- Changing one browser axis preserves the other two displayed physical characteristics to
+  numerical precision.
+- Complete 4 x 6 x 5 = 120 GRIP/PEAK/SLIDE selector combinations remain finite in the retained
+  scalar implicit wheel solve.
+- Keyboard H/J/G and the compact three-button touch TIRE selector mutate the same vehicle-owned
+  calibration.
+- The 320x240 HUD preserves its vertical footprint by displaying one compact tire summary line.
+
+Retained architecture / falsification results:
+- No GRIP/PEAK/SLIDE selector id is added to persistent physics state.
+- Vehicle tire calibration remains exactly the existing three-scalar state:
+  referenceFrictionMultiplier, linearStiffnessMultiplier and slidingFrictionRatio.
+- M9.10 remains the tire constitutive-law authority.
+- The stateless lateral-only post-peak falloff is retained.
+- Pure longitudinal force remains invariant to the SLIDE selector.
+- The unique monotone scalar implicit wheel solve remains retained and deterministic.
+- No tire memory, temperature, pressure, wear, drift mode, target sideslip, vehicle-id branch or
+  drive-layout branch is introduced.
+- M9.12 does not split longitudinal and lateral tire profiles. Cx != Cy, separate longitudinal /
+  lateral peak slip and separate longitudinal / lateral post-peak behavior remain later tire-model
+  questions.
+- Steering M/D/ACT authority, suspension, common two-station vehicle mechanics, world-space state,
+  camera, renderer and topology boundaries are unchanged.
+
+Regression evidence:
+- M9.10 retained 12-degree reference peak remains exact before post-peak scaling.
+- M9.10 C1 lateral post-peak law remains green.
+- M9.10 pure-longitudinal invariance with respect to SLIDE remains green.
+- M9.11 / M9.11A steering regressions remain green.
+- Existing catalog, course, recovery, renderer, input, source-boundary and Pages-versioned-boot
+  regressions remain green.
+
+Release requirement after this record is committed:
+1. Run the complete workflow again on the record-inclusive exact feature head.
+2. Re-fetch current main and prove the feature head is a pure descendant with behind_by=0.
+3. Move main to that exact validated feature head with force=false only.
+4. Confirm PR head SHA, PR merge SHA and main SHA are identical.
+5. Confirm the main-push workflow checks out and passes that same SHA.
+6. Confirm GitHub Pages deploy succeeds from that same main-push workflow.
+
+The final release SHA is intentionally not self-recorded in this immutable file. Final release
+identity is established by Git / PR / main / workflow history.
