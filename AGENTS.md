@@ -42,13 +42,10 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/101_m9_11_simplified_travel_direction_steering.md
 docs/100_m9_10_post_peak_sliding_tire.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
-docs/97_m9_7_bounded_washout_steering_assist.md
-docs/95_m9_5_debug_tire_characteristic_presets.md
-docs/94_m9_4_selectable_tire_friction.md
-docs/88_m9_1_six_profile_debug_hud.md
 docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
@@ -58,8 +55,25 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.10 is the current post-peak tire-law and browser sliding-ratio authority. It preserves the M9.9
-compiled axle-neutral reference seed and uses the exact former M9.5/M9.9 `TIRE 2` peak
+M9.11 is the current steering-control calibration and browser-selector authority. It removes M9.7
+yaw-transient feedback, zero-DC yaw-washout state and both old steering selectors. The common law is
+now only the unit-coefficient travel-direction transform plus Driver offset and one physical rack:
+
+```text
+A = M - D
+automatic = clamp(betaTravel, -A, +A)
+deltaTarget = clamp(automatic + u*D, -M, +M)
+```
+
+`A` is derived only and must never become a stored state, profile field or selector. Current DEV
+steering choices are `D=9/9.5/11/12.5/14 deg`, `M=37/41/45/49/53 deg` and symmetric traversal
+`T=0.25/0.375/0.5/0.625 s`; defaults are `M=45 deg`, `T=0.25 s`, with profile seed `D=9.5 deg`
+for CAR and `D=9 deg` for BIKE. The complete exposed M/D domain preserves `A>=23 deg`. M/D/T remain
+tunable `DEV_UNCALIBRATED` values. Common mechanics contains no yaw steering assist, yaw baseline,
+drift mode, target beta, vehicle-kind branch or drive-layout handling branch.
+
+M9.10 remains the current post-peak tire-law and browser sliding-ratio authority. It preserves the
+M9.9 compiled axle-neutral reference seed and uses the exact former M9.5/M9.9 `TIRE 2` peak
 characteristic for every browser comparison. One vehicle-owned `slidingFrictionRatio` extends the
 existing tire calibration, and one stateless C1 lateral-demand-driven post-peak scale reduces only
 deep lateral-slip force. Browser `G`/touch/HUD choices are `SLIDE 100 / 85 / 80 / 75 / 70 %`,
@@ -69,17 +83,14 @@ post-peak scale is independent of wheel angular speed during the solve. No drift
 assist, target sideslip, yaw/beta feedback, tire memory, vehicle-kind branch or drive-layout
 handling branch is added. Handling remains `DEV_UNCALIBRATED`.
 
-M9.9 remains the common tire-balance and deep-sideslip acceptance authority. It preserves M9.7's
-exact unit-coefficient travel-direction steering and zero-DC washout law, but supersedes the old
-requirement that a deep-beta seed self-release under either held full steering sign. The explicit
-recovery input must recover; neutral, wrong or intentionally sustaining input is not required to
-self-recover. The product rule is **uncontrollable slide is forbidden; controllable drift is
-allowed**. The shared compiled normalized tire seed is axle-neutral at `9.75 / 9.75`, the arithmetic
-mean of the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and drive torque
-remain the only axle-behavior causes. M9.10 supersedes only M9.9's post-peak-drop non-goal and the
-browser use of the former comparison table; M9.9's axle-neutral seed and controllability acceptance
-remain current. No drift mode, travel-direction gain, roll DOF, new dynamic state or vehicle/drive-
-layout branch is added. Handling remains `DEV_UNCALIBRATED`.
+M9.9 remains the common tire-balance and deep-sideslip acceptance authority. Its product rule is
+**uncontrollable slide is forbidden; controllable drift is allowed**. The explicit recovery input
+must recover; neutral, wrong or intentionally sustaining input is not required to self-recover.
+The shared compiled normalized tire seed is axle-neutral at `9.75 / 9.75`, the arithmetic mean of
+the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and drive torque remain
+the axle-behavior causes. M9.10 supersedes only M9.9's post-peak-drop non-goal and former browser
+tire comparison table. M9.11 supersedes statements that retained M9.7 washout only for steering
+control; M9.9 tire balance and controllability acceptance remain current.
 
 M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
 selector, player default and rival-profile identity. One structured catalog owns nine production
@@ -91,58 +102,35 @@ Keyboard/touch/HUD derive from the catalog, Testarossa is the default and fixed 
 generic CAR/BIKE presentation uses explicit metadata instead of ID/name parsing. Handling remains
 `DEV_UNCALIBRATED`.
 
+M9.7 is now a historical steering predecessor. M9.11 supersedes its yaw-transient/washout law,
+filter state, `YAW`/`WASH` selectors, fixed 31-degree M and 0.375-second default T. M9.7's retained
+unit-coefficient travel-direction idea and rival-driver decisions remain historical lineage where
+not superseded. Do not recreate a washout state, setter, selector, source module or compatibility
+shim.
+
 M9.5 historically superseded M9.4's exact browser choices and its prohibition on calibrating linear
 tire demand. Its numbered `1 / 2 / 3` browser comparison table is superseded by M9.10. The retained
 M9.5/M9.9 `TIRE 2` reference values now supply the common M9.10 browser peak characteristic:
 effective normalized slope `10.3` and pure-lateral peak start `12 deg`. The existing vehicle-owned
-tire-calibration authority now atomically owns positive finite reference-friction,
-linear-stiffness and M9.10 sliding-friction-ratio values. `rhoKnee`, the common wheel solve and
-relative SurfaceMap materials remain separate authorities.
-
-M9.7 supersedes M9.2 in full as the current steering-control calibration and browser-selector
-authority, while retaining M9.2's symmetric actuator-traversal choices. Travel-direction feedback
-is the exact unit-coefficient body-to-CG-travel coordinate transformation and is no longer state or
-a selector. One Driver-owned yaw-rate baseline supplies zero-DC washout damping; the washout acts
-inside a bounded automatic-steering allocation before the driver offset and one final mechanical
-rack clamp. The automatic bound is derived as `maxRoadWheelSteer - steeringOffsetMax`. M9.9
-supersedes only the old both-sign deep-beta release criterion; explicit recovery-input
-controllability and the retained uncontrollable-control negative fixture now own that acceptance.
-The only runtime steering selectors are yaw-transient gain, yaw-washout time and symmetric actuator
-traversal, defaulting to `0.18 s`, `0.35 s` and `0.375 s`. Compiled profiles separately own
-driver-offset, mechanical-rack, rack-response and steering-only low-speed regularization. M9.8's
-five CAR profiles currently use provisional `D=9.5 deg`; its four BIKE profiles use `D=9 deg`
-through the same fields and solver. M9.7 also removed the DEV rival's absolute-yaw request
-term and replaces its sparse instantaneous curve-speed window with one general contiguous braking-
-distance envelope: `0.42 g`, `4 m/s^2`, `12..56 m/s`, derived `400 m` coverage. It retains the
-`36 m` steering lookahead and uses a derived `0.72` request cap, planar speed and preserved
-coordinate frames; it adds no profile, vehicle-kind or course branch. M9.8 product rivals are fixed
-to the Testarossa profile pending later roster design. These remain `DEV_UNCALIBRATED` values.
-Ordinary player/rival construction shares profile defaults; recovery preserves selectable
-calibration but resets the yaw baseline to reconstructed physical yaw rate. Common Driver control
-consumes no tire force, slip, utilization, acceleration cache, Guide, camera, route or screen
-observation.
+tire-calibration authority atomically owns positive finite reference-friction, linear-stiffness and
+M9.10 sliding-friction-ratio values. `rhoKnee`, the common wheel solve and relative SurfaceMap
+materials remain separate authorities.
 
 M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
 common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
-Browser choices are `SEMI=1.0x`, `1.5x`, `2.0x` and `2.5x`; ordinary construction and rivals retain
-`1.0x`. The multiplier scales compiled `muRef` before the unchanged relative SurfaceMap factor.
-Tire stiffness, `rhoKnee`, demand, combined-slip transition, wheel solve and surface materials
-remain separate unchanged authorities.
+Its old browser comparison table is historical; M9.10 owns the current tire comparison.
 
-M9.2 historically superseded the M9.0 implicit unit coefficient on travel-direction steering
-feedback and its asymmetric steering-actuator rates, and exposed gain/yaw-preview/response as three
-browser comparisons. M9.7 now supersedes its gain and absolute-yaw-preview authority, deletes the
-gain selector completely and restates the retained symmetric-response choices beside the two new
-washout calibration selectors. Do not recreate an M9.2 compatibility state, setter, key path or
-presentation row.
+M9.2 is a historical predecessor superseded first by M9.7 and now by M9.11 for steering
+calibration. Do not recreate its gain or absolute-yaw-preview compatibility state, setter, key path
+or presentation row.
 
 M9.1 historically introduced FR/MR/RR/AWD/BIKE1/BIKE2 selection and a shared four-car package;
 those identities and package are superseded by M9.8. Its retained scope includes the normalized
 station drive-torque primitive, shared presentation-only HUD boundary and exclusive simultaneous-
-pedal rule. The common `18:1` steering ratio is a HUD-only handwheel conversion and
-must never be consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one
-input-layer arbiter gives priority to the latest source that remains held across keyboard aliases
-and touch pointers. Actuators own finite response only and must not own pedal order or arbitration.
+pedal rule. The common `18:1` steering ratio is a HUD-only handwheel conversion and must never be
+consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one input-layer
+arbiter gives priority to the latest source that remains held across keyboard aliases and touch
+pointers. Actuators own finite response only and must not own pedal order or arbitration.
 
 M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
 steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction
@@ -152,16 +140,16 @@ superseded details within the exact boundary stated by M9.0.
 
 It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
 Historically, M8.1 superseded only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer
-decisions. M9.0 now owns the shared CAR/BIKE mechanics and input-response boundary while retaining
-the M8.0 contact/tire/wheel chain and M8.1 travel-direction steering concept explicitly listed in
-its scope.
+decisions. M9.0 now owns the shared CAR/BIKE mechanics and input-response boundary while M9.11 owns
+the current steering-control calibration built on the retained M8.1 travel-direction concept.
 M8.2 supersedes the M5 Guide-lateral/yaw-lag camera decisions within its stated scope; frozen
-renderer depth/metric authority and the current M9.0 vehicle authority remain unchanged.
+renderer depth/metric authority and current vehicle authority remain unchanged.
 M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning. M9.1 dual-yaw-camera mode
 authority supersedes M8.2's mandatory movement-yaw default while retaining its movement-yaw
 derivation as an alternate; M8.2 body-pitch follow and centering architecture remain authoritative.
-M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5
-camera architecture and pitch/height tuning remain authoritative.
+M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5 camera
+architecture and pitch/height tuning remain authoritative.
+
 The current browser course-debug composition authority is:
 
 ```text
@@ -169,13 +157,11 @@ docs/82_m8_3_three_mode_course_debug.md
 docs/88_m9_1_six_profile_debug_hud.md
 docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
-docs/94_m9_4_selectable_tire_friction.md
-docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
-docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/100_m9_10_post_peak_sliding_tire.md
+docs/101_m9_11_simplified_travel_direction_steering.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -247,6 +233,7 @@ docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/100_m9_10_post_peak_sliding_tire.md
+docs/101_m9_11_simplified_travel_direction_steering.md
 ```
 
 ### Executable implementation contract
