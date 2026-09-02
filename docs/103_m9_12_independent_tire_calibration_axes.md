@@ -151,13 +151,15 @@ The existing TIRE selector area contains three compact cycle buttons so the sele
 grow vertically. Touch and keyboard call the same browser adapter and mutate the same vehicle-owned
 calibration.
 
-The HUD reports all three values independently:
+The 320x240 HUD preserves its existing vertical footprint by reporting the three independent values
+on one compact summary line:
 
 ```text
-GRIP [H] ...
-PEAK [J] ...%/...deg
-SLIDE [G] ...%
+TIRE G<grip> P<peak-percent> S<slide-percent>
 ```
+
+The full keyboard labels remain available through the individual formatter/model observations:
+`GRIP [H]`, `PEAK [J]`, and `SLIDE [G]`.
 
 Recovery and vehicle-profile reconstruction preserve the complete calibration as before.
 
