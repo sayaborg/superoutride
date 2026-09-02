@@ -1,0 +1,34 @@
+SUPER OUTRIDE — M9.12A Centered Handling Comparison Ranges Validation
+
+Status: implementation/documentation-inclusive exact-head validation evidence
+
+Validated feature head:
+eac658c9a6b642523a4b6b02e916b8a2c816cf72
+
+Pull request:
+#121 M9.12A: center handling comparison ranges
+
+Validation workflow:
+Test and Deploy GitHub Pages
+PR run #754
+run id 33655353124
+conclusion: success
+
+Validated scope:
+- GRIP selector = 1.60 / 1.80 / 2.00 / 2.20 / 2.40; browser default 2.00
+- PEAK selector = 16 / 18 / 20 / 22 / 24%; browser default 20%
+- SLIDE remains 70 / 75 / 80 / 85 / 90%; browser default 80%
+- D selector = 10 / 11 / 12 / 13 / 14 deg; browser default 12 deg
+- M selector = 50 / 55 / 60 / 65 / 70 deg; browser default 60 deg
+- ACT selector = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s; browser default 0.25 s
+- compiled production-profile steering seeds remain unchanged
+- browser DEV steering adapter owns application of the centered steering working point
+- existing M9.12 GRIP/PEAK/SLIDE independence remains intact
+- existing M9.11 steering law and A=M-D derived-only authority remain intact
+- existing M9.10 lateral post-peak law and scalar implicit wheel solve remain intact
+- no longitudinal/lateral tire split, new tire state, handling mode, drift assist or vehicle-specific branch is introduced
+
+The exact feature head passed the complete repository Test and build job. The record-inclusive head
+must receive a second complete green PR workflow before release. Release then requires unchanged
+main, an ahead-only/behind-zero compare, a force=false fast-forward to the exact record-inclusive
+head, and a same-SHA successful main-push workflow including GitHub Pages deployment.
