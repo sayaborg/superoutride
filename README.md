@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.9 Controllable Drift Foundation
+# SUPER OUTRIDE — M9.10 Post-Peak Sliding Tire
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,19 +12,26 @@ tests.
 
 ## Current release
 
-M9.9 keeps M9.7's exact unit-coefficient travel-direction steering and zero-DC washout, but changes
-the handling acceptance rule from “every deep-beta held-input sign must self-recover” to
-“the explicit recovery input must recover.” The product rule is now **uncontrollable slide is
-forbidden; controllable drift is allowed**. No drift mode, drift assist, target sideslip,
-travel-direction gain, new state or vehicle-kind/drive-layout branch is added.
+M9.10 adds one stateless post-peak sliding characteristic to the retained one-k combined-slip tire.
+Every browser comparison uses the exact former M9.9 `TIRE 2` peak characteristic: effective
+normalized initial slope `10.3`, pure-lateral peak at `12 deg`, and the same peak magnitude. Only
+the large-lateral-slip plateau changes through `SLIDE 100 / 85 / 80 / 75 / 70 %`, defaulting to
+`100%`. The post-peak falloff is C1, reaches the selected plateau at about `16.7 deg` pure lateral
+slip, and is derived from lateral demand so it remains independent of wheel angular speed inside
+the retained scalar implicit wheel solve. Pure longitudinal tire behavior is unchanged.
 
-M9.9 also removes the common preset-1 axle stiffness bias. The shared normalized tire seed changes
-from `front=9.0 / rear=10.5` to the arithmetic-mean neutral pair `front=9.75 / rear=9.75`. This
-preserves the prior mean stiffness level while letting existing geometry, load transfer, inertia,
-combined slip and drive-torque distribution own front/rear behavior. M9.5 debug presets `2` and `3`
-retain their effective `10.3` reference slope and exact `12 deg / 15 deg` plateau targets through a
-derived `10.3 / 9.75` linear multiplier. Preset `1` now reaches its reference plateau at about
-`9.8963 deg`. Handling remains `DEV_UNCALIBRATED`.
+M9.10 adds no drift mode, drift assist, target sideslip, yaw/beta feedback, tire memory,
+vehicle-kind branch or drive-layout handling branch. It preserves M9.9's axle-neutral compiled tire
+seed and controllable-slide acceptance and preserves M9.7's exact unit-coefficient travel-direction
+steering and zero-DC washout. Handling remains `DEV_UNCALIBRATED`.
+
+M9.9 changed the handling acceptance rule from “every deep-beta held-input sign must self-recover”
+to “the explicit recovery input must recover.” The product rule remains **uncontrollable slide is
+forbidden; controllable drift is allowed**. M9.9 also removed the common axle stiffness bias by
+changing the shared normalized tire seed from `front=9.0 / rear=10.5` to the arithmetic-mean neutral
+pair `front=9.75 / rear=9.75`. Geometry, load transfer, inertia, combined slip and drive-torque
+distribution remain the causes of front/rear behavior. M9.10 supersedes only M9.9's post-peak-drop
+non-goal and the old browser tire comparison table.
 
 M9.8 replaces the six abstract FR/MR/RR/AWD/BIKE debug identities with nine selectable production
 vehicle profiles. One structured catalog keeps manufacturer/model, identifier, selected
@@ -55,12 +62,11 @@ the published 4563 m clockwise lap, 1475 m home straight, 17-corner sequence, 15
 and 40 m elevation envelope. The exact unpublished centerline, arc angles and connectors are an
 original simplified reconstruction rather than survey geometry. Course `3` remains Tsukuba.
 
-M9.5 introduced three numbered DEV tire-characteristic presets. M9.9 now owns preset `1`'s current
-axle-neutral base stiffness and re-derives preset `2/3`'s linear multiplier so their established
-comparison targets remain unchanged. Keyboard `G`, touch and the common HUD derive from one browser
-authority. The vehicle owns one atomic two-value calibration that survives recovery/profile
-switching. `rhoKnee`, the one-k radial law and relative SurfaceMap materials remain unchanged;
-ordinary construction and rivals retain unit calibration.
+M9.5 introduced three numbered DEV tire-characteristic presets. Its exact `TIRE 1 / 2 / 3` browser
+table is now superseded by M9.10. The former `TIRE 2` values are retained as the one common M9.10
+browser peak reference, and the vehicle-owned tire calibration now atomically carries reference-
+friction, linear-stiffness and sliding-friction-ratio values. `rhoKnee`, the common wheel solve and
+relative SurfaceMap materials remain separate authorities.
 
 M9.3 continues to own CIRCUIT DEV course `3` as a researched functional reconstruction of the
 four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 282 m home straight,
@@ -68,21 +74,22 @@ four-wheel Tsukuba Course 2000 layout. It preserves the published 2045 m lap, 28
 The track uses a 12 m nominal asphalt width inside JAF's published 10–15 m range. Exact unlabelled
 connectors and arc angles are original simplified authoring, not survey geometry.
 
-M9.7 exposes only the three adjustable vehicle-instance steering values:
+Current adjustable vehicle-instance controls are:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
 | Yaw-transient gain | `0 / 0.06 / 0.12 / 0.18 / 0.24 / 0.30 s` | `0.18 s` | `Y` cycles |
 | Yaw-washout time | `0.20 / 0.35 / 0.50 / 0.65 s` | `0.35 s` | `U` cycles |
 | Symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.375 s` | `T` cycles |
-| Debug tire preset | `1 / 2 / 3` | `1` | `G` cycles |
+| Sliding plateau / peak | `100 / 85 / 80 / 75 / 70 %` | `100%` | `G` cycles |
 
 The debug selector zone is visible on desktop and touch layouts; large steering/throttle/brake
-buttons remain touch-gated. One vehicle-instance calibration state survives recovery and DEV
-profile switching; the private washout baseline resets to reconstructed physical yaw rate.
-Steering apply and release remain equal for every response choice. Digits/numpad `4` through `9`
-have no steering meaning, so `4` remains unambiguously FISCO. Input arbitration,
-tire/contact/wheel mechanics, final road-wheel response and camera remain separate authorities.
+buttons remain touch-gated. One vehicle-instance steering calibration survives recovery and DEV
+profile switching; the private washout baseline resets to reconstructed physical yaw rate. One
+vehicle-instance tire calibration survives the same reconstruction boundary. Steering apply and
+release remain equal for every response choice. Digits/numpad `4` through `9` have no steering
+meaning, so `4` remains unambiguously FISCO. Input arbitration, tire/contact/wheel mechanics,
+final road-wheel response and camera remain separate authorities.
 
 The released browser build is [GitHub Pages](https://sayaborg.github.io/superoutride/). Exact
 release identity comes from `main`, PR and main-push workflow history; it is not duplicated as a
@@ -110,23 +117,25 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/99_m9_9_controllable_drift_foundation.md` — current common tire-balance and deep-sideslip
+4. `docs/100_m9_10_post_peak_sliding_tire.md` — current post-peak tire law and browser slide-ratio
+   selector authority.
+5. `docs/99_m9_9_controllable_drift_foundation.md` — retained common tire-balance and deep-sideslip
    controllability authority.
-5. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — current vehicle catalog, compiled
+6. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — current vehicle catalog, compiled
    profile identity and vehicle-selection authority.
-6. `docs/97_m9_7_bounded_washout_steering_assist.md` — retained steering law and calibration
+7. `docs/97_m9_7_bounded_washout_steering_assist.md` — retained steering law and calibration
    selector authority within the M9.9 acceptance supersession.
-7. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
-8. `docs/95_m9_5_debug_tire_characteristic_presets.md` — retained debug tire-preset authority
-   within the M9.9 preset-1/base-multiplier supersession.
-9. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
-10. `docs/88_m9_1_six_profile_debug_hud.md` — historical profile predecessor; retained HUD boundary.
-11. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-12. `docs/92_m9_2_selectable_self_steer_gain.md` — historical predecessor superseded by M9.7.
-13. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+8. `docs/96_m9_6_fisco_circuit.md` — current FISCO course-4 and browser selection authority.
+9. `docs/95_m9_5_debug_tire_characteristic_presets.md` — historical browser tire-preset
+   predecessor; its former TIRE 2 peak values are retained by M9.10.
+10. `docs/93_m9_3_tsukuba_circuit.md` — current Tsukuba course-3 authority.
+11. `docs/88_m9_1_six_profile_debug_hud.md` — historical profile predecessor; retained HUD boundary.
+12. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+13. `docs/92_m9_2_selectable_self_steer_gain.md` — historical predecessor superseded by M9.7.
+14. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
    foundations within their explicitly superseded scope.
-14. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
+15. `docs/81_m8_2_body_pitch_movement_yaw_camera.md`,
    `docs/84_m8_5_downward_camera_presentation.md`,
    `docs/85_m8_6_two_hundred_meter_render_distance.md` and
    `docs/91_m9_1_dual_yaw_camera_modes.md` — current camera and presentation chain.
@@ -157,8 +166,11 @@ terminology.
 - Compiled profiles own driver offset, mechanical rack, rack response and steering-only low-speed
   regularization. Automatic steering authority is derived as mechanical maximum minus driver
   offset.
-- Tire characteristic calibration belongs only to `src/physics/tire-friction-calibration.ts`; the
-  tire law explicitly consumes its reference-friction and linear-stiffness multipliers.
+- Tire characteristic calibration belongs only to `src/physics/tire-friction-calibration.ts`; it
+  owns reference-friction, linear-stiffness and sliding-friction-ratio values for the current
+  vehicle instance.
+- M9.10 post-peak force is stateless tire constitutive behavior derived from lateral demand; it has
+  no yaw/beta/drift state and leaves pure longitudinal tire behavior unchanged.
 - Deep sideslip is accepted when the explicit recovery input can recover it. Neutral/wrong/sustaining
   input is not required to self-recover merely to exclude controllable drift.
 
@@ -214,7 +226,7 @@ One top-level boot selects one explicit composition root:
 | Yaw-transient gain | `Y` cycles |
 | Yaw-washout time | `U` cycles |
 | Steering traversal | `T` cycles |
-| Debug tire preset | `G` cycles `1 / 2 / 3` |
+| Sliding plateau | `G` cycles `100 / 85 / 80 / 75 / 70 %` |
 | Recovery | `Backspace` |
 
 The selector zone exposes the same authority-derived course, vehicle, camera, steering and tire
@@ -253,7 +265,7 @@ src/dev/m9-3-tsukuba-circuit.ts              current Tsukuba Course 2000 DEV aut
 src/dev/m9-6-fisco-circuit.ts                current FISCO DEV authoring
 src/browser/steering-calibration-selection.ts three adjustable choice/default/format authority
 src/browser/steering-calibration-controls.ts  shared keyboard/touch vehicle adapter
-src/browser/tire-friction-selection.ts        debug tire preset/default/format authority
+src/browser/tire-friction-selection.ts        SLIDE ratio choice/default/format authority
 src/browser/tire-friction-controls.ts         shared keyboard/touch tire adapter
 src/browser/mobile-selector-controls.ts       authority-derived selector presentation
 src/input/steering-input-arbiter.ts            shared steering-source authority
@@ -265,7 +277,7 @@ src/physics/driving-actuator.ts                 finite response primitive
 src/physics/arcade-vehicle-physics.ts           common two-station solver
 src/vehicle/vehicle-catalog.ts                  structured product identity/selection authority
 src/physics/vehicle-profiles.ts                 compiled nine-profile mechanics authority
-src/physics/tire-wheel.ts                       retained tire/wheel primitives
+src/physics/tire-wheel.ts                       one-k combined-slip + M9.10 post-peak tire law
 src/camera/m5-camera.ts                         body-pitch/selectable-yaw camera
 src/render/m5-renderer.ts                       shared raster renderer
 ```
@@ -276,10 +288,14 @@ assemble DEV fixtures as top-level composition roots; regression coverage enforc
 
 ## Evidence and release discipline
 
-The M9.9 standalone validation record is
-`docs/validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt`. It records the
-implementation-inclusive exact-head CI and requires a fresh complete run on the validation-
-inclusive head before release.
+The M9.10 standalone validation record is
+`docs/validation/M9_10_POST_PEAK_SLIDING_TIRE_VALIDATION.txt`. It records the implementation-
+inclusive exact-head CI and requires a fresh complete run on the validation-inclusive head before
+release.
+
+The retained M9.9 standalone validation record is
+`docs/validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt`. It records the prior
+implementation-inclusive exact-head CI and release procedure under its historical authority.
 
 The retained M9.8 standalone validation record is
 `docs/validation/M9_8_SELECTABLE_PRODUCTION_VEHICLE_CATALOG_VALIDATION.txt`. It records its
