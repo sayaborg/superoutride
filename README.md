@@ -32,18 +32,22 @@ steering target.
 Automatic authority `A` is never stored. It is always derived from the two current vehicle-instance
 calibration values `M` and `D`.
 
+Document 102 (`M9.11A`) supersedes M9.11 only for the current DEV browser M/D/T comparison tables.
+No steering law, profile default, D limiter or tire behavior changes with this scoped selector
+expansion.
+
 Current adjustable player calibration is:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
-| `D` Driver travel-relative offset | `9 / 9.5 / 11 / 12.5 / 14 deg` | CAR `9.5`, BIKE `9` | `Y` cycles |
-| `M` maximum road-wheel steer | `37 / 41 / 45 / 49 / 53 deg` | `45 deg` | `U` cycles |
-| `T` symmetric steering traversal | `0.25 / 0.375 / 0.5 / 0.625 s` | `0.25 s` | `T` cycles |
+| `D` Driver travel-relative offset | `9 / 9.5 / 10 / 11 / 12 / 13 / 14 deg` | CAR `9.5`, BIKE `9` | `Y` cycles |
+| `M` maximum road-wheel steer | `45 / 50 / 55 / 60 / 65 deg` | `45 deg` | `U` cycles |
+| `T` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 / 0.325 / 0.35 s` | `0.25 s` | `T` cycles |
 | `SLIDE` sliding plateau / peak | `100 / 85 / 80 / 75 / 70 %` | `100%` | `G` cycles |
 
 `M`, `D` and `T` are current DEV tuning axes, not frozen final handling values. The exposed M/D
-product guarantees `A >= 23 deg`; the lower M choice is therefore 37 degrees rather than recreating
-the previously identified low-automatic-authority neighborhood near `M=31, D=15, A=16`.
+product currently has `A >= 31 deg`. The final D limit remains open until later tire/handling
+evaluation; no speed-dependent or tire-dependent runtime D limiter exists.
 
 M9.10 remains the current tire-law authority. Every browser `SLIDE` choice uses the same retained
 M9.5/M9.9 `TIRE 2` peak characteristic: effective normalized initial slope `10.3`, pure-lateral
@@ -74,19 +78,20 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
-   selector authority.
-5. `docs/100_m9_10_post_peak_sliding_tire.md` — current tire post-peak and SLIDE selector authority.
-6. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
+4. `docs/102_m9_11a_steering_selector_test_range.md` — current scoped DEV M/D/T selector domain.
+5. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
+   M/D/T ownership authority.
+6. `docs/100_m9_10_post_peak_sliding_tire.md` — current tire post-peak and SLIDE selector authority.
+7. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
    controllability authority.
-7. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
+8. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
    authority.
-8. `docs/97_m9_7_bounded_washout_steering_assist.md` — historical steering predecessor superseded
+9. `docs/97_m9_7_bounded_washout_steering_assist.md` — historical steering predecessor superseded
    by M9.11 for washout/control calibration.
-9. `docs/96_m9_6_fisco_circuit.md` and `docs/93_m9_3_tsukuba_circuit.md` — current course-4/course-3
+10. `docs/96_m9_6_fisco_circuit.md` and `docs/93_m9_3_tsukuba_circuit.md` — current course-4/course-3
    circuit authoring.
-10. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-11. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+11. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+12. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
     `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and unit travel-direction
     foundations inside later supersession.
 
