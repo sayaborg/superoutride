@@ -203,7 +203,7 @@ test('all nine vehicle profiles integrate ordinarily on the finite LINEAR course
   }
 });
 
-test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
+test('shared HUD exposes M D T plus numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
   const runtime = createM83LinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   vehicle.control.actualSteerAngle = -12.5 * Math.PI / 180;
@@ -219,14 +219,14 @@ test('shared HUD exposes numeric request actual actuator and HUD-only 18:1 handw
   );
   assert.match(model.courseSelector, /\[1\] LINEAR/);
   assert.equal(model.vehicleSelector, `VEHICLE ${formatVehicleCatalogLine(VEHICLE_CATALOG[0])}`);
-  assert.equal(model.yawTransientSelector, 'YAW [Y] 0.18s');
-  assert.equal(model.yawWashoutSelector, 'WASH [U] 0.35s');
-  assert.equal(model.steeringResponseSelector, 'ACT [T] 0.375s');
+  assert.equal(model.steeringOffsetSelector, 'D [Y] 9.5°');
+  assert.equal(model.maxRoadWheelSteerSelector, 'M [U] 45°');
+  assert.equal(model.steeringResponseSelector, 'ACT [T] 0.25s');
   assert.equal(model.tireFrictionSelector, 'SLIDE [G] 100%');
   assert.equal(model.requestedSteering, -1);
   assert.equal(model.requestedThrottle, 1);
   assert.equal(model.requestedBrake, 0);
-  assert.ok(Math.abs(model.actualSteering + 12.5 / 31) < 1e-12);
+  assert.ok(Math.abs(model.actualSteering + 12.5 / 45) < 1e-12);
   assert.equal(model.actualThrottle, 0.42);
   assert.equal(model.actualBrake, 0.08);
   assert.ok(Math.abs(model.handwheelAngle + 225 * Math.PI / 180) < 1e-12);
@@ -381,11 +381,7 @@ for (const [profile, createVehicle, presentationKind] of [
       const desiredL = runtimeBefore.packageId === 'CONTENT_STAGE_1'
         ? sampleLiveRouteChoiceTargetL(live, traveler, choiceId, car.course.s)
         : 0;
-      const input = sampleRivalDrivingInput(
-        runtimeBefore.coordinateFrame,
-        car,
-        desiredL,
-      );
+      const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, desiredL);
       updateTestVehicle(
         runtimeBefore.coordinateFrame,
         runtimeBefore.heightProfile,
