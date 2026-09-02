@@ -13,11 +13,9 @@ import {
   type M5CameraYawMode,
 } from '../camera/m5-camera.js';
 import {
+  BROWSER_MAX_ROAD_WHEEL_STEERS,
+  BROWSER_STEERING_OFFSETS,
   BROWSER_STEERING_RESPONSES,
-  BROWSER_YAW_TRANSIENT_GAINS,
-  BROWSER_YAW_WASHOUT_TIMES,
-  type BrowserYawTransientGain,
-  type BrowserYawWashoutTime,
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import {
@@ -71,25 +69,25 @@ export function createMobileCameraYawSelectorModel(
   }));
 }
 
-export function createMobileYawTransientSelectorModel(
-  activeGain: number,
-): readonly MobileSelectorButtonModel<BrowserYawTransientGain>[] {
-  return BROWSER_YAW_TRANSIENT_GAINS.map((yawTransientGain) => ({
-    value: yawTransientGain,
-    label: yawTransientGain.toFixed(2),
-    ariaLabel: `Set steering yaw transient gain to ${yawTransientGain.toFixed(2)} seconds`,
-    active: yawTransientGain === activeGain,
+export function createMobileSteeringOffsetSelectorModel(
+  activeRadians: number,
+): readonly MobileSelectorButtonModel<number>[] {
+  return BROWSER_STEERING_OFFSETS.map(({ degrees, radians }) => ({
+    value: radians,
+    label: String(degrees),
+    ariaLabel: `Set driver steering offset D to ${degrees} degrees`,
+    active: approximatelyEqual(radians, activeRadians),
   }));
 }
 
-export function createMobileYawWashoutSelectorModel(
-  activeTime: number,
-): readonly MobileSelectorButtonModel<BrowserYawWashoutTime>[] {
-  return BROWSER_YAW_WASHOUT_TIMES.map((yawWashoutTime) => ({
-    value: yawWashoutTime,
-    label: yawWashoutTime.toFixed(2),
-    ariaLabel: `Set steering yaw washout time to ${yawWashoutTime.toFixed(2)} seconds`,
-    active: yawWashoutTime === activeTime,
+export function createMobileMaxRoadWheelSteerSelectorModel(
+  activeRadians: number,
+): readonly MobileSelectorButtonModel<number>[] {
+  return BROWSER_MAX_ROAD_WHEEL_STEERS.map(({ degrees, radians }) => ({
+    value: radians,
+    label: String(degrees),
+    ariaLabel: `Set maximum road-wheel steer M to ${degrees} degrees`,
+    active: approximatelyEqual(radians, activeRadians),
   }));
 }
 
@@ -161,29 +159,29 @@ export function mountMobileCameraYawSelector(
   );
 }
 
-export function mountMobileYawTransientSelector(
+export function mountMobileSteeringOffsetSelector(
   container: HTMLElement,
-  activeGain: number,
-  onSelect: (gain: BrowserYawTransientGain) => void,
+  activeRadians: number,
+  onSelect: (radians: number) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserYawTransientGain> {
+): MobileSelectorController<number> {
   return mountMobileSelector(
     container,
-    createMobileYawTransientSelectorModel(activeGain),
+    createMobileSteeringOffsetSelectorModel(activeRadians),
     onSelect,
     documentRef,
   );
 }
 
-export function mountMobileYawWashoutSelector(
+export function mountMobileMaxRoadWheelSteerSelector(
   container: HTMLElement,
-  activeTime: number,
-  onSelect: (yawWashoutTime: BrowserYawWashoutTime) => void,
+  activeRadians: number,
+  onSelect: (radians: number) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserYawWashoutTime> {
+): MobileSelectorController<number> {
   return mountMobileSelector(
     container,
-    createMobileYawWashoutSelectorModel(activeTime),
+    createMobileMaxRoadWheelSteerSelectorModel(activeRadians),
     onSelect,
     documentRef,
   );
@@ -238,7 +236,9 @@ function mountMobileSelector<Value extends string | number>(
   const controller: MobileSelectorController<Value> = {
     setActive(value) {
       for (const [buttonValue, button] of buttons) {
-        const active = buttonValue === value;
+        const active = typeof value === 'number' && typeof buttonValue === 'number'
+          ? approximatelyEqual(buttonValue, value)
+          : buttonValue === value;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
       }
