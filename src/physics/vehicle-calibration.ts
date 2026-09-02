@@ -15,20 +15,16 @@ export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
  */
 export type VehiclePhysicsCalibrationStatus = typeof VEHICLE_PHYSICS_CALIBRATION_STATUS;
 
-export interface ArcadeSteeringTransientCalibration {
-  readonly yawTransientGain: number;
-  readonly yawWashoutTime: number;
-}
-
+/** The only selectable steering geometry/response values in M9.11. Angles are road-wheel radians. */
 export interface ArcadeSteeringCalibrationInput {
-  readonly yawTransientGain?: number;
-  readonly yawWashoutTime?: number;
+  readonly maxRoadWheelSteer?: number;
+  readonly steeringOffsetMax?: number;
   readonly steeringActuatorResponse?: NormalizedActuatorRateProfile;
 }
 
-export interface ArcadeSteeringCalibrationState extends ArcadeSteeringTransientCalibration {
-  yawTransientGain: number;
-  yawWashoutTime: number;
+export interface ArcadeSteeringCalibrationState {
+  maxRoadWheelSteer: number;
+  steeringOffsetMax: number;
   steeringActuatorResponse: Readonly<NormalizedActuatorRateProfile>;
 }
 
@@ -40,39 +36,60 @@ export function createArcadeSteeringCalibration(
   profile: CompiledArcadeVehicleProfile,
   input: ArcadeSteeringCalibrationInput = {},
 ): ArcadeSteeringCalibrationState {
-  const yawTransientGain = input.yawTransientGain ?? profile.steeringYawTransientGain;
-  const yawWashoutTime = input.yawWashoutTime ?? profile.steeringYawWashoutTime;
+  const maxRoadWheelSteer = input.maxRoadWheelSteer ?? profile.maxRoadWheelSteer;
+  const steeringOffsetMax = input.steeringOffsetMax ?? profile.steeringOffsetMax;
   const steeringActuatorResponse = input.steeringActuatorResponse ?? profile.actuator.steering;
-  assertArcadeSteeringTransientCalibration({ yawTransientGain, yawWashoutTime });
+  assertArcadeSteeringAngleCalibration({ maxRoadWheelSteer, steeringOffsetMax });
   validateSymmetricSteeringActuatorRateProfile(steeringActuatorResponse);
   return {
-    yawTransientGain,
-    yawWashoutTime,
+    maxRoadWheelSteer,
+    steeringOffsetMax,
     steeringActuatorResponse: immutableRateProfile(steeringActuatorResponse),
   };
 }
 
-export function assertArcadeSteeringTransientCalibration(
-  calibration: ArcadeSteeringTransientCalibration,
+export function assertArcadeSteeringAngleCalibration(
+  calibration: Pick<ArcadeSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
 ): void {
-  assertNonNegativeFiniteYawTransientGain(calibration.yawTransientGain);
-  assertPositiveFiniteYawWashoutTime(calibration.yawWashoutTime);
+  const { maxRoadWheelSteer, steeringOffsetMax } = calibration;
+  if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2)
+    || !Number.isFinite(maxRoadWheelSteer)) {
+    throw new RangeError('vehicle maximum road-wheel steer must be finite and lie in (0, pi/2)');
+  }
+  if (!(steeringOffsetMax > 0) || !(steeringOffsetMax < maxRoadWheelSteer)
+    || !Number.isFinite(steeringOffsetMax)) {
+    throw new RangeError('vehicle steering offset must be finite and lie in (0, maximum steer)');
+  }
 }
 
-export function setArcadeVehicleSteeringYawTransientGain(
-  vehicle: ArcadeSteeringCalibrationOwner,
-  yawTransientGain: number,
-): void {
-  assertNonNegativeFiniteYawTransientGain(yawTransientGain);
-  vehicle.steeringCalibration.yawTransientGain = yawTransientGain;
+/** Derived automatic travel-direction authority. Never store a second authored A value. */
+export function steeringAutomaticMax(
+  calibration: Pick<ArcadeSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
+): number {
+  assertArcadeSteeringAngleCalibration(calibration);
+  return calibration.maxRoadWheelSteer - calibration.steeringOffsetMax;
 }
 
-export function setArcadeVehicleSteeringYawWashoutTime(
+export function setArcadeVehicleMaxRoadWheelSteer(
   vehicle: ArcadeSteeringCalibrationOwner,
-  yawWashoutTime: number,
+  maxRoadWheelSteer: number,
 ): void {
-  assertPositiveFiniteYawWashoutTime(yawWashoutTime);
-  vehicle.steeringCalibration.yawWashoutTime = yawWashoutTime;
+  assertArcadeSteeringAngleCalibration({
+    maxRoadWheelSteer,
+    steeringOffsetMax: vehicle.steeringCalibration.steeringOffsetMax,
+  });
+  vehicle.steeringCalibration.maxRoadWheelSteer = maxRoadWheelSteer;
+}
+
+export function setArcadeVehicleSteeringOffsetMax(
+  vehicle: ArcadeSteeringCalibrationOwner,
+  steeringOffsetMax: number,
+): void {
+  assertArcadeSteeringAngleCalibration({
+    maxRoadWheelSteer: vehicle.steeringCalibration.maxRoadWheelSteer,
+    steeringOffsetMax,
+  });
+  vehicle.steeringCalibration.steeringOffsetMax = steeringOffsetMax;
 }
 
 export function setArcadeVehicleSymmetricSteeringActuatorRate(
@@ -93,18 +110,6 @@ function immutableRateProfile(
     applyRate: profile.applyRate,
     releaseRate: profile.releaseRate,
   });
-}
-
-function assertNonNegativeFiniteYawTransientGain(gain: number): void {
-  if (!(gain >= 0) || !Number.isFinite(gain)) {
-    throw new RangeError('vehicle steering yaw transient gain must be finite and >= 0');
-  }
-}
-
-function assertPositiveFiniteYawWashoutTime(time: number): void {
-  if (!(time > 0) || !Number.isFinite(time)) {
-    throw new RangeError('vehicle steering yaw washout time must be finite and > 0');
-  }
 }
 
 function assertPositiveFiniteSteeringActuatorRate(rate: number): void {
