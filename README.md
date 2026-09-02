@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.11 Simplified Travel-Direction Steering
+# SUPER OUTRIDE — M9.12 Independent Tire Calibration Axes
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,8 +12,29 @@ tests.
 
 ## Current release
 
-M9.11 simplifies the steering architecture to one geometric travel-direction transform, one Driver
-offset and one physical rack. The steering target is:
+M9.12 keeps the existing one-k combined-slip tire law but exposes the existing vehicle-owned tire
+calibration as three independent DEV comparison axes:
+
+| Control | Choices | Default | Keyboard |
+|---|---|---:|---|
+| `GRIP` peak force height | current exact `1.737565... / 1.80 / 1.90 / 2.00` effective mu | current exact, displayed `1.74` | `H` cycles |
+| `PEAK` common peak slip | current exact `21.2557 / 18 / 15 / 12 / 9 / 6 %` | current exact, displayed `21.3% / 12.0°` lateral equivalent | `J` cycles |
+| `SLIDE` large-lateral-slip plateau | `70 / 75 / 80 / 85 / 90 %` | `80%` | `G` cycles |
+
+The current M9.10 peak characteristic is preserved exactly as the GRIP/PEAK baseline. The player-
+evaluated `SLIDE=80%` setting is now the default DEV tire calibration.
+
+Changing one tire axis preserves the other two displayed characteristics. GRIP therefore co-scales
+the existing stiffness multiplier so PEAK does not move; PEAK changes the stiffness required to
+reach the requested slip at the current GRIP; SLIDE changes only the existing post-peak ratio. No
+new persistent tire state is added.
+
+M9.10 remains the constitutive authority for the stateless C1 large-lateral-slip falloff and the
+monotone scalar implicit wheel solve. M9.12 does **not** yet split longitudinal and lateral tire
+profiles: GRIP and PEAK are common one-k characteristics, while SLIDE remains the M9.10 lateral-only
+post-peak plateau so pure longitudinal wheel solving stays unchanged.
+
+M9.11 remains the current steering law:
 
 ```text
 A = M - D
@@ -21,47 +42,23 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-Within automatic authority, `deltaTarget - betaTravel = u*D` exactly. The coefficient on
-`betaTravel` is structurally `1`.
-
-M9.11 removes the M9.7 yaw-transient / yaw-washout correction completely: no yaw-rate steering
-feedback, no washout time constant, no yaw baseline state, and no `YAW`/`WASH` selector. Physical
-yaw rate remains ordinary body state produced by tire/contact moments; it simply does not feed the
-steering target.
-
-Automatic authority `A` is never stored. It is always derived from the two current vehicle-instance
-calibration values `M` and `D`.
-
-Document 102 (`M9.11A`) supersedes M9.11 only for the current DEV browser M/D/T comparison tables.
-No steering law, profile default, D limiter or tire behavior changes with this scoped selector
-expansion.
-
-Current adjustable player calibration is:
+Document 102 (`M9.11A`) remains the current DEV steering selector domain:
 
 | Control | Choices | Default | Keyboard |
 |---|---|---:|---|
 | `D` Driver travel-relative offset | `9 / 9.5 / 10 / 11 / 12 / 13 / 14 deg` | CAR `9.5`, BIKE `9` | `Y` cycles |
 | `M` maximum road-wheel steer | `45 / 50 / 55 / 60 / 65 deg` | `45 deg` | `U` cycles |
 | `T` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 / 0.325 / 0.35 s` | `0.25 s` | `T` cycles |
-| `SLIDE` sliding plateau / peak | `100 / 85 / 80 / 75 / 70 %` | `100%` | `G` cycles |
 
-`M`, `D` and `T` are current DEV tuning axes, not frozen final handling values. The exposed M/D
-product currently has `A >= 31 deg`. The final D limit remains open until later tire/handling
-evaluation; no speed-dependent or tire-dependent runtime D limiter exists.
-
-M9.10 remains the current tire-law authority. Every browser `SLIDE` choice uses the same retained
-M9.5/M9.9 `TIRE 2` peak characteristic: effective normalized initial slope `10.3`, pure-lateral
-peak at `12 deg`, and identical peak magnitude. Only the stateless C1 large-lateral-slip plateau
-changes. `SLIDE 100%` is the no-drop baseline.
+`M`, `D`, `T`, GRIP, PEAK and SLIDE remain current DEV tuning axes, not frozen final handling
+values. The final D limit and any later longitudinal/lateral tire split remain open handling
+questions.
 
 M9.9 remains the common axle-balance and slide-controllability authority. The shared compiled tire
 seed is `front=9.75 / rear=9.75`; geometry, load transfer, inertia, combined slip and drive-torque
 distribution remain the causes of axle behavior. The product rule remains:
 
 > **Uncontrollable slide is forbidden; controllable drift is allowed.**
-
-The explicit recovery input must recover a deep-beta state; neutral, wrong or intentionally
-sustaining input is not required to self-recover.
 
 All nine production profiles still use one common two-station mechanics architecture. Ferrari
 Testarossa remains the default player and fixed product rival profile. Handling remains:
@@ -78,20 +75,18 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/102_m9_11a_steering_selector_test_range.md` — current scoped DEV M/D/T selector domain.
-5. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
-   M/D/T ownership authority.
-6. `docs/100_m9_10_post_peak_sliding_tire.md` — current tire post-peak and SLIDE selector authority.
-7. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
-   controllability authority.
-8. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
+4. `docs/103_m9_12_independent_tire_calibration_axes.md` — current DEV GRIP/PEAK/SLIDE selector
    authority.
-9. `docs/97_m9_7_bounded_washout_steering_assist.md` — historical steering predecessor superseded
-   by M9.11 for washout/control calibration.
-10. `docs/96_m9_6_fisco_circuit.md` and `docs/93_m9_3_tsukuba_circuit.md` — current course-4/course-3
-   circuit authoring.
-11. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-12. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+5. `docs/102_m9_11a_steering_selector_test_range.md` — current scoped DEV M/D/T selector domain.
+6. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
+   M/D/T ownership authority.
+7. `docs/100_m9_10_post_peak_sliding_tire.md` — retained tire post-peak constitutive authority.
+8. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
+   controllability authority.
+9. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
+   authority.
+10. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+11. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
     `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and unit travel-direction
     foundations inside later supersession.
 
@@ -111,8 +106,11 @@ prose merely to use current terminology.
 - `src/physics/arcade-vehicle-physics.ts` owns the unit-coefficient travel-direction transform and
   the sole physical front road-wheel angle.
 - `src/physics/driving-actuator.ts` owns finite steering/throttle/brake response.
-- `src/physics/tire-friction-calibration.ts` owns the independent vehicle-instance tire calibration.
-- `src/physics/tire-wheel.ts` owns the one-k combined-slip and M9.10 post-peak tire law.
+- `src/physics/tire-friction-calibration.ts` remains the sole three-scalar mutable tire calibration
+  state; browser GRIP/PEAK/SLIDE IDs are never stored in physics.
+- `src/browser/tire-friction-selection.ts` derives the three independent DEV tire axes from those
+  existing scalars.
+- `src/physics/tire-wheel.ts` owns the one-k combined-slip and M9.10 lateral post-peak tire law.
 - No yaw steering assist, drift mode, target beta, vehicle-kind handling branch or drive-layout
   handling branch exists.
 - Recovery resets unsafe dynamic state but preserves selected M/D/T and tire calibration.
@@ -167,11 +165,15 @@ One top-level boot selects one explicit composition root:
 | Driver offset D | `Y` cycles |
 | Maximum steer M | `U` cycles |
 | Steering traversal T | `T` cycles |
-| Sliding plateau | `G` cycles |
+| Tire GRIP | `H` cycles |
+| Tire PEAK | `J` cycles |
+| Tire SLIDE | `G` cycles |
 | Recovery | `Backspace` |
 
-The selector zone is visible on desktop and touch layouts. Large steering/throttle/brake buttons
-remain touch-gated. The same M/D/T and tire authorities drive keyboard, touch and HUD presentation.
+The selector zone is visible on desktop and touch layouts. The existing TIRE selector area contains
+three compact cycle buttons (`G`, `P`, `S`) rather than expanding the selector zone vertically.
+Large steering/throttle/brake buttons remain touch-gated. Keyboard, touch and HUD all mutate/read
+the same vehicle-owned calibration.
 
 ## Current takeover checkpoint
 
@@ -211,14 +213,15 @@ src/main.ts                                   BRANCHING composition root
 src/main-circuit.ts                           CIRCUIT composition root
 src/browser/steering-calibration-selection.ts M/D/T choice/default/format authority
 src/browser/steering-calibration-controls.ts  keyboard/touch M/D/T vehicle adapter
-src/browser/tire-friction-selection.ts        SLIDE choice/default/format authority
+src/browser/tire-friction-selection.ts        GRIP/PEAK/SLIDE choice/default/format authority
+src/browser/tire-friction-controls.ts         keyboard/touch tire-calibration adapter
 src/browser/mobile-selector-controls.ts       authority-derived selector presentation
 src/input/steering-input-arbiter.ts           shared steering-source authority
 src/input/pedal-input-arbiter.ts              shared pedal-source authority
 src/physics/vehicle-calibration.ts            M/D/T calibration state and DEV status
 src/physics/driving-actuator.ts               finite response primitive
 src/physics/arcade-vehicle-physics.ts         common two-station solver and steering transform
-src/physics/tire-friction-calibration.ts      vehicle-owned tire calibration rules
+src/physics/tire-friction-calibration.ts      vehicle-owned three-scalar tire calibration
 src/physics/tire-wheel.ts                     one-k combined-slip + post-peak tire law
 src/physics/vehicle-profiles.ts               compiled nine-profile mechanics authority
 src/vehicle/vehicle-catalog.ts                structured product identity/selection authority
@@ -232,14 +235,6 @@ fixtures.
 
 ## Release evidence
 
-M9.11 standalone historical evidence is recorded in:
-
-```text
-docs/validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
-```
-
-That record captures the green implementation/documentation-inclusive acceptance head. The
-record-inclusive exact feature head must receive another complete green CI before pure
-fast-forward release to `main`, followed by same-SHA main-push CI and Pages verification under
-`AGENTS.md`. Final release identity is established by Git/PR/main/workflow history rather than by
-rewriting the immutable validation record.
+M9.9, M9.10 and M9.11 standalone historical validation records remain under `docs/validation/`.
+M9.12 requires its own implementation/documentation-inclusive green exact head before the normal
+record-inclusive second CI and pure fast-forward release under `AGENTS.md`.
