@@ -4,9 +4,9 @@ import {
 } from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
 import {
+  formatMaxRoadWheelSteerSelector,
+  formatSteeringOffsetSelector,
   formatSteeringResponseSelector,
-  formatYawTransientSelector,
-  formatYawWashoutSelector,
 } from './steering-calibration-selection.js';
 import { formatTirePresetSelector } from './tire-friction-selection.js';
 import {
@@ -25,8 +25,8 @@ export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
-  readonly yawTransientSelector: string;
-  readonly yawWashoutSelector: string;
+  readonly steeringOffsetSelector: string;
+  readonly maxRoadWheelSteerSelector: string;
   readonly steeringResponseSelector: string;
   readonly tireFrictionSelector: string;
   readonly instruments: string;
@@ -50,11 +50,11 @@ export function createVehicleDebugHudModel(
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
-    yawTransientSelector: formatYawTransientSelector(
-      vehicle.steeringCalibration.yawTransientGain,
+    steeringOffsetSelector: formatSteeringOffsetSelector(
+      vehicle.steeringCalibration.steeringOffsetMax,
     ),
-    yawWashoutSelector: formatYawWashoutSelector(
-      vehicle.steeringCalibration.yawWashoutTime,
+    maxRoadWheelSteerSelector: formatMaxRoadWheelSteerSelector(
+      vehicle.steeringCalibration.maxRoadWheelSteer,
     ),
     steeringResponseSelector: formatSteeringResponseSelector(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
@@ -65,7 +65,7 @@ export function createVehicleDebugHudModel(
     requestedThrottle: input.throttle ? 1 : 0,
     requestedBrake: input.brake ? 1 : 0,
     actualSteering: clampSigned(
-      vehicle.control.actualSteerAngle / vehicle.profile.maxRoadWheelSteer,
+      vehicle.control.actualSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer,
     ),
     actualThrottle: clampUnit(vehicle.control.throttleActuator),
     actualBrake: clampUnit(vehicle.control.brakeActuator),
@@ -85,10 +85,10 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.10 ${model.courseSelector}`,
+    `M9.11 ${model.courseSelector}`,
     model.vehicleSelector,
-    model.yawTransientSelector,
-    model.yawWashoutSelector,
+    model.steeringOffsetSelector,
+    model.maxRoadWheelSteerSelector,
     model.steeringResponseSelector,
     model.tireFrictionSelector,
     model.instruments,
