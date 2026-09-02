@@ -45,14 +45,16 @@ const surface = new SurfaceMap(highway.guide.length, [{
 }]);
 
 test('browser authority exposes only M D and T steering selectors', () => {
-  assert.deepEqual(BROWSER_STEERING_OFFSETS.map(({ degrees }) => degrees), [9, 9.5, 11, 12.5, 14]);
-  assert.deepEqual(BROWSER_MAX_ROAD_WHEEL_STEERS.map(({ degrees }) => degrees), [37, 41, 45, 49, 53]);
-  assert.deepEqual(BROWSER_STEERING_RESPONSES.map(({ traversalSeconds }) => traversalSeconds), [0.25, 0.375, 0.5, 0.625]);
+  assert.deepEqual(BROWSER_STEERING_OFFSETS.map(({ degrees }) => degrees), [9, 9.5, 10, 11, 12, 13, 14]);
+  assert.deepEqual(BROWSER_MAX_ROAD_WHEEL_STEERS.map(({ degrees }) => degrees), [45, 50, 55, 60, 65]);
+  assert.deepEqual(BROWSER_STEERING_RESPONSES.map(({ traversalSeconds }) => traversalSeconds), [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35]);
   assert.equal(BROWSER_STEERING_OFFSET_CYCLE_CODE, 'KeyY');
   assert.equal(BROWSER_MAX_STEER_CYCLE_CODE, 'KeyU');
   assert.equal(BROWSER_STEERING_RESPONSE_CYCLE_CODE, 'KeyT');
   assert.equal(formatSteeringOffsetSelector(9.5 * DEG), 'D [Y] 9.5°');
   assert.equal(formatMaxRoadWheelSteerSelector(45 * DEG), 'M [U] 45°');
+  assert.equal(formatSteeringResponseSelector(5), 'ACT [T] 0.20s');
+  assert.equal(formatSteeringResponseSelector(1 / 0.225), 'ACT [T] 0.225s');
   assert.equal(formatSteeringResponseSelector(4), 'ACT [T] 0.25s');
 });
 
@@ -91,7 +93,7 @@ test('every M x D choice derives A=M-D and preserves exact driver reserve inside
       assert.ok(Math.abs(travelDirectionSteeringTarget(-steeringOffsetMax, -1, calibration) + maxRoadWheelSteer) < 1e-14);
     }
   }
-  assert.ok(Math.abs(minimumAutomaticDegrees - 23) < 1e-12);
+  assert.ok(Math.abs(minimumAutomaticDegrees - 31) < 1e-12);
 });
 
 test('M D T mutation changes calibration only and survives recovery and profile reconstruction', () => {
@@ -160,9 +162,9 @@ test('all nine profiles remain finite at the smallest M largest D and slowest T 
       0,
       25,
       {
-        maxRoadWheelSteer: 37 * DEG,
+        maxRoadWheelSteer: 45 * DEG,
         steeringOffsetMax: 14 * DEG,
-        steeringActuatorResponse: { applyRate: 1.6, releaseRate: 1.6 },
+        steeringActuatorResponse: { applyRate: 1 / 0.35, releaseRate: 1 / 0.35 },
       },
     );
     for (let tick = 0; tick < 180; tick += 1) {
@@ -181,7 +183,7 @@ test('all nine profiles remain finite at the smallest M largest D and slowest T 
       vehicle.yaw, vehicle.yawRate, vehicle.frontSteerAngle,
       vehicle.frontWheelOmega, vehicle.rearWheelOmega,
     ]) assert.ok(Number.isFinite(value), profile.id);
-    assert.ok(Math.abs(vehicle.frontSteerAngle) <= 37 * DEG + 1e-12, profile.id);
+    assert.ok(Math.abs(vehicle.frontSteerAngle) <= 45 * DEG + 1e-12, profile.id);
   }
 });
 
