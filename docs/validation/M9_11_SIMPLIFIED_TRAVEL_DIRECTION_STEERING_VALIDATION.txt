@@ -1,0 +1,208 @@
+SUPER OUTRIDE — M9.11 SIMPLIFIED TRAVEL-DIRECTION STEERING VALIDATION
+
+Status: standalone historical release evidence for the M9.11 normative steering-control and
+browser-selector authority change. This file is evidence, not current design authority. Current
+authority is resolved through AGENTS.md, README.md, docs/README.md,
+docs/101_m9_11_simplified_travel_direction_steering.md, source and regression tests.
+
+1. Release scope
+
+M9.11 deliberately simplifies the common steering architecture:
+
+- remove M9.7 yaw-transient steering feedback;
+- remove the zero-DC yaw-washout baseline state and time constant;
+- delete the retired steering-assist source module rather than preserving a disabled compatibility
+  state;
+- retain the exact unit-coefficient CG travel-direction geometry;
+- retain one physical front road-wheel angle and one existing first-order rack response;
+- make vehicle-instance M, D and symmetric actuator response T the only adjustable steering
+  calibration values;
+- derive automatic authority only as A=M-D; never store A;
+- expose D=9/9.5/11/12.5/14 deg, M=37/41/45/49/53 deg and
+  T=0.25/0.375/0.5/0.625 s;
+- default M=45 deg and T=0.25 s, with profile seed D=9.5 deg for CAR and D=9 deg for BIKE;
+- preserve at least A=23 deg for every exposed M x D combination;
+- retain M9.10 SLIDE 100/85/80/75/70% as an independent tire calibration, default 100%.
+
+The steering target is:
+
+  A = M - D
+  automatic = clamp(betaTravel, -A, +A)
+  deltaTarget = clamp(automatic + u*D, -M, +M)
+
+Within automatic authority:
+
+  deltaTarget - betaTravel = u*D
+
+No yaw-rate steering feedback, washout memory, drift mode, drift assist, target sideslip,
+travel-direction gain, second rack, tire/steering coupling, vehicle-id branch, drive-layout handling
+branch, camera change, route change, topology change or renderer change is introduced.
+
+M9.9's product rule remains: uncontrollable slide is forbidden; controllable drift is allowed.
+M9.10's post-peak tire law remains unchanged. Handling remains DEV_UNCALIBRATED and M/D/T remain
+future-tunable values rather than a final handling freeze.
+
+2. Repository / PR identity
+
+Repository:
+  sayaborg/superoutride
+
+Audited base main:
+  7109a6cdd04438998fedf77917156be9ded90b73
+
+Feature branch:
+  codex/m9-11-simplified-travel-direction-steering
+
+Pull request:
+  #118 — M9.11: simplified travel-direction steering calibration
+
+Implementation/documentation-inclusive exact head used for the primary green acceptance run:
+  ea005988aaa7f9af1086057c6a9f3b40b63df943
+
+That SHA was checked out exactly by GitHub Actions.
+
+3. Falsification history
+
+M9.11 did not hide stale M9.7 regressions behind compatibility code.
+
+First broad implementation PR run:
+  workflow: Test and Deploy GitHub Pages
+  run no.:  715
+  result:   581 tests / 569 pass / 12 fail
+
+The failures were classified. They were old assumptions about the intentionally deleted
+steering-assist module/state, YAW/WASH selectors, former function signatures, old 31-degree rack
+maximum, old 0.375-second traversal default, and historical README path references. Existing route,
+vehicle, tire and renderer integration did not expose a new causal failure.
+
+After replacing superseded washout-specific tests with M9.11 causal coverage, exact head:
+  0ad402dabd46131682aa0b65d34b65f71d9a52c4
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run no.:  726
+
+Result:
+  tests:   593
+  pass:    592
+  fail:    1
+  skipped: 0
+
+All M9.11 mechanics tests passed in that run. The sole remaining failure was repository hygiene:
+README.md still named the intentionally deleted src/physics/steering-assist.ts path. The entry and
+authority documents were then aligned to M9.11; no mechanics assertion was weakened.
+
+4. Implementation-inclusive exact-head CI
+
+Validated implementation/documentation head:
+  ea005988aaa7f9af1086057c6a9f3b40b63df943
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run id:   33624017366
+  run no.:  730
+  event:    pull_request
+  build job: 100227409914
+
+Exact checkout evidence:
+  expected=ea005988aaa7f9af1086057c6a9f3b40b63df943
+  actual=ea005988aaa7f9af1086057c6a9f3b40b63df943
+
+Package identity in that run:
+  super-outride-m9-11@0.9.11
+
+Complete suite result:
+  tests:     593
+  pass:      593
+  fail:      0
+  cancelled: 0
+  skipped:   0
+  todo:      0
+
+5. Executable acceptance recorded by the green run
+
+A. Pure steering geometry
+- betaTravel retains structural coefficient exactly 1;
+- automatic steering is clamp(betaTravel, -(M-D), +(M-D));
+- Driver contribution is exactly u*D;
+- final target uses one physical +/-M mechanical clamp;
+- within automatic authority, deltaTarget-betaTravel=uD to numerical precision.
+
+B. One authority per steering value
+- vehicle-instance calibration owns only M, D and symmetric actuator response;
+- A is derived as M-D and is absent as a stored profile/calibration field;
+- selector mutation changes calibration without rewriting pose, yaw, velocity or road-wheel state;
+- recovery preserves selected calibration while resetting unsafe dynamic state;
+- profile reconstruction copies calibration into an independent object rather than sharing mutable
+  state.
+
+C. Selector domain
+- D choices are exactly 9 / 9.5 / 11 / 12.5 / 14 deg;
+- M choices are exactly 37 / 41 / 45 / 49 / 53 deg;
+- T choices are exactly 0.25 / 0.375 / 0.5 / 0.625 s;
+- Y cycles D, U cycles M and T cycles symmetric actuator traversal;
+- default M is 45 deg and default T is 0.25 s;
+- CAR profile seed D remains 9.5 deg and BIKE seed D remains 9 deg;
+- all 25 exposed M x D pairs derive A=M-D;
+- minimum exposed A is exactly 23 deg at M=37, D=14.
+
+D. Catalog-wide physical checks
+- all nine production profiles remain finite under the exposed extreme corner
+  M=37 deg / D=14 deg / T=0.625 s;
+- all nine profiles recover from both -43 deg and +43 deg deep-beta deterministic seeds under the
+  explicit recovery input;
+- M9.8 product rival regressions on mountain, Tsukuba and FISCO remain green;
+- normal route, recovery, camera, renderer and source-boundary integration remains green.
+
+E. Retired authority is absent
+- src/physics/steering-assist.ts is absent;
+- yawRateBaseline is absent from current steering mechanics;
+- yawTransient/yawWashout steering calibration is absent;
+- no travelDirectionGain, driftMode or driftAssist steering authority is added;
+- no compatibility re-export or disabled replacement state is introduced.
+
+F. Independent tire authority remains intact
+- M9.9 axle-neutral 9.75/9.75 common tire seed remains green;
+- M9.10 common retained 12-degree peak and all SLIDE choices remain green;
+- no M9.11 steering selector changes tire calibration or tire constitutive behavior.
+
+6. Documentation / authority alignment
+
+Current repository authority was aligned after the implementation behavior had passed falsification:
+
+- docs/101_m9_11_simplified_travel_direction_steering.md is the current steering authority;
+- README.md is the current repository entry/index for M9.11;
+- docs/README.md classifies M9.11 as current and M9.7/M9.2 as historical steering predecessors;
+- AGENTS.md promotes M9.11 in the authority map while preserving the existing architecture and
+  exact-head release contract.
+
+Historical M9.7 bytes remain history. M9.11 supersedes its washout/control calibration scope rather
+than rewriting that historical document.
+
+This file follows the archive self-reference rule. It intentionally records the already-green
+implementation/documentation-inclusive head rather than naming its own future validation-inclusive
+SHA. After this evidence file and final index alignment are added, the resulting exact feature head
+must receive a fresh complete CI run before release.
+
+7. Required validation-inclusive release procedure
+
+Release is permitted only after all of the following are true for the post-record exact feature
+head:
+
+1. the complete CI suite succeeds on that exact SHA;
+2. GitHub Actions exact checkout reports expected SHA == actual SHA;
+3. main is re-fetched immediately before release;
+4. compare(main, candidate) proves:
+     ahead_by > 0
+     behind_by = 0
+     merge base = current main
+5. main is moved to the validated exact feature SHA with force=false;
+6. PR head SHA, PR merge SHA and main SHA are verified against the same validated release SHA;
+7. the main-push workflow succeeds on that same SHA;
+8. the Pages artifact/version and deployment are verified to use that same SHA.
+
+If main moves before release, this candidate must not be forced onto main. A new candidate must be
+reconstructed from the newer main and revalidated.
+
+Final validation-inclusive SHA/run identity is intentionally supplied by Git/PR/main/workflow
+history rather than rewritten into this immutable evidence file.
