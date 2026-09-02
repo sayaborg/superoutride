@@ -8,6 +8,7 @@ import {
   type BrowserVehicleProfileSelection,
 } from './vehicle-profile-selection.js';
 import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
+import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
 import {
   M5_CAMERA_YAW_MODES,
   type M5CameraYawMode,
@@ -19,8 +20,10 @@ import {
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import {
-  BROWSER_TIRE_CHARACTERISTIC_PRESETS,
-  type BrowserTirePresetId,
+  formatGripValue,
+  formatPeakValue,
+  formatSlideValue,
+  type BrowserTireCalibrationAxis,
 } from './tire-friction-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
@@ -32,6 +35,16 @@ export interface MobileSelectorButtonModel<Value extends string | number> {
 
 export interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
+}
+
+export interface MobileTireCalibrationButtonModel {
+  readonly axis: BrowserTireCalibrationAxis;
+  readonly label: string;
+  readonly ariaLabel: string;
+}
+
+export interface MobileTireCalibrationController {
+  setCalibration(calibration: Readonly<ArcadeTireFrictionCalibrationState>): void;
 }
 
 export function createMobileCourseSelectorModel(
@@ -102,15 +115,26 @@ export function createMobileSteeringResponseSelectorModel(
   }));
 }
 
-export function createMobileTireFrictionSelectorModel(
-  activeId: BrowserTirePresetId,
-): readonly MobileSelectorButtonModel<BrowserTirePresetId>[] {
-  return BROWSER_TIRE_CHARACTERISTIC_PRESETS.map(({ id, label }) => ({
-    value: id,
-    label,
-    ariaLabel: `Set sliding friction plateau to ${label} percent of peak`,
-    active: id === activeId,
-  }));
+export function createMobileTireCalibrationSelectorModel(
+  calibration: Readonly<ArcadeTireFrictionCalibrationState>,
+): readonly MobileTireCalibrationButtonModel[] {
+  return [
+    {
+      axis: 'GRIP',
+      label: `G ${formatGripValue(calibration)}`,
+      ariaLabel: `Cycle tire peak grip from current ${formatGripValue(calibration)}`,
+    },
+    {
+      axis: 'PEAK',
+      label: `P ${formatPeakValue(calibration)}`,
+      ariaLabel: `Cycle tire peak slip from current ${formatPeakValue(calibration)} percent`,
+    },
+    {
+      axis: 'SLIDE',
+      label: `S ${formatSlideValue(calibration)}`,
+      ariaLabel: `Cycle tire sliding plateau from current ${formatSlideValue(calibration)} percent`,
+    },
+  ];
 }
 
 export function mountMobileCourseSelector(
@@ -201,18 +225,35 @@ export function mountMobileSteeringResponseSelector(
   );
 }
 
-export function mountMobileTireFrictionSelector(
+export function mountMobileTireCalibrationSelector(
   container: HTMLElement,
-  activeId: BrowserTirePresetId,
-  onSelect: (id: BrowserTirePresetId) => void,
+  calibration: Readonly<ArcadeTireFrictionCalibrationState>,
+  onCycle: (axis: BrowserTireCalibrationAxis) => void,
   documentRef: Document = document,
-): MobileSelectorController<BrowserTirePresetId> {
-  return mountMobileSelector(
-    container,
-    createMobileTireFrictionSelectorModel(activeId),
-    onSelect,
-    documentRef,
-  );
+): MobileTireCalibrationController {
+  const buttons = new Map<BrowserTireCalibrationAxis, HTMLButtonElement>();
+  for (const item of createMobileTireCalibrationSelectorModel(calibration)) {
+    const button = documentRef.createElement('button');
+    button.type = 'button';
+    button.className = 'selector-button';
+    button.textContent = item.label;
+    button.setAttribute('aria-label', item.ariaLabel);
+    button.addEventListener('click', () => onCycle(item.axis));
+    buttons.set(item.axis, button);
+  }
+  container.replaceChildren(...buttons.values());
+
+  const controller: MobileTireCalibrationController = {
+    setCalibration(nextCalibration) {
+      for (const item of createMobileTireCalibrationSelectorModel(nextCalibration)) {
+        const button = buttons.get(item.axis);
+        if (button === undefined) throw new Error(`Missing tire calibration button for ${item.axis}`);
+        button.textContent = item.label;
+        button.setAttribute('aria-label', item.ariaLabel);
+      }
+    },
+  };
+  return controller;
 }
 
 function mountMobileSelector<Value extends string | number>(
