@@ -42,6 +42,7 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/100_m9_10_post_peak_sliding_tire.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/97_m9_7_bounded_washout_steering_assist.md
@@ -57,16 +58,27 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.9 is the current common tire-balance and deep-sideslip acceptance authority. It preserves
-M9.7's exact unit-coefficient travel-direction steering and zero-DC washout law, but supersedes the
-old requirement that a deep-beta seed self-release under either held full steering sign. The
-explicit recovery input must recover; neutral, wrong or intentionally sustaining input is not
-required to self-recover. The product rule is **uncontrollable slide is forbidden; controllable
-drift is allowed**. The shared preset-1 normalized tire seed is axle-neutral at `9.75 / 9.75`, the
-arithmetic mean of the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and
-drive torque remain the only axle-behavior causes. M9.5 preset `2/3` retain effective slope `10.3`
-and exact `12 deg / 15 deg` reference plateau targets through a derived `10.3 / 9.75` multiplier.
-No drift mode, travel-direction gain, post-peak drop, roll DOF, new dynamic state or vehicle/drive-
+M9.10 is the current post-peak tire-law and browser sliding-ratio authority. It preserves the M9.9
+compiled axle-neutral reference seed and uses the exact former M9.5/M9.9 `TIRE 2` peak
+characteristic for every browser comparison. One vehicle-owned `slidingFrictionRatio` extends the
+existing tire calibration, and one stateless C1 lateral-demand-driven post-peak scale reduces only
+deep lateral-slip force. Browser `G`/touch/HUD choices are `SLIDE 100 / 85 / 80 / 75 / 70 %`,
+defaulting to `100%`; every choice is identical through the retained 12-degree peak. Pure
+longitudinal behavior and the monotone scalar implicit wheel solve remain unchanged because the
+post-peak scale is independent of wheel angular speed during the solve. No drift mode, drift
+assist, target sideslip, yaw/beta feedback, tire memory, vehicle-kind branch or drive-layout
+handling branch is added. Handling remains `DEV_UNCALIBRATED`.
+
+M9.9 remains the common tire-balance and deep-sideslip acceptance authority. It preserves M9.7's
+exact unit-coefficient travel-direction steering and zero-DC washout law, but supersedes the old
+requirement that a deep-beta seed self-release under either held full steering sign. The explicit
+recovery input must recover; neutral, wrong or intentionally sustaining input is not required to
+self-recover. The product rule is **uncontrollable slide is forbidden; controllable drift is
+allowed**. The shared compiled normalized tire seed is axle-neutral at `9.75 / 9.75`, the arithmetic
+mean of the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and drive torque
+remain the only axle-behavior causes. M9.10 supersedes only M9.9's post-peak-drop non-goal and the
+browser use of the former comparison table; M9.9's axle-neutral seed and controllability acceptance
+remain current. No drift mode, travel-direction gain, roll DOF, new dynamic state or vehicle/drive-
 layout branch is added. Handling remains `DEV_UNCALIBRATED`.
 
 M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
@@ -79,13 +91,13 @@ Keyboard/touch/HUD derive from the catalog, Testarossa is the default and fixed 
 generic CAR/BIKE presentation uses explicit metadata instead of ID/name parsing. Handling remains
 `DEV_UNCALIBRATED`.
 
-M9.5 supersedes M9.4's exact browser choices and its prohibition on calibrating linear tire demand.
-The browser exposes debug presets `1 / 2 / 3`. One common vehicle-instance tire-calibration state
-atomically owns positive finite reference-friction and linear-stiffness multipliers. M9.9 owns the
-current preset-1 `9.75 / 9.75` base and re-derives preset `2/3`'s linear multiplier; presets `2` and
-`3` retain effective initial slope `10.3` and target `12 deg` / provisional `15 deg` plateau starts.
-`rhoKnee`, the radial law, wheel solve and relative SurfaceMap materials remain unchanged; ordinary
-construction and rivals retain unit/unit calibration.
+M9.5 historically superseded M9.4's exact browser choices and its prohibition on calibrating linear
+tire demand. Its numbered `1 / 2 / 3` browser comparison table is superseded by M9.10. The retained
+M9.5/M9.9 `TIRE 2` reference values now supply the common M9.10 browser peak characteristic:
+effective normalized slope `10.3` and pure-lateral peak start `12 deg`. The existing vehicle-owned
+tire-calibration authority now atomically owns positive finite reference-friction,
+linear-stiffness and M9.10 sliding-friction-ratio values. `rhoKnee`, the common wheel solve and
+relative SurfaceMap materials remain separate authorities.
 
 M9.7 supersedes M9.2 in full as the current steering-control calibration and browser-selector
 authority, while retaining M9.2's symmetric actuator-traversal choices. Travel-direction feedback
@@ -163,6 +175,7 @@ docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
+docs/100_m9_10_post_peak_sliding_tire.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -233,6 +246,7 @@ docs/96_m9_6_fisco_circuit.md
 docs/97_m9_7_bounded_washout_steering_assist.md
 docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
+docs/100_m9_10_post_peak_sliding_tire.md
 ```
 
 ### Executable implementation contract
