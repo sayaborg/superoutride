@@ -26,17 +26,9 @@ const DEG = Math.PI / 180;
 
 class FakeClassList {
   values = new Set();
-
-  toggle(value, force) {
-    if (force) this.values.add(value);
-    else this.values.delete(value);
-  }
-
-  contains(value) {
-    return this.values.has(value);
-  }
+  toggle(value, force) { if (force) this.values.add(value); else this.values.delete(value); }
+  contains(value) { return this.values.has(value); }
 }
-
 class FakeButton {
   type = '';
   className = '';
@@ -44,34 +36,12 @@ class FakeButton {
   classList = new FakeClassList();
   attributes = new Map();
   listeners = new Map();
-
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-
-  addEventListener(type, listener) {
-    this.listeners.set(type, listener);
-  }
-
-  click() {
-    this.listeners.get('click')?.();
-  }
+  setAttribute(name, value) { this.attributes.set(name, value); }
+  addEventListener(type, listener) { this.listeners.set(type, listener); }
+  click() { this.listeners.get('click')?.(); }
 }
-
-class FakeContainer {
-  children = [];
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-}
-
-class FakeDocument {
-  createElement(name) {
-    assert.equal(name, 'button');
-    return new FakeButton();
-  }
-}
+class FakeContainer { children = []; replaceChildren(...children) { this.children = children; } }
+class FakeDocument { createElement(name) { assert.equal(name, 'button'); return new FakeButton(); } }
 
 test('mobile course buttons derive labels and active state from the canonical course authority', () => {
   assert.deepEqual(createMobileCourseSelectorModel('circuit'), [
@@ -110,39 +80,27 @@ test('mobile vehicle buttons derive all nine entries from the canonical catalog 
 
 test('mobile camera buttons expose body-fixed default and movement-follow alternate', () => {
   assert.deepEqual(createMobileCameraYawSelectorModel('BODY_FIXED'), [
-    {
-      value: 'BODY_FIXED',
-      label: 'BODY',
-      ariaLabel: 'Lock camera yaw to vehicle body',
-      active: true,
-    },
-    {
-      value: 'MOVEMENT_FOLLOW',
-      label: 'MOVE',
-      ariaLabel: 'Follow vehicle movement direction with camera yaw',
-      active: false,
-    },
+    { value: 'BODY_FIXED', label: 'BODY', ariaLabel: 'Lock camera yaw to vehicle body', active: true },
+    { value: 'MOVEMENT_FOLLOW', label: 'MOVE', ariaLabel: 'Follow vehicle movement direction with camera yaw', active: false },
   ]);
 });
 
-test('mobile M D and symmetric-response buttons expose the canonical M9.11A choices', () => {
-  const offsets = createMobileSteeringOffsetSelectorModel(9.5 * DEG);
+test('mobile M D and symmetric-response buttons expose the centered M9.12A choices', () => {
+  const offsets = createMobileSteeringOffsetSelectorModel(12 * DEG);
   assert.deepEqual(offsets.map(({ label, active }) => ({ label, active })), [
-    { label: '9', active: false },
-    { label: '9.5', active: true },
     { label: '10', active: false },
     { label: '11', active: false },
-    { label: '12', active: false },
+    { label: '12', active: true },
     { label: '13', active: false },
     { label: '14', active: false },
   ]);
-  const maxima = createMobileMaxRoadWheelSteerSelectorModel(45 * DEG);
+  const maxima = createMobileMaxRoadWheelSteerSelectorModel(60 * DEG);
   assert.deepEqual(maxima.map(({ label, active }) => ({ label, active })), [
-    { label: '45', active: true },
     { label: '50', active: false },
     { label: '55', active: false },
-    { label: '60', active: false },
+    { label: '60', active: true },
     { label: '65', active: false },
+    { label: '70', active: false },
   ]);
   assert.deepEqual(
     createMobileSteeringResponseSelectorModel(4).map(({ value, label, active }) => ({ value, label, active })),
@@ -152,8 +110,6 @@ test('mobile M D and symmetric-response buttons expose the canonical M9.11A choi
       { value: 4, label: '0.25', active: true },
       { value: 1 / 0.275, label: '0.275', active: false },
       { value: 1 / 0.3, label: '0.30', active: false },
-      { value: 1 / 0.325, label: '0.325', active: false },
-      { value: 1 / 0.35, label: '0.35', active: false },
     ],
   );
 });
@@ -170,12 +126,7 @@ test('mobile selector taps publish canonical selections and expose exactly one a
 
   const vehicleContainer = new FakeContainer();
   let selectedVehicle = null;
-  const vehicleController = mountMobileVehicleSelector(
-    vehicleContainer,
-    'TESTAROSSA',
-    (profile) => { selectedVehicle = profile; },
-    fakeDocument,
-  );
+  const vehicleController = mountMobileVehicleSelector(vehicleContainer, 'TESTAROSSA', (profile) => { selectedVehicle = profile; }, fakeDocument);
   vehicleContainer.children[4].click();
   assert.equal(selectedVehicle.id, 'DELTA_HF_INTEGRALE');
   vehicleController.setActive(selectedVehicle.id);
@@ -183,58 +134,38 @@ test('mobile selector taps publish canonical selections and expose exactly one a
 
   const offsetContainer = new FakeContainer();
   let selectedOffset = null;
-  const offsetController = mountMobileSteeringOffsetSelector(
-    offsetContainer,
-    9.5 * DEG,
-    (radians) => { selectedOffset = radians; },
-    fakeDocument,
-  );
-  offsetContainer.children[6].click();
+  const offsetController = mountMobileSteeringOffsetSelector(offsetContainer, 12 * DEG, (radians) => { selectedOffset = radians; }, fakeDocument);
+  offsetContainer.children[4].click();
   assert.ok(Math.abs(selectedOffset - 14 * DEG) < 1e-12);
   offsetController.setActive(selectedOffset);
-  assert.equal(offsetContainer.children[6].attributes.get('aria-pressed'), 'true');
+  assert.equal(offsetContainer.children[4].attributes.get('aria-pressed'), 'true');
 
   const maxContainer = new FakeContainer();
   let selectedMax = null;
-  const maxController = mountMobileMaxRoadWheelSteerSelector(
-    maxContainer,
-    45 * DEG,
-    (radians) => { selectedMax = radians; },
-    fakeDocument,
-  );
+  const maxController = mountMobileMaxRoadWheelSteerSelector(maxContainer, 60 * DEG, (radians) => { selectedMax = radians; }, fakeDocument);
   maxContainer.children[4].click();
-  assert.ok(Math.abs(selectedMax - 65 * DEG) < 1e-12);
+  assert.ok(Math.abs(selectedMax - 70 * DEG) < 1e-12);
   maxController.setActive(selectedMax);
   assert.equal(maxContainer.children[4].attributes.get('aria-pressed'), 'true');
 
   const responseContainer = new FakeContainer();
   let selectedResponseRate = null;
-  const responseController = mountMobileSteeringResponseSelector(
-    responseContainer,
-    4,
-    (rate) => { selectedResponseRate = rate; },
-    fakeDocument,
-  );
-  responseContainer.children[6].click();
-  assert.equal(selectedResponseRate, 1 / 0.35);
+  const responseController = mountMobileSteeringResponseSelector(responseContainer, 4, (rate) => { selectedResponseRate = rate; }, fakeDocument);
+  responseContainer.children[4].click();
+  assert.equal(selectedResponseRate, 1 / 0.3);
   responseController.setActive(selectedResponseRate);
-  assert.equal(responseContainer.children[6].attributes.get('aria-pressed'), 'true');
+  assert.equal(responseContainer.children[4].attributes.get('aria-pressed'), 'true');
 
   const cameraContainer = new FakeContainer();
   let selectedCameraMode = null;
-  const cameraController = mountMobileCameraYawSelector(
-    cameraContainer,
-    'BODY_FIXED',
-    (mode) => { selectedCameraMode = mode; },
-    fakeDocument,
-  );
+  const cameraController = mountMobileCameraYawSelector(cameraContainer, 'BODY_FIXED', (mode) => { selectedCameraMode = mode; }, fakeDocument);
   cameraContainer.children[1].click();
   assert.equal(selectedCameraMode, 'MOVEMENT_FOLLOW');
   cameraController.setActive(selectedCameraMode);
   assert.equal(cameraContainer.children[1].attributes.get('aria-pressed'), 'true');
 });
 
-test('one browser steering adapter owns keyboard touch and the current vehicle M D T instance', () => {
+test('one browser steering adapter owns keyboard touch and the centered vehicle M D T instance', () => {
   const fakeDocument = new FakeDocument();
   const containers = {
     steeringOffset: new FakeContainer(),
@@ -249,16 +180,16 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
     },
   };
   const controls = mountBrowserSteeringCalibrationControls(containers, () => vehicle, fakeDocument);
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 12 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 60 * DEG) < 1e-12);
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 4, releaseRate: 4 });
 
   assert.equal(controls.handleKey('KeyY'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 10 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 13 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyU'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 50 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 65 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyT'), true);
-  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
-    applyRate: 1 / 0.275,
-    releaseRate: 1 / 0.275,
-  });
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.275, releaseRate: 1 / 0.275 });
   assert.equal(controls.handleKey('KeyV'), false);
 
   vehicle = {
@@ -270,13 +201,10 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
   };
   containers.steeringOffset.children[0].click();
   containers.maxRoadWheelSteer.children[0].click();
-  containers.steeringResponse.children[6].click();
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 9 * DEG) < 1e-12);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 45 * DEG) < 1e-12);
-  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
-    applyRate: 1 / 0.35,
-    releaseRate: 1 / 0.35,
-  });
+  containers.steeringResponse.children[4].click();
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 10 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 50 * DEG) < 1e-12);
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 });
 });
 
 test('browser compositions mount shared M D T selectors without duplicating choices in HTML', async () => {
