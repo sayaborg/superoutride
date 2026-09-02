@@ -24,17 +24,15 @@ test('M9.9 axle-neutral compiled reference remains common beneath later browser 
   }
 });
 
-test('M9.9 preserves unit travel-direction steering and adds no drift mode or gain authority', async () => {
+test('M9.9 unit travel-direction foundation survives M9.11 without drift or gain authority', async () => {
   const [solver, calibration, input] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/input/driving-input.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(
-    solver,
-    /bodyTravelDirection\s*-\s*calibration\.yawTransientGain\s*\*\s*transientYawRate/,
-  );
+  assert.match(solver, /const automaticSteer = clamp\(\s*bodyTravelDirection,/s);
   for (const source of [solver, calibration, input]) {
     assert.doesNotMatch(source, /travelDirectionGain|driftMode|driftAssist/i);
   }
+  assert.doesNotMatch(`${solver}\n${calibration}`, /yawTransient|yawWashout|steeringAssist/i);
 });
