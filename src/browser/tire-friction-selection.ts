@@ -3,8 +3,8 @@ import type {
   ArcadeTireFrictionCalibrationState,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTireGripId = '1.74' | '1.80' | '1.90' | '2.00';
-export type BrowserTirePeakId = '21.3' | '18' | '15' | '12' | '9' | '6';
+export type BrowserTireGripId = '1.60' | '1.80' | '2.00' | '2.20' | '2.40';
+export type BrowserTirePeakId = '16' | '18' | '20' | '22' | '24';
 export type BrowserTireSlideId = '70' | '75' | '80' | '85' | '90';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
@@ -31,8 +31,8 @@ export const BROWSER_TIRE_GRIP_CYCLE_CODE = 'KeyH';
 export const BROWSER_TIRE_PEAK_CYCLE_CODE = 'KeyJ';
 export const BROWSER_TIRE_SLIDE_CYCLE_CODE = 'KeyG';
 
-export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '1.74';
-export const DEFAULT_BROWSER_TIRE_PEAK_ID: BrowserTirePeakId = '21.3';
+export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '2.00';
+export const DEFAULT_BROWSER_TIRE_PEAK_ID: BrowserTirePeakId = '20';
 export const DEFAULT_BROWSER_TIRE_SLIDE_ID: BrowserTireSlideId = '80';
 
 /** M9.10 retained former TIRE 2 reference anchors. */
@@ -69,19 +69,19 @@ function slideSelection(
 }
 
 export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.freeze([
-  gripSelection('1.74', M9_10_TIRE_2_EFFECTIVE_GRIP),
+  gripSelection('1.60', 1.60),
   gripSelection('1.80', 1.80),
-  gripSelection('1.90', 1.90),
   gripSelection('2.00', 2.00),
+  gripSelection('2.20', 2.20),
+  gripSelection('2.40', 2.40),
 ]);
 
 export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.freeze([
-  peakSelection('21.3', M9_10_TIRE_2_PEAK_SLIP_RATIO),
+  peakSelection('16', 0.16),
   peakSelection('18', 0.18),
-  peakSelection('15', 0.15),
-  peakSelection('12', 0.12),
-  peakSelection('9', 0.09),
-  peakSelection('6', 0.06),
+  peakSelection('20', 0.20),
+  peakSelection('22', 0.22),
+  peakSelection('24', 0.24),
 ]);
 
 export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.freeze([
@@ -92,10 +92,15 @@ export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.
   slideSelection('90', 0.90),
 ]);
 
+const DEFAULT_GRIP = mustChoiceById(BROWSER_TIRE_GRIPS, DEFAULT_BROWSER_TIRE_GRIP_ID, 'GRIP');
+const DEFAULT_PEAK = mustChoiceById(BROWSER_TIRE_PEAKS, DEFAULT_BROWSER_TIRE_PEAK_ID, 'PEAK');
+
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION:
 Readonly<Required<ArcadeTireFrictionCalibrationInput>> = Object.freeze({
-  referenceFrictionMultiplier: M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
-  linearStiffnessMultiplier: M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
+  referenceFrictionMultiplier: DEFAULT_GRIP.referenceFrictionMultiplier,
+  linearStiffnessMultiplier: M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER
+    * (DEFAULT_GRIP.referenceFrictionMultiplier / M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER)
+    * (M9_10_TIRE_2_PEAK_SLIP_RATIO / DEFAULT_PEAK.slipRatio),
   slidingFrictionRatio: 0.80,
 });
 
