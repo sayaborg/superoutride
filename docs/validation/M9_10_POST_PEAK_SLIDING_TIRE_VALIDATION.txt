@@ -1,0 +1,199 @@
+SUPER OUTRIDE — M9.10 POST-PEAK SLIDING TIRE VALIDATION
+
+Status: standalone historical release evidence for the M9.10 normative tire-law and browser
+sliding-ratio authority change. This file is evidence, not current design authority. Current
+authority is resolved through AGENTS.md, README.md, docs/README.md,
+docs/100_m9_10_post_peak_sliding_tire.md, source and regression tests.
+
+1. Release scope
+
+M9.10 deliberately changes only the post-peak tire characteristic and its DEV browser comparison:
+
+- preserve M9.9's compiled common axle-neutral tire seed exactly:
+  muRef=1.35, rhoKnee=0.74, lowSpeedRegularization=1.0,
+  frontNormalizedStiffness=9.75, rearNormalizedStiffness=9.75;
+- use the exact former M9.5/M9.9 TIRE 2 peak calibration for every browser choice:
+  referenceFrictionMultiplier=1.2870855880077763,
+  linearStiffnessMultiplier=10.3/9.75,
+  pure-lateral peak start=12 deg;
+- add one vehicle-owned slidingFrictionRatio scalar;
+- expose SLIDE 100 / 85 / 80 / 75 / 70 % on G, direct selector buttons and HUD;
+- add one stateless C1 lateral-demand-driven post-peak falloff from the retained peak to the
+  selected large-angle plateau.
+
+The post-peak scale is independent of wheel angular speed during the scalar wheel solve, so the
+retained monotone implicit wheel-root structure and pure longitudinal tire behavior are preserved.
+
+No drift mode, drift assist, target sideslip, yaw/beta feedback, tire memory, hysteresis,
+vehicle-kind branch, drive-layout handling branch, roll DOF, handbrake, clutch, camera, route,
+topology or renderer change is introduced. M9.7 steering and M9.9 controllable-slide acceptance
+remain unchanged. Handling remains DEV_UNCALIBRATED.
+
+2. Repository / PR identity
+
+Repository:
+  sayaborg/superoutride
+
+Audited base main:
+  9d9ec1d93fa62adc920731e4e2748c747fffb4fc
+
+Feature branch:
+  codex/m9-10-post-peak-sliding-tire
+
+Pull request:
+  #117 — M9.10: selectable post-peak sliding tire
+
+Implementation-inclusive exact head used for the primary green acceptance run:
+  ed32de16d92e54ebb2c2e1dfc1beea505110debf
+
+That SHA was checked out exactly by GitHub Actions.
+
+3. Falsification history
+
+The first full implementation candidate head was:
+  6d364b95906d5102b91e02f86ba614f31003a681
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run id:   33523233800
+  run no.:  704
+  build job: 99907457952
+
+Exact checkout evidence:
+  expected=6d364b95906d5102b91e02f86ba614f31003a681
+  actual=6d364b95906d5102b91e02f86ba614f31003a681
+
+Result:
+  tests:   606
+  pass:    604
+  fail:    2
+  skipped: 0
+
+The two failures were inspected rather than hidden:
+
+- one older M8.3 HUD regression still expected the superseded string TIRE [G] 1 instead of the
+  M9.10 SLIDE selector presentation;
+- one new architecture source-scan accidentally prohibited the already-valid generic
+  frontDriveTorqueFraction field name in the common solver, even though M9.10 itself added no
+  drive-layout branch.
+
+All new M9.10 physical acceptance tests passed in that failed run, including former-TIRE-2 peak
+identity, 12-degree equality for all five choices, C1 post-peak falloff, exact requested deep-slip
+plateaus, pure-longitudinal invariance, deterministic scalar wheel solve and atomic calibration.
+
+The HUD expectation was updated only for the explicitly superseded presentation string. The
+architecture regression was narrowed to prohibit actual M9.10 drift/vehicle-mode logic rather than
+an existing generic torque-distribution field. No tire-law, wheel-solve or numerical acceptance
+condition was weakened.
+
+4. Implementation-inclusive exact-head CI
+
+Validated implementation head:
+  ed32de16d92e54ebb2c2e1dfc1beea505110debf
+
+GitHub Actions:
+  workflow: Test and Deploy GitHub Pages
+  run id:   33524080638
+  run no.:  708
+  event:    pull_request
+  build job: 99910446843
+
+Exact checkout evidence:
+  expected=ed32de16d92e54ebb2c2e1dfc1beea505110debf
+  actual=ed32de16d92e54ebb2c2e1dfc1beea505110debf
+
+Package identity in that run:
+  super-outride-m9-10@0.9.10
+
+Complete suite result:
+  tests:     606
+  pass:      606
+  fail:      0
+  cancelled: 0
+  skipped:   0
+  todo:      0
+
+5. Executable acceptance recorded by the green run
+
+A. Retained common reference
+- M9.9 compiled common tire remains exactly 1.35 / 0.74 / 1.0 / 9.75 / 9.75;
+- all nine production profiles remain on one common two-station mechanics contract;
+- M9.7 all-nine steering/deep-beta regressions remain green.
+
+B. One common peak characteristic
+- every M9.10 browser choice uses referenceFrictionMultiplier=1.2870855880077763;
+- every choice uses linearStiffnessMultiplier=10.3/9.75;
+- effective normalized initial slope remains 10.3;
+- pure-lateral peak remains exactly at the former TIRE 2 12-degree target;
+- SLIDE 100% exactly preserves the former no-drop TIRE 2 force behavior.
+
+C. Stateless post-peak falloff
+- lateral demand ratio rhoLat=abs(Dy)/fmax owns the post-peak observation;
+- force is unchanged through peak rhoLat=1.26 for rhoKnee=0.74;
+- one C1 smoothstep falls from peak to the chosen slidingFrictionRatio;
+- the plateau is reached at rhoLat=1.78, approximately 16.7 degrees for the fixed browser
+  reference;
+- deep pure-lateral force reaches exactly 85 / 80 / 75 / 70 percent of the SLIDE 100 result.
+
+D. Wheel-solve preservation
+- pure longitudinal force is identical across every slide-ratio choice;
+- the post-peak scale is independent of Omega inside one scalar wheel solve;
+- representative combined-slip solves remain finite and deterministic for all five ratios;
+- the existing bounded root bracket remains valid because slideScale is in (0,1].
+
+E. Calibration / selector ownership
+- one vehicle-owned calibration atomically owns reference-friction, linear-stiffness and
+  sliding-friction-ratio values;
+- invalid sliding ratios are rejected before mutation;
+- recovery and profile reconstruction preserve the selected calibration;
+- G, direct selector buttons and HUD derive from one common five-value table.
+
+F. Architecture boundaries
+- no driftMode, driftAssist or targetSideslip authority is added;
+- tire constitutive logic consumes no yaw rate, betaTravel or bodyTravelDirection;
+- no profile-id or drive-layout branch is added to the tire law;
+- no tire memory or hysteresis is added;
+- SurfaceMap, suspension, powertrain, input, steering, camera, route, topology and renderer
+  boundaries remain green;
+- repository source-boundary and commit-versioned Pages boot regressions remain green.
+
+6. Documentation / authority alignment after implementation CI
+
+After the implementation-inclusive green run, current repository authority was aligned to M9.10:
+
+- docs/100_m9_10_post_peak_sliding_tire.md
+- AGENTS.md
+- README.md
+- docs/README.md
+
+M9.10 explicitly supersedes only M9.5's exact browser TIRE 1/2/3 table and M9.9's post-peak-drop
+non-goal. M9.9 remains current for the compiled axle-neutral seed and controllable-slide
+acceptance; M9.7 remains current for steering law/calibration.
+
+This file follows the archive self-reference rule. It intentionally records the already-green
+implementation-inclusive head rather than naming its own future validation-inclusive SHA. After
+this evidence file is added, the resulting exact feature head must receive a fresh complete CI run
+before release.
+
+7. Required validation-inclusive release procedure
+
+Release is permitted only after all of the following are true for the post-record exact feature
+head:
+
+1. the complete CI suite succeeds on that exact SHA;
+2. GitHub Actions exact checkout reports expected SHA == actual SHA;
+3. main is re-fetched immediately before release;
+4. compare(main, candidate) proves:
+     ahead_by > 0
+     behind_by = 0
+     merge base = current main
+5. main is moved to the validated exact feature SHA with force=false;
+6. PR head SHA, PR merge SHA and main SHA are verified against the same validated release SHA;
+7. the main-push workflow succeeds on that same SHA;
+8. the Pages artifact/version and deployment are verified to use that same SHA.
+
+If main moves before release, this candidate must not be forced onto main. A new candidate must be
+reconstructed from the newer main and revalidated.
+
+Final validation-inclusive SHA/run identity is intentionally supplied by Git/PR/main/workflow
+history rather than rewritten into this immutable evidence file.
