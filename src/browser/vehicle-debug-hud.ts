@@ -9,6 +9,9 @@ import {
   formatSteeringResponseSelector,
 } from './steering-calibration-selection.js';
 import {
+  formatGripValue,
+  formatPeakValue,
+  formatSlideValue,
   formatTireGripSelector,
   formatTirePeakSelector,
   formatTireSlideSelector,
@@ -35,6 +38,9 @@ export interface VehicleDebugHudModel {
   readonly tireGripSelector: string;
   readonly tirePeakSelector: string;
   readonly tireSlideSelector: string;
+  /** Retained read alias for historical HUD regressions; current drawing uses tireCalibrationSelector. */
+  readonly tireFrictionSelector: string;
+  readonly tireCalibrationSelector: string;
   readonly instruments: string;
   readonly requestedSteering: number;
   readonly requestedThrottle: number;
@@ -53,6 +59,9 @@ export function createVehicleDebugHudModel(
   vehicle: ArcadeVehicleState,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
+  const tireGripSelector = formatTireGripSelector(vehicle.tireFrictionCalibration);
+  const tirePeakSelector = formatTirePeakSelector(vehicle.tireFrictionCalibration);
+  const tireSlideSelector = formatTireSlideSelector(vehicle.tireFrictionCalibration);
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
@@ -65,9 +74,11 @@ export function createVehicleDebugHudModel(
     steeringResponseSelector: formatSteeringResponseSelector(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
     ),
-    tireGripSelector: formatTireGripSelector(vehicle.tireFrictionCalibration),
-    tirePeakSelector: formatTirePeakSelector(vehicle.tireFrictionCalibration),
-    tireSlideSelector: formatTireSlideSelector(vehicle.tireFrictionCalibration),
+    tireGripSelector,
+    tirePeakSelector,
+    tireSlideSelector,
+    tireFrictionSelector: tireSlideSelector,
+    tireCalibrationSelector: `TIRE G${formatGripValue(vehicle.tireFrictionCalibration)} P${formatPeakValue(vehicle.tireFrictionCalibration)} S${formatSlideValue(vehicle.tireFrictionCalibration)}`,
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: input.throttle ? 1 : 0,
@@ -98,9 +109,7 @@ export function drawVehicleDebugHud(
     model.steeringOffsetSelector,
     model.maxRoadWheelSteerSelector,
     model.steeringResponseSelector,
-    model.tireGripSelector,
-    model.tirePeakSelector,
-    model.tireSlideSelector,
+    model.tireCalibrationSelector,
     model.instruments,
   ];
 
@@ -108,8 +117,8 @@ export function drawVehicleDebugHud(
   ctx.font = '7px monospace';
   ctx.textBaseline = 'top';
   lines.forEach((line, index) => drawHudText(ctx, line, 6, 5 + index * 9, '#d7f3ff'));
-  drawVehicleControlGraphics(ctx, model, 3, 88);
-  drawTopDownGSensor(ctx, model, 286, 92);
+  drawVehicleControlGraphics(ctx, model, 3, 70);
+  drawTopDownGSensor(ctx, model, 286, 74);
   ctx.restore();
 }
 
