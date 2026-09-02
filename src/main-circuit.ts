@@ -85,8 +85,8 @@ const throttleButton = mustGet<HTMLElement>('throttle-button');
 const brakeButton = mustGet<HTMLElement>('brake-button');
 const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
 const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
-const yawTransientSelectorButtons = mustGet<HTMLElement>('yaw-transient-selector-buttons');
-const yawWashoutSelectorButtons = mustGet<HTMLElement>('yaw-washout-selector-buttons');
+const steeringOffsetSelectorButtons = mustGet<HTMLElement>('steering-offset-selector-buttons');
+const maxSteerSelectorButtons = mustGet<HTMLElement>('max-steer-selector-buttons');
 const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
 const tireFrictionSelectorButtons = mustGet<HTMLElement>('tire-friction-selector-buttons');
 
@@ -221,8 +221,8 @@ const cameraYawSelector = mountMobileCameraYawSelector(
 );
 const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
   {
-    yawTransient: yawTransientSelectorButtons,
-    yawWashout: yawWashoutSelectorButtons,
+    steeringOffset: steeringOffsetSelectorButtons,
+    maxRoadWheelSteer: maxSteerSelectorButtons,
     steeringResponse: steeringResponseSelectorButtons,
   },
   () => vehicle,
