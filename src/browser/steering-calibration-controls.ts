@@ -8,6 +8,9 @@ import {
   BROWSER_MAX_STEER_CYCLE_CODE,
   BROWSER_STEERING_OFFSET_CYCLE_CODE,
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
+  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
+  DEFAULT_BROWSER_STEERING_OFFSET,
+  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
   nextBrowserMaxRoadWheelSteer,
   nextBrowserSteeringOffset,
   nextBrowserSteeringResponseRate,
@@ -34,7 +37,12 @@ export function mountBrowserSteeringCalibrationControls(
   getVehicle: () => ArcadeVehicleState,
   documentRef: Document = document,
 ): BrowserSteeringCalibrationControls {
-  const initial = getVehicle().steeringCalibration;
+  const initialVehicle = getVehicle();
+  setArcadeVehicleMaxRoadWheelSteer(initialVehicle, DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER);
+  setArcadeVehicleSteeringOffsetMax(initialVehicle, DEFAULT_BROWSER_STEERING_OFFSET);
+  setArcadeVehicleSymmetricSteeringActuatorRate(initialVehicle, DEFAULT_BROWSER_STEERING_RESPONSE_RATE);
+  const initial = initialVehicle.steeringCalibration;
+
   const steeringOffsetSelector = mountMobileSteeringOffsetSelector(
     containers.steeringOffset,
     initial.steeringOffsetMax,
