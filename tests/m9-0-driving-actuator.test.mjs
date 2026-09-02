@@ -12,7 +12,7 @@ import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-prof
 
 const DT = 1 / 720;
 const PROFILE = Object.freeze({
-  steering: Object.freeze({ applyRate: 8 / 3, releaseRate: 8 / 3 }),
+  steering: Object.freeze({ applyRate: 4, releaseRate: 4 }),
   throttle: Object.freeze({ applyRate: 4, releaseRate: 8 }),
   brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 10 }),
 });
@@ -63,7 +63,7 @@ test('steering apply and neutral release use the same finite rate', () => {
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.releaseRate,
   );
   assert.ok(
-    Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate - 8 / 3) < 1e-12,
+    Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate - 4) < 1e-12,
   );
   const state = { steering: 1, throttle: 1, brake: 1 };
   updateDrivingActuators(state, neutral, DT, PROFILE);
@@ -71,22 +71,22 @@ test('steering apply and neutral release use the same finite rate', () => {
   assert.ok(state.throttle > 0 && state.throttle < 1);
   assert.ok(state.brake > 0 && state.brake < 1);
   const first = { ...state };
-  run(state, neutral, 0.375);
+  run(state, neutral, 0.25);
   assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
   assert.ok(Math.abs(first.steering - (1 - PROFILE.steering.applyRate * DT)) < 1e-12);
 });
 
-test('common steering applies and releases full-scale driver offset in exactly 0.375 seconds', () => {
+test('common steering applies and releases full-scale driver offset in exactly 0.25 seconds', () => {
   const before = { steering: 1, throttle: 0, brake: 0 };
-  run(before, neutral, 269 * DT);
+  run(before, neutral, 179 * DT);
   assert.ok(before.steering > 0);
 
   const at = { steering: 1, throttle: 0, brake: 0 };
-  run(at, neutral, 0.375);
+  run(at, neutral, 0.25);
   assert.equal(at.steering, 0);
 
   const applied = createDrivingActuatorState();
-  run(applied, { steering: 1, throttle: false, brake: false }, 0.375);
+  run(applied, { steering: 1, throttle: false, brake: false }, 0.25);
   assert.equal(applied.steering, 1);
 });
 
@@ -109,13 +109,13 @@ test('exclusive pedal handoff preserves ordinary independent finite actuator res
 test('opposite steering request uses apply rate continuously through neutral', () => {
   let value = 1;
   const samples = [];
-  for (let tick = 0; tick < 540; tick += 1) {
+  for (let tick = 0; tick < 360; tick += 1) {
     value = stepNormalizedActuator(value, -1, DT, PROFILE.steering, -1, 1);
     samples.push(value);
   }
   assert.ok(samples.every((sample, index) => index === 0 || sample <= samples[index - 1]));
   assert.equal(value, -1);
-  assert.ok(Math.abs(samples[269]) < 1e-12);
+  assert.ok(Math.abs(samples[179]) < 1e-12);
 });
 
 test('fixed-tick actuator replay is deterministic and reset neutralizes every channel', () => {
