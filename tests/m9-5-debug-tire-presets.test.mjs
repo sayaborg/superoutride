@@ -7,6 +7,8 @@ import {
   M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
   M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
   browserTireCalibrationForSlide,
+  browserTireEffectiveGrip,
+  browserTirePeakSlipRatio,
 } from '../dist/browser/tire-friction-selection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
@@ -33,21 +35,15 @@ const surface = new SurfaceMap(highway.guide.length, [{
   bands: [{ lMin: -100, lMax: 100, type: 'ASPHALT' }],
 }]);
 
-test('M9.12 browser baseline preserves the exact former M9.5/M9.9 TIRE 2 peak calibration', () => {
-  assert.equal(
-    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.referenceFrictionMultiplier,
-    M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
-  );
-  assert.equal(
-    DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.linearStiffnessMultiplier,
-    M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
-  );
-  assert.equal(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio, 0.8);
+test('M9.10 historical TIRE 2 anchors remain exact beneath the M9.12A centered browser default', () => {
   assert.ok(Math.abs(M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER - 10.3 / 9.75) < 1e-15);
   assert.ok(Math.abs(
     M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER
       - (10.3 * Math.tan(12 * Math.PI / 180) / 1.26) / 1.35,
   ) < 1e-15);
+  assert.ok(Math.abs(browserTireEffectiveGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 2.0) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 0.20) < 1e-12);
+  assert.equal(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio, 0.8);
 });
 
 test('vehicle-owned tire calibration remains atomic and survives recovery and profile reconstruction', () => {
