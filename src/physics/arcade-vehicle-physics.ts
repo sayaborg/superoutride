@@ -47,17 +47,12 @@ import {
   type CompiledArcadeVehicleProfile,
 } from './vehicle-profiles.js';
 import {
-  assertArcadeSteeringTransientCalibration,
+  assertArcadeSteeringAngleCalibration,
   createArcadeSteeringCalibration,
+  steeringAutomaticMax,
   type ArcadeSteeringCalibrationInput,
   type ArcadeSteeringCalibrationState,
-  type ArcadeSteeringTransientCalibration,
 } from './vehicle-calibration.js';
-import {
-  createArcadeSteeringAssistState,
-  stepArcadeSteeringYawWashout,
-  type ArcadeSteeringAssistState,
-} from './steering-assist.js';
 import {
   createArcadeTireFrictionCalibration,
   type ArcadeTireFrictionCalibrationInput,
@@ -72,10 +67,8 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   yawRate: number;
   pitchRate: number;
   frontSteerAngle: number;
-  /** Sole current runtime authority for the three adjustable steering calibration controls. */
+  /** Sole current runtime authority for the selectable M/D/T steering calibration. */
   readonly steeringCalibration: ArcadeSteeringCalibrationState;
-  /** Driver-owned zero-DC yaw washout memory; never a second physical yaw authority. */
-  readonly steeringAssist: ArcadeSteeringAssistState;
   /** Sole runtime authority for the selected tire characteristic calibration. */
   readonly tireFrictionCalibration: ArcadeTireFrictionCalibrationState;
   frontWheelOmega: number;
@@ -127,7 +120,6 @@ export function createArcadeVehicle(
   const initialVelocity = scale3(surface.tangent, initialSpeed);
   const frontOmega = initialSpeed / profile.frontWheelRadius;
   const rearOmega = initialSpeed / profile.rearWheelRadius;
-  const initialYawRate = 0;
   const state = {
     profile,
     x: position.x,
@@ -138,11 +130,10 @@ export function createArcadeVehicle(
     velocityZ: initialVelocity.z,
     yaw,
     pitch,
-    yawRate: initialYawRate,
+    yawRate: 0,
     pitchRate: 0,
     frontSteerAngle: 0,
     steeringCalibration: resolvedSteeringCalibration,
-    steeringAssist: createArcadeSteeringAssistState(initialYawRate),
     tireFrictionCalibration: resolvedTireFrictionCalibration,
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
@@ -195,18 +186,12 @@ export function updateArcadeVehicle(
       bodyBeforeSteer,
       profile.steeringLowSpeedRegularization,
     );
-    const steeringOffset = vehicle.actuator.steering * profile.steeringOffsetMax;
-    const transientYawRate = stepArcadeSteeringYawWashout(
-      vehicle.steeringAssist,
-      vehicle.yawRate,
-      vehicle.steeringCalibration.yawWashoutTime,
-      substep,
-    );
+    const steeringOffset = vehicle.actuator.steering
+      * vehicle.steeringCalibration.steeringOffsetMax;
     vehicle.frontSteerAngle = stepTravelDirectionSteering(
       vehicle.frontSteerAngle,
       steeringOffset,
       bodyTravelDirection,
-      transientYawRate,
       vehicle.steeringCalibration,
       substep,
       profile,
@@ -359,60 +344,47 @@ export function stepTravelDirectionSteering(
   roadWheelAngle: number,
   steeringOffset: number,
   bodyTravelDirection: number,
-  transientYawRate: number,
-  calibration: ArcadeSteeringTransientCalibration,
+  calibration: ArcadeSteeringCalibrationState,
   dt: number,
-  profile: Pick<CompiledArcadeVehicleProfile,
-    'steeringResponseTau' | 'maxRoadWheelSteer' | 'steeringAutomaticMax'>,
+  profile: Pick<CompiledArcadeVehicleProfile, 'steeringResponseTau'>,
 ): number {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('vehicle steering dt must be finite and > 0');
-  if (![roadWheelAngle, steeringOffset, bodyTravelDirection, transientYawRate].every(Number.isFinite)) {
+  if (![roadWheelAngle, steeringOffset, bodyTravelDirection].every(Number.isFinite)) {
     throw new RangeError('vehicle steering inputs must be finite');
   }
-  assertArcadeSteeringTransientCalibration(calibration);
+  assertArcadeSteeringAngleCalibration(calibration);
   const target = travelDirectionSteeringTarget(
     steeringOffset,
     bodyTravelDirection,
-    transientYawRate,
     calibration,
-    profile,
   );
   const response = 1 - Math.exp(-dt / profile.steeringResponseTau);
   return clamp(
     roadWheelAngle + (target - roadWheelAngle) * response,
-    -profile.maxRoadWheelSteer,
-    profile.maxRoadWheelSteer,
+    -calibration.maxRoadWheelSteer,
+    calibration.maxRoadWheelSteer,
   );
 }
 
 export function travelDirectionSteeringTarget(
   steeringOffset: number,
   bodyTravelDirection: number,
-  transientYawRate: number,
-  calibration: ArcadeSteeringTransientCalibration,
-  profile: Pick<CompiledArcadeVehicleProfile,
-    'maxRoadWheelSteer' | 'steeringAutomaticMax'>,
+  calibration: ArcadeSteeringCalibrationState,
 ): number {
-  if (![steeringOffset, bodyTravelDirection, transientYawRate].every(Number.isFinite)) {
+  if (![steeringOffset, bodyTravelDirection].every(Number.isFinite)) {
     throw new RangeError('vehicle steering target inputs must be finite');
   }
-  assertArcadeSteeringTransientCalibration(calibration);
-  if (!(profile.steeringAutomaticMax > 0)
-    || profile.steeringAutomaticMax > profile.maxRoadWheelSteer
-    || ![profile.steeringAutomaticMax, profile.maxRoadWheelSteer].every(Number.isFinite)) {
-    throw new RangeError('vehicle automatic steering authority must lie in (0, mechanical max]');
-  }
-  // The transient yaw term intentionally has no rack effect while this automatic allocation is
-  // saturated. Its washout state still advances, so it re-enters continuously after saturation.
+  assertArcadeSteeringAngleCalibration(calibration);
+  const automaticMax = steeringAutomaticMax(calibration);
   const automaticSteer = clamp(
-    bodyTravelDirection - calibration.yawTransientGain * transientYawRate,
-    -profile.steeringAutomaticMax,
-    profile.steeringAutomaticMax,
+    bodyTravelDirection,
+    -automaticMax,
+    automaticMax,
   );
   return clamp(
     automaticSteer + steeringOffset,
-    -profile.maxRoadWheelSteer,
-    profile.maxRoadWheelSteer,
+    -calibration.maxRoadWheelSteer,
+    calibration.maxRoadWheelSteer,
   );
 }
 
