@@ -18,11 +18,7 @@ import {
 } from '../dist/browser/steering-calibration-selection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
-import {
-  createArcadeVehicle,
-  travelDirectionSteeringTarget,
-  updateArcadeVehicle,
-} from '../dist/physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle, travelDirectionSteeringTarget, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   setArcadeVehicleMaxRoadWheelSteer,
   setArcadeVehicleSteeringOffsetMax,
@@ -37,10 +33,7 @@ import { HeightProfile } from '../dist/visual/height-profile.js';
 const DEG = Math.PI / 180;
 const DT = 1 / 60;
 const highway = createM72DefaultBranchingParent();
-const height = new HeightProfile(highway.guide.length, [
-  { s: 0, y: 0 },
-  { s: highway.guide.length, y: 0 },
-]);
+const height = new HeightProfile(highway.guide.length, [{ s: 0, y: 0 }, { s: highway.guide.length, y: 0 }]);
 const surface = new SurfaceMap(highway.guide.length, [{
   sStart: 0,
   name: 'M9.11 STEERING CALIBRATION TEST',
@@ -95,44 +88,24 @@ test('every M x D choice derives A=M-D and preserves exact driver reserve inside
       const negative = travelDirectionSteeringTarget(-steeringOffsetMax, -beta, calibration);
       assert.ok(Math.abs((positive - beta) - steeringOffsetMax) < 1e-14);
       assert.ok(Math.abs((negative + beta) + steeringOffsetMax) < 1e-14);
-      assert.ok(Math.abs(travelDirectionSteeringTarget(steeringOffsetMax, 1, calibration) - maxRoadWheelSteer) < 1e-14);
-      assert.ok(Math.abs(travelDirectionSteeringTarget(-steeringOffsetMax, -1, calibration) + maxRoadWheelSteer) < 1e-14);
+      const deepBeta = 2;
+      assert.ok(Math.abs(travelDirectionSteeringTarget(steeringOffsetMax, deepBeta, calibration) - maxRoadWheelSteer) < 1e-14);
+      assert.ok(Math.abs(travelDirectionSteeringTarget(-steeringOffsetMax, -deepBeta, calibration) + maxRoadWheelSteer) < 1e-14);
     }
   }
   assert.ok(Math.abs(minimumAutomaticDegrees - 36) < 1e-12);
 });
 
 test('M D T mutation changes calibration only and survives recovery and profile reconstruction', () => {
-  const vehicle = createArcadeVehicle(
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-    highway.guide,
-    height,
-    surface,
-    800,
-    0,
-    25,
-  );
+  const vehicle = createArcadeVehicle(FERRARI_TESTAROSSA_VEHICLE_PROFILE, highway.guide, height, surface, 800, 0, 25);
   vehicle.frontSteerAngle = 0.08;
   vehicle.yawRate = -1.1;
-  const physicalBefore = {
-    x: vehicle.x,
-    z: vehicle.z,
-    yaw: vehicle.yaw,
-    yawRate: vehicle.yawRate,
-    frontSteerAngle: vehicle.frontSteerAngle,
-  };
+  const physicalBefore = { x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, yawRate: vehicle.yawRate, frontSteerAngle: vehicle.frontSteerAngle };
   setArcadeVehicleMaxRoadWheelSteer(vehicle, 49 * DEG);
   setArcadeVehicleSteeringOffsetMax(vehicle, 12.5 * DEG);
   setArcadeVehicleSymmetricSteeringActuatorRate(vehicle, 2);
-  assert.deepEqual({
-    x: vehicle.x,
-    z: vehicle.z,
-    yaw: vehicle.yaw,
-    yawRate: vehicle.yawRate,
-    frontSteerAngle: vehicle.frontSteerAngle,
-  }, physicalBefore);
+  assert.deepEqual({ x: vehicle.x, z: vehicle.z, yaw: vehicle.yaw, yawRate: vehicle.yawRate, frontSteerAngle: vehicle.frontSteerAngle }, physicalBefore);
   assert.ok(Math.abs(steeringAutomaticMax(vehicle.steeringCalibration) - 36.5 * DEG) < 1e-14);
-
   const recovery = createM5RecoveryState(vehicle);
   recoverM5Vehicle(recovery, highway.guide, height, surface, vehicle);
   assert.deepEqual(vehicle.steeringCalibration, {
@@ -141,16 +114,9 @@ test('M D T mutation changes calibration only and survives recovery and profile 
     steeringActuatorResponse: { applyRate: 2, releaseRate: 2 },
   });
   assert.equal(vehicle.yawRate, 0);
-
   const replacement = createArcadeVehicle(
-    VEHICLE_CATALOG[1].profile,
-    highway.guide,
-    height,
-    surface,
-    vehicle.course.s,
-    vehicle.course.l,
-    vehicle.longitudinalSpeed,
-    vehicle.steeringCalibration,
+    VEHICLE_CATALOG[1].profile, highway.guide, height, surface,
+    vehicle.course.s, vehicle.course.l, vehicle.longitudinalSpeed, vehicle.steeringCalibration,
   );
   assert.deepEqual(replacement.steeringCalibration, vehicle.steeringCalibration);
   assert.notEqual(replacement.steeringCalibration, vehicle.steeringCalibration);
@@ -159,35 +125,17 @@ test('M D T mutation changes calibration only and survives recovery and profile 
 
 test('all nine profiles remain finite at the smallest M largest D and slowest T selector corner', () => {
   for (const { profile } of VEHICLE_CATALOG) {
-    const vehicle = createArcadeVehicle(
-      profile,
-      highway.guide,
-      height,
-      surface,
-      800,
-      0,
-      25,
-      {
-        maxRoadWheelSteer: 50 * DEG,
-        steeringOffsetMax: 14 * DEG,
-        steeringActuatorResponse: { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 },
-      },
-    );
+    const vehicle = createArcadeVehicle(profile, highway.guide, height, surface, 800, 0, 25, {
+      maxRoadWheelSteer: 50 * DEG,
+      steeringOffsetMax: 14 * DEG,
+      steeringActuatorResponse: { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 },
+    });
     for (let tick = 0; tick < 180; tick += 1) {
-      updateArcadeVehicle(
-        highway.guide,
-        height,
-        surface,
-        vehicle,
-        { steering: tick < 90 ? 1 : -1, throttle: true, brake: false },
-        DT,
-      );
+      updateArcadeVehicle(highway.guide, height, surface, vehicle, { steering: tick < 90 ? 1 : -1, throttle: true, brake: false }, DT);
     }
     for (const value of [
-      vehicle.x, vehicle.y, vehicle.z,
-      vehicle.velocityX, vehicle.velocityY, vehicle.velocityZ,
-      vehicle.yaw, vehicle.yawRate, vehicle.frontSteerAngle,
-      vehicle.frontWheelOmega, vehicle.rearWheelOmega,
+      vehicle.x, vehicle.y, vehicle.z, vehicle.velocityX, vehicle.velocityY, vehicle.velocityZ,
+      vehicle.yaw, vehicle.yawRate, vehicle.frontSteerAngle, vehicle.frontWheelOmega, vehicle.rearWheelOmega,
     ]) assert.ok(Number.isFinite(value), profile.id);
     assert.ok(Math.abs(vehicle.frontSteerAngle) <= 50 * DEG + 1e-12, profile.id);
   }
@@ -205,19 +153,9 @@ test('all nine profiles can return from a 43 degree deep-beta seed under explici
       const steering = -Math.sign(beta);
       let entered = false;
       for (let tick = 0; tick < 240; tick += 1) {
-        updateArcadeVehicle(
-          highway.guide,
-          height,
-          surface,
-          vehicle,
-          { steering, throttle: false, brake: false },
-          DT,
-        );
+        updateArcadeVehicle(highway.guide, height, surface, vehicle, { steering, throttle: false, brake: false }, DT);
         clampPlanarSpeed(vehicle, speed);
-        if (Math.abs(observeBodySideslip(vehicle)) < automaticMax - DEG) {
-          entered = true;
-          break;
-        }
+        if (Math.abs(observeBodySideslip(vehicle)) < automaticMax - DEG) { entered = true; break; }
       }
       assert.equal(entered, true, `${profile.id} beta=${initialDegrees}`);
     }
@@ -234,30 +172,20 @@ test('M9.11 contains no yaw washout state or hidden drift steering authority', a
   assert.doesNotMatch(current, /yawTransient|yawWashout|yawRateBaseline|steeringAssist|travelDirectionGain|driftMode|driftAssist/i);
   assert.match(calibration, /return calibration\.maxRoadWheelSteer - calibration\.steeringOffsetMax/);
   assert.doesNotMatch(calibration, /steeringAutomaticMax\s*:/);
-  await assert.rejects(
-    readFile(new URL('../src/physics/steering-assist.ts', import.meta.url), 'utf8'),
-    (error) => error?.code === 'ENOENT',
-  );
+  await assert.rejects(readFile(new URL('../src/physics/steering-assist.ts', import.meta.url), 'utf8'), (error) => error?.code === 'ENOENT');
 });
 
 function seedBodySideslip(vehicle, speed, sideslip) {
-  vehicle.velocityX = Math.cos(vehicle.yaw) * speed * Math.sin(sideslip)
-    + Math.sin(vehicle.yaw) * speed * Math.cos(sideslip);
+  vehicle.velocityX = Math.cos(vehicle.yaw) * speed * Math.sin(sideslip) + Math.sin(vehicle.yaw) * speed * Math.cos(sideslip);
   vehicle.velocityY = 0;
-  vehicle.velocityZ = -Math.sin(vehicle.yaw) * speed * Math.sin(sideslip)
-    + Math.cos(vehicle.yaw) * speed * Math.cos(sideslip);
+  vehicle.velocityZ = -Math.sin(vehicle.yaw) * speed * Math.sin(sideslip) + Math.cos(vehicle.yaw) * speed * Math.cos(sideslip);
   const longitudinalSpeed = speed * Math.cos(sideslip);
   vehicle.frontWheelOmega = longitudinalSpeed / vehicle.profile.frontWheelRadius;
   vehicle.rearWheelOmega = longitudinalSpeed / vehicle.profile.rearWheelRadius;
 }
-
 function observeBodySideslip(vehicle) {
-  return Math.atan2(
-    vehicle.lateralSpeed,
-    Math.sqrt(vehicle.longitudinalSpeed ** 2 + vehicle.profile.steeringLowSpeedRegularization ** 2),
-  );
+  return Math.atan2(vehicle.lateralSpeed, Math.sqrt(vehicle.longitudinalSpeed ** 2 + vehicle.profile.steeringLowSpeedRegularization ** 2));
 }
-
 function clampPlanarSpeed(vehicle, speed) {
   const planar = Math.hypot(vehicle.velocityX, vehicle.velocityZ);
   if (!(planar > 0)) return;
