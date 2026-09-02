@@ -1,6 +1,6 @@
-export type BrowserSteeringOffsetDegrees = 9 | 9.5 | 11 | 12.5 | 14;
-export type BrowserMaxRoadWheelSteerDegrees = 37 | 41 | 45 | 49 | 53;
-export type BrowserSteeringTraversalSeconds = 0.25 | 0.375 | 0.5 | 0.625;
+export type BrowserSteeringOffsetDegrees = 9 | 9.5 | 10 | 11 | 12 | 13 | 14;
+export type BrowserMaxRoadWheelSteerDegrees = 45 | 50 | 55 | 60 | 65;
+export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3 | 0.325 | 0.35;
 
 export interface BrowserSteeringAngleSelection<Degrees extends number = number> {
   readonly degrees: Degrees;
@@ -19,24 +19,29 @@ export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
 export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] = Object.freeze([
   angle(9),
   angle(9.5),
+  angle(10),
   angle(11),
-  angle(12.5),
+  angle(12),
+  angle(13),
   angle(14),
 ]);
 
 export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] = Object.freeze([
-  angle(37),
-  angle(41),
   angle(45),
-  angle(49),
-  angle(53),
+  angle(50),
+  angle(55),
+  angle(60),
+  angle(65),
 ]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
+  response(0.2),
+  response(0.225),
   response(0.25),
-  response(0.375),
-  response(0.5),
-  response(0.625),
+  response(0.275),
+  response(0.3),
+  response(0.325),
+  response(0.35),
 ]);
 
 export function nextBrowserSteeringOffset(currentRadians: number): number {
@@ -74,7 +79,10 @@ export function formatSteeringResponseSelector(activeRate: number): string {
 }
 
 export function formatTraversalSeconds(seconds: number): string {
-  return String(seconds);
+  const roundedMilliseconds = Math.round(seconds * 1_000);
+  return roundedMilliseconds % 10 === 0
+    ? (roundedMilliseconds / 1_000).toFixed(2)
+    : (roundedMilliseconds / 1_000).toFixed(3);
 }
 
 export function formatDegrees(radians: number): string {
