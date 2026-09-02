@@ -167,11 +167,13 @@ Current retained records include:
 ```text
 validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
 validation/M9_10_POST_PEAK_SLIDING_TIRE_VALIDATION.txt
+validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
 ```
 
-M9.11 requires its own standalone validation record after an implementation-inclusive exact-head
-full CI succeeds. The validation-inclusive head must then receive a second complete green CI before
-pure fast-forward release to `main`, followed by same-SHA main-push CI and Pages verification.
+M9.11's standalone record captures the green implementation/documentation-inclusive head and
+requires the normal second complete CI on the record-inclusive exact head before release. Final
+release identity is established by Git/PR/main/workflow history rather than self-rewriting the
+immutable evidence file.
 
 ## 5. Conflict handling
 
