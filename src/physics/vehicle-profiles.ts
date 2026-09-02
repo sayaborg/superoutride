@@ -66,15 +66,12 @@ export interface ArcadeVehicleProfile {
   readonly frontNormalizedStiffness: number;
   readonly rearNormalizedStiffness: number;
 
+  /** Ordinary construction defaults; browser M/D selection lives in vehicle-instance calibration. */
   readonly maxRoadWheelSteer: number;
   readonly steeringOffsetMax: number;
   readonly steeringResponseTau: number;
   /** Driver-only travel-direction regularization; independent from tire-slip regularization. */
   readonly steeringLowSpeedRegularization: number;
-  /** High-frequency yaw-rate feedback gain in seconds. */
-  readonly steeringYawTransientGain: number;
-  /** Low-pass baseline time constant for the zero-DC yaw washout. */
-  readonly steeringYawWashoutTime: number;
   /** HUD-only handwheel presentation conversion; never consumed by mechanics. */
   readonly steeringRatio: number;
   readonly frontBrakeTorqueMax: number;
@@ -87,8 +84,6 @@ export interface ArcadeVehicleProfile {
 export interface CompiledArcadeVehicleProfile extends ArcadeVehicleProfile {
   readonly frontStation: ContactStationProfile;
   readonly rearStation: ContactStationProfile;
-  /** Maximum automatic travel-direction steering, reserving the full driver offset at the rack. */
-  readonly steeringAutomaticMax: number;
 }
 
 const DEG = Math.PI / 180;
@@ -108,19 +103,17 @@ export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
 
 const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
   steering: Object.freeze({
-    applyRate: 1 / 0.375,
-    releaseRate: 1 / 0.375,
+    applyRate: 1 / 0.25,
+    releaseRate: 1 / 0.25,
   }),
   throttle: Object.freeze({ applyRate: 1 / 0.25, releaseRate: 1 / 0.125 }),
   brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.10 }),
 });
 
 const COMMON_STEERING = Object.freeze({
-  maxRoadWheelSteer: 31 * DEG,
+  maxRoadWheelSteer: 45 * DEG,
   steeringResponseTau: 0.01,
   steeringLowSpeedRegularization: 1.0,
-  steeringYawTransientGain: 0.18,
-  steeringYawWashoutTime: 0.35,
   steeringRatio: 18,
 });
 
@@ -634,7 +627,6 @@ export function compileArcadeVehicleProfile(
     profile.steeringOffsetMax,
     profile.steeringResponseTau,
     profile.steeringLowSpeedRegularization,
-    profile.steeringYawWashoutTime,
   ];
   if (positive.some((value) => !(value > 0) || !Number.isFinite(value))) {
     throw new RangeError('vehicle mass/inertia/geometry/wheel/tire/steering values must be finite and > 0');
@@ -650,10 +642,6 @@ export function compileArcadeVehicleProfile(
   }
   if (!(profile.steeringOffsetMax < profile.maxRoadWheelSteer)) {
     throw new RangeError('vehicle steering offset must remain below the mechanical road-wheel limit');
-  }
-  if (!(profile.steeringYawTransientGain >= 0)
-    || !Number.isFinite(profile.steeringYawTransientGain)) {
-    throw new RangeError('vehicle yaw transient gain must be finite and >= 0');
   }
   if (!(profile.steeringRatio >= 0) || !Number.isFinite(profile.steeringRatio)) {
     throw new RangeError('vehicle steering ratio must be finite and >= 0');
@@ -733,7 +721,6 @@ export function compileArcadeVehicleProfile(
     ...profile,
     frontStation,
     rearStation,
-    steeringAutomaticMax: profile.maxRoadWheelSteer - profile.steeringOffsetMax,
   });
 }
 
