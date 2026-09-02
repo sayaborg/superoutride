@@ -6,7 +6,7 @@ import {
   DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
   M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
   M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
-  browserTirePresetCalibration,
+  browserTireCalibrationForSlide,
 } from '../dist/browser/tire-friction-selection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
@@ -33,7 +33,7 @@ const surface = new SurfaceMap(highway.guide.length, [{
   bands: [{ lMin: -100, lMax: 100, type: 'ASPHALT' }],
 }]);
 
-test('M9.10 browser baseline preserves the exact former M9.5/M9.9 TIRE 2 peak calibration', () => {
+test('M9.12 browser baseline preserves the exact former M9.5/M9.9 TIRE 2 peak calibration', () => {
   assert.equal(
     DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.referenceFrictionMultiplier,
     M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
@@ -42,7 +42,7 @@ test('M9.10 browser baseline preserves the exact former M9.5/M9.9 TIRE 2 peak ca
     DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.linearStiffnessMultiplier,
     M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
   );
-  assert.equal(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio, 1);
+  assert.equal(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio, 0.8);
   assert.ok(Math.abs(M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER - 10.3 / 9.75) < 1e-15);
   assert.ok(Math.abs(
     M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER
@@ -60,7 +60,7 @@ test('vehicle-owned tire calibration remains atomic and survives recovery and pr
     0,
     25,
     {},
-    browserTirePresetCalibration('75'),
+    browserTireCalibrationForSlide('75', DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION),
   );
   const selected = { ...vehicle.tireFrictionCalibration };
   const recovery = createM5RecoveryState(vehicle);
