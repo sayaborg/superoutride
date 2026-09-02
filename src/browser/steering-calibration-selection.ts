@@ -1,30 +1,35 @@
-export type BrowserYawTransientGain = 0 | 0.06 | 0.12 | 0.18 | 0.24 | 0.3;
-export type BrowserYawWashoutTime = 0.2 | 0.35 | 0.5 | 0.65;
+export type BrowserSteeringOffsetDegrees = 9 | 9.5 | 11 | 12.5 | 14;
+export type BrowserMaxRoadWheelSteerDegrees = 37 | 41 | 45 | 49 | 53;
 export type BrowserSteeringTraversalSeconds = 0.25 | 0.375 | 0.5 | 0.625;
+
+export interface BrowserSteeringAngleSelection<Degrees extends number = number> {
+  readonly degrees: Degrees;
+  readonly radians: number;
+}
 
 export interface BrowserSteeringResponseSelection {
   readonly traversalSeconds: BrowserSteeringTraversalSeconds;
   readonly rate: number;
 }
 
-export const BROWSER_YAW_TRANSIENT_CYCLE_CODE = 'KeyY';
-export const BROWSER_YAW_WASHOUT_CYCLE_CODE = 'KeyU';
+export const BROWSER_STEERING_OFFSET_CYCLE_CODE = 'KeyY';
+export const BROWSER_MAX_STEER_CYCLE_CODE = 'KeyU';
 export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
 
-export const BROWSER_YAW_TRANSIENT_GAINS: readonly BrowserYawTransientGain[] = Object.freeze([
-  0,
-  0.06,
-  0.12,
-  0.18,
-  0.24,
-  0.3,
+export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] = Object.freeze([
+  angle(9),
+  angle(9.5),
+  angle(11),
+  angle(12.5),
+  angle(14),
 ]);
 
-export const BROWSER_YAW_WASHOUT_TIMES: readonly BrowserYawWashoutTime[] = Object.freeze([
-  0.2,
-  0.35,
-  0.5,
-  0.65,
+export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] = Object.freeze([
+  angle(37),
+  angle(41),
+  angle(45),
+  angle(49),
+  angle(53),
 ]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
@@ -34,12 +39,12 @@ export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelecti
   response(0.625),
 ]);
 
-export function nextBrowserYawTransientGain(current: number): BrowserYawTransientGain {
-  return nextNumericChoice(BROWSER_YAW_TRANSIENT_GAINS, current);
+export function nextBrowserSteeringOffset(currentRadians: number): number {
+  return nextAngleChoice(BROWSER_STEERING_OFFSETS, currentRadians).radians;
 }
 
-export function nextBrowserYawWashoutTime(current: number): BrowserYawWashoutTime {
-  return nextNumericChoice(BROWSER_YAW_WASHOUT_TIMES, current);
+export function nextBrowserMaxRoadWheelSteer(currentRadians: number): number {
+  return nextAngleChoice(BROWSER_MAX_ROAD_WHEEL_STEERS, currentRadians).radians;
 }
 
 export function nextBrowserSteeringResponseRate(currentRate: number): number {
@@ -52,12 +57,12 @@ export function nextBrowserSteeringResponseRate(currentRate: number): number {
   ).rate;
 }
 
-export function formatYawTransientSelector(activeGain: number): string {
-  return `YAW [Y] ${activeGain.toFixed(2)}s`;
+export function formatSteeringOffsetSelector(activeRadians: number): string {
+  return `D [Y] ${formatDegrees(activeRadians)}°`;
 }
 
-export function formatYawWashoutSelector(activeTime: number): string {
-  return `WASH [U] ${activeTime.toFixed(2)}s`;
+export function formatMaxRoadWheelSteerSelector(activeRadians: number): string {
+  return `M [U] ${formatDegrees(activeRadians)}°`;
 }
 
 export function formatSteeringResponseSelector(activeRate: number): string {
@@ -72,14 +77,28 @@ export function formatTraversalSeconds(seconds: number): string {
   return String(seconds);
 }
 
+export function formatDegrees(radians: number): string {
+  const degrees = radians * 180 / Math.PI;
+  return Number.isInteger(degrees) ? String(degrees) : degrees.toFixed(1);
+}
+
+function angle<Degrees extends number>(
+  degrees: Degrees,
+): Readonly<BrowserSteeringAngleSelection<Degrees>> {
+  return Object.freeze({ degrees, radians: degrees * Math.PI / 180 });
+}
+
 function response(
   traversalSeconds: BrowserSteeringTraversalSeconds,
 ): Readonly<BrowserSteeringResponseSelection> {
   return Object.freeze({ traversalSeconds, rate: 1 / traversalSeconds });
 }
 
-function nextNumericChoice<Value extends number>(choices: readonly Value[], current: number): Value {
-  const currentIndex = choices.findIndex((value) => approximatelyEqual(value, current));
+function nextAngleChoice<Degrees extends number>(
+  choices: readonly BrowserSteeringAngleSelection<Degrees>[],
+  currentRadians: number,
+): BrowserSteeringAngleSelection<Degrees> {
+  const currentIndex = choices.findIndex(({ radians }) => approximatelyEqual(radians, currentRadians));
   return mustChoice(choices, (currentIndex + 1) % choices.length);
 }
 
