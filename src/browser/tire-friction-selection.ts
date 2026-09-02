@@ -92,8 +92,8 @@ export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.
   slideSelection('90', 0.90),
 ]);
 
-const DEFAULT_GRIP = mustChoiceById(BROWSER_TIRE_GRIPS, DEFAULT_BROWSER_TIRE_GRIP_ID, 'GRIP');
-const DEFAULT_PEAK = mustChoiceById(BROWSER_TIRE_PEAKS, DEFAULT_BROWSER_TIRE_PEAK_ID, 'PEAK');
+const DEFAULT_GRIP = mustChoice(BROWSER_TIRE_GRIPS, 2);
+const DEFAULT_PEAK = mustChoice(BROWSER_TIRE_PEAKS, 2);
 
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION:
 Readonly<Required<ArcadeTireFrictionCalibrationInput>> = Object.freeze({
