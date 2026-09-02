@@ -227,7 +227,14 @@ fixtures.
 
 ## Release evidence
 
-M9.11 requires a standalone validation record under `docs/validation/` after an implementation-
-inclusive exact-head full CI succeeds. That validation-inclusive head must then receive another
-complete green CI before a pure fast-forward release to `main`, followed by same-SHA main-push CI
-and Pages verification under `AGENTS.md`.
+M9.11 standalone historical evidence is recorded in:
+
+```text
+docs/validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
+```
+
+That record captures the green implementation/documentation-inclusive acceptance head. The
+record-inclusive exact feature head must receive another complete green CI before pure
+fast-forward release to `main`, followed by same-SHA main-push CI and Pages verification under
+`AGENTS.md`. Final release identity is established by Git/PR/main/workflow history rather than by
+rewriting the immutable validation record.
