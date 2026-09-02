@@ -15,6 +15,10 @@ import {
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   compileArcadeVehicleProfile,
 } from '../dist/physics/vehicle-profiles.js';
+import {
+  createArcadeSteeringCalibration,
+  steeringAutomaticMax,
+} from '../dist/physics/vehicle-calibration.js';
 import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -72,7 +76,7 @@ for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE
       DT,
     );
     assert.ok(vehicle.actuator.steering > 0 && vehicle.actuator.steering < 1);
-    assert.ok(vehicle.frontSteerAngle > 0 && vehicle.frontSteerAngle < profile.maxRoadWheelSteer);
+    assert.ok(vehicle.frontSteerAngle > 0 && vehicle.frontSteerAngle < vehicle.steeringCalibration.maxRoadWheelSteer);
     assert.equal(vehicle.control.steeringActuator, vehicle.actuator.steering);
     assert.equal('steeringOffsetCommand' in vehicle, false);
   });
@@ -112,46 +116,27 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
   assert.ok(vehicle.frontSteerAngle < 0);
 });
 
-test('common rack has one mechanical stop and profile compilation rejects invalid steering authority', () => {
+test('common rack has one mechanical stop while A is derived only as M-D', () => {
+  const calibration = createArcadeSteeringCalibration(FERRARI_TESTAROSSA_VEHICLE_PROFILE);
+  const automaticMax = steeringAutomaticMax(calibration);
+  assert.ok(Math.abs(automaticMax - (calibration.maxRoadWheelSteer - calibration.steeringOffsetMax)) < 1e-12);
+
   const atStop = stepTravelDirectionSteering(
     0,
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer,
-    0,
-    {
-      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
-    },
+    calibration.steeringOffsetMax,
+    calibration.maxRoadWheelSteer,
+    calibration,
     DT,
     FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   );
-  assert.ok(atStop <= FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
-  assert.equal(
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringAutomaticMax,
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer - FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
-  );
-  const saturatedWithoutYaw = travelDirectionSteeringTarget(
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
+  assert.ok(atStop <= calibration.maxRoadWheelSteer);
+
+  const saturated = travelDirectionSteeringTarget(
+    calibration.steeringOffsetMax,
     Math.PI / 3,
-    0,
-    {
-      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
-    },
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+    calibration,
   );
-  const saturatedWithYaw = travelDirectionSteeringTarget(
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringOffsetMax,
-    Math.PI / 3,
-    1,
-    {
-      yawTransientGain: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawTransientGain,
-      yawWashoutTime: FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringYawWashoutTime,
-    },
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  );
-  assert.equal(saturatedWithYaw, saturatedWithoutYaw);
-  assert.equal(saturatedWithoutYaw, FERRARI_TESTAROSSA_VEHICLE_PROFILE.maxRoadWheelSteer);
+  assert.equal(saturated, calibration.maxRoadWheelSteer);
   assert.throws(
     () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringResponseTau: 0 }),
     /finite and > 0/,
@@ -205,19 +190,19 @@ test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics'
   );
 });
 
-test('M9 retires separate CAR steering authority and all browser roots select the common solver', async () => {
-  const [solver, linear, branching, circuit] = await Promise.all([
+test('M9.11 common solver contains pure travel-direction geometry and no yaw steering assist', async () => {
+  const [solver, calibration, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-linear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
   ]);
   assert.doesNotMatch(solver, /usefulLateralCapacity|countersteerMode|steeringOffsetCommand/);
-  assert.match(
-    solver,
-    /bodyTravelDirection - calibration\.yawTransientGain \* transientYawRate/,
-  );
-  assert.doesNotMatch(solver, /travelDirectionGain|yawPreviewTime/);
+  assert.match(solver, /const automaticSteer = clamp\(\s*bodyTravelDirection,/s);
+  for (const source of [solver, calibration]) {
+    assert.doesNotMatch(source, /travelDirectionGain|yawTransientGain|yawWashoutTime|yawRateBaseline|steeringAssist|driftMode|driftAssist/i);
+  }
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /createArcadeVehicle/);
     assert.match(source, /updateArcadeVehicle/);
