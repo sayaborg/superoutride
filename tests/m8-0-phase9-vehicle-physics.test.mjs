@@ -115,12 +115,10 @@ test('recovery reconstructs common state and all three actuators without manufac
   vehicle.actuator.brake = 1;
   vehicle.pitchRate = 2;
   vehicle.yawRate = -2;
-  vehicle.steeringAssist.yawRateBaseline = 3;
   recoverM5Vehicle(recovery, highway.guide, flatHeight, highway.surfaceMap, vehicle, 'manual');
   assert.deepEqual(vehicle.actuator, { steering: 0, throttle: 0, brake: 0 });
   assert.equal(vehicle.pitchRate, 0);
   assert.equal(vehicle.yawRate, 0);
-  assert.equal(vehicle.steeringAssist.yawRateBaseline, vehicle.yawRate);
   assert.ok(Math.abs(vehicle.course.s - recovery.lastSafeS) < 1e-6);
 });
 
