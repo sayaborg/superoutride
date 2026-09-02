@@ -25,6 +25,7 @@ supersede only their stated scope.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+102_m9_11a_steering_selector_test_range.md
 101_m9_11_simplified_travel_direction_steering.md
 100_m9_10_post_peak_sliding_tire.md
 99_m9_9_controllable_drift_foundation.md
@@ -34,8 +35,8 @@ supersede only their stated scope.
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.11 is the current steering-control and browser M/D/T authority. It removes M9.7 yaw-transient
-feedback, zero-DC washout memory and both `YAW`/`WASH` selectors. The retained geometric law is:
+M9.11 remains the current steering-control law. It removes M9.7 yaw-transient feedback, zero-DC
+washout memory and both `YAW`/`WASH` selectors. The retained geometric law is:
 
 ```text
 A = M - D
@@ -43,17 +44,18 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` is derived only and is never stored. Browser steering choices are:
+`A` is derived only and is never stored. Document 102 supersedes M9.11 only for the current DEV
+browser M/D/T comparison tables. Browser steering choices are now:
 
 ```text
-D = 9 / 9.5 / 11 / 12.5 / 14 deg
-M = 37 / 41 / 45 / 49 / 53 deg
-T = 0.25 / 0.375 / 0.5 / 0.625 s
+D = 9 / 9.5 / 10 / 11 / 12 / 13 / 14 deg
+M = 45 / 50 / 55 / 60 / 65 deg
+T = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 / 0.325 / 0.35 s
 ```
 
-Current defaults are `M=45 deg`, `T=0.25 s`, with profile seed `D=9.5 deg` for CAR and `D=9 deg`
-for BIKE. These remain `DEV_UNCALIBRATED` tuning values. The selector product guarantees
-`A >= 23 deg`.
+Current defaults remain `M=45 deg`, `T=0.25 s`, with profile seed `D=9.5 deg` for CAR and `D=9 deg`
+for BIKE. These remain `DEV_UNCALIBRATED` tuning values. The current selector product has
+`A >= 31 deg`. No D limiter or tire-law change is introduced by document 102.
 
 M9.10 remains the current tire post-peak / `SLIDE` authority. It keeps the common former `TIRE 2`
 peak characteristic and changes only the stateless C1 large-lateral-slip plateau through
@@ -105,7 +107,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `101_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `102_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -136,10 +138,11 @@ The most relevant current lineage is:
 99_m9_9_controllable_drift_foundation.md
 100_m9_10_post_peak_sliding_tire.md
 101_m9_11_simplified_travel_direction_steering.md
+102_m9_11a_steering_selector_test_range.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.11 changes none of those boundaries.
+scope; document 102 changes none of those boundaries.
 
 ## 3. Takeover context
 
