@@ -1,28 +1,26 @@
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import {
-  setArcadeVehicleSteeringYawTransientGain,
-  setArcadeVehicleSteeringYawWashoutTime,
+  setArcadeVehicleMaxRoadWheelSteer,
+  setArcadeVehicleSteeringOffsetMax,
   setArcadeVehicleSymmetricSteeringActuatorRate,
 } from '../physics/vehicle-calibration.js';
 import {
+  BROWSER_MAX_STEER_CYCLE_CODE,
+  BROWSER_STEERING_OFFSET_CYCLE_CODE,
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
-  BROWSER_YAW_TRANSIENT_CYCLE_CODE,
-  BROWSER_YAW_WASHOUT_CYCLE_CODE,
+  nextBrowserMaxRoadWheelSteer,
+  nextBrowserSteeringOffset,
   nextBrowserSteeringResponseRate,
-  nextBrowserYawTransientGain,
-  nextBrowserYawWashoutTime,
-  type BrowserYawTransientGain,
-  type BrowserYawWashoutTime,
 } from './steering-calibration-selection.js';
 import {
+  mountMobileMaxRoadWheelSteerSelector,
+  mountMobileSteeringOffsetSelector,
   mountMobileSteeringResponseSelector,
-  mountMobileYawTransientSelector,
-  mountMobileYawWashoutSelector,
 } from './mobile-selector-controls.js';
 
 export interface BrowserSteeringCalibrationContainers {
-  readonly yawTransient: HTMLElement;
-  readonly yawWashout: HTMLElement;
+  readonly steeringOffset: HTMLElement;
+  readonly maxRoadWheelSteer: HTMLElement;
   readonly steeringResponse: HTMLElement;
 }
 
@@ -30,23 +28,23 @@ export interface BrowserSteeringCalibrationControls {
   handleKey(code: string): boolean;
 }
 
-/** One browser adapter connects keyboard and touch presentation to vehicle-owned calibration. */
+/** One browser adapter connects keyboard and touch presentation to vehicle-owned M/D/T calibration. */
 export function mountBrowserSteeringCalibrationControls(
   containers: BrowserSteeringCalibrationContainers,
   getVehicle: () => ArcadeVehicleState,
   documentRef: Document = document,
 ): BrowserSteeringCalibrationControls {
   const initial = getVehicle().steeringCalibration;
-  const yawTransientSelector = mountMobileYawTransientSelector(
-    containers.yawTransient,
-    initial.yawTransientGain,
-    selectYawTransient,
+  const steeringOffsetSelector = mountMobileSteeringOffsetSelector(
+    containers.steeringOffset,
+    initial.steeringOffsetMax,
+    selectSteeringOffset,
     documentRef,
   );
-  const yawWashoutSelector = mountMobileYawWashoutSelector(
-    containers.yawWashout,
-    initial.yawWashoutTime,
-    selectYawWashout,
+  const maxSteerSelector = mountMobileMaxRoadWheelSteerSelector(
+    containers.maxRoadWheelSteer,
+    initial.maxRoadWheelSteer,
+    selectMaxSteer,
     documentRef,
   );
   const responseSelector = mountMobileSteeringResponseSelector(
@@ -56,14 +54,14 @@ export function mountBrowserSteeringCalibrationControls(
     documentRef,
   );
 
-  function selectYawTransient(yawTransientGain: BrowserYawTransientGain): void {
-    setArcadeVehicleSteeringYawTransientGain(getVehicle(), yawTransientGain);
-    yawTransientSelector.setActive(yawTransientGain);
+  function selectSteeringOffset(steeringOffsetMax: number): void {
+    setArcadeVehicleSteeringOffsetMax(getVehicle(), steeringOffsetMax);
+    steeringOffsetSelector.setActive(steeringOffsetMax);
   }
 
-  function selectYawWashout(yawWashoutTime: BrowserYawWashoutTime): void {
-    setArcadeVehicleSteeringYawWashoutTime(getVehicle(), yawWashoutTime);
-    yawWashoutSelector.setActive(yawWashoutTime);
+  function selectMaxSteer(maxRoadWheelSteer: number): void {
+    setArcadeVehicleMaxRoadWheelSteer(getVehicle(), maxRoadWheelSteer);
+    maxSteerSelector.setActive(maxRoadWheelSteer);
   }
 
   function selectResponse(rate: number): void {
@@ -74,15 +72,15 @@ export function mountBrowserSteeringCalibrationControls(
   return Object.freeze({
     handleKey(code: string): boolean {
       const vehicle = getVehicle();
-      if (code === BROWSER_YAW_TRANSIENT_CYCLE_CODE) {
-        selectYawTransient(nextBrowserYawTransientGain(
-          vehicle.steeringCalibration.yawTransientGain,
+      if (code === BROWSER_STEERING_OFFSET_CYCLE_CODE) {
+        selectSteeringOffset(nextBrowserSteeringOffset(
+          vehicle.steeringCalibration.steeringOffsetMax,
         ));
         return true;
       }
-      if (code === BROWSER_YAW_WASHOUT_CYCLE_CODE) {
-        selectYawWashout(nextBrowserYawWashoutTime(
-          vehicle.steeringCalibration.yawWashoutTime,
+      if (code === BROWSER_MAX_STEER_CYCLE_CODE) {
+        selectMaxSteer(nextBrowserMaxRoadWheelSteer(
+          vehicle.steeringCalibration.maxRoadWheelSteer,
         ));
         return true;
       }
