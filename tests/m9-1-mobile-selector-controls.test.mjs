@@ -125,30 +125,35 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile M D and symmetric-response buttons expose the canonical M9.11 choices', () => {
+test('mobile M D and symmetric-response buttons expose the canonical M9.11A choices', () => {
   const offsets = createMobileSteeringOffsetSelectorModel(9.5 * DEG);
   assert.deepEqual(offsets.map(({ label, active }) => ({ label, active })), [
     { label: '9', active: false },
     { label: '9.5', active: true },
+    { label: '10', active: false },
     { label: '11', active: false },
-    { label: '12.5', active: false },
+    { label: '12', active: false },
+    { label: '13', active: false },
     { label: '14', active: false },
   ]);
   const maxima = createMobileMaxRoadWheelSteerSelectorModel(45 * DEG);
   assert.deepEqual(maxima.map(({ label, active }) => ({ label, active })), [
-    { label: '37', active: false },
-    { label: '41', active: false },
     { label: '45', active: true },
-    { label: '49', active: false },
-    { label: '53', active: false },
+    { label: '50', active: false },
+    { label: '55', active: false },
+    { label: '60', active: false },
+    { label: '65', active: false },
   ]);
   assert.deepEqual(
     createMobileSteeringResponseSelectorModel(4).map(({ value, label, active }) => ({ value, label, active })),
     [
+      { value: 5, label: '0.20', active: false },
+      { value: 1 / 0.225, label: '0.225', active: false },
       { value: 4, label: '0.25', active: true },
-      { value: 8 / 3, label: '0.375', active: false },
-      { value: 2, label: '0.5', active: false },
-      { value: 1.6, label: '0.625', active: false },
+      { value: 1 / 0.275, label: '0.275', active: false },
+      { value: 1 / 0.3, label: '0.30', active: false },
+      { value: 1 / 0.325, label: '0.325', active: false },
+      { value: 1 / 0.35, label: '0.35', active: false },
     ],
   );
 });
@@ -184,10 +189,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     (radians) => { selectedOffset = radians; },
     fakeDocument,
   );
-  offsetContainer.children[4].click();
+  offsetContainer.children[6].click();
   assert.ok(Math.abs(selectedOffset - 14 * DEG) < 1e-12);
   offsetController.setActive(selectedOffset);
-  assert.equal(offsetContainer.children[4].attributes.get('aria-pressed'), 'true');
+  assert.equal(offsetContainer.children[6].attributes.get('aria-pressed'), 'true');
 
   const maxContainer = new FakeContainer();
   let selectedMax = null;
@@ -198,7 +203,7 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     fakeDocument,
   );
   maxContainer.children[4].click();
-  assert.ok(Math.abs(selectedMax - 53 * DEG) < 1e-12);
+  assert.ok(Math.abs(selectedMax - 65 * DEG) < 1e-12);
   maxController.setActive(selectedMax);
   assert.equal(maxContainer.children[4].attributes.get('aria-pressed'), 'true');
 
@@ -210,10 +215,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     (rate) => { selectedResponseRate = rate; },
     fakeDocument,
   );
-  responseContainer.children[3].click();
-  assert.equal(selectedResponseRate, 1.6);
+  responseContainer.children[6].click();
+  assert.equal(selectedResponseRate, 1 / 0.35);
   responseController.setActive(selectedResponseRate);
-  assert.equal(responseContainer.children[3].attributes.get('aria-pressed'), 'true');
+  assert.equal(responseContainer.children[6].attributes.get('aria-pressed'), 'true');
 
   const cameraContainer = new FakeContainer();
   let selectedCameraMode = null;
@@ -246,13 +251,13 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
   const controls = mountBrowserSteeringCalibrationControls(containers, () => vehicle, fakeDocument);
 
   assert.equal(controls.handleKey('KeyY'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 11 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 10 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyU'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 49 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 50 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyT'), true);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
-    applyRate: 8 / 3,
-    releaseRate: 8 / 3,
+    applyRate: 1 / 0.275,
+    releaseRate: 1 / 0.275,
   });
   assert.equal(controls.handleKey('KeyV'), false);
 
@@ -265,12 +270,12 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
   };
   containers.steeringOffset.children[0].click();
   containers.maxRoadWheelSteer.children[0].click();
-  containers.steeringResponse.children[3].click();
+  containers.steeringResponse.children[6].click();
   assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 9 * DEG) < 1e-12);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 37 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 45 * DEG) < 1e-12);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, {
-    applyRate: 1.6,
-    releaseRate: 1.6,
+    applyRate: 1 / 0.35,
+    releaseRate: 1 / 0.35,
   });
 });
 
