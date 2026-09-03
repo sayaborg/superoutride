@@ -83,16 +83,16 @@ function lateralForceAtSlip(calibration, slipRatio) {
   );
 }
 
-test('M9.12B exposes upward GRIP PEAK and retained SLIDE comparison tables', () => {
+test('M9.12C keeps GRIP and SLIDE while extending PEAK through 40 percent', () => {
   assert.deepEqual(BROWSER_TIRE_GRIPS.map(({ id }) => id), ['2.00', '2.20', '2.40', '2.60', '2.80', '3.00']);
-  assert.deepEqual(BROWSER_TIRE_PEAKS.map(({ id }) => id), ['20', '22', '24', '26', '28', '30']);
+  assert.deepEqual(BROWSER_TIRE_PEAKS.map(({ id }) => id), ['20', '22', '24', '26', '28', '30', '32', '34', '36', '38', '40']);
   assert.deepEqual(BROWSER_TIRE_SLIDES.map(({ id }) => id), ['70', '75', '80', '85', '90']);
   assert.equal(BROWSER_TIRE_GRIP_CYCLE_CODE, 'KeyH');
   assert.equal(BROWSER_TIRE_PEAK_CYCLE_CODE, 'KeyJ');
   assert.equal(BROWSER_TIRE_SLIDE_CYCLE_CODE, 'KeyG');
 });
 
-test('M9.12B browser default remains GRIP 2.00 PEAK 20 SLIDE 80', () => {
+test('M9.12C browser default remains GRIP 2.00 PEAK 20 SLIDE 80', () => {
   const calibration = DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION;
   assert.ok(Math.abs(browserTireEffectiveGrip(calibration) - 2.00) < 1e-12);
   assert.ok(Math.abs(browserTirePeakSlipRatio(calibration) - 0.20) < 1e-12);
@@ -115,21 +115,21 @@ test('each M9.12 axis changes only its displayed physical characteristic', () =>
   assert.ok(Math.abs(browserTirePeakSlipRatio(highGrip) - startPeak) < 1e-12);
   assert.equal(highGrip.slidingFrictionRatio, startSlide);
 
-  const latePeak = browserTireCalibrationForPeak('30', highGrip);
+  const latePeak = browserTireCalibrationForPeak('40', highGrip);
   assert.ok(Math.abs(browserTireEffectiveGrip(latePeak) - 3.00) < 1e-12);
-  assert.ok(Math.abs(browserTirePeakSlipRatio(latePeak) - 0.30) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(latePeak) - 0.40) < 1e-12);
   assert.equal(latePeak.slidingFrictionRatio, startSlide);
 
   const highSlide = browserTireCalibrationForSlide('90', latePeak);
   assert.ok(Math.abs(browserTireEffectiveGrip(highSlide) - 3.00) < 1e-12);
-  assert.ok(Math.abs(browserTirePeakSlipRatio(highSlide) - 0.30) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(highSlide) - 0.40) < 1e-12);
   assert.equal(highSlide.slidingFrictionRatio, 0.90);
 });
 
 test('GRIP changes peak force height while PEAK changes location and SLIDE changes only deep lateral plateau', () => {
   const base = calibrationFor('2.00', '20', '80');
   const highGrip = calibrationFor('3.00', '20', '80');
-  const latePeak = calibrationFor('2.00', '30', '80');
+  const latePeak = calibrationFor('2.00', '40', '80');
   const highSlide = calibrationFor('2.00', '20', '90');
 
   const basePeak = lateralForceAtSlip(base, browserTirePeakSlipRatio(base));
@@ -138,7 +138,7 @@ test('GRIP changes peak force height while PEAK changes location and SLIDE chang
   assert.ok(Math.abs(Math.abs(highGripPeak.fy) - highGripPeak.fmax) < 1e-9);
   assert.ok(highGripPeak.fmax > basePeak.fmax);
 
-  const latePeakForce = lateralForceAtSlip(latePeak, 0.30);
+  const latePeakForce = lateralForceAtSlip(latePeak, 0.40);
   assert.ok(Math.abs(Math.abs(latePeakForce.fy) - latePeakForce.fmax) < 1e-9);
   assert.ok(Math.abs(latePeakForce.fmax - basePeak.fmax) < 1e-9);
 
@@ -235,7 +235,7 @@ test('M9.12 selector layer adds no tire state or vehicle/drift branch', async ()
 });
 
 test('selector cycles wrap deterministically', () => {
-  let calibration = calibrationFor('3.00', '30', '90');
+  let calibration = calibrationFor('3.00', '40', '90');
   assert.equal(nextBrowserTireGripId(calibration), '2.00');
   assert.equal(nextBrowserTirePeakId(calibration), '20');
   assert.equal(nextBrowserTireSlideId(calibration), '70');
