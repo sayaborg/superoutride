@@ -4,7 +4,7 @@ import type {
 } from '../physics/tire-friction-calibration.js';
 
 export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00';
-export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30';
+export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40';
 export type BrowserTireSlideId = '70' | '75' | '80' | '85' | '90';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
@@ -84,6 +84,11 @@ export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.fr
   peakSelection('26', 0.26),
   peakSelection('28', 0.28),
   peakSelection('30', 0.30),
+  peakSelection('32', 0.32),
+  peakSelection('34', 0.34),
+  peakSelection('36', 0.36),
+  peakSelection('38', 0.38),
+  peakSelection('40', 0.40),
 ]);
 
 export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.freeze([
