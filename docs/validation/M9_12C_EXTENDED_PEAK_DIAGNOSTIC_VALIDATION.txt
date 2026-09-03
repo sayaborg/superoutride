@@ -1,0 +1,42 @@
+SUPER OUTRIDE — M9.12C EXTENDED PEAK DIAGNOSTIC VALIDATION
+
+Scope
+- DEV PEAK selector range only.
+- GRIP remains 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00.
+- PEAK extends to 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40%.
+- SLIDE remains 70 / 75 / 80 / 85 / 90%.
+- Browser default remains G2.00 / P20 / S80.
+- M9.10 tire law, M9.11 steering law, physics state, wheel solve, production profiles and longitudinal/lateral tire ownership are unchanged.
+
+Motivating handling observation
+- At fixed GRIP=2.00, PEAK=30% was preferred to lower PEAK values.
+- At fixed GRIP, increasing PEAK lowers initial tire-force slope while preserving the GRIP ceiling.
+- G2/P20 -> proportional slope 10.00.
+- G2/P30 -> proportional slope 6.67.
+- G2/P40 -> proportional slope 5.00.
+- Values above 30% are diagnostic probes, not claims of literal production-tire realism.
+
+Implementation/documentation-inclusive exact head
+- SHA: 1c1ad967e708f3a953610c7a9aff58160b783fbf
+- PR: #123
+- GitHub Actions run: #762
+- Workflow: Test and Deploy GitHub Pages
+- Exact checkout verification: PASS
+- npm test / build: PASS
+- Tests: 599
+- Pass: 599
+- Fail: 0
+
+Specific regression evidence
+- M9.12C PEAK table reaches 40% while GRIP/SLIDE tables remain unchanged: PASS
+- Browser default remains G2.00/P20/S80: PASS
+- GRIP, PEAK and SLIDE preserve independent displayed characteristics: PASS
+- Complete 6 x 11 x 5 = 330 GRIP x PEAK x SLIDE product remains finite in retained scalar wheel solve: PASS
+- Keyboard/touch selector authority remains shared: PASS
+- No tire state, drift branch or hidden vehicle-specific calibration authority added: PASS
+- Selector wrap remains deterministic: PASS
+
+Release rule
+- This record is immutable evidence for the implementation/documentation-inclusive head above.
+- The record-inclusive head must receive a second exact-head green CI before pure fast-forward release.
+- Final release identity is established by PR/main/same-SHA main-push CI/Pages history, not by rewriting this file.
