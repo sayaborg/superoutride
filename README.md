@@ -249,6 +249,6 @@ fixtures.
 
 ## Release evidence
 
-M9.9, M9.10, M9.11, M9.12 and M9.12A standalone historical validation records remain under
-`docs/validation/`. M9.12B requires its own implementation/documentation-inclusive green exact head
-before the normal record-inclusive second CI and pure fast-forward release under `AGENTS.md`.
+M9.9, M9.10, M9.11, M9.12, M9.12A and M9.12B standalone validation records remain under
+`docs/validation/`. Exact release identity is established by the record-inclusive PR head, pure
+fast-forward main, same-SHA main-push CI and GitHub Pages deployment under `AGENTS.md`.
