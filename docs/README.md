@@ -211,6 +211,7 @@ validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
 validation/M9_12_INDEPENDENT_TIRE_CALIBRATION_AXES_VALIDATION.txt
 validation/M9_12A_CENTERED_HANDLING_COMPARISON_RANGES_VALIDATION.txt
 validation/M9_12B_UPWARD_TIRE_RANGE_EXPANSION_VALIDATION.txt
+validation/M9_12C_EXTENDED_PEAK_DIAGNOSTIC_VALIDATION.txt
 ```
 
 New validation evidence is added only after the corresponding implementation/documentation head is
