@@ -25,6 +25,7 @@ supersede only their stated scope.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+105_m9_12b_upward_tire_range_expansion.md
 104_m9_12a_centered_handling_comparison_ranges.md
 103_m9_12_independent_tire_calibration_axes.md
 102_m9_11a_steering_selector_test_range.md
@@ -37,21 +38,29 @@ supersede only their stated scope.
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.12A is the current DEV browser calibration-range authority. It centers the ongoing comparison
-around the current working point without changing the steering or tire constitutive laws:
+M9.12B is the current scoped DEV tire-selector range authority. Hands-on evaluation reached the
+upper edge of the M9.12A GRIP and PEAK window, so the lower half is dropped and the comparison
+window moves upward while retaining the previous working point as the browser default:
 
 ```text
-GRIP  = 1.60 / 1.80 / 2.00 / 2.20 / 2.40    default 2.00
-PEAK  = 16 / 18 / 20 / 22 / 24 %             default 20%
-SLIDE = 70 / 75 / 80 / 85 / 90 %             default 80%
+GRIP  = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 default 2.00
+PEAK  = 20 / 22 / 24 / 26 / 28 / 30 %             default 20%
+SLIDE = 70 / 75 / 80 / 85 / 90 %                  default 80%
+```
+
+This range is diagnostic. The upper values are not frozen claims of real production-tire
+specification. M9.12B supersedes M9.12A only for the browser GRIP/PEAK table.
+
+M9.12A remains current for the DEV browser steering comparison range and starting point:
+
+```text
 D     = 10 / 11 / 12 / 13 / 14 deg           browser default 12 deg
 M     = 50 / 55 / 60 / 65 / 70 deg           browser default 60 deg
 ACT   = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s browser default 0.25 s
 ```
 
 Compiled production-profile steering seeds are unchanged. The browser DEV steering adapter applies
-the centered comparison point to the player instance when mounted. M9.12A supersedes documents 102
-and 103 only for the current browser range/default scope.
+the centered comparison point to the player instance when mounted.
 
 M9.12 remains the independent tire-calibration-axis authority. It keeps the existing vehicle-owned
 three-scalar calibration and interprets it as:
@@ -63,7 +72,8 @@ SLIDE = large-lateral-slip plateau / peak
 ```
 
 Changing one browser tire axis preserves the other two displayed characteristics. M9.12 adds no
-persistent tire state and does not yet split longitudinal and lateral tire profiles.
+persistent tire state and does not yet split longitudinal and lateral tire profiles. The current
+6 x 6 x 5 browser product exposes 180 tire calibrations.
 
 M9.10 remains the current tire constitutive-law authority for the stateless C1 lateral post-peak
 falloff and the monotone scalar implicit wheel solve.
@@ -77,9 +87,9 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` is derived only and is never stored. M9.12A changes only the browser comparison table/default;
-it introduces no D limiter and no tire-dependent or speed-dependent steering authority. The current
-selector product has `A >= 36 deg`.
+`A` is derived only and is never stored. M9.12A changes only the browser steering comparison
+table/default; M9.12B does not alter steering at all. No D limiter and no tire-dependent or
+speed-dependent steering authority is introduced. The current selector product has `A >= 36 deg`.
 
 M9.9 remains the current axle-neutral common tire seed and deep-sideslip acceptance authority. Its
 product rule remains **uncontrollable slide is forbidden; controllable drift is allowed**. The
@@ -128,7 +138,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `104_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `105_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -162,10 +172,11 @@ The most relevant current lineage is:
 102_m9_11a_steering_selector_test_range.md
 103_m9_12_independent_tire_calibration_axes.md
 104_m9_12a_centered_handling_comparison_ranges.md
+105_m9_12b_upward_tire_range_expansion.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.12A changes none of those boundaries.
+scope; M9.12B changes none of those boundaries.
 
 ## 3. Takeover context
 
@@ -195,6 +206,7 @@ validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
 validation/M9_10_POST_PEAK_SLIDING_TIRE_VALIDATION.txt
 validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
 validation/M9_12_INDEPENDENT_TIRE_CALIBRATION_AXES_VALIDATION.txt
+validation/M9_12A_CENTERED_HANDLING_COMPARISON_RANGES_VALIDATION.txt
 ```
 
 New validation evidence is added only after the corresponding implementation/documentation head is
