@@ -3,8 +3,8 @@ import type {
   ArcadeTireFrictionCalibrationState,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTireGripId = '1.60' | '1.80' | '2.00' | '2.20' | '2.40';
-export type BrowserTirePeakId = '16' | '18' | '20' | '22' | '24';
+export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00';
+export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30';
 export type BrowserTireSlideId = '70' | '75' | '80' | '85' | '90';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
@@ -69,19 +69,21 @@ function slideSelection(
 }
 
 export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.freeze([
-  gripSelection('1.60', 1.60),
-  gripSelection('1.80', 1.80),
   gripSelection('2.00', 2.00),
   gripSelection('2.20', 2.20),
   gripSelection('2.40', 2.40),
+  gripSelection('2.60', 2.60),
+  gripSelection('2.80', 2.80),
+  gripSelection('3.00', 3.00),
 ]);
 
 export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.freeze([
-  peakSelection('16', 0.16),
-  peakSelection('18', 0.18),
   peakSelection('20', 0.20),
   peakSelection('22', 0.22),
   peakSelection('24', 0.24),
+  peakSelection('26', 0.26),
+  peakSelection('28', 0.28),
+  peakSelection('30', 0.30),
 ]);
 
 export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.freeze([
@@ -92,8 +94,8 @@ export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.
   slideSelection('90', 0.90),
 ]);
 
-const DEFAULT_GRIP = mustChoice(BROWSER_TIRE_GRIPS, 2);
-const DEFAULT_PEAK = mustChoice(BROWSER_TIRE_PEAKS, 2);
+const DEFAULT_GRIP = mustChoice(BROWSER_TIRE_GRIPS, 0);
+const DEFAULT_PEAK = mustChoice(BROWSER_TIRE_PEAKS, 0);
 
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION:
 Readonly<Required<ArcadeTireFrictionCalibrationInput>> = Object.freeze({
