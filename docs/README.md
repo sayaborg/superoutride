@@ -25,6 +25,7 @@ supersede only their stated scope.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+106_m9_12c_extended_peak_diagnostic.md
 105_m9_12b_upward_tire_range_expansion.md
 104_m9_12a_centered_handling_comparison_ranges.md
 103_m9_12_independent_tire_calibration_axes.md
@@ -38,20 +39,22 @@ supersede only their stated scope.
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.12B is the current scoped DEV tire-selector range authority. Hands-on evaluation reached the
-upper edge of the M9.12A GRIP and PEAK window, so the lower half is dropped and the comparison
-window moves upward while retaining the previous working point as the browser default:
+M9.12C is the current scoped DEV PEAK-range authority. Hands-on evaluation at `GRIP=2.00` preferred
+larger PEAK values through the previous `30%` ceiling, so PEAK alone is extended as a diagnostic:
 
 ```text
 GRIP  = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 default 2.00
-PEAK  = 20 / 22 / 24 / 26 / 28 / 30 %             default 20%
-SLIDE = 70 / 75 / 80 / 85 / 90 %                  default 80%
+PEAK  = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 % default 20%
+SLIDE = 70 / 75 / 80 / 85 / 90 % default 80%
 ```
 
-This range is diagnostic. The upper values are not frozen claims of real production-tire
-specification. M9.12B supersedes M9.12A only for the browser GRIP/PEAK table.
+At fixed GRIP, increasing PEAK lowers the initial tire-force slope while leaving peak force height
+unchanged. The range beyond 30% is explicitly diagnostic, not a claim that a real production tire
+should use 30–40% common peak slip. M9.12C supersedes M9.12B only for the browser PEAK upper range.
+The current 6 x 11 x 5 browser product exposes 330 tire calibrations.
 
-M9.12A remains current for the DEV browser steering comparison range and starting point:
+M9.12B remains current for the DEV GRIP range. M9.12A remains current for the DEV browser steering
+comparison range and starting point:
 
 ```text
 D     = 10 / 11 / 12 / 13 / 14 deg           browser default 12 deg
@@ -72,8 +75,7 @@ SLIDE = large-lateral-slip plateau / peak
 ```
 
 Changing one browser tire axis preserves the other two displayed characteristics. M9.12 adds no
-persistent tire state and does not yet split longitudinal and lateral tire profiles. The current
-6 x 6 x 5 browser product exposes 180 tire calibrations.
+persistent tire state and does not yet split longitudinal and lateral tire profiles.
 
 M9.10 remains the current tire constitutive-law authority for the stateless C1 lateral post-peak
 falloff and the monotone scalar implicit wheel solve.
@@ -88,7 +90,7 @@ deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
 `A` is derived only and is never stored. M9.12A changes only the browser steering comparison
-table/default; M9.12B does not alter steering at all. No D limiter and no tire-dependent or
+table/default; M9.12B/M9.12C do not alter steering. No D limiter and no tire-dependent or
 speed-dependent steering authority is introduced. The current selector product has `A >= 36 deg`.
 
 M9.9 remains the current axle-neutral common tire seed and deep-sideslip acceptance authority. Its
@@ -138,7 +140,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `105_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `106_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -173,10 +175,11 @@ The most relevant current lineage is:
 103_m9_12_independent_tire_calibration_axes.md
 104_m9_12a_centered_handling_comparison_ranges.md
 105_m9_12b_upward_tire_range_expansion.md
+106_m9_12c_extended_peak_diagnostic.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.12B changes none of those boundaries.
+scope; M9.12C changes none of those boundaries.
 
 ## 3. Takeover context
 
