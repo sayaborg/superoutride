@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.12A Centered Handling Comparison Ranges
+# SUPER OUTRIDE — M9.12B Upward Tire Range Expansion
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,32 +12,40 @@ tests.
 
 ## Current release
 
-M9.12A keeps the existing M9.11 steering law and M9.12 tire calibration architecture, but recenters
-the DEV comparison ranges around the current handling working point:
+M9.12B keeps the existing M9.11 steering law and M9.12 tire calibration architecture. Hands-on
+handling evaluation reached the upper edge of the previous GRIP/PEAK comparison window, so only the
+tire exploration range moves upward:
 
 | Control | Choices | Browser default | Keyboard |
 |---|---|---:|---|
-| `GRIP` peak force height | `1.60 / 1.80 / 2.00 / 2.20 / 2.40` effective mu | `2.00` | `H` cycles |
-| `PEAK` common peak slip | `16 / 18 / 20 / 22 / 24 %` | `20% / 11.3°` lateral equivalent | `J` cycles |
+| `GRIP` peak force height | `2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00` effective mu | `2.00` | `H` cycles |
+| `PEAK` common peak slip | `20 / 22 / 24 / 26 / 28 / 30 %` | `20% / 11.3°` lateral equivalent | `J` cycles |
 | `SLIDE` large-lateral-slip plateau | `70 / 75 / 80 / 85 / 90 %` | `80%` | `G` cycles |
 | `D` Driver travel-relative offset | `10 / 11 / 12 / 13 / 14 deg` | `12 deg` | `Y` cycles |
 | `M` maximum road-wheel steer | `50 / 55 / 60 / 65 / 70 deg` | `60 deg` | `U` cycles |
 | `ACT` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 s` | `0.25 s` | `T` cycles |
 
 The compiled production-profile steering seeds remain unchanged. Browser DEV steering calibration
-applies `D=12 / M=60 / ACT=0.25` to the player instance when the selector adapter is mounted, so the
-browser test starts at the requested center without redefining production vehicle identity.
+applies `D=12 / M=60 / ACT=0.25` to the player instance when the selector adapter is mounted.
+M9.12B does not alter steering.
 
-The browser tire default is now `GRIP=2.00 / PEAK=20% / SLIDE=80%`. Changing one tire axis still
-preserves the other two displayed characteristics exactly as in M9.12. GRIP co-scales the existing
-stiffness multiplier so PEAK does not move; PEAK changes the stiffness required to reach the
-requested slip at the current GRIP; SLIDE changes only the existing post-peak ratio. No new
-persistent tire state is added.
+The browser tire default remains `GRIP=2.00 / PEAK=20% / SLIDE=80%`, preserving the previous working
+point as a stable A/B reference. Lower GRIP/PEAK choices are removed and the exposed range extends
+to `GRIP=3.00 / PEAK=30%` so monotonic improvement can be tested rather than mistaken for an
+optimum at the old boundary.
+
+Changing one tire axis still preserves the other two displayed characteristics exactly as in M9.12.
+GRIP co-scales the existing stiffness multiplier so PEAK does not move; PEAK changes the stiffness
+required to reach the requested slip at the current GRIP; SLIDE changes only the existing post-peak
+ratio. No new persistent tire state is added.
 
 M9.10 remains the constitutive authority for the stateless C1 large-lateral-slip falloff and the
-monotone scalar implicit wheel solve. M9.12/M9.12A do **not** yet split longitudinal and lateral tire
-profiles: GRIP and PEAK are common one-k characteristics, while SLIDE remains the M9.10 lateral-only
-post-peak plateau so pure longitudinal wheel solving stays unchanged.
+monotone scalar implicit wheel solve. M9.12/M9.12A/M9.12B do **not** yet split longitudinal and
+lateral tire profiles: GRIP and PEAK are common one-k characteristics, while SLIDE remains the
+M9.10 lateral-only post-peak plateau so pure longitudinal wheel solving stays unchanged.
+
+The 6 x 6 x 5 selector product exposes 180 tire calibrations. The upper values are diagnostic
+exploration values, not frozen claims about production-real tire coefficients.
 
 M9.11 remains the current steering law:
 
@@ -52,8 +60,8 @@ speed-dependent D, tire-dependent steering authority, yaw feedback, washout or d
 introduced.
 
 `M`, `D`, `ACT`, GRIP, PEAK and SLIDE remain current DEV tuning axes, not frozen final handling
-values. The final D limit and any later longitudinal/lateral tire split remain open handling
-questions.
+values. If GRIP=3.00 and PEAK=30% again become the preferred boundary, that result is evidence for
+another architecture-level diagnosis before freezing or extending the tire values again.
 
 M9.9 remains the common axle-balance and slide-controllability authority. The shared compiled tire
 seed is `front=9.75 / rear=9.75`; geometry, load transfer, inertia, combined slip and drive-torque
@@ -76,20 +84,21 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/104_m9_12a_centered_handling_comparison_ranges.md` — current browser comparison ranges and
-   starting calibration.
-5. `docs/103_m9_12_independent_tire_calibration_axes.md` — GRIP/PEAK/SLIDE independence authority.
-6. `docs/102_m9_11a_steering_selector_test_range.md` — historical prior M/D/T comparison domain,
+4. `docs/105_m9_12b_upward_tire_range_expansion.md` — current scoped GRIP/PEAK browser range.
+5. `docs/104_m9_12a_centered_handling_comparison_ranges.md` — current steering comparison range and
+   browser starting calibration; prior tire range superseded by 105 only for GRIP/PEAK scope.
+6. `docs/103_m9_12_independent_tire_calibration_axes.md` — GRIP/PEAK/SLIDE independence authority.
+7. `docs/102_m9_11a_steering_selector_test_range.md` — historical prior M/D/T comparison domain,
    superseded by 104 only for range/default scope.
-7. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
+8. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
    M/D/T ownership authority.
-8. `docs/100_m9_10_post_peak_sliding_tire.md` — retained tire post-peak constitutive authority.
-9. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
-   controllability authority.
-10. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
+9. `docs/100_m9_10_post_peak_sliding_tire.md` — retained tire post-peak constitutive authority.
+10. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
+    controllability authority.
+11. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
     authority.
-11. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-12. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+12. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+13. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
     `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and unit travel-direction
     foundations inside later supersession.
 
@@ -240,6 +249,6 @@ fixtures.
 
 ## Release evidence
 
-M9.9, M9.10, M9.11 and M9.12 standalone historical validation records remain under
-`docs/validation/`. M9.12A requires its own implementation/documentation-inclusive green exact head
+M9.9, M9.10, M9.11, M9.12 and M9.12A standalone historical validation records remain under
+`docs/validation/`. M9.12B requires its own implementation/documentation-inclusive green exact head
 before the normal record-inclusive second CI and pure fast-forward release under `AGENTS.md`.
