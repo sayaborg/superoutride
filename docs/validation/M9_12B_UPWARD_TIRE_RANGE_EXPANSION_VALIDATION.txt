@@ -1,0 +1,37 @@
+SUPER OUTRIDE — M9.12B UPWARD TIRE RANGE EXPANSION VALIDATION
+
+Status: PASS
+
+Implementation/documentation head validated:
+512d52bfe58abd18020f60866346280c2c395944
+
+GitHub Actions:
+workflow: Test and Deploy GitHub Pages
+run: #757
+run id: 33712264760
+trigger: pull_request
+exact checkout: PASS
+build: PASS
+
+Test result:
+tests 599
+pass 599
+fail 0
+cancelled 0
+skipped 0
+todo 0
+
+Scoped M9.12B evidence:
+- GRIP browser choices = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00
+- PEAK browser choices = 20 / 22 / 24 / 26 / 28 / 30 percent
+- SLIDE remains 70 / 75 / 80 / 85 / 90 percent
+- browser default remains GRIP 2.00 / PEAK 20 percent / SLIDE 80 percent
+- complete 6 x 6 x 5 = 180 exposed tire-calibration product remains finite in the retained scalar wheel solve
+- changing GRIP preserves PEAK and SLIDE
+- changing PEAK preserves GRIP and SLIDE
+- changing SLIDE preserves GRIP and PEAK
+- selector layer adds no tire state, drift mode, target sideslip, vehicle branch, or longitudinal/lateral tire split
+- src/physics/tire-wheel.ts and steering mechanics are unchanged in this milestone
+
+This file is immutable validation evidence for the implementation/documentation-inclusive head above.
+Final release identity is established separately by exact-head PR/main/workflow history.
