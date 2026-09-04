@@ -8,6 +8,7 @@ import {
   M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
   browserTireCalibrationForSlide,
   browserTireEffectiveGrip,
+  browserTireEffectiveSlideGrip,
   browserTirePeakSlipRatio,
 } from '../dist/browser/tire-friction-selection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
@@ -35,15 +36,16 @@ const surface = new SurfaceMap(highway.guide.length, [{
   bands: [{ lMin: -100, lMax: 100, type: 'ASPHALT' }],
 }]);
 
-test('M9.10 historical TIRE 2 anchors remain exact beneath the M9.12A centered browser default', () => {
+test('M9.10 historical TIRE 2 anchors remain exact beneath the M9.15 diagnostic default', () => {
   assert.ok(Math.abs(M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER - 10.3 / 9.75) < 1e-15);
   assert.ok(Math.abs(
     M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER
       - (10.3 * Math.tan(12 * Math.PI / 180) / 1.26) / 1.35,
   ) < 1e-15);
-  assert.ok(Math.abs(browserTireEffectiveGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 2.0) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 3.0) < 1e-12);
   assert.ok(Math.abs(browserTirePeakSlipRatio(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 0.20) < 1e-12);
-  assert.equal(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio, 0.8);
+  assert.ok(Math.abs(browserTireEffectiveSlideGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 1.0) < 1e-12);
+  assert.ok(Math.abs(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio - 1 / 3) < 1e-12);
 });
 
 test('vehicle-owned tire calibration remains atomic and survives recovery and profile reconstruction', () => {
@@ -56,9 +58,10 @@ test('vehicle-owned tire calibration remains atomic and survives recovery and pr
     0,
     25,
     {},
-    browserTireCalibrationForSlide('75', DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION),
+    browserTireCalibrationForSlide('1.40', DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION),
   );
   const selected = { ...vehicle.tireFrictionCalibration };
+  assert.ok(Math.abs(browserTireEffectiveSlideGrip(selected) - 1.40) < 1e-12);
   const recovery = createM5RecoveryState(vehicle);
   recoverM5Vehicle(recovery, highway.guide, height, surface, vehicle);
   assert.deepEqual(vehicle.tireFrictionCalibration, selected);
@@ -124,6 +127,8 @@ test('retained tire calibration remains one vehicle-owned state consumed only by
   assert.match(solver, /vehicle\.tireFrictionCalibration\.slidingFrictionRatio/);
   assert.doesNotMatch(calibration, /profile\.id|routeKind|camera|surface/);
   assert.doesNotMatch(selection, /vehicle\.yaw|yawRate|routeKind|camera|SurfaceMap/);
+  assert.match(selection, /browserTireEffectiveSlideGrip/);
+  assert.match(selection, /slideToPeakRatio/);
   assert.match(controls, /setArcadeVehicleTireFrictionCalibration/);
   assert.doesNotMatch(surfaceSource, /linearStiffnessMultiplier|referenceFrictionMultiplier|slidingFrictionRatio|KeyG/);
   for (const source of [linear, branching, circuit]) {
