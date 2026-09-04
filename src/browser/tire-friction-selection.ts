@@ -323,9 +323,9 @@ function nextChoiceId<Id extends string, Choice extends { readonly id: Id }>(
   return mustChoice(choices, (currentIndex + 1) % choices.length).id;
 }
 
-function mustChoiceById<Id extends string, Choice extends { readonly id: Id }>(
+function mustChoiceById<Choice extends { readonly id: string }>(
   choices: readonly Choice[],
-  id: Id,
+  id: Choice['id'],
   kind: string,
 ): Choice {
   const choice = choices.find((candidate) => candidate.id === id);
