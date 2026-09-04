@@ -1,4 +1,4 @@
-export type BrowserSteeringOffsetDegrees = 10 | 11 | 12 | 13 | 14;
+export type BrowserSteeringOffsetDegrees = 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
 export type BrowserMaxRoadWheelSteerDegrees = 50 | 55 | 60 | 65 | 70;
 export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3;
 
@@ -17,7 +17,8 @@ export const BROWSER_MAX_STEER_CYCLE_CODE = 'KeyU';
 export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
 
 export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] = Object.freeze([
-  angle(10), angle(11), angle(12), angle(13), angle(14),
+  angle(10), angle(11), angle(12), angle(13), angle(14), angle(15),
+  angle(16), angle(17), angle(18), angle(19), angle(20),
 ]);
 
 export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] = Object.freeze([
