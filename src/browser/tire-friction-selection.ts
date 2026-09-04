@@ -3,9 +3,9 @@ import type {
   ArcadeTireFrictionCalibrationState,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00';
-export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40';
-export type BrowserTireSlideId = '70' | '75' | '80' | '85' | '90';
+export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00' | '3.20' | '3.40' | '3.60' | '3.80' | '4.00';
+export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | '42' | '44' | '46' | '48' | '50' | '52' | '54' | '56' | '58' | '60';
+export type BrowserTireSlideId = '60' | '65' | '70' | '75' | '80' | '85' | '90' | '95' | '100';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
 export interface BrowserTireGripSelection {
@@ -75,6 +75,11 @@ export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.fr
   gripSelection('2.60', 2.60),
   gripSelection('2.80', 2.80),
   gripSelection('3.00', 3.00),
+  gripSelection('3.20', 3.20),
+  gripSelection('3.40', 3.40),
+  gripSelection('3.60', 3.60),
+  gripSelection('3.80', 3.80),
+  gripSelection('4.00', 4.00),
 ]);
 
 export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.freeze([
@@ -89,14 +94,28 @@ export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.fr
   peakSelection('36', 0.36),
   peakSelection('38', 0.38),
   peakSelection('40', 0.40),
+  peakSelection('42', 0.42),
+  peakSelection('44', 0.44),
+  peakSelection('46', 0.46),
+  peakSelection('48', 0.48),
+  peakSelection('50', 0.50),
+  peakSelection('52', 0.52),
+  peakSelection('54', 0.54),
+  peakSelection('56', 0.56),
+  peakSelection('58', 0.58),
+  peakSelection('60', 0.60),
 ]);
 
 export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.freeze([
+  slideSelection('60', 0.60),
+  slideSelection('65', 0.65),
   slideSelection('70', 0.70),
   slideSelection('75', 0.75),
   slideSelection('80', 0.80),
   slideSelection('85', 0.85),
   slideSelection('90', 0.90),
+  slideSelection('95', 0.95),
+  slideSelection('100', 1.00),
 ]);
 
 const DEFAULT_GRIP = mustChoice(BROWSER_TIRE_GRIPS, 0);
