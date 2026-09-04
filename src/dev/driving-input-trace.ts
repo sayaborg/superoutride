@@ -1,7 +1,9 @@
 import {
   assertExclusivePedalInput,
+  drivingInputApplyMode,
   normalizedPedalRequest,
   type DrivingInput,
+  type DrivingInputApplyMode,
   type PedalRequest,
 } from '../input/driving-input.js';
 
@@ -85,16 +87,26 @@ export function parseDrivingInputTrace(json: string): DrivingInputTrace {
       throw new RangeError('trace run ticks must be an integer >= 1');
     }
     if (typeof run.input !== 'object' || run.input === null) throw new TypeError('trace run input must be an object');
-    const input = run.input as { steering?: unknown; throttle?: unknown; brake?: unknown };
+    const input = run.input as {
+      steering?: unknown;
+      throttle?: unknown;
+      brake?: unknown;
+      steeringApplyMode?: unknown;
+      pedalApplyMode?: unknown;
+    };
     if (typeof input.steering !== 'number'
       || !isPedalRequest(input.throttle)
-      || !isPedalRequest(input.brake)) {
+      || !isPedalRequest(input.brake)
+      || !isApplyMode(input.steeringApplyMode)
+      || !isApplyMode(input.pedalApplyMode)) {
       throw new TypeError('trace run input has invalid fields');
     }
     appendDrivingInput(trace, {
       steering: input.steering,
       throttle: input.throttle,
       brake: input.brake,
+      steeringApplyMode: input.steeringApplyMode,
+      pedalApplyMode: input.pedalApplyMode,
     }, run.ticks as number);
   }
   return trace;
@@ -115,6 +127,8 @@ function validateInput(input: Readonly<DrivingInput>): void {
   }
   normalizedPedalRequest(input.throttle);
   normalizedPedalRequest(input.brake);
+  drivingInputApplyMode(input.steeringApplyMode);
+  drivingInputApplyMode(input.pedalApplyMode);
   assertExclusivePedalInput(input);
 }
 
@@ -123,14 +137,24 @@ function cloneInput(input: Readonly<DrivingInput>): Readonly<DrivingInput> {
     steering: input.steering,
     throttle: input.throttle,
     brake: input.brake,
+    steeringApplyMode: input.steeringApplyMode,
+    pedalApplyMode: input.pedalApplyMode,
   };
 }
 
 function sameInput(a: Readonly<DrivingInput>, b: Readonly<DrivingInput>): boolean {
-  return a.steering === b.steering && a.throttle === b.throttle && a.brake === b.brake;
+  return a.steering === b.steering
+    && a.throttle === b.throttle
+    && a.brake === b.brake
+    && a.steeringApplyMode === b.steeringApplyMode
+    && a.pedalApplyMode === b.pedalApplyMode;
 }
 
 function isPedalRequest(value: unknown): value is PedalRequest {
   return typeof value === 'boolean'
     || (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1);
+}
+
+function isApplyMode(value: unknown): value is DrivingInputApplyMode | undefined {
+  return value === undefined || value === 'RATE_LIMITED' || value === 'DIRECT';
 }
