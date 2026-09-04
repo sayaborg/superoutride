@@ -104,10 +104,18 @@ export class TouchInput {
 
   sample(): DrivingInput {
     const pedals = this.pedals.sample();
+    const steeringSource = this.steering.activeSource();
+    const pedalSource = this.pedals.activeSource();
     this.syncSteeringButtons();
     return {
       steering: this.steering.sample(),
       ...pedals,
+      steeringApplyMode: steeringSource?.startsWith('touch:analog-steering:')
+        ? 'DIRECT'
+        : 'RATE_LIMITED',
+      pedalApplyMode: pedalSource?.startsWith('touch:analog-pedal:')
+        ? 'DIRECT'
+        : 'RATE_LIMITED',
     };
   }
 
@@ -138,6 +146,7 @@ export class TouchInput {
         startY: event.clientY,
         fullScaleDistance,
       };
+      this.pedals.setAnalogSource(touchAnalogPedalSource(event.pointerId), 'throttle', 0);
       showIndicator(this.pedalIndicator, event.clientX, event.clientY, 0, -90, 'PEDAL 0%');
     }
   }
@@ -173,7 +182,7 @@ export class TouchInput {
       );
       const source = touchAnalogPedalSource(event.pointerId);
       if (requests.throttle > 0) {
-        this.pedals.setSource(source, 'throttle', requests.throttle);
+        this.pedals.setAnalogSource(source, 'throttle', requests.throttle);
         showIndicator(
           this.pedalIndicator,
           pointer.startX,
@@ -183,7 +192,7 @@ export class TouchInput {
           `ACCEL ${Math.round(requests.throttle * 100)}%`,
         );
       } else if (requests.brake > 0) {
-        this.pedals.setSource(source, 'brake', requests.brake);
+        this.pedals.setAnalogSource(source, 'brake', requests.brake);
         showIndicator(
           this.pedalIndicator,
           pointer.startX,
@@ -193,7 +202,7 @@ export class TouchInput {
           `BRAKE ${Math.round(requests.brake * 100)}%`,
         );
       } else {
-        this.pedals.setSource(source, 'throttle', false);
+        this.pedals.setAnalogSource(source, 'throttle', 0);
         showIndicator(this.pedalIndicator, pointer.startX, pointer.startY, 0, -90, 'PEDAL 0%');
       }
     }
@@ -266,8 +275,7 @@ export class TouchInput {
       hideIndicator(this.steeringIndicator);
     }
     if (this.pedalPointer?.pointerId === pointerId) {
-      const source = touchAnalogPedalSource(pointerId);
-      this.pedals.setSource(source, 'throttle', false);
+      this.pedals.releaseSource(touchAnalogPedalSource(pointerId));
       this.pedalPointer = null;
       hideIndicator(this.pedalIndicator);
     }
