@@ -158,7 +158,7 @@ test('M9.13 held displacement is immediate while release uses existing actuator 
   const released = touch.sample();
   assert.equal(normalizedPedalRequest(released.throttle), 0);
   assert.equal(normalizedPedalRequest(released.brake), 0);
-  assert.equal(released.pedalApplyMode, 'RATE_LIMITED');
+  assert.equal(released.pedalApplyMode, undefined);
   updateDrivingActuators(state, released, 1 / 32, profile);
   assert.equal(state.throttle, 0.25);
 });
@@ -179,7 +179,7 @@ test('M9.13 steering displacement is immediate while release returns through sel
 
   lifecycle.dispatch('pointerup', pointer(8, 160, 300));
   const released = touch.sample();
-  assert.equal(released.steeringApplyMode, 'RATE_LIMITED');
+  assert.equal(released.steeringApplyMode, undefined);
   updateDrivingActuators(state, released, 0.05, profile);
   assert.ok(Math.abs(state.steering - 0.4) < 1e-12);
 });
