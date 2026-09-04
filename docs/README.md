@@ -186,16 +186,24 @@ scope; M9.12C changes none of those boundaries.
 The current named takeover checkpoint is:
 
 ```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
+```
+
+It records the released M9.12C handling state, current authority chain, current DEV selector domains,
+the `GRIP=2.00 / PEAK=30%` diagnostic observation, the immediate PEAK sweep, and the restart/release
+procedure. It is navigation context only and never overrides current source, numbered authority,
+tests, Git/PR state or exact-head workflow evidence.
+
+The prior:
+
+```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
 ```
 
-It records the released M9.6 checkpoint and restart procedure. It is navigation context only. If
-`main` is newer, current repository state supersedes its snapshot.
-
-Older handoffs, including
+is historical M9.6 takeover context. Older handoffs, including
 `SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_M9_VEHICLE_UNIFICATION.md` and
-`SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_STEERING_INPUT_AND_SELF_STEER.md`, are resolved historical
-context and not active authority.
+`SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-31_STEERING_INPUT_AND_SELF_STEER.md`, are also resolved
+historical context and not active authority.
 
 ## 4. Validation evidence
 
