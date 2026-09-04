@@ -1,0 +1,138 @@
+SUPER OUTRIDE - M9.16 ENGINE POWER DIAGNOSTIC SELECTOR VALIDATION
+
+Record date: 2026-09-05 JST (2026-09-04 UTC)
+Package: super-outride-m9-16 / 0.9.16
+Handling status: DEV_UNCALIBRATED
+PR: #129, M9.16 engine power diagnostic selector
+Branch: feat/m9-16-engine-power-selector
+
+1. Authority and baseline
+
+Repository is the sole project authority. AGENTS.md, README.md, docs/README.md,
+docs/validation/README.md, retained M9.0 mechanics, current M9.15 tire and the
+related powertrain/browser/recovery implementation were inspected before changes.
+
+Released starting main:
+a4494db4db8fc9817cb51f83324d36a0d6da2a63
+
+Implementation/documentation exact head validated by this record:
+59d8b38bce3bfcbdab9999eb968500567ffc2a1c
+Tree: 21fe5c078af970fd0e173208c277e8e12628c2e3
+
+New scoped normative authority:
+docs/110_m9_16_engine_power_diagnostic_selector.md
+
+The Architecture Decision Gate is recorded there. A standalone record is required
+because this milestone adds an instance-owned engine-output calibration boundary.
+The entry README and documentation authority index link the new scope. Existing
+AGENTS, Core, historical milestone documents and old validation records are not
+rewritten; their retained contracts are unchanged.
+
+2. Exact-head CI evidence
+
+Workflow: Test and Deploy GitHub Pages
+Event: pull_request
+Run number: 811
+Run ID: 33923719210
+Build job ID: 101187497001
+Run URL: https://github.com/sayaborg/superoutride/actions/runs/33923719210
+Conclusion: completed / success
+
+Checkout verification in the build log:
+expected=59d8b38bce3bfcbdab9999eb968500567ffc2a1c
+actual=59d8b38bce3bfcbdab9999eb968500567ffc2a1c
+
+Environment: Node v24.20.0, npm 11.19.0, Ubuntu 24.04.4.
+Commands: npm ci; npm test.
+npm test executes the clean TypeScript/GroundMap build and all tests/*.test.mjs.
+No selected-file-only test run substitutes for the complete suite.
+
+Complete result:
+tests 622
+pass 622
+fail 0
+cancelled 0
+skipped 0
+todo 0
+
+All 613 retained tests and 9 new M9.16 tests passed. Build, exact checkout and
+repository/source-boundary hygiene checks passed. Pages staging/deploy are
+intentionally skipped for a pull_request event; this record does not claim
+that a feature-branch CI run has deployed Pages.
+
+3. Implemented causal boundary
+
+Exactly one powertrain.engineTorqueMultiplier owns the current engine calibration.
+Default is 1.0. It scales the sampled immutable engine torque curve before the
+existing throttle, gear, final-drive, efficiency, shift-drive and redline factors.
+The setter changes only that validated positive finite scalar. RPM, shift state,
+wheel Omega and body motion are never overwritten to apply the setting.
+
+Browser choices: 1.0 / 1.5 / 2.0 / 3.0 / 4.0.
+Keyboard: K, one cycle per non-repeated keydown.
+Touch/mouse: ENG xN cycling button after the three tire buttons.
+HUD: ENG [K] xN alongside the existing tire readout.
+
+All three browser composition roots use the same getter-based control adapter.
+Manual and automatic/route recovery preserve the scalar while resetting dynamics.
+Safe-spawn vehicle replacement copies it to the new powertrain instance.
+Rivals and ordinary constructors remain at 1.0; a full page/course reload resets
+it to 1.0. No persistent storage or second browser selection state is introduced.
+
+4. New executable checks
+
+- Exact domain, default, K mapping, formatting and deterministic wraparound.
+- All nine profile torque curves remain immutable. At prescribed identical wheel
+  speed and state, the independent piecewise torque oracle reproduces 1x delivery;
+  all five multipliers scale sampled and delivered torque while leaving RPM,
+  gear, shift timer and shift direction equal.
+- Zero throttle, shift-drive cutoff and top-gear redline cutoff still give zero
+  output for every selectable multiplier.
+- Setter mutates only the scalar; another vehicle is unaffected. Non-positive,
+  NaN and infinite values are rejected before mutation.
+- Manual and explicit wrong-course recovery retain 4x, clear dynamic output and
+  actuator state, and do not alter tire calibration.
+- Shared tire/engine DOM fixture preserves the original three tire controls;
+  engine click/K act on the current vehicle even after replacement. Tire actions
+  do not change engine calibration; engine actions do not change tire calibration.
+- A 2x versus 1x ordinary vehicle step produces greater delivered drive torque
+  and forward speed through the existing wheel/tire path, with tires and brakes
+  unchanged.
+- All nine profiles remain finite at 4x in one-second, 60 Hz flat-surface probes
+  starting at 25 m/s, steering=0.25 and full throttle, for G2/P24/S2 and G3/P24/S3.
+  These are bounded finite-response probes, not sustained-drift acceptance tests.
+- All three composition roots mount/route the adapter and retain calibration on
+  replacement. Source checks retain lower-layer independence. CSS keeps the
+  shared group at three tire columns plus a full-width engine row in landscape,
+  or four columns in portrait.
+
+5. Scope and limitations
+
+No tire law, tire G/P/S choices or defaults, steering law, actuator rates, brake
+capacity, immutable vehicle profile, shift strategy, redline rule, camera,
+renderer, route topology, workflow or input gesture is changed.
+
+M9.15 browser S still ranges from 1.00 to 2.00. G2/S2 is an available no-drop
+browser point. The G3/S3 regression is constructed through the existing numeric
+tire-calibration API and is not an unrequested browser-domain expansion.
+
+The tests establish correct scaling, isolation and lifecycle. They do not prove
+pleasant drift, adequate sustained power, long-run stability at every combination,
+or physical-device touch/layout quality. UI verification here uses DOM fixtures,
+source checks and the retained browser regressions, not an actual phone playtest.
+Local cloning/execution was not used as evidence; executable evidence is the
+complete GitHub Actions exact-head run above.
+
+6. Validation-inclusive release requirement
+
+This record is added only after the complete implementation/documentation head
+is green. Adding it creates a new SHA. That new, validation-inclusive exact head
+must pass the complete suite again before release.
+
+Immediately before advancing main, re-fetch main and confirm a pure
+fast-forward relationship: ahead>0, behind=0, merge base equal to current main.
+Use force=false. Verify final main SHA equals validated PR head and PR merge SHA,
+then verify the same-SHA main-push build and GitHub Pages deployment succeed.
+
+Final validation-inclusive SHA/run and release evidence belong to Git/PR/workflow
+history, not a self-rewrite of this immutable record.
