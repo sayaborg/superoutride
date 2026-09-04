@@ -1,6 +1,8 @@
 import {
   assertExclusivePedalInput,
+  normalizedPedalRequest,
   type DrivingInput,
+  type PedalRequest,
 } from '../input/driving-input.js';
 
 export const DRIVING_INPUT_TRACE_FORMAT = 'SUPER_OUTRIDE_INPUT_TRACE_V1' as const;
@@ -83,8 +85,10 @@ export function parseDrivingInputTrace(json: string): DrivingInputTrace {
       throw new RangeError('trace run ticks must be an integer >= 1');
     }
     if (typeof run.input !== 'object' || run.input === null) throw new TypeError('trace run input must be an object');
-    const input = run.input as Partial<DrivingInput>;
-    if (typeof input.steering !== 'number' || typeof input.throttle !== 'boolean' || typeof input.brake !== 'boolean') {
+    const input = run.input as { steering?: unknown; throttle?: unknown; brake?: unknown };
+    if (typeof input.steering !== 'number'
+      || !isPedalRequest(input.throttle)
+      || !isPedalRequest(input.brake)) {
       throw new TypeError('trace run input has invalid fields');
     }
     appendDrivingInput(trace, {
@@ -109,9 +113,8 @@ function validateInput(input: Readonly<DrivingInput>): void {
   if (!Number.isFinite(input.steering) || input.steering < -1 || input.steering > 1) {
     throw new RangeError('trace steering must be finite and in [-1, +1]');
   }
-  if (typeof input.throttle !== 'boolean' || typeof input.brake !== 'boolean') {
-    throw new TypeError('trace throttle/brake must be boolean');
-  }
+  normalizedPedalRequest(input.throttle);
+  normalizedPedalRequest(input.brake);
   assertExclusivePedalInput(input);
 }
 
@@ -125,4 +128,9 @@ function cloneInput(input: Readonly<DrivingInput>): Readonly<DrivingInput> {
 
 function sameInput(a: Readonly<DrivingInput>, b: Readonly<DrivingInput>): boolean {
   return a.steering === b.steering && a.throttle === b.throttle && a.brake === b.brake;
+}
+
+function isPedalRequest(value: unknown): value is PedalRequest {
+  return typeof value === 'boolean'
+    || (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1);
 }
