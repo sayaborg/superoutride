@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.13 Full-Screen Analog Touch
+# SUPER OUTRIDE — M9.14 Compact Touch + Expanded Diagnostic Ranges
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -10,59 +10,54 @@ Super Hang-On, OutRunners and the Super Scaler era.
 the numbered authority documents; executable behavior belongs to source, compilers and regression
 tests.
 
-## Current release
+## Current release candidate
 
-M9.13 changes only the touch-driving input boundary and touch-driving presentation. Real touch
-pointers now use the entire viewport as one relative analog control surface:
+M9.14 changes only scoped DEV touch-feel and browser handling-comparison ranges. The M9.13
+full-screen relative analog touch architecture remains unchanged, but 100% input now uses one
+compact fixed travel:
+
+```text
+L = 64 CSS px
+```
+
+Therefore 32 CSS px is 50% input and 64 CSS px is 100%. The value no longer changes with viewport
+size or portrait/landscape orientation and is independent of native backing-store pixel density.
+It is not claimed to be an exact physical millimeter across all devices.
+
+Real touch pointers still use the entire viewport:
 
 ```text
 pointer-down in left half  -> STEERING
 pointer-down in right half -> ACCEL / BRAKE
 ```
 
-The pointer-down coordinate is the neutral origin for that pointer. Steering uses horizontal
-relative displacement; ACCEL/BRAKE use one vertical signed axis. Pointer role is fixed for the
-lifetime of the touch even if the finger later crosses the centerline.
+Pointer-down remains the neutral origin; steering uses horizontal relative displacement and
+ACCEL/BRAKE use one vertical signed axis. Pointer role remains fixed for the lifetime of the touch.
+Held analog displacement remains DIRECT and pointer release/cancel returns to neutral through the
+existing actuator `releaseRate`.
 
-The initial full-scale displacement is:
-
-```text
-L = clamp(0.25 * min(viewportWidth, viewportHeight), 72 px, 120 px)
-```
-
-Touch-down displays a transient steering-wheel or pedal origin icon. A horizontal or vertical arrow
-shows the signed displacement and normalized percentage. Pointer release/cancel publishes neutral;
-the existing vehicle actuator `releaseRate` remains the sole finite release-response authority.
-
-Keyboard controls remain digital. Canonical pedal requests now permit boolean digital shorthand
-(`false/true == 0/1`) or a normalized analog value in `[0,1]`; throttle and brake remain mutually
-exclusive and converge through the same shared pedal arbiter and existing vehicle actuator.
-
-M9.13 changes no steering law, tire law, actuator rate, vehicle profile, camera, renderer, route or
-topology behavior. Handling remains:
+Handling remains:
 
 ```text
 DEV_UNCALIBRATED
 ```
 
-The current handling calibration authority remains M9.12C/M9.12B/M9.12A/M9.12/M9.11:
+Current browser comparison ranges are:
 
 | Control | Choices | Browser default | Keyboard |
 |---|---|---:|---|
-| `GRIP` peak force height | `2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00` effective mu | `2.00` | `H` cycles |
-| `PEAK` common peak slip | `20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 %` | `20% / 11.3°` lateral equivalent | `J` cycles |
-| `SLIDE` large-lateral-slip plateau | `70 / 75 / 80 / 85 / 90 %` | `80%` | `G` cycles |
-| `D` Driver travel-relative offset | `10 / 11 / 12 / 13 / 14 deg` | `12 deg` | `Y` cycles |
+| `GRIP` peak force height | `2.00` through `4.00` in `0.20` steps | `2.00` | `H` cycles |
+| `PEAK` common peak slip | `20` through `60 %` in `2%` steps | `20% / 11.3°` lateral equivalent | `J` cycles |
+| `SLIDE` large-lateral-slip plateau | `60` through `100 %` in `5%` steps | `80%` | `G` cycles |
+| `D` Driver travel-relative offset | `10` through `20 deg` in `1°` steps | `12 deg` | `Y` cycles |
 | `M` maximum road-wheel steer | `50 / 55 / 60 / 65 / 70 deg` | `60 deg` | `U` cycles |
 | `ACT` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 s` | `0.25 s` | `T` cycles |
 
-The browser tire default remains `GRIP=2.00 / PEAK=20% / SLIDE=80%`. Values above P30 remain
-explicit diagnostic probes, not frozen real-production-tire claims. At fixed GRIP, increasing PEAK
-lowers the initial tire-force slope while preserving peak force height. If improvement remains
-monotonic through P40, diagnose omitted/compressed transient or compliance behavior before merely
-extending a literal tire value again.
+The browser tire default remains `GRIP=2.00 / PEAK=20% / SLIDE=80%`. The complete current tire
+product is `11 x 21 x 9 = 2,079` diagnostic calibrations. High GRIP, late PEAK and SLIDE=100 are
+explicit diagnostic probes rather than frozen production-tire realism.
 
-M9.11 remains the current steering law:
+M9.11 remains the steering law:
 
 ```text
 A = M - D
@@ -70,14 +65,13 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` remains derived only. The current M/D selector product has `A >= 36 deg`. No D limiter,
-speed-dependent D, tire-dependent steering authority, yaw feedback, washout or drift mode is
-introduced.
+`A` remains derived only. The current expanded M/D selector product preserves `A >= 30 deg` at the
+extreme `M=50 / D=20`. No D limiter, speed-dependent D, tire-dependent steering authority, yaw
+feedback, washout or drift mode is introduced.
 
 M9.10 remains the constitutive authority for the stateless C1 large-lateral-slip falloff and the
-monotone scalar implicit wheel solve. M9.12/M9.12A/M9.12B/M9.12C do not split longitudinal and
-lateral tire profiles: GRIP and PEAK remain common one-k characteristics, while SLIDE remains the
-M9.10 lateral-only post-peak plateau.
+monotone scalar implicit wheel solve. M9.12 still owns the independent GRIP/PEAK/SLIDE mapping onto
+the same three vehicle calibration scalars; M9.14 expands only their browser diagnostic ranges.
 
 M9.9 remains the common axle-balance and slide-controllability authority. The shared compiled tire
 seed is `front=9.75 / rear=9.75`; the product rule remains:
@@ -95,25 +89,25 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/107_m9_13_full_screen_analog_touch.md` — current touch-driving input/presentation authority.
-5. `docs/106_m9_12c_extended_peak_diagnostic.md` — current scoped PEAK diagnostic range and
-   interpretation.
-6. `docs/105_m9_12b_upward_tire_range_expansion.md` — retained current GRIP range.
-7. `docs/104_m9_12a_centered_handling_comparison_ranges.md` — current steering comparison range and
-   browser starting calibration.
-8. `docs/103_m9_12_independent_tire_calibration_axes.md` — GRIP/PEAK/SLIDE independence authority.
-9. `docs/102_m9_11a_steering_selector_test_range.md` — historical prior M/D/T comparison domain,
-   superseded by 104 only for range/default scope.
-10. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and underlying
-    M/D/T ownership authority.
+4. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — current compact touch travel and
+   DEV D/GRIP/PEAK/SLIDE browser range authority.
+5. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
+   DIRECT/release and presentation authority.
+6. `docs/106_m9_12c_extended_peak_diagnostic.md` — retained diagnostic interpretation below the
+   M9.14 range supersession.
+7. `docs/105_m9_12b_upward_tire_range_expansion.md` — historical/current lineage for GRIP range.
+8. `docs/104_m9_12a_centered_handling_comparison_ranges.md` — retained steering/tire centered
+   defaults below M9.14 range supersession.
+9. `docs/103_m9_12_independent_tire_calibration_axes.md` — GRIP/PEAK/SLIDE independence authority.
+10. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
+    ownership authority.
 11. `docs/100_m9_10_post_peak_sliding_tire.md` — retained tire post-peak constitutive authority.
 12. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
     controllability authority.
-13. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog and profile-selection
-    authority.
+13. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog/profile authority.
 14. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
 15. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
-    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and unit travel-direction
+    `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
     foundations inside later supersession.
 
 Earlier numbered milestones remain chronological records. Do not rewrite historical milestone
@@ -128,7 +122,7 @@ prose merely to use current terminology.
   digital `-1/0/+1`, touch publishes continuous `[-1,+1]`.
 - Canonical ACCEL/BRAKE remains mutually exclusive; keyboard publishes boolean digital shorthand and
   touch publishes normalized `[0,1]` magnitude through the same pedal arbiter.
-- Real touch pointers use full-viewport relative origin gestures; left-half start owns steering and
+- Real touch pointers use full-viewport relative-origin gestures; left-half start owns steering and
   right-half start owns the shared ACCEL/BRAKE axis for that pointer lifetime.
 - `src/physics/driving-actuator.ts` remains the sole finite steering/throttle/brake response state;
   touch adds no separate easing or mechanics state.
@@ -210,10 +204,10 @@ hidden in touch-capable layouts. Selector buttons remain visible and use their e
 
 ## Current takeover checkpoint
 
-For the ongoing handling investigation, the current named navigation checkpoint remains
+For the ongoing handling investigation, the latest named navigation checkpoint remains
 `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It is navigation context only and predates
-M9.13 touch input; current numbered authority/source/tests supersede it for touch-driving behavior.
-Always re-fetch current `main`, PR and workflow state before work.
+M9.13/M9.14 touch/range authority. Always re-fetch current `main`, numbered authority, source, PR and
+workflow state before work.
 
 ## Run and test
 
@@ -269,8 +263,7 @@ fixtures.
 
 ## Release evidence
 
-M9.9, M9.10, M9.11, M9.12, M9.12A, M9.12B and M9.12C standalone validation records remain under
-`docs/validation/`. M9.13 changes a normative input authority boundary and therefore requires its
-own standalone validation record before release. Exact release identity is established by the
-record-inclusive PR head, pure fast-forward main, same-SHA main-push CI and GitHub Pages deployment
-under `AGENTS.md`.
+Prior standalone validation records remain under `docs/validation/`. M9.14 changes current normative
+touch-feel and browser comparison-range authority and therefore requires its own standalone
+validation record before release. Exact release identity is established by the record-inclusive PR
+head, pure fast-forward main, same-SHA main-push CI and GitHub Pages deployment under `AGENTS.md`.
