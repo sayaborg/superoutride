@@ -82,12 +82,13 @@ test('catalog alone owns browser mapping and explicit presentation family', () =
   }
 });
 
-test('legacy six-profile authority and automatic-only coupling name are fully retired', async () => {
+test('legacy six-profile and launch-coupling authorities are fully retired', async () => {
   for (const retired of [
     'FR_VEHICLE_PROFILE', 'MR_VEHICLE_PROFILE', 'RR_VEHICLE_PROFILE',
     'AWD_VEHICLE_PROFILE', 'BIKE1_VEHICLE_PROFILE', 'BIKE2_VEHICLE_PROFILE',
   ]) assert.equal(retired in profilesModule, false, retired);
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /torqueConverterSlipRpm/);
-  assert.match(source, /launchCouplingSlipRpm/);
+  // M9.17 (doc 111, sections 1-3) removes the replacement launch-slip concept as well.
+  assert.doesNotMatch(source, /launchCouplingSlipRpm/);
 });
