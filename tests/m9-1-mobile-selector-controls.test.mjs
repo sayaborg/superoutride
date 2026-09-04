@@ -85,7 +85,7 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile M D and symmetric-response buttons expose the centered M9.12A choices', () => {
+test('mobile M D and symmetric-response buttons expose the current M9.14 choices', () => {
   const offsets = createMobileSteeringOffsetSelectorModel(12 * DEG);
   assert.deepEqual(offsets.map(({ label, active }) => ({ label, active })), [
     { label: '10', active: false },
@@ -93,6 +93,12 @@ test('mobile M D and symmetric-response buttons expose the centered M9.12A choic
     { label: '12', active: true },
     { label: '13', active: false },
     { label: '14', active: false },
+    { label: '15', active: false },
+    { label: '16', active: false },
+    { label: '17', active: false },
+    { label: '18', active: false },
+    { label: '19', active: false },
+    { label: '20', active: false },
   ]);
   const maxima = createMobileMaxRoadWheelSteerSelectorModel(60 * DEG);
   assert.deepEqual(maxima.map(({ label, active }) => ({ label, active })), [
@@ -135,10 +141,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   const offsetContainer = new FakeContainer();
   let selectedOffset = null;
   const offsetController = mountMobileSteeringOffsetSelector(offsetContainer, 12 * DEG, (radians) => { selectedOffset = radians; }, fakeDocument);
-  offsetContainer.children[4].click();
-  assert.ok(Math.abs(selectedOffset - 14 * DEG) < 1e-12);
+  offsetContainer.children[10].click();
+  assert.ok(Math.abs(selectedOffset - 20 * DEG) < 1e-12);
   offsetController.setActive(selectedOffset);
-  assert.equal(offsetContainer.children[4].attributes.get('aria-pressed'), 'true');
+  assert.equal(offsetContainer.children[10].attributes.get('aria-pressed'), 'true');
 
   const maxContainer = new FakeContainer();
   let selectedMax = null;
@@ -165,7 +171,7 @@ test('mobile selector taps publish canonical selections and expose exactly one a
   assert.equal(cameraContainer.children[1].attributes.get('aria-pressed'), 'true');
 });
 
-test('one browser steering adapter owns keyboard touch and the centered vehicle M D T instance', () => {
+test('one browser steering adapter owns keyboard touch and the current vehicle M D T instance', () => {
   const fakeDocument = new FakeDocument();
   const containers = {
     steeringOffset: new FakeContainer(),
