@@ -1,16 +1,17 @@
 # SUPER OUTRIDE — Agent Development Contract
 
-This file is the persistent working contract for coding agents operating in this repository.
+This is the persistent working contract for coding agents operating in this repository. It is not a
+second design specification. Normative decisions live in the frozen Core documents and numbered
+milestone documents; executable behavior lives in source, compilers and regression tests.
 
-It is intentionally **not** a second design document. Normative game/rendering mathematics live in the Core Freeze documents and their explicit addenda. Milestone-specific decisions live in the corresponding milestone documents and regression tests.
-
-Before changing code, read this file, the repository entry/authority documents listed below, and the current active handoff checkpoint when takeover context is relevant.
+The repository is the continuing project memory. Conversation history is never authority.
 
 ---
 
-## 1. Project identity
+## 1. Project identity and status
 
-SUPER OUTRIDE is a browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run, Super Hang-On, OutRunners and the Super Scaler era.
+SUPER OUTRIDE is a browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out
+Run, Super Hang-On, OutRunners and the Super Scaler era.
 
 Product route forms are:
 
@@ -20,15 +21,21 @@ BRANCHING
 CIRCUIT
 ```
 
-Cars and motorcycles share the same world-space driving architecture. Vehicle handling is currently `DEV_UNCALIBRATED` unless a later normative document explicitly changes that status.
+Cars and motorcycles share one world-space driving architecture. Vehicle handling remains:
+
+```text
+DEV_UNCALIBRATED
+```
+
+unless a later numbered authority explicitly changes that status.
 
 ---
 
 ## 2. Authority map
 
-Use each source only for the authority it owns.
+Use each source only for the concept it owns.
 
-### Frozen design authority
+### Frozen renderer, metric and open-model authority
 
 ```text
 docs/00_core_design_freeze.md
@@ -37,32 +44,32 @@ docs/00b_core_design_freeze_addendum_m6_44.md
 docs/00c_core_design_freeze_addendum_m6_45.md
 ```
 
-The addenda supersede only the specific earlier assumptions they explicitly replace.
+Each addendum supersedes only its stated scope.
 
-The current touch-driving calibration/input/presentation authority is:
+### Current touch authority
 
 ```text
 docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 docs/107_m9_13_full_screen_analog_touch.md
 ```
 
-M9.14 supersedes M9.13 only for the full-scale touch displacement calibration. Current touch full
-scale is exactly `64 CSS px`; 32 CSS px is 50% and 64 CSS px is 100%. The value no longer changes
-with viewport dimensions or orientation and is independent of native backing-store/device pixel
-density, but it is not claimed to equal an exact physical millimeter on every device.
-
-M9.13 remains authoritative for the full-screen relative analog touch architecture. Pointer-down
-selects a fixed left-half STEERING or right-half ACCEL/BRAKE role and the pointer-down coordinate is
-that pointer's neutral origin. Canonical pedal requests remain mutually exclusive but accept boolean
-digital shorthand or a finite normalized magnitude in `[0,1]`. An active analog touch may use the
-generic `DIRECT` apply mode so displacement is the current amount of the existing vehicle actuator
-state; release/cancel returns to ordinary neutral and the existing actuator release rate owns decay.
-Keyboard remains digital/rate-limited. M9.13/M9.14 add no touch-specific vehicle state, rack, pedal
-state, steering law, tire law, vehicle/course branch or renderer authority.
-
-The current vehicle-physics architecture authority is:
+M9.14 owns the current fixed full-scale travel:
 
 ```text
+L = 64 CSS px
+```
+
+M9.13 owns full-viewport relative-origin touch: a pointer beginning in the left half owns STEERING;
+a pointer beginning in the right half owns the exclusive ACCEL/BRAKE axis for its lifetime.
+Pointer-down is neutral origin. Held analog displacement may use the existing generic `DIRECT`
+apply mode. Release/cancel publishes neutral, and the existing vehicle actuator `releaseRate` owns
+physical decay. Keyboard remains digital and rate-limited. Touch adds no vehicle state, rack, pedal
+state, tire law, route branch or renderer authority.
+
+### Current vehicle, steering and tire authority
+
+```text
+docs/109_m9_15_absolute_slide_one_k_tire.md
 docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 docs/106_m9_12c_extended_peak_diagnostic.md
 docs/105_m9_12b_upward_tire_range_expansion.md
@@ -82,9 +89,75 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.11 is the current steering-control law authority. It removes M9.7 yaw-transient feedback,
-zero-DC yaw-washout state and both old steering selectors. The common law is now only the
-unit-coefficient travel-direction transform plus Driver offset and one physical rack:
+#### Current tire law: M9.15
+
+M9.15 retains the state-free one-k demand vector, radial C1 saturation, friction-circle bound,
+force direction, scalar implicit wheel solve and the existing vehicle-owned three-scalar tire
+calibration. It changes only the browser meaning of S and the lateral post-peak width.
+
+Browser characteristics are:
+
+```text
+G = absolute peak friction coefficient at gripFactor=1
+P = common normalized slip at peak
+S = absolute deep-slide friction coefficient at gripFactor=1
+```
+
+Physics still stores:
+
+```text
+referenceFrictionMultiplier
+linearStiffnessMultiplier
+slidingFrictionRatio
+```
+
+Absolute S is derived, not stored as a fourth scalar:
+
+```text
+slidingFrictionRatio = S / G
+```
+
+The lateral post-peak C1 scale begins at P and reaches the S plateau at exactly 2P. During one wheel
+solve the post-peak scale remains independent of wheel Omega, preserving the monotone backward-Euler
+residual, finite bracket and unique bisection root.
+
+Current tire selector domain is:
+
+```text
+G = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
+    3.20 / 3.40 / 3.60 / 3.80 / 4.00
+
+P = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
+    42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %
+
+S = 1.00 / 1.20 / 1.40 / 1.60 / 1.80 / 2.00
+```
+
+Current browser starting candidate:
+
+```text
+G=3.00 / P=20% / S=1.00
+```
+
+Its internal `S/G=1/3` is an explicit falsification probe, not a production-tire realism claim. The
+complete current product is `11 x 21 x 6 = 1,386` calibrations.
+
+Changing G must preserve displayed P and absolute S. Changing P must preserve G and S. Changing S
+must preserve G and P. Do not add tire memory, a fourth calibration scalar, a drift mode, target
+sideslip, hidden yaw torque, vehicle-specific tire logic or a drive-layout branch merely to improve
+a hands-on result.
+
+M9.10 remains historical/current foundation for the lateral-demand-only post-peak scale and scalar
+wheel-root proof; M9.15 supersedes only its transition width and percentage-S browser meaning.
+M9.12 remains the independent three-characteristic mapping foundation within that supersession.
+M9.9 remains axle-neutral tire balance and controllable-slide acceptance:
+
+> **Uncontrollable slide is forbidden. Controllable drift is allowed.**
+
+Explicit recovery input must recover. Neutral, wrong or deliberately sustaining input is not
+required to self-recover.
+
+#### Current steering law: M9.11 with M9.14 ranges
 
 ```text
 A = M - D
@@ -92,330 +165,82 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` is derived only and must never become a stored state, profile field or selector. Document 108
-(M9.14) is the current scoped browser steering comparison-range authority; it supersedes document
-104 only for the current DEV `D` range while preserving the centered default and retaining `M`/ACT:
+`A` is derived only. It must never become a stored state, profile field or selector.
+
+Current browser steering domain is:
 
 ```text
-D   = 10 / 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 deg  browser default 12 deg
-M   = 50 / 55 / 60 / 65 / 70 deg                                browser default 60 deg
-ACT = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s                      browser default 0.25 s
+D   = 10 / 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 deg  default 12
+M   = 50 / 55 / 60 / 65 / 70 deg                                default 60
+ACT = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s                      default 0.25
 ```
 
-The complete current browser M/D product preserves `A>=30 deg`. Compiled production-profile
-construction seeds remain separate and unchanged (`M=45 deg`; CAR `D=9.5 deg`; BIKE `D=9 deg`;
-base symmetric steering traversal `0.25 s`). Browser DEV calibration applies the current comparison
-starting point to the player instance without redefining production vehicle identity. M/D/ACT remain
-tunable `DEV_UNCALIBRATED` values. Common mechanics contains no yaw steering assist, yaw baseline,
-drift mode, target beta, vehicle-kind branch or drive-layout handling branch.
+The complete M/D product preserves `A>=30 deg`. Compiled production-profile construction seeds are
+separate and unchanged. Do not recreate yaw-washout state, a travel-direction gain, drift steering
+mode, D limiter or tire/speed-dependent steering authority without a new explicit normative
+milestone.
 
-M9.10 remains the current post-peak tire constitutive-law authority. It preserves the M9.9 compiled
-axle-neutral reference seed and one stateless C1 lateral-demand-driven post-peak scale. Pure
-longitudinal behavior and the monotone scalar implicit wheel solve remain unchanged because the
-post-peak lateral scale is independent of wheel angular speed during the solve. Historical browser
-SLIDE comparison tables are superseded for current DEV selector scope by M9.14. No drift mode,
-drift assist, target sideslip, yaw/beta feedback, tire memory, vehicle-kind branch or drive-layout
-handling branch is added. Handling remains `DEV_UNCALIBRATED`.
+#### Vehicle/catalog boundary
 
-M9.12 keeps the existing three-scalar vehicle-owned tire calibration and exposes three independent
-browser characteristics without adding physics state:
+M9.0 owns one common Two-Station Arcade Vehicle Dynamics solver and state shape for CAR and BIKE.
+M9.8 owns nine production identities and profile selection. Profiles own numeric mechanics;
+common mechanics may not branch on identity, presentation family or drive layout. The common `18:1`
+steering ratio is HUD-only and must never feed mechanics.
+
+### Current camera authority
 
 ```text
-GRIP  = peak force height
-PEAK  = common normalized slip at peak
-SLIDE = large-lateral-slip plateau / peak
-```
-
-Changing one browser tire axis preserves the other two displayed characteristics. Physics still
-stores only positive finite reference-friction, linear-stiffness and sliding-friction-ratio
-calibration values; GRIP/PEAK/SLIDE IDs are browser-derived and are not stored in mechanics.
-Longitudinal and lateral PEAK are not split: the model remains one common one-k normalized demand
-law. SLIDE remains lateral-post-peak only.
-
-M9.14 is the current scoped DEV tire selector-range authority. Current tire selector domain is:
-
-```text
-GRIP  = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
-        3.20 / 3.40 / 3.60 / 3.80 / 4.00                         default 2.00
-PEAK  = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
-        42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %       default 20%
-SLIDE = 60 / 65 / 70 / 75 / 80 / 85 / 90 / 95 / 100 %          default 80%
-```
-
-The current `11 x 21 x 9 = 2,079` browser product is diagnostic and regression coverage keeps the
-retained scalar wheel solve finite across that product. Values such as GRIP=4.00, PEAK=60% and
-SLIDE=100% are explicit diagnostic probes, not frozen real-production-tire claims. The earlier
-M9.12C observation remains useful lineage: at fixed `GRIP=2.00`, larger PEAK values were preferred
-through `PEAK=30%`; at fixed GRIP, increasing PEAK lowers initial force slope while preserving the
-peak-force ceiling. If improvement remains monotonic toward extreme probes, diagnose omitted or
-compressed transient/compliance behavior before treating those values literally. Candidate omitted
-effects include tire relaxation, body-roll transient/compliance and left/right load-transfer
-dynamics. M9.14 authorizes no such new state.
-
-M9.9 remains the common tire-balance and deep-sideslip acceptance authority. Its product rule is
-**uncontrollable slide is forbidden; controllable drift is allowed**. The explicit recovery input
-must recover; neutral, wrong or intentionally sustaining input is not required to self-recover.
-The shared compiled normalized tire seed is axle-neutral at `9.75 / 9.75`, the arithmetic mean of
-the previous `9.0 / 10.5`; geometry, load transfer, inertia, combined slip and drive torque remain
-the axle-behavior causes. M9.10 supersedes only M9.9's post-peak-drop non-goal and former browser
-tire comparison table. M9.11 supersedes statements that retained M9.7 washout only for steering
-control; M9.9 tire balance and controllability acceptance remain current.
-
-M9.8 supersedes M9.1's six abstract selectable identities, shared four-car package, six-entry
-selector, player default and rival-profile identity. One structured catalog owns nine production
-identities and references nine distinct compiled profiles. Manufacturer/model, identifier,
-selected specification and period remain separate. The normalized reference tire package remains
-common, with its current axle balance superseded by M9.9; mass, CG geometry, inertia, suspension,
-wheel, brake, drag, fixed drive split and automatic-shifted powertrain data are profile-owned.
-Keyboard/touch/HUD derive from the catalog, Testarossa is the default and fixed rival profile, and
-generic CAR/BIKE presentation uses explicit metadata instead of ID/name parsing. Handling remains
-`DEV_UNCALIBRATED`.
-
-M9.7 is now a historical steering predecessor. M9.11 supersedes its yaw-transient/washout law,
-filter state, `YAW`/`WASH` selectors, fixed 31-degree M and 0.375-second default T. M9.7's retained
-unit-coefficient travel-direction idea and rival-driver decisions remain historical lineage where
-not superseded. Do not recreate a washout state, setter, selector, source module or compatibility
-shim.
-
-M9.5 historically superseded M9.4's exact browser choices and its prohibition on calibrating linear
-tire demand. Its numbered `1 / 2 / 3` browser comparison table is superseded by later M9.10/M9.12
-selector authority. The retained M9.5/M9.9 `TIRE 2` reference values still supply historical/common
-calibration anchors: effective normalized slope `10.3` and pure-lateral peak start `12 deg`. The
-existing vehicle-owned tire-calibration authority atomically owns positive finite
-reference-friction, linear-stiffness and sliding-friction-ratio values. `rhoKnee`, the common wheel
-solve and relative SurfaceMap materials remain separate authorities.
-
-M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
-common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
-Its old browser comparison table is historical; later M9.10/M9.12/M9.14 documents own current tire
-comparison behavior.
-
-M9.2 is a historical predecessor superseded first by M9.7 and now by M9.11 for steering
-calibration. Do not recreate its gain or absolute-yaw-preview compatibility state, setter, key path
-or presentation row.
-
-M9.1 historically introduced FR/MR/RR/AWD/BIKE1/BIKE2 selection and a shared four-car package;
-those identities and package are superseded by M9.8. Its retained scope includes the normalized
-station drive-torque primitive, shared presentation-only HUD boundary and exclusive simultaneous-
-pedal rule. The common `18:1` steering ratio is a HUD-only handwheel conversion and must never be
-consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one input-layer
-arbiter gives priority to the latest source that remains held across keyboard aliases and touch
-pointers. Actuators own finite response only and must not own pedal order or arbitration. M9.13
-supersedes M9.1 only for real-touch fixed digital driving controls, boolean-only touch request
-interpretation and the held-touch apply path; M9.1 selector/HUD and pedal-exclusivity decisions
-remain retained where not otherwise superseded. M9.14 changes only the retained touch travel
-calibration and browser DEV comparison ranges.
-
-M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
-steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction
-steering concept inside one Two-Station Arcade Vehicle Dynamics solver with compiled profiles and
-three finite normalized actuators. The M8 documents remain historical authority for retained and
-superseded details within the exact boundary stated by M9.0.
-
-It explicitly supersedes conflicting vehicle-physics architecture decisions in M7.0/M7.3/M7.4 within its stated scope. Earlier milestone documents remain historical records and must not be rewritten merely to use current terminology.
-Historically, M8.1 superseded only the M8.0 CAR Driver raw-angle/useful-steer/no-countersteer
-decisions. M9.0 now owns the shared CAR/BIKE mechanics and input-response boundary while M9.11 owns
-the current steering-control calibration built on the retained M8.1 travel-direction concept.
-M8.2 supersedes the M5 Guide-lateral/yaw-lag camera decisions within its stated scope; frozen
-renderer depth/metric authority and current vehicle authority remain unchanged.
-M8.5 supersedes only the M8.2 initial base-pitch/camera-height tuning. M9.1 dual-yaw-camera mode
-authority supersedes M8.2's mandatory movement-yaw default while retaining its movement-yaw
-derivation as an alternate; M8.2 body-pitch follow and centering architecture remain authoritative.
-M8.6 supersedes only the M8.5 150 m far-depth value; frozen chainage depth and the M8.2/M8.5 camera
-architecture and pitch/height tuning remain authoritative.
-
-The current browser course-debug composition authority is:
-
-```text
-docs/82_m8_3_three_mode_course_debug.md
-docs/88_m9_1_six_profile_debug_hud.md
-docs/90_m9_1_mobile_touch_selectors.md
-docs/91_m9_1_dual_yaw_camera_modes.md
-docs/96_m9_6_fisco_circuit.md
-docs/98_m9_8_selectable_production_vehicle_catalog.md
-docs/99_m9_9_controllable_drift_foundation.md
-docs/100_m9_10_post_peak_sliding_tire.md
-docs/101_m9_11_simplified_travel_direction_steering.md
-docs/103_m9_12_independent_tire_calibration_axes.md
-docs/104_m9_12a_centered_handling_comparison_ranges.md
-docs/105_m9_12b_upward_tire_range_expansion.md
-docs/106_m9_12c_extended_peak_diagnostic.md
-docs/107_m9_13_full_screen_analog_touch.md
-docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
-```
-
-The current CIRCUIT DEV course-authoring authority is:
-
-```text
-docs/93_m9_3_tsukuba_circuit.md
-docs/96_m9_6_fisco_circuit.md
-```
-
-M9.6 adds the current Fuji Speedway main racing course as browser course `4` while retaining
-M9.3 Tsukuba as course `3`. Both selections remain route kind `CIRCUIT` and use the existing
-`src/main-circuit.ts` composition root. FISCO uses published 4563 m lap, 1475 m home straight,
-direction, width/elevation ranges and 17-corner sequence; exact unpublished connectors and arc
-angles are original simplified authoring. It adds no handling, grip, input, physics, camera,
-recovery, race-progress, topology-compiler or renderer branch.
-
-M9.3 Tsukuba authoring supersedes only the M9.1 public CIRCUIT geometry, elevation and track
-cross-section. It selects a functional four-wheel Course 2000 reconstruction using published
-2045 m lap, straight lengths, direction, width range, corner sequence/radius families and near-flat
-profile. Exact unlabelled connectors and arc angles are original simplified authoring. It adds no
-handling, grip, input, physics, camera, recovery, race-progress or renderer branch. M9.1 remains the
-historical predecessor.
-
-### Milestone design authority
-
-Detailed post-freeze decisions live in the numbered milestone documents under `docs/`.
-
-For current topology/runtime architecture, read this sequence:
-
-```text
-docs/62_m6_44_open_path_core.md
-docs/63_m6_45_open_source_profiles.md
-docs/64_m6_46_branch_violation_recovery.md
-docs/65_m6_47_open_parent_stage_integration.md
-docs/66_m6_48_explicit_circuit_topology.md
-docs/67_m6_49_circuit_runtime_window.md
-docs/68_m6_50_circuit_race_progress.md
-docs/69_m6_51_circuit_live_runtime.md
-docs/70_m6_52_field_route_progress.md
-docs/71_m6_53_branching_session_normalization.md
-docs/72_m6_54_circuit_multi_actor_integration.md
-```
-
-For vehicle-physics lineage/current authority, read:
-
-```text
-docs/73_m7_0_vehicle_dynamics_architecture_freeze.md
-docs/74_m7_1_highway_calibration_course_authoring.md
-docs/75_m7_2_default_branching_highway_integration.md
-docs/76_m7_3_grip_and_instrument_hud.md
-docs/77_m7_4_transient_tire_response.md
-docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
-docs/80_m8_1_car_self_steering_control.md
 docs/81_m8_2_body_pitch_movement_yaw_camera.md
-docs/82_m8_3_three_mode_course_debug.md
-docs/83_m8_4_dual_low_speed_circuit_complex.md
 docs/84_m8_5_downward_camera_presentation.md
 docs/85_m8_6_two_hundred_meter_render_distance.md
-docs/86_m8_7_varied_elevation_circuit.md
-docs/89_m9_1_low_mid_speed_mountain_circuit.md
-docs/90_m9_1_mobile_touch_selectors.md
 docs/91_m9_1_dual_yaw_camera_modes.md
-docs/92_m9_2_selectable_self_steer_gain.md
+```
+
+`BODY_FIXED` is default yaw; `MOVEMENT_FOLLOW` is the retained alternate. Camera pitch follows
+physical body pitch. Camera roll remains zero.
+
+### Current circuit authoring
+
+```text
 docs/93_m9_3_tsukuba_circuit.md
-docs/94_m9_4_selectable_tire_friction.md
-docs/95_m9_5_debug_tire_characteristic_presets.md
 docs/96_m9_6_fisco_circuit.md
-docs/97_m9_7_bounded_washout_steering_assist.md
-docs/98_m9_8_selectable_production_vehicle_catalog.md
-docs/99_m9_9_controllable_drift_foundation.md
-docs/100_m9_10_post_peak_sliding_tire.md
-docs/101_m9_11_simplified_travel_direction_steering.md
-docs/102_m9_11a_steering_selector_test_range.md
-docs/103_m9_12_independent_tire_calibration_axes.md
-docs/104_m9_12a_centered_handling_comparison_ranges.md
-docs/105_m9_12b_upward_tire_range_expansion.md
-docs/106_m9_12c_extended_peak_diagnostic.md
-docs/107_m9_13_full_screen_analog_touch.md
-docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 ```
 
-### Executable implementation contract
+Course `3` is Tsukuba and course `4` is FISCO through one CIRCUIT composition root.
 
-Types, compilers and regression tests are the executable contract. If documentation and implementation appear inconsistent, do not silently choose one. Identify the conflict, determine which authority owns the topic, and resolve it explicitly.
+### Documentation and evidence indexes
 
-### Documentation authority index
-
-`docs/README.md` distinguishes normative authority, chronological milestone history, active takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
-
-### Current takeover handoff state
-
-The latest navigation/continuation checkpoint remains:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
-```
-
-That file records the released M9.12C handling state, earlier steering/tire selector domains, the
-latest `GRIP=2.00 / PEAK=30%` handling observation and restart/release procedure. It predates
-M9.13/M9.14 and is navigation context for handling continuation only; for current touch-driving and
-browser comparison ranges use documents 108/107 plus the current README/docs index. The handoff
-does not replace numbered milestone authority, source/types/compilers, regression tests, immutable
-validation evidence or current Git/PR/workflow state. A fresh agent should re-fetch current main and
-release evidence before assuming the embedded M9.12C SHA or selector ranges are still current.
-
-The prior M9.6 takeover handoff:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
-```
-
-is historical navigation context after this checkpoint.
-
-### M8.0 finalization handoff state
-
-The implementation/finalization checkpoint for M8.0 PR #88 is:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md
-```
-
-That file is navigation/finalization context only. After release it is historical. It does not replace the Core Freeze/addenda, `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md`, source/types/compilers, regression tests, or `docs/validation/M8_0_PHASE9_VEHICLE_PHYSICS_VALIDATION.txt` as release evidence.
-
-The older:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
-```
-
-is historical repository-migration handoff context. It records the PR-C/final-migration lineage and must not be mistaken for the active current takeover checkpoint.
-
-The original mandatory first read-only Codex takeover audit was completed before PR-C. That one-time audit is distinct from the later final clean-room audit and final exact-head migration freeze. The released FINAL CODEX MIGRATION POINT is established by `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` together with Git/PR/main-ref and Pages workflow identity. Do not infer the final migration SHA from an embedded self-reference in an entry document.
-
-At and after that released final migration point, do not repeat the migration cleanup ceremony merely because a fresh session reads historical migration context. For active work, resolve current status from `README.md`, `docs/README.md`, the active handoff, Git/PR state, and exact-head CI.
-
-### README
-
-`README.md` is an entry point and current-state index. It is informative and must not override a freeze/addendum, milestone authority or executable regression contract.
+`README.md` is the repository entry/current-state index. `docs/README.md` distinguishes current
+normative authority, chronological records, takeover context and immutable validation evidence.
+Neither replaces source/tests or a newer scoped authority.
 
 ---
 
-## 3. Design priority
+## 3. Mandatory Architecture Decision Gate
 
-When several implementations are possible, optimize in this order:
+Before any non-trivial feature, fix, refactor, integration or design-affecting maintenance change,
+answer from current repository evidence:
+
+1. Which existing layer owns the decision?
+2. Is there already a primitive or authority that can express it without a new abstraction?
+3. Would the solution create duplicate state, coordinate truth or a second authority?
+4. Would it add a product-, mode-, vehicle-, route- or stage-specific branch to a lower layer?
+5. Can authoring, topology, compilation, composition or a simpler product rule achieve it instead?
+6. Does it preserve every applicable frozen renderer, physics, metric and topology invariant?
+7. Which causal regression proves the behavior and prevents boundary drift?
+
+Priority order:
 
 1. architectural simplicity;
 2. one clear authority per concept;
-3. mathematical consistency with the frozen pseudo-3D model;
+3. mathematical consistency with the frozen model;
 4. implementation simplicity and period-plausible computation;
 5. feature convenience.
 
-Do not preserve a complicated feature interpretation if a simpler product/design rule keeps the architecture clean.
+Prefer deleting duplicate authority, generalizing an existing primitive or changing upper-level
+composition over adding a lower-layer special case. Do not apply an ad hoc visible-symptom patch.
 
-Prefer deleting duplicate authority, generalizing an existing primitive, or changing an upper-level composition over introducing a lower-level special case.
-
-Do not apply an ad hoc patch merely because it makes a visible symptom disappear.
-
-### Mandatory architecture decision gate
-
-Before implementing any non-trivial feature, bug fix, refactor, integration change or design-affecting maintenance change, answer all of the following from the current repository evidence:
-
-1. Which existing layer owns this decision?
-2. Is there already a primitive or authority that can express it without a new abstraction?
-3. Would the proposed solution create duplicate state, duplicate coordinate truth or a second authority for one concept?
-4. Would it add a product-, mode-, vehicle-, route- or stage-specific branch to a lower engine layer?
-5. Can the same result be obtained more cleanly through authoring, topology, compilation, runtime composition, or a simpler product rule?
-6. Does the solution preserve every applicable frozen renderer, physics, metric and topology invariant?
-7. What regression or architecture check proves the real causal behavior and prevents the boundary from drifting later?
-
-This gate is mandatory. A feature request is not implicit permission to weaken frozen invariants or bypass current authority boundaries. If the requested behavior conflicts with them, identify the conflict and prefer an upper-level or explicit normative design change rather than silently inserting a lower-level exception.
-
-If a proposed solution requires a lower-layer special case, duplicated state, duplicated coordinate authority, hidden wrapping, compatibility authority, or an ad hoc exception, do not implement it merely because it is locally convenient. Reconsider the design first.
-
-The preferred transformation is:
+Preferred transformation:
 
 ```text
 complex product requirement
@@ -424,44 +249,34 @@ complex product requirement
 -> unchanged or more-general lower engine primitives
 ```
 
-When a stable architectural boundary or invariant can reasonably be checked mechanically, add or extend a regression/architecture test so CI enforces it. Do not rely on prose alone for a rule that can be made executable. Purely procedural or non-mechanizable rules may remain contract-only.
+Mechanizable stable boundaries must receive executable regression coverage.
 
 ---
 
 ## 4. Frozen renderer and geometry invariants
 
-The following are not negotiable unless a new explicit normative addendum is authored and validated.
+These are not negotiable without a new explicit normative addendum:
 
 - World X/Y/Z is authoritative for vehicle physics.
-- Vehicle movement is free in world space; it is not snapped to the road centerline.
-- Renderer depth is chainage pseudo-depth, exactly:
-
-```text
-d = s_render - s_camera
-```
-
+- Vehicle movement is free in world space and is not snapped to road center.
+- Renderer depth is exactly `d = s_render - s_camera`.
 - Renderer depth contains no course-length modulo, winding, route identity or topology decision.
-- Euclidean distance is not renderer depth.
-- Camera-space Z is not introduced as a replacement depth authority.
-- Lateral displacement does not modify renderer depth.
-- Same `d` means same scale.
-- Same `d` plus same height means same screen Y.
+- Euclidean distance and camera-space Z are not renderer-depth authorities.
+- Lateral displacement does not change renderer depth.
+- Same `d` means same scale; same `d` plus same height means same screen Y.
 - One chainage corresponds to one horizontal raster scanline.
 - Road geometry remains Raster Segment geometry.
-- Absolute turn at every interior Raster vertex remains `<= 10 degrees`.
-- Guide geometry is coordinate/camera support; it is not a polygon-road renderer.
+- Absolute turn at every interior Raster vertex remains `<=10 degrees`.
+- Guide geometry supports coordinates/camera; it is not a polygon-road renderer.
 - Terrain and World Sprites share one far-to-near Painter.
-- Do not add a z-buffer.
-- Do not convert the road renderer into a normal polygon/perspective road renderer.
-- Do not add perspective-correct texture mapping.
-- Do not add arbitrary runtime sprite rotation.
-- Transparency remains 0/1; no alpha blending.
+- No z-buffer, perspective-correct texture mapping or arbitrary runtime sprite rotation.
+- Transparency is 0/1; no alpha blending.
 - Camera roll remains zero.
 - GroundMap visual semantics and SurfaceMap physical semantics remain independent.
 - GroundBase `TRANSPARENT` and SurfaceMap `VOID` remain independent.
-- Far Background is a full image, including meaningful pixels below the horizon.
+- Far Background is a full image with meaningful pixels below the horizon.
 
-Final renderer order remains:
+Final renderer order:
 
 ```text
 Optional Clear
@@ -475,34 +290,21 @@ Optional Clear
 
 ## 5. Fixed metric presentation authority
 
-The canonical sprite/world scale is fixed at player pseudo-depth:
-
 ```text
 player car physical width = 2.0 m
 player car source width   = 80 px
 player-depth scale        = 40 px/m
+f                         = 200 px
+D_cam                     = 5.0 m
+D_cam                     = f / 40
 ```
 
-Current camera values are:
-
-```text
-f     = 200 px
-D_cam = 5.0 m
-```
-
-The invariant is:
-
-```text
-D_cam = f / 40
-```
-
-If focal length/FOV changes in the future, change `D_cam` so the 40 px/m player-depth reference is preserved.
-
-There is no arbitrary `visualScale` authority.
+A future FOV change must move `D_cam` to preserve 40 px/m. There is no arbitrary `visualScale`
+authority.
 
 ---
 
-## 6. Open geometry and source model
+## 6. Open geometry and topology
 
 The general runtime model is open:
 
@@ -510,136 +312,77 @@ The general runtime model is open:
 0 <= s <= L
 ```
 
-Core does not manufacture a last-to-first segment.
+Core does not manufacture a last-to-first segment. Ordinary RasterPath, GuidePath, HeightProfile,
+VisualProfile, GroundMap and SurfaceMap readers do not wrap out-of-range chainage.
 
-General forms are open:
+Governing rule:
 
-```text
-RasterPath
-GuidePath
-HeightProfile
-VisualProfile
-GroundMapLogicalProfile
-BakedGroundMapAsset
-SurfaceMap
-```
+> **Open is the general data model. Cyclic is an explicit upper-level topology choice. The renderer
+> is neither.**
 
-Out-of-range chainage must not silently wrap into another endpoint.
+Explicit cyclic adapters may exist only where an upper-level topology deliberately selects them.
 
-The governing rule is:
+### Point-to-point
 
-> **Open is the general data model. Cyclic is an explicit upper-level topology choice. The renderer is neither.**
-
-Explicit `Cyclic*` adapters may exist for a deliberate upper-level topology, but ordinary LINEAR/BRANCHING runtime consumers must not select them for historical convenience.
-
----
-
-## 7. Point-to-point route authority
-
-The acyclic RouteDag is the point-to-point authority for LINEAR/BRANCHING.
-
-Route choice is physical. AI steering intent, screen X, desired branch, visual proximity or guessed road center must never manufacture route progress.
-
-A legal stage transition is:
+The acyclic RouteDag is LINEAR/BRANCHING route authority. Route choice is physical. AI intent,
+steering, screen X, desired branch or visual proximity may not manufacture route progress.
 
 ```text
 physical route-gate crossing
 -> validated RouteDag transition
 -> PENDING
--> old chart/content remain authoritative
+-> source chart/content remain authoritative
 -> forward physical handoff-seam crossing
 -> COMMIT target chart/content
 ```
 
-COMMIT changes chart/content authority only.
+COMMIT changes chart/content authority only. It must not teleport or rewrite world X/Y/Z, yaw or
+world velocity. Entering a terminal stage is not FINISH; a validated physical FINISH crossing is
+still required.
 
-It must not teleport or rewrite:
-
-```text
-world X/Y/Z
-yaw
-world velocity
-```
-
-Entering a terminal stage is not FINISH. A validated physical FINISH crossing is still required.
-
-For the current BRANCHING product rule:
+Current BRANCHING policy:
 
 ```text
 sharedRouteChoiceMode = FIRST_PHYSICAL_CROSSING_LOCKS
 branchViolationPolicy = RECOVER_TO_LOCKED_BRANCH
 ```
 
-The first physical vehicle crossing of a sibling route gate locks that choice for the field. A losing sibling crossing creates no illegal progress and uses the explicit recovery policy.
+### CIRCUIT
+
+CIRCUIT must not weaken open Core or acyclic RouteDag. One authored closed lap is unfolded above
+Core into a finite ordinary open runtime window. Physics, camera and renderer consume that open
+window without circuit-specific branches.
+
+Topological winding is not race-lap authority. Laps are awarded only by ordered physical
+checkpoints plus forward FINISH. For N scored laps, runtime supplies at least N+1 finite copies so
+the final FINISH remains an ordinary internal seam with runout/lookahead.
 
 ---
 
-## 8. CIRCUIT authority
+## 7. Recovery rules
 
-CIRCUIT must not weaken the open Core or acyclic RouteDag.
-
-One circuit lap is authored explicitly above Core. Runtime topology is unfolded into a finite ordinary open window before lower consumers see it.
-
-Current architecture:
-
-```text
-explicit closed-lap authoring
-        |
-        v
-CircuitTopology
-        |
-        v
-finite ordinary open runtime window
-        |
-        +--> ordinary car/bike physics
-        +--> ordinary camera
-        +--> ordinary renderer
-        |
-        v
-ordered physical checkpoints + forward FINISH
-        |
-        v
-validated lap race
-```
-
-Topological winding is not race-lap authority.
-
-Race laps are awarded only by the ordered physical checkpoint/FINISH contract.
-
-For `N` scored laps, runtime must provide at least `N + 1` finite lap copies so the final scored FINISH is still an ordinary internal seam with normal runout/lookahead.
-
-Do not add a separate renderer/physics/camera circuit mode branch merely to handle winding.
-
----
-
-## 9. Recovery rules
-
-Recovery is gameplay/physics reset, not route/race manufacture.
-
-Recovery/resync must not:
+Recovery is gameplay/physics reset, never route/race manufacture. It must not:
 
 - manufacture a route transition;
-- award a checkpoint;
-- award a lap;
+- award a checkpoint or lap;
 - erase validated progress;
 - imply topology through wrapping.
 
-Wrong-branch recovery geography derives from the locked legal physical route gate, not screen coordinates or AI intent.
+Wrong-branch recovery derives from the locked legal physical gate, not screen coordinates or AI
+intent.
 
 ---
 
-## 10. Browser composition and Pages
+## 8. Browser composition and Pages
 
-Current top-level browser composition is explicit:
+Current composition roots:
 
 ```text
-src/boot.ts          -> one browser course-mode selector
+src/boot.ts          -> course selection
 src/main-linear.ts   -> LINEAR
 src/main.ts          -> BRANCHING
 src/main-circuit.ts  -> CIRCUIT
 ```
-
-Boot selection belongs only at the composition root:
 
 ```text
 /                -> BRANCHING
@@ -649,9 +392,10 @@ Boot selection belongs only at the composition root:
 /?mode=fisco     -> CIRCUIT / FISCO
 ```
 
-Do not distribute `if (CIRCUIT)` / `routeKind` decisions through lower engine layers when composition can select the correct ordinary runtime objects once.
+Select composition once at the top. Do not distribute `if (CIRCUIT)` or route-kind branches through
+lower engine layers.
 
-`src/dev` is not a general runtime authority. General layers must not import it. The only current non-DEV TypeScript files allowed to assemble DEV fixtures are the three explicit top-level browser composition roots:
+`src/dev` is not general runtime authority. Only these non-DEV files may assemble DEV fixtures:
 
 ```text
 src/main-linear.ts
@@ -659,15 +403,14 @@ src/main.ts
 src/main-circuit.ts
 ```
 
-`src/dev/**` may depend on ordinary general layers, but that dependency direction must not be reversed. `src/dev/README.md` defines the DEV fixture categories, and `tests/source-boundary-normalization.test.mjs` enforces the boundary across all `src/**/*.ts` files.
+General layers must never import `src/dev`.
 
-GitHub Pages uses a commit-versioned complete ESM build path. Do not weaken that cache-coherency design.
-
-Visible milestone labels must remain synchronized with package milestone metadata; regression coverage exists for this.
+GitHub Pages uses one commit-versioned complete ESM build path. Do not weaken cache coherency.
+Visible milestone labels must match package milestone metadata.
 
 ---
 
-## 11. Testing rules
+## 9. Testing rules
 
 Run the complete suite for every implementation milestone and every release candidate:
 
@@ -676,43 +419,33 @@ npm install
 npm test
 ```
 
-A bug fix must add a regression that reproduces the real causal failure, not merely assert the desired final screen state.
+A bug fix must reproduce the causal failure. Do not weaken a valid regression merely to make a new
+design pass. A legacy test may be updated only after identifying the newer authority that explicitly
+supersedes its old assumption.
 
-Do not weaken a valid regression to make a new design pass. If a legacy test encodes an obsolete authority, update it only after identifying and documenting the newer authority that supersedes it.
-
-Prefer real integration sequences for failures involving route transitions, recovery, physics, camera, rendering or deployment boundaries.
-
-When a user reports a Pages/runtime bug, distinguish among:
-
-```text
-source defect
-build artifact defect
-deployment defect
-browser/cache display defect
-```
-
-Do not attribute a problem to cache without evidence.
+Prefer real integration sequences for route, recovery, physics, camera, renderer and deployment
+boundaries. For Pages/runtime reports, distinguish source, build artifact, deployment and browser
+cache failures using evidence.
 
 ---
 
-## 12. Git / PR / release contract
+## 10. Git / PR / release contract
 
 Never implement directly on `main`.
 
-For each milestone or hotfix:
+For every milestone or hotfix:
 
-1. Fetch/inspect current `main` and record its exact SHA.
-2. Create a feature/hotfix branch from that exact SHA.
-3. Inspect existing architecture before adding an abstraction.
+1. Fetch current `main` and record its exact SHA.
+2. Create a feature/hotfix branch from exactly that SHA.
+3. Inspect current authority, source and tests before adding abstractions.
 4. Implement the smallest coherent change.
-5. Add/update regression coverage.
+5. Add/update causal regressions.
 6. Open a PR targeting `main`.
-7. Obtain a complete green CI run on the exact feature-head SHA.
-8. Apply the standalone-record decision rule in `docs/validation/README.md`; add/update a record
-   only when that policy requires one.
-9. Run the complete CI suite again on the **validation-inclusive exact head**.
-10. Re-fetch `main` before release.
-11. Compare `main` to the validated candidate. Release only when the candidate is a pure fast-forward:
+7. Obtain complete green CI on the exact implementation/documentation head.
+8. Apply `docs/validation/README.md`; normative authority changes require a standalone record.
+9. Obtain complete green CI again on the validation-inclusive exact head.
+10. Re-fetch `main` immediately before release.
+11. Release only when comparison proves:
 
 ```text
 ahead_by > 0
@@ -720,7 +453,7 @@ behind_by = 0
 merge base = current main
 ```
 
-12. Move `main` to the validated exact SHA with `force=false`.
+12. Move `main` to the validated exact SHA using `force=false`.
 13. Verify:
 
 ```text
@@ -728,98 +461,91 @@ main SHA == validated feature SHA
 PR head SHA == PR merge SHA == validated feature SHA
 ```
 
-14. Verify the main-push workflow on the same SHA, including Pages build/deploy when applicable.
+14. Verify the same-SHA main-push workflow, Pages artifact and Pages deployment.
 
-Do not use an extra merge commit as the released `main` state.
+Do not use an extra merge commit as released main. Do not release a SHA that did not receive the
+required complete CI. If main moved, reconstruct from current main and revalidate. Never force-update
+main as normal release procedure.
 
-Do not release a SHA that did not itself receive the required complete green CI.
-
-If `main` moved after validation, do not force the release. Rebase/reconstruct from the new main and revalidate the new exact head.
-
-GitHub Actions exact checkout is authoritative for release evidence.
+GitHub Actions exact checkout is release evidence. Do not claim public Pages verification without
+inspecting the actual workflow/deployment or public endpoint.
 
 ---
 
-## 13. Working style for coding agents
+## 11. Working style
 
-Before implementing:
+Before implementation:
 
-- read the relevant source and tests;
-- search for existing primitives before creating new ones;
-- classify apparent legacy behavior as deliberate authority vs accidental residual assumption;
-- identify the smallest layer that actually owns the decision.
+- read relevant authority, source and tests;
+- search for existing primitives;
+- distinguish deliberate current behavior from residual historical assumptions;
+- identify the smallest owning layer.
 
 During implementation:
 
+- preserve one authority per concept;
 - keep topology above Core;
 - keep gameplay decisions out of renderer/physics unless they genuinely belong there;
-- avoid duplicate state and duplicate coordinate authorities;
+- avoid duplicate state and coordinate truth;
 - preserve world-state continuity through chart/content changes;
 - prefer finite/open composition over implicit wrapping;
-- keep DEV fixtures clearly separate from product authority;
-- do not introduce dependencies from general `src/*` layers into `src/dev`; only `src/main-linear.ts`, `src/main.ts` and `src/main-circuit.ts` may assemble DEV fixtures as explicit top-level composition roots;
+- keep DEV fixtures separate;
 - do not recreate retired authority paths as compatibility re-export shims.
 
 After implementation:
 
-- inspect the final diff for accidental broad rewrites;
+- inspect the final diff for accidental broad changes;
 - run the complete suite;
-- verify the exact SHA in CI logs;
-- update only the documentation whose authority actually changed.
-
-Do not claim a public Pages deployment was personally verified unless the deployed artifact/workflow/public endpoint was actually inspected.
+- verify exact SHA in CI;
+- update only documentation whose current authority changed.
 
 ---
 
-## 14. Explicit prohibitions
+## 12. Explicit prohibitions
 
-Do **not** do any of the following without a new explicit normative design decision:
+Without a new explicit normative decision, do not:
 
-- make `RasterPath` or `GuidePath` implicitly cyclic again;
-- add course-length modulo to renderer pseudo-depth;
-- infer route choice from steering or AI branch intent;
-- teleport world pose on route handoff;
-- add arbitrary sprite `visualScale`;
-- replace raster road rendering with ordinary 3D/polygon projection;
-- add a z-buffer;
-- add arbitrary runtime sprite rotation;
-- couple GroundMap pixels to physical SurfaceMap support;
-- make topological winding equal validated race laps;
+- make RasterPath/GuidePath implicitly cyclic;
+- add course-length modulo to renderer depth;
+- infer route choice from steering or AI intent;
+- teleport world pose during route handoff;
+- add arbitrary visual scale, z-buffer, polygon-road replacement, perspective-correct texture
+  mapping, alpha blending or arbitrary runtime sprite rotation;
+- couple GroundMap pixels to SurfaceMap support;
+- equate winding with validated race laps;
 - make RouteDag cyclic to implement CIRCUIT;
-- add a renderer CIRCUIT special path when finite open composition is sufficient;
-- introduce a general-layer dependency on `src/dev`;
-- recreate a retired authority path as a compatibility shim;
-- hide a runtime defect by removing a rival/feature unless the product rule itself is intentionally changed;
-- bypass a failing physical-gate regression by widening gates without validating authored road geometry;
+- add renderer/physics/camera CIRCUIT special paths when finite open composition suffices;
+- introduce general-layer imports from `src/dev`;
+- recreate retired authority as a compatibility shim;
+- hide a runtime defect by removing a rival/feature unless the product rule intentionally changes;
+- bypass physical-gate regressions by widening gates without validating authored geometry;
 - merge an unvalidated SHA;
-- force-update `main` as a normal release procedure.
+- force-update `main` as normal release procedure.
 
 ---
 
-## 15. Takeover procedure
+## 13. Takeover procedure
 
-When starting from a fresh Codex/agent context:
+For a fresh session:
 
 1. Read this file completely.
-2. Read `README.md` for repository entry points and current status.
-3. Read `docs/README.md` for authority/supersession and evidence policy.
-4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` as the latest handling-navigation /
-   continuation checkpoint, while recognizing that it predates M9.13/M9.14 touch/range authority.
-5. Read the four Core freeze/addendum files listed in section 2 when the requested task can affect
-   frozen renderer/metric/topology invariants.
-6. Identify and read the newest numbered authority documents for the requested topic. For current
-   touch-driving work start with M9.14 -> M9.13. For current handling/range work use M9.14 ->
-   M9.12C -> M9.12B -> M9.12A -> M9.12 -> M9.11 -> M9.10 -> M9.9 as applicable.
-7. Read current source/types/compilers and the causal tests relevant to the task.
-8. Confirm current `main`, active/open PR state and exact latest CI/Pages state before changing
-   anything; never assume the SHA embedded in a dated handoff is still current.
-9. Use older handoffs only when their historical lineage is specifically relevant. Do not treat
-   M9.6, M8.0 or migration handoffs as current instructions after the M9.12C handling checkpoint.
-10. Verify the FINAL CODEX MIGRATION POINT against
-    `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history only when
-    migration history is relevant; do not repeat the original migration cleanup ceremony.
-11. Run/inspect the complete test suite required by the current task and relevant validation
-    contract; historical green checkpoints are not release evidence for a new SHA.
-12. Only then continue the scoped task under the Mandatory Architecture Decision Gate.
+2. Read `README.md`.
+3. Read `docs/README.md`.
+4. Read the latest named handoff only as navigation context.
+5. Read the frozen Core/addenda when the task can affect renderer, metric, open-model or topology
+   invariants.
+6. Read the newest numbered authority for the requested topic. For current tire work begin with
+   M9.15; for touch begin with M9.14 then M9.13; for steering begin with M9.11 plus M9.14 ranges.
+7. Read relevant source/types/compilers and causal tests.
+8. Re-fetch current main, open PRs, latest exact-head CI and Pages status.
+9. Treat older handoffs and milestones as historical unless their retained scope is directly
+   relevant.
+10. Continue only after applying the Mandatory Architecture Decision Gate.
 
-At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
+The current named handling-navigation checkpoint is:
+
+```text
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
+```
+
+It predates M9.13–M9.15 and is not current tire/touch authority.
