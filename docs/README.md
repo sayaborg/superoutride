@@ -29,8 +29,8 @@ supersede only their stated scope.
 107_m9_13_full_screen_analog_touch.md
 ```
 
-M9.14 supersedes M9.13 only for the full-scale touch displacement calibration. The current 100%
-travel is one fixed compact value:
+M9.14 supersedes M9.13 only for the full-scale touch displacement calibration. Current 100% travel
+is one fixed compact value:
 
 ```text
 L = 64 CSS px
@@ -40,13 +40,14 @@ M9.13 remains authoritative for full-viewport pointer ownership, pointer-down ne
 horizontal steering, exclusive vertical ACCEL/BRAKE axis, fixed pointer role, two-thumb use, DIRECT
 held response, existing release-rate decay and presentation-only origin/vector indicators.
 
-CSS px avoids dependence on native backing-store/device pixel density and M9.14 no longer changes
-travel with viewport size or orientation. It does not claim exact physical-millimeter equivalence
-across all devices.
+CSS px avoids dependence on native backing-store/device pixel density and does not change with
+viewport size or orientation. It is not claimed to equal a fixed physical millimeter across every
+device.
 
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+109_m9_15_absolute_slide_one_k_tire.md
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 106_m9_12c_extended_peak_diagnostic.md
 105_m9_12b_upward_tire_range_expansion.md
@@ -62,40 +63,75 @@ across all devices.
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.14 is the current scoped browser comparison-range authority. Defaults remain unchanged while the
-DEV diagnostic envelope is expanded to:
+M9.15 is the current scoped tire-law and browser tire-calibration authority. It follows M9.14
+hands-on falsification of percentage-SLIDE tuning as a complete route to prompt, progressive and
+sustained drift.
+
+The state-free one-k demand, radial C1 saturation, force-vector direction, scalar implicit wheel
+solve and three-scalar vehicle calibration are retained. M9.15 changes only:
 
 ```text
-D     = 10 / 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 deg  default 12
-M     = 50 / 55 / 60 / 65 / 70 deg                                default 60
-ACT   = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s                      default 0.25
+S browser meaning:
+  old = deep-slide / peak percentage
+  new = absolute deep-slide friction coefficient at gripFactor=1
 
-GRIP  = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
-        3.20 / 3.40 / 3.60 / 3.80 / 4.00                          default 2.00
-PEAK  = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
-        42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %        default 20
-SLIDE = 60 / 65 / 70 / 75 / 80 / 85 / 90 / 95 / 100 %           default 80
+post-peak width:
+  old plateau = short M9.10 shoulder
+  new plateau = exactly 2P after post-peak begins at P
 ```
 
-The complete tire product is `11 x 21 x 9 = 2,079` diagnostic calibrations. Extreme values such as
-GRIP=4.00, PEAK=60% and SLIDE=100% are diagnostic probes, not claims of ordinary production-tire
-realism.
-
-M9.12 remains the independent tire-calibration-axis authority. It keeps the existing vehicle-owned
-three-scalar calibration and interprets it as:
+The internal physics scalar remains `slidingFrictionRatio`; the browser derives it as:
 
 ```text
-GRIP  = peak force height
-PEAK  = common normalized slip at peak
-SLIDE = large-lateral-slip plateau / peak
+slidingFrictionRatio = S / G
 ```
 
-Changing one browser tire axis preserves the other two displayed characteristics. M9.14 expands the
-range only; it adds no persistent tire state and does not split longitudinal and lateral tire
-profiles.
+Therefore G, P and absolute S remain independently visible without adding a fourth scalar or second
+force authority.
 
-M9.10 remains the current tire constitutive-law authority for the stateless C1 lateral post-peak
-falloff and the monotone scalar implicit wheel solve.
+Current tire comparison scope is:
+
+```text
+G = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
+    3.20 / 3.40 / 3.60 / 3.80 / 4.00
+
+P = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
+    42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %
+
+S = 1.00 / 1.20 / 1.40 / 1.60 / 1.80 / 2.00
+```
+
+The explicit hands-on starting candidate is:
+
+```text
+G=3.00 / P=20% / S=1.00
+```
+
+Its `S/G=1/3` ratio is an intentionally strong diagnostic probe, not a production-tire realism
+claim. The complete browser tire product is `11 x 21 x 6 = 1,386` calibrations.
+
+At pure lateral slip, force reaches G at P and reaches absolute S at 2P through one C1 smoothstep. In
+deep combined slide, resultant magnitude is `S*N` and force direction stays parallel to the one-k
+demand vector. Increasing driven-wheel slip at fixed lateral slip therefore increases `|Fx|` and
+decreases `|Fy|` without a drift detector or injected yaw moment.
+
+M9.14 remains current for the browser D range, retained G/P comparison ranges and compact touch
+travel:
+
+```text
+D   = 10 / 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 deg  default 12
+M   = 50 / 55 / 60 / 65 / 70 deg                                default 60
+ACT = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s                      default 0.25
+```
+
+M9.12 remains the three-characteristic browser-mapping foundation beneath M9.15 scoped
+supersession. Physics still stores only positive finite reference-friction, linear-stiffness and
+sliding-friction-ratio values; browser IDs and absolute S are derived.
+
+M9.10 remains historical/current foundation for the stateless lateral-demand-driven post-peak scale
+and monotone scalar wheel solve. M9.15 supersedes only its transition width and percentage-S browser
+interpretation. The scale remains independent of wheel Omega during one solve, so the unique
+backward-Euler root proof remains intact.
 
 M9.11 remains the current steering-control law:
 
@@ -105,18 +141,14 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` is derived only and is never stored. The expanded M9.14 selector product preserves `A >= 30 deg`
-at `M=50 / D=20`. No D limiter and no tire-dependent or speed-dependent steering authority is
+`A` is derived only and is never stored. The expanded selector product preserves `A >= 30 deg` at
+`M=50 / D=20`. No D limiter and no tire-dependent or speed-dependent steering authority is
 introduced. Compiled production-profile steering seeds remain unchanged.
 
-M9.12C/M9.12B/M9.12A remain historical/current lineage for the diagnostic interpretation and centered
-defaults that M9.14 does not supersede; their old browser upper/lower range tables are superseded by
-M9.14.
-
 M9.9 remains the current axle-neutral common tire seed and deep-sideslip acceptance authority. Its
-product rule remains **uncontrollable slide is forbidden; controllable drift is allowed**. The
-explicit recovery input must recover; neutral/wrong/intentionally sustaining input is not required
-to self-recover.
+product rule remains **uncontrollable slide is forbidden; controllable drift is allowed**. Explicit
+recovery input must recover; neutral, wrong or intentionally sustaining input is not required to
+self-recover.
 
 M9.8 remains the structured nine-production-vehicle catalog/profile-selection authority. M9.0
 remains the common two-station vehicle mechanics authority within later scoped supersession.
@@ -133,9 +165,9 @@ filter state, browser selectors, fixed 31-degree M value and 0.375-second defaul
 historical evidence for the unit-coefficient travel-direction idea and rival-driver decisions that
 M9.11 does not supersede.
 
-Statements in M9.9/M9.10 that said the M9.7 washout was retained are superseded only for steering
+Statements in M9.9/M9.10 that said M9.7 washout was retained are superseded only for steering
 control by M9.11. Their tire and controllability decisions remain current inside later scoped tire
-selector supersession.
+supersession.
 
 ### Current camera and presentation
 
@@ -160,7 +192,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `108_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `109_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -198,10 +230,11 @@ The most relevant current lineage is:
 106_m9_12c_extended_peak_diagnostic.md
 107_m9_13_full_screen_analog_touch.md
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
+109_m9_15_absolute_slide_one_k_tire.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.14 changes none of those boundaries.
+scope; M9.15 changes none of those boundaries.
 
 ## 3. Takeover context
 
@@ -211,9 +244,9 @@ The latest named handling takeover checkpoint remains:
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
-It records the released M9.12C handling state and the `GRIP=2.00 / PEAK=30%` diagnostic observation.
-It is navigation context only and predates M9.13/M9.14 touch/range authority; documents 107/108 and
-current source/tests supersede it for those topics.
+It records the released M9.12C handling state and an earlier PEAK diagnostic observation. It is
+navigation context only and predates M9.13–M9.15. Documents 107–109 plus current source/tests
+supersede it for the current touch/tire investigation.
 
 The prior:
 
@@ -227,7 +260,7 @@ active authority.
 ## 4. Validation evidence
 
 Files under `validation/` are immutable release evidence for the exact milestone/head they record.
-They do not become design authority and should not be rewritten after release.
+They do not become design authority and must not be rewritten after release.
 
 Current retained records include:
 
@@ -240,11 +273,11 @@ validation/M9_12A_CENTERED_HANDLING_COMPARISON_RANGES_VALIDATION.txt
 validation/M9_12B_UPWARD_TIRE_RANGE_EXPANSION_VALIDATION.txt
 validation/M9_12C_EXTENDED_PEAK_DIAGNOSTIC_VALIDATION.txt
 validation/M9_13_FULL_SCREEN_ANALOG_TOUCH_VALIDATION.txt
+validation/M9_14_COMPACT_TOUCH_EXPANDED_DIAGNOSTIC_RANGES_VALIDATION.txt
 ```
 
-M9.14 changes current normative touch-feel and browser comparison-range authority, so its release
-requires a new standalone validation record under `validation/README.md` after the
-implementation/documentation head is fully green.
+M9.15 changes current normative tire-law and browser calibration authority, so its release requires
+a new standalone validation record after the implementation/documentation head is fully green.
 
 New validation evidence is added only after the corresponding implementation/documentation head is
 fully green. Final release identity is established by Git/PR/main/workflow history rather than by
