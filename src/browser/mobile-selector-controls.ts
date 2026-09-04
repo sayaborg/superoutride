@@ -132,7 +132,7 @@ export function createMobileTireCalibrationSelectorModel(
     {
       axis: 'SLIDE',
       label: `S ${formatSlideValue(calibration)}`,
-      ariaLabel: `Cycle tire sliding plateau from current ${formatSlideValue(calibration)} percent`,
+      ariaLabel: `Cycle absolute tire sliding grip from current ${formatSlideValue(calibration)}`,
     },
   ];
 }
