@@ -214,9 +214,10 @@ the same vehicle-owned calibration.
 ## Current takeover checkpoint
 
 For fresh-thread navigation, read
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md` after this entry document and
-`docs/README.md`. It is historical navigation context, not current project authority. Always
-re-fetch current `main`, PR and workflow state before work.
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` after `AGENTS.md`, this entry document and
+`docs/README.md`. It captures the current handling investigation, the `GRIP=2.00 / PEAK=30%`
+observation, the immediate PEAK sweep, and the restart/release procedure. It is navigation context
+only; always re-fetch current `main`, PR and workflow state before work.
 
 ## Run and test
 
