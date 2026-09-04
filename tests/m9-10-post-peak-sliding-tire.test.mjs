@@ -49,15 +49,15 @@ function forceAtSlipAngle(calibration, angleDegrees, wheelSlipSpeed = 0) {
   );
 }
 
-test('M9.10 retained TIRE 2 peak is exactly 12 degrees before post-peak scaling', () => {
+test('retained TIRE 2 peak is exactly 12 degrees before post-peak scaling', () => {
   const force = forceAtSlipAngle(referenceCalibration, 12);
   assert.ok(Math.abs(force.rho - 1.26) < 1e-12);
   assert.ok(Math.abs(Math.abs(force.fy) - force.fmax) < 1e-9);
 });
 
-test('M9.10 falls C1 from peak to the requested large-angle sliding plateau', () => {
+test('M9.15 falls C1 from peak P to the selected sliding plateau at exactly 2P', () => {
   const peak = 2 - tire.rhoKnee;
-  const width = peak - tire.rhoKnee;
+  const width = peak;
   const plateau = peak + width;
   assert.equal(lateralPostPeakScale(peak, tire.rhoKnee, 0.70), 1);
   const midway = lateralPostPeakScale(peak + width * 0.5, tire.rhoKnee, 0.70);
@@ -65,16 +65,43 @@ test('M9.10 falls C1 from peak to the requested large-angle sliding plateau', ()
   assert.equal(lateralPostPeakScale(plateau, tire.rhoKnee, 0.70), 0.70);
   assert.equal(lateralPostPeakScale(plateau + 5, tire.rhoKnee, 0.70), 0.70);
 
+  const epsilon = 1e-6;
+  const leftPeakSlope = (
+    lateralPostPeakScale(peak, tire.rhoKnee, 0.70)
+    - lateralPostPeakScale(peak - epsilon, tire.rhoKnee, 0.70)
+  ) / epsilon;
+  const rightPeakSlope = (
+    lateralPostPeakScale(peak + epsilon, tire.rhoKnee, 0.70)
+    - lateralPostPeakScale(peak, tire.rhoKnee, 0.70)
+  ) / epsilon;
+  const leftPlateauSlope = (
+    lateralPostPeakScale(plateau, tire.rhoKnee, 0.70)
+    - lateralPostPeakScale(plateau - epsilon, tire.rhoKnee, 0.70)
+  ) / epsilon;
+  const rightPlateauSlope = (
+    lateralPostPeakScale(plateau + epsilon, tire.rhoKnee, 0.70)
+    - lateralPostPeakScale(plateau, tire.rhoKnee, 0.70)
+  ) / epsilon;
+  for (const slope of [leftPeakSlope, rightPeakSlope, leftPlateauSlope, rightPlateauSlope]) {
+    assert.ok(Math.abs(slope) < 1e-5);
+  }
+
+  const pureLateralPeakSlip = Math.tan(12 * Math.PI / 180);
+  const pureLateralPlateauSlip = Math.tan(24 * Math.PI / 180);
+  assert.ok(Math.abs(pureLateralPlateauSlip / pureLateralPeakSlip - 2.095) < 0.01);
+});
+
+test('M9.15 broad falloff reaches the internal ratio while preserving vector direction', () => {
   const deep100 = forceAtSlipAngle(referenceCalibration, 30);
-  for (const ratio of [0.90, 0.85, 0.80, 0.75, 0.70]) {
+  for (const ratio of [0.90, 0.70, 0.50, 1 / 3]) {
     const deep = forceAtSlipAngle({ ...referenceCalibration, slidingFrictionRatio: ratio }, 30);
     assert.ok(Math.abs(Math.abs(deep.fy) / Math.abs(deep100.fy) - ratio) < 1e-12);
     assert.ok(Math.abs(deep.fx) < 1e-12);
   }
 });
 
-test('M9.10 lateral post-peak scale leaves pure longitudinal tire behavior unchanged', () => {
-  const forces = [1, 0.9, 0.8, 0.7].map((slidingFrictionRatio) => (
+test('lateral post-peak scale leaves pure longitudinal tire behavior unchanged', () => {
+  const forces = [1, 0.9, 0.7, 1 / 3].map((slidingFrictionRatio) => (
     forceAtSlipAngle({ ...referenceCalibration, slidingFrictionRatio }, 0, 25)
   ));
   const reference = forces[0];
@@ -85,9 +112,9 @@ test('M9.10 lateral post-peak scale leaves pure longitudinal tire behavior uncha
   }
 });
 
-test('M9.10 slide ratio remains compatible with the unique scalar implicit wheel solve', () => {
+test('M9.15 slide ratio remains compatible with the unique scalar implicit wheel solve', () => {
   const normalLoad = tire.cornerStiffness / tire.normalizedStiffness;
-  for (const slidingFrictionRatio of [0.70, 0.80, 0.90, 1]) {
+  for (const slidingFrictionRatio of [1 / 3, 0.50, 0.70, 1]) {
     const input = {
       omegaPrevious: 125,
       inertia: 3.4,
@@ -114,7 +141,7 @@ test('M9.10 slide ratio remains compatible with the unique scalar implicit wheel
   }
 });
 
-test('M9.10 calibration remains atomic and rejects invalid sliding ratios without partial mutation', () => {
+test('calibration remains atomic and rejects invalid sliding ratios without partial mutation', () => {
   const owner = {
     tireFrictionCalibration: createArcadeTireFrictionCalibration({
       ...referenceCalibration,
@@ -134,19 +161,22 @@ test('M9.10 calibration remains atomic and rejects invalid sliding ratios withou
   }
 });
 
-test('M9.10 post-peak law remains constitutive tire behavior, not a drift or vehicle mode', async () => {
-  const [tireSource, solverSource, calibrationSource] = await Promise.all([
+test('M9.15 post-peak law remains constitutive tire behavior not a drift or vehicle mode', async () => {
+  const [tireSource, solverSource, calibrationSource, selectionSource] = await Promise.all([
     readFile(new URL('../src/physics/tire-wheel.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/tire-friction-calibration.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/browser/tire-friction-selection.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(tireSource, /Math\.abs\(demand\.dy\) \/ fmax/);
+  assert.match(tireSource, /const width = peak;/);
   assert.match(tireSource, /lateralPostPeakScale/);
   assert.match(solverSource, /vehicle\.tireFrictionCalibration\.slidingFrictionRatio/);
-  for (const source of [tireSource, solverSource, calibrationSource]) {
+  assert.match(selectionSource, /slideToPeakRatio/);
+  for (const source of [tireSource, solverSource, calibrationSource, selectionSource]) {
     assert.doesNotMatch(source, /driftMode|driftAssist|targetSideslip/);
   }
-  for (const source of [tireSource, calibrationSource]) {
+  for (const source of [tireSource, calibrationSource, selectionSource]) {
     assert.doesNotMatch(source, /profile\.id|frontDriveTorqueFraction/);
   }
   assert.doesNotMatch(solverSource, /if\s*\([^)]*frontDriveTorqueFraction/);
