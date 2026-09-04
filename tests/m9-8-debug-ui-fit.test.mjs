@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('M9.11 debug selectors are device-independent while touch driving controls stay gated', async () => {
+test('M9.13 debug selectors remain device-independent while legacy touch driving panels stay hidden', async () => {
   const [index, styles] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
     readFile(new URL('../styles.css', import.meta.url), 'utf8'),
@@ -16,14 +16,16 @@ test('M9.11 debug selectors are device-independent while touch driving controls 
   assert.match(styles, /\.mobile-selector-zone\s*\{[^}]*display:\s*grid;[^}]*\}/s);
   assert.doesNotMatch(styles, /\.mobile-selector-zone\s*\{[^}]*display:\s*none;[^}]*\}/s);
   assert.match(styles, /\.control-zone\s*\{[^}]*display:\s*none;/s);
-  assert.match(styles, /\.touch-capable \.control-zone\s*\{[^}]*display:\s*flex;/s);
+  assert.match(styles, /\.touch-capable \.control-zone\s*\{[^}]*display:\s*none;/s);
   assert.doesNotMatch(styles, /\.touch-capable \.mobile-selector-zone\s*\{[^}]*display:/s);
+  assert.match(styles, /\.touch-analog-indicator\s*\{[^}]*position:\s*fixed;[^}]*pointer-events:\s*none;/s);
 
   assert.doesNotMatch(styles, /100dvh\s*-\s*(?:228|409|459)px/);
   assert.match(styles, /#app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
   assert.match(styles, /grid-template-columns:\s*repeat\(12, minmax\(0, 1fr\)\)/);
   assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /\.touch-capable #app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) 124px;/s);
+  assert.match(styles, /\.touch-capable #app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
+  assert.doesNotMatch(styles, /\.touch-capable #app\s*\{[^}]*124px;/s);
   assert.match(styles, /#game\s*\{[^}]*width:\s*auto;[^}]*height:\s*100%;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s);
 });
 
