@@ -77,7 +77,9 @@ export function createVehicleDebugHudModel(
     tireGripSelector,
     tirePeakSelector,
     tireSlideSelector,
-    tireFrictionSelector: tireSlideSelector,
+    tireFrictionSelector: `SLIDE [G] ${Math.round(
+      vehicle.tireFrictionCalibration.slidingFrictionRatio * 100,
+    )}%`,
     tireCalibrationSelector: `TIRE G${formatGripValue(vehicle.tireFrictionCalibration)} P${formatPeakValue(vehicle.tireFrictionCalibration)} S${formatSlideValue(vehicle.tireFrictionCalibration)}`,
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
