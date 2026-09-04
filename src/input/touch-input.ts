@@ -110,12 +110,12 @@ export class TouchInput {
     return {
       steering: this.steering.sample(),
       ...pedals,
-      steeringApplyMode: steeringSource?.startsWith('touch:analog-steering:')
-        ? 'DIRECT'
-        : 'RATE_LIMITED',
-      pedalApplyMode: pedalSource?.startsWith('touch:analog-pedal:')
-        ? 'DIRECT'
-        : 'RATE_LIMITED',
+      ...(steeringSource?.startsWith('touch:analog-steering:')
+        ? { steeringApplyMode: 'DIRECT' as const }
+        : {}),
+      ...(pedalSource?.startsWith('touch:analog-pedal:')
+        ? { pedalApplyMode: 'DIRECT' as const }
+        : {}),
     };
   }
 
