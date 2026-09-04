@@ -1,6 +1,7 @@
 import { clamp } from '../core/math.js';
 import {
   assertExclusivePedalInput,
+  normalizedPedalRequest,
   type DrivingInput,
 } from '../input/driving-input.js';
 
@@ -111,7 +112,7 @@ export function updateDrivingActuators(
   );
   state.throttle = stepNormalizedActuator(
     state.throttle,
-    input.throttle ? 1 : 0,
+    normalizedPedalRequest(input.throttle),
     dt,
     profile.throttle,
     0,
@@ -119,7 +120,7 @@ export function updateDrivingActuators(
   );
   state.brake = stepNormalizedActuator(
     state.brake,
-    input.brake ? 1 : 0,
+    normalizedPedalRequest(input.brake),
     dt,
     profile.brake,
     0,
