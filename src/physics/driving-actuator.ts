@@ -1,8 +1,10 @@
 import { clamp } from '../core/math.js';
 import {
   assertExclusivePedalInput,
+  drivingInputApplyMode,
   normalizedPedalRequest,
   type DrivingInput,
+  type DrivingInputApplyMode,
 } from '../input/driving-input.js';
 
 export interface NormalizedActuatorRateProfile {
@@ -102,28 +104,47 @@ export function updateDrivingActuators(
   steeringResponse: NormalizedActuatorRateProfile = profile.steering,
 ): void {
   assertExclusivePedalInput(input);
-  state.steering = stepNormalizedActuator(
+  const steeringTarget = clamp(input.steering, -1, 1);
+  const throttleTarget = normalizedPedalRequest(input.throttle);
+  const brakeTarget = normalizedPedalRequest(input.brake);
+  state.steering = applyRequestedActuator(
     state.steering,
-    clamp(input.steering, -1, 1),
+    steeringTarget,
     dt,
     steeringResponse,
     -1,
     1,
+    drivingInputApplyMode(input.steeringApplyMode),
   );
-  state.throttle = stepNormalizedActuator(
+  state.throttle = applyRequestedActuator(
     state.throttle,
-    normalizedPedalRequest(input.throttle),
+    throttleTarget,
     dt,
     profile.throttle,
     0,
     1,
+    drivingInputApplyMode(input.pedalApplyMode),
   );
-  state.brake = stepNormalizedActuator(
+  state.brake = applyRequestedActuator(
     state.brake,
-    normalizedPedalRequest(input.brake),
+    brakeTarget,
     dt,
     profile.brake,
     0,
     1,
+    drivingInputApplyMode(input.pedalApplyMode),
   );
+}
+
+function applyRequestedActuator(
+  current: number,
+  target: number,
+  dt: number,
+  profile: NormalizedActuatorRateProfile,
+  minimum: number,
+  maximum: number,
+  applyMode: DrivingInputApplyMode,
+): number {
+  if (applyMode === 'DIRECT') return clamp(target, minimum, maximum);
+  return stepNormalizedActuator(current, target, dt, profile, minimum, maximum);
 }
