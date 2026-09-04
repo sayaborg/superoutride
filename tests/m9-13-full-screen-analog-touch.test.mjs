@@ -78,11 +78,12 @@ function createTouchFixture() {
   return { lifecycle, document, touch };
 }
 
-test('M9.13 full-scale slide distance uses one orientation-independent short-side rule', () => {
-  assert.equal(touchAnalogFullScaleDistance(400, 800), 100);
-  assert.equal(touchAnalogFullScaleDistance(800, 400), 100);
-  assert.equal(touchAnalogFullScaleDistance(200, 900), 72);
-  assert.equal(touchAnalogFullScaleDistance(1200, 2000), 120);
+test('M9.14 full-scale slide distance is fixed at compact 64 CSS px across viewport sizes', () => {
+  assert.equal(touchAnalogFullScaleDistance(400, 800), 64);
+  assert.equal(touchAnalogFullScaleDistance(800, 400), 64);
+  assert.equal(touchAnalogFullScaleDistance(200, 900), 64);
+  assert.equal(touchAnalogFullScaleDistance(1200, 2000), 64);
+  assert.throws(() => touchAnalogFullScaleDistance(0, 800), RangeError);
 });
 
 test('M9.13 relative displacement maps steering and exclusive pedal requests continuously', () => {
@@ -98,9 +99,9 @@ test('M9.13 left and right touch halves publish simultaneous direct analog steer
   const { lifecycle, touch } = createTouchFixture();
 
   lifecycle.dispatch('pointerdown', pointer(1, 100, 300));
-  lifecycle.dispatch('pointermove', pointer(1, 150, 300));
+  lifecycle.dispatch('pointermove', pointer(1, 132, 300));
   lifecycle.dispatch('pointerdown', pointer(2, 300, 400));
-  lifecycle.dispatch('pointermove', pointer(2, 300, 350));
+  lifecycle.dispatch('pointermove', pointer(2, 300, 368));
 
   let sample = touch.sample();
   assert.equal(sample.steering, 0.5);
@@ -109,7 +110,7 @@ test('M9.13 left and right touch halves publish simultaneous direct analog steer
   assert.equal(sample.steeringApplyMode, 'DIRECT');
   assert.equal(sample.pedalApplyMode, 'DIRECT');
 
-  lifecycle.dispatch('pointermove', pointer(2, 300, 450));
+  lifecycle.dispatch('pointermove', pointer(2, 300, 432));
   sample = touch.sample();
   assert.equal(sample.steering, 0.5);
   assert.equal(normalizedPedalRequest(sample.throttle), 0);
@@ -140,7 +141,7 @@ test('M9.13 touch role is fixed by the half where the pointer starts', () => {
 test('M9.13 held displacement is immediate while release uses existing actuator release rates', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(4, 300, 400));
-  lifecycle.dispatch('pointermove', pointer(4, 300, 350));
+  lifecycle.dispatch('pointermove', pointer(4, 300, 368));
   const held = touch.sample();
   assert.equal(normalizedPedalRequest(held.throttle), 0.5);
   assert.equal(held.pedalApplyMode, 'DIRECT');
@@ -154,7 +155,7 @@ test('M9.13 held displacement is immediate while release uses existing actuator 
   updateDrivingActuators(state, held, 1 / 720, profile);
   assert.equal(state.throttle, 0.5);
 
-  lifecycle.dispatch('pointerup', pointer(4, 300, 350));
+  lifecycle.dispatch('pointerup', pointer(4, 300, 368));
   const released = touch.sample();
   assert.equal(normalizedPedalRequest(released.throttle), 0);
   assert.equal(normalizedPedalRequest(released.brake), 0);
@@ -166,7 +167,7 @@ test('M9.13 held displacement is immediate while release uses existing actuator 
 test('M9.13 steering displacement is immediate while release returns through selected ACT rate', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(8, 100, 300));
-  lifecycle.dispatch('pointermove', pointer(8, 160, 300));
+  lifecycle.dispatch('pointermove', pointer(8, 132, 300));
   const held = touch.sample();
   const profile = {
     steering: { applyRate: 4, releaseRate: 4 },
@@ -175,13 +176,13 @@ test('M9.13 steering displacement is immediate while release returns through sel
   };
   const state = createDrivingActuatorState();
   updateDrivingActuators(state, held, 1 / 720, profile);
-  assert.equal(state.steering, 0.6);
+  assert.equal(state.steering, 0.5);
 
-  lifecycle.dispatch('pointerup', pointer(8, 160, 300));
+  lifecycle.dispatch('pointerup', pointer(8, 132, 300));
   const released = touch.sample();
   assert.equal(released.steeringApplyMode, undefined);
   updateDrivingActuators(state, released, 0.05, profile);
-  assert.ok(Math.abs(state.steering - 0.4) < 1e-12);
+  assert.ok(Math.abs(state.steering - 0.3) < 1e-12);
 });
 
 test('M9.13 creates steering-wheel and pedal origin indicators and updates the vector readout', () => {
@@ -192,19 +193,19 @@ test('M9.13 creates steering-wheel and pedal origin indicators and updates the v
   assert.match(pedalIndicator.className, /touch-analog-pedal/);
 
   lifecycle.dispatch('pointerdown', pointer(5, 100, 300));
-  lifecycle.dispatch('pointermove', pointer(5, 50, 300));
+  lifecycle.dispatch('pointermove', pointer(5, 68, 300));
   assert.equal(steeringIndicator.classList.contains('active'), true);
   assert.equal(steeringIndicator.dataset.value, 'STEER -50%');
   assert.equal(steeringIndicator.style.values.get('--touch-vector-angle'), '180deg');
-  assert.equal(steeringIndicator.style.values.get('--touch-vector-length'), '50px');
+  assert.equal(steeringIndicator.style.values.get('--touch-vector-length'), '32px');
 
   lifecycle.dispatch('pointerdown', pointer(6, 300, 400));
-  lifecycle.dispatch('pointermove', pointer(6, 300, 350));
+  lifecycle.dispatch('pointermove', pointer(6, 300, 368));
   assert.equal(pedalIndicator.dataset.value, 'ACCEL 50%');
   assert.equal(pedalIndicator.style.values.get('--touch-vector-angle'), '-90deg');
 
-  lifecycle.dispatch('pointerup', pointer(5, 50, 300));
-  lifecycle.dispatch('pointerup', pointer(6, 300, 350));
+  lifecycle.dispatch('pointerup', pointer(5, 68, 300));
+  lifecycle.dispatch('pointerup', pointer(6, 300, 368));
   assert.equal(steeringIndicator.classList.contains('active'), false);
   assert.equal(pedalIndicator.classList.contains('active'), false);
 });
