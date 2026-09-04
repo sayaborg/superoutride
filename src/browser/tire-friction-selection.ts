@@ -5,7 +5,7 @@ import type {
 
 export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00' | '3.20' | '3.40' | '3.60' | '3.80' | '4.00';
 export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | '42' | '44' | '46' | '48' | '50' | '52' | '54' | '56' | '58' | '60';
-export type BrowserTireSlideId = '60' | '65' | '70' | '75' | '80' | '85' | '90' | '95' | '100';
+export type BrowserTireSlideId = '1.00' | '1.20' | '1.40' | '1.60' | '1.80' | '2.00';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
 export interface BrowserTireGripSelection {
@@ -24,16 +24,17 @@ export interface BrowserTirePeakSelection {
 export interface BrowserTireSlideSelection {
   readonly id: BrowserTireSlideId;
   readonly label: BrowserTireSlideId;
-  readonly slidingFrictionRatio: number;
+  /** Absolute deep-slide friction coefficient at gripFactor=1. */
+  readonly effectiveSlideGrip: number;
 }
 
 export const BROWSER_TIRE_GRIP_CYCLE_CODE = 'KeyH';
 export const BROWSER_TIRE_PEAK_CYCLE_CODE = 'KeyJ';
 export const BROWSER_TIRE_SLIDE_CYCLE_CODE = 'KeyG';
 
-export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '2.00';
+export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '3.00';
 export const DEFAULT_BROWSER_TIRE_PEAK_ID: BrowserTirePeakId = '20';
-export const DEFAULT_BROWSER_TIRE_SLIDE_ID: BrowserTireSlideId = '80';
+export const DEFAULT_BROWSER_TIRE_SLIDE_ID: BrowserTireSlideId = '1.00';
 
 /** M9.10 retained former TIRE 2 reference anchors. */
 export const M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER = 1.2870855880077763;
@@ -63,9 +64,9 @@ function peakSelection(
 
 function slideSelection(
   id: BrowserTireSlideId,
-  slidingFrictionRatio: number,
+  effectiveSlideGrip: number,
 ): Readonly<BrowserTireSlideSelection> {
-  return Object.freeze({ id, label: id, slidingFrictionRatio });
+  return Object.freeze({ id, label: id, effectiveSlideGrip });
 }
 
 export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.freeze([
@@ -107,19 +108,17 @@ export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.fr
 ]);
 
 export const BROWSER_TIRE_SLIDES: readonly BrowserTireSlideSelection[] = Object.freeze([
-  slideSelection('60', 0.60),
-  slideSelection('65', 0.65),
-  slideSelection('70', 0.70),
-  slideSelection('75', 0.75),
-  slideSelection('80', 0.80),
-  slideSelection('85', 0.85),
-  slideSelection('90', 0.90),
-  slideSelection('95', 0.95),
-  slideSelection('100', 1.00),
+  slideSelection('1.00', 1.00),
+  slideSelection('1.20', 1.20),
+  slideSelection('1.40', 1.40),
+  slideSelection('1.60', 1.60),
+  slideSelection('1.80', 1.80),
+  slideSelection('2.00', 2.00),
 ]);
 
-const DEFAULT_GRIP = mustChoice(BROWSER_TIRE_GRIPS, 0);
-const DEFAULT_PEAK = mustChoice(BROWSER_TIRE_PEAKS, 0);
+const DEFAULT_GRIP = mustChoiceById(BROWSER_TIRE_GRIPS, DEFAULT_BROWSER_TIRE_GRIP_ID, 'GRIP');
+const DEFAULT_PEAK = mustChoiceById(BROWSER_TIRE_PEAKS, DEFAULT_BROWSER_TIRE_PEAK_ID, 'PEAK');
+const DEFAULT_SLIDE = mustChoiceById(BROWSER_TIRE_SLIDES, DEFAULT_BROWSER_TIRE_SLIDE_ID, 'SLIDE');
 
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION:
 Readonly<Required<ArcadeTireFrictionCalibrationInput>> = Object.freeze({
@@ -127,7 +126,10 @@ Readonly<Required<ArcadeTireFrictionCalibrationInput>> = Object.freeze({
   linearStiffnessMultiplier: M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER
     * (DEFAULT_GRIP.referenceFrictionMultiplier / M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER)
     * (M9_10_TIRE_2_PEAK_SLIP_RATIO / DEFAULT_PEAK.slipRatio),
-  slidingFrictionRatio: 0.80,
+  slidingFrictionRatio: slideToPeakRatio(
+    DEFAULT_SLIDE.effectiveSlideGrip,
+    DEFAULT_GRIP.effectiveGrip,
+  ),
 });
 
 export function browserTireEffectiveGrip(
@@ -144,6 +146,13 @@ export function browserTirePeakSlipRatio(
   return M9_10_TIRE_2_PEAK_SLIP_RATIO
     * (calibration.referenceFrictionMultiplier / M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER)
     / (calibration.linearStiffnessMultiplier / M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER);
+}
+
+/** Absolute large-lateral-slip force coefficient at gripFactor=1. */
+export function browserTireEffectiveSlideGrip(
+  calibration: Readonly<ArcadeTireFrictionCalibrationState>,
+): number {
+  return browserTireEffectiveGrip(calibration) * calibration.slidingFrictionRatio;
 }
 
 export function browserTireGripIdForCalibration(
@@ -168,9 +177,10 @@ export function browserTirePeakIdForCalibration(
 export function browserTireSlideIdForCalibration(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): BrowserTireSlideId | undefined {
-  return BROWSER_TIRE_SLIDES.find(({ slidingFrictionRatio }) => approximatelyEqual(
-    slidingFrictionRatio,
-    calibration.slidingFrictionRatio,
+  const effectiveSlideGrip = browserTireEffectiveSlideGrip(calibration);
+  return BROWSER_TIRE_SLIDES.find(({ effectiveSlideGrip: candidate }) => approximatelyEqual(
+    candidate,
+    effectiveSlideGrip,
   ))?.id;
 }
 
@@ -207,10 +217,11 @@ export function browserTireCalibrationForGrip(
 ): Readonly<Required<ArcadeTireFrictionCalibrationInput>> {
   const target = mustChoiceById(BROWSER_TIRE_GRIPS, id, 'GRIP');
   const ratio = target.referenceFrictionMultiplier / current.referenceFrictionMultiplier;
+  const effectiveSlideGrip = browserTireEffectiveSlideGrip(current);
   return Object.freeze({
     referenceFrictionMultiplier: target.referenceFrictionMultiplier,
     linearStiffnessMultiplier: current.linearStiffnessMultiplier * ratio,
-    slidingFrictionRatio: current.slidingFrictionRatio,
+    slidingFrictionRatio: slideToPeakRatio(effectiveSlideGrip, target.effectiveGrip),
   });
 }
 
@@ -237,7 +248,10 @@ export function browserTireCalibrationForSlide(
   return Object.freeze({
     referenceFrictionMultiplier: current.referenceFrictionMultiplier,
     linearStiffnessMultiplier: current.linearStiffnessMultiplier,
-    slidingFrictionRatio: target.slidingFrictionRatio,
+    slidingFrictionRatio: slideToPeakRatio(
+      target.effectiveSlideGrip,
+      browserTireEffectiveGrip(current),
+    ),
   });
 }
 
@@ -259,7 +273,7 @@ export function formatTirePeakSelector(
 export function formatTireSlideSelector(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): string {
-  return `SLIDE [G] ${formatSlideValue(calibration)}%`;
+  return `SLIDE [G] ${formatSlideValue(calibration)}`;
 }
 
 export function formatGripValue(
@@ -277,7 +291,7 @@ export function formatPeakValue(
 export function formatSlideValue(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): string {
-  return String(Math.round(calibration.slidingFrictionRatio * 100));
+  return browserTireEffectiveSlideGrip(calibration).toFixed(2);
 }
 
 function formatPeakPercent(slipRatio: number): string {
@@ -285,6 +299,20 @@ function formatPeakPercent(slipRatio: number): string {
   return Math.abs(percent - Math.round(percent)) < 1e-9
     ? String(Math.round(percent))
     : percent.toFixed(1);
+}
+
+function slideToPeakRatio(effectiveSlideGrip: number, effectivePeakGrip: number): number {
+  if (!(effectiveSlideGrip > 0) || !Number.isFinite(effectiveSlideGrip)) {
+    throw new RangeError('absolute tire SLIDE grip must be finite and > 0');
+  }
+  if (!(effectivePeakGrip > 0) || !Number.isFinite(effectivePeakGrip)) {
+    throw new RangeError('tire GRIP must be finite and > 0');
+  }
+  const ratio = effectiveSlideGrip / effectivePeakGrip;
+  if (!(ratio <= 1)) {
+    throw new RangeError('absolute tire SLIDE grip must not exceed tire GRIP');
+  }
+  return ratio;
 }
 
 function nextChoiceId<Id extends string, Choice extends { readonly id: Id }>(
