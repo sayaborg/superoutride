@@ -1,0 +1,150 @@
+SUPER OUTRIDE — M9.17 Direct Robotized MT Validation
+
+1. Scope and identity
+
+Repository: sayaborg/superoutride
+Base release: da97331196bea585805f2e32113803f16b57c441 (M9.16)
+Feature branch: feat/m9-17-direct-robotized-mt
+Pull request: #130
+Implementation commit: a7f2d2acad9be5f0d526839c688f1fe270d626c7
+Documentation/implementation/test-inclusive validated head:
+8ae9168c54d6cabe7e2065b9d0323eb3910d3aaa
+
+Normative authority: docs/111_m9_17_direct_robotized_mt.md.
+The Architecture Decision Gate and exact supersession boundary are recorded there.
+This is a normative dynamics change, so docs/validation/README.md requires a
+standalone record after complete implementation/documentation CI is green.
+This record is evidence, not a second normative specification.
+
+2. Complete exact-head CI
+
+Workflow: Test and Deploy GitHub Pages
+Event: pull_request
+Run number: 815
+Run ID: 33927699448
+Build job ID: 101199693443
+URL: https://github.com/sayaborg/superoutride/actions/runs/33927699448
+Status/conclusion: completed / success
+
+Actual build-log checkout verification:
+expected=8ae9168c54d6cabe7e2065b9d0323eb3910d3aaa
+actual=8ae9168c54d6cabe7e2065b9d0323eb3910d3aaa
+
+Environment: Node v24.20.0; npm 11.19.0; Ubuntu 24.04.4.
+Commands: npm ci; npm test.
+The complete clean TypeScript/GroundMap build and all tests/*.test.mjs ran.
+
+Log totals:
+tests 634
+pass 634
+fail 0
+cancelled 0
+skipped 0
+todo 0
+
+The existing 622 tests, with scoped obsolete expectations updated, and 12 new
+M9.17 tests all passed. Full mountain/Tsukuba/FISCO rival laps, route handoffs,
+world-state, suspension, tire, steering, input, HUD, projection and source-boundary
+regressions remained green. PR workflows intentionally skip Pages staging/deploy;
+this green PR run is not itself a public deployment claim.
+
+3. Intermediate failure and correction
+
+First complete run #814 (33927495728), exact a7f2d2acad9be5f0d526839c688f1fe270d626c7,
+passed 633/634 tests. The single failure was the M9.8 catalog source check requiring
+launchCouplingSlipRpm to exist after its earlier rename from a converter field.
+Doc 111 sections 1-3 explicitly retire that replacement launch-slip concept too.
+Commit 8ae9168 changes only this test: it now forbids launchCouplingSlipRpm, retaining
+the old torqueConverterSlipRpm ban and all catalog behavior checks.
+No mechanics were changed or valid physical assertions relaxed to resolve this.
+The prior M7.0/M9.16 shift-cut and lag expectations had already been explicitly
+replaced by direct-RPM and same-step positive-drive expectations under doc 111.
+
+4. Implemented causal boundary
+
+- The forward robotized MT derives RPM from authoritative driven-wheel Omega and
+  the selected total gear ratio. Gear is its only dynamic memory; ENG is calibration.
+- RPM and torque fields are output caches, not inputs to the next drive calculation.
+- Remove launch slip, independent RPM response, shift duration, shift timer,
+  shift direction and timed drive cutoff. No clutch/converter substitute remains.
+- Shift at most one adjacent gear per substep; recompute torque immediately using
+  that gear. No drive blanking, interpolation, cooldown or wheelspin-specific branch.
+- Compile separate up/down thresholds and require downshift < upshift*next/current
+  for each adjacent ratio. Current nine-profile thresholds and ratios satisfy this
+  stronger hysteresis condition and are retained without arbitrary retuning.
+- All nine profiles retain their positive torque knots; only synthetic zero-torque
+  redline endpoints and the three retired coupling/timing parameters are removed.
+- One C1 averaged fuel-cut factor is full through upshift RPM and zero at redline.
+  The positive engine curve itself does not become zero at redline. There is no
+  duplicate linear redline factor and no clamp on wheel speed or observed RPM.
+- At rest RPM is zero, while curve lookup uses an explicit idle torque floor for
+  no-stall launch. Zero throttle delivers zero drive. Engine inertia, active engine
+  braking and overrev damage are outside this reduced power-delivery model.
+- ENG 1/1.5/2/3/4, K/touch/HUD and recovery/replacement retention remain unchanged.
+  No tire, steering, input, suspension, camera, renderer or route authority changes.
+
+5. Causal tests and actual hunting reproduction
+
+New tests prove direct RPM despite stale caches; finite no-stall launch; every
+adjacent up/down ratio transition on all nine profiles without a same-step drive
+cut or immediate inverse shift at unchanged wheel speed; invalid gap rejection;
+positive torque endpoints; C1 bounded monotone limiting; overrun observation and
+immediate output recovery; all-nine stock launches; ENG retention; deterministic
+20-second mechanics; and removal of retired state/force authority.
+
+Hunting probe conditions:
+Testarossa; broad flat asphalt; G2/P24/S2; D12/M60; ENG3; initial speed 10 m/s.
+Full DIRECT steering=1 and throttle=1, brake=0; 20 seconds at 60 Hz / 12 substeps.
+No vehicle-speed normalization, prescribed wheel speed, gear lock or recovery.
+
+CI #815 reports:
+M9.17 NO-CUT HUNTING PROBE
+{"changes":4,"downshifts":0,"tailZeros":0,"tailChanges":0,"finalSpeed":73.979972834954,"finalYaw":-1.3340840389842283,"finalGear":5}
+
+The regression exercises four real upshifts; no downshift occurs. The final five
+seconds have no gear changes and no zero-drive outer-tick samples. A repeat run
+produces the same complete summary.
+
+Supplementary local substep instrumentation used the released M9.16 ESM artifact
+and an equivalent copy with only the M9.17 engine/profile modules replaced. Node
+v22.16.0 was used for local diagnostics; the Node24 exact-head CI above is the
+release authority. Both local probes sampled 3,600 substeps during the last 5 s:
+
+                                old M9.16       M9.17 candidate
+gear changes, final 5 s          39              0
+zero-drive time fraction         0.9391666667    0
+mean Tdrive*wheelOmega, kW        40.3962         565.3069
+
+These are wheel-input power observations, not power after tire-slip losses. They
+show removal of the reproduced interruption/hunting fault, not proof of a stable
+circular drift, an unchanged trajectory or a prescribed engine-power guarantee.
+Local source blob hashes checked against the implementation:
+automatic-powertrain.ts f700396a2d534aff555e224b745ef8f66cf54319
+vehicle-profiles.ts     644538e62a3fe611f9a50e63b4644cab697dad1d
+
+6. Explicit limits and negative stress evidence
+
+The retained all-nine-profile ENG4 probes pass at 25 m/s, steering=0.25, full
+throttle, G=S=2 or 3, for one second. This is their certified test envelope.
+G3/S3 remains test-only; the unchanged browser S selector ends at 2.00.
+
+A separate exploratory 162-case local sweep used all nine profiles, G=S=2 or 3,
+ENG=1/3/4, initial speed=0/10/45 m/s and three seconds of full DIRECT throttle,
+with steering=1 for the first second then -0.5 for the remaining two seconds.
+Existing suspension-travel guards fired in 33 baseline and 47 candidate cases.
+These were VehicleOutsideModelError limits, not evidence of a universally valid
+high-power maneuver envelope. Removing drive interruption exposes more available
+torque; the suspension and its guard were not weakened to hide the limitation.
+This release does not certify extreme high-power reversal/crash robustness.
+
+No hands-on browser/phone driving, pleasant-drift or camera-perception success is
+claimed. Sustained drift controllability remains a separate DEV_UNCALIBRATED task.
+
+7. Validation-inclusive release rule
+
+Adding this record creates a new SHA. That final SHA must receive another complete
+exact-head green CI before release. Refetch main, require a pure fast-forward
+(ahead>0, behind=0, merge base=current main), update main with force=false only,
+and verify main SHA = PR head SHA = PR merge SHA. Then verify the same-SHA main
+push build and Pages deployment. Final IDs belong to Git/PR/workflow history;
+do not rewrite this immutable record to name its own validating run.
