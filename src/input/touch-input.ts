@@ -19,9 +19,8 @@ export interface TouchPedalRequests {
   readonly brake: number;
 }
 
-export const TOUCH_ANALOG_FULL_SCALE_SHORT_SIDE_FRACTION = 0.25;
-export const TOUCH_ANALOG_FULL_SCALE_MIN_PX = 72;
-export const TOUCH_ANALOG_FULL_SCALE_MAX_PX = 120;
+/** M9.14 compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
+export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
 
 export function touchAnalogFullScaleDistance(
   viewportWidth: number,
@@ -31,11 +30,7 @@ export function touchAnalogFullScaleDistance(
     || !Number.isFinite(viewportWidth) || !Number.isFinite(viewportHeight)) {
     throw new RangeError('touch analog viewport dimensions must be finite and > 0');
   }
-  return clamp(
-    Math.min(viewportWidth, viewportHeight) * TOUCH_ANALOG_FULL_SCALE_SHORT_SIDE_FRACTION,
-    TOUCH_ANALOG_FULL_SCALE_MIN_PX,
-    TOUCH_ANALOG_FULL_SCALE_MAX_PX,
-  );
+  return TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX;
 }
 
 export function touchSteeringRequest(
