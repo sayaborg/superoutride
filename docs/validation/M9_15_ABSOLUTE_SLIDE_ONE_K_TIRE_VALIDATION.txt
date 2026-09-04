@@ -1,0 +1,57 @@
+SUPER OUTRIDE — M9.15 ABSOLUTE-SLIDE ONE-K VECTOR TIRE VALIDATION
+
+Scope
+- M9.14 hands-on evaluation falsified percentage-SLIDE parameter tuning as a complete answer to prompt, progressive and sustained controllable drift.
+- The state-free one-k demand vector, radial C1 saturation, friction-circle bound, force direction, common two-station mechanics and scalar implicit wheel solve are retained.
+- Browser S changes from a percentage of peak grip to an absolute deep-slide friction coefficient at gripFactor=1.
+- The existing physics scalar slidingFrictionRatio is retained and derived as S/G; no fourth calibration scalar or duplicate tire authority is added.
+- The lateral post-peak C1 transition begins at P and reaches the selected sliding plateau at exactly 2P.
+- Current browser tire ranges are G=2.00–4.00 in 0.20 steps, P=20–60% in 2% steps, and absolute S=1.00–2.00 in 0.20 steps.
+- The explicit hands-on starting candidate is G3.00 / P20 / S1.00; its internal ratio is 1/3 and is diagnostic, not a production-tire realism claim.
+- M9.11 travel-direction steering, M9.9 axle-neutral balance and recovery acceptance, production profiles, actuators, powertrain, suspension, touch input, camera, renderer, route and topology are unchanged.
+
+Implementation/documentation-inclusive exact head
+- SHA: b118b528286dfbc3b97f8339f0fc91bb1bc6024f
+- PR: #127
+- GitHub Actions run: #806
+- Workflow run ID: 33905875736
+- Workflow: Test and Deploy GitHub Pages
+- Exact checkout verification: PASS
+- npm test / build: PASS
+- Tests: 613
+- Pass: 613
+- Fail: 0
+
+Specific regression evidence
+- Browser starting calibration is exactly G3.00/P20/S1.00 and stored slidingFrictionRatio is 1/3: PASS
+- G choices remain exactly 2.00–4.00 in 0.20 steps: PASS
+- P choices remain exactly 20–60% in 2% steps: PASS
+- Absolute S choices are exactly 1.00–2.00 in 0.20 steps: PASS
+- Changing G preserves displayed P and absolute S while recomputing S/G: PASS
+- Changing P preserves displayed G and absolute S: PASS
+- Changing S preserves displayed G and P while recomputing S/G: PASS
+- Pure lateral force reaches G*N at P: PASS
+- Pure lateral force reaches S*N at exactly 2P and retains S*N deeper into slide: PASS
+- The P-to-2P transition is C1 at both endpoints: PASS
+- Deep combined-slide resultant magnitude remains S*N while force direction remains parallel to the one-k demand vector: PASS
+- At fixed deep lateral slip, increasing longitudinal wheel slip increases |Fx| and decreases |Fy|: PASS
+- Pure longitudinal tire behavior remains independent of S: PASS
+- Complete 11 x 21 x 6 = 1,386 browser tire product remains finite in the retained scalar wheel solve: PASS
+- Scalar wheel solve remains deterministic at low internal ratios including 1/3: PASS
+- All nine production profiles remain finite at the extreme steering selector corner: PASS
+- All nine production profiles recover from both signs of the 43-degree deep-beta seed under explicit recovery input: PASS
+- Physics continues to store only referenceFrictionMultiplier, linearStiffnessMultiplier and slidingFrictionRatio: PASS
+- No tire memory, relaxation state, drift mode, target sideslip, hidden yaw authority, vehicle-specific tire branch or drive-layout handling branch is added: PASS
+- M9.14 64 CSS px full-screen touch behavior remains intact: PASS
+- Package, browser title, shared HUD, README, docs index and AGENTS authority are synchronized to M9.15: PASS
+- Current entry documents and source-boundary/compatibility checks remain green: PASS
+
+Intermediate correction evidence
+- The first implementation CI stopped at a TypeScript generic literal-inference error before tests; selector generic typing was corrected without changing model semantics.
+- A later complete suite exposed only obsolete percentage/default assertions and one absolute zero-force tolerance; current authority assertions and normalized floating-point tolerance were corrected.
+- The final implementation/documentation-inclusive exact head above is the first complete 613/613 green authority-synchronized candidate.
+
+Release rule
+- This record is immutable evidence for the implementation/documentation-inclusive head above.
+- Because this file is added after that green run, the record-inclusive branch head must itself receive a second complete exact-head green CI before release.
+- Final release identity is established only after the record-inclusive head is confirmed as a pure fast-forward of then-current main, main is moved to that exact SHA with force=false, PR/main SHA identity is verified, and the main-push GitHub Pages workflow succeeds on the same SHA.
