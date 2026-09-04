@@ -22,6 +22,29 @@ supersede only their stated scope.
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
+### Current touch-driving input / presentation
+
+```text
+107_m9_13_full_screen_analog_touch.md
+```
+
+M9.13 is the current real-touch driving authority. The entire viewport is split at pointer-down into
+left steering and right ACCEL/BRAKE roles. Pointer-down position is the neutral origin; steering is
+horizontal relative displacement and pedals use one exclusive vertical signed axis. Pointer role is
+fixed for the lifetime of that touch. The initial 100% displacement is:
+
+```text
+L = clamp(0.25 * min(viewportWidth, viewportHeight), 72 px, 120 px)
+```
+
+Touch publishes normalized analog requests through the existing shared arbiters and existing finite
+vehicle actuator. Keyboard remains digital. Pointer release/cancel publishes neutral and the current
+actuator `releaseRate` remains authoritative for physical release response. Touch origin icons and
+arrows are presentation only. Fixed digital driving panels are hidden in touch-capable layouts.
+
+M9.13 supersedes M9.1 mobile-touch statements only for fixed digital driving controls and the former
+touch-only ON/OFF interpretation. Selector authority remains unchanged.
+
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
@@ -140,7 +163,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `106_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `107_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -176,23 +199,24 @@ The most relevant current lineage is:
 104_m9_12a_centered_handling_comparison_ranges.md
 105_m9_12b_upward_tire_range_expansion.md
 106_m9_12c_extended_peak_diagnostic.md
+107_m9_13_full_screen_analog_touch.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.12C changes none of those boundaries.
+scope; M9.13 changes none of those boundaries.
 
 ## 3. Takeover context
 
-The current named takeover checkpoint is:
+The current named handling takeover checkpoint remains:
 
 ```text
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
-It records the released M9.12C handling state, current authority chain, current DEV selector domains,
-the `GRIP=2.00 / PEAK=30%` diagnostic observation, the immediate PEAK sweep, and the restart/release
-procedure. It is navigation context only and never overrides current source, numbered authority,
-tests, Git/PR state or exact-head workflow evidence.
+It records the released M9.12C handling state, current steering/tire selector domains, the
+`GRIP=2.00 / PEAK=30%` diagnostic observation, the immediate PEAK sweep, and the restart/release
+procedure. It is navigation context only and predates M9.13 touch input; document 107/current
+source/tests supersede it for touch-driving behavior.
 
 The prior:
 
@@ -221,6 +245,9 @@ validation/M9_12A_CENTERED_HANDLING_COMPARISON_RANGES_VALIDATION.txt
 validation/M9_12B_UPWARD_TIRE_RANGE_EXPANSION_VALIDATION.txt
 validation/M9_12C_EXTENDED_PEAK_DIAGNOSTIC_VALIDATION.txt
 ```
+
+M9.13 changes a normative input boundary, so its release requires a new standalone validation
+record under `validation/README.md` after the implementation/documentation head is fully green.
 
 New validation evidence is added only after the corresponding implementation/documentation head is
 fully green. Final release identity is established by Git/PR/main/workflow history rather than by
