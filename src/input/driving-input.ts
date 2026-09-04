@@ -1,4 +1,5 @@
 export type PedalRequest = boolean | number;
+export type DrivingInputApplyMode = 'RATE_LIMITED' | 'DIRECT';
 
 export interface PedalInput {
   readonly throttle: PedalRequest;
@@ -15,6 +16,13 @@ export interface DrivingInput {
    */
   throttle: PedalRequest;
   brake: PedalRequest;
+  /**
+   * RATE_LIMITED is the ordinary keyboard/AI behavior. DIRECT is used only while an analog touch
+   * pointer is actively held so displacement itself is the actuator amount; after pointer release
+   * the publisher returns to RATE_LIMITED neutral and the existing releaseRate owns decay.
+   */
+  readonly steeringApplyMode?: DrivingInputApplyMode;
+  readonly pedalApplyMode?: DrivingInputApplyMode;
 }
 
 export function clampSteering(value: number): number {
@@ -27,6 +35,12 @@ export function normalizedPedalRequest(request: PedalRequest): number {
     throw new RangeError('canonical pedal request must be boolean shorthand or finite in [0,1]');
   }
   return request;
+}
+
+export function drivingInputApplyMode(mode: DrivingInputApplyMode | undefined): DrivingInputApplyMode {
+  if (mode === undefined || mode === 'RATE_LIMITED') return 'RATE_LIMITED';
+  if (mode === 'DIRECT') return mode;
+  throw new RangeError(`unsupported driving input apply mode: ${String(mode)}`);
 }
 
 /** Validate the canonical exclusive pedal contract without inventing event order downstream. */
