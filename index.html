@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#05080c" />
-    <title>SUPER OUTRIDE — M9.12</title>
+    <title>SUPER OUTRIDE — M9.13</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main id="app" aria-label="SUPER OUTRIDE M9.12 driving">
+    <main id="app" aria-label="SUPER OUTRIDE M9.13 driving">
       <nav class="mobile-selector-zone" aria-label="Course vehicle camera steering and tire calibration selection">
         <section class="selector-group selector-group-course" aria-labelledby="course-selector-label">
           <span id="course-selector-label" class="selector-label">COURSE</span>
@@ -40,8 +40,8 @@
         </section>
       </nav>
 
-      <section class="control-zone steering-zone" aria-label="Steering control">
-        <div class="steering-pad" role="group" aria-label="Digital steering buttons">
+      <section class="control-zone steering-zone" aria-label="Legacy steering fallback">
+        <div class="steering-pad" role="group" aria-label="Legacy digital steering buttons">
           <button id="steer-left-button" class="steer-button" type="button" aria-label="Steer left">◀</button>
           <span class="steer-center">STEER</span>
           <button id="steer-right-button" class="steer-button" type="button" aria-label="Steer right">▶</button>
@@ -52,7 +52,7 @@
         <canvas id="game" width="320" height="240" aria-label="SUPER OUTRIDE game screen"></canvas>
       </section>
 
-      <section class="control-zone pedal-zone" aria-label="Throttle and brake controls">
+      <section class="control-zone pedal-zone" aria-label="Legacy throttle and brake fallback">
         <button id="brake-button" class="pedal brake" type="button">BRAKE</button>
         <button id="throttle-button" class="pedal throttle" type="button">THROTTLE</button>
       </section>
