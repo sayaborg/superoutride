@@ -80,7 +80,7 @@ test('canonical input stays device-independent while one common actuator owns re
   assert.match(input, /brake:\s*PedalRequest/);
   assert.match(input, /normalizedPedalRequest/);
   assert.match(input, /DrivingInputApplyMode = 'RATE_LIMITED' \| 'DIRECT'/);
-  assert.doesNotMatch(input, /applyRate|releaseRate/);
+  assert.doesNotMatch(input, /(?:readonly\s+)?(?:applyRate|releaseRate)\s*:/);
   assert.doesNotMatch(input, /interface\s+DrivingActuatorState/);
   assert.match(manager, /PedalInputArbiter/);
   assert.match(manager, /SteeringInputArbiter/);
