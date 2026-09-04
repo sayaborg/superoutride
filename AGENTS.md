@@ -42,6 +42,11 @@ The addenda supersede only the specific earlier assumptions they explicitly repl
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/106_m9_12c_extended_peak_diagnostic.md
+docs/105_m9_12b_upward_tire_range_expansion.md
+docs/104_m9_12a_centered_handling_comparison_ranges.md
+docs/103_m9_12_independent_tire_calibration_axes.md
+docs/102_m9_11a_steering_selector_test_range.md
 docs/101_m9_11_simplified_travel_direction_steering.md
 docs/100_m9_10_post_peak_sliding_tire.md
 docs/99_m9_9_controllable_drift_foundation.md
@@ -55,9 +60,9 @@ docs/85_m8_6_two_hundred_meter_render_distance.md
 docs/91_m9_1_dual_yaw_camera_modes.md
 ```
 
-M9.11 is the current steering-control calibration and browser-selector authority. It removes M9.7
-yaw-transient feedback, zero-DC yaw-washout state and both old steering selectors. The common law is
-now only the unit-coefficient travel-direction transform plus Driver offset and one physical rack:
+M9.11 is the current steering-control law authority. It removes M9.7 yaw-transient feedback,
+zero-DC yaw-washout state and both old steering selectors. The common law is now only the
+unit-coefficient travel-direction transform plus Driver offset and one physical rack:
 
 ```text
 A = M - D
@@ -65,23 +70,63 @@ automatic = clamp(betaTravel, -A, +A)
 deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
-`A` is derived only and must never become a stored state, profile field or selector. Current DEV
-steering choices are `D=9/9.5/11/12.5/14 deg`, `M=37/41/45/49/53 deg` and symmetric traversal
-`T=0.25/0.375/0.5/0.625 s`; defaults are `M=45 deg`, `T=0.25 s`, with profile seed `D=9.5 deg`
-for CAR and `D=9 deg` for BIKE. The complete exposed M/D domain preserves `A>=23 deg`. M/D/T remain
+`A` is derived only and must never become a stored state, profile field or selector. Document 104
+(M9.12A) is the current scoped browser steering comparison-range/default authority and supersedes
+document 102 and earlier M9.11 selector tables only for that DEV browser range/default scope:
+
+```text
+D   = 10 / 11 / 12 / 13 / 14 deg           browser default 12 deg
+M   = 50 / 55 / 60 / 65 / 70 deg           browser default 60 deg
+ACT = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s browser default 0.25 s
+```
+
+The complete current browser M/D product preserves `A>=36 deg`. Compiled production-profile
+construction seeds remain separate and unchanged (`M=45 deg`; CAR `D=9.5 deg`; BIKE `D=9 deg`;
+base symmetric steering traversal `0.25 s`). Browser DEV calibration applies the current comparison
+starting point to the player instance without redefining production vehicle identity. M/D/ACT remain
 tunable `DEV_UNCALIBRATED` values. Common mechanics contains no yaw steering assist, yaw baseline,
 drift mode, target beta, vehicle-kind branch or drive-layout handling branch.
 
-M9.10 remains the current post-peak tire-law and browser sliding-ratio authority. It preserves the
-M9.9 compiled axle-neutral reference seed and uses the exact former M9.5/M9.9 `TIRE 2` peak
-characteristic for every browser comparison. One vehicle-owned `slidingFrictionRatio` extends the
-existing tire calibration, and one stateless C1 lateral-demand-driven post-peak scale reduces only
-deep lateral-slip force. Browser `G`/touch/HUD choices are `SLIDE 100 / 85 / 80 / 75 / 70 %`,
-defaulting to `100%`; every choice is identical through the retained 12-degree peak. Pure
+M9.10 remains the current post-peak tire constitutive-law authority. It preserves the M9.9 compiled
+axle-neutral reference seed and one stateless C1 lateral-demand-driven post-peak scale. Pure
 longitudinal behavior and the monotone scalar implicit wheel solve remain unchanged because the
-post-peak scale is independent of wheel angular speed during the solve. No drift mode, drift
-assist, target sideslip, yaw/beta feedback, tire memory, vehicle-kind branch or drive-layout
-handling branch is added. Handling remains `DEV_UNCALIBRATED`.
+post-peak lateral scale is independent of wheel angular speed during the solve. M9.10's historical
+browser SLIDE comparison table is superseded for current DEV selector scope by M9.12/M9.12A/B/C.
+No drift mode, drift assist, target sideslip, yaw/beta feedback, tire memory, vehicle-kind branch or
+drive-layout handling branch is added. Handling remains `DEV_UNCALIBRATED`.
+
+M9.12 keeps the existing three-scalar vehicle-owned tire calibration and exposes three independent
+browser characteristics without adding physics state:
+
+```text
+GRIP  = peak force height
+PEAK  = common normalized slip at peak
+SLIDE = large-lateral-slip plateau / peak
+```
+
+Changing one browser tire axis preserves the other two displayed characteristics. Physics still
+stores only positive finite reference-friction, linear-stiffness and sliding-friction-ratio
+calibration values; GRIP/PEAK/SLIDE IDs are browser-derived and are not stored in mechanics.
+Longitudinal and lateral PEAK are not split: the model remains one common one-k normalized demand
+law. SLIDE remains lateral-post-peak only.
+
+M9.12C is the current scoped DEV PEAK selector-range authority; M9.12B remains current for GRIP and
+M9.12A for the browser steering range. Current tire selector domain is:
+
+```text
+GRIP  = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 default 2.00
+PEAK  = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 % default 20%
+SLIDE = 70 / 75 / 80 / 85 / 90 % default 80%
+```
+
+The current 6 x 11 x 5 browser product exposes 330 tire calibrations and regression coverage keeps
+the retained scalar wheel solve finite across that product. Values above P30 are explicit
+diagnostic probes, not frozen real-production-tire claims. The latest hands-on observation is that
+at fixed `GRIP=2.00`, larger PEAK values are preferred through `PEAK=30%`; at fixed GRIP this lowers
+the initial force slope while preserving the peak-force ceiling. If improvement remains monotonic
+through P40, diagnose omitted/compressed transient or compliance behavior before merely extending a
+literal tire value again. Candidate omitted effects include tire relaxation, body-roll transient /
+compliance and left/right load-transfer dynamics. No such new state is authorized by M9.12C.
 
 M9.9 remains the common tire-balance and deep-sideslip acceptance authority. Its product rule is
 **uncontrollable slide is forbidden; controllable drift is allowed**. The explicit recovery input
@@ -109,16 +154,17 @@ not superseded. Do not recreate a washout state, setter, selector, source module
 shim.
 
 M9.5 historically superseded M9.4's exact browser choices and its prohibition on calibrating linear
-tire demand. Its numbered `1 / 2 / 3` browser comparison table is superseded by M9.10. The retained
-M9.5/M9.9 `TIRE 2` reference values now supply the common M9.10 browser peak characteristic:
-effective normalized slope `10.3` and pure-lateral peak start `12 deg`. The existing vehicle-owned
-tire-calibration authority atomically owns positive finite reference-friction, linear-stiffness and
-M9.10 sliding-friction-ratio values. `rhoKnee`, the common wheel solve and relative SurfaceMap
-materials remain separate authorities.
+tire demand. Its numbered `1 / 2 / 3` browser comparison table is superseded by later M9.10/M9.12
+selector authority. The retained M9.5/M9.9 `TIRE 2` reference values still supply historical/common
+calibration anchors: effective normalized slope `10.3` and pure-lateral peak start `12 deg`. The
+existing vehicle-owned tire-calibration authority atomically owns positive finite
+reference-friction, linear-stiffness and sliding-friction-ratio values. `rhoKnee`, the common wheel
+solve and relative SurfaceMap materials remain separate authorities.
 
 M9.4 historically superseded only M9.0's prohibition on a control path changing `mu`. One explicit
 common vehicle-instance tire-calibration state owns a positive finite reference-friction multiplier.
-Its old browser comparison table is historical; M9.10 owns the current tire comparison.
+Its old browser comparison table is historical; later M9.10/M9.12 documents own current tire
+comparison behavior.
 
 M9.2 is a historical predecessor superseded first by M9.7 and now by M9.11 for steering
 calibration. Do not recreate its gain or absolute-yaw-preview compatibility state, setter, key path
@@ -162,6 +208,10 @@ docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/100_m9_10_post_peak_sliding_tire.md
 docs/101_m9_11_simplified_travel_direction_steering.md
+docs/103_m9_12_independent_tire_calibration_axes.md
+docs/104_m9_12a_centered_handling_comparison_ranges.md
+docs/105_m9_12b_upward_tire_range_expansion.md
+docs/106_m9_12c_extended_peak_diagnostic.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -234,6 +284,11 @@ docs/98_m9_8_selectable_production_vehicle_catalog.md
 docs/99_m9_9_controllable_drift_foundation.md
 docs/100_m9_10_post_peak_sliding_tire.md
 docs/101_m9_11_simplified_travel_direction_steering.md
+docs/102_m9_11a_steering_selector_test_range.md
+docs/103_m9_12_independent_tire_calibration_axes.md
+docs/104_m9_12a_centered_handling_comparison_ranges.md
+docs/105_m9_12b_upward_tire_range_expansion.md
+docs/106_m9_12c_extended_peak_diagnostic.md
 ```
 
 ### Executable implementation contract
@@ -243,6 +298,29 @@ Types, compilers and regression tests are the executable contract. If documentat
 ### Documentation authority index
 
 `docs/README.md` distinguishes normative authority, chronological milestone history, active takeover context and immutable validation evidence. Use it when interpreting historical statements or supersession.
+
+### Current takeover handoff state
+
+The current navigation/continuation checkpoint is:
+
+```text
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
+```
+
+That file records the released M9.12C state, current steering/tire selector domains, the latest
+`GRIP=2.00 / PEAK=30%` handling observation, the immediate P30->P40 diagnostic sweep and restart /
+release procedure. It is navigation context only. It does not replace numbered milestone authority,
+source/types/compilers, regression tests, immutable validation evidence or current Git/PR/workflow
+state. A fresh agent should re-fetch current main and release evidence before assuming the embedded
+M9.12C SHA is still current.
+
+The prior M9.6 takeover handoff:
+
+```text
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
+```
+
+is historical navigation context after this checkpoint.
 
 ### M8.0 finalization handoff state
 
@@ -260,7 +338,7 @@ The older:
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md
 ```
 
-is historical repository-migration handoff context. It records the PR-C/final-migration lineage and must not be mistaken for the active PR #88 work checkpoint.
+is historical repository-migration handoff context. It records the PR-C/final-migration lineage and must not be mistaken for the active current takeover checkpoint.
 
 The original mandatory first read-only Codex takeover audit was completed before PR-C. That one-time audit is distinct from the later final clean-room audit and final exact-head migration freeze. The released FINAL CODEX MIGRATION POINT is established by `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` together with Git/PR/main-ref and Pages workflow identity. Do not infer the final migration SHA from an embedded self-reference in an entry document.
 
@@ -531,10 +609,11 @@ src/main-circuit.ts  -> CIRCUIT
 Boot selection belongs only at the composition root:
 
 ```text
-/              -> BRANCHING
+/                -> BRANCHING
 /?mode=linear    -> LINEAR
 /?mode=branching -> BRANCHING
-/?mode=circuit   -> CIRCUIT
+/?mode=circuit   -> CIRCUIT / TSUKUBA
+/?mode=fisco     -> CIRCUIT / FISCO
 ```
 
 Do not distribute `if (CIRCUIT)` / `routeKind` decisions through lower engine layers when composition can select the correct ordinary runtime objects once.
@@ -691,15 +770,23 @@ When starting from a fresh Codex/agent context:
 1. Read this file completely.
 2. Read `README.md` for repository entry points and current status.
 3. Read `docs/README.md` for authority/supersession and evidence policy.
-4. Read the four Core freeze/addendum files listed in section 2.
-5. If draft PR #88 / branch `feature/phase9-vehicle-physics-freeze` is still active, read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-28_M8_0.md` and `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` before touching vehicle physics.
-6. Otherwise, identify the current task/handoff from repository/PR history and the latest relevant milestone authority; do not assume a dated handoff is still active.
-7. Read current source/types/compilers and the tests relevant to the task.
-8. Confirm current `main`, active branch/PR head, and exact latest CI state before changing anything.
-9. Use `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-08-25.md` only when historical final-migration lineage is relevant; do not treat it as current M8.0 authority.
-10. Verify the FINAL CODEX MIGRATION POINT against `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history rather than expecting a self-referential SHA in this file.
-11. Do not repeat the original migration cleanup/takeover ceremony when current `main` is at or descended from the validated FINAL CODEX MIGRATION POINT.
-12. Run/inspect the complete test suite required by the current task and relevant validation contract; historical known-red checkpoints are not release evidence.
-13. Only then continue the scoped task under the Mandatory Architecture Decision Gate.
+4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` as the current navigation /
+   continuation checkpoint.
+5. Read the four Core freeze/addendum files listed in section 2 when the requested task can affect
+   frozen renderer/metric/topology invariants.
+6. Identify and read the newest numbered authority documents for the requested topic. For current
+   handling work this means the M9.12C -> M9.12B -> M9.12A -> M9.12 -> M9.11 -> M9.10 -> M9.9
+   lineage described above.
+7. Read current source/types/compilers and the causal tests relevant to the task.
+8. Confirm current `main`, active/open PR state and exact latest CI/Pages state before changing
+   anything; never assume the SHA embedded in a dated handoff is still current.
+9. Use older handoffs only when their historical lineage is specifically relevant. Do not treat
+   M9.6, M8.0 or migration handoffs as current instructions after the M9.12C checkpoint.
+10. Verify the FINAL CODEX MIGRATION POINT against
+    `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history only when
+    migration history is relevant; do not repeat the original migration cleanup ceremony.
+11. Run/inspect the complete test suite required by the current task and relevant validation
+    contract; historical green checkpoints are not release evidence for a new SHA.
+12. Only then continue the scoped task under the Mandatory Architecture Decision Gate.
 
 At and after the FINAL CODEX MIGRATION POINT, the repository—not a previous ChatGPT transcript—is the continuing project memory.
