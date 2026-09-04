@@ -94,7 +94,7 @@ test('M9.13 relative displacement maps steering and exclusive pedal requests con
   assert.deepEqual(touchPedalRequests(400, 400, 100), { throttle: 0, brake: 0 });
 });
 
-test('M9.13 left and right touch halves publish simultaneous analog steering and pedal input', () => {
+test('M9.13 left and right touch halves publish simultaneous direct analog steering and pedal input', () => {
   const { lifecycle, touch } = createTouchFixture();
 
   lifecycle.dispatch('pointerdown', pointer(1, 100, 300));
@@ -106,12 +106,24 @@ test('M9.13 left and right touch halves publish simultaneous analog steering and
   assert.equal(sample.steering, 0.5);
   assert.equal(normalizedPedalRequest(sample.throttle), 0.5);
   assert.equal(normalizedPedalRequest(sample.brake), 0);
+  assert.equal(sample.steeringApplyMode, 'DIRECT');
+  assert.equal(sample.pedalApplyMode, 'DIRECT');
 
   lifecycle.dispatch('pointermove', pointer(2, 300, 450));
   sample = touch.sample();
   assert.equal(sample.steering, 0.5);
   assert.equal(normalizedPedalRequest(sample.throttle), 0);
   assert.equal(normalizedPedalRequest(sample.brake), 0.5);
+  assert.equal(sample.pedalApplyMode, 'DIRECT');
+});
+
+test('M9.13 pedal touch origin is active direct neutral and does not require displacement', () => {
+  const { lifecycle, touch } = createTouchFixture();
+  lifecycle.dispatch('pointerdown', pointer(7, 300, 400));
+  const sample = touch.sample();
+  assert.equal(normalizedPedalRequest(sample.throttle), 0);
+  assert.equal(normalizedPedalRequest(sample.brake), 0);
+  assert.equal(sample.pedalApplyMode, 'DIRECT');
 });
 
 test('M9.13 touch role is fixed by the half where the pointer starts', () => {
@@ -122,14 +134,16 @@ test('M9.13 touch role is fixed by the half where the pointer starts', () => {
   assert.equal(sample.steering, 1);
   assert.equal(normalizedPedalRequest(sample.throttle), 0);
   assert.equal(normalizedPedalRequest(sample.brake), 0);
+  assert.equal(sample.steeringApplyMode, 'DIRECT');
 });
 
-test('M9.13 pointer release publishes neutral and existing actuator release rates own decay', () => {
+test('M9.13 held displacement is immediate while release uses existing actuator release rates', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(4, 300, 400));
-  lifecycle.dispatch('pointermove', pointer(4, 300, 300));
+  lifecycle.dispatch('pointermove', pointer(4, 300, 350));
   const held = touch.sample();
-  assert.equal(normalizedPedalRequest(held.throttle), 1);
+  assert.equal(normalizedPedalRequest(held.throttle), 0.5);
+  assert.equal(held.pedalApplyMode, 'DIRECT');
 
   const profile = {
     steering: { applyRate: 4, releaseRate: 4 },
@@ -137,15 +151,37 @@ test('M9.13 pointer release publishes neutral and existing actuator release rate
     brake: { applyRate: 1 / 0.15, releaseRate: 10 },
   };
   const state = createDrivingActuatorState();
-  updateDrivingActuators(state, held, 0.25, profile);
-  assert.equal(state.throttle, 1);
+  updateDrivingActuators(state, held, 1 / 720, profile);
+  assert.equal(state.throttle, 0.5);
 
-  lifecycle.dispatch('pointerup', pointer(4, 300, 300));
+  lifecycle.dispatch('pointerup', pointer(4, 300, 350));
   const released = touch.sample();
   assert.equal(normalizedPedalRequest(released.throttle), 0);
   assert.equal(normalizedPedalRequest(released.brake), 0);
-  updateDrivingActuators(state, released, 1 / 16, profile);
-  assert.equal(state.throttle, 0.5);
+  assert.equal(released.pedalApplyMode, 'RATE_LIMITED');
+  updateDrivingActuators(state, released, 1 / 32, profile);
+  assert.equal(state.throttle, 0.25);
+});
+
+test('M9.13 steering displacement is immediate while release returns through selected ACT rate', () => {
+  const { lifecycle, touch } = createTouchFixture();
+  lifecycle.dispatch('pointerdown', pointer(8, 100, 300));
+  lifecycle.dispatch('pointermove', pointer(8, 160, 300));
+  const held = touch.sample();
+  const profile = {
+    steering: { applyRate: 4, releaseRate: 4 },
+    throttle: { applyRate: 4, releaseRate: 8 },
+    brake: { applyRate: 1 / 0.15, releaseRate: 10 },
+  };
+  const state = createDrivingActuatorState();
+  updateDrivingActuators(state, held, 1 / 720, profile);
+  assert.equal(state.steering, 0.6);
+
+  lifecycle.dispatch('pointerup', pointer(8, 160, 300));
+  const released = touch.sample();
+  assert.equal(released.steeringApplyMode, 'RATE_LIMITED');
+  updateDrivingActuators(state, released, 0.05, profile);
+  assert.ok(Math.abs(state.steering - 0.4) < 1e-12);
 });
 
 test('M9.13 creates steering-wheel and pedal origin indicators and updates the vector readout', () => {
