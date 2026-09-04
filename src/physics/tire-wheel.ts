@@ -162,13 +162,16 @@ export function radialC1Magnitude(rho: number, rhoKnee: number): number {
 }
 
 /**
- * M9.10 stateless lateral post-peak falloff.
+ * M9.15 state-free lateral post-peak falloff.
  *
  * The peak begins at the same pure-lateral demand ratio b=2-rhoKnee used by the retained one-k
- * radial shoulder. Beyond b, one equal-width C1 shoulder falls to slidingFrictionRatio and then
- * remains constant. The scale depends only on lateral demand, never wheel omega, so for one wheel
- * solve it is constant with respect to the scalar root variable. This preserves the retained
- * monotone backward-Euler wheel equation while reducing large-angle scrub force.
+ * radial shoulder. The C1 falloff now spans one whole peak-demand interval and reaches its sliding
+ * plateau at 2b. Therefore a browser PEAK slip P reaches the plateau at exactly 2P. The browser may
+ * expose an absolute sliding friction coefficient S while deriving this internal ratio as S/G.
+ *
+ * The scale depends only on lateral demand, never wheel omega, so for one wheel solve it is constant
+ * with respect to the scalar root variable. This preserves the retained monotone backward-Euler
+ * wheel equation while reducing deep-slide scrub without adding tire state.
  */
 export function lateralPostPeakScale(
   lateralDemandRatio: number,
@@ -183,10 +186,9 @@ export function lateralPostPeakScale(
     throw new RangeError('lateral demand ratio must be finite');
   }
   const rhoLat = Math.abs(lateralDemandRatio);
-  const a = rhoKnee;
-  const peak = 2 - a;
+  const peak = 2 - rhoKnee;
   if (rhoLat <= peak || slidingFrictionRatio === 1) return 1;
-  const width = peak - a;
+  const width = peak;
   const plateau = peak + width;
   if (rhoLat >= plateau) return slidingFrictionRatio;
   const t = (rhoLat - peak) / width;
@@ -213,7 +215,7 @@ export function rollingResistanceTorque(
 
 /**
  * Unique scalar backward-Euler wheel root with a Coulomb brake atom at Omega=0.
- * The no-brake residual stays monotone: the M9.10 post-peak scale depends on fixed lateral demand,
+ * The no-brake residual stays monotone: the M9.15 post-peak scale depends on fixed lateral demand,
  * not Omega. Bounded tire and rolling torques make the finite bracket explicit rather than
  * heuristic.
  */
