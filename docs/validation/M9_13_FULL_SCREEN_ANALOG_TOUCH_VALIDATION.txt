@@ -1,0 +1,62 @@
+SUPER OUTRIDE — M9.13 FULL-SCREEN ANALOG TOUCH VALIDATION
+
+Scope
+
+M9.13 replaces the legacy fixed touch driving panels with one full-screen relative analog touch surface while preserving the existing vehicle-state and mechanics authorities.
+
+Validated behavior:
+- pointer-down in the left viewport half owns STEERING for that pointer;
+- pointer-down in the right viewport half owns ACCEL/BRAKE for that pointer;
+- pointer-down position is the neutral origin and the role stays fixed after crossing the center line;
+- steering uses normalized horizontal displacement in [-1,+1];
+- upward pedal displacement publishes throttle [0,1] and downward displacement publishes brake [0,1];
+- one steering pointer and one pedal pointer may operate simultaneously;
+- held analog displacement uses DIRECT apply semantics against the existing actuator amount;
+- release/cancel removes DIRECT ownership and the existing actuator release rate returns the channel toward neutral;
+- keyboard input remains digital and rate-limited;
+- full-scale slide distance is 25% of viewport short side, clamped to 72–120 CSS px;
+- steering-wheel/pedal origin indicators, direction vector and percentage are presentation-only;
+- legacy fixed driving panels remain hidden in touch-capable layouts while selector controls remain available;
+- no touch-specific vehicle state, rack, pedal state, tire state, vehicle/course branch, steering law, handling law, camera authority, route authority or renderer authority is added.
+
+Implementation/documentation-inclusive exact head
+
+SHA: 7d6f05a3a072dad3b360886b1836dc2ad77538b0
+PR: #125
+GitHub Actions run: #791
+Workflow: Test and Deploy GitHub Pages
+Exact checkout: PASS
+npm test/build: PASS
+Tests: 608
+Pass: 608
+Fail: 0
+
+Specific regression evidence
+
+The complete repository suite passed on the exact SHA above, including the dedicated M9.13 causal regressions:
+
+1. full-scale slide distance uses one orientation-independent short-side rule;
+2. relative displacement maps steering and exclusive pedal requests continuously;
+3. left/right touch halves publish simultaneous DIRECT analog steering and pedal input;
+4. pedal touch origin is active DIRECT neutral and requires no displacement;
+5. pointer role is fixed by the half where the pointer starts;
+6. held pedal displacement is immediate while release uses the existing actuator release rates;
+7. held steering displacement is immediate while release returns through the selected ACT rate;
+8. steering-wheel and pedal origin indicators plus vector readout are created and updated;
+9. touch layout hides legacy fixed driving panels while retaining full-screen overlay styling.
+
+The same exact-head suite also verifies that:
+- canonical input remains device-independent and response state belongs to the common actuator module;
+- canonical pedal requests accept digital boolean shorthand or normalized analog magnitude without adding response-rate fields to canonical input;
+- M9.13 debug selectors remain device-independent while legacy touch driving panels stay hidden;
+- visible Pages milestone labels match package milestone metadata;
+- only explicit top-level composition roots may depend on src/dev;
+- source modules do not recreate retired authorities or compatibility shims.
+
+Release rule
+
+This file is immutable validation evidence for the implementation/documentation-inclusive head above.
+
+Because this standalone record is added after that green run, the record-inclusive branch head must itself receive a second complete exact-head green CI before release.
+
+Final release identity is established only after the validated record-inclusive head is confirmed as a pure fast-forward of the then-current main, main is moved to that exact SHA with force=false, PR/main SHA identity is verified, and the main-push GitHub Pages workflow succeeds on that same SHA.
