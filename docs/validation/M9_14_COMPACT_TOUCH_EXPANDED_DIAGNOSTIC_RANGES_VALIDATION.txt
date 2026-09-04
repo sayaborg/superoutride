@@ -1,0 +1,51 @@
+SUPER OUTRIDE — M9.14 COMPACT TOUCH + EXPANDED DIAGNOSTIC RANGES VALIDATION
+
+Scope
+- M9.13 full-screen relative analog touch architecture is retained.
+- Touch full-scale displacement changes only from the M9.13 viewport-relative 72–120 CSS px rule to one fixed compact value: 64 CSS px.
+- D browser diagnostic range expands to 10–20 deg in 1-degree steps; default remains 12 deg.
+- M remains 50 / 55 / 60 / 65 / 70 deg; default remains 60 deg.
+- ACT remains 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s; default remains 0.25 s.
+- GRIP expands to 2.00–4.00 in 0.20 steps.
+- PEAK expands to 20–60% in 2% steps.
+- SLIDE expands to 60–100% in 5% steps.
+- Browser tire default remains G2.00 / P20 / S80.
+- M9.11 steering law, M9.12 independent tire-axis mapping, M9.10 tire constitutive law, common two-station mechanics, production profiles, camera, renderer, route and topology are unchanged.
+- Extreme values are diagnostic probes rather than production-realism claims.
+
+Implementation/documentation-inclusive exact head
+- SHA: cd716807f606c35f2c50cf8a47060cef1c254c62
+- PR: #126
+- GitHub Actions run: #795
+- Workflow run ID: 33874388420
+- Workflow: Test and Deploy GitHub Pages
+- Exact checkout verification: PASS
+- npm test / build: PASS
+- Tests: 608
+- Pass: 608
+- Fail: 0
+
+Specific regression evidence
+- Touch full scale is exactly 64 CSS px across portrait/landscape and different viewport sizes: PASS
+- 32 CSS px produces 50% normalized steering/pedal request and 64 CSS px reaches 100%: PASS
+- M9.13 left/right pointer ownership, simultaneous two-thumb input, DIRECT held response and existing release-rate decay remain intact: PASS
+- D choices are exactly 10–20 deg in 1-degree steps with default D12: PASS
+- M and ACT choices/defaults remain unchanged: PASS
+- Every M x D choice still derives A=M-D and minimum browser A is 30 deg at M50/D20: PASS
+- All nine production profiles remain finite at M50/D20/ACT0.30: PASS
+- GRIP choices are exactly 2.00–4.00 in 0.20 steps: PASS
+- PEAK choices are exactly 20–60% in 2% steps: PASS
+- SLIDE choices are exactly 60–100% in 5% steps: PASS
+- Tire default remains G2.00/P20/S80: PASS
+- GRIP/PEAK/SLIDE remain independent displayed characteristics at G4/P60/S100 extremes: PASS
+- SLIDE=60 gives a 60% large-slip plateau and SLIDE=100 gives a peak-equal plateau: PASS
+- Complete 11 x 21 x 9 = 2,079 browser tire product remains finite in the retained scalar wheel solve: PASS
+- Selector wrap remains deterministic from expanded maxima: PASS
+- No new tire state, steering state, drift mode, vehicle-specific handling branch or touch-specific mechanics state is added: PASS
+- Package, browser title, shared HUD and current documentation authority are synchronized to M9.14: PASS
+- Current entry documents and source-boundary/compatibility checks remain green: PASS
+
+Release rule
+- This record is immutable evidence for the implementation/documentation-inclusive head above.
+- Because this file is added after that green run, the record-inclusive branch head must itself receive a second complete exact-head green CI before release.
+- Final release identity is established only after the record-inclusive head is confirmed as a pure fast-forward of then-current main, main is moved to that exact SHA with force=false, PR/main SHA identity is verified, and the main-push GitHub Pages workflow succeeds on the same SHA.
