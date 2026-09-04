@@ -140,8 +140,6 @@ export class TouchInput {
       };
       showIndicator(this.pedalIndicator, event.clientX, event.clientY, 0, -90, 'PEDAL 0%');
     }
-
-    event.preventDefault();
   }
 
   private moveAnalogPointer(event: PointerEvent): void {
@@ -163,7 +161,6 @@ export class TouchInput {
         request < 0 ? 180 : 0,
         `STEER ${Math.round(request * 100)}%`,
       );
-      event.preventDefault();
       return;
     }
 
@@ -199,7 +196,6 @@ export class TouchInput {
         this.pedals.setSource(source, 'throttle', false);
         showIndicator(this.pedalIndicator, pointer.startX, pointer.startY, 0, -90, 'PEDAL 0%');
       }
-      event.preventDefault();
     }
   }
 
