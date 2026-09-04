@@ -111,15 +111,13 @@ test('common HUD reads actuator telemetry without adding hidden assists', () => 
   assert.match(hud.instruments, /^SPD\s+\d+km\/h  RPM\s+\d+  GEAR \d+/);
 });
 
-test('M8.0 automatic transmission output is wheel torque and shifts below redline', () => {
+// M9.17 supersedes only the historical clutch-time/drive-cut and lagged-RPM expectations.
+test('M9.17 automatic ratio selection delivers wheel torque without a shift interruption', () => {
   const profile = {
     idleRpm: 10,
     redlineRpm: 12000,
     upshiftRpm: 9000,
     downshiftRpm: 30,
-    shiftDuration: 0.1,
-    engineResponseTau: 0.001,
-    launchCouplingSlipRpm: 0,
     finalDriveRatio: 1,
     efficiency: 1,
     gearRatios: [2, 1],
@@ -140,9 +138,10 @@ test('M8.0 automatic transmission output is wheel torque and shifts below redlin
   shift.gear = 1;
   updateAutomaticPowertrain(shift, profile, 500, 1, 1 / 60);
   assert.equal(shift.gear, 2);
-  assert.equal(shift.shiftDirection, 1);
-  assert.equal(shift.outputDriveTorque, 0);
-  assert.ok(shift.engineRpm <= profile.redlineRpm);
+  assert.equal('shiftDirection' in shift, false);
+  assert.equal('shiftTimer' in shift, false);
+  assert.equal(shift.outputDriveTorque, 100);
+  assert.ok(Math.abs(shift.engineRpm - 500 * 60 / (2 * Math.PI)) < 1e-9);
 });
 
 test('M8.0 common dynamics layer owns no concrete product camera renderer or route branch', async () => {

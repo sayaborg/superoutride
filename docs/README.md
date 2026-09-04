@@ -22,19 +22,27 @@ supersede only their stated scope.
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
-### Current engine-output diagnostic calibration
+### Current powertrain and engine-output diagnostic calibration
 
 ```text
+111_m9_17_direct_robotized_mt.md
 110_m9_16_engine_power_diagnostic_selector.md
 ```
 
-M9.16 adds one instance-owned `powertrain.engineTorqueMultiplier`, default 1.0, to scale only the
+M9.17 owns direct wheel-derived RPM, instantaneous no-cut automatic ratio selection, ratio-aware
+up/down hysteresis and one C1 rev limiter. It removes launch coupling slip, RPM lag, shift timing
+and synthetic zero-torque redline samples from all nine profiles. Gear is the only dynamic
+powertrain memory; RPM/torque fields are derived observation caches. Below idle, the torque lookup
+uses an explicit no-stall floor while actual RPM is allowed to be zero. The limiter alone reduces
+positive drive to zero at redline and never clamps wheel speed or invents an engine rotor state.
+
+M9.16 retains one instance-owned `powertrain.engineTorqueMultiplier`, default 1.0, to scale only the
 sampled engine torque curve. Browser ENG choices are `1.0 / 1.5 / 2.0 / 3.0 / 4.0`; K and the
 compact ENG button use one shared adapter. Recovery and vehicle replacement preserve the value.
-Rivals and page/course reloads remain at 1.0. Engine RPM, shift strategy, redline reduction, drive
-split, tires, steering, camera and renderer are unchanged. No direct body force, speed preservation,
-drift controller or duplicate current-selection authority is added. This is a diagnostic axis, not
-proof that insufficient engine output caused the reported drift speed loss.
+Rivals and page/course reloads remain at 1.0. M9.17 explicitly supersedes M9.16's preservation of
+the old transmission/RPM/redline laws; drive split, tires, steering, camera and renderer remain
+unchanged. No direct body force, speed preservation, drift controller or duplicate selection
+is added. Removal of the reproduced hunting does not certify sustained circular drifting.
 
 ### Current touch-driving calibration and input/presentation
 
@@ -61,6 +69,7 @@ device.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+111_m9_17_direct_robotized_mt.md
 110_m9_16_engine_power_diagnostic_selector.md
 109_m9_15_absolute_slide_one_k_tire.md
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
@@ -167,7 +176,7 @@ self-recover.
 
 M9.8 remains the structured nine-production-vehicle catalog/profile-selection authority. M9.0
 remains the common two-station vehicle mechanics authority within later scoped supersession.
-M9.16 extends powertrain calibration only; profile torque curves remain immutable base authority.
+M9.17 supersedes scoped powertrain behavior; M9.16 retains the ENG calibration boundary.
 
 ### Historical steering predecessors
 
@@ -208,7 +217,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `110_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `111_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -248,10 +257,11 @@ The most relevant current lineage is:
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 109_m9_15_absolute_slide_one_k_tire.md
 110_m9_16_engine_power_diagnostic_selector.md
+111_m9_17_direct_robotized_mt.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.15/M9.16 change none of those boundaries.
+scope; M9.15/M9.16/M9.17 change none of those boundaries.
 
 ## 3. Takeover context
 
@@ -262,7 +272,7 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
 It records the released M9.12C handling state and an earlier PEAK diagnostic observation. It is
-navigation context only and predates M9.13–M9.16. Documents 107–110 plus current source/tests
+navigation context only and predates M9.13–M9.17. Documents 107–111 plus current source/tests
 supersede it for the current touch/tire/engine investigation.
 
 The prior:
@@ -292,9 +302,10 @@ validation/M9_12C_EXTENDED_PEAK_DIAGNOSTIC_VALIDATION.txt
 validation/M9_13_FULL_SCREEN_ANALOG_TOUCH_VALIDATION.txt
 validation/M9_14_COMPACT_TOUCH_EXPANDED_DIAGNOSTIC_RANGES_VALIDATION.txt
 validation/M9_15_ABSOLUTE_SLIDE_ONE_K_TIRE_VALIDATION.txt
+validation/M9_16_ENGINE_POWER_DIAGNOSTIC_SELECTOR_VALIDATION.txt
 ```
 
-M9.16 adds a normative engine calibration boundary, so its release requires a new standalone
+M9.17 changes normative powertrain dynamics, so its release requires a new standalone
 validation record after the implementation/documentation head is fully green.
 
 New validation evidence is added only after the corresponding implementation/documentation head is

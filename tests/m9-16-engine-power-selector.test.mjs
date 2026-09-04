@@ -65,7 +65,8 @@ test('M9.16 engine selector has one exact diagnostic domain, default and determi
   assert.equal(formatEnginePowerSelector(1.5), 'ENG [K] x1.5');
 });
 
-test('M9.16 1x retains the unscaled torque equation and every choice scales output at identical RPM and state', () => {
+// M9.17 replaces the timed shift cut and linear redline factor; ENG scaling remains independent.
+test('M9.16 ENG choices scale the M9.17 direct-drive equation at identical RPM and state', () => {
   for (const { profile: vehicleProfile } of VEHICLE_CATALOG) {
     const p = vehicleProfile.powertrain;
     const curveBefore = JSON.stringify(p);
@@ -74,16 +75,16 @@ test('M9.16 1x retains the unscaled torque equation and every choice scales outp
     const states = BROWSER_ENGINE_POWER_MULTIPLIERS.map((m) => createAutomaticPowertrainState(p, omega, m));
     for (const pedal of [0, 0.25, 0.75, 1, 0]) {
       updateAutomaticPowertrain(base, p, omega, pedal, 1 / 60);
-      const sampled = sampleCurve(p, base.engineRpm);
+      const sampled = sampleCurve(p, Math.max(p.idleRpm, base.engineRpm));
       near(base.engineTorqueNewtonMeters, sampled);
-      const redlineScale = Math.max(0, Math.min(1, (p.redlineRpm - base.engineRpm) / (p.redlineRpm - p.upshiftRpm)));
-      near(base.outputDriveTorque, pedal * sampled * p.gearRatios[base.gear - 1] * p.finalDriveRatio * p.efficiency * (base.shiftTimer > 0 ? 0 : 1) * redlineScale);
+      const t = Math.max(0, Math.min(1, (base.engineRpm - p.upshiftRpm) / (p.redlineRpm - p.upshiftRpm)));
+      near(base.outputDriveTorque, pedal * sampled * p.gearRatios[base.gear - 1] * p.finalDriveRatio * p.efficiency * (1 - t * t * (3 - 2 * t)));
       for (const state of states) {
         updateAutomaticPowertrain(state, p, omega, pedal, 1 / 60);
         assert.equal(state.engineRpm, base.engineRpm);
         assert.equal(state.gear, base.gear);
-        assert.equal(state.shiftTimer, base.shiftTimer);
-        assert.equal(state.shiftDirection, base.shiftDirection);
+        assert.equal('shiftTimer' in state, false);
+        assert.equal('shiftDirection' in state, false);
         near(state.engineTorqueNewtonMeters, base.engineTorqueNewtonMeters * state.engineTorqueMultiplier);
         near(state.outputDriveTorque, base.outputDriveTorque * state.engineTorqueMultiplier);
       }
@@ -92,18 +93,17 @@ test('M9.16 1x retains the unscaled torque equation and every choice scales outp
   }
 });
 
-test('M9.16 multiplier does not bypass zero throttle, shift cutoff or redline cutoff', () => {
+test('M9.16 multiplier retains zero throttle and rev limiting while M9.17 removes shift cutoff', () => {
   for (const multiplier of BROWSER_ENGINE_POWER_MULTIPLIERS) {
     const state = createAutomaticPowertrainState(profile, wheelOmega(4000, 2), multiplier);
     state.gear = 2;
-    state.engineRpm = 4000;
     assert.equal(updateAutomaticPowertrain(state, profile, wheelOmega(4000, 2), 0, 1 / 60), 0);
-    state.shiftTimer = 0.1;
-    assert.equal(updateAutomaticPowertrain(state, profile, wheelOmega(4000, 2), 1, 1 / 60), 0);
-    state.shiftTimer = 0;
+    state.gear = 1;
+    assert.ok(updateAutomaticPowertrain(state, profile, wheelOmega(profile.upshiftRpm + 1, 1), 1, 1 / 60) > 0);
+    assert.equal(state.gear, 2);
     state.gear = profile.gearRatios.length;
-    state.engineRpm = profile.redlineRpm;
-    assert.equal(updateAutomaticPowertrain(state, profile, wheelOmega(profile.redlineRpm, state.gear), 1, 1 / 60), 0);
+    assert.equal(updateAutomaticPowertrain(state, profile, wheelOmega(profile.redlineRpm + 1, state.gear), 1, 1 / 60), 0);
+    assert.ok(state.engineTorqueNewtonMeters > 0, 'the limiter, not a zero curve endpoint, cuts drive');
   }
 });
 
@@ -137,7 +137,7 @@ test('M9.16 manual and explicit route recovery preserve calibration while resett
   assert.equal(vehicle.actuator.throttle, 0);
   recoverM5VehicleToGuideCoordinate(recovery, guide, height, surfaces, vehicle, { s: 800, l: 0 }, 'wrong-course');
   assert.equal(vehicle.powertrain.engineTorqueMultiplier, 4);
-  assert.equal(vehicle.powertrain.shiftTimer, 0);
+  assert.equal('shiftTimer' in vehicle.powertrain, false);
   assert.deepEqual(vehicle.tireFrictionCalibration, tireCalibration());
 });
 

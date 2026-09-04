@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.16 Engine Power Diagnostic Selector
+# SUPER OUTRIDE — M9.17 Direct Robotized MT
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,18 +12,36 @@ tests.
 
 ## Current release
 
-M9.16 adds one engine-output diagnostic selector without changing tire, steering, transmission,
-camera or renderer behavior. `ENG` cycles `1.0 / 1.5 / 2.0 / 3.0 / 4.0`, starting at `1.0`.
+M9.17 replaces artificial launch slip, independent engine-RPM lag and timed drive-cut shifts with
+one ideal direct-drive robotized MT. RPM derives from driven-wheel speed and the selected ratio;
+automatic up/down shifts are instantaneous and deliver the new-ratio torque in the same substep.
+Gear is the only dynamic powertrain memory. Separate RPM thresholds are checked against every
+adjacent gear-ratio gap so a threshold shift cannot immediately reverse at unchanged wheel speed.
+
+The nine profiles retain their positive torque samples and ratios. Artificial zero-torque redline
+endpoints are removed. A single C1 averaged rev limiter reduces positive drive from upshift RPM to
+zero at redline; there is no second curve collapse, shift cutoff or wheel-speed clamp. At rest,
+derived RPM is zero while torque sampling uses an explicit idle floor for no-stall launch.
+
+Current powertrain authority is `docs/111_m9_17_direct_robotized_mt.md`. Tire, steering, camera,
+renderer and ENG selector choices are unchanged. The 20-second regression targets the reproduced
+low-speed gear hunting; it does not certify sustained circular drifting. Extreme multiplied-power
+reversals can still exceed the existing suspension model and are not hidden by this change.
+
+### Retained M9.16 engine selector
+
+`ENG` cycles `1.0 / 1.5 / 2.0 / 3.0 / 4.0`, starting at `1.0`.
 Use `K` or tap the `ENG xN` button in the existing tire/engine calibration group.
 
 One instance-owned `powertrain.engineTorqueMultiplier` scales the sampled engine torque curve.
-Existing throttle, gear ratio, drive efficiency, shift cutoff and redline reduction then apply
-unchanged. It is not a vehicle-speed multiplier or a guaranteed constant-power source. Recovery and
+Throttle, selected gear ratio, drive efficiency and the M9.17 single rev limiter then apply.
+It is not a vehicle-speed multiplier or a guaranteed constant-power source. Recovery and
 safe-spawn vehicle replacement retain the multiplier; rivals and page/course reloads remain at 1.0.
 No tire calibration value, domain or default is changed. This selector tests the power-shortage
 hypothesis; it does not claim that hypothesis is proven or that drift controllability is solved.
 
-Current scoped authority is `docs/110_m9_16_engine_power_diagnostic_selector.md`.
+Retained selector authority is `docs/110_m9_16_engine_power_diagnostic_selector.md`, with its
+transmission-preservation clauses explicitly superseded by M9.17.
 
 ### Retained M9.15 tire law
 
@@ -146,8 +164,8 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/110_m9_16_engine_power_diagnostic_selector.md` — current engine multiplier, selector,
-   lifecycle and unchanged transmission/tire boundaries.
+4. `docs/111_m9_17_direct_robotized_mt.md` — current direct RPM, no-cut shifting, torque curve and
+   single limiter; `docs/110_m9_16_engine_power_diagnostic_selector.md` — retained ENG selector/lifecycle.
 5. `docs/109_m9_15_absolute_slide_one_k_tire.md` — current absolute-S, P-to-2P post-peak and
    G3/P20/S1 diagnostic authority.
 6. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
@@ -187,8 +205,8 @@ merely to use current terminology.
   authority; `A=M-D` is derived only.
 - `src/physics/arcade-vehicle-physics.ts` owns the unit-coefficient travel-direction transform and
   the sole physical front road-wheel angle.
-- `src/physics/automatic-powertrain.ts` owns the single engine torque multiplier and applies it to
-  the immutable profile curve before the unchanged drive-delivery factors.
+- `src/physics/automatic-powertrain.ts` owns direct RPM, instantaneous ratio selection, the single
+  rev limiter and engine multiplier. Only gear is dynamic memory; torque/RPM outputs are caches.
 - `src/browser/engine-power-controls.ts` owns the shared keyboard/touch ENG choices and presentation;
   the current value is read from the selected vehicle, not stored again in browser state.
 - `src/physics/tire-friction-calibration.ts` remains the sole three-scalar mutable tire calibration
@@ -266,7 +284,7 @@ The tire/engine group also provides the `ENG xN` cycling button in portrait and 
 ## Current takeover checkpoint
 
 The latest named handling navigation checkpoint remains
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.16 and is navigation
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.17 and is navigation
 context only. Current numbered authority, source, tests, PR and workflow state supersede it for the
 present tire/touch/engine investigation.
 
@@ -310,7 +328,7 @@ src/input/steering-input-arbiter.ts           shared digital/analog steering-sou
 src/input/pedal-input-arbiter.ts              shared digital/analog pedal-source authority
 src/physics/vehicle-calibration.ts            M/D/ACT calibration state and DEV status
 src/physics/driving-actuator.ts               finite response primitive
-src/physics/automatic-powertrain.ts           engine multiplier, RPM/shift and wheel torque
+src/physics/automatic-powertrain.ts           direct RPM, ratio selection, rev limiter and wheel torque
 src/physics/arcade-vehicle-physics.ts         common two-station solver and steering transform
 src/physics/tire-friction-calibration.ts      vehicle-owned three-scalar tire calibration
 src/physics/tire-wheel.ts                     one-k vector tire + P-to-2P post-peak + wheel solve
@@ -326,7 +344,7 @@ fixtures.
 
 ## Release evidence
 
-Prior standalone validation records remain under `docs/validation/`. M9.16 adds a scoped engine
-calibration authority and therefore requires its own standalone validation record. Exact release
+Prior standalone validation records remain under `docs/validation/`. M9.17 changes scoped
+powertrain dynamics and therefore requires its own standalone validation record. Exact release
 identity is established by the validation-inclusive PR head, pure fast-forward main, same-SHA
 main-push CI and GitHub Pages deployment under `AGENTS.md`.
