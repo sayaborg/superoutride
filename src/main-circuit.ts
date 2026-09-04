@@ -4,6 +4,8 @@ import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './browser/tire-friction-selection.js';
 import { mountBrowserTireFrictionControls } from './browser/tire-friction-controls.js';
+import { mountBrowserEnginePowerControls } from './browser/engine-power-controls.js';
+import { setEngineTorqueMultiplier } from './physics/automatic-powertrain.js';
 import {
   mountMobileCameraYawSelector,
   mountMobileVehicleSelector,
@@ -231,6 +233,10 @@ const tireFrictionControls = mountBrowserTireFrictionControls(
   tireFrictionSelectorButtons,
   () => vehicle,
 );
+const enginePowerControls = mountBrowserEnginePowerControls(
+  tireFrictionSelectorButtons,
+  () => vehicle,
+);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
@@ -240,6 +246,7 @@ window.addEventListener('keydown', (event) => {
   }
   if (steeringCalibrationControls.handleKey(event.code)) return;
   if (tireFrictionControls.handleKey(event.code)) return;
+  if (enginePowerControls.handleKey(event.code)) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
   if (selectedProfile !== null) {
     selectVehicleProfile(selectedProfile);
@@ -396,6 +403,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   const speed = vehicle.longitudinalSpeed;
   const steeringCalibration = vehicle.steeringCalibration;
   const tireFrictionCalibration = vehicle.tireFrictionCalibration;
+  const engineTorqueMultiplier = vehicle.powertrain.engineTorqueMultiplier;
   vehicle = createArcadeVehicle(
     profile,
     guide,
@@ -407,6 +415,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     steeringCalibration,
     tireFrictionCalibration,
   );
+  setEngineTorqueMultiplier(vehicle.powertrain, engineTorqueMultiplier);
   recovery = createM5RecoveryState(vehicle);
   resetM5CameraRig(cameraRig);
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());

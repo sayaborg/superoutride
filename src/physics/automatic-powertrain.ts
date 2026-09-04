@@ -25,6 +25,8 @@ export interface AutomaticPowertrainProfile {
 }
 
 export interface AutomaticPowertrainState {
+  /** Sole instance-owned engine-output calibration; profile torque curves remain immutable. */
+  engineTorqueMultiplier: number;
   engineRpm: number;
   gear: number;
   shiftTimer: number;
@@ -34,20 +36,38 @@ export interface AutomaticPowertrainState {
   outputDriveTorque: number;
 }
 
+export function assertEngineTorqueMultiplier(multiplier: number): void {
+  if (!(multiplier > 0) || !Number.isFinite(multiplier)) {
+    throw new RangeError('engine torque multiplier must be finite and > 0');
+  }
+}
+
+/** Calibration mutation only: never rewrites RPM, wheel speed, gear or vehicle motion. */
+export function setEngineTorqueMultiplier(
+  state: AutomaticPowertrainState,
+  multiplier: number,
+): void {
+  assertEngineTorqueMultiplier(multiplier);
+  state.engineTorqueMultiplier = multiplier;
+}
+
 export function createAutomaticPowertrainState(
   profile: AutomaticPowertrainProfile,
   drivenWheelOmega = 0,
+  engineTorqueMultiplier = 1,
 ): AutomaticPowertrainState {
   validateAutomaticPowertrainProfile(profile);
+  assertEngineTorqueMultiplier(engineTorqueMultiplier);
   const gear = selectInitialGear(profile, Math.abs(drivenWheelOmega));
   const coupledRpm = coupledEngineRpm(profile, Math.abs(drivenWheelOmega), gear);
   const engineRpm = clamp(coupledRpm, profile.idleRpm, profile.redlineRpm);
   return {
+    engineTorqueMultiplier,
     engineRpm,
     gear,
     shiftTimer: 0,
     shiftDirection: 0,
-    engineTorqueNewtonMeters: sampleEngineTorque(profile, engineRpm),
+    engineTorqueNewtonMeters: sampleEngineTorque(profile, engineRpm) * engineTorqueMultiplier,
     outputDriveTorque: 0,
   };
 }
@@ -55,7 +75,7 @@ export function createAutomaticPowertrainState(
 /**
  * Advance one forward automatic transmission from the authoritative driven-wheel rotational state.
  * The returned value is wheel torque. Body force can arise only later through wheel slip and tire
- * contact.
+ * contact. M9.16 scales the sampled engine curve only; shift, RPM and redline laws are unchanged.
  */
 export function updateAutomaticPowertrain(
   state: AutomaticPowertrainState,
@@ -64,6 +84,7 @@ export function updateAutomaticPowertrain(
   throttle: number,
   dt: number,
 ): number {
+  assertEngineTorqueMultiplier(state.engineTorqueMultiplier);
   const wheelOmega = Math.abs(drivenWheelOmega);
   const pedal = clamp(throttle, 0, 1);
   const currentCoupledRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
@@ -100,7 +121,8 @@ export function updateAutomaticPowertrain(
   state.engineRpm += (rpmTarget - state.engineRpm)
     * (1 - Math.exp(-dt / Math.max(profile.engineResponseTau, 1e-4)));
   state.engineRpm = clamp(state.engineRpm, profile.idleRpm, profile.redlineRpm);
-  state.engineTorqueNewtonMeters = sampleEngineTorque(profile, state.engineRpm);
+  state.engineTorqueNewtonMeters = sampleEngineTorque(profile, state.engineRpm)
+    * state.engineTorqueMultiplier;
 
   const ratio = profile.gearRatios[state.gear - 1]! * profile.finalDriveRatio;
   const shiftDriveScale = state.shiftTimer > 0 ? 0 : 1;

@@ -478,3 +478,24 @@ body {
     grid-row: 2;
   }
 }
+
+/* M9.16: reuse the existing calibration group without adding a selector row. */
+.tire-friction-selector-buttons .selector-button {
+  min-width: 0;
+}
+
+@media (orientation: landscape) {
+  .tire-friction-selector-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .engine-power-button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (orientation: portrait) {
+  .tire-friction-selector-buttons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

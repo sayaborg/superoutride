@@ -22,6 +22,20 @@ supersede only their stated scope.
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
+### Current engine-output diagnostic calibration
+
+```text
+110_m9_16_engine_power_diagnostic_selector.md
+```
+
+M9.16 adds one instance-owned `powertrain.engineTorqueMultiplier`, default 1.0, to scale only the
+sampled engine torque curve. Browser ENG choices are `1.0 / 1.5 / 2.0 / 3.0 / 4.0`; K and the
+compact ENG button use one shared adapter. Recovery and vehicle replacement preserve the value.
+Rivals and page/course reloads remain at 1.0. Engine RPM, shift strategy, redline reduction, drive
+split, tires, steering, camera and renderer are unchanged. No direct body force, speed preservation,
+drift controller or duplicate current-selection authority is added. This is a diagnostic axis, not
+proof that insufficient engine output caused the reported drift speed loss.
+
 ### Current touch-driving calibration and input/presentation
 
 ```text
@@ -47,6 +61,7 @@ device.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+110_m9_16_engine_power_diagnostic_selector.md
 109_m9_15_absolute_slide_one_k_tire.md
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 106_m9_12c_extended_peak_diagnostic.md
@@ -68,7 +83,7 @@ hands-on falsification of percentage-SLIDE tuning as a complete route to prompt,
 sustained drift.
 
 The state-free one-k demand, radial C1 saturation, force-vector direction, scalar implicit wheel
-solve and three-scalar vehicle calibration are retained. M9.15 changes only:
+solve and three-scalar vehicle tire calibration are retained. M9.15 changes only:
 
 ```text
 S browser meaning:
@@ -86,8 +101,8 @@ The internal physics scalar remains `slidingFrictionRatio`; the browser derives 
 slidingFrictionRatio = S / G
 ```
 
-Therefore G, P and absolute S remain independently visible without adding a fourth scalar or second
-force authority.
+Therefore G, P and absolute S remain independently visible without adding a fourth tire scalar or
+second tire-force authority.
 
 Current tire comparison scope is:
 
@@ -125,8 +140,8 @@ ACT = 0.20 / 0.225 / 0.25 / 0.275 / 0.30 s                      default 0.25
 ```
 
 M9.12 remains the three-characteristic browser-mapping foundation beneath M9.15 scoped
-supersession. Physics still stores only positive finite reference-friction, linear-stiffness and
-sliding-friction-ratio values; browser IDs and absolute S are derived.
+supersession. Tire physics still stores only positive finite reference-friction, linear-stiffness
+and sliding-friction-ratio values; browser IDs and absolute S are derived.
 
 M9.10 remains historical/current foundation for the stateless lateral-demand-driven post-peak scale
 and monotone scalar wheel solve. M9.15 supersedes only its transition width and percentage-S browser
@@ -152,6 +167,7 @@ self-recover.
 
 M9.8 remains the structured nine-production-vehicle catalog/profile-selection authority. M9.0
 remains the common two-station vehicle mechanics authority within later scoped supersession.
+M9.16 extends powertrain calibration only; profile torque curves remain immutable base authority.
 
 ### Historical steering predecessors
 
@@ -161,7 +177,7 @@ remains the common two-station vehicle mechanics authority within later scoped s
 ```
 
 M9.7 is no longer current steering authority. M9.11 supersedes its yaw-transient/washout law,
-filter state, browser selectors, fixed 31-degree M value and 0.375-second default T. M9.7 remains
+filter state, browser selectors, fixed 31-degree M and 0.375-second default T. M9.7 remains
 historical evidence for the unit-coefficient travel-direction idea and rival-driver decisions that
 M9.11 does not supersede.
 
@@ -192,7 +208,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `109_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `110_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -231,10 +247,11 @@ The most relevant current lineage is:
 107_m9_13_full_screen_analog_touch.md
 108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 109_m9_15_absolute_slide_one_k_tire.md
+110_m9_16_engine_power_diagnostic_selector.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.15 changes none of those boundaries.
+scope; M9.15/M9.16 change none of those boundaries.
 
 ## 3. Takeover context
 
@@ -245,8 +262,8 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
 It records the released M9.12C handling state and an earlier PEAK diagnostic observation. It is
-navigation context only and predates M9.13–M9.15. Documents 107–109 plus current source/tests
-supersede it for the current touch/tire investigation.
+navigation context only and predates M9.13–M9.16. Documents 107–110 plus current source/tests
+supersede it for the current touch/tire/engine investigation.
 
 The prior:
 
@@ -274,10 +291,11 @@ validation/M9_12B_UPWARD_TIRE_RANGE_EXPANSION_VALIDATION.txt
 validation/M9_12C_EXTENDED_PEAK_DIAGNOSTIC_VALIDATION.txt
 validation/M9_13_FULL_SCREEN_ANALOG_TOUCH_VALIDATION.txt
 validation/M9_14_COMPACT_TOUCH_EXPANDED_DIAGNOSTIC_RANGES_VALIDATION.txt
+validation/M9_15_ABSOLUTE_SLIDE_ONE_K_TIRE_VALIDATION.txt
 ```
 
-M9.15 changes current normative tire-law and browser calibration authority, so its release requires
-a new standalone validation record after the implementation/documentation head is fully green.
+M9.16 adds a normative engine calibration boundary, so its release requires a new standalone
+validation record after the implementation/documentation head is fully green.
 
 New validation evidence is added only after the corresponding implementation/documentation head is
 fully green. Final release identity is established by Git/PR/main/workflow history rather than by

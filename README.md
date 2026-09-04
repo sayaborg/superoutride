@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.15 Absolute-Slide One-K Vector Tire
+# SUPER OUTRIDE — M9.16 Engine Power Diagnostic Selector
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -11,6 +11,21 @@ the numbered authority documents; executable behavior belongs to source, compile
 tests.
 
 ## Current release
+
+M9.16 adds one engine-output diagnostic selector without changing tire, steering, transmission,
+camera or renderer behavior. `ENG` cycles `1.0 / 1.5 / 2.0 / 3.0 / 4.0`, starting at `1.0`.
+Use `K` or tap the `ENG xN` button in the existing tire/engine calibration group.
+
+One instance-owned `powertrain.engineTorqueMultiplier` scales the sampled engine torque curve.
+Existing throttle, gear ratio, drive efficiency, shift cutoff and redline reduction then apply
+unchanged. It is not a vehicle-speed multiplier or a guaranteed constant-power source. Recovery and
+safe-spawn vehicle replacement retain the multiplier; rivals and page/course reloads remain at 1.0.
+No tire calibration value, domain or default is changed. This selector tests the power-shortage
+hypothesis; it does not claim that hypothesis is proven or that drift controllability is solved.
+
+Current scoped authority is `docs/110_m9_16_engine_power_diagnostic_selector.md`.
+
+### Retained M9.15 tire law
 
 M9.15 is a deliberately small tire-law change derived from M9.14 hands-on falsification. The
 released M9.14 percentage-SLIDE range could make rear breakaway easy or make ordinary cornering
@@ -31,7 +46,7 @@ P = common normalized slip at peak
 S = absolute deep-slide friction coefficient at gripFactor=1
 ```
 
-Physics still stores exactly the same three calibration scalars. The existing internal
+Tire physics still stores exactly the same three calibration scalars. The existing internal
 `slidingFrictionRatio` is derived as:
 
 ```text
@@ -39,10 +54,10 @@ slidingFrictionRatio = S / G
 ```
 
 Changing G preserves displayed P and absolute S; changing P preserves G and S; changing S preserves
-G and P. No fourth scalar, tire memory, drift mode, target sideslip, yaw feedback, vehicle-specific
+G and P. No fourth tire scalar, tire memory, drift mode, target sideslip, yaw feedback, vehicle-specific
 tire branch or drive-layout branch is introduced.
 
-The current explicit hands-on starting candidate is:
+The current explicit hands-on tire starting candidate is:
 
 ```text
 G=3.00 / P=20% / S=1.00
@@ -71,6 +86,7 @@ Current browser comparison ranges are:
 | `G` peak friction | `2.00` through `4.00` in `0.20` steps | `3.00` | `H` cycles |
 | `P` common peak slip | `20` through `60%` in `2%` steps | `20% / 11.3°` lateral equivalent | `J` cycles |
 | `S` absolute deep-slide friction | `1.00` through `2.00` in `0.20` steps | `1.00` | `G` cycles |
+| `ENG` engine torque multiplier | `1.0 / 1.5 / 2.0 / 3.0 / 4.0` | `1.0` | `K` cycles |
 | `D` Driver travel-relative offset | `10` through `20 deg` in `1°` steps | `12 deg` | `Y` cycles |
 | `M` maximum road-wheel steer | `50 / 55 / 60 / 65 / 70 deg` | `60 deg` | `U` cycles |
 | `ACT` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 s` | `0.25 s` | `T` cycles |
@@ -130,23 +146,25 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/109_m9_15_absolute_slide_one_k_tire.md` — current absolute-S, P-to-2P post-peak and
+4. `docs/110_m9_16_engine_power_diagnostic_selector.md` — current engine multiplier, selector,
+   lifecycle and unchanged transmission/tire boundaries.
+5. `docs/109_m9_15_absolute_slide_one_k_tire.md` — current absolute-S, P-to-2P post-peak and
    G3/P20/S1 diagnostic authority.
-5. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
+6. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
    D range and G/P diagnostic ranges.
-6. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
+7. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
    DIRECT/release and presentation authority.
-7. `docs/103_m9_12_independent_tire_calibration_axes.md` — retained three-characteristic browser
+8. `docs/103_m9_12_independent_tire_calibration_axes.md` — retained three-characteristic browser
    mapping within M9.15 scoped supersession.
-8. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
+9. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
    ownership authority.
-9. `docs/100_m9_10_post_peak_sliding_tire.md` — historical/current post-peak foundation beneath
-   M9.15 transition-width and S-meaning supersession.
-10. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
+10. `docs/100_m9_10_post_peak_sliding_tire.md` — historical/current post-peak foundation beneath
+    M9.15 transition-width and S-meaning supersession.
+11. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
     controllability authority.
-11. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog/profile authority.
-12. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-13. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+12. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog/profile authority.
+13. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+14. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
     `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
     foundations inside later supersession.
 
@@ -169,6 +187,10 @@ merely to use current terminology.
   authority; `A=M-D` is derived only.
 - `src/physics/arcade-vehicle-physics.ts` owns the unit-coefficient travel-direction transform and
   the sole physical front road-wheel angle.
+- `src/physics/automatic-powertrain.ts` owns the single engine torque multiplier and applies it to
+  the immutable profile curve before the unchanged drive-delivery factors.
+- `src/browser/engine-power-controls.ts` owns the shared keyboard/touch ENG choices and presentation;
+  the current value is read from the selected vehicle, not stored again in browser state.
 - `src/physics/tire-friction-calibration.ts` remains the sole three-scalar mutable tire calibration
   state; browser G/P/S IDs and absolute S are not stored as additional physics state.
 - `src/browser/tire-friction-selection.ts` derives G, P and absolute S from those existing scalars and
@@ -177,7 +199,7 @@ merely to use current terminology.
   P-to-2P lateral post-peak scale and scalar wheel solve.
 - No yaw steering assist, drift mode, target beta, vehicle-kind handling branch or drive-layout
   handling branch exists.
-- Recovery resets unsafe dynamic state but preserves selected M/D/T and tire calibration.
+- Recovery resets unsafe dynamic state but preserves selected M/D/T, tire and engine calibration.
 
 ### Camera and presentation
 
@@ -232,19 +254,21 @@ One top-level boot selects one explicit composition root:
 | Tire peak G | `H` cycles |
 | Tire peak position P | `J` cycles |
 | Absolute tire slide S | `G` cycles |
+| Engine torque multiplier | `K` cycles |
 | Recovery | `Backspace` |
 
 Touch driving uses the entire viewport. Left-half touch start creates a steering-wheel origin; right-
 half touch start creates a pedal origin. Horizontal/vertical displacement publishes analog input and
 the origin/vector overlay reports the current request. Fixed steering/throttle/brake touch panels are
 hidden in touch-capable layouts. Selector buttons remain visible and use their existing authority.
+The tire/engine group also provides the `ENG xN` cycling button in portrait and landscape.
 
 ## Current takeover checkpoint
 
 The latest named handling navigation checkpoint remains
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.15 and is navigation
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.16 and is navigation
 context only. Current numbered authority, source, tests, PR and workflow state supersede it for the
-present tire/touch investigation.
+present tire/touch/engine investigation.
 
 ## Run and test
 
@@ -279,12 +303,14 @@ src/browser/steering-calibration-selection.ts M/D/ACT choice/default/format auth
 src/browser/steering-calibration-controls.ts  keyboard/touch M/D/ACT vehicle adapter
 src/browser/tire-friction-selection.ts        G/P/absolute-S derivation/default/format authority
 src/browser/tire-friction-controls.ts         keyboard/touch tire-calibration adapter
+src/browser/engine-power-controls.ts          ENG choices, format and keyboard/touch adapter
 src/browser/mobile-selector-controls.ts       authority-derived selector presentation
 src/input/touch-input.ts                      full-screen relative analog touch + origin/vector UI
 src/input/steering-input-arbiter.ts           shared digital/analog steering-source authority
 src/input/pedal-input-arbiter.ts              shared digital/analog pedal-source authority
 src/physics/vehicle-calibration.ts            M/D/ACT calibration state and DEV status
 src/physics/driving-actuator.ts               finite response primitive
+src/physics/automatic-powertrain.ts           engine multiplier, RPM/shift and wheel torque
 src/physics/arcade-vehicle-physics.ts         common two-station solver and steering transform
 src/physics/tire-friction-calibration.ts      vehicle-owned three-scalar tire calibration
 src/physics/tire-wheel.ts                     one-k vector tire + P-to-2P post-peak + wheel solve
@@ -300,7 +326,7 @@ fixtures.
 
 ## Release evidence
 
-Prior standalone validation records remain under `docs/validation/`. M9.15 changes current
-normative tire-law and browser calibration authority and therefore requires its own standalone
-validation record. Exact release identity is established by the validation-inclusive PR head, pure
-fast-forward main, same-SHA main-push CI and GitHub Pages deployment under `AGENTS.md`.
+Prior standalone validation records remain under `docs/validation/`. M9.16 adds a scoped engine
+calibration authority and therefore requires its own standalone validation record. Exact release
+identity is established by the validation-inclusive PR head, pure fast-forward main, same-SHA
+main-push CI and GitHub Pages deployment under `AGENTS.md`.
