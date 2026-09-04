@@ -39,6 +39,22 @@ docs/00c_core_design_freeze_addendum_m6_45.md
 
 The addenda supersede only the specific earlier assumptions they explicitly replace.
 
+The current touch-driving input/presentation authority is:
+
+```text
+docs/107_m9_13_full_screen_analog_touch.md
+```
+
+M9.13 replaces the fixed digital steering/throttle/brake driving panels for real touch pointers with
+one full-screen relative analog touch surface. Pointer-down selects a fixed left-half STEERING or
+right-half ACCEL/BRAKE role and the pointer-down coordinate is that pointer's neutral origin.
+Canonical pedal requests remain mutually exclusive but now accept boolean digital shorthand or a
+finite normalized magnitude in `[0,1]`. An active analog touch may use the generic `DIRECT` apply
+mode so displacement is the current amount of the existing vehicle actuator state; release/cancel
+returns to ordinary neutral and the existing actuator release rate owns decay. Keyboard remains
+digital/rate-limited. M9.13 adds no touch-specific vehicle state, rack, pedal state, steering law,
+tire law, vehicle/course branch or renderer authority.
+
 The current vehicle-physics architecture authority is:
 
 ```text
@@ -176,7 +192,10 @@ station drive-torque primitive, shared presentation-only HUD boundary and exclus
 pedal rule. The common `18:1` steering ratio is a HUD-only handwheel conversion and must never be
 consumed by steering mechanics. Canonical ACCEL/BRAKE requests are exclusive; one input-layer
 arbiter gives priority to the latest source that remains held across keyboard aliases and touch
-pointers. Actuators own finite response only and must not own pedal order or arbitration.
+pointers. Actuators own finite response only and must not own pedal order or arbitration. M9.13
+supersedes M9.1 only for real-touch fixed digital driving controls, boolean-only touch request
+interpretation and the held-touch apply path; M9.1 selector/HUD and pedal-exclusivity decisions
+remain retained where not otherwise superseded.
 
 M9.0 supersedes the separate M8.0 CAR/BIKE solver architecture and the scoped M8.1 immediate
 steering-release rule. It preserves the M8.0 contact/tire/wheel chain and M8.1 travel-direction
@@ -212,6 +231,7 @@ docs/103_m9_12_independent_tire_calibration_axes.md
 docs/104_m9_12a_centered_handling_comparison_ranges.md
 docs/105_m9_12b_upward_tire_range_expansion.md
 docs/106_m9_12c_extended_peak_diagnostic.md
+docs/107_m9_13_full_screen_analog_touch.md
 ```
 
 The current CIRCUIT DEV course-authoring authority is:
@@ -301,18 +321,19 @@ Types, compilers and regression tests are the executable contract. If documentat
 
 ### Current takeover handoff state
 
-The current navigation/continuation checkpoint is:
+The latest navigation/continuation checkpoint remains:
 
 ```text
 docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
-That file records the released M9.12C state, current steering/tire selector domains, the latest
+That file records the released M9.12C handling state, steering/tire selector domains, the latest
 `GRIP=2.00 / PEAK=30%` handling observation, the immediate P30->P40 diagnostic sweep and restart /
-release procedure. It is navigation context only. It does not replace numbered milestone authority,
-source/types/compilers, regression tests, immutable validation evidence or current Git/PR/workflow
-state. A fresh agent should re-fetch current main and release evidence before assuming the embedded
-M9.12C SHA is still current.
+release procedure. It predates M9.13 and is navigation context for handling continuation only; for
+current touch-driving input/presentation use document 107 plus the current README/docs index. The
+handoff does not replace numbered milestone authority, source/types/compilers, regression tests,
+immutable validation evidence or current Git/PR/workflow state. A fresh agent should re-fetch
+current main and release evidence before assuming the embedded M9.12C SHA is still current.
 
 The prior M9.6 takeover handoff:
 
@@ -770,18 +791,18 @@ When starting from a fresh Codex/agent context:
 1. Read this file completely.
 2. Read `README.md` for repository entry points and current status.
 3. Read `docs/README.md` for authority/supersession and evidence policy.
-4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` as the current navigation /
-   continuation checkpoint.
+4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` as the latest handling-navigation /
+   continuation checkpoint, while recognizing that it predates M9.13 touch-driving authority.
 5. Read the four Core freeze/addendum files listed in section 2 when the requested task can affect
    frozen renderer/metric/topology invariants.
 6. Identify and read the newest numbered authority documents for the requested topic. For current
-   handling work this means the M9.12C -> M9.12B -> M9.12A -> M9.12 -> M9.11 -> M9.10 -> M9.9
-   lineage described above.
+   touch-driving work start with M9.13. For current handling work use the M9.12C -> M9.12B ->
+   M9.12A -> M9.12 -> M9.11 -> M9.10 -> M9.9 lineage described above.
 7. Read current source/types/compilers and the causal tests relevant to the task.
 8. Confirm current `main`, active/open PR state and exact latest CI/Pages state before changing
    anything; never assume the SHA embedded in a dated handoff is still current.
 9. Use older handoffs only when their historical lineage is specifically relevant. Do not treat
-   M9.6, M8.0 or migration handoffs as current instructions after the M9.12C checkpoint.
+   M9.6, M8.0 or migration handoffs as current instructions after the M9.12C handling checkpoint.
 10. Verify the FINAL CODEX MIGRATION POINT against
     `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history only when
     migration history is relevant; do not repeat the original migration cleanup ceremony.
