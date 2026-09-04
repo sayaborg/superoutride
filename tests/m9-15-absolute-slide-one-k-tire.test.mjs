@@ -67,7 +67,8 @@ test('deep combined slide keeps magnitude S while wheel speed rotates force from
   for (const { sx, force } of samples) {
     assert.ok(Math.abs(Math.hypot(force.fx, force.fy) / normalLoad - 1) < 1e-12, `sx=${sx}`);
     if (sx === 0) {
-      assert.ok(Math.abs(force.fx) < 1e-12);
+      assert.ok(Math.abs(force.sx) < 1e-15);
+      assert.ok(Math.abs(force.fx) / normalLoad < 1e-12);
     } else {
       assert.ok(Math.abs(force.fx / force.fy - force.dx / force.dy) < 1e-12, `sx=${sx}`);
     }
