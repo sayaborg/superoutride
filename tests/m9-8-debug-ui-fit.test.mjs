@@ -26,7 +26,7 @@ test('M9.13 debug selectors remain device-independent while legacy touch driving
   assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(styles, /\.touch-capable #app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
   assert.doesNotMatch(styles, /\.touch-capable #app\s*\{[^}]*124px;/s);
-  assert.match(styles, /#game\s*\{[^}]*width:\s*auto;[^}]*height:\s*100%;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s);
+  assert.match(styles, /#game\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*object-fit:\s*contain;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s);
 });
 
 test('reference touch viewports have enough selector width for every direct M9.11 choice', () => {
