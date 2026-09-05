@@ -1,32 +1,39 @@
-name: M9.19 isolated baseline snapshot
+name: M9.19 exact-tree feature transport
 
-# Temporary feature-branch transport only. Restored before the implementation PR.
-# This workflow cannot publish Pages or change main.
+# Temporary feature-only transport for a locally validated, hash-checked patch.
+# The produced commit removes all transport files and restores baseline Pages byte-for-byte.
 on:
   push:
     branches: [feat/m9-19-progressive-drift-calibration]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  snapshot:
+  transport:
+    if: github.repository == 'sayaborg/superoutride' && github.ref == 'refs/heads/feat/m9-19-progressive-drift-calibration'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: c03dee6a94e2a9009781d98d4758de657eab16da
-          fetch-depth: 0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-      - run: |
-          test "$(git rev-parse HEAD)" = c03dee6a94e2a9009781d98d4758de657eab16da
-          npm ci
-          git bundle create /tmp/superoutride-baseline.bundle HEAD refs/remotes/origin/main
-          tar -czf /tmp/superoutride-baseline-dependencies.tar.gz node_modules
-      - uses: actions/upload-artifact@v5
-        with:
-          name: m9-19-baseline-source
-          path: |
-            /tmp/superoutride-baseline.bundle
-            /tmp/superoutride-baseline-dependencies.tar.gz
-          retention-days: 1
+          ref: ${{ github.sha }}
+      - name: Apply only the exact validated source tree to the feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = sayaborg/superoutride
+          test "$GITHUB_REF" = refs/heads/feat/m9-19-progressive-drift-calibration
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cat .m919-transport/part0 .m919-transport/part1 .m919-transport/part2 .m919-transport/part3 | base64 --decode | gzip --decompress > /tmp/m919.patch
+          echo '8e5d93a7db4e2cdb6c71d4e733f517beb6ce36d0ea4f0fbf633b61bb7214f314  /tmp/m919.patch' | sha256sum --check
+          git fetch --no-tags --depth=1 origin c03dee6a94e2a9009781d98d4758de657eab16da
+          git read-tree --reset -u c03dee6a94e2a9009781d98d4758de657eab16da
+          git apply --index --unidiff-zero /tmp/m919.patch
+          git diff --cached --check
+          TREE="$(git write-tree)"
+          echo "candidate_tree=$TREE"
+          test "$TREE" = 2eb684e2f6085cb507c34f31260da9399ec70ed8
+          test "$(git hash-object .github/workflows/pages.yml)" = 25568524aa895dd8a8b1dcfae50d6b6da65da050
+          test ! -e .m919-transport
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'M9.19 progressive drift calibration and unseeded round-trip regressions'
+          test -z "$(git status --porcelain)"
+          git push origin HEAD:refs/heads/feat/m9-19-progressive-drift-calibration
+          echo "implementation_sha=$(git rev-parse HEAD)"
