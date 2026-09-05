@@ -55,7 +55,6 @@ import {
 } from './vehicle-calibration.js';
 import {
   createArcadeTireFrictionCalibration,
-  type ArcadeTireFrictionCalibrationInput,
   type ArcadeTireFrictionCalibrationState,
 } from './tire-friction-calibration.js';
 
@@ -70,7 +69,7 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   /** Sole current runtime authority for the selectable M/D/T steering calibration. */
   readonly steeringCalibration: ArcadeSteeringCalibrationState;
   /** Sole runtime authority for the selected tire characteristic calibration. */
-  readonly tireFrictionCalibration: ArcadeTireFrictionCalibrationState;
+  tireFrictionCalibration: Readonly<ArcadeTireFrictionCalibrationState>;
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
@@ -102,14 +101,15 @@ export function createArcadeVehicle(
   l = 0,
   initialSpeed = 45,
   steeringCalibration: ArcadeSteeringCalibrationInput = {},
-  tireFrictionCalibration: ArcadeTireFrictionCalibrationInput = {},
+  tireFrictionCalibration?: Readonly<ArcadeTireFrictionCalibrationState>,
 ): ArcadeVehicleState {
   const resolvedSteeringCalibration = createArcadeSteeringCalibration(
     profile,
     steeringCalibration,
   );
   const resolvedTireFrictionCalibration = createArcadeTireFrictionCalibration(
-    tireFrictionCalibration,
+    tireFrictionCalibration?.front ?? profile.frontStation.tire,
+    tireFrictionCalibration?.rear ?? profile.rearStation.tire,
   );
   const coordinate = { s, l, segmentIndex: locateSegmentIndex(guide, s), distanceSquared: 0 };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
@@ -235,12 +235,7 @@ export function updateArcadeVehicle(
       lateralVelocity: front.lateralVelocity,
       normalLoad: front.tireFrameValid ? front.normalLoad : 0,
       gripFactor: front.surface.material.gripFactor,
-      referenceFrictionMultiplier:
-        vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
-      linearStiffnessMultiplier:
-        vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
-      slidingFrictionRatio:
-        vehicle.tireFrictionCalibration.slidingFrictionRatio,
+      characteristics: vehicle.tireFrictionCalibration.front,
       rollingResistance: front.tireFrameValid ? front.surface.material.rollingResistance : 0,
       driveTorque: frontDriveTorque,
       brakeTorque: frontBrakeTorque,
@@ -255,12 +250,7 @@ export function updateArcadeVehicle(
       lateralVelocity: rear.lateralVelocity,
       normalLoad: rear.tireFrameValid ? rear.normalLoad : 0,
       gripFactor: rear.surface.material.gripFactor,
-      referenceFrictionMultiplier:
-        vehicle.tireFrictionCalibration.referenceFrictionMultiplier,
-      linearStiffnessMultiplier:
-        vehicle.tireFrictionCalibration.linearStiffnessMultiplier,
-      slidingFrictionRatio:
-        vehicle.tireFrictionCalibration.slidingFrictionRatio,
+      characteristics: vehicle.tireFrictionCalibration.rear,
       rollingResistance: rear.tireFrameValid ? rear.surface.material.rollingResistance : 0,
       driveTorque: rearDriveTorque,
       brakeTorque: rearBrakeTorque,
