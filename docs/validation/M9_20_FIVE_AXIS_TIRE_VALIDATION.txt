@@ -1,0 +1,71 @@
+SUPER OUTRIDE — M9.20 FIVE-AXIS TIRE VALIDATION
+
+Status: immutable milestone release evidence after release. This record was created only after the complete implementation/documentation/test head passed exact-head CI. The record itself must be included in a fresh complete exact-head CI before release.
+
+Milestone: M9.20 — Five-Axis Monotone Tire Law
+Repository: sayaborg/superoutride
+Base main at implementation start: 75b225cbe13ece991a437d1ad2754a5edc7acb25
+Base tree: ba96d9f6668c3e3d4885570f2f29a6aa0569d8f2
+Implementation/documentation/test-inclusive pre-validation head: 611e0b669fa97388133fdf26b9e54c46d38cfd40
+Implementation tree: a5accd8c66caff9c51c281be08efd955189f4a8b
+Pull request: #136
+
+PRE-VALIDATION EXACT-HEAD CI
+Workflow: Test and Deploy GitHub Pages
+Run number: 832
+Run id: 33996294996
+Build job id: 101387323802
+Event: pull_request
+Expected checkout: 611e0b669fa97388133fdf26b9e54c46d38cfd40
+Actual checkout:   611e0b669fa97388133fdf26b9e54c46d38cfd40
+Node: v24.20.0
+npm: 11.19.0
+Tests: 675
+Pass: 675
+Fail: 0
+Cancelled: 0
+Skipped: 0
+Todo: 0
+Duration_ms: 28260.078553
+Result: SUCCESS
+
+NORMATIVE SCOPE VERIFIED BY THE GREEN HEAD
+
+1. Browser tire authoring exposes five independent characteristics:
+   GX .50..4.00 step .05, default 2.50, key H forward-cycle;
+   PX 1..60 percent step 1 point, default 8 percent, key J forward-cycle;
+   GY .50..4.00 step .05, default 2.20, key G forward-cycle;
+   PY 1..60 percent step 1 point, default 10 percent, key L forward-cycle;
+   shared KNEE .10.. .95 step .01, default .74, key N forward-cycle.
+   Every axis also has explicit minus/value/plus UI controls. One axis change preserves the other four shown characteristics.
+
+2. Authoring compiles atomically to resolved station coefficients muX, muY, kX, kY and rhoKnee with k=(2-knee)*G/P. P and browser selector identities are derived presentation, not duplicate physics authority. kX=kY is not imposed.
+
+3. Tire force uses one current-load-proportional two-axis demand and one retained monotone C1 capacity ellipse. The production law has no M9.15/M9.19 S, no P-to-2P post-peak reduction, no lateralPostPeakScale, no tire memory, no drift mode and no target-beta or hidden body-force path.
+
+4. The new constitutive regressions cover pure X/Y capacity onset, arbitrary unequal axis coefficients, shared-knee behavior, ellipse capacity, dissipation/passivity, load homogeneity, exact zero-contact/zero-grip release, signed combined-slip behavior, finite monotone implicit wheel roots and the Coulomb brake atom.
+
+5. Front and rear tire characteristics are represented as distinct resolved station data. Current front/rear equality is provisional vehicle composition, not a lower tire-law restriction or drive-layout branch.
+
+6. TCS is NOT active in M9.20. The code retains one shared slip derivation and explicit requested/delivered drive-torque ownership only as preparation for later separately-authorized control work. No controller state, target slip, hidden torque suppression, beta feedback, yaw torque or speed correction is active.
+
+7. ENG1, D12/M60, ACT.25 defaults, automatic gearbox law, suspension/contact/recovery boundaries, non-tire vehicle-profile data, course/topology, camera and renderer laws are not changed by this milestone.
+
+8. Six old-law-specific test files are explicitly superseded by document 114 rather than skipped. Retained causal contracts are migrated to the five-axis API. New coverage includes selectors, lifecycle/replacement/recovery, HUD/interface, deterministic transient diagnostics, no-TCS research-reference traces and all-nine finite/recovery integration.
+
+9. Product handling acceptance is not reduced to a perpetual steady circle. Diagnostics preserve entry/correction/exit, finite-time throttle sweeps, history/hysteresis observations, actual speed loss and displacement. Steady equilibria remain analytical diagnostics only.
+
+KNOWN LIMITS / NOT CERTIFIED
+
+- Handling remains DEV_UNCALIBRATED.
+- The new defaults are diagnostic starting values, not measured real-tire certification.
+- Human keyboard and touch feel are not certified by this CI.
+- All-nine drifting, broad speed/gear margins, 250 km/h behavior, repeated/abrupt input errors, low-speed tight turns, strong-brake behavior, real-course useful drift distance and camera/perception remain product work.
+- TCS/ABS are not implemented. Future AWD TCS coupling requires a separate Architecture Decision Gate.
+- Real tire load sensitivity mu(N)/k(N), temperature, wear, camber thrust, aligning torque and tire memory remain omitted by scope.
+- Front/rear equality is provisional; future genuinely different tire authoring must be explicit data, not an unexplained drive-layout compensator.
+- High-speed large-angle drift still obeys ordinary energy and power limits. No tire-law change provides free speed preservation.
+
+SELF-REFERENCE / FINAL RELEASE IDENTITY
+
+This immutable record intentionally names the last complete implementation/documentation/test-inclusive head and its successful CI. Adding this file creates a new head. A fresh full exact-head CI on the record-inclusive head is mandatory. Final release identity, final record-inclusive CI, pure-fast-forward main identity and same-SHA Pages deployment are established by Git/PR/workflow evidence rather than by rewriting this record after release.
