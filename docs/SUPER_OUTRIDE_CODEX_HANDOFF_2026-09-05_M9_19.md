@@ -58,6 +58,11 @@ of an exact steady grip circle. Do not infer solved handling from a successful t
 
 ## Release contract
 
+Immutable evidence is retained in
+`docs/validation/M9_19_PROGRESSIVE_DRIFT_CALIBRATION_VALIDATION.txt`.
+It records the green implementation head; resolve the final record-inclusive release SHA and
+Pages identity through PR #133, current main and exact-head workflow history.
+
 Follow AGENTS.md exactly: feature branch, full exact-head CI, standalone record per validation
 policy, full record-inclusive CI, re-fetch main, pure fast-forward with force=false, identity
 main=PR head=merge SHA, same-SHA main CI/Pages. Historical evidence is immutable. Do not release

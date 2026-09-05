@@ -1,0 +1,136 @@
+SUPER OUTRIDE — M9.19 PROGRESSIVE DRIFT CALIBRATION VALIDATION
+Recorded: 2026-09-05
+Repository: sayaborg/superoutride
+PR: #133
+Branch: feat/m9-19-progressive-drift-calibration
+
+EVIDENCE IDENTITY
+Base/main at implementation: c03dee6a94e2a9009781d98d4758de657eab16da (M9.18)
+Implementation/documentation/test-inclusive pre-validation head:
+  f0c73a1e0e0ca270f4b95190ffa09b40de09a8b7
+Tree: 2eb684e2f6085cb507c34f31260da9399ec70ed8
+
+Complete exact-head GitHub Actions CI #828:
+  Run: 33949675123
+  Build job: 101261950809
+  URL: https://github.com/sayaborg/superoutride/actions/runs/33949675123
+  Checkout expected=actual=f0c73a1e0e0ca270f4b95190ffa09b40de09a8b7
+  Node 24.20.0 / npm 11.19.0
+  npm ci; npm test
+  Clean dist, TypeScript compile, GroundMap build and all tests/*.test.mjs.
+  Package: super-outride-m9-19@0.9.19
+  659 tests / 659 pass / 0 fail / 0 cancelled / 0 skipped / 0 todo.
+  Build job success. PR deployment is correctly skipped.
+  Test result recorded in job log at 2026-09-05T06:24:43Z.
+  Test duration_ms: 54965.526356.
+
+SCOPE
+Authority: docs/113_m9_19_progressive_drift_calibration.md.
+Browser player default G3.00/P20/S1.00 becomes G1.20/P8/S1.00.
+ENG1, D12/M60 and ACT0.25 are retained. Small-slip normalized stiffness
+(2-0.74)*G/P remains 18.9. Peak capacity becomes 40% of the old default;
+absolute deep-slide S=1.00 remains unchanged. This is calibration, not equal
+handling at all slips and not a measured production-tire realism claim.
+
+G choices extend to 1.20..4.00 in 0.20 steps; P to 8..60% in 2% steps;
+S retains 1.00..2.00 in 0.20 steps. There are 2160 valid S<=G combinations.
+G/S cycling skips invalid choices without silently changing the other axes;
+explicit invalid requests still throw. All 1386 former combinations survive.
+The existing three scalar calibration and shared keyboard/touch adapter remain.
+
+No src/physics, input, camera, renderer, topology or immutable production-profile
+change is included. C=k*N, P-to-2P smoothstep, CG-travel steering, actual-wheel-RPM
+automatic shifts, actuator rates, touch gestures, suspension guards, permitted
+wheel lift and ordinary overturn recovery remain unchanged. No drift detector,
+target beta, feedback controller, yaw torque or speed preservation is added.
+
+NEW CAUSAL COVERAGE: 6 TESTS
+File: tests/m9-19-progressive-drift-calibration.test.mjs.
+Diagnostic: tools/drift-control-probe.mjs.
+
+1. Both stations of all nine profiles retain equal old/new small-slip forces
+   at three loads and three longitudinal slips; capacity ratio is 0.4.
+2. All 2160 valid selector transitions preserve other axes and remain valid;
+   explicit S>G requests are rejected, equality and cycle wrap are checked.
+3. Normal initial motion -> ordinary shallow cornering -> partial brake ->
+   10 -> 15 -> 10 degree drift -> neutral exit, both directions at 60/120/240 Hz.
+4. Six partial-brake entries: 10/20/30% crossed with 0.30/0.40 seconds.
+5. Nine reached-drift input offsets: steering and throttle -0.02/0/+0.02;
+   separate actual pointer release through ordinary rate-limited neutral.
+6. All nine profiles under six-second digital input and ordinary recovery
+   remain finite; this is not a keyboard-drift certificate.
+
+The diagnostic starts at ordinary 15 m/s with zero lateral velocity, yaw rate
+and steer. After spawn, it never resets speed, beta, yaw, wheel speed, load or
+gear. There is no gear lock, beta-feedback controller or gameplay recovery in
+the drift round trip. Branch probes copy a state reached through ordinary inputs,
+not an invented equilibrium seed. The elapsed-time schedule lives in the tool
+and authority document; its constants are test data, not runtime controller data.
+
+OBSERVED VALUES FROM CI #828
+At 60 Hz, positive steering direction, window means:
+  55-62 s:   beta=-10.1625937898 deg, speed=14.9608484653 m/s
+  76-84 s:   beta=-15.0183173415 deg, speed=14.9038291228 m/s
+  100-110 s: beta=-10.1396968531 deg, speed=14.9450996945 m/s
+  Rear longitudinal slips in these windows average 0.0643 / 0.1211 / 0.0642.
+  Gear 2 is observed, not held.
+  Maximum absolute beta in the full trace: 21.4353490523 deg during entry.
+  Exit window 111-113 s: abs(beta)<1 deg, abs(yawRate)<0.05 rad/s,
+  speed>13.5 m/s. No observed rear lock or unsupported tick in the round trip.
+
+At 120 and 240 Hz, corresponding positive-steering beta means:
+  120 Hz: -10.1427639874 / -14.9959393522 / -10.1169862312 deg.
+  240 Hz: -10.1328964735 / -14.9847550608 / -10.1055993391 deg.
+Mirrored steering passes the same bounds with opposite beta/yaw signs.
+The 15-to-10 transition stays beyond 5 degrees, rather than ending the slide.
+
+Identical time-only inputs at the retired G3/P20/S1 default never enter the
+requested drift: maximum absolute beta=4.4388561562 deg. This negative control
+attributes the improvement to calibration rather than a changed solver or seed.
+
+All six partial-brake entries reach beta approximately -10.10 degrees and
+speed approximately 14.95 m/s in their final 30-35 s observation windows.
+Nine input-offset cases retain bounded slide in their stated test intervals.
+These are discrete sample results, not proofs for every point in a rectangle.
+
+RETAINED REGRESSIONS
+All prior 653 tests remain in the full suite. Only browser domain/default and
+valid-selector expectations superseded by document 113 are updated. Tire-law,
+force-direction, passivity, wheel-root, M9.18 seeded 25-30-25 ENG3 drift,
+M9.17 no-cut hunting, world continuity, course integration, route-gate and
+renderer/source-boundary regressions remain required. No test is skipped or
+converted to an expected failure. Course tests using existing profile defaults
+do not certify high-speed handling at the new player browser calibration.
+
+SUPPLEMENTAL LOCAL WORK AND SOURCE INTEGRITY
+The exact locked TypeScript 5.9.2 source built and all 659 tests also passed
+locally under Node 22.16.0. This is supplemental; the Node 24 CI above is the
+release evidence. Numerical candidate exploration was performed locally before
+choosing the browser default, not by tuning a second runtime solver.
+
+Direct container GitHub networking was unavailable. Feature-only source transport
+exported the exact baseline, then applied a SHA256-checked local patch and checked
+the resulting tree against 2eb684e2f6085cb507c34f31260da9399ec70ed8. Temporary
+transport files are absent from the validated tree. The original Pages workflow
+is restored byte-for-byte to blob 25568524aa895dd8a8b1dcfae50d6b6da65da050.
+There is no final workflow or deployment-semantics change and no transport write
+to main. Transport runs #826/#827 are not substitutes for complete CI #828.
+
+LIMITS
+Handling remains DEV_UNCALIBRATED. This is one ordinary-input path with sampled
+margins, not a universal equilibrium map or completed human touch/keyboard feel.
+The 40-second shallow preparation is diagnostic, not a required player technique
+or a claim of an exact steady grip circle. Entry overshoots near 21.4 degrees.
+Every speed/gear/state, +/-5-degree state disturbances, all-nine-vehicle drifting,
+forward drift flight on actual courses and lower-G high-speed cornering remain
+unproven. Cumulative circular trajectory distance is not useful forward flight.
+Strong-brake rear lock/spin, repeated wheelie/stoppie overturn, ABS/TCS and large-yaw
+raster perception remain separate work. No live human browser control was certified.
+
+VALIDATION-INCLUSIVE RELEASE REQUIREMENT
+This record intentionally names the already-green pre-validation head. Adding
+this record creates a new SHA and requires another complete exact-head green CI.
+Only then refetch main, require ahead_by>0, behind_by=0 and merge-base=current main,
+and move main by force=false pure fast-forward. Verify main=PR head=PR merge SHA
+and the same-SHA main-push build/Pages deployment. Final identities belong to
+Git/PR/workflow history; do not rewrite this evidence to create self-reference.
