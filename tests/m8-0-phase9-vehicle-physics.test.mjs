@@ -128,8 +128,8 @@ test('profile compiler rejects invalid mechanics without vehicle-specific fallba
     /finite and > 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_PROFILE, rhoKnee: 1 }),
-    /rhoKnee/,
+    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_PROFILE, frontTire: { ...HONDA_VFR750R_VEHICLE_PROFILE.frontTire, knee: 1 } }),
+    /knee/,
   );
   assert.throws(
     () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, frontDriveTorqueFraction: 1.1 }),
