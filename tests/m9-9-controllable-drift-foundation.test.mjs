@@ -8,19 +8,17 @@ import {
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 test('M9.9 axle-neutral compiled reference remains common beneath later browser tire calibration', () => {
+  const reference = { gripX: 1.35, peakSlipX: 1.26*1.35/9.75,
+    gripY: 1.35, peakSlipY: 1.26*1.35/9.75, knee: .74 };
   assert.deepEqual(COMMON_SELECTABLE_VEHICLE_TIRE, {
-    muRef: 1.35,
-    rhoKnee: 0.74,
-    lowSpeedRegularization: 1,
-    frontNormalizedStiffness: 9.75,
-    rearNormalizedStiffness: 9.75,
+    frontTire: reference, rearTire: reference, lowSpeedRegularization: 1,
   });
   assert.equal(9.75, (9 + 10.5) / 2);
   for (const { profile } of VEHICLE_CATALOG) {
-    assert.equal(profile.frontNormalizedStiffness, 9.75, profile.id);
-    assert.equal(profile.rearNormalizedStiffness, 9.75, profile.id);
-    assert.equal(profile.frontStation.tire.normalizedStiffness, 9.75, profile.id);
-    assert.equal(profile.rearStation.tire.normalizedStiffness, 9.75, profile.id);
+    assert.equal(profile.frontStation.tire.kY, 9.75, profile.id);
+    assert.equal(profile.rearStation.tire.kY, 9.75, profile.id);
+    assert.equal(profile.frontStation.tire.kY, 9.75, profile.id);
+    assert.equal(profile.rearStation.tire.kY, 9.75, profile.id);
   }
 });
 
