@@ -48,13 +48,18 @@ body {
   min-height: 0;
   display: grid;
   place-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
 }
 
 #game {
   display: block;
-  width: auto;
+  width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 4 / 3;
@@ -307,7 +312,7 @@ body {
 @media (orientation: landscape) {
   .mobile-selector-zone {
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     gap: 6px 8px;
   }
 
@@ -322,57 +327,53 @@ body {
   }
 
   .selector-group-camera {
-    grid-column: 8 / span 2;
+    grid-column: 8 / span 5;
     grid-row: 1;
   }
 
   .selector-group-tire {
-    grid-column: 10 / span 3;
-    grid-row: 1;
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 
   .selector-group-steering-offset {
-    grid-column: 1 / span 4;
+    grid-column: 1 / span 6;
     grid-row: 2;
   }
 
   .selector-group-max-steer {
-    grid-column: 5 / span 4;
+    grid-column: 7 / span 3;
     grid-row: 2;
   }
 
   .selector-group-act {
-    grid-column: 9 / span 4;
+    grid-column: 10 / span 3;
     grid-row: 2;
   }
 
   .selector-button {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 30px;
+    min-height: 32px;
     padding: 2px;
     font-size: clamp(8px, 1.55vw, 10px);
   }
 
   .course-selector-buttons {
-    grid-template-columns: repeat(4, minmax(36px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .vehicle-selector-buttons {
-    grid-template-columns: repeat(5, minmax(36px, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .camera-selector-buttons {
-    grid-template-columns: repeat(2, minmax(36px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .steering-offset-selector-buttons,
   .max-steer-selector-buttons,
-  .tire-friction-selector-buttons {
-    grid-template-columns: repeat(5, minmax(36px, 1fr));
-  }
-
   .steering-response-selector-buttons {
-    grid-template-columns: repeat(4, minmax(36px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
   }
 
   .touch-capable #app {
@@ -479,23 +480,30 @@ body {
   }
 }
 
-/* M9.16: reuse the existing calibration group without adding a selector row. */
-.tire-friction-selector-buttons .selector-button {
+/* M9.20: five compact linked-axle steppers plus ENG, not hundreds of individual choices. */
+.tire-friction-selector-buttons {
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+}
+.tire-control {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 26px;
+  align-items: center;
   min-width: 0;
+  border: 1px solid #49616e;
+  border-radius: 9px;
+  background: #111a21;
 }
-
-@media (orientation: landscape) {
-  .tire-friction-selector-buttons {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .engine-power-button {
-    grid-column: 1 / -1;
-  }
+.tire-control .tire-step {
+  min-width: 0;
+  min-height: 32px;
+  border: 0;
+  font-size: 14px;
 }
-
-@media (orientation: portrait) {
-  .tire-friction-selector-buttons {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+.tire-value {
+  min-width: 0;
+  text-align: center;
+  color: #d7f3ff;
+  font-size: 10px;
+  white-space: nowrap;
 }
+.tire-friction-selector-buttons .engine-power-button { min-width: 0; }
