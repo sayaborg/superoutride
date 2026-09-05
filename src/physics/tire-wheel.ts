@@ -1,27 +1,27 @@
 import {
-  assertLinearStiffnessMultiplier,
-  assertReferenceFrictionMultiplier,
-  assertSlidingFrictionRatio,
+  validateTireCharacteristics,
+  type CompiledTireCharacteristics,
 } from './tire-friction-calibration.js';
 
-export interface CompiledTireProfile {
-  readonly muRef: number;
-  readonly normalizedStiffness: number;
-  readonly rhoKnee: number;
+export interface CompiledTireProfile extends CompiledTireCharacteristics {
   readonly lowSpeedRegularization: number;
 }
 
-export interface TireDemand {
+export interface TireSlip {
   readonly sx: number;
   readonly sy: number;
+  readonly referenceSpeed: number;
+}
+export interface TireDemand extends TireSlip {
   readonly dx: number;
   readonly dy: number;
 }
-
 export interface TireForceResult extends TireDemand {
   readonly fx: number;
   readonly fy: number;
-  readonly fmax: number;
+  readonly capacityX: number;
+  readonly capacityY: number;
+  /** Demand in the capacity ellipse, not a force magnitude or a stored contact phase. */
   readonly rho: number;
 }
 
@@ -33,16 +33,14 @@ export interface WheelSolveInput {
   readonly lateralVelocity: number;
   readonly normalLoad: number;
   readonly gripFactor: number;
-  readonly referenceFrictionMultiplier?: number;
-  readonly linearStiffnessMultiplier?: number;
-  readonly slidingFrictionRatio?: number;
+  readonly characteristics?: CompiledTireCharacteristics;
   readonly rollingResistance: number;
+  /** Actual torque delivered for this substep. No TCS is active in M9.20. */
   readonly driveTorque: number;
   readonly brakeTorque: number;
   readonly dt: number;
   readonly tire: CompiledTireProfile;
 }
-
 export interface WheelSolveResult {
   readonly omega: number;
   readonly omegaDot: number;
@@ -50,160 +48,84 @@ export interface WheelSolveResult {
   readonly locked: boolean;
 }
 
-/** M9.18: one normalized stiffness, scaled by current contact load in both slip directions. */
+/** Shared kinematics for tire evaluation, diagnostics and a future independent torque controller. */
+export function deriveTireSlip(
+  omega: number, rollingRadius: number, longitudinalVelocity: number,
+  lateralVelocity: number, lowSpeedRegularization: number,
+): TireSlip {
+  const referenceSpeed = tireReferenceSpeed(longitudinalVelocity, lowSpeedRegularization);
+  if (![omega, rollingRadius, lateralVelocity].every(Number.isFinite) || !(rollingRadius > 0)) {
+    throw new RangeError('tire motion must be finite and rolling radius > 0');
+  }
+  return { sx: (rollingRadius * omega - longitudinalVelocity) / referenceSpeed,
+    sy: -lateralVelocity / referenceSpeed, referenceSpeed };
+}
+
+function tireReferenceSpeed(vx: number, v0: number): number {
+  if (!Number.isFinite(vx) || !Number.isFinite(v0) || !(v0 > 0)) {
+    throw new RangeError('tire velocity must be finite and low-speed regularization > 0');
+  }
+  return Math.hypot(vx, v0);
+}
+
+export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
+  if (!Number.isFinite(vy)) throw new RangeError('tire lateral velocity must be finite');
+  return Math.atan2(-vy, tireReferenceSpeed(vx, v0));
+}
+
 export function tireLinearDemand(
-  omega: number,
-  rollingRadius: number,
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  normalLoad: number,
-  tire: CompiledTireProfile,
-  linearStiffnessMultiplier = 1,
+  omega: number, rollingRadius: number, longitudinalVelocity: number, lateralVelocity: number,
+  normalLoad: number, tire: CompiledTireProfile, characteristics: CompiledTireCharacteristics = tire,
 ): TireDemand {
-  assertLinearStiffnessMultiplier(linearStiffnessMultiplier);
   if (!Number.isFinite(normalLoad)) throw new RangeError('tire normal load must be finite');
-  const stiffness = tire.normalizedStiffness * Math.max(0, normalLoad) * linearStiffnessMultiplier;
-  const v0 = tire.lowSpeedRegularization;
-  const referenceSpeed = Math.sqrt(longitudinalVelocity ** 2 + v0 ** 2);
-  const sx = (rollingRadius * omega - longitudinalVelocity) / referenceSpeed;
-  const sy = -lateralVelocity / referenceSpeed;
-  return {
-    sx,
-    sy,
-    dx: stiffness * sx,
-    dy: stiffness * sy,
-  };
+  const slip = deriveTireSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity,
+    tire.lowSpeedRegularization);
+  const load = Math.max(0, normalLoad);
+  return { ...slip, dx: load * characteristics.kX * slip.sx,
+    dy: load * characteristics.kY * slip.sy };
 }
 
-/**
- * Signed lateral slip observation using the same low-speed denominator as the one-k tire law.
- * At ordinary speed this approaches the geometric tire slip angle; at rest it remains finite.
- */
-export function regularizedTireSlipAngle(
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  lowSpeedRegularization: number,
-): number {
-  if (!(lowSpeedRegularization > 0) || !Number.isFinite(lowSpeedRegularization)) {
-    throw new RangeError('tire low-speed regularization must be finite and > 0');
-  }
-  if (![longitudinalVelocity, lateralVelocity].every(Number.isFinite)) {
-    throw new RangeError('tire slip-angle velocities must be finite');
-  }
-  const referenceSpeed = Math.sqrt(longitudinalVelocity ** 2 + lowSpeedRegularization ** 2);
-  return Math.atan2(-lateralVelocity, referenceSpeed);
-}
-
+/** One load-homogeneous, dissipative two-axis force. No post-peak multiplier or drift state. */
 export function evaluateTireForce(
-  omega: number,
-  rollingRadius: number,
-  longitudinalVelocity: number,
-  lateralVelocity: number,
-  normalLoad: number,
-  gripFactor: number,
-  tire: CompiledTireProfile,
-  referenceFrictionMultiplier = 1,
-  linearStiffnessMultiplier = 1,
-  slidingFrictionRatio = 1,
+  omega: number, rollingRadius: number, longitudinalVelocity: number, lateralVelocity: number,
+  normalLoad: number, gripFactor: number, tire: CompiledTireProfile,
+  characteristics: CompiledTireCharacteristics = tire,
 ): TireForceResult {
-  assertSlidingFrictionRatio(slidingFrictionRatio);
-  const demand = tireLinearDemand(
-    omega,
-    rollingRadius,
-    longitudinalVelocity,
-    lateralVelocity,
-    normalLoad,
-    tire,
-    linearStiffnessMultiplier,
-  );
-  const fmax = tireForceCapacity(
-    normalLoad,
-    gripFactor,
-    referenceFrictionMultiplier,
-    tire,
-  );
-  const magnitude = Math.hypot(demand.dx, demand.dy);
-  if (!(fmax > 0) || !(magnitude > 0)) {
-    return {
-      ...demand,
-      fx: 0,
-      fy: 0,
-      fmax,
-      rho: fmax > 0 ? 0 : (magnitude > 0 ? Number.POSITIVE_INFINITY : 0),
-    };
+  validateTireCharacteristics(characteristics);
+  if (!Number.isFinite(gripFactor)) throw new RangeError('surface grip must be finite');
+  const demand = tireLinearDemand(omega, rollingRadius, longitudinalVelocity, lateralVelocity,
+    normalLoad, tire, characteristics);
+  const capacityX = tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
+  const capacityY = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
+  if (!(capacityX > 0) || !(capacityY > 0)) {
+    return { ...demand, fx: 0, fy: 0, capacityX, capacityY, rho: 0 };
   }
-  const rho = magnitude / fmax;
-  const saturatedMagnitude = radialC1Magnitude(rho, tire.rhoKnee) * fmax;
-  const lateralDemandRatio = Math.abs(demand.dy) / fmax;
-  const slidingScale = lateralPostPeakScale(
-    lateralDemandRatio,
-    tire.rhoKnee,
-    slidingFrictionRatio,
-  );
-  const scale = saturatedMagnitude / magnitude * slidingScale;
-  return {
-    ...demand,
-    fx: demand.dx * scale,
-    fy: demand.dy * scale,
-    fmax,
-    rho,
-  };
+  // Cancel N analytically. Never divide by tiny contact loads or invent a stiffness floor.
+  const x = characteristics.kX * demand.sx / characteristics.muX;
+  const y = characteristics.kY * demand.sy / characteristics.muY;
+  const length = Math.hypot(x, y);
+  const rho = length / gripFactor;
+  if (length === 0) return { ...demand, fx: 0, fy: 0, capacityX, capacityY, rho: 0 };
+  if (rho <= characteristics.rhoKnee) {
+    return { ...demand, fx: demand.dx, fy: demand.dy, capacityX, capacityY, rho };
+  }
+  const h = radialC1Magnitude(rho, characteristics.rhoKnee);
+  return { ...demand, fx: capacityX * h * (x / length),
+    fy: capacityY * h * (y / length), capacityX, capacityY, rho };
 }
 
-/** C1 radial transition: linear through rhoKnee, constant peak magnitude from 2-rhoKnee onward. */
-export function radialC1Magnitude(rho: number, rhoKnee: number): number {
+/** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
+export function radialC1Magnitude(rho: number, a: number): number {
+  if (!Number.isFinite(a) || !(a > 0 && a < 1) || Number.isNaN(rho)) {
+    throw new RangeError('radial knee must lie in (0,1) and demand cannot be NaN');
+  }
   if (!(rho > 0)) return 0;
-  const a = rhoKnee;
-  const b = 2 - a;
   if (rho <= a) return rho;
-  if (rho >= b) return 1;
-  const width = b - a;
-  const t = (rho - a) / width;
-  const h00 = 2 * t ** 3 - 3 * t ** 2 + 1;
-  const h10 = t ** 3 - 2 * t ** 2 + t;
-  const h01 = -2 * t ** 3 + 3 * t ** 2;
-  return h00 * a + h10 * width + h01;
+  if (rho >= 2 - a) return 1;
+  return rho - (rho - a) ** 2 / (4 * (1 - a));
 }
 
-/**
- * M9.15 state-free lateral post-peak falloff.
- *
- * The peak begins at the same pure-lateral demand ratio b=2-rhoKnee used by the retained one-k
- * radial shoulder. The C1 falloff now spans one whole peak-demand interval and reaches its sliding
- * plateau at 2b. Therefore a browser PEAK slip P reaches the plateau at exactly 2P. The browser may
- * expose an absolute sliding friction coefficient S while deriving this internal ratio as S/G.
- *
- * The scale depends only on lateral demand, never wheel omega, so for one wheel solve it is constant
- * with respect to the scalar root variable. This preserves the retained monotone backward-Euler
- * wheel equation while reducing deep-slide scrub without adding tire state.
- */
-export function lateralPostPeakScale(
-  lateralDemandRatio: number,
-  rhoKnee: number,
-  slidingFrictionRatio: number,
-): number {
-  assertSlidingFrictionRatio(slidingFrictionRatio);
-  if (!(rhoKnee > 0 && rhoKnee < 1) || !Number.isFinite(rhoKnee)) {
-    throw new RangeError('rhoKnee must lie in (0,1)');
-  }
-  if (!Number.isFinite(lateralDemandRatio)) {
-    throw new RangeError('lateral demand ratio must be finite');
-  }
-  const rhoLat = Math.abs(lateralDemandRatio);
-  const peak = 2 - rhoKnee;
-  if (rhoLat <= peak || slidingFrictionRatio === 1) return 1;
-  const width = peak;
-  const plateau = peak + width;
-  if (rhoLat >= plateau) return slidingFrictionRatio;
-  const t = (rhoLat - peak) / width;
-  const smooth = t * t * (3 - 2 * t);
-  return 1 - (1 - slidingFrictionRatio) * smooth;
-}
-
-/**
- * Surface rolling resistance is one continuous monotone torque in the scalar wheel equation.
- * It reuses the tire low-speed regularization and owns no second low-speed threshold.
- */
+/** Surface rolling resistance remains a separate continuous wheel torque. */
 export function rollingResistanceTorque(
   omega: number,
   rollingRadius: number,
@@ -219,8 +141,7 @@ export function rollingResistanceTorque(
 
 /**
  * Unique scalar backward-Euler wheel root with a Coulomb brake atom at Omega=0.
- * The no-brake residual stays monotone: the M9.15 post-peak scale depends on fixed lateral demand,
- * not Omega. Bounded tire and rolling torques make the finite bracket explicit rather than
+ * The no-brake residual stays monotone: the monotone two-axis saturation uses fixed contact data. Bounded tire and rolling torques make the finite bracket explicit rather than
  * heuristic.
  */
 export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
@@ -231,9 +152,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     rollingRadius,
     normalLoad,
     gripFactor,
-    referenceFrictionMultiplier = 1,
-    linearStiffnessMultiplier = 1,
-    slidingFrictionRatio = 1,
+    characteristics = input.tire,
     rollingResistance,
     driveTorque,
     brakeTorque,
@@ -250,9 +169,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
       normalLoad,
       gripFactor,
       tire,
-      referenceFrictionMultiplier,
-      linearStiffnessMultiplier,
-      slidingFrictionRatio,
+      characteristics,
     );
     return inertia / dt * (omega - omegaPrevious)
       - driveTorque
@@ -273,13 +190,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     omega = 0;
     locked = brakeTorque > 0;
   } else {
-    const fmax = tireForceCapacity(
-      normalLoad,
-      gripFactor,
-      referenceFrictionMultiplier,
-      tire,
-    );
-    const maxRoadTorque = rollingRadius * fmax;
+    const maxRoadTorque = rollingRadius * tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
     const maxRollingTorque = rollingResistance * Math.max(0, normalLoad) * rollingRadius;
     const span = Math.abs(omegaPrevious)
       + dt * (Math.abs(driveTorque) + brakeTorque + maxRoadTorque + maxRollingTorque) / inertia
@@ -302,9 +213,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     normalLoad,
     gripFactor,
     tire,
-    referenceFrictionMultiplier,
-    linearStiffnessMultiplier,
-    slidingFrictionRatio,
+    characteristics,
   );
   return {
     omega,
@@ -314,30 +223,23 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
   };
 }
 
+
+/** Linear-region lateral reserve in the same demand ellipse; diagnostic only. */
 export function usefulLateralCapacity(
-  longitudinalLinearDemand: number,
-  normalLoad: number,
-  gripFactor: number,
-  tire: CompiledTireProfile,
-  referenceFrictionMultiplier = 1,
+  longitudinalLinearDemand: number, normalLoad: number, gripFactor: number,
+  tire: CompiledTireProfile, characteristics: CompiledTireCharacteristics = tire,
 ): number {
-  const fmax = tireForceCapacity(
-    normalLoad,
-    gripFactor,
-    referenceFrictionMultiplier,
-    tire,
-  );
-  const useful = tire.rhoKnee * fmax;
-  return Math.sqrt(Math.max(0, useful ** 2 - longitudinalLinearDemand ** 2));
+  const bx = tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
+  const by = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
+  if (!(bx > 0)) return 0;
+  return by * Math.sqrt(Math.max(0, characteristics.rhoKnee ** 2 - (longitudinalLinearDemand / bx) ** 2));
 }
 
 export function validateCompiledTireProfile(tire: CompiledTireProfile): void {
-  if (![tire.muRef, tire.normalizedStiffness, tire.rhoKnee, tire.lowSpeedRegularization]
-    .every(Number.isFinite)) throw new RangeError('tire profile values must be finite');
-  if (!(tire.muRef > 0)) throw new RangeError('tire muRef must be > 0');
-  if (!(tire.normalizedStiffness > 0)) throw new RangeError('normalized tire stiffness must be > 0');
-  if (!(tire.rhoKnee > 0 && tire.rhoKnee < 1)) throw new RangeError('rhoKnee must lie in (0,1)');
-  if (!(tire.lowSpeedRegularization > 0)) throw new RangeError('tire low-speed regularization must be > 0');
+  validateTireCharacteristics(tire);
+  if (!Number.isFinite(tire.lowSpeedRegularization) || !(tire.lowSpeedRegularization > 0)) {
+    throw new RangeError('tire low-speed regularization must be finite and > 0');
+  }
 }
 
 function bisectMonotone(fn: (value: number) => number, lowerInput: number, upperInput: number): number {
@@ -371,23 +273,10 @@ function validateWheelSolveInput(input: WheelSolveInput): void {
     throw new RangeError('wheel solve inputs must be finite');
   }
   validateCompiledTireProfile(input.tire);
-  assertReferenceFrictionMultiplier(input.referenceFrictionMultiplier ?? 1);
-  assertLinearStiffnessMultiplier(input.linearStiffnessMultiplier ?? 1);
-  assertSlidingFrictionRatio(input.slidingFrictionRatio ?? 1);
+  validateTireCharacteristics(input.characteristics ?? input.tire);
 }
 
-function tireForceCapacity(
-  normalLoad: number,
-  gripFactor: number,
-  referenceFrictionMultiplier: number,
-  tire: CompiledTireProfile,
-): number {
-  assertReferenceFrictionMultiplier(referenceFrictionMultiplier);
-  return Math.max(
-    0,
-    tire.muRef
-      * referenceFrictionMultiplier
-      * Math.max(0, gripFactor)
-      * Math.max(0, normalLoad),
-  );
+
+function tireForceCapacity(normalLoad: number, gripFactor: number, mu: number): number {
+  return Math.max(0, normalLoad) * Math.max(0, gripFactor) * mu;
 }
