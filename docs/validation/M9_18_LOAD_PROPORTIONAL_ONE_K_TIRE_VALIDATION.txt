@@ -1,0 +1,133 @@
+SUPER OUTRIDE — M9.18 LOAD-PROPORTIONAL ONE-K TIRE VALIDATION
+Recorded: 2026-09-05
+Repository: sayaborg/superoutride
+PR: #131
+Branch: feat/m9-18-load-proportional-tire
+
+EVIDENCE IDENTITY
+Base/main at implementation: dafe227e40aec1858ce8ffc2dc7d6601e0d59e4b (M9.17)
+Implementation/documentation/test-inclusive pre-validation head:
+  df3bbea45ea123189a1db5ab238653fff14bf939
+Tree: f81012523a079c683f6f20e986d4d4a0fd86da19
+
+Complete exact-head GitHub Actions CI #821:
+  Run: 33937272712
+  Build job: 101227525870
+  URL: https://github.com/sayaborg/superoutride/actions/runs/33937272712
+  Checkout expected=actual=df3bbea45ea123189a1db5ab238653fff14bf939
+  Node 24.20.0 / npm 11.19.0
+  npm ci; npm test
+  Clean dist, TypeScript compile, GroundMap build and all tests/*.test.mjs.
+  Package: super-outride-m9-18@0.9.18
+  653 tests / 653 pass / 0 fail / 0 cancelled / 0 skipped / 0 todo.
+  Build job success. PR deploy is correctly skipped.
+  Test result recorded in job log at 2026-09-05T01:49:40Z.
+
+SCOPE
+Authority: docs/112_m9_18_load_proportional_one_k_tire.md.
+Replace C=k*Nstatic with C=k*max(0,Nactual) for both longitudinal and lateral
+one-k demand. Remove compiled cornerStiffness rather than keeping an alias.
+Keep the normalized coefficient, slip definitions, radial C1 saturation,
+P-to-2P post-peak curve, force-vector direction and scalar wheel solve.
+
+The user permits wheelies and stoppies pending later ABS/TCS/control work.
+No lift suppression, engine reduction, pitch clamp/damping, profile/CG retuning,
+new tire state or drift controller is added. One-sided suspension contact
+requires dot(body.up,surface.normal)>0; overturned gameplay poses use the
+existing recovery/reset/target/calibration-retention path. The existing qTravel
+error is retained for valid facing contacts. Overturn is not early wheel-lift
+control. The body basis is reused, not reimplemented in gameplay.
+
+All numerical production-profile values and browser selector domains/defaults
+are unchanged. Browser starts at G3/P20/S1 and ENG1. The drift comparison point
+is G3/P24/S1, ENG3, D12/M60; it is not a silent default change. Input, powertrain,
+steering, camera, rendering, metric and topology authorities are retained.
+
+NEW CAUSAL COVERAGE: 19 TESTS
+13 tests in tests/m9-18-load-proportional-tire.test.mjs:
+- 5,400 load/slip/material/calibration comparisons: load homogeneity and bounds.
+- P and 2P do not shift with positive load; retained material response.
+- All nine profiles, both stations: old-force equivalence at static load.
+- Zero-load release, passive slip work, finite coefficient/load validation.
+- 162 finite deterministic wheel-root cases and monotone residual checks.
+- Ordinary Testarossa solver: seeded 15 m/s, 25-degree drift held for 30 s,
+  with rear longitudinal slip above 20%.
+- Throttle -1/0/+1 percentage point yields one-second angle magnitudes:
+  24.6184493110 / 25.0014347451 / 25.4306345455 degrees.
+- +/-1-degree initial perturbations recover under unchanged player input.
+- Scheduled-input-only 25 -> 30 -> 25 degree traverse:
+  t=19 s, beta=-30.0214879294 deg, speed=14.9873951215 m/s, gear=2;
+  t=40 s, beta=-24.9692613936 deg, speed=14.9922643580 m/s, gear=2.
+- Hold at 60/120/240-Hz refinement ends at respectively:
+  beta=-25.0014347451 / -24.9788322572 / -24.9674828137 deg;
+  speed=15.0000000000 / 14.9974384364 / 14.9961594432 m/s.
+- Source-boundary tests reject hidden tire/control authority.
+
+After initial equilibrium seeding, these drift tests never reset speed, wheel
+rotation, load, angle or yaw rate. There is no gear lock, gameplay recovery or
+added beta-feedback controller in the drift hold/traverse.
+
+6 tests in tests/m9-18-wheel-lift-recovery.test.mjs:
+- Ordinary single-contact force at +/-15/45/80-degree seeded wheel-lift poses;
+  no early recovery or vehicle-state correction.
+- Inverted suspension cannot create contact even with negative gap and supported
+  surface geography.
+- Overturn takes precedence over stale supported telemetry and preserves explicit
+  pending recovery target, M/D/ACT, G/P/S and ENG calibration.
+- Criterion is surface-relative, not a fixed world-pitch threshold.
+- Actual upright suspension overtravel still throws the original model error.
+- VFR reversal and Tsukuba three-second traces at 60/120/240 Hz retain real
+  wheel lift and each recover once, only after overturn, then continue finite.
+  Reversal recovery times: 2.100000 / 2.108333 / 2.108333 s.
+  Tsukuba recovery times: 2.100000 / 2.100000 / 2.091667 s.
+  Each trace contains more than 2.2 s of single-wheel contact across the run.
+
+RETAINED INTEGRATION EVIDENCE
+The complete suite includes all-nine LINEAR and extreme-selector probes,
+Tsukuba/FISCO course integration, actual route-gate/handoff/render sequences,
+Testarossa mountain/Tsukuba/FISCO no-recovery rival laps, all input/selector
+regressions and architecture/source-boundary checks. Route-gate no-recovery
+assertions are unchanged.
+M9.17 no-cut hunting probe remains green: 4 shifts, 0 downshifts,
+0 tail zero-torque observations, 0 tail shifts, final gear 5.
+
+FAILED-INTERMEDIATE RUNS AND EXPLICIT ACCEPTANCE CHANGES
+#818 on 913f90a27631fd7a99efb1986f3e29ec1464c6f8: 647 tests, 13 failures.
+#819 on 4b73e6722e740e2335e3b6696c141cbabe892142: 647 tests, 3 failures.
+The ten retired-API/reference-fixture failures were migrated without altering
+force expectations. A real VFR loop-out and the old inverted-support blind spot
+were not represented as successful upright driving.
+
+The later explicit user decision permits wheelies/stoppies. Document 112 section
+8 supersedes uninterrupted-upright assumptions in the M9.11, M9.3, M8.3 and M9.6
+integration probes. They now use the browser's ordinary physics-then-recovery
+boundary, with finite state checked before recovery and upright orientation after.
+Inputs, durations, progress/lateral limits and rack stops are retained.
+The M5 free-lateral-motion test applies its original 0.1 m/s threshold across the
+whole trace instead of the arbitrary final two-second instant; displacement and
+yaw criteria remain. No physics parameter was tuned to satisfy that endpoint.
+
+#820 on 4ef48512994542d5a7373c6706e1be0376691a0c: 653 tests, 651 pass, 2 fail.
+All 19 new causal tests passed. LINEAR and FISCO still lacked the gameplay recovery
+boundary; their explicit section-8 migration is included in the fully green #821.
+No test is skipped, marked todo or converted to an expected failure.
+
+LIMITS
+This is seeded drift sustain/response evidence, not proof of easy straight-line
+entry, robust exit, +/-5-degree disturbance recovery, G=S deep drifting or human
+phone control feel. Prior exploratory unstable entry and high-power suspension
+limits remain. Handling is DEV_UNCALIBRATED.
+
+Held full-throttle VFR driving can still repeatedly lift and overturn after each
+recovery. Supplementary local ten-second LINEAR replay observed six recoveries;
+this is not stable upright riding or a global no-repeat recovery guarantee.
+Wheelie/stoppie control and ABS/TCS are expressly deferred. Local Node22 ESM probes
+are supplementary; the complete Node24 exact-head CI above is release evidence.
+
+VALIDATION-INCLUSIVE RELEASE REQUIREMENT
+This record intentionally names the already-green pre-validation head. Adding
+this record creates a new SHA and requires another complete exact-head green CI.
+Only then refetch main, require ahead_by>0, behind_by=0 and merge-base=current main,
+and move main by force=false pure fast-forward. Verify main=PR head=PR merge SHA
+and the same-SHA main-push build/Pages deployment. Those final identities belong
+to Git/PR/workflow history; do not rewrite this evidence to create self-reference.
