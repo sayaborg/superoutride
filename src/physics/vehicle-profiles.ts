@@ -1,3 +1,4 @@
+import { compileTireCharacteristics, type TireCharacteristics } from './tire-friction-calibration.js';
 import {
   validateAutomaticPowertrainProfile,
   type AutomaticPowertrainProfile,
@@ -60,11 +61,9 @@ export interface ArcadeVehicleProfile {
   /** Fixed share of total powertrain torque sent to the front station; the remainder drives rear. */
   readonly frontDriveTorqueFraction: number;
 
-  readonly muRef: number;
-  readonly rhoKnee: number;
+  readonly frontTire: TireCharacteristics;
+  readonly rearTire: TireCharacteristics;
   readonly lowSpeedRegularization: number;
-  readonly frontNormalizedStiffness: number;
-  readonly rearNormalizedStiffness: number;
 
   /** Ordinary construction defaults; browser M/D selection lives in vehicle-instance calibration. */
   readonly maxRoadWheelSteer: number;
@@ -88,17 +87,14 @@ export interface CompiledArcadeVehicleProfile extends ArcadeVehicleProfile {
 
 const DEG = Math.PI / 180;
 
-/**
- * M9.9 common normalized reference tire law. Absolute corner stiffness remains load-derived and
- * wheel radius/inertia remain vehicle-specific. Equal axle normalization removes the former
- * common understeer bias so vehicle geometry, load transfer and drive torque own axle behavior.
- */
+/** Stock construction seed preserves M9.9's equal 1.35 capacity / 9.75 stiffness.
+ * Both stations currently share data; the lower law/compiler also accept distinct tire data. */
+const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
+  gripX: 1.35, peakSlipX: 1.26 * 1.35 / 9.75,
+  gripY: 1.35, peakSlipY: 1.26 * 1.35 / 9.75, knee: 0.74,
+});
 export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
-  muRef: 1.35,
-  rhoKnee: 0.74,
-  lowSpeedRegularization: 1.0,
-  frontNormalizedStiffness: 9.75,
-  rearNormalizedStiffness: 9.75,
+  frontTire: REFERENCE_TIRE, rearTire: REFERENCE_TIRE, lowSpeedRegularization: 1.0,
 });
 
 const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
@@ -583,10 +579,7 @@ export function compileArcadeVehicleProfile(
     profile.rearWheelRadius,
     profile.frontWheelInertia,
     profile.rearWheelInertia,
-    profile.muRef,
     profile.lowSpeedRegularization,
-    profile.frontNormalizedStiffness,
-    profile.rearNormalizedStiffness,
     profile.maxRoadWheelSteer,
     profile.steeringOffsetMax,
     profile.steeringResponseTau,
@@ -597,9 +590,6 @@ export function compileArcadeVehicleProfile(
   }
   if (profile.presentationFamily !== 'CAR' && profile.presentationFamily !== 'BIKE') {
     throw new RangeError('vehicle presentation family must be CAR or BIKE');
-  }
-  if (!(profile.rhoKnee > 0 && profile.rhoKnee < 1)) {
-    throw new RangeError('vehicle tire rhoKnee must lie in (0,1)');
   }
   if (!(profile.maxRoadWheelSteer < Math.PI / 2 && profile.steeringOffsetMax < Math.PI / 2)) {
     throw new RangeError('vehicle steering angles must lie below pi/2');
@@ -645,16 +635,10 @@ export function compileArcadeVehicleProfile(
     profile.rearBumpForceMax,
   );
   const frontTire: CompiledTireProfile = Object.freeze({
-    muRef: profile.muRef,
-    normalizedStiffness: profile.frontNormalizedStiffness,
-    rhoKnee: profile.rhoKnee,
-    lowSpeedRegularization: profile.lowSpeedRegularization,
+    ...compileTireCharacteristics(profile.frontTire), lowSpeedRegularization: profile.lowSpeedRegularization,
   });
   const rearTire: CompiledTireProfile = Object.freeze({
-    muRef: profile.muRef,
-    normalizedStiffness: profile.rearNormalizedStiffness,
-    rhoKnee: profile.rhoKnee,
-    lowSpeedRegularization: profile.lowSpeedRegularization,
+    ...compileTireCharacteristics(profile.rearTire), lowSpeedRegularization: profile.lowSpeedRegularization,
   });
   validateCompiledTireProfile(frontTire);
   validateCompiledTireProfile(rearTire);
