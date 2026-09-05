@@ -22,6 +22,23 @@ supersede only their stated scope.
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
+### Current tire load normalization and permitted wheel lift
+
+```text
+112_m9_18_load_proportional_one_k_tire.md
+```
+
+M9.18 replaces static-load tire stiffness with `C=k*Nactual` in both slip directions and removes
+compiled `cornerStiffness`. It retains the M9.15 normalized curve and all G/P/S defaults/ranges.
+Positive load scales force without moving the normalized peak. Seeded sustained-drift regressions
+do not certify easy entry/exit or human control feel.
+
+Wheelies/stoppies are allowed pending later ABS/TCS/control work. No torque/pitch suppression or
+profile retuning is introduced. One-sided contact rejects inverted suspension support; gameplay
+uses ordinary recovery after overturn, with existing calibration and target semantics. Section 8
+explicitly defines the updated course-integration and extreme-input test contract. Held full
+throttle can still repeatedly overturn a vehicle; recovery-safe is not stable upright riding.
+
 ### Current powertrain and engine-output diagnostic calibration
 
 ```text
@@ -69,6 +86,7 @@ device.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+112_m9_18_load_proportional_one_k_tire.md
 111_m9_17_direct_robotized_mt.md
 110_m9_16_engine_power_diagnostic_selector.md
 109_m9_15_absolute_slide_one_k_tire.md
@@ -87,9 +105,9 @@ device.
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.15 is the current scoped tire-law and browser tire-calibration authority. It follows M9.14
-hands-on falsification of percentage-SLIDE tuning as a complete route to prompt, progressive and
-sustained drift.
+M9.15 retains scoped tire-curve and browser tire-calibration authority beneath M9.18 load
+normalization. It follows M9.14 hands-on falsification of percentage-SLIDE tuning as a complete route
+to prompt, progressive and sustained drift.
 
 The state-free one-k demand, radial C1 saturation, force-vector direction, scalar implicit wheel
 solve and three-scalar vehicle tire calibration are retained. M9.15 changes only:
@@ -217,7 +235,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `111_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `112_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -258,10 +276,11 @@ The most relevant current lineage is:
 109_m9_15_absolute_slide_one_k_tire.md
 110_m9_16_engine_power_diagnostic_selector.md
 111_m9_17_direct_robotized_mt.md
+112_m9_18_load_proportional_one_k_tire.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.15/M9.16/M9.17 change none of those boundaries.
+scope; M9.15 through M9.18 change none of those boundaries.
 
 ## 3. Takeover context
 
@@ -272,7 +291,7 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 ```
 
 It records the released M9.12C handling state and an earlier PEAK diagnostic observation. It is
-navigation context only and predates M9.13–M9.17. Documents 107–111 plus current source/tests
+navigation context only and predates M9.13–M9.18. Documents 107–112 plus current source/tests
 supersede it for the current touch/tire/engine investigation.
 
 The prior:
@@ -305,7 +324,7 @@ validation/M9_15_ABSOLUTE_SLIDE_ONE_K_TIRE_VALIDATION.txt
 validation/M9_16_ENGINE_POWER_DIAGNOSTIC_SELECTOR_VALIDATION.txt
 ```
 
-M9.17 changes normative powertrain dynamics, so its release requires a new standalone
+M9.18 changes normative tire/contact/recovery acceptance, so its release requires a new standalone
 validation record after the implementation/documentation head is fully green.
 
 New validation evidence is added only after the corresponding implementation/documentation head is

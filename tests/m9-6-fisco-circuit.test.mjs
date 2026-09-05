@@ -14,6 +14,10 @@ import {
   createM96FiscoRuntime,
 } from '../dist/dev/m9-6-fisco-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
+import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
+import { dot3 } from '../dist/physics/vehicle-math3.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
@@ -131,7 +135,7 @@ for (const [profile, createVehicle] of [
   [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar],
   [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike],
 ]) {
-  test(`ordinary ${profile.id} mechanics advance on the FISCO home straight`, () => {
+  test(`ordinary ${profile.id} mechanics advance on the FISCO home straight with permitted wheel lift`, () => {
     const live = createM96FiscoRuntime();
     const vehicle = createVehicle(
       live.window.guide,
@@ -141,6 +145,7 @@ for (const [profile, createVehicle] of [
       0,
       15,
     );
+    const recovery = createM5RecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
       updateTestVehicle(
         live.window.guide,
@@ -150,6 +155,13 @@ for (const [profile, createVehicle] of [
         sampleRivalDrivingInput(live.window.guide, vehicle, 0),
         SIM_DT,
       );
+      for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
+        assert.ok(Number.isFinite(value), profile.id);
+      }
+      const reason = updateM5Recovery(recovery, live.window.guide, live.window.height, live.window.surface, vehicle, SIM_DT);
+      if (reason !== null) assert.equal(reason, 'overturned');
+      const surface = sampleSurfaceGeometryAtCoordinate(live.window.guide, live.window.height, live.window.surface, vehicle.course);
+      assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
     }
     assert.ok(vehicle.course.s > 100 && vehicle.course.s < 1_475, `s=${vehicle.course.s}`);
     assert.ok(Math.abs(vehicle.course.l) < 0.01, `l=${vehicle.course.l}`);

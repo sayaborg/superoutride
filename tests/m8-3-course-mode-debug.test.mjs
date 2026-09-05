@@ -32,6 +32,9 @@ import {
 } from '../dist/gameplay/recovery.js';
 import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
+import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
+import { dot3 } from '../dist/physics/vehicle-math3.js';
 import {
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
   HONDA_VFR750R_VEHICLE_PROFILE,
@@ -182,12 +185,13 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
   assert.equal(camera.playerScreenX, 160);
 });
 
-test('all nine vehicle profiles integrate ordinarily on the finite LINEAR course', () => {
+test('all nine vehicle profiles integrate on the finite LINEAR course with permitted wheel lift and recovery', () => {
   const runtime = createM83LinearHighwayRuntime();
   for (const { profile } of VEHICLE_CATALOG) {
     const vehicle = profile.presentationFamily === 'BIKE'
       ? createTestBike(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile)
       : createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45, 0, 20, profile);
+    const recovery = createM5RecoveryState(vehicle);
     for (let tick = 0; tick < 600; tick += 1) {
       updateTestVehicle(
         runtime.guide,
@@ -197,6 +201,14 @@ test('all nine vehicle profiles integrate ordinarily on the finite LINEAR course
         sampleRivalDrivingInput(runtime.guide, vehicle, 0),
         DT,
       );
+      for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
+        assert.ok(Number.isFinite(value), profile.id);
+      }
+      // M9.18 permits lift; this course-integration test uses the ordinary browser recovery boundary.
+      const reason = updateM5Recovery(recovery, runtime.guide, runtime.heightProfile, runtime.surfaceMap, vehicle, DT);
+      if (reason !== null) assert.equal(reason, 'overturned');
+      const surface = sampleSurfaceGeometryAtCoordinate(runtime.guide, runtime.heightProfile, runtime.surfaceMap, vehicle.course);
+      assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
     }
     assert.ok(vehicle.course.s > 100, `${profile.id} stalled at s=${vehicle.course.s}`);
     assert.ok(Math.abs(vehicle.course.l) < 4.5, `${profile.id} left LINEAR asphalt`);

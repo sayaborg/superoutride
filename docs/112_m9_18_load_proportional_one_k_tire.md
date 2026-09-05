@@ -179,6 +179,10 @@ rack-stop assertions on every tick. Its inputs, profiles, duration and steering 
 The VFR Tsukuba probe likewise includes ordinary recovery and now checks upright orientation as
 well as the retained progress, lateral-position and final-support bounds. A green final supported
 flag alone previously admitted an upside-down result and is no longer sufficient evidence.
+The same acceptance applies to the M8.3 all-nine LINEAR and M9.6 FISCO course-integration probes:
+use ordinary recovery, retain their input/duration/progress bounds, and check finite pre-recovery
+state and upright post-recovery orientation. The route-gate tests' no-recovery assertions remain
+unchanged; recovery must not become a hidden path-following mechanism.
 
 The M5 world-lateral-freedom probe measures max absolute body-lateral speed over its full trace,
 not its value at one incidental two-second endpoint. The original 0.1 m/s, 2 m displacement and
@@ -188,6 +192,8 @@ than requiring a particular residual slip after tire-law evolution.
 `tests/m9-18-wheel-lift-recovery.test.mjs` separately proves both signed single-contact poses retain
 ordinary force, inverted reach points cannot support, overturned recovery precedes stale support,
 explicit pending targets/calibrations survive, and the qTravel guard still rejects real overtravel.
-The two VFR failure traces are replayed at 60/120/240 Hz: wheel lift must actually occur, recovery
-must not precede overturn, the run must continue without exception, and recovery must not loop.
-These are recovery-safe traces, not claims of no wheelie, no stoppie or completed pitch control.
+The two short VFR failure traces are replayed at 60/120/240 Hz: wheel lift must actually occur,
+recovery must not precede overturn, and the three-second run must continue with only one recovery.
+This is not a global no-repeat guarantee: sustained full-throttle LINEAR driving can repeatedly
+lift and overturn the VFR after each recovery. Suppression is expressly deferred; do not report
+those recovery-safe traces as stable upright riding or completed pitch control.

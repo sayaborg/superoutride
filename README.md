@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.17 Direct Robotized MT
+# SUPER OUTRIDE — M9.18 Load-Proportional One-K Tire
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,6 +12,24 @@ tests.
 
 ## Current release
 
+M9.18 makes both one-k tire demand components proportional to current contact load: `C=k*N`.
+The normalized curve no longer moves when suspension load changes; the existing curve scales in
+force instead. The redundant compiled static `cornerStiffness` is removed. G/P/S, the P-to-2P
+post-peak curve, scalar wheel solve, engine, steering and input choices remain unchanged.
+
+Wheelies and stoppies are permitted pending later ABS/TCS/control work. No lift suppression,
+profile retuning or hidden force is added. Inverted suspension reach points cannot supply wheel
+support; an overturned body uses ordinary gameplay recovery, not a pitch clamp. The existing
+suspension-travel guard remains in force. Current authority and the exact acceptance changes are
+in `docs/112_m9_18_load_proportional_one_k_tire.md`.
+
+New causal tests cover load scaling, wheel roots and seeded 54 km/h power drift, including an
+input-only 25 -> 30 -> 25 degree traverse. Seeded sustain does not prove easy entry/exit, G=S deep
+drifting or phone control feel. Browser defaults remain G3/P20/S1 and ENG1; G3/P24/S1 ENG3 is the
+regression comparison point, not a new default. Handling remains `DEV_UNCALIBRATED`.
+
+### Retained M9.17 direct robotized MT
+
 M9.17 replaces artificial launch slip, independent engine-RPM lag and timed drive-cut shifts with
 one ideal direct-drive robotized MT. RPM derives from driven-wheel speed and the selected ratio;
 automatic up/down shifts are instantaneous and deliver the new-ratio torque in the same substep.
@@ -23,10 +41,10 @@ endpoints are removed. A single C1 averaged rev limiter reduces positive drive f
 zero at redline; there is no second curve collapse, shift cutoff or wheel-speed clamp. At rest,
 derived RPM is zero while torque sampling uses an explicit idle floor for no-stall launch.
 
-Current powertrain authority is `docs/111_m9_17_direct_robotized_mt.md`. Tire, steering, camera,
-renderer and ENG selector choices are unchanged. The 20-second regression targets the reproduced
-low-speed gear hunting; it does not certify sustained circular drifting. Extreme multiplied-power
-reversals can still exceed the existing suspension model and are not hidden by this change.
+Current powertrain authority is `docs/111_m9_17_direct_robotized_mt.md`. The 20-second regression
+targets the reproduced low-speed gear hunting; it does not certify sustained circular drifting.
+Extreme multiplied-power reversals can still exceed the existing suspension model and are not
+hidden by this change.
 
 ### Retained M9.16 engine selector
 
@@ -43,7 +61,7 @@ hypothesis; it does not claim that hypothesis is proven or that drift controllab
 Retained selector authority is `docs/110_m9_16_engine_power_diagnostic_selector.md`, with its
 transmission-preservation clauses explicitly superseded by M9.17.
 
-### Retained M9.15 tire law
+### Retained M9.15 tire law beneath M9.18 load normalization
 
 M9.15 is a deliberately small tire-law change derived from M9.14 hands-on falsification. The
 released M9.14 percentage-SLIDE range could make rear breakaway easy or make ordinary cornering
@@ -164,25 +182,27 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/111_m9_17_direct_robotized_mt.md` — current direct RPM, no-cut shifting, torque curve and
+4. `docs/112_m9_18_load_proportional_one_k_tire.md` — current tire load law, permitted wheel lift,
+   one-sided contact and overturned recovery acceptance.
+5. `docs/111_m9_17_direct_robotized_mt.md` — current direct RPM, no-cut shifting, torque curve and
    single limiter; `docs/110_m9_16_engine_power_diagnostic_selector.md` — retained ENG selector/lifecycle.
-5. `docs/109_m9_15_absolute_slide_one_k_tire.md` — current absolute-S, P-to-2P post-peak and
-   G3/P20/S1 diagnostic authority.
-6. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
+6. `docs/109_m9_15_absolute_slide_one_k_tire.md` — retained absolute-S, P-to-2P post-peak and
+   G3/P20/S1 diagnostic authority beneath M9.18 load normalization.
+7. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
    D range and G/P diagnostic ranges.
-7. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
+8. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
    DIRECT/release and presentation authority.
-8. `docs/103_m9_12_independent_tire_calibration_axes.md` — retained three-characteristic browser
+9. `docs/103_m9_12_independent_tire_calibration_axes.md` — retained three-characteristic browser
    mapping within M9.15 scoped supersession.
-9. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
-   ownership authority.
-10. `docs/100_m9_10_post_peak_sliding_tire.md` — historical/current post-peak foundation beneath
+10. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
+    ownership authority.
+11. `docs/100_m9_10_post_peak_sliding_tire.md` — historical/current post-peak foundation beneath
     M9.15 transition-width and S-meaning supersession.
-11. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
+12. `docs/99_m9_9_controllable_drift_foundation.md` — common tire balance and deep-sideslip
     controllability authority.
-12. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog/profile authority.
-13. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
-14. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
+13. `docs/98_m9_8_selectable_production_vehicle_catalog.md` — vehicle catalog/profile authority.
+14. `docs/87_m9_0_two_station_arcade_vehicle_dynamics.md` — retained common vehicle mechanics.
+15. `docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md` and
     `docs/80_m8_1_car_self_steering_control.md` — retained contact/tire and travel-direction
     foundations inside later supersession.
 
@@ -213,11 +233,12 @@ merely to use current terminology.
   state; browser G/P/S IDs and absolute S are not stored as additional physics state.
 - `src/browser/tire-friction-selection.ts` derives G, P and absolute S from those existing scalars and
   derives the internal ratio as `S/G`.
-- `src/physics/tire-wheel.ts` owns the state-free one-k vector law, radial C1 saturation, M9.15
-  P-to-2P lateral post-peak scale and scalar wheel solve.
+- `src/physics/tire-wheel.ts` owns the state-free load-proportional one-k vector law, radial C1
+  saturation, M9.15 P-to-2P lateral post-peak scale and scalar wheel solve.
 - No yaw steering assist, drift mode, target beta, vehicle-kind handling branch or drive-layout
   handling branch exists.
 - Recovery resets unsafe dynamic state but preserves selected M/D/T, tire and engine calibration.
+  Wheel lift is allowed; overturned orientation uses the same gameplay recovery path.
 
 ### Camera and presentation
 
@@ -284,7 +305,7 @@ The tire/engine group also provides the `ENG xN` cycling button in portrait and 
 ## Current takeover checkpoint
 
 The latest named handling navigation checkpoint remains
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.17 and is navigation
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.18 and is navigation
 context only. Current numbered authority, source, tests, PR and workflow state supersede it for the
 present tire/touch/engine investigation.
 
@@ -331,7 +352,7 @@ src/physics/driving-actuator.ts               finite response primitive
 src/physics/automatic-powertrain.ts           direct RPM, ratio selection, rev limiter and wheel torque
 src/physics/arcade-vehicle-physics.ts         common two-station solver and steering transform
 src/physics/tire-friction-calibration.ts      vehicle-owned three-scalar tire calibration
-src/physics/tire-wheel.ts                     one-k vector tire + P-to-2P post-peak + wheel solve
+src/physics/tire-wheel.ts                     load-proportional one-k tire + post-peak + wheel solve
 src/physics/vehicle-profiles.ts               compiled nine-profile mechanics authority
 src/vehicle/vehicle-catalog.ts                structured product identity/selection authority
 src/camera/m5-camera.ts                       body-pitch/selectable-yaw camera
@@ -344,7 +365,7 @@ fixtures.
 
 ## Release evidence
 
-Prior standalone validation records remain under `docs/validation/`. M9.17 changes scoped
-powertrain dynamics and therefore requires its own standalone validation record. Exact release
-identity is established by the validation-inclusive PR head, pure fast-forward main, same-SHA
-main-push CI and GitHub Pages deployment under `AGENTS.md`.
+Prior standalone validation records remain under `docs/validation/`. M9.18 changes scoped tire and
+contact/recovery acceptance and therefore requires its own standalone validation record. Exact
+release identity is established by the validation-inclusive PR head, pure fast-forward main,
+same-SHA main-push CI and GitHub Pages deployment under `AGENTS.md`.
