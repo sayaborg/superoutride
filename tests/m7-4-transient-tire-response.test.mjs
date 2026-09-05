@@ -52,7 +52,7 @@ test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
   );
   assert.equal(force.fx, 0);
   assert.equal(force.fy, 0);
-  assert.equal(force.fmax, 0);
+  assert.equal(force.capacityX, 0);
 });
 
 test('M8.0 recovery reconstructs authoritative state without clearing nonexistent tire memory', () => {
