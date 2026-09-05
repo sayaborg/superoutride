@@ -4,10 +4,10 @@ import { BROWSER_TIRE_AXES, stepBrowserTireCalibration, type BrowserTireCalibrat
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
 
 export interface BrowserTireFrictionControls {
-  handleKey(code: string, reverse?: boolean): boolean;
+  handleKey(code: string): boolean;
 }
 
-/** Keyboard and +/- buttons share one five-axis operation on the current vehicle. */
+/** Keyboard cycles forward; explicit +/- buttons own both directions through the same operation. */
 export function mountBrowserTireFrictionControls(
   container: HTMLElement, getVehicle: () => ArcadeVehicleState, documentRef: Document = document,
 ): BrowserTireFrictionControls {
@@ -21,10 +21,10 @@ export function mountBrowserTireFrictionControls(
     selector.setCalibration(vehicle.tireFrictionCalibration);
   }
   return Object.freeze({
-    handleKey(code: string, reverse = false): boolean {
+    handleKey(code: string): boolean {
       const axis = BROWSER_TIRE_AXES.find(axis => axis.code === code);
       if (!axis) return false;
-      stepAxis(axis.id, reverse ? -1 : 1);
+      stepAxis(axis.id, 1);
       return true;
     },
   });
