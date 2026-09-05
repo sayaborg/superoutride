@@ -7,7 +7,8 @@ import {
   updateAutomaticPowertrain,
 } from '../dist/physics/automatic-powertrain.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, COMMON_SELECTABLE_VEHICLE_TIRE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { compileTireCharacteristics, createArcadeTireFrictionCalibration } from '../dist/physics/tire-friction-calibration.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -34,12 +35,13 @@ const surfaces = new SurfaceMap(guide.length, [{
 const neutral = { steering: 0, throttle: false, brake: false };
 const wheelOmega = (rpm, gear, p = profile) => rpm * 2 * Math.PI / (60 * p.gearRatios[gear - 1] * p.finalDriveRatio);
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 1e-10 * Math.max(1, Math.abs(expected)), `${actual} != ${expected}`);
-const tireCalibration = (grip = 2, peak = 0.24, slide = grip) => ({
-  referenceFrictionMultiplier: grip / COMMON_SELECTABLE_VEHICLE_TIRE.muRef,
-  linearStiffnessMultiplier: (2 - COMMON_SELECTABLE_VEHICLE_TIRE.rhoKnee) * grip
-    / (peak * COMMON_SELECTABLE_VEHICLE_TIRE.frontNormalizedStiffness),
-  slidingFrictionRatio: slide / grip,
-});
+// This engine regression used only non-dropping isotropic tire fixtures. Preserve those forces.
+const tireCalibration = (grip = 2, peak = 0.24, slide = grip) => {
+  assert.equal(slide, grip, 'engine fixture must not rely on the retired tire falloff');
+  return createArcadeTireFrictionCalibration(compileTireCharacteristics({
+    gripX: grip, gripY: grip, peakSlipX: peak, peakSlipY: peak, knee: .74,
+  }));
+};
 const makeVehicle = (p = FERRARI_TESTAROSSA_VEHICLE_PROFILE, tire = tireCalibration()) =>
   createArcadeVehicle(p, guide, height, surfaces, 800, 0, 25, undefined, tire);
 
@@ -65,7 +67,6 @@ test('M9.16 engine selector has one exact diagnostic domain, default and determi
   assert.equal(formatEnginePowerSelector(1.5), 'ENG [K] x1.5');
 });
 
-// M9.17 replaces the timed shift cut and linear redline factor; ENG scaling remains independent.
 test('M9.16 ENG choices scale the M9.17 direct-drive equation at identical RPM and state', () => {
   for (const { profile: vehicleProfile } of VEHICLE_CATALOG) {
     const p = vehicleProfile.powertrain;
@@ -161,9 +162,9 @@ test('M9.16 touch and keyboard share current engine authority without disturbing
   const tireControls = mountBrowserTireFrictionControls(host, () => vehicle, fakeDocument);
   const originalButtons = [...host.children];
   const controls = mountBrowserEnginePowerControls(host, () => vehicle, fakeDocument);
-  assert.equal(host.children.length, 4);
-  assert.deepEqual(host.children.slice(0, 3), originalButtons);
-  const button = host.children[3];
+  assert.equal(host.children.length, 6);
+  assert.deepEqual(host.children.slice(0, 5), originalButtons);
+  const button = host.children[5];
   assert.equal(button.textContent, 'ENG x1.0');
   const tiresBefore = { ...vehicle.tireFrictionCalibration };
   button.click();
@@ -174,7 +175,7 @@ test('M9.16 touch and keyboard share current engine authority without disturbing
   assert.equal(controls.handleKey('KeyK'), true);
   assert.equal(vehicle.powertrain.engineTorqueMultiplier, 2);
   tireControls.handleKey('KeyH');
-  assert.equal(host.children[3], button);
+  assert.equal(host.children[5], button);
   assert.equal(vehicle.powertrain.engineTorqueMultiplier, 2);
   const oldVehicle = vehicle;
   vehicle = makeVehicle(VEHICLE_CATALOG[1].profile);
@@ -228,7 +229,6 @@ test('M9.16 all browser roots wire the same adapter and preserve engine calibrat
   const solver = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(solver, /driftMode|yawRate|vehicle\.velocity|from ['"].*browser|from ['"].*dev\//);
   const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
-  assert.match(css, /\.tire-friction-selector-buttons\s*\{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.tire-friction-selector-buttons\s*\{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.engine-power-button\s*\{\s*grid-column: 1 \/ -1/);
+  assert.match(css, /repeat\(auto-fit, minmax\(108px, 1fr\)\)/);
+  assert.match(css, /\.engine-power-button/);
 });
