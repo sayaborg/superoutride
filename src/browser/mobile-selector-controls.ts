@@ -119,7 +119,7 @@ export function createMobileTireCalibrationSelectorModel(
   return BROWSER_TIRE_AXES.map(axis => ({
     axis: axis.id,
     label: `${axis.id === 'KNEE' ? 'KN' : axis.id} ${formatTireAxisValue(axis.id, calibration)}`,
-    ariaLabel: `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} increases, Shift decreases; front/rear linked`
+    ariaLabel: `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} cycles forward; minus/plus buttons step either direction; front/rear linked`
       + (axis.id === 'PY' ? `; pure lateral equivalent ${(Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180 / Math.PI).toFixed(2)} degrees` : ''),
   }));
 }
