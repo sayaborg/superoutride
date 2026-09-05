@@ -63,6 +63,10 @@ state, steering law, tire law, vehicle/course branch or renderer authority.
 The current vehicle-physics architecture authority is:
 
 ```text
+docs/113_m9_19_progressive_drift_calibration.md
+docs/112_m9_18_load_proportional_one_k_tire.md
+docs/111_m9_17_direct_robotized_mt.md
+docs/110_m9_16_engine_power_diagnostic_selector.md
 docs/109_m9_15_absolute_slide_one_k_tire.md
 docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 docs/106_m9_12c_extended_peak_diagnostic.md
@@ -110,7 +114,8 @@ starting point to the player instance without redefining production vehicle iden
 tunable `DEV_UNCALIBRATED` values. Common mechanics contains no yaw steering assist, yaw baseline,
 drift mode, target beta, vehicle-kind branch or drive-layout handling branch.
 
-M9.15 is the current scoped post-peak tire-law and browser tire-calibration authority. It retains
+M9.19 owns browser tire defaults/domain, M9.18 owns load-proportional stiffness C=k*N,
+and M9.15 retains the scoped post-peak law and absolute-S meaning. It retains
 the state-free one-k demand vector, radial C1 saturation, friction-circle bound, force direction,
 the existing three-scalar vehicle calibration and the monotone scalar implicit wheel solve.
 Browser characteristics are now:
@@ -134,25 +139,27 @@ G and P. The lateral post-peak C1 transition starts at P and reaches the selecte
 exactly 2P. Because the post-peak scale remains independent of wheel angular speed during one wheel
 solve, the retained finite bracket, monotone residual and unique bisection root remain valid.
 
-M9.14 remains current for the G/P diagnostic ranges, D range and touch travel; M9.15 supersedes its
-percentage-S meaning and browser tire starting calibration. Current tire selector domain is:
+M9.19 supersedes browser G/P lower bounds and starting calibration, without changing any tire,
+steering, powertrain, profile, actuator, camera or renderer law. Current tire selector domain is:
 
 ```text
-G = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
-    3.20 / 3.40 / 3.60 / 3.80 / 4.00                            default 3.00
-P = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
-    42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %          default 20%
-S = 1.00 / 1.20 / 1.40 / 1.60 / 1.80 / 2.00                    default 1.00
+G = 1.20..4.00 step 0.20, default 1.20
+P = 8..60% step 2%, default 8%
+S = 1.00..2.00 step 0.20, default 1.00
+S<=G, 2160 valid combinations
 ```
 
-The current `11 x 21 x 6 = 1,386` browser product is diagnostic. The initial
-`G=3.00 / P=20% / S=1.00` candidate has internal `S/G=1/3`; that strong separation is a
-falsification probe, not a production-tire realism claim. M9.10 remains the retained foundation for
-the state-free lateral-demand-only post-peak scale and wheel-root proof outside M9.15's scoped
-transition-width and S-meaning supersession. M9.12 remains the three-axis independence foundation.
-No drift mode, target sideslip, yaw/beta feedback, tire memory, fourth calibration scalar,
-vehicle-kind branch or drive-layout handling branch is added. Handling remains
-`DEV_UNCALIBRATED`.
+Small-slip stiffness remains 18.9, equal to old G3/P20, while peak capacity falls and absolute S
+stays 1. G cycles skip G<S preserving P/S; S cycles skip S>G preserving G/P. Explicit invalid
+setter requests still reject. There is no fourth scalar or silent adjustment of another axis.
+These are diagnostic values, not real-tire measurements. Human control and high-speed cornering
+still need evaluation; lower peak G cannot preserve the former maximum cornering capacity.
+
+M9.19 ordinary-input regressions cover entry, about 54 km/h 10-15-10-degree control and exit in both
+directions at 60/120/240 Hz, with sampled entry/input margins. M9.18 seeded 25-30-25 ENG3 evidence
+remains required. Neither test suite certifies complete human keyboard/touch feel. No drift mode,
+target beta, hidden force, new tire state or vehicle-specific branch is added. Handling remains
+`DEV_UNCALIBRATED`. M9.17 direct robotized MT and M9.18 permitted wheel lift/recovery stay current.
 
 M9.9 remains the common tire-balance and deep-sideslip acceptance authority. Its product rule is
 **uncontrollable slide is forbidden; controllable drift is allowed**. The explicit recovery input
@@ -325,6 +332,10 @@ docs/106_m9_12c_extended_peak_diagnostic.md
 docs/107_m9_13_full_screen_analog_touch.md
 docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md
 docs/109_m9_15_absolute_slide_one_k_tire.md
+docs/110_m9_16_engine_power_diagnostic_selector.md
+docs/111_m9_17_direct_robotized_mt.md
+docs/112_m9_18_load_proportional_one_k_tire.md
+docs/113_m9_19_progressive_drift_calibration.md
 ```
 
 ### Executable implementation contract
@@ -337,27 +348,18 @@ Types, compilers and regression tests are the executable contract. If documentat
 
 ### Current takeover handoff state
 
-The latest navigation/continuation checkpoint remains:
+The latest navigation/continuation checkpoint is:
 
 ```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_19.md
 ```
 
-That file records the released M9.12C handling state, earlier steering/tire selector domains, the
-latest `GRIP=2.00 / PEAK=30%` handling observation and restart/release procedure. It predates
-M9.13/M9.14/M9.15 and is navigation context for handling continuation only; for current tire and
-touch work use documents 109/108/107 plus the current README/docs index. The handoff does not
-replace numbered milestone authority, source/types/compilers, regression tests, immutable validation
-evidence or current Git/PR/workflow state. A fresh agent should re-fetch current main and release
-evidence before assuming the embedded M9.12C SHA or selector ranges are still current.
+It records current calibration, reproducible handling diagnostics and remaining human-control,
+keyboard, speed-domain and perception work. It is navigation only: read newest numbered authority,
+source/types/compilers, regression tests and exact Git/PR/CI/Pages evidence before changes.
 
-The prior M9.6 takeover handoff:
-
-```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
-```
-
-is historical navigation context after this checkpoint.
+The M9.18, M9.12C and M9.6 handoffs remain historical navigation. Do not treat their browser
+calibration tables or embedded SHAs as current authority.
 
 ### M8.0 finalization handoff state
 
@@ -807,18 +809,19 @@ When starting from a fresh Codex/agent context:
 1. Read this file completely.
 2. Read `README.md` for repository entry points and current status.
 3. Read `docs/README.md` for authority/supersession and evidence policy.
-4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md` as the latest handling-navigation /
-   continuation checkpoint, while recognizing that it predates M9.13/M9.14/M9.15 touch/tire authority.
+4. Read `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_19.md` as current handling-navigation
+   context, never as authority over newer numbered documents or exact Git/source evidence.
 5. Read the four Core freeze/addendum files listed in section 2 when the requested task can affect
    frozen renderer/metric/topology invariants.
 6. Identify and read the newest numbered authority documents for the requested topic. For current
-   touch-driving work start with M9.14 -> M9.13. For current tire/handling work use M9.15 ->
+   touch-driving work start with M9.14 -> M9.13. For current tire/handling work use M9.19 ->
+   M9.18 -> M9.17 -> M9.16 -> M9.15 ->
    M9.14 -> M9.12C -> M9.12B -> M9.12A -> M9.12 -> M9.11 -> M9.10 -> M9.9 as applicable.
 7. Read current source/types/compilers and the causal tests relevant to the task.
 8. Confirm current `main`, active/open PR state and exact latest CI/Pages state before changing
    anything; never assume the SHA embedded in a dated handoff is still current.
 9. Use older handoffs only when their historical lineage is specifically relevant. Do not treat
-   M9.6, M8.0 or migration handoffs as current instructions after the M9.12C handling checkpoint.
+   M9.18, M9.12C, M9.6, M8.0 or migration handoffs as current instructions after M9.19.
 10. Verify the FINAL CODEX MIGRATION POINT against
     `docs/validation/REPOSITORY_FINAL_CODEX_MIGRATION_VALIDATION.txt` and Git/PR history only when
     migration history is relevant; do not repeat the original migration cleanup ceremony.

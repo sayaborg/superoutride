@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.18 Load-Proportional One-K Tire
+# SUPER OUTRIDE — M9.19 Progressive Drift Calibration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -12,21 +12,31 @@ tests.
 
 ## Current release
 
-M9.18 makes both one-k tire demand components proportional to current contact load: `C=k*N`.
-The normalized curve no longer moves when suspension load changes; the existing curve scales in
-force instead. The redundant compiled static `cornerStiffness` is removed. G/P/S, the P-to-2P
-post-peak curve, scalar wheel solve, engine, steering and input choices remain unchanged.
+M9.19 changes the browser starting calibration to **G1.20/P8/S1.00**, retaining ENG1, D12/M60 and
+ACT0.25. Small-slip stiffness stays equal to the former G3/P20 default (18.9), while peak capacity
+is lower and absolute deep-slide S remains 1. No tire, steering, powertrain or vehicle-profile law
+changes. Handling remains `DEV_UNCALIBRATED`.
 
-Wheelies and stoppies are permitted pending later ABS/TCS/control work. No lift suppression,
-profile retuning or hidden force is added. Inverted suspension reach points cannot supply wheel
-support; an overturned body uses ordinary gameplay recovery, not a pitch clamp. The existing
-suspension-travel guard remains in force. Current authority and the exact acceptance changes are
-in `docs/112_m9_18_load_proportional_one_k_tire.md`.
+Ordinary-input regression now covers shallow cornering, partial-brake drift entry, an approximately
+54 km/h **10 -> 15 -> 10 degree** round trip and neutral exit, in both directions at 60/120/240 Hz.
+No imposed drift seed, gear hold, speed reset or beta-feedback controller is used. Six sampled entry
+pulses and nine small control-offset cases check a neighborhood, not just one successful input.
+Human touch/keyboard feel, broader speed/gear margins and useful distance on actual courses remain
+unproven. Lower peak grip also changes high-speed cornering limits; this is not free extra grip.
 
-New causal tests cover load scaling, wheel roots and seeded 54 km/h power drift, including an
-input-only 25 -> 30 -> 25 degree traverse. Seeded sustain does not prove easy entry/exit, G=S deep
-drifting or phone control feel. Browser defaults remain G3/P20/S1 and ENG1; G3/P24/S1 ENG3 is the
-regression comparison point, not a new default. Handling remains `DEV_UNCALIBRATED`.
+Current scope is `docs/113_m9_19_progressive_drift_calibration.md`. G choices extend downward to 1.20
+and P to 8%; S stays 1..2. G/S cycles skip S>G pairs while preserving other axes. Explicit invalid
+selection APIs still reject them. All previous valid comparison settings remain available.
+
+### Retained M9.18 load law and permitted wheel lift
+
+Both one-k demands use C=k*Nactual; current load scales force without moving normalized peak slip.
+The P-to-2P post-peak law and scalar wheel solve are retained. The older G3/P24/S1 ENG3 seeded
+25 -> 30 -> 25 degree regression remains required and is not the browser default.
+
+Wheelies/stoppies remain allowed pending later ABS/TCS/control work. Inverted suspension support
+is rejected and overturned bodies use ordinary gameplay recovery. No torque suppression, pitch
+clamp or suspension-guard relaxation is added. See `docs/112_m9_18_load_proportional_one_k_tire.md`.
 
 ### Retained M9.17 direct robotized MT
 
@@ -96,12 +106,12 @@ tire branch or drive-layout branch is introduced.
 The current explicit hands-on tire starting candidate is:
 
 ```text
-G=3.00 / P=20% / S=1.00
+G=1.20 / P=8% / S=1.00
 ```
 
-Its internal ratio is `1/3`. That strong 33.3% separation is an intentional diagnostic probe, not a
-claim that it represents an ordinary production tire. Direct S choices through `2.00` remain
-available to locate a more suitable region by hands-on evaluation.
+Its internal ratio is `5/6`. This is a diagnostic handling calibration, not measured production-
+tire data. Only S<=G is selectable. G cycling skips values below current S; S cycling skips values
+above current G. Other displayed axes are preserved rather than silently clamped.
 
 For pure lateral slip, force reaches peak G at P and reaches the absolute sliding plateau S at 2P
 through one C1 smoothstep. In deep combined slide, resultant force magnitude is `S*N` and its
@@ -119,15 +129,16 @@ Current browser comparison ranges are:
 
 | Control | Choices | Browser default | Keyboard |
 |---|---|---:|---|
-| `G` peak friction | `2.00` through `4.00` in `0.20` steps | `3.00` | `H` cycles |
-| `P` common peak slip | `20` through `60%` in `2%` steps | `20% / 11.3°` lateral equivalent | `J` cycles |
+| `G` peak friction | `1.20` through `4.00` in `0.20` steps | `1.20` | `H` cycles |
+| `P` common peak slip | `8` through `60%` in `2%` steps | `8% / 4.6°` lateral equivalent | `J` cycles |
 | `S` absolute deep-slide friction | `1.00` through `2.00` in `0.20` steps | `1.00` | `G` cycles |
 | `ENG` engine torque multiplier | `1.0 / 1.5 / 2.0 / 3.0 / 4.0` | `1.0` | `K` cycles |
 | `D` Driver travel-relative offset | `10` through `20 deg` in `1°` steps | `12 deg` | `Y` cycles |
 | `M` maximum road-wheel steer | `50 / 55 / 60 / 65 / 70 deg` | `60 deg` | `U` cycles |
 | `ACT` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 s` | `0.25 s` | `T` cycles |
 
-The complete tire comparison product is `11 x 21 x 6 = 1,386` calibrations.
+There are `15 x 27 x 6` raw choices and **2,160 valid S<=G calibrations**. The 270 invalid
+combinations cannot be selected; all 1,386 old valid calibrations remain available.
 
 M9.11 remains the steering law:
 
@@ -182,18 +193,19 @@ Read these before changing current behavior:
 2. `docs/README.md` — document classes, supersession and evidence index.
 3. `docs/00_core_design_freeze.md` plus addenda `00a`, `00b`, `00c` — frozen renderer, metric and
    open-model authority.
-4. `docs/112_m9_18_load_proportional_one_k_tire.md` — current tire load law, permitted wheel lift,
+4. `docs/113_m9_19_progressive_drift_calibration.md` — current G/P/S defaults/domain and unseeded
+   round-trip diagnostic. Then `docs/112_m9_18_load_proportional_one_k_tire.md` — current tire load law, permitted wheel lift,
    one-sided contact and overturned recovery acceptance.
 5. `docs/111_m9_17_direct_robotized_mt.md` — current direct RPM, no-cut shifting, torque curve and
    single limiter; `docs/110_m9_16_engine_power_diagnostic_selector.md` — retained ENG selector/lifecycle.
 6. `docs/109_m9_15_absolute_slide_one_k_tire.md` — retained absolute-S, P-to-2P post-peak and
-   G3/P20/S1 diagnostic authority beneath M9.18 load normalization.
+   absolute-S meaning beneath M9.18 load normalization and M9.19 browser defaults.
 7. `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained compact touch travel,
-   D range and G/P diagnostic ranges.
+   D range; its G/P lower bounds are superseded by M9.19.
 8. `docs/107_m9_13_full_screen_analog_touch.md` — retained touch ownership, relative-origin,
    DIRECT/release and presentation authority.
 9. `docs/103_m9_12_independent_tire_calibration_axes.md` — retained three-characteristic browser
-   mapping within M9.15 scoped supersession.
+   mapping within M9.15/M9.19 scoped supersession.
 10. `docs/101_m9_11_simplified_travel_direction_steering.md` — current steering law and M/D/T
     ownership authority.
 11. `docs/100_m9_10_post_peak_sliding_tire.md` — historical/current post-peak foundation beneath
@@ -305,7 +317,7 @@ The tire/engine group also provides the `ENG xN` cycling button in portrait and 
 ## Current takeover checkpoint
 
 The latest named handling navigation checkpoint is
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md`. It is navigation context only; current
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_19.md`. It is navigation context only; current
 numbered authority, source, tests, PR and workflow state always supersede it when newer evidence
 exists.
 
@@ -330,6 +342,14 @@ http://localhost:8000/?mode=fisco
 The released browser build is [GitHub Pages](https://sayaborg.github.io/superoutride/). The Pages
 boot imports one commit-versioned complete ESM tree. Exact release identity comes from `main`, PR and
 workflow history; it is not duplicated as a mutable SHA in this entry document.
+
+## Reproducible handling diagnostic
+
+After the ordinary build, run `node tools/drift-control-probe.mjs --hz 60 --out drift-control.json`.
+Use `--mirror` for the opposite direction and `--hz 120` or `--hz 240` for step refinement. The tool
+records inputs, state, wheel slip/forces, gear/RPM and window statistics through the production
+solver. It is not a runtime assist. `tests/m9-19-progressive-drift-calibration.test.mjs` checks the
+ordinary-input round trip, partial-brake entry samples, small input errors and pointer release.
 
 ## Source landmarks
 

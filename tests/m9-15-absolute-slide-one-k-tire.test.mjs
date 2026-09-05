@@ -38,12 +38,12 @@ function forceAtNormalizedSlip(sx, sy) {
   );
 }
 
-test('M9.15 default is explicitly the G3 P20 S1 falsification candidate', () => {
+test('M9.19 default retains the M9.15 three-axis law with G1.20 P8 S1', () => {
   const calibration = DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION;
-  assert.ok(Math.abs(browserTireEffectiveGrip(calibration) - 3) < 1e-12);
-  assert.ok(Math.abs(browserTirePeakSlipRatio(calibration) - 0.20) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveGrip(calibration) - 1.2) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(calibration) - 0.08) < 1e-12);
   assert.ok(Math.abs(browserTireEffectiveSlideGrip(calibration) - 1) < 1e-12);
-  assert.ok(Math.abs(calibration.slidingFrictionRatio - 1 / 3) < 1e-12);
+  assert.ok(Math.abs(calibration.slidingFrictionRatio - 1 / 1.2) < 1e-12);
 });
 
 test('pure lateral peak occurs at P and absolute slide plateau occurs at 2P', () => {
@@ -53,10 +53,10 @@ test('pure lateral peak occurs at P and absolute slide plateau occurs at 2P', ()
   const plateau = forceAtNormalizedSlip(0, peakSlip * 2);
   const deep = forceAtNormalizedSlip(0, peakSlip * 4);
 
-  assert.ok(Math.abs(Math.abs(peak.fy) / normalLoad - 3) < 1e-12);
+  assert.ok(Math.abs(Math.abs(peak.fy) / normalLoad - 1.2) < 1e-12);
   assert.ok(Math.abs(Math.abs(plateau.fy) / normalLoad - 1) < 1e-12);
   assert.ok(Math.abs(Math.abs(deep.fy) / normalLoad - 1) < 1e-12);
-  assert.ok(Math.abs(Math.abs(midway.fy) / normalLoad - 2) < 1e-12);
+  assert.ok(Math.abs(Math.abs(midway.fy) / normalLoad - 1.1) < 1e-12);
 });
 
 test('deep combined slide keeps magnitude S while wheel speed rotates force from lateral to longitudinal', () => {

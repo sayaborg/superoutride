@@ -1,39 +1,88 @@
-name: M9.19 exact-tree feature transport
+name: Test and Deploy GitHub Pages
 
-# Temporary feature-only transport for a locally validated, hash-checked patch.
-# The produced commit removes all transport files and restores baseline Pages byte-for-byte.
+# Pages source must be set to GitHub Actions in repository Settings > Pages.
 on:
   push:
-    branches: [feat/m9-19-progressive-drift-calibration]
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  transport:
-    if: github.repository == 'sayaborg/superoutride' && github.ref == 'refs/heads/feat/m9-19-progressive-drift-calibration'
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout exact source commit
+        uses: actions/checkout@v5
         with:
-          ref: ${{ github.sha }}
-      - name: Apply only the exact validated source tree to the feature branch
-        shell: bash
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          set -euo pipefail
-          test "$GITHUB_REPOSITORY" = sayaborg/superoutride
-          test "$GITHUB_REF" = refs/heads/feat/m9-19-progressive-drift-calibration
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          cat .m919-transport/part0 .m919-transport/part1 .m919-transport/part2 .m919-transport/part3 | base64 --decode | gzip --decompress > /tmp/m919.patch
-          echo '8e5d93a7db4e2cdb6c71d4e733f517beb6ce36d0ea4f0fbf633b61bb7214f314  /tmp/m919.patch' | sha256sum --check
-          git fetch --no-tags --depth=1 origin c03dee6a94e2a9009781d98d4758de657eab16da
-          git read-tree --reset -u c03dee6a94e2a9009781d98d4758de657eab16da
-          git apply --index --unidiff-zero /tmp/m919.patch
-          git diff --cached --check
-          TREE="$(git write-tree)"
-          echo "candidate_tree=$TREE"
-          test "$TREE" = 2eb684e2f6085cb507c34f31260da9399ec70ed8
-          test "$(git hash-object .github/workflows/pages.yml)" = 25568524aa895dd8a8b1dcfae50d6b6da65da050
-          test ! -e .m919-transport
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'M9.19 progressive drift calibration and unseeded round-trip regressions'
-          test -z "$(git status --porcelain)"
-          git push origin HEAD:refs/heads/feat/m9-19-progressive-drift-calibration
-          echo "implementation_sha=$(git rev-parse HEAD)"
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA}"
+          echo "actual=${ACTUAL_SHA}"
+          test "${ACTUAL_SHA}" = "${EXPECTED_SHA}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test and build
+        run: npm test
+
+      - name: Stage static site
+        if: github.event_name != 'pull_request'
+        run: |
+          BUILD_ID="${GITHUB_SHA}"
+          mkdir -p "_site/build/${BUILD_ID}"
+          cp index.html styles.css _site/
+
+          # Commit-versioned build path is the browser authority. Because every relative
+          # ESM import stays under this directory, a new deployment cannot mix old and
+          # new cached modules.
+          cp -R dist/. "_site/build/${BUILD_ID}/"
+          printf '%s\n' "${BUILD_ID}" > _site/version.txt
+
+          # Keep the legacy path as an explicit compatibility/failure fallback so an
+          # already-cached older index can still boot if the authoritative versioned
+          # entry has not propagated or cannot be resolved.
+          cp -R dist _site/dist
+          touch _site/.nojekyll
+
+      - name: Setup Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
