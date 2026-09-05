@@ -141,8 +141,8 @@ test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combi
   const positive = evaluateTireForce(300, radius, 30, 0, normalLoad, 1, tire);
   const morePositive = evaluateTireForce(600, radius, 30, 0, normalLoad, 1, tire);
   const negative = evaluateTireForce(-300, radius, 30, 0, normalLoad, 1, tire);
-  assert.ok(Math.abs(positive.fx - positive.fmax) < 1e-9);
-  assert.ok(Math.abs(negative.fx + negative.fmax) < 1e-9);
+  assert.ok(Math.abs(positive.fx - positive.capacityX) < 1e-9);
+  assert.ok(Math.abs(negative.fx + negative.capacityX) < 1e-9);
   assert.ok(Math.abs(Math.abs(positive.fx) - Math.abs(negative.fx)) < 1e-9);
   assert.ok(Math.abs(morePositive.fx) >= Math.abs(positive.fx) - 1e-9);
 
