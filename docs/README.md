@@ -284,31 +284,33 @@ scope; M9.15 through M9.18 change none of those boundaries.
 
 ## 3. Takeover context
 
-The latest named handling takeover checkpoint remains:
+The latest named handling takeover checkpoint is:
 
 ```text
-SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md
 ```
 
-It records the released M9.12C handling state and an earlier PEAK diagnostic observation. It is
-navigation context only and predates M9.13–M9.18. Documents 107–112 plus current source/tests
-supersede it for the current touch/tire/engine investigation.
+It records the released M9.18 handling/navigation state, the exact read order, current source
+boundaries, validated drift evidence and explicitly unresolved entry/control/render-perception work.
+It is navigation context only and never overrides newer numbered authority, source, tests, Git/PR
+or exact-SHA CI/Pages evidence.
 
 The prior:
 
 ```text
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-01_M9_6.md
 ```
 
-is historical M9.6 takeover context. Older handoffs are also resolved historical context and not
-active authority.
+are historical takeover checkpoints. M9.12C predates M9.13–M9.18; M9.6 predates the current handling
+lineage. Older handoffs are also resolved historical context and not active authority.
 
 ## 4. Validation evidence
 
 Files under `validation/` are immutable release evidence for the exact milestone/head they record.
 They do not become design authority and must not be rewritten after release.
 
-Current retained records include:
+Current retained handling/powertrain records include:
 
 ```text
 validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
@@ -322,14 +324,18 @@ validation/M9_13_FULL_SCREEN_ANALOG_TOUCH_VALIDATION.txt
 validation/M9_14_COMPACT_TOUCH_EXPANDED_DIAGNOSTIC_RANGES_VALIDATION.txt
 validation/M9_15_ABSOLUTE_SLIDE_ONE_K_TIRE_VALIDATION.txt
 validation/M9_16_ENGINE_POWER_DIAGNOSTIC_SELECTOR_VALIDATION.txt
+validation/M9_17_DIRECT_ROBOTIZED_MT_VALIDATION.txt
+validation/M9_18_LOAD_PROPORTIONAL_ONE_K_TIRE_VALIDATION.txt
 ```
 
-M9.18 changes normative tire/contact/recovery acceptance, so its release requires a new standalone
-validation record after the implementation/documentation head is fully green.
+M9.17 and M9.18 are fully released evidence, not pending validation work. Future normative authority
+changes apply the standalone-record decision rule in `validation/README.md`; ordinary navigation
+cleanup under unchanged authority uses normal full CI and does not invent a new immutable record.
 
 New validation evidence is added only after the corresponding implementation/documentation head is
-fully green. Final release identity is established by Git/PR/main/workflow history rather than by
-self-rewriting immutable evidence files.
+fully green. Final release identity is established by the validation-inclusive PR head, pure
+fast-forward main, same-SHA main-push CI and Pages deployment rather than by self-rewriting immutable
+evidence files.
 
 ## 5. Conflict handling
 
