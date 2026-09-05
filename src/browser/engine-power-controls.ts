@@ -29,7 +29,7 @@ export interface BrowserEnginePowerControls {
 
 /**
  * Appends one engine button after the tire buttons in the shared calibration row.
- * The tire adapter owns only its own three buttons; neither adapter replaces the other's state.
+ * The tire adapter owns only its own five controls; neither adapter replaces the other's state.
  * Both keyboard and touch read the current vehicle on every action, including after replacement.
  */
 export function mountBrowserEnginePowerControls(
