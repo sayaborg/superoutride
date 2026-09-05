@@ -304,10 +304,10 @@ The tire/engine group also provides the `ENG xN` cycling button in portrait and 
 
 ## Current takeover checkpoint
 
-The latest named handling navigation checkpoint remains
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-04_M9_12C.md`. It predates M9.13–M9.18 and is navigation
-context only. Current numbered authority, source, tests, PR and workflow state supersede it for the
-present tire/touch/engine investigation.
+The latest named handling navigation checkpoint is
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md`. It is navigation context only; current
+numbered authority, source, tests, PR and workflow state always supersede it when newer evidence
+exists.
 
 ## Run and test
 
@@ -365,7 +365,7 @@ fixtures.
 
 ## Release evidence
 
-Prior standalone validation records remain under `docs/validation/`. M9.18 changes scoped tire and
-contact/recovery acceptance and therefore requires its own standalone validation record. Exact
-release identity is established by the validation-inclusive PR head, pure fast-forward main,
-same-SHA main-push CI and GitHub Pages deployment under `AGENTS.md`.
+Prior standalone validation records remain under `docs/validation/`. M9.17 and M9.18 each have
+retained immutable validation evidence. Exact release identity is established by the
+validation-inclusive PR head, pure fast-forward main, same-SHA main-push CI and GitHub Pages
+deployment under `AGENTS.md`.
