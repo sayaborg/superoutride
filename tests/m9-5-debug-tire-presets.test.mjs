@@ -119,7 +119,7 @@ test('retained tire calibration remains one vehicle-owned state consumed only by
       readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
       readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
     ]);
-  assert.match(tire, /tire\.cornerStiffness \* linearStiffnessMultiplier/);
+  assert.match(tire, /tire\.normalizedStiffness \* Math\.max\(0, normalLoad\) \* linearStiffnessMultiplier/);
   assert.match(tire, /tire\.muRef\s*\n\s*\* referenceFrictionMultiplier/);
   assert.match(tire, /slidingFrictionRatio/);
   assert.match(solver, /vehicle\.tireFrictionCalibration\.linearStiffnessMultiplier/);

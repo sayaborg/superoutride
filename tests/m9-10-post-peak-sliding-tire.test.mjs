@@ -18,8 +18,11 @@ import {
 import {
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
 } from '../dist/physics/vehicle-profiles.js';
+import { VEHICLE_GRAVITY } from '../dist/physics/vehicle-dynamics.js';
 
 const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
+const profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE;
+const normalLoad = profile.mass * VEHICLE_GRAVITY * profile.rearAxle / (profile.frontAxle + profile.rearAxle);
 const referenceCalibration = Object.freeze({
   referenceFrictionMultiplier: M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER,
   linearStiffnessMultiplier: M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER,
@@ -32,7 +35,6 @@ function forceAtSlipAngle(calibration, angleDegrees, wheelSlipSpeed = 0) {
     longitudinalVelocity ** 2 + tire.lowSpeedRegularization ** 2,
   );
   const lateralVelocity = -referenceSpeed * Math.tan(angleDegrees * Math.PI / 180);
-  const normalLoad = tire.cornerStiffness / tire.normalizedStiffness;
   const rollingRadius = 0.33;
   const omega = (longitudinalVelocity + wheelSlipSpeed) / rollingRadius;
   return evaluateTireForce(
@@ -113,7 +115,6 @@ test('lateral post-peak scale leaves pure longitudinal tire behavior unchanged',
 });
 
 test('M9.15 slide ratio remains compatible with the unique scalar implicit wheel solve', () => {
-  const normalLoad = tire.cornerStiffness / tire.normalizedStiffness;
   for (const slidingFrictionRatio of [1 / 3, 0.50, 0.70, 1]) {
     const input = {
       omegaPrevious: 125,

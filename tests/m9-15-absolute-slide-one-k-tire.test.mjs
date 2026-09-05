@@ -10,9 +10,11 @@ import {
 } from '../dist/browser/tire-friction-selection.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { VEHICLE_GRAVITY } from '../dist/physics/vehicle-dynamics.js';
 
 const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.tire;
-const normalLoad = tire.cornerStiffness / tire.normalizedStiffness;
+const profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE;
+const normalLoad = profile.mass * VEHICLE_GRAVITY * profile.frontAxle / (profile.frontAxle + profile.rearAxle);
 const rollingRadius = FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearWheelRadius;
 const longitudinalVelocity = 30;
 const referenceSpeed = Math.sqrt(

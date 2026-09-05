@@ -30,6 +30,7 @@ import {
 import { createMobileTireCalibrationSelectorModel } from '../dist/browser/mobile-selector-controls.js';
 import { evaluateTireForce, solveWheelOmega } from '../dist/physics/tire-wheel.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { VEHICLE_GRAVITY } from '../dist/physics/vehicle-dynamics.js';
 
 class FakeButton {
   type = '';
@@ -55,7 +56,8 @@ class FakeDocument {
 }
 
 const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
-const normalLoad = tire.cornerStiffness / tire.normalizedStiffness;
+const profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE;
+const normalLoad = profile.mass * VEHICLE_GRAVITY * profile.rearAxle / (profile.frontAxle + profile.rearAxle);
 
 function calibrationFor(gripId, peakId, slideId) {
   let calibration = { ...DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION };
