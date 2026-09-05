@@ -33,6 +33,18 @@ postpeak, steady vs transient evidence, high-speed power/geometry, extreme 4:1 r
 TCS fixed-gain controls, independent stiffness, real-tire evidence caveats and the user's final
 five-selector decision.
 
+Immutable milestone evidence is:
+
+```text
+docs/validation/M9_20_FIVE_AXIS_TIRE_VALIDATION.txt
+```
+
+That record was created only after implementation/documentation/test-inclusive head
+`611e0b669fa97388133fdf26b9e54c46d38cfd40` passed PR CI #832 / run `33996294996` / build
+`101387323802` on Node 24.20.0 with 675/675 tests. The record intentionally does not self-name the
+later validation-inclusive run; resolve final release identity through current PR #136, Git and
+workflow evidence. Never edit the immutable record after release merely to add later terminology.
+
 Run:
 
 ```bash
