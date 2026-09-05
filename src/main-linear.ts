@@ -72,231 +72,44 @@ ctx.imageSmoothingEnabled = false;
 const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
 const framebufferPixels = new Uint32Array(imageData.data.buffer);
 const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
-const inputManager = new InputManager(
-  steerLeftButton,
-  steerRightButton,
-  throttleButton,
-  brakeButton,
-);
+const inputManager = new InputManager(steerLeftButton,steerRightButton,throttleButton,brakeButton);
 
 const runtime = createM83LinearHighwayRuntime();
 const spriteAssets = createM4SpriteAssets();
 const background = createM3FarBackground();
-let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-  runtime.guide,
-  runtime.heightProfile,
-  runtime.surfaceMap,
-  45,
-  M8_3_LINEAR_PLAYER_START_L,
-  45,
-  undefined,
-  DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-);
+let vehicle: ArcadeVehicleState = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile,runtime.guide,runtime.heightProfile,runtime.surfaceMap,45,M8_3_LINEAR_PLAYER_START_L,45,undefined,DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION);
 let recovery = createM5RecoveryState(vehicle);
 const cameraRig = createM5CameraRig();
 const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
-let camera: M5CameraState = updateM5Camera(
-  cameraRig,
-  runtime.guide,
-  runtime.heightProfile,
-  vehicle,
-  cameraProfile,
-  SIM_DT,
-);
-const vehicleSelector = mountMobileVehicleSelector(
-  vehicleSelectorButtons,
-  vehicle.profile.id,
-  selectVehicleProfile,
-);
-const cameraYawSelector = mountMobileCameraYawSelector(
-  cameraSelectorButtons,
-  cameraRig.yawMode,
-  selectCameraYawMode,
-);
-const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
-  {
-    steeringOffset: steeringOffsetSelectorButtons,
-    maxRoadWheelSteer: maxSteerSelectorButtons,
-    steeringResponse: steeringResponseSelectorButtons,
-  },
-  () => vehicle,
-);
-const tireFrictionControls = mountBrowserTireFrictionControls(
-  tireFrictionSelectorButtons,
-  () => vehicle,
-);
-const enginePowerControls = mountBrowserEnginePowerControls(
-  tireFrictionSelectorButtons,
-  () => vehicle,
-);
+let camera: M5CameraState = updateM5Camera(cameraRig,runtime.guide,runtime.heightProfile,vehicle,cameraProfile,SIM_DT);
+const vehicleSelector = mountMobileVehicleSelector(vehicleSelectorButtons,vehicle.profile.id,selectVehicleProfile);
+const cameraYawSelector = mountMobileCameraYawSelector(cameraSelectorButtons,cameraRig.yawMode,selectCameraYawMode);
+const steeringCalibrationControls = mountBrowserSteeringCalibrationControls({steeringOffset:steeringOffsetSelectorButtons,maxRoadWheelSteer:maxSteerSelectorButtons,steeringResponse:steeringResponseSelectorButtons},()=>vehicle);
+const tireFrictionControls = mountBrowserTireFrictionControls(tireFrictionSelectorButtons,()=>vehicle);
+const enginePowerControls = mountBrowserEnginePowerControls(tireFrictionSelectorButtons,()=>vehicle);
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
-  if (browserRequestsCameraYawToggle(event.code)) {
-    cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));
-    return;
-  }
+  if (browserRequestsCameraYawToggle(event.code)) {cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));return;}
   if (steeringCalibrationControls.handleKey(event.code)) return;
-  if (tireFrictionControls.handleKey(event.code)) return;
+  if (tireFrictionControls.handleKey(event.code, event.shiftKey)) return;
   if (enginePowerControls.handleKey(event.code)) return;
   const selectedProfile = browserVehicleProfileForKey(event.code);
-  if (selectedProfile !== null) {
-    selectVehicleProfile(selectedProfile);
-    return;
-  }
+  if (selectedProfile !== null) {selectVehicleProfile(selectedProfile);return;}
   if (event.code === 'Backspace') {
     event.preventDefault();
-    recoverM5Vehicle(
-      recovery,
-      runtime.guide,
-      runtime.heightProfile,
-      runtime.surfaceMap,
-      vehicle,
-      'manual',
-      M8_3_LINEAR_RECOVERY_PROFILE,
-    );
+    recoverM5Vehicle(recovery,runtime.guide,runtime.heightProfile,runtime.surfaceMap,vehicle,'manual',M8_3_LINEAR_RECOVERY_PROFILE);
     resetM5CameraRig(cameraRig);
-    camera = updateM5Camera(
-      cameraRig,
-      runtime.guide,
-      runtime.heightProfile,
-      vehicle,
-      cameraProfile,
-      SIM_DT,
-    );
-    return;
+    camera=updateM5Camera(cameraRig,runtime.guide,runtime.heightProfile,vehicle,cameraProfile,SIM_DT);
   }
 });
 
-function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): void {
-  if (profile.id === vehicle.profile.id) return;
-  switchVehicleAtSafeSpawn(profile);
-  vehicleSelector.setActive(vehicle.profile.id);
-}
-
-function selectCameraYawMode(mode: M5CameraYawMode): void {
-  setM5CameraYawMode(cameraRig, mode);
-  cameraYawSelector.setActive(mode);
-}
-
-let accumulator = 0;
-let previousTime = performance.now();
-
-function frame(now: number): void {
-  const elapsed = Math.min((now - previousTime) / 1000, 0.25);
-  previousTime = now;
-  accumulator += elapsed;
-
-  while (accumulator >= SIM_DT) {
-    inputManager.update(SIM_DT);
-    input = inputManager.sample();
-    updateArcadeVehicle(
-      runtime.guide,
-      runtime.heightProfile,
-      runtime.surfaceMap,
-      vehicle,
-      input,
-      SIM_DT,
-    );
-    const recovered = updateM5Recovery(
-      recovery,
-      runtime.guide,
-      runtime.heightProfile,
-      runtime.surfaceMap,
-      vehicle,
-      SIM_DT,
-      M8_3_LINEAR_RECOVERY_PROFILE,
-    );
-    if (recovered !== null) resetM5CameraRig(cameraRig);
-    camera = updateM5Camera(
-      cameraRig,
-      runtime.guide,
-      runtime.heightProfile,
-      vehicle,
-      cameraProfile,
-      SIM_DT,
-    );
-    accumulator -= SIM_DT;
-  }
-
-  render();
-  requestAnimationFrame(frame);
-}
-
-function render(): void {
-  const spriteFamily = deriveVehicleSpriteFamily(vehicle);
-  const stats = renderM5Driving(
-    framebuffer,
-    background,
-    runtime.guide,
-    camera,
-    vehicle,
-    runtime.terrainProfile,
-    runtime.groundProfile,
-    [],
-    spriteAssets,
-    spriteFamily,
-  );
-  ctx.putImageData(imageData, 0, 0);
-
-  drawVehicleDebugHud(ctx, 'linear', input, vehicle);
-  drawVehicleYawDebug(
-    ctx,
-    camera.playerScreenX,
-    stats.playerScreenY,
-    vehicle.yaw,
-    camera.movementYaw,
-    camera.yaw,
-    camera.yawMode,
-  );
-}
-
-function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
-  recoverM5Vehicle(
-    recovery,
-    runtime.guide,
-    runtime.heightProfile,
-    runtime.surfaceMap,
-    vehicle,
-    'manual',
-    M8_3_LINEAR_RECOVERY_PROFILE,
-  );
-  const spawnS = vehicle.course.s;
-  const spawnL = vehicle.course.l;
-  const speed = vehicle.longitudinalSpeed;
-  const steeringCalibration = vehicle.steeringCalibration;
-  const tireFrictionCalibration = vehicle.tireFrictionCalibration;
-  const engineTorqueMultiplier = vehicle.powertrain.engineTorqueMultiplier;
-  vehicle = createArcadeVehicle(
-    profile,
-    runtime.guide,
-    runtime.heightProfile,
-    runtime.surfaceMap,
-    spawnS,
-    spawnL,
-    speed,
-    steeringCalibration,
-    tireFrictionCalibration,
-  );
-  setEngineTorqueMultiplier(vehicle.powertrain, engineTorqueMultiplier);
-  recovery = createM5RecoveryState(vehicle);
-  resetM5CameraRig(cameraRig);
-  camera = updateM5Camera(
-    cameraRig,
-    runtime.guide,
-    runtime.heightProfile,
-    vehicle,
-    cameraProfile,
-    SIM_DT,
-  );
-}
-
-function mustGet<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing #${id}`);
-  return element as T;
-}
-
+function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): void {if(profile.id===vehicle.profile.id)return;switchVehicleAtSafeSpawn(profile);vehicleSelector.setActive(vehicle.profile.id);}
+function selectCameraYawMode(mode:M5CameraYawMode):void{setM5CameraYawMode(cameraRig,mode);cameraYawSelector.setActive(mode);}
+let accumulator=0;let previousTime=performance.now();
+function frame(now:number):void{const elapsed=Math.min((now-previousTime)/1000,.25);previousTime=now;accumulator+=elapsed;while(accumulator>=SIM_DT){inputManager.update(SIM_DT);input=inputManager.sample();updateArcadeVehicle(runtime.guide,runtime.heightProfile,runtime.surfaceMap,vehicle,input,SIM_DT);const recovered=updateM5Recovery(recovery,runtime.guide,runtime.heightProfile,runtime.surfaceMap,vehicle,SIM_DT,M8_3_LINEAR_RECOVERY_PROFILE);if(recovered!==null)resetM5CameraRig(cameraRig);camera=updateM5Camera(cameraRig,runtime.guide,runtime.heightProfile,vehicle,cameraProfile,SIM_DT);accumulator-=SIM_DT;}render();requestAnimationFrame(frame);}
+function render():void{const spriteFamily=deriveVehicleSpriteFamily(vehicle);const stats=renderM5Driving(framebuffer,background,runtime.guide,camera,vehicle,runtime.terrainProfile,runtime.groundProfile,[],spriteAssets,spriteFamily);ctx.putImageData(imageData,0,0);drawVehicleDebugHud(ctx,'linear',input,vehicle);drawVehicleYawDebug(ctx,camera.playerScreenX,stats.playerScreenY,vehicle.yaw,camera.movementYaw,camera.yaw,camera.yawMode);}
+function switchVehicleAtSafeSpawn(profile:Readonly<CompiledArcadeVehicleProfile>):void{recoverM5Vehicle(recovery,runtime.guide,runtime.heightProfile,runtime.surfaceMap,vehicle,'manual',M8_3_LINEAR_RECOVERY_PROFILE);const spawnS=vehicle.course.s,spawnL=vehicle.course.l,speed=vehicle.longitudinalSpeed,steeringCalibration=vehicle.steeringCalibration,tireFrictionCalibration=vehicle.tireFrictionCalibration,engineTorqueMultiplier=vehicle.powertrain.engineTorqueMultiplier;vehicle=createArcadeVehicle(profile,runtime.guide,runtime.heightProfile,runtime.surfaceMap,spawnS,spawnL,speed,steeringCalibration,tireFrictionCalibration);setEngineTorqueMultiplier(vehicle.powertrain,engineTorqueMultiplier);recovery=createM5RecoveryState(vehicle);resetM5CameraRig(cameraRig);camera=updateM5Camera(cameraRig,runtime.guide,runtime.heightProfile,vehicle,cameraProfile,SIM_DT);}
+function mustGet<T extends HTMLElement>(id:string):T{const element=document.getElementById(id);if(!element)throw new Error(`Missing #${id}`);return element as T;}
 requestAnimationFrame(frame);
