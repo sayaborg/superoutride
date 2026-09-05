@@ -647,14 +647,12 @@ export function compileArcadeVehicleProfile(
   const frontTire: CompiledTireProfile = Object.freeze({
     muRef: profile.muRef,
     normalizedStiffness: profile.frontNormalizedStiffness,
-    cornerStiffness: profile.frontNormalizedStiffness * frontStaticLoad,
     rhoKnee: profile.rhoKnee,
     lowSpeedRegularization: profile.lowSpeedRegularization,
   });
   const rearTire: CompiledTireProfile = Object.freeze({
     muRef: profile.muRef,
     normalizedStiffness: profile.rearNormalizedStiffness,
-    cornerStiffness: profile.rearNormalizedStiffness * rearStaticLoad,
     rhoKnee: profile.rhoKnee,
     lowSpeedRegularization: profile.lowSpeedRegularization,
   });

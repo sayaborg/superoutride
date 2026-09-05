@@ -7,7 +7,6 @@ import {
 export interface CompiledTireProfile {
   readonly muRef: number;
   readonly normalizedStiffness: number;
-  readonly cornerStiffness: number;
   readonly rhoKnee: number;
   readonly lowSpeedRegularization: number;
 }
@@ -51,15 +50,19 @@ export interface WheelSolveResult {
   readonly locked: boolean;
 }
 
+/** M9.18: one normalized stiffness, scaled by current contact load in both slip directions. */
 export function tireLinearDemand(
   omega: number,
   rollingRadius: number,
   longitudinalVelocity: number,
   lateralVelocity: number,
+  normalLoad: number,
   tire: CompiledTireProfile,
   linearStiffnessMultiplier = 1,
 ): TireDemand {
   assertLinearStiffnessMultiplier(linearStiffnessMultiplier);
+  if (!Number.isFinite(normalLoad)) throw new RangeError('tire normal load must be finite');
+  const stiffness = tire.normalizedStiffness * Math.max(0, normalLoad) * linearStiffnessMultiplier;
   const v0 = tire.lowSpeedRegularization;
   const referenceSpeed = Math.sqrt(longitudinalVelocity ** 2 + v0 ** 2);
   const sx = (rollingRadius * omega - longitudinalVelocity) / referenceSpeed;
@@ -67,8 +70,8 @@ export function tireLinearDemand(
   return {
     sx,
     sy,
-    dx: tire.cornerStiffness * linearStiffnessMultiplier * sx,
-    dy: tire.cornerStiffness * linearStiffnessMultiplier * sy,
+    dx: stiffness * sx,
+    dy: stiffness * sy,
   };
 }
 
@@ -109,6 +112,7 @@ export function evaluateTireForce(
     rollingRadius,
     longitudinalVelocity,
     lateralVelocity,
+    normalLoad,
     tire,
     linearStiffnessMultiplier,
   );
@@ -328,9 +332,10 @@ export function usefulLateralCapacity(
 }
 
 export function validateCompiledTireProfile(tire: CompiledTireProfile): void {
+  if (![tire.muRef, tire.normalizedStiffness, tire.rhoKnee, tire.lowSpeedRegularization]
+    .every(Number.isFinite)) throw new RangeError('tire profile values must be finite');
   if (!(tire.muRef > 0)) throw new RangeError('tire muRef must be > 0');
   if (!(tire.normalizedStiffness > 0)) throw new RangeError('normalized tire stiffness must be > 0');
-  if (!(tire.cornerStiffness > 0)) throw new RangeError('compiled corner stiffness must be > 0');
   if (!(tire.rhoKnee > 0 && tire.rhoKnee < 1)) throw new RangeError('rhoKnee must lie in (0,1)');
   if (!(tire.lowSpeedRegularization > 0)) throw new RangeError('tire low-speed regularization must be > 0');
 }
