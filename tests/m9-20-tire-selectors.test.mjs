@@ -57,7 +57,7 @@ test('M9.20 off-grid profile P steps to nearest adjacent selectable value withou
  near(stepBrowserTireCalibration('PX',1,c).peakSlipX,.18);
  near(stepBrowserTireCalibration('PX',-1,c).peakSlipX,.17);
 });
-test('M9.20 +/- and shifted keyboard share the same five linked settings on the live vehicle',()=>{
+test('M9.20 explicit minus/plus and one-key forward cycle share the same five linked settings',()=>{
  let v=createFlatProbe().vehicle;const host=new SelectorElement();
  const ctl=mountBrowserTireFrictionControls(host,()=>v,selectorDocument);
  assert.equal(host.children.length,5);
@@ -65,7 +65,9 @@ test('M9.20 +/- and shifted keyboard share the same five linked settings on the 
  const old=read(v.tireFrictionCalibration.front),a=axes[i],group=host.children[i];
  assert.equal(group.children.length,3);assert.match(group.children[0].getAttribute('aria-label'),/Decrease/);
  group.children[2].click();near(read(v.tireFrictionCalibration.front)[a.field],old[a.field]+a.step/100);
- assert.equal(ctl.handleKey(a.code,true),true);near(read(v.tireFrictionCalibration.front)[a.field],old[a.field]);
+ group.children[0].click();near(read(v.tireFrictionCalibration.front)[a.field],old[a.field]);
+ assert.equal(ctl.handleKey(a.code),true);near(read(v.tireFrictionCalibration.front)[a.field],old[a.field]+a.step/100);
+ group.children[0].click();near(read(v.tireFrictionCalibration.front)[a.field],old[a.field]);
  assert.ok(group.children[1].textContent.length>0);assert.ok(group.children[1].getAttribute('title'));
  }
  const previous=v;v=createFlatProbe().vehicle;
@@ -97,10 +99,11 @@ test('M9.20 recovery and all-nine vehicle replacement preserve selections withou
  set(next,seed);assert.equal(v.tireFrictionCalibration,c);
  }
 });
-test('M9.20 all composition roots use one registry and Shift+key without changing ENG or steering',async()=>{
+test('M9.20 all composition roots reuse the same forward-cycle adapter without tire-specific key branches',async()=>{
  for(const name of ['main.ts','main-linear.ts','main-circuit.ts']){
  const src=await readFile(new URL(`../src/${name}`,import.meta.url),'utf8');
- assert.match(src,/tireFrictionControls\.handleKey\(event\.code, event\.shiftKey\)/);
+ assert.match(src,/tireFrictionControls\.handleKey\(event\.code\)/);
+ assert.doesNotMatch(src,/tireFrictionControls\.handleKey\(event\.code,\s*event\.shiftKey\)/);
  assert.match(src,/const tireFrictionCalibration = vehicle\.tireFrictionCalibration/);
  assert.match(src,/DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION/);
  }
