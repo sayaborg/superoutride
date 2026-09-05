@@ -20,11 +20,9 @@ import {
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
 import {
-  formatGripValue,
-  formatPeakValue,
-  formatSlideValue,
-  type BrowserTireCalibrationAxis,
+  BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis,
 } from './tire-friction-selection.js';
+import { readTireCharacteristics } from '../physics/tire-friction-calibration.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -118,23 +116,12 @@ export function createMobileSteeringResponseSelectorModel(
 export function createMobileTireCalibrationSelectorModel(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): readonly MobileTireCalibrationButtonModel[] {
-  return [
-    {
-      axis: 'GRIP',
-      label: `G ${formatGripValue(calibration)}`,
-      ariaLabel: `Cycle tire peak grip from current ${formatGripValue(calibration)}`,
-    },
-    {
-      axis: 'PEAK',
-      label: `P ${formatPeakValue(calibration)}`,
-      ariaLabel: `Cycle tire peak slip from current ${formatPeakValue(calibration)} percent`,
-    },
-    {
-      axis: 'SLIDE',
-      label: `S ${formatSlideValue(calibration)}`,
-      ariaLabel: `Cycle absolute tire sliding grip from current ${formatSlideValue(calibration)}`,
-    },
-  ];
+  return BROWSER_TIRE_AXES.map(axis => ({
+    axis: axis.id,
+    label: `${axis.id === 'KNEE' ? 'KN' : axis.id} ${formatTireAxisValue(axis.id, calibration)}`,
+    ariaLabel: `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} increases, Shift decreases; front/rear linked`
+      + (axis.id === 'PY' ? `; pure lateral equivalent ${(Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180 / Math.PI).toFixed(2)} degrees` : ''),
+  }));
 }
 
 export function mountMobileCourseSelector(
@@ -228,31 +215,42 @@ export function mountMobileSteeringResponseSelector(
 export function mountMobileTireCalibrationSelector(
   container: HTMLElement,
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
-  onCycle: (axis: BrowserTireCalibrationAxis) => void,
+  onStep: (axis: BrowserTireCalibrationAxis, direction: -1 | 1) => void,
   documentRef: Document = document,
 ): MobileTireCalibrationController {
-  const buttons = new Map<BrowserTireCalibrationAxis, HTMLButtonElement>();
-  for (const item of createMobileTireCalibrationSelectorModel(calibration)) {
-    const button = documentRef.createElement('button');
-    button.type = 'button';
-    button.className = 'selector-button';
-    button.textContent = item.label;
-    button.setAttribute('aria-label', item.ariaLabel);
-    button.addEventListener('click', () => onCycle(item.axis));
-    buttons.set(item.axis, button);
-  }
-  container.replaceChildren(...buttons.values());
-
+  const outputs = new Map<BrowserTireCalibrationAxis, HTMLElement>();
+  const groups = createMobileTireCalibrationSelectorModel(calibration).map(item => {
+    const group = documentRef.createElement('div');
+    group.className = 'tire-control';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', `${item.axis} tire calibration`);
+    const value = documentRef.createElement('span');
+    value.className = 'tire-value';
+    outputs.set(item.axis, value);
+    const button = (direction: -1 | 1) => {
+      const element = documentRef.createElement('button');
+      element.type = 'button';
+      element.className = 'selector-button tire-step';
+      element.textContent = direction < 0 ? '−' : '+';
+      element.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} ${item.axis} (wrap at limit)`);
+      element.addEventListener('click', () => onStep(item.axis, direction));
+      return element;
+    };
+    group.replaceChildren(button(-1), value, button(1));
+    return group;
+  });
+  container.replaceChildren(...groups);
   const controller: MobileTireCalibrationController = {
-    setCalibration(nextCalibration) {
-      for (const item of createMobileTireCalibrationSelectorModel(nextCalibration)) {
-        const button = buttons.get(item.axis);
-        if (button === undefined) throw new Error(`Missing tire calibration button for ${item.axis}`);
-        button.textContent = item.label;
-        button.setAttribute('aria-label', item.ariaLabel);
+    setCalibration(next) {
+      for (const item of createMobileTireCalibrationSelectorModel(next)) {
+        const value = outputs.get(item.axis)!;
+        value.textContent = item.label;
+        value.setAttribute('title', item.ariaLabel);
+        value.setAttribute('aria-label', item.ariaLabel);
       }
     },
   };
+  controller.setCalibration(calibration);
   return controller;
 }
 
