@@ -1,6 +1,7 @@
 # M9.18 — Load-Proportional One-K Tire
 
-Status: current scoped tire load-normalization authority. Handling remains `DEV_UNCALIBRATED`.
+Status: current scoped tire load-normalization and permitted wheel-lift acceptance authority.
+Handling remains `DEV_UNCALIBRATED`.
 
 ## 1. Decision and scoped supersession
 
@@ -16,23 +17,27 @@ use the existing mass/axle geometry; their reference-load force assertions remai
 
 M9.15 still owns absolute browser G/P/S, the three calibration scalars, P-to-2P smoothstep, common
 force direction and diagnostic choices. M9.17 still owns direct robotized MT; M9.16 owns ENG.
-M9.11 steering, M9.13/M9.14 input and every suspension/contact, camera, renderer and topology law
-are retained. No profile numerical value, selector default or range is retuned.
+M9.11 steering, M9.13/M9.14 input, suspension force laws, camera, renderer and topology are retained.
+Section 8 explicitly adds one-sided contact validity and overturned gameplay recovery while allowing
+wheelies and stoppies. No profile numerical value, selector default or range is retuned.
 
 ## 2. Architecture Decision Gate
 
 1. Owner: `src/physics/tire-wheel.ts` owns the constitutive law; `vehicle-profiles.ts` owns compilation.
+   Contact orientation belongs to `vehicle-dynamics.ts`; recovery policy belongs to gameplay.
 2. Existing primitive: `normalizedStiffness` and the already supplied contact `normalLoad` suffice.
+   Reuse the existing body basis, surface normal and `updateM5Recovery` path for overturns.
 3. Authority: remove the redundant static-C field; no stored N, peak slip, alternate force or tire
-   state is added. Actual suspension load remains the sole load input.
+   state is added. Actual suspension load remains the sole load input. Overturn is derived, not state.
 4. Branches: the same law serves both stations and all nine profiles, independent of vehicle,
    drive layout, course, input device, drift angle or mode.
 5. Simpler rule: scale the whole existing curve by load rather than freezing one denominator,
-   adding a second stiffness, widening the tail again or introducing a controller.
+   adding a second stiffness, widening the tail again or introducing a controller. Permit wheel lift
+   instead of adding premature torque control; reuse gameplay recovery only after overturn.
 6. Invariants: retain world mechanics, nonnegative capacity, dissipative slip, force-vector direction,
    monotone scalar wheel root and every frozen renderer/metric/topology contract.
 7. Evidence: test load homogeneity throughout the curve, reference equivalence, unloaded release,
-   surface behavior and actual multi-second drift response through the ordinary vehicle solver.
+   surface behavior, multi-second drift response, permitted single-wheel contact and overturned recovery.
 
 ## 3. One load law
 
@@ -114,8 +119,8 @@ same public update path, actual suspension and automatic gearbox as gameplay. Th
 only an elapsed-time input schedule, not measured-beta feedback. Its constants are test data, not
 vehicle defaults, runtime targets or browser assist parameters.
 
-All existing repository regressions remain required. Obsolete test fixture accesses to the removed
-static-C field may be updated under section 1; valid physics assertions must not be weakened.
+All existing repository regressions remain required, subject only to the explicit test-contract
+supersession in section 8. Obsolete static-C accesses are migrated under section 1. No test is skipped.
 
 ## 6. Explicit limits
 
@@ -141,3 +146,48 @@ under `docs/validation/README.md`. Record complete implementation/documentation/
 then obtain another complete green CI on the record-inclusive exact head. Release by pure
 fast-forward with force=false and verify main=PR head=PR merge SHA plus same-SHA main CI/Pages.
 Do not rewrite historical authority or immutable evidence to erase the old model.
+
+## 8. Permitted wheel lift and explicit overturn boundary
+
+The 2026-09-05 product decision permits wheelies and stoppies for this milestone. Their control
+will be considered together with ABS/TCS later; none of those controllers is introduced now.
+Single-wheel support is ordinary physics, not a failure, and must not cause early recovery, torque
+reduction, artificial pitch damping, angle clamping or changed CG/suspension/profile values.
+
+The reduced two-station model is not a chassis/roof collision simulator. It must not make an
+inverted vehicle stand on suspension reach points that face away from the road. Thus:
+
+```text
+withinReach = supportAvailable && dot(body.up, surface.normal) > 0 && gap <= 0
+```
+
+Support geography remains independent. Inverted contact produces zero load, not a second force law.
+The existing qTravel error remains unchanged for ordinary facing contact; no clamp hides overtravel.
+
+Gameplay derives `dot(body.up, localSurface.normal) <= 0` at the ordinary recovery tick and handles
+it as `overturned`, using the existing recovery target, reset and calibration-retention path. It
+checks pose before trusting cached supported flags. The existing body-basis function is exported
+rather than copying its coordinate formula into gameplay. No new runtime state or threshold is
+needed. This boundary is surface-relative, not a fixed world-pitch limit. It detects a completed
+loss of upright orientation, not incipient wheel lift. All three composition roots already consume
+recovery results and retain camera reset and route/race suppression on recovered ticks.
+
+This explicitly supersedes the old assumption in the M9.11 all-nine extreme-selector probe that
+held full throttle must always remain in an uninterrupted upright physics trajectory. That test
+now uses the same physics-then-recovery sequence as the browser, while retaining finite-state and
+rack-stop assertions on every tick. Its inputs, profiles, duration and steering limits do not change.
+The VFR Tsukuba probe likewise includes ordinary recovery and now checks upright orientation as
+well as the retained progress, lateral-position and final-support bounds. A green final supported
+flag alone previously admitted an upside-down result and is no longer sufficient evidence.
+
+The M5 world-lateral-freedom probe measures max absolute body-lateral speed over its full trace,
+not its value at one incidental two-second endpoint. The original 0.1 m/s, 2 m displacement and
+yaw-response thresholds are retained, with final finiteness checked. This tests free motion rather
+than requiring a particular residual slip after tire-law evolution.
+
+`tests/m9-18-wheel-lift-recovery.test.mjs` separately proves both signed single-contact poses retain
+ordinary force, inverted reach points cannot support, overturned recovery precedes stale support,
+explicit pending targets/calibrations survive, and the qTravel guard still rejects real overtravel.
+The two VFR failure traces are replayed at 60/120/240 Hz: wheel lift must actually occur, recovery
+must not precede overturn, the run must continue without exception, and recovery must not loop.
+These are recovery-safe traces, not claims of no wheelie, no stoppie or completed pitch control.

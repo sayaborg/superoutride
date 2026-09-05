@@ -17,7 +17,7 @@ import {
   formatSteeringResponseSelector,
 } from '../dist/browser/steering-calibration-selection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
+import { createM5RecoveryState, recoverM5Vehicle, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, travelDirectionSteeringTarget, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   setArcadeVehicleMaxRoadWheelSteer,
@@ -123,21 +123,27 @@ test('M D T mutation changes calibration only and survives recovery and profile 
   assert.notEqual(replacement.steeringCalibration.steeringActuatorResponse, vehicle.steeringCalibration.steeringActuatorResponse);
 });
 
-test('all nine profiles remain finite at the smallest M largest D and slowest T selector corner', () => {
+test('all nine profiles stay finite at the extreme selector corner with permitted wheel lift and ordinary recovery', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     const vehicle = createArcadeVehicle(profile, highway.guide, height, surface, 800, 0, 25, {
       maxRoadWheelSteer: 50 * DEG,
       steeringOffsetMax: 20 * DEG,
       steeringActuatorResponse: { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 },
     });
+    const recovery = createM5RecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
       updateArcadeVehicle(highway.guide, height, surface, vehicle, { steering: tick < 90 ? 1 : -1, throttle: true, brake: false }, DT);
+      for (const value of [
+        vehicle.x, vehicle.y, vehicle.z, vehicle.velocityX, vehicle.velocityY, vehicle.velocityZ,
+        vehicle.yaw, vehicle.pitch, vehicle.yawRate, vehicle.pitchRate,
+        vehicle.frontSteerAngle, vehicle.frontWheelOmega, vehicle.rearWheelOmega,
+      ]) assert.ok(Number.isFinite(value), profile.id);
+      assert.ok(Math.abs(vehicle.frontSteerAngle) <= 50 * DEG + 1e-12, profile.id);
+      // M9.18 permits wheel lift, not inverted driving; use the actual browser tick boundary.
+      const reason = updateM5Recovery(recovery, highway.guide, height, surface, vehicle, DT);
+      if (reason !== null) assert.equal(reason, 'overturned');
+      assert.ok(Math.abs(vehicle.pitch) < Math.PI / 2, profile.id);
     }
-    for (const value of [
-      vehicle.x, vehicle.y, vehicle.z, vehicle.velocityX, vehicle.velocityY, vehicle.velocityZ,
-      vehicle.yaw, vehicle.yawRate, vehicle.frontSteerAngle, vehicle.frontWheelOmega, vehicle.rearWheelOmega,
-    ]) assert.ok(Number.isFinite(value), profile.id);
-    assert.ok(Math.abs(vehicle.frontSteerAngle) <= 50 * DEG + 1e-12, profile.id);
   }
 });
 

@@ -14,6 +14,10 @@ import {
   createM93TsukubaGroundProfile,
 } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
+import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
+import { dot3 } from '../dist/physics/vehicle-math3.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
@@ -126,7 +130,7 @@ for (const [profile, createVehicle] of [
   [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar],
   [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike],
 ]) {
-  test(`ordinary ${profile.id} mechanics advance on the Tsukuba home straight`, () => {
+  test(`ordinary ${profile.id} mechanics advance on the Tsukuba home straight with permitted wheel lift`, () => {
     const live = createM93TsukubaCourse2000Runtime();
     const vehicle = createVehicle(
       live.window.guide,
@@ -136,6 +140,7 @@ for (const [profile, createVehicle] of [
       0,
       15,
     );
+    const recovery = createM5RecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
       const input = sampleRivalDrivingInput(live.window.guide, vehicle, 0);
       updateTestVehicle(
@@ -146,6 +151,15 @@ for (const [profile, createVehicle] of [
         input,
         SIM_DT,
       );
+      for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
+        assert.ok(Number.isFinite(value), profile.id);
+      }
+      // M9.18: same physics/recovery order as gameplay; single-wheel support is permitted.
+      updateM5Recovery(recovery, live.window.guide, live.window.height, live.window.surface, vehicle, SIM_DT);
+      const surface = sampleSurfaceGeometryAtCoordinate(
+        live.window.guide, live.window.height, live.window.surface, vehicle.course,
+      );
+      assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
     }
 
     assert.ok(vehicle.course.s > 100 && vehicle.course.s < 282, `s=${vehicle.course.s}`);

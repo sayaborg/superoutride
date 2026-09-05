@@ -336,7 +336,8 @@ export function deriveContactObservation(
   );
   const gap = dot3(sub3(reachPoint, surface.point), surface.normal);
   const supportAvailable = surface.material.supported;
-  const withinReach = supportAvailable && gap <= 0;
+  // Wheel support is one-sided. A flipped body cannot stand on its inverted suspension rays.
+  const withinReach = supportAvailable && dot3(body.up, surface.normal) > 0 && gap <= 0;
   const q = withinReach ? -gap : 0;
   if (q >= station.suspension.qTravel) {
     throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);

@@ -3,7 +3,7 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
-import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import { arcadeBodyKinematics, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import {
@@ -15,11 +15,11 @@ import {
   createAutomaticPowertrainState,
 } from '../physics/automatic-powertrain.js';
 import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
-import { add3, scale3 } from '../physics/vehicle-math3.js';
+import { add3, dot3, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = ArcadeVehicleState;
-export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'manual' | 'wrong-course';
+export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'overturned' | 'manual' | 'wrong-course';
 
 const SURFACE_PENETRATION_TOLERANCE = 1e-3;
 
@@ -77,7 +77,11 @@ export function updateM5Recovery(
   profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
   target: M5RecoveryTarget | null = null,
 ): RecoveryReason | null {
-  if (vehicle.supported) {
+  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
+  // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
+  // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
+  const overturned = dot3(arcadeBodyKinematics(vehicle).up, surface.normal) <= 0;
+  if (!overturned && vehicle.supported) {
     state.lastSafeS = vehicle.course.s;
     state.unsupportedTime = 0;
     return null;
@@ -87,7 +91,6 @@ export function updateM5Recovery(
   const desiredCgHeight = vehicle.profile.desiredCgHeight;
   const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
   const surfaceDistance =
     (vehicle.x - surface.point.x) * surface.normal.x
     + (vehicle.y - surface.point.y) * surface.normal.y
@@ -98,7 +101,8 @@ export function updateM5Recovery(
   const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE;
 
   let reason: RecoveryReason | null = null;
-  if (Math.abs(vehicle.course.l) >= profile.maxLateralExcursion) reason = 'chart-excursion';
+  if (overturned) reason = 'overturned';
+  else if (Math.abs(vehicle.course.l) >= profile.maxLateralExcursion) reason = 'chart-excursion';
   else if (fallDistance >= profile.maxFallDistance) reason = 'fall-distance';
   else if (penetratedSurface) reason = 'surface-penetration';
   else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';

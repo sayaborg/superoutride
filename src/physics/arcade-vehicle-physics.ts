@@ -404,7 +404,7 @@ export function vehicleBodyTravelDirection(
   );
 }
 
-function arcadeBodyKinematics(vehicle: ArcadeVehicleState): BodyKinematics {
+export function arcadeBodyKinematics(vehicle: ArcadeVehicleState): BodyKinematics {
   const right = { x: Math.cos(vehicle.yaw), y: 0, z: -Math.sin(vehicle.yaw) };
   const forward = normalize3({
     x: Math.sin(vehicle.yaw) * Math.cos(vehicle.pitch),

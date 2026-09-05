@@ -102,12 +102,16 @@ test('car remains world-authoritative and can traverse laterally across the road
   const car = createTestCar(guide, height, surfaces, 70);
   const startL = car.course.l;
   let maxAbsYawRate = 0;
+  let maxAbsLateralSpeed = 0;
   for (let i = 0; i < 120; i += 1) {
     updateTestVehicle(guide, height, surfaces, car, { steering: 0.35, throttle: true, brake: false }, 1 / 60);
     maxAbsYawRate = Math.max(maxAbsYawRate, Math.abs(car.yawRate));
+    maxAbsLateralSpeed = Math.max(maxAbsLateralSpeed, Math.abs(car.lateralSpeed));
   }
   assert.ok(Math.abs(car.course.l - startL) > 2);
-  assert.ok(Math.abs(car.lateralSpeed) > 0.1);
+  // M9.18: free lateral motion is a trace property, not residual slip at an arbitrary final time.
+  assert.ok(maxAbsLateralSpeed > 0.1);
+  assert.ok(Number.isFinite(car.lateralSpeed));
   assert.ok(maxAbsYawRate > 0.01);
 });
 
