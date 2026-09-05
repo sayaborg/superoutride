@@ -1,71 +1,31 @@
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { setArcadeVehicleTireFrictionCalibration } from '../physics/tire-friction-calibration.js';
-import {
-  BROWSER_TIRE_GRIP_CYCLE_CODE,
-  BROWSER_TIRE_PEAK_CYCLE_CODE,
-  BROWSER_TIRE_SLIDE_CYCLE_CODE,
-  browserTireCalibrationForGrip,
-  browserTireCalibrationForPeak,
-  browserTireCalibrationForSlide,
-  nextBrowserTireGripId,
-  nextBrowserTirePeakId,
-  nextBrowserTireSlideId,
-  type BrowserTireCalibrationAxis,
-} from './tire-friction-selection.js';
+import { BROWSER_TIRE_AXES, stepBrowserTireCalibration, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
 import { mountMobileTireCalibrationSelector } from './mobile-selector-controls.js';
 
 export interface BrowserTireFrictionControls {
-  handleKey(code: string): boolean;
+  handleKey(code: string, reverse?: boolean): boolean;
 }
 
-/** One browser adapter connects keyboard and touch to the three vehicle-owned tire calibration axes. */
+/** Keyboard and +/- buttons share one five-axis operation on the current vehicle. */
 export function mountBrowserTireFrictionControls(
-  container: HTMLElement,
-  getVehicle: () => ArcadeVehicleState,
-  documentRef: Document = document,
+  container: HTMLElement, getVehicle: () => ArcadeVehicleState, documentRef: Document = document,
 ): BrowserTireFrictionControls {
-  const selector = mountMobileTireCalibrationSelector(
-    container,
-    getVehicle().tireFrictionCalibration,
-    cycleAxis,
-    documentRef,
-  );
+  const selector = mountMobileTireCalibrationSelector(container,
+    getVehicle().tireFrictionCalibration, stepAxis, documentRef);
 
-  function applyCalibration(
-    calibration: Parameters<typeof setArcadeVehicleTireFrictionCalibration>[1],
-  ): void {
-    setArcadeVehicleTireFrictionCalibration(getVehicle(), calibration);
-    selector.setCalibration(getVehicle().tireFrictionCalibration);
+  function stepAxis(axis: BrowserTireCalibrationAxis, direction: -1 | 1): void {
+    const vehicle = getVehicle();
+    setArcadeVehicleTireFrictionCalibration(vehicle,
+      stepBrowserTireCalibration(axis, direction, vehicle.tireFrictionCalibration));
+    selector.setCalibration(vehicle.tireFrictionCalibration);
   }
-
-  function cycleAxis(axis: BrowserTireCalibrationAxis): void {
-    const current = getVehicle().tireFrictionCalibration;
-    if (axis === 'GRIP') {
-      applyCalibration(browserTireCalibrationForGrip(nextBrowserTireGripId(current), current));
-      return;
-    }
-    if (axis === 'PEAK') {
-      applyCalibration(browserTireCalibrationForPeak(nextBrowserTirePeakId(current), current));
-      return;
-    }
-    applyCalibration(browserTireCalibrationForSlide(nextBrowserTireSlideId(current), current));
-  }
-
   return Object.freeze({
-    handleKey(code: string): boolean {
-      if (code === BROWSER_TIRE_GRIP_CYCLE_CODE) {
-        cycleAxis('GRIP');
-        return true;
-      }
-      if (code === BROWSER_TIRE_PEAK_CYCLE_CODE) {
-        cycleAxis('PEAK');
-        return true;
-      }
-      if (code === BROWSER_TIRE_SLIDE_CYCLE_CODE) {
-        cycleAxis('SLIDE');
-        return true;
-      }
-      return false;
+    handleKey(code: string, reverse = false): boolean {
+      const axis = BROWSER_TIRE_AXES.find(axis => axis.code === code);
+      if (!axis) return false;
+      stepAxis(axis.id, reverse ? -1 : 1);
+      return true;
     },
   });
 }
