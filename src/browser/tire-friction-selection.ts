@@ -3,8 +3,8 @@ import type {
   ArcadeTireFrictionCalibrationState,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTireGripId = '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00' | '3.20' | '3.40' | '3.60' | '3.80' | '4.00';
-export type BrowserTirePeakId = '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | '42' | '44' | '46' | '48' | '50' | '52' | '54' | '56' | '58' | '60';
+export type BrowserTireGripId = '1.20' | '1.40' | '1.50' | '1.60' | '1.80' | '2.00' | '2.20' | '2.40' | '2.60' | '2.80' | '3.00' | '3.20' | '3.40' | '3.60' | '3.80' | '4.00';
+export type BrowserTirePeakId = '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | '42' | '44' | '46' | '48' | '50' | '52' | '54' | '56' | '58' | '60';
 export type BrowserTireSlideId = '1.00' | '1.20' | '1.40' | '1.60' | '1.80' | '2.00';
 export type BrowserTireCalibrationAxis = 'GRIP' | 'PEAK' | 'SLIDE';
 
@@ -32,9 +32,9 @@ export const BROWSER_TIRE_GRIP_CYCLE_CODE = 'KeyH';
 export const BROWSER_TIRE_PEAK_CYCLE_CODE = 'KeyJ';
 export const BROWSER_TIRE_SLIDE_CYCLE_CODE = 'KeyG';
 
-export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '3.00';
-export const DEFAULT_BROWSER_TIRE_PEAK_ID: BrowserTirePeakId = '20';
-export const DEFAULT_BROWSER_TIRE_SLIDE_ID: BrowserTireSlideId = '1.00';
+export const DEFAULT_BROWSER_TIRE_GRIP_ID: BrowserTireGripId = '1.50';
+export const DEFAULT_BROWSER_TIRE_PEAK_ID: BrowserTirePeakId = '8';
+export const DEFAULT_BROWSER_TIRE_SLIDE_ID: BrowserTireSlideId = '1.20';
 
 /** M9.10 retained former TIRE 2 reference anchors. */
 export const M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER = 1.2870855880077763;
@@ -70,6 +70,12 @@ function slideSelection(
 }
 
 export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.freeze([
+  // M9.19 lower-capacity comparison retains all earlier high-G probes.
+  gripSelection('1.20', 1.20),
+  gripSelection('1.40', 1.40),
+  gripSelection('1.50', 1.50),
+  gripSelection('1.60', 1.60),
+  gripSelection('1.80', 1.80),
   gripSelection('2.00', 2.00),
   gripSelection('2.20', 2.20),
   gripSelection('2.40', 2.40),
@@ -84,6 +90,13 @@ export const BROWSER_TIRE_GRIPS: readonly BrowserTireGripSelection[] = Object.fr
 ]);
 
 export const BROWSER_TIRE_PEAKS: readonly BrowserTirePeakSelection[] = Object.freeze([
+  peakSelection('6', 0.06),
+  peakSelection('8', 0.08),
+  peakSelection('10', 0.10),
+  peakSelection('12', 0.12),
+  peakSelection('14', 0.14),
+  peakSelection('16', 0.16),
+  peakSelection('18', 0.18),
   peakSelection('20', 0.20),
   peakSelection('22', 0.22),
   peakSelection('24', 0.24),
@@ -184,11 +197,14 @@ export function browserTireSlideIdForCalibration(
   ))?.id;
 }
 
+/** Skip inadmissible choices rather than silently changing the other displayed axis. */
 export function nextBrowserTireGripId(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): BrowserTireGripId {
   return nextChoiceId(
-    BROWSER_TIRE_GRIPS,
+    BROWSER_TIRE_GRIPS.filter(({ effectiveGrip }) =>
+      effectiveGrip >= browserTireEffectiveSlideGrip(calibration)
+      || approximatelyEqual(effectiveGrip, browserTireEffectiveSlideGrip(calibration))),
     browserTireGripIdForCalibration(calibration),
   );
 }
@@ -206,7 +222,9 @@ export function nextBrowserTireSlideId(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): BrowserTireSlideId {
   return nextChoiceId(
-    BROWSER_TIRE_SLIDES,
+    BROWSER_TIRE_SLIDES.filter(({ effectiveSlideGrip }) =>
+      effectiveSlideGrip <= browserTireEffectiveGrip(calibration)
+      || approximatelyEqual(effectiveSlideGrip, browserTireEffectiveGrip(calibration))),
     browserTireSlideIdForCalibration(calibration),
   );
 }
@@ -309,10 +327,11 @@ function slideToPeakRatio(effectiveSlideGrip: number, effectivePeakGrip: number)
     throw new RangeError('tire GRIP must be finite and > 0');
   }
   const ratio = effectiveSlideGrip / effectivePeakGrip;
-  if (!(ratio <= 1)) {
+  if (ratio > 1 && !approximatelyEqual(effectiveSlideGrip, effectivePeakGrip)) {
     throw new RangeError('absolute tire SLIDE grip must not exceed tire GRIP');
   }
-  return ratio;
+  // Only floating-point equality at S=G is normalized; no displayed axis is retuned.
+  return Math.min(1, ratio);
 }
 
 function nextChoiceId<Id extends string, Choice extends { readonly id: Id }>(

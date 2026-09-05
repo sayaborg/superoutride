@@ -22,6 +22,18 @@ supersede only their stated scope.
 00c_core_design_freeze_addendum_m6_45.md
 ```
 
+### Current browser drift-entry calibration and diagnostic acceptance
+
+```text
+113_m9_19_drift_entry_roundtrip_calibration.md
+```
+
+M9.19 owns browser defaults G1.50/P8/S1.20, lower G/P comparison values and admissible G/S
+cycling. No `src/physics` equation, input response, profile or rendering contract changes. A normal
+rolling-start input trace enters, traverses about 10 -> 15 -> 10 degrees near 54 km/h and releases
+through ordinary actuator rates. Signed 60/120/240-Hz tests, a sampled entry rectangle and temporary
+input errors are covered; human phone/keyboard handling and all-speed drift remain unproven.
+
 ### Current tire load normalization and permitted wheel lift
 
 ```text
@@ -86,6 +98,7 @@ device.
 ### Current vehicle physics / steering / tire / catalog
 
 ```text
+113_m9_19_drift_entry_roundtrip_calibration.md
 112_m9_18_load_proportional_one_k_tire.md
 111_m9_17_direct_robotized_mt.md
 110_m9_16_engine_power_diagnostic_selector.md
@@ -131,34 +144,31 @@ slidingFrictionRatio = S / G
 Therefore G, P and absolute S remain independently visible without adding a fourth tire scalar or
 second tire-force authority.
 
-Current tire comparison scope is:
+M9.19 supersedes the earlier browser tire choices/default. Current comparison scope is:
 
 ```text
-G = 2.00 / 2.20 / 2.40 / 2.60 / 2.80 / 3.00 /
-    3.20 / 3.40 / 3.60 / 3.80 / 4.00
-
-P = 20 / 22 / 24 / 26 / 28 / 30 / 32 / 34 / 36 / 38 / 40 /
-    42 / 44 / 46 / 48 / 50 / 52 / 54 / 56 / 58 / 60 %
-
-S = 1.00 / 1.20 / 1.40 / 1.60 / 1.80 / 2.00
+G = 1.20 / 1.40 / 1.50 / 1.60 / 1.80, then 2.00..4.00 in 0.20 steps
+P = 6..60% in 2% steps
+S = 1.00..2.00 in 0.20 steps, subject to S <= G
 ```
 
 The explicit hands-on starting candidate is:
 
 ```text
-G=3.00 / P=20% / S=1.00
+G=1.50 / P=8% / S=1.20
 ```
 
-Its `S/G=1/3` ratio is an intentionally strong diagnostic probe, not a production-tire realism
-claim. The complete browser tire product is `11 x 21 x 6 = 1,386` calibrations.
+Its `S/G=0.8` ratio and 25% higher small-slip stiffness than G3/P20 are diagnostic calibration,
+not a production-tire realism claim. There are 2,324 admissible combinations and 364 rejected S>G
+pairs. Cycling skips incompatible values of the requested axis; it never silently changes another
+axis. Explicit invalid selections remain atomic failures.
 
 At pure lateral slip, force reaches G at P and reaches absolute S at 2P through one C1 smoothstep. In
 deep combined slide, resultant magnitude is `S*N` and force direction stays parallel to the one-k
 demand vector. Increasing driven-wheel slip at fixed lateral slip therefore increases `|Fx|` and
 decreases `|Fy|` without a drift detector or injected yaw moment.
 
-M9.14 remains current for the browser D range, retained G/P comparison ranges and compact touch
-travel:
+M9.14 remains current for the browser D range and compact touch travel; M9.19 extends G/P:
 
 ```text
 D   = 10 / 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 deg  default 12
@@ -235,7 +245,7 @@ Browser course `3` is Tsukuba and course `4` is FISCO through the same CIRCUIT c
 
 ## 2. Numbered milestone sequence
 
-`01_...` through `112_...` are chronological milestone records. A later milestone can supersede a
+`01_...` through `113_...` are chronological milestone records. A later milestone can supersede a
 scoped earlier assumption without invalidating the earlier file as history.
 
 The most relevant current lineage is:
@@ -277,10 +287,11 @@ The most relevant current lineage is:
 110_m9_16_engine_power_diagnostic_selector.md
 111_m9_17_direct_robotized_mt.md
 112_m9_18_load_proportional_one_k_tire.md
+113_m9_19_drift_entry_roundtrip_calibration.md
 ```
 
 For topology/runtime history, the retained M6.44–M6.54 sequence remains authoritative within its
-scope; M9.15 through M9.18 change none of those boundaries.
+scope; M9.15 through M9.19 change none of those boundaries.
 
 ## 3. Takeover context
 
@@ -290,7 +301,8 @@ The latest named handling takeover checkpoint is:
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md
 ```
 
-It records the released M9.18 handling/navigation state, the exact read order, current source
+It predates M9.19 browser calibration document 113. It records the released M9.18 handling/navigation
+state, the exact read order, current source
 boundaries, validated drift evidence and explicitly unresolved entry/control/render-perception work.
 It is navigation context only and never overrides newer numbered authority, source, tests, Git/PR
 or exact-SHA CI/Pages evidence.
@@ -328,7 +340,8 @@ validation/M9_17_DIRECT_ROBOTIZED_MT_VALIDATION.txt
 validation/M9_18_LOAD_PROPORTIONAL_ONE_K_TIRE_VALIDATION.txt
 ```
 
-M9.17 and M9.18 are fully released evidence, not pending validation work. Future normative authority
+M9.17 and M9.18 are fully released evidence, not pending validation work. M9.19 applies the
+same standalone-record/exact-head procedure defined in document 113. Future normative authority
 changes apply the standalone-record decision rule in `validation/README.md`; ordinary navigation
 cleanup under unchanged authority uses normal full CI and does not invent a new immutable record.
 

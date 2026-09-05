@@ -21,8 +21,14 @@ const referenceSpeed = Math.sqrt(
   longitudinalVelocity ** 2 + tire.lowSpeedRegularization ** 2,
 );
 
+// Retain the original M9.15 force-curve evidence independently of later browser defaults.
+const historicalCalibration = Object.freeze({
+  referenceFrictionMultiplier: 3 / tire.muRef,
+  linearStiffnessMultiplier: (2 - tire.rhoKnee) * 3 / (tire.normalizedStiffness * 0.20),
+  slidingFrictionRatio: 1 / 3,
+});
 function forceAtNormalizedSlip(sx, sy) {
-  const calibration = DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION;
+  const calibration = historicalCalibration;
   const omega = (longitudinalVelocity + sx * referenceSpeed) / rollingRadius;
   return evaluateTireForce(
     omega,
@@ -38,16 +44,16 @@ function forceAtNormalizedSlip(sx, sy) {
   );
 }
 
-test('M9.15 default is explicitly the G3 P20 S1 falsification candidate', () => {
+test('M9.19 default supersedes only browser calibration, not the M9.15 force law', () => {
   const calibration = DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION;
-  assert.ok(Math.abs(browserTireEffectiveGrip(calibration) - 3) < 1e-12);
-  assert.ok(Math.abs(browserTirePeakSlipRatio(calibration) - 0.20) < 1e-12);
-  assert.ok(Math.abs(browserTireEffectiveSlideGrip(calibration) - 1) < 1e-12);
-  assert.ok(Math.abs(calibration.slidingFrictionRatio - 1 / 3) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveGrip(calibration) - 1.5) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(calibration) - 0.08) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveSlideGrip(calibration) - 1.2) < 1e-12);
+  assert.ok(Math.abs(calibration.slidingFrictionRatio - 0.8) < 1e-12);
 });
 
 test('pure lateral peak occurs at P and absolute slide plateau occurs at 2P', () => {
-  const peakSlip = browserTirePeakSlipRatio(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION);
+  const peakSlip = browserTirePeakSlipRatio(historicalCalibration);
   const peak = forceAtNormalizedSlip(0, peakSlip);
   const midway = forceAtNormalizedSlip(0, peakSlip * 1.5);
   const plateau = forceAtNormalizedSlip(0, peakSlip * 2);

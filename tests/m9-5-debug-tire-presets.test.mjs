@@ -36,16 +36,16 @@ const surface = new SurfaceMap(highway.guide.length, [{
   bands: [{ lMin: -100, lMax: 100, type: 'ASPHALT' }],
 }]);
 
-test('M9.10 historical TIRE 2 anchors remain exact beneath the M9.15 diagnostic default', () => {
+test('M9.10 historical TIRE 2 anchors remain exact beneath the M9.19 diagnostic default', () => {
   assert.ok(Math.abs(M9_10_TIRE_2_LINEAR_STIFFNESS_MULTIPLIER - 10.3 / 9.75) < 1e-15);
   assert.ok(Math.abs(
     M9_10_TIRE_2_REFERENCE_FRICTION_MULTIPLIER
       - (10.3 * Math.tan(12 * Math.PI / 180) / 1.26) / 1.35,
   ) < 1e-15);
-  assert.ok(Math.abs(browserTireEffectiveGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 3.0) < 1e-12);
-  assert.ok(Math.abs(browserTirePeakSlipRatio(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 0.20) < 1e-12);
-  assert.ok(Math.abs(browserTireEffectiveSlideGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 1.0) < 1e-12);
-  assert.ok(Math.abs(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio - 1 / 3) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 1.5) < 1e-12);
+  assert.ok(Math.abs(browserTirePeakSlipRatio(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 0.08) < 1e-12);
+  assert.ok(Math.abs(browserTireEffectiveSlideGrip(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION) - 1.2) < 1e-12);
+  assert.ok(Math.abs(DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION.slidingFrictionRatio - 0.8) < 1e-12);
 });
 
 test('vehicle-owned tire calibration remains atomic and survives recovery and profile reconstruction', () => {

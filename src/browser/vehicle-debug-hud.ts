@@ -109,7 +109,7 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.18 ${model.courseSelector}`,
+    `M9.19 ${model.courseSelector}`,
     model.vehicleSelector,
     model.steeringOffsetSelector,
     model.maxRoadWheelSteerSelector,

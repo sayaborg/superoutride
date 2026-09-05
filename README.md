@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.18 Load-Proportional One-K Tire
+# SUPER OUTRIDE — M9.19 Drift Entry and Angle-Roundtrip Calibration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -11,6 +11,21 @@ the numbered authority documents; executable behavior belongs to source, compile
 tests.
 
 ## Current release
+
+M9.19 changes the browser starting calibration to **G1.50 / P8 / S1.20**, keeping D12/M60,
+ACT0.25 and ENG1. It changes no tire/steering/powertrain equation or production profile. The ordinary
+input regression enters from shallow cornering, holds about 10 degrees, increases to 15, returns to
+10 and releases near straight motion at about 54 km/h. Both signs and 60/120/240-Hz refinement pass,
+with additional partial-brake entry and temporary input-error probes. This is numerical evidence,
+not a completed phone/keyboard human-control evaluation; handling remains `DEV_UNCALIBRATED`.
+
+Current scoped authority is `docs/113_m9_19_drift_entry_roundtrip_calibration.md`. The G and P selectors
+include lower values; G/S cycling skips invalid S>G pairs without silently changing another axis.
+The chosen small-slip stiffness is 25% higher than G3/P20, peak capacity lower and deep-slide force
+higher. High-speed cornering/subjective feel must be evaluated separately, not inferred from this
+low-speed trace. Rivals and compiled profile construction defaults remain unchanged.
+
+### Retained M9.18 load law and wheel-lift boundary
 
 M9.18 makes both one-k tire demand components proportional to current contact load: `C=k*N`.
 The normalized curve no longer moves when suspension load changes; the existing curve scales in
@@ -25,8 +40,8 @@ in `docs/112_m9_18_load_proportional_one_k_tire.md`.
 
 New causal tests cover load scaling, wheel roots and seeded 54 km/h power drift, including an
 input-only 25 -> 30 -> 25 degree traverse. Seeded sustain does not prove easy entry/exit, G=S deep
-drifting or phone control feel. Browser defaults remain G3/P20/S1 and ENG1; G3/P24/S1 ENG3 is the
-regression comparison point, not a new default. Handling remains `DEV_UNCALIBRATED`.
+drifting or phone control feel. The M9.18 G3/P24/S1 ENG3
+regression comparison point remains unchanged; M9.19 now owns the browser defaults. Handling remains `DEV_UNCALIBRATED`.
 
 ### Retained M9.17 direct robotized MT
 
@@ -96,12 +111,12 @@ tire branch or drive-layout branch is introduced.
 The current explicit hands-on tire starting candidate is:
 
 ```text
-G=3.00 / P=20% / S=1.00
+G=1.50 / P=8% / S=1.20
 ```
 
-Its internal ratio is `1/3`. That strong 33.3% separation is an intentional diagnostic probe, not a
-claim that it represents an ordinary production tire. Direct S choices through `2.00` remain
-available to locate a more suitable region by hands-on evaluation.
+Its internal ratio is `0.8`. It is an evidence-backed diagnostic candidate, not a universal tire
+realism claim or a final handling freeze. S choices through `2.00` remain available only when
+compatible with the selected G; changing one axis never silently retunes another.
 
 For pure lateral slip, force reaches peak G at P and reaches the absolute sliding plateau S at 2P
 through one C1 smoothstep. In deep combined slide, resultant force magnitude is `S*N` and its
@@ -119,15 +134,16 @@ Current browser comparison ranges are:
 
 | Control | Choices | Browser default | Keyboard |
 |---|---|---:|---|
-| `G` peak friction | `2.00` through `4.00` in `0.20` steps | `3.00` | `H` cycles |
-| `P` common peak slip | `20` through `60%` in `2%` steps | `20% / 11.3°` lateral equivalent | `J` cycles |
-| `S` absolute deep-slide friction | `1.00` through `2.00` in `0.20` steps | `1.00` | `G` cycles |
+| `G` peak friction | `1.20 / 1.40 / 1.50 / 1.60 / 1.80`, then `2.00` through `4.00` in `0.20` steps | `1.50` | `H` cycles |
+| `P` common peak slip | `6` through `60%` in `2%` steps | `8% / 4.6°` lateral equivalent | `J` cycles |
+| `S` absolute deep-slide friction | `1.00` through `2.00` in `0.20` steps, subject to `S <= G` | `1.20` | `G` cycles |
 | `ENG` engine torque multiplier | `1.0 / 1.5 / 2.0 / 3.0 / 4.0` | `1.0` | `K` cycles |
 | `D` Driver travel-relative offset | `10` through `20 deg` in `1°` steps | `12 deg` | `Y` cycles |
 | `M` maximum road-wheel steer | `50 / 55 / 60 / 65 / 70 deg` | `60 deg` | `U` cycles |
 | `ACT` symmetric steering traversal | `0.20 / 0.225 / 0.25 / 0.275 / 0.30 s` | `0.25 s` | `T` cycles |
 
-The complete tire comparison product is `11 x 21 x 6 = 1,386` calibrations.
+The 16 G / 28 P / 6 S grid has **2,324 admissible calibrations**; 364 S>G combinations are
+rejected. G/S cycle only compatible values, preserving the other displayed axes.
 
 M9.11 remains the steering law:
 
@@ -176,7 +192,9 @@ millimeters across all devices.
 
 ## Authority entry order
 
-Read these before changing current behavior:
+Read these before changing current behavior. For current browser tire calibration start with
+`docs/113_m9_19_drift_entry_roundtrip_calibration.md`; it supersedes the defaults/domain below,
+not their retained physics contracts.
 
 1. `AGENTS.md` — persistent development, architecture and release contract.
 2. `docs/README.md` — document classes, supersession and evidence index.
@@ -305,7 +323,8 @@ The tire/engine group also provides the `ENG xN` cycling button in portrait and 
 ## Current takeover checkpoint
 
 The latest named handling navigation checkpoint is
-`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md`. It is navigation context only; current
+`docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-05_M9_18.md`. It predates M9.19 calibration document 113
+and is navigation context only; current
 numbered authority, source, tests, PR and workflow state always supersede it when newer evidence
 exists.
 
@@ -315,6 +334,7 @@ exists.
 npm install
 npm run build
 npm test
+node tools/drift-entry-probe.mjs
 python3 -m http.server 8000
 ```
 
@@ -365,6 +385,7 @@ fixtures.
 
 ## Release evidence
 
+M9.19 uses the standalone-record and exact-head release procedure in document 113.
 Prior standalone validation records remain under `docs/validation/`. M9.17 and M9.18 each have
 retained immutable validation evidence. Exact release identity is established by the
 validation-inclusive PR head, pure fast-forward main, same-SHA main-push CI and GitHub Pages
