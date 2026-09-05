@@ -1,3 +1,4 @@
+import { compileTireCharacteristics, createArcadeTireFrictionCalibration } from '../dist/physics/tire-friction-calibration.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -22,7 +23,7 @@ const rpmAt = (p, omega, gear) => Math.abs(omega) * p.gearRatios[gear - 1] * p.f
 const guide = compileGuidePath(compileRasterPath([{ x: 0, z: -10000 }, { x: 0, z: 10000 }]), { lMax: 5000, mMin: 0.25, dCam: 5 });
 const height = new HeightProfile(guide.length, [{ s: 0, y: 0 }, { s: guide.length, y: 0 }]);
 const surface = new SurfaceMap(guide.length, [{ sStart: 0, name: 'M9.17 FLAT DRIVE PROBE', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] }]);
-const tire = { referenceFrictionMultiplier: 2 / 1.35, linearStiffnessMultiplier: 1.26 * 2 / (9.75 * 0.24), slidingFrictionRatio: 1 };
+const tire = createArcadeTireFrictionCalibration(compileTireCharacteristics({gripX:2,gripY:2,peakSlipX:.24,peakSlipY:.24,knee:.74}));
 const steering = { maxRoadWheelSteer: Math.PI / 3, steeringOffsetMax: 12 * Math.PI / 180, steeringActuatorResponse: { applyRate: 4, releaseRate: 4 } };
 const makeVehicle = (profile = car, speed = 10) => createArcadeVehicle(profile, guide, height, surface, 10000, 0, speed, steering, tire);
 
