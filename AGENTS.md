@@ -26,9 +26,10 @@ docs/00b_core_design_freeze_addendum_m6_44.md
 docs/00c_core_design_freeze_addendum_m6_45.md
 ```
 
-Current tire/vehicle-physics lineage, newest first:
+Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/116_m9_22_pedal_torque_hud.md
 docs/115_m9_21_torque_protection.md
 docs/114_m9_20_five_axis_tire.md
 docs/113_m9_19_progressive_drift_calibration.md
@@ -51,6 +52,11 @@ docs/87_m9_0_two_station_arcade_vehicle_dynamics.md
 docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
 ```
+
+M9.22 document 116 owns read-only pedal torque graphics: canonical analog INPUT plus F/R output,
+common full-throttle/summed-brake-capacity percent scales, and red for requested minus delivered.
+No actuator lag is painted as protection; no delivered-total renormalization or mechanics change.
+Brake capacities remain provisional profile data, not identified factory values.
 
 M9.21 document 115 owns independent station TCS/ABS and bike-only support protection.
 AWD requested split precedes independent TCS; delivered split may change, with no redistribution
@@ -106,7 +112,7 @@ perpetual high-speed drift.
 Current continuation context:
 
 ```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md
 ```
 
 Reasoning and rejected hypotheses:
@@ -243,12 +249,12 @@ A fresh agent must:
 
 1. Read this file completely.
 2. Read `README.md` and `docs/README.md`.
-3. Read the current handoff `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md` as navigation.
-4. Read the newest numbered authority for the task; for control/handling start at 115 then 114 and retained
+3. Read the current handoff `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md` as navigation.
+4. Read 116 for the HUD; for control/handling start at 115 then 114 and retained
    112/111/110/101/108/107 and relevant historical lineage only as needed.
 5. Read current implementation/types/compiler and causal tests.
 6. Re-fetch current main/open PR/CI/Pages before work.
 7. Preserve current repository evidence over any stale handoff statement.
 
-Older M9.20/M9.19/M9.18/M9.12C/M9.6/M8.0/migration handoffs are historical after M9.21. Do not repeat
+Older M9.21/M9.20/M9.19/M9.18/M9.12C/M9.6/M8.0/migration handoffs are historical after M9.22. Do not repeat
 migration cleanup ceremonies unless migration itself is the task.
