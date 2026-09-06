@@ -3,6 +3,9 @@
 2026-09-06。研究履歴／判断の根拠。**現在の規範は `docs/114_m9_20_five_axis_tire.md`、実装・型・回帰。**
 この文書は会話をプロジェクトの第二の権威にしないため、合意・反証・未確定事項をrepositoryへ移したもの。
 旧研究報告の保存先は `docs/research/m9_20_source_reports/`。各Markdownは原文のまま保存しSHA256をmanifestに記録した。
+ただし初回M9.20公開 `8113a70` ではこのディレクトリの転送が漏れていた。
+[2026-09-06保存修復記録](M9_20_PRESERVATION_REPAIR_2026-09-06.md)に欠落と修復を明記し、以下の原文索引へ接続した。
+保存対象は回収できた研究報告8本であり、全発言の逐語録や全実験データの保存完了を意味しない。
 元ZIP内の実験データはこの文書の数値をM9.20で全件再実行した証拠ではない。今回の新しい実行は新回帰／validationを参照する。
 
 ## 0. 最終的にユーザーが承認した実装範囲
@@ -186,3 +189,24 @@ UIはG/P/kneeを表示し、runtimeはmuX/muY/kX/kY/rhoKneeの5つを保存。P�
 
 **M9.20の成果は5特性タイヤを較正・診断できる基盤と、その根拠をrepositoryへ移すこと。
 初期値のまま、誰でも狙った高速ドリフトができるという宣言ではない。**
+
+
+## 付録A：保存原文と参照順
+
+先に本文の採用・撤回・保留を読み、現在の仕様は文書114で確認する。
+以下は歴史資料であり、当時の結論がその後反証・変更された箇所も、本文を修正せず残している。
+[保存範囲と注意](m9_20_source_reports/README.md)・[原文SHA-256目録](m9_20_source_reports/manifest.json)。
+
+| 順 | 原文 | 議論上の役割／現在の扱い |
+|---:|---|---|
+| 1 | [M9.18ドリフト監査](m9_20_source_reports/SUPER_OUTRIDE_M9_18_drift_audit_report.md) | 定常円、双安定、操舵・変速・制動の分離。有限探索を不存在証明にしない。 |
+| 2 | [進入設計の補足](m9_20_source_reports/SUPER_OUTRIDE_M9_18_entry_design_study.md) | 低G較正と通常入力進入。深い角度からの部分修正の失敗も保存。 |
+| 3 | [高速滑走の成立可能性](m9_20_source_reports/SUPER_OUTRIDE_HIGH_SPEED_DRIFT_FEASIBILITY_2026-09-05.md) | 高G・高出力の種付き保持。通常進入の証明とは区別。 |
+| 4 | [M9.19高速・空力再検証](m9_20_source_reports/SUPER_OUTRIDE_M9_19_DRIFT_REVIEW_2026-09-05.md) | 速度ランプの過渡、横Gと半径、出力とトルクcap。今回は空力もcapも未採用。 |
+| 5 | [タイヤ再検証](m9_20_source_reports/SUPER_OUTRIDE_M9_19_TIRE_REVALIDATION_2026-09-05.md) | アクセル-only進入不能説の撤回、負勾配の局所因果、合成postpeakでの多重根。 |
+| 6 | [単調楕円への継続研究](m9_20_source_reports/SUPER_OUTRIDE_HIGH_SPEED_TIRE_CONTINUATION_2026-09-05.md) | 幅拡大の失敗、高速往復、25度での過敏さ。4:1は研究対照。 |
+| 7 | [入力感度とTCS対照](m9_20_source_reports/SUPER_OUTRIDE_DRIFT_INPUT_SENSITIVITY_2026-09-05.md) | 固定倍率との分離、D6、108誤差条件。TCS/D6/ENG4は公開既定ではない。 |
+| 8 | [二軸タイヤの初期設計案](m9_20_source_reports/SUPER_OUTRIDE_TIRE_DESIGN_PROPOSAL_2026-09-06.md) | 四特性・固定kneeは途中案。最終の五セレクタ承認は本文§0・10と114が優先。 |
+
+元の報告中のsandboxやデータ名は歴史的な所在情報であり、Git内の現存ファイルへのリンクとは限らない。
+再実験には当該ソース・入力列・環境・生データを別途確認する。原文ハッシュ一致を実験結果の正しさと同一視しない。

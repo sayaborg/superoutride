@@ -35,6 +35,9 @@ the player and survives recovery/vehicle replacement. Reload/course navigation r
 Normative scope: `docs/114_m9_20_five_axis_tire.md`.
 Discussion and rejected hypotheses: `docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md`.
 Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md`.
+Preserved research: [eight original reports and their status](docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md).
+[Preservation repair and verification scope](docs/research/M9_20_PRESERVATION_REPAIR_2026-09-06.md)
+distinguish archived reports from a complete historical experiment/data archive.
 
 ## Read before changing behavior
 
@@ -109,7 +112,9 @@ Contact/recovery does not suppress permitted wheelies/stoppies or hide suspensio
 
 Camera defaults BODY_FIXED with retained MOVEMENT_FOLLOW alternative; physical pitch follow remains.
 World X/Y/Z is physical truth. d=s_render-s_camera is the only renderer depth, same depth same scale,
-2m=80px at player depth, one far-to-near Painter, no band¯roll renderer or topology-dependent projection.
+2m=80px at player depth, one far-to-near Painter. Road bank is absent from raster geometry and
+camera roll is zero (Core section 18); topology does not change projection. Motorcycle bank
+sprite variants remain a separate presentation mechanism.
 
 Do not claim the new law establishes all-speed/all-vehicle/human drifting. Strong-brake spin,
 repeat wheel lift, real-course useful travel, broad transient margins and TCS/AWD design remain

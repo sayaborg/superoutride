@@ -66,25 +66,69 @@ test('every TypeScript module is consumed by source tests or tools', async () =>
   assert.deepEqual(unconsumed, []);
 });
 
+// Current navigation only: archived reports may intentionally name retired/external evidence.
+const currentDocuments = [
+  'AGENTS.md',
+  'README.md',
+  'docs/README.md',
+  'docs/92_m9_2_selectable_self_steer_gain.md',
+  'docs/93_m9_3_tsukuba_circuit.md',
+  'docs/114_m9_20_five_axis_tire.md',
+  'docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md',
+  'docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md',
+  'docs/research/M9_20_PRESERVATION_REPAIR_2026-09-06.md',
+  'docs/research/m9_20_source_reports/README.md',
+];
+
+function documentReferences(source) {
+  const references = new Set();
+  // Relative Markdown links include bare filenames and directory links.
+  for (const match of source.matchAll(/\[[^\]\n]*\]\(([^\s)]+)\)/g)) {
+    const ref = match[1];
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(ref)) continue;
+    const local = ref.split(/[?#]/)[0];
+    if (local) references.add(local);
+  }
+  const localText = source.replace(/https?:\/\/[^\s`<>]+/g, '');
+  for (const match of localText.matchAll(
+    /(?:\.\.\/|docs\/|src\/|tests\/|tools\/|validation\/|research\/)[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|html|css)/g,
+  )) references.add(match[0]);
+  // Literal directory promises were the hole through which the missing archive passed.
+  for (const match of localText.matchAll(/`([^`\n]+)`/g)) {
+    if (/^(?:\.{1,2}\/|docs\/|src\/|tests\/|tools\/|validation\/|research\/)[A-Za-z0-9_.\/-]*$/.test(match[1])
+      && match[1].endsWith('/')) references.add(match[1]);
+  }
+  // Documentation indexes also use standalone repository-relative filenames in code fences.
+  for (const match of localText.matchAll(/^[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|html|css)$/gm)) {
+    references.add(match[0]);
+  }
+  return [...references];
+}
+
+test('document reference extraction covers directories, relative links and index filenames', () => {
+  const source = '`docs/research/m9_20_source_reports/` [manifest](manifest.json) '
+    + '[reports](research/reports/) [external](https://example.invalid/docs/absent.md)\n'
+    + '114_m9_20_five_axis_tire.md\n`src/**`';
+  assert.deepEqual(documentReferences(source).sort(), [
+    'docs/research/m9_20_source_reports/', 'manifest.json', 'research/reports/',
+    '114_m9_20_five_axis_tire.md',
+  ].sort());
+});
+
 test('current entry documents contain no release-candidate residue or broken repository paths', async () => {
-  const currentDocuments = [
-    'AGENTS.md',
-    'README.md',
-    'docs/README.md',
-    'docs/92_m9_2_selectable_self_steer_gain.md',
-    'docs/93_m9_3_tsukuba_circuit.md',
-  ];
   const missing = [];
   for (const relativeDocument of currentDocuments) {
     const source = await readFile(path.join(repositoryRoot, relativeDocument), 'utf8');
-    for (const match of source.matchAll(
-      /(?:\.\.\/|docs\/|src\/|tests\/|tools\/|validation\/)[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|html|css)/g,
-    )) {
-      const reference = match[0];
+    for (const reference of documentReferences(source)) {
       const target = /^(?:docs|src|tests|tools)\//.test(reference)
         ? path.join(repositoryRoot, reference)
         : path.resolve(path.dirname(path.join(repositoryRoot, relativeDocument)), reference);
       if (!await pathExists(target)) missing.push(`${relativeDocument}: ${reference}`);
+      else {
+        const status = await stat(target);
+        assert.ok(reference.endsWith('/') ? status.isDirectory() : status.isFile(),
+          `${relativeDocument}: wrong reference kind ${reference}`);
+      }
     }
   }
   assert.deepEqual([...new Set(missing)].sort(), []);
@@ -99,4 +143,18 @@ test('current entry documents contain no release-candidate residue or broken rep
   assert.match(handoff, /resolved historical takeover context/);
   assert.match(handoff, /Original handoff instruction — completed/);
   assert.doesNotMatch(handoff, /This is active takeover context/);
+});
+
+
+test('current documents are valid UTF-8 without the known encoding damage', async () => {
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  for (const relative of currentDocuments) {
+    const source = decoder.decode(await readFile(path.join(repositoryRoot, relative)));
+    assert.doesNotMatch(source, /\uFFFD|\u00e2\u20ac|\u00c3\u2014|\u00c3\u2017|band\u00afroll/,
+      `encoding damage: ${relative}`);
+  }
+  const readme = await readFile(path.join(repositoryRoot, 'README.md'), 'utf8');
+  assert.match(readme, /320×240/);
+  assert.match(readme, /Road bank is absent from raster geometry/);
+  assert.match(readme, /camera roll is zero/);
 });

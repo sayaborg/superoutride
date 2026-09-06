@@ -27,11 +27,23 @@ Find final M9.20 release identity in Git/PR/CI; do not assume an older handoff S
 
 ## Discussion and evidence
 
-`docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md` preserves the entire reasoning chain,
+`docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md` preserves the research decision chain,
 including withdrawn impossible-entry assertions, load-induced peak movement, combined-slip vs
 postpeak, steady vs transient evidence, high-speed power/geometry, extreme 4:1 research tires,
 TCS fixed-gain controls, independent stiffness, real-tire evidence caveats and the user's final
 five-selector decision.
+
+Preservation follow-up: M9.20 release `8113a70de880283dfb2c36d7443d330ebd28579e` omitted the
+source-report directory despite the history's preservation claim. The
+[repair record](research/M9_20_PRESERVATION_REPAIR_2026-09-06.md) documents restoration of the
+[eight originals](research/m9_20_source_reports/), the unchanged
+[manifest](research/m9_20_source_reports/manifest.json), and rejection tests for missing or altered
+archives. The history links each report; read its final decisions before historical proposals.
+This follow-up changes documentation and tests only, not the five-axis law or product defaults.
+Report snapshots are not the complete chat transcript or all old scripts/JSON/ZIPs. Their
+checksums certify preserved bytes, not correctness or rerun of historical experiments.
+Resolve the repair's final SHA/PR/CI/Pages from current Git evidence; PR #136 identifies the
+original M9.20 implementation release, not this later documentation repair.
 
 Immutable milestone evidence is:
 

@@ -1,0 +1,34 @@
+[
+  {
+    "path": "SUPER_OUTRIDE_DRIFT_INPUT_SENSITIVITY_2026-09-05.md",
+    "sha256": "a672c4ca2e3130605bf0bd325a9036814e33d48fe1758a5454ec016721f64a74"
+  },
+  {
+    "path": "SUPER_OUTRIDE_HIGH_SPEED_DRIFT_FEASIBILITY_2026-09-05.md",
+    "sha256": "5b592af7a882a1cb326568fca213d22ce0f558972d8a68f8f02dc373d28c8986"
+  },
+  {
+    "path": "SUPER_OUTRIDE_HIGH_SPEED_TIRE_CONTINUATION_2026-09-05.md",
+    "sha256": "dad1da1ec7a3c0a23a1e16bf37964553172df98ae57fd36167328a4fee11c9e0"
+  },
+  {
+    "path": "SUPER_OUTRIDE_M9_18_drift_audit_report.md",
+    "sha256": "894144ccc120636109c0a307c1c86d5d42435d9d2d80a2c36480b373f679e27c"
+  },
+  {
+    "path": "SUPER_OUTRIDE_M9_18_entry_design_study.md",
+    "sha256": "25acf2a6d48f7dc5ace011ac1d07357b4cce6eecf11be32f10ec25c12824b5b6"
+  },
+  {
+    "path": "SUPER_OUTRIDE_M9_19_DRIFT_REVIEW_2026-09-05.md",
+    "sha256": "99a624677c5ce539edc5383671d68ae548c04658f4a340770dd91d53e8445020"
+  },
+  {
+    "path": "SUPER_OUTRIDE_M9_19_TIRE_REVALIDATION_2026-09-05.md",
+    "sha256": "5d4d21cf795ba1862feb722297e87f10f2fa1939c7be1ec70d1b74830a75b685"
+  },
+  {
+    "path": "SUPER_OUTRIDE_TIRE_DESIGN_PROPOSAL_2026-09-06.md",
+    "sha256": "b81f0cfe9521702e80680b54e17b505767c0ea9a1b4b2950db161445adf88122"
+  }
+]

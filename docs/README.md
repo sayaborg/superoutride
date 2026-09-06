@@ -103,13 +103,20 @@ This is navigation only. It records the five-axis tire, inactive-TCS preparation
 remaining handling work. Resolve actual release identity from current Git/PR and exact-SHA CI/Pages.
 Older M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
 
-The complete handling-research decision chain, including corrected and rejected hypotheses, is:
+The handling-research decision chain, including corrected and rejected hypotheses, is:
 
 ```text
 research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md
 ```
 
 Research context never overrides numbered authority, current source/tests or Git.
+
+The history links all eight byte-preserved [source reports](research/m9_20_source_reports/)
+and their [SHA-256 manifest](research/m9_20_source_reports/manifest.json).
+Read the [snapshot scope](research/m9_20_source_reports/README.md) before reusing a result.
+The [preservation repair](research/M9_20_PRESERVATION_REPAIR_2026-09-06.md) records the missing
+archive incident and its causal tests. Report preservation does not mean every historical
+script/JSON/ZIP is in Git or every experiment was rerun. This is not a verbatim chat archive.
 
 ## Immutable validation evidence
 
