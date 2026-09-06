@@ -4,16 +4,21 @@ import test from 'node:test';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { runProtectionProbe } from '../tools/torque-protection-probe.mjs';
 
-const SPEEDS = [0, 15, 30, 55];
+const MOVING_SPEEDS = [15, 30, 55];
 
 /**
  * Broaden the released M9.21 causal baseline without changing control law or calibration.
- * This is a finite straight/flat envelope, not a claim about arbitrary terrain, yaw stability,
- * human handling or the whole five-axis tire grid.
+ * ROAD policy owns wheel-slip protection, not anti-wheelie. TWO_WHEEL additionally owns support
+ * protection, so only bike policy is required to survive the zero-speed ENG4 launch without lift.
+ * This remains a finite straight/flat envelope, not arbitrary-terrain, ESC, human handling or
+ * whole-five-axis-grid certification.
  */
-test('M9.21 protected catalog stays finite across a broader straight-line speed and power envelope', () => {
+test('M9.21 authorized protection stays finite across a broader straight-line speed and power envelope', () => {
   for (const entry of VEHICLE_CATALOG) {
-    for (const speed of SPEEDS) {
+    const hasSupportProtection = entry.torqueProtection.supportReserve !== null;
+    const driveSpeeds = hasSupportProtection ? [0, ...MOVING_SPEEDS] : MOVING_SPEEDS;
+
+    for (const speed of driveSpeeds) {
       const drive = runProtectionProbe(entry, {
         hz: 120,
         seconds: 6,
@@ -28,13 +33,13 @@ test('M9.21 protected catalog stays finite across a broader straight-line speed 
       assert.ok(Number.isFinite(drive.maxPitch) && Number.isFinite(drive.minPitch), JSON.stringify(drive));
       assert.equal(drive.infeasibleTime, 0, JSON.stringify(drive));
 
-      if (entry.torqueProtection.supportReserve !== null) {
+      if (hasSupportProtection) {
         assert.equal(drive.frontLiftTime, 0, JSON.stringify(drive));
         assert.equal(drive.rearLiftTime, 0, JSON.stringify(drive));
       }
     }
 
-    for (const speed of SPEEDS.filter((value) => value > 0)) {
+    for (const speed of MOVING_SPEEDS) {
       const brake = runProtectionProbe(entry, {
         hz: 120,
         seconds: 6,
@@ -48,7 +53,7 @@ test('M9.21 protected catalog stays finite across a broader straight-line speed 
       assert.ok(brake.finalSpeed < 0.5, JSON.stringify(brake));
       assert.equal(brake.infeasibleTime, 0, JSON.stringify(brake));
 
-      if (entry.torqueProtection.supportReserve !== null) {
+      if (hasSupportProtection) {
         assert.equal(brake.frontLiftTime, 0, JSON.stringify(brake));
         assert.equal(brake.rearLiftTime, 0, JSON.stringify(brake));
       }
