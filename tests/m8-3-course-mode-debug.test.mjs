@@ -158,16 +158,23 @@ test('all nine vehicle profiles integrate on the finite LINEAR course with permi
   }
 });
 
-test('shared HUD exposes M D T plus numeric request actual actuator and HUD-only 18:1 handwheel observations', () => {
+// M9.22 supersedes only pedal actuator-only fields, ON/OFF rounding and the old label count.
+test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handwheel observations', () => {
   const runtime=createM83LinearHighwayRuntime(); const vehicle=createTestCar(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45);
   vehicle.control.actualSteerAngle=-12.5*Math.PI/180; vehicle.control.handwheelAngle=vehicle.control.actualSteerAngle*vehicle.profile.steeringRatio;
   vehicle.control.throttleActuator=.42; vehicle.control.brakeActuator=.08; vehicle.longitudinalAcceleration=9.80665; vehicle.lateralAcceleration=-4.903325;
+  vehicle.control.requestedFrontDriveTorque=0; vehicle.control.requestedRearDriveTorque=420;
+  vehicle.control.frontDriveTorque=0; vehicle.control.rearDriveTorque=420;
+  vehicle.control.requestedFrontBrakeTorque=.08*vehicle.profile.frontBrakeTorqueMax;
+  vehicle.control.requestedRearBrakeTorque=.08*vehicle.profile.rearBrakeTorqueMax;
+  vehicle.control.frontBrakeTorque=vehicle.control.requestedFrontBrakeTorque;
+  vehicle.control.rearBrakeTorque=vehicle.control.requestedRearBrakeTorque;
   const model=createVehicleDebugHudModel('linear',{steering:-1,throttle:true,brake:false},vehicle);
   assert.match(model.courseSelector,/\[1\] LINEAR/); assert.equal(model.vehicleSelector,`VEHICLE ${formatVehicleCatalogLine(VEHICLE_CATALOG[0])}`);
   assert.equal(model.steeringOffsetSelector,'D [Y] 9.5°'); assert.equal(model.maxRoadWheelSteerSelector,'M [U] 45°'); assert.equal(model.steeringResponseSelector,'ACT [T] 0.25s');
   assert.match(model.tireCalibrationSelector,/^GX1.35 PX17.45% GY1.35 PY17.45% KN0.74$/);
   assert.equal(model.requestedSteering,-1); assert.equal(model.requestedThrottle,1); assert.equal(model.requestedBrake,0);
-  assert.ok(Math.abs(model.actualSteering+12.5/45)<1e-12); assert.equal(model.actualThrottle,.42); assert.equal(model.actualBrake,.08);
+  assert.ok(Math.abs(model.actualSteering+12.5/45)<1e-12); assert.equal(model.rearDrive.delivered,.42); assert.equal(model.frontDrive.delivered,0); assert.ok(Math.abs(model.frontBrake.delivered+model.rearBrake.delivered-.08)<1e-12);
   assert.ok(Math.abs(model.handwheelAngle+225*Math.PI/180)<1e-12); assert.ok(Math.abs(model.longitudinalG-1)<1e-12); assert.ok(Math.abs(model.lateralG+.5)<1e-12);
 });
 
@@ -175,7 +182,7 @@ test('shared HUD leaves the driving view transparent behind outlined text and co
   const runtime=createM83LinearHighwayRuntime(),vehicle=createTestCar(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45); const rectangles=[],outlinedText=[];
   const context={save(){},restore(){},font:'',textBaseline:'',fillStyle:'',strokeStyle:'',lineWidth:1,lineJoin:'',fillText(){},strokeText:(text)=>outlinedText.push(text),fillRect:(x,y,width,height)=>rectangles.push({x,y,width,height}),strokeRect(){},beginPath(){},arc(){},moveTo(){},lineTo(){},stroke(){},fill(){}};
   drawVehicleDebugHud(context,'linear',{steering:0,throttle:false,brake:false},vehicle);
-  assert.equal(outlinedText.length,14); assert.equal(rectangles.some(({width,height})=>width>60||height>10),false,'HUD must not paint an opaque full text/control panel over the driving view');
+  assert.equal(outlinedText.length,25); assert.ok(outlinedText.includes('RED=CUT')); assert.equal(rectangles.some(({width,height})=>width>60||height>10),false,'HUD must not paint an opaque full text/control panel over the driving view');
 });
 
 test('G sensor draws only one cross and one dot in the felt inertial-load direction', () => {
@@ -186,7 +193,7 @@ test('G sensor draws only one cross and one dot in the felt inertial-load direct
 });
 
 test('pedal input graphics show exactly blue accel red brake or no active color', () => {
-  const fillColors=(requestedThrottle,requestedBrake)=>{const colors=[];let fillStyle='';const context={get fillStyle(){return fillStyle;},set fillStyle(value){fillStyle=value;},strokeStyle:'',lineWidth:1,font:'',textBaseline:'',fillRect:()=>colors.push(fillStyle),strokeRect(){},fillText(){},strokeText(){},beginPath(){},arc(){},moveTo(){},lineTo(){},stroke(){}};drawVehicleControlGraphics(context,{requestedSteering:0,requestedThrottle,requestedBrake,actualSteering:0,actualThrottle:0,actualBrake:0,handwheelAngle:0},0,0);return colors;};
+  const fillColors=(requestedThrottle,requestedBrake)=>{const colors=[];let fillStyle='';const context={get fillStyle(){return fillStyle;},set fillStyle(value){fillStyle=value;},strokeStyle:'',lineWidth:1,font:'',textBaseline:'',fillRect:()=>colors.push(fillStyle),strokeRect(){},fillText(){},strokeText(){},beginPath(){},arc(){},moveTo(){},lineTo(){},stroke(){}};drawVehicleControlGraphics(context,{requestedSteering:0,requestedThrottle,requestedBrake,actualSteering:0,frontDrive:{requested:0,delivered:0,limit:0},rearDrive:{requested:0,delivered:0,limit:1},frontBrake:{requested:0,delivered:0,limit:.7},rearBrake:{requested:0,delivered:0,limit:.3},handwheelAngle:0},0,0);return colors;};
   const accel=fillColors(1,0); assert.equal(accel.includes(HUD_INPUT_ACCEL_COLOR),true); assert.equal(accel.includes(HUD_INPUT_BRAKE_COLOR),false);
   const brake=fillColors(0,1); assert.equal(brake.includes(HUD_INPUT_ACCEL_COLOR),false); assert.equal(brake.includes(HUD_INPUT_BRAKE_COLOR),true);
   const neutral=fillColors(0,0); assert.equal(neutral.includes(HUD_INPUT_ACCEL_COLOR),false); assert.equal(neutral.includes(HUD_INPUT_BRAKE_COLOR),false); assert.throws(()=>fillColors(1,1),/mutually exclusive/);
