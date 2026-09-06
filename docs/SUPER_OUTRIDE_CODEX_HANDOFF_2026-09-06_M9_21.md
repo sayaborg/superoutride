@@ -70,3 +70,22 @@ PR #138 implementation-inclusive head `5992a6a6b9cc833588ec1665b87bd97b2cfe0466`
 exact-head Node24 CI #840 (run `34013445709`, build `101433090492`), 703/703 with zero
 fail/cancel/skip/todo. The record was added only after that success. Resolve record-inclusive
 CI and final main/Pages identity from the same PR; do not treat the pre-validation SHA as current.
+
+## Post-release falsification and current continuation
+
+Read `docs/research/M9_21_TERRAIN_FALSIFICATION_2026-09-06.md` for low-grip/grade/crest results
+and retained qTravel/overturn counterexamples. Then read
+`docs/research/M9_21_BRAKING_YAW_CAUSALITY_2026-09-06.md` and its complete compact180-run inventory
+`docs/research/M9_21_BRAKING_YAW_120HZ.csv` for same-reached-state braking/steering comparisons.
+These reports are evidence, not new authority. They do not reopen paused tire calibration.
+
+The early VFR braking yaw increase occurs with rear unloading, before wheel lock or automatic
+steering saturation. Immediate driver-offset release suppresses that example, but small release
+delays leave large sideslip and the requested trajectory changes. Removing support protection adds
+rear lift and does not remove the yaw growth. Do not claim a finished handling fix from this.
+`tools/braking-yaw-probe.mjs` reproduces the comparison; `forkProbe` now retains original world readers.
+
+Next decision must preserve useful braking AND requested course curvature, rather than hiding yaw
+by universally reducing brakes, retuning rear tires, enlarging the rack or adding unauthorized ESC.
+Human input and actual-course acceptance remain open. Ordinary diagnostic/test-only additions use
+PR exact-head full CI under `docs/validation/README.md`, without manufacturing new authority records.
