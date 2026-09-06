@@ -79,3 +79,8 @@ READMEのbank/roll説明は [Core](../00_core_design_freeze.md) §18にある路
 全修復ファイルを含むexact-head CI成功後にのみ新しい検証記録を追加し、その記録を含むheadで
 全テストを再実行してから通常のnon-force fast-forwardとsame-SHA Pages確認を行う。
 最終SHAと実行番号はGit・修復PR・CIの証拠で解決する。元のM9.20実装リリースPR #136と区別する。
+
+修復PRは **#137**。全修復を含むpre-validation head `7bcec77e0682dbffd9a3c19bab75bf5ebd43d7a5` は、
+Node 24.20.0のCI #837（run `34001247666`、build `101400389445`）で686/686成功、失敗・中止・skip・todoは0。
+その成功後に [独立した保存修復の検証記録](../validation/M9_20_RESEARCH_PRESERVATION_REPAIR_VALIDATION.txt)を追加した。
+この記録を含む最終headの再CI・main反映・Pages識別は、同PRとworkflowから確認する。

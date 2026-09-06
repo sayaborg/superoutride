@@ -1,0 +1,58 @@
+SUPER OUTRIDE — M9.20 RESEARCH PRESERVATION REPAIR VALIDATION
+
+Status: immutable incident evidence after release. Created only after the complete repair/documentation/test-inclusive head passed exact-head CI. A fresh full CI on the record-inclusive head is mandatory before release.
+
+Repository: sayaborg/superoutride
+Repair PR: #137
+Branch: fix/m9-20-research-preservation
+Base main: 8113a70de880283dfb2c36d7443d330ebd28579e
+Base tree: d08e7def030cb767babcc8320599735c7bbc5a67
+Complete repair pre-validation head: 7bcec77e0682dbffd9a3c19bab75bf5ebd43d7a5
+Repair pre-validation tree: 60b937b4b91d6ae42b446605ab966d49ee8a5658
+
+EXACT-HEAD CI
+Workflow: Test and Deploy GitHub Pages
+Event: pull_request
+Run number: 837
+Run id: 34001247666
+Build job id: 101400389445
+Expected checkout: 7bcec77e0682dbffd9a3c19bab75bf5ebd43d7a5
+Actual checkout:   7bcec77e0682dbffd9a3c19bab75bf5ebd43d7a5
+Node: v24.20.0
+npm: 11.19.0
+Command: npm ci && npm test
+Tests: 686
+Pass: 686
+Fail: 0
+Cancelled: 0
+Skipped: 0
+Todo: 0
+Duration_ms: 28420.526506
+Result: SUCCESS
+PR deployment is intentionally skipped by the unchanged workflow; this is not a skipped test.
+
+CAUSAL PRESERVATION EVIDENCE
+
+1. Restored exactly 8 original Markdown reports, the original scope README and manifest under docs/research/m9_20_source_reports/. All ten Git blob identities match the recovered restoration archive. Original report bodies, tables, values and line endings are unchanged.
+2. Manifest SHA-256 is pinned: 658c9fd4d4b74ff7e6e39e30089a9540edc4cd62ae5d6c63314cb67d91639b65. Every unique report entry and its SHA-256 is checked; the directory must contain exactly the eight reports, README.md and manifest.json. The scope README identity is also pinned.
+3. Seven isolated mutation fixtures are rejected: missing directory, missing manifest, missing report, altered report, deleted manifest entry and corresponding report, changed scope notice, and unexpected file. Each unmodified fixture first passes. No actual repository archive is mutated by these tests.
+4. Current-document reference validation includes M9.20 authority, decision history, latest handoff, preservation repair and archive scope. It checks local Markdown links, explicit directory references and standalone index filenames in addition to qualified file paths. External URLs and historical reports' old data references are not represented as current repository files.
+5. The decision history directly links all eight original reports. The root README, docs index and current handoff connect the current authority, final decisions, historical sources and repair scope. Corrected/withdrawn research statements are retained rather than promoted to current specifications.
+6. Current navigation passes fatal UTF-8 decoding and known-encoding-damage checks. The root README's damaged bank/roll clause was repaired against frozen Core section 18, explicitly separating absent road bank/camera roll from permitted motorcycle bank sprites.
+7. All existing tests remain enabled. The count increased from 675 to 686 through added preservation and document checks, including nested rejection cases. No prior implementation regression was removed or weakened for this repair.
+
+UNCHANGED PRODUCT / AUTHORITY
+
+The compared repair changes only documentation/archive and tests. No src/, production tools/, package/lock, HTML/CSS, workflow, numbered normative authority or previous immutable validation record is changed.
+
+M9.20 five-axis GX/PX/GY/PY/shared knee, approved defaults, no active TCS, provisional equal front/rear composition and DEV_UNCALIBRATED status remain unchanged. This is not a new tire model or a handling-calibration milestone.
+
+SCOPE LIMITS
+
+This validates recovered research-report preservation, reference integrity and the existing executable suite. It is not a verbatim transcript of every chat message, a complete Git archive of every old experimental script/JSON/ZIP, a rerun of every historical experiment, real-tire identification, or human handling certification. File hashes certify byte identity, not truth of historical claims. Current numbered authority/source/tests supersede historical proposals.
+
+The original M9.20 release validation remains immutable and is not rewritten to conceal the missing-archive incident. The incident and correction are documented in docs/research/M9_20_PRESERVATION_REPAIR_2026-09-06.md.
+
+FINAL IDENTITY
+
+Adding this record creates a new head. Final record-inclusive CI, non-force pure fast-forward, main=PR head=merge SHA and same-SHA Pages deployment/artifact verification must be established through PR #137, Git and workflow evidence. Do not rewrite this immutable pre-validation record after release to insert a self-referential final SHA.
