@@ -4,59 +4,58 @@ import test from 'node:test';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { runProtectionProbe } from '../tools/torque-protection-probe.mjs';
 
-const MOVING_SPEEDS = [15, 30, 55];
+const SPEEDS = [0, 15, 30, 55];
+
+function assertFiniteProtectedRun(run) {
+  assert.equal(run.error, null, JSON.stringify(run));
+  assert.equal(run.overturned, false, JSON.stringify(run));
+  assert.ok(Number.isFinite(run.finalSpeed), JSON.stringify(run));
+  assert.ok(Number.isFinite(run.maxPitch) && Number.isFinite(run.minPitch), JSON.stringify(run));
+  assert.equal(run.infeasibleTime, 0, JSON.stringify(run));
+}
 
 /**
  * Broaden the released M9.21 causal baseline without changing control law or calibration.
- * ROAD policy owns wheel-slip protection, not anti-wheelie. TWO_WHEEL additionally owns support
- * protection, so only bike policy is required to survive the zero-speed ENG4 launch without lift.
- * This remains a finite straight/flat envelope, not arbitrary-terrain, ESC, human handling or
- * whole-five-axis-grid certification.
+ * All catalog entries are required to survive the product-default ENG1 straight envelope.
+ * TWO_WHEEL additionally owns support protection, so only those policies are stress-tested at ENG4.
+ * ROAD+ENG4 may physically wheelie: TCS owns longitudinal overslip, not body-support viability.
  */
-test('M9.21 authorized protection stays finite across a broader straight-line speed and power envelope', () => {
+test('M9.21 product-default protection stays finite across 0..198 km/h straight drive and braking', () => {
   for (const entry of VEHICLE_CATALOG) {
-    const hasSupportProtection = entry.torqueProtection.supportReserve !== null;
-    const driveSpeeds = hasSupportProtection ? [0, ...MOVING_SPEEDS] : MOVING_SPEEDS;
-
-    for (const speed of driveSpeeds) {
+    for (const speed of SPEEDS) {
       const drive = runProtectionProbe(entry, {
-        hz: 120,
-        seconds: 6,
-        kind: 'drive',
-        speed,
-        protectedRun: true,
-        engine: 4,
+        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true, engine: 1,
       });
-      assert.equal(drive.error, null, JSON.stringify(drive));
-      assert.equal(drive.overturned, false, JSON.stringify(drive));
-      assert.ok(Number.isFinite(drive.finalSpeed), JSON.stringify(drive));
-      assert.ok(Number.isFinite(drive.maxPitch) && Number.isFinite(drive.minPitch), JSON.stringify(drive));
-      assert.equal(drive.infeasibleTime, 0, JSON.stringify(drive));
-
-      if (hasSupportProtection) {
+      assertFiniteProtectedRun(drive);
+      if (entry.torqueProtection.supportReserve !== null) {
         assert.equal(drive.frontLiftTime, 0, JSON.stringify(drive));
         assert.equal(drive.rearLiftTime, 0, JSON.stringify(drive));
       }
     }
 
-    for (const speed of MOVING_SPEEDS) {
+    for (const speed of SPEEDS.filter((value) => value > 0)) {
       const brake = runProtectionProbe(entry, {
-        hz: 120,
-        seconds: 6,
-        kind: 'brake',
-        speed,
-        protectedRun: true,
+        hz: 120, seconds: 6, kind: 'brake', speed, protectedRun: true,
       });
-      assert.equal(brake.error, null, JSON.stringify(brake));
-      assert.equal(brake.overturned, false, JSON.stringify(brake));
-      assert.ok(Number.isFinite(brake.finalSpeed), JSON.stringify(brake));
+      assertFiniteProtectedRun(brake);
       assert.ok(brake.finalSpeed < 0.5, JSON.stringify(brake));
-      assert.equal(brake.infeasibleTime, 0, JSON.stringify(brake));
-
-      if (hasSupportProtection) {
+      if (entry.torqueProtection.supportReserve !== null) {
         assert.equal(brake.frontLiftTime, 0, JSON.stringify(brake));
         assert.equal(brake.rearLiftTime, 0, JSON.stringify(brake));
       }
+    }
+  }
+});
+
+test('M9.21 TWO_WHEEL support protection survives ENG4 drive across 0..198 km/h', () => {
+  for (const entry of VEHICLE_CATALOG.filter((value) => value.torqueProtection.supportReserve !== null)) {
+    for (const speed of SPEEDS) {
+      const drive = runProtectionProbe(entry, {
+        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true, engine: 4,
+      });
+      assertFiniteProtectedRun(drive);
+      assert.equal(drive.frontLiftTime, 0, JSON.stringify(drive));
+      assert.equal(drive.rearLiftTime, 0, JSON.stringify(drive));
     }
   }
 });
