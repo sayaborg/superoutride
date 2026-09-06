@@ -1,0 +1,31 @@
+name: M9.21 isolated source snapshot
+on:
+  push:
+    branches: [feat/m9-21-torque-protection]
+    paths: [.github/workflows/m9-21-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: e03b501e07d7770563a6f58933e202e2e1ccaff1
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Package exact source and installed compiler, without credentials
+        run: |
+          test "$(git rev-parse HEAD)" = e03b501e07d7770563a6f58933e202e2e1ccaff1
+          mkdir -p "$RUNNER_TEMP/m9-21-source"
+          tar -czf "$RUNNER_TEMP/m9-21-source/source.tgz" .
+          cp "$(command -v node)" "$RUNNER_TEMP/m9-21-source/node24"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: m9-21-source-snapshot
+          path: ${{ runner.temp }}/m9-21-source/
+          retention-days: 1
+          if-no-files-found: error
