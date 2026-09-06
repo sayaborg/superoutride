@@ -44,7 +44,8 @@ export function forkProbe(probe) {
       copy.vehicle[key] = ['profile', 'tireFrictionCalibration', 'torqueProtection'].includes(key) ? descriptor.value : structuredClone(descriptor.value);
     }
   }
-  return copy;
+  // Preserve the original immutable world readers; a fork may come from a terrain fixture.
+  return { ...probe, vehicle: copy.vehicle };
 }
 
 export function directInput(steering, throttle, brake = 0) {
