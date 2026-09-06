@@ -12,6 +12,7 @@ import {
 import { formatTireCalibrationSelector } from './tire-friction-selection.js';
 import {
   assertExclusivePedalInput,
+  normalizedPedalRequest,
   type DrivingInput,
 } from '../input/driving-input.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
@@ -22,6 +23,17 @@ const CONTROL_METER_WIDTH = 58;
 const CONTROL_METER_HEIGHT = 7;
 export const HUD_INPUT_ACCEL_COLOR = '#4c9cff';
 export const HUD_INPUT_BRAKE_COLOR = '#ff535d';
+export const HUD_DELIVERED_COLOR = '#7ee0ff';
+export const HUD_PROTECTION_CUT_COLOR = '#ff535d';
+
+/** Common 0..1 torque-equivalent scale; request = delivered + protection reduction.
+ * The limit tick is authored capacity/share, not a tire-force or available-grip estimate.
+ */
+export interface TorqueControlMeter {
+  readonly requested: number;
+  readonly delivered: number;
+  readonly limit: number;
+}
 
 export interface VehicleDebugHudModel {
   readonly courseSelector: string;
@@ -36,8 +48,10 @@ export interface VehicleDebugHudModel {
   readonly requestedThrottle: number;
   readonly requestedBrake: number;
   readonly actualSteering: number;
-  readonly actualThrottle: number;
-  readonly actualBrake: number;
+  readonly frontDrive: TorqueControlMeter;
+  readonly rearDrive: TorqueControlMeter;
+  readonly frontBrake: TorqueControlMeter;
+  readonly rearBrake: TorqueControlMeter;
   readonly handwheelAngle: number;
   readonly longitudinalG: number;
   readonly lateralG: number;
@@ -49,6 +63,13 @@ export function createVehicleDebugHudModel(
   vehicle: ArcadeVehicleState,
 ): VehicleDebugHudModel {
   assertExclusivePedalInput(input);
+  const c = vehicle.control, p = vehicle.profile;
+  const driveRequest = c.requestedFrontDriveTorque + c.requestedRearDriveTorque;
+  const brakeCapacity = p.frontBrakeTorqueMax + p.rearBrakeTorqueMax;
+  // Drequest = actuator * available full-throttle torque at this same substep/RPM/gear.
+  // Multiplying the torque share by actuator avoids dividing by a tiny/zero actuator.
+  // Zero engine request (including full rev cut) has no torque to show or protect.
+  const throttle = clampUnit(c.throttleActuator);
   return {
     courseSelector: `COURSE ${formatBrowserCourseSelector(activeCourseQuery)}`,
     vehicleSelector: `VEHICLE ${formatVehicleProfileSelector(vehicle.profile.id)}`,
@@ -65,13 +86,19 @@ export function createVehicleDebugHudModel(
     enginePowerSelector: formatEnginePowerSelector(vehicle.powertrain.engineTorqueMultiplier),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
-    requestedThrottle: input.throttle ? 1 : 0,
-    requestedBrake: input.brake ? 1 : 0,
+    requestedThrottle: normalizedPedalRequest(input.throttle),
+    requestedBrake: normalizedPedalRequest(input.brake),
     actualSteering: clampSigned(
       vehicle.control.actualSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer,
     ),
-    actualThrottle: clampUnit(vehicle.control.throttleActuator),
-    actualBrake: clampUnit(vehicle.control.brakeActuator),
+    frontDrive: torqueMeter(c.requestedFrontDriveTorque, c.frontDriveTorque,
+      driveRequest, throttle, p.frontDriveTorqueFraction),
+    rearDrive: torqueMeter(c.requestedRearDriveTorque, c.rearDriveTorque,
+      driveRequest, throttle, 1 - p.frontDriveTorqueFraction),
+    frontBrake: torqueMeter(c.requestedFrontBrakeTorque, c.frontBrakeTorque,
+      brakeCapacity, 1, brakeCapacity > 0 ? p.frontBrakeTorqueMax / brakeCapacity : 0),
+    rearBrake: torqueMeter(c.requestedRearBrakeTorque, c.rearBrakeTorque,
+      brakeCapacity, 1, brakeCapacity > 0 ? p.rearBrakeTorqueMax / brakeCapacity : 0),
     handwheelAngle: Number.isFinite(vehicle.control.handwheelAngle)
       ? vehicle.control.handwheelAngle
       : 0,
@@ -88,7 +115,7 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.21 ${model.courseSelector}`,
+    `M9.22 ${model.courseSelector}`,
     model.vehicleSelector,
     model.steeringOffsetSelector,
     model.maxRoadWheelSteerSelector,
@@ -115,44 +142,72 @@ export function drawVehicleControlGraphics(
     | 'requestedThrottle'
     | 'requestedBrake'
     | 'actualSteering'
-    | 'actualThrottle'
-    | 'actualBrake'
+    | 'frontDrive'
+    | 'rearDrive'
+    | 'frontBrake'
+    | 'rearBrake'
     | 'handwheelAngle'>,
   x: number,
   y: number,
 ): void {
   assertExclusivePedalInput({
-    throttle: model.requestedThrottle > 0,
-    brake: model.requestedBrake > 0,
+    throttle: model.requestedThrottle,
+    brake: model.requestedBrake,
   });
   ctx.font = '6px monospace';
   ctx.textBaseline = 'top';
   drawHudText(ctx, 'INPUT', x + 3, y + 7, '#a6bac4');
   drawHudText(ctx, 'ACT', x + 3, y + 21, '#a6bac4');
   drawHudText(ctx, 'STEER', x + 36, y + 1, '#a6bac4');
-  drawHudText(ctx, 'ACCEL', x + 109, y + 1, '#a6bac4');
-  drawHudText(ctx, 'BRAKE', x + 174, y + 1, '#a6bac4');
+  drawHudText(ctx, 'ACCEL %', x + 109, y + 1, '#a6bac4');
+  drawHudText(ctx, 'BRAKE %', x + 174, y + 1, '#a6bac4');
   drawHudText(ctx, 'HW', x + 232, y + 1, '#a6bac4');
 
   drawControlMeter(ctx, x + 35, y + 8, model.requestedSteering, true, '#ffd08a');
-  drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, '#7ee0ff');
-  drawPedalIndicator(
-    ctx,
-    x + 105,
-    y + 8,
-    model.requestedThrottle > 0,
-    HUD_INPUT_ACCEL_COLOR,
-  );
-  drawControlMeter(ctx, x + 105, y + 22, model.actualThrottle, false, '#7ee0ff');
-  drawPedalIndicator(
-    ctx,
-    x + 170,
-    y + 8,
-    model.requestedBrake > 0,
-    HUD_INPUT_BRAKE_COLOR,
-  );
-  drawControlMeter(ctx, x + 170, y + 22, model.actualBrake, false, '#7ee0ff');
+  drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, HUD_DELIVERED_COLOR);
+  drawPedalMeters(ctx, x + 105, y, model.requestedThrottle, model.frontDrive, model.rearDrive,
+    HUD_INPUT_ACCEL_COLOR);
+  drawPedalMeters(ctx, x + 170, y, model.requestedBrake, model.frontBrake, model.rearBrake,
+    HUD_INPUT_BRAKE_COLOR);
   drawHandwheel(ctx, x + 240, y + 22, model.handwheelAngle);
+  drawHudText(ctx, 'RED=CUT', x + 234, y + 39, HUD_PROTECTION_CUT_COLOR);
+}
+
+/** Normalize observations only. Never infer road force, redo a solve, or rescale delivered total. */
+function torqueMeter(request: number, delivered: number, denominator: number,
+  scale: number, limit: number): TorqueControlMeter {
+  const capacity = clampUnit(limit);
+  const ratio = (torque: number) => denominator > 0 && Number.isFinite(denominator)
+    ? clampUnit(scale * (torque / denominator)) : 0;
+  const requested = Math.min(capacity, ratio(request));
+  return { requested, delivered: Math.min(requested, ratio(delivered)), limit: capacity };
+}
+
+function drawPedalMeters(ctx: CanvasRenderingContext2D, x: number, y: number,
+  input: number, front: TorqueControlMeter, rear: TorqueControlMeter, inputColor: string): void {
+  drawControlMeter(ctx, x, y + 8, input, false, inputColor);
+  drawMeterPercent(ctx, x, y + 8, input);
+  for (const [label, meter, offset] of [['F', front, 22], ['R', rear, 36]] as const) {
+    drawHudText(ctx, label, x - 7, y + offset, '#a6bac4');
+    drawControlMeter(ctx, x, y + offset, meter.delivered, false, HUD_DELIVERED_COLOR);
+    const delivered = clampUnit(meter.delivered);
+    const requested = Math.max(delivered, clampUnit(meter.requested));
+    const width = CONTROL_METER_WIDTH - 4;
+    if (requested > delivered) {
+      ctx.fillStyle = HUD_PROTECTION_CUT_COLOR;
+      ctx.fillRect(x + 2 + delivered * width, y + offset + 2,
+        (requested - delivered) * width, CONTROL_METER_HEIGHT - 4);
+    }
+    if (meter.limit > 0 && meter.limit < 1) {
+      ctx.fillStyle = '#a6bac4';
+      ctx.fillRect(x + 2 + meter.limit * width, y + offset + 1, 1, CONTROL_METER_HEIGHT - 2);
+    }
+    drawMeterPercent(ctx, x, y + offset, delivered);
+  }
+}
+
+function drawMeterPercent(ctx: CanvasRenderingContext2D, x: number, y: number, value: number): void {
+  drawHudText(ctx, `${Math.round(clampUnit(value) * 100)}%`, x + 20, y, '#ffffff');
 }
 
 /** Opaque glyphs only: preserve readability without an opaque or alpha-blended panel. */
@@ -169,21 +224,6 @@ function drawHudText(
   ctx.strokeText(text, x, y);
   ctx.fillStyle = color;
   ctx.fillText(text, x, y);
-}
-
-function drawPedalIndicator(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  active: boolean,
-  color: string,
-): void {
-  ctx.strokeStyle = '#49616e';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(x + 0.5, y + 0.5, CONTROL_METER_WIDTH - 1, CONTROL_METER_HEIGHT - 1);
-  if (!active) return;
-  ctx.fillStyle = color;
-  ctx.fillRect(x + 2, y + 2, CONTROL_METER_WIDTH - 4, CONTROL_METER_HEIGHT - 4);
 }
 
 export function drawTopDownGSensor(
@@ -244,7 +284,7 @@ function drawControlMeter(
     ctx.fillStyle = '#a6bac4';
     ctx.fillRect(center, y + 1, 1, CONTROL_METER_HEIGHT - 2);
   } else {
-    ctx.fillRect(x + 2, y + 2, normalized * innerWidth, CONTROL_METER_HEIGHT - 4);
+    if (normalized > 0) ctx.fillRect(x + 2, y + 2, normalized * innerWidth, CONTROL_METER_HEIGHT - 4);
   }
 }
 
