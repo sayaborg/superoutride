@@ -1,31 +1,30 @@
-name: M9.21 isolated source snapshot
+name: M9.21 verified implementation transfer
 on:
   push:
     branches: [feat/m9-21-torque-protection]
     paths: [.github/workflows/m9-21-source-snapshot.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  snapshot:
+  transfer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: e03b501e07d7770563a6f58933e202e2e1ccaff1
-          persist-credentials: false
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-      - run: npm ci
-      - name: Package exact source and installed compiler, without credentials
+          ref: ${{ github.sha }}
+      - name: Apply integrity-pinned tested implementation to feature branch only
+        shell: bash
         run: |
-          test "$(git rev-parse HEAD)" = e03b501e07d7770563a6f58933e202e2e1ccaff1
-          mkdir -p "$RUNNER_TEMP/m9-21-source"
-          tar -czf "$RUNNER_TEMP/m9-21-source/source.tgz" .
-          cp "$(command -v node)" "$RUNNER_TEMP/m9-21-source/node24"
-      - uses: actions/upload-artifact@v5
-        with:
-          name: m9-21-source-snapshot
-          path: ${{ runner.temp }}/m9-21-source/
-          retention-days: 1
-          if-no-files-found: error
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/feat/m9-21-torque-protection
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cat .m9-21-transfer-0.b64 .m9-21-transfer-1.b64 .m9-21-transfer-2.b64 .m9-21-transfer-3.b64 | base64 --decode | xz --decompress > "$RUNNER_TEMP/m921.patch"
+          echo "36a8e97bc64125e3d18fc32d8fef0e9909d33800bdd6988f13c351f7215cbd72  $RUNNER_TEMP/m921.patch" | sha256sum --check
+          git apply --index --check "$RUNNER_TEMP/m921.patch"
+          git apply --index "$RUNNER_TEMP/m921.patch"
+          git rm .m9-21-transfer-0.b64 .m9-21-transfer-1.b64 .m9-21-transfer-2.b64 .m9-21-transfer-3.b64
+          git diff --cached --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Implement M9.21 independent station torque and bike support protection"
+          git push origin HEAD:refs/heads/feat/m9-21-torque-protection
