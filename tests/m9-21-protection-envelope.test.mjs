@@ -34,8 +34,11 @@ test('M9.21 product-default protection stays finite across 0..198 km/h straight 
     }
 
     for (const speed of SPEEDS.filter((value) => value > 0)) {
+      // Ten seconds is only an observation window, not a braking-performance target. The probe
+      // exits earlier once below 0.5 m/s. At 198 km/h the released bike support limiter can need
+      // more than six seconds while remaining stable and inside the longitudinal-slip boundary.
       const brake = runProtectionProbe(entry, {
-        hz: 120, seconds: 6, kind: 'brake', speed, protectedRun: true,
+        hz: 120, seconds: 10, kind: 'brake', speed, protectedRun: true,
       });
       assertFiniteProtectedRun(brake);
       assert.ok(brake.finalSpeed < 0.5, JSON.stringify(brake));
