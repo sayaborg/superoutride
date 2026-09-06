@@ -13,14 +13,11 @@ import {
 } from './driving-actuator.js';
 import type { SurfaceMapReader } from './surface-map.js';
 import {
-  VEHICLE_GRAVITY,
   VEHICLE_SUBSTEPS,
   bodyFrameVelocity,
-  contactForceWorld,
   createVehicleControlState,
   deriveContactObservation,
   initializeGuideObservation,
-  momentAboutCg,
   refreshGuideObservation,
   representativeSurfaceType,
   sampleSurfaceGeometryAtCoordinate,
@@ -32,7 +29,7 @@ import {
 } from './vehicle-dynamics.js';
 import {
   regularizedTireSlipAngle,
-  solveWheelOmega,
+  type WheelSolveInput,
 } from './tire-wheel.js';
 import {
   WORLD_UP,
@@ -58,6 +55,9 @@ import {
   type ArcadeTireFrictionCalibrationState,
 } from './tire-friction-calibration.js';
 
+import { solveProtectedWheelPair, resolveTorqueProtectionPolicy,
+  UNPROTECTED_TORQUE_POLICY, type TorqueProtectionPolicy } from './torque-protection.js';
+
 /** One authoritative state shape for every compiled vehicle profile. */
 export interface ArcadeVehicleState extends VehicleDynamicsState {
   readonly profile: CompiledArcadeVehicleProfile;
@@ -73,6 +73,7 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   frontWheelOmega: number;
   rearWheelOmega: number;
   readonly actuator: DrivingActuatorState;
+  readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
 
   /** Derived-output caches only; the next mechanics solve never consumes them as authority. */
   frontNormalLoad: number;
@@ -102,6 +103,7 @@ export function createArcadeVehicle(
   initialSpeed = 45,
   steeringCalibration: ArcadeSteeringCalibrationInput = {},
   tireFrictionCalibration?: Readonly<ArcadeTireFrictionCalibrationState>,
+  torqueProtection: TorqueProtectionPolicy = UNPROTECTED_TORQUE_POLICY,
 ): ArcadeVehicleState {
   const resolvedSteeringCalibration = createArcadeSteeringCalibration(
     profile,
@@ -138,6 +140,7 @@ export function createArcadeVehicle(
     frontWheelOmega: frontOmega,
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
+    torqueProtection: resolveTorqueProtectionPolicy(torqueProtection),
     course: initializeGuideObservation(guide, position.x, position.z),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
@@ -227,7 +230,7 @@ export function updateArcadeVehicle(
     const rearDriveTorque = driveTorque - frontDriveTorque;
     const frontBrakeTorque = vehicle.actuator.brake * profile.frontBrakeTorqueMax;
     const rearBrakeTorque = vehicle.actuator.brake * profile.rearBrakeTorqueMax;
-    const frontWheel = solveWheelOmega({
+    const frontRequest: WheelSolveInput = {
       omegaPrevious: vehicle.frontWheelOmega,
       inertia: profile.frontWheelInertia,
       rollingRadius: front.effectiveRollingRadius,
@@ -241,8 +244,8 @@ export function updateArcadeVehicle(
       brakeTorque: frontBrakeTorque,
       dt: substep,
       tire: profile.frontStation.tire,
-    });
-    const rearWheel = solveWheelOmega({
+    };
+    const rearRequest: WheelSolveInput = {
       omegaPrevious: vehicle.rearWheelOmega,
       inertia: profile.rearWheelInertia,
       rollingRadius: rear.effectiveRollingRadius,
@@ -256,28 +259,14 @@ export function updateArcadeVehicle(
       brakeTorque: rearBrakeTorque,
       dt: substep,
       tire: profile.rearStation.tire,
-    });
+    };
+    const resolved = solveProtectedWheelPair(profile, body, front, rear,
+      frontRequest, rearRequest, vehicle.torqueProtection);
+    const { frontWheel, rearWheel } = resolved;
     vehicle.frontWheelOmega = frontWheel.omega;
     vehicle.rearWheelOmega = rearWheel.omega;
 
-    const frontForce = contactForceWorld(front, frontWheel.tire.fx, frontWheel.tire.fy);
-    const rearForce = contactForceWorld(rear, rearWheel.tire.fx, rearWheel.tire.fy);
-    const planarVelocity = { x: vehicle.velocityX, y: 0, z: vehicle.velocityZ };
-    const planarSpeed = Math.hypot(planarVelocity.x, planarVelocity.z);
-    const aeroForce = scale3(planarVelocity, -profile.quadraticDrag * planarSpeed);
-    const gravity = { x: 0, y: -profile.mass * VEHICLE_GRAVITY, z: 0 };
-    const totalForce = add3(add3(frontForce, rearForce), add3(aeroForce, gravity));
-    const contactMoment = add3(
-      momentAboutCg(front, body.position, frontForce),
-      momentAboutCg(rear, body.position, rearForce),
-    );
-    // The reduced model keeps wheel-speed angular-momentum magnitude reaction in its available
-    // pitch/yaw projections. It has no independent roll/crown/gyro authority.
-    const wheelReaction = add3(
-      scale3(front.wheelAxis, -profile.frontWheelInertia * frontWheel.omegaDot),
-      scale3(rear.wheelAxis, -profile.rearWheelInertia * rearWheel.omegaDot),
-    );
-    const totalMoment = add3(contactMoment, wheelReaction);
+    const { force: totalForce, moment: totalMoment } = resolved.wrench;
 
     vehicle.velocityX += totalForce.x / profile.mass * substep;
     vehicle.velocityY += totalForce.y / profile.mass * substep;
@@ -304,9 +293,19 @@ export function updateArcadeVehicle(
         profile.lowSpeedRegularization,
       )
       : 0;
-    vehicle.control.deliveredDriveTorque = driveTorque;
-    vehicle.control.frontBrakeTorque = frontBrakeTorque;
-    vehicle.control.rearBrakeTorque = rearBrakeTorque;
+    vehicle.control.deliveredDriveTorque = driveTorque
+      - (frontDriveTorque - resolved.frontInput.driveTorque)
+      - (rearDriveTorque - resolved.rearInput.driveTorque);
+    vehicle.control.requestedFrontDriveTorque = frontDriveTorque;
+    vehicle.control.requestedRearDriveTorque = rearDriveTorque;
+    vehicle.control.frontDriveTorque = resolved.frontInput.driveTorque;
+    vehicle.control.rearDriveTorque = resolved.rearInput.driveTorque;
+    vehicle.control.requestedFrontBrakeTorque = frontBrakeTorque;
+    vehicle.control.requestedRearBrakeTorque = rearBrakeTorque;
+    vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
+    vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
+    vehicle.control.supportTorqueScale = resolved.supportScale;
+    vehicle.control.supportFeasible = resolved.supportFeasible;
     vehicle.control.frontWheelLocked = frontWheel.locked;
     vehicle.control.rearWheelLocked = rearWheel.locked;
     vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;

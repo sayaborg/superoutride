@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.20 Five-Parameter Tire
+# SUPER OUTRIDE — M9.21 Independent Torque Protection
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -8,10 +8,23 @@ Super Hang-On, OutRunners and the Super Scaler era.
 
 ## Current milestone
 
+M9.21 adds independent TCS on driven stations and independent front/rear ABS. Motorcycle catalog
+entries additionally prevent acceleration/braking-induced support loss through the same delivered-
+torque boundary. AWD's authored split is a REQUEST split; independent protection may change actual
+split, without transferring removed torque to the other station. No shaft lock or yaw correction.
+Every browser player/rival/replacement is protected; raw mechanics construction remains explicitly
+unprotected for historical diagnostic comparisons. Handling remains DEV_UNCALIBRATED.
+
+Current control authority: `docs/115_m9_21_torque_protection.md`.
+Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md`.
+Power-over drifting is no longer a product goal. Inertia-driven entry/correction/exit remain goals.
+Tire calibration and front/rear differentiation are paused. The following tire settings are unchanged.
+
+
 M9.20 replaces the old G/P/S postpeak tire with one load-proportional, monotone two-axis
 capacity law. Five independent live controls select longitudinal/lateral capacity and onset
 slip plus a shared knee. There is no extra S falloff, drift state, target beta or hidden force.
-**TCS is not active**; shared slip kinematics and explicit drive-torque boundaries prepare later work.
+M9.21 protection surrounds this unchanged tire law; it is not a new tire curve or drift mode.
 
 | Control | Default | Range and step | Keyboard forward-cycle |
 |---|---:|---|---|
@@ -34,7 +47,7 @@ the player and survives recovery/vehicle replacement. Reload/course navigation r
 
 Normative scope: `docs/114_m9_20_five_axis_tire.md`.
 Discussion and rejected hypotheses: `docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md`.
-Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md`.
+Historical M9.20 continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md`.
 Preserved research: [eight original reports and their status](docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md).
 [Preservation repair and verification scope](docs/research/M9_20_PRESERVATION_REPAIR_2026-09-06.md)
 distinguish archived reports from a complete historical experiment/data archive.
@@ -43,7 +56,7 @@ distinguish archived reports from a complete historical experiment/data archive.
 
 1. `AGENTS.md` — design/release contract.
 2. `docs/README.md` — authority classes and supersession.
-3. `docs/114_m9_20_five_axis_tire.md` — current tire law, five selectors, regression migration.
+3. `docs/115_m9_21_torque_protection.md`, then `docs/114_m9_20_five_axis_tire.md` — current tire law, five selectors, regression migration.
 4. `docs/112_m9_18_load_proportional_one_k_tire.md` — retained load/contact/recovery contract.
 5. `docs/111_m9_17_direct_robotized_mt.md` and `docs/110_m9_16_engine_power_diagnostic_selector.md`.
 6. `docs/101_m9_11_simplified_travel_direction_steering.md`, `docs/107_m9_13_full_screen_analog_touch.md`,
@@ -68,12 +81,15 @@ Open the root page on that local server. Tests clean/rebuild dist before executi
 Production-solver diagnostics, not an injected drift controller:
 
 ```bash
+node tools/torque-protection-probe.mjs --hz 120 --out protection.json
 node tools/drift-control-probe.mjs --mode transient --speed 200 --out transient.json
 node tools/drift-control-probe.mjs --mode sweep --speed 150 --out sweep.json
 node tools/drift-control-probe.mjs --mode reference --hz 120 --mirror --out reference.json
 ```
 
-`transient` uses current defaults and logs entry/exit, actual speed loss and displacement without
+The protection probe explicitly compares raw/protected catalog actors. The drift probe remains raw
+mechanics unless a policy is passed programmatically; it does not certify protected product handling.
+`transient` uses current tire defaults and logs entry/exit, actual speed loss and displacement without
 promising drift. `sweep` uses increasing then decreasing throttle, recording finite-time windows
 and hysteresis, not claiming equilibria from averages. `reference` explicitly selects the former
 research tire GX.75/PX2%/GY3/PY8%/KN.74 and ENG3 to replay a no-TCS capability case. It does NOT
@@ -117,6 +133,7 @@ camera roll is zero (Core section 18); topology does not change projection. Moto
 sprite variants remain a separate presentation mechanism.
 
 Do not claim the new law establishes all-speed/all-vehicle/human drifting. Strong-brake spin,
-repeat wheel lift, real-course useful travel, broad transient margins and TCS/AWD design remain
-open. Steady circles are diagnostic; product evaluation centers on entry/correction/exit and
+repeat wheel lift, real-course useful travel, broad transient margins and human protected handling remain
+open. TCS/ABS are not ESC: severe lateral spins can still occur. Support prevention is a bounded
+local prediction, not a guarantee for arbitrary inherited pitch momentum or every terrain event. Steady circles are diagnostic; product evaluation centers on entry/correction/exit and
 quantified deceleration. Nothing secretly preserves speed or torque beyond the existing engine.

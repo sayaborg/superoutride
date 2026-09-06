@@ -21,7 +21,7 @@ import {
 
 const DEG = Math.PI / 180;
 export function createFlatProbe({ calibration = DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-  profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE, initialSpeed = 200 / 3.6 } = {}) {
+  profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE, initialSpeed = 200 / 3.6, torqueProtection } = {}) {
   const guide = compileGuidePath(compileRasterPath([{ x: 0, z: -10000 }, { x: 0, z: 10000 }]),
     { lMax: 5000, mMin: 0.25, dCam: 5 });
   const height = new HeightProfile(guide.length, [{ s: 0, y: 0 }, { s: guide.length, y: 0 }]);
@@ -31,17 +31,17 @@ export function createFlatProbe({ calibration = DEFAULT_BROWSER_TIRE_FRICTION_CA
   const vehicle = createArcadeVehicle(profile, guide, height, surface, 10000, 0, initialSpeed,
     { maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
       steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
-      steeringActuatorResponse: { applyRate: rate, releaseRate: rate } }, calibration);
+      steeringActuatorResponse: { applyRate: rate, releaseRate: rate } }, calibration, torqueProtection);
   return { guide, height, surface, vehicle };
 }
 
 /** Independent replay fork of a state reached by ordinary inputs, not an imposed drift seed. */
 export function forkProbe(probe) {
   const copy = createFlatProbe({ profile: probe.vehicle.profile,
-    calibration: probe.vehicle.tireFrictionCalibration });
+    calibration: probe.vehicle.tireFrictionCalibration, torqueProtection: probe.vehicle.torqueProtection });
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(probe.vehicle))) {
     if ('value' in descriptor) {
-      copy.vehicle[key] = ['profile', 'tireFrictionCalibration'].includes(key) ? descriptor.value : structuredClone(descriptor.value);
+      copy.vehicle[key] = ['profile', 'tireFrictionCalibration', 'torqueProtection'].includes(key) ? descriptor.value : structuredClone(descriptor.value);
     }
   }
   return copy;

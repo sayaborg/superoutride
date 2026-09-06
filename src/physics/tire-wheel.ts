@@ -35,7 +35,7 @@ export interface WheelSolveInput {
   readonly gripFactor: number;
   readonly characteristics?: CompiledTireCharacteristics;
   readonly rollingResistance: number;
-  /** Actual torque delivered for this substep. No TCS is active in M9.20. */
+  /** Actual torque delivered for this substep, after any external torque protection. */
   readonly driveTorque: number;
   readonly brakeTorque: number;
   readonly dt: number;
@@ -160,28 +160,8 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     tire,
   } = input;
 
-  const noBrakeResidual = (omega: number): number => {
-    const force = evaluateTireForce(
-      omega,
-      rollingRadius,
-      input.longitudinalVelocity,
-      input.lateralVelocity,
-      normalLoad,
-      gripFactor,
-      tire,
-      characteristics,
-    );
-    return inertia / dt * (omega - omegaPrevious)
-      - driveTorque
-      + rollingRadius * force.fx
-      + rollingResistanceTorque(
-        omega,
-        rollingRadius,
-        normalLoad,
-        rollingResistance,
-        tire.lowSpeedRegularization,
-      );
-  };
+  const noBrakeResidual = (omega: number): number =>
+    netTorqueAtOmega(input, omega) - driveTorque;
 
   const atZero = noBrakeResidual(0);
   let omega: number;
@@ -224,6 +204,25 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
 }
 
 
+/** Inverse of the SAME backward-Euler wheel equation, before the signed brake atom.
+ * Fixed contact data only. A control boundary may restrict torque, never overwrite Omega.
+ */
+export function wheelRequiredNetTorque(input: WheelSolveInput, omega: number): number {
+  validateWheelSolveInput(input);
+  if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
+  return netTorqueAtOmega(input, omega);
+}
+
+function netTorqueAtOmega(input: WheelSolveInput, omega: number): number {
+  const force = evaluateTireForce(omega, input.rollingRadius, input.longitudinalVelocity,
+    input.lateralVelocity, input.normalLoad, input.gripFactor, input.tire,
+    input.characteristics ?? input.tire);
+  return input.inertia / input.dt * (omega - input.omegaPrevious)
+    + input.rollingRadius * force.fx
+    + rollingResistanceTorque(omega, input.rollingRadius, input.normalLoad,
+      input.rollingResistance, input.tire.lowSpeedRegularization);
+}
+
 /** Linear-region lateral reserve in the same demand ellipse; diagnostic only. */
 export function usefulLateralCapacity(
   longitudinalLinearDemand: number, normalLoad: number, gripFactor: number,
@@ -263,7 +262,7 @@ function bisectMonotone(fn: (value: number) => number, lowerInput: number, upper
   return (lower + upper) * 0.5;
 }
 
-function validateWheelSolveInput(input: WheelSolveInput): void {
+export function validateWheelSolveInput(input: WheelSolveInput): void {
   if (!(input.dt > 0) || !Number.isFinite(input.dt)) throw new RangeError('wheel solve dt must be finite and > 0');
   if (!(input.inertia > 0) || !Number.isFinite(input.inertia)) throw new RangeError('wheel inertia must be finite and > 0');
   if (!(input.rollingRadius > 0) || !Number.isFinite(input.rollingRadius)) throw new RangeError('wheel radius must be finite and > 0');

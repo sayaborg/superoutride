@@ -78,7 +78,7 @@ import {
   type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -165,6 +165,7 @@ let vehicle: ArcadeVehicleState = createArcadeVehicle(
   45,
   undefined,
   DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+  DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
 );
 const cameraRig = createM5CameraRig();
 let recovery = createM5RecoveryState(vehicle);
@@ -207,6 +208,10 @@ const rivals = rivalRoster.map((entry) => {
     surfaceMap,
     95 + entry.rivalIndex * 6,
     M7_2_RIVAL_START_L,
+    undefined,
+    undefined,
+    undefined,
+    DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
   );
   const traveler = createLiveRouteTravelerState(
     liveRoute,
@@ -598,6 +603,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     speed,
     steeringCalibration,
     tireFrictionCalibration,
+    vehicleCatalogEntryForId(profile.id).torqueProtection,
   );
   setEngineTorqueMultiplier(vehicle.powertrain, engineTorqueMultiplier);
   recovery = createM5RecoveryState(vehicle);

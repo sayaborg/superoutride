@@ -73,6 +73,8 @@ const currentDocuments = [
   'docs/README.md',
   'docs/92_m9_2_selectable_self_steer_gain.md',
   'docs/93_m9_3_tsukuba_circuit.md',
+  'docs/115_m9_21_torque_protection.md',
+  'docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md',
   'docs/114_m9_20_five_axis_tire.md',
   'docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md',
   'docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md',

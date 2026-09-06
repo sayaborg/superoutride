@@ -54,7 +54,7 @@ const courses = [
 
 for (const course of courses) {
   for (const profile of profiles) {
-    test(`M9.8 fixed product rival drives ${profile.id} around ${course.name} without recovery`, () => {
+    test(`M9.21 protected product rival drives ${profile.id} around ${course.name} without recovery`, () => {
       const live = course.createRuntime();
       const lapLength = live.window.topology.lapLength;
       const vehicle = createArcadeVehicle(
@@ -65,6 +65,9 @@ for (const course of courses) {
         course.spawnS,
         course.spawnL,
         course.spawnSpeed,
+        undefined,
+        undefined,
+        DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
       );
       let ticks = 0;
       let maximumAbsoluteL = 0;

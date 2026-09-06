@@ -29,6 +29,7 @@ docs/00c_core_design_freeze_addendum_m6_45.md
 Current tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/115_m9_21_torque_protection.md
 docs/114_m9_20_five_axis_tire.md
 docs/113_m9_19_progressive_drift_calibration.md
 docs/112_m9_18_load_proportional_one_k_tire.md
@@ -51,7 +52,13 @@ docs/78_m8_0_phase9_vehicle_physics_architecture_freeze.md
 docs/80_m8_1_car_self_steering_control.md
 ```
 
-M9.20 is current for tire law and browser tire calibration. It replaces the old G/P/S state and
+M9.21 document 115 owns independent station TCS/ABS and bike-only support protection.
+AWD requested split precedes independent TCS; delivered split may change, with no redistribution
+and no shaft lock. All browser actors/replacements receive catalog protection. The lower constructor
+remains explicitly unprotected by default for raw mechanics/diagnostics. Protection acts only through
+actual wheel torque; support uses fresh geometry and the shared physical wrench, never pose clamps.
+
+M9.20 document 114 remains current for tire law and browser tire calibration. It replaces the old G/P/S state and
 P→2P lateral post-peak falloff with five authoring characteristics:
 
 ```text
@@ -70,9 +77,9 @@ is not imposed. Front/rear equality is provisional composition, not a tire-law r
 The tire uses one current-load-proportional demand and one monotone C1 capacity ellipse. No S,
 post-peak drop, tire memory, drift phase, target beta, hidden force, speed correction, vehicle-kind
 branch or drive-layout branch exists. M9.18 load proportionality and contact/recovery boundaries
-remain retained. TCS is NOT active in M9.20; shared slip observation and explicit delivered-drive-
-torque ownership only prepare later control work. Future TCS, especially AWD coupling, requires a
-separate documented Architecture Decision Gate.
+remain retained. Document 115 supersedes only the inactive-TCS control boundary, not the tire law.
+Power-over drift is no longer a product goal; inertia entry/correction/exit remain. Tire calibration
+and front/rear tire differences are paused, not certified complete.
 
 Current steering law remains M9.11:
 
@@ -99,7 +106,7 @@ perpetual high-speed drift.
 Current continuation context:
 
 ```text
-docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md
+docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md
 ```
 
 Reasoning and rejected hypotheses:
@@ -167,8 +174,9 @@ Do not change these without a new explicit normative addendum:
   station-specific tire data must be explicit data, not a hidden drive-layout compensator.
 - Permitted wheelies/stoppies remain physical. Inverted support is rejected and gameplay recovery
   handles overturn. Do not hide qTravel failures with clamps.
-- TCS/ABS may only be introduced through a separate authority. They must act through real drive or
-  brake torque and must not write beta, yaw rate, body velocity or tire force directly.
+- M9.21 TCS/ABS and support protection act only through reduced real drive/brake torque. They must
+  not write beta, yaw rate, pitch, body velocity, tire force or load directly. Preserve independent
+  station control and the requested-vs-delivered distinction; no removed torque redistribution.
 
 ## 6. Source-boundary rules
 
@@ -235,12 +243,12 @@ A fresh agent must:
 
 1. Read this file completely.
 2. Read `README.md` and `docs/README.md`.
-3. Read the current handoff `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md` as navigation.
-4. Read the newest numbered authority for the task; for tire/handling start at 114 then retained
+3. Read the current handoff `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md` as navigation.
+4. Read the newest numbered authority for the task; for control/handling start at 115 then 114 and retained
    112/111/110/101/108/107 and relevant historical lineage only as needed.
 5. Read current implementation/types/compiler and causal tests.
 6. Re-fetch current main/open PR/CI/Pages before work.
 7. Preserve current repository evidence over any stale handoff statement.
 
-Older M9.19/M9.18/M9.12C/M9.6/M8.0/migration handoffs are historical after M9.20. Do not repeat
+Older M9.20/M9.19/M9.18/M9.12C/M9.6/M8.0/migration handoffs are historical after M9.21. Do not repeat
 migration cleanup ceremonies unless migration itself is the task.

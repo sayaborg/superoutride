@@ -146,12 +146,14 @@ test('M9.20 Coulomb brake atom and free airborne wheel rotation remain ordinary 
  const locked=solveWheelOmega(i);assert.equal(locked.omega,0);assert.equal(locked.locked,true);
  const free=solveWheelOmega({...i,brakeTorque:0});near(free.omega,100*.01/3.4);assert.equal(free.tire.fx,0);
 });
-test('M9.20 solver consumes per-station resolved characteristics and ships no old force/TCS authority',async()=>{
+test('M9.20 tire authority remains per-station while M9.21 owns delivered torque separately',async()=>{
  const src=await readFile(new URL('../src/physics/tire-wheel.ts',import.meta.url),'utf8');
  assert.doesNotMatch(src,/lateralPostPeakScale|slidingFrictionRatio|referenceFrictionMultiplier|linearStiffnessMultiplier|driftMode|targetBeta|sCut|TCS_GAIN/);
  const body=await readFile(new URL('../src/physics/arcade-vehicle-physics.ts',import.meta.url),'utf8');
  assert.match(body,/characteristics: vehicle\.tireFrictionCalibration\.front/);
  assert.match(body,/characteristics: vehicle\.tireFrictionCalibration\.rear/);
- assert.match(body,/vehicle\.control\.deliveredDriveTorque = driveTorque/);
+ assert.match(body,/solveProtectedWheelPair/);
+ assert.match(body,/resolved\.frontInput\.driveTorque/);
+ assert.match(body,/resolved\.rearInput\.driveTorque/);
  assert.doesNotMatch(body,/sCut|TCS_GAIN|torqueScale|gripX.*brake/);
 });

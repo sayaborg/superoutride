@@ -56,7 +56,7 @@ test('M9.20 comparison forks copy normally reached state without mutable calibra
  assert.notEqual(p.vehicle.actuator,q.vehicle.actuator);
  const before=p.vehicle.velocityX;runProbe(q,.2,()=>directInput(-.4,.5));assert.equal(p.vehicle.velocityX,before);
 });
-test('M9.20 browser default remains finite for all nine profiles through ordinary input and recovery',()=>{
+test('M9.20 unprotected five-axis baseline remains finite for all nine profiles through input and recovery',()=>{
  for(const {profile}of VEHICLE_CATALOG){
  const p=createFlatProbe({profile,initialSpeed:30});const v=p.vehicle,recovery=createM5RecoveryState(v);
  for(let tick=0;tick<360;tick++){

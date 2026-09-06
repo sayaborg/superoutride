@@ -27,7 +27,7 @@ export interface AutomaticPowertrainState {
   /** Derived observation caches; none is consumed as state by the next drive solve. */
   engineRpm: number;
   engineTorqueNewtonMeters: number;
-  /** Torque delivered to the driven station(s), never a direct body force. */
+  /** Requested wheel-side torque before protection/distribution, never a direct body force. */
   outputDriveTorque: number;
 }
 

@@ -21,6 +21,7 @@ vehicle handling work.
 Read newest first for the requested scope:
 
 ```text
+115_m9_21_torque_protection.md
 114_m9_20_five_axis_tire.md
 113_m9_19_progressive_drift_calibration.md
 112_m9_18_load_proportional_one_k_tire.md
@@ -43,7 +44,12 @@ Read newest first for the requested scope:
 80_m8_1_car_self_steering_control.md
 ```
 
-M9.20 is current for tire constitutive law and browser tire calibration. It replaces production
+M9.21 is current for independent station TCS/ABS, bike-only support-loss prevention and protected
+product composition. AWD distributes requests before independent reductions; actual split may
+change without reallocation. All browser actors and replacement paths pass explicit catalog policy.
+Raw mechanics remains unprotected by default for historical control-free diagnostics.
+
+M9.20 remains current for tire constitutive law and browser tire calibration. It replaces production
 G/P/S and the additional lateral post-peak multiplier with one load-proportional, state-free,
 monotone two-axis capacity ellipse. Browser characteristics are:
 
@@ -61,8 +67,8 @@ physics state. `kX=kY` is not imposed. Front/rear equality is provisional compos
 slots and the lower tire law permit explicit future differences without a drive-layout branch.
 
 M9.20 removes S, P-to-2P post-peak reduction and `lateralPostPeakScale` from production. It retains
-M9.18 current-load homogeneity and zero-contact release. TCS is NOT active. Shared slip derivation
-and explicit delivered-drive-torque ownership only prepare later separately-authorized TCS/ABS work.
+M9.18 current-load homogeneity and zero-contact release. M9.21 activates TCS/ABS outside the retained tire law. Support control does not
+change contact loads or clamp body states. Power-over drift is no longer a product acceptance goal.
 Handling remains `DEV_UNCALIBRATED`.
 
 M9.11 remains current steering law:
@@ -86,7 +92,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `114_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `115_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 
@@ -96,12 +102,12 @@ changes none of those boundaries.
 ## Current takeover context
 
 ```text
-SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md
 ```
 
-This is navigation only. It records the five-axis tire, inactive-TCS preparation, diagnostics and
-remaining handling work. Resolve actual release identity from current Git/PR and exact-SHA CI/Pages.
-Older M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
+This is navigation only. It records independent torque protection, retained five-axis tire,
+raw-vs-protected diagnostics, paused calibration and remaining handling work. Resolve actual release identity from current Git/PR and exact-SHA CI/Pages.
+Older M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
 
 The handling-research decision chain, including corrected and rejected hypotheses, is:
 
