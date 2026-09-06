@@ -1,0 +1,73 @@
+SUPER OUTRIDE M9.22 — Pedal Torque HUD validation
+Date: 2026-09-06
+Immutable evidence, not design authority.
+
+Normative scope: docs/116_m9_22_pedal_torque_hud.md
+Retained mechanics authority: docs/115_m9_21_torque_protection.md
+Retained tire authority: docs/114_m9_20_five_axis_tire.md
+Handling: DEV_UNCALIBRATED
+
+BASELINE AND EXACT HEAD
+Repository: sayaborg/superoutride
+Baseline main: 8b103201b49abdcaab427cd5c1724351dd81f15d
+Feature branch: feat/m9-22-pedal-torque-hud
+Pull request: 142
+Implementation/documentation/test-inclusive head:
+  c8c5ccac17d59f77632e239f0e1e699b9c2c8820
+Package: super-outride-m9-22@0.9.22
+
+This record was added only after the complete exact-head CI below was green.
+It does not claim to validate its own subsequently created commit SHA.
+
+FULL SOURCE BUILD AND TEST
+GitHub Actions PR CI #852
+Run: 34035234036
+Build job: 101491970171
+Node: 24.20.0
+npm: 11.19.0
+Checkout log: expected=actual=c8c5ccac17d59f77632e239f0e1e699b9c2c8820
+Commands: npm ci; npm test
+npm test includes clean dist, full tsc build, ground-map build and all tests/*.test.mjs.
+Result: 828 tests, 828 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo.
+Test summary time: 2026-09-06T13:11:40Z
+Test duration: 103671.602395 ms
+Build job conclusion: success.
+PR Pages stages are intentionally skipped; no PR deployment is claimed.
+
+CHANGE AND CAUSAL EVIDENCE
+Only production module changed: src/browser/vehicle-debug-hud.ts.
+Exact analog INPUT plus F/R delivered-torque meters for ACCEL and BRAKE.
+Cyan delivered + red requested-minus-delivered; unrequested capacity remains empty.
+Accelerator shares one available full-throttle reference using same-substep requested
+and delivered torque and throttleActuator. No delivered-total normalization.
+Brake shares the fixed sum of authored front/rear maximum torques.
+Static markers show authored shares; percentages are torque-equivalent, not road force.
+Actuator lag/upstream engine limiting are not mislabeled as protection cuts.
+No physics state, control policy, brake capacity, tire, steering or engine change.
+
+23 new regressions cover canonical analog/digital inputs, illustrative 45:55 AWD,
+FWD/RWD/bike shares, VFR 70:30 brake normalization and exact red intervals, lag,
+residual pedals, zero request/capacity, same-sample normalization, proportional fill,
+320x240 graphical bounds and all-nine live read-only budget-consistent observations.
+Two legacy HUD test groups migrate only superseded actuator-only fields/label count.
+Their steering, G, handwheel, exclusive colors and no-panel checks are retained.
+All existing physical, historical preservation, terrain and braking-yaw tests passed.
+
+LOCAL EVIDENCE AND LIMITS
+Fresh direct local Git networking failed; no full current-source local checkout/build
+is claimed. Local 23/23 targeted tests used verified baseline Pages mechanics ESM and
+only the candidate HUD transpiled with locked TypeScript5.9.2, under Node24.20.0.
+The current-source build/typecheck is established by exact-head GitHub CI above.
+A Canvas draw-command reconstruction was visually inspected; it is not a screenshot
+from a live browser. Interactive browser/human usability verification is not claimed.
+Physics and brake calibration remain unmodified and uncalibrated; UI success is not
+a claim of resolved braking yaw, all-terrain support or identified factory brakes.
+
+RELEASE GATE AFTER THIS RECORD
+Run the complete CI again on the validation-inclusive exact feature head.
+Re-fetch main; require ahead_by>0, behind_by=0 and merge_base=current main.
+Advance main with force=false pure fast-forward, no additional merge commit.
+Require main=PR head=PR merge SHA, same-SHA main build/full tests and Pages deployment.
+Inspect the actual Pages artifact version.txt/versioned build before claiming release.
+Final SHA, inclusive/main CI counts and Pages artifact/deployment identity belong in
+Git/PR/workflows, not a rewrite of this immutable pre-validation-head record.
