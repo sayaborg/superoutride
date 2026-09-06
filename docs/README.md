@@ -146,10 +146,11 @@ validation/M9_16_ENGINE_POWER_DIAGNOSTIC_SELECTOR_VALIDATION.txt
 validation/M9_17_DIRECT_ROBOTIZED_MT_VALIDATION.txt
 validation/M9_18_LOAD_PROPORTIONAL_ONE_K_TIRE_VALIDATION.txt
 validation/M9_20_FIVE_AXIS_TIRE_VALIDATION.txt
+validation/M9_21_TORQUE_PROTECTION_VALIDATION.txt
 ```
 
-M9.20's record names the successful implementation/documentation/test-inclusive pre-validation
-head. Adding the record creates a new head, so release still requires a fresh complete exact-head CI
+M9.21's record names implementation/documentation/test-inclusive head `5992a6a` and successful
+PR #138 CI #840 (703/703). Historical M9.20 records remain unchanged. Adding the record creates a new head, so release still requires a fresh complete exact-head CI
 on the record-inclusive head. Final release identity is established by PR/Git, pure fast-forward
 main, same-SHA main CI and Pages deployment rather than by self-rewriting the immutable record.
 

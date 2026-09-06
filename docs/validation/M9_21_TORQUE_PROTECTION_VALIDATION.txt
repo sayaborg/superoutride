@@ -1,0 +1,64 @@
+SUPER OUTRIDE — M9.21 TORQUE PROTECTION VALIDATION
+
+Status: immutable milestone evidence after release. Created only AFTER complete implementation/documentation/test-inclusive exact-head CI succeeded. A fresh complete CI on the record-inclusive head remains mandatory before release.
+
+Repository: sayaborg/superoutride
+Milestone: M9.21 / package 0.9.21
+Pull request: #138
+Branch: feat/m9-21-torque-protection
+Base main: e03b501e07d7770563a6f58933e202e2e1ccaff1
+Base tree: 7c2c716d199e061c8a5538b390a6b62ea2121e64
+Complete implementation/documentation/test-inclusive pre-validation head: 5992a6a6b9cc833588ec1665b87bd97b2cfe0466
+Pre-validation tree: 0e362793bc8b8adf1c9352d7deccf8dda5f55084
+
+PRE-VALIDATION EXACT-HEAD CI
+Workflow: Test and Deploy GitHub Pages
+Event: pull_request
+Run number: 840
+Run id: 34013445709
+Build job id: 101433090492
+Expected checkout: 5992a6a6b9cc833588ec1665b87bd97b2cfe0466
+Actual checkout:   5992a6a6b9cc833588ec1665b87bd97b2cfe0466
+Node: v24.20.0
+npm: 11.19.0
+Commands: npm ci && npm test
+Tests: 703
+Pass: 703
+Fail: 0
+Cancelled: 0
+Skipped: 0
+Todo: 0
+Duration_ms: 37081.179651
+Result: SUCCESS
+Workflow completed: 2026-09-06T05:14:33Z
+PR deployment is intentionally skipped by the unchanged Pages workflow; this is not a skipped test.
+
+SCOPE OF THE GREEN IMPLEMENTATION HEAD
+
+1. Document 115 owns independent station TCS/ABS and product composition. Document 114 still owns the unchanged five-axis tire law, compiler, live selector values and defaults. Tire/handling calibration and front/rear tire differentiation are paused; handling remains DEV_UNCALIBRATED.
+2. TCS reduces each driven station independently AFTER the existing requested AWD split. Removed torque is not redistributed; delivered split is a derived result, not a fixed target. No front/rear shaft lock or left/right wheel model is introduced. The ideal independent wheel-side actuator approximation and retained RPM observation are explicitly documented.
+3. ABS reduces front/rear brake torques independently. The inverse net-torque function shares the SAME monotone implicit wheel equation. No new tire law, force cap, wheel-speed clamp, target beta or controller memory is introduced. Residual effective drive/brake overlap is handled as a pair, not assumed absent because canonical requests are exclusive.
+4. Only the four bike catalog entries enable the separate signed-compression support constraint. It uses fresh contact geometry, reach velocity, existing suspension frequency and the same force/moment assembly as the physical update, including wheel rotation reactions. Its explicit initial reserve is 8% of static compression, not a normal-force floor or a tire retune.
+5. One final owner returns delivered torques, wheel roots and their wrench for actual integration. Candidate support evaluations do not mutate physical state or gear. Unreachable zero-torque support states remain reported as infeasible; no extra force, early recovery, pitch/velocity correction or unrequested torque conceals them.
+6. Every browser player/rival/replacement constructor explicitly receives catalog protection. Recovery preserves the instance policy; replacement selects the NEW vehicle's policy. Raw lower mechanics remain available for historical no-control diagnostics, not through a product protection-off selector.
+7. Seventeen new tests cover inverse wheel torque, simultaneous residual pedals, independent AWD/ABS, reverse/stopping/holding/airborne wheels, already-excessive slip without state snapping, actual torque telemetry, all-bike 60/120/240 Hz drive/brake, raw/slip-only/full-support causal comparison, all-nine launch/handoff/recovery, unchanged neutral inertia, fresh-state versus telemetry ownership and complete browser wiring.
+8. The four bikes pass the stated 54 km/h full-pedal flat baseline at all three time steps without geometric wheel lift, overturn or support-infeasible time, while retaining useful acceleration and stopping. The raw full-brake failure and slip-only rear lift remain reproducible. These are specific tested conditions, not a global guarantee.
+9. Protected product rivals complete mountain, Tsukuba and FISCO while retaining the original progress/lateral/slip/no-recovery assertions. Historical raw M9.20 power-drift capability tests remain enabled but are not protected-product power-drift requirements. No tests are skipped or silently weakened.
+10. The reproducible 36-case 120 Hz raw/protected comparison and its conditions are preserved in docs/research/M9_21_TORQUE_PROTECTION_BASELINE.json and docs/research/M9_21_IMPLEMENTATION_EVIDENCE.md. The ordinary repository probe regenerates the comparison; historical report snapshots and previous immutable validation records are unchanged.
+
+LOCAL AND TRANSPORT EVIDENCE
+
+Direct container Git networking failed DNS. A temporary feature-branch workflow exported exact baseline source, locked compiler dependencies and Node24.20.0. An integrity-pinned patch transferred the implementation on the feature branch only. The clean remote tree above equals the locally verified staged tree. No temporary workflow or transfer payload is present in that tree; the Pages workflow is unchanged. Local Node24 full suites also passed 703/703, but this record uses the independent exact-head GitHub CI evidence above as its release prerequisite.
+
+LIMITS / NOT CERTIFIED
+
+- This is torque protection, NOT ESC. Abrupt steering reversal and braking can still produce lateral spin. No yaw/beta controller was authorized.
+- Power-over drift is removed as a product goal; inertial entry/correction/exit remain evaluation goals, not a new completed human-handling certificate.
+- The slip envelope uses current pure-X capacity onset as an explicit initial control choice, not a universally optimal combined-slip target. Full diagnostic tire-grid protection calibration is not complete.
+- The support barrier is a local frozen-tangent approximation. The bounded search returns a verified feasible candidate, not a proof of global monotonicity, optimum performance or arbitrary-terrain viability.
+- Already-excessive slip and inherited pitch momentum may be unreachable through torque reduction alone. Zero-load free wheels, natural crest airborne/recontact, qTravel errors and ordinary overturned recovery remain physical boundaries.
+- Full-domain speed/terrain/vehicle behavior and human keyboard/touch feel are not certified by the finite test set.
+
+FINAL RELEASE IDENTITY / SELF-REFERENCE
+
+Adding this record and its navigation links creates a NEW head. Before release, that record-inclusive exact head must pass another complete CI. Re-fetch main, require ahead_by>0 / behind_by=0 / merge base=current main, then update main with force=false as a PURE FAST-FORWARD. Verify main SHA = PR head SHA = PR merge SHA and the same-SHA main build/deploy and Pages artifact version. Final identity is established by PR #138, Git and workflow/artifact evidence, not by rewriting this immutable record with a self-referential final SHA.

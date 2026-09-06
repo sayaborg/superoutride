@@ -64,3 +64,9 @@ head. Main must equal PR head and merge SHA after non-force pure fast-forward, w
 No temporary source-export workflow or isolated local experiment scripts belong in the release tree.
 
 Evidence and limits: `docs/research/M9_21_IMPLEMENTATION_EVIDENCE.md`.
+
+Immutable pre-validation evidence: `docs/validation/M9_21_TORQUE_PROTECTION_VALIDATION.txt`.
+PR #138 implementation-inclusive head `5992a6a6b9cc833588ec1665b87bd97b2cfe0466` passed
+exact-head Node24 CI #840 (run `34013445709`, build `101433090492`), 703/703 with zero
+fail/cancel/skip/todo. The record was added only after that success. Resolve record-inclusive
+CI and final main/Pages identity from the same PR; do not treat the pre-validation SHA as current.
