@@ -4,6 +4,16 @@ Repository source, tests and current Git/PR/CI state are authoritative over conv
 Numbered milestone documents are chronological records; later documents supersede only the scope
 they explicitly name. Validation files are immutable release evidence, never design authority.
 
+## Restart navigation
+
+The single active restart map is [M9.22 continuation](SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md).
+It preserves checked publication evidence, the task-to-source/test map, completed/open/paused work,
+and commands that need no past conversation or session download. Read it after AGENTS and the root
+README; re-fetch actual main/PR/CI/Pages before using any historical SHA.
+
+[Research index](research/README.md) separates hypotheses, primary inventories, runnable diagnostics
+and preservation limits. Do not read archived experiments as current specifications.
+
 ## Current frozen core
 
 ```text
@@ -111,9 +121,11 @@ changes none of those boundaries.
 SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md
 ```
 
-This is navigation only. It records the pedal HUD, independent torque protection, retained five-axis tire,
-raw-vs-protected diagnostics, paused calibration and remaining handling work. Resolve actual release identity from current Git/PR and exact-SHA CI/Pages.
-Older M9.21/M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
+This remains navigation, not a second normative parameter ledger. Its post-release status distinguishes
+published HUD/protection from unverified interactive display, provisional brake capacity/bias,
+combined-input handling and paused tire work. Its source/test map and research index avoid reliance
+on older conversations. Resolve live release identity from Git/PR and exact-SHA CI/Pages.
+Older M9.21/M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs remain unchanged historical context.
 
 The handling-research decision chain, including corrected and rejected hypotheses, is:
 
@@ -135,7 +147,7 @@ script/JSON/ZIP is in Git or every experiment was rerun. This is not a verbatim 
 Files under `validation/` record exact milestone evidence and must not be rewritten after release.
 Read `validation/README.md` for the standalone-record and exact-head self-reference rules.
 
-Current handling/powertrain lineage includes:
+Current HUD/handling/powertrain validation lineage includes:
 
 ```text
 validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
@@ -153,12 +165,19 @@ validation/M9_17_DIRECT_ROBOTIZED_MT_VALIDATION.txt
 validation/M9_18_LOAD_PROPORTIONAL_ONE_K_TIRE_VALIDATION.txt
 validation/M9_20_FIVE_AXIS_TIRE_VALIDATION.txt
 validation/M9_21_TORQUE_PROTECTION_VALIDATION.txt
+validation/M9_22_PEDAL_TORQUE_HUD_VALIDATION.txt
 ```
 
-M9.21's record names implementation/documentation/test-inclusive head `5992a6a` and successful
-PR #138 CI #840 (703/703). Historical M9.20 records remain unchanged. Adding the record creates a new head, so release still requires a fresh complete exact-head CI
-on the record-inclusive head. Final release identity is established by PR/Git, pure fast-forward
-main, same-SHA main CI and Pages deployment rather than by self-rewriting the immutable record.
+M9.22's record names the green implementation/doc/test-inclusive head `c8c5cca` and PR #142 CI #852.
+Its record-inclusive #853 and same-SHA main #854 also passed 828/828; Pages published `628b3bed`.
+That implementation is already released. The current handoff retains the full SHA and run/artifact
+identities; do not interpret the record's future-tense release gate as unfinished HUD work.
+
+A validation file cannot name the CI run that validates its own newly created bytes without creating
+another commit. Final release identity therefore comes from Git/PR and exact-head workflow evidence,
+not self-rewriting the record. M9.21 and all earlier immutable evidence remain unchanged. Ordinary
+navigation/test cleanup under unchanged numbered authority uses its own PR's exact-head CI and does
+not create another milestone or retrospective validation file.
 
 ## Conflict handling
 
