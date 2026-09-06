@@ -66,11 +66,16 @@ test('every TypeScript module is consumed by source tests or tools', async () =>
   assert.deepEqual(unconsumed, []);
 });
 
-// Current navigation only: archived reports may intentionally name retired/external evidence.
+// Maintained navigation plus retained historical link regressions. Inclusion does not promote
+// historical specifications to current authority; original research bytes are checked separately.
+const currentHandoff = 'docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md';
 const currentDocuments = [
   'AGENTS.md',
   'README.md',
   'docs/README.md',
+  currentHandoff,
+  'docs/116_m9_22_pedal_torque_hud.md',
+  'docs/research/README.md',
   'docs/92_m9_2_selectable_self_steer_gain.md',
   'docs/93_m9_3_tsukuba_circuit.md',
   'docs/115_m9_21_torque_protection.md',
@@ -93,7 +98,7 @@ function documentReferences(source) {
   }
   const localText = source.replace(/https?:\/\/[^\s`<>]+/g, '');
   for (const match of localText.matchAll(
-    /(?:\.\.\/|docs\/|src\/|tests\/|tools\/|validation\/|research\/)[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|html|css)/g,
+    /(?:\.\.\/|docs\/|src\/|tests\/|tools\/|validation\/|research\/)[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|csv|html|css)/g,
   )) references.add(match[0]);
   // Literal directory promises were the hole through which the missing archive passed.
   for (const match of localText.matchAll(/`([^`\n]+)`/g)) {
@@ -101,7 +106,7 @@ function documentReferences(source) {
       && match[1].endsWith('/')) references.add(match[1]);
   }
   // Documentation indexes also use standalone repository-relative filenames in code fences.
-  for (const match of localText.matchAll(/^[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|html|css)$/gm)) {
+  for (const match of localText.matchAll(/^[A-Za-z0-9_.\/-]+\.(?:md|txt|ts|mjs|json|csv|html|css)$/gm)) {
     references.add(match[0]);
   }
   return [...references];
@@ -110,21 +115,25 @@ function documentReferences(source) {
 test('document reference extraction covers directories, relative links and index filenames', () => {
   const source = '`docs/research/m9_20_source_reports/` [manifest](manifest.json) '
     + '[reports](research/reports/) [external](https://example.invalid/docs/absent.md)\n'
-    + '114_m9_20_five_axis_tire.md\n`src/**`';
+    + '114_m9_20_five_axis_tire.md\n`research/primary.csv`\nsummary.csv\n`src/**`';
   assert.deepEqual(documentReferences(source).sort(), [
     'docs/research/m9_20_source_reports/', 'manifest.json', 'research/reports/',
-    '114_m9_20_five_axis_tire.md',
+    '114_m9_20_five_axis_tire.md', 'research/primary.csv', 'summary.csv',
   ].sort());
 });
+
+function resolveDocumentReference(relativeDocument, reference) {
+  return /^(?:docs|src|tests|tools)\//.test(reference)
+    ? path.join(repositoryRoot, reference)
+    : path.resolve(path.dirname(path.join(repositoryRoot, relativeDocument)), reference);
+}
 
 test('current entry documents contain no release-candidate residue or broken repository paths', async () => {
   const missing = [];
   for (const relativeDocument of currentDocuments) {
     const source = await readFile(path.join(repositoryRoot, relativeDocument), 'utf8');
     for (const reference of documentReferences(source)) {
-      const target = /^(?:docs|src|tests|tools)\//.test(reference)
-        ? path.join(repositoryRoot, reference)
-        : path.resolve(path.dirname(path.join(repositoryRoot, relativeDocument)), reference);
+      const target = resolveDocumentReference(relativeDocument, reference);
       if (!await pathExists(target)) missing.push(`${relativeDocument}: ${reference}`);
       else {
         const status = await stat(target);
@@ -159,4 +168,32 @@ test('current documents are valid UTF-8 without the known encoding damage', asyn
   assert.match(readme, /320×240/);
   assert.match(readme, /Road bank is absent from raster geometry/);
   assert.match(readme, /camera roll is zero/);
+});
+
+
+test('repository-only restart is reachable from every entry and covers released and open work', async () => {
+  for (const entry of ['AGENTS.md', 'README.md', 'docs/README.md']) {
+    const source = await readFile(path.join(repositoryRoot, entry), 'utf8');
+    const targets = documentReferences(source).map(ref => resolveDocumentReference(entry, ref));
+    assert.ok(targets.includes(path.join(repositoryRoot, currentHandoff)),
+      `${entry} must point to the single active handoff`);
+  }
+  assert.ok(currentDocuments.includes(currentHandoff), 'the active handoff must be link/encoding checked');
+  const source = await readFile(path.join(repositoryRoot, currentHandoff), 'utf8');
+  const targets = new Set(documentReferences(source).map(ref => resolveDocumentReference(currentHandoff, ref)));
+  for (const required of [
+    'docs/116_m9_22_pedal_torque_hud.md', 'docs/115_m9_21_torque_protection.md',
+    'docs/114_m9_20_five_axis_tire.md', 'docs/98_m9_8_selectable_production_vehicle_catalog.md',
+    'docs/research/README.md', 'docs/validation/M9_22_PEDAL_TORQUE_HUD_VALIDATION.txt',
+    'src/browser/vehicle-debug-hud.ts', 'src/physics/vehicle-profiles.ts',
+    'tests/m9-22-pedal-torque-hud.test.mjs', 'tools/braking-yaw-probe.mjs',
+    'tools/torque-protection-terrain-probe.mjs',
+    'docs/research/M9_21_BRAKING_YAW_120HZ.csv', 'docs/research/M9_21_TERRAIN_120HZ.csv',
+  ]) assert.ok(targets.has(path.join(repositoryRoot, required)), `restart lacks ${required}`);
+  assert.match(source, /already released/i);
+  assert.match(source, /OPEN/);
+  assert.match(source, /PAUSED/);
+  assert.match(source, /DEV_UNCALIBRATED/);
+  assert.doesNotMatch(source, /sandbox:|\/mnt\/data\/|file_[0-9a-f]{16,}/,
+    'restart must not require a former conversation attachment or session path');
 });
