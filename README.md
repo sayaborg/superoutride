@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.21 Independent Torque Protection
+# SUPER OUTRIDE — M9.22 Pedal Torque HUD
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -8,6 +8,22 @@ Super Hang-On, OutRunners and the Super Scaler era.
 
 ## Current milestone
 
+M9.22 makes pedal protection visible in the shared DEV HUD. Each ACCEL/BRAKE column has an
+analog INPUT meter and separate F/R delivered-torque meters. Cyan is delivered output; red extends
+from delivered to the pre-protection request (RED=CUT). Unrequested capacity stays empty. Thin
+markers show the authored front/rear capacity/share. Numbers are percentages, not throttle-valve
+angles, brake pressure, tire force, measured deceleration, or grip utilization.
+
+ACCEL uses a common currently available full-throttle scale: a 45:55 requested split reaches
+45%/55%, not 100%/100%; half throttle reaches22.5%/27.5%. Removing front torque does not stretch the
+remaining bars back to100%. BRAKE uses the fixed sum of front/rear maximum brake torques as100%.
+Input-actuator lag is not red. Red combines all M9.21 protection, not separate cause indicators.
+A zero engine torque request, including full rev cut, shows zero drive output and no invented cut.
+
+This changes presentation only. Profile brake capacities/ratios are retained provisional engineering
+seeds; their factory derivation and handling calibration remain open. Tire calibration remains paused.
+HUD authority: `docs/116_m9_22_pedal_torque_hud.md`.
+
 M9.21 adds independent TCS on driven stations and independent front/rear ABS. Motorcycle catalog
 entries additionally prevent acceleration/braking-induced support loss through the same delivered-
 torque boundary. AWD's authored split is a REQUEST split; independent protection may change actual
@@ -16,7 +32,7 @@ Every browser player/rival/replacement is protected; raw mechanics construction 
 unprotected for historical diagnostic comparisons. Handling remains DEV_UNCALIBRATED.
 
 Current control authority: `docs/115_m9_21_torque_protection.md`.
-Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md`.
+Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md`.
 Power-over drifting is no longer a product goal. Inertia-driven entry/correction/exit remain goals.
 Tire calibration and front/rear differentiation are paused. The following tire settings are unchanged.
 
@@ -56,7 +72,8 @@ distinguish archived reports from a complete historical experiment/data archive.
 
 1. `AGENTS.md` — design/release contract.
 2. `docs/README.md` — authority classes and supersession.
-3. `docs/115_m9_21_torque_protection.md`, then `docs/114_m9_20_five_axis_tire.md` — current tire law, five selectors, regression migration.
+3. `docs/116_m9_22_pedal_torque_hud.md` for HUD; `docs/115_m9_21_torque_protection.md` for protection;
+   `docs/114_m9_20_five_axis_tire.md` for the retained tire law and selectors.
 4. `docs/112_m9_18_load_proportional_one_k_tire.md` — retained load/contact/recovery contract.
 5. `docs/111_m9_17_direct_robotized_mt.md` and `docs/110_m9_16_engine_power_diagnostic_selector.md`.
 6. `docs/101_m9_11_simplified_travel_direction_steering.md`, `docs/107_m9_13_full_screen_analog_touch.md`,
