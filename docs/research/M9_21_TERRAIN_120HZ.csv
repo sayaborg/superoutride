@@ -1,0 +1,91 @@
+id,name,completed,seconds,finalSpeed,maxAbsBetaAbove15,maxAbsMovingBeta,speedAtMaxMovingBeta,infeasibleTime,airborneTime,recontacts,error,overturned
+TESTAROSSA,lowGripDrive,True,6,35.6852,0,0,,0,0,0,,False
+TESTAROSSA,lowGripBrake,True,10,1.93803e-08,0,0,,0,0,0,,False
+TESTAROSSA,uphillDrive,True,6,35.3117,0,0,,0,0,0,,False
+TESTAROSSA,downhillBrake,True,8,0.00252708,0,0,,0,0,0,,False
+TESTAROSSA,gripDropBrake,True,10,9.33657e-10,0,0,,0,0,0,,False
+TESTAROSSA,turnDrive,True,6,41.4952,2.31502,2.31502,29.4597,0,0,0,,False
+TESTAROSSA,turnBrake,True,6,2.67453e-05,22.6645,22.9276,13.7283,0,0,0,,False
+TESTAROSSA,lowGripReversal,True,6,12.0064,78.6331,78.6331,17.1626,0,0,0,,False
+TESTAROSSA,crestCoast,False,2.175,66.6369,0,0,,0,1.25,1,VehicleOutsideModelError: FRONT suspension compression 0.2907843995545303 reached/exceeded qTravel 0.29,False
+TESTAROSSA,crestDrive,False,2.2,66.9553,0,0,,0,1.28333,1,VehicleOutsideModelError: FRONT suspension compression 0.2923982317244395 reached/exceeded qTravel 0.29,False
+911_TURBO_3_3,lowGripDrive,True,6,36.0358,0,0,,0,0,0,,False
+911_TURBO_3_3,lowGripBrake,True,10,1.36012e-08,0,0,,0,0,0,,False
+911_TURBO_3_3,uphillDrive,True,6,33.8009,0,0,,0,0,0,,False
+911_TURBO_3_3,downhillBrake,True,8,0.00252714,0,0,,0,0,0,,False
+911_TURBO_3_3,gripDropBrake,True,10,4.18022e-09,0,0,,0,0,0,,False
+911_TURBO_3_3,turnDrive,True,6,40.095,2.58364,2.58364,29.4251,0,0,0,,False
+911_TURBO_3_3,turnBrake,True,6,0.000133678,28.0202,28.544,13.3229,0,0,0,,False
+911_TURBO_3_3,lowGripReversal,True,6,11.3117,83.7093,83.7093,16.7742,0,0,0,,False
+911_TURBO_3_3,crestCoast,False,2.2,66.2687,0,0,,0,1.28333,1,VehicleOutsideModelError: FRONT suspension compression 0.28100526724680297 reached/exceeded qTravel 0.28,False
+911_TURBO_3_3,crestDrive,False,2.21667,66.4673,0,0,,0,1.3,1,VehicleOutsideModelError: FRONT suspension compression 0.28102047787986617 reached/exceeded qTravel 0.28,False
+CORVETTE_C4,lowGripDrive,True,6,31.6719,0,0,,0,0,0,,False
+CORVETTE_C4,lowGripBrake,True,10,2.01022e-08,0,0,,0,0,0,,False
+CORVETTE_C4,uphillDrive,True,6,29.8171,0,0,,0,0,0,,False
+CORVETTE_C4,downhillBrake,True,8,0.00252696,0,0,,0,0,0,,False
+CORVETTE_C4,gripDropBrake,True,10,8.42146e-09,0,0,,0,0,0,,False
+CORVETTE_C4,turnDrive,True,6,36.6419,2.39371,2.39371,29.4208,0,0,0,,False
+CORVETTE_C4,turnBrake,True,6,0.00031832,29.1819,29.2214,14.6475,0,0,0,,False
+CORVETTE_C4,lowGripReversal,True,6,13.1755,76.8601,76.8601,18.3608,0,0,0,,False
+CORVETTE_C4,crestCoast,False,2.19167,66.8805,0,0,,0,1.26667,1,VehicleOutsideModelError: FRONT suspension compression 0.30254550468799213 reached/exceeded qTravel 0.3,False
+CORVETTE_C4,crestDrive,False,2.225,67.725,0,0,,0,1.29167,1,VehicleOutsideModelError: FRONT suspension compression 0.30146133574579237 reached/exceeded qTravel 0.3,False
+GOLF_GTI_16V,lowGripDrive,True,6,29.1916,0,0,,0,0,0,,False
+GOLF_GTI_16V,lowGripBrake,True,10,5.82139e-09,0,0,,0,0,0,,False
+GOLF_GTI_16V,uphillDrive,True,6,25.5894,0,0,,0,0,0,,False
+GOLF_GTI_16V,downhillBrake,True,8,0.00252712,0,0,,0,0,0,,False
+GOLF_GTI_16V,gripDropBrake,True,10,1.96401e-09,0,0,,0,0,0,,False
+GOLF_GTI_16V,turnDrive,True,6,33.4504,2.38413,2.38413,29.2974,0,0,0,,False
+GOLF_GTI_16V,turnBrake,True,6,0.000203242,50.0802,50.1181,14.6934,0,0,0,,False
+GOLF_GTI_16V,lowGripReversal,True,6,14.1306,76.6173,76.6173,19.8474,0,0,0,,False
+GOLF_GTI_16V,crestCoast,False,2.20833,65.8277,0,0,,0,1.26667,1,VehicleOutsideModelError: FRONT suspension compression 0.320831224883566 reached/exceeded qTravel 0.32,False
+GOLF_GTI_16V,crestDrive,False,2.20833,65.8277,0,0,,0,1.26667,1,VehicleOutsideModelError: FRONT suspension compression 0.320831224883566 reached/exceeded qTravel 0.32,False
+DELTA_HF_INTEGRALE,lowGripDrive,True,6,32.348,0,0,,0,0,0,,False
+DELTA_HF_INTEGRALE,lowGripBrake,True,10,1.64349e-09,0,0,,0,0,0,,False
+DELTA_HF_INTEGRALE,uphillDrive,True,6,28.4638,0,0,,0,0,0,,False
+DELTA_HF_INTEGRALE,downhillBrake,True,8,0.00252709,0,0,,0,0,0,,False
+DELTA_HF_INTEGRALE,gripDropBrake,True,10,1.40744e-10,0,0,,0,0,0,,False
+DELTA_HF_INTEGRALE,turnDrive,True,6,35.2521,2.33162,2.33162,29.3875,0,0,0,,False
+DELTA_HF_INTEGRALE,turnBrake,True,6,4.17631e-05,47.7966,48.8111,13.2308,0,0,0,,False
+DELTA_HF_INTEGRALE,lowGripReversal,True,6,13.6422,79.502,79.502,19.6017,0,0,0,,False
+DELTA_HF_INTEGRALE,crestCoast,False,2.225,66.2344,0,0,,0,1.29167,1,VehicleOutsideModelError: FRONT suspension compression 0.3211128510475182 reached/exceeded qTravel 0.32,False
+DELTA_HF_INTEGRALE,crestDrive,False,2.225,66.4727,0,0,,0,1.3,1,VehicleOutsideModelError: FRONT suspension compression 0.3201105491805088 reached/exceeded qTravel 0.32,False
+VFR750R,lowGripDrive,True,6,36.9081,0,0,,0,0,0,,False
+VFR750R,lowGripBrake,True,10,3.26153e-06,0,0,,0,0,0,,False
+VFR750R,uphillDrive,True,6,41.2191,0,0,,0,0,0,,False
+VFR750R,downhillBrake,True,8,0.00294518,0,0,,0,0,0,,False
+VFR750R,gripDropBrake,True,10,8.9956e-06,0,0,,0,0,0,,False
+VFR750R,turnDrive,True,6,46.4944,4.241,4.241,28.9519,0,0,0,,False
+VFR750R,turnBrake,True,6,0.000254742,108.15,108.272,14.7144,0,0,0,,False
+VFR750R,lowGripReversal,True,6,9.55532,112.019,112.019,18.3741,0,0,0,,False
+VFR750R,crestCoast,False,3.16667,58.4002,0,0,,0,1.58333,2,,True
+VFR750R,crestDrive,False,3.075,59.2981,0,0,,0.208333,1.55833,2,,True
+R80_GS_PARIS_DAKAR,lowGripDrive,True,6,31.0682,0,0,,0,0,0,,False
+R80_GS_PARIS_DAKAR,lowGripBrake,True,10,0.000696586,0,0,,0,0,0,,False
+R80_GS_PARIS_DAKAR,uphillDrive,True,6,27.6838,0,0,,0,0,0,,False
+R80_GS_PARIS_DAKAR,downhillBrake,True,8,0.00463384,0,0,,0,0,0,,False
+R80_GS_PARIS_DAKAR,gripDropBrake,True,10,0.000702874,0,0,,0,0,0,,False
+R80_GS_PARIS_DAKAR,turnDrive,True,6,33.5584,3.9857,3.9857,28.64,0,0,0,,False
+R80_GS_PARIS_DAKAR,turnBrake,True,6,0.027015,107.868,109.338,13.6194,0,0,0,,False
+R80_GS_PARIS_DAKAR,lowGripReversal,True,6,8.43555,118.467,118.467,16.4936,0,0,0,,False
+R80_GS_PARIS_DAKAR,crestCoast,False,2.25,57.9867,0,0,,0,1.29167,1,VehicleOutsideModelError: REAR suspension compression 0.3526088936837586 reached/exceeded qTravel 0.35,False
+R80_GS_PARIS_DAKAR,crestDrive,False,2.25,57.9867,0,0,,0,1.29167,1,VehicleOutsideModelError: REAR suspension compression 0.3526088970443806 reached/exceeded qTravel 0.35,False
+FXRT_SPORT_GLIDE,lowGripDrive,True,6,29.7718,0,0,,0,0,0,,False
+FXRT_SPORT_GLIDE,lowGripBrake,True,10,0.000283158,0,0,,0,0,0,,False
+FXRT_SPORT_GLIDE,uphillDrive,True,6,26.1334,0,0,,0,0,0,,False
+FXRT_SPORT_GLIDE,downhillBrake,True,8,0.000404206,0,0,,0,0,0,,False
+FXRT_SPORT_GLIDE,gripDropBrake,True,10,0.000164428,0,0,,0,0,0,,False
+FXRT_SPORT_GLIDE,turnDrive,True,6,31.2346,3.75463,3.75463,28.728,0,0,0,,False
+FXRT_SPORT_GLIDE,turnBrake,True,6,0.00284417,119.228,128.323,11.6603,0,0,0,,False
+FXRT_SPORT_GLIDE,lowGripReversal,True,6,8.44386,117.803,117.803,16.4798,0,0,0,,False
+FXRT_SPORT_GLIDE,crestCoast,False,2.23333,58.8208,0,0,,0,1.25,1,VehicleOutsideModelError: REAR suspension compression 0.3412627841419121 reached/exceeded qTravel 0.34,False
+FXRT_SPORT_GLIDE,crestDrive,False,2.23333,58.8208,0,0,,0,1.25,1,VehicleOutsideModelError: REAR suspension compression 0.3412627841419121 reached/exceeded qTravel 0.34,False
+PX200E_ARCOBALENO,lowGripDrive,True,6,21.1244,0,0,,0,0,0,,False
+PX200E_ARCOBALENO,lowGripBrake,True,10,0.0014754,0,0,,0,0,0,,False
+PX200E_ARCOBALENO,uphillDrive,True,6,17.85,0,0,,0,0,0,,False
+PX200E_ARCOBALENO,downhillBrake,True,8,0.0127593,0,0,,0,0,0,,False
+PX200E_ARCOBALENO,gripDropBrake,True,10,0.00132372,0,0,,0,0,0,,False
+PX200E_ARCOBALENO,turnDrive,True,6,24.4776,4.21632,4.21632,28.4481,0,0,0,,False
+PX200E_ARCOBALENO,turnBrake,True,6,0.034995,105.732,106.583,14.0996,0,0,0,,False
+PX200E_ARCOBALENO,lowGripReversal,True,6,7.48642,134.224,134.224,16.101,0,0,0,,False
+PX200E_ARCOBALENO,crestCoast,False,2.20833,55.8447,0,0,,0,1.21667,1,VehicleOutsideModelError: REAR suspension compression 0.3417870269621833 reached/exceeded qTravel 0.34,False
+PX200E_ARCOBALENO,crestDrive,False,2.20833,55.8447,0,0,,0,1.21667,1,VehicleOutsideModelError: REAR suspension compression 0.3417870269621833 reached/exceeded qTravel 0.34,False
