@@ -93,7 +93,8 @@ test('M8.1 digital request produces continuous steering and neutral self-counter
   assert.ok(car.control.actualSteerAngle < 0, 'neutral input must countersteer toward zero front slip');
 });
 
-test('common HUD reads actuator telemetry without adding hidden assists', () => {
+// M9.22 replaces pedal actuator-only graphics with read-only delivered station torque.
+test('common HUD reads delivered pedal telemetry without adding hidden assists', () => {
   const car = createTestCar(guide, height, surfaces, 300, 8, 10);
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: true, brake: false }, 1 / 60);
   assert.ok(car.control.deliveredDriveTorque >= 0);
@@ -105,8 +106,9 @@ test('common HUD reads actuator telemetry without adding hidden assists', () => 
     car,
   );
   assert.equal(hud.requestedThrottle, 1);
-  assert.ok(hud.actualThrottle > 0 && hud.actualThrottle < 1);
-  assert.equal(hud.actualBrake, 0);
+  assert.ok(hud.rearDrive.delivered > 0 && hud.rearDrive.delivered < 1);
+  assert.equal(hud.frontDrive.delivered, 0);
+  assert.equal(hud.frontBrake.delivered + hud.rearBrake.delivered, 0);
   assert.ok(hud.actualSteering >= -1 && hud.actualSteering <= 1);
   assert.match(hud.instruments, /^SPD\s+\d+km\/h  RPM\s+\d+  GEAR \d+/);
 });
