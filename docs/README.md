@@ -16,11 +16,12 @@ they explicitly name. Validation files are immutable release evidence, never des
 These own the frozen pseudo-3D renderer, metric and open-runtime invariants. Do not weaken them from
 vehicle handling work.
 
-## Current vehicle / handling authority
+## Current HUD / vehicle / handling authority
 
 Read newest first for the requested scope:
 
 ```text
+116_m9_22_pedal_torque_hud.md
 115_m9_21_torque_protection.md
 114_m9_20_five_axis_tire.md
 113_m9_19_progressive_drift_calibration.md
@@ -44,6 +45,11 @@ Read newest first for the requested scope:
 80_m8_1_car_self_steering_control.md
 ```
 
+M9.22 owns only read-only pedal HUD semantics: exact canonical input percentages, delivered F/R
+torque-equivalent bars, authored capacity ticks and red requested-minus-delivered reductions.
+It supersedes the pedal portion of88, not115 protection or114 tire/handling. No brake-capacity
+retuning, additional controller, input change or physics correction is part of this milestone.
+
 M9.21 is current for independent station TCS/ABS, bike-only support-loss prevention and protected
 product composition. AWD distributes requests before independent reductions; actual split may
 change without reallocation. All browser actors and replacement paths pass explicit catalog policy.
@@ -58,7 +64,7 @@ GX .50..4.00 step .05   default 2.50   H forward-cycle
 PX 1..60% step 1 point  default 8%     J forward-cycle
 GY .50..4.00 step .05   default 2.20   G forward-cycle
 PY 1..60% step 1 point  default 10%    L forward-cycle
-KN .10.. .95 step .01   default .74    N forward-cycle
+KN .10.. .95 step .01   default .74   N forward-cycle
 ```
 
 Each axis also has explicit minus/value/plus UI controls. Authoring compiles atomically to resolved
@@ -92,7 +98,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `115_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `116_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 
@@ -102,12 +108,12 @@ changes none of those boundaries.
 ## Current takeover context
 
 ```text
-SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_21.md
+SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md
 ```
 
-This is navigation only. It records independent torque protection, retained five-axis tire,
+This is navigation only. It records the pedal HUD, independent torque protection, retained five-axis tire,
 raw-vs-protected diagnostics, paused calibration and remaining handling work. Resolve actual release identity from current Git/PR and exact-SHA CI/Pages.
-Older M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
+Older M9.21/M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs are historical after this checkpoint.
 
 The handling-research decision chain, including corrected and rejected hypotheses, is:
 
