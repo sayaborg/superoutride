@@ -3,6 +3,7 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
+import { sampleGuideCurve } from '../core/guide-curve.js';
 import { arcadeBodyKinematics, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
@@ -167,7 +168,7 @@ export function recoverM5VehicleToGuideCoordinate(
   const coordinate = {
     s: target.s,
     l: target.l,
-    segmentIndex: segmentIndexAt(curve.segments, target.s),
+    segmentIndex: sampleGuideCurve(curve, target.s).segmentIndex,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
@@ -234,14 +235,4 @@ function reconstructVehicle(
       vehicle.powertrain.engineTorqueMultiplier,
     ),
   );
-}
-
-function segmentIndexAt(
-  segments: readonly { readonly sStart: number; readonly sEnd: number; readonly index: number }[],
-  s: number,
-): number {
-  for (const segment of segments) {
-    if (s >= segment.sStart - 1e-9 && s <= segment.sEnd + 1e-9) return segment.index;
-  }
-  throw new RangeError('recovery target is outside Guide segments');
 }

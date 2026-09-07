@@ -6,7 +6,7 @@ import {
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import { sampleGuideCurve, type CourseCoordinate } from '../core/guide-curve.js';
+import type { CourseCoordinate } from '../core/guide-curve.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { CompiledTireProfile } from './tire-wheel.js';
@@ -260,7 +260,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   coordinate: CourseCoordinate,
 ): SurfaceGeometryObservation {
   const curve = guideCoordinateCurve(guide);
-  const guideSample = sampleGuideCurve(curve, coordinate.s);
+  const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l);
   const segment = curve.segments[guideSample.segmentIndex]!;
   let curvature = 0;
   let metric = 1;
@@ -294,11 +294,10 @@ export function sampleSurfaceGeometryAtCoordinate(
     scale3(horizontalTangent, -heightDerivativeByPlanArc),
     scale3(WORLD_UP, offsetMetric),
   ), WORLD_UP);
-  const plan = guideCoordinateToWorld(guide, coordinate.s, coordinate.l);
   const sample = surfaces.sample(coordinate.s, coordinate.l);
   return {
     coordinate,
-    point: { x: plan.x, y: heightSample.y, z: plan.z },
+    point: { x: guideSample.x, y: heightSample.y, z: guideSample.z },
     horizontalTangent,
     right,
     tangent,

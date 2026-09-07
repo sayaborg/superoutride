@@ -160,6 +160,10 @@ These decisions do not imply that all lateral motion should be removed.
 
 ## 5. Open work — resume from evidence, not from an already completed investigation
 
+Current requested cleanup: [complete audit queue](maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
+Use that queue for simplification work; do not restart paused calibration or infer a core freeze
+from structural cleanup. The queue includes explicit retained and unresolved audit findings.
+
 This is a work queue, not authorization for a new controller or altered physical parameters.
 Choose the next requested scope and pass AGENTS' Architecture Decision Gate before implementation.
 

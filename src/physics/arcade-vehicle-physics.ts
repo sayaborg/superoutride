@@ -1,4 +1,5 @@
-import type { GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { sampleGuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
@@ -113,7 +114,8 @@ export function createArcadeVehicle(
     tireFrictionCalibration?.front ?? profile.frontStation.tire,
     tireFrictionCalibration?.rear ?? profile.rearStation.tire,
   );
-  const coordinate = { s, l, segmentIndex: locateSegmentIndex(guide, s), distanceSquared: 0 };
+  const coordinate = { s, l, segmentIndex: sampleGuideCurve(guideCoordinateCurve(guide), s).segmentIndex,
+    distanceSquared: 0 };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
   if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
@@ -184,9 +186,9 @@ export function updateArcadeVehicle(
       vehicle.steeringCalibration.steeringActuatorResponse,
     );
     const steeringRequest = clamp(input.steering, -1, 1);
-    const bodyBeforeSteer = arcadeBodyKinematics(vehicle);
+    const body = arcadeBodyKinematics(vehicle);
     const bodyTravelDirection = vehicleBodyTravelDirection(
-      bodyBeforeSteer,
+      body,
       profile.steeringLowSpeedRegularization,
     );
     const steeringOffset = vehicle.actuator.steering
@@ -199,7 +201,6 @@ export function updateArcadeVehicle(
       substep,
       profile,
     );
-    const body = arcadeBodyKinematics(vehicle);
     const front = deriveContactObservation(
       guide,
       height,
@@ -280,36 +281,39 @@ export function updateArcadeVehicle(
     vehicle.pitch = wrapAngle(vehicle.pitch + vehicle.pitchRate * substep);
     refreshGuideObservation(guide, vehicle);
 
-    vehicle.control.steeringRequest = steeringRequest;
-    vehicle.control.steeringActuator = vehicle.actuator.steering;
-    vehicle.control.throttleActuator = vehicle.actuator.throttle;
-    vehicle.control.brakeActuator = vehicle.actuator.brake;
-    vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;
-    vehicle.control.handwheelAngle = vehicle.frontSteerAngle * profile.steeringRatio;
-    vehicle.control.frontSlipAngle = front.forceTransmitting && front.tireFrameValid
-      ? regularizedTireSlipAngle(
-        front.longitudinalVelocity,
-        front.lateralVelocity,
-        profile.lowSpeedRegularization,
-      )
-      : 0;
-    vehicle.control.deliveredDriveTorque = driveTorque
-      - (frontDriveTorque - resolved.frontInput.driveTorque)
-      - (rearDriveTorque - resolved.rearInput.driveTorque);
-    vehicle.control.requestedFrontDriveTorque = frontDriveTorque;
-    vehicle.control.requestedRearDriveTorque = rearDriveTorque;
-    vehicle.control.frontDriveTorque = resolved.frontInput.driveTorque;
-    vehicle.control.rearDriveTorque = resolved.rearInput.driveTorque;
-    vehicle.control.requestedFrontBrakeTorque = frontBrakeTorque;
-    vehicle.control.requestedRearBrakeTorque = rearBrakeTorque;
-    vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
-    vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
-    vehicle.control.supportTorqueScale = resolved.supportScale;
-    vehicle.control.supportFeasible = resolved.supportFeasible;
-    vehicle.control.frontWheelLocked = frontWheel.locked;
-    vehicle.control.rearWheelLocked = rearWheel.locked;
-    vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;
-    vehicle.control.rearUtilization = Number.isFinite(rearWheel.tire.rho) ? rearWheel.tire.rho : 0;
+    // Output-only cache: observers consume one completed outer update, never an inner trial.
+    if (step === VEHICLE_SUBSTEPS - 1) {
+      vehicle.control.steeringRequest = steeringRequest;
+      vehicle.control.steeringActuator = vehicle.actuator.steering;
+      vehicle.control.throttleActuator = vehicle.actuator.throttle;
+      vehicle.control.brakeActuator = vehicle.actuator.brake;
+      vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;
+      vehicle.control.handwheelAngle = vehicle.frontSteerAngle * profile.steeringRatio;
+      vehicle.control.frontSlipAngle = front.forceTransmitting && front.tireFrameValid
+        ? regularizedTireSlipAngle(
+          front.longitudinalVelocity,
+          front.lateralVelocity,
+          profile.lowSpeedRegularization,
+        )
+        : 0;
+      vehicle.control.deliveredDriveTorque = driveTorque
+        - (frontDriveTorque - resolved.frontInput.driveTorque)
+        - (rearDriveTorque - resolved.rearInput.driveTorque);
+      vehicle.control.requestedFrontDriveTorque = frontDriveTorque;
+      vehicle.control.requestedRearDriveTorque = rearDriveTorque;
+      vehicle.control.frontDriveTorque = resolved.frontInput.driveTorque;
+      vehicle.control.rearDriveTorque = resolved.rearInput.driveTorque;
+      vehicle.control.requestedFrontBrakeTorque = frontBrakeTorque;
+      vehicle.control.requestedRearBrakeTorque = rearBrakeTorque;
+      vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
+      vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
+      vehicle.control.supportTorqueScale = resolved.supportScale;
+      vehicle.control.supportFeasible = resolved.supportFeasible;
+      vehicle.control.frontWheelLocked = frontWheel.locked;
+      vehicle.control.rearWheelLocked = rearWheel.locked;
+      vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;
+      vehicle.control.rearUtilization = Number.isFinite(rearWheel.tire.rho) ? rearWheel.tire.rho : 0;
+    }
 
     finalFront = front;
     finalRear = rear;
@@ -460,14 +464,6 @@ function installArcadeVehicleDerivedAccessors(
     },
   });
   return vehicle;
-}
-
-function locateSegmentIndex(guide: GuideCoordinateSource, s: number): number {
-  const curve = 'guide' in guide ? guide.guide : guide;
-  for (const segment of curve.segments) {
-    if (s >= segment.sStart - 1e-9 && s <= segment.sEnd + 1e-9) return segment.index;
-  }
-  throw new RangeError('vehicle spawn s is outside Guide');
 }
 
 export type { VehicleControlState };

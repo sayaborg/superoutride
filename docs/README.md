@@ -14,6 +14,10 @@ README; re-fetch actual main/PR/CI/Pages before using any historical SHA.
 [Research index](research/README.md) separates hypotheses, primary inventories, runnable diagnostics
 and preservation limits. Do not read archived experiments as current specifications.
 
+[Simplification audit queue](maintenance/SIMPLIFICATION_AUDIT_STATUS.md) tracks the current cleanup
+work, explicit retained/held findings and the evidence needed for closure. It does not declare
+vehicle handling or the Core complete.
+
 ## Current frozen core
 
 ```text

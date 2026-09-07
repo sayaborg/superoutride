@@ -245,7 +245,7 @@ export function guideCourseToWorld(guide: GuideCurve, s: number, l: number): Gui
 }
 
 export function locateWorldOnGuideGlobal(guide: GuideCurve, world: Vec2, clampL = false): CourseCoordinate {
-  return bestCandidate(guide, world, guide.segments.map((segment) => segment.index), clampL);
+  return bestCandidate(guide, world, 0, guide.segments.length - 1, clampL);
 }
 
 export function locateWorldOnGuideLocal(
@@ -262,8 +262,7 @@ export function locateWorldOnGuideLocal(
 
   const first = Math.max(0, previousSegmentIndex - searchRadius);
   const last = Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius);
-  const indices = Array.from({ length: last - first + 1 }, (_, offset) => first + offset);
-  return bestCandidate(guide, world, indices, clampL);
+  return bestCandidate(guide, world, first, last, clampL);
 }
 
 export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLocal: number): GuideSample {
@@ -292,11 +291,12 @@ export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLo
 function bestCandidate(
   guide: GuideCurve,
   world: Vec2,
-  segmentIndices: readonly number[],
+  firstIndex: number,
+  lastIndex: number,
   clampL: boolean,
 ): CourseCoordinate {
   let best: CourseCoordinate | null = null;
-  for (const index of segmentIndices) {
+  for (let index = firstIndex; index <= lastIndex; index += 1) {
     const candidate = projectWorldToGuideSegment(guide, guide.segments[index]!, world, clampL);
     if (!best || candidate.distanceSquared < best.distanceSquared) best = candidate;
   }

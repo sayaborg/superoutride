@@ -60,7 +60,8 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
     const upper = (vx + slip * referenceSpeed) / radius;
     drive = Math.max(0, Math.min(drive, wheelRequiredNetTorque(input, upper) + brake));
   }
-  return { ...input, driveTorque: drive, brakeTorque: brake };
+  return drive === input.driveTorque && brake === input.brakeTorque
+    ? input : { ...input, driveTorque: drive, brakeTorque: brake };
 }
 
 export interface ProtectedWheelPair {
