@@ -1,4 +1,3 @@
-import { M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import {
@@ -23,7 +22,7 @@ import {
   M7_2_RIVAL_START_L,
   createM72DefaultBranchingParent,
 } from './dev/m7-2-default-branching-highway.js';
-import { M8_3_BRANCHING_COURSE_MODE } from './dev/m8-3-course-debug-mode.js';
+import { M8_3_BRANCHING_COURSE_MODE, M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
 import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
 import {
   createFieldRouteProgressState,

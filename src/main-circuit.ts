@@ -1,5 +1,3 @@
-import { M9_3_DEV_SESSION_CONFIGURATION } from './dev/m9-3-tsukuba-circuit.js';
-import { M9_6_FISCO_DEV_SESSION_CONFIGURATION } from './dev/m9-6-fisco-circuit.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
@@ -14,7 +12,7 @@ import {
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from './core/presentation-scale.js';
 import {
-  M9_3_DEV_COURSE_MODE,
+  M9_3_DEV_SESSION_CONFIGURATION,
   M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
   M9_3_TSUKUBA_PLAYER_START_L,
   M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
@@ -23,7 +21,7 @@ import {
   createM93TsukubaGroundProfile,
 } from './dev/m9-3-tsukuba-circuit.js';
 import {
-  M9_6_FISCO_DEV_COURSE_MODE,
+  M9_6_FISCO_DEV_SESSION_CONFIGURATION,
   M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
   M9_6_FISCO_PLAYER_START_L,
   M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
@@ -67,7 +65,6 @@ const selectedCourseMode = selectBrowserCourseMode(
 );
 const circuitBuilders = {
   fisco: () => ({
-    courseMode: M9_6_FISCO_DEV_COURSE_MODE,
     session: M9_6_FISCO_DEV_SESSION_CONFIGURATION,
     playerRecoveryProfile: M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
     playerStartL: M9_6_FISCO_PLAYER_START_L,
@@ -77,7 +74,6 @@ const circuitBuilders = {
     groundProfile: createM96FiscoGroundProfile(),
   }),
   circuit: () => ({
-    courseMode: M9_3_DEV_COURSE_MODE,
     session: M9_3_DEV_SESSION_CONFIGURATION,
     playerRecoveryProfile: M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
     playerStartL: M9_3_TSUKUBA_PLAYER_START_L,

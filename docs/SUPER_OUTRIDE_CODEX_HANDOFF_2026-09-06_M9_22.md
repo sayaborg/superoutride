@@ -96,7 +96,7 @@ and document 98's historical tire/steering/launch descriptions must not revive s
 | TCS / ABS / bike support | [115](115_m9_21_torque_protection.md) | [torque protection](../src/physics/torque-protection.ts), [integration and telemetry](../src/physics/arcade-vehicle-physics.ts), [control tests](../tests/m9-21-torque-protection.test.mjs) |
 | Tire / wheel law | [114](114_m9_20_five_axis_tire.md), retained [112](112_m9_18_load_proportional_one_k_tire.md) | [tire and wheel](../src/physics/tire-wheel.ts), [calibration compiler](../src/physics/tire-friction-calibration.ts), [browser choices](../src/browser/tire-friction-selection.ts) |
 | Contact / load / wrench / recovery | 115 and 112 within retained [87](87_m9_0_two_station_arcade_vehicle_dynamics.md) | [contact](../src/physics/vehicle-dynamics.ts), [shared wrench](../src/physics/vehicle-wrench.ts), [recovery](../src/gameplay/recovery.ts) |
-| Vehicle identity / brake capacity / drive split | [98](98_m9_8_selectable_production_vehicle_catalog.md), with 115's delivered-torque boundary | [profiles and compiler](../src/physics/vehicle-profiles.ts), [catalog and protection composition](../src/vehicle/vehicle-catalog.ts) |
+| Vehicle identity / brake capacity / drive split | [98](98_m9_8_selectable_production_vehicle_catalog.md), with 115's delivered-torque boundary | [product authoring](../src/vehicle/production-vehicle-profiles.ts), [generic compiler](../src/physics/vehicle-profiles.ts), [catalog/presentation/protection composition](../src/vehicle/vehicle-catalog.ts) |
 | Engine / gearbox / ENG | [111](111_m9_17_direct_robotized_mt.md), [110](110_m9_16_engine_power_diagnostic_selector.md) | [automatic powertrain](../src/physics/automatic-powertrain.ts) |
 | Steering / input response | [101](101_m9_11_simplified_travel_direction_steering.md), [107](107_m9_13_full_screen_analog_touch.md), [108](108_m9_14_compact_touch_expanded_diagnostic_ranges.md) | [canonical input](../src/input/driving-input.ts), [actuators](../src/physics/driving-actuator.ts), [touch](../src/input/touch-input.ts) |
 | Integration / publication | [AGENTS](../AGENTS.md), [validation policy](validation/README.md) | [boot](../src/boot.ts), [LINEAR](../src/main-linear.ts), [BRANCHING](../src/main.ts), [CIRCUIT](../src/main-circuit.ts), [Pages workflow](../.github/workflows/pages.yml) |
@@ -120,7 +120,7 @@ protection, with one delivered-torque owner. AWD first distributes requests, the
 may change the actual split. Removed torque is not redistributed; the shafts are not locked.
 No ESC, target beta or direct body/wheel-state correction was introduced.
 
-**Brake capacity/bias is OPEN, not silently calibrated by ABS.** In vehicle-profiles.ts, front and
+**Brake capacity/bias is OPEN, not silently calibrated by ABS.** In production-vehicle-profiles.ts, front and
 rear maximum brake torques are direct provisional engineering seeds (98 section 6), not identified
 factory/hydraulic values. One brake actuator multiplies each maximum before protection; the ratio
 of maxima is the basic requested torque split. ABS/support may change delivered amounts. The HUD
@@ -224,10 +224,11 @@ the root README. Update its navigation/status with source-backed changes, not a 
 parameter ledger. Keep earlier handoffs, numbered historical prose, validation records, original
 research reports and their manifest bytes unchanged. No file move or compatibility stub is needed.
 
-This cleanup changes documentation/navigation and their checks only, under unchanged 116/115/114.
-It is not a new milestone or normative boundary, and does not require a new standalone validation
-record under the existing policy. Its exact-head full CI and eventual main/Pages checks belong to
-its own PR. The checked implementation baseline in section 2 remains historical after that release.
+The earlier handoff cleanup changed documentation/navigation only, under unchanged 116/115/114,
+and required no standalone record. That decision does not cover the later session ownership change
+in 117, which explicitly requires its own validation-inclusive record and exact-head CI. Other
+behavior-identical audit refactors use their PR evidence. Section 2's behavior baseline remains
+historical; current cleanup publication evidence is indexed in the maintenance audit ledger.
 
 For future work: feature branch from freshly verified main, causal tests, complete exact-head CI,
 apply the standalone-record rule, then non-force fast-forward only when merge base=current main

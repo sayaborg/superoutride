@@ -33,6 +33,11 @@ unprotected for historical diagnostic comparisons. Handling remains DEV_UNCALIBR
 
 Current control authority: `docs/115_m9_21_torque_protection.md`.
 Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md`.
+
+Current cleanup and optimization evidence: [audit ledger](docs/maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
+[Session ownership](docs/117_session_configuration_boundary.md) separates opponent configuration
+from course structure without changing public defaults. This work does not certify Core/handling
+completion or resume paused calibration.
 Power-over drifting is no longer a product goal. Inertia-driven entry/correction/exit remain goals.
 Tire calibration and front/rear differentiation are paused. The following tire settings are unchanged.
 

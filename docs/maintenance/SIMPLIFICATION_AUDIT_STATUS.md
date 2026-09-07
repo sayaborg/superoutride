@@ -9,25 +9,25 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Finding | Status / evidence or next action |
 |---|---|
 | P0 known-coordinate initialization | RELEASED: PR #144, b70f245; known-guide-coordinate tests and immutable hotfix record. |
-| P1 checked tire/wheel core | IMPLEMENTED candidate: private force path shared by forward/inverse roots; retain checked public call boundaries and exact root algorithm. |
-| P1 Guide candidate arrays / duplicate sampling | IMPLEMENTED candidate: same ordered contiguous candidates; one plan sample per surface observation. |
-| P1 duplicate placement segment scans | IMPLEMENTED candidate: use existing Core Guide sampling's segment ownership. |
+| P1 checked tire/wheel core | RELEASED #145: private checked-once root core; public boundaries retained; exact reference traces. |
+| P1 Guide candidate arrays / duplicate sampling | RELEASED #145: same ordered contiguous candidates; one plan sample per surface observation. |
+| P1 duplicate placement segment scans | RELEASED #145: existing Core Guide sample owns segment selection. |
 | P1 common browser/player shell | RELEASED: PR #146, 8ee9fedd; 840 tests, main CI 34156117814, inspected Pages artifact/public version. |
-| P2 compiled profile normalization | IMPLEMENTED candidate: explicit runtime shape, station-only wheel/brake/suspension/tire fields; authored seeds and causal normalization regression. |
-| P2 renderer workload opt-in | IMPLEMENTED candidate: optional workload observation, single-pass road-view filtering; exact reference pixels/metrics and browser probe. See RENDER_DIAGNOSTICS_DECISION.md. |
-| P2 body basis reuse | IMPLEMENTED candidate: same substep body used before/after rack update. |
-| P2 final-substep telemetry | IMPLEMENTED candidate: output-only publication once, exact observed outer result. |
+| P2 compiled profile normalization | RELEASED #148: explicit runtime shape, station-only wheel/brake/suspension/tire fields; authored seeds and causal regression. |
+| P2 renderer workload opt-in | RELEASED #147: optional observation, single-pass road-view filtering; exact reference pixels/metrics and browser probe. See RENDER_DIAGNOSTICS_DECISION.md. |
+| P2 body basis reuse | RELEASED #145: same substep body used before/after rack update. |
+| P2 final-substep telemetry | RELEASED #145: output-only publication once, exact observed outer result. |
 | P2 delivered total arithmetic | RETAIN: mathematically equivalent sum may change floating-point rounding; no need to alter it for cleanup. |
-| P2 no-op torque copies | IMPLEMENTED candidate: unchanged immutable request returned directly. |
-| P3 open-domain validation | IMPLEMENTED candidate: four identical profile endpoint checks share one helper. Distinct strict SurfaceMap and Raster/Guide tolerances retained. See OPEN_PROFILE_DOMAIN_DECISION.md. |
+| P2 no-op torque copies | RELEASED #145: unchanged immutable request returned directly. |
+| P3 open-domain validation | RELEASED #149: four identical profile checks share one helper; strict SurfaceMap and Raster/Guide tolerances retained. See OPEN_PROFILE_DOMAIN_DECISION.md. |
 | Runtime local-search failure policy | SEPARATE DECISION: do not silently change moving-vehicle fallback in a behavior-identical refactor. |
 | Course identity / runner mapping / optional bindings | IMPLEMENTED candidate: validated extensible catalog, route-kind runner map and root-only CIRCUIT factories; unbound extra-course mobile regression. |
-| Course vs session rival cardinality | TODO: move cardinality to session composition, preserve existing defaults and physical gate policy. |
+| Course vs session rival cardinality | IMPLEMENTED candidate: 117 moves count alone to SessionConfiguration, preserving public/historical counts and all physical gate rules; validation-inclusive release required. |
 | Rival identity/presentation | IMPLEMENTED candidate: retained catalog choice; sprites derive its explicit metadata and shared output-only bank primitive, not hard-coded CAR. |
-| Vehicle content vs mechanical compiler / open ID | IMPLEMENTED candidate: production-vehicle-profiles above generic compiler, opaque validated ID and synthetic tenth-identity ordinary driving test. See VEHICLE_PROFILE_BOUNDARY_DECISION.md. |
+| Vehicle content vs mechanical compiler / open ID | RELEASED #148: product data above compiler, opaque validated ID and synthetic tenth-identity ordinary driving test. See VEHICLE_PROFILE_BOUNDARY_DECISION.md. |
 | Vehicle presentation and optional bindings | IMPLEMENTED candidate: catalog alone owns family, optional shortcuts with duplicate rejection; actual unbound tenth-vehicle mobile selection regression. |
 | Multi-actor browser performance | MEASURED local 1/4/8/17 actors with full solver and Painter; target-device/all-course acceptance still OPEN. Reproducible browser-performance tool and scope in RENDER_DIAGNOSTICS_DECISION.md. |
-| Course/vehicle/session extensibility and import-boundary checks | TODO with owning structural changes. |
+| Course/vehicle/session extensibility and import-boundary checks | IMPLEMENTED with owning changes: unbound extra course/vehicle controls, synthetic profile, 0/1/16 sessions on each unchanged route form, mechanical import/ownership checks. |
 | Wheel bisection 60 -> 40 | HOLD: separate numerical experiment, not required for exact cleanup; retain 60. |
 | Branching final rival route-choice policy | HOLD: preserve current explicit FIRST_PHYSICAL_CROSSING_LOCKS; do not enable a new product rule. |
 | Brake capacity/bias acceptance | OPEN prerequisite to core-complete claim; profile values remain provisional, no retuning in cleanup. |
@@ -35,7 +35,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Terrain/support envelope | OPEN prerequisite to core-complete claim; retain existing failure evidence, no clamps/fake support. |
 | Core freeze/completion declaration | NOT CLAIMED: depends on explicit acceptance of the three preceding envelopes. |
 | Tire calibration / station differentiation | PAUSED in current authority, unchanged. |
-| Lazy course loading | CONDITIONAL: only if content-loading cost justifies it; not a mandatory abstraction. |
+| Lazy course loading | RETAIN current static module loading; root factories instantiate only selected content. No demonstrated loading problem justifies another loader/cache abstraction. |
 | Historical fixtures/evidence, explicit cyclic adapters, support search and real trial physics | RETAIN intentionally: not dead code or duplicate authority. |
 | Tiny validators / deploy-tree pruning | RETAIN: no demonstrated architectural/value benefit. |
 
