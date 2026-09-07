@@ -12,7 +12,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P1 checked tire/wheel core | IMPLEMENTED candidate: private force path shared by forward/inverse roots; retain checked public call boundaries and exact root algorithm. |
 | P1 Guide candidate arrays / duplicate sampling | IMPLEMENTED candidate: same ordered contiguous candidates; one plan sample per surface observation. |
 | P1 duplicate placement segment scans | IMPLEMENTED candidate: use existing Core Guide sampling's segment ownership. |
-| P1 common browser/player shell | TODO: shared player/input/selector/replacement/HUD wiring; three topology runners stay separate. |
+| P1 common browser/player shell | IMPLEMENTED candidate: driving-shell owns player/input/selectors/HUD; roots retain topology/recovery/race. See BROWSER_SHELL_DECISION.md and browser-driving-shell tests. |
 | P2 compiled profile normalization | TODO: resolved stations own wheel/brake/suspension data; unchanged authored numbers. |
 | P2 renderer workload opt-in | TODO: one render algorithm, identical pixels and diagnostic observations; browser measurement. |
 | P2 body basis reuse | IMPLEMENTED candidate: same substep body used before/after rack update. |
@@ -67,6 +67,21 @@ Node 24.18.0, same local host, one warmup and five alternating-order paired meas
 baseline median 3151.37 ms; candidate median 2817.14 ms (about 10.6% less elapsed time).
 This is a host/Node probe, not browser or 17-actor certification. No CI wall-time threshold.
 Complete local suite: 838/838. Published status must be verified from exact-head CI/PR/Pages.
+
+Hot-path release: PR #145, exact head/main b4d30c111f23622548206d7e6c354612952a9d21.
+Feature CI 34154814613 and main/Pages CI 34155115473 passed all 838 tests.
+The deployed artifact and public version endpoint were inspected at that SHA. The hot-path
+candidate entries above are RELEASED; browser/structural work remains separate.
+
+### Browser shell verification
+
+The shared shell replaces duplicated browser wiring, not the three topology runners. DOM-event
+regression exercises calibration, engine power, vehicle replacement, same-ID no-op, input
+arbitration, camera and recovery callbacks. Existing source assertions now inspect the shared
+owner; physical/integration assertions are unchanged. Local browser inspection confirmed LINEAR
+rendering and Ferrari-to-RC30 replacement retaining GX 2.55 / ENG 1.5, movement-yaw selection and
+manual recovery, with no captured console errors. This is wiring verification, not handling or
+performance acceptance. See BROWSER_SHELL_DECISION.md for the seven-point gate.
 
 CI attempt 34154460898 exposed the invalid assumption that the local Mac/Node hash would also be
 the Linux/Node hash (837/838). The workflow now builds immutable b70f245 beside the candidate and
