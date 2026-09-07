@@ -20,3 +20,8 @@ one route-kind-to-runner map, not a duplicated entry filename on every course. C
 factories are registered only in the existing top-level root and instantiate only the selection.
 Synthetic additional entries exercise the actual selector and runner mapping without new unions
 or mechanics branches. The four public URLs, labels, defaults and composed fixtures stay unchanged.
+
+Local browser verification: TSUKUBA boots through the registered CIRCUIT factory; selecting RC30
+reconstructs the player and displays BIKE art from catalog metadata. Selecting FISCO navigates to
+the existing URL, boots its registered factory and renders the car/road/HUD. No captured console
+errors. This is composition/presentation verification, not handling acceptance.

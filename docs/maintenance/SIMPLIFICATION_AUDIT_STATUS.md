@@ -21,11 +21,11 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P2 no-op torque copies | IMPLEMENTED candidate: unchanged immutable request returned directly. |
 | P3 open-domain validation | IMPLEMENTED candidate: four identical profile endpoint checks share one helper. Distinct strict SurfaceMap and Raster/Guide tolerances retained. See OPEN_PROFILE_DOMAIN_DECISION.md. |
 | Runtime local-search failure policy | SEPARATE DECISION: do not silently change moving-vehicle fallback in a behavior-identical refactor. |
-| Course identity / runner mapping / optional bindings | TODO: one lightweight catalog, route-kind runner mapping; test additional entries without new mechanics. |
+| Course identity / runner mapping / optional bindings | IMPLEMENTED candidate: validated extensible catalog, route-kind runner map and root-only CIRCUIT factories; unbound extra-course mobile regression. |
 | Course vs session rival cardinality | TODO: move cardinality to session composition, preserve existing defaults and physical gate policy. |
-| Rival identity/presentation | TODO: composition data owns catalog choice, same solver; no new roster product policy. |
+| Rival identity/presentation | IMPLEMENTED candidate: retained catalog choice; sprites derive its explicit metadata and shared output-only bank primitive, not hard-coded CAR. |
 | Vehicle content vs mechanical compiler / open ID | IMPLEMENTED candidate: production-vehicle-profiles above generic compiler, opaque validated ID and synthetic tenth-identity ordinary driving test. See VEHICLE_PROFILE_BOUNDARY_DECISION.md. |
-| Vehicle presentation and optional bindings | TODO: catalog/binding authority, not mechanical identity. |
+| Vehicle presentation and optional bindings | IMPLEMENTED candidate: catalog alone owns family, optional shortcuts with duplicate rejection; actual unbound tenth-vehicle mobile selection regression. |
 | Multi-actor browser performance | MEASURED local 1/4/8/17 actors with full solver and Painter; target-device/all-course acceptance still OPEN. Reproducible browser-performance tool and scope in RENDER_DIAGNOSTICS_DECISION.md. |
 | Course/vehicle/session extensibility and import-boundary checks | TODO with owning structural changes. |
 | Wheel bisection 60 -> 40 | HOLD: separate numerical experiment, not required for exact cleanup; retain 60. |
