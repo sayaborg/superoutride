@@ -63,6 +63,30 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### Known-placement Guide observation hotfix (2026-09-08)
+
+Spawn/recovery previously discarded their known placement segment and globally projected the
+reconstructed CG. On overlapping finite circuit copies this selected an earlier copy, breaking
+the shared window ruler. `initializeGuideObservation` now requires that segment and delegates to
+the existing local coordinate-frame projection. It still observes the actual world CG (including
+the slope-normal offset), not a copied placement coordinate. Browser vehicle replacement inherits
+the correction through ordinary recovery/construction.
+
+Architecture Decision Gate: (1) shared vehicle observation owns initialization, gameplay owns
+placement; (2) existing local Guide projection suffices; (3) no new state or coordinate authority;
+(4) no route/course/vehicle branch; (5) callers already possess the placement segment, so neither
+new topology nor composition is needed; (6) world authority, finite open geometry, renderer depth,
+physical gate validation and recovery non-scoring remain unchanged; (7)
+`tests/known-guide-coordinate.test.mjs` reproduces physical second-lap recovery on Tsukuba/FISCO,
+checks resync preserves validated progress, drives through the next physical FINISH, checks all
+nine profiles across all finite copies, and checks sloped/nonzero-origin CG projection and invalid
+seeds. Ordinary moving-vehicle refresh/fallback policy is outside this fix.
+
+This is an incident/hotfix with preserved causal evidence: the standalone record policy applies.
+Determine release completion from the PR, exact-head CI and Pages, not from this navigation note.
+No handling calibration, solver iteration count, provisional product rules or historical evidence
+is changed.
+
 Read newest explicit supersession within each scope. Document 116 does not replace 115 mechanics,
 and document 98's historical tire/steering/launch descriptions must not revive superseded laws.
 

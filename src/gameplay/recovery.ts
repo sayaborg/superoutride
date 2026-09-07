@@ -190,7 +190,7 @@ export function recoverM5VehicleToGuideCoordinate(
   vehicle.velocityZ = velocity.z;
 
   reconstructVehicle(vehicle, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
-  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z);
+  vehicle.course = initializeGuideObservation(guide, vehicle.x, vehicle.z, coordinate.segmentIndex);
 
   state.lastSafeS = target.s;
   state.unsupportedTime = 0;

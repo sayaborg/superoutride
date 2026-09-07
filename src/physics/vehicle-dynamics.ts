@@ -449,12 +449,14 @@ export function representativeSurfaceType(contacts: readonly ContactObservation[
   ), loaded[0]!).surface.surfaceType;
 }
 
+/** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */
 export function initializeGuideObservation(
   guide: GuideCoordinateSource,
   x: number,
   z: number,
+  segmentIndex: number,
 ): CourseCoordinate {
-  return locateWorldOnGuideCoordinateGlobal(guide, { x, z }, false);
+  return locateWorldOnGuideCoordinateLocal(guide, { x, z }, segmentIndex, 2, false);
 }
 
 function bumpStopForce(q: number, suspension: SuspensionStationProfile): number {

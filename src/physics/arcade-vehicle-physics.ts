@@ -141,7 +141,7 @@ export function createArcadeVehicle(
     rearWheelOmega: rearOmega,
     actuator: createDrivingActuatorState(),
     torqueProtection: resolveTorqueProtectionPolicy(torqueProtection),
-    course: initializeGuideObservation(guide, position.x, position.z),
+    course: initializeGuideObservation(guide, position.x, position.z, coordinate.segmentIndex),
     surfaceType: surface.surfaceType,
     longitudinalAcceleration: 0,
     lateralAcceleration: 0,
