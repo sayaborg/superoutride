@@ -1,0 +1,61 @@
+SUPER OUTRIDE — Known Guide coordinate initialization hotfix
+Recorded: 2026-09-08 JST
+Package: super-outride-m9-22@0.9.22
+PR: https://github.com/sayaborg/superoutride/pull/144
+Base main: 1109cdaaf6a19d02b48bf455da1c6f19d5b103fc
+
+Scope and authority
+-------------------
+Unchanged Core open geometry/world authority and M6.49/M6.50 finite runtime-window /
+physical-race contracts. Spawn/recovery know their placement segment but previously
+discarded it in global world-to-Guide initialization. Overlapping finite copies
+are geometrically indistinguishable under that search.
+The shared initializer now requires the known segment and uses existing local
+coordinate-frame projection. It observes actual reconstructed world CG, including
+slope-normal displacement. No lap state, topology flag, special renderer/physics
+path, copied course coordinate, new abstraction or handling change is introduced.
+Normal moving-vehicle refresh/fallback remains unchanged.
+Architecture Decision Gate is recorded in the current M9.22 handoff and PR.
+
+Causal reproduction on unchanged base implementation
+----------------------------------------------------
+tests/known-guide-coordinate.test.mjs initially contained four failing tests:
+Tsukuba natural second-lap recovery: target 2137.3430227501976,
+  actual 92.33832224751248.
+FISCO natural second-lap recovery: target 4655.414870484209,
+  actual 92.41487048423247.
+Direct spawn Tsukuba: target 2145, actual 99.99514497560004.
+Direct spawn FISCO: target 4662.999999999976, actual 99.99999999999939.
+Vehicle reached the second copy by ordinary physics/rival input; tests did not
+seed course.s or validated race state to manufacture the failing scenario.
+
+Five final regressions
+----------------------
+Two integration tests: natural first physical FINISH, second-lap recovery,
+resync with validated progress preserved, vehicle recreation, second physical
+FINISH accepted without shortcut violations (Tsukuba and FISCO).
+Two direct-spawn tests: every finite copy and all nine catalog profiles retain
+the intended coordinate neighborhood (Tsukuba and FISCO).
+One open sloped/nonzero-lateral-origin test: actual CG projection, not placement
+coordinate copying; recovery projection and invalid segment rejection.
+Existing regression files were not changed.
+
+Implementation/documentation/test-inclusive exact-head CI
+--------------------------------------------------------
+Head: ddd1f3750e71ec3c92b09786ce4c79d2a4d18d47
+Run: https://github.com/sayaborg/superoutride/actions/runs/34153079919
+Build job: 101839187176
+Checkout expected: ddd1f3750e71ec3c92b09786ce4c79d2a4d18d47
+Checkout actual:   ddd1f3750e71ec3c92b09786ce4c79d2a4d18d47
+Node 24.20.0 / npm 11.19.0
+npm ci; npm test: 834 tests, 834 pass, 0 fail.
+Local independent worktree: Node 24.18.0 / npm 11.16.0, 834/834 pass.
+
+Release discipline
+------------------
+This incident/hotfix requires standalone causal evidence under validation/README.
+This immutable record names the pre-record green head, not its own future SHA.
+The record-inclusive head must pass complete exact-head CI again. Re-fetch main,
+require ahead>0 / behind=0 / merge-base=current main, then fast-forward main with
+force=false. Verify main=PR head=PR merge, same-SHA main CI and Pages artifact.
+This pre-release record alone does not claim deployment or interactive browser QA.
