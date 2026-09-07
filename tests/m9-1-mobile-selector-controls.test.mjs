@@ -231,14 +231,19 @@ test('browser compositions mount shared M D T selectors without duplicating choi
   assert.doesNotMatch(index, /yaw-transient|yaw-washout|self-steer|yaw-preview/i);
   assert.match(boot, /mountMobileCourseSelector/);
   for (const source of [linear, branching, circuit]) {
+    assert.match(source, /createBrowserDrivingShell/);
+    assert.match(source, /shell\.mountControls/);
+  }
+  const source = await readFile(new URL('../src/browser/driving-shell.ts', import.meta.url), 'utf8');
+  {
     assert.match(source, /mountMobileVehicleSelector/);
     assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
     assert.match(source, /mountBrowserSteeringCalibrationControls/);
     assert.match(source, /steeringCalibrationControls\.handleKey/);
     assert.match(source, /mountBrowserTireFrictionControls/);
     assert.match(source, /tireFrictionControls\.handleKey/);
-    assert.match(source, /steeringOffset:\s*steeringOffsetSelectorButtons/);
-    assert.match(source, /maxRoadWheelSteer:\s*maxSteerSelectorButtons/);
+    assert.match(source, /steeringOffset: mustGet\('steering-offset-selector-buttons'\)/);
+    assert.match(source, /maxRoadWheelSteer: mustGet\('max-steer-selector-buttons'\)/);
     assert.doesNotMatch(source, /yawTransient|yawWashout/);
   }
 });

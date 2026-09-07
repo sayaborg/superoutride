@@ -163,11 +163,15 @@ test('M9.21 compression barrier uses fresh geometry, velocity and the retained w
 test('M9.21 every browser actor and vehicle replacement explicitly receives catalog protection',async()=>{
  for(const name of ['main','main-linear','main-circuit']){
   const s=await readFile(new URL(`../src/${name}.ts`,import.meta.url),'utf8');
+  assert.match(s,/createBrowserDrivingShell/);
+  assert.match(s,/shell\.replacePlayer/);
   const calls=[...s.matchAll(/createArcadeVehicle\(\n([\s\S]*?)\n\s*\)/g)];
-  assert.ok(calls.length>=2);
+  assert.equal(calls.length,name==='main-linear'?0:1);
   for(const x of calls)assert.match(x[1],/\.torqueProtection,/);
-  assert.match(s,/vehicleCatalogEntryForId\(profile.id\).torqueProtection/);
  }
+ const shell=await readFile(new URL('../src/browser/driving-shell.ts',import.meta.url),'utf8');
+ assert.match(shell,/DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection/);
+ assert.match(shell,/vehicleCatalogEntryForId\(profile.id\).torqueProtection/);
 });
 test('M9.21 protection adds no vehicle kind, target beta, body overwrite, or duplicated tire law',async()=>{
  const s=await readFile(new URL('../src/physics/torque-protection.ts',import.meta.url),'utf8');

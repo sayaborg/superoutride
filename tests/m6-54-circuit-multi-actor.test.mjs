@@ -140,7 +140,7 @@ test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the 
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);
   assert.match(source, /createDynamicVehicleCourseSprite\(/);
-  assert.match(source, /drawVehicleDebugHud\(/);
+  assert.match(source, /shell\.present\(/);
   assert.doesNotMatch(source, /rankRaceProgress\(/);
   assert.doesNotMatch(source, /finishElapsedSeconds:/);
   assert.equal(

@@ -182,13 +182,13 @@ test('browser compositions overlay the yaw diagnostic at the renderer player anc
   ]);
 
   for (const source of [linear, branching, circuit]) {
-    assert.match(
-      source,
-      /drawVehicleYawDebug\(\s*ctx,\s*camera\.playerScreenX,\s*stats\.playerScreenY,\s*vehicle\.yaw,\s*camera\.movementYaw,\s*camera\.yaw,\s*camera\.yawMode,\s*\)/,
-    );
-    assert.match(source, /browserRequestsCameraYawToggle\(event\.code\)/);
-    assert.match(source, /mountMobileCameraYawSelector/);
+    assert.match(source, /shell\.present\([^;]*stats\.playerScreenY\)/);
+    assert.match(source, /shell\.mountControls/);
   }
+  const shell = await readFile(new URL('../src/browser/driving-shell.ts', import.meta.url), 'utf8');
+  assert.match(shell, /drawVehicleYawDebug\(ctx, camera\.playerScreenX, playerScreenY, vehicle\.yaw,\s*camera\.movementYaw, camera\.yaw, camera\.yawMode\)/);
+  assert.match(shell, /browserRequestsCameraYawToggle\(event\.code\)/);
+  assert.match(shell, /mountMobileCameraYawSelector/);
   assert.doesNotMatch(cameraSource, /lCamMax|tauLat|thetaLagMax|playerSafeX|lateralG/);
   assert.doesNotMatch(cameraSource, /rebaseM5CameraRigCoordinateFrame/);
 });

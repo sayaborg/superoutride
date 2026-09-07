@@ -204,7 +204,7 @@ test('M9.11 common solver contains pure travel-direction geometry and no yaw ste
     assert.doesNotMatch(source, /travelDirectionGain|yawTransientGain|yawWashoutTime|yawRateBaseline|steeringAssist|driftMode|driftAssist/i);
   }
   for (const source of [linear, branching, circuit]) {
-    assert.match(source, /createArcadeVehicle/);
+    assert.match(source, /createBrowserDrivingShell/);
     assert.match(source, /updateArcadeVehicle/);
     assert.doesNotMatch(source, /createM5Car|createM5Bike|updateM5Car|updateM5Bike/);
   }

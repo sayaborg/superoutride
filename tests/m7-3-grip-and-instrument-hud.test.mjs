@@ -110,7 +110,7 @@ test('shared compact HUD names speed RPM and selected gear', () => {
 
   for (const entry of ['main-linear.ts', 'main.ts', 'main-circuit.ts']) {
     const source = fs.readFileSync(new URL(`../src/${entry}`, import.meta.url), 'utf8');
-    assert.match(source, /drawVehicleDebugHud\(/);
+    assert.match(source, /shell\.present\(/);
   }
 });
 

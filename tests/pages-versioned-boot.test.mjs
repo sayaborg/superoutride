@@ -31,6 +31,6 @@ test('visible Pages milestone labels match the package milestone', async () => {
   assert.ok(index.includes(milestone), `index.html must show ${milestone}`);
   assert.ok(hud.includes(milestone), `shared HUD must show ${milestone}`);
   for (const [name, source] of [['LINEAR', linear], ['BRANCHING', branching], ['CIRCUIT', circuit]]) {
-    assert.match(source, /drawVehicleDebugHud\(/, `${name} must use the shared HUD`);
+    assert.match(source, /shell\.present\(/, `${name} must use the shared HUD`);
   }
 });

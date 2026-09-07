@@ -383,7 +383,7 @@ test('M6.52 browser preserves field-route progress beneath the M9.1 HUD', () => 
   assert.match(main, /updateFieldRouteProgress\(\s*rivalFrame\.rival\.fieldProgress/);
   assert.match(main, /resyncFieldRouteProgress/);
   assert.match(main, /createValidatedRunFinishFromRoute\(routeState, routeUpdate, playerFieldProgress\)/);
-  assert.match(main, /drawVehicleDebugHud\(/);
+  assert.match(main, /shell\.present\(/);
   assert.doesNotMatch(main, /sProgress: playerFieldProgress\.sProgress/);
   assert.doesNotMatch(progress, /render\//);
   assert.doesNotMatch(progress, /physics\//);

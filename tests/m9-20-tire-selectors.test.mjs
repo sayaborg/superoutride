@@ -102,6 +102,11 @@ test('M9.20 recovery and all-nine vehicle replacement preserve selections withou
 test('M9.20 all composition roots reuse the same forward-cycle adapter without tire-specific key branches',async()=>{
  for(const name of ['main.ts','main-linear.ts','main-circuit.ts']){
  const src=await readFile(new URL(`../src/${name}`,import.meta.url),'utf8');
+ assert.match(src,/shell\.mountControls/);
+ assert.match(src,/shell\.replacePlayer/);
+ }
+ const src=await readFile(new URL('../src/browser/driving-shell.ts',import.meta.url),'utf8');
+ {
  assert.match(src,/tireFrictionControls\.handleKey\(event\.code\)/);
  assert.doesNotMatch(src,/tireFrictionControls\.handleKey\(event\.code,\s*event\.shiftKey\)/);
  assert.match(src,/const tireFrictionCalibration = vehicle\.tireFrictionCalibration/);

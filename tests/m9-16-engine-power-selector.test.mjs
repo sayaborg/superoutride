@@ -220,6 +220,11 @@ test('M9.16 all nine profiles remain finite at 4x with non-dropping G2/S2 and G3
 test('M9.16 all browser roots wire the same adapter and preserve engine calibration on replacement', async () => {
   for (const file of ['main.ts', 'main-linear.ts', 'main-circuit.ts']) {
     const source = await readFile(new URL(`../src/${file}`, import.meta.url), 'utf8');
+    assert.match(source, /shell\.mountControls/);
+    assert.match(source, /shell\.replacePlayer/);
+  }
+  const source = await readFile(new URL('../src/browser/driving-shell.ts', import.meta.url), 'utf8');
+  {
     assert.match(source, /const enginePowerControls = mountBrowserEnginePowerControls\(/);
     assert.match(source, /if \(enginePowerControls\.handleKey\(event\.code\)\) return;/);
     assert.match(source, /if \(event\.repeat\) return;/);

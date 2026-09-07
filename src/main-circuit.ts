@@ -1,19 +1,12 @@
-import { LOGICAL_HEIGHT, LOGICAL_WIDTH, SIM_DT } from './core/constants.js';
-import { browserVehicleProfileForKey } from './browser/vehicle-profile-selection.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
-import { mountBrowserSteeringCalibrationControls } from './browser/steering-calibration-controls.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './browser/tire-friction-selection.js';
-import { mountBrowserTireFrictionControls } from './browser/tire-friction-controls.js';
-import { mountBrowserEnginePowerControls } from './browser/engine-power-controls.js';
-import { setEngineTorqueMultiplier } from './physics/automatic-powertrain.js';
-import {
-  mountMobileCameraYawSelector,
-  mountMobileVehicleSelector,
-} from './browser/mobile-selector-controls.js';
-import { browserRequestsCameraYawToggle } from './browser/camera-yaw-mode-selection.js';
-import { browserUsesTouchInterface } from './browser/touch-interface.js';
-import { drawVehicleDebugHud } from './browser/vehicle-debug-hud.js';
+import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
+import {
+  resetM5CameraRig,
+  updateM5Camera,
+  type M5CameraState,
+} from './camera/m5-camera.js';
+import { LOGICAL_HEIGHT, SIM_DT } from './core/constants.js';
 import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -37,15 +30,6 @@ import {
   createM96FiscoRuntime,
 } from './dev/m9-6-fisco-circuit.js';
 import {
-  createM5CameraRig,
-  resetM5CameraRig,
-  setM5CameraYawMode,
-  toggleM5CameraYawMode,
-  updateM5Camera,
-  type M5CameraYawMode,
-  type M5CameraState,
-} from './camera/m5-camera.js';
-import {
   createCircuitRaceProgressState,
   resyncCircuitRaceProgress,
   updateCircuitRaceProgress,
@@ -61,36 +45,20 @@ import {
   updateM5Recovery,
 } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
-import { InputManager } from './input/input-manager.js';
 import type { DrivingInput } from './input/driving-input.js';
 import {
   createArcadeVehicle,
   updateArcadeVehicle,
-  type ArcadeVehicleState,
 } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { renderM5Driving } from './render/m5-renderer.js';
-import { drawVehicleYawDebug } from './render/vehicle-yaw-debug.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
-import { SoftwareSurface } from './render/software-surface.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
-
-const canvas = mustGet<HTMLCanvasElement>('game');
-const steerLeftButton = mustGet<HTMLElement>('steer-left-button');
-const steerRightButton = mustGet<HTMLElement>('steer-right-button');
-const throttleButton = mustGet<HTMLElement>('throttle-button');
-const brakeButton = mustGet<HTMLElement>('brake-button');
-const vehicleSelectorButtons = mustGet<HTMLElement>('vehicle-selector-buttons');
-const cameraSelectorButtons = mustGet<HTMLElement>('camera-selector-buttons');
-const steeringOffsetSelectorButtons = mustGet<HTMLElement>('steering-offset-selector-buttons');
-const maxSteerSelectorButtons = mustGet<HTMLElement>('max-steer-selector-buttons');
-const steeringResponseSelectorButtons = mustGet<HTMLElement>('steering-response-selector-buttons');
-const tireFrictionSelectorButtons = mustGet<HTMLElement>('tire-friction-selector-buttons');
 
 const selectedCourseMode = selectBrowserCourseMode(
   new URLSearchParams(location.search).get('mode'),
@@ -120,25 +88,6 @@ const selectedCircuit = selectedCourseMode.query === 'fisco'
     groundProfile: createM93TsukubaGroundProfile(),
   });
 
-canvas.width = LOGICAL_WIDTH;
-canvas.height = LOGICAL_HEIGHT;
-document.documentElement.classList.toggle('touch-capable', browserUsesTouchInterface());
-
-const maybeContext = canvas.getContext('2d', { alpha: false });
-if (!maybeContext) throw new Error('2D canvas context unavailable');
-const ctx: CanvasRenderingContext2D = maybeContext;
-ctx.imageSmoothingEnabled = false;
-
-const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-const framebufferPixels = new Uint32Array(imageData.data.buffer);
-const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, framebufferPixels);
-const inputManager = new InputManager(
-  steerLeftButton,
-  steerRightButton,
-  throttleButton,
-  brakeButton,
-);
-
 const live = selectedCircuit.live;
 const windowRuntime = live.window;
 const raceRules = live.raceRules;
@@ -162,19 +111,8 @@ const terrainProfile: TerrainVisualProfile = {
   thinSpanScreenRows: 1,
 };
 
-let vehicle: ArcadeVehicleState = createArcadeVehicle(
-  DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-  guide,
-  height,
-  surfaces,
-  45,
-  selectedCircuit.playerStartL,
-  45,
-  undefined,
-  DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-  DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
-);
-let recovery = createM5RecoveryState(vehicle);
+const shell = createBrowserDrivingShell({ guide, height, surfaces }, selectedCircuit.playerStartL);
+const { framebuffer, inputManager, cameraRig } = shell;
 const raceProgress = createCircuitRaceProgressState(raceRules, raceSample());
 const raceSession = createRaceSessionState();
 const rivalRoster = createRivalRoster(selectedCircuit.courseMode);
@@ -203,7 +141,6 @@ const rivals = rivalRoster.map((entry) => {
     raceSession: createRaceSessionState(),
   };
 });
-const cameraRig = createM5CameraRig();
 
 const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
@@ -212,79 +149,24 @@ let camera: M5CameraState = updateM5Camera(
   cameraRig,
   guide,
   height,
-  vehicle,
+  shell.vehicle,
   cameraProfile,
   SIM_DT,
 );
-const vehicleSelector = mountMobileVehicleSelector(
-  vehicleSelectorButtons,
-  vehicle.profile.id,
-  selectVehicleProfile,
-);
-const cameraYawSelector = mountMobileCameraYawSelector(
-  cameraSelectorButtons,
-  cameraRig.yawMode,
-  selectCameraYawMode,
-);
-const steeringCalibrationControls = mountBrowserSteeringCalibrationControls(
-  {
-    steeringOffset: steeringOffsetSelectorButtons,
-    maxRoadWheelSteer: maxSteerSelectorButtons,
-    steeringResponse: steeringResponseSelectorButtons,
-  },
-  () => vehicle,
-);
-const tireFrictionControls = mountBrowserTireFrictionControls(
-  tireFrictionSelectorButtons,
-  () => vehicle,
-);
-const enginePowerControls = mountBrowserEnginePowerControls(
-  tireFrictionSelectorButtons,
-  () => vehicle,
-);
-
-window.addEventListener('keydown', (event) => {
-  if (event.repeat) return;
-  if (browserRequestsCameraYawToggle(event.code)) {
-    cameraYawSelector.setActive(toggleM5CameraYawMode(cameraRig));
-    return;
-  }
-  if (steeringCalibrationControls.handleKey(event.code)) return;
-  if (tireFrictionControls.handleKey(event.code)) return;
-  if (enginePowerControls.handleKey(event.code)) return;
-  const selectedProfile = browserVehicleProfileForKey(event.code);
-  if (selectedProfile !== null) {
-    selectVehicleProfile(selectedProfile);
-    return;
-  }
-  if (event.code === 'Backspace') {
-    event.preventDefault();
-    recoverM5Vehicle(
-      recovery,
-      guide,
-      height,
-      surfaces,
-      vehicle,
-      'manual',
-      selectedCircuit.playerRecoveryProfile,
-    );
-    resetM5CameraRig(cameraRig);
-    resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
-    camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
-    return;
-  }
+shell.mountControls(switchVehicleAtSafeSpawn, () => {
+  recoverM5Vehicle(
+    shell.recovery,
+    guide,
+    height,
+    surfaces,
+    shell.vehicle,
+    'manual',
+    selectedCircuit.playerRecoveryProfile,
+  );
+  resetM5CameraRig(cameraRig);
+  resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
+  camera = updateM5Camera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
 });
-
-function selectVehicleProfile(profile: Readonly<CompiledArcadeVehicleProfile>): void {
-  if (profile.id === vehicle.profile.id) return;
-  switchVehicleAtSafeSpawn(profile);
-  vehicleSelector.setActive(vehicle.profile.id);
-}
-
-function selectCameraYawMode(mode: M5CameraYawMode): void {
-  setM5CameraYawMode(cameraRig, mode);
-  cameraYawSelector.setActive(mode);
-}
 
 let accumulator = 0;
 let previousTime = performance.now();
@@ -298,14 +180,14 @@ function frame(now: number): void {
     inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    updateArcadeVehicle(guide, height, surfaces, vehicle, input, SIM_DT);
+    updateArcadeVehicle(guide, height, surfaces, shell.vehicle, input, SIM_DT);
 
     const recovered = updateM5Recovery(
-      recovery,
+      shell.recovery,
       guide,
       height,
       surfaces,
-      vehicle,
+      shell.vehicle,
       SIM_DT,
       selectedCircuit.playerRecoveryProfile,
     );
@@ -351,7 +233,7 @@ function frame(now: number): void {
         SIM_DT,
       );
     }
-    camera = updateM5Camera(cameraRig, guide, height, vehicle, cameraProfile, SIM_DT);
+    camera = updateM5Camera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
     accumulator -= SIM_DT;
   }
 
@@ -360,7 +242,7 @@ function frame(now: number): void {
 }
 
 function render(): void {
-  const spriteFamily = deriveVehicleSpriteFamily(vehicle);
+  const spriteFamily = deriveVehicleSpriteFamily(shell.vehicle);
   const rivalSprites = rivals.map((rival) => createDynamicVehicleCourseSprite(
     rival.actorId,
     rival.vehicle,
@@ -373,68 +255,32 @@ function render(): void {
     background,
     guide,
     camera,
-    vehicle,
+    shell.vehicle,
     terrainProfile,
     groundProfile,
     rivalSprites,
     spriteAssets,
     spriteFamily,
   );
-  ctx.putImageData(imageData, 0, 0);
-  drawVehicleDebugHud(ctx, selectedCircuit.query, input, vehicle);
-  drawVehicleYawDebug(
-    ctx,
-    camera.playerScreenX,
-    stats.playerScreenY,
-    vehicle.yaw,
-    camera.movementYaw,
-    camera.yaw,
-    camera.yawMode,
-  );
+  shell.present(selectedCircuit.query, input, camera, stats.playerScreenY);
 }
 
 function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
   recoverM5Vehicle(
-    recovery,
+    shell.recovery,
     guide,
     height,
     surfaces,
-    vehicle,
+    shell.vehicle,
     'manual',
     selectedCircuit.playerRecoveryProfile,
   );
-  const s = vehicle.course.s;
-  const l = vehicle.course.l;
-  const speed = vehicle.longitudinalSpeed;
-  const steeringCalibration = vehicle.steeringCalibration;
-  const tireFrictionCalibration = vehicle.tireFrictionCalibration;
-  const engineTorqueMultiplier = vehicle.powertrain.engineTorqueMultiplier;
-  vehicle = createArcadeVehicle(
-    profile,
-    guide,
-    height,
-    surfaces,
-    s,
-    l,
-    speed,
-    steeringCalibration,
-    tireFrictionCalibration,
-    vehicleCatalogEntryForId(profile.id).torqueProtection,
-  );
-  setEngineTorqueMultiplier(vehicle.powertrain, engineTorqueMultiplier);
-  recovery = createM5RecoveryState(vehicle);
-  resetM5CameraRig(cameraRig);
+  shell.replacePlayer(profile, { guide, height, surfaces });
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {
-  return { x: vehicle.x, z: vehicle.z, sWindow: vehicle.course.s };
-}
-
-function mustGet<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing #${id}`);
-  return element as T;
+  return { x: shell.vehicle.x, z: shell.vehicle.z, sWindow: shell.vehicle.course.s };
 }
 
 requestAnimationFrame(frame);
