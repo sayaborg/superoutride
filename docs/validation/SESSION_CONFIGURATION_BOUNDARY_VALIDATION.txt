@@ -28,7 +28,7 @@ Causal / architecture coverage
     with 0/1/16 rivals. Empty roster is ordinary frozen data; player is separate.
     No cardinality field remains in CourseMode; no route kind enters SessionConfiguration.
     Roster iteration consumes session data, not route shape or a copied maximum.
-  tests/m6-43-course-mode.test.mjs and retained fixture/integration tests:
+  tests/m6-43-course-mode-rival-roster.test.mjs and retained fixture/integration tests:
     Invalid count input rejects at its new owner. Historical/public counts are
     retained. Existing physical gate, branching arbitration, recovery, multi-actor
     and finite circuit-window assertions remain part of the complete suite.
