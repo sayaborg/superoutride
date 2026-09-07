@@ -57,14 +57,14 @@ test('canonical one-line formatter uses short identifiers without duplicating mo
 
 test('all nine share exactly one normalized tire law while vehicle mechanics remain profile-owned', () => {
   const tire = ({ profile }) => [
-    profile.frontStation.tire.muY, profile.frontStation.tire.rhoKnee, profile.lowSpeedRegularization,
+    profile.frontStation.tire.muY, profile.frontStation.tire.rhoKnee, profile.frontStation.tire.lowSpeedRegularization,
     profile.frontStation.tire.kY, profile.rearStation.tire.kY,
   ];
   for (const entry of VEHICLE_CATALOG) assert.deepEqual(tire(entry), tire(VEHICLE_CATALOG[0]));
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.mass)).size, 9);
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.yawInertia)).size, 9);
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.powertrain)).size, 9);
-  assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.frontWheelRadius)).size > 1, true);
+  assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.frontStation.rollingRadius)).size > 1, true);
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.frontDriveTorqueFraction)).size, 3);
 });
 

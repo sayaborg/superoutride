@@ -2,6 +2,7 @@ import {
   createArcadeVehicle,
   updateArcadeVehicle,
 } from '../../dist/physics/arcade-vehicle-physics.js';
+import { compileArcadeVehicleProfile } from '../../dist/physics/vehicle-profiles.js';
 import {
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
   HONDA_VFR750R_VEHICLE_PROFILE,
@@ -9,8 +10,7 @@ import {
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
   CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
-  compileArcadeVehicleProfile,
-} from '../../dist/physics/vehicle-profiles.js';
+} from '../../dist/vehicle/production-vehicle-profiles.js';
 
 export {
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,

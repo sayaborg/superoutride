@@ -43,7 +43,7 @@ test('M8.0 one-k tire response is immediate deterministic and releases with zero
 test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
   const force = evaluateTireForce(
     200,
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius,
     30,
     8,
     0,

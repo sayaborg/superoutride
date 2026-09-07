@@ -11,7 +11,7 @@ import { deriveContactObservation, sampleSurfaceGeometryAtCoordinate } from '../
 import { dot3 } from '../dist/physics/vehicle-math3.js';
 import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
-import { HONDA_VFR750R_VEHICLE_PROFILE as profile } from '../dist/physics/vehicle-profiles.js';
+import { HONDA_VFR750R_VEHICLE_PROFILE as profile } from '../dist/vehicle/production-vehicle-profiles.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';

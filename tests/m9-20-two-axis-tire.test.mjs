@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
 import {compileTireCharacteristics as compile, readTireCharacteristics as read,
@@ -6,11 +7,11 @@ import {compileTireCharacteristics as compile, readTireCharacteristics as read,
  from '../dist/physics/tire-friction-calibration.js';
 import {evaluateTireForce as force, tireLinearDemand, deriveTireSlip, radialC1Magnitude as H,
  solveWheelOmega, rollingResistanceTorque, usefulLateralCapacity} from '../dist/physics/tire-wheel.js';
-import {FERRARI_TESTAROSSA_VEHICLE_PROFILE as car, compileArcadeVehicleProfile}
- from '../dist/physics/vehicle-profiles.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/vehicle/production-vehicle-profiles.js';
 import {VEHICLE_CATALOG} from '../dist/vehicle/vehicle-catalog.js';
 const seed={gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.10,knee:.74};
-const tire=car.rearStation.tire,R=car.rearWheelRadius;
+const tire=car.rearStation.tire,R=car.rearStation.rollingRadius;
 const near=(x,y,e=1e-10)=>assert.ok(Math.abs(x-y)<=e*Math.max(1,Math.abs(y)),`${x} != ${y}`);
 function at(c,sx,sy,N=10000,m=1,vx=30) {
  const ref=Math.hypot(vx,tire.lowSpeedRegularization);
@@ -47,7 +48,7 @@ test('M9.20 linked editing has one immutable atomic pair, with independent owner
  assert.throws(()=>{a.tireFrictionCalibration.front.kX=1;},TypeError);
 });
 test('M9.20 compiler supports differing station tires without vehicle or station branches',()=>{
- const p=compileArcadeVehicleProfile({...car,frontTire:seed,rearTire:{...seed,gripX:.75}});
+ const p=compileArcadeVehicleProfile({...FERRARI_TESTAROSSA_VEHICLE_AUTHORING,frontTire:seed,rearTire:{...seed,gripX:.75}});
  near(p.frontStation.tire.muX,2.5);near(p.rearStation.tire.muX,.75);
  const c=pair(p.frontStation.tire,p.rearStation.tire);assert.notEqual(c.front,c.rear);
 });

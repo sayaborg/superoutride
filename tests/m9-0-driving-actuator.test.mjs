@@ -8,7 +8,7 @@ import {
   updateDrivingActuators,
   validateDrivingActuatorProfile,
 } from '../dist/physics/driving-actuator.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DT = 1 / 720;
 const PROFILE = Object.freeze({

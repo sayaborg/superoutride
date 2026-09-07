@@ -13,7 +13,7 @@ import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { evaluateVehicleWrench } from '../dist/physics/vehicle-wrench.js';
-const car=VEHICLE_CATALOG[0],bike=VEHICLE_CATALOG[5],R=car.profile.rearWheelRadius;
+const car=VEHICLE_CATALOG[0],bike=VEHICLE_CATALOG[5],R=car.profile.rearStation.rollingRadius;
 const close=(a,b,e=1e-8)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
 const tire=compileTireCharacteristics({gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.1,knee:.74});
 const wheel=(more={})=>({omegaPrevious:30/R,inertia:3.4,rollingRadius:R,longitudinalVelocity:30,

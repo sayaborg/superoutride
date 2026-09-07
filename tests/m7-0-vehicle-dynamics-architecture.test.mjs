@@ -85,8 +85,8 @@ test('M8.1 digital request produces continuous steering and neutral self-counter
   car.velocityX = 0;
   car.velocityY = 0;
   car.velocityZ = speed;
-  car.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
-  car.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearWheelRadius;
+  car.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius;
+  car.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.rollingRadius;
   car.frontSteerAngle = 0;
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: false, brake: false }, 1 / 60);
   assert.ok(car.control.frontSlipAngle > 0);

@@ -46,7 +46,7 @@ import {
   createTestCar,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
-import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import {
@@ -118,7 +118,7 @@ test('all nine profiles share one two-station mechanics contract', () => {
 test('catalog profiles share only the M9.8 normalized tire law and retain distinct mechanics', () => {
   const profiles = VEHICLE_CATALOG.map(({ profile }) => profile);
   const tireTuple = (profile) => [profile.frontStation.tire.muY, profile.frontStation.tire.rhoKnee,
-    profile.lowSpeedRegularization, profile.frontStation.tire.kY, profile.rearStation.tire.kY];
+    profile.frontStation.tire.lowSpeedRegularization, profile.frontStation.tire.kY, profile.rearStation.tire.kY];
   for (const profile of profiles) assert.deepEqual(tireTuple(profile), tireTuple(FERRARI_TESTAROSSA_VEHICLE_PROFILE));
   assert.equal(new Set(profiles.map((profile) => profile.mass)).size, 9);
   assert.equal(new Set(profiles.map((profile) => profile.frontAxle + profile.rearAxle)).size, 8);
@@ -165,8 +165,8 @@ test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handw
   vehicle.control.throttleActuator=.42; vehicle.control.brakeActuator=.08; vehicle.longitudinalAcceleration=9.80665; vehicle.lateralAcceleration=-4.903325;
   vehicle.control.requestedFrontDriveTorque=0; vehicle.control.requestedRearDriveTorque=420;
   vehicle.control.frontDriveTorque=0; vehicle.control.rearDriveTorque=420;
-  vehicle.control.requestedFrontBrakeTorque=.08*vehicle.profile.frontBrakeTorqueMax;
-  vehicle.control.requestedRearBrakeTorque=.08*vehicle.profile.rearBrakeTorqueMax;
+  vehicle.control.requestedFrontBrakeTorque=.08*vehicle.profile.frontStation.maxBrakeTorque;
+  vehicle.control.requestedRearBrakeTorque=.08*vehicle.profile.rearStation.maxBrakeTorque;
   vehicle.control.frontBrakeTorque=vehicle.control.requestedFrontBrakeTorque;
   vehicle.control.rearBrakeTorque=vehicle.control.requestedRearBrakeTorque;
   const model=createVehicleDebugHudModel('linear',{steering:-1,throttle:true,brake:false},vehicle);

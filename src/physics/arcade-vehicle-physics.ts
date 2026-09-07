@@ -122,8 +122,8 @@ export function createArcadeVehicle(
   const pitch = surface.gradeAngle;
   const position = add3(surface.point, scale3(surface.normal, profile.desiredCgHeight));
   const initialVelocity = scale3(surface.tangent, initialSpeed);
-  const frontOmega = initialSpeed / profile.frontWheelRadius;
-  const rearOmega = initialSpeed / profile.rearWheelRadius;
+  const frontOmega = initialSpeed / profile.frontStation.rollingRadius;
+  const rearOmega = initialSpeed / profile.rearStation.rollingRadius;
   const state = {
     profile,
     x: position.x,
@@ -229,11 +229,11 @@ export function updateArcadeVehicle(
     );
     const frontDriveTorque = driveTorque * profile.frontDriveTorqueFraction;
     const rearDriveTorque = driveTorque - frontDriveTorque;
-    const frontBrakeTorque = vehicle.actuator.brake * profile.frontBrakeTorqueMax;
-    const rearBrakeTorque = vehicle.actuator.brake * profile.rearBrakeTorqueMax;
+    const frontBrakeTorque = vehicle.actuator.brake * profile.frontStation.maxBrakeTorque;
+    const rearBrakeTorque = vehicle.actuator.brake * profile.rearStation.maxBrakeTorque;
     const frontRequest: WheelSolveInput = {
       omegaPrevious: vehicle.frontWheelOmega,
-      inertia: profile.frontWheelInertia,
+      inertia: profile.frontStation.wheelInertia,
       rollingRadius: front.effectiveRollingRadius,
       longitudinalVelocity: front.longitudinalVelocity,
       lateralVelocity: front.lateralVelocity,
@@ -248,7 +248,7 @@ export function updateArcadeVehicle(
     };
     const rearRequest: WheelSolveInput = {
       omegaPrevious: vehicle.rearWheelOmega,
-      inertia: profile.rearWheelInertia,
+      inertia: profile.rearStation.wheelInertia,
       rollingRadius: rear.effectiveRollingRadius,
       longitudinalVelocity: rear.longitudinalVelocity,
       lateralVelocity: rear.lateralVelocity,
@@ -293,7 +293,7 @@ export function updateArcadeVehicle(
         ? regularizedTireSlipAngle(
           front.longitudinalVelocity,
           front.lateralVelocity,
-          profile.lowSpeedRegularization,
+          profile.frontStation.tire.lowSpeedRegularization,
         )
         : 0;
       vehicle.control.deliveredDriveTorque = driveTorque

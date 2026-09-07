@@ -7,7 +7,7 @@ import {
   updateAutomaticPowertrain,
 } from '../dist/physics/automatic-powertrain.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { compileTireCharacteristics, createArcadeTireFrictionCalibration } from '../dist/physics/tire-friction-calibration.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';

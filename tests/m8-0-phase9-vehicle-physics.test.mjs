@@ -5,17 +5,18 @@ import test from 'node:test';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  compileArcadeVehicleProfile,
-} from '../dist/physics/vehicle-profiles.js';
+} from '../dist/vehicle/production-vehicle-profiles.js';
 import {
   evaluateTireForce,
   rollingResistanceTorque,
   solveWheelOmega,
 } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING, HONDA_VFR750R_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const highway = createM72DefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
@@ -24,10 +25,11 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 ]);
 
 test('M9 profiles compile to the same two-station contact and wheel contract', () => {
-  for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_PROFILE]) {
+  for (const [profile, authored] of [[FERRARI_TESTAROSSA_VEHICLE_PROFILE, FERRARI_TESTAROSSA_VEHICLE_AUTHORING],
+    [HONDA_VFR750R_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_AUTHORING]]) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
-    assert.equal(profile.frontStation.rollingRadius, profile.frontWheelRadius);
-    assert.equal(profile.rearStation.rollingRadius, profile.rearWheelRadius);
+    assert.equal(profile.frontStation.rollingRadius, authored.frontWheelRadius);
+    assert.equal(profile.rearStation.rollingRadius, authored.rearWheelRadius);
     assert.ok(profile.frontStation.suspension.qTravel > profile.frontStation.suspension.qStatic);
     assert.ok(profile.rearStation.suspension.qTravel > profile.rearStation.suspension.qStatic);
   }
@@ -124,15 +126,15 @@ test('recovery reconstructs common state and all three actuators without manufac
 
 test('profile compiler rejects invalid mechanics without vehicle-specific fallback paths', () => {
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, frontWheelInertia: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, frontWheelInertia: 0 }),
     /finite and > 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_PROFILE, frontTire: { ...HONDA_VFR750R_VEHICLE_PROFILE.frontTire, knee: 1 } }),
+    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_AUTHORING, frontTire: { ...HONDA_VFR750R_VEHICLE_AUTHORING.frontTire, knee: 1 } }),
     /knee/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, frontDriveTorqueFraction: 1.1 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, frontDriveTorqueFraction: 1.1 }),
     /front drive torque fraction/,
   );
 });

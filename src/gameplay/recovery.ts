@@ -219,8 +219,8 @@ function reconstructVehicle(
   vehicle.pitchRate = 0;
   vehicle.frontSteerAngle = 0;
   resetDrivingActuatorState(vehicle.actuator);
-  vehicle.frontWheelOmega = speed / p.frontWheelRadius;
-  vehicle.rearWheelOmega = speed / p.rearWheelRadius;
+  vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
+  vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
   vehicle.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;
   vehicle.rearNormalLoad = p.mass * 9.80665 * p.frontAxle / wheelbase;
   vehicle.frontGap = -p.frontStation.suspension.qStatic;

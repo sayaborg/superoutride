@@ -1,4 +1,5 @@
 import { ROAD_TORQUE_POLICY, TWO_WHEEL_TORQUE_POLICY, type TorqueProtectionPolicy } from '../physics/torque-protection.js';
+import { type CompiledArcadeVehicleProfile, type VehicleProfileId } from '../physics/vehicle-profiles.js';
 import {
   BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
   CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
@@ -9,9 +10,7 @@ import {
   PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
   VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE,
   VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
-  type CompiledArcadeVehicleProfile,
-  type VehicleProfileId,
-} from '../physics/vehicle-profiles.js';
+} from './production-vehicle-profiles.js';
 
 export type VehicleSelectionKeyCode =
   | 'KeyQ' | 'KeyW' | 'KeyE' | 'KeyR' | 'KeyA' | 'KeyS' | 'KeyD' | 'KeyF' | 'KeyV';

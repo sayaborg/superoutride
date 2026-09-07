@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING, LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { compileRasterPath } from '../dist/core/course.js';
@@ -29,8 +30,8 @@ function drive(v,a,total,frontDelivered,rearDelivered) {
     frontDriveTorque:frontDelivered,rearDriveTorque:rearDelivered});
 }
 function brake(v,b,frontDelivered,rearDelivered) {
-  Object.assign(v.control,{brakeActuator:b,requestedFrontBrakeTorque:b*v.profile.frontBrakeTorqueMax,
-    requestedRearBrakeTorque:b*v.profile.rearBrakeTorqueMax,frontBrakeTorque:frontDelivered,rearBrakeTorque:rearDelivered});
+  Object.assign(v.control,{brakeActuator:b,requestedFrontBrakeTorque:b*v.profile.frontStation.maxBrakeTorque,
+    requestedRearBrakeTorque:b*v.profile.rearStation.maxBrakeTorque,frontBrakeTorque:frontDelivered,rearBrakeTorque:rearDelivered});
 }
 function canvasRecorder() {
   const rects=[],texts=[],boxes=[];
@@ -53,7 +54,7 @@ test('M9.22 input meters preserve exact analog requests, digital shorthand and e
 });
 
 test('M9.22 AWD 45:55 shares a full-throttle scale and does not renormalize delivered total',()=>{
-  const entry=VEHICLE_CATALOG[4],profile=compileArcadeVehicleProfile({...entry.profile,frontDriveTorqueFraction:.45});
+  const entry=VEHICLE_CATALOG[4],profile=compileArcadeVehicleProfile({...LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING,frontDriveTorqueFraction:.45});
   const {vehicle:v}=fixture(entry,profile);
   drive(v,1,1000,450,550);let h=hud(v,{...neutral,throttle:1});
   close(h.frontDrive.requested,.45);close(h.rearDrive.requested,.55);
@@ -76,7 +77,7 @@ for(const index of [0,3,4,5]) test(`M9.22 ${VEHICLE_CATALOG[index].profile.id} d
 
 test('M9.22 brake percentages use fixed sum of front/rear torque capacity, including 70:30 cuts',()=>{
   const {vehicle:v}=fixture(VEHICLE_CATALOG[5]);
-  assert.equal(v.profile.frontBrakeTorqueMax,700);assert.equal(v.profile.rearBrakeTorqueMax,300);
+  assert.equal(v.profile.frontStation.maxBrakeTorque,700);assert.equal(v.profile.rearStation.maxBrakeTorque,300);
   brake(v,1,500,100);let h=hud(v,{...neutral,brake:1});
   close(h.frontBrake.limit,.7);close(h.rearBrake.limit,.3);
   close(h.frontBrake.requested,.7);close(h.rearBrake.requested,.3);
@@ -92,7 +93,7 @@ test('M9.22 lag and residual-pedal overlap are distinct from protection cuts',()
   drive(v,.2,200,0,200);let h=hud(v,{...neutral,throttle:1});
   close(h.requestedThrottle,1);close(h.rearDrive.delivered,.2);
   close(h.rearDrive.requested-h.rearDrive.delivered,0);
-  brake(v,.1,v.profile.frontBrakeTorqueMax*.1,v.profile.rearBrakeTorqueMax*.1);
+  brake(v,.1,v.profile.frontStation.maxBrakeTorque*.1,v.profile.rearStation.maxBrakeTorque*.1);
   h=hud(v,{...neutral,brake:1});assert.equal(h.requestedThrottle,0);
   close(h.rearDrive.delivered,.2);close(h.frontBrake.delivered+h.rearBrake.delivered,.1);
   const c=canvasRecorder();drawVehicleControlGraphics(c.ctx,h,3,79);
@@ -104,7 +105,7 @@ test('M9.22 zero requests/full engine cut and zero brake capacity have finite em
   const h=hud(v,{...neutral,throttle:1});
   assert.equal(h.requestedThrottle,1);assert.equal(h.frontDrive.requested+h.rearDrive.requested,0);
   for(const m of [h.frontDrive,h.rearDrive,h.frontBrake,h.rearBrake])assert.equal(m.delivered,0);
-  const p=compileArcadeVehicleProfile({...v.profile,frontBrakeTorqueMax:0,rearBrakeTorqueMax:0});
+  const p=compileArcadeVehicleProfile({...FERRARI_TESTAROSSA_VEHICLE_AUTHORING,frontBrakeTorqueMax:0,rearBrakeTorqueMax:0});
   const z=hud(fixture(VEHICLE_CATALOG[0],p).vehicle,{...neutral,brake:1});
   assert.deepEqual(z.frontBrake,{requested:0,delivered:0,limit:0});assert.deepEqual(z.rearBrake,z.frontBrake);
 });
@@ -160,7 +161,7 @@ for(const entry of VEHICLE_CATALOG) test(`M9.22 ${entry.profile.id} live protect
     for(const key of ['frontDrive','rearDrive','frontBrake','rearBrake']){
       const m=h[key];assert.ok(Number.isFinite(m.requested)&&0<=m.delivered&&m.delivered<=m.requested&&m.requested<=m.limit&&m.limit<=1,key);
     }
-    const b=v.profile.frontBrakeTorqueMax+v.profile.rearBrakeTorqueMax;
+    const b=v.profile.frontStation.maxBrakeTorque+v.profile.rearStation.maxBrakeTorque;
     close(h.frontBrake.delivered,v.control.frontBrakeTorque/b);
     close(h.rearBrake.delivered,v.control.rearBrakeTorque/b);
     const d=v.control.requestedFrontDriveTorque+v.control.requestedRearDriveTorque;

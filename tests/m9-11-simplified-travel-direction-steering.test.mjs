@@ -25,7 +25,7 @@ import {
   setArcadeVehicleSymmetricSteeringActuatorRate,
   steeringAutomaticMax,
 } from '../dist/physics/vehicle-calibration.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -186,8 +186,8 @@ function seedBodySideslip(vehicle, speed, sideslip) {
   vehicle.velocityY = 0;
   vehicle.velocityZ = -Math.sin(vehicle.yaw) * speed * Math.sin(sideslip) + Math.cos(vehicle.yaw) * speed * Math.cos(sideslip);
   const longitudinalSpeed = speed * Math.cos(sideslip);
-  vehicle.frontWheelOmega = longitudinalSpeed / vehicle.profile.frontWheelRadius;
-  vehicle.rearWheelOmega = longitudinalSpeed / vehicle.profile.rearWheelRadius;
+  vehicle.frontWheelOmega = longitudinalSpeed / vehicle.profile.frontStation.rollingRadius;
+  vehicle.rearWheelOmega = longitudinalSpeed / vehicle.profile.rearStation.rollingRadius;
 }
 function observeBodySideslip(vehicle) {
   return Math.atan2(vehicle.lateralSpeed, Math.sqrt(vehicle.longitudinalSpeed ** 2 + vehicle.profile.steeringLowSpeedRegularization ** 2));

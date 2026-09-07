@@ -65,7 +65,7 @@ export function createVehicleDebugHudModel(
   assertExclusivePedalInput(input);
   const c = vehicle.control, p = vehicle.profile;
   const driveRequest = c.requestedFrontDriveTorque + c.requestedRearDriveTorque;
-  const brakeCapacity = p.frontBrakeTorqueMax + p.rearBrakeTorqueMax;
+  const brakeCapacity = p.frontStation.maxBrakeTorque + p.rearStation.maxBrakeTorque;
   // Drequest = actuator * available full-throttle torque at this same substep/RPM/gear.
   // Multiplying the torque share by actuator avoids dividing by a tiny/zero actuator.
   // Zero engine request (including full rev cut) has no torque to show or protect.
@@ -96,9 +96,9 @@ export function createVehicleDebugHudModel(
     rearDrive: torqueMeter(c.requestedRearDriveTorque, c.rearDriveTorque,
       driveRequest, throttle, 1 - p.frontDriveTorqueFraction),
     frontBrake: torqueMeter(c.requestedFrontBrakeTorque, c.frontBrakeTorque,
-      brakeCapacity, 1, brakeCapacity > 0 ? p.frontBrakeTorqueMax / brakeCapacity : 0),
+      brakeCapacity, 1, brakeCapacity > 0 ? p.frontStation.maxBrakeTorque / brakeCapacity : 0),
     rearBrake: torqueMeter(c.requestedRearBrakeTorque, c.rearBrakeTorque,
-      brakeCapacity, 1, brakeCapacity > 0 ? p.rearBrakeTorqueMax / brakeCapacity : 0),
+      brakeCapacity, 1, brakeCapacity > 0 ? p.rearStation.maxBrakeTorque / brakeCapacity : 0),
     handwheelAngle: Number.isFinite(vehicle.control.handwheelAngle)
       ? vehicle.control.handwheelAngle
       : 0,

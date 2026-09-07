@@ -20,7 +20,7 @@ export function evaluateVehicleWrench(profile: CompiledArcadeVehicleProfile, bod
   const contactMoment = add3(momentAboutCg(front, body.position, frontForce),
     momentAboutCg(rear, body.position, rearForce));
   const wheelReaction = add3(
-    scale3(front.wheelAxis, -profile.frontWheelInertia * frontWheel.omegaDot),
-    scale3(rear.wheelAxis, -profile.rearWheelInertia * rearWheel.omegaDot));
+    scale3(front.wheelAxis, -profile.frontStation.wheelInertia * frontWheel.omegaDot),
+    scale3(rear.wheelAxis, -profile.rearStation.wheelInertia * rearWheel.omegaDot));
   return { force, moment: add3(contactMoment, wheelReaction) };
 }

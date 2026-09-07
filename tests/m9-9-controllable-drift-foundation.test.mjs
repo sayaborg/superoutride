@@ -2,9 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  COMMON_SELECTABLE_VEHICLE_TIRE,
-} from '../dist/physics/vehicle-profiles.js';
+import { COMMON_SELECTABLE_VEHICLE_TIRE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 test('M9.9 axle-neutral compiled reference remains common beneath later browser tire calibration', () => {

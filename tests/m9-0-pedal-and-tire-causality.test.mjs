@@ -6,7 +6,7 @@ import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade
 import {
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-} from '../dist/physics/vehicle-profiles.js';
+} from '../dist/vehicle/production-vehicle-profiles.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
@@ -106,13 +106,13 @@ test('brake actuator produces partial torque, physical lock and continuous relea
   step(vehicle, { steering: 0.2, throttle: false, brake: true });
   assert.ok(vehicle.actuator.brake > 0 && vehicle.actuator.brake < 1);
   assert.ok(vehicle.control.frontBrakeTorque > 0);
-  assert.ok(vehicle.control.frontBrakeTorque < FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.ok(vehicle.control.frontBrakeTorque < FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.maxBrakeTorque);
 
   for (let tick = 1; tick < 90; tick += 1) {
     step(vehicle, { steering: 0.2, throttle: false, brake: true });
   }
   assert.equal(vehicle.actuator.brake, 1);
-  assert.equal(vehicle.control.frontBrakeTorque, FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontBrakeTorqueMax);
+  assert.equal(vehicle.control.frontBrakeTorque, FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.maxBrakeTorque);
   assert.equal(vehicle.control.rearWheelLocked || vehicle.control.frontWheelLocked, true);
 
   let previousTorque = vehicle.control.frontBrakeTorque;
@@ -136,7 +136,7 @@ test('common vehicle boundary rejects contradictory canonical pedals before actu
 
 test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
-  const radius = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
+  const radius = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius;
   const normalLoad = 6_000;
   const positive = evaluateTireForce(300, radius, 30, 0, normalLoad, 1, tire);
   const morePositive = evaluateTireForce(600, radius, 30, 0, normalLoad, 1, tire);

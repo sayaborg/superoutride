@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
@@ -10,11 +11,11 @@ import {
   updateArcadeVehicle,
   vehicleBodyTravelDirection,
 } from '../dist/physics/arcade-vehicle-physics.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  compileArcadeVehicleProfile,
-} from '../dist/physics/vehicle-profiles.js';
+} from '../dist/vehicle/production-vehicle-profiles.js';
 import {
   createArcadeSteeringCalibration,
   steeringAutomaticMax,
@@ -97,8 +98,8 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
   vehicle.velocityX = 0;
   vehicle.velocityY = 0;
   vehicle.velocityZ = speed;
-  vehicle.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontWheelRadius;
-  vehicle.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearWheelRadius;
+  vehicle.frontWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius;
+  vehicle.rearWheelOmega = speed / FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.rollingRadius;
   vehicle.actuator.steering = 0.4;
 
   for (let tick = 0; tick < 12; tick += 1) {
@@ -138,14 +139,14 @@ test('common rack has one mechanical stop while A is derived only as M-D', () =>
   );
   assert.equal(saturated, calibration.maxRoadWheelSteer);
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_PROFILE, steeringResponseTau: 0 }),
+    () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, steeringResponseTau: 0 }),
     /finite and > 0/,
   );
 });
 
 test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics', () => {
   const directHudRatio = compileArcadeVehicleProfile({
-    ...FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+    ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
     steeringRatio: 1,
   });
   const standard = createArcadeVehicle(

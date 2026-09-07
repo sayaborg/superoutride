@@ -9,7 +9,7 @@ import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { createArcadeVehicle, updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { compileTireCharacteristics, createArcadeTireFrictionCalibration, readTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
 import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';

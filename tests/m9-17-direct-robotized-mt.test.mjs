@@ -9,7 +9,7 @@ import {
 } from '../dist/physics/automatic-powertrain.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/vehicle/production-vehicle-profiles.js';
 import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -200,7 +200,7 @@ test('M9.17 complete 20-second drive trace remains deterministic', () => {
 
 test('M9.17 removes coupling, RPM lag and shift-cut state without introducing a vehicle-specific force path', async () => {
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
-  const profiles = await readFile(new URL('../src/physics/vehicle-profiles.ts', import.meta.url), 'utf8');
+  const profiles = await readFile(new URL('../src/vehicle/production-vehicle-profiles.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(`${source}\n${profiles}`, /shiftDuration|shiftTimer|shiftDirection|engineResponseTau|launchCouplingSlipRpm|shiftDriveScale|redlineScale/);
   assert.doesNotMatch(source, /vehicle\.velocity|driftMode|yawRate|Math\.exp|from ['"].*(browser|dev\/)/);
 });

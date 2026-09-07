@@ -21,7 +21,7 @@ import {
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
-import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../dist/physics/vehicle-profiles.js';
+import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
