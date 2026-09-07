@@ -88,6 +88,10 @@ test('additional unbound courses use the existing route runner and actual mobile
   const extra = { query: 'additional-circuit', label: 'EXTRA', routeKind: 'CIRCUIT' };
   const choices = compileBrowserCourseModes([...BROWSER_COURSE_MODES, extra]);
   assert.equal(selectBrowserCourseMode(extra.query, choices).entryName, 'main-circuit.js');
+  const reordered = compileBrowserCourseModes([extra, ...BROWSER_COURSE_MODES]);
+  assert.equal(selectBrowserCourseMode(null, reordered).query, 'branching');
+  assert.equal(selectBrowserCourseMode('unknown', reordered).query, 'branching');
+  assert.throws(() => selectBrowserCourseMode(null, compileBrowserCourseModes([extra])), /branching default/);
   assert.equal(browserCourseModeForKey('Unassigned', choices), null);
   const container = new FakeContainer();
   let selected;

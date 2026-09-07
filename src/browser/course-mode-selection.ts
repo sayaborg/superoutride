@@ -81,8 +81,10 @@ export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery)
 }
 
 export function selectBrowserCourseMode(query: string | null, selections = BROWSER_COURSE_MODES): BrowserCourseModeSelection {
-  return selections.find((mode) => mode.query === query)
-    ?? BROWSER_COURSE_MODES[1]!;
+  const selected = selections.find((mode) => mode.query === query)
+    ?? selections.find((mode) => mode.query === 'branching');
+  if (selected === undefined) throw new RangeError('course selection requires a known query or the branching default');
+  return selected;
 }
 
 export function browserCourseModeForKey(code: string, selections = BROWSER_COURSE_MODES): BrowserCourseModeSelection | null {

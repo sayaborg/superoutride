@@ -25,3 +25,7 @@ Local browser verification: TSUKUBA boots through the registered CIRCUIT factory
 reconstructs the player and displays BIKE art from catalog metadata. Selecting FISCO navigates to
 the existing URL, boots its registered factory and renders the car/road/HUD. No captured console
 errors. This is composition/presentation verification, not handling acceptance.
+
+Final integration check: default course resolution uses the explicit branching identity in the
+supplied catalog, never array position or an entry outside that catalog. Prepending unbound
+content preserves the public default; an unknown query without that default rejects explicitly.
