@@ -10,8 +10,11 @@ import { guideCourseToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal }
 
 test('exact hot-path trace matches released b70f245 across nine profiles and three rates', async () => {
   const result = await runHotPathProbe();
-  // Captured from the verified b70f245 Pages artifact, not from the optimized implementation.
-  assert.equal(result.sha256, 'f5fea70723004e8fbf754dd05fafb2fc07976a9b2f915009fad72009c66978c9');
+  // libm/V8 rounding can differ across architectures. CI compares the immutable released
+  // implementation on the SAME engine, never substitutes the candidate's hash as a baseline.
+  if (process.env.CI) assert.ok(process.env.HOT_PATH_BASELINE_BUILD, 'CI requires the pinned baseline build');
+  const reference = await runHotPathProbe(process.env.HOT_PATH_BASELINE_BUILD ?? 'dist');
+  assert.equal(result.sha256, reference.sha256);
   assert.equal(result.wheelCases, 1152);
 });
 

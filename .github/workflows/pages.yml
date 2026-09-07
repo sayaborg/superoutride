@@ -43,7 +43,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Checkout immutable hot-path reference
+        uses: actions/checkout@v5
+        with:
+          ref: b70f2456fe43b31d55848c4f830d4285f70147e1
+          path: .audit-baseline
+
+      - name: Build immutable hot-path reference
+        run: |
+          test "$(git -C .audit-baseline rev-parse HEAD)" = b70f2456fe43b31d55848c4f830d4285f70147e1
+          npm ci --prefix .audit-baseline
+          npm run build --prefix .audit-baseline
+
       - name: Test and build
+        env:
+          HOT_PATH_BASELINE_BUILD: .audit-baseline/dist
         run: npm test
 
       - name: Stage static site

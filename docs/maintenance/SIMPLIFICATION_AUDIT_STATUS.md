@@ -68,6 +68,13 @@ baseline median 3151.37 ms; candidate median 2817.14 ms (about 10.6% less elapse
 This is a host/Node probe, not browser or 17-actor certification. No CI wall-time threshold.
 Complete local suite: 838/838. Published status must be verified from exact-head CI/PR/Pages.
 
+CI attempt 34154460898 exposed the invalid assumption that the local Mac/Node hash would also be
+the Linux/Node hash (837/838). The workflow now builds immutable b70f245 beside the candidate and
+compares both on the same engine/host; no tolerance or replacement expected hash is introduced.
+Set HOT_PATH_BASELINE_BUILD to a built b70f245 checkout for local cross-build comparison. Without
+it the local test verifies repeatability; CI requires the explicit pinned reference. The baseline
+checkout is test evidence only, never a shipped compatibility implementation.
+
 Validation is eliminated inside root iterations, not by exporting an unchecked force/solver API.
 Independent public calls (including protection trials) still validate their boundary inputs. An
 additional prepared-context/cache abstraction is not justified by this measured gain; retain that
