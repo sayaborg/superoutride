@@ -12,9 +12,9 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P1 checked tire/wheel core | IMPLEMENTED candidate: private force path shared by forward/inverse roots; retain checked public call boundaries and exact root algorithm. |
 | P1 Guide candidate arrays / duplicate sampling | IMPLEMENTED candidate: same ordered contiguous candidates; one plan sample per surface observation. |
 | P1 duplicate placement segment scans | IMPLEMENTED candidate: use existing Core Guide sampling's segment ownership. |
-| P1 common browser/player shell | IMPLEMENTED candidate: driving-shell owns player/input/selectors/HUD; roots retain topology/recovery/race. See BROWSER_SHELL_DECISION.md and browser-driving-shell tests. |
+| P1 common browser/player shell | RELEASED: PR #146, 8ee9fedd; 840 tests, main CI 34156117814, inspected Pages artifact/public version. |
 | P2 compiled profile normalization | TODO: resolved stations own wheel/brake/suspension data; unchanged authored numbers. |
-| P2 renderer workload opt-in | TODO: one render algorithm, identical pixels and diagnostic observations; browser measurement. |
+| P2 renderer workload opt-in | IMPLEMENTED candidate: optional workload observation, single-pass road-view filtering; exact reference pixels/metrics and browser probe. See RENDER_DIAGNOSTICS_DECISION.md. |
 | P2 body basis reuse | IMPLEMENTED candidate: same substep body used before/after rack update. |
 | P2 final-substep telemetry | IMPLEMENTED candidate: output-only publication once, exact observed outer result. |
 | P2 delivered total arithmetic | RETAIN: mathematically equivalent sum may change floating-point rounding; no need to alter it for cleanup. |
@@ -26,7 +26,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Rival identity/presentation | TODO: composition data owns catalog choice, same solver; no new roster product policy. |
 | Vehicle content vs mechanical compiler / open ID | TODO: product data above compiler, synthetic additional ID regression. |
 | Vehicle presentation and optional bindings | TODO: catalog/binding authority, not mechanical identity. |
-| Multi-actor browser performance | TODO: measure 1/4/8/17 actors where available; target-device acceptance requires explicit target. |
+| Multi-actor browser performance | MEASURED local 1/4/8/17 actors with full solver and Painter; target-device/all-course acceptance still OPEN. Reproducible browser-performance tool and scope in RENDER_DIAGNOSTICS_DECISION.md. |
 | Course/vehicle/session extensibility and import-boundary checks | TODO with owning structural changes. |
 | Wheel bisection 60 -> 40 | HOLD: separate numerical experiment, not required for exact cleanup; retain 60. |
 | Branching final rival route-choice policy | HOLD: preserve current explicit FIRST_PHYSICAL_CROSSING_LOCKS; do not enable a new product rule. |
