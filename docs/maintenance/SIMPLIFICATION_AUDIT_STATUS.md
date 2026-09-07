@@ -13,7 +13,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P1 Guide candidate arrays / duplicate sampling | IMPLEMENTED candidate: same ordered contiguous candidates; one plan sample per surface observation. |
 | P1 duplicate placement segment scans | IMPLEMENTED candidate: use existing Core Guide sampling's segment ownership. |
 | P1 common browser/player shell | RELEASED: PR #146, 8ee9fedd; 840 tests, main CI 34156117814, inspected Pages artifact/public version. |
-| P2 compiled profile normalization | TODO: resolved stations own wheel/brake/suspension data; unchanged authored numbers. |
+| P2 compiled profile normalization | IMPLEMENTED candidate: explicit runtime shape, station-only wheel/brake/suspension/tire fields; authored seeds and causal normalization regression. |
 | P2 renderer workload opt-in | IMPLEMENTED candidate: optional workload observation, single-pass road-view filtering; exact reference pixels/metrics and browser probe. See RENDER_DIAGNOSTICS_DECISION.md. |
 | P2 body basis reuse | IMPLEMENTED candidate: same substep body used before/after rack update. |
 | P2 final-substep telemetry | IMPLEMENTED candidate: output-only publication once, exact observed outer result. |
@@ -24,7 +24,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Course identity / runner mapping / optional bindings | TODO: one lightweight catalog, route-kind runner mapping; test additional entries without new mechanics. |
 | Course vs session rival cardinality | TODO: move cardinality to session composition, preserve existing defaults and physical gate policy. |
 | Rival identity/presentation | TODO: composition data owns catalog choice, same solver; no new roster product policy. |
-| Vehicle content vs mechanical compiler / open ID | TODO: product data above compiler, synthetic additional ID regression. |
+| Vehicle content vs mechanical compiler / open ID | IMPLEMENTED candidate: production-vehicle-profiles above generic compiler, opaque validated ID and synthetic tenth-identity ordinary driving test. See VEHICLE_PROFILE_BOUNDARY_DECISION.md. |
 | Vehicle presentation and optional bindings | TODO: catalog/binding authority, not mechanical identity. |
 | Multi-actor browser performance | MEASURED local 1/4/8/17 actors with full solver and Painter; target-device/all-course acceptance still OPEN. Reproducible browser-performance tool and scope in RENDER_DIAGNOSTICS_DECISION.md. |
 | Course/vehicle/session extensibility and import-boundary checks | TODO with owning structural changes. |
