@@ -1,3 +1,4 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { wrapPositive } from '../core/math.js';
 
 export interface HeightNode {
@@ -61,7 +62,7 @@ export class HeightProfile implements HeightProfileReader {
   }
 
   sampleRender(s: number): HeightSample {
-    const local = openChainage(s, this.courseLength, 'height profile');
+    const local = openProfileChainage(s, this.courseLength, 'height profile');
     const i = this.findSegment(local);
     const a = this.nodes[i]!;
     const b = this.nodes[i + 1]!;
@@ -81,7 +82,7 @@ export class HeightProfile implements HeightProfileReader {
   }
 
   samplePhysicsDifferential(s: number): PhysicsHeightSample {
-    const local = openChainage(s, this.courseLength, 'height profile');
+    const local = openProfileChainage(s, this.courseLength, 'height profile');
     const i = this.findSegment(local);
     const a = this.nodes[i]!;
     const b = this.nodes[i + 1]!;
@@ -93,7 +94,7 @@ export class HeightProfile implements HeightProfileReader {
   }
 
   distanceToNextRenderNode(s: number): number {
-    const local = openChainage(s, this.courseLength, 'height profile');
+    const local = openProfileChainage(s, this.courseLength, 'height profile');
     if (local === this.courseLength) return 0;
     const i = this.findSegment(local);
     return this.nodes[i + 1]!.s - local;
@@ -201,14 +202,4 @@ function findCyclicSegment(nodes: readonly HeightNode[], courseLength: number, l
     else return mid;
   }
   return nodes.length - 1;
-}
-
-function openChainage(s: number, courseLength: number, label: string): number {
-  if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
-  if (s < -EPSILON || s > courseLength + EPSILON) {
-    throw new RangeError(`${label} chainage is outside [0, courseLength]`);
-  }
-  if (Math.abs(s) <= EPSILON) return 0;
-  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
-  return s;
 }

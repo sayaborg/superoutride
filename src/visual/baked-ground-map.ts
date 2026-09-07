@@ -1,3 +1,4 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { selectGroundMapLevel } from '../compiler/ground-map-lod.js';
 import { wrapPositive } from '../core/math.js';
 import { rgb555ToRgba } from '../render/rgb555.js';
@@ -63,7 +64,6 @@ export interface BakedGroundMapReader {
 
 const RGB555_TO_RGBA = new Uint32Array(0x8000);
 for (let i = 0; i < RGB555_TO_RGBA.length; i += 1) RGB555_TO_RGBA[i] = rgb555ToRgba(i);
-const EPSILON = 1e-9;
 
 /**
  * Runtime view of compiler-baked GroundMap chunks over one open chainage domain.
@@ -103,7 +103,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     const level = this.metadata.levels[levelIndex];
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
 
-    const sLocal = openChainage(s, this.metadata.courseLength);
+    const sLocal = openProfileChainage(s, this.metadata.courseLength, 'baked GroundMap');
     const row = sLocal === this.metadata.courseLength
       ? level.chainageTexels - 1
       : Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels);
@@ -245,14 +245,4 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
       throw new Error('GroundMap payload outside binary asset');
     }
   }
-}
-
-function openChainage(s: number, courseLength: number): number {
-  if (!Number.isFinite(s)) throw new RangeError('baked GroundMap chainage must be finite');
-  if (s < -EPSILON || s > courseLength + EPSILON) {
-    throw new RangeError('baked GroundMap chainage is outside [0, courseLength]');
-  }
-  if (Math.abs(s) <= EPSILON) return 0;
-  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
-  return s;
 }

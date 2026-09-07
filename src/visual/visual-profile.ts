@@ -1,3 +1,4 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { wrapPositive } from '../core/math.js';
 
 export type GroundBase =
@@ -44,12 +45,12 @@ export class VisualProfile implements VisualProfileReader {
   }
 
   sample(s: number): VisualSection {
-    const local = openChainage(s, this.courseLength, 'visual profile');
+    const local = openProfileChainage(s, this.courseLength, 'visual profile');
     return sectionAt(this.sections, local);
   }
 
   distanceToNextSection(s: number): number {
-    const local = openChainage(s, this.courseLength, 'visual profile');
+    const local = openProfileChainage(s, this.courseLength, 'visual profile');
     if (local === this.courseLength) return 0;
     for (const section of this.sections) {
       if (section.sStart > local + EPSILON) return section.sStart - local;
@@ -86,14 +87,4 @@ function sectionAt(sections: readonly VisualSection[], local: number): VisualSec
     else break;
   }
   return sections[index]!;
-}
-
-function openChainage(s: number, courseLength: number, label: string): number {
-  if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
-  if (s < -EPSILON || s > courseLength + EPSILON) {
-    throw new RangeError(`${label} chainage is outside [0, courseLength]`);
-  }
-  if (Math.abs(s) <= EPSILON) return 0;
-  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
-  return s;
 }

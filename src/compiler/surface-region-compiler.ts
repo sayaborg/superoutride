@@ -1,3 +1,4 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type {
   AuthoredGroundBase,
   AuthoredSurfaceBand,
@@ -58,7 +59,7 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
   }
 
   sample(s: number): GroundMapLogicalSection {
-    const local = openChainage(s, this.courseLength, 'GroundMap logical profile');
+    const local = openProfileChainage(s, this.courseLength, 'GroundMap logical profile');
     let index = this.sections.length - 1;
     for (let i = 0; i < this.sections.length; i += 1) {
       if (this.sections[i]!.sStart <= local) index = i;
@@ -217,14 +218,4 @@ function coalesce<T, U>(
     previous = region;
   }
   return out;
-}
-
-function openChainage(s: number, courseLength: number, label: string): number {
-  if (!Number.isFinite(s)) throw new RangeError(`${label} chainage must be finite`);
-  if (s < -EPSILON || s > courseLength + EPSILON) {
-    throw new RangeError(`${label} chainage is outside [0, courseLength]`);
-  }
-  if (Math.abs(s) <= EPSILON) return 0;
-  if (Math.abs(s - courseLength) <= EPSILON) return courseLength;
-  return s;
 }
