@@ -19,7 +19,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P2 final-substep telemetry | IMPLEMENTED candidate: output-only publication once, exact observed outer result. |
 | P2 delivered total arithmetic | RETAIN: mathematically equivalent sum may change floating-point rounding; no need to alter it for cleanup. |
 | P2 no-op torque copies | IMPLEMENTED candidate: unchanged immutable request returned directly. |
-| P3 open-domain validation | TODO: inventory tolerance/endpoint semantics before centralizing; no generic helper campaign. |
+| P3 open-domain validation | IMPLEMENTED candidate: four identical profile endpoint checks share one helper. Distinct strict SurfaceMap and Raster/Guide tolerances retained. See OPEN_PROFILE_DOMAIN_DECISION.md. |
 | Runtime local-search failure policy | SEPARATE DECISION: do not silently change moving-vehicle fallback in a behavior-identical refactor. |
 | Course identity / runner mapping / optional bindings | TODO: one lightweight catalog, route-kind runner mapping; test additional entries without new mechanics. |
 | Course vs session rival cardinality | TODO: move cardinality to session composition, preserve existing defaults and physical gate policy. |
