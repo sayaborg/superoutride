@@ -37,3 +37,6 @@ Traffic setting, play-mode policy, start rule or handling calibration is introdu
 This explicitly changes a numbered ownership boundary. Under validation/README.md, a standalone
 validation record is required after an initial complete green implementation/doc/test CI; the
 validation-inclusive exact head must receive a fresh complete green run before release.
+
+Initial exact-head evidence and the final-release verification contract are preserved in
+[SESSION_CONFIGURATION_BOUNDARY_VALIDATION.txt](validation/SESSION_CONFIGURATION_BOUNDARY_VALIDATION.txt).

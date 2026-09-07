@@ -21,11 +21,11 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | P2 no-op torque copies | RELEASED #145: unchanged immutable request returned directly. |
 | P3 open-domain validation | RELEASED #149: four identical profile checks share one helper; strict SurfaceMap and Raster/Guide tolerances retained. See OPEN_PROFILE_DOMAIN_DECISION.md. |
 | Runtime local-search failure policy | SEPARATE DECISION: do not silently change moving-vehicle fallback in a behavior-identical refactor. |
-| Course identity / runner mapping / optional bindings | IMPLEMENTED candidate: validated extensible catalog, route-kind runner map and root-only CIRCUIT factories; unbound extra-course mobile regression. |
-| Course vs session rival cardinality | IMPLEMENTED candidate: 117 moves count alone to SessionConfiguration, preserving public/historical counts and all physical gate rules; validation-inclusive release required. |
-| Rival identity/presentation | IMPLEMENTED candidate: retained catalog choice; sprites derive its explicit metadata and shared output-only bank primitive, not hard-coded CAR. |
+| Course identity / runner mapping / optional bindings | RELEASED #150: validated extensible catalog, route-kind runner map and root-only CIRCUIT factories; unbound extra-course mobile regression. #151 additionally preserves the explicit default when catalog order grows. |
+| Course vs session rival cardinality | IMPLEMENTED #151: 117 moves count alone to SessionConfiguration, preserving public/historical counts and all physical gate rules; exact release identity is established by PR #151 and its validation-inclusive CI, not a self-reference here. |
+| Rival identity/presentation | RELEASED #150: retained catalog choice; sprites derive its explicit metadata and shared output-only bank primitive, not hard-coded CAR. |
 | Vehicle content vs mechanical compiler / open ID | RELEASED #148: product data above compiler, opaque validated ID and synthetic tenth-identity ordinary driving test. See VEHICLE_PROFILE_BOUNDARY_DECISION.md. |
-| Vehicle presentation and optional bindings | IMPLEMENTED candidate: catalog alone owns family, optional shortcuts with duplicate rejection; actual unbound tenth-vehicle mobile selection regression. |
+| Vehicle presentation and optional bindings | RELEASED #150: catalog alone owns family, optional shortcuts with duplicate rejection; actual unbound tenth-vehicle mobile selection regression. |
 | Multi-actor browser performance | MEASURED local 1/4/8/17 actors with full solver and Painter; target-device/all-course acceptance still OPEN. Reproducible browser-performance tool and scope in RENDER_DIAGNOSTICS_DECISION.md. |
 | Course/vehicle/session extensibility and import-boundary checks | IMPLEMENTED with owning changes: unbound extra course/vehicle controls, synthetic profile, 0/1/16 sessions on each unchanged route form, mechanical import/ownership checks. |
 | Wheel bisection 60 -> 40 | HOLD: separate numerical experiment, not required for exact cleanup; retain 60. |
@@ -33,7 +33,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Brake capacity/bias acceptance | OPEN prerequisite to core-complete claim; profile values remain provisional, no retuning in cleanup. |
 | Combined steering/braking acceptance | OPEN prerequisite to core-complete claim; existing causal report/tests are not all-course acceptance. |
 | Terrain/support envelope | OPEN prerequisite to core-complete claim; retain existing failure evidence, no clamps/fake support. |
-| Core freeze/completion declaration | NOT CLAIMED: depends on explicit acceptance of the three preceding envelopes. |
+| Core freeze/completion declaration | NOT CLAIMED: depends on explicit acceptance of brake, combined handling, terrain/support and target-browser performance envelopes. |
 | Tire calibration / station differentiation | PAUSED in current authority, unchanged. |
 | Lazy course loading | RETAIN current static module loading; root factories instantiate only selected content. No demonstrated loading problem justifies another loader/cache abstraction. |
 | Historical fixtures/evidence, explicit cyclic adapters, support search and real trial physics | RETAIN intentionally: not dead code or duplicate authority. |
@@ -56,6 +56,35 @@ This exact cleanup leaves numbered authority unchanged: PR exact-head CI is the 
 no new standalone archive record is required under validation/README.md. Later structural changes
 must apply their own Decision Gates and record policy. Never mark a held acceptance item completed
 merely because it has been classified in this ledger.
+
+## Structural closure and remaining acceptance
+
+The authorized structural implementation queue is complete in PRs #144 through #151. The last
+normative ownership change is backed by
+[SESSION_CONFIGURATION_BOUNDARY_VALIDATION.txt](../validation/SESSION_CONFIGURATION_BOUNDARY_VALIDATION.txt).
+Resolve #151's final validation-inclusive SHA, main/PR identity and Pages from GitHub before
+describing it as published. No implementation or validation file can name its own final SHA.
+
+Already checked publication evidence for the intervening releases:
+
+| PR | Exact released main/feature SHA | Complete main/Pages run | Tests |
+|---|---|---|---|
+| #145 | b4d30c111f23622548206d7e6c354612952a9d21 | 34155115473 | 838 |
+| #146 | 8ee9fedd472722a5a88af690bac93fa8abda52ef | 34156117814 | 840 |
+| #147 | 566ae31ccf622a6ffa6fad59a40b6f1baf916d35 | 34157064705 | 842 |
+| #148 | 9826a8851f3985501fdf9132e573fea3f5be9f5f | 34157560140 | 845 |
+| #149 | 665347cc178aae582c2488086e280c48a02be94b | 34158162455 | 848 |
+| #150 | 5283c8f0971b9a296b47bbfb4011e73675aba4a3 | 34158818831 | 851 |
+
+Each listed Pages artifact and public version endpoint was inspected at the same SHA. These are
+publication checks, not target-device handling/performance certification.
+
+Remaining OPEN items are acceptance work, not cleanup silently declared finished: approved brake
+capacity/bias criteria; combined braking/steering on the required course/speed envelope; supported
+terrain/contact envelope; and required target devices/browsers/frame budget. Existing diagnostic
+failures and DEV_UNCALIBRATED status remain visible. No arbitrary pass threshold, tire retuning,
+new control policy or physics fidelity reduction is authorized by this cleanup. Establish the
+required acceptance scope before declaring Core complete or changing those mechanics.
 
 ### Measured hot-path evidence
 
