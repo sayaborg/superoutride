@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
@@ -12,8 +13,8 @@ import { createM2StadiumGuide } from './debug-course.js';
 export const M6_51_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_CIRCUIT_THREE_LAP_SOLO',
   routeKind: 'CIRCUIT',
-  rivalCount: 0,
 });
+export const M6_51_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 0 });
 
 /**
  * Create a three-lap drivable circuit from the familiar M2 stadium authoring.

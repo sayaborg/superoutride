@@ -1,3 +1,5 @@
+import { M8_3_LINEAR_SESSION_CONFIGURATION } from '../dist/dev/m8-3-linear-highway.js';
+import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -92,7 +94,7 @@ test('browser course selector maps 1/2/3/4 and URL modes from one authority', ()
   assert.equal(browserCourseModeForKey('KeyV'), null);
   assert.equal(selectBrowserCourseMode(null).routeKind, 'BRANCHING');
   assert.equal(selectBrowserCourseMode('unknown').routeKind, 'BRANCHING');
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.rivalCount, 0);
+  assert.equal(M8_3_BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
   assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
 });
 
@@ -131,7 +133,7 @@ test('catalog profiles share only the M9.8 normalized tire law and retain distin
 test('LINEAR debug course is one finite ordinary open 8 km highway and renders normally', () => {
   const runtime = createM83LinearHighwayRuntime();
   assert.equal(M8_3_LINEAR_COURSE_MODE.routeKind, 'LINEAR');
-  assert.equal(M8_3_LINEAR_COURSE_MODE.rivalCount, 0);
+  assert.equal(M8_3_LINEAR_SESSION_CONFIGURATION.rivalCount, 0);
   assert.equal(runtime.guide.length, M8_3_LINEAR_LENGTH_METERS);
   assert.equal(runtime.guide.segments.length, 1);
   const car = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);

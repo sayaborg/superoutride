@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
@@ -34,8 +35,8 @@ const TURN_THIRTEEN_TO_TURN_FOURTEEN_METERS = 430.3828989144511;
 export const M9_6_FISCO_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_M9_6_FISCO_THREE_LAP_ONE_RIVAL',
   routeKind: 'CIRCUIT',
-  rivalCount: 1,
 });
+export const M9_6_FISCO_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });
 
 export const M9_6_FISCO_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
   ...M5_RECOVERY_PROFILE,

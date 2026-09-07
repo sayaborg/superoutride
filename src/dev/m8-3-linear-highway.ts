@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath } from '../core/course.js';
 import { compileGuidePath, type GuideCurve } from '../core/guide-curve.js';
 import {
@@ -26,8 +27,8 @@ export const M8_3_LINEAR_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> =
 export const M8_3_LINEAR_COURSE_MODE: CourseModeProfile = compileCourseMode({
   id: 'DEV_OPEN_EIGHT_KILOMETER_HIGHWAY',
   routeKind: 'LINEAR',
-  rivalCount: 0,
 });
+export const M8_3_LINEAR_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 0 });
 
 export interface M83LinearHighwayRuntime {
   readonly guide: GuideCurve;

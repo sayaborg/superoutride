@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileCourseMode } from '../gameplay/course-mode.js';
 
 /**
@@ -9,5 +10,5 @@ import { compileCourseMode } from '../gameplay/course-mode.js';
 export const M6_54_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_CIRCUIT_THREE_LAP_ONE_RIVAL',
   routeKind: 'CIRCUIT',
-  rivalCount: 1,
 });
+export const M6_54_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });

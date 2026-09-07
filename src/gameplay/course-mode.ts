@@ -12,7 +12,6 @@ export type BranchViolationPolicy = 'RECOVER_TO_LOCKED_BRANCH';
 export interface CourseModeAuthoring {
   readonly id: string;
   readonly routeKind: CourseRouteKind;
-  readonly rivalCount: number;
 }
 
 export interface CourseModeProfile {
@@ -20,7 +19,6 @@ export interface CourseModeProfile {
   readonly routeKind: CourseRouteKind;
   readonly routeAuthorityKind: CourseRouteAuthorityKind;
   readonly finishKind: CourseFinishKind;
-  readonly rivalCount: number;
   readonly sharedRouteChoiceMode: CourseSharedRouteChoiceMode;
   /**
    * What physically happens when a trailing vehicle attempts the now-forbidden sibling branch.
@@ -28,8 +26,6 @@ export interface CourseModeProfile {
    */
   readonly branchViolationPolicy: BranchViolationPolicy | null;
 }
-
-export const MAX_RIVAL_COUNT = 16;
 
 /**
  * Compile product-facing course mode semantics without coupling every course shape to RouteDag.
@@ -40,11 +36,6 @@ export const MAX_RIVAL_COUNT = 16;
  */
 export function compileCourseMode(authoring: CourseModeAuthoring): CourseModeProfile {
   assertNonEmpty(authoring.id, 'course mode id');
-  if (!Number.isInteger(authoring.rivalCount)
-    || authoring.rivalCount < 0
-    || authoring.rivalCount > MAX_RIVAL_COUNT) {
-    throw new RangeError(`course mode rivalCount must be an integer within 0..${MAX_RIVAL_COUNT}`);
-  }
 
   switch (authoring.routeKind) {
     case 'LINEAR':
@@ -53,7 +44,6 @@ export function compileCourseMode(authoring: CourseModeAuthoring): CourseModePro
         routeKind: authoring.routeKind,
         routeAuthorityKind: 'POINT_TO_POINT_GRAPH',
         finishKind: 'POINT_TO_POINT',
-        rivalCount: authoring.rivalCount,
         sharedRouteChoiceMode: 'INDEPENDENT',
         branchViolationPolicy: null,
       });
@@ -63,7 +53,6 @@ export function compileCourseMode(authoring: CourseModeAuthoring): CourseModePro
         routeKind: authoring.routeKind,
         routeAuthorityKind: 'POINT_TO_POINT_GRAPH',
         finishKind: 'POINT_TO_POINT',
-        rivalCount: authoring.rivalCount,
         sharedRouteChoiceMode: 'FIRST_PHYSICAL_CROSSING_LOCKS',
         branchViolationPolicy: 'RECOVER_TO_LOCKED_BRANCH',
       });
@@ -73,7 +62,6 @@ export function compileCourseMode(authoring: CourseModeAuthoring): CourseModePro
         routeKind: authoring.routeKind,
         routeAuthorityKind: 'CIRCUIT_LOOP',
         finishKind: 'LAPS',
-        rivalCount: authoring.rivalCount,
         sharedRouteChoiceMode: 'INDEPENDENT',
         branchViolationPolicy: null,
       });

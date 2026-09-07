@@ -215,6 +215,10 @@ archived CSV/JSON to reflect a later experiment. Preserve new evidence separatel
 
 ## 7. Maintenance and next release
 
+The simplification audit's course/session ownership change is scoped in
+[117](117_session_configuration_boundary.md). Read it and the maintenance audit ledger before
+changing roster configuration. It does not activate any paused gameplay/handling decision.
+
 Keep this current handoff as the single active continuation map already referenced by AGENTS and
 the root README. Update its navigation/status with source-backed changes, not a second normative
 parameter ledger. Keep earlier handoffs, numbered historical prose, validation records, original

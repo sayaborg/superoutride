@@ -1,19 +1,19 @@
+import { M6_43_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-43-course-mode.js';
+import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-import {
-  MAX_RIVAL_COUNT,
-  compileCourseMode,
-} from '../dist/gameplay/course-mode.js';
+import { compileCourseMode } from '../dist/gameplay/course-mode.js';
+import { MAX_RIVAL_COUNT, compileSessionConfiguration } from '../dist/gameplay/session-configuration.js';
 import { M6_43_DEV_COURSE_MODE } from '../dist/dev/m6-43-course-mode.js';
 import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
 import { createRivalRoster } from '../dist/runtime/rival-roster.js';
 
 test('M6.43 course mode contract keeps linear branching and circuit as three distinct route shapes', () => {
-  const linear = compileCourseMode({ id: 'L', routeKind: 'LINEAR', rivalCount: 0 });
-  const branching = compileCourseMode({ id: 'B', routeKind: 'BRANCHING', rivalCount: 8 });
-  const circuit = compileCourseMode({ id: 'C', routeKind: 'CIRCUIT', rivalCount: 16 });
+  const linear = compileCourseMode({ id: 'L', routeKind: 'LINEAR' });
+  const branching = compileCourseMode({ id: 'B', routeKind: 'BRANCHING' });
+  const circuit = compileCourseMode({ id: 'C', routeKind: 'CIRCUIT' });
 
   assert.equal(linear.routeAuthorityKind, 'POINT_TO_POINT_GRAPH');
   assert.equal(linear.finishKind, 'POINT_TO_POINT');
@@ -24,33 +24,33 @@ test('M6.43 course mode contract keeps linear branching and circuit as three dis
 });
 
 test('M6.46 branching keeps first physical crossing lock and defines losing-sibling recovery', () => {
-  const mode = compileCourseMode({ id: 'OUTRUN', routeKind: 'BRANCHING', rivalCount: 4 });
+  const mode = compileCourseMode({ id: 'OUTRUN', routeKind: 'BRANCHING' });
   assert.equal(mode.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
   assert.equal(mode.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   for (const routeKind of ['LINEAR', 'CIRCUIT']) {
-    const other = compileCourseMode({ id: routeKind, routeKind, rivalCount: 4 });
+    const other = compileCourseMode({ id: routeKind, routeKind });
     assert.equal(other.sharedRouteChoiceMode, 'INDEPENDENT');
     assert.equal(other.branchViolationPolicy, null);
   }
 });
 
-test('M6.43 rival cardinality belongs to mode authoring and accepts the full 0..16 product envelope', () => {
+test('document 117 moves the unchanged 0..16 opponent envelope to session configuration', () => {
   assert.equal(MAX_RIVAL_COUNT, 16);
-  assert.equal(compileCourseMode({ id: 'ZERO', routeKind: 'LINEAR', rivalCount: 0 }).rivalCount, 0);
-  assert.equal(compileCourseMode({ id: 'MAX', routeKind: 'BRANCHING', rivalCount: 16 }).rivalCount, 16);
+  assert.equal(compileSessionConfiguration({ rivalCount: 0 }).rivalCount, 0);
+  assert.equal(compileSessionConfiguration({ rivalCount: 16 }).rivalCount, 16);
 
-  for (const rivalCount of [-1, 1.5, 17]) {
+  for (const rivalCount of [-1, 1.5, 17, NaN, Infinity, undefined]) {
     assert.throws(
-      () => compileCourseMode({ id: 'BAD', routeKind: 'LINEAR', rivalCount }),
+      () => compileSessionConfiguration({ rivalCount }),
       /rivalCount must be an integer within 0\.\.16/,
     );
   }
 });
 
 test('M6.43 roster is a stable variable-length actor list with no null-rival special case', () => {
-  const zero = createRivalRoster(compileCourseMode({ id: 'ZERO', routeKind: 'LINEAR', rivalCount: 0 }));
-  const max = createRivalRoster(compileCourseMode({ id: 'MAX', routeKind: 'BRANCHING', rivalCount: 16 }));
+  const zero = createRivalRoster(compileSessionConfiguration({ rivalCount: 0 }));
+  const max = createRivalRoster(compileSessionConfiguration({ rivalCount: 16 }));
 
   assert.deepEqual(zero, []);
   assert.equal(max.length, 16);
@@ -62,16 +62,16 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
 
 test('M6.46 one-rival fixture remains historical while M8.3 course debug gives branch choice to the player', () => {
   assert.equal(M6_43_DEV_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M6_43_DEV_COURSE_MODE.rivalCount, 1);
+  assert.equal(M6_43_DEV_SESSION_CONFIGURATION.rivalCount, 1);
   assert.equal(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
   assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
   assert.equal(M8_3_BRANCHING_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.rivalCount, 0);
+  assert.equal(M8_3_BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
   assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
   assert.equal(M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   const source = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(source, /createRivalRoster\(M8_3_BRANCHING_COURSE_MODE\)/);
+  assert.match(source, /createRivalRoster\(M8_3_BRANCHING_SESSION_CONFIGURATION\)/);
   assert.match(source, /const rivals = rivalRoster\.map/);
   assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
   assert.match(source, /recoverActorToLockedBranch\(/);

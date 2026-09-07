@@ -1,3 +1,4 @@
+import { M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import {
@@ -135,7 +136,7 @@ const routeState = playerTraveler.routeState;
 const routeHandoffState = playerTraveler.handoffState;
 const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
-const rivalRoster = createRivalRoster(M8_3_BRANCHING_COURSE_MODE);
+const rivalRoster = createRivalRoster(M8_3_BRANCHING_SESSION_CONFIGURATION);
 const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
 const rivals = rivalRoster.map((entry) => {
   const rivalVehicle = createArcadeVehicle(

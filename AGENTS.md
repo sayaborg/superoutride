@@ -26,6 +26,10 @@ docs/00b_core_design_freeze_addendum_m6_44.md
 docs/00c_core_design_freeze_addendum_m6_45.md
 ```
 
+Course/session ownership is clarified by `docs/117_session_configuration_boundary.md`:
+course profiles own route structure; separate session configuration owns opponent count. This
+supersedes only document 61's placement of rivalCount, not current defaults or branch policy.
+
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text

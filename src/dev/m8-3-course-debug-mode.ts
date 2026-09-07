@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileCourseMode } from '../gameplay/course-mode.js';
 
 /**
@@ -10,5 +11,5 @@ import { compileCourseMode } from '../gameplay/course-mode.js';
 export const M8_3_BRANCHING_COURSE_MODE = compileCourseMode({
   id: 'DEV_BRANCHING_PLAYER_ROUTE_DEBUG',
   routeKind: 'BRANCHING',
-  rivalCount: 0,
 });
+export const M8_3_BRANCHING_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 0 });

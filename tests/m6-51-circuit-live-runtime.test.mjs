@@ -1,3 +1,4 @@
+import { M6_51_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -58,7 +59,7 @@ test('M6.51 selectable DEV mode is a real CIRCUIT authority with no branch polic
   assert.equal(M6_51_DEV_COURSE_MODE.routeKind, 'CIRCUIT');
   assert.equal(M6_51_DEV_COURSE_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
   assert.equal(M6_51_DEV_COURSE_MODE.finishKind, 'LAPS');
-  assert.equal(M6_51_DEV_COURSE_MODE.rivalCount, 0);
+  assert.equal(M6_51_DEV_SESSION_CONFIGURATION.rivalCount, 0);
   assert.equal(M6_51_DEV_COURSE_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
   assert.equal(M6_51_DEV_COURSE_MODE.branchViolationPolicy, null);
 });

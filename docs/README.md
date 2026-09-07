@@ -112,12 +112,16 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `116_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `117_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 
 For topology/runtime history, the M6.44–M6.54 sequence remains current within its scope. M9.20
 changes none of those boundaries.
+
+[117 — Session configuration boundary](117_session_configuration_boundary.md) supersedes only
+document 61's placement of opponent count on the course profile. Separate session configuration
+now owns cardinality; route structure, physical progress, public counts and branch policy remain.
 
 ## Current takeover context
 

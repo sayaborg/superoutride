@@ -1,3 +1,4 @@
+import { M6_54_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-54-circuit-multi-actor.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -52,8 +53,8 @@ test('M6.54 current CIRCUIT mode compiles one ordinary rival roster entry', () =
   assert.equal(M6_54_DEV_COURSE_MODE.routeKind, 'CIRCUIT');
   assert.equal(M6_54_DEV_COURSE_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
   assert.equal(M6_54_DEV_COURSE_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
-  assert.equal(M6_54_DEV_COURSE_MODE.rivalCount, 1);
-  assert.deepEqual(createRivalRoster(M6_54_DEV_COURSE_MODE), [
+  assert.equal(M6_54_DEV_SESSION_CONFIGURATION.rivalCount, 1);
+  assert.deepEqual(createRivalRoster(M6_54_DEV_SESSION_CONFIGURATION), [
     { actorId: 'RIVAL_01', rivalIndex: 0 },
   ]);
 });
@@ -135,7 +136,7 @@ test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the 
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)]
     .map((match) => match[1]);
 
-  assert.match(source, /createRivalRoster\(selectedCircuit\.courseMode\)/);
+  assert.match(source, /createRivalRoster\(selectedCircuit\.session\)/);
   assert.match(source, /sampleRivalDrivingInput\(guide, rival\.vehicle, 0\)/);
   assert.match(source, /updateCircuitRaceProgress\(rival\.raceProgress, raceRules/);
   assert.match(source, /advanceRaceSession\([\s\S]*?rival\.raceSession/);

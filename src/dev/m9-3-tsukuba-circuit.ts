@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
@@ -38,8 +39,8 @@ const SECOND_HAIRPIN_COMPOUND_TRANSITION_METERS = 8;
 export const M9_3_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_M9_3_TSUKUBA_COURSE_2000_THREE_LAP_ONE_RIVAL',
   routeKind: 'CIRCUIT',
-  rivalCount: 1,
 });
+export const M9_3_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });
 
 export const M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
   ...M5_RECOVERY_PROFILE,

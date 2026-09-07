@@ -1,3 +1,4 @@
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
@@ -19,8 +20,8 @@ const FLOWING_MEDIUM_RADIUS_METERS = 240;
 export const M9_1_DEV_COURSE_MODE = compileCourseMode({
   id: 'DEV_M9_1_LOW_MID_SPEED_MOUNTAIN_THREE_LAP_ONE_RIVAL',
   routeKind: 'CIRCUIT',
-  rivalCount: 1,
 });
+export const M9_1_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });
 
 export interface M91LowMidSpeedMountainCircuitLap {
   readonly raster: RasterPath;
