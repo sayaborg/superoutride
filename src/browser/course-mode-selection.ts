@@ -1,24 +1,53 @@
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
 
-export type BrowserCourseModeQuery = 'linear' | 'branching' | 'circuit' | 'fisco';
+export type BrowserCourseModeQuery = string;
+
+const COURSE_RUNNERS = Object.freeze({
+  LINEAR: 'main-linear.js',
+  BRANCHING: 'main.js',
+  CIRCUIT: 'main-circuit.js',
+} as const);
 
 export interface BrowserCourseModeSelection {
-  readonly digitCode: 'Digit1' | 'Digit2' | 'Digit3' | 'Digit4';
-  readonly numpadCode: 'Numpad1' | 'Numpad2' | 'Numpad3' | 'Numpad4';
-  readonly label: 'LINEAR' | 'BRANCHING' | 'TSUKUBA' | 'FISCO';
+  readonly digitCode?: string;
+  readonly numpadCode?: string;
+  readonly label: string;
   readonly query: BrowserCourseModeQuery;
   readonly routeKind: CourseRouteKind;
-  readonly entryName: 'main-linear.js' | 'main.js' | 'main-circuit.js';
+  readonly entryName: typeof COURSE_RUNNERS[CourseRouteKind];
 }
 
-export const BROWSER_COURSE_MODES: readonly BrowserCourseModeSelection[] = Object.freeze([
+export function compileBrowserCourseModes(
+  entries: readonly Omit<BrowserCourseModeSelection, 'entryName'>[],
+): readonly BrowserCourseModeSelection[] {
+  const queries = new Set<string>();
+  const keys = new Set<string>();
+  return Object.freeze(entries.map(entry => {
+    if (typeof entry.query !== 'string' || !entry.query.trim() || entry.query.trim() !== entry.query
+      || typeof entry.label !== 'string' || !entry.label.trim()) {
+      throw new RangeError('course query and label must be nonempty; query must be trimmed');
+    }
+    if (queries.has(entry.query)) throw new RangeError(`duplicate course query: ${entry.query}`);
+    queries.add(entry.query);
+    if (!Object.hasOwn(COURSE_RUNNERS, entry.routeKind)) throw new RangeError('unknown course route kind');
+    for (const code of [entry.digitCode, entry.numpadCode]) {
+      if (code === undefined) continue;
+      if (typeof code !== 'string' || !code.trim() || keys.has(code)) {
+        throw new RangeError(`invalid or duplicate course shortcut: ${code}`);
+      }
+      keys.add(code);
+    }
+    return Object.freeze({ ...entry, entryName: COURSE_RUNNERS[entry.routeKind] });
+  }));
+}
+
+export const BROWSER_COURSE_MODES = compileBrowserCourseModes([
   Object.freeze({
     digitCode: 'Digit1',
     numpadCode: 'Numpad1',
     label: 'LINEAR',
     query: 'linear',
     routeKind: 'LINEAR',
-    entryName: 'main-linear.js',
   }),
   Object.freeze({
     digitCode: 'Digit2',
@@ -26,7 +55,6 @@ export const BROWSER_COURSE_MODES: readonly BrowserCourseModeSelection[] = Objec
     label: 'BRANCHING',
     query: 'branching',
     routeKind: 'BRANCHING',
-    entryName: 'main.js',
   }),
   Object.freeze({
     digitCode: 'Digit3',
@@ -34,7 +62,6 @@ export const BROWSER_COURSE_MODES: readonly BrowserCourseModeSelection[] = Objec
     label: 'TSUKUBA',
     query: 'circuit',
     routeKind: 'CIRCUIT',
-    entryName: 'main-circuit.js',
   }),
   Object.freeze({
     digitCode: 'Digit4',
@@ -42,25 +69,24 @@ export const BROWSER_COURSE_MODES: readonly BrowserCourseModeSelection[] = Objec
     label: 'FISCO',
     query: 'fisco',
     routeKind: 'CIRCUIT',
-    entryName: 'main-circuit.js',
   }),
 ]);
 
 export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery): string {
   return BROWSER_COURSE_MODES
     .map((mode) => (
-      `[${mode.digitCode.slice(-1)}] ${mode.label}${mode.query === activeQuery ? '*' : ''}`
+      `${mode.digitCode === undefined ? '' : `[${mode.digitCode.slice(-1)}] `}${mode.label}${mode.query === activeQuery ? '*' : ''}`
     ))
     .join('  ');
 }
 
-export function selectBrowserCourseMode(query: string | null): BrowserCourseModeSelection {
-  return BROWSER_COURSE_MODES.find((mode) => mode.query === query)
+export function selectBrowserCourseMode(query: string | null, selections = BROWSER_COURSE_MODES): BrowserCourseModeSelection {
+  return selections.find((mode) => mode.query === query)
     ?? BROWSER_COURSE_MODES[1]!;
 }
 
-export function browserCourseModeForKey(code: string): BrowserCourseModeSelection | null {
-  return BROWSER_COURSE_MODES.find(
+export function browserCourseModeForKey(code: string, selections = BROWSER_COURSE_MODES): BrowserCourseModeSelection | null {
+  return selections.find(
     (mode) => mode.digitCode === code || mode.numpadCode === code,
   ) ?? null;
 }

@@ -44,7 +44,6 @@ const BIKE_STEERING = Object.freeze({
 /** 1989 European/ROW five-bolt Ferrari Testarossa reference. */
 export const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'TESTAROSSA',
-  presentationFamily: 'CAR',
   mass: 1625,
   yawInertia: 3100,
   pitchInertia: 3000,
@@ -94,7 +93,6 @@ export const FERRARI_TESTAROSSA_VEHICLE_PROFILE = compileArcadeVehicleProfile(FE
 /** 1989 European Porsche 911 Turbo 3.3 with the one-year G50/50 five-speed. */
 export const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: '911_TURBO_3_3',
-  presentationFamily: 'CAR',
   mass: 1410,
   yawInertia: 2400,
   pitchInertia: 2250,
@@ -145,7 +143,6 @@ export const PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE = compileArcadeVehicleProfile
 /** 1989 US Chevrolet Corvette L98 with ZF six-speed and base pre-facelift chassis. */
 export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'CORVETTE_C4',
-  presentationFamily: 'CAR',
   mass: 1565,
   yawInertia: 3000,
   pitchInertia: 2700,
@@ -195,7 +192,6 @@ export const CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE = compileArcadeVehicleProfile
 /** 1988 European non-catalyst three-door Volkswagen Golf GTI 16V with small bumpers. */
 export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'GOLF_GTI_16V',
-  presentationFamily: 'CAR',
   mass: 1080,
   yawInertia: 1680,
   pitchInertia: 1500,
@@ -245,7 +241,6 @@ export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE = compileArcadeVehicleProfi
 /** 1988 European road-going Lancia Delta HF Integrale 8V, 185 PS. */
 export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'DELTA_HF_INTEGRALE',
-  presentationFamily: 'CAR',
   mass: 1290,
   yawInertia: 1980,
   pitchInertia: 1800,
@@ -295,7 +290,6 @@ export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE = compileArcadeVehiclePro
 /** 1988 export/ROW full-power Honda VFR750R using the factory RC30 six-speed ratios. */
 export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'VFR750R',
-  presentationFamily: 'BIKE',
   mass: 276,
   yawInertia: 180,
   pitchInertia: 205,
@@ -345,7 +339,6 @@ export const HONDA_VFR750R_VEHICLE_PROFILE = compileArcadeVehicleProfile(HONDA_V
 /** 1985 European road BMW R 80 G/S Paris-Dakar with the 32-litre tank. */
 export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'R80_GS_PARIS_DAKAR',
-  presentationFamily: 'BIKE',
   mass: 280,
   yawInertia: 215,
   pitchInertia: 260,
@@ -395,7 +388,6 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE = compileArcadeVehicleProfil
 /** 1988 US Harley-Davidson FXRT Sport Glide with Evolution 1340 power. */
 export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'FXRT_SPORT_GLIDE',
-  presentationFamily: 'BIKE',
   mass: 380,
   yawInertia: 285,
   pitchInertia: 340,
@@ -445,7 +437,6 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE = compileArcadeVehicleProfile(
 /** 1985 Italian/European full-power Vespa PX 200 E Arcobaleno, frame type VSX1T. */
 export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'PX200E_ARCOBALENO',
-  presentationFamily: 'BIKE',
   mass: 190,
   yawInertia: 98,
   pitchInertia: 108,

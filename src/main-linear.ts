@@ -104,7 +104,7 @@ function frame(now: number): void {
 }
 
 function render(): void {
-  const spriteFamily = deriveVehicleSpriteFamily(shell.vehicle);
+  const spriteFamily = deriveVehicleSpriteFamily(shell.presentation);
   const stats = renderM5Driving(
     framebuffer,
     background,

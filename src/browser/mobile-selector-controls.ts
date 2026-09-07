@@ -47,10 +47,11 @@ export interface MobileTireCalibrationController {
 
 export function createMobileCourseSelectorModel(
   activeQuery: BrowserCourseModeQuery,
+  selections = BROWSER_COURSE_MODES,
 ): readonly MobileSelectorButtonModel<BrowserCourseModeQuery>[] {
-  return BROWSER_COURSE_MODES.map((mode) => ({
+  return selections.map((mode) => ({
     value: mode.query,
-    label: mode.digitCode.slice(-1),
+    label: mode.digitCode?.slice(-1) ?? mode.label,
     ariaLabel: `Select ${mode.label} course`,
     active: mode.query === activeQuery,
   }));
@@ -58,8 +59,9 @@ export function createMobileCourseSelectorModel(
 
 export function createMobileVehicleSelectorModel(
   activeId: VehicleProfileId,
+  selections = BROWSER_VEHICLE_PROFILES,
 ): readonly MobileSelectorButtonModel<VehicleProfileId>[] {
-  return BROWSER_VEHICLE_PROFILES.map(({ profile, mobileLabel, accessibleName }) => ({
+  return selections.map(({ profile, mobileLabel, accessibleName }) => ({
     value: profile.id,
     label: mobileLabel,
     ariaLabel: `Select ${accessibleName}`,
@@ -129,11 +131,12 @@ export function mountMobileCourseSelector(
   activeQuery: BrowserCourseModeQuery,
   onSelect: (selection: BrowserCourseModeSelection) => void,
   documentRef: Document = document,
+  choices = BROWSER_COURSE_MODES,
 ): MobileSelectorController<BrowserCourseModeQuery> {
-  const selections = new Map(BROWSER_COURSE_MODES.map((selection) => [selection.query, selection]));
+  const selections = new Map(choices.map((selection) => [selection.query, selection]));
   return mountMobileSelector(
     container,
-    createMobileCourseSelectorModel(activeQuery),
+    createMobileCourseSelectorModel(activeQuery, choices),
     (query) => onSelect(mustSelect(selections, query, 'course')),
     documentRef,
   );
@@ -144,13 +147,14 @@ export function mountMobileVehicleSelector(
   activeId: VehicleProfileId,
   onSelect: (profile: Readonly<CompiledArcadeVehicleProfile>) => void,
   documentRef: Document = document,
+  choices = BROWSER_VEHICLE_PROFILES,
 ): MobileSelectorController<VehicleProfileId> {
   const selections = new Map<VehicleProfileId, BrowserVehicleProfileSelection>(
-    BROWSER_VEHICLE_PROFILES.map((selection) => [selection.profile.id, selection]),
+    choices.map((selection) => [selection.profile.id, selection]),
   );
   return mountMobileSelector(
     container,
-    createMobileVehicleSelectorModel(activeId),
+    createMobileVehicleSelectorModel(activeId, choices),
     (id) => onSelect(mustSelect(selections, id, 'vehicle').profile),
     documentRef,
   );

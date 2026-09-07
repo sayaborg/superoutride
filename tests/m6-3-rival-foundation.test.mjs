@@ -12,6 +12,22 @@ import {
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
+import { deriveVehicleSpriteFamily, deriveVehicleNormalizedBank } from '../dist/render/vehicle-presentation.js';
+import { selectVehicleSprite } from '../dist/visual/m4-sprite-assets.js';
+
+test('rival presentation uses supplied metadata and the same presentation-only bank primitive', () => {
+  const guide = createM2StadiumGuide();
+  const height = createM3DebugHeightProfile(guide.length);
+  const assets = createM4SpriteAssets();
+  const vehicle = { ...fakeCar(guide, 50), longitudinalSpeed: 30, yawRate: .2 };
+  const before = structuredClone(vehicle);
+  for (const presentationFamily of ['CAR', 'BIKE']) {
+    const family = deriveVehicleSpriteFamily({ presentationFamily });
+    const sprite = createDynamicVehicleCourseSprite('TEST', vehicle, vehicle.yaw, assets[family], height);
+    assert.equal(sprite.asset, selectVehicleSprite(assets[family], 0, deriveVehicleNormalizedBank(vehicle)).asset);
+  }
+  assert.deepEqual(vehicle, before);
+});
 
 function fakeCar(guide, s, l = 0, speed = 45) {
   const sample = guideCourseToWorld(guide, s, l);

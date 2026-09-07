@@ -78,7 +78,7 @@ import {
   resolveActiveStageRuntimeContent,
   type StageRuntimeContentPackage,
 } from './runtime/stage-runtime-content.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import {
@@ -417,7 +417,7 @@ function frame(now: number): void {
 
 function render(): void {
   const runtime = activeRuntime();
-  const spriteFamily = deriveVehicleSpriteFamily(shell.vehicle);
+  const spriteFamily = deriveVehicleSpriteFamily(shell.presentation);
   const selectedBackground = runtime.selectFarBackground(camera.s);
   const rivalSprites = rivals.flatMap((rival) => {
     const rivalRuntime = resolveLiveRouteTravelerRuntime(liveRoute, rival.traveler);
@@ -426,7 +426,7 @@ function render(): void {
       rival.actorId,
       rival.vehicle,
       camera.yaw,
-      spriteAssets.car,
+      spriteAssets[deriveVehicleSpriteFamily(vehicleCatalogEntryForId(rival.vehicle.profile.id))],
       rivalRuntime.heightProfile,
     )];
   });

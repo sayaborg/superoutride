@@ -76,8 +76,8 @@ test('catalog alone owns browser mapping and explicit presentation family', () =
   for (const entry of VEHICLE_CATALOG) {
     assert.equal(browserVehicleProfileForKey(entry.keyCode), entry.profile);
     assert.equal(
-      deriveVehicleSpriteFamily({ profile: entry.profile }),
-      entry.profile.presentationFamily === 'BIKE' ? 'bike' : 'car',
+      deriveVehicleSpriteFamily(entry),
+      entry.presentationFamily === 'BIKE' ? 'bike' : 'car',
     );
   }
 });

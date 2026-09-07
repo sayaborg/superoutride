@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
-import type { VehiclePresentationFamily } from '../physics/vehicle-profiles.js';
+export type VehiclePresentationFamily = 'CAR' | 'BIKE';
 
 export interface VehicleTurnPresentationRead {
   readonly longitudinalSpeed?: number;
@@ -8,9 +8,7 @@ export interface VehicleTurnPresentationRead {
 }
 
 export interface VehicleIdentityPresentationRead {
-  readonly profile: {
-    readonly presentationFamily: VehiclePresentationFamily;
-  };
+  readonly presentationFamily: VehiclePresentationFamily;
 }
 
 export type VehicleSpriteFamily = 'car' | 'bike';
@@ -18,7 +16,7 @@ export type VehicleSpriteFamily = 'car' | 'bike';
 export function deriveVehicleSpriteFamily(
   vehicle: VehicleIdentityPresentationRead,
 ): VehicleSpriteFamily {
-  return vehicle.profile.presentationFamily === 'BIKE' ? 'bike' : 'car';
+  return vehicle.presentationFamily === 'BIKE' ? 'bike' : 'car';
 }
 
 /** Coordinated-turn lean is presentation only and never feeds vehicle mechanics. */

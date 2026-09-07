@@ -33,6 +33,7 @@ test('mechanics owns no production records, membership list or upward content im
   const source = await readFile(new URL('../src/physics/vehicle-profiles.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /TESTAROSSA|VFR750R|COMMON_SELECTABLE_VEHICLE_TIRE/);
   assert.match(source, /type VehicleProfileId = string/);
+  assert.doesNotMatch(source, /presentationFamily|VehiclePresentationFamily/);
 });
 
 test('compiled profiles expose one resolved station authority, not authored wheel/tire/suspension copies', () => {

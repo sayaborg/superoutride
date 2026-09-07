@@ -142,8 +142,8 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
 
 test('all nine vehicle profiles integrate on the finite LINEAR course with permitted wheel lift and recovery', () => {
   const runtime=createM83LinearHighwayRuntime();
-  for(const {profile} of VEHICLE_CATALOG){
-    const vehicle=profile.presentationFamily==='BIKE'?createTestBike(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45,0,20,profile):createTestCar(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45,0,20,profile);
+  for(const {profile,presentationFamily} of VEHICLE_CATALOG){
+    const vehicle=presentationFamily==='BIKE'?createTestBike(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45,0,20,profile):createTestCar(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45,0,20,profile);
     const recovery=createM5RecoveryState(vehicle);
     for(let tick=0;tick<600;tick++){
       updateTestVehicle(runtime.guide,runtime.heightProfile,runtime.surfaceMap,vehicle,sampleRivalDrivingInput(runtime.guide,vehicle,0),DT);

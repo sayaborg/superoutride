@@ -55,7 +55,7 @@ import { renderM5Driving } from './render/m5-renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
@@ -63,12 +63,8 @@ import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite
 const selectedCourseMode = selectBrowserCourseMode(
   new URLSearchParams(location.search).get('mode'),
 );
-if (selectedCourseMode.query !== 'circuit' && selectedCourseMode.query !== 'fisco') {
-  throw new Error(`main-circuit cannot compose ${selectedCourseMode.query}`);
-}
-const selectedCircuit = selectedCourseMode.query === 'fisco'
-  ? Object.freeze({
-    query: 'fisco' as const,
+const circuitBuilders = {
+  fisco: () => ({
     courseMode: M9_6_FISCO_DEV_COURSE_MODE,
     playerRecoveryProfile: M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
     playerStartL: M9_6_FISCO_PLAYER_START_L,
@@ -76,9 +72,8 @@ const selectedCircuit = selectedCourseMode.query === 'fisco'
     rivalStartL: M9_6_FISCO_RIVAL_START_L,
     live: createM96FiscoRuntime(),
     groundProfile: createM96FiscoGroundProfile(),
-  })
-  : Object.freeze({
-    query: 'circuit' as const,
+  }),
+  circuit: () => ({
     courseMode: M9_3_DEV_COURSE_MODE,
     playerRecoveryProfile: M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
     playerStartL: M9_3_TSUKUBA_PLAYER_START_L,
@@ -86,7 +81,14 @@ const selectedCircuit = selectedCourseMode.query === 'fisco'
     rivalStartL: M9_3_TSUKUBA_RIVAL_START_L,
     live: createM93TsukubaCourse2000Runtime(),
     groundProfile: createM93TsukubaGroundProfile(),
-  });
+  }),
+};
+const buildCircuit = Object.hasOwn(circuitBuilders, selectedCourseMode.query)
+  ? circuitBuilders[selectedCourseMode.query as keyof typeof circuitBuilders] : undefined;
+if (selectedCourseMode.routeKind !== 'CIRCUIT' || buildCircuit === undefined) {
+  throw new Error(`main-circuit cannot compose ${selectedCourseMode.query}`);
+}
+const selectedCircuit = buildCircuit();
 
 const live = selectedCircuit.live;
 const windowRuntime = live.window;
@@ -242,12 +244,12 @@ function frame(now: number): void {
 }
 
 function render(): void {
-  const spriteFamily = deriveVehicleSpriteFamily(shell.vehicle);
+  const spriteFamily = deriveVehicleSpriteFamily(shell.presentation);
   const rivalSprites = rivals.map((rival) => createDynamicVehicleCourseSprite(
     rival.actorId,
     rival.vehicle,
     camera.yaw,
-    spriteAssets.car,
+    spriteAssets[deriveVehicleSpriteFamily(vehicleCatalogEntryForId(rival.vehicle.profile.id))],
     height,
   ));
   const stats = renderM5Driving(
@@ -262,7 +264,7 @@ function render(): void {
     spriteAssets,
     spriteFamily,
   );
-  shell.present(selectedCircuit.query, input, camera, stats.playerScreenY);
+  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
 }
 
 function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {

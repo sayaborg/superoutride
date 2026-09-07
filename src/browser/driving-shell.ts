@@ -53,6 +53,7 @@ export function createBrowserDrivingShell(runtime: BrowserDrivingSurface, startL
 
   return {
     get vehicle() { return vehicle; },
+    get presentation() { return vehicleCatalogEntryForId(vehicle.profile.id); },
     get recovery() { return recovery; },
     framebuffer, inputManager, cameraRig,
     /** Called after root-owned safe recovery; no chart or progress decision is made here. */

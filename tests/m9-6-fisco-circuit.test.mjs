@@ -190,7 +190,9 @@ test('course 4 selects FISCO only at the browser CIRCUIT composition root', asyn
     readFile(new URL('../src/gameplay/circuit-topology.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(selectionSource, /digitCode: 'Digit4'[\s\S]*?query: 'fisco'[\s\S]*?routeKind: 'CIRCUIT'/);
-  assert.match(circuitSource, /selectedCourseMode\.query === 'fisco'/);
+  assert.match(circuitSource, /const circuitBuilders = \{/);
+  assert.match(circuitSource, /fisco: \(\) => \(\{/);
+  assert.match(circuitSource, /const selectedCircuit = buildCircuit\(\)/);
   assert.match(circuitSource, /createM96FiscoRuntime\(\)/);
   assert.match(circuitSource, /createM93TsukubaCourse2000Runtime\(\)/);
   assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit|query === 'fisco'/);

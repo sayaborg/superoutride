@@ -21,13 +21,9 @@ import {
 /** Opaque content identity; production membership belongs to the upper catalog. */
 export type VehicleProfileId = string;
 
-export type VehiclePresentationFamily = 'CAR' | 'BIKE';
-
 export interface ArcadeVehicleProfile {
   /** Composition/presentation identity. Common mechanics never branches on this value. */
   readonly id: VehicleProfileId;
-  /** Generic programmer-art family. It is presentation metadata and is never mechanics input. */
-  readonly presentationFamily: VehiclePresentationFamily;
   readonly mass: number;
   readonly yawInertia: number;
   readonly pitchInertia: number;
@@ -74,7 +70,7 @@ export interface ArcadeVehicleProfile {
 
 /** Runtime body/driver data plus resolved stations; authored tire/suspension/wheel fields do not leak. */
 export interface CompiledArcadeVehicleProfile extends Pick<ArcadeVehicleProfile,
-  'id' | 'presentationFamily' | 'mass' | 'yawInertia' | 'pitchInertia' |
+  'id' | 'mass' | 'yawInertia' | 'pitchInertia' |
   'frontAxle' | 'rearAxle' | 'desiredCgHeight' | 'frontDriveTorqueFraction' |
   'maxRoadWheelSteer' | 'steeringOffsetMax' | 'steeringResponseTau' |
   'steeringLowSpeedRegularization' | 'steeringRatio' | 'quadraticDrag' | 'actuator' | 'powertrain'> {
@@ -107,9 +103,6 @@ export function compileArcadeVehicleProfile(
   ];
   if (positive.some((value) => !(value > 0) || !Number.isFinite(value))) {
     throw new RangeError('vehicle mass/inertia/geometry/wheel/tire/steering values must be finite and > 0');
-  }
-  if (profile.presentationFamily !== 'CAR' && profile.presentationFamily !== 'BIKE') {
-    throw new RangeError('vehicle presentation family must be CAR or BIKE');
   }
   if (!(profile.maxRoadWheelSteer < Math.PI / 2 && profile.steeringOffsetMax < Math.PI / 2)) {
     throw new RangeError('vehicle steering angles must lie below pi/2');
@@ -185,7 +178,6 @@ export function compileArcadeVehicleProfile(
   });
   return Object.freeze({
     id: profile.id,
-    presentationFamily: profile.presentationFamily,
     mass: profile.mass,
     yawInertia: profile.yawInertia,
     pitchInertia: profile.pitchInertia,

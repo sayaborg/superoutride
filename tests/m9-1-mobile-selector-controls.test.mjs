@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { VEHICLE_CATALOG, compileVehicleCatalog } from '../dist/vehicle/vehicle-catalog.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
+import { createBrowserVehicleProfileSelections, browserVehicleProfileForKey } from '../dist/browser/vehicle-profile-selection.js';
+import { BROWSER_COURSE_MODES, compileBrowserCourseModes, selectBrowserCourseMode, browserCourseModeForKey } from '../dist/browser/course-mode-selection.js';
 
 import {
   createMobileCourseSelectorModel,
@@ -43,6 +48,33 @@ class FakeButton {
 class FakeContainer { children = []; replaceChildren(...children) { this.children = children; } }
 class FakeDocument { createElement(name) { assert.equal(name, 'button'); return new FakeButton(); } }
 
+test('a tenth catalog vehicle without a shortcut remains selectable through the actual mobile control', () => {
+  const profile = compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, id: 'UNBOUND_TEST' });
+  const extra = { ...VEHICLE_CATALOG[0], profile, keyCode: undefined, keyLabel: undefined, mobileLabel: 'EXTRA' };
+  const catalog = compileVehicleCatalog([...VEHICLE_CATALOG, extra]);
+  const choices = createBrowserVehicleProfileSelections(catalog);
+  assert.equal(choices.length, 10);
+  assert.equal(browserVehicleProfileForKey('Unassigned', choices), null);
+  assert.equal(browserVehicleProfileForKey('KeyQ', choices), VEHICLE_CATALOG[0].profile);
+  const container = new FakeContainer();
+  let selected;
+  const control = mountMobileVehicleSelector(container, 'TESTAROSSA', value => { selected = value; },
+    new FakeDocument(), choices);
+  assert.equal(container.children.length, 10);
+  assert.equal(container.children[9].textContent, 'EXTRA');
+  container.children[9].click();
+  assert.equal(selected, profile);
+  control.setActive(profile.id);
+  assert.equal(container.children[9].attributes.get('aria-pressed'), 'true');
+  assert.throws(() => compileVehicleCatalog([...VEHICLE_CATALOG, VEHICLE_CATALOG[0]]), /duplicate vehicle id/);
+  assert.throws(() => compileVehicleCatalog([...VEHICLE_CATALOG, { ...extra, keyCode: 'KeyQ', keyLabel: 'Q' }]), /duplicate vehicle shortcut/);
+  for (const invalid of [{ keyCode: 'KeyZ' }, { keyLabel: 'Z' }, { keyCode: '', keyLabel: 'Z' }]) {
+    assert.throws(() => compileVehicleCatalog([{ ...extra, ...invalid }]), /shortcut/);
+  }
+  assert.throws(() => compileVehicleCatalog([{ ...extra, presentationFamily: 'UNKNOWN' }]), /presentation family/);
+  assert.equal(Object.hasOwn(profile, 'presentationFamily'), false);
+});
+
 test('mobile course buttons derive labels and active state from the canonical course authority', () => {
   assert.deepEqual(createMobileCourseSelectorModel('circuit'), [
     { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: false },
@@ -50,6 +82,25 @@ test('mobile course buttons derive labels and active state from the canonical co
     { value: 'circuit', label: '3', ariaLabel: 'Select TSUKUBA course', active: true },
     { value: 'fisco', label: '4', ariaLabel: 'Select FISCO course', active: false },
   ]);
+});
+
+test('additional unbound courses use the existing route runner and actual mobile selector', () => {
+  const extra = { query: 'additional-circuit', label: 'EXTRA', routeKind: 'CIRCUIT' };
+  const choices = compileBrowserCourseModes([...BROWSER_COURSE_MODES, extra]);
+  assert.equal(selectBrowserCourseMode(extra.query, choices).entryName, 'main-circuit.js');
+  assert.equal(browserCourseModeForKey('Unassigned', choices), null);
+  const container = new FakeContainer();
+  let selected;
+  mountMobileCourseSelector(container, 'linear', value => { selected = value; }, new FakeDocument(), choices);
+  assert.equal(container.children.length, 5);
+  assert.equal(container.children[4].textContent, 'EXTRA');
+  container.children[4].click();
+  assert.equal(selected.query, extra.query);
+  assert.equal(selected.entryName, 'main-circuit.js');
+  assert.throws(() => compileBrowserCourseModes([extra, extra]), /duplicate course query/);
+  assert.throws(() => compileBrowserCourseModes([...BROWSER_COURSE_MODES, { ...extra, digitCode: 'Digit1' }]), /duplicate course shortcut/);
+  assert.throws(() => compileBrowserCourseModes([{ ...extra, routeKind: 'UNKNOWN' }]), /route kind/);
+  assert.throws(() => compileBrowserCourseModes([{ ...extra, query: ' ' }]), /query/);
 });
 
 test('touch layout uses touch hardware or a phone-size fallback from one browser authority', () => {

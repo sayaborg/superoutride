@@ -58,8 +58,8 @@ test('browser authority exposes M9.14 expanded D with retained M and ACT selecto
 });
 
 test('all nine compiled profiles retain construction seeds while A is not stored', () => {
-  for (const { profile } of VEHICLE_CATALOG) {
-    const expectedD = (profile.presentationFamily === 'BIKE' ? 9 : 9.5) * DEG;
+  for (const { profile, presentationFamily } of VEHICLE_CATALOG) {
+    const expectedD = (presentationFamily === 'BIKE' ? 9 : 9.5) * DEG;
     assert.ok(Math.abs(profile.maxRoadWheelSteer - 45 * DEG) < 1e-15, profile.id);
     assert.ok(Math.abs(profile.steeringOffsetMax - expectedD) < 1e-15, profile.id);
     assert.equal(profile.actuator.steering.applyRate, 4, profile.id);
