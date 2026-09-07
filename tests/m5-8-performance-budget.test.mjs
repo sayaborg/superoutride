@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import {
   deriveProvisionalRenderBudget,
@@ -85,12 +87,12 @@ function placeCar(car, s, l, yawOffset) {
   car.rearNormalLoad = surface.material.supported ? 1 : 0;
 }
 
-function renderProbe(s, l, yawOffset) {
+function renderProbe(s, l, yawOffset, observeWorkload = true, target = new SoftwareSurface(320, 240), renderer = renderM5Driving) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, l, yawOffset);
   const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
-  return renderM5Driving(
-    new SoftwareSurface(320, 240),
+  return renderer(
+    target,
     background,
     guide,
     camera,
@@ -100,6 +102,8 @@ function renderProbe(s, l, yawOffset) {
     world,
     assets,
     'car',
+    undefined,
+    observeWorkload,
   );
 }
 
@@ -130,12 +134,48 @@ test('sprite scanline observer accounts exactly for the blitter work it observes
 test('M5 renderer workload telemetry is internally consistent and does not drop generated terrain', () => {
   const stats = renderProbe(120, 0, 0);
   assert.ok(stats.terrainLineCount > 0);
-  assert.ok(stats.terrainLineCountPerScreenRowMax >= 1);
-  assert.ok(stats.terrainOutputPixelsPerScreenRowMax <= stats.terrainOutputPixels);
+  assert.ok(stats.workload.terrainLineCountPerScreenRowMax >= 1);
+  assert.ok(stats.workload.terrainOutputPixelsPerScreenRowMax <= stats.terrainOutputPixels);
   assert.equal(stats.spriteOutputSamplesIncludingPlayer, stats.spriteOutputSamples + stats.playerOutputSamples);
   assert.equal(stats.spriteWrittenPixelsIncludingPlayer, stats.spriteWrittenPixels + stats.playerWrittenPixels);
-  assert.equal(stats.groundMapLevelHistogram.reduce((a, b) => a + b, 0), stats.terrainLineCount);
-  assert.ok(stats.spriteOutputSamplesPerScanlineMax <= stats.spriteOutputSamplesIncludingPlayer);
+  assert.equal(stats.workload.groundMapLevelHistogram.reduce((a, b) => a + b, 0), stats.terrainLineCount);
+  assert.ok(stats.workload.spriteOutputSamplesPerScanlineMax <= stats.spriteOutputSamplesIncludingPlayer);
+});
+
+test('optional diagnostics preserve exact pixels and ordinary results across the stress course', async () => {
+  const baseline = process.env.HOT_PATH_BASELINE_BUILD
+    ? (await import(pathToFileURL(resolve(process.env.HOT_PATH_BASELINE_BUILD, 'render/m5-renderer.js')).href)).renderM5Driving
+    : undefined;
+  for (const s of [45, 120, 470, 550, 620]) {
+    for (const yaw of [deg(-60), 0, deg(60)]) {
+      const ordinary = new SoftwareSurface(320, 240);
+      const observed = new SoftwareSurface(320, 240);
+      const plain = renderProbe(s, 0, yaw, false, ordinary);
+      const detailed = renderProbe(s, 0, yaw, true, observed);
+      assert.deepEqual(ordinary.pixels, observed.pixels);
+      assert.equal(plain.workload, undefined);
+      assert.ok(detailed.workload);
+      const { workload, ...result } = detailed;
+      assert.deepEqual(plain, { ...result, workload: undefined });
+      assert.throws(() => summarizeRenderWorkloads([plain]), /explicitly enabled/);
+      if (baseline) {
+        const reference = new SoftwareSurface(320, 240);
+        const old = renderProbe(s, 0, yaw, true, reference, baseline);
+        assert.deepEqual(ordinary.pixels, reference.pixels);
+        assert.deepEqual({ ...result, ...workload }, old);
+      }
+    }
+  }
+});
+
+test('ordinary rendering allocates no diagnostic row arrays or scanline observer', async () => {
+  const source = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  assert.match(source, /const observation = observeWorkload \? \{/);
+  const allocation = source.slice(source.indexOf('const observation'), source.indexOf('let terrainOutputPixels'));
+  assert.equal((allocation.match(/new Uint/g) ?? []).length, 5);
+  assert.equal((source.match(/new Uint/g) ?? []).length, 5);
+  assert.match(source, /spriteObserver: SpriteScanlineObserver \| undefined = observation &&/);
+  assert.match(source, /if \(observation\) \{[\s\S]*for \(let y = 0/);
 });
 
 test('current debug content sweep remains inside the explicit M5.8 provisional target budget', () => {

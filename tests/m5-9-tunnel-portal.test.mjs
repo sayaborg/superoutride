@@ -111,6 +111,8 @@ function renderProbe(s, yawOffset = 0) {
     world,
     assets,
     'car',
+    undefined,
+    true,
   );
   return { stats, backgroundKind: selected.kind, camera };
 }

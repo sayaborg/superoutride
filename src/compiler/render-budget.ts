@@ -103,30 +103,32 @@ export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): Re
   const groundMapLevelLineCounts: number[] = [];
 
   for (const sample of samples) {
+    if (!sample.workload) throw new TypeError('render workload observation must be explicitly enabled');
+    const workload = sample.workload;
     validateNonNegativeInteger(sample.terrainLineCount, 'terrainLineCount');
-    validateNonNegativeInteger(sample.terrainLineCountPerScreenRowMax, 'terrainLineCountPerScreenRowMax');
+    validateNonNegativeInteger(workload.terrainLineCountPerScreenRowMax, 'terrainLineCountPerScreenRowMax');
     validateNonNegativeInteger(sample.terrainOutputPixels, 'terrainOutputPixels');
-    validateNonNegativeInteger(sample.terrainOutputPixelsPerScreenRowMax, 'terrainOutputPixelsPerScreenRowMax');
+    validateNonNegativeInteger(workload.terrainOutputPixelsPerScreenRowMax, 'terrainOutputPixelsPerScreenRowMax');
     validateNonNegativeInteger(sample.visibleSpriteCount, 'visibleSpriteCount');
     validateNonNegativeInteger(sample.spriteOutputSamplesIncludingPlayer, 'spriteOutputSamplesIncludingPlayer');
-    validateNonNegativeInteger(sample.spriteOutputSamplesPerScanlineMax, 'spriteOutputSamplesPerScanlineMax');
+    validateNonNegativeInteger(workload.spriteOutputSamplesPerScanlineMax, 'spriteOutputSamplesPerScanlineMax');
     validateNonNegativeInteger(sample.spriteWrittenPixelsIncludingPlayer, 'spriteWrittenPixelsIncludingPlayer');
-    validateNonNegativeInteger(sample.spriteWrittenPixelsPerScanlineMax, 'spriteWrittenPixelsPerScanlineMax');
+    validateNonNegativeInteger(workload.spriteWrittenPixelsPerScanlineMax, 'spriteWrittenPixelsPerScanlineMax');
     validateNonNegativeInteger(sample.groundMapMaxLevel, 'groundMapMaxLevel');
 
     maxTerrainLineCount = Math.max(maxTerrainLineCount, sample.terrainLineCount);
-    maxTerrainLineCountPerScreenRow = Math.max(maxTerrainLineCountPerScreenRow, sample.terrainLineCountPerScreenRowMax);
+    maxTerrainLineCountPerScreenRow = Math.max(maxTerrainLineCountPerScreenRow, workload.terrainLineCountPerScreenRowMax);
     maxTerrainOutputPixelsPerFrame = Math.max(maxTerrainOutputPixelsPerFrame, sample.terrainOutputPixels);
-    maxTerrainOutputPixelsPerScreenRow = Math.max(maxTerrainOutputPixelsPerScreenRow, sample.terrainOutputPixelsPerScreenRowMax);
+    maxTerrainOutputPixelsPerScreenRow = Math.max(maxTerrainOutputPixelsPerScreenRow, workload.terrainOutputPixelsPerScreenRowMax);
     maxVisibleSpriteCount = Math.max(maxVisibleSpriteCount, sample.visibleSpriteCount);
     maxSpriteOutputSamplesPerFrame = Math.max(maxSpriteOutputSamplesPerFrame, sample.spriteOutputSamplesIncludingPlayer);
-    maxSpriteOutputSamplesPerScanline = Math.max(maxSpriteOutputSamplesPerScanline, sample.spriteOutputSamplesPerScanlineMax);
+    maxSpriteOutputSamplesPerScanline = Math.max(maxSpriteOutputSamplesPerScanline, workload.spriteOutputSamplesPerScanlineMax);
     maxSpriteWrittenPixelsPerFrame = Math.max(maxSpriteWrittenPixelsPerFrame, sample.spriteWrittenPixelsIncludingPlayer);
-    maxSpriteWrittenPixelsPerScanline = Math.max(maxSpriteWrittenPixelsPerScanline, sample.spriteWrittenPixelsPerScanlineMax);
+    maxSpriteWrittenPixelsPerScanline = Math.max(maxSpriteWrittenPixelsPerScanline, workload.spriteWrittenPixelsPerScanlineMax);
     maxGroundMapLevelUsed = Math.max(maxGroundMapLevelUsed, sample.groundMapMaxLevel);
 
-    for (let k = 0; k < sample.groundMapLevelHistogram.length; k += 1) {
-      const count = sample.groundMapLevelHistogram[k] ?? 0;
+    for (let k = 0; k < workload.groundMapLevelHistogram.length; k += 1) {
+      const count = workload.groundMapLevelHistogram[k] ?? 0;
       validateNonNegativeInteger(count, `groundMapLevelHistogram[${k}]`);
       groundMapLevelLineCounts[k] = (groundMapLevelLineCounts[k] ?? 0) + count;
     }

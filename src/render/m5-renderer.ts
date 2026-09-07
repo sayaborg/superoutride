@@ -21,7 +21,6 @@ export type PlayerVisualKind = 'car' | 'bike';
 export interface M5RenderResult {
   terrainLineCount: number;
   terrainOutputPixels: number;
-  overdrawRows: number;
   visibleSpriteCount: number;
   spriteOutputSamples: number;
   spriteWrittenPixels: number;
@@ -34,11 +33,17 @@ export interface M5RenderResult {
   playerRelativeYaw: number;
   groundMapMaxLevel: number;
   groundMapBaked: boolean;
+  spriteOutputSamplesIncludingPlayer: number;
+  spriteWrittenPixelsIncludingPlayer: number;
+  /** Detailed observation is absent during ordinary play. */
+  workload?: M5RenderWorkload;
+}
+
+export interface M5RenderWorkload {
+  overdrawRows: number;
   terrainLineCountPerScreenRowMax: number;
   terrainOutputPixelsPerScreenRowMax: number;
-  spriteOutputSamplesIncludingPlayer: number;
   spriteOutputSamplesPerScanlineMax: number;
-  spriteWrittenPixelsIncludingPlayer: number;
   spriteWrittenPixelsPerScanlineMax: number;
   groundMapLevelHistogram: readonly number[];
 }
@@ -55,16 +60,19 @@ export function renderM5Driving(
   assets: M4SpriteAssets,
   playerKind: PlayerVisualKind,
   roadView?: StageRoadView,
+  observeWorkload = false,
 ): M5RenderResult {
   const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
   drawFarBackground(target, background, renderCamera);
 
   const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
-  const terrain = roadView === undefined
-    ? baseTerrain
-    : baseTerrain
-        .map((line) => applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView))
-        .filter((line): line is M3TerrainLine => line !== null);
+  const terrain: M3TerrainLine[] = roadView === undefined ? baseTerrain : [];
+  if (roadView !== undefined) {
+    for (const line of baseTerrain) {
+      const viewed = applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView);
+      if (viewed !== null) terrain.push(viewed);
+    }
+  }
   const visible = computeForwardVisibleInterval(
     guide,
     renderCamera.yaw,
@@ -76,32 +84,36 @@ export function renderM5Driving(
     ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd)
     : [];
 
-  const terrainLinesByRow = new Uint16Array(target.height);
-  const terrainOutputByRow = new Uint32Array(target.height);
-  const spriteOutputByScanline = new Uint32Array(target.height);
-  const spriteWrittenByScanline = new Uint32Array(target.height);
-  const groundMapLevelHistogram = new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1);
+  const observation = observeWorkload ? {
+    terrainLinesByRow: new Uint16Array(target.height),
+    terrainOutputByRow: new Uint32Array(target.height),
+    spriteOutputByScanline: new Uint32Array(target.height),
+    spriteWrittenByScanline: new Uint32Array(target.height),
+    groundMapLevelHistogram: new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1),
+  } : undefined;
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
   let groundMapMaxLevel = 0;
 
-  const spriteObserver: SpriteScanlineObserver = (screenY, outputSamples, writtenPixels) => {
+  const spriteObserver: SpriteScanlineObserver | undefined = observation && ((screenY, outputSamples, writtenPixels) => {
     if (screenY < 0 || screenY >= target.height) return;
-    spriteOutputByScanline[screenY]! += outputSamples;
-    spriteWrittenByScanline[screenY]! += writtenPixels;
-  };
+    observation.spriteOutputByScanline[screenY]! += outputSamples;
+    observation.spriteWrittenByScanline[screenY]! += writtenPixels;
+  });
 
   mergeTerrainAndSprites(
     terrain,
     sprites,
     (line) => {
-      terrainLinesByRow[line.y]! += 1;
       const stats = drawTerrainLine(target, line, groundProfile, roadView);
       terrainOutputPixels += stats.outputPixels;
-      terrainOutputByRow[line.y]! += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
-      groundMapLevelHistogram[stats.groundMapLevel]! += 1;
+      if (observation) {
+        observation.terrainLinesByRow[line.y]! += 1;
+        observation.terrainOutputByRow[line.y]! += stats.outputPixels;
+        observation.groundMapLevelHistogram[stats.groundMapLevel]! += 1;
+      }
     },
     (sprite) => {
       const stats = drawWorldSprite(target, sprite, spriteObserver);
@@ -132,24 +144,32 @@ export function renderM5Driving(
     spriteObserver,
   );
 
-  let overdrawRows = 0;
-  let terrainLineCountPerScreenRowMax = 0;
-  let terrainOutputPixelsPerScreenRowMax = 0;
-  let spriteOutputSamplesPerScanlineMax = 0;
-  let spriteWrittenPixelsPerScanlineMax = 0;
-  for (let y = 0; y < target.height; y += 1) {
-    const terrainLines = terrainLinesByRow[y]!;
-    if (terrainLines > 1) overdrawRows += 1;
-    terrainLineCountPerScreenRowMax = Math.max(terrainLineCountPerScreenRowMax, terrainLines);
-    terrainOutputPixelsPerScreenRowMax = Math.max(terrainOutputPixelsPerScreenRowMax, terrainOutputByRow[y]!);
-    spriteOutputSamplesPerScanlineMax = Math.max(spriteOutputSamplesPerScanlineMax, spriteOutputByScanline[y]!);
-    spriteWrittenPixelsPerScanlineMax = Math.max(spriteWrittenPixelsPerScanlineMax, spriteWrittenByScanline[y]!);
+  let workload: M5RenderWorkload | undefined;
+  if (observation) {
+    const { terrainLinesByRow, terrainOutputByRow, spriteOutputByScanline,
+      spriteWrittenByScanline, groundMapLevelHistogram } = observation;
+    let overdrawRows = 0;
+    let terrainLineCountPerScreenRowMax = 0;
+    let terrainOutputPixelsPerScreenRowMax = 0;
+    let spriteOutputSamplesPerScanlineMax = 0;
+    let spriteWrittenPixelsPerScanlineMax = 0;
+    for (let y = 0; y < target.height; y += 1) {
+      const terrainLines = terrainLinesByRow[y]!;
+      if (terrainLines > 1) overdrawRows += 1;
+      terrainLineCountPerScreenRowMax = Math.max(terrainLineCountPerScreenRowMax, terrainLines);
+      terrainOutputPixelsPerScreenRowMax = Math.max(terrainOutputPixelsPerScreenRowMax, terrainOutputByRow[y]!);
+      spriteOutputSamplesPerScanlineMax = Math.max(spriteOutputSamplesPerScanlineMax, spriteOutputByScanline[y]!);
+      spriteWrittenPixelsPerScanlineMax = Math.max(spriteWrittenPixelsPerScanlineMax, spriteWrittenByScanline[y]!);
+    }
+
+    workload = { overdrawRows, terrainLineCountPerScreenRowMax, terrainOutputPixelsPerScreenRowMax,
+      spriteOutputSamplesPerScanlineMax, spriteWrittenPixelsPerScanlineMax,
+      groundMapLevelHistogram: Array.from(groundMapLevelHistogram) };
   }
 
   return {
     terrainLineCount: terrain.length,
     terrainOutputPixels,
-    overdrawRows,
     visibleSpriteCount: sprites.length,
     spriteOutputSamples,
     spriteWrittenPixels,
@@ -162,13 +182,9 @@ export function renderM5Driving(
     playerRelativeYaw: relativeYaw,
     groundMapMaxLevel,
     groundMapBaked: groundProfile.baked !== undefined,
-    terrainLineCountPerScreenRowMax,
-    terrainOutputPixelsPerScreenRowMax,
     spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
-    spriteOutputSamplesPerScanlineMax,
     spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
-    spriteWrittenPixelsPerScanlineMax,
-    groundMapLevelHistogram: Array.from(groundMapLevelHistogram),
+    workload,
   };
 }
 
