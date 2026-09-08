@@ -182,6 +182,7 @@ validation/M9_18_LOAD_PROPORTIONAL_ONE_K_TIRE_VALIDATION.txt
 validation/M9_20_FIVE_AXIS_TIRE_VALIDATION.txt
 validation/M9_21_TORQUE_PROTECTION_VALIDATION.txt
 validation/M9_22_PEDAL_TORQUE_HUD_VALIDATION.txt
+validation/M9_24_FRICTION_ELLIPSE_RESTORATION_VALIDATION.txt
 ```
 
 M9.22's record names the green implementation/doc/test-inclusive head `c8c5cca` and PR #142 CI #852.

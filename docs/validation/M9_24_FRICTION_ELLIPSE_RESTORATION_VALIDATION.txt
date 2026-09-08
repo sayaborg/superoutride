@@ -1,0 +1,52 @@
+SUPER OUTRIDE M9.24 — Friction Ellipse Restoration Validation
+Evidence date: 2026-09-08
+
+Authority: docs/119_m9_24_restore_friction_ellipse.md
+Initial main: 02947284f6c6fd291843495da783505068081493
+Original restored baseline: d5fc817f3be6301a0328d8621e8c1197bfe035c3
+Branch: codex/restore-friction-ellipse
+PR: https://github.com/sayaborg/superoutride/pull/153
+Green implementation/doc/test head:
+7a710bf57c99d4e4b0c5f247424bd1b1d6e97bb1
+CI run: 34225890599
+Build job: 102059796472
+https://github.com/sayaborg/superoutride/actions/runs/34225890599
+
+Exact checkout log:
+expected=7a710bf57c99d4e4b0c5f247424bd1b1d6e97bb1
+actual=7a710bf57c99d4e4b0c5f247424bd1b1d6e97bb1
+Complete CI suite: 855 tests, 855 pass, 0 fail/cancelled/skipped/todo.
+Local complete suite with the same pinned reference: 855/855 pass.
+Immutable hot-path reference: b70f2456fe43b31d55848c4f830d4285f70147e1.
+The original exact mechanical serializer and comparisons are restored; no LP metadata
+normalization remains. Original Git-blob SHA256 regressions verify the restored
+solver, calibration, selector, controls, profiles, protection, wrench, styles and probes.
+
+Scope and evidence:
+- User withdrew the LP experiment; 119 supersedes 118 in full.
+- Fixed normalized friction ellipse, original Math.hypot radial law and square-root
+  lateral reserve restored directly from the pre-experiment source.
+- Exactly five tire calibration axes: GX/PX/GY/PY/KNEE. ENG remains separate.
+- No combinedSlipExponent or generalized norm remains in current src/tools.
+- LP selector, B binding, LP-specific fixtures/tests/probes are removed.
+- Other tire tuning, steering, protection, contact/wrench and topology remain unchanged.
+- Historical M9.23 authority, research and immutable evidence are preserved as history.
+- Actual local browser: five axes plus ENG; B leaves tire values unchanged;
+  P still switches BODY/MOVE camera. At 320x568 and 844x390 the controls fit
+  without internal/viewport overflow; canvas backing remains 320x240.
+- Existing uncommitted work in the original checkout was left untouched; restoration
+  was implemented on an isolated worktree from the exact initial main.
+
+Standalone record rule:
+This explicitly restores normative tire authority, so a new immutable record is required.
+This file records the preceding green implementation head. Its own commit cannot
+self-name its subsequently validating CI without another commit. Required release gate:
+- complete green CI again on the record-inclusive exact SHA;
+- freshly fetch main, ahead>0, behind=0, merge base=current main;
+- update main with force=false to that exact validated SHA, no extra merge commit;
+- main SHA=PR head SHA=PR merge SHA;
+- same-SHA main-push CI and Pages build/deploy;
+- inspect actual Pages artifact/versioned build and public UI.
+Final release identity comes from Git, PR and exact-head workflow evidence. Do not
+rewrite this immutable record after release or interpret the gate as unfinished work
+once those external facts establish completion.
