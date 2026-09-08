@@ -165,6 +165,7 @@ Read `validation/README.md` for the standalone-record and exact-head self-refere
 Current HUD/handling/powertrain validation lineage includes:
 
 ```text
+validation/M9_23_COMBINED_SLIP_SUPERELLIPSE_VALIDATION.txt
 validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
 validation/M9_10_POST_PEAK_SLIDING_TIRE_VALIDATION.txt
 validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
