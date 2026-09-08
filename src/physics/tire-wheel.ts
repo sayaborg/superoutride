@@ -21,7 +21,7 @@ export interface TireForceResult extends TireDemand {
   readonly fy: number;
   readonly capacityX: number;
   readonly capacityY: number;
-  /** Demand in the capacity superellipse, not a force magnitude or a stored contact phase. */
+  /** Demand in the capacity ellipse, not a force magnitude or a stored contact phase. */
   readonly rho: number;
 }
 
@@ -129,7 +129,7 @@ function forceFromDemand(demand: TireDemand, normalLoad: number, gripFactor: num
   // Cancel N analytically. Never divide by tiny contact loads or invent a stiffness floor.
   const x = characteristics.kX * demand.sx / characteristics.muX;
   const y = characteristics.kY * demand.sy / characteristics.muY;
-  const length = combinedSlipNorm(x, y, characteristics.combinedSlipExponent);
+  const length = Math.hypot(x, y);
   const rho = length / gripFactor;
   if (length === 0) return { ...demand, fx: 0, fy: 0, capacityX, capacityY, rho: 0 };
   if (rho <= characteristics.rhoKnee) {
@@ -138,14 +138,6 @@ function forceFromDemand(demand: TireDemand, normalLoad: number, gripFactor: num
   const h = radialC1Magnitude(rho, characteristics.rhoKnee);
   return { ...demand, fx: capacityX * h * (x / length),
     fy: capacityY * h * (y / length), capacityX, capacityY, rho };
-}
-
-/** Scaled finite Lp norm avoids overflow from powers; retain the exact baseline evaluation. */
-function combinedSlipNorm(x: number, y: number, exponent: number): number {
-  if (exponent === 2) return Math.hypot(x, y);
-  const ax = Math.abs(x), ay = Math.abs(y), largest = Math.max(ax, ay);
-  if (ax === 0 || ay === 0) return largest;
-  return largest * (1 + (Math.min(ax, ay) / largest) ** exponent) ** (1 / exponent);
 }
 
 /** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
@@ -245,7 +237,7 @@ function netTorqueAtOmega(input: WheelSolveInput, omega: number): number {
       input.rollingResistance, input.tire.lowSpeedRegularization);
 }
 
-/** Linear-region lateral reserve in the same demand superellipse; diagnostic only. */
+/** Linear-region lateral reserve in the same demand ellipse; diagnostic only. */
 export function usefulLateralCapacity(
   longitudinalLinearDemand: number, normalLoad: number, gripFactor: number,
   tire: CompiledTireProfile, characteristics: CompiledTireCharacteristics = tire,
@@ -253,13 +245,7 @@ export function usefulLateralCapacity(
   const bx = tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
   const by = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
   if (!(bx > 0)) return 0;
-  const exponent = characteristics.combinedSlipExponent;
-  if (exponent === 2) {
-    return by * Math.sqrt(Math.max(0, characteristics.rhoKnee ** 2 - (longitudinalLinearDemand / bx) ** 2));
-  }
-  const a = characteristics.rhoKnee;
-  const fraction = Math.min(1, Math.abs(longitudinalLinearDemand / bx) / a);
-  return by * a * Math.max(0, 1 - fraction ** exponent) ** (1 / exponent);
+  return by * Math.sqrt(Math.max(0, characteristics.rhoKnee ** 2 - (longitudinalLinearDemand / bx) ** 2));
 }
 
 export function validateCompiledTireProfile(tire: CompiledTireProfile): void {

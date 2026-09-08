@@ -10,7 +10,7 @@ import {VEHICLE_CATALOG} from '../dist/vehicle/vehicle-catalog.js';
 import {updateArcadeVehicle} from '../dist/physics/arcade-vehicle-physics.js';
 import {createM5RecoveryState,updateM5Recovery} from '../dist/gameplay/recovery.js';
 const c=values=>createArcadeTireFrictionCalibration(compileTireCharacteristics(values));
-const research=c({gripX:.75,peakSlipX:.02,gripY:3,peakSlipY:.08,knee:.74,combinedSlipExponent:2});
+const research=c({gripX:.75,peakSlipX:.02,gripY:3,peakSlipY:.08,knee:.74});
 function runReference(hz,direction,calibration=research){
  const p=createFlatProbe({calibration,initialSpeed:200/3.6});setEngineTorqueMultiplier(p.vehicle.powertrain,3);
  return runProbe(p,44,t=>researchCycleInput(t,direction),{hz});
@@ -29,7 +29,7 @@ for(const hz of [60,120,240])test(`M9.20 no-TCS research reference at ${hz}Hz en
  }
 });
 test('M9.20 research default-control comparison is not mistaken for a browser drift guarantee',()=>{
- const equal=c({gripX:3,peakSlipX:.08,gripY:3,peakSlipY:.08,knee:.74,combinedSlipExponent:2});
+ const equal=c({gripX:3,peakSlipX:.08,gripY:3,peakSlipY:.08,knee:.74});
  const t=runReference(60,1,equal);assert.ok(t.maxAbsBeta<4);
 });
 test('M9.20 transient diagnostics are deterministic and preserve finite physical observations',()=>{

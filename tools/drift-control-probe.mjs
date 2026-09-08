@@ -176,7 +176,7 @@ async function main() {
   if(!['transient','sweep','reference'].includes(mode)) throw new Error('mode must be transient, sweep or reference');
   if(!Number.isFinite(speed)||speed<0) throw new RangeError('speed must be finite km/h >= 0');
   if(mode==='reference') { // Explicit research fixture, NEVER applied by the browser.
-    characteristics={gripX:.75,gripY:3,peakSlipX:.02,peakSlipY:.08,knee:.74,combinedSlipExponent:2};
+    characteristics={gripX:.75,gripY:3,peakSlipX:.02,peakSlipY:.08,knee:.74};
     engine=3; speed=200;
   }
   const calibration=characteristics ? createArcadeTireFrictionCalibration(compileTireCharacteristics(characteristics))

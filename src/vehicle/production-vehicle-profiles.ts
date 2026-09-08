@@ -9,7 +9,7 @@ const DEG = Math.PI / 180;
  * Both stations currently share data; the lower law/compiler also accept distinct tire data. */
 const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
   gripX: 1.35, peakSlipX: 1.26 * 1.35 / 9.75,
-  gripY: 1.35, peakSlipY: 1.26 * 1.35 / 9.75, knee:0.74,combinedSlipExponent:2,
+  gripY: 1.35, peakSlipY: 1.26 * 1.35 / 9.75, knee: 0.74,
 });
 export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
   frontTire: REFERENCE_TIRE, rearTire: REFERENCE_TIRE, lowSpeedRegularization: 1.0,

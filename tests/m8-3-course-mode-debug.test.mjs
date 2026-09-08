@@ -174,7 +174,7 @@ test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handw
   const model=createVehicleDebugHudModel('linear',{steering:-1,throttle:true,brake:false},vehicle);
   assert.match(model.courseSelector,/\[1\] LINEAR/); assert.equal(model.vehicleSelector,`VEHICLE ${formatVehicleCatalogLine(VEHICLE_CATALOG[0])}`);
   assert.equal(model.steeringOffsetSelector,'D [Y] 9.5°'); assert.equal(model.maxRoadWheelSteerSelector,'M [U] 45°'); assert.equal(model.steeringResponseSelector,'ACT [T] 0.25s');
-  assert.match(model.tireCalibrationSelector,/^GX1.35 PX17.45% GY1.35 PY17.45% KN0.74 LP2.00$/);
+  assert.match(model.tireCalibrationSelector,/^GX1.35 PX17.45% GY1.35 PY17.45% KN0.74$/);
   assert.equal(model.requestedSteering,-1); assert.equal(model.requestedThrottle,1); assert.equal(model.requestedBrake,0);
   assert.ok(Math.abs(model.actualSteering+12.5/45)<1e-12); assert.equal(model.rearDrive.delivered,.42); assert.equal(model.frontDrive.delivered,0); assert.ok(Math.abs(model.frontBrake.delivered+model.rearBrake.delivered-.08)<1e-12);
   assert.ok(Math.abs(model.handwheelAngle+225*Math.PI/180)<1e-12); assert.ok(Math.abs(model.longitudinalG-1)<1e-12); assert.ok(Math.abs(model.lateralG+.5)<1e-12);

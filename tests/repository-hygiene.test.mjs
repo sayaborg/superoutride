@@ -74,9 +74,8 @@ const currentDocuments = [
   'README.md',
   'docs/README.md',
   currentHandoff,
+  'docs/119_m9_24_restore_friction_ellipse.md',
   'docs/116_m9_22_pedal_torque_hud.md',
-  'docs/118_m9_23_combined_slip_superellipse.md',
-  'docs/research/M9_23_COMBINED_SLIP_FALSIFICATION.md',
   'docs/research/README.md',
   'docs/92_m9_2_selectable_self_steer_gain.md',
   'docs/93_m9_3_tsukuba_circuit.md',
@@ -184,9 +183,7 @@ test('repository-only restart is reachable from every entry and covers released 
   const source = await readFile(path.join(repositoryRoot, currentHandoff), 'utf8');
   const targets = new Set(documentReferences(source).map(ref => resolveDocumentReference(currentHandoff, ref)));
   for (const required of [
-    'docs/116_m9_22_pedal_torque_hud.md',
-  'docs/118_m9_23_combined_slip_superellipse.md',
-  'docs/research/M9_23_COMBINED_SLIP_FALSIFICATION.md', 'docs/115_m9_21_torque_protection.md',
+    'docs/116_m9_22_pedal_torque_hud.md', 'docs/115_m9_21_torque_protection.md',
     'docs/114_m9_20_five_axis_tire.md', 'docs/98_m9_8_selectable_production_vehicle_catalog.md',
     'docs/research/README.md', 'docs/validation/M9_22_PEDAL_TORQUE_HUD_VALIDATION.txt',
     'src/browser/vehicle-debug-hud.ts', 'src/physics/vehicle-profiles.ts',

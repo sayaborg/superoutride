@@ -3,7 +3,7 @@ import {
   type ArcadeTireFrictionCalibrationState, type TireCharacteristics,
 } from '../physics/tire-friction-calibration.js';
 
-export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE' | 'LP';
+export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE';
 export interface BrowserTireAxis {
   readonly id: BrowserTireCalibrationAxis;
   readonly field: keyof TireCharacteristics;
@@ -21,11 +21,10 @@ export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze([
   { id: 'GY', field: 'gripY', code: 'KeyG', min: 50, max: 400, step: 5, percent: false },
   { id: 'PY', field: 'peakSlipY', code: 'KeyL', min: 1, max: 60, step: 1, percent: true },
   { id: 'KNEE', field: 'knee', code: 'KeyN', min: 10, max: 95, step: 1, percent: false },
-  { id: 'LP', field: 'combinedSlipExponent', code: 'KeyB', min: 200, max: 800, step: 50, percent: false },
 ].map(axis => Object.freeze(axis)) as BrowserTireAxis[]);
 
 export const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Object.freeze({
-  gripX: 2.50, peakSlipX: 0.08, gripY: 2.20, peakSlipY: 0.10, knee:0.74,combinedSlipExponent:2,
+  gripX: 2.50, peakSlipX: 0.08, gripY: 2.20, peakSlipY: 0.10, knee: 0.74,
 });
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createArcadeTireFrictionCalibration(
   compileTireCharacteristics(DEFAULT_BROWSER_TIRE_CHARACTERISTICS),

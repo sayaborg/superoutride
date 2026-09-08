@@ -63,18 +63,16 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
-### M9.23 combined-slip geometry
+### M9.24 restores the fixed friction ellipse
 
-Current tire scope is [118](118_m9_23_combined_slip_superellipse.md). The sixth LP axis uses
-B because P remains camera-owned. Default2 exactly retains the preceding dynamics; all previous
-five axes and115 policy remain unchanged. `tests/m9-23-superellipse.test.mjs` preserves the
-pre-change protected transient and full-grid tire/root/protection invariants;
-`tests/m9-23-driving-comparison.test.mjs` proves fixed-input causality. The
-[50-run report](research/M9_23_COMBINED_SLIP_FALSIFICATION.md) has mixed results: larger LP can
-increase entry beta and reduce trail-braking beta. Do not infer improved human feel or restart
-unrequested G/P/KN/front-rear retuning. `tools/combined-slip-probe.mjs` regenerates full telemetry;
-`tools/combined-slip-ui-check.html` checks the actual responsive page. Determine release SHA/CI/Pages
-from Git and the M9.23 validation record, not this navigation note.
+The user withdrew the M9.23 experiment after preferring the natural feel of LP2 over LP8.
+[Authority119](119_m9_24_restore_friction_ellipse.md) restores the exact pre-LP tire/compiler/
+selector/profile data and supporting diagnostics. There is no adjustable exponent or LP UI.
+The five axes and all existing protection/steering defaults are unchanged. Document118,
+its research and released validation remain historical; their retired executable paths are
+available through their original Git revision, not compatibility tools in current source.
+`tests/m9-24-ellipse-restoration.test.mjs` verifies source restoration and absence of LP.
+Resolve completion from the restoration PR and exact-head CI/Pages, not this navigation note.
 
 
 ### Known-placement Guide observation hotfix (2026-09-08)

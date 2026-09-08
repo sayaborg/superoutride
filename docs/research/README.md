@@ -64,8 +64,8 @@ New evidence must name the exact source, conditions and observation limits, pres
 and link back here when it becomes relevant. Do not overwrite released validation files or original
 research reports to make their terminology match a later implementation.
 
-## M9.23 combined-slip diagnostic
+## Withdrawn M9.23 experiment
 
-[LP-only matched-input falsification](M9_23_COMBINED_SLIP_FALSIFICATION.md) records50 runs,
-full input/telemetry archive, mixed transient results and local responsive verification.
-[Authority118](../118_m9_23_combined_slip_superellipse.md) keeps default2; no other tuning is promoted.
+[LP comparison](M9_23_COMBINED_SLIP_FALSIFICATION.md) and its data are historical evidence.
+[M9.24](../119_m9_24_restore_friction_ellipse.md) withdraws the feature and its dedicated
+executable probes; use the experiment's original Git revision to reproduce it.

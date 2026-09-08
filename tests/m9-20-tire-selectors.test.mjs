@@ -16,10 +16,10 @@ import {SelectorElement,selectorDocument} from './helpers/fake-selector-dom.mjs'
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-11,`${a} ${b}`);
 
 test('M9.20 approved five-axis defaults and registry are explicit and unique',()=>{
- assert.deepEqual(seed,{gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.10,knee:.74,combinedSlipExponent:2});
+ assert.deepEqual(seed,{gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.10,knee:.74});
  assert.deepEqual(axes.map(a=>[a.id,a.min,a.max,a.step,a.code]),[
- ['GX',50,400,5,'KeyH'],['PX',1,60,1,'KeyJ'],['GY',50,400,5,'KeyG'],['PY',1,60,1,'KeyL'],['KNEE',10,95,1,'KeyN'],['LP',200,800,50,'KeyB']]);
- assert.equal(formatTireCalibrationSelector(initial),'GX2.50 PX8% GY2.20 PY10% KN0.74 LP2.00');
+ ['GX',50,400,5,'KeyH'],['PX',1,60,1,'KeyJ'],['GY',50,400,5,'KeyG'],['PY',1,60,1,'KeyL'],['KNEE',10,95,1,'KeyN']]);
+ assert.equal(formatTireCalibrationSelector(initial),'GX2.50 PX8% GY2.20 PY10% KN0.74');
 });
 for(const axis of axes) test(`M9.20 ${axis.id} traverses its full grid in both directions preserving the other four values`,()=>{
  for(const dir of [-1,1]){
@@ -39,7 +39,7 @@ for(const axis of axes) test(`M9.20 ${axis.id} direct off-grid and out-of-range 
  assert.throws(()=>browserTireCalibrationForAxis(axis.id,v,initial),RangeError);
 });
 test('M9.20 every endpoint combination is admissible, without old S<=G filtering',()=>{
- for(let mask=0;mask<2**axes.length;mask++){
+ for(let mask=0;mask<32;mask++){
  let c=initial;
  for(let i=0;i<axes.length;i++){
  const a=axes[i];c=pair(compile(browserTireCalibrationForAxis(a.id,(mask&(1<<i)?a.max:a.min)/100,c)));
@@ -60,7 +60,7 @@ test('M9.20 off-grid profile P steps to nearest adjacent selectable value withou
 test('M9.20 explicit minus/plus and one-key forward cycle share the same five linked settings',()=>{
  let v=createFlatProbe().vehicle;const host=new SelectorElement();
  const ctl=mountBrowserTireFrictionControls(host,()=>v,selectorDocument);
- assert.equal(host.children.length,6);
+ assert.equal(host.children.length,5);
  for(let i=0;i<axes.length;i++){
  const old=read(v.tireFrictionCalibration.front),a=axes[i],group=host.children[i];
  assert.equal(group.children.length,3);assert.match(group.children[0].getAttribute('aria-label'),/Decrease/);
@@ -77,19 +77,19 @@ test('M9.20 explicit minus/plus and one-key forward cycle share the same five li
 test('M9.20 engine button remains independent of five tire groups and their refreshes',()=>{
  const v=createFlatProbe().vehicle,host=new SelectorElement();
  const tires=mountBrowserTireFrictionControls(host,()=>v,selectorDocument);
- mountBrowserEnginePowerControls(host,()=>v,selectorDocument);const engine=host.children[6];
- tires.handleKey('KeyG');assert.equal(host.children[6],engine);engine.click();assert.equal(v.powertrain.engineTorqueMultiplier,1.5);
+ mountBrowserEnginePowerControls(host,()=>v,selectorDocument);const engine=host.children[5];
+ tires.handleKey('KeyG');assert.equal(host.children[5],engine);engine.click();assert.equal(v.powertrain.engineTorqueMultiplier,1.5);
  near(v.tireFrictionCalibration.front.muY,2.25);
 });
 test('M9.20 live selection changes only calibration and remains atomic on invalid request',()=>{
  const p=createFlatProbe(),v=p.vehicle;runProbe(p,.2,()=>directInput(.1,.2));
- const before=JSON.parse(JSON.stringify(v));set(v,{...seed,knee:.6,combinedSlipExponent:2});
+ const before=JSON.parse(JSON.stringify(v));set(v,{...seed,knee:.6});
  const after=JSON.parse(JSON.stringify(v));delete before.tireFrictionCalibration;delete after.tireFrictionCalibration;
  assert.deepEqual(after,before);
  const c=v.tireFrictionCalibration;assert.throws(()=>set(v,{...seed,peakSlipY:0}));assert.equal(v.tireFrictionCalibration,c);
 });
 test('M9.20 recovery and all-nine vehicle replacement preserve selections without sharing mutable state',()=>{
- const p=createFlatProbe(),v=p.vehicle;set(v,{...seed,gripX:.75,gripY:3,knee:.6,combinedSlipExponent:6});
+ const p=createFlatProbe(),v=p.vehicle;set(v,{...seed,gripX:.75,gripY:3,knee:.6});
  const c=v.tireFrictionCalibration;
  recoverM5Vehicle(createM5RecoveryState(v),p.guide,p.height,p.surface,v);
  assert.equal(v.tireFrictionCalibration,c);

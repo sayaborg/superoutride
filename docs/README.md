@@ -32,16 +32,17 @@ vehicle handling work.
 
 ## Current HUD / vehicle / handling authority
 
-M9.23 [118](118_m9_23_combined_slip_superellipse.md) supersedes only the fixed L2 geometry
-and exact five-axis count in114. LP2..8 step.5 defaults2, keyB (P remains camera).
-Pure-axis curves, H, all five existing defaults and115 policies remain unchanged.
-[Matched-input falsification](research/M9_23_COMBINED_SLIP_FALSIFICATION.md) records mixed handling
-results and open decisions; it does not certify a higher default.
+[M9.24 restoration119](119_m9_24_restore_friction_ellipse.md) withdraws118 in full and restores
+114's fixed ellipse, five-coefficient schema and five selectors. LP no longer exists in source,
+UI or diagnostic tooling. The M9.23 [document118](118_m9_23_combined_slip_superellipse.md),
+[research](research/M9_23_COMBINED_SLIP_FALSIFICATION.md) and
+[released validation](validation/M9_23_COMBINED_SLIP_SUPERELLIPSE_VALIDATION.txt) remain
+historical evidence, not active features or instructions to resume the experiment.
 
 Read newest first for the requested scope:
 
 ```text
-118_m9_23_combined_slip_superellipse.md
+119_m9_24_restore_friction_ellipse.md
 116_m9_22_pedal_torque_hud.md
 115_m9_21_torque_protection.md
 114_m9_20_five_axis_tire.md
@@ -119,7 +120,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `118_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `119_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 
@@ -165,7 +166,6 @@ Read `validation/README.md` for the standalone-record and exact-head self-refere
 Current HUD/handling/powertrain validation lineage includes:
 
 ```text
-validation/M9_23_COMBINED_SLIP_SUPERELLIPSE_VALIDATION.txt
 validation/M9_9_CONTROLLABLE_DRIFT_FOUNDATION_VALIDATION.txt
 validation/M9_10_POST_PEAK_SLIDING_TIRE_VALIDATION.txt
 validation/M9_11_SIMPLIFIED_TRAVEL_DIRECTION_STEERING_VALIDATION.txt
