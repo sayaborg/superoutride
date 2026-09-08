@@ -63,3 +63,9 @@ open tasks in the current handoff. Any physical or control change needs its own 
 New evidence must name the exact source, conditions and observation limits, preserve counterexamples,
 and link back here when it becomes relevant. Do not overwrite released validation files or original
 research reports to make their terminology match a later implementation.
+
+## M9.23 combined-slip diagnostic
+
+[LP-only matched-input falsification](M9_23_COMBINED_SLIP_FALSIFICATION.md) records50 runs,
+full input/telemetry archive, mixed transient results and local responsive verification.
+[Authority118](../118_m9_23_combined_slip_superellipse.md) keeps default2; no other tuning is promoted.

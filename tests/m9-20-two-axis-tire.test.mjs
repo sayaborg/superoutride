@@ -10,7 +10,7 @@ import {evaluateTireForce as force, tireLinearDemand, deriveTireSlip, radialC1Ma
 import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/vehicle/production-vehicle-profiles.js';
 import {VEHICLE_CATALOG} from '../dist/vehicle/vehicle-catalog.js';
-const seed={gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.10,knee:.74};
+const seed={gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.10,knee:.74,combinedSlipExponent:2};
 const tire=car.rearStation.tire,R=car.rearStation.rollingRadius;
 const near=(x,y,e=1e-10)=>assert.ok(Math.abs(x-y)<=e*Math.max(1,Math.abs(y)),`${x} != ${y}`);
 function at(c,sx,sy,N=10000,m=1,vx=30) {
@@ -22,12 +22,12 @@ function legacyH(r,a){ if(r<=a)return r;if(r>=2-a)return 1;
 let n=123456789; const random=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/2**32;};
 
 test('M9.20 five authoring axes compile into five resolved coefficients, with no duplicate P',()=>{
- const c=compile(seed); assert.deepEqual(Object.keys(c).sort(),['kX','kY','muX','muY','rhoKnee']);
+ const c=compile(seed); assert.deepEqual(Object.keys(c).sort(),['combinedSlipExponent','kX','kY','muX','muY','rhoKnee']);
  near(c.kX,39.375);near(c.kY,27.72);
  const a=read(c);for(const key of Object.keys(seed))near(a[key],seed[key]);assert.ok(Object.isFrozen(c));
 });
 test('M9.20 equality of stiffness is a calibration choice, not a lower-law constraint',()=>{
- const c=compile({gripX:.75,gripY:3,peakSlipX:.02,peakSlipY:.08,knee:.74});
+ const c=compile({gripX:.75,gripY:3,peakSlipX:.02,peakSlipY:.08,knee:.74,combinedSlipExponent:2});
  near(c.kX,47.25);near(c.kY,47.25);
  const d=compile({...seed,gripX:.75,gripY:3,peakSlipX:.08,peakSlipY:.08});
  near(d.kX,11.8125);near(d.kY,47.25);
@@ -93,7 +93,7 @@ test('M9.20 independent small-slip longitudinal and lateral demand scales with a
 });
 test('M9.20 pure/combined forces remain bounded, dissipative, symmetric and load-homogeneous',()=>{
  for(let i=0;i<20000;i++){
- const c=compile({gripX:.5+3.5*random(),gripY:.5+3.5*random(),peakSlipX:.01+.59*random(),peakSlipY:.01+.59*random(),knee:.1+.85*random()});
+ const c=compile({gripX:.5+3.5*random(),gripY:.5+3.5*random(),peakSlipX:.01+.59*random(),peakSlipY:.01+.59*random(),knee:.1+.85*random(),combinedSlipExponent:2});
  const sx=4*random()-2,sy=4*random()-2,N=.01+15000*random(),m=.1+1.5*random();
  const f=at(c,sx,sy,N,m),f2=at(c,sx,sy,2*N,m),mirror=at(c,-sx,-sy,N,m);
  assert.ok((f.fx/f.capacityX)**2+(f.fy/f.capacityY)**2<=1+2e-14);

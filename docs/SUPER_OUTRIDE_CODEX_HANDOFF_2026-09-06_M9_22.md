@@ -63,6 +63,20 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### M9.23 combined-slip geometry
+
+Current tire scope is [118](118_m9_23_combined_slip_superellipse.md). The sixth LP axis uses
+B because P remains camera-owned. Default2 exactly retains the preceding dynamics; all previous
+five axes and115 policy remain unchanged. `tests/m9-23-superellipse.test.mjs` preserves the
+pre-change protected transient and full-grid tire/root/protection invariants;
+`tests/m9-23-driving-comparison.test.mjs` proves fixed-input causality. The
+[50-run report](research/M9_23_COMBINED_SLIP_FALSIFICATION.md) has mixed results: larger LP can
+increase entry beta and reduce trail-braking beta. Do not infer improved human feel or restart
+unrequested G/P/KN/front-rear retuning. `tools/combined-slip-probe.mjs` regenerates full telemetry;
+`tools/combined-slip-ui-check.html` checks the actual responsive page. Determine release SHA/CI/Pages
+from Git and the M9.23 validation record, not this navigation note.
+
+
 ### Known-placement Guide observation hotfix (2026-09-08)
 
 Spawn/recovery previously discarded their known placement segment and globally projected the

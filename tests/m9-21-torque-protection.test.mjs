@@ -15,7 +15,7 @@ import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.
 import { evaluateVehicleWrench } from '../dist/physics/vehicle-wrench.js';
 const car=VEHICLE_CATALOG[0],bike=VEHICLE_CATALOG[5],R=car.profile.rearStation.rollingRadius;
 const close=(a,b,e=1e-8)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
-const tire=compileTireCharacteristics({gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.1,knee:.74});
+const tire=compileTireCharacteristics({gripX:2.5,peakSlipX:.08,gripY:2.2,peakSlipY:.1,knee:.74,combinedSlipExponent:2});
 const wheel=(more={})=>({omegaPrevious:30/R,inertia:3.4,rollingRadius:R,longitudinalVelocity:30,
  lateralVelocity:0,normalLoad:8000,gripFactor:1,characteristics:tire,rollingResistance:.015,
  driveTorque:0,brakeTorque:0,dt:1/720,tire:car.profile.rearStation.tire,...more});

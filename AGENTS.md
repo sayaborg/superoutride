@@ -30,9 +30,15 @@ Course/session ownership is clarified by `docs/117_session_configuration_boundar
 course profiles own route structure; separate session configuration owns opponent count. This
 supersedes only document 61's placement of rivalCount, not current defaults or branch policy.
 
+M9.23 document118 owns the combined-slip Lp geometry and sixth LP selector, default2,
+range2..8 step.5 keyB. It supersedes only114's fixed ellipse/exact five-axis count.
+All earlier five-axis defaults, monotone H and115 torque policy remain. No higher default is
+approved; matched-input evidence has mixed handling effects. Read118 before tire work.
+
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/118_m9_23_combined_slip_superellipse.md
 docs/116_m9_22_pedal_torque_hud.md
 docs/115_m9_21_torque_protection.md
 docs/114_m9_20_five_axis_tire.md
@@ -84,7 +90,7 @@ four displayed characteristics. Authoring compiles to `muX/muY/kX/kY/rhoKnee` wi
 `k=(2-knee)*G/P`. Runtime force code consumes only the resolved station characteristics. `kx=ky`
 is not imposed. Front/rear equality is provisional composition, not a tire-law restriction.
 
-The tire uses one current-load-proportional demand and one monotone C1 capacity ellipse. No S,
+The tire uses one current-load-proportional demand and one monotone C1 capacity superellipse. No S,
 post-peak drop, tire memory, drift phase, target beta, hidden force, speed correction, vehicle-kind
 branch or drive-layout branch exists. M9.18 load proportionality and contact/recovery boundaries
 remain retained. Document 115 supersedes only the inactive-TCS control boundary, not the tire law.
@@ -178,7 +184,7 @@ Do not change these without a new explicit normative addendum:
 - Current normal load is the sole load input to tire demand/capacity. Zero valid load means zero
   tire force; no positive stiffness or friction floor.
 - Tire contact force must be dissipative with respect to contact slip and remain within its authored
-  capacity ellipse.
+  capacity superellipse.
 - The scalar implicit wheel solve must retain finite bracketing and a unique monotone residual.
 - Front/rear current equality is authoring/composition, not a lower-law branch. Genuine future
   station-specific tire data must be explicit data, not a hidden drive-layout compensator.

@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.22 Pedal Torque HUD
+# SUPER OUTRIDE — M9.23 Combined-Slip Superellipse
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -7,6 +7,15 @@ Super Hang-On, OutRunners and the Super Scaler era.
 > Repository is project authority. Handling remains **DEV_UNCALIBRATED**.
 
 ## Current milestone
+
+M9.23 adds **LP**, the combined-slip norm exponent: **2.00..8.00 in 0.50 steps, default2.00**.
+B cycles forward; minus/value/plus controls wrap. P remains camera selection. Only shared
+longitudinal/lateral capacity geometry changes. Pure-axis curves and the p=2 baseline are retained;
+GX/PX/GY/PY/KN, ENG, steering and protection defaults are unchanged. See
+[authority118](docs/118_m9_23_combined_slip_superellipse.md) and
+[matched-input results](docs/research/M9_23_COMBINED_SLIP_FALSIFICATION.md).
+Greater LP is not uniformly more stable; no higher default or handling improvement is certified.
+
 
 M9.22 makes pedal protection visible in the shared DEV HUD. Each ACCEL/BRAKE column has an
 analog INPUT meter and separate F/R delivered-torque meters. Cyan is delivered output; red extends
@@ -54,8 +63,9 @@ M9.21 protection surrounds this unchanged tire law; it is not a new tire curve o
 | GY: lateral capacity | 2.20 | .50..4.00, .05 | G |
 | PY: lateral capacity-onset slip | 10% | 1..60%, 1 point | L |
 | KN: common X/Y knee | .74 | .10...95, .01 | N |
+| LP: combined-slip norm exponent | 2.00 | 2.00..8.00, .50 | B |
 
-Each value has compact +/- controls. Endpoints wrap. G/P/KN changes preserve the other four
+Each value has compact +/- controls. Endpoints wrap. G/P/KN changes preserve the other five
 shown values, atomically recompiling kX=(2-KN)GX/PX and kY=(2-KN)GY/PY. PY is dimensionless slip,
 not vehicle drift angle; its high-speed pure-lateral angle equivalent is shown as supplementary
 information. **kx=ky is not imposed.** Front/rear are intentionally linked for this milestone;
@@ -144,7 +154,7 @@ actuator. Keyboard remains digital/rate-limited. New selectors do not alter driv
 ## Architecture and limits
 
 One common two-station vehicle solver, current-load suspension, wheel dynamics and direct robotized
-MT remain. Compiled tire fields are muX/muY/kX/kY/rhoKnee; current effective values live only in the
+MT remain. Compiled tire fields are muX/muY/kX/kY/rhoKnee/combinedSlipExponent; current effective values live only in the
 vehicle-owned immutable station pair. Tire slip is observed from contact velocity and wheel speed.
 Contact/recovery does not suppress permitted wheelies/stoppies or hide suspension overtravel.
 

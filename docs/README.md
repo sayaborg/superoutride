@@ -32,9 +32,16 @@ vehicle handling work.
 
 ## Current HUD / vehicle / handling authority
 
+M9.23 [118](118_m9_23_combined_slip_superellipse.md) supersedes only the fixed L2 geometry
+and exact five-axis count in114. LP2..8 step.5 defaults2, keyB (P remains camera).
+Pure-axis curves, H, all five existing defaults and115 policies remain unchanged.
+[Matched-input falsification](research/M9_23_COMBINED_SLIP_FALSIFICATION.md) records mixed handling
+results and open decisions; it does not certify a higher default.
+
 Read newest first for the requested scope:
 
 ```text
+118_m9_23_combined_slip_superellipse.md
 116_m9_22_pedal_torque_hud.md
 115_m9_21_torque_protection.md
 114_m9_20_five_axis_tire.md
@@ -112,7 +119,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `117_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `118_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 

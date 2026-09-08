@@ -39,7 +39,7 @@ const near = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 1e-1
 const tireCalibration = (grip = 2, peak = 0.24, slide = grip) => {
   assert.equal(slide, grip, 'engine fixture must not rely on the retired tire falloff');
   return createArcadeTireFrictionCalibration(compileTireCharacteristics({
-    gripX: grip, gripY: grip, peakSlipX: peak, peakSlipY: peak, knee: .74,
+    gripX: grip, gripY: grip, peakSlipX: peak, peakSlipY: peak, knee:.74,combinedSlipExponent:2,
   }));
 };
 const makeVehicle = (p = FERRARI_TESTAROSSA_VEHICLE_PROFILE, tire = tireCalibration()) =>
@@ -162,9 +162,9 @@ test('M9.16 touch and keyboard share current engine authority without disturbing
   const tireControls = mountBrowserTireFrictionControls(host, () => vehicle, fakeDocument);
   const originalButtons = [...host.children];
   const controls = mountBrowserEnginePowerControls(host, () => vehicle, fakeDocument);
-  assert.equal(host.children.length, 6);
-  assert.deepEqual(host.children.slice(0, 5), originalButtons);
-  const button = host.children[5];
+  assert.equal(host.children.length, 7);
+  assert.deepEqual(host.children.slice(0, 6), originalButtons);
+  const button = host.children[6];
   assert.equal(button.textContent, 'ENG x1.0');
   const tiresBefore = { ...vehicle.tireFrictionCalibration };
   button.click();
@@ -175,7 +175,7 @@ test('M9.16 touch and keyboard share current engine authority without disturbing
   assert.equal(controls.handleKey('KeyK'), true);
   assert.equal(vehicle.powertrain.engineTorqueMultiplier, 2);
   tireControls.handleKey('KeyH');
-  assert.equal(host.children[5], button);
+  assert.equal(host.children[6], button);
   assert.equal(vehicle.powertrain.engineTorqueMultiplier, 2);
   const oldVehicle = vehicle;
   vehicle = makeVehicle(VEHICLE_CATALOG[1].profile);

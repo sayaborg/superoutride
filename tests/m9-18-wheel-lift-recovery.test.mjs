@@ -78,7 +78,7 @@ test('M9.18 overturned recovery precedes stale support and preserves calibration
   for (const target of [null, { s: 750, l: 1 }]) {
     const v = createArcadeVehicle(profile, guide, height, surfaces, 800, 0, 25,
       { maxRoadWheelSteer: 60 * DEG, steeringOffsetMax: 12 * DEG },
-      createArcadeTireFrictionCalibration(compileTireCharacteristics({ gripX: 2.7, gripY: 2.7, peakSlipX: .25, peakSlipY: .25, knee: .74 })));
+      createArcadeTireFrictionCalibration(compileTireCharacteristics({ gripX: 2.7, gripY: 2.7, peakSlipX: .25, peakSlipY: .25, knee:.74,combinedSlipExponent:2 })));
     setEngineTorqueMultiplier(v.powertrain, 3);
     const before = structuredClone({ steering: v.steeringCalibration, tire: v.tireFrictionCalibration });
     const state = createM5RecoveryState(v);
