@@ -23,7 +23,7 @@ No historical milestone or released validation record is rewritten.
 5. Browser linked editing is composition; independent authored station values remain supported.
 6. Preserve current-load contact, dissipativity, wheel uniqueness, one contact-force wrench,
    world-state integration and every frozen renderer/metric/topology invariant.
-7. Exact pre-change trace, pure axes, full-grid constitutive/root/protection tests, lifecycle,
+7. Pre-change trace, same-engine exact comparison, pure axes, full-grid constitutive/root/protection tests, lifecycle,
    captured-input replay and actual-browser responsive checks provide causal evidence.
 
 ## Definition and ownership
@@ -112,6 +112,17 @@ Existing auto-fit CSS accommodates six steppers + ENG. No layout retuning was ne
 browser checks at320x568,390x844,568x320,844x390,1366x768 verify group/label bounds, grid wrap,
 keyboard cycling and320x240 backing resolution. `tools/combined-slip-ui-check.html` reruns these
 checks against the actual page; it is a development diagnostic, not a production page dependency.
+
+## Baseline evidence portability
+
+The saved pre-change ARM/macOS transient is bit-identical locally. Linux/x64 CI has last-bit
+libm/V8 differences (for example exit speed43.24278399516210 versus43.24278399516211).
+Its recursive snapshot comparison uses absolute2e-10 + relative2e-12 tolerance. The existing
+same-engine immutable b70f245 mechanical trace comparison remains exact across all nine profiles,
+three rates and1152 wheel cases. Its serializer validates new `combinedSlipExponent` metadata
+as exactly2 and omits only that newly added field when hashing against the pre-LP schema;
+all pre-existing calibration and physical fields remain in the exact comparison. This explicitly
+supersedes the old assumption of identical calibration object keys, not mechanical equality.
 
 ## Falsification and release
 

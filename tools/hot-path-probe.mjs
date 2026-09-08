@@ -18,7 +18,15 @@ export async function runHotPathProbe(buildPath = 'dist') {
   const surface = new SurfaceMap(10000, [{ sStart: 0, name: 'equivalence',
     bands: [{ lMin: -1000, lMax: 1000, type: 'ASPHALT' }] }]);
   const hash = createHash('sha256');
-  const record = (value) => hash.update(JSON.stringify(value));
+  // M9.23 adds immutable p=2 metadata to the existing calibration schema. Check it,
+  // then omit only that new field so the released pre-LP mechanical trace stays comparable.
+  const record = (value) => hash.update(JSON.stringify(value, (key, item) => {
+    if (key === 'combinedSlipExponent') {
+      if (item !== 2) throw new Error('baseline equivalence requires explicit p=2');
+      return undefined;
+    }
+    return item;
+  }));
   let randomState = 0x723410;
   const random = () => ((randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0) / 2 ** 32);
   const started = performance.now();
