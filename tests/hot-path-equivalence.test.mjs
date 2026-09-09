@@ -8,7 +8,7 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.j
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { guideCourseToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
 
-test('exact hot-path trace matches released b70f245 across nine profiles and three rates', async () => {
+test('exact wheel and straight-drive/braking trace matches released b70f245 across nine profiles and three rates', async () => {
   const result = await runHotPathProbe();
   // libm/V8 rounding can differ across architectures. CI compares the immutable released
   // implementation on the SAME engine, never substitutes the candidate's hash as a baseline.

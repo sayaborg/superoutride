@@ -42,6 +42,7 @@ historical evidence, not active features or instructions to resume the experimen
 Read newest first for the requested scope:
 
 ```text
+121_m9_26_steering_input_limiter.md
 120_m9_25_handling_calibration_unscaled_engine.md
 119_m9_24_restore_friction_ellipse.md
 116_m9_22_pedal_torque_hud.md
@@ -101,12 +102,13 @@ M9.18 current-load homogeneity and zero-contact release. M9.21 activates TCS/ABS
 change contact loads or clamp body states. Power-over drift is no longer a product acceptance goal.
 Handling remains `DEV_UNCALIBRATED`.
 
-M9.11 remains current steering law:
+M9.11 remains the requested steering law;121 limits only its driver offset:
 
 ```text
 A = M - D
 automatic = clamp(betaTravel, -A, +A)
-deltaTarget = clamp(automatic + u*D, -M, +M)
+requestedTarget = clamp(automatic + u*D, -M, +M)
+actualTarget = automatic + limitedDriverOffset  //121: same-sign reduction of u*D only
 ```
 
 M9.14/M9.13 retain D/M/ACT and full-viewport touch semantics. M9.17 owns direct wheel-derived RPM,
@@ -122,7 +124,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `120_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `121_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 

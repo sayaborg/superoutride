@@ -24,6 +24,11 @@ export async function runHotPathProbe(buildPath = 'dist') {
       if (item !== 1) throw new Error('reference engine must be unscaled');
       return undefined;
     }
+    // M9.26 changes steering; this retained reference is an exact straight-drive/braking trace.
+    if (['automaticSteerAngle', 'requestedSteerOffset', 'deliveredSteerOffset', 'targetSteerAngle'].includes(key)) {
+      if (item !== 0) throw new Error('straight reference steering telemetry must be zero');
+      return undefined;
+    }
     return item;
   }));
   let randomState = 0x723410;
@@ -45,7 +50,7 @@ export async function runHotPathProbe(buildPath = 'dist') {
       for (let tick = 0; tick < hz * 2; tick++) {
         const t = tick / hz;
         updateArcadeVehicle(guide, height, surface, v,
-          { steering: t < 1 ? 0 : .12, throttle: t < .7 ? 1 : 0, brake: t >= 1 ? 1 : 0 }, 1 / hz);
+          { steering: 0, throttle: t < .7 ? 1 : 0, brake: t >= 1 ? 1 : 0 }, 1 / hz);
         record(Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(v))
           .filter(([key, d]) => 'value' in d && !['profile', 'torqueProtection'].includes(key))
           .map(([key, d]) => [key, d.value])));

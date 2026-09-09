@@ -143,7 +143,7 @@ test('M9.22 input fill is proportional, not a positive-value ON/OFF indicator',(
 test('M9.22 six pedal meters plus retained steering fit 320x240 without a background panel',()=>{
   const {vehicle:v}=fixture(VEHICLE_CATALOG[5]);brake(v,1,500,100);
   const c=canvasRecorder();drawVehicleDebugHud(c.ctx,'linear',{...neutral,brake:1},v);
-  assert.equal(c.boxes.length,8);assert.equal(c.texts.filter(t=>t.text==='F').length,2);
+  assert.equal(c.boxes.length,10);assert.equal(c.texts.filter(t=>t.text==='F').length,2);
   assert.equal(c.texts.filter(t=>t.text==='R').length,2);
   for(const r of [...c.rects,...c.boxes]){
     assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=320&&r.y+r.h<=240,JSON.stringify(r));

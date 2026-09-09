@@ -63,6 +63,13 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### M9.26 steering input limiter
+
+[Authority121](121_m9_26_steering_input_limiter.md) implements closed-form contact-plane input
+reduction while preserving CG automatic alignment. HUD INPUT/USER/AUTO/RACK distinguishes
+requested input, cut and physical rack. Read its audit response and validation before tuning.
+The earlier120 research-only status below is historical; the J optimizer remains rejected.
+
 ### M9.25 calibration and engine simplification
 
 [Authority120](120_m9_25_handling_calibration_unscaled_engine.md) resumes player tire calibration,

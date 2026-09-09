@@ -46,6 +46,9 @@ export interface VehicleDebugHudModel {
   readonly requestedThrottle: number;
   readonly requestedBrake: number;
   readonly actualSteering: number;
+  readonly automaticSteering: number;
+  readonly requestedSteerOffset: number;
+  readonly deliveredSteerOffset: number;
   readonly frontDrive: TorqueControlMeter;
   readonly rearDrive: TorqueControlMeter;
   readonly frontBrake: TorqueControlMeter;
@@ -88,6 +91,9 @@ export function createVehicleDebugHudModel(
     actualSteering: clampSigned(
       vehicle.control.actualSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer,
     ),
+    automaticSteering: clampSigned(c.automaticSteerAngle / vehicle.steeringCalibration.maxRoadWheelSteer),
+    requestedSteerOffset: clampSigned(c.requestedSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
+    deliveredSteerOffset: clampSigned(c.deliveredSteerOffset / vehicle.steeringCalibration.steeringOffsetMax),
     frontDrive: torqueMeter(c.requestedFrontDriveTorque, c.frontDriveTorque,
       driveRequest, throttle, p.frontDriveTorqueFraction),
     rearDrive: torqueMeter(c.requestedRearDriveTorque, c.rearDriveTorque,
@@ -112,7 +118,7 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.25 ${model.courseSelector}`,
+    `M9.26 ${model.courseSelector}`,
     model.vehicleSelector,
     model.steeringOffsetSelector,
     model.maxRoadWheelSteerSelector,
@@ -138,6 +144,9 @@ export function drawVehicleControlGraphics(
     | 'requestedThrottle'
     | 'requestedBrake'
     | 'actualSteering'
+    | 'automaticSteering'
+    | 'requestedSteerOffset'
+    | 'deliveredSteerOffset'
     | 'frontDrive'
     | 'rearDrive'
     | 'frontBrake'
@@ -153,14 +162,25 @@ export function drawVehicleControlGraphics(
   ctx.font = '6px monospace';
   ctx.textBaseline = 'top';
   drawHudText(ctx, 'INPUT', x + 3, y + 7, '#a6bac4');
-  drawHudText(ctx, 'ACT', x + 3, y + 21, '#a6bac4');
+  drawHudText(ctx, 'USER', x + 3, y + 21, '#a6bac4');
+  drawHudText(ctx, 'AUTO', x + 3, y + 35, '#a6bac4');
+  drawHudText(ctx, 'RACK', x + 3, y + 49, '#a6bac4');
   drawHudText(ctx, 'STEER', x + 36, y + 1, '#a6bac4');
   drawHudText(ctx, 'ACCEL %', x + 109, y + 1, '#a6bac4');
   drawHudText(ctx, 'BRAKE %', x + 174, y + 1, '#a6bac4');
   drawHudText(ctx, 'HW', x + 232, y + 1, '#a6bac4');
 
   drawControlMeter(ctx, x + 35, y + 8, model.requestedSteering, true, '#ffd08a');
-  drawControlMeter(ctx, x + 35, y + 22, model.actualSteering, true, HUD_DELIVERED_COLOR);
+  drawControlMeter(ctx, x + 35, y + 22, model.deliveredSteerOffset, true, HUD_DELIVERED_COLOR);
+  const delivered = clampSigned(model.deliveredSteerOffset), requested = clampSigned(model.requestedSteerOffset);
+  const center = x + 35 + CONTROL_METER_WIDTH / 2, half = (CONTROL_METER_WIDTH - 4) / 2;
+  if (requested !== delivered) {
+    ctx.fillStyle = HUD_PROTECTION_CUT_COLOR;
+    ctx.fillRect(center + Math.min(delivered, requested) * half, y + 24,
+    Math.abs(requested - delivered) * half, CONTROL_METER_HEIGHT - 4);
+  }
+  drawControlMeter(ctx, x + 35, y + 36, model.automaticSteering, true, '#80df96');
+  drawControlMeter(ctx, x + 35, y + 50, model.actualSteering, true, HUD_DELIVERED_COLOR);
   drawPedalMeters(ctx, x + 105, y, model.requestedThrottle, model.frontDrive, model.rearDrive,
     HUD_INPUT_ACCEL_COLOR);
   drawPedalMeters(ctx, x + 170, y, model.requestedBrake, model.frontBrake, model.rearBrake,

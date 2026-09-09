@@ -184,7 +184,7 @@ test('shared HUD leaves the driving view transparent behind outlined text and co
   const runtime=createM83LinearHighwayRuntime(),vehicle=createTestCar(runtime.guide,runtime.heightProfile,runtime.surfaceMap,45); const rectangles=[],outlinedText=[];
   const context={save(){},restore(){},font:'',textBaseline:'',fillStyle:'',strokeStyle:'',lineWidth:1,lineJoin:'',fillText(){},strokeText:(text)=>outlinedText.push(text),fillRect:(x,y,width,height)=>rectangles.push({x,y,width,height}),strokeRect(){},beginPath(){},arc(){},moveTo(){},lineTo(){},stroke(){},fill(){}};
   drawVehicleDebugHud(context,'linear',{steering:0,throttle:false,brake:false},vehicle);
-  assert.equal(outlinedText.length,24); assert.ok(outlinedText.includes('RED=CUT')); assert.equal(rectangles.some(({width,height})=>width>60||height>10),false,'HUD must not paint an opaque full text/control panel over the driving view');
+  assert.equal(outlinedText.length,26); assert.ok(outlinedText.includes('RED=CUT')); assert.equal(rectangles.some(({width,height})=>width>60||height>10),false,'HUD must not paint an opaque full text/control panel over the driving view');
 });
 
 test('G sensor draws only one cross and one dot in the felt inertial-load direction', () => {

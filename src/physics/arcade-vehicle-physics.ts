@@ -1,3 +1,4 @@
+import { limitSteeringInput } from './steering-input-limiter.js';
 import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import { sampleGuideCurve } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
@@ -18,6 +19,7 @@ import {
   bodyFrameVelocity,
   createVehicleControlState,
   deriveContactObservation,
+  reorientContactObservation,
   initializeGuideObservation,
   refreshGuideObservation,
   representativeSurfaceType,
@@ -193,23 +195,20 @@ export function updateArcadeVehicle(
     );
     const steeringOffset = vehicle.actuator.steering
       * vehicle.steeringCalibration.steeringOffsetMax;
+    const frontBeforeSteer = deriveContactObservation(guide, height, surfaces, body,
+      profile.frontStation, vehicle.frontSteerAngle, vehicle.course.segmentIndex);
+    const automaticSteer = travelDirectionSteeringTarget(0, bodyTravelDirection, vehicle.steeringCalibration);
+    const deliveredOffset = limitSteeringInput(automaticSteer, steeringOffset,
+      vehicle.steeringCalibration.maxRoadWheelSteer, body, frontBeforeSteer, vehicle.tireFrictionCalibration.front);
     vehicle.frontSteerAngle = stepTravelDirectionSteering(
       vehicle.frontSteerAngle,
-      steeringOffset,
+      deliveredOffset,
       bodyTravelDirection,
       vehicle.steeringCalibration,
       substep,
       profile,
     );
-    const front = deriveContactObservation(
-      guide,
-      height,
-      surfaces,
-      body,
-      profile.frontStation,
-      vehicle.frontSteerAngle,
-      vehicle.course.segmentIndex,
-    );
+    const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle);
     const rear = deriveContactObservation(
       guide,
       height,
@@ -285,6 +284,10 @@ export function updateArcadeVehicle(
     if (step === VEHICLE_SUBSTEPS - 1) {
       vehicle.control.steeringRequest = steeringRequest;
       vehicle.control.steeringActuator = vehicle.actuator.steering;
+      vehicle.control.automaticSteerAngle = automaticSteer;
+      vehicle.control.requestedSteerOffset = steeringOffset;
+      vehicle.control.deliveredSteerOffset = deliveredOffset;
+      vehicle.control.targetSteerAngle = automaticSteer + deliveredOffset;
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;

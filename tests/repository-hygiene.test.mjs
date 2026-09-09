@@ -74,6 +74,7 @@ const currentDocuments = [
   'README.md',
   'docs/README.md',
   currentHandoff,
+  'docs/121_m9_26_steering_input_limiter.md',
   'docs/120_m9_25_handling_calibration_unscaled_engine.md',
   'docs/119_m9_24_restore_friction_ellipse.md',
   'docs/116_m9_22_pedal_torque_hud.md',

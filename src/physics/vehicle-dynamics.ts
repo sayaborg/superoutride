@@ -34,6 +34,10 @@ export interface VehicleControlState {
   /** Canonical input observation. */
   steeringRequest: number;
   steeringActuator: number;
+  automaticSteerAngle: number;
+  requestedSteerOffset: number;
+  deliveredSteerOffset: number;
+  targetSteerAngle: number;
   throttleActuator: number;
   brakeActuator: number;
   actualSteerAngle: number;
@@ -162,6 +166,10 @@ export function createVehicleControlState(): VehicleControlState {
   return {
     steeringRequest: 0,
     steeringActuator: 0,
+    automaticSteerAngle: 0,
+    requestedSteerOffset: 0,
+    deliveredSteerOffset: 0,
+    targetSteerAngle: 0,
     throttleActuator: 0,
     brakeActuator: 0,
     actualSteerAngle: 0,
@@ -325,11 +333,6 @@ export function deriveContactObservation(
   steerAngle: number,
   previousSegmentIndex: number,
 ): ContactObservation {
-  const isFront = station.id === 'FRONT';
-  const wheelForward = isFront
-    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle), body.forward)
-    : body.forward;
-  const wheelAxis = normalize3(cross3(body.up, wheelForward), body.right);
 
   const freeOffset = add3(
     scale3(body.forward, station.forwardOffset),
@@ -364,6 +367,45 @@ export function deriveContactObservation(
     : 0;
   const contactPoint = sub3(reachPoint, scale3(surface.normal, gap));
 
+  const frame = contactTireFrame(body, station, steerAngle, surface, reachVelocity);
+
+  return {
+    id: station.id,
+    profile: station,
+    surface,
+    supportAvailable,
+    withinReach,
+    forceTransmitting: normalLoad > 0,
+    ...frame,
+    reachPoint,
+    contactPoint,
+    reachVelocity,
+    gap,
+    q,
+    qDot,
+    normalLoad,
+    effectiveRollingRadius: station.rollingRadius,
+
+  };
+}
+
+
+/** Reuse the same sampled contact geometry/load after changing only the steering orientation. */
+export function reorientContactObservation(
+  contact: ContactObservation, body: BodyKinematics, steerAngle: number,
+): ContactObservation {
+  return { ...contact, ...contactTireFrame(body, contact.profile, steerAngle,
+    contact.surface, contact.reachVelocity) };
+}
+
+function contactTireFrame(body: BodyKinematics, station: ContactStationProfile, steerAngle: number,
+  surface: SurfaceGeometryObservation, reachVelocity: Vec3) {
+  const isFront = station.id === 'FRONT';
+  const wheelForward = isFront
+    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle), body.forward)
+    : body.forward;
+  const wheelAxis = normalize3(cross3(body.up, wheelForward), body.right);
+
   const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
   const tireFrameValid = magnitude3(tireForwardRaw) > 1e-8;
   const tireForward = tireFrameValid ? normalize3(tireForwardRaw, surface.tangent) : surface.tangent;
@@ -373,29 +415,8 @@ export function deriveContactObservation(
   const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;
   const lateralVelocity = tireFrameValid ? dot3(reachVelocity, tireRight) : 0;
 
-  return {
-    id: station.id,
-    profile: station,
-    surface,
-    supportAvailable,
-    withinReach,
-    forceTransmitting: normalLoad > 0,
-    tireFrameValid,
-    wheelForward,
-    wheelAxis,
-    reachPoint,
-    contactPoint,
-    reachVelocity,
-    gap,
-    q,
-    qDot,
-    normalLoad,
-    effectiveRollingRadius: station.rollingRadius,
-    tireForward,
-    tireRight,
-    longitudinalVelocity,
-    lateralVelocity,
-  };
+  return { wheelForward, wheelAxis, tireFrameValid, tireForward, tireRight,
+    longitudinalVelocity, lateralVelocity };
 }
 
 export function compileSuspensionStation(
