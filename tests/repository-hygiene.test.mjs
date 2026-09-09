@@ -195,7 +195,11 @@ test('repository-only restart is reachable from every entry and covers released 
   ]) assert.ok(targets.has(path.join(repositoryRoot, required)), `restart lacks ${required}`);
   assert.match(source, /already released/i);
   assert.match(source, /OPEN/);
-  assert.match(source, /PAUSED/);
+  //120 resumed player tuning;123 retains only station differentiation as deferred.
+  assert.match(source, /Player tire calibration resumed under120/);
+  assert.match(source, /front\/rear tire specialization remains deferred/);
+  assert.match(source, /p\.frontStation\.maxBrakeTorque/);
+  assert.doesNotMatch(source, /p\.(?:front|rear)BrakeTorqueMax/);
   assert.match(source, /DEV_UNCALIBRATED/);
   assert.doesNotMatch(source, /sandbox:|\/mnt\/data\/|file_[0-9a-f]{16,}/,
     'restart must not require a former conversation attachment or session path');

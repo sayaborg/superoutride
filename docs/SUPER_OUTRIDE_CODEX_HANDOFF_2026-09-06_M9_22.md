@@ -63,6 +63,13 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### M9.28 bike CG and lateral-G lean
+
+[Authority123](123_m9_28_bike_cg_lateral_g_lean.md) lowers four bike CG heights to the user-selected
+30% wheelbase. Rendering uses actual lateral acceleration, with a cyan line from the sprite ground
+anchor. No physical roll/rider model. [Comparison](research/M9_28_BIKE_CG_ASSESSMENT.md) retains
+large low-grip yaw excursions; this is a first calibration step, not handling completion.
+
 ### M9.27 one-sided steering input stop
 
 [Authority122](122_m9_27_one_sided_steering_stop.md) supersedes121's inflated slip budget and
@@ -169,11 +176,11 @@ a second hand-entered table. Run this from the repository root:
 node --input-type=module <<'JS'
 import { VEHICLE_CATALOG } from './dist/vehicle/vehicle-catalog.js';
 console.table(VEHICLE_CATALOG.map(({ profile: p }) => {
-  const total = p.frontBrakeTorqueMax + p.rearBrakeTorqueMax;
+  const total = p.frontStation.maxBrakeTorque + p.rearStation.maxBrakeTorque;
   return {
-    id: p.id, frontNm: p.frontBrakeTorqueMax, rearNm: p.rearBrakeTorqueMax,
-    frontPercent: total > 0 ? 100 * p.frontBrakeTorqueMax / total : null,
-    rearPercent: total > 0 ? 100 * p.rearBrakeTorqueMax / total : null,
+    id: p.id, frontNm: p.frontStation.maxBrakeTorque, rearNm: p.rearStation.maxBrakeTorque,
+    frontPercent: total > 0 ? 100 * p.frontStation.maxBrakeTorque / total : null,
+    rearPercent: total > 0 ? 100 * p.rearStation.maxBrakeTorque / total : null,
     driveFrontPercent: 100 * p.frontDriveTorqueFraction,
   };
 }));
@@ -183,8 +190,8 @@ JS
 A torque split is not generally the road-force split: radii and wheel dynamics also matter.
 Do not infer real-brake provenance or suitable vehicle balance merely from the bars or ABS success.
 
-**Tire calibration and front/rear tire specialization are PAUSED.** Retain browser defaults from
-114 and source; do not promote exploratory candidates or the 4:1 research reference into defaults.
+**Player tire calibration resumed under120; front/rear tire specialization remains deferred.**
+Retain browser defaults from120 and source; do not promote exploratory candidates or the 4:1 research reference into defaults.
 No current conclusion establishes that P=8% is optimal or that lateral grip must exceed longitudinal
 grip. Front/rear equality is provisional composition, not a permanent lower-law requirement.
 
@@ -196,8 +203,8 @@ These decisions do not imply that all lateral motion should be removed.
 ## 5. Open work — resume from evidence, not from an already completed investigation
 
 Current requested cleanup: [complete audit queue](maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
-Use that queue for simplification work; player calibration resumes only under120 or infer a core freeze
-from structural cleanup. The queue includes explicit retained and unresolved audit findings.
+Use that queue for simplification work; player calibration resumed under120. Do not infer a core
+freeze from structural cleanup. The queue includes explicit retained and unresolved audit findings.
 
 This is a work queue, not authorization for a new controller or altered physical parameters.
 Choose the next requested scope and pass AGENTS' Architecture Decision Gate before implementation.
@@ -208,7 +215,7 @@ Choose the next requested scope and pass AGENTS' Architecture Decision Gate befo
 | OPEN: brake capacity and basic split | 98, profile/compiler, live HUD; current maxima have no identified factory derivation | Audit provenance and choose an explicit sizing/bias criterion before retuning; compare useful braking, longitudinal slip and dynamic front/rear load, not only absence of lock. |
 | OPEN: combined steering/braking controllability | [matched-state causal report](research/M9_21_BRAKING_YAW_CAUSALITY_2026-09-06.md), [180-row inventory](research/M9_21_BRAKING_YAW_120HZ.csv), [tests](../tests/m9-21-braking-yaw.test.mjs) | Matched coasting/partial/full brake and delayed correction are ALREADY implemented. Extend to requested curvature, road width, stopping/progress and correction margin before selecting a different braking/steering policy. |
 | OPEN: terrain/support envelope | [terrain report](research/M9_21_TERRAIN_FALSIFICATION_2026-09-06.md), [90-row inventory](research/M9_21_TERRAIN_120HZ.csv), [tests](../tests/m9-21-terrain-protection.test.mjs) | Separate natural flight and inherited momentum from torque-caused lift; retain explicit qTravel/overturn/infeasible observations and existing recovery boundaries. |
-| PAUSED: tire handling / station differences | [decision history](research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md) and 114 | Do not restart a parameter sweep merely to hide a braking/control problem. |
+| OPEN: player calibration; DEFERRED: station differences | [decision history](research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md),120 and123 | Do not restart a parameter sweep merely to hide a braking/control problem. |
 
 The matched-state report already shows early VFR braking-yaw growth with severe rear unloading,
 before wheel lock or automatic-steering saturation. Removing bike support does not cure it and can

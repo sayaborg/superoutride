@@ -1,3 +1,4 @@
+import { drawVehicleLeanDebug } from '../render/vehicle-lean-debug.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../core/constants.js';
 import type { GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
@@ -106,6 +107,9 @@ export function createBrowserDrivingShell(runtime: BrowserDrivingSurface, startL
       playerScreenY: number): void {
       ctx.putImageData(imageData, 0, 0);
       drawVehicleDebugHud(ctx, query, input, vehicle);
+      if (vehicleCatalogEntryForId(vehicle.profile.id).presentationFamily === 'BIKE') {
+        drawVehicleLeanDebug(ctx, camera.playerScreenX, playerScreenY, vehicle);
+      }
       drawVehicleYawDebug(ctx, camera.playerScreenX, playerScreenY, vehicle.yaw,
         camera.movementYaw, camera.yaw, camera.yawMode);
     },

@@ -37,6 +37,7 @@ evidence are historical only. No other tuning, physics, protection or rendering 
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/123_m9_28_bike_cg_lateral_g_lean.md
 docs/122_m9_27_one_sided_steering_stop.md
 docs/121_m9_26_steering_input_limiter.md
 docs/120_m9_25_handling_calibration_unscaled_engine.md
@@ -75,6 +76,10 @@ AWD requested split precedes independent TCS; delivered split may change, with n
 and no shaft lock. All browser actors/replacements receive catalog protection. The lower constructor
 remains explicitly unprotected by default for raw mechanics/diagnostics. Protection acts only through
 actual wheel torque; support uses fresh geometry and the shared physical wrench, never pose clamps.
+
+M9.28 document123 lowers the four bike CG heights to30% wheelbase and replaces inferred
+coordinated-turn lean with observed lateral G. A player-only HUD line shows the angle from the
+sprite ground anchor. No physical roll or rider model is added; bike handling remains provisional.
 
 M9.25 document120 owns current browser ranges/defaults and removes M9.16 engine calibration.
 M9.20 document 114 remains current for tire law. It replaces the old G/P/S state and

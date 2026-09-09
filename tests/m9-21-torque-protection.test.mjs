@@ -1,3 +1,4 @@
+import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -107,7 +108,7 @@ test('M9.21 actual per-station torque telemetry conserves requested budget, not 
 });
 for(const hz of [60,120,240])test(`M9.21 all four bikes prevent repeated powered lift and braking overturn at ${hz} Hz`,()=>{
  for(const e of VEHICLE_CATALOG.slice(5))for(const kind of ['drive','brake']){
-  const x=runProtectionProbe(e,{hz,kind,seconds:6});
+  const x=runProtectionProbe(withM927BikeCgEntry(e),{hz,kind,seconds:6});
   assert.equal(x.error,null,e.profile.id);assert.equal(x.overturned,false,e.profile.id);
   assert.equal(x.frontLiftTime,0,JSON.stringify(x));assert.equal(x.rearLiftTime,0,JSON.stringify(x));
   assert.equal(x.infeasibleTime,0,JSON.stringify(x));
@@ -116,6 +117,7 @@ for(const hz of [60,120,240])test(`M9.21 all four bikes prevent repeated powered
  }
 });
 test('M9.21 the unprotected bike failure remains reproducible and slip-only protection is not pitch protection',()=>{
+ const bike = withM927BikeCgEntry(VEHICLE_CATALOG[5]);
  const raw=runProtectionProbe(bike,{kind:'brake',protectedRun:false});assert.equal(raw.overturned,true);
  const slipOnly={...bike,torqueProtection:ROAD_TORQUE_POLICY};
  const stillLifts=runProtectionProbe(slipOnly,{kind:'brake'});assert.ok(stillLifts.rearLiftTime>0);

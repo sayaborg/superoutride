@@ -221,7 +221,7 @@ test('BIKE profile surface response changes through the common physical material
 
 test('BIKE derived presentation lean selects a non-center yaw x bank sprite variant', () => {
   const bike = createTestBike(guide, height, surfaces, 100);
-  bike.yawRate = 0.2;
+  bike.lateralAcceleration = 4; // M9.28: bank follows observed G, not yaw alone.
   const assets = createM4SpriteAssets();
   const normalizedBank = deriveVehicleNormalizedBank(bike);
   const bankCount = assets.bike.bankVariants;

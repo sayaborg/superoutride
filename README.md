@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.27 One-Sided Steering Input Stop
+# SUPER OUTRIDE — M9.28 Bike CG and Lateral-G Lean
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -7,6 +7,14 @@ Super Hang-On, OutRunners and the Super Scaler era.
 > Repository is project authority. Handling remains **DEV_UNCALIBRATED**.
 
 ## Current milestone
+
+M9.28 lowers all four bike CG heights to30% of wheelbase as provisional game calibration.
+The shared visual lean now follows measured lateral G: atan2(lateralAcceleration,g), with a cyan
+line from the player sprite ground anchor showing the angle continuously. Existing bitmap bank
+variants remain discrete. Cars, tires, steering and torque-protection equations are unchanged.
+[Authority123](docs/123_m9_28_bike_cg_lateral_g_lean.md) and
+[comparison](docs/research/M9_28_BIKE_CG_ASSESSMENT.md). Lower CG improves the sampled braking
+maneuvers, but large low-grip sideslip remains; this is not completed bike handling acceptance.
 
 M9.27 simplifies the steering input stop: one fixed tire onset and one conservative quadratic
 interval. Excess input is blocked; when automatic steering is already outside, partial correction

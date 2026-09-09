@@ -3,9 +3,10 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export async function runHotPathProbe(buildPath = 'dist') {
+export async function runHotPathProbe(buildPath = 'dist', profileCatalogPath = buildPath) {
   const load = (path) => import(pathToFileURL(resolve(buildPath, path)).href);
-  const { VEHICLE_CATALOG } = await load('vehicle/vehicle-catalog.js');
+  // M9.28 changes bike CG data. Compare solvers on the same explicit reference profiles.
+  const { VEHICLE_CATALOG } = await import(pathToFileURL(resolve(profileCatalogPath, 'vehicle/vehicle-catalog.js')).href);
   const { compileRasterPath } = await load('core/course.js');
   const { compileGuidePath } = await load('core/guide-curve.js');
   const { HeightProfile } = await load('visual/height-profile.js');

@@ -42,6 +42,7 @@ historical evidence, not active features or instructions to resume the experimen
 Read newest first for the requested scope:
 
 ```text
+123_m9_28_bike_cg_lateral_g_lean.md
 122_m9_27_one_sided_steering_stop.md
 121_m9_26_steering_input_limiter.md
 120_m9_25_handling_calibration_unscaled_engine.md
@@ -79,6 +80,10 @@ M9.21 is current for independent station TCS/ABS, bike-only support-loss prevent
 product composition. AWD distributes requests before independent reductions; actual split may
 change without reallocation. All browser actors and replacement paths pass explicit catalog policy.
 Raw mechanics remains unprotected by default for historical control-free diagnostics.
+
+M9.28 document123 lowers the four bike CG heights to30% wheelbase and replaces inferred
+coordinated-turn lean with observed lateral G. A player-only HUD line shows the angle from the
+sprite ground anchor. No physical roll or rider model is added; bike handling remains provisional.
 
 M9.25 document120 owns the current browser defaults/ranges and removes M9.16 engine calibration.
 M9.20 remains current for tire constitutive law. It replaces production

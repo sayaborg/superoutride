@@ -3,8 +3,7 @@ import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 export type VehiclePresentationFamily = 'CAR' | 'BIKE';
 
 export interface VehicleTurnPresentationRead {
-  readonly longitudinalSpeed?: number;
-  readonly yawRate?: number;
+  readonly lateralAcceleration?: number;
 }
 
 export interface VehicleIdentityPresentationRead {
@@ -19,16 +18,9 @@ export function deriveVehicleSpriteFamily(
   return vehicle.presentationFamily === 'BIKE' ? 'bike' : 'car';
 }
 
-/** Coordinated-turn lean is presentation only and never feeds vehicle mechanics. */
+/** Flat-road equilibrium angle from observed lateral acceleration; presentation only. */
 export function deriveVehicleLeanRadians(vehicle: VehicleTurnPresentationRead): number {
-  return clamp(
-    Math.atan2(
-      (vehicle.yawRate ?? 0) * (vehicle.longitudinalSpeed ?? 0),
-      VEHICLE_GRAVITY,
-    ),
-    -0.70,
-    0.70,
-  );
+  return Math.atan2(vehicle.lateralAcceleration ?? 0, VEHICLE_GRAVITY);
 }
 
 export function deriveVehicleNormalizedBank(vehicle: VehicleTurnPresentationRead): number {

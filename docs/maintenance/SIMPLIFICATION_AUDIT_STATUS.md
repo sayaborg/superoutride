@@ -34,7 +34,7 @@ No provisional game-mode/roster design is recorded here. Handling remains DEV_UN
 | Combined steering/braking acceptance | OPEN prerequisite to core-complete claim; existing causal report/tests are not all-course acceptance. |
 | Terrain/support envelope | OPEN prerequisite to core-complete claim; retain existing failure evidence, no clamps/fake support. |
 | Core freeze/completion declaration | NOT CLAIMED: depends on explicit acceptance of brake, combined handling, terrain/support and target-browser performance envelopes. |
-| Tire calibration / station differentiation | PAUSED in current authority, unchanged. |
+| Tire calibration / station differentiation | Player calibration resumed under120; bike CG calibration under123. Station differentiation remains deferred. |
 | Lazy course loading | RETAIN current static module loading; root factories instantiate only selected content. No demonstrated loading problem justifies another loader/cache abstraction. |
 | Historical fixtures/evidence, explicit cyclic adapters, support search and real trial physics | RETAIN intentionally: not dead code or duplicate authority. |
 | Tiny validators / deploy-tree pruning | RETAIN: no demonstrated architectural/value benefit. |

@@ -17,7 +17,15 @@ const restored={
 };
 test('M9.24 restores exact pre-LP tire, selectors, profiles, protection and diagnostics',async()=>{
  for(const [path,expected] of Object.entries(restored)){
-  const bytes=await readFile(new URL('../'+path,import.meta.url));
+  let bytes=await readFile(new URL('../'+path,import.meta.url));
+  // M9.28 document123 changes exactly four bike CG lines; all other profile bytes stay restored.
+  if(path==='src/vehicle/production-vehicle-profiles.ts'){
+   let source=bytes.toString();
+   for(const [now,old] of [['0.423','0.72'],['0.4395','0.82'],['0.4458','0.68'],['0.3705','0.67']]){
+    source=source.replace(`desiredCgHeight: ${now}, // M9.28 game calibration: 30% of wheelbase.`,`desiredCgHeight: ${old},`);
+   }
+   bytes=Buffer.from(source);
+  }
   assert.equal(createHash('sha256').update(bytes).digest('hex'),expected,path);
  }
 });

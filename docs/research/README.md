@@ -75,3 +75,5 @@ executable probes; use the experiment's original Git revision to reproduce it.
 [M9.26 audit response](M9_26_STEERING_LIMITER_AUDIT_RESPONSE.md) links the preserved user audit and explains the replacement of J maximization with the implemented input-slip policy in121.
 
 M9.27: [one-sided steering stop assessment](M9_27_STEERING_STOP_ASSESSMENT.md) records the fixed-onset quadratic policy, performance and retained/adverse braking outcomes.
+
+M9.28: [bike CG assessment](M9_28_BIKE_CG_ASSESSMENT.md) records the30% game calibration, comparison with20%/25% and retained handling limits.

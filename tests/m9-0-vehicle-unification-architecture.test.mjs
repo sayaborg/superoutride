@@ -59,8 +59,9 @@ test('BIKE lean is a read-only render adapter with no route contact tire or forc
     new URL('../src/render/vehicle-presentation.ts', import.meta.url),
     'utf8',
   );
-  assert.match(presentation, /yawRate/);
-  assert.match(presentation, /longitudinalSpeed/);
+  // M9.28 document123 replaces coordinated-turn inference with observed lateral G.
+  assert.match(presentation, /lateralAcceleration/);
+  assert.doesNotMatch(presentation, /yawRate|longitudinalSpeed/);
   assert.doesNotMatch(presentation, /contact|tire|force|route|surface|updateArcadeVehicle/i);
 });
 

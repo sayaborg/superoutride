@@ -295,7 +295,7 @@ export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
   pitchInertia: 205,
   frontAxle: 0.719,
   rearAxle: 0.691,
-  desiredCgHeight: 0.72,
+  desiredCgHeight: 0.423, // M9.28 game calibration: 30% of wheelbase.
   frontRideFrequency: 2.00,
   rearRideFrequency: 2.10,
   frontDampingRatio: 0.42,
@@ -344,7 +344,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
   pitchInertia: 260,
   frontAxle: 0.776,
   rearAxle: 0.689,
-  desiredCgHeight: 0.82,
+  desiredCgHeight: 0.4395, // M9.28 game calibration: 30% of wheelbase.
   frontRideFrequency: 1.65,
   rearRideFrequency: 1.75,
   frontDampingRatio: 0.38,
@@ -393,7 +393,7 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
   pitchInertia: 340,
   frontAxle: 0.802,
   rearAxle: 0.684,
-  desiredCgHeight: 0.68,
+  desiredCgHeight: 0.4458, // M9.28 game calibration: 30% of wheelbase.
   frontRideFrequency: 1.55,
   rearRideFrequency: 1.60,
   frontDampingRatio: 0.38,
@@ -442,7 +442,7 @@ export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
   pitchInertia: 108,
   frontAxle: 0.704,
   rearAxle: 0.531,
-  desiredCgHeight: 0.67,
+  desiredCgHeight: 0.3705, // M9.28 game calibration: 30% of wheelbase.
   frontRideFrequency: 1.50,
   rearRideFrequency: 1.55,
   frontDampingRatio: 0.36,

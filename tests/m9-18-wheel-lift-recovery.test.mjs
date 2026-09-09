@@ -1,3 +1,4 @@
+import { withM927BikeCg } from './helpers/m9-27-bike-cg-reference.mjs';
 import { createArcadeTireFrictionCalibration, compileTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -125,6 +126,7 @@ test('M9.18 upright suspension travel guard is retained rather than clipped or d
 });
 
 test('M9.18 VFR loop-out remains possible but ordinary recovery prevents inverted driving at refined steps', () => {
+  const historicalProfile = withM927BikeCg(profile);
   const highway = createM72DefaultBranchingParent();
   const flat = new HeightProfile(highway.guide.length, [{ s: 0, y: 0 }, { s: highway.guide.length, y: 0 }]);
   const wide = new SurfaceMap(highway.guide.length, [{ sStart: 0, name: 'M9.11 retained envelope',
@@ -134,7 +136,7 @@ test('M9.18 VFR loop-out remains possible but ordinary recovery prevents inverte
     for (const kind of ['reversal', 'tsukuba']) {
       const live = kind === 'tsukuba' ? createM93TsukubaCourse2000Runtime().window : null;
       const g = live?.guide ?? highway.guide, h = live?.height ?? flat, s = live?.surface ?? wide;
-      const v = createArcadeVehicle(profile, g, h, s, live ? 45 : 800, 0, live ? 15 : 25,
+      const v = createArcadeVehicle(historicalProfile, g, h, s, live ? 45 : 800, 0, live ? 15 : 25,
         live ? {} : { maxRoadWheelSteer: 50 * DEG, steeringOffsetMax: 20 * DEG,
           steeringActuatorResponse: { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 } });
       const state = createM5RecoveryState(v);
