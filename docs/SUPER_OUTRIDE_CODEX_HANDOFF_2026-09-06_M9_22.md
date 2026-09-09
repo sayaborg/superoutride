@@ -63,7 +63,15 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
-### M9.26 steering input limiter
+### M9.27 one-sided steering input stop
+
+[Authority122](122_m9_27_one_sided_steering_stop.md) supersedes121's inflated slip budget and
+periodic-component selection. Fixed onset plus one certified quadratic defines a conservative
+interval; include zero to preserve neutral and partial correction. HUD and other mechanics remain.
+[Assessment](research/M9_27_STEERING_STOP_ASSESSMENT.md) includes adverse braking evidence; do not
+claim a global stability improvement. Probe and benchmark commands are recorded there.
+
+### M9.26 steering input limiter (historical predecessor)
 
 [Authority121](121_m9_26_steering_input_limiter.md) implements closed-form contact-plane input
 reduction while preserving CG automatic alignment. HUD INPUT/USER/AUTO/RACK distinguishes

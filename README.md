@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.26 Steering Input Limiter
+# SUPER OUTRIDE — M9.27 One-Sided Steering Input Stop
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -8,11 +8,13 @@ Super Hang-On, OutRunners and the Super Scaler era.
 
 ## Current milestone
 
-M9.26 adds a stateless steering input limiter derived from current contact-plane geometry and
-pure-lateral tire onset. It reduces only the requested driver offset, preserves automatic CG
-alignment, and uses a closed-form interval rather than a wheel/force search. The HUD distinguishes
-INPUT / USER (red reduction) / AUTO / RACK. [Authority121](docs/121_m9_26_steering_input_limiter.md).
-This is not a spin-prevention guarantee. D/M/ACT, tires and engine output remain unchanged.
+M9.27 simplifies the steering input stop: one fixed tire onset and one conservative quadratic
+interval. Excess input is blocked; when automatic steering is already outside, partial correction
+is permitted without inventing input. No baseline-inflated budget, angular root selection or
+additional state remains. [Authority122](docs/122_m9_27_one_sided_steering_stop.md).
+INPUT / USER (red cut) / AUTO / RACK, D/M/ACT, tires and engine output remain unchanged.
+This is not a spin-prevention guarantee; adverse full-brake handling remains documented in the
+[assessment](docs/research/M9_27_STEERING_STOP_ASSESSMENT.md).
 
 M9.25 adopts player tire defaults GX4/GY2.5/PX8%/PY8%, with broad surrounding ranges.
 The engine multiplier, ENG/PWR display and K binding are removed. Each vehicle uses its authored

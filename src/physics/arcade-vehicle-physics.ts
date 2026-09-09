@@ -199,7 +199,7 @@ export function updateArcadeVehicle(
       profile.frontStation, vehicle.frontSteerAngle, vehicle.course.segmentIndex);
     const automaticSteer = travelDirectionSteeringTarget(0, bodyTravelDirection, vehicle.steeringCalibration);
     const deliveredOffset = limitSteeringInput(automaticSteer, steeringOffset,
-      vehicle.steeringCalibration.maxRoadWheelSteer, body, frontBeforeSteer, vehicle.tireFrictionCalibration.front);
+      body, frontBeforeSteer, vehicle.tireFrictionCalibration.front);
     vehicle.frontSteerAngle = stepTravelDirectionSteering(
       vehicle.frontSteerAngle,
       deliveredOffset,

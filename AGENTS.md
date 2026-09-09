@@ -37,6 +37,7 @@ evidence are historical only. No other tuning, physics, protection or rendering 
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/122_m9_27_one_sided_steering_stop.md
 docs/121_m9_26_steering_input_limiter.md
 docs/120_m9_25_handling_calibration_unscaled_engine.md
 docs/119_m9_24_restore_friction_ellipse.md
@@ -98,13 +99,13 @@ branch or drive-layout branch exists. M9.18 load proportionality and contact/rec
 remain retained. Document 115 supersedes only the inactive-TCS control boundary, not the tire law.
 Power-over drift is no longer a product goal; inertia entry/correction/exit remain. Player tire calibration resumes under120; front/rear differentiation remains deferred.
 
-Current requested steering remains M9.11;121 now limits only its driver offset using front contact slip:
+Current requested steering remains M9.11;122 limits its driver offset with fixed onset and one conservative quadratic interval:
 
 ```text
 A = M - D
 automatic = clamp(betaTravel, -A, +A)
 requestedTarget = clamp(automatic + u*D, -M, +M)
-actualTarget = automatic + limitedDriverOffset  //121: same-sign reduction of u*D only
+actualTarget = automatic + limitedDriverOffset  //122: same-sign reduction of u*D only
 ```
 
 `A` is derived only. Browser steering comparison remains D=10..20° default12°, M=50/55/60/65/70°

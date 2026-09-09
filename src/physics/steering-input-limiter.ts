@@ -5,7 +5,7 @@ import { cross3, dot3, scale3, sub3 } from './vehicle-math3.js';
 
 /** Stateless input reduction. Automatic alignment is an immutable baseline, not a target to optimize. */
 export function limitSteeringInput(
-  automatic: number, requestedOffset: number, mechanicalMax: number,
+  automatic: number, requestedOffset: number,
   body: BodyKinematics, contact: ContactObservation, tire: CompiledTireCharacteristics,
 ): number {
   if (requestedOffset === 0 || !contact.forceTransmitting || !contact.tireFrameValid
@@ -20,13 +20,8 @@ export function limitSteeringInput(
   const ay = dot3(v, cross3(n, a)), by = dot3(v, cross3(n, b));
   const aa = dot3(a, a), ab = dot3(a, b), bb = dot3(b, b);
   const ca = Math.cos(automatic), sa = Math.sin(automatic);
-  const baseX = ax * ca + bx * sa, baseY = ay * ca + by * sa;
-  const baseNorm2 = aa * ca * ca + 2 * ab * ca * sa + bb * sa * sa;
-  const baseSlip = Math.abs(baseY) / Math.sqrt(baseX * baseX + v0 * v0 * baseNorm2);
-  // Pure-lateral capacity-onset budget: m*PY. Never shrinks to zero merely because a wheel locks.
-  // If alignment itself exceeds it, input may not worsen that baseline's absolute slip.
-  const slip = Math.max(baseSlip,
-    contact.surface.material.gripFactor * (2 - tire.rhoKnee) * tire.muY / tire.kY);
+  // One fixed pure-lateral onset. Automatic steering never raises this budget.
+  const slip = contact.surface.material.gripFactor * (2 - tire.rhoKnee) * tire.muY / tire.kY;
   const s2 = slip * slip, z = v0 * v0;
   const A = ay * ay - s2 * (ax * ax + z * aa);
   const B = by * by - s2 * (bx * bx + z * bb);
@@ -38,21 +33,14 @@ export function limitSteeringInput(
   const c0 = (A / scale + B / scale) / 2;
   const cc = (A / scale - B / scale) / 2, cs = C / scale;
   const radius = Math.hypot(cc, cs);
-  if (c0 + radius <= 1e-14 || radius === 0) return requestedOffset;
-  const phase = Math.atan2(cs, cc), arc = Math.acos(clamp(-c0 / radius, -1, 1));
-  let low = -mechanicalMax, high = mechanicalMax;
-  // Two root families; only these three periods can meet (-pi/2,pi/2).
-  for (const sign of [-1, 1]) {
-    const root = (phase + sign * arc) / 2;
-    const slope = -sign * Math.sin(arc);
-    if (Math.abs(slope) < 1e-14) continue; // Tangency does not leave the feasible component.
-    for (let period = -1; period <= 1; period += 1) {
-      const r = root + period * Math.PI;
-      if (slope > 0 && r >= automatic - 1e-12) high = Math.min(high, Math.max(automatic, r));
-      if (slope < 0 && r <= automatic + 1e-12) low = Math.max(low, Math.min(automatic, r));
-    }
-  }
-  const target = clamp(automatic + requestedOffset, low, high);
-  // Explicit one-sided reduction: never invent, reverse or amplify the driver's offset.
-  return clamp(target - automatic, Math.min(0, requestedOffset), Math.max(0, requestedOffset));
+  if (radius === 0) return requestedOffset;
+  const cos2 = ca * ca - sa * sa, sin2 = 2 * ca * sa;
+  const value = c0 + cc * cos2 + cs * sin2;
+  const slope = -2 * cc * sin2 + 2 * cs * cos2;
+  // q(b+e) <= Q(e) = value + slope*e + 2*radius*e^2, since |q''| <= 4*radius.
+  // Minimize positive excess max(0,Q): its minimizers are an interval, or its vertex.
+  const center = -slope / (4 * radius);
+  const width = Math.sqrt(Math.max(0, center * center - value / (2 * radius)));
+  // Include zero so an already-outside baseline permits partial correction without inventing input.
+  return clamp(requestedOffset, Math.min(0, center - width), Math.max(0, center + width));
 }
