@@ -169,7 +169,7 @@ export function getAvailableRouteChoices(route: RouteDag, state: RouteDagState):
  * A TRANSITION is accepted iff its authored edge leaves the current active stage. Entering a
  * terminal stage does not itself finish the run; an explicit validated FINISH boundary for
  * that terminal stage is still required. This keeps route choice and finish authority tied to
- * future physical world-space gate validation rather than route graph topology alone.
+ * physical world-space gate validation rather than route graph topology alone.
  */
 export function updateRouteDag(
   state: RouteDagState,
@@ -185,16 +185,8 @@ export function updateRouteDag(
   }
 
   if (boundary.kind === 'TRANSITION') {
-    let choice: RouteChoice;
-    try {
-      choice = getRouteChoice(route, boundary.choiceId);
-    } catch {
-      state.rejectedBoundaryCount += 1;
-      state.lastEvent = 'REJECTED_INVALID_TRANSITION';
-      return result(state, null, false);
-    }
-
-    if (choice.fromStageId !== state.activeStageId) {
+    const choice = route.choices.find(candidate => candidate.id === boundary.choiceId);
+    if (choice === undefined || choice.fromStageId !== state.activeStageId) {
       state.rejectedBoundaryCount += 1;
       state.lastEvent = 'REJECTED_INVALID_TRANSITION';
       return result(state, null, false);

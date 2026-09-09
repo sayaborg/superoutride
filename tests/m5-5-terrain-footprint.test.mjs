@@ -1,3 +1,4 @@
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -12,8 +13,6 @@ import {
 } from '../dist/core/presentation-scale.js';
 import { summarizeTerrainFootprints } from '../dist/compiler/terrain-footprint-analysis.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
-import { computeM3Camera } from '../dist/dev/m3-camera.js';
 import { computeTerrainRowDeltaS, generateTerrainLines } from '../dist/road/terrain-line.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
@@ -55,9 +54,9 @@ const density = deriveGroundMapDensity({
 });
 
 function linesAt(s, yawOffset = 0) {
-  const vehicle = createM2Vehicle(guide, s);
+  const vehicle = renderPose(guide, s);
   vehicle.yaw += yawOffset;
-  const camera = computeM3Camera(guide, height, vehicle, cameraProfile);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   return generateTerrainLines(guide, camera, terrainProfile);
 }
 

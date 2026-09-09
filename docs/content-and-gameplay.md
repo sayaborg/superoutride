@@ -1,0 +1,56 @@
+# Content and gameplay
+
+## Composition and data ownership
+
+[Boot](../src/boot.ts) selects one course query using the [course selector](../src/browser/course-mode-selection.ts). Only the composition roots assemble concrete DEV content:
+
+- [LINEAR](../src/main-linear.ts): finite highway trial.
+- [BRANCHING](../src/main.ts): default open branching highway, field route choice and rivals.
+- [CIRCUIT](../src/main-circuit.ts): Tsukuba or FISCO selection, finite runtime window and lap race.
+
+The [driving shell](../src/browser/driving-shell.ts) owns common browser input, player replacement, selectors, HUD and presentation. General rendering/physics/camera layers consume ordinary data, not course-mode switches.
+
+The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine selectable production identities and references nine distinct [compiled profiles](../src/vehicle/production-vehicle-profiles.ts). Manufacturer/model, identifier, specification and period are separate fields. Presentation uses explicit car/bike metadata. Testarossa is the default player and fixed rival profile. Shared initial player tire settings do not imply that all finished vehicles must share tires.
+
+[Stage authoring](../src/runtime/stage-authoring-compiler.ts) compiles open geometry, height, visuals, GroundMap, surfaces, sprites and background into a [runtime package](../src/runtime/stage-runtime-content.ts). A [road view](../src/course/stage-road-view.ts) describes stage-local lateral/longitudinal presentation. Physical and visual surface views share explicit coordinate transforms but retain independent semantics. Changes of material/visual sections do not split geometry unnecessarily.
+
+`src/dev` holds concrete authored course compositions, focused regression fixtures and read-only telemetry. Some fixture names have M numbers because tests identify them; these are executable input data, not a second set of engine implementations. [DEV boundary](../src/dev/README.md) explains the allowed dependency direction.
+
+## Point-to-point route transaction
+
+An acyclic [RouteDag](../src/gameplay/route-dag.ts) owns legal stage successors. Physical position crosses an oriented gate; steering intent, AI target, screen X or guessed centerline never chooses route progress.
+
+1. A forward physical route-gate crossing validates the legal transition and enters PENDING.
+2. The old chart/content remains authoritative during the shared overlap.
+3. A forward physical handoff-seam crossing commits the target chart/content.
+4. COMMIT re-expresses observations only; world X/Y/Z, yaw and velocity remain continuous.
+
+[World gates](../src/gameplay/world-crossing-gate.ts), [handoff](../src/gameplay/route-stage-handoff.ts) and [live route tick](../src/runtime/live-route-multi-actor-tick.ts) implement this ordering. Authoring compiles actual overlap and runout; no implicit closure or post-handoff pose repair is allowed. An actor's finite local projection seed must follow the committed chart explicitly.
+
+The field uses `FIRST_PHYSICAL_CROSSING_LOCKS` and `RECOVER_TO_LOCKED_BRANCH`. The first valid physical crossing locks a sibling choice for the field. A losing crossing records a violation and recovers through the legal physical gate's geography without awarding illegal progress. An AI desired branch is never authority. Each actor's chart/content and route progress remain separate; shared route choice is owned once by the field.
+
+Entering a terminal stage is not finishing. A validated physical FINISH is still required.
+
+## Circuit and race progress
+
+[Circuit topology](../src/gameplay/circuit-topology.ts) explicitly authors one closed lap above Core. [Runtime unfolding](../src/runtime/circuit-runtime-window.ts) supplies finite ordinary open geometry/source readers for at least N+1 copies when scoring N laps, including runout after the final scored finish. No core modulo or circuit renderer is introduced.
+
+[Race progress](../src/gameplay/circuit-race-progress.ts) accepts ordered forward physical checkpoints and FINISH crossings. Topological copy/winding is not an awarded lap. Skipping checkpoints, crossing backwards, swapping vehicles or recovering cannot manufacture a lap. Route and race progress use physical gate history, separate from current projected chainage. Resynchronization replaces observation baselines while preserving all validated progress.
+
+[Session configuration](../src/gameplay/session-configuration.ts), [race session](../src/gameplay/race-session.ts) and [run objective](../src/gameplay/run-objective.ts) are the existing extension points for game rules. Avoid placing race-start, scoring, finish or route logic in rendering or vehicle integration.
+
+The current Tsukuba and FISCO authoring lives in [Tsukuba](../src/dev/m9-3-tsukuba-circuit.ts) and [FISCO](../src/dev/m9-6-fisco-circuit.ts). They are functional simplified courses, not survey-grade reconstructions. Source comments identify published dimensions versus simplified connectors. Course selection does not change the common solver.
+
+## Recovery
+
+[Recovery](../src/gameplay/recovery.ts) is an explicit gameplay discontinuity, not ordinary integration. It observes support, falling, penetration, chart excursion and overturning. The common `advanceVehicleWithRecovery` catches only the typed suspension-travel domain exit from physics; unrelated errors are not swallowed.
+
+Recovery reconstructs complete pose, velocity, wheel state, actuators, powertrain and observations at a supported known Guide coordinate. It retains selected steering/tire calibration. Ordinary same-chart recovery derives a backed-off target from the farther of last-safe and current causal chainage; it cannot loop forever onto the same launch face solely because last-safe did not advance in air. Explicit wrong-route recovery supplies the legal gate-derived target.
+
+Each root treats the resulting discontinuity as recovery: reset the camera and resync the route/race observer, suppressing ordinary physical crossing observation for that reset. It never awards gates, checkpoints or laps and never erases accepted progress. Known coordinates preserve the correct overlapping circuit copy. Global nearest geometry is not a substitute for that knowledge.
+
+## Rivals and future game systems
+
+[Rival driver](../src/gameplay/rival-driver.ts) publishes ordinary input using physical world travel and a Guide lookahead. Its contiguous braking-distance envelope is a general speed-planning policy, separate from the player. Rival behavior does not change tire forces or route authority.
+
+Next work can add visual assets, sound and game flow above these contracts. Read immutable vehicle/telemetry state for engine/skid/lean presentation. Add scoring and race state under gameplay, and compose at the roots. Do not use sound/UI state to control mechanics, or add a second notion of progress to presentation. Collisions, richer rival behavior and game-specific effects require explicit new design and causal tests; they are not presumed implemented by the current physics core.

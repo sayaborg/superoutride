@@ -40,7 +40,7 @@ import {
   createM5RecoveryState,
   recoverM5Vehicle,
   recoverM5VehicleToGuideCoordinate,
-  updateM5Recovery,
+  advanceVehicleWithRecovery,
   type M5RecoveryState,
   type M5VehicleState,
 } from './gameplay/recovery.js';
@@ -56,10 +56,7 @@ import {
   getSharedRouteChoiceLock,
 } from './gameplay/shared-route-choice-authority.js';
 import type { DrivingInput } from './input/driving-input.js';
-import {
-  createArcadeVehicle,
-  updateArcadeVehicle,
-} from './physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -217,25 +214,16 @@ function frame(now: number): void {
   accumulator += elapsed;
 
   while (accumulator >= SIM_DT) {
-    inputManager.update(SIM_DT);
     input = inputManager.sample();
 
     const runtimeBefore = activeRuntime();
-    updateArcadeVehicle(
-      runtimeBefore.coordinateFrame,
-      runtimeBefore.heightProfile,
-      runtimeBefore.surfaceMap,
-      shell.vehicle,
-      input,
-      SIM_DT,
-    );
-
-    const recovered = updateM5Recovery(
+    const recovered = advanceVehicleWithRecovery(
       shell.recovery,
       runtimeBefore.coordinateFrame,
       runtimeBefore.heightProfile,
       runtimeBefore.surfaceMap,
       shell.vehicle,
+      input,
       SIM_DT,
       M7_2_PLAYER_RECOVERY_PROFILE,
       pendingRouteStageRecoveryTarget(
@@ -272,20 +260,13 @@ function frame(now: number): void {
         rival.vehicle,
         rivalTargetL,
       );
-      updateArcadeVehicle(
-        rivalRuntimeBefore.coordinateFrame,
-        rivalRuntimeBefore.heightProfile,
-        rivalRuntimeBefore.surfaceMap,
-        rival.vehicle,
-        rivalInput,
-        SIM_DT,
-      );
-      const rivalRecovered = updateM5Recovery(
+      const rivalRecovered = advanceVehicleWithRecovery(
         rival.recovery,
         rivalRuntimeBefore.coordinateFrame,
         rivalRuntimeBefore.heightProfile,
         rivalRuntimeBefore.surfaceMap,
         rival.vehicle,
+        rivalInput,
         SIM_DT,
         M7_2_RIVAL_RECOVERY_PROFILE,
         pendingRouteStageRecoveryTarget(

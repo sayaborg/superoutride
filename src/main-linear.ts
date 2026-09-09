@@ -13,10 +13,9 @@ import {
 } from './dev/m8-3-linear-highway.js';
 import {
   recoverM5Vehicle,
-  updateM5Recovery,
+  advanceVehicleWithRecovery,
 } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
-import { updateArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -68,22 +67,14 @@ function frame(now: number): void {
   accumulator += elapsed;
 
   while (accumulator >= SIM_DT) {
-    inputManager.update(SIM_DT);
     input = inputManager.sample();
-    updateArcadeVehicle(
-      runtime.guide,
-      runtime.heightProfile,
-      runtime.surfaceMap,
-      shell.vehicle,
-      input,
-      SIM_DT,
-    );
-    const recovered = updateM5Recovery(
+    const recovered = advanceVehicleWithRecovery(
       shell.recovery,
       runtime.guide,
       runtime.heightProfile,
       runtime.surfaceMap,
       shell.vehicle,
+      input,
       SIM_DT,
       M8_3_LINEAR_RECOVERY_PROFILE,
     );

@@ -162,7 +162,7 @@ test('optional diagnostics preserve exact pixels and ordinary results across the
         const reference = new SoftwareSurface(320, 240);
         const old = renderProbe(s, 0, yaw, true, reference, baseline);
         assert.deepEqual(ordinary.pixels, reference.pixels);
-        assert.deepEqual({ ...result, ...workload }, old);
+        assert.deepEqual(detailed, old);
       }
     }
   }

@@ -1,13 +1,15 @@
+import type { DrivingInput } from '../input/driving-input.js';
 import {
   guideCoordinateCurve,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import { sampleGuideCurve } from '../core/guide-curve.js';
-import { arcadeBodyKinematics, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+import { arcadeBodyKinematics, updateArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import {
+  VehicleOutsideModelError,
   initializeGuideObservation,
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
@@ -20,7 +22,7 @@ import { add3, dot3, scale3 } from '../physics/vehicle-math3.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
 export type M5VehicleState = ArcadeVehicleState;
-export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'overturned' | 'manual' | 'wrong-course';
+export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'overturned' | 'suspension-travel' | 'manual' | 'wrong-course';
 
 const SURFACE_PENETRATION_TOLERANCE = 1e-3;
 
@@ -65,6 +67,29 @@ export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState 
     recoveries: 0,
     lastReason: null,
   };
+}
+
+/** One gameplay step. A physical-domain exit recovers; unrelated faults stay visible. */
+export function advanceVehicleWithRecovery(
+  state: M5RecoveryState,
+  guide: GuideCoordinateSource,
+  height: HeightProfileReader,
+  surfaces: SurfaceMapReader,
+  vehicle: M5VehicleState,
+  input: DrivingInput,
+  dt: number,
+  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
+  target: M5RecoveryTarget | null = null,
+): RecoveryReason | null {
+  try {
+    updateArcadeVehicle(guide, height, surfaces, vehicle, input, dt);
+  } catch (error) {
+    if (!(error instanceof VehicleOutsideModelError)) throw error;
+    if (target === null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, 'suspension-travel', profile);
+    else recoverM5VehicleToGuideCoordinate(state, guide, height, surfaces, vehicle, target, 'suspension-travel', profile);
+    return 'suspension-travel';
+  }
+  return updateM5Recovery(state, guide, height, surfaces, vehicle, dt, profile, target);
 }
 
 /** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */

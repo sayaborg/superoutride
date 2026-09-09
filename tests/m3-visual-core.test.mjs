@@ -1,12 +1,12 @@
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
-import { computeM3Camera } from '../dist/dev/m3-camera.js';
-import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
 import { generateTerrainLines } from '../dist/road/terrain-line.js';
-import { renderM3VisualCore } from '../dist/render/m3-renderer.js';
+import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground, drawFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
@@ -76,8 +76,8 @@ test('Y_render is piecewise linear while Y_camera is continuous through a hill n
 });
 
 test('general TerrainLine generator is globally far-to-near and allows hill/dip row overdraw', () => {
-  const vehicle = createM2Vehicle(guide, 80);
-  const camera = computeM3Camera(guide, height, vehicle, cameraProfile);
+  const vehicle = renderPose(guide, 80);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   const lines = generateTerrainLines(guide, camera, terrainProfile);
   assert.ok(lines.length > 150);
   for (let i = 1; i < lines.length; i += 1) {
@@ -89,8 +89,8 @@ test('general TerrainLine generator is globally far-to-near and allows hill/dip 
 });
 
 test('TerrainLine row agrees with the single Core pseudo projection for its sampled chainage', () => {
-  const vehicle = createM2Vehicle(guide, 120);
-  const camera = computeM3Camera(guide, height, vehicle, cameraProfile);
+  const vehicle = renderPose(guide, 120);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   const lines = generateTerrainLines(guide, camera, terrainProfile);
   const line = lines[Math.floor(lines.length * 0.5)];
   assert.ok(line);
@@ -116,13 +116,14 @@ test('GroundMap source sampling distinguishes road, shoulder, marking and terrai
 });
 
 test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock', () => {
-  const vehicle = createM2Vehicle(guide, 520);
-  const camera = computeM3Camera(guide, height, vehicle, cameraProfile);
+  const vehicle = renderPose(guide, 520);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   const background = createM3FarBackground();
   const expectedBackground = new SoftwareSurface(320, 240);
   const actual = new SoftwareSurface(320, 240);
   drawFarBackground(expectedBackground, background, camera);
-  renderM3VisualCore(actual, background, guide, camera, vehicle, terrainProfile, groundProfile);
+  vehicle.y = height.samplePhysics(vehicle.course.s);
+  renderM5Driving(actual, background, guide, camera, vehicle, terrainProfile, groundProfile, [], createM4SpriteAssets(), 'car');
 
   const lines = generateTerrainLines(guide, camera, terrainProfile);
   const line = lines.find((candidate) => candidate.y === 100 && candidate.sectionName === 'CLIFF / SEA');

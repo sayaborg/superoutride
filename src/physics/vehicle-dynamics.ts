@@ -2,7 +2,6 @@ import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
   guideCoordinateToWorld,
-  locateWorldOnGuideCoordinateGlobal,
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
@@ -155,7 +154,7 @@ export interface ContactObservation {
   readonly lateralVelocity: number;
 }
 
-class VehicleOutsideModelError extends Error {
+export class VehicleOutsideModelError extends Error {
   constructor(readonly contactId: VehicleContactId, readonly compression: number, readonly travel: number) {
     super(`${contactId} suspension compression ${compression} reached/exceeded qTravel ${travel}`);
     this.name = 'VehicleOutsideModelError';
@@ -219,19 +218,8 @@ export function refreshGuideObservation(
   vehicle: VehicleDynamicsState,
 ): void {
   const world = { x: vehicle.x, z: vehicle.z };
-  const curve = guideCoordinateCurve(guide);
-  const previous = vehicle.course.segmentIndex;
-  let coordinate: CourseCoordinate;
-  if (Number.isInteger(previous) && previous >= 0 && previous < curve.segments.length) {
-    try {
-      coordinate = locateWorldOnGuideCoordinateLocal(guide, world, previous, 5, false);
-    } catch {
-      coordinate = locateWorldOnGuideCoordinateGlobal(guide, world, false);
-    }
-  } else {
-    coordinate = locateWorldOnGuideCoordinateGlobal(guide, world, false);
-  }
-  vehicle.course = coordinate;
+  vehicle.course = locateWorldOnGuideCoordinateLocal(guide, world,
+    vehicle.course.segmentIndex, 5, false);
 }
 
 function sampleSurfaceGeometryAtWorld(
@@ -241,23 +229,8 @@ function sampleSurfaceGeometryAtWorld(
   point: Vec3,
   previousSegmentIndex: number,
 ): SurfaceGeometryObservation {
-  const curve = guideCoordinateCurve(guide);
-  let coordinate: CourseCoordinate;
-  if (previousSegmentIndex >= 0 && previousSegmentIndex < curve.segments.length) {
-    try {
-      coordinate = locateWorldOnGuideCoordinateLocal(
-        guide,
-        { x: point.x, z: point.z },
-        previousSegmentIndex,
-        5,
-        false,
-      );
-    } catch {
-      coordinate = locateWorldOnGuideCoordinateGlobal(guide, { x: point.x, z: point.z }, false);
-    }
-  } else {
-    coordinate = locateWorldOnGuideCoordinateGlobal(guide, { x: point.x, z: point.z }, false);
-  }
+  const coordinate = locateWorldOnGuideCoordinateLocal(guide,
+    { x: point.x, z: point.z }, previousSegmentIndex, 5, false);
   return sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
 }
 
@@ -297,11 +270,11 @@ export function sampleSurfaceGeometryAtCoordinate(
   const tangent = normalize3(add3(
     scale3(horizontalTangent, offsetMetric),
     scale3(WORLD_UP, heightDerivativeByPlanArc),
-  ), horizontalTangent);
+  ));
   const normal = normalize3(add3(
     scale3(horizontalTangent, -heightDerivativeByPlanArc),
     scale3(WORLD_UP, offsetMetric),
-  ), WORLD_UP);
+  ));
   const sample = surfaces.sample(coordinate.s, coordinate.l);
   return {
     coordinate,
@@ -402,15 +375,15 @@ function contactTireFrame(body: BodyKinematics, station: ContactStationProfile, 
   surface: SurfaceGeometryObservation, reachVelocity: Vec3) {
   const isFront = station.id === 'FRONT';
   const wheelForward = isFront
-    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle), body.forward)
+    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle))
     : body.forward;
-  const wheelAxis = normalize3(cross3(body.up, wheelForward), body.right);
+  const wheelAxis = normalize3(cross3(body.up, wheelForward));
 
   const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
   const tireFrameValid = magnitude3(tireForwardRaw) > 1e-8;
-  const tireForward = tireFrameValid ? normalize3(tireForwardRaw, surface.tangent) : surface.tangent;
+  const tireForward = tireFrameValid ? normalize3(tireForwardRaw) : surface.tangent;
   const tireRight = tireFrameValid
-    ? normalize3(cross3(surface.normal, tireForward), surface.right)
+    ? normalize3(cross3(surface.normal, tireForward))
     : surface.right;
   const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;
   const lateralVelocity = tireFrameValid ? dot3(reachVelocity, tireRight) : 0;

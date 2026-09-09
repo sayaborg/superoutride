@@ -13,7 +13,8 @@ export interface CourseCompilerValidation {
 }
 
 /**
- * Foundation-level course validation shared by future authoring tools.
+ * Validate an authored physical envelope. Open-path visibility clips to its endpoint;
+ * draw distance has no half-lap restriction.
  * Geometry-specific Raster/Guide validation remains in their existing compilers.
  */
 export function validateCourseCompilerFoundation(
@@ -24,8 +25,8 @@ export function validateCourseCompilerFoundation(
   if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
     throw new RangeError('course length must be finite and > 0');
   }
-  if (!(limits.dMax > 0) || !Number.isFinite(limits.dMax) || !(limits.dMax < courseLength * 0.5)) {
-    throw new RangeError('Core requires dMax < Lcourse/2');
+  if (!(limits.dMax > 0) || !Number.isFinite(limits.dMax)) {
+    throw new RangeError('draw distance must be finite and > 0');
   }
   if (!(limits.guideLateralLimit > 0) || !Number.isFinite(limits.guideLateralLimit)) {
     throw new RangeError('guide lateral limit must be finite and > 0');

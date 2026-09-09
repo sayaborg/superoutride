@@ -1,11 +1,10 @@
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCourseToWorld, locateWorldOnGuideLocal, sampleGuideCurve } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { computeM2Camera } from '../dist/dev/m2-camera.js';
-import { createM2Vehicle } from '../dist/dev/m2-vehicle.js';
 import {
   computeForwardVisibleInterval,
   generateFlatTerrainLines,
@@ -62,18 +61,18 @@ test('free world motion on the long straight produces simultaneous s and l chang
 
 test('camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw', () => {
   const guide = createM2StadiumGuide();
-  const vehicle = createM2Vehicle(guide, 80);
+  const vehicle = renderPose(guide, 80);
   vehicle.course.l = 7;
   vehicle.yaw += deg(25);
-  const camera = computeM2Camera(guide, vehicle, cameraProfile);
+  const camera = terrainCamera(guide, null, vehicle, cameraProfile);
   const d = pseudoDepth(vehicle.course.s, camera.s);
   near(d, cameraProfile.dCam, 1e-10);
 });
 
 test('flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans', () => {
   const guide = createM2StadiumGuide();
-  const vehicle = createM2Vehicle(guide, 80);
-  const camera = computeM2Camera(guide, vehicle, cameraProfile);
+  const vehicle = renderPose(guide, 80);
+  const camera = terrainCamera(guide, null, vehicle, cameraProfile);
   const lines = generateFlatTerrainLines(guide, camera, roadProfile);
 
   assert.ok(lines.length > 100);
@@ -119,7 +118,7 @@ test('forward-only visibility becomes empty when camera faces more than 90 degre
 
 test('player projection scale depends on chainage depth, not Euclidean camera distance', () => {
   const guide = createM2StadiumGuide();
-  const vehicle = createM2Vehicle(guide, 80);
+  const vehicle = renderPose(guide, 80);
   vehicle.course.l = 10;
   const roadAtCar = sampleGuideCurve(guide, vehicle.course.s);
   const displaced = guideCourseToWorld(guide, vehicle.course.s, 10);
@@ -127,7 +126,7 @@ test('player projection scale depends on chainage depth, not Euclidean camera di
   vehicle.z = displaced.z;
   vehicle.yaw = roadAtCar.heading + deg(15);
 
-  const camera = computeM2Camera(guide, vehicle, cameraProfile);
+  const camera = terrainCamera(guide, null, vehicle, cameraProfile);
   const projected = pseudoProject(
     { x: vehicle.x, y: 0, z: vehicle.z, s: vehicle.course.s },
     camera,

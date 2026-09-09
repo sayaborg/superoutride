@@ -8,8 +8,8 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.j
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { guideCourseToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
 
-test('exact wheel and straight-drive/braking trace matches released b70f245 across nine profiles and three rates', async () => {
-  const result = await runHotPathProbe('dist', process.env.HOT_PATH_BASELINE_BUILD ?? 'dist');
+test('wheel, turning and pedal traces match the released reference across nine profiles and three rates', async () => {
+  const result = await runHotPathProbe('dist');
   // libm/V8 rounding can differ across architectures. CI compares the immutable released
   // implementation on the SAME engine, never substitutes the candidate's hash as a baseline.
   if (process.env.CI) assert.ok(process.env.HOT_PATH_BASELINE_BUILD, 'CI requires the pinned baseline build');

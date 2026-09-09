@@ -116,7 +116,7 @@ export class HeightProfile implements HeightProfileReader {
   }
 }
 
-/** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
+/** Explicit cyclic addressing adapter. Only this layer performs periodic addressing. */
 export class CyclicHeightProfile implements HeightProfileReader {
   readonly nodes: readonly HeightNode[];
 

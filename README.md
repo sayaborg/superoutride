@@ -1,188 +1,37 @@
-# SUPER OUTRIDE — M9.29 Common Handling Baseline
+# SUPER OUTRIDE
 
-Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
-Super Hang-On, OutRunners and the Super Scaler era.
+320×240のラスタ型疑似3Dドライビングゲーム。ブラウザ上で、車とバイクが同じワールド座標・接地・タイヤ・車輪の物理系を使う。
 
-> Physics is world-space. Renderer depth is chainage. Topology stays above Core.
-> Repository is project authority. Handling remains **DEV_UNCALIBRATED**.
+コア構造は次の映像・サウンド・ゲームシステム開発の土台として使用する。操縦性は `DEV_UNCALIBRATED`。車種別のパラメータ調整と対象端末での性能・操作確認は継続課題。
 
-## Current milestone
+- [次の作業・再開手順](docs/NEXT.md)
+- [現行仕様の一覧](docs/README.md)
+- [開発契約](AGENTS.md)
+- [監査結果](docs/AUDIT.md)
+- [公開ゲーム](https://sayaborg.github.io/superoutride/)
 
-M9.29 adopts the user-tested common player baseline GX5/PX20%/GY2.5/PY10%, D20/M65/ACT.30.
-All cars and bikes start from this comparison baseline, with choices above and below each value.
-PX now reaches40%. This changes browser calibration only, not the common mechanics or raw/rival
-profile data. [Authority124](docs/124_m9_29_common_handling_baseline.md). Vehicle-specific tire
-tuning remains future work; these are provisional game values, not handling certification.
+## 実行
 
-M9.28 lowers all four bike CG heights to30% of wheelbase as provisional game calibration.
-The shared visual lean now follows measured lateral G: atan2(lateralAcceleration,g), with a cyan
-line from the player sprite ground anchor showing the angle continuously. Existing bitmap bank
-variants remain discrete. Cars, tires, steering and torque-protection equations are unchanged.
-[Authority123](docs/123_m9_28_bike_cg_lateral_g_lean.md) and
-[comparison](docs/research/M9_28_BIKE_CG_ASSESSMENT.md). Lower CG improves the sampled braking
-maneuvers, but large low-grip sideslip remains; this is not completed bike handling acceptance.
+Node.js 24を使用する。
 
-M9.27 simplifies the steering input stop: one fixed tire onset and one conservative quadratic
-interval. Excess input is blocked; when automatic steering is already outside, partial correction
-is permitted without inventing input. No baseline-inflated budget, angular root selection or
-additional state remains. [Authority122](docs/122_m9_27_one_sided_steering_stop.md).
-INPUT / USER (red cut) / AUTO / RACK, D/M/ACT, tires and engine output remain unchanged.
-This is not a spin-prevention guarantee; adverse full-brake handling remains documented in the
-[assessment](docs/research/M9_27_STEERING_STOP_ASSESSMENT.md).
-
-M9.25 adopts player tire defaults GX4/GY2.5/PX8%/PY8%, with broad surrounding ranges.
-The engine multiplier, ENG/PWR display and K binding are removed. Each vehicle uses its authored
-engine curve directly. The fixed ellipse, steering and torque protection remain unchanged.
-[Authority120](docs/120_m9_25_handling_calibration_unscaled_engine.md) supersedes earlier ranges
-and M9.16's multiplier. [D stopper assessment](docs/research/M9_25_STEERING_STOPPER_ASSESSMENT.md)
-is historical research;121 implements a different input policy after the user audit. Historical M9.23/24 records are preserved.
-
-
-M9.22 makes pedal protection visible in the shared DEV HUD. Each ACCEL/BRAKE column has an
-analog INPUT meter and separate F/R delivered-torque meters. Cyan is delivered output; red extends
-from delivered to the pre-protection request (RED=CUT). Unrequested capacity stays empty. Thin
-markers show the authored front/rear capacity/share. Numbers are percentages, not throttle-valve
-angles, brake pressure, tire force, measured deceleration, or grip utilization.
-
-ACCEL uses a common currently available full-throttle scale: a 45:55 requested split reaches
-45%/55%, not 100%/100%; half throttle reaches22.5%/27.5%. Removing front torque does not stretch the
-remaining bars back to100%. BRAKE uses the fixed sum of front/rear maximum brake torques as100%.
-Input-actuator lag is not red. Red combines all M9.21 protection, not separate cause indicators.
-A zero engine torque request, including full rev cut, shows zero drive output and no invented cut.
-
-This changes presentation only. Profile brake capacities/ratios are retained provisional engineering
-seeds; their factory derivation and handling calibration remain open. Player tire calibration resumes under120.
-HUD authority: `docs/116_m9_22_pedal_torque_hud.md`.
-
-M9.21 adds independent TCS on driven stations and independent front/rear ABS. Motorcycle catalog
-entries additionally prevent acceleration/braking-induced support loss through the same delivered-
-torque boundary. AWD's authored split is a REQUEST split; independent protection may change actual
-split, without transferring removed torque to the other station. No shaft lock or yaw correction.
-Every browser player/rival/replacement is protected; raw mechanics construction remains explicitly
-unprotected for historical diagnostic comparisons. Handling remains DEV_UNCALIBRATED.
-
-Current control authority: `docs/115_m9_21_torque_protection.md`.
-Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md`.
-
-Current cleanup and optimization evidence: [audit ledger](docs/maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
-[Session ownership](docs/117_session_configuration_boundary.md) separates opponent configuration
-from course structure without changing public defaults. This work does not certify Core/handling
-completion;120 separately resumes player tire calibration.
-Power-over drifting is no longer a product goal. Inertia-driven entry/correction/exit remain goals.
-Player tire calibration resumes under120; front/rear differentiation remains deferred.
-
-
-M9.20 replaces the old G/P/S postpeak tire with one load-proportional, monotone two-axis
-capacity law. Five independent live controls select longitudinal/lateral capacity and onset
-slip plus a shared knee. There is no extra S falloff, drift state, target beta or hidden force.
-M9.21 protection surrounds this unchanged tire law; it is not a new tire curve or drift mode.
-
-| Control | Default | Range and step | Keyboard forward-cycle |
-|---|---:|---|---|
-| GX: longitudinal capacity | 5.00 | 2.00..8.00, .05 | H |
-| PX: longitudinal capacity-onset slip | 20% | 2..40%, 1 point | J |
-| GY: lateral capacity | 2.50 | 1.00..4.00, .05 | G |
-| PY: lateral capacity-onset slip | 10% | 2..20%, 1 point | L |
-| KN: common X/Y knee | .74 | .10...95, .01 | N |
-
-Each value has compact +/- controls. Endpoints wrap. G/P/KN changes preserve the other four
-shown values, atomically recompiling kX=(2-KN)GX/PX and kY=(2-KN)GY/PY. PY is dimensionless slip,
-not vehicle drift angle; its high-speed pure-lateral angle equivalent is shown as supplementary
-information. **kx=ky is not imposed.** Front/rear are intentionally linked for this milestone;
-the underlying station model permits later distinct data without a branch in the force law.
-
-Defaults are approved diagnostic values, not an identified real-tire measurement or a guarantee
-of easy drift. Engine output is unscaled, D20/M65/ACT.30 under124. All nine stock construction/rival tires
-retain the previous non-dropping isotropic reference; selected browser calibration applies to
-the player and survives recovery/vehicle replacement. Reload/course navigation resets it.
-
-Normative scope: `docs/114_m9_20_five_axis_tire.md`.
-Discussion and rejected hypotheses: `docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md`.
-Historical M9.20 continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_20.md`.
-Preserved research: [eight original reports and their status](docs/research/M9_20_TIRE_DESIGN_DECISION_HISTORY.md).
-[Preservation repair and verification scope](docs/research/M9_20_PRESERVATION_REPAIR_2026-09-06.md)
-distinguish archived reports from a complete historical experiment/data archive.
-
-## Read before changing behavior
-
-1. `AGENTS.md` — design/release contract.
-2. `docs/README.md` — authority classes and supersession.
-3. `docs/116_m9_22_pedal_torque_hud.md` for HUD; `docs/115_m9_21_torque_protection.md` for protection;
-   `docs/114_m9_20_five_axis_tire.md` for the retained tire law and selectors.
-4. `docs/112_m9_18_load_proportional_one_k_tire.md` — retained load/contact/recovery contract.
-5. `docs/111_m9_17_direct_robotized_mt.md` and `docs/120_m9_25_handling_calibration_unscaled_engine.md`.
-6. `docs/101_m9_11_simplified_travel_direction_steering.md`, `docs/107_m9_13_full_screen_analog_touch.md`,
-   `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained steering and driving input.
-7. Relevant implementation, compiler and tests. Frozen Core and addenda before any metric/render change.
-
-Earlier numbered milestones and released validation records remain immutable historical evidence.
-The handoff is navigation, not a second authority. Resolve current SHA/PR/CI/Pages from GitHub.
-
-## Run and diagnose
-
-Use the repository Node24 toolchain and locked dependencies:
-
-```bash
+```sh
 npm ci
 npm test
 python3 -m http.server 8000
 ```
 
-Open the root page on that local server. Tests clean/rebuild dist before execution.
+`http://localhost:8000/` を開く。`npm run check` は型検査、`npm run build` はESMとGroundMapの生成。
 
-Production-solver diagnostics, not an injected drift controller:
+## 操作
 
-```bash
-node tools/torque-protection-probe.mjs --hz 120 --out protection.json
-node tools/drift-control-probe.mjs --mode transient --speed 200 --out transient.json
-node tools/drift-control-probe.mjs --mode sweep --speed 150 --out sweep.json
-```
+左右矢印で操舵、↑またはXでアクセル、↓またはZでブレーキ。タッチは画面左半分で左右に操舵、右半分で上にアクセル・下にブレーキ。指を置いた場所が原点で、64 CSS pxの移動が最大入力。キーボードとタッチは共通の入力調停を使う。
 
-The protection probe explicitly compares raw/protected catalog actors. The drift probe remains raw
-mechanics unless a policy is passed programmatically; it does not certify protected product handling.
-`transient` uses current tire defaults and logs entry/exit, actual speed loss and displacement without
-promising drift. `sweep` uses increasing then decreasing throttle, recording finite-time windows
-and hysteresis, not claiming equilibria from averages. `--tire` accepts a JSON authoring object.
-The old boosted reference CLI is retired; the historical causal trajectory remains a test with
-an explicitly authored engine fixture. All runs preserve real wheel/gear evolution.
-Distances on the flat fixture are trajectory/displacement diagnostics, not useful drift length
-on an actual course. Evaluate real corners, input errors, acceleration/braking and human feel next.
+画面のセレクタで車種・コース・調整値を選ぶ。コースのキー1〜4は LINEAR / BRANCHING / TSUKUBA / FISCO。URLはそれぞれ `?mode=linear` / `?mode=branching` / `?mode=circuit` / `?mode=fisco`。省略時はBRANCHING。
 
-## Retained controls and modes
+現在の調整基準は GX=5、PX=20%、GY=2.5、PY=10%、KN=0.74、D=20°、M=65°、ACT=0.30秒。[調整値の意味と所有者](docs/calibration.md)を参照。
 
-| Function | Control |
-|---|---|
-| Course | 1 LINEAR / 2 BRANCHING / 3 TSUKUBA / 4 FISCO |
-| Vehicle | Q/W/E/R/A/S/D/F/V = F110/930/C4/GTI/Delta/RC30/R80/FXRT/PX200 |
-| Camera | P = body-fixed / movement-follow |
-| Steering | Left / Right |
-| Throttle | Up or X |
-| Brake | Down or Z |
-| D / M / ACT | Y / U / T; 10..30° / 50..80° / .20...40s |
-| Recovery | Backspace |
+## 構成
 
-Touch uses full-viewport relative origin: start left for steering, right for mutually exclusive
-accelerator/brake. 64 CSS px is full scale; held touch is DIRECT, release uses the existing
-actuator. Keyboard remains digital/rate-limited. New selectors do not alter driving gestures.
+`src/core` は開いた座標・射影、`src/physics` は共通車両力学、`src/course` と `src/runtime` はコースのコンパイルと実行中の内容、`src/gameplay` は分岐・ラップ・復帰、`src/render` と `src/visual` は描画、`src/browser` はブラウザUIを所有する。`src/dev` は具体的な試走コースと回帰用の構成データ。
 
-`/` and `?mode=branching` select BRANCHING; `?mode=linear` is LINEAR;
-`?mode=circuit` and `?mode=fisco` use the CIRCUIT composition.
-
-## Architecture and limits
-
-One common two-station vehicle solver, current-load suspension, wheel dynamics and direct robotized
-MT remain. Compiled tire fields are muX/muY/kX/kY/rhoKnee; current effective values live only in the
-vehicle-owned immutable station pair. Tire slip is observed from contact velocity and wheel speed.
-Contact/recovery does not suppress permitted wheelies/stoppies or hide suspension overtravel.
-
-Camera defaults BODY_FIXED with retained MOVEMENT_FOLLOW alternative; physical pitch follow remains.
-World X/Y/Z is physical truth. d=s_render-s_camera is the only renderer depth, same depth same scale,
-2m=80px at player depth, one far-to-near Painter. Road bank is absent from raster geometry and
-camera roll is zero (Core section 18); topology does not change projection. Motorcycle bank
-sprite variants remain a separate presentation mechanism.
-
-Do not claim the new law establishes all-speed/all-vehicle/human drifting. Strong-brake spin,
-repeat wheel lift, real-course useful travel, broad transient margins and human protected handling remain
-open. TCS/ABS are not ESC: severe lateral spins can still occur. Support prevention is a bounded
-local prediction, not a guarantee for arbitrary inherited pitch momentum or every terrain event. Steady circles are diagnostic; product evaluation centers on entry/correction/exit and
-quantified deceleration. Nothing secretly preserves speed or torque beyond the existing engine.
+履歴資料はGit履歴で参照する。作業ツリーには現行仕様・実行可能な回帰テスト・再開情報を置く。ファイル名のM番号は識別子であり、古い設計を現行仕様より優先する根拠にはしない。

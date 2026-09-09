@@ -42,9 +42,10 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
     input.longitudinalVelocity, input.lateralVelocity, input.tire.lowSpeedRegularization);
   const slip = input.gripFactor * (2 - tire.rhoKnee) * tire.muX / tire.kX;
   const vx = input.longitudinalVelocity, radius = input.rollingRadius;
+  let torqueUpper = 0;
   if (vx >= 0) {
     const upper = (vx + slip * referenceSpeed) / radius;
-    const torqueUpper = wheelRequiredNetTorque(input, upper);
+    torqueUpper = wheelRequiredNetTorque(input, upper);
     drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
   if (Math.abs(vx) > input.tire.lowSpeedRegularization) {
@@ -57,8 +58,7 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
   }
   // If brake release changed the upper net-torque bound, reapply TCS. This can only reduce drive.
   if (vx >= 0 && drive > 0) {
-    const upper = (vx + slip * referenceSpeed) / radius;
-    drive = Math.max(0, Math.min(drive, wheelRequiredNetTorque(input, upper) + brake));
+    drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
   return drive === input.driveTorque && brake === input.brakeTorque
     ? input : { ...input, driveTorque: drive, brakeTorque: brake };

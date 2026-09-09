@@ -42,14 +42,11 @@ import {
 import {
   createM5RecoveryState,
   recoverM5Vehicle,
-  updateM5Recovery,
+  advanceVehicleWithRecovery,
 } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import type { DrivingInput } from './input/driving-input.js';
-import {
-  createArcadeVehicle,
-  updateArcadeVehicle,
-} from './physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
 import { renderM5Driving } from './render/m5-renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -179,17 +176,15 @@ function frame(now: number): void {
   accumulator += elapsed;
 
   while (accumulator >= SIM_DT) {
-    inputManager.update(SIM_DT);
     input = inputManager.sample();
 
-    updateArcadeVehicle(guide, height, surfaces, shell.vehicle, input, SIM_DT);
-
-    const recovered = updateM5Recovery(
+    const recovered = advanceVehicleWithRecovery(
       shell.recovery,
       guide,
       height,
       surfaces,
       shell.vehicle,
+      input,
       SIM_DT,
       selectedCircuit.playerRecoveryProfile,
     );
@@ -204,13 +199,13 @@ function frame(now: number): void {
 
     for (const rival of rivals) {
       const rivalInput = sampleRivalDrivingInput(guide, rival.vehicle, 0);
-      updateArcadeVehicle(guide, height, surfaces, rival.vehicle, rivalInput, SIM_DT);
-      const rivalRecovered = updateM5Recovery(
+      const rivalRecovered = advanceVehicleWithRecovery(
         rival.recovery,
         guide,
         height,
         surfaces,
         rival.vehicle,
+        rivalInput,
         SIM_DT,
         selectedCircuit.rivalRecoveryProfile,
       );

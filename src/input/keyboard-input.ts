@@ -18,10 +18,6 @@ export class KeyboardInput {
     });
   }
 
-  update(_dt: number): void {
-    // Input devices publish digital intent. Vehicle control owns actuator travel over time.
-  }
-
   sample(): DrivingInput {
     const pedals = this.pedals.sample();
     return {

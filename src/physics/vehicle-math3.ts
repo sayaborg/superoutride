@@ -34,14 +34,16 @@ export function magnitude3(v: Vec3): number {
   return Math.hypot(v.x, v.y, v.z);
 }
 
-export function normalize3(v: Vec3, fallback: Vec3 = WORLD_UP): Vec3 {
-  const length = magnitude3(v);
-  if (!(length > 1e-12) || !Number.isFinite(length)) return { ...fallback };
-  return scale3(v, 1 / length);
+export function normalize3(v: Vec3): Vec3 {
+  const inverseLength = 1 / magnitude3(v);
+  if (!(inverseLength > 0) || !Number.isFinite(inverseLength)) {
+    throw new RangeError('normalization requires a finite representable inverse length');
+  }
+  return scale3(v, inverseLength);
 }
 
 export function rotateAroundAxis(v: Vec3, axis: Vec3, angle: number): Vec3 {
-  const unit = normalize3(axis, { x: 1, y: 0, z: 0 });
+  const unit = normalize3(axis);
   const cosine = Math.cos(angle);
   const sine = Math.sin(angle);
   return add3(

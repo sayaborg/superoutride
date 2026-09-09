@@ -89,8 +89,6 @@ test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reade
 
 test('M6.47 camera physics world and shared-runtime contracts no longer require cyclic height or surface types', async () => {
   const heightReaderFiles = [
-    '../src/dev/m3-camera.ts',
-    '../src/dev/m4-camera.ts',
     '../src/camera/m5-camera.ts',
     '../src/dev/m6-20-live-runtime-content.ts',
     '../src/physics/arcade-vehicle-physics.ts',

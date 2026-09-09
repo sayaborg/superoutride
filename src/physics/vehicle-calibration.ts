@@ -15,7 +15,7 @@ export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
  */
 export type VehiclePhysicsCalibrationStatus = typeof VEHICLE_PHYSICS_CALIBRATION_STATUS;
 
-/** The only selectable steering geometry/response values in M9.11. Angles are road-wheel radians. */
+/** The selectable steering geometry/response values. Angles are road-wheel radians. */
 export interface ArcadeSteeringCalibrationInput {
   readonly maxRoadWheelSteer?: number;
   readonly steeringOffsetMax?: number;

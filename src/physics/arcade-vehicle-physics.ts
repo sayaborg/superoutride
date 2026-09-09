@@ -176,6 +176,10 @@ export function updateArcadeVehicle(
   const profile = vehicle.profile;
   const velocityBefore = { x: vehicle.velocityX, y: vehicle.velocityY, z: vehicle.velocityZ };
   const substep = dt / VEHICLE_SUBSTEPS;
+  const calibration = vehicle.steeringCalibration;
+  const automaticMax = steeringAutomaticMax(calibration);
+  const steeringResponse = 1 - Math.exp(-substep / profile.steeringResponseTau);
+  const steeringRequest = clamp(input.steering, -1, 1);
   let finalFront: ContactObservation | null = null;
   let finalRear: ContactObservation | null = null;
 
@@ -187,7 +191,6 @@ export function updateArcadeVehicle(
       profile.actuator,
       vehicle.steeringCalibration.steeringActuatorResponse,
     );
-    const steeringRequest = clamp(input.steering, -1, 1);
     const body = arcadeBodyKinematics(vehicle);
     const bodyTravelDirection = vehicleBodyTravelDirection(
       body,
@@ -197,17 +200,13 @@ export function updateArcadeVehicle(
       * vehicle.steeringCalibration.steeringOffsetMax;
     const frontBeforeSteer = deriveContactObservation(guide, height, surfaces, body,
       profile.frontStation, vehicle.frontSteerAngle, vehicle.course.segmentIndex);
-    const automaticSteer = travelDirectionSteeringTarget(0, bodyTravelDirection, vehicle.steeringCalibration);
+    const automaticSteer = clamp(bodyTravelDirection, -automaticMax, automaticMax);
     const deliveredOffset = limitSteeringInput(automaticSteer, steeringOffset,
       body, frontBeforeSteer, vehicle.tireFrictionCalibration.front);
-    vehicle.frontSteerAngle = stepTravelDirectionSteering(
-      vehicle.frontSteerAngle,
-      deliveredOffset,
-      bodyTravelDirection,
-      vehicle.steeringCalibration,
-      substep,
-      profile,
-    );
+    const target = clamp(automaticSteer + deliveredOffset,
+      -calibration.maxRoadWheelSteer, calibration.maxRoadWheelSteer);
+    vehicle.frontSteerAngle = stepSteeringRack(vehicle.frontSteerAngle, target,
+      steeringResponse, calibration.maxRoadWheelSteer);
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle);
     const rear = deriveContactObservation(
       guide,
@@ -355,11 +354,12 @@ export function stepTravelDirectionSteering(
     calibration,
   );
   const response = 1 - Math.exp(-dt / profile.steeringResponseTau);
-  return clamp(
-    roadWheelAngle + (target - roadWheelAngle) * response,
-    -calibration.maxRoadWheelSteer,
-    calibration.maxRoadWheelSteer,
-  );
+  return stepSteeringRack(roadWheelAngle, target, response, calibration.maxRoadWheelSteer);
+}
+
+/** Shared rack expression; public callers validate once before entering this primitive. */
+function stepSteeringRack(current: number, target: number, response: number, maximum: number): number {
+  return clamp(current + (target - current) * response, -maximum, maximum);
 }
 
 export function travelDirectionSteeringTarget(
@@ -370,7 +370,6 @@ export function travelDirectionSteeringTarget(
   if (![steeringOffset, bodyTravelDirection].every(Number.isFinite)) {
     throw new RangeError('vehicle steering target inputs must be finite');
   }
-  assertArcadeSteeringAngleCalibration(calibration);
   const automaticMax = steeringAutomaticMax(calibration);
   const automaticSteer = clamp(
     bodyTravelDirection,
@@ -401,13 +400,15 @@ export function vehicleBodyTravelDirection(
 }
 
 export function arcadeBodyKinematics(vehicle: ArcadeVehicleState): BodyKinematics {
-  const right = { x: Math.cos(vehicle.yaw), y: 0, z: -Math.sin(vehicle.yaw) };
+  const sinYaw = Math.sin(vehicle.yaw), cosYaw = Math.cos(vehicle.yaw);
+  const sinPitch = Math.sin(vehicle.pitch), cosPitch = Math.cos(vehicle.pitch);
+  const right = { x: cosYaw, y: 0, z: -sinYaw };
   const forward = normalize3({
-    x: Math.sin(vehicle.yaw) * Math.cos(vehicle.pitch),
-    y: Math.sin(vehicle.pitch),
-    z: Math.cos(vehicle.yaw) * Math.cos(vehicle.pitch),
-  }, { x: Math.sin(vehicle.yaw), y: 0, z: Math.cos(vehicle.yaw) });
-  const up = normalize3(cross3(forward, right), WORLD_UP);
+    x: sinYaw * cosPitch,
+    y: sinPitch,
+    z: cosYaw * cosPitch,
+  });
+  const up = normalize3(cross3(forward, right));
   const omegaWorld = add3(
     scale3(WORLD_UP, vehicle.yawRate),
     scale3(right, -vehicle.pitchRate),

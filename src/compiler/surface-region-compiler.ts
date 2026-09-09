@@ -69,7 +69,7 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
   }
 }
 
-/** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
+/** Explicit cyclic addressing adapter. Only this layer performs periodic addressing. */
 export class CyclicGroundMapLogicalProfile implements GroundMapLogicalProfileReader {
   readonly source: GroundMapLogicalProfile;
 

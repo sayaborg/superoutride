@@ -149,7 +149,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
   }
 }
 
-/** Explicit legacy/circuit adapter. Only this layer performs periodic chainage addressing. */
+/** Explicit cyclic addressing adapter. Only this layer performs periodic chainage addressing. */
 export class CyclicBakedGroundMapAsset implements BakedGroundMapReader {
   constructor(readonly source: BakedGroundMapAsset) {}
 

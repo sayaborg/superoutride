@@ -166,7 +166,7 @@ test('M6.51 circuit browser composition uses existing open engine paths and cont
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
-  assert.match(source, /updateArcadeVehicle\(guide, height, surfaces/);
+  assert.match(source, /advanceVehicleWithRecovery\(\s*shell\.recovery,\s*guide,\s*height,\s*surfaces/);
   assert.match(source, /updateM5Camera\(cameraRig, guide, height/);
   assert.match(source, /renderM5Driving\(/);
   assert.match(source, /updateCircuitRaceProgress/);

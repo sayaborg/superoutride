@@ -46,12 +46,12 @@ jobs:
       - name: Checkout immutable hot-path reference
         uses: actions/checkout@v5
         with:
-          ref: b70f2456fe43b31d55848c4f830d4285f70147e1
+          ref: fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8
           path: .audit-baseline
 
       - name: Build immutable hot-path reference
         run: |
-          test "$(git -C .audit-baseline rev-parse HEAD)" = b70f2456fe43b31d55848c4f830d4285f70147e1
+          test "$(git -C .audit-baseline rev-parse HEAD)" = fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8
           npm ci --prefix .audit-baseline
           npm run build --prefix .audit-baseline
 

@@ -101,7 +101,7 @@ test('local Guide search requires explicit initialization instead of silently go
   const guide = createM1DebugGuide();
   assert.throws(
     () => locateWorldOnGuideLocal(guide, { x: 0, z: 0 }, -1),
-    /explicit global initialization/,
+    /previousSegmentIndex must identify a segment/,
   );
 });
 

@@ -6,7 +6,7 @@ import { validateSpritePhysicalMetadata } from '../dist/compiler/sprite-metadata
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
 const guide = createM2StadiumGuide();
@@ -20,7 +20,7 @@ test('Surface Region authoring compiles and coalesces independent runtime profil
 });
 
 test('compiled SurfaceMap preserves sand, cliff verge and implicit VOID semantics', () => {
-  const map = new CyclicSurfaceMap(guide.length, compiled.surfaceSections);
+  const map = new SurfaceMap(guide.length, compiled.surfaceSections);
   assert.equal(map.sample(300, 7).type, 'SAND');
   assert.equal(map.sample(500, -6).type, 'DIRT');
   assert.equal(map.sample(500, -8).type, 'VOID');
@@ -57,10 +57,13 @@ test('Surface Region compiler rejects overlapping physical bands', () => {
 test('course compiler foundation validates draw distance and drivable Guide envelope', () => {
   const report = validateCourseCompilerFoundation(guide.length, authored, { dMax: 150, guideLateralLimit: 12 });
   assert.equal(report.maxSupportedAbsL, 10.5);
-  assert.throws(
-    () => validateCourseCompilerFoundation(guide.length, authored, { dMax: guide.length / 2, guideLateralLimit: 12 }),
-    /dMax < Lcourse\/2/,
-  );
+  // An open path clips visibility; there is no circular half-lap ambiguity.
+  for (const dMax of [guide.length / 2, guide.length, guide.length * 2]) {
+    assert.equal(validateCourseCompilerFoundation(guide.length, authored, { dMax, guideLateralLimit: 12 }).dMax, dMax);
+  }
+  for (const dMax of [0, -1, NaN, Infinity]) {
+    assert.throws(() => validateCourseCompilerFoundation(guide.length, authored, { dMax, guideLateralLimit: 12 }), /draw distance/);
+  }
   assert.throws(
     () => validateCourseCompilerFoundation(guide.length, authored, { dMax: 150, guideLateralLimit: 10.5 }),
     /must remain inside Guide chart/,

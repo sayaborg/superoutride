@@ -59,7 +59,7 @@ export class VisualProfile implements VisualProfileReader {
   }
 }
 
-/** Explicit legacy/circuit adapter. Only this layer performs periodic addressing. */
+/** Explicit cyclic addressing adapter. Only this layer performs periodic addressing. */
 export class CyclicVisualProfile implements VisualProfileReader {
   readonly sections: readonly VisualSection[];
 

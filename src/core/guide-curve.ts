@@ -256,7 +256,7 @@ export function locateWorldOnGuideLocal(
   clampL = false,
 ): CourseCoordinate {
   if (!Number.isInteger(previousSegmentIndex) || previousSegmentIndex < 0 || previousSegmentIndex >= guide.segments.length) {
-    throw new RangeError('previousSegmentIndex is invalid; use explicit global initialization instead');
+    throw new RangeError('previousSegmentIndex must identify a segment in the active Guide');
   }
   if (!Number.isInteger(searchRadius) || searchRadius < 0) throw new RangeError('searchRadius must be a non-negative integer');
 
@@ -295,6 +295,9 @@ function bestCandidate(
   lastIndex: number,
   clampL: boolean,
 ): CourseCoordinate {
+  if (!Number.isFinite(world.x) || !Number.isFinite(world.z)) {
+    throw new RangeError('world projection coordinates must be finite');
+  }
   let best: CourseCoordinate | null = null;
   for (let index = firstIndex; index <= lastIndex; index += 1) {
     const candidate = projectWorldToGuideSegment(guide, guide.segments[index]!, world, clampL);

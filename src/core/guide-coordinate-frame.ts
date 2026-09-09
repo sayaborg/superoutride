@@ -19,7 +19,7 @@ export interface GuideCoordinateFrame {
   readonly lateralOrigin: number;
 }
 
-/** Backward-compatible input: the original GuideCurve is the zero-origin frame. */
+/** An ordinary GuideCurve is the zero-origin coordinate frame. */
 export type GuideCoordinateSource = GuideCurve | GuideCoordinateFrame;
 
 export function guideCoordinateCurve(source: GuideCoordinateSource): GuideCurve {

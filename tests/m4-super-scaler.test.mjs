@@ -1,13 +1,12 @@
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoDepth } from '../dist/core/projection.js';
-import { createM4CameraRig, updateM4Camera } from '../dist/dev/m4-camera.js';
-import { createM2Vehicle, updateM2Vehicle } from '../dist/dev/m2-vehicle.js';
 import { mergeTerrainAndSprites } from '../dist/render/painter-merge.js';
 import { createSpriteAsset, countOpaqueSpriteColors, drawScaledSprite } from '../dist/render/sprite.js';
-import { renderM4SuperScaler } from '../dist/render/m4-renderer.js';
+import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
@@ -39,10 +38,6 @@ const cameraProfile = {
   focalLength: 200,
   centerX: 160,
   centerY: 120,
-  kPsi: 0.65,
-  thetaLagMax: deg(20),
-  sDotMin: 8,
-  tauLat: 0.18,
 };
 const groundProfile = {
   groundLeft: 12,
@@ -118,9 +113,8 @@ test('course-attached sprite compiler snaps ground anchor to Y_render and keeps 
 });
 
 test('visible world sprites use shared chainage pseudo-depth and sort far-to-near', () => {
-  const vehicle = createM2Vehicle(guide, 420);
-  const rig = createM4CameraRig();
-  const camera = updateM4Camera(rig, guide, height, vehicle, cameraProfile, 1 / 60);
+  const vehicle = renderPose(guide, 420);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   const world = createM4DebugWorldSprites(guide, height, assets);
   const visible = collectVisibleCourseSprites(world, camera, 2.5, 150);
   assert.ok(visible.length > 0);
@@ -139,35 +133,18 @@ test('yaw and bank selectors cover wrapped yaw and discrete bike bank variants',
   assert.equal(selectVehicleSprite(assets.car, deg(20), 1).bankIndex, 0);
 });
 
-test('M4 camera creates bounded vehicle-relative yaw lag while preserving exact longitudinal D_cam', () => {
-  const vehicle = createM2Vehicle(guide, 70);
-  const rig = createM4CameraRig();
-  let camera = updateM4Camera(rig, guide, height, vehicle, cameraProfile, 1 / 60);
-  for (let i = 0; i < 40; i += 1) {
-    updateM2Vehicle(guide, vehicle, { steering: 1, throttle: true, brake: false }, 1 / 60);
-    camera = updateM4Camera(rig, guide, height, vehicle, cameraProfile, 1 / 60);
-  }
-  const relative = Math.abs(camera.cameraVehicleYawDelta);
-  assert.ok(relative > deg(1));
-  assert.ok(relative <= cameraProfile.thetaLagMax + 1e-9);
-  near(pseudoDepth(vehicle.course.s, camera.s), cameraProfile.dCam, 1e-9);
-});
-
-test('M4 renderer draws merged world sprites and a yaw-variant player into the software framebuffer', () => {
-  const vehicle = createM2Vehicle(guide, 420);
-  const rig = createM4CameraRig();
-  let camera = updateM4Camera(rig, guide, height, vehicle, cameraProfile, 1 / 60);
-  for (let i = 0; i < 40; i += 1) {
-    updateM2Vehicle(guide, vehicle, { steering: 1, throttle: true, brake: false }, 1 / 60);
-    camera = updateM4Camera(rig, guide, height, vehicle, cameraProfile, 1 / 60);
-  }
+test('current renderer draws merged world sprites and a yaw-variant player into the software framebuffer', () => {
+  const vehicle = renderPose(guide, 420);
+  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
+  vehicle.y = height.samplePhysics(vehicle.course.s);
+  vehicle.yaw += deg(20);
   const world = createM4DebugWorldSprites(guide, height, assets);
   const surface = new SoftwareSurface(320, 240);
-  const stats = renderM4SuperScaler(surface, background, guide, camera, vehicle, terrainProfile, groundProfile, world, assets, 'car');
+  const stats = renderM5Driving(surface, background, guide, camera, vehicle, terrainProfile, groundProfile, world, assets, 'car');
   assert.ok(stats.visibleSpriteCount > 0);
   assert.ok(stats.spriteWrittenPixels > 0);
   assert.ok(stats.playerWrittenPixels > 0);
-  assert.ok(stats.playerYawVariant !== 0, 'camera yaw lag should select a non-center car variant in this probe');
+  assert.ok(stats.playerYawVariant !== 0, 'explicit relative yaw selects a non-center car variant');
 });
 
 test('bike player path selects yaw x bank variant without runtime bitmap rotation', () => {

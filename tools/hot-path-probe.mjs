@@ -3,10 +3,9 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export async function runHotPathProbe(buildPath = 'dist', profileCatalogPath = buildPath) {
+export async function runHotPathProbe(buildPath = 'dist') {
   const load = (path) => import(pathToFileURL(resolve(buildPath, path)).href);
-  // M9.28 changes bike CG data. Compare solvers on the same explicit reference profiles.
-  const { VEHICLE_CATALOG } = await import(pathToFileURL(resolve(profileCatalogPath, 'vehicle/vehicle-catalog.js')).href);
+  const { VEHICLE_CATALOG } = await load('vehicle/vehicle-catalog.js');
   const { compileRasterPath } = await load('core/course.js');
   const { compileGuidePath } = await load('core/guide-curve.js');
   const { HeightProfile } = await load('visual/height-profile.js');
@@ -19,19 +18,7 @@ export async function runHotPathProbe(buildPath = 'dist', profileCatalogPath = b
   const surface = new SurfaceMap(10000, [{ sStart: 0, name: 'equivalence',
     bands: [{ lMin: -1000, lMax: 1000, type: 'ASPHALT' }] }]);
   const hash = createHash('sha256');
-  const record = (value) => hash.update(JSON.stringify(value, (key, item) => {
-    // M9.25 removes this old calibration field. Compare unscaled mechanics only.
-    if (key === 'engineTorqueMultiplier') {
-      if (item !== 1) throw new Error('reference engine must be unscaled');
-      return undefined;
-    }
-    // M9.26 changes steering; this retained reference is an exact straight-drive/braking trace.
-    if (['automaticSteerAngle', 'requestedSteerOffset', 'deliveredSteerOffset', 'targetSteerAngle'].includes(key)) {
-      if (item !== 0) throw new Error('straight reference steering telemetry must be zero');
-      return undefined;
-    }
-    return item;
-  }));
+  const record = value => hash.update(JSON.stringify(value));
   let randomState = 0x723410;
   const random = () => ((randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0) / 2 ** 32);
   const started = performance.now();
@@ -45,13 +32,13 @@ export async function runHotPathProbe(buildPath = 'dist', profileCatalogPath = b
         driveTorque: (random() - .5) * 5000, brakeTorque: random() * 5000,
         dt: 1 / [60, 120, 240][i % 3], tire: entry.profile.frontStation.tire }));
     }
-    for (const hz of [60, 120, 240]) {
+    for (const hz of [60, 120, 240]) for (const turning of [false, true]) {
       const v = createArcadeVehicle(entry.profile, guide, height, surface, 500, 0, 15,
         undefined, undefined, entry.torqueProtection);
       for (let tick = 0; tick < hz * 2; tick++) {
         const t = tick / hz;
         updateArcadeVehicle(guide, height, surface, v,
-          { steering: 0, throttle: t < .7 ? 1 : 0, brake: t >= 1 ? 1 : 0 }, 1 / hz);
+          { steering: turning ? .35 * Math.sin(4 * t) : 0, throttle: t < .7 ? 1 : 0, brake: t >= 1 ? 1 : 0 }, 1 / hz);
         record(Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(v))
           .filter(([key, d]) => 'value' in d && !['profile', 'torqueProtection'].includes(key))
           .map(([key, d]) => [key, d.value])));
