@@ -63,6 +63,13 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### M9.29 common player calibration
+
+[Authority124](124_m9_29_common_handling_baseline.md) adopts GX5/PX20%/GY2.5/PY10% and
+D20/M65/ACT.30 for all selectable players. Expanded ranges allow comparison on both sides.
+Mechanics, stock/rival profiles and M9.28 CG remain unchanged. Vehicle-specific tire calibration
+remains future work. Historical causal probes explicitly retain their former steering inputs.
+
 ### M9.28 bike CG and lateral-G lean
 
 [Authority123](123_m9_28_bike_cg_lateral_g_lean.md) lowers four bike CG heights to the user-selected
@@ -191,7 +198,7 @@ A torque split is not generally the road-force split: radii and wheel dynamics a
 Do not infer real-brake provenance or suitable vehicle balance merely from the bars or ABS success.
 
 **Player tire calibration resumed under120; front/rear tire specialization remains deferred.**
-Retain browser defaults from120 and source; do not promote exploratory candidates or the 4:1 research reference into defaults.
+Retain browser defaults from124 and source; do not promote exploratory candidates or the 4:1 research reference into defaults.
 No current conclusion establishes that P=8% is optimal or that lateral grip must exceed longitudinal
 grip. Front/rear equality is provisional composition, not a permanent lower-law requirement.
 

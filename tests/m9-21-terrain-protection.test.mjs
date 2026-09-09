@@ -1,3 +1,4 @@
+import {M9_28_STEERING_REFERENCE} from './helpers/m9-28-steering-reference.mjs';
 import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
 import {M9_21_TIRE_REFERENCE} from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
@@ -129,8 +130,8 @@ test('M9.21 terrain probe rejects malformed domains and never imports recovery o
 
 // M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
 function createTerrainProbe(entry, options={}) {
- return createCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,...options});
+ return createCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,steeringCalibration:M9_28_STEERING_REFERENCE,...options});
 }
 function runTerrainProbe(entry, options={}) {
- return runCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,...options});
+ return runCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,steeringCalibration:M9_28_STEERING_REFERENCE,...options});
 }

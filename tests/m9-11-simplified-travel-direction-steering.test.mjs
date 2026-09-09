@@ -40,16 +40,16 @@ const surface = new SurfaceMap(highway.guide.length, [{
   bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
 }]);
 
-test('browser authority exposes M9.14 expanded D with retained M and ACT selectors', () => {
-  assert.deepEqual(BROWSER_STEERING_OFFSETS.map(({ degrees }) => degrees), [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
-  assert.deepEqual(BROWSER_MAX_ROAD_WHEEL_STEERS.map(({ degrees }) => degrees), [50, 55, 60, 65, 70]);
-  assert.deepEqual(BROWSER_STEERING_RESPONSES.map(({ traversalSeconds }) => traversalSeconds), [0.2, 0.225, 0.25, 0.275, 0.3]);
+test('browser authority exposes M9.29 common D / M / ACT baseline and surrounding selectors', () => {
+  assert.deepEqual(BROWSER_STEERING_OFFSETS.map(({ degrees }) => degrees), Array.from({length:21},(_,i)=>10+i));
+  assert.deepEqual(BROWSER_MAX_ROAD_WHEEL_STEERS.map(({ degrees }) => degrees), [50, 55, 60, 65, 70, 75, 80]);
+  assert.deepEqual(BROWSER_STEERING_RESPONSES.map(({ traversalSeconds }) => traversalSeconds), [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4]);
   assert.equal(BROWSER_STEERING_OFFSET_CYCLE_CODE, 'KeyY');
   assert.equal(BROWSER_MAX_STEER_CYCLE_CODE, 'KeyU');
   assert.equal(BROWSER_STEERING_RESPONSE_CYCLE_CODE, 'KeyT');
-  assert.ok(Math.abs(DEFAULT_BROWSER_STEERING_OFFSET - 12 * DEG) < 1e-15);
-  assert.ok(Math.abs(DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER - 60 * DEG) < 1e-15);
-  assert.equal(DEFAULT_BROWSER_STEERING_RESPONSE_RATE, 4);
+  assert.ok(Math.abs(DEFAULT_BROWSER_STEERING_OFFSET - 20 * DEG) < 1e-15);
+  assert.ok(Math.abs(DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER - 65 * DEG) < 1e-15);
+  assert.equal(DEFAULT_BROWSER_STEERING_RESPONSE_RATE, 1 / .3);
   assert.equal(formatSteeringOffsetSelector(12 * DEG), 'D [Y] 12°');
   assert.equal(formatMaxRoadWheelSteerSelector(60 * DEG), 'M [U] 60°');
   assert.equal(formatSteeringResponseSelector(5), 'ACT [T] 0.20s');
@@ -93,7 +93,7 @@ test('every M x D choice derives A=M-D and preserves exact driver reserve inside
       assert.ok(Math.abs(travelDirectionSteeringTarget(-steeringOffsetMax, -deepBeta, calibration) + maxRoadWheelSteer) < 1e-14);
     }
   }
-  assert.ok(Math.abs(minimumAutomaticDegrees - 30) < 1e-12);
+  assert.ok(Math.abs(minimumAutomaticDegrees - 20) < 1e-12);
 });
 
 test('M D T mutation changes calibration only and survives recovery and profile reconstruction', () => {

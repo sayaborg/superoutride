@@ -16,15 +16,15 @@ export interface BrowserTireAxis {
 
 /** Integer hundredths avoid cumulative floating-point stepping. One registry for all UI. */
 export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze([
-  { id: 'GX', field: 'gripX', code: 'KeyH', min: 200, max: 600, step: 5, percent: false },
-  { id: 'PX', field: 'peakSlipX', code: 'KeyJ', min: 2, max: 20, step: 1, percent: true },
+  { id: 'GX', field: 'gripX', code: 'KeyH', min: 200, max: 800, step: 5, percent: false },
+  { id: 'PX', field: 'peakSlipX', code: 'KeyJ', min: 2, max: 40, step: 1, percent: true },
   { id: 'GY', field: 'gripY', code: 'KeyG', min: 100, max: 400, step: 5, percent: false },
   { id: 'PY', field: 'peakSlipY', code: 'KeyL', min: 2, max: 20, step: 1, percent: true },
   { id: 'KNEE', field: 'knee', code: 'KeyN', min: 10, max: 95, step: 1, percent: false },
 ].map(axis => Object.freeze(axis)) as BrowserTireAxis[]);
 
 export const DEFAULT_BROWSER_TIRE_CHARACTERISTICS: Readonly<TireCharacteristics> = Object.freeze({
-  gripX: 4.00, peakSlipX: 0.08, gripY: 2.50, peakSlipY: 0.08, knee: 0.74,
+  gripX: 5.00, peakSlipX: 0.20, gripY: 2.50, peakSlipY: 0.10, knee: 0.74,
 });
 export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createArcadeTireFrictionCalibration(
   compileTireCharacteristics(DEFAULT_BROWSER_TIRE_CHARACTERISTICS),

@@ -42,6 +42,7 @@ historical evidence, not active features or instructions to resume the experimen
 Read newest first for the requested scope:
 
 ```text
+124_m9_29_common_handling_baseline.md
 123_m9_28_bike_cg_lateral_g_lean.md
 122_m9_27_one_sided_steering_stop.md
 121_m9_26_steering_input_limiter.md
@@ -85,16 +86,16 @@ M9.28 document123 lowers the four bike CG heights to30% wheelbase and replaces i
 coordinated-turn lean with observed lateral G. A player-only HUD line shows the angle from the
 sprite ground anchor. No physical roll or rider model is added; bike handling remains provisional.
 
-M9.25 document120 owns the current browser defaults/ranges and removes M9.16 engine calibration.
+M9.29 document124 owns the current browser defaults/ranges;120 removes M9.16 engine calibration.
 M9.20 remains current for tire constitutive law. It replaces production
 G/P/S and the additional lateral post-peak multiplier with one load-proportional, state-free,
 monotone two-axis capacity ellipse. Browser characteristics are:
 
 ```text
-GX 2.00..6.00 step .05   default 4.00   H forward-cycle
-PX 2..20% step 1 point  default 8%     J forward-cycle
+GX 2.00..8.00 step .05   default 5.00   H forward-cycle
+PX 2..40% step 1 point  default 20%    J forward-cycle
 GY 1.00..4.00 step .05   default 2.50   G forward-cycle
-PY 2..20% step 1 point  default 8%    L forward-cycle
+PY 2..20% step 1 point  default 10%   L forward-cycle
 KN .10.. .95 step .01   default .74   N forward-cycle
 ```
 
@@ -130,7 +131,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `122_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `124_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 

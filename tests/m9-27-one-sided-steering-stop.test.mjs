@@ -5,7 +5,9 @@ import {limitSteeringInput as limit} from '../dist/physics/steering-input-limite
 import {arcadeBodyKinematics} from '../dist/physics/arcade-vehicle-physics.js';
 import {deriveContactObservation,reorientContactObservation} from '../dist/physics/vehicle-dynamics.js';
 import {createFlatProbe} from '../tools/drift-control-probe.mjs';
-const rad=Math.PI/180,p=createFlatProbe({initialSpeed:30}),tire=p.vehicle.tireFrictionCalibration.front;
+import {compileTireCharacteristics} from '../dist/physics/tire-friction-calibration.js';
+// Fixed 8% geometry fixture; M9.29 browser onset is separately exercised by integration.
+const rad=Math.PI/180,p=createFlatProbe({initialSpeed:30}),tire=compileTireCharacteristics({gripX:4,peakSlipX:.08,gripY:2.5,peakSlipY:.08,knee:.74});
 function fixture(speed=30,beta=0,pitch=0){
  p.vehicle.y=2;p.vehicle.pitch=pitch;
  const body=arcadeBodyKinematics(p.vehicle);

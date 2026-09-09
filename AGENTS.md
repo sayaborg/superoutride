@@ -37,6 +37,7 @@ evidence are historical only. No other tuning, physics, protection or rendering 
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/124_m9_29_common_handling_baseline.md
 docs/123_m9_28_bike_cg_lateral_g_lean.md
 docs/122_m9_27_one_sided_steering_stop.md
 docs/121_m9_26_steering_input_limiter.md
@@ -81,15 +82,15 @@ M9.28 document123 lowers the four bike CG heights to30% wheelbase and replaces i
 coordinated-turn lean with observed lateral G. A player-only HUD line shows the angle from the
 sprite ground anchor. No physical roll or rider model is added; bike handling remains provisional.
 
-M9.25 document120 owns current browser ranges/defaults and removes M9.16 engine calibration.
+M9.29 document124 owns current browser ranges/defaults;120 removes M9.16 engine calibration.
 M9.20 document 114 remains current for tire law. It replaces the old G/P/S state and
 P→2P lateral post-peak falloff with five authoring characteristics:
 
 ```text
-GX 2.00..6.00 step .05 default 4.00    key H forward-cycles
-PX 2..20% step 1 point default 8%     key J forward-cycles
+GX 2.00..8.00 step .05 default 5.00    key H forward-cycles
+PX 2..40% step 1 point default 20%    key J forward-cycles
 GY 1.00..4.00 step .05 default 2.50    key G forward-cycles
-PY 2..20% step 1 point default 8%    key L forward-cycles
+PY 2..20% step 1 point default 10%   key L forward-cycles
 KNEE .10.. .95 step .01 default .74   key N forward-cycles
 ```
 
@@ -113,8 +114,8 @@ requestedTarget = clamp(automatic + u*D, -M, +M)
 actualTarget = automatic + limitedDriverOffset  //122: same-sign reduction of u*D only
 ```
 
-`A` is derived only. Browser steering comparison remains D=10..20° default12°, M=50/55/60/65/70°
-default60°, ACT=.20/.225/.25/.275/.30s default.25s. M9.13/M9.14 retain full-viewport relative
+`A` is derived only. Browser steering comparison remains D=10..30° step1 default20°, M=50..80° step5
+default65°, ACT=.20...40s step.025 default.30s. M9.13/M9.14 retain full-viewport relative
 analog touch and exactly 64 CSS px full-scale travel. Held analog touch may apply DIRECT; release
 uses the existing actuator rate. Keyboard driving remains digital/rate-limited.
 

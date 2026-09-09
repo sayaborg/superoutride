@@ -1,3 +1,4 @@
+import {M9_28_STEERING_REFERENCE} from './helpers/m9-28-steering-reference.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
@@ -13,6 +14,7 @@ const c=values=>createArcadeTireFrictionCalibration(compileTireCharacteristics(v
 const research=c({gripX:.75,peakSlipX:.02,gripY:3,peakSlipY:.08,knee:.74});
 function runReference(hz,direction,calibration=research){
  const p=createFlatProbe({profile:withEngineCurveScale(VEHICLE_CATALOG[0].profile,3),calibration,initialSpeed:200/3.6});
+ p.vehicle.steeringCalibration=structuredClone(M9_28_STEERING_REFERENCE);
  return runProbe(p,44,t=>researchCycleInput(t,direction),{hz});
 }
 for(const hz of [60,120,240])test(`M9.20 no-TCS research reference at ${hz}Hz enters, traverses and exits in both directions`,()=>{

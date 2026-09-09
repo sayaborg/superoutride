@@ -39,7 +39,7 @@ function gradeHeight(length, grade) {
 }
 export function createTerrainProbe(entry, options = {}) {
   const { grip = 1, gripAfter = grip, changeS = LENGTH, grade = 0, terrain = 'flat', speed = 30,
-    calibration = 'browser', protectedRun = true } = options;
+    calibration = 'browser', protectedRun = true, steeringCalibration } = options;
   if (![grip, gripAfter, changeS, grade, speed].every(Number.isFinite) || grip < 0 || gripAfter < 0
     || changeS < 0 || changeS > LENGTH || speed < 0 || !['flat', 'crest'].includes(terrain)
     || (!(typeof calibration === 'object' && calibration !== null) && !['browser', 'stock'].includes(calibration)) || typeof protectedRun !== 'boolean'
@@ -60,7 +60,7 @@ export function createTerrainProbe(entry, options = {}) {
   } });
   const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
   const vehicle = createArcadeVehicle(entry.profile, guide, height, surface, START, 0, speed,
-    { maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER, steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
+    steeringCalibration ?? { maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER, steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
       steeringActuatorResponse: { applyRate: rate, releaseRate: rate } },
     calibration === 'browser' ? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION
       : calibration === 'stock' ? undefined

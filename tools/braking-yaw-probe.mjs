@@ -89,13 +89,13 @@ export function decomposeContactYawChange(before, after) {
 }
 
 export function runBrakingComparison(entry, { hz = 120, grip = 1, direction = 1,
-  speed = 30, seconds = 4.5, correctionSeconds = .3, calibration = 'browser',
+  speed = 30, seconds = 4.5, correctionSeconds = .3, calibration = 'browser', steeringCalibration,
   applyMode = 'RATE_LIMITED', actions = BRAKING_ACTIONS, capture = false } = {}) {
   if (![60, 120, 240].includes(hz) || !Number.isFinite(seconds) || seconds <= 0
     || !Number.isInteger(seconds * hz) || !Array.isArray(actions) || actions.length === 0
     || new Set(actions).size !== actions.length) throw new RangeError('invalid braking comparison domain');
   for (const action of actions) brakingInput(0, action, { direction, correctionSeconds, applyMode });
-  const parent = createTerrainProbe(entry, { speed, grip, calibration });
+  const parent = createTerrainProbe(entry, { speed, grip, calibration, steeringCalibration });
   for (let tick = 0; tick < hz * 1.5; tick++) {
     const input = { ...terrainInput(tick / hz, 'turnBrake', direction),
       steeringApplyMode: applyMode, pedalApplyMode: applyMode };

@@ -14,11 +14,11 @@ import {VEHICLE_CATALOG} from '../dist/vehicle/vehicle-catalog.js';
 import {SelectorElement,selectorDocument} from './helpers/fake-selector-dom.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-11,`${a} ${b}`);
 
-test('M9.25 approved five-axis defaults and registry are explicit and unique',()=>{
- assert.deepEqual(seed,{gripX:4,peakSlipX:.08,gripY:2.5,peakSlipY:.08,knee:.74});
+test('M9.29 approved five-axis defaults and registry are explicit and unique',()=>{
+ assert.deepEqual(seed,{gripX:5,peakSlipX:.20,gripY:2.5,peakSlipY:.10,knee:.74});
  assert.deepEqual(axes.map(a=>[a.id,a.min,a.max,a.step,a.code]),[
- ['GX',200,600,5,'KeyH'],['PX',2,20,1,'KeyJ'],['GY',100,400,5,'KeyG'],['PY',2,20,1,'KeyL'],['KNEE',10,95,1,'KeyN']]);
- assert.equal(formatTireCalibrationSelector(initial),'GX4.00 PX8% GY2.50 PY8% KN0.74');
+ ['GX',200,800,5,'KeyH'],['PX',2,40,1,'KeyJ'],['GY',100,400,5,'KeyG'],['PY',2,20,1,'KeyL'],['KNEE',10,95,1,'KeyN']]);
+ assert.equal(formatTireCalibrationSelector(initial),'GX5.00 PX20% GY2.50 PY10% KN0.74');
 });
 for(const axis of axes) test(`M9.20 ${axis.id} traverses its full grid in both directions preserving the other four values`,()=>{
  for(const dir of [-1,1]){
@@ -70,7 +70,7 @@ test('M9.20 explicit minus/plus and one-key forward cycle share the same five li
  assert.ok(group.children[1].textContent.length>0);assert.ok(group.children[1].getAttribute('title'));
  }
  const previous=v;v=createFlatProbe().vehicle;
- ctl.handleKey('KeyH');near(v.tireFrictionCalibration.front.muX,4.05);near(previous.tireFrictionCalibration.front.muX,4);
+ ctl.handleKey('KeyH');near(v.tireFrictionCalibration.front.muX,5.05);near(previous.tireFrictionCalibration.front.muX,5);
  assert.equal(ctl.handleKey('KeyK'),false);
 });
 test('M9.20 live selection changes only calibration and remains atomic on invalid request',()=>{

@@ -140,7 +140,7 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile M D and symmetric-response buttons expose the current M9.14 choices', () => {
+test('mobile M D and symmetric-response buttons expose the current M9.29 choices', () => {
   const offsets = createMobileSteeringOffsetSelectorModel(12 * DEG);
   assert.deepEqual(offsets.map(({ label, active }) => ({ label, active })), [
     { label: '10', active: false },
@@ -154,6 +154,7 @@ test('mobile M D and symmetric-response buttons expose the current M9.14 choices
     { label: '18', active: false },
     { label: '19', active: false },
     { label: '20', active: false },
+    ...Array.from({length:10},(_,i)=>({label:String(21+i),active:false})),
   ]);
   const maxima = createMobileMaxRoadWheelSteerSelectorModel(60 * DEG);
   assert.deepEqual(maxima.map(({ label, active }) => ({ label, active })), [
@@ -162,6 +163,8 @@ test('mobile M D and symmetric-response buttons expose the current M9.14 choices
     { label: '60', active: true },
     { label: '65', active: false },
     { label: '70', active: false },
+    { label: '75', active: false },
+    { label: '80', active: false },
   ]);
   assert.deepEqual(
     createMobileSteeringResponseSelectorModel(4).map(({ value, label, active }) => ({ value, label, active })),
@@ -171,6 +174,7 @@ test('mobile M D and symmetric-response buttons expose the current M9.14 choices
       { value: 4, label: '0.25', active: true },
       { value: 1 / 0.275, label: '0.275', active: false },
       { value: 1 / 0.3, label: '0.30', active: false },
+      ...[.325,.35,.375,.4].map(t=>({value:1/t,label:t===.35?'0.35':t===.4?'0.40':String(t),active:false})),
     ],
   );
 });
@@ -241,16 +245,16 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
     },
   };
   const controls = mountBrowserSteeringCalibrationControls(containers, () => vehicle, fakeDocument);
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 12 * DEG) < 1e-12);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 60 * DEG) < 1e-12);
-  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 4, releaseRate: 4 });
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 20 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 65 * DEG) < 1e-12);
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / .3, releaseRate: 1 / .3 });
 
   assert.equal(controls.handleKey('KeyY'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 13 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 21 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyU'), true);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 65 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 70 * DEG) < 1e-12);
   assert.equal(controls.handleKey('KeyT'), true);
-  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.275, releaseRate: 1 / 0.275 });
+  assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.325, releaseRate: 1 / 0.325 });
   assert.equal(controls.handleKey('KeyV'), false);
 
   vehicle = {

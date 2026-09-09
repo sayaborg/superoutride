@@ -1,6 +1,6 @@
-export type BrowserSteeringOffsetDegrees = 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
-export type BrowserMaxRoadWheelSteerDegrees = 50 | 55 | 60 | 65 | 70;
-export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3;
+export type BrowserSteeringOffsetDegrees = 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
+export type BrowserMaxRoadWheelSteerDegrees = 50 | 55 | 60 | 65 | 70 | 75 | 80;
+export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3 | 0.325 | 0.35 | 0.375 | 0.4;
 
 export interface BrowserSteeringAngleSelection<Degrees extends number = number> {
   readonly degrees: Degrees;
@@ -19,19 +19,22 @@ export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
 export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] = Object.freeze([
   angle(10), angle(11), angle(12), angle(13), angle(14), angle(15),
   angle(16), angle(17), angle(18), angle(19), angle(20),
+  angle(21), angle(22), angle(23), angle(24), angle(25),
+  angle(26), angle(27), angle(28), angle(29), angle(30),
 ]);
 
 export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] = Object.freeze([
-  angle(50), angle(55), angle(60), angle(65), angle(70),
+  angle(50), angle(55), angle(60), angle(65), angle(70), angle(75), angle(80),
 ]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
   response(0.2), response(0.225), response(0.25), response(0.275), response(0.3),
+  response(0.325), response(0.35), response(0.375), response(0.4),
 ]);
 
-export const DEFAULT_BROWSER_STEERING_OFFSET = mustAngleDegrees(BROWSER_STEERING_OFFSETS, 12).radians;
-export const DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER = mustAngleDegrees(BROWSER_MAX_ROAD_WHEEL_STEERS, 60).radians;
-export const DEFAULT_BROWSER_STEERING_RESPONSE_RATE = mustTraversalSeconds(BROWSER_STEERING_RESPONSES, 0.25).rate;
+export const DEFAULT_BROWSER_STEERING_OFFSET = mustAngleDegrees(BROWSER_STEERING_OFFSETS, 20).radians;
+export const DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER = mustAngleDegrees(BROWSER_MAX_ROAD_WHEEL_STEERS, 65).radians;
+export const DEFAULT_BROWSER_STEERING_RESPONSE_RATE = mustTraversalSeconds(BROWSER_STEERING_RESPONSES, 0.3).rate;
 
 export function nextBrowserSteeringOffset(currentRadians: number): number {
   return nextAngleChoice(BROWSER_STEERING_OFFSETS, currentRadians).radians;

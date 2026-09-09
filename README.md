@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.28 Bike CG and Lateral-G Lean
+# SUPER OUTRIDE — M9.29 Common Handling Baseline
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -7,6 +7,12 @@ Super Hang-On, OutRunners and the Super Scaler era.
 > Repository is project authority. Handling remains **DEV_UNCALIBRATED**.
 
 ## Current milestone
+
+M9.29 adopts the user-tested common player baseline GX5/PX20%/GY2.5/PY10%, D20/M65/ACT.30.
+All cars and bikes start from this comparison baseline, with choices above and below each value.
+PX now reaches40%. This changes browser calibration only, not the common mechanics or raw/rival
+profile data. [Authority124](docs/124_m9_29_common_handling_baseline.md). Vehicle-specific tire
+tuning remains future work; these are provisional game values, not handling certification.
 
 M9.28 lowers all four bike CG heights to30% of wheelbase as provisional game calibration.
 The shared visual lean now follows measured lateral G: atan2(lateralAcceleration,g), with a cyan
@@ -73,10 +79,10 @@ M9.21 protection surrounds this unchanged tire law; it is not a new tire curve o
 
 | Control | Default | Range and step | Keyboard forward-cycle |
 |---|---:|---|---|
-| GX: longitudinal capacity | 4.00 | 2.00..6.00, .05 | H |
-| PX: longitudinal capacity-onset slip | 8% | 2..20%, 1 point | J |
+| GX: longitudinal capacity | 5.00 | 2.00..8.00, .05 | H |
+| PX: longitudinal capacity-onset slip | 20% | 2..40%, 1 point | J |
 | GY: lateral capacity | 2.50 | 1.00..4.00, .05 | G |
-| PY: lateral capacity-onset slip | 8% | 2..20%, 1 point | L |
+| PY: lateral capacity-onset slip | 10% | 2..20%, 1 point | L |
 | KN: common X/Y knee | .74 | .10...95, .01 | N |
 
 Each value has compact +/- controls. Endpoints wrap. G/P/KN changes preserve the other four
@@ -86,7 +92,7 @@ information. **kx=ky is not imposed.** Front/rear are intentionally linked for t
 the underlying station model permits later distinct data without a branch in the force law.
 
 Defaults are approved diagnostic values, not an identified real-tire measurement or a guarantee
-of easy drift. Engine output is unscaled, D12/M60/ACT.25 unchanged. All nine stock construction/rival tires
+of easy drift. Engine output is unscaled, D20/M65/ACT.30 under124. All nine stock construction/rival tires
 retain the previous non-dropping isotropic reference; selected browser calibration applies to
 the player and survives recovery/vehicle replacement. Reload/course navigation resets it.
 
@@ -152,7 +158,7 @@ on an actual course. Evaluate real corners, input errors, acceleration/braking a
 | Steering | Left / Right |
 | Throttle | Up or X |
 | Brake | Down or Z |
-| D / M / ACT | Y / U / T, retained choices |
+| D / M / ACT | Y / U / T; 10..30° / 50..80° / .20...40s |
 | Recovery | Backspace |
 
 Touch uses full-viewport relative origin: start left for steering, right for mutually exclusive
