@@ -1,0 +1,57 @@
+SUPER OUTRIDE M9.25 — Handling Calibration / Unscaled Engine Validation
+Evidence date: 2026-09-09
+Authority: docs/120_m9_25_handling_calibration_unscaled_engine.md
+Initial main: cd07cebd52f337f76d255931a5a63759c2d0635e
+PR: https://github.com/sayaborg/superoutride/pull/154
+Branch: codex/m9-25-handling-calibration
+Green implementation/doc/test head: 19972d41199d09e45d84d4bb6a7393aa8013166a
+CI run: 34341905324
+Build job: 102434388154
+https://github.com/sayaborg/superoutride/actions/runs/34341905324
+Exact checkout expected=actual=19972d41199d09e45d84d4bb6a7393aa8013166a
+Complete CI suite: 849 tests,849 pass,0 fail/cancelled/skipped/todo.
+Local complete suite:849/849 with the same immutable b70 reference.
+Reference: b70f2456fe43b31d55848c4f830d4285f70147e1.
+
+Scope and causal evidence:
+- User-tested browser defaults GX4/GY2.5/PX8%/PY8%; ranges GX2..6/GY1..4/PX,PY2..20%.
+- GX/GY step.05, PX/PY step1 point; KNEE.74/.10...95/.01 unchanged.
+- Entire engine multiplier field/API/constructor parameter/UI/K binding/lifecycle removed.
+- Original engine curves, gears, limiter, torque split/protection and fixed ellipse retained.
+- Complete grid/default/independence/lifecycle tests; actual browser shell K no-op,
+  replacement and recovery. Fixed engine formula and exact direct-powertrain comparison
+  across all nine profiles. No new steering controller or physical body correction.
+- Pinned mechanical comparison still hashes all physical values exactly. Only the removed
+  old engineTorqueMultiplier metadata is omitted after verifying it equals1. No tolerance
+  or deletion of torque, RPM, gear, wheel, contact or world-state values.
+- Historical high-torque gearbox/protection/reference trajectories use authored test-only
+  engine curves. Production/tooling have no multiplier setter or runtime multiplier option.
+- M9.24 retained tire/compiler/profile/protection/wrench blob comparisons remain exact.
+- Actual local M9.25 browser shows the five new tire defaults with no ENG/PWR. K has no
+  selector effect. Controls fit320x568 and844x390 without internal overflow; backing320x240.
+
+Changed handling / limits of acceptance:
+The new defaults were exercised in72 all-nine terrain maneuvers at120Hz. These check completed
+finite motion, no overturn, torque budgets, force ellipse, dissipation and zero-load release.
+They do not certify yaw stability or no wheel lift. R80 lowGripReversal at material.25 and
+30m/s entry reached about178.8deg beta and0.117s front lift while completing without overturn.
+This remains an open handling observation, not something hidden by a body clamp or test tolerance.
+The M9.21 historical yaw-causality/no-lift assertions remain unchanged with explicit original
+tire inputs GX2.5/GY2.2/PX8%/PY10%.120 explicitly supersedes their former browser-default input
+assumption. Current diagnostic tools still default to current tires, while their calibration
+argument also accepts ordinary authored characteristics for explicit historical fixtures.
+
+D assessment is research only:
+docs/research/M9_25_STEERING_STOPPER_ASSESSMENT.md
+Sensitivity and offset stop can be separated with one clamp and derived automatic reserve.
+The high-speed pure-lateral PY8% onset is atan(.08), approximately4.573921deg, not a universal
+safe D limit. Local contact travel, yaw, low speed, combined slip and force/moment objectives
+matter. No steering stop is implemented or stability certified by this release.
+
+Standalone record / self-reference release gate:
+Normative calibration and engine-authority removal require this new immutable evidence record.
+This file names the preceding green head, not a fictitious future self-validating SHA. Required:
+complete green CI on its record-inclusive exact head; fresh main ahead>0/behind=0/merge-base=main;
+non-force fast-forward main to that exact SHA; main=PR head=PR merge; same-SHA main CI and Pages;
+inspect actual artifact/versioned build. Final identity is established by Git/PR/workflow evidence.
+Do not rewrite this record after release to create an impossible recursive self-reference.
