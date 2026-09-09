@@ -1,0 +1,59 @@
+SUPER OUTRIDE M9.26 — Steering Input Limiter / HUD Validation
+Date:2026-09-09
+Authority:docs/121_m9_26_steering_input_limiter.md
+Base main:088013d4c6bb665c9cd4b5d8937de6f376f99b15
+Branch:codex/m9-26-steering-input-limiter
+PR:https://github.com/sayaborg/superoutride/pull/155
+Green implementation/doc/test head:a00e2f1d06741796b0a32a8af6ec166337d5ff7e
+CI run:34347726191; build job:102453219063
+https://github.com/sayaborg/superoutride/actions/runs/34347726191
+Expected checkout=actual checkout=a00e2f1d06741796b0a32a8af6ec166337d5ff7e
+CI complete suite:856 tests,856 pass,0 fail/cancelled/skipped/todo.
+Local complete suite:856/856 with the same pinned b70 reference.
+Reference:b70f2456fe43b31d55848c4f830d4285f70147e1.
+
+Decision/evidence:
+- User audit preserved verbatim; J maximization rejected as input-stop objective.
+- Stateless pure-lateral onset budget m*(2-knee)*muY/kY=m*PY, with explicit automatic
+  baseline allowance. Exact surface projection becomes one sinusoidal inequality.
+- atan2/acos roots give the baseline-connected interval; only requested driver offset
+  is reduced. No reversal/amplification, added automatic angle, wheel search or force optimizer.
+- CG automatic law/A=M-D, actuator, rack, D/M/ACT and tires/engines/protection remain retained.
+- Stop/air/frictionless/invalid-frame bypass. Spin/lock is not an input and cannot directly
+  open the limiter. This does not remove the ordinary combined-slip force coupling.
+- Contact orientation is extracted once and reused; reorientation equals the full existing
+  observation at tested angles. No second surface/load sample per substep is introduced.
+-500 independent signed/tilted cases check path feasibility and stopping boundary against
+  separately reprojected contact slip, not a duplicate limiter formula.
+- Actual all-nine substep dynamics at D12/18/20, both signs and60/120/240Hz exercise reduction,
+  final target attribution and neutral release. Full route/render/recovery suite retained.
+- HUD INPUT(raw)/USER(delivered plus red reduction)/AUTO(green)/RACK(actual). Exact pedal
+  cut tests retained; new steering color/attribution/read-only/layout tests pass.
+- Actual local M9.26 browser screenshot confirms four steering rows in the320x240 display.
+- Active microbenchmark on Node24.18.0 macOS/ARM64:100000 calls per batch took20.72ms cold,
+  then12.71/12.37/11.82/11.71ms. This excludes rendering; no all-device60fps guarantee.
+
+Explicit regression migration:
+Changing steering supersedes the prior steered whole-vehicle hash. Pinned reference now preserves
+all1152 signed wheel cases and exact straight drive/brake traces across9 profiles/3 rates.
+Four new steering observations are omitted only after validating zero in those straight traces.
+No physical pose/velocity/contact/wheel/torque value is omitted or rounded. M9.25's retired
+engine multiplier metadata remains validated1 before omission. New steering has independent
+geometric and integration regressions rather than an invented candidate baseline hash.
+The old whole-run low-grip25% vs100% brake peak-beta equality is explicitly superseded by121;
+state-dependent steering now evolves differently. Both protected trajectories, budgets and
+neutral-release comparison remain, as do wheel-level ABS/torque and other causal regressions.
+HUD counts change only for the two new steering rows; pedal quantities/colors are unchanged.
+
+Limits:
+This bounds extra driver slip demand, not total friction use, turning-force optimality or vehicle
+stability. Baseline alignment may already exceed pure-lateral onset. General moving-component
+continuity, rack-lag envelope violations and human analog handling remain evaluation topics.
+No physical state is clamped to hide a spin or loss of support. Historical evidence is unchanged.
+
+Record-inclusive release gate:
+Normative control/HUD authority changes require this standalone immutable record after green
+implementation CI. Its own commit must receive complete exact-head green CI. Freshly fetch main;
+require ahead>0/behind=0/merge-base=main. Non-force fast-forward to the validated exact SHA;
+verify main=PR head=PR merge, same-SHA main CI/Pages and actual artifact/versioned build.
+Final identity comes from Git/PR/workflow records, not an impossible self-referential edit here.

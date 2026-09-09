@@ -188,6 +188,7 @@ validation/M9_21_TORQUE_PROTECTION_VALIDATION.txt
 validation/M9_22_PEDAL_TORQUE_HUD_VALIDATION.txt
 validation/M9_24_FRICTION_ELLIPSE_RESTORATION_VALIDATION.txt
 validation/M9_25_HANDLING_CALIBRATION_UNSCALED_ENGINE_VALIDATION.txt
+validation/M9_26_STEERING_INPUT_LIMITER_VALIDATION.txt
 ```
 
 M9.22's record names the green implementation/doc/test-inclusive head `c8c5cca` and PR #142 CI #852.
