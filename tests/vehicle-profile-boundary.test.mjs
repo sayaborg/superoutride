@@ -7,6 +7,31 @@ import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production
 import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 
+test('compiled actuators and powertrain own their validated nested data', () => {
+  const authoring = structuredClone(FERRARI_TESTAROSSA_VEHICLE_AUTHORING);
+  const profile = compileArcadeVehicleProfile(authoring);
+  const reference = structuredClone(profile);
+  authoring.actuator.throttle.applyRate = 999;
+  authoring.actuator.steering.releaseRate = 999;
+  authoring.powertrain.gearRatios[0] = 999;
+  authoring.powertrain.torqueCurve[0].torqueNewtonMeters = 999;
+  authoring.powertrain.finalDriveRatio = 999;
+  assert.deepEqual(profile, reference);
+  for (const object of [profile.actuator, profile.actuator.throttle, profile.actuator.brake,
+    profile.actuator.steering, profile.powertrain, profile.powertrain.gearRatios,
+    profile.powertrain.torqueCurve, ...profile.powertrain.torqueCurve]) {
+    assert.ok(Object.isFrozen(object));
+  }
+});
+
+test('missing actuator channels fail during compilation', () => {
+  for (const channel of ['steering', 'throttle', 'brake']) {
+    const authoring = structuredClone(FERRARI_TESTAROSSA_VEHICLE_AUTHORING);
+    delete authoring.actuator[channel];
+    assert.throws(() => compileArcadeVehicleProfile(authoring), RangeError, channel);
+  }
+});
+
 test('an additional opaque content identity compiles and drives without catalog membership', () => {
   const profile = compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, id: 'audit-synthetic-10' });
   const { guide, heightProfile: height, surfaceMap: surfaces } = createM83LinearHighwayRuntime();

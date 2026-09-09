@@ -3,7 +3,7 @@ import type { JunctionCrossSectionProfile, JunctionSide } from '../course/juncti
 import { compileRouteBoundaryGateSet, type RouteBoundaryGateAuthoring, type RouteBoundaryGateSet } from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../gameplay/route-dag.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
-import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
+import { M6_15_ROUTE_GATE_S, createM615TransitionGate } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
 
 export const M6_20_FINISH_GATE_S = 700;
@@ -35,34 +35,15 @@ export function createM620LivePointToPointGateSet(
     throw new Error('live finish must be after the child handoff seam');
   }
   if (!(M6_20_FINISH_GATE_S < guide.length)) {
-    throw new RangeError('live finish must occur before the closed DEV course seam');
+    throw new RangeError('live finish must occur before the open DEV course endpoint');
   }
 
   return compileRouteBoundaryGateSet(route, [
-    transitionGate(guide, junction, 'G_LIVE_LEFT', 'S1_LEFT', 'LEFT'),
-    transitionGate(guide, junction, 'G_LIVE_RIGHT', 'S1_RIGHT', 'RIGHT'),
+    createM615TransitionGate(guide, junction, 'G_LIVE_LEFT', 'S1_LEFT', 'LEFT'),
+    createM615TransitionGate(guide, junction, 'G_LIVE_RIGHT', 'S1_RIGHT', 'RIGHT'),
     finishGate(guide, junction, 'G_LIVE_FINISH_L', 'GOAL_L', 'LEFT'),
     finishGate(guide, junction, 'G_LIVE_FINISH_R', 'GOAL_R', 'RIGHT'),
   ]);
-}
-
-function transitionGate(
-  guide: GuidePath,
-  junction: JunctionCrossSectionProfile,
-  id: string,
-  choiceId: string,
-  side: JunctionSide,
-): RouteBoundaryGateAuthoring {
-  const l = junction.separatedChildCenterL(side);
-  const point = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, l);
-  return {
-    id,
-    kind: 'TRANSITION',
-    choiceId,
-    center: { x: point.x, z: point.z },
-    heading: point.heading,
-    halfWidth: junction.authoring.childRoadWidth * 0.5,
-  };
 }
 
 function finishGate(

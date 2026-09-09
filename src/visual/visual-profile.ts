@@ -1,8 +1,7 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { compileGroundBase, type AuthoredGroundBase } from '../course/surface-region.js';
 
-export type GroundBase =
-  | { readonly kind: 'color'; readonly color: number }
-  | { readonly kind: 'transparent' };
+export type GroundBase = AuthoredGroundBase;
 
 export interface VisualSection {
   readonly sStart: number;
@@ -32,8 +31,8 @@ export class VisualProfile implements VisualProfileReader {
     }
     const copied = sections.map((section) => ({
       ...section,
-      groundBaseLeft: Object.freeze({ ...section.groundBaseLeft }),
-      groundBaseRight: Object.freeze({ ...section.groundBaseRight }),
+      groundBaseLeft: compileGroundBase(section.groundBaseLeft),
+      groundBaseRight: compileGroundBase(section.groundBaseRight),
     })).sort((a, b) => a.sStart - b.sStart);
     if (copied.length === 0 || Math.abs(copied[0]!.sStart) > EPSILON) {
       throw new Error('visual profile must start at s=0');

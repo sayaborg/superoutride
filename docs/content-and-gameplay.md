@@ -20,12 +20,16 @@ The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine selectable pr
 
 An acyclic [RouteDag](../src/gameplay/route-dag.ts) owns legal stage successors. Physical position crosses an oriented gate; steering intent, AI target, screen X or guessed centerline never chooses route progress.
 
+Compiled stages, choices and gate geometry are immutable. The shared oriented-gate primitive detects an actual sign change: negative to zero/positive is forward, positive to zero/negative is reverse. Arrival at the plane counts once; departing from the plane does not repeat it. There is no dead band that can lose a slow crossing; finite lateral gate-width tolerance remains separate.
+
 1. A forward physical route-gate crossing validates the legal transition and enters PENDING.
 2. The old chart/content remains authoritative during the shared overlap.
 3. A forward physical handoff-seam crossing commits the target chart/content.
 4. COMMIT re-expresses observations only; world X/Y/Z, yaw and velocity remain continuous.
 
 [World gates](../src/gameplay/world-crossing-gate.ts), [handoff](../src/gameplay/route-stage-handoff.ts) and [live route tick](../src/runtime/live-route-multi-actor-tick.ts) implement this ordering. Authoring compiles actual overlap and runout; no implicit closure or post-handoff pose repair is allowed. An actor's finite local projection seed must follow the committed chart explicitly.
+
+[Continuation compilation](../src/runtime/stage-continuation-link.ts) partitions the overlap at both charts' straight/arc boundaries and checks endpoints and interval interiors, so a complete local bend cannot fall between fixed probes. Copied Raster vertices retain circular-source radius provenance. Gameplay Guide charts delegate coordinate arithmetic to the same Core frame primitive.
 
 The field uses `FIRST_PHYSICAL_CROSSING_LOCKS` and `RECOVER_TO_LOCKED_BRANCH`. The first valid physical crossing locks a sibling choice for the field. A losing crossing records a violation and recovers through the legal physical gate's geography without awarding illegal progress. An AI desired branch is never authority. Each actor's chart/content and route progress remain separate; shared route choice is owned once by the field.
 
@@ -48,6 +52,8 @@ The current Tsukuba and FISCO authoring lives in [Tsukuba](../src/dev/m9-3-tsuku
 Recovery reconstructs complete pose, velocity, wheel state, actuators, powertrain and observations at a supported known Guide coordinate. It retains selected steering/tire calibration. Ordinary same-chart recovery derives a backed-off target from the farther of last-safe and current causal chainage; it cannot loop forever onto the same launch face solely because last-safe did not advance in air. Explicit wrong-route recovery supplies the legal gate-derived target.
 
 Each root treats the resulting discontinuity as recovery: reset the camera and resync the route/race observer, suppressing ordinary physical crossing observation for that reset. It never awards gates, checkpoints or laps and never erases accepted progress. Known coordinates preserve the correct overlapping circuit copy. Global nearest geometry is not a substitute for that knowledge.
+
+Vehicle replacement completes camera reconstruction in the same selector callback. A render frame may arrive before the next fixed physics tick; it must already have the new player's camera anchor.
 
 ## Rivals and future game systems
 

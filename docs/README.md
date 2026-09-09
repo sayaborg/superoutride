@@ -5,7 +5,7 @@ This directory describes the current system. It is not a chronological milestone
 | Document | Authority |
 | --- | --- |
 | [architecture](architecture.md) | Frozen coordinates, raster rendering, metric scale, open geometry and layer boundaries |
-| [vehicle physics](vehicle-physics.md) | Current common mechanics, steering and torque constraints |
+| [vehicle physics](vehicle-physics.md) | Frozen common mechanics, steering and torque constraints; parameters remain tunable |
 | [content and gameplay](content-and-gameplay.md) | Authoring, route/race transactions and recovery composition |
 | [calibration](calibration.md) | Parameter ownership, present defaults and unfinished handling work |
 | [development](development.md) | Build, tests, diagnostics and exact-commit release procedure |

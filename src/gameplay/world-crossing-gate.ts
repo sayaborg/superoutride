@@ -33,15 +33,18 @@ export function compileWorldCrossingGate(source: WorldCrossingGateAuthoring): Wo
   }
   if (!(source.halfWidth > 0)) throw new RangeError(`world crossing gate ${source.id} halfWidth must be > 0`);
   return Object.freeze({
-    ...source,
-    tangent: tangentFromHeading(source.heading),
-    normal: normalFromHeading(source.heading),
+    id: source.id,
+    center: Object.freeze({ x: source.center.x, z: source.center.z }),
+    heading: source.heading,
+    halfWidth: source.halfWidth,
+    tangent: Object.freeze(tangentFromHeading(source.heading)),
+    normal: Object.freeze(normalFromHeading(source.heading)),
   });
 }
 
 /** Observe one finite world-motion segment against one oriented transverse gate. */
 export function observeWorldCrossingGate(
-  gate: WorldCrossingGate,
+  gate: Pick<WorldCrossingGate, 'center' | 'tangent' | 'normal' | 'halfWidth'>,
   previous: Vec2,
   current: Vec2,
 ): WorldGateCrossing | null {
@@ -54,12 +57,13 @@ export function observeWorldCrossingGate(
   const a1 = dot(currentRelative, gate.tangent);
 
   let direction: 'FORWARD' | 'REVERSE' | null = null;
-  if (a0 < -CROSSING_EPSILON && a1 >= -CROSSING_EPSILON) direction = 'FORWARD';
-  else if (a0 > CROSSING_EPSILON && a1 <= CROSSING_EPSILON) direction = 'REVERSE';
+  // A dead zone around the plane can swallow a crossing split between two ticks.
+  // Arrival at the plane counts; departure from it does not count a second time.
+  if (a0 < 0 && a1 >= 0) direction = 'FORWARD';
+  else if (a0 > 0 && a1 <= 0) direction = 'REVERSE';
   if (direction === null) return null;
 
   const denominator = a1 - a0;
-  if (Math.abs(denominator) <= CROSSING_EPSILON) return null;
   const u = -a0 / denominator;
   if (u < 0 || u > 1) return null;
 

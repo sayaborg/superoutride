@@ -31,7 +31,7 @@ export interface CourseModeProfile {
  * Compile product-facing course mode semantics without coupling every course shape to RouteDag.
  *
  * LINEAR and BRANCHING currently fit the point-to-point graph runtime. CIRCUIT is intentionally a
- * distinct future authority so the acyclic RouteDag invariant never needs to be weakened merely
+ * distinct authority so the acyclic RouteDag invariant never needs to be weakened merely
  * to represent laps.
  */
 export function compileCourseMode(authoring: CourseModeAuthoring): CourseModeProfile {

@@ -21,7 +21,6 @@ export class SteeringInputArbiter {
 
   setValue(source: string, value: number): void {
     if (source.length === 0) throw new RangeError('steering input source must be non-empty');
-    if (!Number.isFinite(value)) throw new RangeError('steering input value must be finite');
     this.active = { source, value: clampSteering(value) };
   }
 

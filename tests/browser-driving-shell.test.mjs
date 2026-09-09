@@ -6,44 +6,10 @@ import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.j
 import { recoverM5Vehicle } from '../dist/gameplay/recovery.js';
 import { vehicleCatalogEntryForId } from '../dist/vehicle/vehicle-catalog.js';
 
-class Element {
-  listeners = new Map();
-  children = [];
-  attributes = new Map();
-  classList = { toggle() {}, add() {}, remove() {} };
-  style = { setProperty() {} };
-  addEventListener(name, listener) {
-    const list = this.listeners.get(name) ?? [];
-    list.push(listener);
-    this.listeners.set(name, list);
-  }
-  emit(name, event = {}) { for (const listener of this.listeners.get(name) ?? []) listener(event); }
-  setAttribute(name, value) { this.attributes.set(name, value); }
-  replaceChildren(...children) { this.children = children; }
-  appendChild(child) { this.children.push(child); }
-}
+import { installBrowserDom } from './helpers/browser-dom.mjs';
 
 test('shared shell routes real selector events to the replaced player and preserves calibration/policy', t => {
-  const ids = ['game', 'steer-left-button', 'steer-right-button', 'throttle-button', 'brake-button',
-    'vehicle-selector-buttons', 'camera-selector-buttons', 'steering-offset-selector-buttons',
-    'max-steer-selector-buttons', 'steering-response-selector-buttons', 'tire-friction-selector-buttons'];
-  const elements = new Map(ids.map(id => [id, new Element()]));
-  const calls = [];
-  const context = new Proxy({ createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }) },
-    { get: (obj, key) => obj[key] ?? ((...args) => calls.push([key, ...args])) });
-  elements.get('game').getContext = () => context;
-  const doc = new Element();
-  doc.getElementById = id => elements.get(id) ?? null;
-  doc.createElement = () => new Element();
-  doc.documentElement = new Element();
-  const win = new Element();
-  win.innerWidth = 1200; win.innerHeight = 800;
-  for (const [key, value] of Object.entries({ document: doc, window: win,
-    navigator: { maxTouchPoints: 0 }, matchMedia: () => ({ matches: false }) })) {
-    const original = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { configurable: true, value });
-    t.after(() => { if (original) Object.defineProperty(globalThis, key, original); else delete globalThis[key]; });
-  }
+  const { elements, calls, win } = installBrowserDom(t);
   const course = createM83LinearHighwayRuntime();
   const runtime = { guide: course.guide, height: course.heightProfile, surfaces: course.surfaceMap };
   const shell = createBrowserDrivingShell(runtime, 0);

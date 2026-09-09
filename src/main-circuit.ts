@@ -274,6 +274,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   );
   shell.replacePlayer(profile, { guide, height, surfaces });
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
+  camera = updateM5Camera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {

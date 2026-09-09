@@ -18,6 +18,26 @@ const PROFILE = Object.freeze({
 });
 const neutral = Object.freeze({ steering: 0, throttle: false, brake: false });
 
+test('direct and rate-limited input reject invalid requests before changing actuator state', () => {
+  for (const mode of ['DIRECT', 'RATE_LIMITED']) {
+    const input = { steering: .5, throttle: .25, brake: 0,
+      steeringApplyMode: mode, pedalApplyMode: mode };
+    for (const value of [NaN, Infinity, -Infinity]) {
+      const state = createDrivingActuatorState();
+      assert.throws(() => updateDrivingActuators(state, { ...input, steering: value }, DT, PROFILE), RangeError);
+      assert.deepEqual(state, createDrivingActuatorState());
+    }
+    for (const dt of [0, -1, NaN, Infinity]) {
+      const state = createDrivingActuatorState();
+      assert.throws(() => updateDrivingActuators(state, input, dt, PROFILE), RangeError);
+      assert.deepEqual(state, createDrivingActuatorState());
+    }
+    const state = createDrivingActuatorState();
+    assert.throws(() => updateDrivingActuators(state, { ...input, pedalApplyMode: 'invalid' }, DT, PROFILE), RangeError);
+    assert.deepEqual(state, createDrivingActuatorState());
+  }
+});
+
 function run(state, input, seconds) {
   const ticks = Math.round(seconds / DT);
   for (let tick = 0; tick < ticks; tick += 1) {

@@ -112,7 +112,8 @@ test('browser vehicle selector derives all nine exact keys and profiles from the
 test('all nine profiles share one two-station mechanics contract', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
-    assert.equal(profile.actuator, FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator);
+    // Equal compiled settings, not aliasing mutable authoring; see vehicle-physics.md.
+    assert.deepEqual(profile.actuator, FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator);
     assert.equal(profile.steeringRatio, 18);
   }
 });

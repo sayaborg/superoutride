@@ -40,6 +40,13 @@ test('checked wheel/protection boundaries still reject every nonfinite numeric i
   assert.equal(limitWheelTorques(input), input, 'no-op preserves immutable request identity');
 });
 
+test('negative rolling resistance cannot invalidate the bounded wheel equation', () => {
+  const invalid = { ...input, rollingResistance: -100, driveTorque: 1000 };
+  assert.throws(() => solveWheelOmega(invalid), /rolling resistance/);
+  assert.throws(() => wheelRequiredNetTorque(invalid, 0), /rolling resistance/);
+  assert.throws(() => limitWheelTorques(invalid), /rolling resistance/);
+});
+
 test('range search preserves exact ascending-candidate tie handling on repeated geometry', () => {
   const guide = createM93TsukubaCourse2000Runtime().window.guide;
   for (const s of [0, 100, 2045, 2145, guide.length]) {

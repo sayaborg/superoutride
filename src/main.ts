@@ -447,6 +447,14 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     liveRoute.progress,
     fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
   );
+  camera = updateM5Camera(
+    cameraRig,
+    runtime.coordinateFrame,
+    runtime.heightProfile,
+    shell.vehicle,
+    cameraProfile,
+    SIM_DT,
+  );
 }
 
 function recoverActorToLockedBranch(

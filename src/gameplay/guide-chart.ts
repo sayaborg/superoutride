@@ -1,10 +1,12 @@
 import {
-  guidePathToWorld,
-  locateWorldOnGuideGlobal,
-  locateWorldOnGuideLocal,
-  type CourseCoordinate,
-  type GuidePath,
-  type GuideSample,
+  guideCoordinateToWorld,
+  locateWorldOnGuideCoordinateGlobal,
+  locateWorldOnGuideCoordinateLocal,
+} from '../core/guide-coordinate-frame.js';
+import type {
+  CourseCoordinate,
+  GuidePath,
+  GuideSample,
 } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 
@@ -33,8 +35,7 @@ export function createGuideChart(id: string, guide: GuidePath, lateralOrigin = 0
 }
 
 export function guideChartToWorld(chart: GuideChart, s: number, l: number): GuideChartSample {
-  const world = guidePathToWorld(chart.guide, s, l + chart.lateralOrigin);
-  return { ...world, l };
+  return guideCoordinateToWorld(chart, s, l);
 }
 
 export function locateWorldOnGuideChartGlobal(
@@ -42,7 +43,7 @@ export function locateWorldOnGuideChartGlobal(
   world: Vec2,
   clampL = false,
 ): CourseCoordinate {
-  return toChartCoordinate(chart, locateWorldOnGuideGlobal(chart.guide, world, false), clampL);
+  return locateWorldOnGuideCoordinateGlobal(chart, world, clampL);
 }
 
 export function locateWorldOnGuideChartLocal(
@@ -52,11 +53,7 @@ export function locateWorldOnGuideChartLocal(
   searchRadius = 2,
   clampL = false,
 ): CourseCoordinate {
-  return toChartCoordinate(
-    chart,
-    locateWorldOnGuideLocal(chart.guide, world, previousSegmentIndex, searchRadius, false),
-    clampL,
-  );
+  return locateWorldOnGuideCoordinateLocal(chart, world, previousSegmentIndex, searchRadius, clampL);
 }
 
 /**
@@ -66,19 +63,4 @@ export function locateWorldOnGuideChartLocal(
  */
 export function handoffGuideChart(chart: GuideChart, world: Vec2): CourseCoordinate {
   return locateWorldOnGuideChartGlobal(chart, world, false);
-}
-
-function toChartCoordinate(
-  chart: GuideChart,
-  base: CourseCoordinate,
-  clampL: boolean,
-): CourseCoordinate {
-  let l = base.l - chart.lateralOrigin;
-  if (clampL) l = Math.max(-chart.guide.lMax, Math.min(chart.guide.lMax, l));
-  return {
-    s: base.s,
-    l,
-    segmentIndex: base.segmentIndex,
-    distanceSquared: base.distanceSquared,
-  };
 }

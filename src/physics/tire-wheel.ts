@@ -109,9 +109,8 @@ export function evaluateTireForce(
 }
 
 /** Private solve core: caller has checked the fixed contact/tire input once. */
-function evaluateTireForceValidated(input: WheelSolveInput, omega: number): TireForceResult {
+function evaluateTireForceValidated(input: WheelSolveInput, omega: number, referenceSpeed: number): TireForceResult {
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  const referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   const slip = slipAtReferenceSpeed(omega, input.rollingRadius, input.longitudinalVelocity,
     input.lateralVelocity, referenceSpeed);
   const characteristics = input.characteristics ?? input.tire;
@@ -184,9 +183,11 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     brakeTorque,
     dt,
   } = input;
+  // Contact velocity is fixed throughout the scalar solve, including its final force evaluation.
+  const referenceSpeed = Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
 
   const noBrakeResidual = (omega: number): number =>
-    netTorqueAtOmega(input, omega) - driveTorque;
+    netTorqueAtOmega(input, omega, referenceSpeed) - driveTorque;
 
   const atZero = noBrakeResidual(0);
   let omega: number;
@@ -210,7 +211,7 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
     }
   }
 
-  const force = evaluateTireForceValidated(input, omega);
+  const force = evaluateTireForceValidated(input, omega, referenceSpeed);
   return {
     omega,
     omegaDot: (omega - omegaPrevious) / dt,
@@ -226,11 +227,12 @@ export function solveWheelOmega(input: WheelSolveInput): WheelSolveResult {
 export function wheelRequiredNetTorque(input: WheelSolveInput, omega: number): number {
   validateWheelSolveInput(input);
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  return netTorqueAtOmega(input, omega);
+  return netTorqueAtOmega(input, omega,
+    Math.hypot(input.longitudinalVelocity, input.tire.lowSpeedRegularization));
 }
 
-function netTorqueAtOmega(input: WheelSolveInput, omega: number): number {
-  const force = evaluateTireForceValidated(input, omega);
+function netTorqueAtOmega(input: WheelSolveInput, omega: number, referenceSpeed: number): number {
+  const force = evaluateTireForceValidated(input, omega, referenceSpeed);
   return input.inertia / input.dt * (omega - input.omegaPrevious)
     + input.rollingRadius * force.fx
     + rollingResistanceTorque(omega, input.rollingRadius, input.normalLoad,
@@ -285,6 +287,7 @@ export function validateWheelSolveInput(input: WheelSolveInput): void {
     input.gripFactor, input.rollingResistance, input.driveTorque].every(Number.isFinite)) {
     throw new RangeError('wheel solve inputs must be finite');
   }
+  if (input.rollingResistance < 0) throw new RangeError('rolling resistance must be nonnegative');
   validateCompiledTireProfile(input.tire);
   validateTireCharacteristics(input.characteristics ?? input.tire);
 }

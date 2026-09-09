@@ -200,6 +200,14 @@ export function createRasterStageSuccessor(
 }
 
 function assertAuthoring(authoring: RasterSuccessorAuthoring): void {
+  for (const [key, value] of Object.entries(authoring)) {
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      throw new RangeError(`successor ${key} must be finite`);
+    }
+  }
+  if (authoring.deformationDirection !== -1 && authoring.deformationDirection !== 1) {
+    throw new RangeError('successor deformationDirection must be -1 or 1');
+  }
   if (!(authoring.sourceSeamMinS > 0)) throw new RangeError('successor sourceSeamMinS must be positive');
   if (!(authoring.overlapMargin >= authoring.dCam)) throw new RangeError('successor overlapMargin must cover D_cam');
   if (!(authoring.transitionLead > 0)) throw new RangeError('successor transitionLead must be positive');
@@ -208,7 +216,7 @@ function assertAuthoring(authoring: RasterSuccessorAuthoring): void {
   if (!(authoring.gentleTurnLimitDegrees >= 0 && authoring.gentleTurnLimitDegrees < 10)) {
     throw new RangeError('successor gentle-turn threshold must stay below the Core 10-degree limit');
   }
-  if (!(authoring.minDeformationRunVertices >= 3)) {
+  if (!Number.isInteger(authoring.minDeformationRunVertices) || authoring.minDeformationRunVertices < 3) {
     throw new RangeError('successor deformation run must contain at least three vertices');
   }
   if (!(authoring.dCam > 0 && authoring.dMax > authoring.dCam)) throw new RangeError('successor depth envelope is invalid');
@@ -280,5 +288,5 @@ function findLastVertexAtOrBefore(values: readonly number[], target: number): nu
 }
 
 function copyVertex(vertex: RasterVertex): RasterVertex {
-  return { x: vertex.x, z: vertex.z };
+  return { ...vertex };
 }

@@ -26,6 +26,7 @@ export interface DrivingInput {
 }
 
 export function clampSteering(value: number): number {
+  if (!Number.isFinite(value)) throw new RangeError('steering input value must be finite');
   return Math.max(-1, Math.min(1, value));
 }
 

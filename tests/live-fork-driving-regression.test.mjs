@@ -1,13 +1,13 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
@@ -23,14 +23,12 @@ import {
 } from '../dist/gameplay/route-stage-handoff.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const DT = 1 / 60;
 const CAMERA_PROFILE = {
@@ -45,43 +43,6 @@ const CAMERA_PROFILE = {
   tauVertical: 0.22,
   deltaYMax: 4,
 };
-
-function parentShared(guide) {
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const groundProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    roadMarkings: CENTER_DASH_MARKINGS,
-    junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
-  return {
-    heightProfile,
-    surfaceMap,
-    groundProfile,
-    terrainProfile: {
-      screenHeight: 240,
-      dMin: 2.5,
-      dMax: 150,
-      groundLeft: 12,
-      groundRight: 12,
-      roadLeft: 4.5,
-      roadRight: 4.5,
-      height: heightProfile,
-      visual: visualProfile,
-      thinSpanScreenRows: 1,
-    },
-    selectFarBackground: () => createM3FarBackground(),
-    worldSprites: [],
-  };
-}
 
 test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps rendering', () => {
   const parentGuide = createM2StadiumGuide();

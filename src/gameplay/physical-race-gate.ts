@@ -5,13 +5,12 @@ import {
 } from '../core/guide-curve.js';
 import {
   dot,
-  normalFromHeading,
   subtract,
   tangentFromHeading,
   type Vec2,
 } from '../core/math.js';
 
-const CROSSING_EPSILON = 1e-9;
+import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
 const MOTION_EPSILON = 1e-7;
 
 export type RaceMotionDirection = 'FORWARD' | 'REVERSE' | 'STATIONARY';
@@ -67,17 +66,17 @@ export function compilePhysicalRaceGate(
   }
 
   const centerSample = guidePathToWorld(guide, s, 0);
-  const tangent = tangentFromHeading(centerSample.heading);
-  const normal = normalFromHeading(centerSample.heading);
+  const geometry = compileWorldCrossingGate({ id: name, center: centerSample,
+    heading: centerSample.heading, halfWidth: guide.lMax });
   return Object.freeze({
     index,
     kind,
     name,
     s,
-    center: Object.freeze({ x: centerSample.x, z: centerSample.z }),
-    tangent: Object.freeze(tangent),
-    normal: Object.freeze(normal),
-    halfWidth: guide.lMax,
+    center: geometry.center,
+    tangent: geometry.tangent,
+    normal: geometry.normal,
+    halfWidth: geometry.halfWidth,
   });
 }
 
@@ -112,29 +111,6 @@ export function detectPhysicalRaceGateCrossing(
   previous: Vec2,
   current: Vec2,
 ): PhysicalRaceGateCrossing | null {
-  const previousRelative = subtract(previous, gate.center);
-  const currentRelative = subtract(current, gate.center);
-  const a0 = dot(previousRelative, gate.tangent);
-  const a1 = dot(currentRelative, gate.tangent);
-
-  let direction: PhysicalRaceGateCrossingDirection | null = null;
-  if (a0 < -CROSSING_EPSILON && a1 >= -CROSSING_EPSILON) direction = 'FORWARD';
-  else if (a0 > CROSSING_EPSILON && a1 <= CROSSING_EPSILON) direction = 'REVERSE';
-  if (direction === null) return null;
-
-  const denominator = a1 - a0;
-  if (Math.abs(denominator) <= CROSSING_EPSILON) return null;
-  const u = -a0 / denominator;
-  if (u < 0 || u > 1) return null;
-
-  const dx = current.x - previous.x;
-  const dz = current.z - previous.z;
-  const crossingPoint = {
-    x: previous.x + dx * u,
-    z: previous.z + dz * u,
-  };
-  const lateral = dot(subtract(crossingPoint, gate.center), gate.normal);
-  if (Math.abs(lateral) > gate.halfWidth + CROSSING_EPSILON) return null;
-
-  return Object.freeze({ gate, direction, u });
+  const crossing = observeWorldCrossingGate(gate, previous, current);
+  return crossing === null ? null : Object.freeze({ gate, direction: crossing.direction, u: crossing.u });
 }

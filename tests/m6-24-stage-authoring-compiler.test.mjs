@@ -1,62 +1,22 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { rasterPathToWorld } from '../dist/core/course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+
 import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
 import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-identity.js';
 import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
 import { createM624ChildStageAuthoring } from '../dist/dev/m6-24-stage-authoring.js';
 import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runtime-content.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
 
-function parentShared(guide) {
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const groundProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    roadMarkings: CENTER_DASH_MARKINGS,
-    junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
-  return {
-    heightProfile,
-    surfaceMap,
-    groundProfile,
-    terrainProfile: {
-      screenHeight: 240,
-      dMin: 2.5,
-      dMax: 150,
-      groundLeft: 12,
-      groundRight: 12,
-      roadLeft: 4.5,
-      roadRight: 4.5,
-      height: heightProfile,
-      visual: visualProfile,
-      thinSpanScreenRows: 1,
-    },
-    selectFarBackground: () => createM3FarBackground(),
-    worldSprites: [],
-  };
-}
+import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
 
 function setup() {
   const parent = createM2StadiumGuide();

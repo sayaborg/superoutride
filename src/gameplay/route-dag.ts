@@ -36,7 +36,7 @@ export interface RouteDag {
 }
 
 /**
- * Future world-space branch validation emits one of these events after a physical boundary
+ * World-space branch validation emits one of these events after a physical boundary
  * has actually been accepted. This route layer never decides a branch from input or screen X.
  */
 export type ValidatedRouteBoundary =
@@ -119,11 +119,11 @@ export function compileRouteDag(
 
   assertAcyclicAndReachable(startStageId, stageAuthoring, choiceAuthoring, outgoing, choicesById);
 
-  const stages: RouteStage[] = stageAuthoring.map((stage) => ({
+  const stages: RouteStage[] = stageAuthoring.map((stage) => Object.freeze({
     ...stage,
     outgoingChoiceIds: Object.freeze([...outgoing.get(stage.id)!]),
   }));
-  const choices: RouteChoice[] = choiceAuthoring.map((choice) => ({ ...choice }));
+  const choices: RouteChoice[] = choiceAuthoring.map((choice) => Object.freeze({ ...choice }));
 
   return Object.freeze({
     startStageId,

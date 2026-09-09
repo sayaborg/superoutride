@@ -1,6 +1,6 @@
 # Calibration and remaining handling work
 
-Handling remains `DEV_UNCALIBRATED`. The common mechanics are the basis for further development; the following values are a playtest starting point, not a real-vehicle claim or a completed stability certification.
+Handling remains `DEV_UNCALIBRATED`. The common mechanics/control structure is frozen in [vehicle physics](vehicle-physics.md); the following values are a playtest starting point, not a real-vehicle claim or a completed stability certification.
 
 ## Current player settings
 

@@ -1,33 +1,63 @@
-# Current authority audit
+# Current repository and vehicle-freeze audit
 
-Scope: remove unused alternate source models, implicit content defaults and copied measurement policy; validate compiled source boundaries. Handling calibration and the common vehicle law remain unchanged.
+Scope: repository-wide consistency and ownership review, with detailed examination of the common vehicle model before freezing mechanics/control structure. Parameter calibration remains open. The audit started from the fetched, CI-green main and used a feature branch; the repository is the only restart authority.
 
-## Architecture decision
+## Coverage and method
 
-- Raster and Guide expose one Path API; compatibility aliases and forwarding functions are removed. General sources own one finite open domain. CIRCUIT already unfolds laps before constructing these sources. Remove the five unused cyclic implementations and move regression fixtures to ordinary open readers; retain open endpoints, physical lap progression and overlapping-copy integration tests.
-- Ground appearance is authored content. Road paint is explicit, including junction paint, and outer material comes from logical GroundMap data. GroundBase transparency must not select a rock texture. The existing procedural sampler and stage adapters express these choices without a new renderer mode.
-- The concrete tunnel assets, positions and background interval belong to DEV authoring, consumed by the existing composition root. Keep ordinary sprite compilation and the single Painter.
-- Workload observation remains diagnostic. Copied milestone measurements and their arbitrary 25% multiplier are not a target-device budget. Replace preservation of those numbers with live accounting, clipping bounds and exact reference-render comparisons.
-- Source constructors validate finite authored values before endpoint normalization and own immutable copies. Invalid lateral queries fail rather than masquerading as unsupported terrain.
+The starting inventory contained 324 tracked files: root/configuration, the release workflow, eight topic documents, 162 source-tree files, 133 test-tree files and 12 diagnostic/build tools. All tracked text was decoded, TypeScript/JavaScript parsed, JSON read and function duplication scanned. Source/type/compiler review followed the dependency layers; the complete executable suite covers the maintained DEV fixtures and integration scenarios. Generated dependencies, dist and local reports are derived work products, not additional project authorities.
 
-These changes remove alternate authorities; they introduce no new coordinate, force, vehicle or route branch. Tests must reproduce invalid-data failures and prove authored painting, immutable source data, finite-domain behavior, unchanged rendering and the existing nine-profile physics traces.
+Manual scrutiny concentrated on force/contact equations, signed wheel balance, steering and torque constraints, profile ownership, route transactions, recovery, geometry/source boundaries, and actual browser composition. This is a broad engineering audit with causal tests, not a proof that every possible state is defect-free.
+
+## Architecture decisions
+
+- Mechanics owns force and integration; compilation owns valid immutable parameters. Copy nested profile data after validation. Do not alter force laws, parameter values, wheel/body velocity or position to hide defects.
+- Core owns Raster/Guide geometry and coordinate arithmetic. Gameplay Guide charts delegate to that primitive. Preserve circular provenance in copied overlap vertices; keep numerical join tolerance local to adjacent segments.
+- One oriented world-gate primitive owns crossing geometry. Race and route layers attach their semantics to it. A sign change must not disappear inside an epsilon dead band; width tolerance is independent.
+- Stage continuation compilation examines every participating straight/arc interval, rather than five fixed points. It owns geometric rejection before a handoff can be assembled.
+- Composition roots own recovery/replacement and camera synchronization. No new vehicle, route or mode branch enters the general solver/renderer.
+- Shared fixed regression content belongs in a test helper. Consolidating identical fixture constructors changes no authored values or assertions.
+
+The frozen world pose, chainage depth, metric, single Painter, open source domains, DEV dependency direction and physical progress authority remain intact.
 
 ## Findings resolved
 
-- NaN endpoints could be rewritten to valid chainage before validation. Nonfinite input now fails before normalization.
-- Nonfinite surface width or lateral queries could masquerade as unsupported terrain. Construction/query validation rejects them; genuinely outside supported bands still returns VOID.
-- A tolerated nonzero initial SurfaceMap section left a gap at zero and selected the final section. Normalizing the validated first endpoint closes that gap.
-- Visual authoring shared nested paint objects with the compiled reader. Profiles now own frozen geometry, paint and material copies.
-- Five cyclic source implementations, eight Raster/Guide compatibility names, two forwarding-only DEV modules and the return-to-start child shape are removed. Current circuit unfolding and forward child authoring exercise the ordinary open model.
-- Concrete tunnel assets/placement now reside together in DEV; hardcoded road paint and the transparency-to-rock fallback are removed from the renderer/source sampler.
-- Historical workload constants, arbitrary 25% budgets and their combining machinery are removed. Live telemetry, clipped workload bounds, portal overdraw, pixel equivalence and complete physical traces remain executable.
+| Failure or duplication | Correction and executable coverage |
+| --- | --- |
+| Vehicle selection recovered the player but left the branching/circuit camera at its prior position until a fixed tick; an intervening frame threw in projection and stopped animation | Reconstruct camera in the selector callback. [Actual root lifecycle tests](../tests/browser-player-replacement.test.mjs) exercise all four course queries with no elapsed physics time |
+| Three gate detectors could miss a complete forward/reverse crossing composed of tiny steps | Share the oriented world-gate detector; exact sign-side test with once-only plane arrival. [Gate regressions](../tests/physical-gate-boundary.test.mjs) |
+| Validated profiles still referenced mutable nested actuator/powertrain authoring | Frozen snapshots of rates, gear ratios and torque points. Missing actuator channels rejected explicitly. [Profile boundary tests](../tests/vehicle-profile-boundary.test.mjs) |
+| DIRECT input bypassed finite steering/time validation; invalid pedal mode could partially mutate actuators | Validate canonical requests/modes before writing actuator state. [Actuator tests](../tests/m9-0-driving-actuator.test.mjs) |
+| Straight Guide compilation skipped metric-option checks; Raster accepted nonfinite coordinates/radii and exposed mutable nested geometry | Validate the common boundary independent of curvature and freeze compiled geometry. [Geometry tests](../tests/compiled-geometry-boundary.test.mjs) |
+| A roundoff-size fillet gap made binary lookup fall through to the final Guide segment | Retain the adjacent segment under the existing sample tolerance. [Curve-boundary test](../tests/raster-successor-boundary.test.mjs) |
+| Five-point overlap checks skipped local mismatches; successor copying discarded circular-source radius; nonfinite generation dimensions could reach loops | Partition by both charts' primitive boundaries, preserve radius provenance and validate finite generation data. [Overlap](../tests/stage-continuation-boundary.test.mjs) and [successor](../tests/raster-successor-boundary.test.mjs) regressions |
+| Route observations could mutate graph entries; color coercion hid invalid GroundBase authoring | Freeze compiled stage/choice entries; share GroundBase validation/copying before any coercion. [Content tests](../tests/compiled-content-boundary.test.mjs) |
+| Wheel bisection recomputed an unchanged contact reference speed every trial | Compute it once per scalar solve. Reject negative rolling resistance, which invalidates the torque bracket. [Exact trace tests](../tests/hot-path-equivalence.test.mjs) |
+| Fourteen identical parent-content constructors and duplicated DEV transition-gate authoring | One [fixed test fixture](../tests/helpers/stage-parent-fixture.mjs), one shared DEV gate factory; existing route assertions retained |
 
-## Verification
+The obsolete M8.3 reference-identity assertion is explicitly superseded in [vehicle physics](vehicle-physics.md): equal settings require equal values, not a shared mutable source object. Its common-value/common-solver checks remain. No historical physical behavior test was weakened to accommodate a different law.
 
-Local full suite: 861 tests passed. Nonfinite input and mutable-paint regressions were confirmed failing on the starting implementation before their fixes. Exact nine-profile wheel/turning/pedal traces match at 60/120/240 Hz, including 1,152 signed wheel solves. Renderer pixels/workload remain exact. Current browser roads and all successor paint match the immutable reference across their finite domains; the baked GroundMap metadata and binary are byte-identical.
+## Vehicle freeze assessment
 
-Surface sampling scans immutable bands by index. Paired Node.js 24 arm64 measurements against the starting release (one warm-up per build, five alternating measured pairs) gave median 2312 ms for the reference and 2267 ms for this candidate, about 2.0% shorter. This measures the complete trace probe including serialization, not browser FPS; treat it as a small same-host result, not a target-device guarantee.
+The two-station solver, unilateral spring/damper contact, elliptical dissipative tire map, implicit signed wheel root, direct automatic gearing, input-only torque protection, automatic steering and analytic driver-offset limiter agree with the responsible specification. Wheel reaction and force/moment assembly have one shared implementation. CAR/BIKE distinctions stay in profiles/presentation; HUD and lean remain observations.
 
-No handling parameters or physical law changed. The source remains a finite two-station game model; parameter tuning and target-device acceptance remain open in [NEXT](NEXT.md). This audit establishes the reviewed boundaries and tested behavior, not an exhaustive proof over every possible state.
+Existing coverage includes 20,000 tire-characteristic samples for boundedness, symmetry and nonpositive slip work; signed wheel roots and static braking; flat/grade/crest/recontact and zero-grip cases; drive/brake envelopes for all nine vehicles; time-step refinement; recovery without awarded progress; and structural dependency checks. Local-plane support protection retains its stated limitations: its bounded search does not establish global monotonicity, global optimality or arbitrary-terrain stability.
 
- Exact-head CI and release follow [development](development.md). [NEXT](NEXT.md) retains the current restart instructions and remaining handling/product work.
+Mechanics/control structure is now explicitly frozen in the current specification and restart documents. All physical formulas and current handling parameters remain unchanged by this audit. Structural defects found later require a documented causal correction, never a disguised parameter/force patch.
+
+## Verification and performance
+
+- `npm install` and complete `npm test`: **884 passed** (861 starting tests plus 23 new regressions). Reproduced the principal failures before their fixes, including three actual browser-root crashes, tiny gate crossings, mutable compiled data, skipped overlap bends, radius loss and Guide join fallthrough.
+- With an immutable pre-change build supplied as `HOT_PATH_BASELINE_BUILD`, complete serialized traces are identical for all nine profiles at 60/120/240 Hz, including 1,152 signed wheel cases. CI retains the previously pinned immutable baseline.
+- Renderer geometry, metric, pixel-equivalence and workload tests pass. Baked GroundMap JSON and binary compare byte-for-byte with the starting build.
+- Local in-app browser: all four course selectors, RC30 replacement and displayed road/player/HUD inspected; no console errors observed. Deterministic no-tick scheduling is covered separately by the actual-root tests.
+- Node.js 24.18 arm64: one warm-up per build, five alternating measured pairs using [hot-path probe](../tools/hot-path-probe.mjs). Median reference **2326 ms**, candidate **2089 ms**, about **10.2% shorter**. Every run produced the same complete-trace hash. This includes simulation and serialization; it is not browser FPS or a target-phone promise.
+
+To reproduce, build a separate immutable reference checkout, supply its complete dist directory via `HOT_PATH_BASELINE_BUILD` for the full suite, then call `runHotPathProbe(referenceDist)` and `runHotPathProbe('dist')` once each to warm up and five times each in alternating order. Compare hashes before interpreting median timings. Keep generated logs outside the source tree.
+
+## Remaining limits
+
+General nonadjacent road-band intersection classification is not implemented. The earlier specification wording overstated current automated coverage; [architecture](architecture.md) now distinguishes the unchanged validity requirement from this compiler gap. New content must not be certified from vertex/fillet checks alone; intentional unfolded circuit overlap needs topology-aware classification above Core.
+
+Per-vehicle/front-rear calibration, coast/turn oscillation acceptance, combined-input/changing-terrain acceptance and real-phone performance/input testing remain open in [NEXT](NEXT.md). These are not claims of completed physical accuracy or device acceptance.
+
+Exact-head PR/main/Pages release evidence is recorded by GitHub Actions and refs under [development](development.md). No source file embeds its own commit SHA or becomes a release-history archive.

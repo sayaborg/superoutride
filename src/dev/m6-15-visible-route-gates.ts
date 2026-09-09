@@ -24,12 +24,12 @@ export const M6_15_FINISH_GATE_S = 20;
 /**
  * Bind the detached M6.8 route DAG to the actual visible M6.13 junction in the shared world frame.
  *
- * The current closed DEV course deliberately reuses the same visible split for both route stages:
+ * This detached route fixture reuses the same physical split for both route stages:
  * - first forward crossing chooses STAGE_2_L / STAGE_2_R;
- * - the next lap's crossing chooses one of the four terminal outcomes;
+ * - another explicit crossing chooses one of the four terminal outcomes;
  * - the next physical FINISH crossing completes the route.
  *
- * This is validation content only. Route authority remains the world-space crossing itself; no
+ * This does not create a closing segment or award a lap. This is validation content only. Route authority remains the world-space crossing itself; no
  * steering value, screen X or raw chainage is inspected by the route validator.
  */
 export function createM615VisibleRouteBoundaryGateSet(
@@ -48,12 +48,12 @@ export function createM615VisibleRouteBoundaryGateSet(
   }
 
   const authoring: RouteBoundaryGateAuthoring[] = [
-    transitionGate(guide, junction, 'G_VISIBLE_S1_LEFT', 'S1_LEFT', 'LEFT'),
-    transitionGate(guide, junction, 'G_VISIBLE_S1_RIGHT', 'S1_RIGHT', 'RIGHT'),
-    transitionGate(guide, junction, 'G_VISIBLE_S2L_LEFT', 'S2L_LEFT', 'LEFT'),
-    transitionGate(guide, junction, 'G_VISIBLE_S2L_RIGHT', 'S2L_RIGHT', 'RIGHT'),
-    transitionGate(guide, junction, 'G_VISIBLE_S2R_LEFT', 'S2R_LEFT', 'LEFT'),
-    transitionGate(guide, junction, 'G_VISIBLE_S2R_RIGHT', 'S2R_RIGHT', 'RIGHT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S1_LEFT', 'S1_LEFT', 'LEFT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S1_RIGHT', 'S1_RIGHT', 'RIGHT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S2L_LEFT', 'S2L_LEFT', 'LEFT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S2L_RIGHT', 'S2L_RIGHT', 'RIGHT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S2R_LEFT', 'S2R_LEFT', 'LEFT'),
+    createM615TransitionGate(guide, junction, 'G_VISIBLE_S2R_RIGHT', 'S2R_RIGHT', 'RIGHT'),
   ];
 
   const finish = guidePathToWorld(guide, M6_15_FINISH_GATE_S, 0);
@@ -71,7 +71,7 @@ export function createM615VisibleRouteBoundaryGateSet(
   return compileRouteBoundaryGateSet(route, authoring);
 }
 
-function transitionGate(
+export function createM615TransitionGate(
   guide: GuidePath,
   junction: JunctionCrossSectionProfile,
   id: string,

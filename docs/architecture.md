@@ -12,13 +12,17 @@ t = (sin ψ, cos ψ)      n = (cos ψ, -sin ψ)
 
 Course `(s,l)` is a derived observation. `s` is the shared plan chainage of Raster and Guide, not physical travel distance along a sloping/offset path. Local projection uses a known previous segment and a finite clipped neighborhood. Known spawn/recovery coordinates seed that same local search; a global nearest-point search cannot distinguish overlapping circuit copies. Invalid seeds fail explicitly rather than silently selecting another copy.
 
-The general domain of RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap is `[0,L]`. Sampling outside it is invalid. Constructors reject nonfinite authoring before endpoint normalization. Height, visual, logical-material and physical-surface profiles own immutable copies so later authoring edits cannot change a compiled source. Consecutive authored vertices form the path; no final-to-first segment is manufactured. At endpoints the adjacent segment supplies the basis and there is no synthetic turn or fillet. Terrain visibility clips to the finite domain. Author enough run-in/runout for camera, drawing and handoff.
+The general domain of RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap is `[0,L]`. Sampling outside it is invalid. Constructors reject nonfinite authoring before endpoint normalization. Raster/Guide geometry, height, visual, logical-material and physical-surface profiles own immutable copies so later authoring edits cannot change a compiled source. Consecutive authored vertices form the path; no final-to-first segment is manufactured. At endpoints the adjacent segment supplies the basis and there is no synthetic turn or fillet. Terrain visibility clips to the finite domain. Author enough run-in/runout for camera, drawing and handoff.
 
 CIRCUIT unfolds authored topology into a finite ordinary open window before constructing the same open source profiles. General profile classes provide no cyclic alternate implementation. Renderer and physics do not infer topology.
 
 ## Raster and Guide
 
-Raster is a polyline with `|Δheading| <= 10°` at every interior vertex. Left/right road and ground widths are independent. Edge continuity uses the exact miter basis; constant-width miter ratio is `1/cos(Δ/2)`. Geometry validation checks finite joins, inversion and actual band intersections/overlaps. Do not replace this with an approximate rule comparing width to corner radius.
+Raster is a polyline with `|Δheading| <= 10°` at every interior vertex. Left/right road and ground widths are independent. Edge continuity uses the exact miter basis; constant-width miter ratio is `1/cos(Δ/2)`. Road/ground bands must have finite joins and no local inversion or unintended intersections/overlaps. Validation must inspect the actual band geometry. Do not replace this with an approximate rule comparing width to corner radius.
+
+Current automated compilation covers finite Raster vertices/miters, the turn limit, Guide metrics, fillet overlap and supported lateral envelopes. General nonadjacent road-band intersection classification is not implemented; this remains a content-validation gap, not a relaxation of the preceding requirement. Intentional coincident circuit copies cannot be rejected as ordinary authoring collisions.
+
+Guide lookup retains the adjacent segment at a roundoff-size fillet join, using the existing endpoint tolerance. It must never fall through to an unrelated end segment.
 
 Geometry breaks at the union of heading, render-height, road-width and ground-width changes. Surface/texture/GroundBase changes are paint/material lookups and do not require geometry splits. Interpolate geometry linearly inside a segment.
 

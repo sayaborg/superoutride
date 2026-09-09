@@ -28,17 +28,17 @@ export interface RasterSegment {
  * this object.
  */
 export interface RasterPath {
-  vertices: readonly RasterVertex[];
-  segments: readonly RasterSegment[];
-  vertexS: readonly number[];
-  vertexTurns: readonly number[];
+  readonly vertices: readonly Readonly<RasterVertex>[];
+  readonly segments: readonly Readonly<RasterSegment>[];
+  readonly vertexS: readonly number[];
+  readonly vertexTurns: readonly number[];
   /**
    * Per-vertex lateral basis for exact miter joins. Multiplying this vector by
    * l yields the shared intersection of adjacent offset lines at an interior
    * vertex. Endpoints use the normal of their single adjacent segment.
    */
-  vertexMiters: readonly Vec2[];
-  length: number;
+  readonly vertexMiters: readonly Readonly<Vec2>[];
+  readonly length: number;
 }
 
 export interface RasterSample extends Vec2 {
@@ -58,7 +58,16 @@ const RANGE_TOLERANCE = 1e-8;
 export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
   if (vertices.length < 2) throw new Error('open raster path requires at least 2 vertices');
 
-  const copied = vertices.map((vertex) => ({ ...vertex }));
+  const copied = vertices.map((vertex) => {
+    if (![vertex.x, vertex.z].every(Number.isFinite)) {
+      throw new RangeError('raster vertex coordinates must be finite');
+    }
+    if (vertex.sourceRadius !== undefined
+      && (!(vertex.sourceRadius > 0) || !Number.isFinite(vertex.sourceRadius))) {
+      throw new RangeError('raster vertex sourceRadius must be finite and > 0');
+    }
+    return Object.freeze({ ...vertex });
+  });
   const segments: RasterSegment[] = [];
   const vertexS: number[] = new Array(copied.length).fill(0);
 
@@ -69,6 +78,9 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const dx = end.x - start.x;
     const dz = end.z - start.z;
     const length = Math.hypot(dx, dz);
+    if (!Number.isFinite(length) || !Number.isFinite(s + length)) {
+      throw new RangeError('raster path length must be finite');
+    }
     if (!(length > EPSILON)) throw new Error(`raster segment ${i} has zero length`);
 
     vertexS[i] = s;
@@ -117,10 +129,10 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
 
   return Object.freeze({
     vertices: Object.freeze(copied),
-    segments: Object.freeze(segments),
+    segments: Object.freeze(segments.map(segment => Object.freeze(segment))),
     vertexS: Object.freeze(vertexS),
     vertexTurns: Object.freeze(vertexTurns),
-    vertexMiters: Object.freeze(vertexMiters),
+    vertexMiters: Object.freeze(vertexMiters.map(miter => Object.freeze(miter))),
     length: s,
   });
 }
@@ -153,6 +165,7 @@ export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
  * segment's offset line.
  */
 export function rasterPathToWorld(path: RasterPath, s: number, l: number): CourseWorldSample {
+  if (!Number.isFinite(l)) throw new RangeError('raster lateral coordinate must be finite');
   const center = sampleRasterPath(path, s);
   const segment = path.segments[center.segmentIndex]!;
   const ds = center.s - segment.sStart;

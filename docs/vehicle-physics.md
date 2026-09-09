@@ -2,6 +2,8 @@
 
 CAR and BIKE use one two-station arcade solver. The model is a game approximation, not a complete real vehicle or motorcycle simulator. Mass, geometry, inertia, suspension, wheel, brakes, drag, fixed drive split and powertrain are compiled profile data. Browser calibration and torque-protection policy are explicit instance/composition inputs. There is no vehicle-ID branch inside the tire or wheel solver.
 
+The mechanics and control laws in this document are frozen; parameter calibration remains open. A future structural defect must be corrected with its causal regression and an explicit specification revision, never hidden by tuning. Compiled profiles own immutable snapshots, including nested actuator rates, ratios and torque points. Equal authored settings mean equal values; sharing the original authoring object's identity is not a mechanics invariant. This supersedes the historical reference-identity assertion in the M8.3 profile test while retaining its common-value and common-solver coverage.
+
 ## State and integration
 
 [Arcade vehicle physics](../src/physics/arcade-vehicle-physics.ts) owns world position and velocity, yaw/pitch and their rates, wheel angular speeds, rack angle, three normalized actuators and automatic gear state. Course coordinate, contact loads, accelerations and HUD values are observations; they do not become alternate physical state. There is no physical roll or rider model.
@@ -72,7 +74,7 @@ I*(Ω-Ωold)/dt + r*Fx(Ω) + rollingTorque(Ω) = driveTorque - signedBrakeTorque
 rollingTorque = Cr*N*r * (r*Ω)/hypot(r*Ω, v0)
 ```
 
-If Ω=0 satisfies the static brake interval, it is the solution. Otherwise a finite torque/force bracket and up to 60 bisection iterations solve the monotone residual (angular tolerance 1e-10). No wheel-speed, body-speed or force cap substitutes for the solve.
+If Ω=0 satisfies the static brake interval, it is the solution. Otherwise a finite torque/force bracket and up to 60 bisection iterations solve the monotone residual (early return at absolute torque residual below 1e-10 N·m). Rolling resistance is nonnegative. Contact reference speed is constant during this scalar solve and is evaluated once. No wheel-speed, body-speed or force cap substitutes for the solve.
 
 [Automatic powertrain](../src/physics/automatic-powertrain.ts) derives RPM directly from the fixed drive split's wheel speed and current ratio. It interpolates profile torque, shifts with compiled adjacent-ratio hysteresis, and tapers torque to zero at redline. There is no runtime power multiplier, separate engine inertia, clutch lag or fabricated engine braking. Gear changes are discrete; available wheel torque uses the selected profile's ratio and efficiency.
 

@@ -27,7 +27,7 @@ export interface GuideCorner {
   radius: number;
   rMin: number;
   trim: number;
-  center: Vec2 | null;
+  center: Readonly<Vec2> | null;
   incomingHeading: number;
   outgoingHeading: number;
 }
@@ -59,12 +59,12 @@ type GuideSegmentDraft = Omit<GuideStraightSegment, 'index'> | Omit<GuideArcSegm
  * circular fillet.
  */
 export interface GuidePath {
-  raster: RasterPath;
-  segments: readonly GuideSegment[];
-  corners: readonly GuideCorner[];
-  length: number;
-  lMax: number;
-  mMin: number;
+  readonly raster: RasterPath;
+  readonly segments: readonly Readonly<GuideSegment>[];
+  readonly corners: readonly Readonly<GuideCorner>[];
+  readonly length: number;
+  readonly lMax: number;
+  readonly mMin: number;
 }
 
 export interface GuideSample extends Vec2 {
@@ -91,13 +91,22 @@ export function filletMetric(turn: number): number {
 }
 
 export function minimumGuideRadius(lMax: number, mMin: number, mu: number): number {
+  if (![lMax, mMin, mu].every(Number.isFinite)) throw new RangeError('Guide chart metrics must be finite');
   if (!(lMax > 0)) throw new RangeError('lMax must be > 0');
   if (!(mMin > 0 && mMin < mu)) throw new RangeError('Core requires 0 < mMin < mu');
-  return lMax / (1 - mMin / mu);
+  const radius = lMax / (1 - mMin / mu);
+  if (!Number.isFinite(radius)) throw new RangeError('minimum Guide radius must be finite');
+  return radius;
 }
 
 export function compileGuidePath(path: RasterPath, options: GuideCompileOptions): GuidePath {
   const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
+  // The chart contract also applies to straight paths, which never enter the fillet branch.
+  minimumGuideRadius(options.lMax, options.mMin, 1);
+  if (!Number.isFinite(tolerance) || tolerance < 0) throw new RangeError('Guide tolerance must be finite and >= 0');
+  if (options.dCam !== undefined && (!Number.isFinite(options.dCam) || options.dCam < 0)) {
+    throw new RangeError('Guide camera distance must be finite and >= 0');
+  }
   const lastVertexIndex = path.vertices.length - 1;
   const corners: GuideCorner[] = path.vertices.map((vertex, i) => {
     const isStart = i === 0;
@@ -129,9 +138,6 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
       ? rMin
       : sourceRadius * Math.cos(absTurn * 0.5);
 
-    if (sourceRadius !== undefined && !(sourceRadius > 0)) {
-      throw new Error(`vertex ${i} sourceRadius must be > 0`);
-    }
     if (radius + tolerance < rMin) {
       throw new Error(`vertex ${i} circular-source guide radius is below Core R_min`);
     }
@@ -202,8 +208,9 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
 
   return Object.freeze({
     raster: path,
-    segments: Object.freeze(segments),
-    corners: Object.freeze(corners),
+    segments: Object.freeze(segments.map(segment => Object.freeze(segment))),
+    corners: Object.freeze(corners.map(corner => Object.freeze({ ...corner,
+      center: corner.center === null ? null : Object.freeze(corner.center) }))),
     length: path.length,
     lMax: options.lMax,
     mMin: options.mMin,
@@ -217,6 +224,7 @@ export function sampleGuidePath(guide: GuidePath, s: number): GuideSample {
 }
 
 export function guidePathToWorld(guide: GuidePath, s: number, l: number): GuideSample & { l: number } {
+  if (!Number.isFinite(l)) throw new RangeError('Guide lateral coordinate must be finite');
   const center = sampleGuidePath(guide, s);
   const normal = normalFromHeading(center.heading);
   return {
@@ -419,5 +427,7 @@ function findGuideSegmentIndex(guide: GuidePath, sLocal: number): number {
       return mid;
     }
   }
-  return guide.segments.length - 1;
+  // Compilation tolerates roundoff at adjoining fillets. Keep such a query at its
+  // preceding segment; sampleGuideSegment owns the existing endpoint tolerance.
+  return Math.max(0, high);
 }

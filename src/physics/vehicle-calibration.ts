@@ -8,10 +8,8 @@ export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
 
 /**
  * This is intentionally not a versioned handling target.
- *
- * Current car/bike equations and parameter values exist to exercise world-space driving,
- * SurfaceMap interaction, camera and gameplay integration. They are not a tuned product
- * handling specification and may change substantially later.
+ * The common mechanics/control structure is frozen in docs/vehicle-physics.md.
+ * Parameter values remain provisional until product handling and device acceptance.
  */
 export type VehiclePhysicsCalibrationStatus = typeof VEHICLE_PHYSICS_CALIBRATION_STATUS;
 

@@ -191,8 +191,16 @@ export function compileArcadeVehicleProfile(
     steeringLowSpeedRegularization: profile.steeringLowSpeedRegularization,
     steeringRatio: profile.steeringRatio,
     quadraticDrag: profile.quadraticDrag,
-    actuator: profile.actuator,
-    powertrain: profile.powertrain,
+    actuator: Object.freeze({
+      steering: Object.freeze({ ...profile.actuator.steering }),
+      throttle: Object.freeze({ ...profile.actuator.throttle }),
+      brake: Object.freeze({ ...profile.actuator.brake }),
+    }),
+    powertrain: Object.freeze({
+      ...profile.powertrain,
+      gearRatios: Object.freeze([...profile.powertrain.gearRatios]),
+      torqueCurve: Object.freeze(profile.powertrain.torqueCurve.map(point => Object.freeze({ ...point }))),
+    }),
     frontStation,
     rearStation,
   });

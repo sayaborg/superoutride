@@ -1,4 +1,5 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { compileGroundBase } from '../course/surface-region.js';
 import type {
   AuthoredGroundBase,
   AuthoredSurfaceBand,
@@ -93,8 +94,8 @@ export function compileSurfaceRegions(
   const visualSections = coalesce(normalized, sameVisual, (region): CompiledVisualSection => ({
     sStart: region.sStart,
     name: region.name,
-    groundBaseLeft: copyGroundBase(region.groundBaseLeft),
-    groundBaseRight: copyGroundBase(region.groundBaseRight),
+    groundBaseLeft: region.groundBaseLeft,
+    groundBaseRight: region.groundBaseRight,
   }));
 
   const surfaceSections = coalesce(normalized, sameSurfaceBands, (region): CompiledSurfaceSection => ({
@@ -120,8 +121,8 @@ function validateAndCopyRegions(
   const copied = regions
     .map((region) => ({
       ...region,
-      groundBaseLeft: copyGroundBase(region.groundBaseLeft),
-      groundBaseRight: copyGroundBase(region.groundBaseRight),
+      groundBaseLeft: compileGroundBase(region.groundBaseLeft),
+      groundBaseRight: compileGroundBase(region.groundBaseRight),
       surfaceBands: region.surfaceBands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin),
     }))
     .sort((a, b) => a.sStart - b.sStart);
@@ -139,8 +140,6 @@ function validateAndCopyRegions(
       throw new Error('Surface Region starts must be unique');
     }
     if (region.name.trim().length === 0) throw new Error('Surface Region name must be non-empty');
-    validateGroundBase(region.groundBaseLeft);
-    validateGroundBase(region.groundBaseRight);
 
     for (let j = 0; j < region.surfaceBands.length; j += 1) {
       const band = region.surfaceBands[j]!;
@@ -154,16 +153,6 @@ function validateAndCopyRegions(
   }
 
   return copied;
-}
-
-function validateGroundBase(base: AuthoredGroundBase): void {
-  if (base.kind === 'color' && (!Number.isInteger(base.color) || base.color < 0 || base.color > 0xffffffff)) {
-    throw new RangeError('GroundBase color must be uint32');
-  }
-}
-
-function copyGroundBase(base: AuthoredGroundBase): AuthoredGroundBase {
-  return base.kind === 'transparent' ? { kind: 'transparent' } : { kind: 'color', color: base.color >>> 0 };
 }
 
 function sameGroundBase(a: AuthoredGroundBase, b: AuthoredGroundBase): boolean {

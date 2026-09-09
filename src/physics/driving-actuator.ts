@@ -1,6 +1,7 @@
 import { clamp } from '../core/math.js';
 import {
   assertExclusivePedalInput,
+  clampSteering,
   drivingInputApplyMode,
   normalizedPedalRequest,
   type DrivingInput,
@@ -38,7 +39,9 @@ export function resetDrivingActuatorState(state: DrivingActuatorState): void {
 }
 
 export function validateDrivingActuatorProfile(profile: DrivingActuatorProfile): void {
-  for (const [name, channel] of Object.entries(profile)) {
+  for (const name of ['steering', 'throttle', 'brake'] as const) {
+    const channel = profile[name];
+    if (!channel) throw new RangeError(`${name} actuator channel is required`);
     if (!(channel.applyRate > 0) || !Number.isFinite(channel.applyRate)) {
       throw new RangeError(`${name} actuator apply rate must be finite and > 0`);
     }
@@ -103,10 +106,13 @@ export function updateDrivingActuators(
   profile: DrivingActuatorProfile,
   steeringResponse: NormalizedActuatorRateProfile = profile.steering,
 ): void {
+  if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('actuator dt must be finite and > 0');
   assertExclusivePedalInput(input);
-  const steeringTarget = clamp(input.steering, -1, 1);
+  const steeringTarget = clampSteering(input.steering);
   const throttleTarget = normalizedPedalRequest(input.throttle);
   const brakeTarget = normalizedPedalRequest(input.brake);
+  const steeringMode = drivingInputApplyMode(input.steeringApplyMode);
+  const pedalMode = drivingInputApplyMode(input.pedalApplyMode);
   state.steering = applyRequestedActuator(
     state.steering,
     steeringTarget,
@@ -114,7 +120,7 @@ export function updateDrivingActuators(
     steeringResponse,
     -1,
     1,
-    drivingInputApplyMode(input.steeringApplyMode),
+    steeringMode,
   );
   state.throttle = applyRequestedActuator(
     state.throttle,
@@ -123,7 +129,7 @@ export function updateDrivingActuators(
     profile.throttle,
     0,
     1,
-    drivingInputApplyMode(input.pedalApplyMode),
+    pedalMode,
   );
   state.brake = applyRequestedActuator(
     state.brake,
@@ -132,7 +138,7 @@ export function updateDrivingActuators(
     profile.brake,
     0,
     1,
-    drivingInputApplyMode(input.pedalApplyMode),
+    pedalMode,
   );
 }
 
