@@ -1,6 +1,5 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { selectGroundMapLevel } from '../compiler/ground-map-lod.js';
-import { wrapPositive } from '../core/math.js';
 import { rgb555ToRgba } from '../render/rgb555.js';
 
 export type BakedGroundMapStorageFormat = 'palette8' | 'rgb555le';
@@ -146,35 +145,6 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
       l: -this.metadata.groundLeft
         + (column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight) / level.lateralTexels,
     };
-  }
-}
-
-/** Explicit cyclic addressing adapter. Only this layer performs periodic chainage addressing. */
-export class CyclicBakedGroundMapAsset implements BakedGroundMapReader {
-  constructor(readonly source: BakedGroundMapAsset) {}
-
-  get metadata(): BakedGroundMapMetadata {
-    return this.source.metadata;
-  }
-
-  get kMax(): number {
-    return this.source.kMax;
-  }
-
-  selectLevel(deltaSEffective: number): number {
-    return this.source.selectLevel(deltaSEffective);
-  }
-
-  sample(s: number, l: number, deltaSEffective: number): BakedGroundMapSample {
-    return this.source.sample(wrapPositive(s, this.metadata.courseLength), l, deltaSEffective);
-  }
-
-  sampleAtLevel(s: number, l: number, levelIndex: number): number {
-    return this.source.sampleAtLevel(wrapPositive(s, this.metadata.courseLength), l, levelIndex);
-  }
-
-  texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
-    return this.source.texelCenter(levelIndex, row, column);
   }
 }
 

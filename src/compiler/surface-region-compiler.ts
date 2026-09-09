@@ -5,7 +5,6 @@ import type {
   GroundMapMaterial,
   SurfaceRegionAuthoring,
 } from '../course/surface-region.js';
-import { wrapPositive } from '../core/math.js';
 
 export interface GroundMapLogicalSection {
   readonly sStart: number;
@@ -42,6 +41,9 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
     if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
       throw new RangeError('GroundMap logical profile length must be finite and > 0');
     }
+    for (const section of sections) {
+      if (!Number.isFinite(section.sStart)) throw new RangeError('GroundMap section chainage must be finite');
+    }
     const copied = sections.map((section) => ({ ...section })).sort((a, b) => a.sStart - b.sStart);
     if (copied.length === 0 || Math.abs(copied[0]!.sStart) > EPSILON) {
       throw new Error('GroundMap logical profile must start at s=0');
@@ -49,13 +51,13 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
     copied[0]!.sStart = 0;
     for (let i = 0; i < copied.length; i += 1) {
       const section = copied[i]!;
-      if (!Number.isFinite(section.sStart) || section.sStart < 0 || section.sStart >= courseLength) {
+      if (section.sStart < 0 || section.sStart >= courseLength) {
         throw new RangeError('GroundMap section outside open profile');
       }
       if (section.name.trim().length === 0) throw new Error('GroundMap section name must be non-empty');
       if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('GroundMap sections must be unique');
     }
-    this.sections = Object.freeze(copied);
+    this.sections = Object.freeze(copied.map((section) => Object.freeze(section)));
   }
 
   sample(s: number): GroundMapLogicalSection {
@@ -66,23 +68,6 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
       else break;
     }
     return this.sections[index]!;
-  }
-}
-
-/** Explicit cyclic addressing adapter. Only this layer performs periodic addressing. */
-export class CyclicGroundMapLogicalProfile implements GroundMapLogicalProfileReader {
-  readonly source: GroundMapLogicalProfile;
-
-  constructor(readonly courseLength: number, sections: readonly GroundMapLogicalSection[]) {
-    this.source = new GroundMapLogicalProfile(courseLength, sections);
-  }
-
-  get sections(): readonly GroundMapLogicalSection[] {
-    return this.source.sections;
-  }
-
-  sample(s: number): GroundMapLogicalSection {
-    return this.source.sample(wrapPositive(s, this.courseLength));
   }
 }
 

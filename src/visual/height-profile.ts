@@ -1,9 +1,8 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { wrapPositive } from '../core/math.js';
 
 export interface HeightNode {
-  s: number;
-  y: number;
+  readonly s: number;
+  readonly y: number;
 }
 
 export interface HeightSample {
@@ -42,6 +41,11 @@ export class HeightProfile implements HeightProfileReader {
     }
     if (nodes.length < 2) throw new Error('height profile requires at least two nodes');
 
+    for (const node of nodes) {
+      if (!Number.isFinite(node.s) || !Number.isFinite(node.y)) {
+        throw new RangeError('height node values must be finite');
+      }
+    }
     const copied = nodes.map((node) => ({ ...node })).sort((a, b) => a.s - b.s);
     if (Math.abs(copied[0]!.s) > EPSILON) throw new Error('height profile must start at s=0');
     if (Math.abs(copied.at(-1)!.s - courseLength) > EPSILON) {
@@ -52,13 +56,10 @@ export class HeightProfile implements HeightProfileReader {
     copied[copied.length - 1]!.s = courseLength;
     for (let i = 0; i < copied.length; i += 1) {
       const node = copied[i]!;
-      if (!Number.isFinite(node.s) || !Number.isFinite(node.y)) {
-        throw new RangeError('height node values must be finite');
-      }
       if (node.s < 0 || node.s > courseLength) throw new RangeError('height node outside open profile');
       if (i > 0 && node.s <= copied[i - 1]!.s) throw new Error('height nodes must be unique');
     }
-    this.nodes = Object.freeze(copied);
+    this.nodes = Object.freeze(copied.map((node) => Object.freeze(node)));
   }
 
   sampleRender(s: number): HeightSample {
@@ -116,68 +117,6 @@ export class HeightProfile implements HeightProfileReader {
   }
 }
 
-/** Explicit cyclic addressing adapter. Only this layer performs periodic addressing. */
-export class CyclicHeightProfile implements HeightProfileReader {
-  readonly nodes: readonly HeightNode[];
-
-  constructor(readonly courseLength: number, nodes: readonly HeightNode[]) {
-    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
-      throw new RangeError('height profile length must be finite and > 0');
-    }
-    if (nodes.length < 2) throw new Error('cyclic height profile requires at least two nodes');
-    const copied = nodes.map((node) => ({ ...node })).sort((a, b) => a.s - b.s);
-    if (Math.abs(copied[0]!.s) > EPSILON) throw new Error('cyclic height profile must start at s=0');
-    for (let i = 0; i < copied.length; i += 1) {
-      const node = copied[i]!;
-      if (!Number.isFinite(node.s) || !Number.isFinite(node.y)) throw new RangeError('height node values must be finite');
-      if (node.s < 0 || node.s >= courseLength) throw new RangeError('cyclic height node outside course');
-      if (i > 0 && node.s <= copied[i - 1]!.s) throw new Error('height nodes must be unique');
-    }
-    this.nodes = Object.freeze(copied);
-  }
-
-  sampleRender(s: number): HeightSample {
-    const local = wrapPositive(s, this.courseLength);
-    const i = findCyclicSegment(this.nodes, this.courseLength, local);
-    const a = this.nodes[i]!;
-    const b = this.nodes[(i + 1) % this.nodes.length]!;
-    const sEnd = i === this.nodes.length - 1 ? this.courseLength : b.s;
-    const grade = (b.y - a.y) / (sEnd - a.s);
-    return {
-      y: a.y + grade * (local - a.s),
-      grade,
-      segmentIndex: i,
-      sStart: a.s,
-      sEnd,
-    };
-  }
-
-  samplePhysics(s: number): number {
-    return this.samplePhysicsDifferential(s).y;
-  }
-
-  samplePhysicsDifferential(s: number): PhysicsHeightSample {
-    const local = wrapPositive(s, this.courseLength);
-    const i = findCyclicSegment(this.nodes, this.courseLength, local);
-    const a = this.nodes[i]!;
-    const bBase = this.nodes[(i + 1) % this.nodes.length]!;
-    const sEnd = i === this.nodes.length - 1 ? this.courseLength : bBase.s;
-    const b = { s: sEnd, y: bBase.y };
-    return smoothPhysicsSample(a, b, local);
-  }
-
-  sampleCamera(s: number): number {
-    return this.samplePhysics(s);
-  }
-
-  distanceToNextRenderNode(s: number): number {
-    const local = wrapPositive(s, this.courseLength);
-    const sample = this.sampleRender(local);
-    const distance = sample.sEnd - local;
-    return distance > EPSILON ? distance : this.courseLength;
-  }
-}
-
 function smoothPhysicsSample(a: HeightNode, b: HeightNode, s: number): PhysicsHeightSample {
   const length = b.s - a.s;
   const t = (s - a.s) / length;
@@ -188,18 +127,4 @@ function smoothPhysicsSample(a: HeightNode, b: HeightNode, s: number): PhysicsHe
     y: a.y + (b.y - a.y) * smooth,
     dYdS: (b.y - a.y) * dSmoothDs,
   };
-}
-
-function findCyclicSegment(nodes: readonly HeightNode[], courseLength: number, local: number): number {
-  let low = 0;
-  let high = nodes.length - 1;
-  while (low <= high) {
-    const mid = (low + high) >> 1;
-    const current = nodes[mid]!;
-    const nextS = mid === nodes.length - 1 ? courseLength : nodes[mid + 1]!.s;
-    if (local < current.s) high = mid - 1;
-    else if (local >= nextS) low = mid + 1;
-    else return mid;
-  }
-  return nodes.length - 1;
 }

@@ -1,4 +1,4 @@
-import { rasterCourseToWorld, type CourseWorldSample, type RasterCourse } from '../core/course.js';
+import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from '../core/course.js';
 
 /** Stage-local lateral region. Both visual and physical adapters consume this authority. */
 export type StageRoadLocalClass = 'ROAD' | 'SHOULDER' | 'TERRAIN' | 'OUTSIDE';
@@ -79,12 +79,12 @@ export function classifyStageRoadLocalL(view: StageRoadView, localL: number): St
  * Chainage and raster segment selection are unchanged; only the lateral source origin moves.
  */
 export function stageRoadToWorld(
-  raster: RasterCourse,
+  raster: RasterPath,
   view: StageRoadView,
   s: number,
   localL: number,
 ): CourseWorldSample {
-  const world = rasterCourseToWorld(raster, s, stageRoadSourceLateral(view, localL));
+  const world = rasterPathToWorld(raster, s, stageRoadSourceLateral(view, localL));
   return { ...world, l: localL };
 }
 

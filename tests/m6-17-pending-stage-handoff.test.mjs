@@ -4,7 +4,7 @@ import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-rou
 import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import {
   createM617RouteStageHandoffManifest,
@@ -50,7 +50,7 @@ function setup() {
   const charts = createM616ChildGuideCharts(guide);
   const chartList = [charts.parent, charts.left, charts.right];
   const manifest = createM617RouteStageHandoffManifest(route, guide, charts);
-  const spawn = guideCourseToWorld(guide, 500, 0);
+  const spawn = guidePathToWorld(guide, 500, 0);
   const state = createRouteStageHandoffState(route, content, charts.parent, spawn);
   return { guide, route, routeState, content, charts, chartList, manifest, state };
 }
@@ -63,7 +63,7 @@ test('M6.17 handoff seams are authored after route selection and cover the same 
   for (const [choiceId, chart] of [['S1_LEFT', charts.left], ['S1_RIGHT', charts.right]]) {
     const seam = manifest.seams.find((candidate) => candidate.choiceId === choiceId);
     assert.ok(seam);
-    const expected = guideCourseToWorld(guide, M6_17_HANDOFF_SEAM_S, chart.lateralOrigin);
+    const expected = guidePathToWorld(guide, M6_17_HANDOFF_SEAM_S, chart.lateralOrigin);
     near(seam.center.x, expected.x);
     near(seam.center.z, expected.z);
     near(seam.halfWidth, 3.5);

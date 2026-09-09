@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compileRasterCourse, rasterCourseToWorld } from '../dist/core/course.js';
+import { compileRasterPath, rasterPathToWorld } from '../dist/core/course.js';
 import { createM1DebugGuide } from '../dist/dev/debug-course.js';
 import {
   filletMetric,
-  guideCourseToWorld,
+  guidePathToWorld,
   locateWorldOnGuideGlobal,
   locateWorldOnGuideLocal,
   minimumGuideRadius,
-  sampleGuideCurve,
+  sampleGuidePath,
   sampleGuideSegment,
 } from '../dist/core/guide-curve.js';
 import {
@@ -59,7 +59,7 @@ test('circular-authoring metadata applies to interior Guide corners only', () =>
 
   assert.equal(guide.corners[0].trim, 0);
   assert.equal(guide.corners.at(-1).trim, 0);
-  near(sampleGuideCurve(guide, 0).heading, guide.raster.segments[0].heading, 1e-10);
+  near(sampleGuidePath(guide, 0).heading, guide.raster.segments[0].heading, 1e-10);
 });
 
 test('Guide segments are G1 at every compiled interior boundary without a synthetic seam', () => {
@@ -79,15 +79,15 @@ test('Guide segments are G1 at every compiled interior boundary without a synthe
   near(guide.segments[0].sStart, 0);
   near(guide.segments.at(-1).sEnd, guide.length);
   assert.notDeepEqual(
-    sampleGuideCurve(guide, 0),
-    sampleGuideCurve(guide, guide.length),
+    sampleGuidePath(guide, 0),
+    sampleGuidePath(guide, guide.length),
     'open Guide endpoints must not be treated as one cyclic seam',
   );
 });
 
 test('world to Guide coordinate recovers signed lateral position', () => {
   const guide = createM1DebugGuide();
-  const world = guideCourseToWorld(guide, 42, 6.5);
+  const world = guidePathToWorld(guide, 42, 6.5);
   const global = locateWorldOnGuideGlobal(guide, world);
   near(global.s - 42, 0, 1e-7);
   near(global.l, 6.5, 1e-7);
@@ -107,7 +107,7 @@ test('local Guide search requires explicit initialization instead of silently go
 
 test('pseudo projection keeps same-s same-height anchors at identical depth, scale and Y', () => {
   const guide = createM1DebugGuide();
-  const camPlan = guideCourseToWorld(guide, 0, 0);
+  const camPlan = guidePathToWorld(guide, 0, 0);
   const camera = {
     x: camPlan.x,
     y: 2,
@@ -120,8 +120,8 @@ test('pseudo projection keeps same-s same-height anchors at identical depth, sca
     centerY: 120,
   };
 
-  const leftPlan = rasterCourseToWorld(guide.raster, 40, -10);
-  const rightPlan = rasterCourseToWorld(guide.raster, 40, 10);
+  const leftPlan = rasterPathToWorld(guide.raster, 40, -10);
+  const rightPlan = rasterPathToWorld(guide.raster, 40, 10);
   const left = pseudoProject({ ...leftPlan, y: 0 }, camera);
   const right = pseudoProject({ ...rightPlan, y: 0 }, camera);
 
@@ -154,7 +154,7 @@ test('general pseudo projection reduces to Core straight-road yaw equation', () 
 });
 
 test('raster compiler rejects an interior turn sharper than the Core 10-degree hard limit', () => {
-  assert.throws(() => compileRasterCourse([
+  assert.throws(() => compileRasterPath([
     { x: 0, z: 0 },
     { x: 0, z: 20 },
     { x: 10, z: 30 },
@@ -168,9 +168,9 @@ test('raster fixed-l strip edges converge to the same miter point from both side
   for (let i = 1; i < course.vertices.length - 1; i += 1) {
     const sVertex = course.vertexS[i];
     for (const l of [-12, -4.5, 0, 4.5, 12]) {
-      const before = rasterCourseToWorld(course, sVertex - epsilonS, l);
-      const at = rasterCourseToWorld(course, sVertex, l);
-      const after = rasterCourseToWorld(course, sVertex + epsilonS, l);
+      const before = rasterPathToWorld(course, sVertex - epsilonS, l);
+      const at = rasterPathToWorld(course, sVertex, l);
+      const after = rasterPathToWorld(course, sVertex + epsilonS, l);
       assert.ok(Math.hypot(before.x - at.x, before.z - at.z) < 2e-6);
       assert.ok(Math.hypot(after.x - at.x, after.z - at.z) < 2e-6);
     }
@@ -200,7 +200,7 @@ test('Guide world-coordinate round trip remains continuous across the whole open
   const laterals = [-12, -6, 0, 6, 12];
   for (let s = 0; s < guide.length; s += 5) {
     for (const l of laterals) {
-      const world = guideCourseToWorld(guide, s, l);
+      const world = guidePathToWorld(guide, s, l);
       const local = locateWorldOnGuideLocal(guide, world, world.segmentIndex, 2);
       near(local.s - s, 0, 2e-6);
       near(local.l, l, 2e-6);

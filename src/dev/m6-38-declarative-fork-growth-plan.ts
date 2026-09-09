@@ -1,4 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -92,7 +93,7 @@ const RIGHT_SECOND_FORK: LiveForkIdentity = Object.freeze({
  * The plan adds no geometry authority: every step still executes the unchanged M6.36 compiler.
  */
 export function createM638DeclarativeForkGrowthPlan(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
@@ -125,7 +126,7 @@ export function createM638DeclarativeForkGrowthPlan(
 }
 
 function createM638DeclarativeForkGrowthAuthoring(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
@@ -139,7 +140,7 @@ function createM638DeclarativeForkGrowthAuthoring(
 }
 
 export function createM638DeclarativeForkGrowthRuntime(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
@@ -204,6 +205,8 @@ function liveForkBranch(
       finishClosureMargin: 20,
       groundMapHalfWidth: 12,
       groundHalfWidth: 4.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
     }),
   });

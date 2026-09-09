@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -34,7 +35,10 @@ const cameraProfile = {
   tauVertical: 0.22,
   deltaYMax: 4,
 };
-const groundProfile = { groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 };
+const groundProfile = {
+  groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1,
+  roadMarkings: CENTER_DASH_MARKINGS,
+};
 const terrainProfile = {
   screenHeight: 240,
   dMin: 2.5,

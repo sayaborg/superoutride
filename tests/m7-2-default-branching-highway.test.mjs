@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { guideCourseToWorld, sampleGuideCurve } from '../dist/core/guide-curve.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { guidePathToWorld, sampleGuidePath } from '../dist/core/guide-curve.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
   M7_2_DEFAULT_BRANCHING_FORK,
   M7_2_DEFAULT_BRANCHING_JUNCTION,
@@ -51,15 +51,15 @@ test('M7.2 first fork occupies one straight flat authored interval after the cal
   near(parent.heightProfile.samplePhysics(M7_2_FORK_WIDEN_START_S), 0);
   near(parent.heightProfile.samplePhysics(M7_2_HANDOFF_SEAM_S), 0);
   near(
-    sampleGuideCurve(parent.guide, M7_2_FORK_WIDEN_START_S).heading,
-    sampleGuideCurve(parent.guide, M7_2_HANDOFF_SEAM_S).heading,
+    sampleGuidePath(parent.guide, M7_2_FORK_WIDEN_START_S).heading,
+    sampleGuidePath(parent.guide, M7_2_HANDOFF_SEAM_S).heading,
     1e-9,
   );
 });
 
 test('M7.2 runtime moves first physical gates and handoff seams with the selected parent authoring', () => {
   const parent = createM72DefaultBranchingParent();
-  const live = createM627LiveRouteRuntime(
+  const live = createM638DeclarativeForkGrowthRuntime(
     parent.guide,
     {
       heightProfile: parent.heightProfile,
@@ -80,8 +80,8 @@ test('M7.2 runtime moves first physical gates and handoff seams with the selecte
     assert.ok(gate);
     assert.ok(seam);
     const localL = M7_2_DEFAULT_BRANCHING_JUNCTION.separatedChildCenterL(side);
-    const expectedGate = guideCourseToWorld(parent.guide, M7_2_ROUTE_GATE_S, localL);
-    const expectedSeam = guideCourseToWorld(parent.guide, M7_2_HANDOFF_SEAM_S, localL);
+    const expectedGate = guidePathToWorld(parent.guide, M7_2_ROUTE_GATE_S, localL);
+    const expectedSeam = guidePathToWorld(parent.guide, M7_2_HANDOFF_SEAM_S, localL);
     near(gate.center.x, expectedGate.x);
     near(gate.center.z, expectedGate.z);
     near(seam.center.x, expectedSeam.x);

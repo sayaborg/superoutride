@@ -1,4 +1,4 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import {
   classifyPhysicalRaceMotionDirection,
@@ -27,7 +27,7 @@ export interface OrderedRaceGateAuthoring {
  * lap-local authoring into this ordinary finite gate sequence before runtime.
  */
 export interface OrderedRaceCourseRules {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly courseLength: number;
   readonly gates: readonly PhysicalRaceGate[];
 }
@@ -84,7 +84,7 @@ export interface OrderedRaceProgressUpdate {
  * Gate chainages must be strictly increasing. The final boundary must be a physical finish.
  */
 export function compileOrderedRaceCourseRules(
-  guide: GuideCurve,
+  guide: GuidePath,
   authoredGates: readonly OrderedRaceGateAuthoring[],
 ): OrderedRaceCourseRules {
   if (authoredGates.length === 0) throw new RangeError('ordered race requires at least one gate');

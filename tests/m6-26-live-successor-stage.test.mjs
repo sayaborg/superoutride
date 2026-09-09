@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
@@ -22,23 +23,25 @@ import {
   observePendingRouteStageHandoff,
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function parentShared(guide) {
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,

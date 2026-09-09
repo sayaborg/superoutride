@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -6,7 +7,7 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { lockedBranchRecoveryApproach } from '../dist/gameplay/branch-violation.js';
 import {
@@ -41,11 +42,13 @@ function createLiveFixture() {
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
   };
-  const live = createM627LiveRouteRuntime(
+  const live = createM638DeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,

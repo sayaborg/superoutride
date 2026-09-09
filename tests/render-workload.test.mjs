@@ -1,20 +1,14 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import {
-  deriveProvisionalRenderBudget,
-  M5_8_DEBUG_HEADROOM_FACTOR,
-  M5_8_DEBUG_OBSERVED_BASELINE,
-  M5_8_DEBUG_TARGET_BUDGET,
-  summarizeRenderWorkloads,
-  validateRenderWorkload,
-} from '../dist/compiler/render-budget.js';
+import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import {
@@ -23,7 +17,7 @@ import {
 } from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { drawScaledSprite } from '../dist/render/sprite.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -31,15 +25,15 @@ import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const deg = (value) => value * Math.PI / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-const visual = new CyclicVisualProfile(guide.length, compiled.visualSections);
-const surfaces = new CyclicSurfaceMap(guide.length, compiled.surfaceSections);
+const visual = new VisualProfile(guide.length, compiled.visualSections);
+const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
 const assets = createM4SpriteAssets();
 const world = createM4DebugWorldSprites(guide, height, assets);
 const background = createM3FarBackground();
@@ -51,6 +45,8 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
   logical: compiled.groundMap,
   baked,
@@ -70,7 +66,7 @@ const terrainProfile = {
 const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 function placeCar(car, s, l, yawOffset) {
-  const p = guideCourseToWorld(guide, s, l);
+  const p = guidePathToWorld(guide, s, l);
   const surface = surfaces.sample(s, l);
   car.x = p.x;
   car.z = p.z;
@@ -178,27 +174,12 @@ test('ordinary rendering allocates no diagnostic row arrays or scanline observer
   assert.match(source, /if \(observation\) \{[\s\S]*for \(let y = 0/);
 });
 
-test('current debug content sweep remains inside the explicit M5.8 provisional target budget', () => {
+test('live stress reduction reports observed work without an invented target budget', () => {
   const observed = currentStressSweep();
   assert.ok(observed.frameCount >= 60);
-  assert.equal(observed.maxGroundMapLevelUsed, 6);
-  assert.deepEqual(observed, M5_8_DEBUG_OBSERVED_BASELINE);
-  assert.deepEqual(validateRenderWorkload(observed, M5_8_DEBUG_TARGET_BUDGET), []);
-  console.log('M5.8 OBSERVED RENDER WORKLOAD', JSON.stringify(observed));
-  console.log('M5.8 PROVISIONAL DEBUG BUDGET', JSON.stringify(M5_8_DEBUG_TARGET_BUDGET));
-});
-
-test('M5.8 provisional budget is mechanically derived from the recorded baseline and one explicit 25% margin', () => {
-  assert.equal(M5_8_DEBUG_HEADROOM_FACTOR, 1.25);
-  assert.deepEqual(
-    deriveProvisionalRenderBudget(M5_8_DEBUG_OBSERVED_BASELINE, M5_8_DEBUG_HEADROOM_FACTOR),
-    M5_8_DEBUG_TARGET_BUDGET,
-  );
-  const tooSmall = {
-    ...M5_8_DEBUG_TARGET_BUDGET,
-    terrainOutputPixelsPerFrameMax: M5_8_DEBUG_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame - 1,
-  };
-  const violations = validateRenderWorkload(M5_8_DEBUG_OBSERVED_BASELINE, tooSmall);
-  assert.equal(violations.length, 1);
-  assert.equal(violations[0].metric, 'terrainOutputPixelsPerFrameMax');
+  assert.ok(observed.maxVisibleSpriteCount > 0);
+  assert.ok(observed.maxGroundMapLevelUsed <= baked.kMax);
+  assert.ok(observed.maxTerrainOutputPixelsPerFrame <= observed.maxTerrainLineCount * 320);
+  assert.ok(observed.maxSpriteWrittenPixelsPerFrame <= observed.maxSpriteOutputSamplesPerFrame);
+  assert.ok(observed.maxSpriteWrittenPixelsPerScanline <= observed.maxSpriteOutputSamplesPerScanline);
 });

@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -12,23 +13,25 @@ import {
   createM638DeclarativeForkGrowthRuntime,
 } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { compileRasterForkGrowthPlan } from '../dist/runtime/raster-fork-growth-plan.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function parentShared(guide) {
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
@@ -147,7 +150,7 @@ test('M6.38 removes milestone nesting from live construction while generic plan 
   const [planSource, liveSource, stableEntry, main, renderer] = await Promise.all([
     readFile(new URL('../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-27-live-route-runtime.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
   ]);

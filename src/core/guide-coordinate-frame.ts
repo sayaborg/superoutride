@@ -1,28 +1,28 @@
 import {
-  guideCourseToWorld,
+  guidePathToWorld,
   locateWorldOnGuideGlobal,
   locateWorldOnGuideLocal,
   type CourseCoordinate,
-  type GuideCurve,
+  type GuidePath,
   type GuideSample,
 } from './guide-curve.js';
 import type { Vec2 } from './math.js';
 
 /**
- * Minimal lateral chart over one GuideCurve.
+ * Minimal lateral chart over one GuidePath.
  *
  * Gameplay GuideChart structurally satisfies this contract but Core does not depend on gameplay.
  * `lateralOrigin` changes only which parallel road center is called local l=0.
  */
 export interface GuideCoordinateFrame {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly lateralOrigin: number;
 }
 
-/** An ordinary GuideCurve is the zero-origin coordinate frame. */
-export type GuideCoordinateSource = GuideCurve | GuideCoordinateFrame;
+/** An ordinary GuidePath is the zero-origin coordinate frame. */
+export type GuideCoordinateSource = GuidePath | GuideCoordinateFrame;
 
-export function guideCoordinateCurve(source: GuideCoordinateSource): GuideCurve {
+export function guideCoordinateCurve(source: GuideCoordinateSource): GuidePath {
   return isGuideCoordinateFrame(source) ? source.guide : source;
 }
 
@@ -37,7 +37,7 @@ export function guideCoordinateToWorld(
 ): GuideSample & { l: number } {
   const guide = guideCoordinateCurve(source);
   const lateralOrigin = guideCoordinateLateralOrigin(source);
-  const world = guideCourseToWorld(guide, s, localL + lateralOrigin);
+  const world = guidePathToWorld(guide, s, localL + lateralOrigin);
   return { ...world, l: localL };
 }
 

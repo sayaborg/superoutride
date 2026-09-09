@@ -1,11 +1,10 @@
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
-import { wrapPositive } from '../core/math.js';
 
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
 /**
- * Surface authority is relative to the tire profile. Absolute tire capacity is
- * muEff = tire.muRef * material.gripFactor.
+ * Surface authority is relative to the tire profile.
+ * Each tire friction axis is scaled by material.gripFactor.
  */
 export interface SurfaceMaterial {
   readonly type: SurfaceType;
@@ -14,14 +13,14 @@ export interface SurfaceMaterial {
   readonly rollingResistance: number;
 }
 
-export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> = {
-  ASPHALT: { type: 'ASPHALT', supported: true, gripFactor: 1.00, rollingResistance: 0.014 },
-  SHOULDER: { type: 'SHOULDER', supported: true, gripFactor: 0.78, rollingResistance: 0.025 },
-  GRASS: { type: 'GRASS', supported: true, gripFactor: 0.43, rollingResistance: 0.065 },
-  DIRT: { type: 'DIRT', supported: true, gripFactor: 0.52, rollingResistance: 0.045 },
-  SAND: { type: 'SAND', supported: true, gripFactor: 0.33, rollingResistance: 0.11 },
-  VOID: { type: 'VOID', supported: false, gripFactor: 0, rollingResistance: 0 },
-};
+export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> = Object.freeze({
+  ASPHALT: Object.freeze({ type: 'ASPHALT', supported: true, gripFactor: 1.00, rollingResistance: 0.014 }),
+  SHOULDER: Object.freeze({ type: 'SHOULDER', supported: true, gripFactor: 0.78, rollingResistance: 0.025 }),
+  GRASS: Object.freeze({ type: 'GRASS', supported: true, gripFactor: 0.43, rollingResistance: 0.065 }),
+  DIRT: Object.freeze({ type: 'DIRT', supported: true, gripFactor: 0.52, rollingResistance: 0.045 }),
+  SAND: Object.freeze({ type: 'SAND', supported: true, gripFactor: 0.33, rollingResistance: 0.11 }),
+  VOID: Object.freeze({ type: 'VOID', supported: false, gripFactor: 0, rollingResistance: 0 }),
+});
 
 export interface SurfaceBand {
   readonly lMin: number;
@@ -59,32 +58,45 @@ export class SurfaceMap implements SurfaceMapReader {
     sections: readonly SurfaceSection[],
     readonly junction?: JunctionCrossSectionProfile,
   ) {
-    if (!(courseLength > 0)) throw new RangeError('course length must be > 0');
+    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
+      throw new RangeError('course length must be finite and > 0');
+    }
     const copied = sections
       .map((section) => ({
         ...section,
         bands: section.bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin),
       }))
       .sort((a, b) => a.sStart - b.sStart);
+    for (const section of copied) {
+      if (!Number.isFinite(section.sStart)) throw new RangeError('surface section chainage must be finite');
+    }
     if (copied.length === 0 || Math.abs(copied[0]!.sStart) > 1e-9) {
       throw new Error('surface profile must start at s=0');
     }
+    copied[0]!.sStart = 0;
     for (let i = 0; i < copied.length; i += 1) {
       const section = copied[i]!;
       if (section.sStart < 0 || section.sStart >= courseLength) throw new RangeError('surface section outside course');
       if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('surface sections must be unique');
       for (let j = 0; j < section.bands.length; j += 1) {
         const band = section.bands[j]!;
+        if (!Number.isFinite(band.lMin) || !Number.isFinite(band.lMax)) {
+          throw new RangeError('surface band edges must be finite');
+        }
         if (!(band.lMax > band.lMin)) throw new Error('surface band must have positive width');
         if (j > 0 && band.lMin < section.bands[j - 1]!.lMax - 1e-9) {
           throw new Error('surface bands must not overlap');
         }
       }
     }
-    this.sections = copied;
+    this.sections = Object.freeze(copied.map((section) => Object.freeze({
+      ...section,
+      bands: Object.freeze(section.bands.map((band) => Object.freeze(band))),
+    })));
   }
 
   sample(s: number, l: number): SurfaceSample {
+    if (!Number.isFinite(l)) throw new RangeError('surface lateral coordinate must be finite');
     const local = this.normalizeChainage(s);
     const section = this.sectionAtLocal(local);
 
@@ -100,7 +112,8 @@ export class SurfaceMap implements SurfaceMapReader {
       }
     }
 
-    for (const band of section.bands) {
+    for (let i = 0; i < section.bands.length; i += 1) {
+      const band = section.bands[i]!;
       if (l >= band.lMin && l <= band.lMax) {
         const material = SURFACE_MATERIALS[band.type];
         return { sectionName: section.name, type: band.type, material };
@@ -113,7 +126,7 @@ export class SurfaceMap implements SurfaceMapReader {
     return this.sectionAtLocal(this.normalizeChainage(s));
   }
 
-  protected normalizeChainage(s: number): number {
+  private normalizeChainage(s: number): number {
     if (!Number.isFinite(s) || s < 0 || s > this.courseLength) {
       throw new RangeError(`surface chainage ${s} outside [0, ${this.courseLength}]`);
     }
@@ -127,14 +140,6 @@ export class SurfaceMap implements SurfaceMapReader {
       else break;
     }
     return this.sections[index]!;
-  }
-}
-
-/** Explicit closed-course adapter retained only where cyclic topology is intentionally authored. */
-export class CyclicSurfaceMap extends SurfaceMap {
-  protected override normalizeChainage(s: number): number {
-    if (!Number.isFinite(s)) throw new RangeError('surface chainage must be finite');
-    return wrapPositive(s, this.courseLength);
   }
 }
 

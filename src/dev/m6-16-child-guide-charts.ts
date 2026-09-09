@@ -1,4 +1,4 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { createGuideChart, type GuideChart } from '../gameplay/guide-chart.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
@@ -14,7 +14,7 @@ export interface M616ChildGuideCharts {
  * all three charts still refer to exactly the same overlap world geometry.
  */
 export function createM616ChildGuideCharts(
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile = M6_13_JUNCTION,
 ): M616ChildGuideCharts {
   return Object.freeze({

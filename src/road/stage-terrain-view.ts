@@ -1,4 +1,4 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { stageRoadToWorld, type StageRoadView } from '../course/stage-road-view.js';
 import type { M3TerrainLine } from './terrain-line.js';
@@ -11,7 +11,7 @@ import type { M3TerrainLine } from './terrain-line.js';
  * committed child stage to draw one selected road centered on its own local l=0.
  */
 export function applyStageRoadViewToTerrainLine(
-  guide: GuideCurve,
+  guide: GuidePath,
   camera: PseudoCamera,
   line: M3TerrainLine,
   view: StageRoadView,

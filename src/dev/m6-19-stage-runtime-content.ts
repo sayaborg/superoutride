@@ -1,10 +1,10 @@
 import type { FarBackground } from '../visual/far-background.js';
-import type { CyclicHeightProfile } from '../visual/height-profile.js';
+import type { HeightProfile } from '../visual/height-profile.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import type { CyclicSurfaceMap } from '../physics/surface-map.js';
+import type { SurfaceMap } from '../physics/surface-map.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import {
   compileStageRuntimeContentRegistry,
@@ -15,21 +15,15 @@ import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import type { M618StageRoadViews } from './m6-18-stage-road-views.js';
 
 export interface M619SharedRuntimeContent {
-  readonly heightProfile: CyclicHeightProfile;
-  readonly surfaceMap: CyclicSurfaceMap;
+  readonly heightProfile: HeightProfile;
+  readonly surfaceMap: SurfaceMap;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: GroundMapProfile;
   readonly selectFarBackground: (cameraS: number) => FarBackground;
   readonly worldSprites: readonly CourseSprite[];
 }
 
-/**
- * Resolve the M6 DEV route package IDs into concrete runtime packages.
- *
- * The closed DEV fixture reuses one physical fork on multiple passes, so M6.19 deliberately does
- * not install this registry into main.ts yet. It proves the package boundary and atomic handoff
- * selection; a later milestone will author non-reused child-stage content before live switching.
- */
+/** Assemble a shared-source registry to exercise package selection and atomic chart handoff. */
 export function createM619DebugStageRuntimeRegistry(
   manifest: RouteStageContentManifest,
   charts: M616ChildGuideCharts,

@@ -1,8 +1,8 @@
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
-import { compileRasterCourse, type RasterVertex } from '../core/course.js';
-import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
+import { compileRasterPath, type RasterVertex } from '../core/course.js';
+import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 
-export function createM1DebugGuide(): GuideCurve {
+export function createM1DebugGuide(): GuidePath {
   const radius = 100;
   const step = (10 * Math.PI) / 180;
   const vertices: RasterVertex[] = [];
@@ -18,15 +18,15 @@ export function createM1DebugGuide(): GuideCurve {
     });
   }
 
-  const raster = compileRasterCourse(vertices);
-  return compileGuideCurve(raster, {
+  const raster = compileRasterPath(vertices);
+  return compileGuidePath(raster, {
     lMax: 12,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });
 }
 
-export function createM2StadiumGuide(): GuideCurve {
+export function createM2StadiumGuide(): GuidePath {
   const radius = 60;
   const zHalf = 100;
   const step = (10 * Math.PI) / 180;
@@ -59,8 +59,8 @@ export function createM2StadiumGuide(): GuideCurve {
     });
   }
 
-  const raster = compileRasterCourse(vertices);
-  return compileGuideCurve(raster, {
+  const raster = compileRasterPath(vertices);
+  return compileGuidePath(raster, {
     lMax: 12,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,

@@ -1,33 +1,33 @@
-# Current core cleanup audit
+# Current authority audit
 
-Scope: repository code, tests, build/deployment wiring, active documentation and next-task readiness. This audit starts from released main `fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8`. It preserves the player's current calibration. Documentation was reduced from 291 files (7,985,247 bytes) to eight current topic/index/checkpoint files (about 45 KB). Previous reports/specification revisions are retained in Git history, not duplicated here.
+Scope: remove unused alternate source models, implicit content defaults and copied measurement policy; validate compiled source boundaries. Handling calibration and the common vehicle law remain unchanged.
 
-## Findings and decisions
+## Architecture decision
 
-| Finding | Current resolution / evidence |
-| --- | --- |
-| Suspension travel exceptions could escape before the browser's recovery step and stop subsequent animation frames | Gameplay catches only `VehicleOutsideModelError`, reconstructs via existing recovery and returns its reason to the existing progress-resync path. A 30 m/s coast into a 2 m rise over 5 m reproduces failure even with the old recovery sequence; car and bike now continue after recovery. |
-| Invalid Guide seeds were silently replaced by global nearest projection | Known local coordinates are required. Invalid seeds fail, preventing hidden selection of an overlapping circuit copy. Existing multi-lap/recovery regressions retain physical continuity and progress coverage. |
-| Automatic steering, rack coefficient and inverse wheel torque were recomputed unnecessarily | Hoist per-update invariants, share the rack expression and reuse the unchanged TCS torque bound. Exact serialized wheel/turning/pedal traces match the released solver. |
-| Vector normalization could silently substitute an arbitrary axis for zero/nonfinite geometry | Invalid vectors and nonfinite world projection now fail explicitly; valid contact degeneracy keeps its existing zero-force rule. |
-| Invalid route-choice lookup used exceptions as ordinary control flow | A direct optional lookup rejects unknown transitions; unrelated faults stay visible. |
-| Empty input update calls ran every fixed step | Removed the no-op wrapper; input remains event-driven and shared arbiters remain authoritative. |
-| Obsolete trial vehicle, three camera variants and two old renderers compiled alongside current mechanics | Removed seven modules. Retained useful terrain/sprite/footprint tests with static poses and the current renderer; removed the superseded camera-lag test. |
-| A foundation compiler still imposed a closed-course half-lap draw-distance limit on open paths | Removed the obsolete length relation; draw distance still must be positive finite, while runtime visibility clips to the open endpoint. Added long-view and invalid-distance checks. |
-| Current state required navigating chronological design, research, handoff and validation files | Consolidated retained normative contracts into topic documents, one restart file and this current audit. Replaced history-preservation/hash requirements with current link/encoding checks, real behavior tests and exact reference traces. |
+- Raster and Guide expose one Path API; compatibility aliases and forwarding functions are removed. General sources own one finite open domain. CIRCUIT already unfolds laps before constructing these sources. Remove the five unused cyclic implementations and move regression fixtures to ordinary open readers; retain open endpoints, physical lap progression and overlapping-copy integration tests.
+- Ground appearance is authored content. Road paint is explicit, including junction paint, and outer material comes from logical GroundMap data. GroundBase transparency must not select a rock texture. The existing procedural sampler and stage adapters express these choices without a new renderer mode.
+- The concrete tunnel assets, positions and background interval belong to DEV authoring, consumed by the existing composition root. Keep ordinary sprite compilation and the single Painter.
+- Workload observation remains diagnostic. Copied milestone measurements and their arbitrary 25% multiplier are not a target-device budget. Replace preservation of those numbers with live accounting, clipping bounds and exact reference-render comparisons.
+- Source constructors validate finite authored values before endpoint normalization and own immutable copies. Invalid lateral queries fail rather than masquerading as unsupported terrain.
 
-## Architecture gate
+These changes remove alternate authorities; they introduce no new coordinate, force, vehicle or route branch. Tests must reproduce invalid-data failures and prove authored painting, immutable source data, finite-domain behavior, unchanged rendering and the existing nine-profile physics traces.
 
-The changes belong to existing gameplay recovery, physics evaluation, input event wiring, compiler validation and documentation. They reuse the current recovery reconstruction, rack function, inverse wheel equation, renderer and open visibility rules. No new vehicle/mode branch, coordinate authority, feedback state or force clamp is introduced. Raw physics still reports finite-domain exits; only gameplay chooses recovery. Existing root recovery branches suppress route/race observation and preserve validated progress. The retired implementations are replaced by ordinary data fixtures, not compatibility shims.
+## Findings resolved
+
+- NaN endpoints could be rewritten to valid chainage before validation. Nonfinite input now fails before normalization.
+- Nonfinite surface width or lateral queries could masquerade as unsupported terrain. Construction/query validation rejects them; genuinely outside supported bands still returns VOID.
+- A tolerated nonzero initial SurfaceMap section left a gap at zero and selected the final section. Normalizing the validated first endpoint closes that gap.
+- Visual authoring shared nested paint objects with the compiled reader. Profiles now own frozen geometry, paint and material copies.
+- Five cyclic source implementations, eight Raster/Guide compatibility names, two forwarding-only DEV modules and the return-to-start child shape are removed. Current circuit unfolding and forward child authoring exercise the ordinary open model.
+- Concrete tunnel assets/placement now reside together in DEV; hardcoded road paint and the transparency-to-rock fallback are removed from the renderer/source sampler.
+- Historical workload constants, arbitrary 25% budgets and their combining machinery are removed. Live telemetry, clipped workload bounds, portal overdraw, pixel equivalence and complete physical traces remain executable.
 
 ## Verification
 
-Local full suite: 858 tests passed. Paired Node.js 24 arm64 measurements (one warm-up per build, five alternating measured pairs) gave median 2359 ms for the released reference and 2291 ms for the candidate, about 2.9% less elapsed time for the full exact-trace probe, including serialization. This is a small same-host improvement, not an FPS claim. Rendering pixel/workload comparisons remain exact.
+Local full suite: 861 tests passed. Nonfinite input and mutable-paint regressions were confirmed failing on the starting implementation before their fixes. Exact nine-profile wheel/turning/pedal traces match at 60/120/240 Hz, including 1,152 signed wheel solves. Renderer pixels/workload remain exact. Current browser roads and all successor paint match the immutable reference across their finite domains; the baked GroundMap metadata and binary are byte-identical.
 
-Release additionally requires exact-head CI; see [development](development.md). The same-host immutable reference comparison covers nine profiles, 1,152 signed wheel cases and straight/turning pedal sequences at 60/120/240 Hz with no schema masking or numerical tolerance. Focused crest recovery, error propagation, overlapping-copy, rendering and compiler regressions cover the changed boundaries.
+Surface sampling scans immutable bands by index. Paired Node.js 24 arm64 measurements against the starting release (one warm-up per build, five alternating measured pairs) gave median 2312 ms for the reference and 2267 ms for this candidate, about 2.0% shorter. This measures the complete trace probe including serialization, not browser FPS; treat it as a small same-host result, not a target-device guarantee.
 
-## Limits and next work
+No handling parameters or physical law changed. The source remains a finite two-station game model; parameter tuning and target-device acceptance remain open in [NEXT](NEXT.md). This audit establishes the reviewed boundaries and tested behavior, not an exhaustive proof over every possible state.
 
-Interactive browser inspection was unavailable during this audit because the host Mac was locked. Local renderer pixel tests and browser wiring/input tests passed; deployed version/artifacts are checked separately during release.
-
-The audit is a code/test review, not a proof over every possible state or a target-phone certification. The core remains a two-station game model with finite suspension travel, local tangent-plane support and conservative front-slip steering control. Torque-support infeasibility and recovery are explicit outcomes. Handling remains `DEV_UNCALIBRATED`; [calibration](calibration.md) lists open acceptance work. [NEXT](NEXT.md) is sufficient to start visual, sound and game-system work without earlier chat attachments.
+ Exact-head CI and release follow [development](development.md). [NEXT](NEXT.md) retains the current restart instructions and remaining handling/product work.

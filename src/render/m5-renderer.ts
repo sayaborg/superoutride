@@ -1,4 +1,4 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
@@ -51,7 +51,7 @@ export interface M5RenderWorkload {
 export function renderM5Driving(
   target: SoftwareSurface,
   background: FarBackground,
-  guide: GuideCurve,
+  guide: GuidePath,
   camera: PseudoCamera,
   vehicle: VehicleRenderReadState,
   terrainProfile: TerrainVisualProfile,
@@ -218,7 +218,6 @@ function drawTerrainLine(
       let lateral = -localGroundLeft
         + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
-      const cliffSection = line.groundBaseLeft.kind === 'transparent';
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
         const sampledLateral = roadView === undefined
@@ -227,14 +226,13 @@ function drawTerrainLine(
         target.pixels[offset + x] = roadView === undefined
           ? (baked
               ? baked.sampleAtLevel(line.s, sampledLateral, groundMapLevel)
-              : sampleGroundMap(line.s, sampledLateral, groundProfile, cliffSection))
+              : sampleGroundMap(line.s, sampledLateral, groundProfile))
           : sampleStageGroundMapAtLevel(
               line.s,
               sampledLateral,
               groundMapLevel,
               roadView,
               groundProfile,
-              cliffSection,
             );
         lateral += lateralStep;
       }

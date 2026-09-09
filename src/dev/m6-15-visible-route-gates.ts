@@ -1,5 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
-import { guideCourseToWorld } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
+import { guidePathToWorld } from '../core/guide-curve.js';
 import type { JunctionCrossSectionProfile, JunctionSide } from '../course/junction-cross-section.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import {
@@ -34,7 +34,7 @@ export const M6_15_FINISH_GATE_S = 20;
  */
 export function createM615VisibleRouteBoundaryGateSet(
   route: RouteDag,
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile = M6_13_JUNCTION,
 ): RouteBoundaryGateSet {
   if (!(M6_15_ROUTE_GATE_S > junction.authoring.sSeparatedStart)) {
@@ -56,7 +56,7 @@ export function createM615VisibleRouteBoundaryGateSet(
     transitionGate(guide, junction, 'G_VISIBLE_S2R_RIGHT', 'S2R_RIGHT', 'RIGHT'),
   ];
 
-  const finish = guideCourseToWorld(guide, M6_15_FINISH_GATE_S, 0);
+  const finish = guidePathToWorld(guide, M6_15_FINISH_GATE_S, 0);
   for (const stageId of ['GOAL_LL', 'GOAL_LR', 'GOAL_RL', 'GOAL_RR']) {
     authoring.push({
       id: `G_VISIBLE_FINISH_${stageId}`,
@@ -72,14 +72,14 @@ export function createM615VisibleRouteBoundaryGateSet(
 }
 
 function transitionGate(
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile,
   id: string,
   choiceId: string,
   side: JunctionSide,
 ): RouteBoundaryGateAuthoring {
   const l = junction.separatedChildCenterL(side);
-  const point = guideCourseToWorld(guide, M6_15_ROUTE_GATE_S, l);
+  const point = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, l);
   return {
     id,
     kind: 'TRANSITION',

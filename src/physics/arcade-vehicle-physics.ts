@@ -1,6 +1,6 @@
 import { limitSteeringInput } from './steering-input-limiter.js';
 import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
-import { sampleGuideCurve } from '../core/guide-curve.js';
+import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
@@ -116,7 +116,7 @@ export function createArcadeVehicle(
     tireFrictionCalibration?.front ?? profile.frontStation.tire,
     tireFrictionCalibration?.rear ?? profile.rearStation.tire,
   );
-  const coordinate = { s, l, segmentIndex: sampleGuideCurve(guideCoordinateCurve(guide), s).segmentIndex,
+  const coordinate = { s, l, segmentIndex: sampleGuidePath(guideCoordinateCurve(guide), s).segmentIndex,
     distanceSquared: 0 };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
   if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');

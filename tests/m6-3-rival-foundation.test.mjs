@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import {
   estimateUpcomingTargetSpeed,
   sampleRivalDrivingInput,
@@ -30,7 +30,7 @@ test('rival presentation uses supplied metadata and the same presentation-only b
 });
 
 function fakeCar(guide, s, l = 0, speed = 45) {
-  const sample = guideCourseToWorld(guide, s, l);
+  const sample = guidePathToWorld(guide, s, l);
   return {
     x: sample.x,
     y: 0,

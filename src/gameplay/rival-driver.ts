@@ -1,4 +1,4 @@
-import { sampleGuideCurve } from '../core/guide-curve.js';
+import { sampleGuidePath } from '../core/guide-curve.js';
 import {
   guideCoordinateCurve,
   guideCoordinateToWorld,
@@ -37,7 +37,7 @@ const GUIDE_EPSILON = 1e-9;
  * or any renderer value, so the rival remains an ordinary world-physics vehicle.
  *
  * targetL is expressed in the supplied Guide coordinate source. Accepting a coordinate frame
- * keeps child-stage local l coherent with its lateral origin while plain GuideCurve callers
+ * keeps child-stage local l coherent with its lateral origin while plain GuidePath callers
  * retain the original zero-origin behavior.
  */
 export function sampleRivalDrivingInput(
@@ -85,8 +85,8 @@ export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: num
     const bS = Math.min(curve.length, aS + CURVATURE_PROBE_SPAN_METERS);
     if (bS <= aS + GUIDE_EPSILON) break;
 
-    const a = sampleGuideCurve(curve, aS);
-    const b = sampleGuideCurve(curve, bS);
+    const a = sampleGuidePath(curve, aS);
+    const b = sampleGuidePath(curve, bS);
     const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / (bS - aS);
     if (curvature < 1e-6) continue;
 

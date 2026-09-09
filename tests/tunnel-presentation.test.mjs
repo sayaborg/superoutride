@@ -1,18 +1,12 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  M5_8_DEBUG_TARGET_BUDGET,
-  M5_9_COMBINED_OBSERVED_BASELINE,
-  M5_9_TARGET_BUDGET,
-  M5_9_TUNNEL_STRESS_BASELINE,
-  summarizeRenderWorkloads,
-  validateRenderWorkload,
-} from '../dist/compiler/render-budget.js';
+import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import {
@@ -21,7 +15,7 @@ import {
 } from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/render/sprite.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
@@ -29,27 +23,26 @@ import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import {
-  createM5TunnelPresentation,
-  M5_9_TUNNEL_ENTRY_S,
-  M5_9_TUNNEL_EXIT_S,
-  selectM5FarBackground,
-  tunnelPortalApertureIsTransparent,
-} from '../dist/visual/m5-9-tunnel.js';
+  createTunnelPresentation,
+  createTunnelWorldSprites,
+  TUNNEL_ENTRY_S,
+  TUNNEL_EXIT_S,
+  selectTunnelBackground,
+} from '../dist/dev/tunnel.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
-import { createM5TunnelWorldSprites } from '../dist/world/m5-9-tunnel-world.js';
 
 const deg = (value) => value * Math.PI / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-const visual = new CyclicVisualProfile(guide.length, compiled.visualSections);
-const surfaces = new CyclicSurfaceMap(guide.length, compiled.surfaceSections);
+const visual = new VisualProfile(guide.length, compiled.visualSections);
+const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
 const outdoor = createM3FarBackground();
-const tunnel = createM5TunnelPresentation(guide.length, 5);
+const tunnel = createTunnelPresentation(guide.length, 5);
 const assets = createM4SpriteAssets();
-const tunnelWorld = createM5TunnelWorldSprites(guide, height, tunnel);
+const tunnelWorld = createTunnelWorldSprites(guide, height, tunnel);
 const world = [...createM4DebugWorldSprites(guide, height, assets), ...tunnelWorld];
 const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
 const binary = await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url));
@@ -59,6 +52,8 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
   logical: compiled.groundMap,
   baked,
@@ -78,7 +73,7 @@ const terrainProfile = {
 const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
 
 function placeCar(car, s, yawOffset = 0) {
-  const p = guideCourseToWorld(guide, s, 0);
+  const p = guidePathToWorld(guide, s, 0);
   const surface = surfaces.sample(s, 0);
   car.x = p.x;
   car.z = p.z;
@@ -99,7 +94,7 @@ function renderProbe(s, yawOffset = 0) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, yawOffset);
   const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
-  const selected = selectM5FarBackground(camera.s, guide.length, outdoor, tunnel);
+  const selected = selectTunnelBackground(camera.s, guide.length, outdoor, tunnel);
   const stats = renderM5Driving(
     new SoftwareSurface(320, 240),
     selected.background,
@@ -128,7 +123,10 @@ function tunnelStressSweep() {
 
 test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-sized', () => {
   assert.equal(tunnel.portalAsset.worldWidthMeters, 12);
-  assert.equal(tunnelPortalApertureIsTransparent(tunnel.portalAsset), true);
+  const portal = tunnel.portalAsset;
+  const apertureX = Math.floor(portal.width * 0.5);
+  assert.notEqual(portal.pixels[Math.floor(portal.height * 0.15) * portal.width + apertureX], SPRITE_TRANSPARENT);
+  assert.equal(portal.pixels[Math.floor(portal.height * 0.75) * portal.width + apertureX], SPRITE_TRANSPARENT);
   assert.ok(countOpaqueSpriteColors(tunnel.portalAsset) <= 15);
   assert.ok(countOpaqueSpriteColors(tunnel.ribAsset) <= 15);
   const center = Math.floor(tunnel.portalAsset.width / 2);
@@ -136,12 +134,12 @@ test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-
 });
 
 test('M5.9 Far Background transition is aligned to player portal crossing by D_cam', () => {
-  assert.equal(tunnel.cameraTransitionStartS, M5_9_TUNNEL_ENTRY_S - 5);
-  assert.equal(tunnel.cameraTransitionEndS, M5_9_TUNNEL_EXIT_S - 5);
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionStartS - 1e-4, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionEndS - 1e-4, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.equal(tunnel.cameraTransitionStartS, TUNNEL_ENTRY_S - 5);
+  assert.equal(tunnel.cameraTransitionEndS, TUNNEL_EXIT_S - 5);
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-4, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-4, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
 });
 
 test('M5.9 tunnel world keeps only two portals and two near ribs in the existing world-sprite path', () => {
@@ -160,29 +158,13 @@ test('portal is screen-filling at the metric player crossing without a special p
   assert.equal(projectedHeight, 360);
 });
 
-test('M5.9 close portal/interior sweep is a real sprite-budget stress case and matches the recorded baseline', () => {
+test('close portal/interior sweep counts clipped blitter work and writes', () => {
   const observed = tunnelStressSweep();
-  const oldViolations = validateRenderWorkload(observed, M5_8_DEBUG_TARGET_BUDGET);
-  assert.deepEqual(observed, M5_9_TUNNEL_STRESS_BASELINE);
-  assert.ok(oldViolations.some((entry) => entry.metric === 'spriteOutputSamplesPerFrameMax'));
-  assert.ok(oldViolations.some((entry) => entry.metric === 'spriteOutputSamplesPerScanlineMax'));
-  assert.deepEqual(validateRenderWorkload(observed, M5_9_TARGET_BUDGET), []);
-  console.log('M5.9 TUNNEL STRESS WORKLOAD', JSON.stringify(observed));
-  console.log('M5.9 VIOLATIONS OF M5.8 PROVISIONAL BUDGET', JSON.stringify(oldViolations));
-});
-
-test('M5.9 combined target retains stronger normal terrain maxima and rebases the tunnel sprite limits with 25% headroom', () => {
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.frameCount, 118);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainLineCount, 189);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxTerrainOutputPixelsPerFrame, 60480);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxVisibleSpriteCount, 22);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerFrame, 83575);
-  assert.equal(M5_9_COMBINED_OBSERVED_BASELINE.maxSpriteOutputSamplesPerScanline, 612);
-  assert.equal(M5_9_TARGET_BUDGET.terrainLineCountMax, 237);
-  assert.equal(M5_9_TARGET_BUDGET.terrainOutputPixelsPerFrameMax, 75600);
-  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerFrameMax, 104469);
-  assert.equal(M5_9_TARGET_BUDGET.spriteOutputSamplesPerScanlineMax, 765);
-  assert.deepEqual(validateRenderWorkload(M5_9_COMBINED_OBSERVED_BASELINE, M5_9_TARGET_BUDGET), []);
+  assert.equal(observed.frameCount, 51);
+  assert.ok(observed.maxTerrainOutputPixelsPerFrame <= observed.maxTerrainLineCount * 320);
+  assert.ok(observed.maxSpriteOutputSamplesPerFrame > 320 * 240, 'overlapping portal sprites exercise overdraw');
+  assert.ok(observed.maxSpriteWrittenPixelsPerFrame <= observed.maxSpriteOutputSamplesPerFrame);
+  assert.ok(observed.maxSpriteWrittenPixelsPerScanline <= observed.maxSpriteOutputSamplesPerScanline);
 });
 
 test('background actually changes through the tunnel while renderer still uses the same M5 Painter function', () => {

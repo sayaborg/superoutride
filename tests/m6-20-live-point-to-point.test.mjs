@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
@@ -30,11 +31,11 @@ import {
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function crossing(gate, distance = 2) {
   return {
@@ -60,14 +61,16 @@ function setup() {
   const roadViews = createM618StageRoadViews(charts);
   const handoffManifest = createM617RouteStageHandoffManifest(route, guide, charts);
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
@@ -248,8 +251,8 @@ test('M6.20 fixture stays validated while browser live authority consumes the M6
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /createM627LiveRouteRuntime/);
-  assert.match(source, /const liveRoute = createM627LiveRouteRuntime/);
+  assert.match(source, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(source, /const liveRoute = createM638DeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(source, /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
   assert.doesNotMatch(source, /createM620LivePointToPointRouteDag/);
   assert.doesNotMatch(source, /createM622ChildStageContinuation/);

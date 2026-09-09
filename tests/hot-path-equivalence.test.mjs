@@ -6,7 +6,7 @@ import { solveWheelOmega, wheelRequiredNetTorque, evaluateTireForce } from '../d
 import { limitWheelTorques } from '../dist/physics/torque-protection.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { guideCourseToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
+import { guidePathToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
 
 test('wheel, turning and pedal traces match the released reference across nine profiles and three rates', async () => {
   const result = await runHotPathProbe('dist');
@@ -43,7 +43,7 @@ test('checked wheel/protection boundaries still reject every nonfinite numeric i
 test('range search preserves exact ascending-candidate tie handling on repeated geometry', () => {
   const guide = createM93TsukubaCourse2000Runtime().window.guide;
   for (const s of [0, 100, 2045, 2145, guide.length]) {
-    const world = guideCourseToWorld(guide, s, 1);
+    const world = guidePathToWorld(guide, s, 1);
     const candidates = guide.segments.map(segment => locateWorldOnGuideLocal(guide, world, segment.index, 0));
     const best = values => values.reduce((a, b) => b.distanceSquared < a.distanceSquared ? b : a);
     assert.deepEqual(locateWorldOnGuideGlobal(guide, world), best(candidates));
@@ -57,7 +57,7 @@ test('hot path retains one sample/body basis and no candidate index arrays', asy
   const guide = await read('../src/core/guide-curve.ts');
   assert.doesNotMatch(guide, /segmentIndices|Array\.from\(\{ length: last/);
   const dynamics = await read('../src/physics/vehicle-dynamics.ts');
-  assert.doesNotMatch(dynamics, /sampleGuideCurve/);
+  assert.doesNotMatch(dynamics, /sampleGuidePath/);
   const integrator = await read('../src/physics/arcade-vehicle-physics.ts');
   assert.doesNotMatch(integrator, /bodyBeforeSteer|function locateSegmentIndex/);
   assert.match(integrator, /if \(step === VEHICLE_SUBSTEPS - 1\)/);

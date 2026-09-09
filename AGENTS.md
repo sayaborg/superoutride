@@ -33,7 +33,7 @@ An explicit design revision is required to change an invariant. A feature reques
 - One far-to-near Painter merges terrain and world sprites, then player, then HUD. No z-buffer, perspective-correct texture mapping, runtime bitmap rotation or alpha blending. Transparency is 0/1.
 - Player metric is 2 m = 80 px, 40 px/m; `D_cam = f/40`. No arbitrary visualScale.
 - GroundMap visual pixels and SurfaceMap physical materials are independent. TRANSPARENT does not imply VOID.
-- General paths and source profiles are open `[0,L]`. No invented closing segment or hidden wrapping. Cyclic adapters and circuit unfolding belong above Core.
+- General paths and source profiles are open `[0,L]`. No invented closing segment or hidden wrapping. Circuit topology is unfolded above Core before constructing ordinary open sources.
 - Physical route gate -> PENDING -> forward handoff seam -> COMMIT. COMMIT changes the chart/content only, preserving world pose/yaw/velocity.
 - Circuit laps require ordered physical checkpoint/FINISH crossings. Winding and recovery never award progress. Recovery/resync preserve validated progress.
 - General layers must not import `src/dev`. Only `src/main-linear.ts`, `src/main.ts`, `src/main-circuit.ts` assemble DEV fixtures. Tests enforce this boundary.

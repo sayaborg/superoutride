@@ -41,9 +41,6 @@ export interface RasterPath {
   length: number;
 }
 
-/** Compatibility vocabulary. RasterCourse has the same open-path semantics. */
-export type RasterCourse = RasterPath;
-
 export interface RasterSample extends Vec2 {
   s: number;
   segmentIndex: number;
@@ -128,11 +125,6 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
   });
 }
 
-/** Compatibility export; compilation is open and never creates last -> first. */
-export function compileRasterCourse(vertices: readonly RasterVertex[]): RasterPath {
-  return compileRasterPath(vertices);
-}
-
 export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
   const sLocal = checkedPathChainage(path, s);
   const segmentIndex = findRasterSegmentIndex(path, sLocal);
@@ -148,11 +140,6 @@ export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
     segmentIndex,
     heading: segment.heading,
   };
-}
-
-/** Compatibility export; sampling is open and never wraps. */
-export function sampleRasterCourse(course: RasterCourse, s: number): RasterSample {
-  return sampleRasterPath(course, s);
 }
 
 /**
@@ -181,11 +168,6 @@ export function rasterPathToWorld(path: RasterPath, s: number, l: number): Cours
     z: center.z + lateralZ * l,
     l,
   };
-}
-
-/** Compatibility export; conversion uses open-path chainage. */
-export function rasterCourseToWorld(course: RasterCourse, s: number, l: number): CourseWorldSample {
-  return rasterPathToWorld(course, s, l);
 }
 
 function checkedPathChainage(path: RasterPath, s: number): number {

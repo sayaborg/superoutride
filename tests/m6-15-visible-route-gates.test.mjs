@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import {
   createM615VisibleRouteBoundaryGateSet,
@@ -56,7 +56,7 @@ test('M6.15 visible route gates exactly cover the two separated asphalt child ro
     const gate = gateForChoice(gates, choiceId);
     assert.ok(gate);
     const l = M6_13_JUNCTION.separatedChildCenterL(side);
-    const expected = guideCourseToWorld(guide, M6_15_ROUTE_GATE_S, l);
+    const expected = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, l);
     near(gate.center.x, expected.x);
     near(gate.center.z, expected.z);
     near(gate.heading, expected.heading);
@@ -79,7 +79,7 @@ test('physical crossing of the visible left road selects S1_LEFT while the media
   assert.equal(state.activeStageId, 'STAGE_2_L');
 
   const fresh = createRouteDagState(route);
-  const center = guideCourseToWorld(guide, M6_15_ROUTE_GATE_S, 0);
+  const center = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, 0);
   const medianObserved = observeRouteBoundaryCrossing(
     route,
     fresh,
@@ -128,7 +128,7 @@ test('terminal route completes only at the real single-road physical FINISH gate
 
   const finish = finishForStage(gates, 'GOAL_LR');
   assert.ok(finish);
-  const expected = guideCourseToWorld(guide, M6_15_FINISH_GATE_S, 0);
+  const expected = guidePathToWorld(guide, M6_15_FINISH_GATE_S, 0);
   near(finish.center.x, expected.x);
   near(finish.center.z, expected.z);
   near(finish.halfWidth, M6_13_JUNCTION.authoring.parentRoadWidth * 0.5);

@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 import { compileBakedGroundMapAsset } from '../dist/compiler/ground-map-asset-compiler.js';
@@ -32,6 +33,8 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
   junction: M6_13_JUNCTION,
   logical: compiledSurfaces.groundMap,

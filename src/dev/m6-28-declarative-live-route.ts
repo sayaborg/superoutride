@@ -1,4 +1,4 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
@@ -29,7 +29,7 @@ const ROAD_HALF_WIDTH = 3.5;
  * from the stage-owned runtime packages.
  */
 export function createM628DeclarativeLiveRouteRuntime(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
 ): LiveRouteRuntimeAssembly {

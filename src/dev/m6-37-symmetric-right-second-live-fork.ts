@@ -1,4 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -34,7 +35,7 @@ const FORK_SOURCE_SEAM_MIN_S = 235;
  * decisions to main.ts, renderer Core, camera, or vehicle physics.
  */
 function createM637SymmetricSecondLiveForkAuthoring(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
 ): DeclarativeLiveRouteAuthoring {
@@ -78,7 +79,7 @@ function createM637SymmetricSecondLiveForkAuthoring(
 }
 
 export function createM637SymmetricSecondLiveForkRuntime(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
 ): LiveRouteRuntimeAssembly {
@@ -118,6 +119,8 @@ function forkBranchAuthoring(
       finishClosureMargin: 20,
       groundMapHalfWidth: 12,
       groundHalfWidth: 4.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
     },
   } as const;

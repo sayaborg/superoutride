@@ -1,4 +1,4 @@
-import { sampleRasterPath, type RasterPath, type RasterCourse } from './course.js';
+import { sampleRasterPath, type RasterPath } from './course.js';
 import {
   clamp,
   distanceSquared,
@@ -66,9 +66,6 @@ export interface GuidePath {
   lMax: number;
   mMin: number;
 }
-
-/** Compatibility vocabulary. GuideCurve has the same open-path semantics. */
-export type GuideCurve = GuidePath;
 
 export interface GuideSample extends Vec2 {
   s: number;
@@ -213,20 +210,10 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
   });
 }
 
-/** Compatibility export; Guide compilation is open and never wraps endpoints. */
-export function compileGuideCurve(course: RasterCourse, options: GuideCompileOptions): GuidePath {
-  return compileGuidePath(course, options);
-}
-
 export function sampleGuidePath(guide: GuidePath, s: number): GuideSample {
   const sLocal = checkedGuideChainage(guide, s);
   const segmentIndex = findGuideSegmentIndex(guide, sLocal);
   return sampleGuideSegment(guide, guide.segments[segmentIndex]!, sLocal);
-}
-
-/** Compatibility export; sampling is open and never wraps. */
-export function sampleGuideCurve(guide: GuideCurve, s: number): GuideSample {
-  return sampleGuidePath(guide, s);
 }
 
 export function guidePathToWorld(guide: GuidePath, s: number, l: number): GuideSample & { l: number } {
@@ -240,16 +227,12 @@ export function guidePathToWorld(guide: GuidePath, s: number, l: number): GuideS
   };
 }
 
-export function guideCourseToWorld(guide: GuideCurve, s: number, l: number): GuideSample & { l: number } {
-  return guidePathToWorld(guide, s, l);
-}
-
-export function locateWorldOnGuideGlobal(guide: GuideCurve, world: Vec2, clampL = false): CourseCoordinate {
+export function locateWorldOnGuideGlobal(guide: GuidePath, world: Vec2, clampL = false): CourseCoordinate {
   return bestCandidate(guide, world, 0, guide.segments.length - 1, clampL);
 }
 
 export function locateWorldOnGuideLocal(
-  guide: GuideCurve,
+  guide: GuidePath,
   world: Vec2,
   previousSegmentIndex: number,
   searchRadius = 2,
@@ -265,7 +248,7 @@ export function locateWorldOnGuideLocal(
   return bestCandidate(guide, world, first, last, clampL);
 }
 
-export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLocal: number): GuideSample {
+export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {
   const checked = checkedGuideChainage(guide, sLocal);
   if (checked < segment.sStart - RANGE_TOLERANCE || checked > segment.sEnd + RANGE_TOLERANCE) {
     throw new RangeError('guide segment sample is outside the segment interval');
@@ -289,7 +272,7 @@ export function sampleGuideSegment(guide: GuideCurve, segment: GuideSegment, sLo
 }
 
 function bestCandidate(
-  guide: GuideCurve,
+  guide: GuidePath,
   world: Vec2,
   firstIndex: number,
   lastIndex: number,
@@ -308,7 +291,7 @@ function bestCandidate(
 }
 
 function projectWorldToGuideSegment(
-  guide: GuideCurve,
+  guide: GuidePath,
   segment: GuideSegment,
   world: Vec2,
   clampL: boolean,

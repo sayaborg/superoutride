@@ -1,7 +1,7 @@
 import {
-  guideCourseToWorld,
-  sampleGuideCurve,
-  type GuideCurve,
+  guidePathToWorld,
+  sampleGuidePath,
+  type GuidePath,
 } from '../core/guide-curve.js';
 import {
   dot,
@@ -21,9 +21,7 @@ export type PhysicalRaceGateCrossingDirection = 'FORWARD' | 'REVERSE';
 /**
  * One physically authored transverse race boundary on an ordinary Guide chainage ruler.
  *
- * `s` is deliberately not wrapped here. The caller owns the coordinate domain: legacy
- * closed DEV race code may pass lap-local chainage, while finite open race code passes
- * monotonically increasing window chainage.
+ * The caller supplies chainage in the finite coordinate window. The gate never wraps it.
  */
 export interface PhysicalRaceGate {
   readonly index: number;
@@ -48,7 +46,7 @@ export interface PhysicalRaceGateCrossing {
  * no race-only lateral tuning authority is introduced.
  */
 export function compilePhysicalRaceGate(
-  guide: GuideCurve,
+  guide: GuidePath,
   index: number,
   kind: PhysicalRaceGateKind,
   name: string,
@@ -68,7 +66,7 @@ export function compilePhysicalRaceGate(
     throw new RangeError('physical race gate chainage must be within the Guide [0,length] domain');
   }
 
-  const centerSample = guideCourseToWorld(guide, s, 0);
+  const centerSample = guidePathToWorld(guide, s, 0);
   const tangent = tangentFromHeading(centerSample.heading);
   const normal = normalFromHeading(centerSample.heading);
   return Object.freeze({
@@ -88,7 +86,7 @@ export function compilePhysicalRaceGate(
  * Chainage selects the local tangent; world displacement remains the direction authority.
  */
 export function classifyPhysicalRaceMotionDirection(
-  guide: GuideCurve,
+  guide: GuidePath,
   currentS: number,
   previous: Vec2,
   current: Vec2,
@@ -97,7 +95,7 @@ export function classifyPhysicalRaceMotionDirection(
     throw new RangeError('race motion chainage must be within the Guide [0,length] domain');
   }
   const movement = subtract(current, previous);
-  const guideSample = sampleGuideCurve(guide, currentS);
+  const guideSample = sampleGuidePath(guide, currentS);
   const tangent = tangentFromHeading(guideSample.heading);
   const longitudinal = dot(movement, tangent);
   if (longitudinal > MOTION_EPSILON) return 'FORWARD';

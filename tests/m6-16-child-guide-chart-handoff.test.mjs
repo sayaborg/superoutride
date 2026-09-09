@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import {
   guideChartToWorld,
@@ -23,7 +23,7 @@ test('M6.16 child charts put l=0 on the two separated visible road centers', () 
 
   for (const [chart, parentL] of [[charts.left, -7.5], [charts.right, 7.5]]) {
     const childCenter = guideChartToWorld(chart, 570, 0);
-    const parentPoint = guideCourseToWorld(guide, 570, parentL);
+    const parentPoint = guidePathToWorld(guide, 570, parentL);
     near(childCenter.x, parentPoint.x);
     near(childCenter.z, parentPoint.z);
     near(childCenter.s, parentPoint.s);
@@ -34,7 +34,7 @@ test('M6.16 child charts put l=0 on the two separated visible road centers', () 
 test('handoff changes road coordinates only: world pose and motion remain byte-for-byte untouched', () => {
   const guide = createM2StadiumGuide();
   const charts = createM616ChildGuideCharts(guide);
-  const road = guideCourseToWorld(guide, 570, -7.5);
+  const road = guidePathToWorld(guide, 570, -7.5);
   const vehicle = {
     x: road.x,
     y: 1.25,
@@ -62,7 +62,7 @@ test('child chart preserves signed lateral freedom around its own road center', 
   for (const [chart, parentOrigin] of [[charts.left, -7.5], [charts.right, 7.5]]) {
     for (const localL of [-3, -1, 0, 1, 3]) {
       const world = guideChartToWorld(chart, 560, localL);
-      const parent = guideCourseToWorld(guide, 560, parentOrigin + localL);
+      const parent = guidePathToWorld(guide, 560, parentOrigin + localL);
       near(world.x, parent.x);
       near(world.z, parent.z);
       const recovered = locateWorldOnGuideChartGlobal(chart, world);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld, locateWorldOnGuideLocal, sampleGuideCurve } from '../dist/core/guide-curve.js';
+import { guidePathToWorld, locateWorldOnGuideLocal, sampleGuidePath } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import {
   computeForwardVisibleInterval,
@@ -45,7 +45,7 @@ test('open stadium debug source is long enough for the configured draw-distance 
 
 test('free world motion on the long straight produces simultaneous s and l change', () => {
   const guide = createM2StadiumGuide();
-  const start = guideCourseToWorld(guide, 60, 0);
+  const start = guidePathToWorld(guide, 60, 0);
   const yaw = start.heading + deg(20);
   const travel = 10;
   const moved = {
@@ -105,7 +105,7 @@ test('horizontal mapping is exactly affine and invertible on a non-degenerate Te
 test('forward-only visibility becomes empty when camera faces more than 90 degrees away', () => {
   const guide = createM2StadiumGuide();
   const sCamera = 40;
-  const road = sampleGuideCurve(guide, sCamera + roadProfile.dMin);
+  const road = sampleGuidePath(guide, sCamera + roadProfile.dMin);
   const visible = computeForwardVisibleInterval(
     guide,
     road.heading + deg(100),
@@ -120,8 +120,8 @@ test('player projection scale depends on chainage depth, not Euclidean camera di
   const guide = createM2StadiumGuide();
   const vehicle = renderPose(guide, 80);
   vehicle.course.l = 10;
-  const roadAtCar = sampleGuideCurve(guide, vehicle.course.s);
-  const displaced = guideCourseToWorld(guide, vehicle.course.s, 10);
+  const roadAtCar = sampleGuidePath(guide, vehicle.course.s);
+  const displaced = guidePathToWorld(guide, vehicle.course.s, 10);
   vehicle.x = displaced.x;
   vehicle.z = displaced.z;
   vehicle.yaw = roadAtCar.heading + deg(15);

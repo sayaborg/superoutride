@@ -1,5 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
-import { guideCourseToWorld } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
+import { guidePathToWorld } from '../core/guide-curve.js';
 import type { JunctionSide } from '../course/junction-cross-section.js';
 import type { RouteDag } from '../gameplay/route-dag.js';
 import {
@@ -29,7 +29,7 @@ const CHOICE_SIDE: Readonly<Record<string, JunctionSide>> = Object.freeze({
 
 export function createM617RouteStageHandoffManifest(
   route: RouteDag,
-  guide: GuideCurve,
+  guide: GuidePath,
   charts: M616ChildGuideCharts,
 ): RouteStageHandoffManifest {
   if (!(M6_17_HANDOFF_SEAM_S > M6_15_ROUTE_GATE_S)) {
@@ -45,7 +45,7 @@ export function createM617RouteStageHandoffManifest(
     const side = CHOICE_SIDE[choice.id];
     if (!side) throw new Error(`DEV handoff side missing for route choice: ${choice.id}`);
     const l = M6_13_JUNCTION.separatedChildCenterL(side);
-    const center = guideCourseToWorld(guide, M6_17_HANDOFF_SEAM_S, l);
+    const center = guidePathToWorld(guide, M6_17_HANDOFF_SEAM_S, l);
     const sourceOrigin = choice.fromStageId === route.startStageId
       ? charts.parent.lateralOrigin
       : choice.fromStageId.includes('_L')

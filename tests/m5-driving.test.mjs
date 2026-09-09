@@ -1,14 +1,15 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import {
   deriveVehicleLeanRadians,
@@ -40,7 +41,10 @@ const cameraProfile = {
   tauVertical: 0.22,
   deltaYMax: 4,
 };
-const groundProfile = { groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 };
+const groundProfile = {
+  groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1,
+  roadMarkings: CENTER_DASH_MARKINGS,
+};
 const terrainProfile = {
   screenHeight: 240,
   dMin: 2.5,
@@ -54,7 +58,7 @@ const terrainProfile = {
 };
 
 function placeCar(car, s, l, speed = 30) {
-  const p = guideCourseToWorld(guide, s, l);
+  const p = guidePathToWorld(guide, s, l);
   car.x = p.x;
   car.z = p.z;
   car.y = height.samplePhysics(s) + 0.55;
@@ -81,7 +85,7 @@ test('SurfaceMap returns lightweight physical attributes independent from Ground
 });
 
 test('SurfaceMap supports authored custom support even when visual GroundBase decisions are unrelated', () => {
-  const custom = new CyclicSurfaceMap(100, [{
+  const custom = new SurfaceMap(100, [{
     sStart: 0,
     name: 'CUSTOM',
     bands: [{ lMin: -9, lMax: -7, type: 'GRASS' }],

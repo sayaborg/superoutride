@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -39,6 +40,8 @@ function setup() {
       groundRight: 4.5,
       roadLeft: 3.5,
       roadRight: 3.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
       roadCenterL: 7.5,
       chainageOffsetS: 100,
@@ -107,6 +110,8 @@ test('M6.34 rejects a junction whose incoming width does not match the active st
       groundRight: 6,
       roadLeft: 4.5,
       roadRight: 4.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
     },
   }, {

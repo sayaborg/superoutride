@@ -1,4 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -49,7 +50,7 @@ const THIRD_FINISH_AFTER_SEAM = 150;
  * already validated first fork and successor chains by hand.
  */
 export function createM630ThirdLiveSuccessorAuthoring(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
@@ -232,11 +233,10 @@ export function createM630ThirdLiveSuccessorAuthoring(
 }
 
 /**
- * Browser-facing M6.33 runtime. Later milestones may consume the authoring function above while this
- * historical fixture continues to compile the same symmetric two-terminal route.
+ * Compile the authored symmetric two-terminal route through the common route assembly.
  */
 export function createM630ThirdLiveSuccessorRuntime(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
@@ -265,6 +265,8 @@ function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: ROAD_HALF_WIDTH,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
   } as const;
 }

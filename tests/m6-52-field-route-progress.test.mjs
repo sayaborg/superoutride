@@ -1,13 +1,14 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
-import { sampleGuideCurve } from '../dist/core/guide-curve.js';
+import { sampleGuidePath } from '../dist/core/guide-curve.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import {
   compileFieldRouteProgressRules,
@@ -43,11 +44,13 @@ function createLiveFixture() {
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
   };
-  return createM627LiveRouteRuntime(
+  return createM638DeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -132,7 +135,7 @@ function resyncActor(live, actor, world, stagedCoordinate = null) {
       (candidate) => candidate.id === actor.traveler.handoffState.activeChartId,
     );
     assert.ok(chart);
-    const sample = sampleGuideCurve(chart.guide, stagedCoordinate.s);
+    const sample = sampleGuidePath(chart.guide, stagedCoordinate.s);
     actor.traveler.handoffState.coordinate = {
       s: stagedCoordinate.s,
       l: stagedCoordinate.l,

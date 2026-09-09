@@ -39,11 +39,11 @@ test('profile consumers share snapping without changing strict surface or interi
   assert.equal(sampleGuidePath(guide, 5e-10).s, 5e-10);
 });
 
-test('all four equivalent source validators use one helper and retain explicit cyclic adapters', async () => {
+test('all four equivalent source validators share one helper without alternate cyclic implementations', async () => {
   for (const file of ['visual/height-profile', 'visual/visual-profile', 'visual/baked-ground-map', 'compiler/surface-region-compiler']) {
     const source = await readFile(new URL(`../src/${file}.ts`, import.meta.url), 'utf8');
     assert.match(source, /import \{ openProfileChainage \}/);
     assert.doesNotMatch(source, /function openChainage/);
-    assert.match(source, /class Cyclic/);
+    assert.doesNotMatch(source, /class Cyclic/);
   }
 });

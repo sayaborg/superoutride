@@ -39,8 +39,7 @@ export function createM626LiveStageRuntimeRegistry(
 
 /**
  * Expose the complete package objects before route/content binding compilation.
- * M6.28 uses these as stage-owned values in declarative route authoring; legacy M6.26 registry
- * construction remains a thin wrapper around the same package source.
+ * Declarative route authoring and registry construction share these stage-owned packages.
  */
 export function createM626LiveStageRuntimePackages(
   continuation: M626LiveContinuation,

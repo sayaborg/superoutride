@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -12,11 +13,11 @@ import {
 } from '../dist/dev/m6-26-live-successor-stage.js';
 import { createM628DeclarativeLiveRouteRuntime } from '../dist/dev/m6-28-declarative-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -25,13 +26,15 @@ const near = (actual, expected, tolerance = 1e-7) => {
 function parentShared(guide) {
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
@@ -128,20 +131,18 @@ test('M6.28 target chart ids are derived from target stage runtime rather than r
   assert.doesNotMatch(authoring, /choiceId\s*:/);
 });
 
-test('M6.28 keeps main stable and its declarative compiler remains underneath later live-route authoring', async () => {
+test('main assembles one declarative fork plan above general topology compilation', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [mainSource, entrySource, m630Source, m638Source, growthSource, forkSource, fragmentSource] = await Promise.all([
+  const [mainSource, m630Source, m638Source, growthSource, forkSource, fragmentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-27-live-route-runtime.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(mainSource, /createM627LiveRouteRuntime/);
-  assert.doesNotMatch(mainSource, /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime|createM637SymmetricSecondLiveForkRuntime|createM638DeclarativeForkGrowthRuntime/);
-  assert.match(entrySource, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
+  assert.doesNotMatch(mainSource, /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime|createM637SymmetricSecondLiveForkRuntime/);
   assert.match(m638Source, /createM630ThirdLiveSuccessorAuthoring/);
   assert.match(m638Source, /compileRasterForkGrowthPlan/);
   assert.doesNotMatch(m638Source, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
@@ -151,7 +152,7 @@ test('M6.28 keeps main stable and its declarative compiler remains underneath la
   assert.match(m630Source, /compileDeclarativeLiveRoute\s*\(/);
   assert.match(fragmentSource, /export function composeDeclarativeLiveRouteAuthoring/);
   assert.doesNotMatch(fragmentSource, /compileDeclarativeRouteFragments/);
-  assert.doesNotMatch(entrySource, /createM626LiveRouteDag|createM626LiveGateSet|createM626LiveHandoffManifest/);
+  assert.doesNotMatch(m638Source, /createM626LiveRouteDag|createM626LiveGateSet|createM626LiveHandoffManifest/);
 });
 
 test('M6.28 generic declarative compiler contains no renderer, camera, vehicle physics or milestone dependency', async () => {

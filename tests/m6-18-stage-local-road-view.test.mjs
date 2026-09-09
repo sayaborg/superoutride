@@ -1,8 +1,9 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { rasterCourseToWorld } from '../dist/core/course.js';
+import { rasterPathToWorld } from '../dist/core/course.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import {
@@ -16,7 +17,7 @@ import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { applyStageRoadViewToTerrainLine } from '../dist/road/stage-terrain-view.js';
 import { GROUND_COLORS } from '../dist/visual/ground-map.js';
 import { sampleStageGroundMapRuntime } from '../dist/visual/stage-ground-map-view.js';
@@ -30,12 +31,14 @@ function setup() {
   const charts = createM616ChildGuideCharts(guide);
   const views = createM618StageRoadViews(charts);
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const surface = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const surface = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const ground = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
@@ -65,7 +68,7 @@ test('child local l=0 maps to the selected parent-authored road center in raster
   const { guide, views } = setup();
   for (const child of [views.left, views.right]) {
     const actual = stageRoadToWorld(guide.raster, child, 600, 0);
-    const expected = rasterCourseToWorld(guide.raster, 600, child.sourceLateralOrigin);
+    const expected = rasterPathToWorld(guide.raster, 600, child.sourceLateralOrigin);
     near(actual.x, expected.x);
     near(actual.z, expected.z);
     near(actual.l, 0);
@@ -117,8 +120,8 @@ test('SurfaceMap child-local view uses the same road/shoulder corridor and makes
 
 test('stage-local TerrainLine contains selected road while sibling road projects outside its ground span', () => {
   const { guide, views } = setup();
-  const cameraPoint = rasterCourseToWorld(guide.raster, 580, 0);
-  const linePoint = rasterCourseToWorld(guide.raster, 600, 0);
+  const cameraPoint = rasterPathToWorld(guide.raster, 580, 0);
+  const linePoint = rasterPathToWorld(guide.raster, 600, 0);
   const camera = {
     x: cameraPoint.x,
     y: 2.469902425419539,
@@ -159,7 +162,7 @@ test('stage-local TerrainLine contains selected road while sibling road projects
     const line = applyStageRoadViewToTerrainLine(guide, camera, baseLine, child);
     assert.ok(line);
     const selected = stageRoadToWorld(guide.raster, child, 600, 0);
-    const sibling = rasterCourseToWorld(guide.raster, 600, siblingOrigin);
+    const sibling = rasterPathToWorld(guide.raster, 600, siblingOrigin);
     const selectedProjection = pseudoProject({ ...selected, y: 0 }, camera);
     const siblingProjection = pseudoProject({ ...sibling, y: 0 }, camera);
 

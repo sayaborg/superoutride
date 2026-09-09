@@ -13,7 +13,7 @@ import {
   sampleGuidePath,
 } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { CyclicSurfaceMap, SurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { computeForwardVisibleInterval } from '../dist/road/terrain-line.js';
 
 const near = (actual, expected, tolerance = 1e-8) => {
@@ -133,10 +133,4 @@ test('M6.44 general SurfaceMap owns an open chainage domain', () => {
   assert.equal(surface.sample(100, 0).sectionName, 'END');
   assert.throws(() => surface.sample(-0.01, 0), /outside/);
   assert.throws(() => surface.sample(100.01, 0), /outside/);
-});
-
-test('M6.44 cyclic surface addressing requires the explicit CyclicSurfaceMap adapter', () => {
-  const surface = new CyclicSurfaceMap(100, createSurfaceSections());
-  assert.equal(surface.sample(105, 0).sectionName, 'START');
-  assert.equal(surface.sample(-5, 0).sectionName, 'END');
 });

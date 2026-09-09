@@ -54,3 +54,7 @@ Each root treats the resulting discontinuity as recovery: reset the camera and r
 [Rival driver](../src/gameplay/rival-driver.ts) publishes ordinary input using physical world travel and a Guide lookahead. Its contiguous braking-distance envelope is a general speed-planning policy, separate from the player. Rival behavior does not change tire forces or route authority.
 
 Next work can add visual assets, sound and game flow above these contracts. Read immutable vehicle/telemetry state for engine/skid/lean presentation. Add scoring and race state under gameplay, and compose at the roots. Do not use sound/UI state to control mechanics, or add a second notion of progress to presentation. Collisions, richer rival behavior and game-specific effects require explicit new design and causal tests; they are not presumed implemented by the current physics core.
+
+## Concrete visual content
+
+The [tunnel fixture](../src/dev/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.

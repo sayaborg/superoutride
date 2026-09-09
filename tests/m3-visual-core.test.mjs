@@ -1,3 +1,5 @@
+import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -35,6 +37,8 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
 };
 const terrainProfile = {
@@ -108,11 +112,11 @@ test('TerrainLine row agrees with the single Core pseudo projection for its samp
 });
 
 test('GroundMap source sampling distinguishes road, shoulder, marking and terrain', () => {
-  assert.equal(sampleGroundMap(3, 0, groundProfile, false), GROUND_COLORS.marking);
-  assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sampleGroundMap(9, 2, groundProfile, false)));
-  assert.equal(sampleGroundMap(9, 5, groundProfile, false), GROUND_COLORS.shoulder);
-  assert.ok([GROUND_COLORS.grassA, GROUND_COLORS.grassB].includes(sampleGroundMap(9, 8, groundProfile, false)));
-  assert.ok([GROUND_COLORS.rockA, GROUND_COLORS.rockB].includes(sampleGroundMap(9, -8, groundProfile, true)));
+  assert.equal(sampleGroundMap(3, 0, groundProfile), GROUND_COLORS.marking);
+  assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sampleGroundMap(9, 2, groundProfile)));
+  assert.equal(sampleGroundMap(9, 5, groundProfile), GROUND_COLORS.shoulder);
+  assert.ok([GROUND_COLORS.grassA, GROUND_COLORS.grassB].includes(sampleGroundMap(9, 8, groundProfile)));
+  assert.ok([GROUND_COLORS.rockA, GROUND_COLORS.rockB].includes(sampleGroundMap(9, -8, { ...groundProfile, logical: new GroundMapLogicalProfile(guide.length, [{ sStart: 0, name: 'rock', left: 'ROCK', right: 'GRASS' }]) })));
 });
 
 test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock', () => {

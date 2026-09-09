@@ -4,7 +4,7 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
-import { sampleGuideCurve } from '../core/guide-curve.js';
+import { sampleGuidePath } from '../core/guide-curve.js';
 import { arcadeBodyKinematics, updateArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
@@ -193,7 +193,7 @@ export function recoverM5VehicleToGuideCoordinate(
   const coordinate = {
     s: target.s,
     l: target.l,
-    segmentIndex: sampleGuideCurve(curve, target.s).segmentIndex,
+    segmentIndex: sampleGuidePath(curve, target.s).segmentIndex,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);

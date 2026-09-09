@@ -7,14 +7,14 @@ import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
-import { CyclicSurfaceMap, SurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import {
-  createM5TunnelPresentation,
-  selectM5FarBackground,
-} from '../dist/visual/m5-9-tunnel.js';
-import { CyclicVisualProfile, VisualProfile } from '../dist/visual/visual-profile.js';
+  createTunnelPresentation,
+  selectTunnelBackground
+} from '../dist/dev/tunnel.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
@@ -65,14 +65,14 @@ test('M6.47 parent visual and surface sources own the real open [0,L] domain', (
 
 test('M6.47 M5.9 tunnel background is one ordinary open interval and never wraps endpoints', () => {
   const outdoor = createM3FarBackground();
-  const tunnel = createM5TunnelPresentation(guide.length, 5);
+  const tunnel = createTunnelPresentation(guide.length, 5);
 
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionStartS - 1e-6, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionEndS - 1e-6, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectM5FarBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
-  assert.throws(() => selectM5FarBackground(-1e-6, guide.length, outdoor, tunnel), RangeError);
-  assert.throws(() => selectM5FarBackground(guide.length + 1e-6, guide.length, outdoor, tunnel), RangeError);
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-6, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-6, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.throws(() => selectTunnelBackground(-1e-6, guide.length, outdoor, tunnel), RangeError);
+  assert.throws(() => selectTunnelBackground(guide.length + 1e-6, guide.length, outdoor, tunnel), RangeError);
 });
 
 test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reader directly', () => {
@@ -93,7 +93,7 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
     '../src/dev/m6-20-live-runtime-content.ts',
     '../src/physics/arcade-vehicle-physics.ts',
     '../src/dev/m4-debug-world.ts',
-    '../src/world/m5-9-tunnel-world.ts',
+    '../src/dev/tunnel.ts',
   ];
   for (const path of heightReaderFiles) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
@@ -110,17 +110,8 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
 });
 
 test('M6.47 tunnel presentation contains no implicit modulo or wrapPositive topology', async () => {
-  const source = await readFile(new URL('../src/visual/m5-9-tunnel.ts', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../src/dev/tunnel.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /wrapPositive/);
   assert.doesNotMatch(source, /cyclicIntervalContains/);
   assert.match(source, /cameraS < 0 \|\| cameraS > courseLength/);
-});
-
-test('M6.47 explicit cyclic adapters remain available for a future upper-level CIRCUIT choice', () => {
-  const visual = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaces = new CyclicSurfaceMap(guide.length, compiled.surfaceSections);
-  const probe = 17.25;
-
-  assert.deepEqual(visual.sample(probe), visual.sample(probe + guide.length));
-  assert.deepEqual(surfaces.sample(probe, 0), surfaces.sample(probe + guide.length, 0));
 });

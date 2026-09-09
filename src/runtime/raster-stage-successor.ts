@@ -1,5 +1,5 @@
-import { compileRasterCourse, type RasterVertex } from '../core/course.js';
-import { compileGuideCurve, type GuideCurve } from '../core/guide-curve.js';
+import { compileRasterPath, type RasterVertex } from '../core/course.js';
+import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import { normalFromHeading } from '../core/math.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
@@ -10,7 +10,7 @@ import { compileStageContinuationLink, type StageContinuationLink } from './stag
 import type { GroundMapProfile } from '../visual/ground-map.js';
 
 export interface RasterSuccessorSource {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly chart: GuideChart;
   readonly groundProfile: GroundMapProfile;
 }
@@ -34,10 +34,12 @@ export interface RasterSuccessorAuthoring {
   readonly groundHalfWidth: number;
   readonly roadHalfWidth: number;
   readonly shoulderWidth: number;
+  readonly roadMarkings?: GroundMapProfile['roadMarkings'];
+  readonly junctionMarkings?: GroundMapProfile['junctionMarkings'];
 }
 
 export interface RasterSuccessorRuntimeSource {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly chart: GuideChart;
   readonly roadView: StageRoadView;
   readonly surfaceMap: StageSurfaceMapView;
@@ -114,7 +116,7 @@ export function createRasterStageSuccessor(
   );
   const runout = [...deformationRunout, ...straightTail];
 
-  const successorRaster = compileRasterCourse([...prefix, ...runout]);
+  const successorRaster = compileRasterPath([...prefix, ...runout]);
   const runoutTurnStart = Math.max(1, prefix.length - 1);
   const maxRunoutTurnDegrees = successorRaster.vertexTurns
     .slice(runoutTurnStart)
@@ -125,7 +127,7 @@ export function createRasterStageSuccessor(
     );
   }
 
-  const guide = compileGuideCurve(successorRaster, {
+  const guide = compileGuidePath(successorRaster, {
     lMax: source.guide.lMax,
     mMin: source.guide.mMin,
     dCam: authoring.dCam,
@@ -158,6 +160,8 @@ export function createRasterStageSuccessor(
     roadLeft: authoring.roadHalfWidth,
     roadRight: authoring.roadHalfWidth,
     shoulderWidth: authoring.shoulderWidth,
+    roadMarkings: authoring.roadMarkings,
+    junctionMarkings: authoring.junctionMarkings,
     roadCenterL: origin,
     chainageOffsetS: (source.groundProfile.chainageOffsetS ?? 0) + sourceStartS,
   };

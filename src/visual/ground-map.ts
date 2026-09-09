@@ -23,23 +23,17 @@ export interface LongitudinalRoadMarking {
   readonly phaseS?: number;
 }
 
-const HISTORICAL_CENTER_MARKING: readonly LongitudinalRoadMarking[] = Object.freeze([Object.freeze({
-  centerL: 0,
-  width: 0.14,
-  pattern: 'DASHED' as const,
-  dashLength: 7,
-  gapLength: 5,
-})]);
-
 export interface GroundMapProfile {
   groundLeft: number;
   groundRight: number;
   roadLeft: number;
   roadRight: number;
   shoulderWidth: number;
-  /** Explicit authored longitudinal paint. Omission preserves the historical center dash fixture. */
+  /** Explicit longitudinal paint. Omission means no paint. */
   roadMarkings?: readonly LongitudinalRoadMarking[];
-  /** Optional source-coordinate road center. Default 0 keeps all pre-M6.22 authoring unchanged. */
+  /** Paint repeated about each junction carriageway center; omission means no paint. */
+  junctionMarkings?: readonly LongitudinalRoadMarking[];
+  /** Source-coordinate road center; zero is the unshifted coordinate basis. */
   roadCenterL?: number;
   /** Optional source chainage phase. Used when a stage-local s ruler is rebased onto reusable visual authoring. */
   chainageOffsetS?: number;
@@ -47,18 +41,18 @@ export interface GroundMapProfile {
   junction?: JunctionCrossSectionProfile;
   /** Optional active-stage-local junction overlay. Only stage-local GroundMap adapters consume this field. */
   stageJunction?: JunctionCrossSectionProfile;
-  /** Compiler output. General form is open; explicit cyclic adapters satisfy the same reader contract. */
+  /** Compiler output over the finite source domain. */
   logical?: GroundMapLogicalProfileReader;
-  /** Compiler-baked runtime source. General form is open; cyclic addressing requires an explicit adapter. */
+  /** Compiler-baked runtime source over the same finite domain. */
   baked?: BakedGroundMapReader;
 }
 
 /** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
-export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile, cliffSection = false): number {
+export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);
   if (profile.junction && profile.junction.sample(sourceS).phase !== 'SINGLE') {
-    const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, sourceS);
+    const junctionColor = sampleJunctionGroundMap(sourceS, l, profile.junction, profile.junctionMarkings, sourceS);
     if (junctionColor !== null) return junctionColor;
   } else {
     const roadCenterL = profile.roadCenterL ?? 0;
@@ -72,7 +66,6 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile,
 
   const logical = profile.logical?.sample(sourceS);
   if (logical) return sampleOuterMaterial(logical, l - (profile.roadCenterL ?? 0), checker);
-  if (cliffSection && l < (profile.roadCenterL ?? 0)) return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
 }
 
@@ -84,6 +77,7 @@ export function sampleJunctionGroundMap(
   junctionS: number,
   l: number,
   junction: JunctionCrossSectionProfile,
+  markings: readonly LongitudinalRoadMarking[] | undefined,
   patternS = junctionS,
 ): number | null {
   const checker = checkerAt(patternS, l);
@@ -96,15 +90,10 @@ export function sampleJunctionGroundMap(
     || lateralClass === 'ASPHALT_LEFT'
     || lateralClass === 'ASPHALT_RIGHT'
   ) {
-    if (dashPatternOn(patternS, 7, 5)) {
-      if (lateralClass === 'ASPHALT_SINGLE') {
-        if (Math.abs(l) <= 0.07) return GROUND_COLORS.marking;
-      } else {
-        const side = lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT';
-        const center = junction.childCenterLAt(junctionS, side);
-        if (center !== null && Math.abs(l - center) <= 0.07) return GROUND_COLORS.marking;
-      }
-    }
+    const center = lateralClass === 'ASPHALT_SINGLE'
+      ? 0
+      : junction.childCenterLAt(junctionS, lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT');
+    if (center !== null && sampleRoadMarking(patternS, l - center, markings)) return GROUND_COLORS.marking;
     return asphaltColor(patternS);
   }
 
@@ -124,9 +113,9 @@ function sampleRoadMarking(
   localL: number,
   markings: readonly LongitudinalRoadMarking[] | undefined,
 ): boolean {
-  const authored = markings ?? HISTORICAL_CENTER_MARKING;
+  if (!markings) return false;
 
-  for (const marking of authored) {
+  for (const marking of markings) {
     if (!(marking.width > 0) || !Number.isFinite(marking.width) || !Number.isFinite(marking.centerL)) {
       throw new RangeError('road marking position and width must be finite, with width > 0');
     }

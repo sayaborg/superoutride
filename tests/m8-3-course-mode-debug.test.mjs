@@ -27,7 +27,7 @@ import {
   createM83LinearHighwayRuntime,
 } from '../dist/dev/m8-3-linear-highway.js';
 import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
   createM5RecoveryState,
   updateM5Recovery,
@@ -205,7 +205,7 @@ for (const [profile, createVehicle, presentationKind] of [[FERRARI_TESTAROSSA_VE
   for (const side of ['LEFT','RIGHT']) {
     test(`${profile.id} commits the current M7.2 ${side} fork and keeps physics/rendering alive`,()=>{
       const parent=createM72DefaultBranchingParent(),assets=createM4SpriteAssets();
-      const live=createM627LiveRouteRuntime(parent.guide,{heightProfile:parent.heightProfile,surfaceMap:parent.surfaceMap,terrainProfile:parent.terrainProfile,groundProfile:parent.groundProfile,selectFarBackground:()=>createM3FarBackground(),worldSprites:[]},assets,M7_2_DEFAULT_BRANCHING_FORK);
+      const live=createM638DeclarativeForkGrowthRuntime(parent.guide,{heightProfile:parent.heightProfile,surfaceMap:parent.surfaceMap,terrainProfile:parent.terrainProfile,groundProfile:parent.groundProfile,selectFarBackground:()=>createM3FarBackground(),worldSprites:[]},assets,M7_2_DEFAULT_BRANCHING_FORK);
       const car=createVehicle(parent.guide,parent.heightProfile,parent.surfaceMap,M7_2_DEFAULT_BRANCHING_FORK.junction.authoring.sWidenStart-120);
       const traveler=createLiveRouteTravelerState(live,{x:car.x,z:car.z}),recovery=createM5RecoveryState(car),cameraRig=createM5CameraRig(),choiceId=`S1_${side}`;
       let committed=false,renderedAfterCommit=0,minSpeedAfterCommit=Infinity;

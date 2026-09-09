@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,10 +6,10 @@ import fs from 'node:fs';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
 import {
   advanceLiveRouteTraveler,
@@ -19,24 +20,26 @@ import {
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createLiveFixture() {
   const guide = createM2StadiumGuide();
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
   };
-  return createM627LiveRouteRuntime(
+  return createM638DeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,

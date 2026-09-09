@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -28,6 +29,8 @@ const successorAuthoring = (suffix, direction) => ({
   groundMapHalfWidth: 12,
   groundHalfWidth: 4.5,
   roadHalfWidth: 3.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
 });
 

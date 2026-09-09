@@ -1,5 +1,5 @@
-import { rasterCourseToWorld, sampleRasterCourse } from '../core/course.js';
-import type { GuideCurve } from '../core/guide-curve.js';
+import { rasterPathToWorld, sampleRasterPath } from '../core/course.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
 
 export interface FlatRoadProfile {
@@ -41,7 +41,7 @@ export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
  * so this clipping is not an ordinary gameplay special case.
  */
 export function computeForwardVisibleInterval(
-  guide: GuideCurve,
+  guide: GuidePath,
   cameraYaw: number,
   sCamera: number,
   dMin: number,
@@ -63,7 +63,7 @@ export function computeForwardVisibleInterval(
 
   while (cursor <= end + EPSILON) {
     const sLocal = Math.min(guide.length, Math.max(0, cursor));
-    const sample = sampleRasterCourse(guide.raster, sLocal);
+    const sample = sampleRasterPath(guide.raster, sLocal);
     const facing = Math.cos(sample.heading - cameraYaw);
     if (facing <= 0) {
       const facingEnd = cursor - sCamera;
@@ -82,7 +82,7 @@ export function computeForwardVisibleInterval(
 }
 
 export function generateFlatTerrainLines(
-  guide: GuideCurve,
+  guide: GuidePath,
   camera: PseudoCamera,
   profile: FlatRoadProfile,
 ): TerrainLine[] {
@@ -111,8 +111,8 @@ export function generateFlatTerrainLines(
     if (d < visible.dStart || d > visible.dEnd) continue;
 
     const s = camera.s + d;
-    const groundLeft = rasterCourseToWorld(guide.raster, s, -profile.groundLeft);
-    const groundRight = rasterCourseToWorld(guide.raster, s, profile.groundRight);
+    const groundLeft = rasterPathToWorld(guide.raster, s, -profile.groundLeft);
+    const groundRight = rasterPathToWorld(guide.raster, s, profile.groundRight);
     const projectedLeft = pseudoProject({ ...groundLeft, y: profile.groundY }, camera);
     const projectedRight = pseudoProject({ ...groundRight, y: profile.groundY }, camera);
 
@@ -217,7 +217,7 @@ interface VerticalFootprintSetup {
 }
 
 export function generateTerrainLines(
-  guide: GuideCurve,
+  guide: GuidePath,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
 ): M3TerrainLine[] {
@@ -239,7 +239,7 @@ export function generateTerrainLines(
 
   while (cursor < end - 1e-8) {
     const local = cursor;
-    const raster = sampleRasterCourse(guide.raster, local);
+    const raster = sampleRasterPath(guide.raster, local);
     const rasterSegment = guide.raster.segments[raster.segmentIndex]!;
     const rasterDistance = rasterSegment.sStart + rasterSegment.length - local;
     const heightDistance = profile.height.distanceToNextRenderNode(local);
@@ -361,7 +361,7 @@ function depthAtScreenBoundary(
 }
 
 function createM3TerrainLine(
-  guide: GuideCurve,
+  guide: GuidePath,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
   d: number,
@@ -370,8 +370,8 @@ function createM3TerrainLine(
 ): M3TerrainLine | null {
   const s = camera.s + d;
   const renderHeight = profile.height.sampleRender(s).y;
-  const groundLeft = rasterCourseToWorld(guide.raster, s, -profile.groundLeft);
-  const groundRight = rasterCourseToWorld(guide.raster, s, profile.groundRight);
+  const groundLeft = rasterPathToWorld(guide.raster, s, -profile.groundLeft);
+  const groundRight = rasterPathToWorld(guide.raster, s, profile.groundRight);
   const projectedLeft = pseudoProject({ ...groundLeft, y: renderHeight }, camera);
   const projectedRight = pseudoProject({ ...groundRight, y: renderHeight }, camera);
   const groundSpan = projectedRight.x - projectedLeft.x;

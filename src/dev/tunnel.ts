@@ -1,12 +1,15 @@
+import type { GuidePath } from '../core/guide-curve.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
+import { compileCourseSprite, type CourseSprite } from '../world/course-sprite.js';
 import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
 import { SoftwareSurface, rgba } from '../render/software-surface.js';
-import type { FarBackground } from './far-background.js';
+import type { FarBackground } from '../visual/far-background.js';
 
-export const M5_9_TUNNEL_ENTRY_S = 130;
-export const M5_9_TUNNEL_EXIT_S = 180;
-export const M5_9_TUNNEL_RIB_S = [142, 168] as const;
+export const TUNNEL_ENTRY_S = 130;
+export const TUNNEL_EXIT_S = 180;
+export const TUNNEL_RIB_S = [142, 168] as const;
 
-export interface M5TunnelPresentation {
+export interface TunnelPresentation {
   readonly entryS: number;
   readonly exitS: number;
   readonly cameraTransitionStartS: number;
@@ -16,7 +19,7 @@ export interface M5TunnelPresentation {
   readonly interiorBackground: FarBackground;
 }
 
-export interface SelectedM5FarBackground {
+export interface SelectedFarBackground {
   readonly kind: 'OUTDOOR' | 'TUNNEL';
   readonly background: FarBackground;
 }
@@ -25,26 +28,23 @@ export interface SelectedM5FarBackground {
  * Core tunnel rule: the far interior is a Far Background, while only near portal/rib
  * structure remains sprite geometry. Background switching is hidden by a screen-filling
  * portal at the player crossing because the camera transition is offset by D_cam.
- *
- * M6.47: the tunnel is an ordinary interval on one open stage. It never wraps through
- * either endpoint; a future CIRCUIT layer may explicitly adapt source chainage before
- * calling this presentation primitive.
+ * The authored interval lies inside the finite parent stage.
  */
-export function createM5TunnelPresentation(courseLength: number, dCam: number): M5TunnelPresentation {
+export function createTunnelPresentation(courseLength: number, dCam: number): TunnelPresentation {
   if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
     throw new RangeError('courseLength must be finite and > 0');
   }
   if (!(dCam > 0) || !Number.isFinite(dCam)) throw new RangeError('dCam must be finite and > 0');
 
-  const cameraTransitionStartS = M5_9_TUNNEL_ENTRY_S - dCam;
-  const cameraTransitionEndS = M5_9_TUNNEL_EXIT_S - dCam;
-  if (cameraTransitionStartS < 0 || M5_9_TUNNEL_EXIT_S > courseLength) {
-    throw new RangeError('open course is too short for the M5.9 tunnel interval');
+  const cameraTransitionStartS = TUNNEL_ENTRY_S - dCam;
+  const cameraTransitionEndS = TUNNEL_EXIT_S - dCam;
+  if (cameraTransitionStartS < 0 || TUNNEL_EXIT_S > courseLength) {
+    throw new RangeError('open course is too short for the tunnel interval');
   }
 
   return {
-    entryS: M5_9_TUNNEL_ENTRY_S,
-    exitS: M5_9_TUNNEL_EXIT_S,
+    entryS: TUNNEL_ENTRY_S,
+    exitS: TUNNEL_EXIT_S,
     cameraTransitionStartS,
     cameraTransitionEndS,
     portalAsset: createTunnelPortalAsset(),
@@ -53,12 +53,12 @@ export function createM5TunnelPresentation(courseLength: number, dCam: number): 
   };
 }
 
-export function selectM5FarBackground(
+export function selectTunnelBackground(
   cameraS: number,
   courseLength: number,
   outdoor: FarBackground,
-  tunnel: M5TunnelPresentation,
-): SelectedM5FarBackground {
+  tunnel: TunnelPresentation,
+): SelectedFarBackground {
   if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
     throw new RangeError('courseLength must be finite and > 0');
   }
@@ -70,15 +70,6 @@ export function selectM5FarBackground(
   return active
     ? { kind: 'TUNNEL', background: tunnel.interiorBackground }
     : { kind: 'OUTDOOR', background: outdoor };
-}
-
-export function tunnelPortalApertureIsTransparent(asset: SpriteAsset): boolean {
-  // Probe the intended central roadway aperture and opaque frame rather than relying on name.
-  const center = Math.floor(asset.width * 0.5);
-  const lower = Math.floor(asset.height * 0.75);
-  const frame = asset.pixels[Math.floor(asset.height * 0.15) * asset.width + center]!;
-  const aperture = asset.pixels[lower * asset.width + center]!;
-  return frame !== SPRITE_TRANSPARENT && aperture === SPRITE_TRANSPARENT;
 }
 
 function createTunnelInteriorBackground(): FarBackground {
@@ -173,4 +164,41 @@ function fillRect(
   for (let y = top; y <= bottom; y += 1) {
     for (let x = left; x <= right; x += 1) pixels[y * width + x] = color >>> 0;
   }
+}
+
+/**
+ * Only the portal faces and two near structural ribs remain world sprites.
+ * Distant interior detail is represented by the tunnel Far Background.
+ */
+export function createTunnelWorldSprites(
+  guide: GuidePath,
+  height: HeightProfileReader,
+  tunnel: TunnelPresentation,
+): CourseSprite[] {
+  return [
+    compileCourseSprite(guide, height, {
+      name: 'TUNNEL ENTRY PORTAL',
+      s: TUNNEL_ENTRY_S,
+      l: 0,
+      asset: tunnel.portalAsset,
+    }),
+    compileCourseSprite(guide, height, {
+      name: 'TUNNEL NEAR RIB A',
+      s: TUNNEL_RIB_S[0],
+      l: 0,
+      asset: tunnel.ribAsset,
+    }),
+    compileCourseSprite(guide, height, {
+      name: 'TUNNEL NEAR RIB B',
+      s: TUNNEL_RIB_S[1],
+      l: 0,
+      asset: tunnel.ribAsset,
+    }),
+    compileCourseSprite(guide, height, {
+      name: 'TUNNEL EXIT PORTAL',
+      s: TUNNEL_EXIT_S,
+      l: 0,
+      asset: tunnel.portalAsset,
+    }),
+  ];
 }

@@ -24,7 +24,7 @@ node tools/bike-cg-probe.mjs dist /tmp/bike-cg.json
 node tools/steering-input-stop-probe.mjs
 ```
 
-[Browser performance page](../tools/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
+[Browser performance page](../tools/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. [Workload reduction](../src/render/render-workload.ts) reports current observations; no copied milestone maxima or arbitrary headroom multiplier establishes a device budget. Enforce actual clipping/accounting invariants and compare reference pixels, then measure on the target device. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
 
 ## Exact-commit release
 

@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -31,6 +32,8 @@ function authoring(side) {
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
     roadHalfWidth: 3.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
   };
 }
@@ -117,5 +120,5 @@ test('M6.29 successor factory is route/renderer/vehicle independent and M6.26 de
   assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|m5-camera/);
   assert.doesNotMatch(factorySource, /M6_2[0-9]|m6-2[0-9]/);
   assert.match(legacySource, /createRasterStageSuccessor/);
-  assert.doesNotMatch(legacySource, /compileRasterCourse|longestGentleRun|vertexTurnDegrees/);
+  assert.doesNotMatch(legacySource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);
 });

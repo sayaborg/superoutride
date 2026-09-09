@@ -12,7 +12,7 @@ import {
 } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
-import { createM627LiveRouteRuntime } from './dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from './dev/m6-38-declarative-fork-growth-plan.js';
 import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
 import {
   M7_2_DEFAULT_BRANCHING_FORK,
@@ -79,11 +79,11 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehic
 import { createM3FarBackground } from './visual/far-background.js';
 import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
 import {
-  createM5TunnelPresentation,
-  selectM5FarBackground,
-} from './visual/m5-9-tunnel.js';
+  createTunnelPresentation,
+  createTunnelWorldSprites,
+  selectTunnelBackground,
+} from './dev/tunnel.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
-import { createM5TunnelWorldSprites } from './world/m5-9-tunnel-world.js';
 
 const parentCourse = createM72DefaultBranchingParent();
 const {
@@ -94,25 +94,25 @@ const {
   terrainProfile,
 } = parentCourse;
 const outdoorFarBackground = createM3FarBackground();
-const tunnelPresentation = createM5TunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
+const tunnelPresentation = createTunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createM4SpriteAssets();
 const staticWorldSprites = [
   ...createM4DebugWorldSprites(guide, heightProfile, spriteAssets),
-  ...createM5TunnelWorldSprites(guide, heightProfile, tunnelPresentation),
+  ...createTunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
 
 const shell = createBrowserDrivingShell({ guide, height: heightProfile, surfaces: surfaceMap }, M7_2_PLAYER_START_L);
 const { framebuffer, inputManager, cameraRig } = shell;
 const raceSession = createRaceSessionState();
 
-const liveRoute = createM627LiveRouteRuntime(
+const liveRoute = createM638DeclarativeForkGrowthRuntime(
   guide,
   {
     heightProfile,
     surfaceMap,
     terrainProfile,
     groundProfile,
-    selectFarBackground: (cameraS) => selectM5FarBackground(
+    selectFarBackground: (cameraS) => selectTunnelBackground(
       cameraS,
       guide.length,
       outdoorFarBackground,

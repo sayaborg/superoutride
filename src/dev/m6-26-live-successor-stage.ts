@@ -1,8 +1,9 @@
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
-import type { GuideCurve } from '../core/guide-curve.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import {
   compileRouteBoundaryGateSet,
   type RouteBoundaryGateAuthoring,
@@ -72,7 +73,7 @@ export function createM626LiveRouteDag(): RouteDag {
 }
 
 export function createM626LiveContinuation(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   fork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): M626LiveContinuation {
   const base = createM622ChildStageContinuation(parentGuide, fork);
@@ -131,6 +132,8 @@ function createSuccessorSource(
     groundMapHalfWidth: GROUND_MAP_HALF_WIDTH,
     groundHalfWidth: GROUND_HALF_WIDTH,
     roadHalfWidth: ROAD_HALF_WIDTH,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: SHOULDER_WIDTH,
   });
   if (!(successor.sourceTransitionS > 300)) {

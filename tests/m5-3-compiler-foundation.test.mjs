@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,11 +34,13 @@ test('compiled GroundMap logical material is independent from GroundBase transpa
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     logical: compiled.groundMap,
   };
-  const left = sampleGroundMap(500, -9, profile, false);
-  const right = sampleGroundMap(500, 9, profile, false);
+  const left = sampleGroundMap(500, -9, profile);
+  const right = sampleGroundMap(500, 9, profile);
   assert.ok(left === GROUND_COLORS.rockA || left === GROUND_COLORS.rockB);
   assert.ok(right === GROUND_COLORS.grassA || right === GROUND_COLORS.grassB);
   assert.equal(compiled.visualSections[1].groundBaseLeft.kind, 'transparent');

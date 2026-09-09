@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -6,7 +7,7 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
 const guide = createM2StadiumGuide();
@@ -16,11 +17,13 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
   junction: M6_13_JUNCTION,
   logical: compiled.groundMap,
 };
-const surfaces = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
 
 function asphaltColor(s) {
   return Math.floor(s * 0.25) & 1 ? GROUND_COLORS.asphaltA : GROUND_COLORS.asphaltB;

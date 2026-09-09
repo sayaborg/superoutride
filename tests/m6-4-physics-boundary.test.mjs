@@ -1,9 +1,10 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { pseudoDepth } from '../dist/core/projection.js';
 import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
@@ -19,7 +20,7 @@ import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-
 const deg = (value) => value * Math.PI / 180;
 
 function makePlainVehicle(guide, height, s = 90) {
-  const p = guideCourseToWorld(guide, s, 0);
+  const p = guidePathToWorld(guide, s, 0);
   return {
     x: p.x,
     y: height.samplePhysics(p.s),
@@ -100,7 +101,8 @@ test('plain world-state object can drive camera, rival input, dynamic sprite and
       visual,
       thinSpanScreenRows: 1,
     },
-    { groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+    { groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1,
+      roadMarkings: CENTER_DASH_MARKINGS },
     [rivalSprite],
     assets,
     'car',

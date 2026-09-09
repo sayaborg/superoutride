@@ -1,5 +1,5 @@
 import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
-import { sampleGuideCurve } from '../core/guide-curve.js';
+import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
@@ -135,7 +135,7 @@ export function updateM5Camera(
   }
 
   const curve = guideCoordinateCurve(guide);
-  const guideAtCar = sampleGuideCurve(curve, vehicle.course.s);
+  const guideAtCar = sampleGuidePath(curve, vehicle.course.s);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
   const bodyPitch = vehicle.sprungPitch ?? 0;
 

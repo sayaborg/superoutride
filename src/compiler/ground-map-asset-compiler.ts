@@ -59,7 +59,7 @@ export async function compileBakedGroundMapAsset(
     const offset = row * baseLateralTexels;
     for (let column = 0; column < baseLateralTexels; column += 1) {
       const l = -profile.groundLeft + (column + 0.5) * actualBaseQL;
-      basePixels[offset + column] = sampleGroundMap(s, l, profile, false);
+      basePixels[offset + column] = sampleGroundMap(s, l, profile);
     }
   }
 

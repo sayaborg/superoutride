@@ -19,6 +19,8 @@
 
 ## 次に触る場所
 
+具体的なトンネル配置と素材は [DEVコース素材](../src/dev/tunnel.ts) が所有する。一般プロファイルは有限区間のみで、周回は上位の展開処理が担当する。道路の線はコース側で明示する。
+
 映像は [描画](../src/render/m5-renderer.ts)、[スプライト資産](../src/visual/m4-sprite-assets.ts)、[カメラ](../src/camera/m5-camera.ts)、[ブラウザ表示](../src/browser/driving-shell.ts)。車両・コース読み取り状態から表現を作り、別の物理状態や奥行き規則を追加しない。
 
 サウンドは専用の表示側の層を設計し、RPM、ペダル、タイヤ状態など既存の読み取り値とゲームイベントを入力にする。現在サウンドエンジンはない。開始・終了・得点などのゲームルールは [session](../src/gameplay/race-session.ts) と [objective](../src/gameplay/run-objective.ts)、各composition rootへ組み込む。

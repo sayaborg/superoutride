@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import { M6_51_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -119,6 +120,8 @@ test('M6.51 unchanged M5 renderer draws a normal frame after the live physics se
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
   };
   const stats = renderM5Driving(

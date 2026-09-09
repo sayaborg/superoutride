@@ -1,4 +1,5 @@
-import type { GuideCurve } from '../core/guide-curve.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import type { GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -33,7 +34,7 @@ const FORK_SOURCE_SEAM_MIN_S = 235;
  * exact validated topology without reconstructing the first fork or either third-stage chain.
  */
 export function createM635SecondLiveForkAuthoring(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
 ): DeclarativeLiveRouteAuthoring {
@@ -76,9 +77,9 @@ export function createM635SecondLiveForkAuthoring(
   }).authoring;
 }
 
-/** Browser-facing historical M6.35 runtime fixture. */
+/** A two-level branching fixture for route assembly and physical handoff tests. */
 export function createM635SecondLiveForkRuntime(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
   spriteAssets: M4SpriteAssets,
 ): LiveRouteRuntimeAssembly {
@@ -118,6 +119,8 @@ function forkBranchAuthoring(
       finishClosureMargin: 20,
       groundMapHalfWidth: 12,
       groundHalfWidth: 4.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
     },
   } as const;

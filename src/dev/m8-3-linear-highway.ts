@@ -1,6 +1,6 @@
 import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath } from '../core/course.js';
-import { compileGuidePath, type GuideCurve } from '../core/guide-curve.js';
+import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -31,7 +31,7 @@ export const M8_3_LINEAR_COURSE_MODE: CourseModeProfile = compileCourseMode({
 export const M8_3_LINEAR_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 0 });
 
 export interface M83LinearHighwayRuntime {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly heightProfile: HeightProfile;
   readonly visualProfile: VisualProfile;
   readonly surfaceMap: SurfaceMap;

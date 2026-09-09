@@ -1,4 +1,4 @@
-import { guideCourseToWorld, type GuideCurve } from '../core/guide-curve.js';
+import { guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
 import type { JunctionCrossSectionProfile, JunctionSide } from '../course/junction-cross-section.js';
 import { compileRouteBoundaryGateSet, type RouteBoundaryGateAuthoring, type RouteBoundaryGateSet } from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../gameplay/route-dag.js';
@@ -25,7 +25,7 @@ export function createM620LivePointToPointRouteDag(): RouteDag {
 
 export function createM620LivePointToPointGateSet(
   route: RouteDag,
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile = M6_13_JUNCTION,
 ): RouteBoundaryGateSet {
   if (!(M6_15_ROUTE_GATE_S > junction.authoring.sSeparatedStart)) {
@@ -47,14 +47,14 @@ export function createM620LivePointToPointGateSet(
 }
 
 function transitionGate(
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile,
   id: string,
   choiceId: string,
   side: JunctionSide,
 ): RouteBoundaryGateAuthoring {
   const l = junction.separatedChildCenterL(side);
-  const point = guideCourseToWorld(guide, M6_15_ROUTE_GATE_S, l);
+  const point = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, l);
   return {
     id,
     kind: 'TRANSITION',
@@ -66,14 +66,14 @@ function transitionGate(
 }
 
 function finishGate(
-  guide: GuideCurve,
+  guide: GuidePath,
   junction: JunctionCrossSectionProfile,
   id: string,
   stageId: string,
   side: JunctionSide,
 ): RouteBoundaryGateAuthoring {
   const l = junction.separatedChildCenterL(side);
-  const point = guideCourseToWorld(guide, M6_20_FINISH_GATE_S, l);
+  const point = guidePathToWorld(guide, M6_20_FINISH_GATE_S, l);
   return {
     id,
     kind: 'FINISH',

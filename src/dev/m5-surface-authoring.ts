@@ -1,5 +1,10 @@
+import type { LongitudinalRoadMarking } from '../visual/ground-map.js';
 import type { AuthoredSurfaceBand, AuthoredSurfaceType, SurfaceRegionAuthoring } from '../course/surface-region.js';
 import { rgba } from '../render/software-surface.js';
+
+export const CENTER_DASH_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
+  Object.freeze({ centerL: 0, width: 0.14, pattern: 'DASHED', dashLength: 7, gapLength: 5 }),
+]);
 
 export const M5_SURFACE_BASE_COLORS = {
   grass: rgba(45, 100, 53),

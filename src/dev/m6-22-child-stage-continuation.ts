@@ -1,10 +1,11 @@
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
-import { compileRasterCourse, type RasterVertex } from '../core/course.js';
-import { compileGuideCurve, guideCourseToWorld, type GuideCurve } from '../core/guide-curve.js';
+import { compileRasterPath, type RasterVertex } from '../core/course.js';
+import { compileGuidePath, guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
 import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
@@ -39,9 +40,6 @@ const CHILD_OVERLAP_AHEAD_METERS = 60;
 const CHILD_GROUND_HALF_WIDTH = 4.5;
 const CHILD_ROAD_HALF_WIDTH = 3.5;
 const CHILD_SHOULDER_WIDTH = 1;
-const CHILD_CURVE_SAMPLES = 60;
-const CHILD_ENTRY_STRAIGHT = 30;
-const CHILD_CLOSE_LENGTH = 50;
 
 export interface M622StageGuideCharts {
   readonly parent: GuideChart;
@@ -50,7 +48,7 @@ export interface M622StageGuideCharts {
 }
 
 export interface M622ChildStageRuntimeSource {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly chart: GuideChart;
   readonly roadView: StageRoadView;
   readonly surfaceMap: StageSurfaceMapView;
@@ -69,15 +67,12 @@ export interface M622ChildStageContinuation {
 
 /**
  * Parent-stage physical split authority consumed by the reusable child-stage compiler.
- * The historical M6 fixture remains the default; later browser compositions may place the same
- * ordinary gate -> PENDING -> seam boundary on a different open parent Guide.
+ * Authored junction, gate and seam positions determine the shared overlap on the parent Guide.
  */
 export interface M622ParentForkGeometry {
   readonly junction: JunctionCrossSectionProfile;
   readonly routeGateS: number;
   readonly handoffSeamS: number;
-  /** Omission preserves the historical M6 closed-back DEV child shape. */
-  readonly childContinuation?: 'FORWARD_OPEN';
 }
 
 export const M6_22_PARENT_FORK_GEOMETRY: Readonly<M622ParentForkGeometry> = Object.freeze({
@@ -85,11 +80,6 @@ export const M6_22_PARENT_FORK_GEOMETRY: Readonly<M622ParentForkGeometry> = Obje
   routeGateS: M6_15_ROUTE_GATE_S,
   handoffSeamS: M6_17_HANDOFF_SEAM_S,
 });
-
-interface ChildShape {
-  readonly startHandle: number;
-  readonly endHandle: number;
-}
 
 /**
  * Build two independent post-handoff Raster/Guide courses.
@@ -100,7 +90,7 @@ interface ChildShape {
  * COMMIT. After the shared prefix each child owns a different long continuation and course length.
  */
 export function createM622ChildStageContinuation(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   fork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): M622ChildStageContinuation {
   const parentRaster = parentGuide.raster;
@@ -115,20 +105,8 @@ export function createM622ChildStageContinuation(
     throw new Error('M6.22 child source must remain shared beyond the handoff seam');
   }
 
-  const leftGuide = createChildGuide(
-    parentGuide,
-    overlap,
-    { startHandle: 250, endHandle: 200 },
-    'LEFT',
-    fork.childContinuation,
-  );
-  const rightGuide = createChildGuide(
-    parentGuide,
-    overlap,
-    { startHandle: 300, endHandle: 250 },
-    'RIGHT',
-    fork.childContinuation,
-  );
+  const leftGuide = createChildGuide(parentGuide, overlap, 'LEFT');
+  const rightGuide = createChildGuide(parentGuide, overlap, 'RIGHT');
   const leftOrigin = fork.junction.separatedChildCenterL('LEFT');
   const rightOrigin = fork.junction.separatedChildCenterL('RIGHT');
   const charts: M622StageGuideCharts = Object.freeze({
@@ -146,7 +124,7 @@ export function createM622ChildStageContinuation(
 
 export function createM622RouteStageHandoffManifest(
   route: RouteDag,
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   continuation: M622ChildStageContinuation,
   fork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): RouteStageHandoffManifest {
@@ -163,7 +141,7 @@ export function createM622RouteStageHandoffManifest(
 
 export function createM622LivePointToPointGateSet(
   route: RouteDag,
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   continuation: M622ChildStageContinuation,
   fork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): RouteBoundaryGateSet {
@@ -183,56 +161,18 @@ export function createM622LivePointToPointGateSet(
 }
 
 function createChildGuide(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   overlap: { readonly startIndex: number; readonly endIndex: number },
-  shape: ChildShape,
   side: 'LEFT' | 'RIGHT',
-  continuationKind: M622ParentForkGeometry['childContinuation'],
-): GuideCurve {
+): GuidePath {
   const parentRaster = parentGuide.raster;
   const prefix = parentRaster.vertices
     .slice(overlap.startIndex, overlap.endIndex + 1)
     .map((vertex) => ({ ...vertex }));
   const divergence = prefix[prefix.length - 1]!;
-  if (continuationKind === 'FORWARD_OPEN') {
-    return createForwardOpenChildGuide(parentGuide, prefix, divergence, overlap.endIndex, side);
-  }
-  const start = prefix[0]!;
-  const outgoingHeading = parentRaster.segments[overlap.endIndex]!.heading;
-  const incomingStartHeading = parentRaster.segments[overlap.startIndex - 1]!.heading;
-  const outgoingTangent = tangentFromHeading(outgoingHeading);
-  const incomingStartTangent = tangentFromHeading(incomingStartHeading);
-
-  const curveStart = addScaled(divergence, outgoingTangent, CHILD_ENTRY_STRAIGHT);
-  const closeApproach = addScaled(start, incomingStartTangent, -CHILD_CLOSE_LENGTH);
-  const control1 = addScaled(curveStart, outgoingTangent, shape.startHandle);
-  const control2 = addScaled(closeApproach, incomingStartTangent, -shape.endHandle);
-  const continuation: RasterVertex[] = [{ ...curveStart }];
-  for (let i = 1; i <= CHILD_CURVE_SAMPLES; i += 1) {
-    const t = i / CHILD_CURVE_SAMPLES;
-    continuation.push(cubicBezier(curveStart, control1, control2, closeApproach, t));
-  }
-
-  const raster = compileRasterCourse([...prefix, ...continuation]);
-  const guide = compileGuideCurve(raster, {
-    lMax: parentGuide.lMax,
-    mMin: parentGuide.mMin,
-    dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  });
-  if (!(guide.length > 300)) throw new Error('M6.22 child Guide must stay longer than 2*dMax');
-  return guide;
-}
-
-function createForwardOpenChildGuide(
-  parentGuide: GuideCurve,
-  prefix: RasterVertex[],
-  divergence: RasterVertex,
-  sharedEndVertexIndex: number,
-  side: 'LEFT' | 'RIGHT',
-): GuideCurve {
   const turnSign = side === 'LEFT' ? -1 : 1;
   const continuation: RasterVertex[] = [];
-  let heading = parentGuide.raster.segments[sharedEndVertexIndex]!.heading;
+  let heading = parentRaster.segments[overlap.endIndex]!.heading;
   let point = { ...divergence };
   const append = (length: number): void => {
     const tangent = tangentFromHeading(heading);
@@ -250,18 +190,17 @@ function createForwardOpenChildGuide(
   const straightSteps = Math.ceil(finalStraightLength / 50);
   for (let step = 0; step < straightSteps; step += 1) append(finalStraightLength / straightSteps);
 
-  const raster = compileRasterCourse([...prefix, ...continuation]);
-  const guide = compileGuideCurve(raster, {
+  const raster = compileRasterPath([...prefix, ...continuation]);
+  const guide = compileGuidePath(raster, {
     lMax: parentGuide.lMax,
     mMin: parentGuide.mMin,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });
-  if (!(guide.length > 700)) throw new Error('forward child Guide must retain successor runout');
   return guide;
 }
 
 function createChildRuntimeSource(
-  guide: GuideCurve,
+  guide: GuidePath,
   chart: GuideChart,
   side: 'LEFT' | 'RIGHT',
   sourceLateralOrigin: number,
@@ -298,6 +237,8 @@ function createChildRuntimeSource(
     groundRight: 12,
     roadLeft: CHILD_ROAD_HALF_WIDTH,
     roadRight: CHILD_ROAD_HALF_WIDTH,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: CHILD_SHOULDER_WIDTH,
     roadCenterL: sourceLateralOrigin,
     chainageOffsetS,
@@ -335,7 +276,7 @@ function childSurfaceBands(origin: number): SurfaceBand[] {
 }
 
 function handoffSeam(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   choiceId: string,
   target: GuideChart,
   targetSeamS: number,
@@ -343,7 +284,7 @@ function handoffSeam(
 ): RouteStageHandoffSeamAuthoring {
   const side = choiceId === 'S1_LEFT' ? 'LEFT' : 'RIGHT';
   const l = fork.junction.separatedChildCenterL(side);
-  const point = guideCourseToWorld(parentGuide, fork.handoffSeamS, l);
+  const point = guidePathToWorld(parentGuide, fork.handoffSeamS, l);
   return {
     id: `H_${choiceId}`,
     choiceId,
@@ -359,14 +300,14 @@ function handoffSeam(
 }
 
 function transitionGate(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   id: string,
   choiceId: string,
   side: 'LEFT' | 'RIGHT',
   fork: M622ParentForkGeometry,
 ): RouteBoundaryGateAuthoring {
   const l = fork.junction.separatedChildCenterL(side);
-  const point = guideCourseToWorld(parentGuide, fork.routeGateS, l);
+  const point = guidePathToWorld(parentGuide, fork.routeGateS, l);
   return {
     id,
     kind: 'TRANSITION',
@@ -393,16 +334,8 @@ function addScaled(point: Vec2, direction: Vec2, scale: number): Vec2 {
   return { x: point.x + direction.x * scale, z: point.z + direction.z * scale };
 }
 
-function cubicBezier(a: Vec2, b: Vec2, c: Vec2, d: Vec2, t: number): RasterVertex {
-  const u = 1 - t;
-  return {
-    x: u * u * u * a.x + 3 * u * u * t * b.x + 3 * u * t * t * c.x + t * t * t * d.x,
-    z: u * u * u * a.z + 3 * u * u * t * b.z + 3 * u * t * t * c.z + t * t * t * d.z,
-  };
-}
-
 function selectChildOverlapVertices(
-  parentGuide: GuideCurve,
+  parentGuide: GuidePath,
   handoffSeamS: number,
 ): { readonly startIndex: number; readonly endIndex: number } {
   const vertexS = parentGuide.raster.vertexS;
@@ -421,7 +354,7 @@ function selectChildOverlapVertices(
   return Object.freeze({ startIndex, endIndex });
 }
 
-function validateParentFork(parentGuide: GuideCurve, fork: M622ParentForkGeometry): void {
+function validateParentFork(parentGuide: GuidePath, fork: M622ParentForkGeometry): void {
   if (!(fork.routeGateS > fork.junction.authoring.sSeparatedStart)) {
     throw new RangeError('parent route gate must lie on fully separated child roads');
   }

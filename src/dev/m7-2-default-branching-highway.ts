@@ -1,4 +1,5 @@
-import { compileGuidePath, type GuideCurve } from '../core/guide-curve.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
@@ -42,7 +43,6 @@ export const M7_2_DEFAULT_BRANCHING_FORK: Readonly<M622ParentForkGeometry> = Obj
   junction: M7_2_DEFAULT_BRANCHING_JUNCTION,
   routeGateS: M7_2_ROUTE_GATE_S,
   handoffSeamS: M7_2_HANDOFF_SEAM_S,
-  childContinuation: 'FORWARD_OPEN',
 });
 
 export const M7_2_PLAYER_START_L = M7_1_PLAYER_START_L;
@@ -51,7 +51,7 @@ export const M7_2_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = M7_1_HI
 export const M7_2_RIVAL_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE;
 
 export interface M72DefaultBranchingParent {
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly heightProfile: HeightProfile;
   readonly visualProfile: VisualProfile;
   readonly surfaceMap: SurfaceMap;
@@ -90,6 +90,7 @@ export function createM72DefaultBranchingParent(): M72DefaultBranchingParent {
     groundLeft: 13,
     groundRight: 13,
     junction: M7_2_DEFAULT_BRANCHING_JUNCTION,
+    junctionMarkings: CENTER_DASH_MARKINGS,
   };
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,

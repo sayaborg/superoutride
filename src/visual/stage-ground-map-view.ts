@@ -24,14 +24,13 @@ export function sampleStageGroundMapRuntime(
   deltaSEffective: number,
   view: StageRoadView,
   profile: GroundMapProfile,
-  cliffSection = false,
 ): BakedGroundMapSample {
   const localClass = classifyStageRoadLocalL(view, localL);
   if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
 
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   if (profile.stageJunction) {
-    const junctionColor = sampleJunctionGroundMap(s, localL, profile.stageJunction, sourceS);
+    const junctionColor = sampleJunctionGroundMap(s, localL, profile.stageJunction, profile.junctionMarkings, sourceS);
     if (junctionColor !== null) {
       return {
         color: junctionColor,
@@ -50,7 +49,7 @@ export function sampleStageGroundMapRuntime(
   const sourceL = stageRoadSourceLateral(view, localL);
   if (profile.baked) return profile.baked.sample(sourceS, sourceL, deltaSEffective);
   return {
-    color: sampleGroundMap(s, sourceL, profile, cliffSection),
+    color: sampleGroundMap(s, sourceL, profile),
     level: 0,
   };
 }
@@ -61,14 +60,13 @@ export function sampleStageGroundMapAtLevel(
   level: number,
   view: StageRoadView,
   profile: GroundMapProfile,
-  cliffSection = false,
 ): number {
   const localClass = classifyStageRoadLocalL(view, localL);
   if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
 
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   if (profile.stageJunction) {
-    const junctionColor = sampleJunctionGroundMap(s, localL, profile.stageJunction, sourceS);
+    const junctionColor = sampleJunctionGroundMap(s, localL, profile.stageJunction, profile.junctionMarkings, sourceS);
     if (junctionColor !== null) return junctionColor;
   }
 
@@ -77,5 +75,5 @@ export function sampleStageGroundMapAtLevel(
   const sourceL = stageRoadSourceLateral(view, localL);
   return profile.baked
     ? profile.baked.sampleAtLevel(sourceS, sourceL, level)
-    : sampleGroundMap(s, sourceL, profile, cliffSection);
+    : sampleGroundMap(s, sourceL, profile);
 }

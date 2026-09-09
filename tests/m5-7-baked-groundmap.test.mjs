@@ -1,3 +1,4 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -16,7 +17,7 @@ import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-auth
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { renderM5Driving } from '../dist/render/m5-renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { BakedGroundMapAsset, CyclicBakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
+import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
@@ -39,6 +40,8 @@ const groundProfile = {
   groundRight: 12,
   roadLeft: 4.5,
   roadRight: 4.5,
+  roadMarkings: CENTER_DASH_MARKINGS,
+  junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
   junction: M6_13_JUNCTION,
   logical: compiledSurfaces.groundMap,
@@ -87,16 +90,6 @@ test('M6.45 baked GroundMap general asset owns an open chainage domain', () => {
   }
 });
 
-test('M6.45 cyclic baked GroundMap addressing requires the explicit adapter', () => {
-  const cyclic = new CyclicBakedGroundMapAsset(baked);
-  for (let k = 0; k <= baked.kMax; k += 1) {
-    const a = cyclic.sampleAtLevel(123.456, 2.25, k);
-    const b = cyclic.sampleAtLevel(123.456 + guide.length, 2.25, k);
-    const c = cyclic.sampleAtLevel(123.456 - guide.length, 2.25, k);
-    assert.equal(a, b);
-    assert.equal(a, c);
-  }
-});
 
 test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid size', () => {
   const chunkRefs = metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);

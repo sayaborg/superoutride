@@ -146,3 +146,14 @@ test('open-route regression fixtures do not hide endpoint defects behind cyclic 
     );
   }
 });
+
+test('general source profiles expose one finite domain without cyclic implementations', async () => {
+  for (const relativePath of [
+    'src/visual/height-profile.ts', 'src/visual/visual-profile.ts',
+    'src/visual/baked-ground-map.ts', 'src/compiler/surface-region-compiler.ts',
+    'src/physics/surface-map.ts',
+  ]) {
+    const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');
+    assert.doesNotMatch(source, /\bwrapPositive\b|\bclass Cyclic\w*/, relativePath);
+  }
+});

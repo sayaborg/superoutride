@@ -1,9 +1,9 @@
 import {
-  guideCourseToWorld,
+  guidePathToWorld,
   locateWorldOnGuideGlobal,
   locateWorldOnGuideLocal,
   type CourseCoordinate,
-  type GuideCurve,
+  type GuidePath,
   type GuideSample,
 } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
@@ -18,7 +18,7 @@ import type { Vec2 } from '../core/math.js';
  */
 export interface GuideChart {
   readonly id: string;
-  readonly guide: GuideCurve;
+  readonly guide: GuidePath;
   readonly lateralOrigin: number;
 }
 
@@ -26,14 +26,14 @@ export interface GuideChartSample extends GuideSample {
   readonly l: number;
 }
 
-export function createGuideChart(id: string, guide: GuideCurve, lateralOrigin = 0): GuideChart {
+export function createGuideChart(id: string, guide: GuidePath, lateralOrigin = 0): GuideChart {
   if (id.length === 0) throw new Error('Guide chart id must not be empty');
   if (!Number.isFinite(lateralOrigin)) throw new RangeError('Guide chart lateralOrigin must be finite');
   return Object.freeze({ id, guide, lateralOrigin });
 }
 
 export function guideChartToWorld(chart: GuideChart, s: number, l: number): GuideChartSample {
-  const world = guideCourseToWorld(chart.guide, s, l + chart.lateralOrigin);
+  const world = guidePathToWorld(chart.guide, s, l + chart.lateralOrigin);
   return { ...world, l };
 }
 

@@ -2,13 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  CyclicGroundMapLogicalProfile,
-  GroundMapLogicalProfile,
+  GroundMapLogicalProfile
 } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
-import { CyclicHeightProfile, HeightProfile } from '../dist/visual/height-profile.js';
-import { CyclicVisualProfile, VisualProfile } from '../dist/visual/visual-profile.js';
+import { HeightProfile } from '../dist/visual/height-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const visualSections = [
   {
@@ -47,16 +46,8 @@ test('M6.45 HeightProfile is open, explicit at both endpoints and never wraps', 
   assert.throws(() => profile.sampleRender(100.001), RangeError);
 });
 
-test('M6.45 cyclic height addressing exists only through CyclicHeightProfile', () => {
-  const profile = new CyclicHeightProfile(100, [
-    { s: 0, y: 0 },
-    { s: 50, y: 5 },
-  ]);
-  assert.equal(profile.sampleRender(25).y, profile.sampleRender(125).y);
-  assert.equal(profile.samplePhysics(75), profile.samplePhysics(-25));
-});
 
-test('M6.45 VisualProfile is open while CyclicVisualProfile is an explicit adapter primitive', () => {
+test('M6.45 VisualProfile owns an open interval', () => {
   const open = new VisualProfile(100, visualSections);
   assert.equal(open.sample(0).name, 'START');
   assert.equal(open.sample(100).name, 'LATE');
@@ -64,21 +55,15 @@ test('M6.45 VisualProfile is open while CyclicVisualProfile is an explicit adapt
   assert.throws(() => open.sample(-0.001), RangeError);
   assert.throws(() => open.sample(100.001), RangeError);
 
-  const cyclic = new CyclicVisualProfile(100, visualSections);
-  assert.equal(cyclic.sample(125).name, open.sample(25).name);
-  assert.equal(cyclic.sample(-25).name, open.sample(75).name);
 });
 
-test('M6.45 logical GroundMap is open while cyclic logical addressing is explicit', () => {
+test('M6.45 logical GroundMap owns an open interval', () => {
   const open = new GroundMapLogicalProfile(100, logicalSections);
   assert.equal(open.sample(0).name, 'START');
   assert.equal(open.sample(100).name, 'LATE');
   assert.throws(() => open.sample(-0.001), RangeError);
   assert.throws(() => open.sample(100.001), RangeError);
 
-  const cyclic = new CyclicGroundMapLogicalProfile(100, logicalSections);
-  assert.equal(cyclic.sample(125).name, open.sample(25).name);
-  assert.equal(cyclic.sample(-25).name, open.sample(75).name);
 });
 
 test('M6.45 stage compiler explicitly extends authored final height to the open Guide endpoint', () => {

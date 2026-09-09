@@ -12,9 +12,9 @@ t = (sin ψ, cos ψ)      n = (cos ψ, -sin ψ)
 
 Course `(s,l)` is a derived observation. `s` is the shared plan chainage of Raster and Guide, not physical travel distance along a sloping/offset path. Local projection uses a known previous segment and a finite clipped neighborhood. Known spawn/recovery coordinates seed that same local search; a global nearest-point search cannot distinguish overlapping circuit copies. Invalid seeds fail explicitly rather than silently selecting another copy.
 
-The general domain of RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap is `[0,L]`. Sampling outside it is invalid. Consecutive authored vertices form the path; no final-to-first segment is manufactured. At endpoints the adjacent segment supplies the basis and there is no synthetic turn or fillet. Terrain visibility clips to the finite domain. Author enough run-in/runout for camera, drawing and handoff.
+The general domain of RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap is `[0,L]`. Sampling outside it is invalid. Constructors reject nonfinite authoring before endpoint normalization. Height, visual, logical-material and physical-surface profiles own immutable copies so later authoring edits cannot change a compiled source. Consecutive authored vertices form the path; no final-to-first segment is manufactured. At endpoints the adjacent segment supplies the basis and there is no synthetic turn or fillet. Terrain visibility clips to the finite domain. Author enough run-in/runout for camera, drawing and handoff.
 
-Named Cyclic adapters are explicit upper-level choices. CIRCUIT unfolds authored topology into a finite ordinary open window before engine consumers see it. Renderer and physics do not infer topology.
+CIRCUIT unfolds authored topology into a finite ordinary open window before constructing the same open source profiles. General profile classes provide no cyclic alternate implementation. Renderer and physics do not infer topology.
 
 ## Raster and Guide
 
@@ -68,7 +68,7 @@ GroundMap visual appearance and SurfaceMap physical support/friction are indepen
 
 GroundBase fills outside the finite GroundMap strip on each emitted terrain line. It is not a separate depth layer. Each side independently selects solid color or transparency; transparent pixels leave already-drawn farther content visible. Far Background is a full image with meaningful pixels below its horizon, aligned by a source-horizon anchor. Yaw scrolls the background; no camera roll or alpha blending is introduced.
 
-GroundMap uses authored logical data and a compiled finite baked representation. Palette/RGB555 encoding and chunk addressing live in [visual assets](../src/visual/baked-ground-map.ts). Source texel density at reference depth d0 follows:
+GroundMap uses authored logical data and a compiled finite baked representation. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Palette/RGB555 encoding and chunk addressing live in [visual assets](../src/visual/baked-ground-map.ts). Source texel density at reference depth d0 follows:
 
 ```
 qL = d0/f

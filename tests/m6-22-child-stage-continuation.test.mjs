@@ -1,10 +1,12 @@
+import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideCourseToWorld } from '../dist/core/guide-curve.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
@@ -14,7 +16,7 @@ import {
   createM622LivePointToPointGateSet,
   createM622RouteStageHandoffManifest,
 } from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM622LiveStageRuntimeRegistry } from '../dist/dev/m6-22-live-runtime-content.js';
+import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runtime-content.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -25,12 +27,12 @@ import {
   observePendingRouteStageHandoff,
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { CyclicSurfaceMap } from '../dist/physics/surface-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createM3FarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
-import { CyclicVisualProfile } from '../dist/visual/visual-profile.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const near = (actual, expected, tolerance = 2e-6) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -52,13 +54,15 @@ function crossing(gate, distance = 2) {
 function parentShared(guide) {
   const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new CyclicVisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new CyclicSurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
     logical: compiled.groundMap,
@@ -91,7 +95,7 @@ test('M6.22 child charts share exact overlap geometry through D_cam around the h
   for (const [side, chart] of [['LEFT', continuation.charts.left], ['RIGHT', continuation.charts.right]]) {
     const origin = M6_13_JUNCTION.separatedChildCenterL(side);
     for (const delta of [-5, 0, 20]) {
-      const parentWorld = guideCourseToWorld(parent, M6_17_HANDOFF_SEAM_S + delta, origin);
+      const parentWorld = guidePathToWorld(parent, M6_17_HANDOFF_SEAM_S + delta, origin);
       const childWorld = guideChartToWorld(chart, continuation.handoffLocalS + delta, 0);
       near(childWorld.x, parentWorld.x, 1e-5);
       near(childWorld.z, parentWorld.z, 1e-5);
@@ -132,6 +136,8 @@ test('M6.22 translated procedural GroundMap keeps child road centered and preser
     groundRight: 12,
     roadLeft: 4.5,
     roadRight: 4.5,
+    roadMarkings: CENTER_DASH_MARKINGS,
+    junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
     junction: M6_13_JUNCTION,
   };
@@ -142,12 +148,12 @@ test('M6.22 translated procedural GroundMap keeps child road centered and preser
   assert.equal(childAtSeam, parentAtSeam);
 });
 
-test('M6.22 runtime packages retain independent child Guide/SurfaceMap while later milestones add child-owned visuals', () => {
+test('M6.22 runtime packages retain independent child Guide/SurfaceMap and child-owned visuals', () => {
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
   const route = createM620LivePointToPointRouteDag();
   const manifest = createM6DebugRouteStageContentManifest(route);
-  const registry = createM622LiveStageRuntimeRegistry(manifest, continuation, parentShared(parent));
+  const registry = createM624LiveStageRuntimeRegistry(manifest, continuation, parentShared(parent), createM4SpriteAssets());
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
   const right = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_R' });
 
@@ -239,7 +245,7 @@ test('M6.22 fixture stays validated while browser live wiring consumes the M6.27
     readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(mainSource, /createM627LiveRouteRuntime/);
+  assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
   assert.match(mainSource, /const playerTraveler = createLiveRouteTravelerState\(liveRoute/);
   assert.match(mainSource, /const routeHandoffState = playerTraveler\.handoffState/);
   assert.match(mainSource, /advanceLiveRouteMultiActorTick/);

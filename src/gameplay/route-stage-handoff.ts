@@ -1,4 +1,4 @@
-import { sampleGuideCurve, type CourseCoordinate } from '../core/guide-curve.js';
+import { sampleGuidePath, type CourseCoordinate } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import {
   guideChartToWorld,
@@ -257,7 +257,7 @@ export function commitRouteStageHandoff(
   }
 
   const sourceChart = getChart(charts, state.activeChartId);
-  const sourceSeamSample = sampleGuideCurve(sourceChart.guide, pending.sourceSeamS);
+  const sourceSeamSample = sampleGuidePath(sourceChart.guide, pending.sourceSeamS);
   const sourceCoordinate = locateWorldOnGuideChartLocal(
     sourceChart,
     world,
@@ -274,7 +274,7 @@ export function commitRouteStageHandoff(
       + ` target=${targetS} length=${targetChart.guide.length}`,
     );
   }
-  const targetSample = sampleGuideCurve(targetChart.guide, targetS);
+  const targetSample = sampleGuidePath(targetChart.guide, targetS);
   const activeContent = resolveActiveRouteStageContent(content, { activeStageId: pending.targetStageId });
   state.coordinate = {
     s: targetS,

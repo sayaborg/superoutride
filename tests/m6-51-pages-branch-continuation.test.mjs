@@ -1,10 +1,11 @@
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM627LiveRouteRuntime } from '../dist/dev/m6-27-live-route-runtime.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM640RivalRouteChoicePlan } from '../dist/dev/m6-40-rival-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import {
@@ -54,6 +55,8 @@ function createParentRuntime(guide) {
       groundRight: 12,
       roadLeft: 4.5,
       roadRight: 4.5,
+      roadMarkings: CENTER_DASH_MARKINGS,
+      junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,
       junction: M6_13_JUNCTION,
       logical: compiled.groundMap,
@@ -88,7 +91,7 @@ test('open Guide rival lookahead never samples beyond the endpoint', () => {
 test('actual Pages rival physically takes RIGHT first fork, commits child runtime and keeps driving', () => {
   const parentGuide = createM2StadiumGuide();
   const parent = createParentRuntime(parentGuide);
-  const live = createM627LiveRouteRuntime(parentGuide, parent, createM4SpriteAssets());
+  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, createM4SpriteAssets());
   const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
   const recovery = createM5RecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
