@@ -1,0 +1,32 @@
+SUPER OUTRIDE M9.29 — Common Handling Baseline
+
+Normative authority: docs/124_m9_29_common_handling_baseline.md
+PR: https://github.com/sayaborg/superoutride/pull/158
+Base main:089d37fac437e45d7c9a6ba1dcdd822a70e8f87b
+Implementation/doc/test head:0cc30c7f420e90953ab10d2a069b00dfcbc11fc3
+CI:https://github.com/sayaborg/superoutride/actions/runs/34371365862
+Build job:102533125127
+Result: success, exact checkout verified;867 tests,867 pass,0 fail/cancelled/skipped/todo.
+
+Player baseline GX5/PX20%/GY2.5/PY10%/KN.74, D20/M65/ACT.30.
+Ranges GX2..8/.05, PX2..40%/1point, GY1..4/.05, PY2..20%/1point,
+KN.10...95/.01, D10..30/1degree, M50..80/5degrees, ACT.20...40/.025seconds.
+
+Local npm ci and full867/867 suite passed with immutable b70 reference.
+All-nine control mounting, selectable neighbors, PX above20%, endpoint wrapping, recovery,
+shared-shell replacement, independent tire axes, current-default terrain force/torque budgets,
+fixed ellipse/dissipation and exact baseline mechanics all passed.
+
+Initial local failures identified historical tests implicitly consuming changed browser defaults.
+Their original steering/tire fixtures are now explicit; causal physical assertions were retained.
+Generic terrain/braking probes accept ordinary optional steering calibration; no runtime mechanic
+or profile was changed. Current-default integrations continue testing the new baseline.
+
+Local CIRCUIT browser accessibility tree confirmed requested defaults active and expanded choices.
+No full mobile layout, human handling, all-state yaw stability or vibration elimination is claimed.
+
+This record is created after green implementation-head CI. Its addition changes the SHA, so a
+fresh complete record-inclusive exact-head CI is mandatory before release. Final main/PR/Pages
+identity must be resolved from Git and the matching workflow, without rewriting this record to
+refer to its own later validation commit. Release requires pure non-force fast-forward and same-
+SHA main-push workflow/Pages artifact verification under AGENTS.
