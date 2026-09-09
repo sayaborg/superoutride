@@ -37,6 +37,7 @@ evidence are historical only. No other tuning, physics, protection or rendering 
 Current HUD/tire/vehicle-physics lineage, newest first:
 
 ```text
+docs/120_m9_25_handling_calibration_unscaled_engine.md
 docs/119_m9_24_restore_friction_ellipse.md
 docs/116_m9_22_pedal_torque_hud.md
 docs/115_m9_21_torque_protection.md
@@ -73,14 +74,15 @@ and no shaft lock. All browser actors/replacements receive catalog protection. T
 remains explicitly unprotected by default for raw mechanics/diagnostics. Protection acts only through
 actual wheel torque; support uses fresh geometry and the shared physical wrench, never pose clamps.
 
-M9.20 document 114 remains current for tire law and browser tire calibration. It replaces the old G/P/S state and
+M9.25 document120 owns current browser ranges/defaults and removes M9.16 engine calibration.
+M9.20 document 114 remains current for tire law. It replaces the old G/P/S state and
 P→2P lateral post-peak falloff with five authoring characteristics:
 
 ```text
-GX .50..4.00 step .05 default 2.50    key H forward-cycles
-PX 1..60% step 1 point default 8%     key J forward-cycles
-GY .50..4.00 step .05 default 2.20    key G forward-cycles
-PY 1..60% step 1 point default 10%    key L forward-cycles
+GX 2.00..6.00 step .05 default 4.00    key H forward-cycles
+PX 2..20% step 1 point default 8%     key J forward-cycles
+GY 1.00..4.00 step .05 default 2.50    key G forward-cycles
+PY 2..20% step 1 point default 8%    key L forward-cycles
 KNEE .10.. .95 step .01 default .74   key N forward-cycles
 ```
 
@@ -93,8 +95,7 @@ The tire uses one current-load-proportional demand and one monotone C1 capacity 
 post-peak drop, tire memory, drift phase, target beta, hidden force, speed correction, vehicle-kind
 branch or drive-layout branch exists. M9.18 load proportionality and contact/recovery boundaries
 remain retained. Document 115 supersedes only the inactive-TCS control boundary, not the tire law.
-Power-over drift is no longer a product goal; inertia entry/correction/exit remain. Tire calibration
-and front/rear tire differences are paused, not certified complete.
+Power-over drift is no longer a product goal; inertia entry/correction/exit remain. Player tire calibration resumes under120; front/rear differentiation remains deferred.
 
 Current steering law remains M9.11:
 
@@ -110,8 +111,7 @@ analog touch and exactly 64 CSS px full-scale travel. Held analog touch may appl
 uses the existing actuator rate. Keyboard driving remains digital/rate-limited.
 
 M9.17 owns direct wheel-derived RPM, instantaneous robotized-MT ratio selection and one rev limiter.
-M9.16 retains the instance-owned ENG selector 1/1.5/2/3/4, default1. Do not turn ENG into direct body
-force or speed preservation.
+M9.25 removes the engine multiplier and its UI/lifecycle. Engines use authored curves directly.
 
 M9.9 retains the product principle: **uncontrollable slide is forbidden; controllable drift is
 allowed**. Product handling acceptance emphasizes ordinary entry, correction, useful transient

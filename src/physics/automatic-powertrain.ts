@@ -20,8 +20,6 @@ export interface AutomaticPowertrainProfile {
 }
 
 export interface AutomaticPowertrainState {
-  /** Sole instance-owned engine-output calibration; profile torque curves remain immutable. */
-  engineTorqueMultiplier: number;
   /** The only dynamic powertrain memory is the selected gear. */
   gear: number;
   /** Derived observation caches; none is consumed as state by the next drive solve. */
@@ -31,28 +29,11 @@ export interface AutomaticPowertrainState {
   outputDriveTorque: number;
 }
 
-export function assertEngineTorqueMultiplier(multiplier: number): void {
-  if (!(multiplier > 0) || !Number.isFinite(multiplier)) {
-    throw new RangeError('engine torque multiplier must be finite and > 0');
-  }
-}
-
-/** Calibration mutation only: never rewrites RPM, wheel speed, gear or vehicle motion. */
-export function setEngineTorqueMultiplier(
-  state: AutomaticPowertrainState,
-  multiplier: number,
-): void {
-  assertEngineTorqueMultiplier(multiplier);
-  state.engineTorqueMultiplier = multiplier;
-}
-
 export function createAutomaticPowertrainState(
   profile: AutomaticPowertrainProfile,
   drivenWheelOmega = 0,
-  engineTorqueMultiplier = 1,
 ): AutomaticPowertrainState {
   validateAutomaticPowertrainProfile(profile);
-  assertEngineTorqueMultiplier(engineTorqueMultiplier);
   assertWheelOmega(drivenWheelOmega);
   const wheelOmega = Math.abs(drivenWheelOmega);
   let gear = 1;
@@ -60,10 +41,9 @@ export function createAutomaticPowertrainState(
     && coupledEngineRpm(profile, wheelOmega, gear) >= profile.upshiftRpm) gear += 1;
   const engineRpm = coupledEngineRpm(profile, wheelOmega, gear);
   return {
-    engineTorqueMultiplier,
     gear,
     engineRpm,
-    engineTorqueNewtonMeters: sampleEngineTorque(profile, engineRpm) * engineTorqueMultiplier,
+    engineTorqueNewtonMeters: sampleEngineTorque(profile, engineRpm),
     outputDriveTorque: 0,
   };
 }
@@ -80,7 +60,6 @@ export function updateAutomaticPowertrain(
   throttle: number,
   dt: number,
 ): number {
-  assertEngineTorqueMultiplier(state.engineTorqueMultiplier);
   assertWheelOmega(drivenWheelOmega);
   if (!Number.isFinite(throttle) || !(dt > 0) || !Number.isFinite(dt)) {
     throw new RangeError('powertrain requires finite throttle and finite positive dt');
@@ -97,8 +76,7 @@ export function updateAutomaticPowertrain(
   }
 
   state.engineRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
-  state.engineTorqueNewtonMeters = sampleEngineTorque(profile, state.engineRpm)
-    * state.engineTorqueMultiplier;
+  state.engineTorqueNewtonMeters = sampleEngineTorque(profile, state.engineRpm);
   const ratio = profile.gearRatios[state.gear - 1]! * profile.finalDriveRatio;
   state.outputDriveTorque = clamp(throttle, 0, 1)
     * state.engineTorqueNewtonMeters

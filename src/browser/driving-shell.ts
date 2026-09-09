@@ -4,7 +4,6 @@ import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import { createArcadeVehicle } from '../physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
-import { setEngineTorqueMultiplier } from '../physics/automatic-powertrain.js';
 import { createM5RecoveryState } from '../gameplay/recovery.js';
 import { createM5CameraRig, resetM5CameraRig, setM5CameraYawMode, toggleM5CameraYawMode,
   type M5CameraState } from '../camera/m5-camera.js';
@@ -17,7 +16,6 @@ import { browserVehicleProfileForKey } from './vehicle-profile-selection.js';
 import { mountBrowserSteeringCalibrationControls } from './steering-calibration-controls.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from './tire-friction-selection.js';
 import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
-import { mountBrowserEnginePowerControls } from './engine-power-controls.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
 import { browserRequestsCameraYawToggle } from './camera-yaw-mode-selection.js';
 import { browserUsesTouchInterface } from './touch-interface.js';
@@ -60,11 +58,9 @@ export function createBrowserDrivingShell(runtime: BrowserDrivingSurface, startL
     replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, active: BrowserDrivingSurface): void {
       const steeringCalibration = vehicle.steeringCalibration;
       const tireFrictionCalibration = vehicle.tireFrictionCalibration;
-      const engineTorqueMultiplier = vehicle.powertrain.engineTorqueMultiplier;
       vehicle = createArcadeVehicle(profile, active.guide, active.height, active.surfaces,
         vehicle.course.s, vehicle.course.l, vehicle.longitudinalSpeed, steeringCalibration,
         tireFrictionCalibration, vehicleCatalogEntryForId(profile.id).torqueProtection);
-      setEngineTorqueMultiplier(vehicle.powertrain, engineTorqueMultiplier);
       recovery = createM5RecoveryState(vehicle);
       resetM5CameraRig(cameraRig);
     },
@@ -89,7 +85,6 @@ export function createBrowserDrivingShell(runtime: BrowserDrivingSurface, startL
       }, () => vehicle);
       const tireContainer = mustGet('tire-friction-selector-buttons');
       const tireFrictionControls = mountBrowserTireFrictionControls(tireContainer, () => vehicle);
-      const enginePowerControls = mountBrowserEnginePowerControls(tireContainer, () => vehicle);
       window.addEventListener('keydown', event => {
         if (event.repeat) return;
         if (browserRequestsCameraYawToggle(event.code)) {
@@ -98,7 +93,6 @@ export function createBrowserDrivingShell(runtime: BrowserDrivingSurface, startL
         }
         if (steeringCalibrationControls.handleKey(event.code)) return;
         if (tireFrictionControls.handleKey(event.code)) return;
-        if (enginePowerControls.handleKey(event.code)) return;
         const selectedProfile = browserVehicleProfileForKey(event.code);
         if (selectedProfile !== null) {
           selectVehicleProfile(selectedProfile);

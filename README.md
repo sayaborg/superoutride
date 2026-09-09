@@ -1,4 +1,4 @@
-# SUPER OUTRIDE — M9.24 Friction Ellipse Restored
+# SUPER OUTRIDE — M9.25 Handling Calibration
 
 Browser-based 320×240 raster pseudo-3D high-speed driving game inspired by Out Run,
 Super Hang-On, OutRunners and the Super Scaler era.
@@ -8,12 +8,12 @@ Super Hang-On, OutRunners and the Super Scaler era.
 
 ## Current milestone
 
-M9.24 withdraws the M9.23 LP experiment at the user's request and restores the preceding
-fixed friction ellipse and five tire selectors exactly. There is no LP field, control, key
-binding or hidden adjustable exponent. GX/PX/GY/PY/KN, ENG and steering/protection retain
-their preceding values. P still selects camera yaw; B no longer changes tire settings.
-[Restoration authority119](docs/119_m9_24_restore_friction_ellipse.md) supersedes118 in full.
-The M9.23 document, research and released validation remain historical evidence only.
+M9.25 adopts player tire defaults GX4/GY2.5/PX8%/PY8%, with broad surrounding ranges.
+The engine multiplier, ENG/PWR display and K binding are removed. Each vehicle uses its authored
+engine curve directly. The fixed ellipse, steering and torque protection remain unchanged.
+[Authority120](docs/120_m9_25_handling_calibration_unscaled_engine.md) supersedes earlier ranges
+and M9.16's multiplier. [D stopper assessment](docs/research/M9_25_STEERING_STOPPER_ASSESSMENT.md)
+is research only; no steering stopper is installed. Historical M9.23/24 records are preserved.
 
 
 M9.22 makes pedal protection visible in the shared DEV HUD. Each ACCEL/BRAKE column has an
@@ -29,7 +29,7 @@ Input-actuator lag is not red. Red combines all M9.21 protection, not separate c
 A zero engine torque request, including full rev cut, shows zero drive output and no invented cut.
 
 This changes presentation only. Profile brake capacities/ratios are retained provisional engineering
-seeds; their factory derivation and handling calibration remain open. Tire calibration remains paused.
+seeds; their factory derivation and handling calibration remain open. Player tire calibration resumes under120.
 HUD authority: `docs/116_m9_22_pedal_torque_hud.md`.
 
 M9.21 adds independent TCS on driven stations and independent front/rear ABS. Motorcycle catalog
@@ -45,9 +45,9 @@ Latest continuation: `docs/SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md`.
 Current cleanup and optimization evidence: [audit ledger](docs/maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
 [Session ownership](docs/117_session_configuration_boundary.md) separates opponent configuration
 from course structure without changing public defaults. This work does not certify Core/handling
-completion or resume paused calibration.
+completion;120 separately resumes player tire calibration.
 Power-over drifting is no longer a product goal. Inertia-driven entry/correction/exit remain goals.
-Tire calibration and front/rear differentiation are paused. The following tire settings are unchanged.
+Player tire calibration resumes under120; front/rear differentiation remains deferred.
 
 
 M9.20 replaces the old G/P/S postpeak tire with one load-proportional, monotone two-axis
@@ -57,10 +57,10 @@ M9.21 protection surrounds this unchanged tire law; it is not a new tire curve o
 
 | Control | Default | Range and step | Keyboard forward-cycle |
 |---|---:|---|---|
-| GX: longitudinal capacity | 2.50 | .50..4.00, .05 | H |
-| PX: longitudinal capacity-onset slip | 8% | 1..60%, 1 point | J |
-| GY: lateral capacity | 2.20 | .50..4.00, .05 | G |
-| PY: lateral capacity-onset slip | 10% | 1..60%, 1 point | L |
+| GX: longitudinal capacity | 4.00 | 2.00..6.00, .05 | H |
+| PX: longitudinal capacity-onset slip | 8% | 2..20%, 1 point | J |
+| GY: lateral capacity | 2.50 | 1.00..4.00, .05 | G |
+| PY: lateral capacity-onset slip | 8% | 2..20%, 1 point | L |
 | KN: common X/Y knee | .74 | .10...95, .01 | N |
 
 Each value has compact +/- controls. Endpoints wrap. G/P/KN changes preserve the other four
@@ -70,7 +70,7 @@ information. **kx=ky is not imposed.** Front/rear are intentionally linked for t
 the underlying station model permits later distinct data without a branch in the force law.
 
 Defaults are approved diagnostic values, not an identified real-tire measurement or a guarantee
-of easy drift. ENG remains1, D12/M60/ACT.25 unchanged. All nine stock construction/rival tires
+of easy drift. Engine output is unscaled, D12/M60/ACT.25 unchanged. All nine stock construction/rival tires
 retain the previous non-dropping isotropic reference; selected browser calibration applies to
 the player and survives recovery/vehicle replacement. Reload/course navigation resets it.
 
@@ -88,7 +88,7 @@ distinguish archived reports from a complete historical experiment/data archive.
 3. `docs/116_m9_22_pedal_torque_hud.md` for HUD; `docs/115_m9_21_torque_protection.md` for protection;
    `docs/114_m9_20_five_axis_tire.md` for the retained tire law and selectors.
 4. `docs/112_m9_18_load_proportional_one_k_tire.md` — retained load/contact/recovery contract.
-5. `docs/111_m9_17_direct_robotized_mt.md` and `docs/110_m9_16_engine_power_diagnostic_selector.md`.
+5. `docs/111_m9_17_direct_robotized_mt.md` and `docs/120_m9_25_handling_calibration_unscaled_engine.md`.
 6. `docs/101_m9_11_simplified_travel_direction_steering.md`, `docs/107_m9_13_full_screen_analog_touch.md`,
    `docs/108_m9_14_compact_touch_expanded_diagnostic_ranges.md` — retained steering and driving input.
 7. Relevant implementation, compiler and tests. Frozen Core and addenda before any metric/render change.
@@ -114,17 +114,15 @@ Production-solver diagnostics, not an injected drift controller:
 node tools/torque-protection-probe.mjs --hz 120 --out protection.json
 node tools/drift-control-probe.mjs --mode transient --speed 200 --out transient.json
 node tools/drift-control-probe.mjs --mode sweep --speed 150 --out sweep.json
-node tools/drift-control-probe.mjs --mode reference --hz 120 --mirror --out reference.json
 ```
 
 The protection probe explicitly compares raw/protected catalog actors. The drift probe remains raw
 mechanics unless a policy is passed programmatically; it does not certify protected product handling.
 `transient` uses current tire defaults and logs entry/exit, actual speed loss and displacement without
 promising drift. `sweep` uses increasing then decreasing throttle, recording finite-time windows
-and hysteresis, not claiming equilibria from averages. `reference` explicitly selects the former
-research tire GX.75/PX2%/GY3/PY8%/KN.74 and ENG3 to replay a no-TCS capability case. It does NOT
-change defaults. `--tire` accepts a JSON authoring object for non-reference comparisons; `--engine`
-is explicit. All runs preserve real wheel/gear evolution; no beta/speed correction or gear lock.
+and hysteresis, not claiming equilibria from averages. `--tire` accepts a JSON authoring object.
+The old boosted reference CLI is retired; the historical causal trajectory remains a test with
+an explicitly authored engine fixture. All runs preserve real wheel/gear evolution.
 Distances on the flat fixture are trajectory/displacement diagnostics, not useful drift length
 on an actual course. Evaluate real corners, input errors, acceleration/braking and human feel next.
 
@@ -138,7 +136,6 @@ on an actual course. Evaluate real corners, input errors, acceleration/braking a
 | Steering | Left / Right |
 | Throttle | Up or X |
 | Brake | Down or Z |
-| ENG | K: 1 / 1.5 / 2 / 3 / 4 |
 | D / M / ACT | Y / U / T, retained choices |
 | Recovery | Backspace |
 

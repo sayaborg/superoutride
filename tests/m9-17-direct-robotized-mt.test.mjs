@@ -1,11 +1,11 @@
 import { compileTireCharacteristics, createArcadeTireFrictionCalibration } from '../dist/physics/tire-friction-calibration.js';
+import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   createAutomaticPowertrainState, updateAutomaticPowertrain,
   validateAutomaticPowertrainProfile, sampleEngineTorque, engineRevLimiterScale,
-  setEngineTorqueMultiplier,
 } from '../dist/physics/automatic-powertrain.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -33,7 +33,7 @@ test('M9.17 all nine profiles retain separate ratio-safe thresholds and remove a
     for (const name of ['shiftDuration', 'engineResponseTau', 'launchCouplingSlipRpm']) assert.equal(name in p, false);
     for (let i = 1; i < p.gearRatios.length; i++) assert.ok(p.downshiftRpm < p.upshiftRpm * p.gearRatios[i] / p.gearRatios[i - 1]);
     const s = createAutomaticPowertrainState(p);
-    assert.deepEqual(Object.keys(s).sort(), ['engineTorqueMultiplier', 'gear', 'engineRpm', 'engineTorqueNewtonMeters', 'outputDriveTorque'].sort());
+    assert.deepEqual(Object.keys(s).sort(), ['gear', 'engineRpm', 'engineTorqueNewtonMeters', 'outputDriveTorque'].sort());
   }
 });
 
@@ -55,16 +55,16 @@ test('M9.17 RPM is direct wheel-ratio algebra and stale observation caches are n
 
 test('M9.17 zero-speed launch has zero derived RPM, finite idle-floor torque and no zero-throttle creep', () => {
   for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
-    const s = createAutomaticPowertrainState(p, 0, 3);
+    const s = createAutomaticPowertrainState(p, 0);
     assert.equal(s.engineRpm, 0);
     assert.equal(updateAutomaticPowertrain(s, p, 0, 0, dt), 0);
     assert.ok(updateAutomaticPowertrain(s, p, 0, 1, dt) > 0);
     assert.equal(s.engineRpm, 0);
-    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm) * 3);
+    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm));
     const omega = omegaAt(p, p.idleRpm / 2, 1);
     updateAutomaticPowertrain(s, p, -omega, 1, dt);
     near(s.engineRpm, p.idleRpm / 2);
-    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm) * 3);
+    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm));
   }
 });
 
@@ -74,7 +74,7 @@ test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately
       for (const up of [true, false]) {
         const gear = up ? lower : lower + 1;
         const omega = omegaAt(p, up ? p.upshiftRpm + 1e-6 : p.downshiftRpm - 1e-6, gear);
-        const s = createAutomaticPowertrainState(p, omega, 3);
+        const s = createAutomaticPowertrainState(p, omega);
         s.gear = gear;
         const expected = up ? gear + 1 : gear - 1;
         for (let tick = 0; tick < 100; tick++) {
@@ -82,7 +82,7 @@ test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately
           assert.equal(s.gear, expected);
           assert.ok(output > 0);
           near(s.engineRpm, rpmAt(p, omega, expected));
-          near(output, sampleEngineTorque(p, s.engineRpm) * 3 * p.gearRatios[expected - 1] * p.finalDriveRatio * p.efficiency);
+          near(output, sampleEngineTorque(p, s.engineRpm) * p.gearRatios[expected - 1] * p.finalDriveRatio * p.efficiency);
         }
       }
     }
@@ -142,33 +142,30 @@ test('M9.17 rev limiting cuts only drive, permits observed overrun and recovers 
   for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
     const top = p.gearRatios.length;
     const omega = omegaAt(p, p.redlineRpm * 1.2, top);
-    const s = createAutomaticPowertrainState(p, omega, 4);
+    const s = createAutomaticPowertrainState(p, omega);
     assert.equal(updateAutomaticPowertrain(s, p, omega, 1, dt), 0);
     near(s.engineRpm, p.redlineRpm * 1.2);
     assert.ok(s.engineTorqueNewtonMeters > 0);
     const output = updateAutomaticPowertrain(s, p, omegaAt(p, p.upshiftRpm - 1, top), 1, dt);
     assert.ok(output > 0);
     assert.equal(s.gear, top);
-    assert.equal(s.engineTorqueMultiplier, 4);
   }
 });
 
-test('M9.17 all nine stock profiles launch through ordinary wheel/contact dynamics and preserve ENG in recovery', () => {
+test('M9.17 all nine stock profiles launch through ordinary wheel/contact dynamics and reconstruct unscaled powertrain in recovery', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     const v = makeVehicle(profile, 0);
     for (let tick = 0; tick < 120; tick++) updateArcadeVehicle(guide, height, surface, v, { steering: 0, throttle: true, brake: false }, dt);
     assert.ok(v.speed > 0 && Number.isFinite(v.speed), profile.id);
-    setEngineTorqueMultiplier(v.powertrain, 3);
     recoverM5Vehicle(createM5RecoveryState(v), guide, height, surface, v);
-    assert.equal(v.powertrain.engineTorqueMultiplier, 3);
+    assert.equal(v.powertrain.engineTorqueNewtonMeters, sampleEngineTorque(profile.powertrain, v.powertrain.engineRpm));
     assert.equal(v.powertrain.outputDriveTorque, 0);
     assert.equal('shiftTimer' in v.powertrain, false);
   }
 });
 
 function huntingProbe() {
-  const v = makeVehicle();
-  setEngineTorqueMultiplier(v.powertrain, 3);
+  const v = makeVehicle(withEngineCurveScale(car, 3));
   const input = { steering: 1, throttle: 1, brake: 0, steeringApplyMode: 'DIRECT', pedalApplyMode: 'DIRECT' };
   let previousGear = 1, changes = 0, downshifts = 0, tailZeros = 0, tailChanges = 0;
   for (let tick = 0; tick < 1200; tick++) {
@@ -185,7 +182,7 @@ function huntingProbe() {
   return { changes, downshifts, tailZeros, tailChanges, finalSpeed: v.speed, finalYaw: v.yaw, finalGear: v.powertrain.gear };
 }
 
-test('M9.17 former ENG3 low-speed hunting case keeps drive through a full 20 seconds without forced state', () => {
+test('M9.17 authored threefold-torque low-speed hunting case keeps drive through a full 20 seconds without forced state', () => {
   const result = huntingProbe();
   assert.ok(result.changes > 0, 'exercise actual ratio changes, not a locked gear');
   assert.equal(result.downshifts, 0);

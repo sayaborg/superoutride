@@ -11,7 +11,6 @@ import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { compileTireCharacteristics, createArcadeTireFrictionCalibration, readTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
-import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import {
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
@@ -161,31 +160,25 @@ export function runThrottleSweep(probe, { hz=60, direction=1, steering=.35,
 
 async function main() {
   const args=process.argv.slice(2);
-  let hz=60,direction=1,out,mode='transient',speed=200,engine=1,characteristics;
+  let hz=60,direction=1,out,mode='transient',speed=200,characteristics;
   for(let i=0;i<args.length;i++) {
     if(args[i]==='--hz') hz=Number(args[++i]);
     else if(args[i]==='--out') out=args[++i];
     else if(args[i]==='--mirror') direction=-1;
     else if(args[i]==='--mode') mode=args[++i];
     else if(args[i]==='--speed') speed=Number(args[++i]);
-    else if(args[i]==='--engine') engine=Number(args[++i]);
     else if(args[i]==='--tire') characteristics=JSON.parse(args[++i]);
     else throw new Error(`unknown argument: ${args[i]}`);
   }
   if(args.includes('--out')&&!out) throw new Error('--out requires a path');
-  if(!['transient','sweep','reference'].includes(mode)) throw new Error('mode must be transient, sweep or reference');
+  if(!['transient','sweep'].includes(mode)) throw new Error('mode must be transient or sweep');
   if(!Number.isFinite(speed)||speed<0) throw new RangeError('speed must be finite km/h >= 0');
-  if(mode==='reference') { // Explicit research fixture, NEVER applied by the browser.
-    characteristics={gripX:.75,gripY:3,peakSlipX:.02,peakSlipY:.08,knee:.74};
-    engine=3; speed=200;
-  }
   const calibration=characteristics ? createArcadeTireFrictionCalibration(compileTireCharacteristics(characteristics))
     : DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION;
   const probe=createFlatProbe({calibration,initialSpeed:speed/3.6});
-  setEngineTorqueMultiplier(probe.vehicle.powertrain,engine);
   const trace=mode==='sweep' ? runThrottleSweep(probe,{hz,direction})
-    : runProbe(probe,mode==='reference'?44:13,t=>mode==='reference'?researchCycleInput(t,direction):cycleInput(t,{direction}),{hz});
-  const report={milestone:'M9.20',mode,hz,direction,engine,initialKmh:speed,
+    : runProbe(probe,13,t=>cycleInput(t,{direction}),{hz});
+  const report={milestone:'M9.25',mode,hz,direction,initialKmh:speed,
     characteristics:readTireCharacteristics(calibration.front),trace};
   const {rows,samples,...summary}=trace;
   console.log(JSON.stringify({...report,trace:{...summary,...(samples?{windows:samples.map(({th,leg,window})=>({th,leg,window}))}:{})}},null,2));

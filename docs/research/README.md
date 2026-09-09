@@ -56,7 +56,7 @@ node tools/braking-yaw-probe.mjs --apply-mode DIRECT --out braking-direct.json
 ```
 
 Run only the comparison needed for the next question; do not repeat the complete historical survey
-as a startup ritual. Current tire calibration and front/rear specialization are paused. Brake
+as a startup ritual. M9.25 resumes player tire calibration; front/rear specialization remains deferred. Brake
 capacity/bias provenance, real-browser HUD acceptance and combined-input handling remain separate
 open tasks in the current handoff. Any physical or control change needs its own Decision Gate.
 
@@ -69,3 +69,5 @@ research reports to make their terminology match a later implementation.
 [LP comparison](M9_23_COMBINED_SLIP_FALSIFICATION.md) and its data are historical evidence.
 [M9.24](../119_m9_24_restore_friction_ellipse.md) withdraws the feature and its dedicated
 executable probes; use the experiment's original Git revision to reproduce it.
+
+[D sensitivity/stop assessment](M9_25_STEERING_STOPPER_ASSESSMENT.md) derives a compact bounded-offset proposal and explains why tire onset is not a universal stability limit. Research only.

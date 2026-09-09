@@ -110,10 +110,10 @@ test('M9.22 zero requests/full engine cut and zero brake capacity have finite em
   assert.deepEqual(z.frontBrake,{requested:0,delivered:0,limit:0});assert.deepEqual(z.rearBrake,z.frontBrake);
 });
 
-test('M9.22 normalization is from one torque sample, independent of post-sample gear/RPM/ENG and load caches',()=>{
+test('M9.22 normalization is from one torque sample, independent of post-sample gear/RPM and load caches',()=>{
   const {vehicle:v}=fixture();drive(v,.6,1200,0,600);brake(v,.2,500,100);
   const a=hud(v);
-  v.powertrain.engineRpm=6800;v.powertrain.gear=5;v.powertrain.engineTorqueMultiplier=4;
+  v.powertrain.engineRpm=6800;v.powertrain.gear=5;
   v.frontNormalLoad=0;v.rearNormalLoad=123456;
   const b=hud(v);
   for(const key of ['frontDrive','rearDrive','frontBrake','rearBrake'])assert.deepEqual(a[key],b[key]);

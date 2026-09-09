@@ -1,13 +1,14 @@
+import {M9_21_TIRE_REFERENCE} from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation, contactForceWorld, momentAboutCg } from '../dist/physics/vehicle-dynamics.js';
-import { createTerrainProbe, runTerrainProbe, TERRAIN_CASES } from '../tools/torque-protection-terrain-probe.mjs';
+import { createTerrainProbe as createCurrentTerrainProbe, runTerrainProbe as runCurrentTerrainProbe, TERRAIN_CASES } from '../tools/torque-protection-terrain-probe.mjs';
 import { forkProbe } from '../tools/drift-control-probe.mjs';
 import { BRAKING_ACTIONS, brakingInput, brakingStateFingerprint, observeBrakingState,
-  decomposeContactYawChange, runBrakingComparison } from '../tools/braking-yaw-probe.mjs';
+  decomposeContactYawChange, runBrakingComparison as runCurrentBrakingComparison } from '../tools/braking-yaw-probe.mjs';
 const car = VEHICLE_CATALOG[0], bike = VEHICLE_CATALOG[5];
 const close = (a, b, tolerance = 1e-8) => assert.ok(Math.abs(a - b) < tolerance, `${a} != ${b}`);
 const byAction = report => Object.fromEntries(report.results.map(row => [row.action, row]));
@@ -130,3 +131,14 @@ test('M9.21 input schedules and validation add no recovery, pose correction or c
   assert.match(source, /evaluateTireForce/);
   assert.match(source, /momentAboutCg/);
 });
+
+// M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
+function createTerrainProbe(entry, options={}) {
+ return createCurrentTerrainProbe(entry,{calibration:M9_21_TIRE_REFERENCE,...options});
+}
+function runTerrainProbe(entry, options={}) {
+ return runCurrentTerrainProbe(entry,{calibration:M9_21_TIRE_REFERENCE,...options});
+}
+function runBrakingComparison(entry, options={}) {
+ return runCurrentBrakingComparison(entry,{calibration:M9_21_TIRE_REFERENCE,...options});
+}

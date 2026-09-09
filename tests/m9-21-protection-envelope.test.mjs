@@ -1,3 +1,4 @@
+import {withEngineCurveScale} from './helpers/authored-engine.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -16,15 +17,15 @@ function assertFiniteProtectedRun(run) {
 
 /**
  * Broaden the released M9.21 causal baseline without changing control law or calibration.
- * All catalog entries are required to survive the product-default ENG1 straight envelope.
- * TWO_WHEEL additionally owns support protection, so only those policies are stress-tested at ENG4.
- * ROAD+ENG4 may physically wheelie: TCS owns longitudinal overslip, not body-support viability.
+ * All catalog entries are required to survive the product-default unscaled engines straight envelope.
+ * TWO_WHEEL additionally owns support protection, so only those policies are stress-tested at authored fourfold torque.
+ * ROAD+authored fourfold torque may physically wheelie: TCS owns longitudinal overslip, not body-support viability.
  */
 test('M9.21 product-default protection stays finite across 0..198 km/h straight drive and braking', () => {
   for (const entry of VEHICLE_CATALOG) {
     for (const speed of SPEEDS) {
       const drive = runProtectionProbe(entry, {
-        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true, engine: 1,
+        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true,
       });
       assertFiniteProtectedRun(drive);
       if (entry.torqueProtection.supportReserve !== null) {
@@ -50,11 +51,11 @@ test('M9.21 product-default protection stays finite across 0..198 km/h straight 
   }
 });
 
-test('M9.21 TWO_WHEEL support protection survives ENG4 drive across 0..198 km/h', () => {
+test('M9.21 TWO_WHEEL support protection survives authored fourfold torque drive across 0..198 km/h', () => {
   for (const entry of VEHICLE_CATALOG.filter((value) => value.torqueProtection.supportReserve !== null)) {
     for (const speed of SPEEDS) {
-      const drive = runProtectionProbe(entry, {
-        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true, engine: 4,
+      const drive = runProtectionProbe({...entry,profile:withEngineCurveScale(entry.profile,4)}, {
+        hz: 120, seconds: 6, kind: 'drive', speed, protectedRun: true,
       });
       assertFiniteProtectedRun(drive);
       assert.equal(drive.frontLiftTime, 0, JSON.stringify(drive));

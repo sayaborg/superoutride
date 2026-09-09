@@ -63,6 +63,14 @@ CI are not interactive usability evidence. Preserve that distinction when resumi
 
 ## 3. Scope ownership and exact implementation/test entry points
 
+### M9.25 calibration and engine simplification
+
+[Authority120](120_m9_25_handling_calibration_unscaled_engine.md) resumes player tire calibration,
+sets GX4/GY2.5/PX8%/PY8% and removes ENG multiplier/UI/API. Stock engine curves remain intact.
+[Steering assessment](research/M9_25_STEERING_STOPPER_ASSESSMENT.md) evaluates a sensitivity/stop
+separation; no steering change is shipped. Earlier unchanged-default/paused statements below
+are historical to their named milestones. Front/rear differentiation remains deferred.
+
 ### M9.24 restores the fixed friction ellipse
 
 The user withdrew the M9.23 experiment after preferring the natural feel of LP2 over LP8.
@@ -109,7 +117,7 @@ and document 98's historical tire/steering/launch descriptions must not revive s
 | Tire / wheel law | [114](114_m9_20_five_axis_tire.md), retained [112](112_m9_18_load_proportional_one_k_tire.md) | [tire and wheel](../src/physics/tire-wheel.ts), [calibration compiler](../src/physics/tire-friction-calibration.ts), [browser choices](../src/browser/tire-friction-selection.ts) |
 | Contact / load / wrench / recovery | 115 and 112 within retained [87](87_m9_0_two_station_arcade_vehicle_dynamics.md) | [contact](../src/physics/vehicle-dynamics.ts), [shared wrench](../src/physics/vehicle-wrench.ts), [recovery](../src/gameplay/recovery.ts) |
 | Vehicle identity / brake capacity / drive split | [98](98_m9_8_selectable_production_vehicle_catalog.md), with 115's delivered-torque boundary | [product authoring](../src/vehicle/production-vehicle-profiles.ts), [generic compiler](../src/physics/vehicle-profiles.ts), [catalog/presentation/protection composition](../src/vehicle/vehicle-catalog.ts) |
-| Engine / gearbox / ENG | [111](111_m9_17_direct_robotized_mt.md), [110](110_m9_16_engine_power_diagnostic_selector.md) | [automatic powertrain](../src/physics/automatic-powertrain.ts) |
+| Engine / gearbox | [111](111_m9_17_direct_robotized_mt.md), [120](120_m9_25_handling_calibration_unscaled_engine.md) | [automatic powertrain](../src/physics/automatic-powertrain.ts) |
 | Steering / input response | [101](101_m9_11_simplified_travel_direction_steering.md), [107](107_m9_13_full_screen_analog_touch.md), [108](108_m9_14_compact_touch_expanded_diagnostic_ranges.md) | [canonical input](../src/input/driving-input.ts), [actuators](../src/physics/driving-actuator.ts), [touch](../src/input/touch-input.ts) |
 | Integration / publication | [AGENTS](../AGENTS.md), [validation policy](validation/README.md) | [boot](../src/boot.ts), [LINEAR](../src/main-linear.ts), [BRANCHING](../src/main.ts), [CIRCUIT](../src/main-circuit.ts), [Pages workflow](../.github/workflows/pages.yml) |
 
@@ -173,7 +181,7 @@ These decisions do not imply that all lateral motion should be removed.
 ## 5. Open work — resume from evidence, not from an already completed investigation
 
 Current requested cleanup: [complete audit queue](maintenance/SIMPLIFICATION_AUDIT_STATUS.md).
-Use that queue for simplification work; do not restart paused calibration or infer a core freeze
+Use that queue for simplification work; player calibration resumes only under120 or infer a core freeze
 from structural cleanup. The queue includes explicit retained and unresolved audit findings.
 
 This is a work queue, not authorization for a new controller or altered physical parameters.

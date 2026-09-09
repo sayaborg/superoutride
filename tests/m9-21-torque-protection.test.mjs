@@ -11,7 +11,7 @@ import { runProtectionProbe } from '../tools/torque-protection-probe.mjs';
 import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
-import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
+import {withEngineCurveScale} from './helpers/authored-engine.mjs';
 import { evaluateVehicleWrench } from '../dist/physics/vehicle-wrench.js';
 const car=VEHICLE_CATALOG[0],bike=VEHICLE_CATALOG[5],R=car.profile.rearStation.rollingRadius;
 const close=(a,b,e=1e-8)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
@@ -93,8 +93,8 @@ test('M9.21 already overspinning wheel is not snapped to the target or given an 
  assert.ok(o.tire.sx>.08);assert.ok(o.omega<i.omegaPrevious);
 });
 test('M9.21 actual per-station torque telemetry conserves requested budget, not fixed delivered AWD split',()=>{
- const e=VEHICLE_CATALOG[4],p=createFlatProbe({profile:e.profile,initialSpeed:2,torqueProtection:e.torqueProtection});
- setEngineTorqueMultiplier(p.vehicle.powertrain,4);let changed=false;
+ const e=VEHICLE_CATALOG[4],p=createFlatProbe({profile:withEngineCurveScale(e.profile,4),initialSpeed:2,torqueProtection:e.torqueProtection});
+ let changed=false;
  for(let n=0;n<240;n++){
   updateArcadeVehicle(p.guide,p.height,p.surface,p.vehicle,{steering:.3,throttle:true,brake:false},1/120);
   const c=p.vehicle.control,req=p.vehicle.powertrain.outputDriveTorque;

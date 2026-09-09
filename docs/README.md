@@ -42,6 +42,7 @@ historical evidence, not active features or instructions to resume the experimen
 Read newest first for the requested scope:
 
 ```text
+120_m9_25_handling_calibration_unscaled_engine.md
 119_m9_24_restore_friction_ellipse.md
 116_m9_22_pedal_torque_hud.md
 115_m9_21_torque_protection.md
@@ -77,15 +78,16 @@ product composition. AWD distributes requests before independent reductions; act
 change without reallocation. All browser actors and replacement paths pass explicit catalog policy.
 Raw mechanics remains unprotected by default for historical control-free diagnostics.
 
-M9.20 remains current for tire constitutive law and browser tire calibration. It replaces production
+M9.25 document120 owns the current browser defaults/ranges and removes M9.16 engine calibration.
+M9.20 remains current for tire constitutive law. It replaces production
 G/P/S and the additional lateral post-peak multiplier with one load-proportional, state-free,
 monotone two-axis capacity ellipse. Browser characteristics are:
 
 ```text
-GX .50..4.00 step .05   default 2.50   H forward-cycle
-PX 1..60% step 1 point  default 8%     J forward-cycle
-GY .50..4.00 step .05   default 2.20   G forward-cycle
-PY 1..60% step 1 point  default 10%    L forward-cycle
+GX 2.00..6.00 step .05   default 4.00   H forward-cycle
+PX 2..20% step 1 point  default 8%     J forward-cycle
+GY 1.00..4.00 step .05   default 2.50   G forward-cycle
+PY 2..20% step 1 point  default 8%    L forward-cycle
 KN .10.. .95 step .01   default .74   N forward-cycle
 ```
 
@@ -108,7 +110,7 @@ deltaTarget = clamp(automatic + u*D, -M, +M)
 ```
 
 M9.14/M9.13 retain D/M/ACT and full-viewport touch semantics. M9.17 owns direct wheel-derived RPM,
-instantaneous robotized-MT ratio selection and one rev limiter. M9.16 retains ENG calibration.
+instantaneous robotized-MT ratio selection and one rev limiter. M9.25 removes ENG calibration.
 M9.9 retains the product rule: **uncontrollable slide is forbidden; controllable drift is allowed**.
 
 Current circuit authoring remains:
@@ -120,7 +122,7 @@ Current circuit authoring remains:
 
 ## Numbered milestone history
 
-`01_...` through `119_...` remain chronological records. Do not rewrite older milestone prose merely
+`01_...` through `120_...` remain chronological records. Do not rewrite older milestone prose merely
 to use current terminology. M9.20 explicitly supersedes old-law force/selector contracts listed in
 114; those older files remain historical evidence for the implementation that existed then.
 
@@ -139,7 +141,7 @@ SUPER_OUTRIDE_CODEX_HANDOFF_2026-09-06_M9_22.md
 
 This remains navigation, not a second normative parameter ledger. Its post-release status distinguishes
 published HUD/protection from unverified interactive display, provisional brake capacity/bias,
-combined-input handling and paused tire work. Its source/test map and research index avoid reliance
+combined-input handling and the later120 resumption of player tire tuning. Its source/test map and research index avoid reliance
 on older conversations. Resolve live release identity from Git/PR and exact-SHA CI/Pages.
 Older M9.21/M9.20/M9.19/M9.18/M9.12C/M9.6 handoffs remain unchanged historical context.
 

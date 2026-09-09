@@ -5,14 +5,14 @@ import {createFlatProbe,forkProbe,runProbe,directInput,cycleInput,researchCycleI
  summarizeWindow,runThrottleSweep} from '../tools/drift-control-probe.mjs';
 import {compileTireCharacteristics,createArcadeTireFrictionCalibration}
  from '../dist/physics/tire-friction-calibration.js';
-import {setEngineTorqueMultiplier} from '../dist/physics/automatic-powertrain.js';
+import {withEngineCurveScale} from './helpers/authored-engine.mjs';
 import {VEHICLE_CATALOG} from '../dist/vehicle/vehicle-catalog.js';
 import {updateArcadeVehicle} from '../dist/physics/arcade-vehicle-physics.js';
 import {createM5RecoveryState,updateM5Recovery} from '../dist/gameplay/recovery.js';
 const c=values=>createArcadeTireFrictionCalibration(compileTireCharacteristics(values));
 const research=c({gripX:.75,peakSlipX:.02,gripY:3,peakSlipY:.08,knee:.74});
 function runReference(hz,direction,calibration=research){
- const p=createFlatProbe({calibration,initialSpeed:200/3.6});setEngineTorqueMultiplier(p.vehicle.powertrain,3);
+ const p=createFlatProbe({profile:withEngineCurveScale(VEHICLE_CATALOG[0].profile,3),calibration,initialSpeed:200/3.6});
  return runProbe(p,44,t=>researchCycleInput(t,direction),{hz});
 }
 for(const hz of [60,120,240])test(`M9.20 no-TCS research reference at ${hz}Hz enters, traverses and exits in both directions`,()=>{

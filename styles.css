@@ -480,7 +480,7 @@ body {
   }
 }
 
-/* M9.20: five compact linked-axle steppers plus ENG, not hundreds of individual choices. */
+/* M9.20: five compact linked-axle steppers. */
 .tire-friction-selector-buttons {
   grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
 }
@@ -506,4 +506,3 @@ body {
   font-size: 10px;
   white-space: nowrap;
 }
-.tire-friction-selector-buttons .engine-power-button { min-width: 0; }

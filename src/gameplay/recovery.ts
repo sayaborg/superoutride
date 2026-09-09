@@ -232,7 +232,6 @@ function reconstructVehicle(
     createAutomaticPowertrainState(
       p.powertrain,
       drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-      vehicle.powertrain.engineTorqueMultiplier,
     ),
   );
 }

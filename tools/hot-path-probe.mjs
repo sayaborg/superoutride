@@ -18,7 +18,14 @@ export async function runHotPathProbe(buildPath = 'dist') {
   const surface = new SurfaceMap(10000, [{ sStart: 0, name: 'equivalence',
     bands: [{ lMin: -1000, lMax: 1000, type: 'ASPHALT' }] }]);
   const hash = createHash('sha256');
-  const record = (value) => hash.update(JSON.stringify(value));
+  const record = (value) => hash.update(JSON.stringify(value, (key, item) => {
+    // M9.25 removes this old calibration field. Compare unscaled mechanics only.
+    if (key === 'engineTorqueMultiplier') {
+      if (item !== 1) throw new Error('reference engine must be unscaled');
+      return undefined;
+    }
+    return item;
+  }));
   let randomState = 0x723410;
   const random = () => ((randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0) / 2 ** 32);
   const started = performance.now();

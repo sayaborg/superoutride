@@ -1,8 +1,9 @@
+import {M9_21_TIRE_REFERENCE} from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { createTerrainProbe, runTerrainProbe, TERRAIN_CASES, terrainInput } from '../tools/torque-protection-terrain-probe.mjs';
+import { createTerrainProbe as createCurrentTerrainProbe, runTerrainProbe as runCurrentTerrainProbe, TERRAIN_CASES, terrainInput } from '../tools/torque-protection-terrain-probe.mjs';
 
 function assertBudgets(run) {
   const message = JSON.stringify(run);
@@ -124,3 +125,11 @@ test('M9.21 terrain probe rejects malformed domains and never imports recovery o
   assert.match(source, /updateArcadeVehicle/);
   assert.match(source, /evaluateTireForce/);
 });
+
+// M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
+function createTerrainProbe(entry, options={}) {
+ return createCurrentTerrainProbe(entry,{calibration:M9_21_TIRE_REFERENCE,...options});
+}
+function runTerrainProbe(entry, options={}) {
+ return runCurrentTerrainProbe(entry,{calibration:M9_21_TIRE_REFERENCE,...options});
+}

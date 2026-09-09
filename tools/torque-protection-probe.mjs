@@ -7,19 +7,18 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { deriveTireSlip } from '../dist/physics/tire-wheel.js';
-import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 
 export function runProtectionProbe(entry, { hz=120, seconds=6, kind='drive', speed=15, protectedRun=true,
-  engine=1, capture=false }={}) {
+  capture=false }={}) {
   if (![60,120,240].includes(hz) || !Number.isFinite(seconds) || seconds<=0
     || !Number.isFinite(speed) || speed<0 || !['drive','brake'].includes(kind)) {
     throw new RangeError('probe requires hz=60/120/240, positive seconds, nonnegative speed and drive/brake kind');
   }
   const p=createFlatProbe({profile:entry.profile, initialSpeed:speed,
     torqueProtection:protectedRun?entry.torqueProtection:undefined});
-  const v=p.vehicle;setEngineTorqueMultiplier(v.powertrain,engine);
+  const v=p.vehicle;
   const rows=[];
-  const out={id:entry.profile.id,hz,kind,protectedRun,initialSpeed:speed,engine,seconds:0,
+  const out={id:entry.profile.id,hz,kind,protectedRun,initialSpeed:speed,seconds:0,
     maxPitch:0,minPitch:0,frontLiftTime:0,rearLiftTime:0,minFrontLoad:Infinity,minRearLoad:Infinity,
     driveLimitedTime:0,brakeLimitedTime:0,supportLimitedTime:0,infeasibleTime:0,
     maxDriveSlip:0,maxBrakeSlip:0,distance:0,overturned:false,error:null};

@@ -3,7 +3,6 @@ import {
   type BrowserCourseModeQuery,
 } from './course-mode-selection.js';
 import { formatVehicleProfileSelector } from './vehicle-profile-selection.js';
-import { formatEnginePowerSelector } from './engine-power-controls.js';
 import {
   formatMaxRoadWheelSteerSelector,
   formatSteeringOffsetSelector,
@@ -42,7 +41,6 @@ export interface VehicleDebugHudModel {
   readonly maxRoadWheelSteerSelector: string;
   readonly steeringResponseSelector: string;
   readonly tireCalibrationSelector: string;
-  readonly enginePowerSelector: string;
   readonly instruments: string;
   readonly requestedSteering: number;
   readonly requestedThrottle: number;
@@ -83,7 +81,6 @@ export function createVehicleDebugHudModel(
       vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
     ),
     tireCalibrationSelector: formatTireCalibrationSelector(vehicle.tireFrictionCalibration),
-    enginePowerSelector: formatEnginePowerSelector(vehicle.powertrain.engineTorqueMultiplier),
     instruments: `SPD ${Math.round(vehicle.speed * 3.6).toString().padStart(3)}km/h  RPM ${Math.round(vehicle.powertrain.engineRpm).toString().padStart(5)}  GEAR ${vehicle.powertrain.gear}`,
     requestedSteering: clampSigned(input.steering),
     requestedThrottle: normalizedPedalRequest(input.throttle),
@@ -115,13 +112,12 @@ export function drawVehicleDebugHud(
 ): void {
   const model = createVehicleDebugHudModel(activeCourseQuery, input, vehicle);
   const lines = [
-    `M9.24 ${model.courseSelector}`,
+    `M9.25 ${model.courseSelector}`,
     model.vehicleSelector,
     model.steeringOffsetSelector,
     model.maxRoadWheelSteerSelector,
     model.steeringResponseSelector,
     model.tireCalibrationSelector,
-    model.enginePowerSelector,
     model.instruments,
   ];
 

@@ -9,8 +9,8 @@ import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { createArcadeVehicle, updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import {compileTireCharacteristics,createArcadeTireFrictionCalibration} from '../dist/physics/tire-friction-calibration.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import { DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER, DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE } from '../dist/browser/steering-calibration-selection.js';
@@ -39,10 +39,10 @@ function gradeHeight(length, grade) {
 }
 export function createTerrainProbe(entry, options = {}) {
   const { grip = 1, gripAfter = grip, changeS = LENGTH, grade = 0, terrain = 'flat', speed = 30,
-    calibration = 'browser', protectedRun = true, engine = 1 } = options;
+    calibration = 'browser', protectedRun = true } = options;
   if (![grip, gripAfter, changeS, grade, speed].every(Number.isFinite) || grip < 0 || gripAfter < 0
     || changeS < 0 || changeS > LENGTH || speed < 0 || !['flat', 'crest'].includes(terrain)
-    || !['browser', 'stock'].includes(calibration) || typeof protectedRun !== 'boolean'
+    || (!(typeof calibration === 'object' && calibration !== null) && !['browser', 'stock'].includes(calibration)) || typeof protectedRun !== 'boolean'
     || (terrain === 'crest' && grade !== 0)) throw new RangeError('invalid terrain probe configuration');
   const guide = compileGuidePath(compileRasterPath([{ x: 0, z: 0 }, { x: 0, z: LENGTH }]),
     { lMax: 500, mMin: .25, dCam: 5 });
@@ -62,9 +62,10 @@ export function createTerrainProbe(entry, options = {}) {
   const vehicle = createArcadeVehicle(entry.profile, guide, height, surface, START, 0, speed,
     { maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER, steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
       steeringActuatorResponse: { applyRate: rate, releaseRate: rate } },
-    calibration === 'browser' ? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION : undefined,
+    calibration === 'browser' ? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION
+      : calibration === 'stock' ? undefined
+      : createArcadeTireFrictionCalibration(compileTireCharacteristics(calibration)),
     protectedRun ? entry.torqueProtection : undefined);
-  setEngineTorqueMultiplier(vehicle.powertrain, engine);
   return { guide, height, surface, vehicle };
 }
 export function terrainInput(t, kind, direction = 1) {
@@ -85,7 +86,7 @@ export function runTerrainProbe(entry, options = {}) {
   const p = createTerrainProbe(entry, fixture), v = p.vehicle;
   const out = { id: entry.profile.id, hz, requestedSeconds: seconds, kind, direction,
     calibration: fixture.calibration ?? 'browser', protectedRun: fixture.protectedRun ?? true,
-    engine: fixture.engine ?? 1, seconds: 0, completed: false, error: null, overturned: false,
+    seconds: 0, completed: false, error: null, overturned: false,
     initialSpeed: v.speed, finalSpeed: v.speed, minSpeed: v.speed, distance: 0,
     maxAbsBeta: 0, maxAbsMovingBeta: 0, speedAtMaxMovingBeta: null, timeAtMaxMovingBeta: null, maxAbsBetaAbove15: 0, maxAbsYawRate: 0, maxAbsPitch: Math.abs(v.pitch) * DEG,
     frontLiftTime: 0, rearLiftTime: 0, airborneTime: 0, recontacts: 0,

@@ -9,7 +9,6 @@ import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { arcadeBodyKinematics, createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation, sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
-import { setEngineTorqueMultiplier } from '../dist/physics/automatic-powertrain.js';
 import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
 import { HONDA_VFR750R_VEHICLE_PROFILE as profile } from '../dist/vehicle/production-vehicle-profiles.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
@@ -79,7 +78,6 @@ test('M9.18 overturned recovery precedes stale support and preserves calibration
     const v = createArcadeVehicle(profile, guide, height, surfaces, 800, 0, 25,
       { maxRoadWheelSteer: 60 * DEG, steeringOffsetMax: 12 * DEG },
       createArcadeTireFrictionCalibration(compileTireCharacteristics({ gripX: 2.7, gripY: 2.7, peakSlipX: .25, peakSlipY: .25, knee: .74 })));
-    setEngineTorqueMultiplier(v.powertrain, 3);
     const before = structuredClone({ steering: v.steeringCalibration, tire: v.tireFrictionCalibration });
     const state = createM5RecoveryState(v);
     v.pitch = Math.PI;
@@ -93,7 +91,7 @@ test('M9.18 overturned recovery precedes stale support and preserves calibration
     assert.equal(v.pitch, 0);
     assert.equal(v.pitchRate, 0);
     assert.deepEqual(v.actuator, { steering: 0, throttle: 0, brake: 0 });
-    assert.equal(v.powertrain.engineTorqueMultiplier, 3);
+    assert.equal(Object.keys(v.powertrain).length, 4);
     assert.deepEqual(v.steeringCalibration, before.steering);
     assert.deepEqual(v.tireFrictionCalibration, before.tire);
     assert.ok(Math.abs(v.course.s - (target?.s ?? 792)) < 1e-8);
