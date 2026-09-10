@@ -19,12 +19,23 @@ test('wheel, turning and pedal traces match the released reference across nine p
 });
 
 const tire = DEFAULT_VEHICLE_CATALOG_ENTRY.profile.frontStation.tire;
-const input = { omegaPrevious: 10, inertia: 1, rollingRadius: .3, longitudinalVelocity: 3,
-  lateralVelocity: 0, normalLoad: 3000, gripFactor: 1, rollingResistance: .01,
-  driveTorque: 0, brakeTorque: 0, dt: 1 / 120, tire };
+const input = {
+  omegaPrevious: 10,
+  inertia: 1,
+  rollingRadius: 0.3,
+  longitudinalVelocity: 3,
+  lateralVelocity: 0,
+  normalLoad: 3000,
+  gripFactor: 1,
+  rollingResistance: 0.01,
+  driveTorque: 0,
+  brakeTorque: 0,
+  dt: 1 / 120,
+  tire,
+};
 
 test('checked wheel/protection boundaries still reject every nonfinite numeric input', () => {
-  for (const key of Object.keys(input).filter(key => key !== 'tire')) {
+  for (const key of Object.keys(input).filter((key) => key !== 'tire')) {
     for (const value of [NaN, Infinity, -Infinity]) {
       const invalid = { ...input, [key]: value };
       assert.throws(() => solveWheelOmega(invalid), RangeError);
@@ -35,7 +46,7 @@ test('checked wheel/protection boundaries still reject every nonfinite numeric i
   for (const key of ['muX', 'muY', 'kX', 'kY', 'rhoKnee', 'lowSpeedRegularization']) {
     const invalidTire = { ...tire, [key]: NaN };
     assert.throws(() => solveWheelOmega({ ...input, tire: invalidTire }), RangeError);
-    assert.throws(() => evaluateTireForce(10, .3, 3, 0, 3000, 1, invalidTire), RangeError);
+    assert.throws(() => evaluateTireForce(10, 0.3, 3, 0, 3000, 1, invalidTire), RangeError);
   }
   assert.equal(limitWheelTorques(input), input, 'no-op preserves immutable request identity');
 });
@@ -51,16 +62,20 @@ test('range search preserves exact ascending-candidate tie handling on repeated 
   const guide = createM93TsukubaCourse2000Runtime().window.guide;
   for (const s of [0, 100, 2045, 2145, guide.length]) {
     const world = guidePathToWorld(guide, s, 1);
-    const candidates = guide.segments.map(segment => locateWorldOnGuideLocal(guide, world, segment.index, 0));
-    const best = values => values.reduce((a, b) => b.distanceSquared < a.distanceSquared ? b : a);
+    const candidates = guide.segments.map((segment) => locateWorldOnGuideLocal(guide, world, segment.index, 0));
+    const best = (values) => values.reduce((a, b) => (b.distanceSquared < a.distanceSquared ? b : a));
     assert.deepEqual(locateWorldOnGuideGlobal(guide, world), best(candidates));
-    const first = Math.max(0, world.segmentIndex - 5), last = Math.min(candidates.length - 1, world.segmentIndex + 5);
-    assert.deepEqual(locateWorldOnGuideLocal(guide, world, world.segmentIndex, 5), best(candidates.slice(first, last + 1)));
+    const first = Math.max(0, world.segmentIndex - 5),
+      last = Math.min(candidates.length - 1, world.segmentIndex + 5);
+    assert.deepEqual(
+      locateWorldOnGuideLocal(guide, world, world.segmentIndex, 5),
+      best(candidates.slice(first, last + 1)),
+    );
   }
 });
 
 test('hot path retains one sample/body basis and no candidate index arrays', async () => {
-  const read = path => readFile(new URL(path, import.meta.url), 'utf8');
+  const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
   const guide = await read('../src/core/guide-curve.ts');
   assert.doesNotMatch(guide, /segmentIndices|Array\.from\(\{ length: last/);
   const dynamics = await read('../src/physics/vehicle-dynamics.ts');

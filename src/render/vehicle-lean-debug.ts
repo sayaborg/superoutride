@@ -13,7 +13,10 @@ export function drawVehicleLeanDebug(
   const tipY = anchorY - length * Math.cos(angle);
   ctx.save();
   ctx.lineCap = 'round';
-  for (const [color, width] of [['#071016', 4], ['#65efff', 2]] as const) {
+  for (const [color, width] of [
+    ['#071016', 4],
+    ['#65efff', 2],
+  ] as const) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.beginPath();

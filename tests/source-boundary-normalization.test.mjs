@@ -15,7 +15,7 @@ const allowedDevCompositionRoots = new Set([
 
 const retiredAuthorityPaths = [
   'src/core/debug-course.ts',
-  'src/dev/m5-camera.ts',
+  'src/dev/camera.ts',
   'src/gameplay/race-progress.ts',
   'src/input/steering-filter.ts',
   'src/physics/car-physics.ts',
@@ -25,7 +25,7 @@ const retiredAuthorityPaths = [
 ];
 
 const currentAuthorityPaths = [
-  'src/camera/m5-camera.ts',
+  'src/camera/camera.ts',
   'src/dev/debug-course.ts',
   'src/dev/m3-debug-height-profile.ts',
   'src/dev/m3-debug-visual.ts',
@@ -41,7 +41,7 @@ async function collectTypeScriptFiles(directory) {
   for (const entry of entries) {
     const target = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      files.push(...await collectTypeScriptFiles(target));
+      files.push(...(await collectTypeScriptFiles(target)));
     } else if (entry.isFile() && entry.name.endsWith('.ts')) {
       files.push(target);
     }
@@ -68,9 +68,7 @@ test('only explicit top-level composition roots may depend on src/dev', async ()
     }
 
     const source = await readFile(sourceFile, 'utf8');
-    const importSpecifiers = [
-      ...source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g),
-    ].map((match) => match[1]);
+    const importSpecifiers = [...source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
     for (const specifier of importSpecifiers) {
       if (!specifier.startsWith('.')) continue;
@@ -149,8 +147,10 @@ test('open-route regression fixtures do not hide endpoint defects behind cyclic 
 
 test('general source profiles expose one finite domain without cyclic implementations', async () => {
   for (const relativePath of [
-    'src/visual/height-profile.ts', 'src/visual/visual-profile.ts',
-    'src/visual/baked-ground-map.ts', 'src/compiler/surface-region-compiler.ts',
+    'src/visual/height-profile.ts',
+    'src/visual/visual-profile.ts',
+    'src/visual/baked-ground-map.ts',
+    'src/compiler/surface-region-compiler.ts',
     'src/physics/surface-map.ts',
   ]) {
     const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');

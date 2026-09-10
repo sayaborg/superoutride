@@ -6,9 +6,9 @@ export function isTouchInterface(
   viewportWidth: number,
   viewportHeight: number,
 ): boolean {
-  return maxTouchPoints > 0
-    || coarsePointer
-    || Math.min(viewportWidth, viewportHeight) <= TOUCH_INTERFACE_MAX_SHORT_SIDE_PX;
+  return (
+    maxTouchPoints > 0 || coarsePointer || Math.min(viewportWidth, viewportHeight) <= TOUCH_INTERFACE_MAX_SHORT_SIDE_PX
+  );
 }
 
 export function browserUsesTouchInterface(): boolean {

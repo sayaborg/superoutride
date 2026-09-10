@@ -82,7 +82,7 @@ export interface CourseCoordinate {
 
 const DEFAULT_TOLERANCE = 1e-7;
 const ZERO_TURN = 1e-10;
-const RANGE_TOLERANCE = 1e-8;
+const SAMPLING_TOLERANCE = 1e-8;
 
 export function filletMetric(turn: number): number {
   const absTurn = Math.abs(turn);
@@ -134,9 +134,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
     const rMin = minimumGuideRadius(options.lMax, options.mMin, mu);
     const absTurn = Math.abs(turn);
     const sourceRadius = vertex.sourceRadius;
-    const radius = sourceRadius === undefined
-      ? rMin
-      : sourceRadius * Math.cos(absTurn * 0.5);
+    const radius = sourceRadius === undefined ? rMin : sourceRadius * Math.cos(absTurn * 0.5);
 
     if (radius + tolerance < rMin) {
       throw new Error(`vertex ${i} circular-source guide radius is below Core R_min`);
@@ -203,14 +201,17 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
   }
 
   unsorted.sort((a, b) => a.sStart - b.sStart);
-  const segments: GuideSegment[] = unsorted.map((segment, index) => ({ ...segment, index } as GuideSegment));
+  const segments: GuideSegment[] = unsorted.map((segment, index) => ({ ...segment, index }) as GuideSegment);
   validateGuideCoverage(segments, path.length, tolerance);
 
   return Object.freeze({
     raster: path,
-    segments: Object.freeze(segments.map(segment => Object.freeze(segment))),
-    corners: Object.freeze(corners.map(corner => Object.freeze({ ...corner,
-      center: corner.center === null ? null : Object.freeze(corner.center) }))),
+    segments: Object.freeze(segments.map((segment) => Object.freeze(segment))),
+    corners: Object.freeze(
+      corners.map((corner) =>
+        Object.freeze({ ...corner, center: corner.center === null ? null : Object.freeze(corner.center) }),
+      ),
+    ),
     length: path.length,
     lMax: options.lMax,
     mMin: options.mMin,
@@ -246,10 +247,15 @@ export function locateWorldOnGuideLocal(
   searchRadius = 2,
   clampL = false,
 ): CourseCoordinate {
-  if (!Number.isInteger(previousSegmentIndex) || previousSegmentIndex < 0 || previousSegmentIndex >= guide.segments.length) {
+  if (
+    !Number.isInteger(previousSegmentIndex) ||
+    previousSegmentIndex < 0 ||
+    previousSegmentIndex >= guide.segments.length
+  ) {
     throw new RangeError('previousSegmentIndex must identify a segment in the active Guide');
   }
-  if (!Number.isInteger(searchRadius) || searchRadius < 0) throw new RangeError('searchRadius must be a non-negative integer');
+  if (!Number.isInteger(searchRadius) || searchRadius < 0)
+    throw new RangeError('searchRadius must be a non-negative integer');
 
   const first = Math.max(0, previousSegmentIndex - searchRadius);
   const last = Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius);
@@ -258,7 +264,7 @@ export function locateWorldOnGuideLocal(
 
 export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {
   const checked = checkedGuideChainage(guide, sLocal);
-  if (checked < segment.sStart - RANGE_TOLERANCE || checked > segment.sEnd + RANGE_TOLERANCE) {
+  if (checked < segment.sStart - SAMPLING_TOLERANCE || checked > segment.sEnd + SAMPLING_TOLERANCE) {
     throw new RangeError('guide segment sample is outside the segment interval');
   }
 
@@ -376,9 +382,8 @@ function validateFilletOverlap(
       throw new Error(`Guide fillets overlap on raster segment ${i}`);
     }
 
-    const opposite = Math.abs(a.turn) > ZERO_TURN
-      && Math.abs(b.turn) > ZERO_TURN
-      && Math.sign(a.turn) !== Math.sign(b.turn);
+    const opposite =
+      Math.abs(a.turn) > ZERO_TURN && Math.abs(b.turn) > ZERO_TURN && Math.sign(a.turn) !== Math.sign(b.turn);
     if (opposite && dCam !== undefined) {
       const remaining = segment.length - required;
       if (remaining + tolerance < dCam) {
@@ -405,7 +410,7 @@ function validateGuideCoverage(segments: readonly GuideSegment[], pathLength: nu
 
 function checkedGuideChainage(guide: GuidePath, s: number): number {
   if (!Number.isFinite(s)) throw new RangeError('guide path chainage must be finite');
-  if (s < -RANGE_TOLERANCE || s > guide.length + RANGE_TOLERANCE) {
+  if (s < -SAMPLING_TOLERANCE || s > guide.length + SAMPLING_TOLERANCE) {
     throw new RangeError(`guide path chainage ${s} is outside [0, ${guide.length}]`);
   }
   if (s <= 0) return 0;

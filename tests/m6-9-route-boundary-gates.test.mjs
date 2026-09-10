@@ -3,21 +3,12 @@ import assert from 'node:assert/strict';
 import { createM6DebugRouteBoundaryGateSet } from '../dist/dev/m6-debug-route-boundary-gates.js';
 import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
-import {
-  compileRouteBoundaryGateSet,
-  observeRouteBoundaryCrossing,
-} from '../dist/gameplay/route-boundary-gates.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
+import { compileRouteBoundaryGateSet, observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 
 test('M6.9 gate compiler requires complete physical coverage for every choice and terminal finish', () => {
   const route = createM6DebugRouteDag();
-  assert.throws(
-    () => compileRouteBoundaryGateSet(route, []),
-    /missing a transition gate/,
-  );
+  assert.throws(() => compileRouteBoundaryGateSet(route, []), /missing a transition gate/);
 
   const full = createM6DebugRouteBoundaryGateSet(route);
   assert.equal(full.gates.length, route.choices.length + 4);
@@ -28,13 +19,7 @@ test('physical world motion through the left branch gate produces the left valid
   const state = createRouteDagState(route);
   const gates = createM6DebugRouteBoundaryGateSet(route);
 
-  const observation = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: -3, z: 9 },
-    { x: -3, z: 11 },
-  );
+  const observation = observeRouteBoundaryCrossing(route, state, gates, { x: -3, z: 9 }, { x: -3, z: 11 });
 
   assert.equal(observation.event, 'VALIDATED_TRANSITION');
   assert.deepEqual(observation.boundary, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
@@ -51,13 +36,7 @@ test('steering-side implication is impossible: world segment between branch gate
   const state = createRouteDagState(route);
   const gates = createM6DebugRouteBoundaryGateSet(route);
 
-  const observation = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: 0, z: 9 },
-    { x: 0, z: 11 },
-  );
+  const observation = observeRouteBoundaryCrossing(route, state, gates, { x: 0, z: 9 }, { x: 0, z: 11 });
 
   assert.equal(observation.event, 'NONE');
   assert.equal(observation.boundary, null);
@@ -69,13 +48,7 @@ test('reverse crossing of a legal route gate is observed but never validates rou
   const state = createRouteDagState(route);
   const gates = createM6DebugRouteBoundaryGateSet(route);
 
-  const observation = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: 3, z: 11 },
-    { x: 3, z: 9 },
-  );
+  const observation = observeRouteBoundaryCrossing(route, state, gates, { x: 3, z: 11 }, { x: 3, z: 9 });
 
   assert.equal(observation.event, 'REVERSE_CROSSING');
   assert.equal(observation.boundary, null);
@@ -90,23 +63,11 @@ test('only gates outgoing from the current active route stage are candidates', (
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
   assert.equal(state.activeStageId, 'STAGE_2_L');
 
-  const wrongBranchGeometry = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: 7, z: 19 },
-    { x: 7, z: 21 },
-  );
+  const wrongBranchGeometry = observeRouteBoundaryCrossing(route, state, gates, { x: 7, z: 19 }, { x: 7, z: 21 });
   assert.equal(wrongBranchGeometry.event, 'NONE');
   assert.equal(wrongBranchGeometry.boundary, null);
 
-  const valid = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: -2, z: 19 },
-    { x: -2, z: 21 },
-  );
+  const valid = observeRouteBoundaryCrossing(route, state, gates, { x: -2, z: 19 }, { x: -2, z: 21 });
   assert.deepEqual(valid.boundary, { kind: 'TRANSITION', choiceId: 'S2L_RIGHT' });
 });
 
@@ -119,22 +80,10 @@ test('terminal finish is emitted only from physical forward crossing of that ter
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S2L_RIGHT' });
   assert.equal(state.activeStageId, 'GOAL_LR');
 
-  const otherGoal = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: -8, z: 29 },
-    { x: -8, z: 31 },
-  );
+  const otherGoal = observeRouteBoundaryCrossing(route, state, gates, { x: -8, z: 29 }, { x: -8, z: 31 });
   assert.equal(otherGoal.event, 'NONE');
 
-  const finish = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: -3, z: 29 },
-    { x: -3, z: 31 },
-  );
+  const finish = observeRouteBoundaryCrossing(route, state, gates, { x: -3, z: 29 }, { x: -3, z: 31 });
   assert.equal(finish.event, 'VALIDATED_FINISH');
   assert.deepEqual(finish.boundary, { kind: 'FINISH', stageId: 'GOAL_LR' });
 
@@ -159,13 +108,7 @@ test('ambiguous physical step crossing multiple legal branch gates is rejected i
     { id: 'G4', kind: 'FINISH', stageId: 'GOAL_RR', center: { x: 8, z: 30 }, heading: 0, halfWidth: 2 },
   ]);
 
-  const observation = observeRouteBoundaryCrossing(
-    route,
-    state,
-    gates,
-    { x: 0, z: 9 },
-    { x: 0, z: 11 },
-  );
+  const observation = observeRouteBoundaryCrossing(route, state, gates, { x: 0, z: 9 }, { x: 0, z: 11 });
   assert.equal(observation.event, 'AMBIGUOUS_FORWARD_CROSSING');
   assert.equal(observation.boundary, null);
   assert.equal(observation.forwardCrossingCount, 2);

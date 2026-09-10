@@ -6,20 +6,14 @@ import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import {
-  guideCoordinateToWorld,
-  locateWorldOnGuideCoordinateGlobal,
-} from '../dist/core/guide-coordinate-frame.js';
+import { guideCoordinateToWorld, locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import { createM617RouteStageHandoffManifest } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
 import { createM619DebugStageRuntimeRegistry } from '../dist/dev/m6-19-stage-runtime-content.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -33,7 +27,7 @@ import {
   compileStageRuntimeContentRegistry,
   resolveActiveStageRuntimeContent,
 } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
@@ -77,27 +71,17 @@ function setup() {
     visual: visualProfile,
     thinSpanScreenRows: 1,
   };
-  const farBackground = createM3FarBackground();
-  const registry = createM619DebugStageRuntimeRegistry(
-    routeContent,
-    charts,
-    roadViews,
-    {
-      heightProfile,
-      surfaceMap,
-      terrainProfile,
-      groundProfile,
-      selectFarBackground: () => farBackground,
-      worldSprites: [],
-    },
-  );
+  const farBackground = createFarBackground();
+  const registry = createM619DebugStageRuntimeRegistry(routeContent, charts, roadViews, {
+    heightProfile,
+    surfaceMap,
+    terrainProfile,
+    groundProfile,
+    selectFarBackground: () => farBackground,
+    worldSprites: [],
+  });
   const spawn = guideCoordinateToWorld(charts.parent, 500, 0);
-  const handoffState = createRouteStageHandoffState(
-    route,
-    routeContent,
-    charts.parent,
-    spawn,
-  );
+  const handoffState = createRouteStageHandoffState(route, routeContent, charts.parent, spawn);
 
   return {
     guide,
@@ -165,37 +149,17 @@ test('PENDING route choice cannot switch runtime content before the validated ha
 });
 
 test('validated seam atomically changes package, Guide coordinate frame and road view without changing world pose', () => {
-  const {
-    route,
-    routeState,
-    routeContent,
-    chartList,
-    handoffManifest,
-    registry,
-    handoffState,
-  } = setup();
+  const { route, routeState, routeContent, chartList, handoffManifest, registry, handoffState } = setup();
   const routeUpdate = updateRouteDag(routeState, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
   queueRouteStageHandoff(handoffState, handoffManifest, routeUpdate);
   const seam = handoffManifest.seams.find((entry) => entry.choiceId === 'S1_LEFT');
   assert.ok(seam);
   const segment = crossingSegment(seam);
-  const observation = observePendingRouteStageHandoff(
-    handoffState,
-    handoffManifest,
-    segment.previous,
-    segment.current,
-  );
+  const observation = observePendingRouteStageHandoff(handoffState, handoffManifest, segment.previous, segment.current);
   const world = { x: seam.center.x, z: seam.center.z };
   const before = { ...world };
   assert.equal(
-    commitRouteStageHandoff(
-      handoffState,
-      routeState,
-      routeContent,
-      chartList,
-      observation.seam,
-      world,
-    ),
+    commitRouteStageHandoff(handoffState, routeState, routeContent, chartList, observation.seam, world),
     'COMMITTED',
   );
   assert.deepEqual(world, before);
@@ -245,17 +209,18 @@ test('runtime registry rejects missing packages, mixed world frames and coordina
 
   const first = registry.packages[0];
   assert.throws(
-    () => compileStageRuntimeContentRegistry(routeContent, [
-      { ...first, worldFrameId: 'OTHER_FRAME' },
-      ...registry.packages.slice(1),
-    ]),
+    () =>
+      compileStageRuntimeContentRegistry(routeContent, [
+        { ...first, worldFrameId: 'OTHER_FRAME' },
+        ...registry.packages.slice(1),
+      ]),
     /worldFrameId mismatch/,
   );
 
   const leftIndex = registry.packages.findIndex((entry) => entry.packageId === 'CONTENT_STAGE_2_L');
-  const mismatched = registry.packages.map((entry, index) => index === leftIndex
-    ? { ...entry, roadView: roadViews.right }
-    : entry);
+  const mismatched = registry.packages.map((entry, index) =>
+    index === leftIndex ? { ...entry, roadView: roadViews.right } : entry,
+  );
   assert.throws(
     () => compileStageRuntimeContentRegistry(routeContent, mismatched),
     /coordinate\/road lateral origin mismatch/,
@@ -269,6 +234,9 @@ test('M6.19 keeps route topology opaque and runtime selection free of RouteDag d
 
   const runtimeSource = await readFile(new URL('../src/runtime/stage-runtime-content.ts', import.meta.url), 'utf8');
   const imports = [...runtimeSource.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-  assert.equal(imports.some((entry) => entry.includes('/route-dag')), false);
+  assert.equal(
+    imports.some((entry) => entry.includes('/route-dag')),
+    false,
+  );
   assert.match(runtimeSource, /activePackageId/);
 });

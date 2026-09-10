@@ -1,18 +1,20 @@
 # SUPER OUTRIDE
 
-320×240のラスタ型疑似3Dドライビングゲーム。ブラウザ上で、車とバイクが同じワールド座標・接地・タイヤ・車輪の物理系を使う。
+A 320×240 raster pseudo-3D driving game for the browser. Cars and bikes share world coordinates, suspension contacts, tires and wheel mechanics.
 
-車両の力学・制御仕様はパラメータ以外をfreezeし、次の映像・サウンド・ゲームシステム開発の土台とする。操縦性は `DEV_UNCALIBRATED`。車種別のパラメータ調整と対象端末での性能・操作確認は継続課題。
+Vehicle mechanics and control laws are frozen; parameters remain tunable. Handling is `DEV_UNCALIBRATED`. Visuals, sound and game systems can build on this foundation while vehicle calibration and target-device acceptance continue.
 
-- [次の作業・再開手順](docs/NEXT.md)
-- [現行仕様の一覧](docs/README.md)
-- [開発契約](AGENTS.md)
-- [監査結果](docs/AUDIT.md)
-- [公開ゲーム](https://sayaborg.github.io/superoutride/)
+All repository documentation must be written and maintained in English. Architectural elegance, simplicity, consistency and the absence of ad hoc implementations take priority over convenience.
 
-## 実行
+- [Restart and next work](docs/NEXT.md)
+- [Current specifications](docs/README.md)
+- [Development contract](AGENTS.md)
+- [Current audit](docs/AUDIT.md)
+- [Play the game](https://sayaborg.github.io/superoutride/)
 
-Node.js 24を使用する。
+## Run
+
+Use Node.js 24.
 
 ```sh
 npm ci
@@ -20,18 +22,18 @@ npm test
 python3 -m http.server 8000
 ```
 
-`http://localhost:8000/` を開く。`npm run check` は型検査、`npm run build` はESMとGroundMapの生成。
+Open `http://localhost:8000/`. `npm run check` checks lint, formatting and types; `npm run build` generates ESM and GroundMap assets.
 
-## 操作
+## Controls
 
-左右矢印で操舵、↑またはXでアクセル、↓またはZでブレーキ。タッチは画面左半分で左右に操舵、右半分で上にアクセル・下にブレーキ。指を置いた場所が原点で、64 CSS pxの移動が最大入力。キーボードとタッチは共通の入力調停を使う。
+Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels of displacement produces full input. Keyboard and touch share input arbitration.
 
-画面のセレクタで車種・コース・調整値を選ぶ。コースのキー1〜4は LINEAR / BRANCHING / TSUKUBA / FISCO。URLはそれぞれ `?mode=linear` / `?mode=branching` / `?mode=circuit` / `?mode=fisco`。省略時はBRANCHING。
+Use the selectors for vehicle, course and calibration. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-現在の調整基準は GX=5、PX=20%、GY=2.5、PY=10%、KN=0.74、D=20°、M=65°、ACT=0.30秒。[調整値の意味と所有者](docs/calibration.md)を参照。
+Current defaults: GX=5, PX=20%, GY=2.5, PY=10%, KN=0.74, D=20°, M=65°, ACT=0.30 s. See [calibration ownership and meanings](docs/calibration.md).
 
-## 構成
+## Structure
 
-`src/core` は開いた座標・射影、`src/physics` は共通車両力学、`src/course` と `src/runtime` はコースのコンパイルと実行中の内容、`src/gameplay` は分岐・ラップ・復帰、`src/render` と `src/visual` は描画、`src/browser` はブラウザUIを所有する。`src/dev` は具体的な試走コースと回帰用の構成データ。
+`src/core` owns open coordinates and projection; `src/physics` owns common mechanics. `src/course` and `src/runtime` compile and assemble course content. `src/gameplay` owns route choices, laps and recovery. `src/render` and `src/visual` own presentation; `src/browser` owns browser input, scheduling and UI. `src/dev` contains concrete trial courses and regression fixtures.
 
-履歴資料はGit履歴で参照する。作業ツリーには現行仕様・実行可能な回帰テスト・再開情報を置く。ファイル名のM番号は識別子であり、古い設計を現行仕様より優先する根拠にはしない。
+The working tree contains current specifications, executable regressions and one restart checkpoint. Git retains history. Historical fixture/test names do not supersede current specifications.

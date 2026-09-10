@@ -1,9 +1,5 @@
-import {
-  getRouteChoice,
-  getRouteStage,
-  type RouteDag,
-  type ValidatedRouteBoundary,
-} from './route-dag.js';
+import { nonEmptyId } from '../core/validation.js';
+import { getRouteChoice, getRouteStage, type RouteDag, type ValidatedRouteBoundary } from './route-dag.js';
 
 const EPSILON = 1e-9;
 
@@ -29,11 +25,7 @@ export interface SharedRouteChoiceCandidate {
 }
 
 export type SharedRouteChoiceDecisionReason =
-  | 'INDEPENDENT'
-  | 'UNBRANCHED_STAGE'
-  | 'LOCK_CREATED'
-  | 'MATCHES_EXISTING_LOCK'
-  | 'CONFLICTS_WITH_LOCK';
+  'INDEPENDENT' | 'UNBRANCHED_STAGE' | 'LOCK_CREATED' | 'MATCHES_EXISTING_LOCK' | 'CONFLICTS_WITH_LOCK';
 
 export interface SharedRouteChoiceDecision {
   readonly actorId: string;
@@ -56,9 +48,7 @@ export interface SharedRouteChoiceArbitration {
  * Single-successor continuation stages remain ordinary per-actor route transactions and do not
  * consume shared-choice state.
  */
-export function createSharedRouteChoiceState(
-  mode: SharedRouteChoiceMode,
-): SharedRouteChoiceState {
+export function createSharedRouteChoiceState(mode: SharedRouteChoiceMode): SharedRouteChoiceState {
   if (mode !== 'INDEPENDENT' && mode !== 'FIRST_PHYSICAL_CROSSING_LOCKS') {
     const exhaustive: never = mode;
     throw new RangeError(`unsupported shared route choice mode: ${String(exhaustive)}`);
@@ -66,10 +56,7 @@ export function createSharedRouteChoiceState(
   return { mode, locks: [] };
 }
 
-export function getSharedRouteChoiceLock(
-  state: SharedRouteChoiceState,
-  stageId: string,
-): SharedRouteChoiceLock | null {
+export function getSharedRouteChoiceLock(state: SharedRouteChoiceState, stageId: string): SharedRouteChoiceLock | null {
   return state.locks.find((lock) => lock.stageId === stageId) ?? null;
 }
 
@@ -92,14 +79,18 @@ export function arbitrateSharedRouteChoiceCandidates(
 ): SharedRouteChoiceArbitration {
   const actorIds = new Set<string>();
   for (const candidate of candidates) {
-    assertNonEmpty(candidate.actorId, 'shared route actor id');
+    nonEmptyId(candidate.actorId, 'shared route actor id');
     if (actorIds.has(candidate.actorId)) {
-      throw new RangeError(`shared route actor may submit at most one transition candidate per tick: ${candidate.actorId}`);
+      throw new RangeError(
+        `shared route actor may submit at most one transition candidate per tick: ${candidate.actorId}`,
+      );
     }
     actorIds.add(candidate.actorId);
-    if (!Number.isFinite(candidate.crossingFraction)
-      || candidate.crossingFraction < 0
-      || candidate.crossingFraction > 1) {
+    if (
+      !Number.isFinite(candidate.crossingFraction) ||
+      candidate.crossingFraction < 0 ||
+      candidate.crossingFraction > 1
+    ) {
       throw new RangeError(`shared route crossing fraction must be within [0,1]: ${candidate.actorId}`);
     }
     const choice = getRouteChoice(route, candidate.boundary.choiceId);
@@ -156,22 +147,14 @@ export function arbitrateSharedRouteChoiceCandidates(
 
       for (const candidate of stageCandidates) {
         const accepted = candidate.boundary.choiceId === lock.choiceId;
-        decisions.push(decision(
-          candidate,
-          accepted,
-          accepted ? 'LOCK_CREATED' : 'CONFLICTS_WITH_LOCK',
-        ));
+        decisions.push(decision(candidate, accepted, accepted ? 'LOCK_CREATED' : 'CONFLICTS_WITH_LOCK'));
       }
       continue;
     }
 
     for (const candidate of stageCandidates) {
       const accepted = candidate.boundary.choiceId === lock.choiceId;
-      decisions.push(decision(
-        candidate,
-        accepted,
-        accepted ? 'MATCHES_EXISTING_LOCK' : 'CONFLICTS_WITH_LOCK',
-      ));
+      decisions.push(decision(candidate, accepted, accepted ? 'MATCHES_EXISTING_LOCK' : 'CONFLICTS_WITH_LOCK'));
     }
   }
 
@@ -225,10 +208,4 @@ function decision(
     accepted,
     reason,
   });
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }

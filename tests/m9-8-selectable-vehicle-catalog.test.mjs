@@ -2,10 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  BROWSER_VEHICLE_PROFILES,
-  browserVehicleProfileForKey,
-} from '../dist/browser/vehicle-profile-selection.js';
+import { BROWSER_VEHICLE_PROFILES, browserVehicleProfileForKey } from '../dist/browser/vehicle-profile-selection.js';
 import * as profilesModule from '../dist/physics/vehicle-profiles.js';
 import { deriveVehicleSpriteFamily } from '../dist/render/vehicle-presentation.js';
 import {
@@ -28,14 +25,17 @@ const expected = [
 
 test('M9.8 catalog preserves model identifier specification and period as separate fields', () => {
   assert.equal(VEHICLE_CATALOG.length, 9);
-  assert.deepEqual(VEHICLE_CATALOG.map((entry) => [
-    entry.manufacturer,
-    entry.model,
-    entry.identifier?.officialLabel ?? null,
-    [...entry.selectedSpecification],
-    entry.period,
-    entry.keyCode,
-  ]), expected);
+  assert.deepEqual(
+    VEHICLE_CATALOG.map((entry) => [
+      entry.manufacturer,
+      entry.model,
+      entry.identifier?.officialLabel ?? null,
+      [...entry.selectedSpecification],
+      entry.period,
+      entry.keyCode,
+    ]),
+    expected,
+  );
   assert.equal(DEFAULT_VEHICLE_CATALOG_ENTRY.profile.id, 'TESTAROSSA');
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.id)).size, 9);
   assert.equal(new Set(VEHICLE_CATALOG.map(({ keyCode }) => keyCode)).size, 9);
@@ -57,8 +57,11 @@ test('canonical one-line formatter uses short identifiers without duplicating mo
 
 test('all nine share exactly one normalized tire law while vehicle mechanics remain profile-owned', () => {
   const tire = ({ profile }) => [
-    profile.frontStation.tire.muY, profile.frontStation.tire.rhoKnee, profile.frontStation.tire.lowSpeedRegularization,
-    profile.frontStation.tire.kY, profile.rearStation.tire.kY,
+    profile.frontStation.tire.muY,
+    profile.frontStation.tire.rhoKnee,
+    profile.frontStation.tire.lowSpeedRegularization,
+    profile.frontStation.tire.kY,
+    profile.rearStation.tire.kY,
   ];
   for (const entry of VEHICLE_CATALOG) assert.deepEqual(tire(entry), tire(VEHICLE_CATALOG[0]));
   assert.equal(new Set(VEHICLE_CATALOG.map(({ profile }) => profile.mass)).size, 9);
@@ -75,18 +78,20 @@ test('catalog alone owns browser mapping and explicit presentation family', () =
   );
   for (const entry of VEHICLE_CATALOG) {
     assert.equal(browserVehicleProfileForKey(entry.keyCode), entry.profile);
-    assert.equal(
-      deriveVehicleSpriteFamily(entry),
-      entry.presentationFamily === 'BIKE' ? 'bike' : 'car',
-    );
+    assert.equal(deriveVehicleSpriteFamily(entry), entry.presentationFamily === 'BIKE' ? 'bike' : 'car');
   }
 });
 
 test('legacy six-profile and launch-coupling authorities are fully retired', async () => {
   for (const retired of [
-    'FR_VEHICLE_PROFILE', 'MR_VEHICLE_PROFILE', 'RR_VEHICLE_PROFILE',
-    'AWD_VEHICLE_PROFILE', 'BIKE1_VEHICLE_PROFILE', 'BIKE2_VEHICLE_PROFILE',
-  ]) assert.equal(retired in profilesModule, false, retired);
+    'FR_VEHICLE_PROFILE',
+    'MR_VEHICLE_PROFILE',
+    'RR_VEHICLE_PROFILE',
+    'AWD_VEHICLE_PROFILE',
+    'BIKE1_VEHICLE_PROFILE',
+    'BIKE2_VEHICLE_PROFILE',
+  ])
+    assert.equal(retired in profilesModule, false, retired);
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /torqueConverterSlipRpm/);
   // M9.17 (doc 111, sections 1-3) removes the replacement launch-slip concept as well.

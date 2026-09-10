@@ -1,3 +1,4 @@
+import { nonEmptyId } from '../core/validation.js';
 export type CourseRouteKind = 'LINEAR' | 'BRANCHING' | 'CIRCUIT';
 
 export type CourseRouteAuthorityKind = 'POINT_TO_POINT_GRAPH' | 'CIRCUIT_LOOP';
@@ -35,7 +36,7 @@ export interface CourseModeProfile {
  * to represent laps.
  */
 export function compileCourseMode(authoring: CourseModeAuthoring): CourseModeProfile {
-  assertNonEmpty(authoring.id, 'course mode id');
+  nonEmptyId(authoring.id, 'course mode id');
 
   switch (authoring.routeKind) {
     case 'LINEAR':
@@ -69,11 +70,5 @@ export function compileCourseMode(authoring: CourseModeAuthoring): CourseModePro
       const exhaustive: never = authoring.routeKind;
       throw new RangeError(`unsupported course route kind: ${String(exhaustive)}`);
     }
-  }
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
   }
 }

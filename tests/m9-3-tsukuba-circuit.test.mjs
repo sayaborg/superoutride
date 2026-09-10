@@ -14,7 +14,7 @@ import {
   createM93TsukubaGroundProfile,
 } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
@@ -28,35 +28,37 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 
 function segmentsCross(a, b, c, d) {
-  const orientation = (p, q, r) => (
-    (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x)
-  );
-  return orientation(a, b, c) * orientation(a, b, d) < -1e-8
-    && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
+  const orientation = (p, q, r) => (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x);
+  return orientation(a, b, c) * orientation(a, b, d) < -1e-8 && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
 }
 
 test('M9.3 authors the four-wheel Tsukuba Course 2000 sequence as one exact closed lap', () => {
   const authored = createM93TsukubaCourse2000Lap();
   const { raster, landmarks } = authored;
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
-  const radiusFamilies = new Set(guide.corners
-    .filter((corner) => Number.isFinite(corner.radius))
-    .map((corner) => Math.round(corner.radius)));
+  const radiusFamilies = new Set(
+    guide.corners.filter((corner) => Number.isFinite(corner.radius)).map((corner) => Math.round(corner.radius)),
+  );
 
   assert.equal(raster.length, M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS);
   assert.equal(M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS, 2_045);
   assert.equal(landmarks.homeStraightEndS, M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS);
-  assert.ok(Math.abs(
-    landmarks.backStraightEndS
-      - landmarks.backStraightStartS
-      - M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS,
-  ) < 1e-9);
+  assert.ok(
+    Math.abs(landmarks.backStraightEndS - landmarks.backStraightStartS - M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS) <
+      1e-9,
+  );
   assert.equal(M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS, 282);
   assert.equal(M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS, 437);
   assert.deepEqual(raster.vertices[0], raster.vertices.at(-1));
-  assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9), 'right turns missing');
-  assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9), 'left turns missing');
-  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= 5.000001 * Math.PI / 180);
+  assert.ok(
+    raster.vertexTurns.some((turn) => turn > 1e-9),
+    'right turns missing',
+  );
+  assert.ok(
+    raster.vertexTurns.some((turn) => turn < -1e-9),
+    'left turns missing',
+  );
+  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= (5.000001 * Math.PI) / 180);
   for (let first = 0; first < raster.vertices.length - 1; first += 1) {
     for (let second = first + 2; second < raster.vertices.length - 1; second += 1) {
       if (first === 0 && second === raster.vertices.length - 2) continue;
@@ -122,7 +124,11 @@ test('M9.3 Tsukuba remains an ordinary finite open runtime for a three-lap race'
   assert.ok(Math.abs(live.window.raster.length - 2_045 * 4) < 1e-7);
   assert.deepEqual(
     live.raceRules.gates.slice(0, 3).map((gate) => [gate.kind, gate.s]),
-    [['checkpoint', 511.25], ['checkpoint', 1_022.5], ['checkpoint', 1_533.75]],
+    [
+      ['checkpoint', 511.25],
+      ['checkpoint', 1_022.5],
+      ['checkpoint', 1_533.75],
+    ],
   );
 });
 
@@ -132,32 +138,24 @@ for (const [profile, createVehicle] of [
 ]) {
   test(`ordinary ${profile.id} mechanics advance on the Tsukuba home straight with permitted wheel lift`, () => {
     const live = createM93TsukubaCourse2000Runtime();
-    const vehicle = createVehicle(
-      live.window.guide,
-      live.window.height,
-      live.window.surface,
-      45,
-      0,
-      15,
-    );
-    const recovery = createM5RecoveryState(vehicle);
+    const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 15);
+    const recovery = createRecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
       const input = sampleRivalDrivingInput(live.window.guide, vehicle, 0);
-      updateTestVehicle(
-        live.window.guide,
-        live.window.height,
-        live.window.surface,
-        vehicle,
-        input,
-        SIM_DT,
-      );
+      updateTestVehicle(live.window.guide, live.window.height, live.window.surface, vehicle, input, SIM_DT);
       for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
         assert.ok(Number.isFinite(value), profile.id);
       }
       // M9.18: same physics/recovery order as gameplay; single-wheel support is permitted.
-      updateM5Recovery(recovery, live.window.guide, live.window.height, live.window.surface, vehicle, SIM_DT);
+      updateRecovery({ guide: live.window.guide, height: live.window.height, surfaces: live.window.surface }, vehicle, {
+        state: recovery,
+        dt: SIM_DT,
+      });
       const surface = sampleSurfaceGeometryAtCoordinate(
-        live.window.guide, live.window.height, live.window.surface, vehicle.course,
+        live.window.guide,
+        live.window.height,
+        live.window.surface,
+        vehicle.course,
       );
       assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
     }

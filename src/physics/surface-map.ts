@@ -1,3 +1,5 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
@@ -14,7 +16,7 @@ export interface SurfaceMaterial {
 }
 
 export const SURFACE_MATERIALS: Readonly<Record<SurfaceType, SurfaceMaterial>> = Object.freeze({
-  ASPHALT: Object.freeze({ type: 'ASPHALT', supported: true, gripFactor: 1.00, rollingResistance: 0.014 }),
+  ASPHALT: Object.freeze({ type: 'ASPHALT', supported: true, gripFactor: 1.0, rollingResistance: 0.014 }),
   SHOULDER: Object.freeze({ type: 'SHOULDER', supported: true, gripFactor: 0.78, rollingResistance: 0.025 }),
   GRASS: Object.freeze({ type: 'GRASS', supported: true, gripFactor: 0.43, rollingResistance: 0.065 }),
   DIRT: Object.freeze({ type: 'DIRT', supported: true, gripFactor: 0.52, rollingResistance: 0.045 }),
@@ -42,6 +44,8 @@ export interface SurfaceSample {
 
 /** Minimal read-only physics contract for SurfaceMap(s,l). */
 export interface SurfaceMapReader {
+  /** Conservative bound in this reader's local lateral frame, including junction support. */
+  readonly maxSupportedAbsL: number;
   sample(s: number, l: number): SurfaceSample;
 }
 
@@ -52,47 +56,26 @@ export interface SurfaceMapReader {
  */
 export class SurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
+  readonly maxSupportedAbsL: number;
 
   constructor(
     readonly courseLength: number,
     sections: readonly SurfaceSection[],
     readonly junction?: JunctionCrossSectionProfile,
   ) {
-    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
-      throw new RangeError('course length must be finite and > 0');
-    }
-    const copied = sections
-      .map((section) => ({
+    this.sections = compileOpenProfile(
+      sections.map((section) => ({
         ...section,
-        bands: section.bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin),
-      }))
-      .sort((a, b) => a.sStart - b.sStart);
-    for (const section of copied) {
-      if (!Number.isFinite(section.sStart)) throw new RangeError('surface section chainage must be finite');
-    }
-    if (copied.length === 0 || Math.abs(copied[0]!.sStart) > 1e-9) {
-      throw new Error('surface profile must start at s=0');
-    }
-    copied[0]!.sStart = 0;
-    for (let i = 0; i < copied.length; i += 1) {
-      const section = copied[i]!;
-      if (section.sStart < 0 || section.sStart >= courseLength) throw new RangeError('surface section outside course');
-      if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('surface sections must be unique');
-      for (let j = 0; j < section.bands.length; j += 1) {
-        const band = section.bands[j]!;
-        if (!Number.isFinite(band.lMin) || !Number.isFinite(band.lMax)) {
-          throw new RangeError('surface band edges must be finite');
-        }
-        if (!(band.lMax > band.lMin)) throw new Error('surface band must have positive width');
-        if (j > 0 && band.lMin < section.bands[j - 1]!.lMax - 1e-9) {
-          throw new Error('surface bands must not overlap');
-        }
+        bands: compileSurfaceBands(section.bands),
+      })),
+      { length: courseLength, chainage: 'sStart', label: 'surface profile' },
+    );
+    let extent = junction?.maxSupportedAbsL ?? 0;
+    for (const section of this.sections)
+      for (const band of section.bands) {
+        extent = Math.max(extent, Math.abs(band.lMin), Math.abs(band.lMax));
       }
-    }
-    this.sections = Object.freeze(copied.map((section) => Object.freeze({
-      ...section,
-      bands: Object.freeze(section.bands.map((band) => Object.freeze(band))),
-    })));
+    this.maxSupportedAbsL = extent;
   }
 
   sample(s: number, l: number): SurfaceSample {
@@ -127,31 +110,38 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 
   private normalizeChainage(s: number): number {
-    if (!Number.isFinite(s) || s < 0 || s > this.courseLength) {
-      throw new RangeError(`surface chainage ${s} outside [0, ${this.courseLength}]`);
-    }
-    return s;
+    return openProfileChainage(s, this.courseLength, 'surface');
   }
 
   private sectionAtLocal(local: number): SurfaceSection {
-    let index = this.sections.length - 1;
-    for (let i = 0; i < this.sections.length; i += 1) {
-      if (this.sections[i]!.sStart <= local) index = i;
-      else break;
-    }
-    return this.sections[index]!;
+    return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
   }
 }
 
 function junctionSurfaceType(
   lateralClass: ReturnType<JunctionCrossSectionProfile['classify']>,
 ): Exclude<SurfaceType, 'VOID'> | null {
-  if (
-    lateralClass === 'ASPHALT_SINGLE'
-    || lateralClass === 'ASPHALT_LEFT'
-    || lateralClass === 'ASPHALT_RIGHT'
-  ) return 'ASPHALT';
+  if (lateralClass === 'ASPHALT_SINGLE' || lateralClass === 'ASPHALT_LEFT' || lateralClass === 'ASPHALT_RIGHT')
+    return 'ASPHALT';
   if (lateralClass === 'SHOULDER') return 'SHOULDER';
   if (lateralClass === 'MEDIAN') return 'GRASS';
   return null;
+}
+
+/** One physical-band compiler for both region authoring and runtime SurfaceMap sources. */
+export function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly SurfaceBand[] {
+  const copied = bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin);
+  for (let i = 0; i < copied.length; i += 1) {
+    const band = copied[i]!;
+    if (!Number.isFinite(band.lMin) || !Number.isFinite(band.lMax) || !(band.lMax > band.lMin)) {
+      throw new RangeError('surface band must have finite positive width');
+    }
+    if (!Object.hasOwn(SURFACE_MATERIALS, band.type) || !SURFACE_MATERIALS[band.type].supported) {
+      throw new RangeError('surface band must name a supported material');
+    }
+    if (i > 0 && band.lMin < copied[i - 1]!.lMax - 1e-9) {
+      throw new Error('surface bands must not overlap');
+    }
+  }
+  return Object.freeze(copied.map((band) => Object.freeze(band)));
 }

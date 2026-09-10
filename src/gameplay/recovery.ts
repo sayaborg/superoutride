@@ -1,32 +1,37 @@
+import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
+import { sampleGuidePath } from '../core/guide-curve.js';
+import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import {
-  guideCoordinateCurve,
-  type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
-import { clamp } from '../core/math.js';
-import { sampleGuidePath } from '../core/guide-curve.js';
-import { arcadeBodyKinematics, updateArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
+  arcadeBodyKinematics,
+  updateArcadeVehicle,
+  type ArcadeVehicleState,
+} from '../physics/arcade-vehicle-physics.js';
+import { createAutomaticPowertrainState } from '../physics/automatic-powertrain.js';
 import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
-import type { SurfaceMapReader } from '../physics/surface-map.js';
+import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import {
   VehicleOutsideModelError,
   initializeGuideObservation,
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
 } from '../physics/vehicle-dynamics.js';
-import {
-  createAutomaticPowertrainState,
-} from '../physics/automatic-powertrain.js';
-import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
 import { add3, dot3, scale3 } from '../physics/vehicle-math3.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
+import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
 
-export type M5VehicleState = ArcadeVehicleState;
-export type RecoveryReason = 'unsupported-time' | 'fall-distance' | 'surface-penetration' | 'chart-excursion' | 'overturned' | 'suspension-travel' | 'manual' | 'wrong-course';
+export type RecoveryReason =
+  | 'unsupported-time'
+  | 'fall-distance'
+  | 'surface-penetration'
+  | 'chart-excursion'
+  | 'overturned'
+  | 'suspension-travel'
+  | 'manual'
+  | 'wrong-course';
 
 const SURFACE_PENETRATION_TOLERANCE = 1e-3;
 
-export interface M5RecoveryProfile {
+export interface RecoveryProfile {
   maxUnsupportedTime: number;
   maxFallDistance: number;
   maxLateralExcursion: number;
@@ -38,7 +43,7 @@ export interface M5RecoveryProfile {
   targetL?: number;
 }
 
-export const M5_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = {
+export const RECOVERY_PROFILE: Readonly<RecoveryProfile> = {
   maxUnsupportedTime: 0.72,
   maxFallDistance: 3.25,
   maxLateralExcursion: 18,
@@ -48,19 +53,19 @@ export const M5_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = {
   speedRetention: 0.58,
 };
 
-export interface M5RecoveryState {
+export interface RecoveryState {
   lastSafeS: number;
   unsupportedTime: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
 }
 
-export interface M5RecoveryTarget {
+export interface RecoveryTarget {
   readonly s: number;
   readonly l: number;
 }
 
-export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState {
+export function createRecoveryState(vehicle: ArcadeVehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
     unsupportedTime: 0,
@@ -69,40 +74,51 @@ export function createM5RecoveryState(vehicle: M5VehicleState): M5RecoveryState 
   };
 }
 
+export interface RecoveryOptions {
+  readonly state: RecoveryState;
+  readonly profile?: RecoveryProfile;
+}
+
 /** One gameplay step. A physical-domain exit recovers; unrelated faults stay visible. */
 export function advanceVehicleWithRecovery(
-  state: M5RecoveryState,
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: M5VehicleState,
-  input: DrivingInput,
-  dt: number,
-  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
-  target: M5RecoveryTarget | null = null,
+  world: VehicleWorld,
+  vehicle: ArcadeVehicleState,
+  {
+    state,
+    input,
+    dt,
+    profile = RECOVERY_PROFILE,
+    target = null,
+  }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
+  const { guide, height, surfaces } = world;
   try {
     updateArcadeVehicle(guide, height, surfaces, vehicle, input, dt);
   } catch (error) {
     if (!(error instanceof VehicleOutsideModelError)) throw error;
-    if (target === null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, 'suspension-travel', profile);
-    else recoverM5VehicleToGuideCoordinate(state, guide, height, surfaces, vehicle, target, 'suspension-travel', profile);
+    recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', profile, target });
     return 'suspension-travel';
   }
-  return updateM5Recovery(state, guide, height, surfaces, vehicle, dt, profile, target);
+  return updateRecovery(world, vehicle, {
+    state,
+    dt,
+    profile,
+    target,
+  });
 }
 
 /** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
-export function updateM5Recovery(
-  state: M5RecoveryState,
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: M5VehicleState,
-  dt: number,
-  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
-  target: M5RecoveryTarget | null = null,
+export function updateRecovery(
+  world: VehicleWorld,
+  vehicle: ArcadeVehicleState,
+  {
+    state,
+    dt,
+    profile = RECOVERY_PROFILE,
+    target = null,
+  }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
+  const { guide, height, surfaces } = world;
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
   // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
   // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
@@ -118,9 +134,9 @@ export function updateM5Recovery(
   const expectedCgY = height.samplePhysics(vehicle.course.s) + desiredCgHeight;
   const fallDistance = Math.max(0, expectedCgY - vehicle.y);
   const surfaceDistance =
-    (vehicle.x - surface.point.x) * surface.normal.x
-    + (vehicle.y - surface.point.y) * surface.normal.y
-    + (vehicle.z - surface.point.z) * surface.normal.z;
+    (vehicle.x - surface.point.x) * surface.normal.x +
+    (vehicle.y - surface.point.y) * surface.normal.y +
+    (vehicle.z - surface.point.z) * surface.normal.z;
   // VOID is non-load-bearing, but it still shares the rendered heightfield. Letting the CG pass
   // below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
   // for the larger fall-distance/chart limits.
@@ -133,22 +149,35 @@ export function updateM5Recovery(
   else if (penetratedSurface) reason = 'surface-penetration';
   else if (state.unsupportedTime >= profile.maxUnsupportedTime) reason = 'unsupported-time';
 
-  if (reason !== null) {
-    if (target === null) recoverM5Vehicle(state, guide, height, surfaces, vehicle, reason, profile);
-    else recoverM5VehicleToGuideCoordinate(state, guide, height, surfaces, vehicle, target, reason, profile);
-  }
+  if (reason !== null) recoverVehicle(world, vehicle, { state, reason, profile, target });
   return reason;
 }
 
-export function recoverM5Vehicle(
-  state: M5RecoveryState,
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: M5VehicleState,
-  reason: RecoveryReason = 'manual',
-  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
+export function recoverVehicle(
+  world: VehicleWorld,
+  vehicle: ArcadeVehicleState,
+  {
+    state,
+    reason = 'manual',
+    profile = RECOVERY_PROFILE,
+    target = null,
+  }: RecoveryOptions & { reason?: RecoveryReason; target?: RecoveryTarget | null },
 ): void {
+  recoverVehicleToGuideCoordinate(world, vehicle, {
+    state,
+    target: target ?? sameChartRecoveryTarget(world, vehicle, state, profile),
+    reason,
+    profile,
+  });
+}
+
+function sameChartRecoveryTarget(
+  world: VehicleWorld,
+  vehicle: ArcadeVehicleState,
+  state: RecoveryState,
+  profile: RecoveryProfile,
+): RecoveryTarget {
+  const { guide } = world;
   const curve = guideCoordinateCurve(guide);
   if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < 0 || state.lastSafeS > curve.length) {
     throw new RangeError('recovery lastSafeS must lie within the active Guide domain');
@@ -160,35 +189,28 @@ export function recoverM5Vehicle(
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal Guide observation, then backtrack once into the ordinary supported reconstruction.
   const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), 0, curve.length);
-  recoverM5VehicleToGuideCoordinate(
-    state,
-    guide,
-    height,
-    surfaces,
-    vehicle,
-    { s: Math.max(0, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 },
-    reason,
-    profile,
-  );
+  return { s: Math.max(0, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 };
 }
 
 /**
  * Explicit gameplay discontinuity: reconstruct a complete safe authoritative vehicle state at one
  * authored supported coordinate. No contact phase, tire memory or route progress is manufactured.
  */
-export function recoverM5VehicleToGuideCoordinate(
-  state: M5RecoveryState,
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  vehicle: M5VehicleState,
-  target: M5RecoveryTarget,
-  reason: RecoveryReason,
-  profile: M5RecoveryProfile = M5_RECOVERY_PROFILE,
+export function recoverVehicleToGuideCoordinate(
+  world: VehicleWorld,
+  vehicle: ArcadeVehicleState,
+  {
+    state,
+    target,
+    reason,
+    profile = RECOVERY_PROFILE,
+  }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
+  const { guide, height, surfaces } = world;
   const curve = guideCoordinateCurve(guide);
   if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
-  if (target.s < 0 || target.s > curve.length) throw new RangeError('recovery target chainage must lie within the active Guide domain');
+  if (target.s < 0 || target.s > curve.length)
+    throw new RangeError('recovery target chainage must lie within the active Guide domain');
 
   const coordinate = {
     s: target.s,
@@ -246,17 +268,14 @@ function reconstructVehicle(
   resetDrivingActuatorState(vehicle.actuator);
   vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
   vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
-  vehicle.frontNormalLoad = p.mass * 9.80665 * p.rearAxle / wheelbase;
-  vehicle.rearNormalLoad = p.mass * 9.80665 * p.frontAxle / wheelbase;
+  vehicle.frontNormalLoad = (p.mass * 9.80665 * p.rearAxle) / wheelbase;
+  vehicle.rearNormalLoad = (p.mass * 9.80665 * p.frontAxle) / wheelbase;
   vehicle.frontGap = -p.frontStation.suspension.qStatic;
   vehicle.rearGap = -p.rearStation.suspension.qStatic;
   vehicle.frontSupportAvailable = true;
   vehicle.rearSupportAvailable = true;
   Object.assign(
     vehicle.powertrain,
-    createAutomaticPowertrainState(
-      p.powertrain,
-      drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-    ),
+    createAutomaticPowertrainState(p.powertrain, drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega)),
   );
 }

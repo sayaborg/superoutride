@@ -1,24 +1,29 @@
 import type { GuidePath } from '../core/guide-curve.js';
-import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { clamp, wrapAngle } from '../core/math.js';
+import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { applyStageRoadViewToTerrainLine } from '../road/stage-terrain-view.js';
-import { computeForwardVisibleInterval, generateTerrainLines, type M3TerrainLine, type TerrainVisualProfile } from '../road/terrain-line.js';
+import {
+  computeForwardVisibleInterval,
+  generateTerrainLines,
+  type TerrainLine,
+  type TerrainVisualProfile,
+} from '../road/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
+import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
 import { sampleStageGroundMapAtLevel } from '../visual/stage-ground-map-view.js';
-import { selectVehicleSprite, type M4SpriteAssets } from '../visual/m4-sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from '../world/course-sprite.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
-import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { SoftwareSurface } from './software-surface.js';
+import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
 export type PlayerVisualKind = 'car' | 'bike';
 
-export interface M5RenderResult {
+export interface RenderResult {
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -36,10 +41,10 @@ export interface M5RenderResult {
   spriteOutputSamplesIncludingPlayer: number;
   spriteWrittenPixelsIncludingPlayer: number;
   /** Detailed observation is absent during ordinary play. */
-  workload?: M5RenderWorkload;
+  workload?: RenderWorkload;
 }
 
-export interface M5RenderWorkload {
+export interface RenderWorkload {
   overdrawRows: number;
   terrainLineCountPerScreenRowMax: number;
   terrainOutputPixelsPerScreenRowMax: number;
@@ -48,25 +53,33 @@ export interface M5RenderWorkload {
   groundMapLevelHistogram: readonly number[];
 }
 
-export function renderM5Driving(
+export interface RenderScene {
+  readonly background: FarBackground;
+  readonly guide: GuidePath;
+  readonly camera: PseudoCamera;
+  readonly vehicle: VehicleRenderReadState;
+  readonly terrainProfile: TerrainVisualProfile;
+  readonly groundProfile: GroundMapProfile;
+  readonly worldSprites: readonly CourseSprite[];
+  readonly assets: SpriteAssets;
+  readonly playerKind: PlayerVisualKind;
+}
+
+export interface RenderOptions {
+  readonly roadView?: StageRoadView;
+  readonly observeWorkload?: boolean;
+}
+
+export function renderDriving(
   target: SoftwareSurface,
-  background: FarBackground,
-  guide: GuidePath,
-  camera: PseudoCamera,
-  vehicle: VehicleRenderReadState,
-  terrainProfile: TerrainVisualProfile,
-  groundProfile: GroundMapProfile,
-  worldSprites: readonly CourseSprite[],
-  assets: M4SpriteAssets,
-  playerKind: PlayerVisualKind,
-  roadView?: StageRoadView,
-  observeWorkload = false,
-): M5RenderResult {
+  { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
+  { roadView, observeWorkload = false }: RenderOptions = {},
+): RenderResult {
   const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
   drawFarBackground(target, background, renderCamera);
 
   const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
-  const terrain: M3TerrainLine[] = roadView === undefined ? baseTerrain : [];
+  const terrain: TerrainLine[] = roadView === undefined ? baseTerrain : [];
   if (roadView !== undefined) {
     for (const line of baseTerrain) {
       const viewed = applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView);
@@ -80,27 +93,29 @@ export function renderM5Driving(
     terrainProfile.dMin,
     terrainProfile.dMax,
   );
-  const sprites = visible
-    ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd)
-    : [];
+  const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
 
-  const observation = observeWorkload ? {
-    terrainLinesByRow: new Uint16Array(target.height),
-    terrainOutputByRow: new Uint32Array(target.height),
-    spriteOutputByScanline: new Uint32Array(target.height),
-    spriteWrittenByScanline: new Uint32Array(target.height),
-    groundMapLevelHistogram: new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1),
-  } : undefined;
+  const observation = observeWorkload
+    ? {
+        terrainLinesByRow: new Uint16Array(target.height),
+        terrainOutputByRow: new Uint32Array(target.height),
+        spriteOutputByScanline: new Uint32Array(target.height),
+        spriteWrittenByScanline: new Uint32Array(target.height),
+        groundMapLevelHistogram: new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1),
+      }
+    : undefined;
   let terrainOutputPixels = 0;
   let spriteOutputSamples = 0;
   let spriteWrittenPixels = 0;
   let groundMapMaxLevel = 0;
 
-  const spriteObserver: SpriteScanlineObserver | undefined = observation && ((screenY, outputSamples, writtenPixels) => {
-    if (screenY < 0 || screenY >= target.height) return;
-    observation.spriteOutputByScanline[screenY]! += outputSamples;
-    observation.spriteWrittenByScanline[screenY]! += writtenPixels;
-  });
+  const spriteObserver: SpriteScanlineObserver | undefined =
+    observation &&
+    ((screenY, outputSamples, writtenPixels) => {
+      if (screenY < 0 || screenY >= target.height) return;
+      observation.spriteOutputByScanline[screenY]! += outputSamples;
+      observation.spriteWrittenByScanline[screenY]! += writtenPixels;
+    });
 
   mergeTerrainAndSprites(
     terrain,
@@ -144,10 +159,15 @@ export function renderM5Driving(
     spriteObserver,
   );
 
-  let workload: M5RenderWorkload | undefined;
+  let workload: RenderWorkload | undefined;
   if (observation) {
-    const { terrainLinesByRow, terrainOutputByRow, spriteOutputByScanline,
-      spriteWrittenByScanline, groundMapLevelHistogram } = observation;
+    const {
+      terrainLinesByRow,
+      terrainOutputByRow,
+      spriteOutputByScanline,
+      spriteWrittenByScanline,
+      groundMapLevelHistogram,
+    } = observation;
     let overdrawRows = 0;
     let terrainLineCountPerScreenRowMax = 0;
     let terrainOutputPixelsPerScreenRowMax = 0;
@@ -162,9 +182,14 @@ export function renderM5Driving(
       spriteWrittenPixelsPerScanlineMax = Math.max(spriteWrittenPixelsPerScanlineMax, spriteWrittenByScanline[y]!);
     }
 
-    workload = { overdrawRows, terrainLineCountPerScreenRowMax, terrainOutputPixelsPerScreenRowMax,
-      spriteOutputSamplesPerScanlineMax, spriteWrittenPixelsPerScanlineMax,
-      groundMapLevelHistogram: Array.from(groundMapLevelHistogram) };
+    workload = {
+      overdrawRows,
+      terrainLineCountPerScreenRowMax,
+      terrainOutputPixelsPerScreenRowMax,
+      spriteOutputSamplesPerScanlineMax,
+      spriteWrittenPixelsPerScanlineMax,
+      groundMapLevelHistogram: Array.from(groundMapLevelHistogram),
+    };
   }
 
   return {
@@ -190,7 +215,7 @@ export function renderM5Driving(
 
 function drawTerrainLine(
   target: SoftwareSurface,
-  line: M3TerrainLine,
+  line: TerrainLine,
   groundProfile: GroundMapProfile,
   roadView?: StageRoadView,
 ): { outputPixels: number; groundMapLevel: number } {
@@ -215,25 +240,17 @@ function drawTerrainLine(
     if (Math.abs(dx) >= 1e-8) {
       const localGroundLeft = roadView?.groundLeft ?? groundProfile.groundLeft;
       const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
-      let lateral = -localGroundLeft
-        + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
+      let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        const sampledLateral = roadView === undefined
-          ? lateral
-          : clamp(lateral, -localGroundLeft, localGroundRight);
-        target.pixels[offset + x] = roadView === undefined
-          ? (baked
+        const sampledLateral = roadView === undefined ? lateral : clamp(lateral, -localGroundLeft, localGroundRight);
+        target.pixels[offset + x] =
+          roadView === undefined
+            ? baked
               ? baked.sampleAtLevel(line.s, sampledLateral, groundMapLevel)
-              : sampleGroundMap(line.s, sampledLateral, groundProfile))
-          : sampleStageGroundMapAtLevel(
-              line.s,
-              sampledLateral,
-              groundMapLevel,
-              roadView,
-              groundProfile,
-            );
+              : sampleGroundMap(line.s, sampledLateral, groundProfile)
+            : sampleStageGroundMapAtLevel(line.s, sampledLateral, groundMapLevel, roadView, groundProfile);
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;

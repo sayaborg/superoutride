@@ -7,21 +7,21 @@ import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoDepth } from '../dist/core/projection.js';
 import { mergeTerrainAndSprites } from '../dist/render/painter-merge.js';
 import { createSpriteAsset, countOpaqueSpriteColors, drawScaledSprite } from '../dist/render/sprite.js';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 import {
-  createM4SpriteAssets,
+  createSpriteAssets,
   selectBankVariant,
   selectVehicleSprite,
   selectYawVariant,
-} from '../dist/visual/m4-sprite-assets.js';
+} from '../dist/visual/sprite-assets.js';
 import { compileCourseSprite, collectVisibleCourseSprites } from '../dist/world/course-sprite.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
@@ -29,8 +29,8 @@ const near = (actual, expected, tolerance = 1e-7) => {
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const visual = createM3DebugVisualProfile(guide.length);
-const assets = createM4SpriteAssets();
-const background = createM3FarBackground();
+const assets = createSpriteAssets();
+const background = createFarBackground();
 const cameraProfile = {
   dCam: 20,
   lCamMax: 12,
@@ -67,7 +67,10 @@ test('programmer-art sprite assets obey <=15 opaque colors plus transparent', ()
   for (const yawRow of assets.bike.assets) all.push(...yawRow);
   for (const asset of all) {
     assert.ok(countOpaqueSpriteColors(asset) <= 15, `${asset.name} exceeds 15 opaque colors`);
-    assert.ok([...asset.pixels].some((pixel) => pixel === 0), `${asset.name} has no transparent texel`);
+    assert.ok(
+      [...asset.pixels].some((pixel) => pixel === 0),
+      `${asset.name} has no transparent texel`,
+    );
   }
 });
 
@@ -101,10 +104,21 @@ test('scaled sprite blitter uses texel-center anchor and preserves transparent p
 });
 
 test('Painter merge is far-to-near and terrain wins the equal-depth tie before sprite', () => {
-  const terrain = [{ d: 10, id: 'T10' }, { d: 5, id: 'T5' }];
-  const sprites = [{ d: 10, id: 'S10' }, { d: 7, id: 'S7' }];
+  const terrain = [
+    { d: 10, id: 'T10' },
+    { d: 5, id: 'T5' },
+  ];
+  const sprites = [
+    { d: 10, id: 'S10' },
+    { d: 7, id: 'S7' },
+  ];
   const order = [];
-  mergeTerrainAndSprites(terrain, sprites, (item) => order.push(item.id), (item) => order.push(item.id));
+  mergeTerrainAndSprites(
+    terrain,
+    sprites,
+    (item) => order.push(item.id),
+    (item) => order.push(item.id),
+  );
   assert.deepEqual(order, ['T10', 'S10', 'S7', 'T5']);
 });
 
@@ -143,7 +157,21 @@ test('current renderer draws merged world sprites and a yaw-variant player into 
   vehicle.yaw += deg(20);
   const world = createM4DebugWorldSprites(guide, height, assets);
   const surface = new SoftwareSurface(320, 240);
-  const stats = renderM5Driving(surface, background, guide, camera, vehicle, terrainProfile, groundProfile, world, assets, 'car');
+  const stats = renderDriving(
+    surface,
+    {
+      background,
+      guide,
+      camera,
+      vehicle,
+      terrainProfile,
+      groundProfile,
+      worldSprites: world,
+      assets,
+      playerKind: 'car',
+    },
+    {},
+  );
   assert.ok(stats.visibleSpriteCount > 0);
   assert.ok(stats.spriteWrittenPixels > 0);
   assert.ok(stats.playerWrittenPixels > 0);

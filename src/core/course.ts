@@ -1,10 +1,4 @@
-import {
-  headingFromDelta,
-  normalFromHeading,
-  tangentFromHeading,
-  wrapAngle,
-  type Vec2,
-} from './math.js';
+import { headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
 
 export interface RasterVertex extends Vec2 {
   // Optional editor/compiler metadata from Core §14.
@@ -53,7 +47,7 @@ export interface CourseWorldSample extends RasterSample {
 
 const MAX_VERTEX_TURN = (10 * Math.PI) / 180;
 const EPSILON = 1e-9;
-const RANGE_TOLERANCE = 1e-8;
+const SAMPLING_TOLERANCE = 1e-8;
 
 export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
   if (vertices.length < 2) throw new Error('open raster path requires at least 2 vertices');
@@ -62,8 +56,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     if (![vertex.x, vertex.z].every(Number.isFinite)) {
       throw new RangeError('raster vertex coordinates must be finite');
     }
-    if (vertex.sourceRadius !== undefined
-      && (!(vertex.sourceRadius > 0) || !Number.isFinite(vertex.sourceRadius))) {
+    if (vertex.sourceRadius !== undefined && (!(vertex.sourceRadius > 0) || !Number.isFinite(vertex.sourceRadius))) {
       throw new RangeError('raster vertex sourceRadius must be finite and > 0');
     }
     return Object.freeze({ ...vertex });
@@ -103,7 +96,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const turn = wrapAngle(outgoing - incoming);
     if (Math.abs(turn) > MAX_VERTEX_TURN + 1e-8) {
       throw new Error(
-        `raster vertex ${i} turn ${(Math.abs(turn) * 180 / Math.PI).toFixed(4)}deg exceeds Core 10deg limit`,
+        `raster vertex ${i} turn ${((Math.abs(turn) * 180) / Math.PI).toFixed(4)}deg exceeds Core 10deg limit`,
       );
     }
     return turn;
@@ -129,10 +122,10 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
 
   return Object.freeze({
     vertices: Object.freeze(copied),
-    segments: Object.freeze(segments.map(segment => Object.freeze(segment))),
+    segments: Object.freeze(segments.map((segment) => Object.freeze(segment))),
     vertexS: Object.freeze(vertexS),
     vertexTurns: Object.freeze(vertexTurns),
-    vertexMiters: Object.freeze(vertexMiters.map(miter => Object.freeze(miter))),
+    vertexMiters: Object.freeze(vertexMiters.map((miter) => Object.freeze(miter))),
     length: s,
   });
 }
@@ -185,7 +178,7 @@ export function rasterPathToWorld(path: RasterPath, s: number, l: number): Cours
 
 function checkedPathChainage(path: RasterPath, s: number): number {
   if (!Number.isFinite(s)) throw new RangeError('raster path chainage must be finite');
-  if (s < -RANGE_TOLERANCE || s > path.length + RANGE_TOLERANCE) {
+  if (s < -SAMPLING_TOLERANCE || s > path.length + SAMPLING_TOLERANCE) {
     throw new RangeError(`raster path chainage ${s} is outside [0, ${path.length}]`);
   }
   if (s <= 0) return 0;

@@ -91,7 +91,7 @@ test('M6.13 baked fixture remains historical while current live runtime selects 
 });
 
 test('visible junction remains chainage-driven source data and does not add a second renderer road path', () => {
-  const rendererSource = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const rendererSource = fs.readFileSync(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
   const terrainSource = fs.readFileSync(new URL('../src/road/terrain-line.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(rendererSource, /M6_13_JUNCTION|JunctionCrossSection/);
   assert.doesNotMatch(terrainSource, /M6_13_JUNCTION|JunctionCrossSection/);

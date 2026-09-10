@@ -11,10 +11,7 @@ export interface GroundMapTexelLevel {
  * Each level combines 2 lateral texels x 4 chainage texels into one output texel.
  * The compiler must pad/bake source dimensions so every requested level divides exactly.
  */
-export function buildGroundMapAnisotropicPyramid(
-  base: GroundMapTexelLevel,
-  kMax: number,
-): GroundMapTexelLevel[] {
+export function buildGroundMapAnisotropicPyramid(base: GroundMapTexelLevel, kMax: number): GroundMapTexelLevel[] {
   validateLevel(base);
   if (!Number.isInteger(kMax) || kMax < 0) throw new RangeError('kMax must be a non-negative integer');
 
@@ -24,11 +21,13 @@ export function buildGroundMapAnisotropicPyramid(
     throw new RangeError('base GroundMap dimensions must be divisible by 2^kMax laterally and 4^kMax in chainage');
   }
 
-  const levels: GroundMapTexelLevel[] = [{
-    lateralTexels: base.lateralTexels,
-    chainageTexels: base.chainageTexels,
-    pixels: new Uint32Array(base.pixels),
-  }];
+  const levels: GroundMapTexelLevel[] = [
+    {
+      lateralTexels: base.lateralTexels,
+      chainageTexels: base.chainageTexels,
+      pixels: new Uint32Array(base.pixels),
+    },
+  ];
 
   for (let k = 1; k <= kMax; k += 1) {
     levels.push(downsampleGroundMap2x4(levels[k - 1]!));

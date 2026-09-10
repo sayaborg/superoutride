@@ -65,14 +65,10 @@ export function locateWorldOnGuideCoordinateLocal(
   );
 }
 
-function toLocalCoordinate(
-  source: GuideCoordinateSource,
-  base: CourseCoordinate,
-  clampL: boolean,
-): CourseCoordinate {
+function toLocalCoordinate(source: GuideCoordinateSource, base: CourseCoordinate, clampL: boolean): CourseCoordinate {
   const guide = guideCoordinateCurve(source);
-  let l = base.l - guideCoordinateLateralOrigin(source);
-  if (clampL) l = Math.max(-guide.lMax, Math.min(guide.lMax, l));
+  const sourceL = clampL ? Math.max(-guide.lMax, Math.min(guide.lMax, base.l)) : base.l;
+  const l = sourceL - guideCoordinateLateralOrigin(source);
   return {
     s: base.s,
     l,

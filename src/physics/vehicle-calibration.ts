@@ -50,12 +50,10 @@ export function assertArcadeSteeringAngleCalibration(
   calibration: Pick<ArcadeSteeringCalibrationState, 'maxRoadWheelSteer' | 'steeringOffsetMax'>,
 ): void {
   const { maxRoadWheelSteer, steeringOffsetMax } = calibration;
-  if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2)
-    || !Number.isFinite(maxRoadWheelSteer)) {
+  if (!(maxRoadWheelSteer > 0) || !(maxRoadWheelSteer < Math.PI / 2) || !Number.isFinite(maxRoadWheelSteer)) {
     throw new RangeError('vehicle maximum road-wheel steer must be finite and lie in (0, pi/2)');
   }
-  if (!(steeringOffsetMax > 0) || !(steeringOffsetMax < maxRoadWheelSteer)
-    || !Number.isFinite(steeringOffsetMax)) {
+  if (!(steeringOffsetMax > 0) || !(steeringOffsetMax < maxRoadWheelSteer) || !Number.isFinite(steeringOffsetMax)) {
     throw new RangeError('vehicle steering offset must be finite and lie in (0, maximum steer)');
   }
 }
@@ -101,9 +99,7 @@ export function setArcadeVehicleSymmetricSteeringActuatorRate(
   });
 }
 
-function immutableRateProfile(
-  profile: NormalizedActuatorRateProfile,
-): Readonly<NormalizedActuatorRateProfile> {
+function immutableRateProfile(profile: NormalizedActuatorRateProfile): Readonly<NormalizedActuatorRateProfile> {
   return Object.freeze({
     applyRate: profile.applyRate,
     releaseRate: profile.releaseRate,

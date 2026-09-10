@@ -1,17 +1,11 @@
-import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../core/presentation-scale.js';
-import { HeightProfile } from '../visual/height-profile.js';
-import { VisualProfile } from '../visual/visual-profile.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import { rgba } from '../render/software-surface.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
+import { HeightProfile } from '../visual/height-profile.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
+import { VisualProfile } from '../visual/visual-profile.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
-import type {
-  M622ChildStageContinuation,
-  M622ChildStageRuntimeSource,
-} from './m6-22-child-stage-continuation.js';
+import type { M622ChildStageContinuation, M622ChildStageRuntimeSource } from './m6-22-child-stage-continuation.js';
 
 const TERRAIN_D_MIN = CURRENT_RENDER_NEAR_DEPTH_METERS;
 const TERRAIN_D_MAX = CURRENT_RENDER_FAR_DEPTH_METERS;
@@ -37,7 +31,7 @@ export interface M623ChildEnvironmentContent {
  */
 export function createM623ChildEnvironmentContent(
   continuation: M622ChildStageContinuation,
-  assets: M4SpriteAssets,
+  assets: SpriteAssets,
 ): M623ChildEnvironmentContent {
   if (!(continuation.handoffLocalS + 5 < SHARED_FLAT_END_S)) {
     throw new Error('M6.23 child scenery must begin after the D_cam handoff neighborhood');
@@ -49,10 +43,7 @@ export function createM623ChildEnvironmentContent(
   });
 }
 
-function createCoastEnvironment(
-  source: M622ChildStageRuntimeSource,
-  assets: M4SpriteAssets,
-): M623ChildEnvironment {
+function createCoastEnvironment(source: M622ChildStageRuntimeSource, assets: SpriteAssets): M623ChildEnvironment {
   const heightProfile = new HeightProfile(source.guide.length, [
     { s: 0, y: 0 },
     { s: SHARED_FLAT_END_S, y: 0 },
@@ -62,12 +53,14 @@ function createCoastEnvironment(
     { s: Math.min(source.guide.length - 1, 285), y: 0 },
     { s: source.guide.length, y: 0 },
   ]);
-  const visual = new VisualProfile(source.guide.length, [{
-    sStart: 0,
-    name: 'LEFT_COAST_STAGE',
-    groundBaseLeft: { kind: 'color', color: rgba(194, 169, 102) },
-    groundBaseRight: { kind: 'color', color: rgba(72, 126, 69) },
-  }]);
+  const visual = new VisualProfile(source.guide.length, [
+    {
+      sStart: 0,
+      name: 'LEFT_COAST_STAGE',
+      groundBaseLeft: { kind: 'color', color: rgba(194, 169, 102) },
+      groundBaseRight: { kind: 'color', color: rgba(72, 126, 69) },
+    },
+  ]);
   const terrainProfile = terrain(heightProfile, visual);
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
@@ -84,10 +77,7 @@ function createCoastEnvironment(
   });
 }
 
-function createMountainEnvironment(
-  source: M622ChildStageRuntimeSource,
-  assets: M4SpriteAssets,
-): M623ChildEnvironment {
+function createMountainEnvironment(source: M622ChildStageRuntimeSource, assets: SpriteAssets): M623ChildEnvironment {
   const heightProfile = new HeightProfile(source.guide.length, [
     { s: 0, y: 0 },
     { s: SHARED_FLAT_END_S, y: 0 },
@@ -98,12 +88,14 @@ function createMountainEnvironment(
     { s: Math.min(source.guide.length - 1, 295), y: 0 },
     { s: source.guide.length, y: 0 },
   ]);
-  const visual = new VisualProfile(source.guide.length, [{
-    sStart: 0,
-    name: 'RIGHT_MOUNTAIN_STAGE',
-    groundBaseLeft: { kind: 'color', color: rgba(47, 76, 48) },
-    groundBaseRight: { kind: 'color', color: rgba(58, 82, 52) },
-  }]);
+  const visual = new VisualProfile(source.guide.length, [
+    {
+      sStart: 0,
+      name: 'RIGHT_MOUNTAIN_STAGE',
+      groundBaseLeft: { kind: 'color', color: rgba(47, 76, 48) },
+      groundBaseRight: { kind: 'color', color: rgba(58, 82, 52) },
+    },
+  ]);
   const terrainProfile = terrain(heightProfile, visual);
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
@@ -122,10 +114,7 @@ function createMountainEnvironment(
   });
 }
 
-function terrain(
-  height: HeightProfile,
-  visual: VisualProfile,
-): TerrainVisualProfile {
+function terrain(height: HeightProfile, visual: VisualProfile): TerrainVisualProfile {
   return {
     screenHeight: 240,
     dMin: TERRAIN_D_MIN,

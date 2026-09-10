@@ -1,4 +1,5 @@
-export type BrowserSteeringOffsetDegrees = 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
+export type BrowserSteeringOffsetDegrees =
+  10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
 export type BrowserMaxRoadWheelSteerDegrees = 50 | 55 | 60 | 65 | 70 | 75 | 80;
 export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3 | 0.325 | 0.35 | 0.375 | 0.4;
 
@@ -16,20 +17,44 @@ export const BROWSER_STEERING_OFFSET_CYCLE_CODE = 'KeyY';
 export const BROWSER_MAX_STEER_CYCLE_CODE = 'KeyU';
 export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
 
-export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] = Object.freeze([
-  angle(10), angle(11), angle(12), angle(13), angle(14), angle(15),
-  angle(16), angle(17), angle(18), angle(19), angle(20),
-  angle(21), angle(22), angle(23), angle(24), angle(25),
-  angle(26), angle(27), angle(28), angle(29), angle(30),
-]);
+export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] =
+  Object.freeze([
+    angle(10),
+    angle(11),
+    angle(12),
+    angle(13),
+    angle(14),
+    angle(15),
+    angle(16),
+    angle(17),
+    angle(18),
+    angle(19),
+    angle(20),
+    angle(21),
+    angle(22),
+    angle(23),
+    angle(24),
+    angle(25),
+    angle(26),
+    angle(27),
+    angle(28),
+    angle(29),
+    angle(30),
+  ]);
 
-export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] = Object.freeze([
-  angle(50), angle(55), angle(60), angle(65), angle(70), angle(75), angle(80),
-]);
+export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] =
+  Object.freeze([angle(50), angle(55), angle(60), angle(65), angle(70), angle(75), angle(80)]);
 
 export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
-  response(0.2), response(0.225), response(0.25), response(0.275), response(0.3),
-  response(0.325), response(0.35), response(0.375), response(0.4),
+  response(0.2),
+  response(0.225),
+  response(0.25),
+  response(0.275),
+  response(0.3),
+  response(0.325),
+  response(0.35),
+  response(0.375),
+  response(0.4),
 ]);
 
 export const DEFAULT_BROWSER_STEERING_OFFSET = mustAngleDegrees(BROWSER_STEERING_OFFSETS, 20).radians;
@@ -65,27 +90,36 @@ export function formatTraversalSeconds(seconds: number): string {
     : (roundedMilliseconds / 1_000).toFixed(3);
 }
 export function formatDegrees(radians: number): string {
-  const degrees = radians * 180 / Math.PI;
+  const degrees = (radians * 180) / Math.PI;
   const rounded = Math.round(degrees * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
 function angle<Degrees extends number>(degrees: Degrees): Readonly<BrowserSteeringAngleSelection<Degrees>> {
-  return Object.freeze({ degrees, radians: degrees * Math.PI / 180 });
+  return Object.freeze({ degrees, radians: (degrees * Math.PI) / 180 });
 }
 function response(traversalSeconds: BrowserSteeringTraversalSeconds): Readonly<BrowserSteeringResponseSelection> {
   return Object.freeze({ traversalSeconds, rate: 1 / traversalSeconds });
 }
-function nextAngleChoice<Degrees extends number>(choices: readonly BrowserSteeringAngleSelection<Degrees>[], currentRadians: number): BrowserSteeringAngleSelection<Degrees> {
+function nextAngleChoice<Degrees extends number>(
+  choices: readonly BrowserSteeringAngleSelection<Degrees>[],
+  currentRadians: number,
+): BrowserSteeringAngleSelection<Degrees> {
   const currentIndex = choices.findIndex(({ radians }) => approximatelyEqual(radians, currentRadians));
   return mustChoice(choices, (currentIndex + 1) % choices.length);
 }
-function mustAngleDegrees<Degrees extends number>(choices: readonly BrowserSteeringAngleSelection<Degrees>[], degrees: Degrees): BrowserSteeringAngleSelection<Degrees> {
+function mustAngleDegrees<Degrees extends number>(
+  choices: readonly BrowserSteeringAngleSelection<Degrees>[],
+  degrees: Degrees,
+): BrowserSteeringAngleSelection<Degrees> {
   const choice = choices.find((candidate) => candidate.degrees === degrees);
   if (choice === undefined) throw new RangeError(`missing browser steering angle default: ${degrees}`);
   return choice;
 }
-function mustTraversalSeconds(choices: readonly BrowserSteeringResponseSelection[], traversalSeconds: BrowserSteeringTraversalSeconds): BrowserSteeringResponseSelection {
+function mustTraversalSeconds(
+  choices: readonly BrowserSteeringResponseSelection[],
+  traversalSeconds: BrowserSteeringTraversalSeconds,
+): BrowserSteeringResponseSelection {
   const choice = choices.find((candidate) => candidate.traversalSeconds === traversalSeconds);
   if (choice === undefined) throw new RangeError(`missing browser steering response default: ${traversalSeconds}`);
   return choice;

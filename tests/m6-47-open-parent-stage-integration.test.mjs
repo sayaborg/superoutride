@@ -3,30 +3,24 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import {
-  createTunnelPresentation,
-  selectTunnelBackground
-} from '../dist/dev/tunnel.js';
+import { createTunnelPresentation, selectTunnelBackground } from '../dist/dev/tunnel.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
-const compiled = compileSurfaceRegions(
-  guide.length,
-  createM5DebugSurfaceRegionAuthoring(guide.length),
-);
+const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
 
 const cameraProfile = {
   dCam: 5,
   height: 2.469902425419539,
-  baseDownPitch: 8 * Math.PI / 180,
+  baseDownPitch: (8 * Math.PI) / 180,
   focalLength: 200,
   centerX: 160,
   centerY: 120,
@@ -64,12 +58,18 @@ test('M6.47 parent visual and surface sources own the real open [0,L] domain', (
 });
 
 test('M6.47 M5.9 tunnel background is one ordinary open interval and never wraps endpoints', () => {
-  const outdoor = createM3FarBackground();
+  const outdoor = createFarBackground();
   const tunnel = createTunnelPresentation(guide.length, 5);
 
-  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-6, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.equal(
+    selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-6, guide.length, outdoor, tunnel).kind,
+    'OUTDOOR',
+  );
   assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-6, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(
+    selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-6, guide.length, outdoor, tunnel).kind,
+    'TUNNEL',
+  );
   assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
   assert.throws(() => selectTunnelBackground(-1e-6, guide.length, outdoor, tunnel), RangeError);
   assert.throws(() => selectTunnelBackground(guide.length + 1e-6, guide.length, outdoor, tunnel), RangeError);
@@ -79,7 +79,7 @@ test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reade
   const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
   const car = createTestCar(guide, height, surfaces, 45);
   const bike = createTestBike(guide, height, surfaces, 45);
-  const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateCamera(createCameraRig(), guide, height, car, cameraProfile, 1 / 60);
 
   assert.equal(Number.isFinite(car.y), true);
   assert.equal(Number.isFinite(bike.y), true);
@@ -89,7 +89,7 @@ test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reade
 
 test('M6.47 camera physics world and shared-runtime contracts no longer require cyclic height or surface types', async () => {
   const heightReaderFiles = [
-    '../src/camera/m5-camera.ts',
+    '../src/camera/camera.ts',
     '../src/dev/m6-20-live-runtime-content.ts',
     '../src/physics/arcade-vehicle-physics.ts',
     '../src/dev/m4-debug-world.ts',
@@ -101,10 +101,7 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
     assert.match(source, /HeightProfileReader/, path);
   }
 
-  const sharedRuntime = await readFile(
-    new URL('../src/dev/m6-20-live-runtime-content.ts', import.meta.url),
-    'utf8',
-  );
+  const sharedRuntime = await readFile(new URL('../src/dev/m6-20-live-runtime-content.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(sharedRuntime, /CyclicSurfaceMap/);
   assert.match(sharedRuntime, /surfaceMap: SurfaceMap/);
 });

@@ -6,10 +6,17 @@ import { COMMON_SELECTABLE_VEHICLE_TIRE } from '../dist/vehicle/production-vehic
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 test('M9.9 axle-neutral compiled reference remains common beneath later browser tire calibration', () => {
-  const reference = { gripX: 1.35, peakSlipX: 1.26*1.35/9.75,
-    gripY: 1.35, peakSlipY: 1.26*1.35/9.75, knee: .74 };
+  const reference = {
+    gripX: 1.35,
+    peakSlipX: (1.26 * 1.35) / 9.75,
+    gripY: 1.35,
+    peakSlipY: (1.26 * 1.35) / 9.75,
+    knee: 0.74,
+  };
   assert.deepEqual(COMMON_SELECTABLE_VEHICLE_TIRE, {
-    frontTire: reference, rearTire: reference, lowSpeedRegularization: 1,
+    frontTire: reference,
+    rearTire: reference,
+    lowSpeedRegularization: 1,
   });
   assert.equal(9.75, (9 + 10.5) / 2);
   for (const { profile } of VEHICLE_CATALOG) {

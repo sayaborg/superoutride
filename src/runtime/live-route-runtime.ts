@@ -1,12 +1,9 @@
+import { compileFieldRouteProgressRules, type FieldRouteProgressRules } from '../gameplay/field-route-progress.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import type { RouteBoundaryGateSet } from '../gameplay/route-boundary-gates.js';
 import type { RouteDag } from '../gameplay/route-dag.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import type { RouteStageHandoffManifest } from '../gameplay/route-stage-handoff.js';
-import {
-  compileFieldRouteProgressRules,
-  type FieldRouteProgressRules,
-} from '../gameplay/field-route-progress.js';
 import type { StageRuntimeContentRegistry } from './stage-runtime-content.js';
 
 /**
@@ -29,9 +26,7 @@ export interface LiveRouteRuntimeAssembly {
 
 type LiveRouteRuntimeAssemblySource = Omit<LiveRouteRuntimeAssembly, 'progress'>;
 
-export function compileLiveRouteRuntimeAssembly(
-  source: LiveRouteRuntimeAssemblySource,
-): LiveRouteRuntimeAssembly {
+export function compileLiveRouteRuntimeAssembly(source: LiveRouteRuntimeAssemblySource): LiveRouteRuntimeAssembly {
   const chartById = new Map<string, GuideChart>();
   for (const chart of source.charts) {
     if (chartById.has(chart.id)) throw new RangeError(`duplicate live route chart id: ${chart.id}`);
@@ -66,7 +61,8 @@ export function compileLiveRouteRuntimeAssembly(
     const targetBinding = bindingByStage.get(choice.toStageId);
     if (!targetBinding) throw new RangeError(`live route target stage is missing content binding: ${choice.toStageId}`);
     const targetRuntime = runtimeByPackage.get(targetBinding.packageId);
-    if (!targetRuntime) throw new RangeError(`live route target package is missing runtime content: ${targetBinding.packageId}`);
+    if (!targetRuntime)
+      throw new RangeError(`live route target package is missing runtime content: ${targetBinding.packageId}`);
     if (targetRuntime.coordinateFrame !== targetChart) {
       throw new RangeError(`live route handoff/content chart mismatch for choice: ${choice.id}`);
     }
@@ -81,10 +77,13 @@ export function compileLiveRouteRuntimeAssembly(
     source.gates.gates.filter((gate) => gate.kind === 'TRANSITION').map((gate) => gate.choiceId),
   );
   for (const choice of source.route.choices) {
-    if (!gateChoiceIds.has(choice.id)) throw new RangeError(`live route choice is missing physical transition gate: ${choice.id}`);
+    if (!gateChoiceIds.has(choice.id))
+      throw new RangeError(`live route choice is missing physical transition gate: ${choice.id}`);
   }
 
-  const terminalStageIds = new Set(source.route.stages.filter((stage) => stage.kind === 'TERMINAL').map((stage) => stage.id));
+  const terminalStageIds = new Set(
+    source.route.stages.filter((stage) => stage.kind === 'TERMINAL').map((stage) => stage.id),
+  );
   const finishStageIds = new Set(
     source.gates.gates.filter((gate) => gate.kind === 'FINISH').map((gate) => gate.stageId),
   );

@@ -1,13 +1,9 @@
+import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import type { RasterPath } from '../core/course.js';
-import {
-  compileGuidePath,
-  type GuideCompileOptions,
-  type GuidePath,
-} from '../core/guide-curve.js';
-import {
-  unfoldCircuitRasterPath,
-  type CircuitTopology,
-} from '../gameplay/circuit-topology.js';
+import { compileGuidePath, type GuideCompileOptions, type GuidePath } from '../core/guide-curve.js';
+import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { finite, positiveInteger } from '../core/validation.js';
+import { unfoldCircuitRasterPath, type CircuitTopology } from '../gameplay/circuit-topology.js';
 import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
 import type {
   BakedGroundMapChunkMetadata,
@@ -16,13 +12,8 @@ import type {
   BakedGroundMapReader,
   BakedGroundMapSample,
 } from '../visual/baked-ground-map.js';
-import type {
-  HeightNode,
-  HeightProfileReader,
-  HeightSample,
-  PhysicsHeightSample,
-} from '../visual/height-profile.js';
-import type { VisualProfileReader, VisualSection } from '../visual/visual-profile.js';
+import type { HeightNode, HeightProfileReader, HeightSample, PhysicsHeightSample } from '../visual/height-profile.js';
+import { VisualProfile, type VisualProfileReader } from '../visual/visual-profile.js';
 
 const EPSILON = 1e-8;
 
@@ -62,7 +53,7 @@ export function compileCircuitRuntimeWindow(
   sources: CircuitLapRuntimeSources,
 ): CircuitRuntimeWindow {
   assertInteger(startWinding, 'circuit window startWinding');
-  assertPositiveInteger(repeatCount, 'circuit window repeatCount');
+  positiveInteger(repeatCount, 'circuit window repeatCount');
   validateLapSourceLengths(topology, sources);
   validateHeightSeam(topology, sources.height);
 
@@ -73,11 +64,16 @@ export function compileCircuitRuntimeWindow(
   const endUnwrappedS = startUnwrappedS + length;
 
   const height = new CircuitHeightWindow(topology, repeatCount, sources.height);
-  const visual = new CircuitVisualWindow(topology, repeatCount, sources.visual);
+  const visual = new VisualProfile(
+    length,
+    Array.from({ length: repeatCount }, (_, lap) =>
+      sources.visual.sections.map((section) => ({ ...section, sStart: lap * topology.lapLength + section.sStart })),
+    ).flat(),
+  );
   const surface = new CircuitSurfaceWindow(topology, repeatCount, sources.surface);
-  const ground = sources.ground === undefined
-    ? undefined
-    : new CircuitBakedGroundMapWindow(topology, repeatCount, sources.ground);
+  validateSurfaceGuideEnvelope(guide, surface);
+  const ground =
+    sources.ground === undefined ? undefined : new CircuitBakedGroundMapWindow(topology, repeatCount, sources.ground);
 
   return Object.freeze({
     topology,
@@ -95,18 +91,12 @@ export function compileCircuitRuntimeWindow(
   });
 }
 
-export function circuitUnwrappedToWindowChainage(
-  window: CircuitRuntimeWindow,
-  sUnwrapped: number,
-): number {
-  assertFinite(sUnwrapped, 'circuit unwrapped chainage');
+export function circuitUnwrappedToWindowChainage(window: CircuitRuntimeWindow, sUnwrapped: number): number {
+  finite(sUnwrapped, 'circuit unwrapped chainage');
   return checkedWindowChainage(window, sUnwrapped - window.startUnwrappedS);
 }
 
-export function circuitWindowToUnwrappedChainage(
-  window: CircuitRuntimeWindow,
-  sWindow: number,
-): number {
+export function circuitWindowToUnwrappedChainage(window: CircuitRuntimeWindow, sWindow: number): number {
   return window.startUnwrappedS + checkedWindowChainage(window, sWindow);
 }
 
@@ -114,12 +104,7 @@ export function circuitWindowToLapSourceChainage(
   window: Pick<CircuitRuntimeWindow, 'topology' | 'repeatCount' | 'length'>,
   sWindow: number,
 ): number {
-  return resolveWindowSourcePosition(
-    window.topology,
-    window.repeatCount,
-    window.length,
-    sWindow,
-  ).sourceS;
+  return resolveWindowSourcePosition(window.topology, window.repeatCount, window.length, sWindow).sourceS;
 }
 
 class CircuitHeightWindow implements HeightProfileReader {
@@ -160,43 +145,10 @@ class CircuitHeightWindow implements HeightProfileReader {
   }
 
   distanceToNextRenderNode(s: number): number {
-    const checked = checkedOpenChainage(s, this.courseLength, 'circuit height window');
+    const checked = openProfileChainage(s, this.courseLength, 'circuit height window');
     if (checked === this.courseLength) return 0;
     const position = this.resolve(checked);
-    return Math.min(
-      this.source.distanceToNextRenderNode(position.sourceS),
-      this.courseLength - checked,
-    );
-  }
-
-  private resolve(s: number): WindowSourcePosition {
-    return resolveWindowSourcePosition(this.topology, this.repeatCount, this.courseLength, s);
-  }
-}
-
-class CircuitVisualWindow implements VisualProfileReader {
-  readonly courseLength: number;
-
-  constructor(
-    private readonly topology: CircuitTopology,
-    private readonly repeatCount: number,
-    private readonly source: VisualProfileReader,
-  ) {
-    this.courseLength = topology.lapLength * repeatCount;
-  }
-
-  sample(s: number): VisualSection {
-    return this.source.sample(this.resolve(s).sourceS);
-  }
-
-  distanceToNextSection(s: number): number {
-    const checked = checkedOpenChainage(s, this.courseLength, 'circuit visual window');
-    if (checked === this.courseLength) return 0;
-    const position = this.resolve(checked);
-    return Math.min(
-      this.source.distanceToNextSection(position.sourceS),
-      this.courseLength - checked,
-    );
+    return Math.min(this.source.distanceToNextRenderNode(position.sourceS), this.courseLength - checked);
   }
 
   private resolve(s: number): WindowSourcePosition {
@@ -207,6 +159,10 @@ class CircuitVisualWindow implements VisualProfileReader {
 class CircuitSurfaceWindow implements SurfaceMapReader {
   readonly courseLength: number;
 
+  get maxSupportedAbsL(): number {
+    return this.source.maxSupportedAbsL;
+  }
+
   constructor(
     private readonly topology: CircuitTopology,
     private readonly repeatCount: number,
@@ -216,12 +172,7 @@ class CircuitSurfaceWindow implements SurfaceMapReader {
   }
 
   sample(s: number, l: number): SurfaceSample {
-    const sourceS = resolveWindowSourcePosition(
-      this.topology,
-      this.repeatCount,
-      this.courseLength,
-      s,
-    ).sourceS;
+    const sourceS = resolveWindowSourcePosition(this.topology, this.repeatCount, this.courseLength, s).sourceS;
     return this.source.sample(sourceS, l);
   }
 }
@@ -262,19 +213,15 @@ class CircuitBakedGroundMapWindow implements BakedGroundMapReader {
       throw new RangeError('GroundMap texel outside circuit window level');
     }
     return {
-      s: (row + 0.5) * this.metadata.courseLength / level.chainageTexels,
-      l: -this.metadata.groundLeft
-        + (column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight) / level.lateralTexels,
+      s: ((row + 0.5) * this.metadata.courseLength) / level.chainageTexels,
+      l:
+        -this.metadata.groundLeft +
+        ((column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight)) / level.lateralTexels,
     };
   }
 
   private sourceS(s: number): number {
-    return resolveWindowSourcePosition(
-      this.topology,
-      this.repeatCount,
-      this.courseLength,
-      s,
-    ).sourceS;
+    return resolveWindowSourcePosition(this.topology, this.repeatCount, this.courseLength, s).sourceS;
   }
 }
 
@@ -288,11 +235,13 @@ function repeatBakedGroundMapMetadata(
     for (let lap = 0; lap < repeatCount; lap += 1) {
       const rowOffset = lap * level.chainageTexels;
       for (const chunk of level.chunks) {
-        chunks.push(Object.freeze({
-          rowStart: rowOffset + chunk.rowStart,
-          rowCount: chunk.rowCount,
-          payloadId: chunk.payloadId,
-        }));
+        chunks.push(
+          Object.freeze({
+            rowStart: rowOffset + chunk.rowStart,
+            rowCount: chunk.rowCount,
+            payloadId: chunk.payloadId,
+          }),
+        );
       }
     }
     return Object.freeze({
@@ -310,10 +259,7 @@ function repeatBakedGroundMapMetadata(
   });
 }
 
-function validateLapSourceLengths(
-  topology: CircuitTopology,
-  sources: CircuitLapRuntimeSources,
-): void {
+function validateLapSourceLengths(topology: CircuitTopology, sources: CircuitLapRuntimeSources): void {
   assertSameLength(sources.height.courseLength, topology.lapLength, 'height');
   assertSameLength(sources.visual.courseLength, topology.lapLength, 'visual');
   if (sources.ground) {
@@ -340,11 +286,7 @@ function validateHeightSeam(topology: CircuitTopology, height: HeightProfileRead
   }
 }
 
-function repeatHeightNodes(
-  source: HeightProfileReader,
-  lapLength: number,
-  repeatCount: number,
-): HeightNode[] {
+function repeatHeightNodes(source: HeightProfileReader, lapLength: number, repeatCount: number): HeightNode[] {
   if (source.nodes.length < 2) throw new Error('circuit height source requires at least two nodes');
   const first = source.nodes[0]!;
   const last = source.nodes[source.nodes.length - 1]!;
@@ -370,7 +312,7 @@ function resolveWindowSourcePosition(
   windowLength: number,
   sWindow: number,
 ): WindowSourcePosition {
-  const checked = checkedOpenChainage(sWindow, windowLength, 'circuit runtime window');
+  const checked = openProfileChainage(sWindow, windowLength, 'circuit runtime window');
   const lapLength = topology.lapLength;
 
   if (checked === windowLength) {
@@ -392,17 +334,7 @@ function resolveWindowSourcePosition(
 }
 
 function checkedWindowChainage(window: Pick<CircuitRuntimeWindow, 'length'>, s: number): number {
-  return checkedOpenChainage(s, window.length, 'circuit window');
-}
-
-function checkedOpenChainage(s: number, length: number, label: string): number {
-  assertFinite(s, `${label} chainage`);
-  if (s < -EPSILON || s > length + EPSILON) {
-    throw new RangeError(`${label} chainage is outside [0, length]`);
-  }
-  if (Math.abs(s) <= EPSILON) return 0;
-  if (Math.abs(s - length) <= EPSILON) return length;
-  return s;
+  return openProfileChainage(s, window.length, 'circuit window');
 }
 
 function assertSameLength(actual: number, expected: number, label: string): void {
@@ -411,14 +343,6 @@ function assertSameLength(actual: number, expected: number, label: string): void
   }
 }
 
-function assertPositiveInteger(value: number, label: string): void {
-  if (!Number.isInteger(value) || value <= 0) throw new RangeError(`${label} must be a positive integer`);
-}
-
 function assertInteger(value: number, label: string): void {
   if (!Number.isInteger(value)) throw new RangeError(`${label} must be an integer`);
-}
-
-function assertFinite(value: number, label: string): void {
-  if (!Number.isFinite(value)) throw new RangeError(`${label} must be finite`);
 }

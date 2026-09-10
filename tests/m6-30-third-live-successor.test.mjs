@@ -8,33 +8,32 @@ import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 
 import { createM630ThirdLiveSuccessorRuntime } from '../dist/dev/m6-30-third-live-successor.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createM2StadiumGuide();
-  const live = createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createM4SpriteAssets());
+  const live = createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createSpriteAssets());
   return live;
 }
 
 test('M6.30 LEFT third-stage path remains present as later milestones deepen the RIGHT route too', () => {
   const live = setup();
-  assert.deepEqual(live.route.stages.map((stage) => [stage.id, stage.kind]), [
-    ['STAGE_1', 'STAGE'],
-    ['STAGE_2_L', 'STAGE'],
-    ['STAGE_2_R', 'STAGE'],
-    ['STAGE_3_L', 'STAGE'],
-    ['GOAL_L', 'TERMINAL'],
-    ['STAGE_3_R', 'STAGE'],
-    ['GOAL_R', 'TERMINAL'],
-  ]);
-  assert.deepEqual(live.route.choices.map((choice) => choice.id), [
-    'S1_LEFT',
-    'S1_RIGHT',
-    'S2L_CONTINUE',
-    'S3L_CONTINUE',
-    'S2R_CONTINUE',
-    'S3R_CONTINUE',
-  ]);
+  assert.deepEqual(
+    live.route.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['STAGE_1', 'STAGE'],
+      ['STAGE_2_L', 'STAGE'],
+      ['STAGE_2_R', 'STAGE'],
+      ['STAGE_3_L', 'STAGE'],
+      ['GOAL_L', 'TERMINAL'],
+      ['STAGE_3_R', 'STAGE'],
+      ['GOAL_R', 'TERMINAL'],
+    ],
+  );
+  assert.deepEqual(
+    live.route.choices.map((choice) => choice.id),
+    ['S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE', 'S3R_CONTINUE'],
+  );
 });
 
 test('M6.30 promotes the old LEFT goal package geometry into STAGE_3_L and gives GOAL_L a new chart', () => {
@@ -71,7 +70,7 @@ test('M6.30 leaves renderer and browser loop route-agnostic as both branches dee
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
   ]);
-  assert.doesNotMatch(source, /renderM5Driving|m5-renderer|car-physics|motorcycle-physics/);
+  assert.doesNotMatch(source, /renderDriving|renderer|car-physics|motorcycle-physics/);
   assert.doesNotMatch(main, /STAGE_3_[LR]|S3[LR]_CONTINUE/);
   assert.match(stableEntry, /createM638DeclarativeForkGrowthRuntime/);
 });

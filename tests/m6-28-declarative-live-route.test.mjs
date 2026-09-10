@@ -13,7 +13,7 @@ import {
 } from '../dist/dev/m6-26-live-successor-stage.js';
 import { createM628DeclarativeLiveRouteRuntime } from '../dist/dev/m6-28-declarative-live-route.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -21,33 +21,37 @@ const near = (actual, expected, tolerance = 1e-7) => {
 
 function setup() {
   const guide = createM2StadiumGuide();
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const live = createM628DeclarativeLiveRouteRuntime(guide, parentShared(guide), assets);
   return { guide, assets, live };
 }
 
 test('M6.28 declarative rows compile the same five-stage route with derived package bindings', () => {
   const { live } = setup();
-  assert.deepEqual(live.route.stages.map((stage) => [stage.id, stage.kind]), [
-    ['STAGE_1', 'STAGE'],
-    ['STAGE_2_L', 'STAGE'],
-    ['STAGE_2_R', 'STAGE'],
-    ['GOAL_L', 'TERMINAL'],
-    ['GOAL_R', 'TERMINAL'],
-  ]);
-  assert.deepEqual(live.route.choices.map((choice) => choice.id), [
-    'S1_LEFT',
-    'S1_RIGHT',
-    'S2L_CONTINUE',
-    'S2R_CONTINUE',
-  ]);
-  assert.deepEqual(live.content.bindings.map((binding) => [binding.stageId, binding.packageId]), [
-    ['STAGE_1', 'CONTENT_STAGE_1'],
-    ['STAGE_2_L', 'CONTENT_STAGE_2_L'],
-    ['STAGE_2_R', 'CONTENT_STAGE_2_R'],
-    ['GOAL_L', 'CONTENT_GOAL_L'],
-    ['GOAL_R', 'CONTENT_GOAL_R'],
-  ]);
+  assert.deepEqual(
+    live.route.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['STAGE_1', 'STAGE'],
+      ['STAGE_2_L', 'STAGE'],
+      ['STAGE_2_R', 'STAGE'],
+      ['GOAL_L', 'TERMINAL'],
+      ['GOAL_R', 'TERMINAL'],
+    ],
+  );
+  assert.deepEqual(
+    live.route.choices.map((choice) => choice.id),
+    ['S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S2R_CONTINUE'],
+  );
+  assert.deepEqual(
+    live.content.bindings.map((binding) => [binding.stageId, binding.packageId]),
+    [
+      ['STAGE_1', 'CONTENT_STAGE_1'],
+      ['STAGE_2_L', 'CONTENT_STAGE_2_L'],
+      ['STAGE_2_R', 'CONTENT_STAGE_2_R'],
+      ['GOAL_L', 'CONTENT_GOAL_L'],
+      ['GOAL_R', 'CONTENT_GOAL_R'],
+    ],
+  );
 });
 
 test('M6.28 declarative compiler reproduces M6.26 physical gates and handoff seams exactly', () => {
@@ -57,7 +61,10 @@ test('M6.28 declarative compiler reproduces M6.26 physical gates and handoff sea
   const legacyGates = createM626LiveGateSet(legacyRoute, legacyContinuation);
   const legacyHandoffs = createM626LiveHandoffManifest(legacyRoute, legacyContinuation);
 
-  assert.deepEqual(live.gates.gates.map((gate) => gate.id), legacyGates.gates.map((gate) => gate.id));
+  assert.deepEqual(
+    live.gates.gates.map((gate) => gate.id),
+    legacyGates.gates.map((gate) => gate.id),
+  );
   for (const gate of live.gates.gates) {
     const legacy = legacyGates.gates.find((candidate) => candidate.id === gate.id);
     assert.ok(legacy);
@@ -67,7 +74,10 @@ test('M6.28 declarative compiler reproduces M6.26 physical gates and handoff sea
     near(gate.halfWidth, legacy.halfWidth);
   }
 
-  assert.deepEqual(live.handoffs.seams.map((seam) => seam.id), legacyHandoffs.seams.map((seam) => seam.id));
+  assert.deepEqual(
+    live.handoffs.seams.map((seam) => seam.id),
+    legacyHandoffs.seams.map((seam) => seam.id),
+  );
   for (const seam of live.handoffs.seams) {
     const legacy = legacyHandoffs.seams.find((candidate) => candidate.id === seam.id);
     assert.ok(legacy);
@@ -101,7 +111,10 @@ test('main assembles one declarative fork plan above general topology compilatio
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(mainSource, /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime|createM637SymmetricSecondLiveForkRuntime/);
+  assert.doesNotMatch(
+    mainSource,
+    /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime|createM637SymmetricSecondLiveForkRuntime/,
+  );
   assert.match(m638Source, /createM630ThirdLiveSuccessorAuthoring/);
   assert.match(m638Source, /compileRasterForkGrowthPlan/);
   assert.doesNotMatch(m638Source, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
@@ -118,7 +131,7 @@ test('M6.28 generic declarative compiler contains no renderer, camera, vehicle p
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /render\//);
-  assert.doesNotMatch(source, /m5-camera/);
+  assert.doesNotMatch(source, /camera/);
   assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
   assert.doesNotMatch(source, /M6_2[678]|m6-2[678]/);
 });

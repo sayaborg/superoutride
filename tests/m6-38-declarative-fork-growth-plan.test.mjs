@@ -15,12 +15,12 @@ import {
 
 import { compileRasterForkGrowthPlan } from '../dist/runtime/raster-fork-growth-plan.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createM2StadiumGuide();
   const parent = parentShared(guide);
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   return { guide, parent, assets };
 }
 
@@ -112,10 +112,13 @@ test('M6.38 removes milestone nesting from live construction while generic plan 
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(planSource, /compileRasterForkStageRoute/);
-  assert.doesNotMatch(planSource, /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/|camera|car-physics|motorcycle-physics|m6-/i);
+  assert.doesNotMatch(
+    planSource,
+    /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/|camera|car-physics|motorcycle-physics|m6-/i,
+  );
   assert.match(liveSource, /createM630ThirdLiveSuccessorAuthoring/);
   assert.match(liveSource, /compileRasterForkGrowthPlan/);
   assert.doesNotMatch(liveSource, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);

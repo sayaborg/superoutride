@@ -1,4 +1,4 @@
-import type { M5RenderResult } from './m5-renderer.js';
+import type { RenderResult } from './renderer.js';
 
 export interface RenderWorkloadEnvelope {
   readonly frameCount: number;
@@ -16,7 +16,7 @@ export interface RenderWorkloadEnvelope {
 }
 
 /** Pure compiler/content telemetry reduction. It never changes runtime rendering. */
-export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): RenderWorkloadEnvelope {
+export function summarizeRenderWorkloads(samples: readonly RenderResult[]): RenderWorkloadEnvelope {
   let maxTerrainLineCount = 0;
   let maxTerrainLineCountPerScreenRow = 0;
   let maxTerrainOutputPixelsPerFrame = 0;
@@ -44,14 +44,32 @@ export function summarizeRenderWorkloads(samples: readonly M5RenderResult[]): Re
     validateNonNegativeInteger(sample.groundMapMaxLevel, 'groundMapMaxLevel');
 
     maxTerrainLineCount = Math.max(maxTerrainLineCount, sample.terrainLineCount);
-    maxTerrainLineCountPerScreenRow = Math.max(maxTerrainLineCountPerScreenRow, workload.terrainLineCountPerScreenRowMax);
+    maxTerrainLineCountPerScreenRow = Math.max(
+      maxTerrainLineCountPerScreenRow,
+      workload.terrainLineCountPerScreenRowMax,
+    );
     maxTerrainOutputPixelsPerFrame = Math.max(maxTerrainOutputPixelsPerFrame, sample.terrainOutputPixels);
-    maxTerrainOutputPixelsPerScreenRow = Math.max(maxTerrainOutputPixelsPerScreenRow, workload.terrainOutputPixelsPerScreenRowMax);
+    maxTerrainOutputPixelsPerScreenRow = Math.max(
+      maxTerrainOutputPixelsPerScreenRow,
+      workload.terrainOutputPixelsPerScreenRowMax,
+    );
     maxVisibleSpriteCount = Math.max(maxVisibleSpriteCount, sample.visibleSpriteCount);
-    maxSpriteOutputSamplesPerFrame = Math.max(maxSpriteOutputSamplesPerFrame, sample.spriteOutputSamplesIncludingPlayer);
-    maxSpriteOutputSamplesPerScanline = Math.max(maxSpriteOutputSamplesPerScanline, workload.spriteOutputSamplesPerScanlineMax);
-    maxSpriteWrittenPixelsPerFrame = Math.max(maxSpriteWrittenPixelsPerFrame, sample.spriteWrittenPixelsIncludingPlayer);
-    maxSpriteWrittenPixelsPerScanline = Math.max(maxSpriteWrittenPixelsPerScanline, workload.spriteWrittenPixelsPerScanlineMax);
+    maxSpriteOutputSamplesPerFrame = Math.max(
+      maxSpriteOutputSamplesPerFrame,
+      sample.spriteOutputSamplesIncludingPlayer,
+    );
+    maxSpriteOutputSamplesPerScanline = Math.max(
+      maxSpriteOutputSamplesPerScanline,
+      workload.spriteOutputSamplesPerScanlineMax,
+    );
+    maxSpriteWrittenPixelsPerFrame = Math.max(
+      maxSpriteWrittenPixelsPerFrame,
+      sample.spriteWrittenPixelsIncludingPlayer,
+    );
+    maxSpriteWrittenPixelsPerScanline = Math.max(
+      maxSpriteWrittenPixelsPerScanline,
+      workload.spriteWrittenPixelsPerScanlineMax,
+    );
     maxGroundMapLevelUsed = Math.max(maxGroundMapLevelUsed, sample.groundMapMaxLevel);
 
     for (let k = 0; k < workload.groundMapLevelHistogram.length; k += 1) {

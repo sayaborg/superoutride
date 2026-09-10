@@ -32,26 +32,29 @@ function sourceRoadView(overrides = {}) {
 }
 
 function setup() {
-  return compileStageJunction({
-    courseLength: 400,
-    roadView: sourceRoadView(),
-    groundProfile: {
-      groundLeft: 4.5,
-      groundRight: 4.5,
-      roadLeft: 3.5,
-      roadRight: 3.5,
-      roadMarkings: CENTER_DASH_MARKINGS,
-      junctionMarkings: CENTER_DASH_MARKINGS,
-      shoulderWidth: 1,
-      roadCenterL: 7.5,
-      chainageOffsetS: 100,
+  return compileStageJunction(
+    {
+      courseLength: 400,
+      roadView: sourceRoadView(),
+      groundProfile: {
+        groundLeft: 4.5,
+        groundRight: 4.5,
+        roadLeft: 3.5,
+        roadRight: 3.5,
+        roadMarkings: CENTER_DASH_MARKINGS,
+        junctionMarkings: CENTER_DASH_MARKINGS,
+        shoulderWidth: 1,
+        roadCenterL: 7.5,
+        chainageOffsetS: 100,
+      },
     },
-  }, {
-    roadViewId: 'SECOND_FORK_VIEW',
-    surfaceSectionName: 'SECOND_FORK',
-    crossSection: CROSS_SECTION,
-    outerSurfaceType: 'GRASS',
-  });
+    {
+      roadViewId: 'SECOND_FORK_VIEW',
+      surfaceSectionName: 'SECOND_FORK',
+      crossSection: CROSS_SECTION,
+      outerSurfaceType: 'GRASS',
+    },
+  );
 }
 
 test('M6.34 compiler expands one stage corridor exactly enough for both child roads, median and shoulders', () => {
@@ -69,13 +72,7 @@ test('M6.34 compiler expands one stage corridor exactly enough for both child ro
 
 test('M6.34 GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
   const compiled = setup();
-  const sample = (l) => sampleStageGroundMapRuntime(
-    120,
-    l,
-    1,
-    compiled.roadView,
-    compiled.groundProfile,
-  ).color;
+  const sample = (l) => sampleStageGroundMapRuntime(120, l, 1, compiled.roadView, compiled.groundProfile).color;
 
   assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(-4)));
   assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(4)));
@@ -97,28 +94,35 @@ test('M6.34 SurfaceMap consumes the same stage-local junction cross-section', ()
   assert.equal(compiled.surfaceMap.sample(120, 9.1).type, 'VOID');
   assert.equal(compiled.surfaceMap.sample(400, 0).type, 'GRASS');
 
-  assert.throws(() => compiled.surfaceMap.sample(-1, 0), /outside \[0, 400\]/);
-  assert.throws(() => compiled.surfaceMap.sample(401, 0), /outside \[0, 400\]/);
+  assert.throws(() => compiled.surfaceMap.sample(-1, 0), /outside \[0, courseLength\]/);
+  assert.throws(() => compiled.surfaceMap.sample(401, 0), /outside \[0, courseLength\]/);
 });
 
 test('M6.34 rejects a junction whose incoming width does not match the active stage road', () => {
-  assert.throws(() => compileStageJunction({
-    courseLength: 400,
-    roadView: sourceRoadView({ roadLeft: 4.5, roadRight: 4.5, groundLeft: 6, groundRight: 6 }),
-    groundProfile: {
-      groundLeft: 6,
-      groundRight: 6,
-      roadLeft: 4.5,
-      roadRight: 4.5,
-      roadMarkings: CENTER_DASH_MARKINGS,
-      junctionMarkings: CENTER_DASH_MARKINGS,
-      shoulderWidth: 1,
-    },
-  }, {
-    roadViewId: 'BAD_VIEW',
-    surfaceSectionName: 'BAD',
-    crossSection: CROSS_SECTION,
-  }), /incoming road width/);
+  assert.throws(
+    () =>
+      compileStageJunction(
+        {
+          courseLength: 400,
+          roadView: sourceRoadView({ roadLeft: 4.5, roadRight: 4.5, groundLeft: 6, groundRight: 6 }),
+          groundProfile: {
+            groundLeft: 6,
+            groundRight: 6,
+            roadLeft: 4.5,
+            roadRight: 4.5,
+            roadMarkings: CENTER_DASH_MARKINGS,
+            junctionMarkings: CENTER_DASH_MARKINGS,
+            shoulderWidth: 1,
+          },
+        },
+        {
+          roadViewId: 'BAD_VIEW',
+          surfaceSectionName: 'BAD',
+          crossSection: CROSS_SECTION,
+        },
+      ),
+    /incoming road width/,
+  );
 });
 
 test('M6.34 reusable junction layer adds no RouteDag, renderer, camera or vehicle-physics dependency', async () => {

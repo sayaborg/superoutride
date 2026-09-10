@@ -37,8 +37,8 @@ export function createAutomaticPowertrainState(
   assertWheelOmega(drivenWheelOmega);
   const wheelOmega = Math.abs(drivenWheelOmega);
   let gear = 1;
-  while (gear < profile.gearRatios.length
-    && coupledEngineRpm(profile, wheelOmega, gear) >= profile.upshiftRpm) gear += 1;
+  while (gear < profile.gearRatios.length && coupledEngineRpm(profile, wheelOmega, gear) >= profile.upshiftRpm)
+    gear += 1;
   const engineRpm = coupledEngineRpm(profile, wheelOmega, gear);
   return {
     gear,
@@ -78,11 +78,12 @@ export function updateAutomaticPowertrain(
   state.engineRpm = coupledEngineRpm(profile, wheelOmega, state.gear);
   state.engineTorqueNewtonMeters = sampleEngineTorque(profile, state.engineRpm);
   const ratio = profile.gearRatios[state.gear - 1]! * profile.finalDriveRatio;
-  state.outputDriveTorque = clamp(throttle, 0, 1)
-    * state.engineTorqueNewtonMeters
-    * ratio
-    * profile.efficiency
-    * engineRevLimiterScale(profile, state.engineRpm);
+  state.outputDriveTorque =
+    clamp(throttle, 0, 1) *
+    state.engineTorqueNewtonMeters *
+    ratio *
+    profile.efficiency *
+    engineRevLimiterScale(profile, state.engineRpm);
   return state.outputDriveTorque;
 }
 
@@ -114,12 +115,8 @@ export function sampleEngineTorque(
   return curve[curve.length - 1]!.torqueNewtonMeters;
 }
 
-function coupledEngineRpm(
-  profile: AutomaticPowertrainProfile,
-  wheelOmega: number,
-  gear: number,
-): number {
-  return wheelOmega * profile.gearRatios[gear - 1]! * profile.finalDriveRatio * 60 / (2 * Math.PI);
+function coupledEngineRpm(profile: AutomaticPowertrainProfile, wheelOmega: number, gear: number): number {
+  return (wheelOmega * profile.gearRatios[gear - 1]! * profile.finalDriveRatio * 60) / (2 * Math.PI);
 }
 
 function assertWheelOmega(omega: number): void {
@@ -127,11 +124,24 @@ function assertWheelOmega(omega: number): void {
 }
 
 export function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainProfile): void {
-  if (![profile.idleRpm, profile.downshiftRpm, profile.upshiftRpm, profile.redlineRpm,
-    profile.finalDriveRatio, profile.efficiency].every(Number.isFinite)
-    || !(0 < profile.idleRpm && profile.idleRpm < profile.downshiftRpm
-      && profile.downshiftRpm < profile.upshiftRpm && profile.upshiftRpm < profile.redlineRpm)
-    || !(profile.finalDriveRatio > 0) || !(profile.efficiency > 0 && profile.efficiency <= 1)) {
+  if (
+    ![
+      profile.idleRpm,
+      profile.downshiftRpm,
+      profile.upshiftRpm,
+      profile.redlineRpm,
+      profile.finalDriveRatio,
+      profile.efficiency,
+    ].every(Number.isFinite) ||
+    !(
+      0 < profile.idleRpm &&
+      profile.idleRpm < profile.downshiftRpm &&
+      profile.downshiftRpm < profile.upshiftRpm &&
+      profile.upshiftRpm < profile.redlineRpm
+    ) ||
+    !(profile.finalDriveRatio > 0) ||
+    !(profile.efficiency > 0 && profile.efficiency <= 1)
+  ) {
     throw new RangeError('powertrain requires 0 < idle < downshift < upshift < redline and positive drive scalars');
   }
   if (profile.gearRatios.length === 0) throw new RangeError('powertrain requires forward gear ratios');
@@ -150,17 +160,22 @@ export function validateAutomaticPowertrainProfile(profile: AutomaticPowertrainP
   if (profile.torqueCurve.length < 2) throw new RangeError('engine torque curve requires at least two points');
   for (let i = 0; i < profile.torqueCurve.length; i += 1) {
     const point = profile.torqueCurve[i]!;
-    if (!(point.rpm >= 0 && point.rpm <= profile.redlineRpm)
-      || !(point.torqueNewtonMeters > 0)
-      || !Number.isFinite(point.rpm) || !Number.isFinite(point.torqueNewtonMeters)) {
+    if (
+      !(point.rpm >= 0 && point.rpm <= profile.redlineRpm) ||
+      !(point.torqueNewtonMeters > 0) ||
+      !Number.isFinite(point.rpm) ||
+      !Number.isFinite(point.torqueNewtonMeters)
+    ) {
       throw new RangeError('engine curve requires finite positive torque and RPM within the authored range');
     }
     if (i > 0 && point.rpm <= profile.torqueCurve[i - 1]!.rpm) {
       throw new RangeError('engine torque curve RPM points must increase');
     }
   }
-  if (profile.torqueCurve[0]!.rpm > profile.idleRpm
-    || profile.torqueCurve[profile.torqueCurve.length - 1]!.rpm < profile.upshiftRpm) {
+  if (
+    profile.torqueCurve[0]!.rpm > profile.idleRpm ||
+    profile.torqueCurve[profile.torqueCurve.length - 1]!.rpm < profile.upshiftRpm
+  ) {
     throw new RangeError('engine curve must cover idle through upshift RPM');
   }
 }

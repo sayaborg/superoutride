@@ -1,4 +1,14 @@
+import type { GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import type { CourseCoordinate } from '../core/guide-curve.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
+import type { SurfaceMapReader } from './surface-map.js';
+
+/** Active physical readers; content/chart selection is resolved by composition. */
+export interface VehicleWorld {
+  readonly guide: GuideCoordinateSource;
+  readonly height: HeightProfileReader;
+  readonly surfaces: SurfaceMapReader;
+}
 
 /**
  * Read-only world pose consumed outside concrete vehicle physics.

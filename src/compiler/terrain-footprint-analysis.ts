@@ -1,6 +1,6 @@
+import type { TerrainLine } from '../road/terrain-line.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
 import { diagnosticLateralLevel, requiredPyramidMaxLevel } from './ground-map-lod.js';
-import type { M3TerrainLine } from '../road/terrain-line.js';
 
 export interface TerrainFootprintSummary {
   readonly lineCount: number;
@@ -15,7 +15,7 @@ export interface TerrainFootprintSummary {
 
 /** Compiler/telemetry reduction over actual TerrainLine records emitted by the Road Generator. */
 export function summarizeTerrainFootprints(
-  lines: readonly M3TerrainLine[],
+  lines: readonly TerrainLine[],
   density: Pick<GroundMapDensityProfile, 'qL' | 'qS'>,
 ): TerrainFootprintSummary {
   if (!(density.qL > 0) || !Number.isFinite(density.qL)) throw new RangeError('qL must be finite and > 0');

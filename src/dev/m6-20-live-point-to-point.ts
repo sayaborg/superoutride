@@ -1,6 +1,10 @@
 import { guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
 import type { JunctionCrossSectionProfile, JunctionSide } from '../course/junction-cross-section.js';
-import { compileRouteBoundaryGateSet, type RouteBoundaryGateAuthoring, type RouteBoundaryGateSet } from '../gameplay/route-boundary-gates.js';
+import {
+  compileRouteBoundaryGateSet,
+  type RouteBoundaryGateAuthoring,
+  type RouteBoundaryGateSet,
+} from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../gameplay/route-dag.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S, createM615TransitionGate } from './m6-15-visible-route-gates.js';

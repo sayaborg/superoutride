@@ -1,13 +1,13 @@
 import type { GuidePath } from '../core/guide-curve.js';
 import type { SpriteAsset } from '../render/sprite.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
-import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 
 export function createM4DebugWorldSprites(
   guide: GuidePath,
   height: HeightProfileReader,
-  assets: M4SpriteAssets,
+  assets: SpriteAssets,
 ): CourseSprite[] {
   const authored: CourseSpriteAuthoring[] = [];
   let serial = 0;

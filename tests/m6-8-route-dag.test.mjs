@@ -28,31 +28,33 @@ test('M6.8 debug route DAG exposes a two-way split followed by four terminal out
 
 test('route DAG compiler rejects cycles instead of turning gameplay progress into a hidden lap graph', () => {
   assert.throws(
-    () => compileRouteDag(
-      'A',
-      [
-        { id: 'A', kind: 'STAGE' },
-        { id: 'B', kind: 'STAGE' },
-      ],
-      [
-        { id: 'AB', fromStageId: 'A', toStageId: 'B' },
-        { id: 'BA', fromStageId: 'B', toStageId: 'A' },
-      ],
-    ),
+    () =>
+      compileRouteDag(
+        'A',
+        [
+          { id: 'A', kind: 'STAGE' },
+          { id: 'B', kind: 'STAGE' },
+        ],
+        [
+          { id: 'AB', fromStageId: 'A', toStageId: 'B' },
+          { id: 'BA', fromStageId: 'B', toStageId: 'A' },
+        ],
+      ),
     /acyclic/,
   );
 });
 
 test('route DAG compiler rejects unreachable authored stages', () => {
   assert.throws(
-    () => compileRouteDag(
-      'A',
-      [
-        { id: 'A', kind: 'TERMINAL' },
-        { id: 'ORPHAN', kind: 'TERMINAL' },
-      ],
-      [],
-    ),
+    () =>
+      compileRouteDag(
+        'A',
+        [
+          { id: 'A', kind: 'TERMINAL' },
+          { id: 'ORPHAN', kind: 'TERMINAL' },
+        ],
+        [],
+      ),
     /unreachable stages/,
   );
 });

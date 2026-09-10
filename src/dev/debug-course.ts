@@ -1,6 +1,6 @@
-import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileRasterPath, type RasterVertex } from '../core/course.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 
 export function createM1DebugGuide(): GuidePath {
   const radius = 100;
@@ -61,7 +61,7 @@ export function createM2StadiumGuide(): GuidePath {
 
   const raster = compileRasterPath(vertices);
   return compileGuidePath(raster, {
-    lMax: 12,
+    lMax: 20,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });

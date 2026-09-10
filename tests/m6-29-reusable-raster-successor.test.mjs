@@ -75,8 +75,20 @@ test('M6.29 generic factory preserves exact D_cam overlap around the successor s
 test('extending far depth adds only straight open runout and preserves authored pre-tail geometry', () => {
   const parent = createM2StadiumGuide();
   const base = createM622ChildStageContinuation(parent);
-  const short = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), id: 'SHORT', chartId: 'SHORT', roadViewId: 'SHORT_VIEW', dMax: 150 });
-  const extended = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), id: 'EXTENDED', chartId: 'EXTENDED', roadViewId: 'EXTENDED_VIEW', dMax: 200 });
+  const short = createRasterStageSuccessor(base.left, {
+    ...authoring('LEFT'),
+    id: 'SHORT',
+    chartId: 'SHORT',
+    roadViewId: 'SHORT_VIEW',
+    dMax: 150,
+  });
+  const extended = createRasterStageSuccessor(base.left, {
+    ...authoring('LEFT'),
+    id: 'EXTENDED',
+    chartId: 'EXTENDED',
+    roadViewId: 'EXTENDED_VIEW',
+    dMax: 200,
+  });
 
   near(short.finishS, extended.finishS);
   assert.ok(extended.guide.raster.vertices.length > short.guide.raster.vertices.length);
@@ -89,8 +101,19 @@ test('extending far depth adds only straight open runout and preserves authored 
 test('M6.29 opposite deformation directions create independent successors without changing source chart', () => {
   const parent = createM2StadiumGuide();
   const base = createM622ChildStageContinuation(parent);
-  const negative = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), chartId: 'NEG', roadViewId: 'NEG_VIEW', id: 'NEG' });
-  const positive = createRasterStageSuccessor(base.left, { ...authoring('LEFT'), chartId: 'POS', roadViewId: 'POS_VIEW', id: 'POS', deformationDirection: 1 });
+  const negative = createRasterStageSuccessor(base.left, {
+    ...authoring('LEFT'),
+    chartId: 'NEG',
+    roadViewId: 'NEG_VIEW',
+    id: 'NEG',
+  });
+  const positive = createRasterStageSuccessor(base.left, {
+    ...authoring('LEFT'),
+    chartId: 'POS',
+    roadViewId: 'POS_VIEW',
+    id: 'POS',
+    deformationDirection: 1,
+  });
 
   assert.equal(negative.link.sourceFrame, base.left.chart);
   assert.equal(positive.link.sourceFrame, base.left.chart);
@@ -117,7 +140,7 @@ test('M6.29 successor factory is route/renderer/vehicle independent and M6.26 de
   ]);
 
   assert.doesNotMatch(factorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
-  assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|m5-camera/);
+  assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|camera/);
   assert.doesNotMatch(factorySource, /M6_2[0-9]|m6-2[0-9]/);
   assert.match(legacySource, /createRasterStageSuccessor/);
   assert.doesNotMatch(legacySource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);

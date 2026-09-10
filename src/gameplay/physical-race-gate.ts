@@ -1,14 +1,5 @@
-import {
-  guidePathToWorld,
-  sampleGuidePath,
-  type GuidePath,
-} from '../core/guide-curve.js';
-import {
-  dot,
-  subtract,
-  tangentFromHeading,
-  type Vec2,
-} from '../core/math.js';
+import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
 
 import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
 const MOTION_EPSILON = 1e-7;
@@ -66,8 +57,12 @@ export function compilePhysicalRaceGate(
   }
 
   const centerSample = guidePathToWorld(guide, s, 0);
-  const geometry = compileWorldCrossingGate({ id: name, center: centerSample,
-    heading: centerSample.heading, halfWidth: guide.lMax });
+  const geometry = compileWorldCrossingGate({
+    id: name,
+    center: centerSample,
+    heading: centerSample.heading,
+    halfWidth: guide.lMax,
+  });
   return Object.freeze({
     index,
     kind,

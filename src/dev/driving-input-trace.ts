@@ -26,11 +26,7 @@ export function createDrivingInputTrace(dt: number): DrivingInputTrace {
 }
 
 /** Append canonical driver commands using simple run-length encoding. */
-export function appendDrivingInput(
-  trace: DrivingInputTrace,
-  input: DrivingInput,
-  ticks = 1,
-): void {
+export function appendDrivingInput(trace: DrivingInputTrace, input: DrivingInput, ticks = 1): void {
   validateInput(input);
   if (!Number.isInteger(ticks) || ticks < 1) throw new RangeError('trace ticks must be an integer >= 1');
 
@@ -94,20 +90,26 @@ export function parseDrivingInputTrace(json: string): DrivingInputTrace {
       steeringApplyMode?: unknown;
       pedalApplyMode?: unknown;
     };
-    if (typeof input.steering !== 'number'
-      || !isPedalRequest(input.throttle)
-      || !isPedalRequest(input.brake)
-      || !isApplyMode(input.steeringApplyMode)
-      || !isApplyMode(input.pedalApplyMode)) {
+    if (
+      typeof input.steering !== 'number' ||
+      !isPedalRequest(input.throttle) ||
+      !isPedalRequest(input.brake) ||
+      !isApplyMode(input.steeringApplyMode) ||
+      !isApplyMode(input.pedalApplyMode)
+    ) {
       throw new TypeError('trace run input has invalid fields');
     }
-    appendDrivingInput(trace, {
-      steering: input.steering,
-      throttle: input.throttle,
-      brake: input.brake,
-      steeringApplyMode: input.steeringApplyMode,
-      pedalApplyMode: input.pedalApplyMode,
-    }, run.ticks as number);
+    appendDrivingInput(
+      trace,
+      {
+        steering: input.steering,
+        throttle: input.throttle,
+        brake: input.brake,
+        steeringApplyMode: input.steeringApplyMode,
+        pedalApplyMode: input.pedalApplyMode,
+      },
+      run.ticks as number,
+    );
   }
   return trace;
 }
@@ -143,16 +145,19 @@ function cloneInput(input: Readonly<DrivingInput>): Readonly<DrivingInput> {
 }
 
 function sameInput(a: Readonly<DrivingInput>, b: Readonly<DrivingInput>): boolean {
-  return a.steering === b.steering
-    && a.throttle === b.throttle
-    && a.brake === b.brake
-    && a.steeringApplyMode === b.steeringApplyMode
-    && a.pedalApplyMode === b.pedalApplyMode;
+  return (
+    a.steering === b.steering &&
+    a.throttle === b.throttle &&
+    a.brake === b.brake &&
+    a.steeringApplyMode === b.steeringApplyMode &&
+    a.pedalApplyMode === b.pedalApplyMode
+  );
 }
 
 function isPedalRequest(value: unknown): value is PedalRequest {
-  return typeof value === 'boolean'
-    || (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1);
+  return (
+    typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1)
+  );
 }
 
 function isApplyMode(value: unknown): value is DrivingInputApplyMode | undefined {

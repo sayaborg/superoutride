@@ -11,7 +11,7 @@ import {
   pixelsPerMeterAtDepth,
   screenWidthForWorldWidth,
 } from '../dist/core/presentation-scale.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { drawScaledSprite } from '../dist/render/sprite.js';
 
@@ -35,7 +35,7 @@ test('future FOV changes move D_cam and cannot change the 40 px/m player referen
 
 test('car physical width is 2.0 m and car source asset is authored 80 px wide', () => {
   assert.equal(CAR_WIDTH_METERS, 2);
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const rear = assets.car.assets[0][0];
   assert.equal(rear.worldWidthMeters, 2);
   assert.equal(rear.width, 80);
@@ -55,7 +55,7 @@ test('car physical width is 2.0 m and car source asset is authored 80 px wide', 
 });
 
 test('player-depth car source bitmap is drawn 1:1 while nearer objects enlarge by pseudo-depth only', () => {
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const car = assets.car.assets[0][0];
   const target = new SoftwareSurface(320, 240);
 

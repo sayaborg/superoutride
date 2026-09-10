@@ -1,6 +1,6 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
 import { rgba } from '../render/software-surface.js';
+import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
 
 export interface VehicleSpriteSet {
   kind: 'car' | 'bike';
@@ -9,7 +9,7 @@ export interface VehicleSpriteSet {
   assets: readonly (readonly SpriteAsset[])[];
 }
 
-export interface M4SpriteAssets {
+export interface SpriteAssets {
   tree: SpriteAsset;
   sign: SpriteAsset;
   guardrail: SpriteAsset;
@@ -18,7 +18,7 @@ export interface M4SpriteAssets {
   bike: VehicleSpriteSet;
 }
 
-const M4_SPRITE_COLORS = {
+const SPRITE_COLORS = {
   dark: rgba(18, 23, 27),
   tire: rgba(12, 14, 16),
   chrome: rgba(196, 211, 218),
@@ -42,7 +42,7 @@ const M4_SPRITE_COLORS = {
 const YAW_VARIANTS = 24;
 const BIKE_BANK_VARIANTS = 5;
 
-export function createM4SpriteAssets(): M4SpriteAssets {
+export function createSpriteAssets(): SpriteAssets {
   return {
     tree: createTreeAsset(),
     sign: createSignAsset(),
@@ -57,7 +57,7 @@ export function selectYawVariant(relativeYaw: number, count: number): number {
   if (!Number.isInteger(count) || count < 1) throw new RangeError('yaw variant count must be >= 1');
   const angle = wrapAngle(relativeYaw);
   const normalized = angle < 0 ? angle + Math.PI * 2 : angle;
-  return Math.round(normalized / (Math.PI * 2) * count) % count;
+  return Math.round((normalized / (Math.PI * 2)) * count) % count;
 }
 
 function yawAngleForVariant(index: number, count: number): number {
@@ -93,37 +93,37 @@ function createTreeAsset(): SpriteAsset {
     const radius = y <= 3 ? 2 : 3;
     for (let x = 3 - radius; x <= 3 + radius; x += 1) {
       if (x >= 0 && x < 7 && Math.abs(x - 3) + Math.abs(y - 4) < 6) {
-        b.set(x, y, (x + y) % 2 ? M4_SPRITE_COLORS.leafA : M4_SPRITE_COLORS.leafB);
+        b.set(x, y, (x + y) % 2 ? SPRITE_COLORS.leafA : SPRITE_COLORS.leafB);
       }
     }
   }
-  b.fillRect(3, 7, 3, 10, M4_SPRITE_COLORS.trunk);
+  b.fillRect(3, 7, 3, 10, SPRITE_COLORS.trunk);
   return createSpriteAsset('TREE', 7, 11, b.pixels, undefined, undefined, 2.5);
 }
 
 function createSignAsset(): SpriteAsset {
   const b = bitmap(9, 8);
-  b.fillRect(1, 0, 7, 4, M4_SPRITE_COLORS.signFace);
-  b.fillRect(2, 1, 6, 1, M4_SPRITE_COLORS.signMark);
-  b.fillRect(4, 2, 4, 3, M4_SPRITE_COLORS.signMark);
-  b.fillRect(4, 5, 4, 7, M4_SPRITE_COLORS.concrete);
+  b.fillRect(1, 0, 7, 4, SPRITE_COLORS.signFace);
+  b.fillRect(2, 1, 6, 1, SPRITE_COLORS.signMark);
+  b.fillRect(4, 2, 4, 3, SPRITE_COLORS.signMark);
+  b.fillRect(4, 5, 4, 7, SPRITE_COLORS.concrete);
   return createSpriteAsset('SIGN', 9, 8, b.pixels, undefined, undefined, 1.8);
 }
 
 function createGuardrailAsset(): SpriteAsset {
   const b = bitmap(9, 4);
-  b.fillRect(0, 0, 8, 1, M4_SPRITE_COLORS.chrome);
-  b.fillRect(1, 2, 1, 3, M4_SPRITE_COLORS.concrete);
-  b.fillRect(7, 2, 7, 3, M4_SPRITE_COLORS.concrete);
+  b.fillRect(0, 0, 8, 1, SPRITE_COLORS.chrome);
+  b.fillRect(1, 2, 1, 3, SPRITE_COLORS.concrete);
+  b.fillRect(7, 2, 7, 3, SPRITE_COLORS.concrete);
   return createSpriteAsset('GUARDRAIL', 9, 4, b.pixels, undefined, undefined, 3.0);
 }
 
 function createBuildingAsset(): SpriteAsset {
   const b = bitmap(11, 10);
-  b.fillRect(1, 2, 9, 9, M4_SPRITE_COLORS.building);
-  b.fillRect(0, 1, 10, 2, M4_SPRITE_COLORS.dark);
+  b.fillRect(1, 2, 9, 9, SPRITE_COLORS.building);
+  b.fillRect(0, 1, 10, 2, SPRITE_COLORS.dark);
   for (let y = 4; y <= 7; y += 3) {
-    for (let x = 2; x <= 8; x += 3) b.fillRect(x, y, x + 1, y + 1, M4_SPRITE_COLORS.glass);
+    for (let x = 2; x <= 8; x += 3) b.fillRect(x, y, x + 1, y + 1, SPRITE_COLORS.glass);
   }
   return createSpriteAsset('BUILDING', 11, 10, b.pixels, undefined, undefined, 8.0);
 }
@@ -150,19 +150,19 @@ function createCarVariant(angle: number, yawIndex: number): SpriteAsset {
   for (let y = 20; y <= 50; y += 1) {
     const t = (y - 20) / 30;
     const half = Math.round(23 + t * 16);
-    b.fillRect(40 - half, y, 40 + half, y, M4_SPRITE_COLORS.carBody);
+    b.fillRect(40 - half, y, 40 + half, y, SPRITE_COLORS.carBody);
   }
-  b.fillRect(18 + roofShift, 12, 61 + roofShift, 30, M4_SPRITE_COLORS.carHighlight);
-  b.fillRect(24 + roofShift, 15, 55 + roofShift, 25, M4_SPRITE_COLORS.glass);
-  b.fillRect(0, 45, 10, 55, M4_SPRITE_COLORS.tire);
-  b.fillRect(69, 45, 79, 55, M4_SPRITE_COLORS.tire);
-  b.fillRect(14, 36, 65, 40, M4_SPRITE_COLORS.dark);
+  b.fillRect(18 + roofShift, 12, 61 + roofShift, 30, SPRITE_COLORS.carHighlight);
+  b.fillRect(24 + roofShift, 15, 55 + roofShift, 25, SPRITE_COLORS.glass);
+  b.fillRect(0, 45, 10, 55, SPRITE_COLORS.tire);
+  b.fillRect(69, 45, 79, 55, SPRITE_COLORS.tire);
+  b.fillRect(14, 36, 65, 40, SPRITE_COLORS.dark);
   if (facing >= 0) {
-    b.fillRect(14, 39, 23, 44, M4_SPRITE_COLORS.tail);
-    b.fillRect(56, 39, 65, 44, M4_SPRITE_COLORS.tail);
+    b.fillRect(14, 39, 23, 44, SPRITE_COLORS.tail);
+    b.fillRect(56, 39, 65, 44, SPRITE_COLORS.tail);
   } else {
-    b.fillRect(14, 39, 23, 44, M4_SPRITE_COLORS.head);
-    b.fillRect(56, 39, 65, 44, M4_SPRITE_COLORS.head);
+    b.fillRect(14, 39, 23, 44, SPRITE_COLORS.head);
+    b.fillRect(56, 39, 65, 44, SPRITE_COLORS.head);
   }
   return createSpriteAsset(`CAR_YAW_${yawIndex}`, width, height, b.pixels, undefined, undefined, 2.0);
 }
@@ -173,7 +173,7 @@ function createBikeSet(): VehicleSpriteSet {
     const angle = yawAngleForVariant(yawIndex, YAW_VARIANTS);
     const banks: SpriteAsset[] = [];
     for (let bankIndex = 0; bankIndex < BIKE_BANK_VARIANTS; bankIndex += 1) {
-      const normalizedBank = bankIndex / (BIKE_BANK_VARIANTS - 1) * 2 - 1;
+      const normalizedBank = (bankIndex / (BIKE_BANK_VARIANTS - 1)) * 2 - 1;
       banks.push(createBikeVariant(angle, normalizedBank, yawIndex, bankIndex));
     }
     rows.push(banks);
@@ -181,12 +181,7 @@ function createBikeSet(): VehicleSpriteSet {
   return { kind: 'bike', yawVariants: YAW_VARIANTS, bankVariants: BIKE_BANK_VARIANTS, assets: rows };
 }
 
-function createBikeVariant(
-  angle: number,
-  bank: number,
-  yawIndex: number,
-  bankIndex: number,
-): SpriteAsset {
+function createBikeVariant(angle: number, bank: number, yawIndex: number, bankIndex: number): SpriteAsset {
   // DEV physical width 0.80 m, authored at the same 40 source-pixel/m reference density.
   const width = 32;
   const height = 64;
@@ -194,13 +189,13 @@ function createBikeVariant(
   const side = Math.sin(angle);
   const lean = Math.round(bank * 8 + side * 4);
   const cx = 16;
-  b.fillRect(cx - 2, 50, cx + 2, 63, M4_SPRITE_COLORS.tire);
-  b.fillRect(cx - 4, 43, cx + 4, 55, M4_SPRITE_COLORS.chrome);
-  b.fillRect(cx - 8, 36, cx + 8, 50, M4_SPRITE_COLORS.bikeBody);
+  b.fillRect(cx - 2, 50, cx + 2, 63, SPRITE_COLORS.tire);
+  b.fillRect(cx - 4, 43, cx + 4, 55, SPRITE_COLORS.chrome);
+  b.fillRect(cx - 8, 36, cx + 8, 50, SPRITE_COLORS.bikeBody);
   const riderX = Math.round(clamp(cx + lean, 7, 25));
-  b.fillRect(riderX - 4, 13, riderX + 4, 21, M4_SPRITE_COLORS.rider);
-  b.fillRect(riderX - 7, 22, riderX + 7, 38, M4_SPRITE_COLORS.riderSuit);
-  b.fillRect(riderX - 10, 31, riderX + 10, 36, M4_SPRITE_COLORS.riderSuit);
+  b.fillRect(riderX - 4, 13, riderX + 4, 21, SPRITE_COLORS.rider);
+  b.fillRect(riderX - 7, 22, riderX + 7, 38, SPRITE_COLORS.riderSuit);
+  b.fillRect(riderX - 10, 31, riderX + 10, 36, SPRITE_COLORS.riderSuit);
   return createSpriteAsset(
     `BIKE_YAW_${yawIndex}_BANK_${bankIndex}`,
     width,
@@ -208,11 +203,14 @@ function createBikeVariant(
     b.pixels,
     undefined,
     undefined,
-    0.80,
+    0.8,
   );
 }
 
-function bitmap(width: number, height: number): {
+function bitmap(
+  width: number,
+  height: number,
+): {
   pixels: Uint32Array;
   set: (x: number, y: number, color: number) => void;
   fillRect: (x0: number, y0: number, x1: number, y1: number, color: number) => void;

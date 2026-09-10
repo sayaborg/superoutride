@@ -1,7 +1,7 @@
 import type { GuidePath } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { stageRoadToWorld, type StageRoadView } from '../course/stage-road-view.js';
-import type { M3TerrainLine } from './terrain-line.js';
+import type { TerrainLine } from './terrain-line.js';
 
 /**
  * Re-express one already chainage-selected TerrainLine through a stage-local lateral road view.
@@ -13,9 +13,9 @@ import type { M3TerrainLine } from './terrain-line.js';
 export function applyStageRoadViewToTerrainLine(
   guide: GuidePath,
   camera: PseudoCamera,
-  line: M3TerrainLine,
+  line: TerrainLine,
   view: StageRoadView,
-): M3TerrainLine | null {
+): TerrainLine | null {
   const groundLeft = stageRoadToWorld(guide.raster, view, line.s, -view.groundLeft);
   const groundRight = stageRoadToWorld(guide.raster, view, line.s, view.groundRight);
   const roadLeft = stageRoadToWorld(guide.raster, view, line.s, -view.roadLeft);

@@ -1,3 +1,4 @@
+import { nonEmptyId } from '../core/validation.js';
 export type RouteStageKind = 'STAGE' | 'TERMINAL';
 export type RouteDagStatus = 'RUNNING' | 'FINISHED';
 export type RouteDagEvent =
@@ -73,12 +74,12 @@ export function compileRouteDag(
   stageAuthoring: readonly RouteStageAuthoring[],
   choiceAuthoring: readonly RouteChoiceAuthoring[],
 ): RouteDag {
-  assertNonEmptyId(startStageId, 'start stage id');
+  nonEmptyId(startStageId, 'start stage id');
   if (stageAuthoring.length === 0) throw new RangeError('route DAG requires at least one stage');
 
   const stagesById = new Map<string, RouteStageAuthoring>();
   for (const stage of stageAuthoring) {
-    assertNonEmptyId(stage.id, 'route stage id');
+    nonEmptyId(stage.id, 'route stage id');
     if (stage.kind !== 'STAGE' && stage.kind !== 'TERMINAL') {
       const exhaustive: never = stage.kind;
       throw new RangeError(`unsupported route stage kind: ${exhaustive}`);
@@ -93,9 +94,9 @@ export function compileRouteDag(
   for (const stage of stageAuthoring) outgoing.set(stage.id, []);
 
   for (const choice of choiceAuthoring) {
-    assertNonEmptyId(choice.id, 'route choice id');
-    assertNonEmptyId(choice.fromStageId, 'route choice fromStageId');
-    assertNonEmptyId(choice.toStageId, 'route choice toStageId');
+    nonEmptyId(choice.id, 'route choice id');
+    nonEmptyId(choice.fromStageId, 'route choice fromStageId');
+    nonEmptyId(choice.toStageId, 'route choice toStageId');
     if (choicesById.has(choice.id)) throw new RangeError(`duplicate route choice id: ${choice.id}`);
     if (!stagesById.has(choice.fromStageId) || !stagesById.has(choice.toStageId)) {
       throw new RangeError(`route choice ${choice.id} references a missing stage`);
@@ -119,10 +120,12 @@ export function compileRouteDag(
 
   assertAcyclicAndReachable(startStageId, stageAuthoring, choiceAuthoring, outgoing, choicesById);
 
-  const stages: RouteStage[] = stageAuthoring.map((stage) => Object.freeze({
-    ...stage,
-    outgoingChoiceIds: Object.freeze([...outgoing.get(stage.id)!]),
-  }));
+  const stages: RouteStage[] = stageAuthoring.map((stage) =>
+    Object.freeze({
+      ...stage,
+      outgoingChoiceIds: Object.freeze([...outgoing.get(stage.id)!]),
+    }),
+  );
   const choices: RouteChoice[] = choiceAuthoring.map((choice) => Object.freeze({ ...choice }));
 
   return Object.freeze({
@@ -185,7 +188,7 @@ export function updateRouteDag(
   }
 
   if (boundary.kind === 'TRANSITION') {
-    const choice = route.choices.find(candidate => candidate.id === boundary.choiceId);
+    const choice = route.choices.find((candidate) => candidate.id === boundary.choiceId);
     if (choice === undefined || choice.fromStageId !== state.activeStageId) {
       state.rejectedBoundaryCount += 1;
       state.lastEvent = 'REJECTED_INVALID_TRANSITION';
@@ -225,11 +228,7 @@ export function updateRouteDag(
   throw new Error(`unsupported route boundary: ${String(exhaustive)}`);
 }
 
-function result(
-  state: RouteDagState,
-  acceptedChoice: RouteChoice | null,
-  justFinished: boolean,
-): RouteDagUpdate {
+function result(state: RouteDagState, acceptedChoice: RouteChoice | null, justFinished: boolean): RouteDagUpdate {
   return {
     event: state.lastEvent,
     status: state.status,
@@ -237,12 +236,6 @@ function result(
     acceptedChoice,
     justFinished,
   };
-}
-
-function assertNonEmptyId(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }
 
 function assertAcyclicAndReachable(

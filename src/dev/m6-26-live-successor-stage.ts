@@ -1,25 +1,19 @@
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-} from '../core/presentation-scale.js';
 import type { GuidePath } from '../core/guide-curve.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
+import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileRouteBoundaryGateSet,
   type RouteBoundaryGateAuthoring,
   type RouteBoundaryGateSet,
 } from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../gameplay/route-dag.js';
-import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileRouteStageHandoffManifest,
   type RouteStageHandoffManifest,
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
-import {
-  createRasterStageSuccessor,
-  type RasterSuccessorRuntimeSource,
-} from '../runtime/raster-stage-successor.js';
+import { createRasterStageSuccessor, type RasterSuccessorRuntimeSource } from '../runtime/raster-stage-successor.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
@@ -100,7 +94,10 @@ export function createM626LiveGateSet(route: RouteDag, continuation: M626LiveCon
   ]);
 }
 
-export function createM626LiveHandoffManifest(route: RouteDag, continuation: M626LiveContinuation): RouteStageHandoffManifest {
+export function createM626LiveHandoffManifest(
+  route: RouteDag,
+  continuation: M626LiveContinuation,
+): RouteStageHandoffManifest {
   const authoring: RouteStageHandoffSeamAuthoring[] = [
     parentHandoffSeam(continuation, 'S1_LEFT', continuation.base.charts.left, 'LEFT'),
     parentHandoffSeam(continuation, 'S1_RIGHT', continuation.base.charts.right, 'RIGHT'),
@@ -208,10 +205,7 @@ function parentHandoffSeam(
   };
 }
 
-function successorHandoffSeam(
-  successor: M626SuccessorRuntimeSource,
-  choiceId: string,
-): RouteStageHandoffSeamAuthoring {
+function successorHandoffSeam(successor: M626SuccessorRuntimeSource, choiceId: string): RouteStageHandoffSeamAuthoring {
   const point = guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0);
   return {
     id: `H_${choiceId}`,

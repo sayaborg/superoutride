@@ -36,12 +36,7 @@ export interface JunctionCrossSection {
 }
 
 export type JunctionLateralClass =
-  | 'ASPHALT_SINGLE'
-  | 'ASPHALT_LEFT'
-  | 'ASPHALT_RIGHT'
-  | 'MEDIAN'
-  | 'SHOULDER'
-  | 'OUTSIDE';
+  'ASPHALT_SINGLE' | 'ASPHALT_LEFT' | 'ASPHALT_RIGHT' | 'MEDIAN' | 'SHOULDER' | 'OUTSIDE';
 
 interface JunctionScalarSection {
   readonly phase: JunctionPhase;
@@ -66,6 +61,12 @@ const EPSILON = 1e-9;
 export class JunctionCrossSectionProfile {
   readonly authoring: Readonly<JunctionCrossSectionAuthoring>;
 
+  get maxSupportedAbsL(): number {
+    return (
+      this.authoring.childRoadWidth + this.authoring.finalMedianWidth * 0.5 + this.authoring.shoulderWidth + EPSILON
+    );
+  }
+
   constructor(authoring: JunctionCrossSectionAuthoring) {
     validateAuthoring(authoring);
     this.authoring = Object.freeze({ ...authoring });
@@ -75,25 +76,25 @@ export class JunctionCrossSectionProfile {
     const scalar = sampleScalarSection(this.authoring, s);
     const { phase, outerHalfWidth, medianHalfWidth } = scalar;
     const a = this.authoring;
-    const asphaltBands: LateralInterval[] = medianHalfWidth <= EPSILON
-      ? [{ min: -outerHalfWidth, max: outerHalfWidth }]
-      : [
-          { min: -outerHalfWidth, max: -medianHalfWidth },
-          { min: medianHalfWidth, max: outerHalfWidth },
-        ];
-    const medianBand = medianHalfWidth <= EPSILON
-      ? null
-      : { min: -medianHalfWidth, max: medianHalfWidth };
+    const asphaltBands: LateralInterval[] =
+      medianHalfWidth <= EPSILON
+        ? [{ min: -outerHalfWidth, max: outerHalfWidth }]
+        : [
+            { min: -outerHalfWidth, max: -medianHalfWidth },
+            { min: medianHalfWidth, max: outerHalfWidth },
+          ];
+    const medianBand = medianHalfWidth <= EPSILON ? null : { min: -medianHalfWidth, max: medianHalfWidth };
     const shoulderBands: [LateralInterval, LateralInterval] = [
       { min: -outerHalfWidth - a.shoulderWidth, max: -outerHalfWidth },
       { min: outerHalfWidth, max: outerHalfWidth + a.shoulderWidth },
     ];
-    const childCenterL = medianHalfWidth <= EPSILON
-      ? null
-      : Object.freeze({
-          LEFT: -(medianHalfWidth + a.childRoadWidth * 0.5),
-          RIGHT: medianHalfWidth + a.childRoadWidth * 0.5,
-        });
+    const childCenterL =
+      medianHalfWidth <= EPSILON
+        ? null
+        : Object.freeze({
+            LEFT: -(medianHalfWidth + a.childRoadWidth * 0.5),
+            RIGHT: medianHalfWidth + a.childRoadWidth * 0.5,
+          });
 
     return Object.freeze({
       s,
@@ -102,7 +103,10 @@ export class JunctionCrossSectionProfile {
       medianHalfWidth,
       asphaltBands: Object.freeze(asphaltBands.map((band) => Object.freeze({ ...band }))),
       medianBand: medianBand === null ? null : Object.freeze({ ...medianBand }),
-      shoulderBands: Object.freeze(shoulderBands.map((band) => Object.freeze({ ...band }))) as unknown as readonly [LateralInterval, LateralInterval],
+      shoulderBands: Object.freeze(shoulderBands.map((band) => Object.freeze({ ...band }))) as unknown as readonly [
+        LateralInterval,
+        LateralInterval,
+      ],
       childCenterL,
     });
   }
@@ -121,9 +125,10 @@ export class JunctionCrossSectionProfile {
       if (l >= medianHalfWidth - EPSILON && l <= outerHalfWidth + EPSILON) return 'ASPHALT_RIGHT';
     }
     if (
-      (l >= -outerHalfWidth - shoulderWidth - EPSILON && l <= -outerHalfWidth + EPSILON)
-      || (l >= outerHalfWidth - EPSILON && l <= outerHalfWidth + shoulderWidth + EPSILON)
-    ) return 'SHOULDER';
+      (l >= -outerHalfWidth - shoulderWidth - EPSILON && l <= -outerHalfWidth + EPSILON) ||
+      (l >= outerHalfWidth - EPSILON && l <= outerHalfWidth + shoulderWidth + EPSILON)
+    )
+      return 'SHOULDER';
     return 'OUTSIDE';
   }
 

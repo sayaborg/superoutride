@@ -4,10 +4,7 @@ import test from 'node:test';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import {
-  createAutomaticPowertrainState,
-  updateAutomaticPowertrain,
-} from '../dist/physics/automatic-powertrain.js';
+import { createAutomaticPowertrainState, updateAutomaticPowertrain } from '../dist/physics/automatic-powertrain.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
@@ -20,7 +17,10 @@ import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js
 import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const guide = createM2StadiumGuide();
-const height = new HeightProfile(guide.length, [{ s: 0, y: 0 }, { s: guide.length, y: 0 }]);
+const height = new HeightProfile(guide.length, [
+  { s: 0, y: 0 },
+  { s: guide.length, y: 0 },
+]);
 const surfaces = createM5DebugSurfaceMap(guide.length);
 
 function carBasis(car) {
@@ -63,7 +63,10 @@ test('M8.0 support geography does not manufacture contact below an airborne body
 test('M9 car and motorcycle use the same reduced two-station state and differ only by profile', () => {
   const car = createTestCar(guide, height, surfaces, 90);
   const bike = createTestBike(guide, height, surfaces, 90);
-  assert.deepEqual([FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.id, FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.id], ['FRONT', 'REAR']);
+  assert.deepEqual(
+    [FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.id, FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.id],
+    ['FRONT', 'REAR'],
+  );
   assert.equal('roll' in car, false);
   assert.equal('orientation' in car, false);
   assert.equal('orientation' in bike, false);
@@ -100,11 +103,7 @@ test('common HUD reads delivered pedal telemetry without adding hidden assists',
   assert.ok(car.control.deliveredDriveTorque >= 0);
   assert.equal('tractionControlActive' in car.control, false);
   assert.equal('absActive' in car.control, false);
-  const hud = createVehicleDebugHudModel(
-    'linear',
-    { steering: 0, throttle: true, brake: false },
-    car,
-  );
+  const hud = createVehicleDebugHudModel('linear', { steering: 0, throttle: true, brake: false }, car);
   assert.equal(hud.requestedThrottle, 1);
   assert.ok(hud.rearDrive.delivered > 0 && hud.rearDrive.delivered < 1);
   assert.equal(hud.frontDrive.delivered, 0);
@@ -143,7 +142,7 @@ test('M9.17 automatic ratio selection delivers wheel torque without a shift inte
   assert.equal('shiftDirection' in shift, false);
   assert.equal('shiftTimer' in shift, false);
   assert.equal(shift.outputDriveTorque, 100);
-  assert.ok(Math.abs(shift.engineRpm - 500 * 60 / (2 * Math.PI)) < 1e-9);
+  assert.ok(Math.abs(shift.engineRpm - (500 * 60) / (2 * Math.PI)) < 1e-9);
 });
 
 test('M8.0 common dynamics layer owns no concrete product camera renderer or route branch', async () => {

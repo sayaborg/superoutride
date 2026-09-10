@@ -1,3 +1,4 @@
+import { positiveFinite } from '../core/validation.js';
 import { rgbaToRgb555 } from '../render/rgb555.js';
 import type {
   BakedGroundMapChunkMetadata,
@@ -35,15 +36,15 @@ export async function compileBakedGroundMapAsset(
   kMax: number,
   chunkTargetMeters = 32,
 ): Promise<CompiledBakedGroundMapAsset> {
-  validatePositiveFinite(courseLength, 'courseLength');
-  validatePositiveFinite(density.qL, 'qL');
-  validatePositiveFinite(density.qS, 'qS');
-  validatePositiveFinite(chunkTargetMeters, 'chunkTargetMeters');
+  positiveFinite(courseLength, 'courseLength');
+  positiveFinite(density.qL, 'qL');
+  positiveFinite(density.qS, 'qS');
+  positiveFinite(chunkTargetMeters, 'chunkTargetMeters');
   if (!Number.isInteger(kMax) || kMax < 0) throw new RangeError('kMax must be a non-negative integer');
   if (!profile.logical) throw new Error('baked GroundMap requires compiler logical profile');
 
   const lateralWidth = profile.groundLeft + profile.groundRight;
-  validatePositiveFinite(lateralWidth, 'ground width');
+  positiveFinite(lateralWidth, 'ground width');
 
   const baseLateralTexels = alignUp(Math.ceil(lateralWidth / density.qL - 1e-12), 2 ** kMax);
   const baseChainageTexels = alignUp(Math.ceil(courseLength / density.qS - 1e-12), 4 ** kMax);
@@ -63,16 +64,19 @@ export async function compileBakedGroundMapAsset(
     }
   }
 
-  const pyramid = buildGroundMapAnisotropicPyramid({
-    lateralTexels: baseLateralTexels,
-    chainageTexels: baseChainageTexels,
-    pixels: basePixels,
-  }, kMax);
+  const pyramid = buildGroundMapAnisotropicPyramid(
+    {
+      lateralTexels: baseLateralTexels,
+      chainageTexels: baseChainageTexels,
+      pixels: basePixels,
+    },
+    kMax,
+  );
 
   const paletteRgba = collectPalette(pyramid[0]!);
-  const levelFormats: BakedGroundMapStorageFormat[] = pyramid.map((_, level) => (
-    level === 0 && paletteRgba.length <= 256 ? 'palette8' : 'rgb555le'
-  ));
+  const levelFormats: BakedGroundMapStorageFormat[] = pyramid.map((_, level) =>
+    level === 0 && paletteRgba.length <= 256 ? 'palette8' : 'rgb555le',
+  );
   const paletteIndex = new Map<number, number>();
   paletteRgba.forEach((color, index) => paletteIndex.set(color >>> 0, index));
 
@@ -222,8 +226,4 @@ function alignUp(value: number, alignment: number): number {
     throw new RangeError('alignUp requires positive integers');
   }
   return Math.ceil(value / alignment) * alignment;
-}
-
-function validatePositiveFinite(value: number, name: string): void {
-  if (!(value > 0) || !Number.isFinite(value)) throw new RangeError(`${name} must be finite and > 0`);
 }

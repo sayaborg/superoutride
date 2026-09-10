@@ -10,11 +10,7 @@ import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { lockedBranchRecoveryApproach } from '../dist/gameplay/branch-violation.js';
-import {
-  createM5RecoveryState,
-  recoverM5Vehicle,
-  recoverM5VehicleToGuideCoordinate,
-} from '../dist/gameplay/recovery.js';
+import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../dist/gameplay/recovery.js';
 import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
@@ -26,9 +22,9 @@ import {
   resolveLiveRouteTravelerRuntime,
   sampleLiveRouteChoiceTargetL,
 } from '../dist/runtime/live-route-traveler.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createLiveFixture() {
@@ -66,10 +62,10 @@ function createLiveFixture() {
         visual: visualProfile,
         thinSpanScreenRows: 1,
       },
-      selectFarBackground: () => createM3FarBackground(),
+      selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },
-    createM4SpriteAssets(),
+    createSpriteAssets(),
   );
   return { live, guide, heightProfile, surfaceMap };
 }
@@ -90,7 +86,7 @@ function pointAlong(boundary, signedMeters) {
 }
 
 function actorResult(tick, actorId) {
-  const result = tick.actors.find((candidate) => candidate.actorId === actorId);
+  const result = tick.actors[actorId];
   assert.ok(result, `missing actor result ${actorId}`);
   return result;
 }
@@ -118,10 +114,13 @@ function crossAndCommitChoice(live, traveler, choiceId) {
 test('M6.46 ordinary recovery backtracks to the real open start instead of wrapping to the path end', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
   const car = createTestCar(guide, heightProfile, surfaceMap, 4);
-  const recovery = createM5RecoveryState(car);
+  const recovery = createRecoveryState(car);
   recovery.lastSafeS = 4;
 
-  recoverM5Vehicle(recovery, guide, heightProfile, surfaceMap, car, 'manual');
+  recoverVehicle({ guide, height: heightProfile, surfaces: surfaceMap }, car, {
+    state: recovery,
+    reason: 'manual',
+  });
 
   assert.equal(car.course.s, 0);
   assert.equal(car.course.l, 0);
@@ -130,23 +129,19 @@ test('M6.46 ordinary recovery backtracks to the real open start instead of wrapp
 
   const source = fs.readFileSync(new URL('../src/gameplay/recovery.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /wrapPositive|CyclicHeightProfile/);
-  assert.match(source, /HeightProfileReader/);
+  assert.match(source, /VehicleWorld/);
 });
 
 test('M6.46 explicit supported Guide recovery target is reusable for wrong-course response', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
   const car = createTestCar(guide, heightProfile, surfaceMap, 45);
-  const recovery = createM5RecoveryState(car);
+  const recovery = createRecoveryState(car);
 
-  recoverM5VehicleToGuideCoordinate(
-    recovery,
-    guide,
-    heightProfile,
-    surfaceMap,
-    car,
-    { s: 80, l: 1 },
-    'wrong-course',
-  );
+  recoverVehicleToGuideCoordinate({ guide, height: heightProfile, surfaces: surfaceMap }, car, {
+    state: recovery,
+    target: { s: 80, l: 1 },
+    reason: 'wrong-course',
+  });
 
   assert.ok(Math.abs(car.course.s - 80) < 0.2, `CG surface-normal offset moved s to ${car.course.s}`);
   assert.equal(car.course.l, 1);
@@ -251,17 +246,13 @@ test('second-fork losing sibling recovers to the locked physical gate without ma
 
   const runtime = resolveLiveRouteTravelerRuntime(live, loser);
   const car = createTestCar(runtime.coordinateFrame, runtime.heightProfile, runtime.surfaceMap, 0);
-  const recovery = createM5RecoveryState(car);
+  const recovery = createRecoveryState(car);
   const approach = lockedBranchRecoveryApproach(live.gates, 'S4R_FORK_B', 8);
   const target = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, approach.worldPoint, false);
-  recoverM5VehicleToGuideCoordinate(
-    recovery,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
-    runtime.surfaceMap,
+  recoverVehicleToGuideCoordinate(
+    { guide: runtime.coordinateFrame, height: runtime.heightProfile, surfaces: runtime.surfaceMap },
     car,
-    { s: target.s, l: target.l },
-    'wrong-course',
+    { state: recovery, target: { s: target.s, l: target.l }, reason: 'wrong-course' },
   );
   resyncLiveRouteTraveler(live, loser, { x: car.x, z: car.z });
 
@@ -304,7 +295,10 @@ test('M6.46 explicit locked choice can replace AI plan intent without becoming r
   const mainSource = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(mainSource, /getSharedRouteChoiceLock\(/);
   assert.match(mainSource, /sampleLiveRouteChoiceTargetL\(/);
-  assert.match(mainSource, /branchViolation\.lockedChoiceId/);
+  assert.match(
+    fs.readFileSync(new URL('../src/runtime/route-driving-tick.ts', import.meta.url), 'utf8'),
+    /branchViolation\.lockedChoiceId/,
+  );
 });
 
 test('M6.46 branch violation geometry remains gameplay-only and does not depend on physics/render/camera', () => {

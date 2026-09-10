@@ -2,15 +2,17 @@
 
 This directory describes the current system. It is not a chronological milestone archive.
 
-| Document | Authority |
-| --- | --- |
-| [architecture](architecture.md) | Frozen coordinates, raster rendering, metric scale, open geometry and layer boundaries |
-| [vehicle physics](vehicle-physics.md) | Frozen common mechanics, steering and torque constraints; parameters remain tunable |
-| [content and gameplay](content-and-gameplay.md) | Authoring, route/race transactions and recovery composition |
-| [calibration](calibration.md) | Parameter ownership, present defaults and unfinished handling work |
-| [development](development.md) | Build, tests, diagnostics and exact-commit release procedure |
-| [NEXT](NEXT.md) | Single current restart checkpoint and next work |
-| [AUDIT](AUDIT.md) | Scope and verification of the current cleanup |
+All repository documentation must be written and maintained in English. Architectural elegance, simplicity, consistency and the absence of ad hoc implementations are the highest design priorities.
+
+| Document                                        | Authority                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [architecture](architecture.md)                 | Frozen coordinates, raster rendering, metric scale, open geometry and layer boundaries |
+| [vehicle physics](vehicle-physics.md)           | Frozen common mechanics, steering and torque constraints; parameters remain tunable    |
+| [content and gameplay](content-and-gameplay.md) | Authoring, route/race transactions and recovery composition                            |
+| [calibration](calibration.md)                   | Parameter ownership, present defaults and unfinished handling work                     |
+| [development](development.md)                   | Build, tests, diagnostics and exact-commit release procedure                           |
+| [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
+| [AUDIT](AUDIT.md)                               | Scope and verification of the current cleanup                                          |
 
 [AGENTS.md](../AGENTS.md) owns the development contract. Types, compilers and causal regressions enforce the implementation. If code and prose disagree, determine the responsible authority and resolve the conflict explicitly. Do not silently choose a convenient historical statement.
 

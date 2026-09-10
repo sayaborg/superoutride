@@ -20,11 +20,7 @@ export interface SpriteDrawStats {
 }
 
 /** Optional workload observer. It does not change sprite visibility or rasterization. */
-export type SpriteScanlineObserver = (
-  screenY: number,
-  outputSamples: number,
-  writtenPixels: number,
-) => void;
+export type SpriteScanlineObserver = (screenY: number, outputSamples: number, writtenPixels: number) => void;
 
 const EPSILON = 1e-9;
 
@@ -43,11 +39,20 @@ export function createSpriteAsset(
   if (pixels.length !== width * height) throw new RangeError('sprite pixel buffer size mismatch');
   const resolvedAnchorX = anchorX ?? (width - 1) * 0.5;
   const resolvedAnchorY = anchorY ?? height - 1;
-  if (!Number.isFinite(resolvedAnchorX) || !Number.isFinite(resolvedAnchorY)) throw new RangeError('sprite anchor must be finite');
+  if (!Number.isFinite(resolvedAnchorX) || !Number.isFinite(resolvedAnchorY))
+    throw new RangeError('sprite anchor must be finite');
   if (!(worldWidthMeters > 0) || !Number.isFinite(worldWidthMeters)) {
     throw new RangeError('sprite worldWidthMeters must be finite and > 0');
   }
-  return { name, width, height, worldWidthMeters, anchorX: resolvedAnchorX, anchorY: resolvedAnchorY, pixels };
+  return Object.freeze({
+    name,
+    width,
+    height,
+    worldWidthMeters,
+    anchorX: resolvedAnchorX,
+    anchorY: resolvedAnchorY,
+    pixels,
+  });
 }
 
 export function countOpaqueSpriteColors(asset: SpriteAsset): number {
@@ -93,7 +98,7 @@ export function drawScaledSprite(
   let writtenPixels = 0;
 
   for (let y = y0; y <= y1; y += 1) {
-    const sourceY = asset.anchorY + ((y + 0.5) - yAnchor) * invScale;
+    const sourceY = asset.anchorY + (y + 0.5 - yAnchor) * invScale;
     const sy = Math.floor(sourceY + 0.5);
     if (sy < 0 || sy >= asset.height) continue;
     const targetRow = y * target.width;
@@ -102,7 +107,7 @@ export function drawScaledSprite(
     let rowWrittenPixels = 0;
 
     for (let x = x0; x <= x1; x += 1) {
-      const sourceX = asset.anchorX + ((x + 0.5) - xAnchor) * invScale;
+      const sourceX = asset.anchorX + (x + 0.5 - xAnchor) * invScale;
       const sx = Math.floor(sourceX + 0.5);
       if (sx < 0 || sx >= asset.width) continue;
       outputSamples += 1;

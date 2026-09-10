@@ -12,7 +12,7 @@ import {
   screenXToLateral,
 } from '../dist/road/terrain-line.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
@@ -69,7 +69,7 @@ test('camera chainage keeps player pseudo-depth exactly D_cam even with lateral 
   near(d, cameraProfile.dCam, 1e-10);
 });
 
-test('flat TerrainLine generator emits far-to-near horizontal rows and valid affine spans', () => {
+test('flat TerrainLineGeometry generator emits far-to-near horizontal rows and valid affine spans', () => {
   const guide = createM2StadiumGuide();
   const vehicle = renderPose(guide, 80);
   const camera = terrainCamera(guide, null, vehicle, cameraProfile);
@@ -88,7 +88,7 @@ test('flat TerrainLine generator emits far-to-near horizontal rows and valid aff
   }
 });
 
-test('horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLine', () => {
+test('horizontal mapping is exactly affine and invertible on a non-degenerate TerrainLineGeometry', () => {
   const xL = 40;
   const xR = 280;
   const gL = 12;
@@ -127,10 +127,7 @@ test('player projection scale depends on chainage depth, not Euclidean camera di
   vehicle.yaw = roadAtCar.heading + deg(15);
 
   const camera = terrainCamera(guide, null, vehicle, cameraProfile);
-  const projected = pseudoProject(
-    { x: vehicle.x, y: 0, z: vehicle.z, s: vehicle.course.s },
-    camera,
-  );
+  const projected = pseudoProject({ x: vehicle.x, y: 0, z: vehicle.z, s: vehicle.course.s }, camera);
   near(projected.depth, 20);
   near(projected.scale, 10);
 });

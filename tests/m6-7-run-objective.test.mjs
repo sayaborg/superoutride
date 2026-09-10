@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  createRunObjectiveState,
-  updateRunObjectiveFromValidatedFinish,
-} from '../dist/gameplay/run-objective.js';
+import { createRunObjectiveState, updateRunObjectiveFromValidatedFinish } from '../dist/gameplay/run-objective.js';
 
 const routeFinish = {
   source: 'ROUTE_DAG',
@@ -44,11 +41,8 @@ test('point-to-point objective finishes exactly once from the validated route FI
 test('objective rejects a non-route finish source instead of reviving legacy closed-race authority', () => {
   const state = createRunObjectiveState();
   assert.throws(
-    () => updateRunObjectiveFromValidatedFinish(
-      state,
-      { source: 'CLOSED_RACE', id: 'FINISH', validatedProgress: 1000 },
-      3,
-    ),
+    () =>
+      updateRunObjectiveFromValidatedFinish(state, { source: 'CLOSED_RACE', id: 'FINISH', validatedProgress: 1000 }, 3),
     /unsupported run finish source/,
   );
 });

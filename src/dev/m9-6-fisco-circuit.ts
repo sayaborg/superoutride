@@ -1,16 +1,11 @@
-import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
-import { compileCourseMode } from '../gameplay/course-mode.js';
-import { M5_RECOVERY_PROFILE, type M5RecoveryProfile } from '../gameplay/recovery.js';
+import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import {
-  GROUND_COLORS,
-  type GroundMapProfile,
-  type LongitudinalRoadMarking,
-} from '../visual/ground-map.js';
+import { GROUND_COLORS, type GroundMapProfile, type LongitudinalRoadMarking } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 
@@ -32,19 +27,15 @@ const HUNDRED_R_EXIT_TO_ADVAN_METERS = 382.79771304454766;
 const ADVAN_EXIT_TO_THREE_HUNDRED_R_METERS = 227.70463638058752;
 const TURN_THIRTEEN_TO_TURN_FOURTEEN_METERS = 430.3828989144511;
 
-export const M9_6_FISCO_DEV_COURSE_MODE = compileCourseMode({
-  id: 'DEV_M9_6_FISCO_THREE_LAP_ONE_RIVAL',
-  routeKind: 'CIRCUIT',
-});
 export const M9_6_FISCO_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });
 
-export const M9_6_FISCO_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M9_6_FISCO_PLAYER_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M9_6_FISCO_PLAYER_START_L,
 });
 
-export const M9_6_FISCO_RIVAL_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M9_6_FISCO_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M9_6_FISCO_RIVAL_START_L,
 });
 
@@ -107,7 +98,7 @@ export function createM96FiscoLap(): M96FiscoLap {
     const chordLength = 2 * radius * Math.sin(Math.abs(turn) / (2 * steps));
 
     for (let step = 1; step <= steps; step += 1) {
-      const heading = startHeading + turn * step / steps;
+      const heading = startHeading + (turn * step) / steps;
       turtle.x = centerX - sign * radius * Math.cos(heading);
       turtle.z = centerZ + sign * radius * Math.sin(heading);
       vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
@@ -214,10 +205,7 @@ export function createM96FiscoLap(): M96FiscoLap {
   });
 }
 
-function createM96FiscoHeightProfile(
-  courseLength: number,
-  landmarks: M96FiscoLandmarks,
-): HeightProfile {
+function createM96FiscoHeightProfile(courseLength: number, landmarks: M96FiscoLandmarks): HeightProfile {
   return new HeightProfile(courseLength, [
     { s: 0, y: 40 },
     { s: landmarks.homeStraightEndS, y: 40 },
@@ -260,21 +248,23 @@ export function createM96FiscoGroundProfile(): GroundMapProfile {
 
 function createM96FiscoSurfaceMap(courseLength: number): SurfaceMap {
   const shoulderEdge = M9_6_FISCO_ROAD_HALF_WIDTH_METERS + SHOULDER_WIDTH_METERS;
-  return new SurfaceMap(courseLength, [{
-    sStart: 0,
-    name: 'M9.6 FISCO SURFACE',
-    bands: [
-      { lMin: -M9_6_FISCO_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
-      { lMin: -shoulderEdge, lMax: -M9_6_FISCO_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
-      {
-        lMin: -M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
-        lMax: M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
-        type: 'ASPHALT',
-      },
-      { lMin: M9_6_FISCO_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
-      { lMin: shoulderEdge, lMax: M9_6_FISCO_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
-    ],
-  }]);
+  return new SurfaceMap(courseLength, [
+    {
+      sStart: 0,
+      name: 'M9.6 FISCO SURFACE',
+      bands: [
+        { lMin: -M9_6_FISCO_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
+        { lMin: -shoulderEdge, lMax: -M9_6_FISCO_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
+        {
+          lMin: -M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
+          lMax: M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
+          type: 'ASPHALT',
+        },
+        { lMin: M9_6_FISCO_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
+        { lMin: shoulderEdge, lMax: M9_6_FISCO_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
+      ],
+    },
+  ]);
 }
 
 export function createM96FiscoRuntime(): CircuitLiveRuntime {
@@ -282,19 +272,21 @@ export function createM96FiscoRuntime(): CircuitLiveRuntime {
   const topology = compileCircuitTopology('DEV_M9_6_FISCO', authored.raster);
   const lapLength = topology.lapLength;
   const height = createM96FiscoHeightProfile(lapLength, authored.landmarks);
-  const visual = new VisualProfile(lapLength, [{
-    sStart: 0,
-    groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
-    groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
-    name: 'M9.6 FISCO',
-  }]);
+  const visual = new VisualProfile(lapLength, [
+    {
+      sStart: 0,
+      groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
+      groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
+      name: 'M9.6 FISCO',
+    },
+  ]);
   const surface = createM96FiscoSurfaceMap(lapLength);
 
   return compileCircuitLiveRuntime(
     topology,
     0,
     {
-      lMax: M9_6_FISCO_GROUND_HALF_WIDTH_METERS,
+      lMax: M9_6_FISCO_GROUND_HALF_WIDTH_METERS + 1,
       mMin: 0.25,
       dCam: CURRENT_CAMERA_DISTANCE_METERS,
     },

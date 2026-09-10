@@ -1,16 +1,8 @@
 import { sampleGuidePath, type CourseCoordinate } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
-import {
-  guideChartToWorld,
-  handoffGuideChart,
-  locateWorldOnGuideChartLocal,
-  type GuideChart,
-} from './guide-chart.js';
+import { guideChartToWorld, handoffGuideChart, locateWorldOnGuideChartLocal, type GuideChart } from './guide-chart.js';
 import type { RouteChoice, RouteDag, RouteDagState, RouteDagUpdate } from './route-dag.js';
-import {
-  resolveActiveRouteStageContent,
-  type RouteStageContentManifest,
-} from './route-stage-content.js';
+import { resolveActiveRouteStageContent, type RouteStageContentManifest } from './route-stage-content.js';
 import {
   compileWorldCrossingGate,
   observeWorldCrossingGate,
@@ -147,15 +139,17 @@ export function compileRouteStageHandoffManifest(
     choiceIds.add(choice.id);
     seamIds.add(source.id);
     const gate = compileWorldCrossingGate(source);
-    seams.push(Object.freeze({
-      ...gate,
-      choiceId: choice.id,
-      targetChartId: source.targetChartId,
-      sourceSeamS: source.sourceSeamS,
-      targetSeamS: source.targetSeamS,
-      sourceLocalL: source.sourceLocalL,
-      targetLocalL: source.targetLocalL,
-    }));
+    seams.push(
+      Object.freeze({
+        ...gate,
+        choiceId: choice.id,
+        targetChartId: source.targetChartId,
+        sourceSeamS: source.sourceSeamS,
+        targetSeamS: source.targetSeamS,
+        sourceLocalL: source.sourceLocalL,
+        targetLocalL: source.targetLocalL,
+      }),
+    );
   }
 
   for (const choice of route.choices) {
@@ -247,10 +241,10 @@ export function commitRouteStageHandoff(
   if (validated === null) return state.lastEvent;
   const pending = state.pending;
   if (
-    pending === null
-    || validated.choiceId !== pending.choiceId
-    || validated.seamId !== pending.seamId
-    || routeState.activeStageId !== pending.targetStageId
+    pending === null ||
+    validated.choiceId !== pending.choiceId ||
+    validated.seamId !== pending.seamId ||
+    routeState.activeStageId !== pending.targetStageId
   ) {
     state.lastEvent = 'REJECTED_MISMATCH';
     return state.lastEvent;
@@ -258,20 +252,14 @@ export function commitRouteStageHandoff(
 
   const sourceChart = getChart(charts, state.activeChartId);
   const sourceSeamSample = sampleGuidePath(sourceChart.guide, pending.sourceSeamS);
-  const sourceCoordinate = locateWorldOnGuideChartLocal(
-    sourceChart,
-    world,
-    sourceSeamSample.segmentIndex,
-    3,
-    false,
-  );
+  const sourceCoordinate = locateWorldOnGuideChartLocal(sourceChart, world, sourceSeamSample.segmentIndex, 3, false);
   const targetChart = getChart(charts, pending.targetChartId);
   const targetS = pending.targetSeamS + (sourceCoordinate.s - pending.sourceSeamS);
   if (!(targetS >= 0 && targetS <= targetChart.guide.length)) {
     throw new RangeError(
-      `handoff mapped coordinate lies outside target chart: ${pending.choiceId}`
-      + ` source=${sourceCoordinate.s} seam=${pending.sourceSeamS}`
-      + ` target=${targetS} length=${targetChart.guide.length}`,
+      `handoff mapped coordinate lies outside target chart: ${pending.choiceId}` +
+        ` source=${sourceCoordinate.s} seam=${pending.sourceSeamS}` +
+        ` target=${targetS} length=${targetChart.guide.length}`,
     );
   }
   const targetSample = sampleGuidePath(targetChart.guide, targetS);
@@ -298,13 +286,7 @@ export function syncRouteStageHandoffCoordinate(
   world: Vec2,
 ): void {
   const chart = getChart(charts, state.activeChartId);
-  state.coordinate = locateWorldOnGuideChartLocal(
-    chart,
-    world,
-    state.coordinate.segmentIndex,
-    3,
-    false,
-  );
+  state.coordinate = locateWorldOnGuideChartLocal(chart, world, state.coordinate.segmentIndex, 3, false);
 }
 
 function getSeamForChoice(manifest: RouteStageHandoffManifest, choice: RouteChoice): RouteStageHandoffSeam {

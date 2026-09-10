@@ -2,14 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import {
-  advanceRaceSession,
-  createRaceSessionState,
-} from '../dist/gameplay/race-session.js';
-import {
-  createRunObjectiveState,
-  updateRunObjectiveFromValidatedFinish,
-} from '../dist/gameplay/run-objective.js';
+import { advanceRaceSession, createRaceSessionState } from '../dist/gameplay/race-session.js';
+import { createRunObjectiveState, updateRunObjectiveFromValidatedFinish } from '../dist/gameplay/run-objective.js';
 
 const DT = 1 / 60;
 
@@ -28,11 +22,7 @@ test('M6.53 point-to-point timing needs no closed-course progress authority', ()
     id: 'GOAL_RB',
     validatedProgress: fieldProgress.validatedProgressFloor,
   };
-  const update = updateRunObjectiveFromValidatedFinish(
-    objective,
-    finish,
-    session.elapsedSeconds,
-  );
+  const update = updateRunObjectiveFromValidatedFinish(objective, finish, session.elapsedSeconds);
 
   assert.equal(update.justFinished, true);
   assert.ok(Math.abs(objective.finishElapsedSeconds - 121 * DT) < 1e-12);
@@ -42,11 +32,7 @@ test('M6.53 point-to-point timing needs no closed-course progress authority', ()
 
   for (let tick = 0; tick < 60; tick += 1) {
     advanceRaceSession(session, fieldProgress, null, DT);
-    updateRunObjectiveFromValidatedFinish(
-      objective,
-      null,
-      session.elapsedSeconds,
-    );
+    updateRunObjectiveFromValidatedFinish(objective, null, session.elapsedSeconds);
   }
   assert.ok(Math.abs(objective.finishElapsedSeconds - 121 * DT) < 1e-12);
 });
@@ -59,16 +45,13 @@ test('M6.53 BRANCHING composition has one route progress authority', () => {
   assert.doesNotMatch(main, /GeometricCourseTracker|raceProgress|raceUpdate/);
   assert.doesNotMatch(main, /isParentRaceDiagnostic/);
   assert.equal(main.match(/createRaceSessionState\(\)/g)?.length, 1);
+  assert.match(main, /advanceRaceSession\(raceSession, playerFieldProgress, null, dt\)/);
   assert.match(
     main,
-    /advanceRaceSession\(raceSession, playerFieldProgress, null, SIM_DT\)/,
-  );
-  assert.match(
-    main,
-    /updateRunObjectiveFromValidatedFinish\([\s\S]*?finish,[\s\S]*?raceSession\.elapsedSeconds,[\s\S]*?\)/,
+    /updateRunObjectiveFromValidatedFinish\([\s\S]*?finish,[\s\S]*?raceSession\.elapsedSeconds,?[\s\S]*?\)/,
   );
   assert.ok(
-    main.indexOf('advanceRaceSession(raceSession, playerFieldProgress, null, SIM_DT)')
-      < main.indexOf('updateRunObjectiveFromValidatedFinish('),
+    main.indexOf('advanceRaceSession(raceSession, playerFieldProgress, null, dt)') <
+      main.indexOf('updateRunObjectiveFromValidatedFinish('),
   );
 });

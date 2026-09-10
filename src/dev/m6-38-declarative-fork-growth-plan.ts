@@ -1,15 +1,12 @@
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { GuidePath } from '../core/guide-curve.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-} from '../core/presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
   type DeclarativeLiveRouteAuthoring,
   type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
+import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import {
   compileRasterForkGrowthPlan,
   type CompiledRasterForkGrowthPlan,
@@ -17,15 +14,12 @@ import {
 } from '../runtime/raster-fork-growth-plan.js';
 import type { RasterForkStageBranchAuthoring } from '../runtime/raster-fork-stage-route.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
-import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
-import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
-import {
-  M6_22_PARENT_FORK_GEOMETRY,
-  type M622ParentForkGeometry,
-} from './m6-22-child-stage-continuation.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
+import { M6_22_PARENT_FORK_GEOMETRY, type M622ParentForkGeometry } from './m6-22-child-stage-continuation.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import { createM630ThirdLiveSuccessorAuthoring } from './m6-30-third-live-successor.js';
 
@@ -95,29 +89,30 @@ const RIGHT_SECOND_FORK: LiveForkIdentity = Object.freeze({
 export function createM638DeclarativeForkGrowthPlan(
   parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): CompiledRasterForkGrowthPlan {
-  const upstream = createM630ThirdLiveSuccessorAuthoring(
-    parentGuide,
-    parentContent,
-    spriteAssets,
-    parentFork,
-  );
+  const upstream = createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets, parentFork);
   const identity = createM621ChildVisualIdentity();
   const authored = createM624ChildStageAuthoring(spriteAssets, identity);
 
   const createRuntime = (
     structural: Parameters<RasterForkGrowthStep['createRuntime']>[0],
     branch: RasterForkStageBranchAuthoring,
-  ): GuideChartRuntimePackage => chartPackage(compileAuthoredStageRuntimePackage({
-    packageId: branch.packageId,
-    worldFrameId: WORLD_FRAME_ID,
-    coordinateFrame: structural.chart,
-    roadView: structural.roadView,
-    surfaceMap: structural.surfaceMap,
-    groundProfile: structural.groundProfile,
-  }, branch.side === 'LEFT' ? authored.left : authored.right));
+  ): GuideChartRuntimePackage =>
+    chartPackage(
+      compileAuthoredStageRuntimePackage(
+        {
+          packageId: branch.packageId,
+          worldFrameId: WORLD_FRAME_ID,
+          coordinateFrame: structural.chart,
+          roadView: structural.roadView,
+          surfaceMap: structural.surfaceMap,
+          groundProfile: structural.groundProfile,
+        },
+        branch.side === 'LEFT' ? authored.left : authored.right,
+      ),
+    );
 
   return compileRasterForkGrowthPlan(upstream, [
     liveForkStep(LEFT_SECOND_FORK, createRuntime),
@@ -128,21 +123,16 @@ export function createM638DeclarativeForkGrowthPlan(
 function createM638DeclarativeForkGrowthAuthoring(
   parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): DeclarativeLiveRouteAuthoring {
-  return createM638DeclarativeForkGrowthPlan(
-    parentGuide,
-    parentContent,
-    spriteAssets,
-    parentFork,
-  ).authoring;
+  return createM638DeclarativeForkGrowthPlan(parentGuide, parentContent, spriteAssets, parentFork).authoring;
 }
 
 export function createM638DeclarativeForkGrowthRuntime(
   parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): LiveRouteRuntimeAssembly {
   return compileDeclarativeLiveRoute(

@@ -59,21 +59,25 @@ test('M6.25 lateral mapping preserves signed displacement from the linked road c
 test('M6.25 rejects a successor link whose charts do not describe the same overlap geometry', () => {
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
-  assert.throws(() => compileStageContinuationLink({
-    id: 'BAD_LINK',
-    sourceFrame: continuation.charts.parent,
-    targetFrame: continuation.left.chart,
-    sourceSeamS: 600,
-    targetSeamS: continuation.handoffLocalS + 1,
-    sourceLocalL: -7.5,
-    targetLocalL: 0,
-    overlapBehind: 5,
-    overlapAhead: 5,
-  }), /world-position mismatch|heading mismatch/);
+  assert.throws(
+    () =>
+      compileStageContinuationLink({
+        id: 'BAD_LINK',
+        sourceFrame: continuation.charts.parent,
+        targetFrame: continuation.left.chart,
+        sourceSeamS: 600,
+        targetSeamS: continuation.handoffLocalS + 1,
+        sourceLocalL: -7.5,
+        targetLocalL: 0,
+        overlapBehind: 5,
+        overlapAhead: 5,
+      }),
+    /world-position mismatch|heading mismatch/,
+  );
 });
 
 test('M6.25 stage continuation primitive has no route-DAG, renderer or vehicle-physics dependency', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/stage-continuation-link.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /route-dag|route-boundary|renderM5Driving|car-physics|motorcycle-physics/);
+  assert.doesNotMatch(source, /route-dag|route-boundary|renderDriving|car-physics|motorcycle-physics/);
 });

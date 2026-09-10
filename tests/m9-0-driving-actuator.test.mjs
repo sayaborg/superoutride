@@ -20,8 +20,7 @@ const neutral = Object.freeze({ steering: 0, throttle: false, brake: false });
 
 test('direct and rate-limited input reject invalid requests before changing actuator state', () => {
   for (const mode of ['DIRECT', 'RATE_LIMITED']) {
-    const input = { steering: .5, throttle: .25, brake: 0,
-      steeringApplyMode: mode, pedalApplyMode: mode };
+    const input = { steering: 0.5, throttle: 0.25, brake: 0, steeringApplyMode: mode, pedalApplyMode: mode };
     for (const value of [NaN, Infinity, -Infinity]) {
       const state = createDrivingActuatorState();
       assert.throws(() => updateDrivingActuators(state, { ...input, steering: value }, DT, PROFILE), RangeError);
@@ -33,7 +32,10 @@ test('direct and rate-limited input reject invalid requests before changing actu
       assert.deepEqual(state, createDrivingActuatorState());
     }
     const state = createDrivingActuatorState();
-    assert.throws(() => updateDrivingActuators(state, { ...input, pedalApplyMode: 'invalid' }, DT, PROFILE), RangeError);
+    assert.throws(
+      () => updateDrivingActuators(state, { ...input, pedalApplyMode: 'invalid' }, DT, PROFILE),
+      RangeError,
+    );
     assert.deepEqual(state, createDrivingActuatorState());
   }
 });
@@ -82,9 +84,7 @@ test('steering apply and neutral release use the same finite rate', () => {
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate,
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.releaseRate,
   );
-  assert.ok(
-    Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate - 4) < 1e-12,
-  );
+  assert.ok(Math.abs(FERRARI_TESTAROSSA_VEHICLE_PROFILE.actuator.steering.applyRate - 4) < 1e-12);
   const state = { steering: 1, throttle: 1, brake: 1 };
   updateDrivingActuators(state, neutral, DT, PROFILE);
   assert.ok(state.steering > 0 && state.steering < 1);
@@ -116,12 +116,7 @@ test('exclusive pedal handoff preserves ordinary independent finite actuator res
   assert.equal(state.throttle, 1);
   assert.equal(state.brake, 0);
 
-  updateDrivingActuators(
-    state,
-    { steering: 0, throttle: false, brake: true },
-    DT,
-    PROFILE,
-  );
+  updateDrivingActuators(state, { steering: 0, throttle: false, brake: true }, DT, PROFILE);
   assert.ok(state.throttle > 0 && state.throttle < 1);
   assert.ok(state.brake > 0 && state.brake < 1);
 });
@@ -158,24 +153,27 @@ test('fixed-tick actuator replay is deterministic and reset neutralizes every ch
 test('actuator boundary rejects contradictory canonical pedal requests instead of choosing a winner', () => {
   const state = createDrivingActuatorState();
   assert.throws(
-    () => updateDrivingActuators(
-      state,
-      { steering: 0, throttle: true, brake: true },
-      DT,
-      PROFILE,
-    ),
+    () => updateDrivingActuators(state, { steering: 0, throttle: true, brake: true }, DT, PROFILE),
     /mutually exclusive/,
   );
   assert.deepEqual(state, { steering: 0, throttle: 0, brake: 0 });
 });
 
 test('actuator profile rejects non-positive or non-finite rates', () => {
-  assert.throws(() => validateDrivingActuatorProfile({
-    ...PROFILE,
-    throttle: { applyRate: 0, releaseRate: 8 },
-  }), /apply rate/);
-  assert.throws(() => validateDrivingActuatorProfile({
-    ...PROFILE,
-    brake: { applyRate: 1, releaseRate: Number.NaN },
-  }), /release rate/);
+  assert.throws(
+    () =>
+      validateDrivingActuatorProfile({
+        ...PROFILE,
+        throttle: { applyRate: 0, releaseRate: 8 },
+      }),
+    /apply rate/,
+  );
+  assert.throws(
+    () =>
+      validateDrivingActuatorProfile({
+        ...PROFILE,
+        brake: { applyRate: 1, releaseRate: Number.NaN },
+      }),
+    /release rate/,
+  );
 });

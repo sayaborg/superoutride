@@ -1,6 +1,5 @@
 import type { Vec2 } from '../core/math.js';
-import { compileWorldCrossingGate, observeWorldCrossingGate,
-  type WorldCrossingGate, type WorldCrossingGateAuthoring } from './world-crossing-gate.js';
+import { finitePoint, nonEmptyId } from '../core/validation.js';
 import {
   getAvailableRouteChoices,
   getRouteChoice,
@@ -10,14 +9,16 @@ import {
   type RouteDagState,
   type ValidatedRouteBoundary,
 } from './route-dag.js';
+import {
+  compileWorldCrossingGate,
+  observeWorldCrossingGate,
+  type WorldCrossingGate,
+  type WorldCrossingGateAuthoring,
+} from './world-crossing-gate.js';
 
 export type RouteBoundaryGateKind = 'TRANSITION' | 'FINISH';
 export type RouteBoundaryObservationEvent =
-  | 'NONE'
-  | 'VALIDATED_TRANSITION'
-  | 'VALIDATED_FINISH'
-  | 'REVERSE_CROSSING'
-  | 'AMBIGUOUS_FORWARD_CROSSING';
+  'NONE' | 'VALIDATED_TRANSITION' | 'VALIDATED_FINISH' | 'REVERSE_CROSSING' | 'AMBIGUOUS_FORWARD_CROSSING';
 
 export type RouteBoundaryGateAuthoringBase = WorldCrossingGateAuthoring;
 
@@ -87,7 +88,7 @@ export function compileRouteBoundaryGateSet(
   const gates: RouteBoundaryGate[] = [];
 
   for (const source of authoring) {
-    assertNonEmpty(source.id, 'route boundary gate id');
+    nonEmptyId(source.id, 'route boundary gate id');
     if (gateIds.has(source.id)) throw new RangeError(`duplicate route boundary gate id: ${source.id}`);
     gateIds.add(source.id);
 
@@ -154,22 +155,19 @@ export function observeRouteBoundaryCrossing(
   current: Vec2,
   allowedTransitionChoiceId: string | null = null,
 ): RouteBoundaryObservation {
-  assertFinitePoint(previous, 'previous route-boundary point');
-  assertFinitePoint(current, 'current route-boundary point');
+  finitePoint(previous, 'previous route-boundary point');
+  finitePoint(current, 'current route-boundary point');
 
   if (state.status === 'FINISHED') return emptyObservation();
 
   const activeStage = getRouteStage(route, state.activeStageId);
-  let availableChoices = activeStage.kind === 'TERMINAL'
-    ? []
-    : getAvailableRouteChoices(route, state as RouteDagState);
+  let availableChoices = activeStage.kind === 'TERMINAL' ? [] : getAvailableRouteChoices(route, state as RouteDagState);
   if (allowedTransitionChoiceId !== null) {
     if (activeStage.kind === 'TERMINAL') {
       throw new RangeError('terminal route stage cannot have an allowed transition choice');
     }
     const allowedChoice = getRouteChoice(route, allowedTransitionChoiceId);
-    if (allowedChoice.fromStageId !== activeStage.id
-      || !activeStage.outgoingChoiceIds.includes(allowedChoice.id)) {
+    if (allowedChoice.fromStageId !== activeStage.id || !activeStage.outgoingChoiceIds.includes(allowedChoice.id)) {
       throw new RangeError(
         `allowed transition choice ${allowedTransitionChoiceId} does not leave active stage ${activeStage.id}`,
       );
@@ -177,11 +175,12 @@ export function observeRouteBoundaryCrossing(
     availableChoices = availableChoices.filter((choice) => choice.id === allowedTransitionChoiceId);
   }
 
-  const candidates = activeStage.kind === 'TERMINAL'
-    ? gateSet.gates.filter(
-      (gate): gate is RouteFinishGate => gate.kind === 'FINISH' && gate.stageId === activeStage.id,
-    )
-    : availableChoices.map((choice) => getTransitionGateForChoice(gateSet, choice));
+  const candidates =
+    activeStage.kind === 'TERMINAL'
+      ? gateSet.gates.filter(
+          (gate): gate is RouteFinishGate => gate.kind === 'FINISH' && gate.stageId === activeStage.id,
+        )
+      : availableChoices.map((choice) => getTransitionGateForChoice(gateSet, choice));
 
   const crossings = candidates
     .map((gate) => detectGateCrossing(gate, previous, current))
@@ -238,10 +237,7 @@ export function observeRouteBoundaryCrossing(
   return emptyObservation();
 }
 
-function getTransitionGateForChoice(
-  gateSet: RouteBoundaryGateSet,
-  choice: RouteChoice,
-): RouteTransitionGate {
+function getTransitionGateForChoice(gateSet: RouteBoundaryGateSet, choice: RouteChoice): RouteTransitionGate {
   const gate = gateSet.gates.find(
     (candidate): candidate is RouteTransitionGate =>
       candidate.kind === 'TRANSITION' && candidate.choiceId === choice.id,
@@ -250,11 +246,7 @@ function getTransitionGateForChoice(
   return gate;
 }
 
-function detectGateCrossing(
-  gate: RouteBoundaryGate,
-  previous: Vec2,
-  current: Vec2,
-): GateCrossing | null {
+function detectGateCrossing(gate: RouteBoundaryGate, previous: Vec2, current: Vec2): GateCrossing | null {
   const crossing = observeWorldCrossingGate(gate, previous, current);
   return crossing === null ? null : { gate, direction: crossing.direction, u: crossing.u };
 }
@@ -268,14 +260,4 @@ function emptyObservation(): RouteBoundaryObservation {
     reverseCrossingCount: 0,
     crossingFraction: null,
   };
-}
-
-function assertFinitePoint(point: Vec2, label: string): void {
-  if (![point.x, point.z].every(Number.isFinite)) throw new RangeError(`${label} must be finite`);
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }

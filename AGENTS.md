@@ -4,6 +4,8 @@ Read this file, [README](README.md), [documentation index](docs/README.md), [arc
 
 ## Authority and priorities
 
+All repository documentation must be written and maintained in English. Architectural elegance, simplicity, consistency and the absence of ad hoc implementations are the highest design priorities.
+
 - [Architecture](docs/architecture.md): frozen rendering, coordinate, metric and topology invariants.
 - [Vehicle physics](docs/vehicle-physics.md): common CAR/BIKE mechanics and control.
 - [Content and gameplay](docs/content-and-gameplay.md): authoring, route/race progress and recovery.

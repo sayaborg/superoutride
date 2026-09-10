@@ -1,11 +1,11 @@
 import { createGuideChart } from '../gameplay/guide-chart.js';
-import { compileStageContinuationLink } from './stage-continuation-link.js';
 import {
   createRasterStageSuccessor,
   type RasterSuccessorAuthoring,
   type RasterSuccessorRuntimeSource,
   type RasterSuccessorSource,
 } from './raster-stage-successor.js';
+import { compileStageContinuationLink } from './stage-continuation-link.js';
 
 export interface RasterForkSuccessorAuthoring {
   /** Active source-stage local center of the separated child road. */
@@ -35,11 +35,14 @@ export function createRasterForkStageSuccessor(
     source.guide,
     source.chart.lateralOrigin + authoring.sourceLocalL,
   );
-  const generated = createRasterStageSuccessor({
-    guide: source.guide,
-    chart: shiftedSourceChart,
-    groundProfile: source.groundProfile,
-  }, authoring.successor);
+  const generated = createRasterStageSuccessor(
+    {
+      guide: source.guide,
+      chart: shiftedSourceChart,
+      groundProfile: source.groundProfile,
+    },
+    authoring.successor,
+  );
 
   const link = compileStageContinuationLink({
     id: generated.link.id,

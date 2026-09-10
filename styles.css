@@ -259,13 +259,7 @@ body {
   width: 32px;
   height: 48px;
   border-radius: 8px;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgb(255 208 138 / 82%) 0 2px,
-      transparent 2px 7px
-    ),
-    rgb(5 8 12 / 72%);
+  background: repeating-linear-gradient(0deg, rgb(255 208 138 / 82%) 0 2px, transparent 2px 7px), rgb(5 8 12 / 72%);
 }
 
 .touch-analog-vector {
@@ -466,7 +460,8 @@ body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     gap: 8px;
-    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
   .touch-capable .mobile-selector-zone {

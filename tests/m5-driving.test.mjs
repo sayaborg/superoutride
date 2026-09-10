@@ -7,22 +7,19 @@ import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
-import {
-  deriveVehicleLeanRadians,
-  deriveVehicleNormalizedBank,
-} from '../dist/render/vehicle-presentation.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { deriveVehicleLeanRadians, deriveVehicleNormalizedBank } from '../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
-const deg = (v) => v * Math.PI / 180;
+const deg = (v) => (v * Math.PI) / 180;
 const near = (a, b, eps = 1e-7) => assert.ok(Math.abs(a - b) <= eps, `${a} != ${b} ± ${eps}`);
 
 const guide = createM2StadiumGuide();
@@ -42,7 +39,11 @@ const cameraProfile = {
   deltaYMax: 4,
 };
 const groundProfile = {
-  groundLeft: 12, groundRight: 12, roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1,
+  groundLeft: 12,
+  groundRight: 12,
+  roadLeft: 4.5,
+  roadRight: 4.5,
+  shoulderWidth: 1,
   roadMarkings: CENTER_DASH_MARKINGS,
 };
 const terrainProfile = {
@@ -85,11 +86,13 @@ test('SurfaceMap returns lightweight physical attributes independent from Ground
 });
 
 test('SurfaceMap supports authored custom support even when visual GroundBase decisions are unrelated', () => {
-  const custom = new SurfaceMap(100, [{
-    sStart: 0,
-    name: 'CUSTOM',
-    bands: [{ lMin: -9, lMax: -7, type: 'GRASS' }],
-  }]);
+  const custom = new SurfaceMap(100, [
+    {
+      sStart: 0,
+      name: 'CUSTOM',
+      bands: [{ lMin: -9, lMax: -7, type: 'GRASS' }],
+    },
+  ]);
   assert.equal(custom.sample(10, -8).type, 'GRASS');
   assert.equal(custom.sample(10, 0).type, 'VOID');
 });
@@ -166,10 +169,10 @@ test('VOID means no support: planar momentum continues while vertical state fall
 test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical framing', () => {
   const car = createTestCar(guide, height, surfaces, 125);
   placeCar(car, 125, 0, 35);
-  const rig = createM5CameraRig();
+  const rig = createCameraRig();
   let camera;
   for (let i = 0; i < 180; i += 1) {
-    camera = updateM5Camera(rig, guide, height, car, cameraProfile, 1 / 60);
+    camera = updateCamera(rig, guide, height, car, cameraProfile, 1 / 60);
   }
   near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
   assert.ok(Math.abs(camera.verticalCorrection) <= cameraProfile.deltaYMax + 1e-9);
@@ -177,9 +180,9 @@ test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical fra
 });
 
 test('M5 renderer projects player from physical Y and keeps player depth/scale chainage-only', () => {
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const world = createM4DebugWorldSprites(guide, height, assets);
-  const background = createM3FarBackground();
+  const background = createFarBackground();
   const car = createTestCar(guide, height, surfaces, 520);
   placeCar(car, 520, -8, 20);
   // Force an airborne offset to prove renderer consumes vehicle.y rather than Y_render.
@@ -187,16 +190,29 @@ test('M5 renderer projects player from physical Y and keeps player depth/scale c
   car.frontNormalLoad = 0;
   car.rearNormalLoad = 0;
   car.surfaceType = 'VOID';
-  const rig = createM5CameraRig();
-  const camera = updateM5Camera(rig, guide, height, car, cameraProfile, 1 / 60);
+  const rig = createCameraRig();
+  const camera = updateCamera(rig, guide, height, car, cameraProfile, 1 / 60);
   const projected = pseudoProject({ x: car.x, y: car.y, z: car.z, s: car.course.s }, camera);
   const surface = new SoftwareSurface(320, 240);
-  const stats = renderM5Driving(surface, background, guide, camera, car, terrainProfile, groundProfile, world, assets, 'car');
+  const stats = renderDriving(
+    surface,
+    {
+      background,
+      guide,
+      camera,
+      vehicle: car,
+      terrainProfile,
+      groundProfile,
+      worldSprites: world,
+      assets,
+      playerKind: 'car',
+    },
+    {},
+  );
   assert.ok(stats.playerWrittenPixels > 0);
   near(projected.scale, cameraProfile.focalLength / cameraProfile.dCam, 1e-9);
   near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
 });
-
 
 test('BIKE profile produces physical yaw and derived presentation lean from canonical DrivingInput', () => {
   const bike = createTestBike(guide, height, surfaces, 100);
@@ -226,7 +242,7 @@ test('BIKE profile surface response changes through the common physical material
 test('BIKE derived presentation lean selects a non-center yaw x bank sprite variant', () => {
   const bike = createTestBike(guide, height, surfaces, 100);
   bike.lateralAcceleration = 4; // M9.28: bank follows observed G, not yaw alone.
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const normalizedBank = deriveVehicleNormalizedBank(bike);
   const bankCount = assets.bike.bankVariants;
   const bankIndex = Math.round((Math.max(-1, Math.min(1, normalizedBank)) + 1) * 0.5 * (bankCount - 1));

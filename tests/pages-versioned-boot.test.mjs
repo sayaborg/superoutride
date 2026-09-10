@@ -16,10 +16,9 @@ test('Pages boot resolves all three top-level compositions through one commit-ve
   assert.match(workflow, /cp -R dist _site\/dist/);
 });
 
-test('visible Pages milestone labels match the package milestone', async () => {
+test('product labels have stable identity independent of package version', async () => {
   const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
-  const [, milestoneMajor, milestoneMinor] = packageJson.version.split('.');
-  const milestone = `M${milestoneMajor}.${milestoneMinor}`;
+  assert.equal(packageJson.name, 'super-outride');
   const [index, hud, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
     readFile(new URL('../src/browser/vehicle-debug-hud.ts', import.meta.url), 'utf8'),
@@ -28,9 +27,14 @@ test('visible Pages milestone labels match the package milestone', async () => {
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.ok(index.includes(milestone), `index.html must show ${milestone}`);
-  assert.ok(hud.includes(milestone), `shared HUD must show ${milestone}`);
-  for (const [name, source] of [['LINEAR', linear], ['BRANCHING', branching], ['CIRCUIT', circuit]]) {
+  assert.match(index, /<title>SUPER OUTRIDE<\/title>/);
+  assert.match(hud, /SUPER OUTRIDE/);
+  for (const source of [index, hud]) assert.doesNotMatch(source, /M\d+\.\d+/);
+  for (const [name, source] of [
+    ['LINEAR', linear],
+    ['BRANCHING', branching],
+    ['CIRCUIT', circuit],
+  ]) {
     assert.match(source, /shell\.present\(/, `${name} must use the shared HUD`);
   }
 });

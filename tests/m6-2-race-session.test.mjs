@@ -107,11 +107,14 @@ test('ranking consumes continuous validated progress and never raw geometric cha
     { competitorId: 'B', sProgress: 130, validatedProgressFloor: 100 },
     { competitorId: 'C', sProgress: 110, validatedProgressFloor: 100 },
   ]);
-  assert.deepEqual(standings.map((entry) => [entry.competitorId, entry.rank]), [
-    ['B', 1],
-    ['A', 2],
-    ['C', 3],
-  ]);
+  assert.deepEqual(
+    standings.map((entry) => [entry.competitorId, entry.rank]),
+    [
+      ['B', 1],
+      ['A', 2],
+      ['C', 3],
+    ],
+  );
   assert.ok(standings.every((entry) => !('sLocal' in entry)));
 });
 
@@ -131,11 +134,14 @@ test('exactly equal validated race states remain a true tie with no arbitrary ID
     { competitorId: 'A', sProgress: 300, validatedProgressFloor: 200 },
     { competitorId: 'B', sProgress: 250, validatedProgressFloor: 200 },
   ]);
-  assert.deepEqual(standings.map((entry) => [entry.competitorId, entry.rank]), [
-    ['Z', 1],
-    ['A', 1],
-    ['B', 3],
-  ]);
+  assert.deepEqual(
+    standings.map((entry) => [entry.competitorId, entry.rank]),
+    [
+      ['Z', 1],
+      ['A', 1],
+      ['B', 3],
+    ],
+  );
 });
 
 test('validated terminal finish time resolves only otherwise-equal completed progress', () => {
@@ -160,11 +166,14 @@ test('validated terminal finish time resolves only otherwise-equal completed pro
     },
   ]);
 
-  assert.deepEqual(standings.map((entry) => [entry.competitorId, entry.rank]), [
-    ['EARLIER_FINISH', 1],
-    ['LATER_FINISH', 2],
-    ['UNFINISHED_AT_CEILING', 3],
-  ]);
+  assert.deepEqual(
+    standings.map((entry) => [entry.competitorId, entry.rank]),
+    [
+      ['EARLIER_FINISH', 1],
+      ['LATER_FINISH', 2],
+      ['UNFINISHED_AT_CEILING', 3],
+    ],
+  );
 });
 
 test('race time formatter is deterministic millisecond display', () => {

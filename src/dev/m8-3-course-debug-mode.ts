@@ -1,5 +1,5 @@
-import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileCourseMode } from '../gameplay/course-mode.js';
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 
 /**
  * BRANCHING course-debug composition.

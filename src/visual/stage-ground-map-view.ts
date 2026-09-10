@@ -1,15 +1,6 @@
-import {
-  classifyStageRoadLocalL,
-  stageRoadSourceLateral,
-  type StageRoadView,
-} from '../course/stage-road-view.js';
+import { classifyStageRoadLocalL, stageRoadSourceLateral, type StageRoadView } from '../course/stage-road-view.js';
 import type { BakedGroundMapSample } from './baked-ground-map.js';
-import {
-  GROUND_COLORS,
-  sampleGroundMap,
-  sampleJunctionGroundMap,
-  type GroundMapProfile,
-} from './ground-map.js';
+import { GROUND_COLORS, sampleGroundMap, sampleJunctionGroundMap, type GroundMapProfile } from './ground-map.js';
 
 /**
  * Stage-local GroundMap sampling without duplicating reusable source data.
@@ -73,7 +64,5 @@ export function sampleStageGroundMapAtLevel(
   if (localClass === 'SHOULDER') return GROUND_COLORS.shoulder;
 
   const sourceL = stageRoadSourceLateral(view, localL);
-  return profile.baked
-    ? profile.baked.sampleAtLevel(sourceS, sourceL, level)
-    : sampleGroundMap(s, sourceL, profile);
+  return profile.baked ? profile.baked.sampleAtLevel(sourceS, sourceL, level) : sampleGroundMap(s, sourceL, profile);
 }

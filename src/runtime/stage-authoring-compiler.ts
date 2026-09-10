@@ -1,17 +1,20 @@
-import { guideCoordinateCurve, guideCoordinateLateralOrigin, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../core/presentation-scale.js';
+  guideCoordinateCurve,
+  guideCoordinateLateralOrigin,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import { HeightProfile, type HeightNode } from '../visual/height-profile.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
+import { HeightProfile, type HeightNode } from '../visual/height-profile.js';
 import { VisualProfile, type VisualSection } from '../visual/visual-profile.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 import type { StageRuntimeContentPackage } from './stage-runtime-content.js';
+import { positiveFinite } from '../core/validation.js';
 
 export interface StageLocalSpriteAuthoring extends Omit<CourseSpriteAuthoring, 'l'> {
   /** Lateral position in the active stage chart, not the underlying raster source frame. */
@@ -79,6 +82,9 @@ export function compileStageEnvironment(
   const heightProfile = new HeightProfile(guide.length, compileOpenHeightNodes(guide.length, authoring.heightNodes));
   const visual = new VisualProfile(guide.length, authoring.visualSections);
   const terrain = { ...DEFAULT_TERRAIN, ...authoring.terrain };
+  positiveFinite(terrain.dMin, 'near draw distance');
+  positiveFinite(terrain.dMax, 'far draw distance');
+  if (terrain.dMax <= terrain.dMin) throw new RangeError('far draw distance must exceed near draw distance');
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,
     dMin: terrain.dMin,
@@ -91,11 +97,11 @@ export function compileStageEnvironment(
     visual,
     thinSpanScreenRows: terrain.thinSpanScreenRows,
   };
-  const worldSprites = Object.freeze((authoring.sprites ?? []).map((sprite) => compileCourseSprite(
-    guide,
-    heightProfile,
-    { ...sprite, l: sprite.l + lateralOrigin },
-  )));
+  const worldSprites = Object.freeze(
+    (authoring.sprites ?? []).map((sprite) =>
+      compileCourseSprite(guide, heightProfile, { ...sprite, l: sprite.l + lateralOrigin }),
+    ),
+  );
 
   return Object.freeze({ heightProfile, terrainProfile, worldSprites });
 }
@@ -108,6 +114,7 @@ export function compileAuthoredStageRuntimePackage(
   source: StageRuntimeSource,
   authoring: StageEnvironmentAuthoring,
 ): StageRuntimeContentPackage {
+  validateSurfaceGuideEnvelope(source.coordinateFrame, source.surfaceMap);
   const environment = compileStageEnvironment(source.coordinateFrame, authoring);
   return Object.freeze({
     packageId: source.packageId,

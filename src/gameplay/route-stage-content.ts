@@ -1,3 +1,4 @@
+import { nonEmptyId } from '../core/validation.js';
 import type { RouteDag, RouteDagState } from './route-dag.js';
 
 /**
@@ -56,8 +57,8 @@ export function compileRouteStageContentManifest(
   const packageById = new Map<string, RouteStageContentPackageRef>();
   let worldFrameId: string | null = null;
   for (const source of packages) {
-    assertNonEmpty(source.packageId, 'stage content packageId');
-    assertNonEmpty(source.worldFrameId, 'stage content worldFrameId');
+    nonEmptyId(source.packageId, 'stage content packageId');
+    nonEmptyId(source.worldFrameId, 'stage content worldFrameId');
     if (packageById.has(source.packageId)) {
       throw new RangeError(`duplicate stage content packageId: ${source.packageId}`);
     }
@@ -74,8 +75,8 @@ export function compileRouteStageContentManifest(
   const compiledBindings: RouteStageContentBinding[] = [];
 
   for (const source of bindings) {
-    assertNonEmpty(source.stageId, 'stage content binding stageId');
-    assertNonEmpty(source.packageId, 'stage content binding packageId');
+    nonEmptyId(source.stageId, 'stage content binding stageId');
+    nonEmptyId(source.packageId, 'stage content binding packageId');
     if (!routeStageIds.has(source.stageId)) {
       throw new RangeError(`stage content binding references unknown route stage: ${source.stageId}`);
     }
@@ -118,10 +119,4 @@ export function resolveActiveRouteStageContent(
   const contentPackage = manifest.packages.find((candidate) => candidate.packageId === binding.packageId);
   if (!contentPackage) throw new Error(`compiled stage content package missing: ${binding.packageId}`);
   return Object.freeze({ stageId: state.activeStageId, package: contentPackage });
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }

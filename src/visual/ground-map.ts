@@ -85,14 +85,11 @@ export function sampleJunctionGroundMap(
 
   if (lateralClass === 'MEDIAN') return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
   if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
-  if (
-    lateralClass === 'ASPHALT_SINGLE'
-    || lateralClass === 'ASPHALT_LEFT'
-    || lateralClass === 'ASPHALT_RIGHT'
-  ) {
-    const center = lateralClass === 'ASPHALT_SINGLE'
-      ? 0
-      : junction.childCenterLAt(junctionS, lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT');
+  if (lateralClass === 'ASPHALT_SINGLE' || lateralClass === 'ASPHALT_LEFT' || lateralClass === 'ASPHALT_RIGHT') {
+    const center =
+      lateralClass === 'ASPHALT_SINGLE'
+        ? 0
+        : junction.childCenterLAt(junctionS, lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT');
     if (center !== null && sampleRoadMarking(patternS, l - center, markings)) return GROUND_COLORS.marking;
     return asphaltColor(patternS);
   }

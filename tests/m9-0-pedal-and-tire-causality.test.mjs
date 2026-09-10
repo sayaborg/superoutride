@@ -20,12 +20,8 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 function createProbe(speed = 10, profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE) {
   return createArcadeVehicle(
     profile,
-    highway.guide,
-    flatHeight,
-    highway.surfaceMap,
-    800,
-    -1.75,
-    speed,
+    { guide: highway.guide, height: flatHeight, surfaces: highway.surfaceMap },
+    { s: 800, l: -1.75, initialSpeed: speed },
   );
 }
 
@@ -94,8 +90,8 @@ test('AWD fixed torque split changes tire utilization and the resulting handling
   assert.ok(allWheelDrive.control.frontUtilization > rearDrive.control.frontUtilization);
   assert.ok(allWheelDrive.control.rearUtilization < rearDrive.control.rearUtilization);
   assert.ok(
-    Math.abs(allWheelDrive.frontWheelOmega - allWheelDrive.rearWheelOmega)
-      < Math.abs(rearDrive.frontWheelOmega - rearDrive.rearWheelOmega),
+    Math.abs(allWheelDrive.frontWheelOmega - allWheelDrive.rearWheelOmega) <
+      Math.abs(rearDrive.frontWheelOmega - rearDrive.rearWheelOmega),
   );
   assert.notEqual(allWheelDrive.course.l, rearDrive.course.l);
   assert.notEqual(allWheelDrive.yawRate, rearDrive.yawRate);
@@ -127,10 +123,7 @@ test('brake actuator produces partial torque, physical lock and continuous relea
 
 test('common vehicle boundary rejects contradictory canonical pedals before actuator or wheel torque', () => {
   const vehicle = createProbe(20);
-  assert.throws(
-    () => step(vehicle, { steering: 0.3, throttle: true, brake: true }),
-    /mutually exclusive/,
-  );
+  assert.throws(() => step(vehicle, { steering: 0.3, throttle: true, brake: true }), /mutually exclusive/);
   assert.deepEqual(vehicle.actuator, { steering: 0, throttle: 0, brake: 0 });
 });
 

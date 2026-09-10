@@ -1,6 +1,6 @@
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
-import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
+import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 
 export interface M618StageRoadViews {
   readonly parent: StageRoadView;

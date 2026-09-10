@@ -1,9 +1,9 @@
 import type { GuidePath } from '../core/guide-curve.js';
+import { rgba, SoftwareSurface } from '../render/software-surface.js';
+import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
+import type { FarBackground } from '../visual/far-background.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import { compileCourseSprite, type CourseSprite } from '../world/course-sprite.js';
-import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
-import { SoftwareSurface, rgba } from '../render/software-surface.js';
-import type { FarBackground } from '../visual/far-background.js';
 
 export const TUNNEL_ENTRY_S = 130;
 export const TUNNEL_EXIT_S = 180;
@@ -65,11 +65,8 @@ export function selectTunnelBackground(
   if (!Number.isFinite(cameraS) || cameraS < 0 || cameraS > courseLength) {
     throw new RangeError('camera chainage is outside the open course');
   }
-  const active = cameraS >= tunnel.cameraTransitionStartS
-    && cameraS < tunnel.cameraTransitionEndS;
-  return active
-    ? { kind: 'TUNNEL', background: tunnel.interiorBackground }
-    : { kind: 'OUTDOOR', background: outdoor };
+  const active = cameraS >= tunnel.cameraTransitionStartS && cameraS < tunnel.cameraTransitionEndS;
+  return active ? { kind: 'TUNNEL', background: tunnel.interiorBackground } : { kind: 'OUTDOOR', background: outdoor };
 }
 
 function createTunnelInteriorBackground(): FarBackground {
@@ -90,9 +87,9 @@ function createTunnelInteriorBackground(): FarBackground {
       const centered = Math.abs(x - width * 0.5);
       let color: number;
       if (y < sourceHorizonY - 28) {
-        color = ((x >> 5) & 1) ? ceilingA : ceilingB;
+        color = (x >> 5) & 1 ? ceilingA : ceilingB;
       } else if (y < sourceHorizonY + 48) {
-        color = centered < 118 ? roadDark : (((x >> 4) & 1) ? wallA : wallB);
+        color = centered < 118 ? roadDark : (x >> 4) & 1 ? wallA : wallB;
         const lampBand = (x + 12) % 96;
         if (y < sourceHorizonY - 6 && (lampBand < 7 || lampBand > 89)) color = lamp;
       } else {

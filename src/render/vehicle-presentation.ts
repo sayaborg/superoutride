@@ -12,9 +12,7 @@ export interface VehicleIdentityPresentationRead {
 
 export type VehicleSpriteFamily = 'car' | 'bike';
 
-export function deriveVehicleSpriteFamily(
-  vehicle: VehicleIdentityPresentationRead,
-): VehicleSpriteFamily {
+export function deriveVehicleSpriteFamily(vehicle: VehicleIdentityPresentationRead): VehicleSpriteFamily {
   return vehicle.presentationFamily === 'BIKE' ? 'bike' : 'car';
 }
 
@@ -24,5 +22,5 @@ export function deriveVehicleLeanRadians(vehicle: VehicleTurnPresentationRead): 
 }
 
 export function deriveVehicleNormalizedBank(vehicle: VehicleTurnPresentationRead): number {
-  return clamp(deriveVehicleLeanRadians(vehicle) / (45 * Math.PI / 180), -1, 1);
+  return clamp(deriveVehicleLeanRadians(vehicle) / ((45 * Math.PI) / 180), -1, 1);
 }

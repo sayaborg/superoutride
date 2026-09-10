@@ -2,7 +2,7 @@
 
 ## Local workflow
 
-Use Node.js 24 (package engines enforce the supported major). `npm ci` installs the lockfile; `npm run check` checks types; `npm run build` clears dist, compiles TypeScript ESM and bakes GroundMap; `npm test` rebuilds and runs the complete test suite. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
+Use Node.js 24 (package engines enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist, compiles TypeScript ESM and bakes GroundMap; `npm test` runs lint, formatting, the build and the complete executable suite. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
 
 Use the canonical repository workspace for the next task; inspect `git status`, `git worktree list`, branch and remote before editing. Preserve unrelated changes. Fetch main, record its SHA, branch from it with a `codex/` name. Never edit main directly. Inspect the appropriate source and topic contract; [AGENTS](../AGENTS.md) contains the mandatory architecture gate.
 
@@ -12,7 +12,7 @@ Causal regressions exercise real physics, physical gates, handoffs, recovery, ca
 
 Some tests use explicitly fixed calibration fixtures so a failure can be reproduced after player defaults change. That does not make the old values product defaults. Do not rewrite such fixtures merely to improve their outcomes. A removed obsolete renderer or archived-document hash is different: preserve current primitive/integration coverage and delete the superseded implementation/preservation requirement.
 
-The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Local runs without that environment test determinism only; they are not historical equivalence evidence. Intentional law changes must explicitly revise the baseline/contract after review, not normalize away differences.
+The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. The probe adapts the historical positional constructor to the current named arguments; the renderer comparison similarly adapts the old module/function name and call shape. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only; they are not historical equivalence evidence. Intentional law changes must explicitly revise the baseline/contract after review, not normalize away differences.
 
 Useful diagnostics:
 
@@ -22,7 +22,11 @@ node tools/torque-protection-terrain-probe.mjs --hz 120 --out /tmp/terrain.json
 node tools/braking-yaw-probe.mjs
 node tools/bike-cg-probe.mjs dist /tmp/bike-cg.json
 node tools/steering-input-stop-probe.mjs
+node tools/torque-protection-probe.mjs --hz 120 --out /tmp/protection.json
+node tools/steering-input-stop-benchmark.mjs /path/to/reference/dist /tmp/steering-timing.json
 ```
+
+The [torque protection probe](../tools/torque-protection-probe.mjs) compares protected and unprotected drive/brake behavior. The [steering limiter benchmark](../tools/steering-input-stop-benchmark.mjs) measures identical input groups against a supplied build. Retain these reproducible tools rather than copying generated reports into documentation.
 
 [Browser performance page](../tools/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. [Workload reduction](../src/render/render-workload.ts) reports current observations; no copied milestone maxima or arbitrary headroom multiplier establishes a device budget. Enforce actual clipping/accounting invariants and compare reference pixels, then measure on the target device. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
 

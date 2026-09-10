@@ -22,36 +22,27 @@ export interface TouchPedalRequests {
 /** M9.14 compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
 export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
 
-export function touchAnalogFullScaleDistance(
-  viewportWidth: number,
-  viewportHeight: number,
-): number {
-  if (!(viewportWidth > 0) || !(viewportHeight > 0)
-    || !Number.isFinite(viewportWidth) || !Number.isFinite(viewportHeight)) {
+export function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeight: number): number {
+  if (
+    !(viewportWidth > 0) ||
+    !(viewportHeight > 0) ||
+    !Number.isFinite(viewportWidth) ||
+    !Number.isFinite(viewportHeight)
+  ) {
     throw new RangeError('touch analog viewport dimensions must be finite and > 0');
   }
   return TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX;
 }
 
-export function touchSteeringRequest(
-  startX: number,
-  currentX: number,
-  fullScaleDistance: number,
-): number {
+export function touchSteeringRequest(startX: number, currentX: number, fullScaleDistance: number): number {
   assertFiniteTouchAxis(startX, currentX, fullScaleDistance);
   return clamp((currentX - startX) / fullScaleDistance, -1, 1);
 }
 
-export function touchPedalRequests(
-  startY: number,
-  currentY: number,
-  fullScaleDistance: number,
-): TouchPedalRequests {
+export function touchPedalRequests(startY: number, currentY: number, fullScaleDistance: number): TouchPedalRequests {
   assertFiniteTouchAxis(startY, currentY, fullScaleDistance);
   const axis = clamp((startY - currentY) / fullScaleDistance, -1, 1);
-  return axis >= 0
-    ? { throttle: axis, brake: 0 }
-    : { throttle: 0, brake: -axis };
+  return axis >= 0 ? { throttle: axis, brake: 0 } : { throttle: 0, brake: -axis };
 }
 
 export class TouchInput {
@@ -105,12 +96,8 @@ export class TouchInput {
     return {
       steering: this.steering.sample(),
       ...pedals,
-      ...(steeringSource?.startsWith('touch:analog-steering:')
-        ? { steeringApplyMode: 'DIRECT' as const }
-        : {}),
-      ...(pedalSource?.startsWith('touch:analog-pedal:')
-        ? { pedalApplyMode: 'DIRECT' as const }
-        : {}),
+      ...(steeringSource?.startsWith('touch:analog-steering:') ? { steeringApplyMode: 'DIRECT' as const } : {}),
+      ...(pedalSource?.startsWith('touch:analog-pedal:') ? { pedalApplyMode: 'DIRECT' as const } : {}),
     };
   }
 
@@ -151,11 +138,7 @@ export class TouchInput {
 
     if (this.steeringPointer?.pointerId === event.pointerId) {
       const pointer = this.steeringPointer;
-      const request = touchSteeringRequest(
-        pointer.startX,
-        event.clientX,
-        pointer.fullScaleDistance,
-      );
+      const request = touchSteeringRequest(pointer.startX, event.clientX, pointer.fullScaleDistance);
       this.steering.setValue(touchAnalogSteeringSource(event.pointerId), request);
       showIndicator(
         this.steeringIndicator,
@@ -170,11 +153,7 @@ export class TouchInput {
 
     if (this.pedalPointer?.pointerId === event.pointerId) {
       const pointer = this.pedalPointer;
-      const requests = touchPedalRequests(
-        pointer.startY,
-        event.clientY,
-        pointer.fullScaleDistance,
-      );
+      const requests = touchPedalRequests(pointer.startY, event.clientY, pointer.fullScaleDistance);
       const source = touchAnalogPedalSource(event.pointerId);
       if (requests.throttle > 0) {
         this.pedals.setAnalogSource(source, 'throttle', requests.throttle);
@@ -203,11 +182,7 @@ export class TouchInput {
     }
   }
 
-  private bindSteeringButton(
-    element: HTMLElement,
-    side: 'left' | 'right',
-    direction: SteeringDirection,
-  ): void {
+  private bindSteeringButton(element: HTMLElement, side: 'left' | 'right', direction: SteeringDirection): void {
     element.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'touch') return;
       this.steering.press(touchSteeringSource(side, event.pointerId), direction);
@@ -313,7 +288,8 @@ function assertFiniteTouchAxis(start: number, current: number, fullScaleDistance
 }
 
 function createAnalogIndicator(documentRef: Document, role: AnalogRole): HTMLElement | null {
-  if (typeof documentRef.createElement !== 'function' || documentRef.body == null) return null;
+  if (typeof documentRef.createElement !== 'function' || documentRef.body === null || documentRef.body === undefined)
+    return null;
   const root = documentRef.createElement('div');
   root.className = `touch-analog-indicator touch-analog-${role}`;
   root.setAttribute('aria-hidden', 'true');

@@ -8,8 +8,8 @@ import {
 import type { CourseCoordinate } from '../core/guide-curve.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
-import type { CompiledTireProfile } from './tire-wheel.js';
 import type { SurfaceMapReader, SurfaceMaterial, SurfaceType } from './surface-map.js';
+import type { CompiledTireProfile } from './tire-wheel.js';
 import {
   WORLD_UP,
   add3,
@@ -155,7 +155,11 @@ export interface ContactObservation {
 }
 
 export class VehicleOutsideModelError extends Error {
-  constructor(readonly contactId: VehicleContactId, readonly compression: number, readonly travel: number) {
+  constructor(
+    readonly contactId: VehicleContactId,
+    readonly compression: number,
+    readonly travel: number,
+  ) {
     super(`${contactId} suspension compression ${compression} reached/exceeded qTravel ${travel}`);
     this.name = 'VehicleOutsideModelError';
   }
@@ -200,11 +204,7 @@ export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
   return Math.hypot(vehicle.velocityX, vehicle.velocityZ);
 }
 
-export function bodyFrameVelocity(
-  vehicle: VehicleDynamicsState,
-  forward: Vec3,
-  right: Vec3,
-): BodyFrameVelocity {
+export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, right: Vec3): BodyFrameVelocity {
   const velocity = { x: vehicle.velocityX, y: vehicle.velocityY, z: vehicle.velocityZ };
   return {
     longitudinal: dot3(velocity, forward),
@@ -213,13 +213,9 @@ export function bodyFrameVelocity(
   };
 }
 
-export function refreshGuideObservation(
-  guide: GuideCoordinateSource,
-  vehicle: VehicleDynamicsState,
-): void {
+export function refreshGuideObservation(guide: GuideCoordinateSource, vehicle: VehicleDynamicsState): void {
   const world = { x: vehicle.x, z: vehicle.z };
-  vehicle.course = locateWorldOnGuideCoordinateLocal(guide, world,
-    vehicle.course.segmentIndex, 5, false);
+  vehicle.course = locateWorldOnGuideCoordinateLocal(guide, world, vehicle.course.segmentIndex, 5, false);
 }
 
 function sampleSurfaceGeometryAtWorld(
@@ -229,8 +225,13 @@ function sampleSurfaceGeometryAtWorld(
   point: Vec3,
   previousSegmentIndex: number,
 ): SurfaceGeometryObservation {
-  const coordinate = locateWorldOnGuideCoordinateLocal(guide,
-    { x: point.x, z: point.z }, previousSegmentIndex, 5, false);
+  const coordinate = locateWorldOnGuideCoordinateLocal(
+    guide,
+    { x: point.x, z: point.z },
+    previousSegmentIndex,
+    5,
+    false,
+  );
   return sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
 }
 
@@ -267,14 +268,12 @@ export function sampleSurfaceGeometryAtCoordinate(
     y: 0,
     z: -Math.sin(guideSample.heading),
   };
-  const tangent = normalize3(add3(
-    scale3(horizontalTangent, offsetMetric),
-    scale3(WORLD_UP, heightDerivativeByPlanArc),
-  ));
-  const normal = normalize3(add3(
-    scale3(horizontalTangent, -heightDerivativeByPlanArc),
-    scale3(WORLD_UP, offsetMetric),
-  ));
+  const tangent = normalize3(
+    add3(scale3(horizontalTangent, offsetMetric), scale3(WORLD_UP, heightDerivativeByPlanArc)),
+  );
+  const normal = normalize3(
+    add3(scale3(horizontalTangent, -heightDerivativeByPlanArc), scale3(WORLD_UP, offsetMetric)),
+  );
   const sample = surfaces.sample(coordinate.s, coordinate.l);
   return {
     coordinate,
@@ -306,25 +305,12 @@ export function deriveContactObservation(
   steerAngle: number,
   previousSegmentIndex: number,
 ): ContactObservation {
-
-  const freeOffset = add3(
-    scale3(body.forward, station.forwardOffset),
-    scale3(body.up, -station.freeReachDown),
-  );
+  const freeOffset = add3(scale3(body.forward, station.forwardOffset), scale3(body.up, -station.freeReachDown));
   const freePoint = add3(body.position, freeOffset);
-  const surface = sampleSurfaceGeometryAtWorld(
-    guide,
-    height,
-    surfaces,
-    freePoint,
-    previousSegmentIndex,
-  );
+  const surface = sampleSurfaceGeometryAtWorld(guide, height, surfaces, freePoint, previousSegmentIndex);
 
   const reachPoint = freePoint;
-  const reachVelocity = add3(
-    body.velocity,
-    cross3(body.omegaWorld, freeOffset),
-  );
+  const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset));
   const gap = dot3(sub3(reachPoint, surface.point), surface.normal);
   const supportAvailable = surface.material.supported;
   // Wheel support is one-sided. A flipped body cannot stand on its inverted suspension rays.
@@ -358,38 +344,37 @@ export function deriveContactObservation(
     qDot,
     normalLoad,
     effectiveRollingRadius: station.rollingRadius,
-
   };
 }
 
-
 /** Reuse the same sampled contact geometry/load after changing only the steering orientation. */
 export function reorientContactObservation(
-  contact: ContactObservation, body: BodyKinematics, steerAngle: number,
+  contact: ContactObservation,
+  body: BodyKinematics,
+  steerAngle: number,
 ): ContactObservation {
-  return { ...contact, ...contactTireFrame(body, contact.profile, steerAngle,
-    contact.surface, contact.reachVelocity) };
+  return { ...contact, ...contactTireFrame(body, contact.profile, steerAngle, contact.surface, contact.reachVelocity) };
 }
 
-function contactTireFrame(body: BodyKinematics, station: ContactStationProfile, steerAngle: number,
-  surface: SurfaceGeometryObservation, reachVelocity: Vec3) {
+function contactTireFrame(
+  body: BodyKinematics,
+  station: ContactStationProfile,
+  steerAngle: number,
+  surface: SurfaceGeometryObservation,
+  reachVelocity: Vec3,
+) {
   const isFront = station.id === 'FRONT';
-  const wheelForward = isFront
-    ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle))
-    : body.forward;
+  const wheelForward = isFront ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle)) : body.forward;
   const wheelAxis = normalize3(cross3(body.up, wheelForward));
 
   const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
   const tireFrameValid = magnitude3(tireForwardRaw) > 1e-8;
   const tireForward = tireFrameValid ? normalize3(tireForwardRaw) : surface.tangent;
-  const tireRight = tireFrameValid
-    ? normalize3(cross3(surface.normal, tireForward))
-    : surface.right;
+  const tireRight = tireFrameValid ? normalize3(cross3(surface.normal, tireForward)) : surface.right;
   const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;
   const lateralVelocity = tireFrameValid ? dot3(reachVelocity, tireRight) : 0;
 
-  return { wheelForward, wheelAxis, tireFrameValid, tireForward, tireRight,
-    longitudinalVelocity, lateralVelocity };
+  return { wheelForward, wheelAxis, tireFrameValid, tireForward, tireRight, longitudinalVelocity, lateralVelocity };
 }
 
 export function compileSuspensionStation(
@@ -418,11 +403,7 @@ export function compileSuspensionStation(
   return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
 }
 
-export function contactForceWorld(
-  contact: ContactObservation,
-  tireFx: number,
-  tireFy: number,
-): Vec3 {
+export function contactForceWorld(contact: ContactObservation, tireFx: number, tireFy: number): Vec3 {
   if (!contact.forceTransmitting) return { x: 0, y: 0, z: 0 };
   return add3(
     scale3(contact.surface.normal, contact.normalLoad),
@@ -437,9 +418,10 @@ export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3
 export function representativeSurfaceType(contacts: readonly ContactObservation[]): SurfaceType {
   const loaded = contacts.filter((contact) => contact.forceTransmitting);
   if (loaded.length === 0) return 'VOID';
-  return loaded.reduce((worst, contact) => (
-    contact.surface.material.gripFactor < worst.surface.material.gripFactor ? contact : worst
-  ), loaded[0]!).surface.surfaceType;
+  return loaded.reduce(
+    (worst, contact) => (contact.surface.material.gripFactor < worst.surface.material.gripFactor ? contact : worst),
+    loaded[0]!,
+  ).surface.surfaceType;
 }
 
 /** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */

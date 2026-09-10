@@ -4,16 +4,10 @@ import {
   type StageRuntimeContentPackage,
   type StageRuntimeContentRegistry,
 } from '../runtime/stage-runtime-content.js';
-import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
-import {
-  createM621ChildVisualIdentity,
-  type M621ChildVisualIdentity,
-} from './m6-21-child-visual-identity.js';
-import type {
-  M622ChildStageContinuation,
-  M622ChildStageRuntimeSource,
-} from './m6-22-child-stage-continuation.js';
+import { createM621ChildVisualIdentity, type M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
+import type { M622ChildStageContinuation, M622ChildStageRuntimeSource } from './m6-22-child-stage-continuation.js';
 import {
   createM623ChildEnvironmentContent,
   type M623ChildEnvironment,
@@ -28,7 +22,7 @@ export function createM623LiveStageRuntimeRegistry(
   manifest: RouteStageContentManifest,
   continuation: M622ChildStageContinuation,
   parent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
   childVisualIdentity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
   environment: M623ChildEnvironmentContent = createM623ChildEnvironmentContent(continuation, spriteAssets),
 ): StageRuntimeContentRegistry {

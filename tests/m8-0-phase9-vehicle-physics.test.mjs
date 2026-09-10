@@ -3,20 +3,19 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
   HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
 } from '../dist/vehicle/production-vehicle-profiles.js';
-import {
-  evaluateTireForce,
-  rollingResistanceTorque,
-  solveWheelOmega,
-} from '../dist/physics/tire-wheel.js';
+import { evaluateTireForce, rollingResistanceTorque, solveWheelOmega } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
-import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING, HONDA_VFR750R_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
+import {
+  FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
+  HONDA_VFR750R_VEHICLE_AUTHORING,
+} from '../dist/vehicle/production-vehicle-profiles.js';
 
 const highway = createM72DefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
@@ -25,8 +24,10 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 ]);
 
 test('M9 profiles compile to the same two-station contact and wheel contract', () => {
-  for (const [profile, authored] of [[FERRARI_TESTAROSSA_VEHICLE_PROFILE, FERRARI_TESTAROSSA_VEHICLE_AUTHORING],
-    [HONDA_VFR750R_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_AUTHORING]]) {
+  for (const [profile, authored] of [
+    [FERRARI_TESTAROSSA_VEHICLE_PROFILE, FERRARI_TESTAROSSA_VEHICLE_AUTHORING],
+    [HONDA_VFR750R_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_AUTHORING],
+  ]) {
     assert.deepEqual([profile.frontStation.id, profile.rearStation.id], ['FRONT', 'REAR']);
     assert.equal(profile.frontStation.rollingRadius, authored.frontWheelRadius);
     assert.equal(profile.rearStation.rollingRadius, authored.rearWheelRadius);
@@ -67,12 +68,8 @@ for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE
   test(`${profile.id} common solve preserves finite world/contact state under held input`, () => {
     const vehicle = createArcadeVehicle(
       profile,
-      highway.guide,
-      flatHeight,
-      highway.surfaceMap,
-      800,
-      -1.75,
-      25,
+      { guide: highway.guide, height: flatHeight, surfaces: highway.surfaceMap },
+      { s: 800, l: -1.75, initialSpeed: 25 },
     );
     for (let tick = 0; tick < 120; tick += 1) {
       updateArcadeVehicle(
@@ -93,7 +90,8 @@ for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE
       vehicle.velocityZ,
       vehicle.frontWheelOmega,
       vehicle.rearWheelOmega,
-    ]) assert.ok(Number.isFinite(value));
+    ])
+      assert.ok(Number.isFinite(value));
     assert.equal('orientation' in vehicle, false);
     assert.equal('omegaBody' in vehicle, false);
     assert.equal('contacts' in vehicle, false);
@@ -103,21 +101,20 @@ for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE
 test('recovery reconstructs common state and all three actuators without manufacturing progress', () => {
   const vehicle = createArcadeVehicle(
     HONDA_VFR750R_VEHICLE_PROFILE,
-    highway.guide,
-    flatHeight,
-    highway.surfaceMap,
-    800,
-    -1.75,
-    25,
+    { guide: highway.guide, height: flatHeight, surfaces: highway.surfaceMap },
+    { s: 800, l: -1.75, initialSpeed: 25 },
   );
-  const recovery = createM5RecoveryState(vehicle);
+  const recovery = createRecoveryState(vehicle);
   recovery.lastSafeS = vehicle.course.s;
   vehicle.actuator.steering = -1;
   vehicle.actuator.throttle = 1;
   vehicle.actuator.brake = 1;
   vehicle.pitchRate = 2;
   vehicle.yawRate = -2;
-  recoverM5Vehicle(recovery, highway.guide, flatHeight, highway.surfaceMap, vehicle, 'manual');
+  recoverVehicle({ guide: highway.guide, height: flatHeight, surfaces: highway.surfaceMap }, vehicle, {
+    state: recovery,
+    reason: 'manual',
+  });
   assert.deepEqual(vehicle.actuator, { steering: 0, throttle: 0, brake: 0 });
   assert.equal(vehicle.pitchRate, 0);
   assert.equal(vehicle.yawRate, 0);
@@ -130,7 +127,11 @@ test('profile compiler rejects invalid mechanics without vehicle-specific fallba
     /finite and > 0/,
   );
   assert.throws(
-    () => compileArcadeVehicleProfile({ ...HONDA_VFR750R_VEHICLE_AUTHORING, frontTire: { ...HONDA_VFR750R_VEHICLE_AUTHORING.frontTire, knee: 1 } }),
+    () =>
+      compileArcadeVehicleProfile({
+        ...HONDA_VFR750R_VEHICLE_AUTHORING,
+        frontTire: { ...HONDA_VFR750R_VEHICLE_AUTHORING.frontTire, knee: 1 },
+      }),
     /knee/,
   );
   assert.throws(

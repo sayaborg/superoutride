@@ -4,39 +4,37 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { existsSync } from 'node:fs';
 
 import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
-import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../dist/core/presentation-scale.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { drawScaledSprite } from '../dist/render/sprite.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
 const visual = new VisualProfile(guide.length, compiled.visualSections);
 const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
-const assets = createM4SpriteAssets();
+const assets = createSpriteAssets();
 const world = createM4DebugWorldSprites(guide, height, assets);
-const background = createM3FarBackground();
+const background = createFarBackground();
 const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
 const binary = await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url));
 const baked = new BakedGroundMapAsset(metadata, new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength));
@@ -63,7 +61,7 @@ const terrainProfile = {
   visual,
   thinSpanScreenRows: 1,
 };
-const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
+const cameraProfile = CURRENT_CAMERA_PROFILE;
 
 function placeCar(car, s, l, yawOffset) {
   const p = guidePathToWorld(guide, s, l);
@@ -83,23 +81,31 @@ function placeCar(car, s, l, yawOffset) {
   car.rearNormalLoad = surface.material.supported ? 1 : 0;
 }
 
-function renderProbe(s, l, yawOffset, observeWorkload = true, target = new SoftwareSurface(320, 240), renderer = renderM5Driving) {
+function renderProbe(
+  s,
+  l,
+  yawOffset,
+  observeWorkload = true,
+  target = new SoftwareSurface(320, 240),
+  renderer = renderDriving,
+) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, l, yawOffset);
-  const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateCamera(createCameraRig(), guide, height, car, cameraProfile, 1 / 60);
   return renderer(
     target,
-    background,
-    guide,
-    camera,
-    car,
-    terrainProfile,
-    groundProfile,
-    world,
-    assets,
-    'car',
-    undefined,
-    observeWorkload,
+    {
+      background,
+      guide,
+      camera,
+      vehicle: car,
+      terrainProfile,
+      groundProfile,
+      worldSprites: world,
+      assets,
+      playerKind: 'car',
+    },
+    { observeWorkload },
   );
 }
 
@@ -123,8 +129,14 @@ test('sprite scanline observer accounts exactly for the blitter work it observes
     perLineSamples[y] += samples;
     perLineWrites[y] += writes;
   });
-  assert.equal(perLineSamples.reduce((a, b) => a + b, 0), stats.outputSamples);
-  assert.equal(perLineWrites.reduce((a, b) => a + b, 0), stats.writtenPixels);
+  assert.equal(
+    perLineSamples.reduce((a, b) => a + b, 0),
+    stats.outputSamples,
+  );
+  assert.equal(
+    perLineWrites.reduce((a, b) => a + b, 0),
+    stats.writtenPixels,
+  );
 });
 
 test('M5 renderer workload telemetry is internally consistent and does not drop generated terrain', () => {
@@ -134,14 +146,39 @@ test('M5 renderer workload telemetry is internally consistent and does not drop 
   assert.ok(stats.workload.terrainOutputPixelsPerScreenRowMax <= stats.terrainOutputPixels);
   assert.equal(stats.spriteOutputSamplesIncludingPlayer, stats.spriteOutputSamples + stats.playerOutputSamples);
   assert.equal(stats.spriteWrittenPixelsIncludingPlayer, stats.spriteWrittenPixels + stats.playerWrittenPixels);
-  assert.equal(stats.workload.groundMapLevelHistogram.reduce((a, b) => a + b, 0), stats.terrainLineCount);
+  assert.equal(
+    stats.workload.groundMapLevelHistogram.reduce((a, b) => a + b, 0),
+    stats.terrainLineCount,
+  );
   assert.ok(stats.workload.spriteOutputSamplesPerScanlineMax <= stats.spriteOutputSamplesIncludingPlayer);
 });
 
 test('optional diagnostics preserve exact pixels and ordinary results across the stress course', async () => {
-  const baseline = process.env.HOT_PATH_BASELINE_BUILD
-    ? (await import(pathToFileURL(resolve(process.env.HOT_PATH_BASELINE_BUILD, 'render/m5-renderer.js')).href)).renderM5Driving
-    : undefined;
+  let baseline;
+  if (process.env.HOT_PATH_BASELINE_BUILD) {
+    const build = process.env.HOT_PATH_BASELINE_BUILD;
+    const currentApi = existsSync(resolve(build, 'render/renderer.js'));
+    const module = await import(
+      pathToFileURL(resolve(build, currentApi ? 'render/renderer.js' : 'render/m5-renderer.js')).href
+    );
+    baseline = currentApi
+      ? module.renderDriving
+      : (target, scene, options) =>
+          module.renderM5Driving(
+            target,
+            scene.background,
+            scene.guide,
+            scene.camera,
+            scene.vehicle,
+            scene.terrainProfile,
+            scene.groundProfile,
+            scene.worldSprites,
+            scene.assets,
+            scene.playerKind,
+            options.roadView,
+            options.observeWorkload,
+          );
+  }
   for (const s of [45, 120, 470, 550, 620]) {
     for (const yaw of [deg(-60), 0, deg(60)]) {
       const ordinary = new SoftwareSurface(320, 240);
@@ -165,12 +202,12 @@ test('optional diagnostics preserve exact pixels and ordinary results across the
 });
 
 test('ordinary rendering allocates no diagnostic row arrays or scanline observer', async () => {
-  const source = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
-  assert.match(source, /const observation = observeWorkload \? \{/);
+  const source = await readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
+  assert.match(source, /const observation = observeWorkload\s*\? \{/);
   const allocation = source.slice(source.indexOf('const observation'), source.indexOf('let terrainOutputPixels'));
   assert.equal((allocation.match(/new Uint/g) ?? []).length, 5);
   assert.equal((source.match(/new Uint/g) ?? []).length, 5);
-  assert.match(source, /spriteObserver: SpriteScanlineObserver \| undefined = observation &&/);
+  assert.match(source, /spriteObserver: SpriteScanlineObserver \| undefined =\s*observation &&/);
   assert.match(source, /if \(observation\) \{[\s\S]*for \(let y = 0/);
 });
 

@@ -1,15 +1,8 @@
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
-import { CURRENT_M5_CAMERA_PROFILE } from './camera/current-camera-profile.js';
-import {
-  resetM5CameraRig,
-  updateM5Camera,
-  type M5CameraState,
-} from './camera/m5-camera.js';
+import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.js';
+import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { SIM_DT } from './core/constants.js';
-import {
-  guideCoordinateCurve,
-  locateWorldOnGuideCoordinateGlobal,
-} from './core/guide-coordinate-frame.js';
+import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
 import { createM638DeclarativeForkGrowthRuntime } from './dev/m6-38-declarative-fork-growth-plan.js';
@@ -23,79 +16,46 @@ import {
   createM72DefaultBranchingParent,
 } from './dev/m7-2-default-branching-highway.js';
 import { M8_3_BRANCHING_COURSE_MODE, M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
-import { lockedBranchRecoveryApproach } from './gameplay/branch-violation.js';
-import {
-  createFieldRouteProgressState,
-  fieldRouteProgressBoundaryFromRouteUpdate,
-  fieldRouteProgressTravelerView,
-  resyncFieldRouteProgress,
-  updateFieldRouteProgress,
-} from './gameplay/field-route-progress.js';
-import {
-  advanceRaceSession,
-  createRaceSessionState,
-} from './gameplay/race-session.js';
-import {
-  M5_RECOVERY_PROFILE,
-  createM5RecoveryState,
-  recoverM5Vehicle,
-  recoverM5VehicleToGuideCoordinate,
-  advanceVehicleWithRecovery,
-  type M5RecoveryState,
-  type M5VehicleState,
-} from './gameplay/recovery.js';
+import { createTunnelPresentation, createTunnelWorldSprites, selectTunnelBackground } from './dev/tunnel.js';
+import { createFieldRouteProgressState, fieldRouteProgressTravelerView } from './gameplay/field-route-progress.js';
+import { advanceRaceSession, createRaceSessionState } from './gameplay/race-session.js';
+import { createRecoveryState, recoverVehicle } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
-import { pendingRouteStageRecoveryTarget } from './gameplay/route-stage-handoff.js';
 import {
   createRunObjectiveState,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from './gameplay/run-objective.js';
-import {
-  createSharedRouteChoiceState,
-  getSharedRouteChoiceLock,
-} from './gameplay/shared-route-choice-authority.js';
+import { createSharedRouteChoiceState, getSharedRouteChoiceLock } from './gameplay/shared-route-choice-authority.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
-import { renderM5Driving } from './render/m5-renderer.js';
+import { renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
-import { advanceLiveRouteMultiActorTick } from './runtime/live-route-multi-actor-tick.js';
 import {
   createLiveRouteTravelerState,
   liveRouteTravelersShareRuntimePackage,
   resolveLiveRouteTravelerRuntime,
-  resyncLiveRouteTraveler,
   sampleLiveRouteChoicePlanTargetL,
   sampleLiveRouteChoiceTargetL,
-  type LiveRouteTravelerState,
 } from './runtime/live-route-traveler.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
 import {
-  resolveActiveStageRuntimeContent,
-  type StageRuntimeContentPackage,
-} from './runtime/stage-runtime-content.js';
+  advanceRouteDrivingTick,
+  resyncRouteDrivingActor,
+  type RouteDrivingActor,
+} from './runtime/route-driving-tick.js';
+import { stageVehicleWorld, type StageRuntimeContentPackage } from './runtime/stage-runtime-content.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
-import { createM3FarBackground } from './visual/far-background.js';
-import { createM4SpriteAssets } from './visual/m4-sprite-assets.js';
-import {
-  createTunnelPresentation,
-  createTunnelWorldSprites,
-  selectTunnelBackground,
-} from './dev/tunnel.js';
+import { createFarBackground } from './visual/far-background.js';
+import { createSpriteAssets } from './visual/sprite-assets.js';
 import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 
 const parentCourse = createM72DefaultBranchingParent();
-const {
-  guide,
-  heightProfile,
-  surfaceMap,
-  groundProfile,
-  terrainProfile,
-} = parentCourse;
-const outdoorFarBackground = createM3FarBackground();
+const { guide, heightProfile, surfaceMap, groundProfile, terrainProfile } = parentCourse;
+const outdoorFarBackground = createFarBackground();
 const tunnelPresentation = createTunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
-const spriteAssets = createM4SpriteAssets();
+const spriteAssets = createSpriteAssets();
 const staticWorldSprites = [
   ...createM4DebugWorldSprites(guide, heightProfile, spriteAssets),
   ...createTunnelWorldSprites(guide, heightProfile, tunnelPresentation),
@@ -112,12 +72,8 @@ const liveRoute = createM638DeclarativeForkGrowthRuntime(
     surfaceMap,
     terrainProfile,
     groundProfile,
-    selectFarBackground: (cameraS) => selectTunnelBackground(
-      cameraS,
-      guide.length,
-      outdoorFarBackground,
-      tunnelPresentation,
-    ).background,
+    selectFarBackground: (cameraS) =>
+      selectTunnelBackground(cameraS, guide.length, outdoorFarBackground, tunnelPresentation).background,
     worldSprites: staticWorldSprites,
   },
   spriteAssets,
@@ -129,64 +85,69 @@ const playerFieldProgress = createFieldRouteProgressState(
   fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
 );
 const routeState = playerTraveler.routeState;
-const routeHandoffState = playerTraveler.handoffState;
-const stageRuntimeRegistry = liveRoute.registry;
 const runObjective = createRunObjectiveState();
 const rivalRoster = createRivalRoster(M8_3_BRANCHING_SESSION_CONFIGURATION);
 const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
-const rivals = rivalRoster.map((entry) => {
+const rivals = rivalRoster.map((entry): RouteDrivingActor => {
   const rivalVehicle = createArcadeVehicle(
     DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-    guide,
-    heightProfile,
-    surfaceMap,
-    95 + entry.rivalIndex * 6,
-    M7_2_RIVAL_START_L,
-    undefined,
-    undefined,
-    undefined,
-    DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+    { guide, height: heightProfile, surfaces: surfaceMap },
+    {
+      s: 95 + entry.rivalIndex * 6,
+      l: M7_2_RIVAL_START_L,
+      torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+    },
   );
-  const traveler = createLiveRouteTravelerState(
-    liveRoute,
-    { x: rivalVehicle.x, z: rivalVehicle.z },
-  );
+  const traveler = createLiveRouteTravelerState(liveRoute, { x: rivalVehicle.x, z: rivalVehicle.z });
   return {
     actorId: entry.actorId,
     vehicle: rivalVehicle,
-    recovery: createM5RecoveryState(rivalVehicle),
+    recovery: createRecoveryState(rivalVehicle),
     traveler,
     fieldProgress: createFieldRouteProgressState(
       liveRoute.progress,
       fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
     ),
-    routePlan: rivalRoutePlan,
+    recoveryProfile: M7_2_RIVAL_RECOVERY_PROFILE,
+    sampleInput(runtime) {
+      const lock = getSharedRouteChoiceLock(sharedRouteChoices, traveler.handoffState.activeStageId);
+      const targetL =
+        lock === null
+          ? sampleLiveRouteChoicePlanTargetL(liveRoute, traveler, rivalRoutePlan, rivalVehicle.course.s)
+          : sampleLiveRouteChoiceTargetL(liveRoute, traveler, lock.choiceId, rivalVehicle.course.s);
+      return sampleRivalDrivingInput(runtime.coordinateFrame, rivalVehicle, targetL);
+    },
   };
 });
 const sharedRouteChoices = createSharedRouteChoiceState(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode);
 
-const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
+const cameraProfile = CURRENT_CAMERA_PROFILE;
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
+const playerActor: RouteDrivingActor = {
+  actorId: 'PLAYER',
+  get vehicle() {
+    return shell.vehicle;
+  },
+  get recovery() {
+    return shell.recovery;
+  },
+  traveler: playerTraveler,
+  fieldProgress: playerFieldProgress,
+  recoveryProfile: M7_2_PLAYER_RECOVERY_PROFILE,
+  sampleInput: () => input,
+};
+const drivingActors = [playerActor, ...rivals];
 shell.mountControls(switchVehicleAtSafeSpawn, () => {
   const runtime = activeRuntime();
-  recoverM5Vehicle(
-    shell.recovery,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
-    runtime.surfaceMap,
-    shell.vehicle,
-    'manual',
-    M7_2_PLAYER_RECOVERY_PROFILE,
-  );
-  resetM5CameraRig(cameraRig);
-  resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: shell.vehicle.x, z: shell.vehicle.z });
-  resyncFieldRouteProgress(
-    playerFieldProgress,
-    liveRoute.progress,
-    fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
-  );
-  camera = updateM5Camera(
+  recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
+    state: shell.recovery,
+    reason: 'manual',
+    profile: M7_2_PLAYER_RECOVERY_PROFILE,
+  });
+  resetCameraRig(cameraRig);
+  resyncRouteDrivingActor(liveRoute, playerActor);
+  camera = updateCamera(
     cameraRig,
     runtime.coordinateFrame,
     runtime.heightProfile,
@@ -196,10 +157,8 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
   );
 });
 
-let accumulator = 0;
-let previousTime = performance.now();
 const initialRuntime = activeRuntime();
-let camera: M5CameraState = updateM5Camera(
+let camera: CameraState = updateCamera(
   cameraRig,
   initialRuntime.coordinateFrame,
   initialRuntime.heightProfile,
@@ -208,192 +167,29 @@ let camera: M5CameraState = updateM5Camera(
   SIM_DT,
 );
 
-function frame(now: number): void {
-  const elapsed = Math.min((now - previousTime) / 1000, 0.25);
-  previousTime = now;
-  accumulator += elapsed;
+function tick(dt: number): void {
+  input = inputManager.sample();
 
-  while (accumulator >= SIM_DT) {
-    input = inputManager.sample();
+  const result = advanceRouteDrivingTick(liveRoute, sharedRouteChoices, drivingActors, {
+    dt,
+    branchViolationPolicy: M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy,
+  }).PLAYER!;
+  if (result.recovered !== null) resetCameraRig(cameraRig);
+  const routeUpdate = result.route.routeUpdate;
 
-    const runtimeBefore = activeRuntime();
-    const recovered = advanceVehicleWithRecovery(
-      shell.recovery,
-      runtimeBefore.coordinateFrame,
-      runtimeBefore.heightProfile,
-      runtimeBefore.surfaceMap,
-      shell.vehicle,
-      input,
-      SIM_DT,
-      M7_2_PLAYER_RECOVERY_PROFILE,
-      pendingRouteStageRecoveryTarget(
-        playerTraveler.handoffState,
-        M7_2_PLAYER_RECOVERY_PROFILE.backtrackDistance,
-      ),
-    );
-    if (recovered !== null) {
-      resetM5CameraRig(cameraRig);
-      resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: shell.vehicle.x, z: shell.vehicle.z });
-    }
+  advanceRaceSession(raceSession, playerFieldProgress, null, dt);
+  const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
+  updateRunObjectiveFromValidatedFinish(runObjective, finish, raceSession.elapsedSeconds);
 
-    const rivalFrames = rivals.map((rival) => {
-      const rivalRuntimeBefore = resolveLiveRouteTravelerRuntime(liveRoute, rival.traveler);
-      const sharedLock = getSharedRouteChoiceLock(
-        sharedRouteChoices,
-        rival.traveler.handoffState.activeStageId,
-      );
-      const rivalTargetL = sharedLock === null
-        ? sampleLiveRouteChoicePlanTargetL(
-          liveRoute,
-          rival.traveler,
-          rival.routePlan,
-          rival.vehicle.course.s,
-        )
-        : sampleLiveRouteChoiceTargetL(
-          liveRoute,
-          rival.traveler,
-          sharedLock.choiceId,
-          rival.vehicle.course.s,
-        );
-      const rivalInput = sampleRivalDrivingInput(
-        rivalRuntimeBefore.coordinateFrame,
-        rival.vehicle,
-        rivalTargetL,
-      );
-      const rivalRecovered = advanceVehicleWithRecovery(
-        rival.recovery,
-        rivalRuntimeBefore.coordinateFrame,
-        rivalRuntimeBefore.heightProfile,
-        rivalRuntimeBefore.surfaceMap,
-        rival.vehicle,
-        rivalInput,
-        SIM_DT,
-        M7_2_RIVAL_RECOVERY_PROFILE,
-        pendingRouteStageRecoveryTarget(
-          rival.traveler.handoffState,
-          M7_2_RIVAL_RECOVERY_PROFILE.backtrackDistance,
-        ),
-      );
-      if (rivalRecovered !== null) {
-        resyncLiveRouteTraveler(
-          liveRoute,
-          rival.traveler,
-          { x: rival.vehicle.x, z: rival.vehicle.z },
-        );
-      }
-      return {
-        rival,
-        runtimeBefore: rivalRuntimeBefore,
-        recovered: rivalRecovered,
-      };
-    });
-
-    const routeTick = advanceLiveRouteMultiActorTick(
-      liveRoute,
-      sharedRouteChoices,
-      [
-        {
-          actorId: 'PLAYER',
-          state: playerTraveler,
-          currentWorldPoint: { x: shell.vehicle.x, z: shell.vehicle.z },
-          observeRouteBoundary: recovered === null,
-        },
-        ...rivalFrames.map(({ rival, recovered: rivalRecovered }) => ({
-          actorId: rival.actorId,
-          state: rival.traveler,
-          currentWorldPoint: { x: rival.vehicle.x, z: rival.vehicle.z },
-          observeRouteBoundary: rivalRecovered === null,
-        })),
-      ],
-    );
-    const playerRouteTick = routeTick.actors[0]!;
-    const routeUpdate = playerRouteTick.routeUpdate;
-
-    if (playerRouteTick.branchViolation !== null) {
-      recoverActorToLockedBranch(
-        runtimeBefore,
-        shell.recovery,
-        shell.vehicle,
-        playerTraveler,
-        playerRouteTick.branchViolation.lockedChoiceId,
-      );
-      resetM5CameraRig(cameraRig);
-    } else if (playerRouteTick.committed) {
-      shell.vehicle.course = { ...routeHandoffState.coordinate };
-    }
-    const playerProgressView = fieldRouteProgressTravelerView(
-      playerTraveler.routeState,
-      playerTraveler.handoffState,
-    );
-    if (recovered !== null || playerRouteTick.branchViolation !== null) {
-      resyncFieldRouteProgress(playerFieldProgress, liveRoute.progress, playerProgressView);
-    } else {
-      updateFieldRouteProgress(
-        playerFieldProgress,
-        liveRoute.progress,
-        playerProgressView,
-        fieldRouteProgressBoundaryFromRouteUpdate(routeUpdate),
-      );
-    }
-    for (let rivalIndex = 0; rivalIndex < rivalFrames.length; rivalIndex += 1) {
-      const rivalFrame = rivalFrames[rivalIndex]!;
-      const rivalRouteTick = routeTick.actors[rivalIndex + 1]!;
-      if (rivalRouteTick.actorId !== rivalFrame.rival.actorId) {
-        throw new Error('multi-actor route tick changed roster order');
-      }
-      if (rivalRouteTick.branchViolation !== null) {
-        recoverActorToLockedBranch(
-          rivalFrame.runtimeBefore,
-          rivalFrame.rival.recovery,
-          rivalFrame.rival.vehicle,
-          rivalFrame.rival.traveler,
-          rivalRouteTick.branchViolation.lockedChoiceId,
-        );
-      } else if (rivalRouteTick.committed) {
-        rivalFrame.rival.vehicle.course = { ...rivalFrame.rival.traveler.handoffState.coordinate };
-      }
-      const rivalProgressView = fieldRouteProgressTravelerView(
-        rivalFrame.rival.traveler.routeState,
-        rivalFrame.rival.traveler.handoffState,
-      );
-      if (rivalFrame.recovered !== null || rivalRouteTick.branchViolation !== null) {
-        resyncFieldRouteProgress(
-          rivalFrame.rival.fieldProgress,
-          liveRoute.progress,
-          rivalProgressView,
-        );
-      } else {
-        updateFieldRouteProgress(
-          rivalFrame.rival.fieldProgress,
-          liveRoute.progress,
-          rivalProgressView,
-          fieldRouteProgressBoundaryFromRouteUpdate(rivalRouteTick.routeUpdate),
-        );
-      }
-    }
-
-    advanceRaceSession(raceSession, playerFieldProgress, null, SIM_DT);
-    const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
-    updateRunObjectiveFromValidatedFinish(
-      runObjective,
-      finish,
-      raceSession.elapsedSeconds,
-    );
-
-    const runtimeAfterTick = activeRuntime();
-    camera = updateM5Camera(
-      cameraRig,
-      runtimeAfterTick.coordinateFrame,
-      runtimeAfterTick.heightProfile,
-      shell.vehicle,
-      cameraProfile,
-      SIM_DT,
-    );
-    accumulator -= SIM_DT;
-  }
-
-  render();
-  requestAnimationFrame(frame);
+  const runtimeAfterTick = activeRuntime();
+  camera = updateCamera(
+    cameraRig,
+    runtimeAfterTick.coordinateFrame,
+    runtimeAfterTick.heightProfile,
+    shell.vehicle,
+    cameraProfile,
+    dt,
+  );
 }
 
 function render(): void {
@@ -403,27 +199,31 @@ function render(): void {
   const rivalSprites = rivals.flatMap((rival) => {
     const rivalRuntime = resolveLiveRouteTravelerRuntime(liveRoute, rival.traveler);
     if (!liveRouteTravelersShareRuntimePackage(runtime, rivalRuntime)) return [];
-    return [createDynamicVehicleCourseSprite(
-      rival.actorId,
-      rival.vehicle,
-      camera.yaw,
-      spriteAssets[deriveVehicleSpriteFamily(vehicleCatalogEntryForId(rival.vehicle.profile.id))],
-      rivalRuntime.heightProfile,
-    )];
+    return [
+      createDynamicVehicleCourseSprite(
+        rival.actorId,
+        rival.vehicle,
+        camera.yaw,
+        spriteAssets[deriveVehicleSpriteFamily(vehicleCatalogEntryForId(rival.vehicle.profile.id))],
+        rivalRuntime.heightProfile,
+      ),
+    ];
   });
   const renderWorldSprites = [...runtime.worldSprites, ...rivalSprites];
-  const stats = renderM5Driving(
+  const stats = renderDriving(
     framebuffer,
-    selectedBackground,
-    guideCoordinateCurve(runtime.coordinateFrame),
-    camera,
-    shell.vehicle,
-    runtime.terrainProfile,
-    runtime.groundProfile,
-    renderWorldSprites,
-    spriteAssets,
-    spriteFamily,
-    runtime.roadView ?? undefined,
+    {
+      background: selectedBackground,
+      guide: guideCoordinateCurve(runtime.coordinateFrame),
+      camera,
+      vehicle: shell.vehicle,
+      terrainProfile: runtime.terrainProfile,
+      groundProfile: runtime.groundProfile,
+      worldSprites: renderWorldSprites,
+      assets: spriteAssets,
+      playerKind: spriteFamily,
+    },
+    { roadView: runtime.roadView ?? undefined },
   );
   shell.present('branching', input, camera, stats.playerScreenY);
 }
@@ -431,23 +231,14 @@ function render(): void {
 /** DEV selection is an explicit safe-spawn reconstruction, never a running-state conversion. */
 function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
   const runtime = activeRuntime();
-  recoverM5Vehicle(
-    shell.recovery,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
-    runtime.surfaceMap,
-    shell.vehicle,
-    'manual',
-    M7_2_PLAYER_RECOVERY_PROFILE,
-  );
-  shell.replacePlayer(profile, { guide: runtime.coordinateFrame, height: runtime.heightProfile, surfaces: runtime.surfaceMap });
-  resyncLiveRouteTraveler(liveRoute, playerTraveler, { x: shell.vehicle.x, z: shell.vehicle.z });
-  resyncFieldRouteProgress(
-    playerFieldProgress,
-    liveRoute.progress,
-    fieldRouteProgressTravelerView(playerTraveler.routeState, playerTraveler.handoffState),
-  );
-  camera = updateM5Camera(
+  recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
+    state: shell.recovery,
+    reason: 'manual',
+    profile: M7_2_PLAYER_RECOVERY_PROFILE,
+  });
+  shell.replacePlayer(profile, stageVehicleWorld(runtime));
+  resyncRouteDrivingActor(liveRoute, playerActor);
+  camera = updateCamera(
     cameraRig,
     runtime.coordinateFrame,
     runtime.heightProfile,
@@ -457,44 +248,8 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   );
 }
 
-function recoverActorToLockedBranch(
-  runtime: StageRuntimeContentPackage,
-  recoveryState: M5RecoveryState,
-  actorVehicle: M5VehicleState,
-  traveler: LiveRouteTravelerState,
-  lockedChoiceId: string,
-): void {
-  if (M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy !== 'RECOVER_TO_LOCKED_BRANCH') {
-    throw new Error('branch violation reached browser without a recovery policy');
-  }
-  const approach = lockedBranchRecoveryApproach(
-    liveRoute.gates,
-    lockedChoiceId,
-    M5_RECOVERY_PROFILE.backtrackDistance,
-  );
-  const target = locateWorldOnGuideCoordinateGlobal(
-    runtime.coordinateFrame,
-    approach.worldPoint,
-    false,
-  );
-  recoverM5VehicleToGuideCoordinate(
-    recoveryState,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
-    runtime.surfaceMap,
-    actorVehicle,
-    { s: target.s, l: target.l },
-    'wrong-course',
-  );
-  resyncLiveRouteTraveler(
-    liveRoute,
-    traveler,
-    { x: actorVehicle.x, z: actorVehicle.z },
-  );
-}
-
 function activeRuntime(): StageRuntimeContentPackage {
-  return resolveActiveStageRuntimeContent(stageRuntimeRegistry, routeHandoffState);
+  return resolveLiveRouteTravelerRuntime(liveRoute, playerTraveler);
 }
 
-requestAnimationFrame(frame);
+shell.start(tick, render);

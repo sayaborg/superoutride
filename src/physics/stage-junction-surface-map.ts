@@ -1,11 +1,7 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { classifyStageRoadLocalL, type StageRoadView } from '../course/stage-road-view.js';
-import {
-  SURFACE_MATERIALS,
-  type SurfaceMapReader,
-  type SurfaceSample,
-  type SurfaceType,
-} from './surface-map.js';
+import { SURFACE_MATERIALS, type SurfaceMapReader, type SurfaceSample, type SurfaceType } from './surface-map.js';
 
 export type StageJunctionOuterSurfaceType = Extract<SurfaceType, 'GRASS' | 'DIRT' | 'SAND' | 'VOID'>;
 
@@ -18,6 +14,11 @@ export type StageJunctionOuterSurfaceType = Extract<SurfaceType, 'GRASS' | 'DIRT
  * semantics and the remaining terrain uses one explicit authored material.
  */
 export class StageJunctionSurfaceMap implements SurfaceMapReader {
+  get maxSupportedAbsL(): number {
+    const corridor = Math.max(this.roadView.groundLeft, this.roadView.groundRight) + 1e-9;
+    return this.outerSurfaceType === 'VOID' ? Math.min(corridor, this.junction.maxSupportedAbsL) : corridor;
+  }
+
   constructor(
     readonly courseLength: number,
     readonly roadView: StageRoadView,
@@ -34,19 +35,14 @@ export class StageJunctionSurfaceMap implements SurfaceMapReader {
   }
 
   sample(s: number, localL: number): SurfaceSample {
-    if (!Number.isFinite(s) || s < 0 || s > this.courseLength) {
-      throw new RangeError(`stage junction surface chainage ${s} outside [0, ${this.courseLength}]`);
-    }
+    const local = openProfileChainage(s, this.courseLength, 'stage junction surface');
     if (classifyStageRoadLocalL(this.roadView, localL) === 'OUTSIDE') {
       return sample('VOID', `${this.sectionName} / OUTSIDE`);
     }
 
-    const junctionClass = this.junction.classify(s, localL);
-    if (
-      junctionClass === 'ASPHALT_SINGLE'
-      || junctionClass === 'ASPHALT_LEFT'
-      || junctionClass === 'ASPHALT_RIGHT'
-    ) return sample('ASPHALT', `${this.sectionName} / JUNCTION`);
+    const junctionClass = this.junction.classify(local, localL);
+    if (junctionClass === 'ASPHALT_SINGLE' || junctionClass === 'ASPHALT_LEFT' || junctionClass === 'ASPHALT_RIGHT')
+      return sample('ASPHALT', `${this.sectionName} / JUNCTION`);
     if (junctionClass === 'SHOULDER') return sample('SHOULDER', `${this.sectionName} / JUNCTION`);
     if (junctionClass === 'MEDIAN') return sample('GRASS', `${this.sectionName} / JUNCTION MEDIAN`);
     return sample(this.outerSurfaceType, `${this.sectionName} / TERRAIN`);

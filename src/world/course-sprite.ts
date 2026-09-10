@@ -1,6 +1,6 @@
 import { rasterPathToWorld } from '../core/course.js';
-import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
 import type { GuidePath } from '../core/guide-curve.js';
+import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
 import type { SpriteAsset } from '../render/sprite.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
@@ -33,7 +33,7 @@ export function compileCourseSprite(
   source: CourseSpriteAuthoring,
 ): CourseSprite {
   const plan = rasterPathToWorld(guide.raster, source.s, source.l);
-  const y = source.y ?? (height.sampleRender(source.s).y + (source.groundOffset ?? 0));
+  const y = source.y ?? height.sampleRender(source.s).y + (source.groundOffset ?? 0);
   return {
     name: source.name,
     x: plan.x,
@@ -54,10 +54,7 @@ export function collectVisibleCourseSprites(
   for (const sprite of sprites) {
     const d = pseudoDepth(sprite.sRender, camera.s);
     if (d < dStart || d > dEnd) continue;
-    const projection = pseudoProject(
-      { x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender },
-      camera,
-    );
+    const projection = pseudoProject({ x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender }, camera);
     visible.push({ ...sprite, d, projection });
   }
   visible.sort((a, b) => b.d - a.d);

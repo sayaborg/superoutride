@@ -6,14 +6,16 @@ const root = new URL('..', import.meta.url);
 
 test('M9.0 has one common solver and no retired vehicle solver import path', async () => {
   const common = await readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8');
-  const sources = await Promise.all([
-    'src/main-linear.ts',
-    'src/main.ts',
-    'src/main-circuit.ts',
-    'src/gameplay/recovery.ts',
-  ].map((path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')));
+  const sources = await Promise.all(
+    ['src/main-linear.ts', 'src/main.ts', 'src/main-circuit.ts', 'src/gameplay/recovery.ts'].map((path) =>
+      readFile(new URL(`../${path}`, import.meta.url), 'utf8'),
+    ),
+  );
 
-  assert.doesNotMatch(common, /kind\s*===|kind\s*!==|case\s+['"](?:FR|MR|RR|AWD|BIKE1|BIKE2)|if\s*\([^)]*(?:FR|MR|RR|AWD|BIKE1|BIKE2)/);
+  assert.doesNotMatch(
+    common,
+    /kind\s*===|kind\s*!==|case\s+['"](?:FR|MR|RR|AWD|BIKE1|BIKE2)|if\s*\([^)]*(?:FR|MR|RR|AWD|BIKE1|BIKE2)/,
+  );
   assert.doesNotMatch(common, /routeKind|CourseRouteKind|camera|screen/i);
   for (const source of sources) {
     assert.doesNotMatch(source, /physics\/(?:car-physics|motorcycle-physics)/);
@@ -44,21 +46,21 @@ test('retired BIKE mechanics and compatibility authority are absent from general
     'src/physics/vehicle-dynamics.ts',
     'src/physics/vehicle-profiles.ts',
   ];
-  const combined = (await Promise.all(
-    paths.map((path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')),
-  )).join('\n');
+  const combined = (
+    await Promise.all(paths.map((path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')))
+  ).join('\n');
 
-  assert.doesNotMatch(combined, /Quaternion|quaternion|crownRadius|riderKphi|riderKd|phiControlMax|omegaBody|rollInertia/);
+  assert.doesNotMatch(
+    combined,
+    /Quaternion|quaternion|crownRadius|riderKphi|riderKd|phiControlMax|omegaBody|rollInertia/,
+  );
   assert.doesNotMatch(combined, /compat|legacy.*(?:car|bike)|re-export/i);
   assert.doesNotMatch(combined, /\bABS\b|\bTCS\b|tractionControl|antiLock/i);
   assert.doesNotMatch(combined, /sprungRoll|bankAngle|deriveVehicleLean|sprite/i);
 });
 
 test('BIKE lean is a read-only render adapter with no route contact tire or force authority', async () => {
-  const presentation = await readFile(
-    new URL('../src/render/vehicle-presentation.ts', import.meta.url),
-    'utf8',
-  );
+  const presentation = await readFile(new URL('../src/render/vehicle-presentation.ts', import.meta.url), 'utf8');
   // M9.28 document123 replaces coordinated-turn inference with observed lateral G.
   assert.match(presentation, /lateralAcceleration/);
   assert.doesNotMatch(presentation, /yawRate|longitudinalSpeed/);

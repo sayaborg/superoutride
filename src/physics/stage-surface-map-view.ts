@@ -1,14 +1,5 @@
-import {
-  classifyStageRoadLocalL,
-  stageRoadSourceLateral,
-  type StageRoadView,
-} from '../course/stage-road-view.js';
-import {
-  SURFACE_MATERIALS,
-  type SurfaceMap,
-  type SurfaceMapReader,
-  type SurfaceSample,
-} from './surface-map.js';
+import { classifyStageRoadLocalL, stageRoadSourceLateral, type StageRoadView } from '../course/stage-road-view.js';
+import { SURFACE_MATERIALS, type SurfaceMap, type SurfaceMapReader, type SurfaceSample } from './surface-map.js';
 
 /**
  * Read-only stage-local SurfaceMap adapter.
@@ -18,6 +9,10 @@ import {
  * supported shoulder after handoff. Anything outside the committed stage corridor is physically VOID.
  */
 export class StageSurfaceMapView implements SurfaceMapReader {
+  get maxSupportedAbsL(): number {
+    return Math.max(this.roadView.groundLeft, this.roadView.groundRight) + 1e-9;
+  }
+
   constructor(
     readonly source: SurfaceMap,
     readonly roadView: StageRoadView,

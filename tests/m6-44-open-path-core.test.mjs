@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  compileRasterPath,
-  rasterPathToWorld,
-  sampleRasterPath,
-} from '../dist/core/course.js';
+import { compileRasterPath, rasterPathToWorld, sampleRasterPath } from '../dist/core/course.js';
 import {
   compileGuidePath,
   guidePathToWorld,
@@ -21,7 +17,7 @@ const near = (actual, expected, tolerance = 1e-8) => {
 };
 
 function createOpenFixture() {
-  const five = 5 * Math.PI / 180;
+  const five = (5 * Math.PI) / 180;
   const raster = compileRasterPath([
     { x: 0, z: 0 },
     { x: 0, z: 30 },
@@ -53,7 +49,11 @@ test('M6.44 RasterPath does not create a last-to-first segment', () => {
   assert.equal(raster.segments.length, 3);
   assert.deepEqual(
     raster.segments.map((segment) => [segment.startVertexIndex, segment.endVertexIndex]),
-    [[0, 1], [1, 2], [2, 3]],
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
   );
   near(raster.vertexS.at(-1), raster.length);
 });

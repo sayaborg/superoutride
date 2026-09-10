@@ -1,5 +1,5 @@
+import type { CameraYawMode } from '../camera/camera.js';
 import { wrapAngle } from '../core/math.js';
-import type { M5CameraYawMode } from '../camera/m5-camera.js';
 
 export type VehicleYawDebugSubject = 'BODY' | 'TRAVEL';
 
@@ -25,7 +25,7 @@ export function createVehicleYawDebugModel(
   return {
     subject,
     relativeYaw,
-    relativeYawDegrees: relativeYaw * 180 / Math.PI,
+    relativeYawDegrees: (relativeYaw * 180) / Math.PI,
     directionX: Math.sin(relativeYaw),
     directionY: -Math.cos(relativeYaw),
   };
@@ -35,7 +35,7 @@ export function createCameraYawDebugModel(
   vehicleYaw: number,
   movementYaw: number,
   cameraYaw: number,
-  yawMode: M5CameraYawMode,
+  yawMode: CameraYawMode,
 ): VehicleYawDebugModel {
   return yawMode === 'BODY_FIXED'
     ? createVehicleYawDebugModel(movementYaw, cameraYaw, 'TRAVEL')
@@ -50,7 +50,7 @@ export function drawVehicleYawDebug(
   vehicleYaw: number,
   movementYaw: number,
   cameraYaw: number,
-  yawMode: M5CameraYawMode,
+  yawMode: CameraYawMode,
 ): void {
   const model = createCameraYawDebugModel(vehicleYaw, movementYaw, cameraYaw, yawMode);
   const centerX = playerAnchorX;

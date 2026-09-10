@@ -5,20 +5,43 @@ import { compileGuidePath, sampleGuidePath } from '../dist/core/guide-curve.js';
 import { createGuideChart, guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
 
-const guide = compileGuidePath(compileRasterPath(Array.from({ length: 35 }, (_, i) => ({
-  x: 100 * (1 - Math.cos(i * Math.PI / 36)), z: 100 * Math.sin(i * Math.PI / 36), sourceRadius: 100,
-}))), { lMax: 12, mMin: 0.25, dCam: 5 });
+const guide = compileGuidePath(
+  compileRasterPath(
+    Array.from({ length: 35 }, (_, i) => ({
+      x: 100 * (1 - Math.cos((i * Math.PI) / 36)),
+      z: 100 * Math.sin((i * Math.PI) / 36),
+      sourceRadius: 100,
+    })),
+  ),
+  { lMax: 12, mMin: 0.25, dCam: 5 },
+);
 const source = { guide, chart: createGuideChart('source', guide), groundProfile: {} };
-const authoring = { id: 'curve', chartId: 'target', roadViewId: 'road', surfaceSectionName: 'surface',
-  sourceSeamMinS: 100, overlapMargin: 30, transitionLead: 10, finishAfterSeam: 150,
-  deformationMeters: 0, deformationDirection: 1, gentleTurnLimitDegrees: 9.9,
-  minDeformationRunVertices: 5, dCam: 5, dMax: 200, groundMapHalfWidth: 12,
-  groundHalfWidth: 4.5, roadHalfWidth: 3.5, shoulderWidth: 1 };
+const authoring = {
+  id: 'curve',
+  chartId: 'target',
+  roadViewId: 'road',
+  surfaceSectionName: 'surface',
+  sourceSeamMinS: 100,
+  overlapMargin: 30,
+  transitionLead: 10,
+  finishAfterSeam: 150,
+  deformationMeters: 0,
+  deformationDirection: 1,
+  gentleTurnLimitDegrees: 9.9,
+  minDeformationRunVertices: 5,
+  dCam: 5,
+  dMax: 200,
+  groundMapHalfWidth: 12,
+  groundHalfWidth: 4.5,
+  roadHalfWidth: 3.5,
+  shoulderWidth: 1,
+};
 
 test('Guide sampling stays at the adjacent fillet across roundoff-size joins', () => {
   let gaps = 0;
   for (let i = 1; i < guide.segments.length; i++) {
-    const before = guide.segments[i - 1], after = guide.segments[i];
+    const before = guide.segments[i - 1],
+      after = guide.segments[i];
     if (after.sStart > before.sEnd) {
       gaps++;
       const s = (before.sEnd + after.sStart) / 2;

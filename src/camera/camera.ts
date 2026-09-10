@@ -5,7 +5,7 @@ import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 
-export interface M5CameraProfile {
+export interface CameraProfile {
   readonly dCam: number;
   readonly height: number;
   /** Authored downward view angle relative to the vehicle-pitch reference. */
@@ -20,29 +20,26 @@ export interface M5CameraProfile {
   readonly deltaYMax: number;
 }
 
-export const M5_CAMERA_YAW_MODES = Object.freeze([
-  'BODY_FIXED',
-  'MOVEMENT_FOLLOW',
-] as const);
+export const CAMERA_YAW_MODES = Object.freeze(['BODY_FIXED', 'MOVEMENT_FOLLOW'] as const);
 
-export type M5CameraYawMode = typeof M5_CAMERA_YAW_MODES[number];
+export type CameraYawMode = (typeof CAMERA_YAW_MODES)[number];
 
-export const DEFAULT_M5_CAMERA_YAW_MODE: M5CameraYawMode = 'BODY_FIXED';
+export const DEFAULT_CAMERA_YAW_MODE: CameraYawMode = 'BODY_FIXED';
 
-export interface M5CameraRig {
-  yawMode: M5CameraYawMode;
+export interface CameraRig {
+  yawMode: CameraYawMode;
   yaw: number;
   movementYaw: number;
   verticalCorrection: number;
   initialized: boolean;
 }
 
-export interface M5CameraState extends PseudoCamera {
+export interface CameraState extends PseudoCamera {
   readonly guideHeadingAtCar: number;
   readonly vehicleGuideYawDelta: number;
   readonly cameraVehicleYawDelta: number;
   readonly bodyPitch: number;
-  readonly yawMode: M5CameraYawMode;
+  readonly yawMode: CameraYawMode;
   readonly movementYaw: number;
   readonly movementYawDelta: number;
   readonly groundHeight: number;
@@ -59,29 +56,24 @@ export interface BodyPitchMovementYaw {
   readonly inPlaneSpeed: number;
 }
 
-export function createM5CameraRig(
-  yawMode: M5CameraYawMode = DEFAULT_M5_CAMERA_YAW_MODE,
-): M5CameraRig {
+export function createCameraRig(yawMode: CameraYawMode = DEFAULT_CAMERA_YAW_MODE): CameraRig {
   return { yawMode, yaw: 0, movementYaw: 0, verticalCorrection: 0, initialized: false };
 }
 
-export function resetM5CameraRig(rig: M5CameraRig): void {
+export function resetCameraRig(rig: CameraRig): void {
   rig.yaw = 0;
   rig.movementYaw = 0;
   rig.verticalCorrection = 0;
   rig.initialized = false;
 }
 
-export function setM5CameraYawMode(
-  rig: M5CameraRig,
-  yawMode: M5CameraYawMode,
-): void {
+export function setCameraYawMode(rig: CameraRig, yawMode: CameraYawMode): void {
   rig.yawMode = yawMode;
 }
 
-export function toggleM5CameraYawMode(rig: M5CameraRig): M5CameraYawMode {
+export function toggleCameraYawMode(rig: CameraRig): CameraYawMode {
   const yawMode = rig.yawMode === 'BODY_FIXED' ? 'MOVEMENT_FOLLOW' : 'BODY_FIXED';
-  setM5CameraYawMode(rig, yawMode);
+  setCameraYawMode(rig, yawMode);
   return yawMode;
 }
 
@@ -121,14 +113,14 @@ export function movementYawInBodyPitchFrame(
   };
 }
 
-export function updateM5Camera(
-  rig: M5CameraRig,
+export function updateCamera(
+  rig: CameraRig,
   guide: GuideCoordinateSource,
   height: HeightProfileReader,
   vehicle: VehicleCameraReadState,
-  profile: M5CameraProfile,
+  profile: CameraProfile,
   dt: number,
-): M5CameraState {
+): CameraState {
   if (!(dt > 0) || !Number.isFinite(dt)) throw new RangeError('camera dt must be finite and > 0');
   if (!(profile.directionSpeedMin >= 0) || !Number.isFinite(profile.directionSpeedMin)) {
     throw new RangeError('camera direction speed minimum must be finite and >= 0');
@@ -192,19 +184,20 @@ export function updateM5Camera(
   const cameraPitch = profile.baseDownPitch - bodyPitch;
   const cosCameraPitch = Math.cos(cameraPitch);
   const vehiclePresentationY = vehicle.presentationY ?? vehicle.y;
-  const yFrame = vehiclePresentationY
-    - (profile.dCam / (profile.focalLength * cosCameraPitch))
-      * (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
+  const yFrame =
+    vehiclePresentationY -
+    (profile.dCam / (profile.focalLength * cosCameraPitch)) *
+      (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
   const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, 1e-4));
   rig.verticalCorrection += (frameDelta - rig.verticalCorrection) * verticalAlpha;
   rig.verticalCorrection = clamp(rig.verticalCorrection, -profile.deltaYMax, profile.deltaYMax);
 
   const cameraY = baseY + rig.verticalCorrection;
-  const projectedPlayerY = profile.centerY
-    - profile.focalLength * Math.sin(cameraPitch)
-    - (profile.focalLength / profile.dCam)
-      * (vehiclePresentationY - cameraY) * cosCameraPitch;
+  const projectedPlayerY =
+    profile.centerY -
+    profile.focalLength * Math.sin(cameraPitch) -
+    (profile.focalLength / profile.dCam) * (vehiclePresentationY - cameraY) * cosCameraPitch;
 
   return {
     x: cameraX,

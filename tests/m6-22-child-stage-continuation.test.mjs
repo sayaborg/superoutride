@@ -1,5 +1,5 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -53,7 +53,10 @@ test('M6.22 child charts share exact overlap geometry through D_cam around the h
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
 
-  for (const [side, chart] of [['LEFT', continuation.charts.left], ['RIGHT', continuation.charts.right]]) {
+  for (const [side, chart] of [
+    ['LEFT', continuation.charts.left],
+    ['RIGHT', continuation.charts.right],
+  ]) {
     const origin = M6_13_JUNCTION.separatedChildCenterL(side);
     for (const delta of [-5, 0, 20]) {
       const parentWorld = guidePathToWorld(parent, M6_17_HANDOFF_SEAM_S + delta, origin);
@@ -114,7 +117,12 @@ test('M6.22 runtime packages retain independent child Guide/SurfaceMap and child
   const continuation = createM622ChildStageContinuation(parent);
   const route = createM620LivePointToPointRouteDag();
   const manifest = createM6DebugRouteStageContentManifest(route);
-  const registry = createM624LiveStageRuntimeRegistry(manifest, continuation, parentShared(parent), createM4SpriteAssets());
+  const registry = createM624LiveStageRuntimeRegistry(
+    manifest,
+    continuation,
+    parentShared(parent),
+    createSpriteAssets(),
+  );
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
   const right = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_R' });
 
@@ -167,14 +175,7 @@ test('M6.22 physical route choice commits an independent child chart and finishe
     seamMotion.current,
   );
   assert.equal(
-    commitRouteStageHandoff(
-      handoffState,
-      routeState,
-      content,
-      charts,
-      seamObservation.seam,
-      seam.center,
-    ),
+    commitRouteStageHandoff(handoffState, routeState, content, charts, seamObservation.seam, seam.center),
     'COMMITTED',
   );
   near(handoffState.coordinate.s, continuation.handoffLocalS, 1e-5);
@@ -203,16 +204,19 @@ test('M6.22 fixture stays validated while browser live wiring consumes the M6.27
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
 
   assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
   assert.match(mainSource, /const playerTraveler = createLiveRouteTravelerState\(liveRoute/);
-  assert.match(mainSource, /const routeHandoffState = playerTraveler\.handoffState/);
-  assert.match(mainSource, /advanceLiveRouteMultiActorTick/);
+  assert.match(mainSource, /traveler: playerTraveler/);
+  assert.match(mainSource, /advanceRouteDrivingTick/);
   assert.match(mainSource, /shell\.present\(/);
   assert.doesNotMatch(mainSource, /camera\.courseLength/);
-  assert.doesNotMatch(mainSource, /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
+  assert.doesNotMatch(
+    mainSource,
+    /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/,
+  );
   assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet|createM622ChildStageContinuation/);
   assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|M6_42|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
 });

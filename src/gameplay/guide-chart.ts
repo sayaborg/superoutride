@@ -3,11 +3,7 @@ import {
   locateWorldOnGuideCoordinateGlobal,
   locateWorldOnGuideCoordinateLocal,
 } from '../core/guide-coordinate-frame.js';
-import type {
-  CourseCoordinate,
-  GuidePath,
-  GuideSample,
-} from '../core/guide-curve.js';
+import type { CourseCoordinate, GuidePath, GuideSample } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 
 /**
@@ -38,11 +34,7 @@ export function guideChartToWorld(chart: GuideChart, s: number, l: number): Guid
   return guideCoordinateToWorld(chart, s, l);
 }
 
-export function locateWorldOnGuideChartGlobal(
-  chart: GuideChart,
-  world: Vec2,
-  clampL = false,
-): CourseCoordinate {
+export function locateWorldOnGuideChartGlobal(chart: GuideChart, world: Vec2, clampL = false): CourseCoordinate {
   return locateWorldOnGuideCoordinateGlobal(chart, world, clampL);
 }
 

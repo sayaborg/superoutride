@@ -3,6 +3,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import ts from 'typescript';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.join(repositoryRoot, 'src');
@@ -12,7 +13,7 @@ async function collectFiles(directory, suffixes) {
   const files = [];
   for (const entry of entries) {
     const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...await collectFiles(target, suffixes));
+    if (entry.isDirectory()) files.push(...(await collectFiles(target, suffixes)));
     else if (entry.isFile() && suffixes.some((suffix) => entry.name.endsWith(suffix))) {
       files.push(target);
     }
@@ -30,54 +31,101 @@ async function pathExists(target) {
   }
 }
 
-test('every TypeScript module is consumed by source tests or tools', async () => {
+// These modules are retained executable regression inputs, not production validators.
+// Keep each exemption named: importing a new general module from a test never makes it live.
+const regressionOnlyModules = new Map([
+  ['src/dev/driving-input-trace.ts', 'Recorded input schedules for causal control regressions'],
+  ['src/dev/m3-debug-height-profile.ts', 'Fixed hill/dip source for renderer and route regressions'],
+  ['src/dev/m3-debug-visual.ts', 'Fixed transparent/cliff visual source'],
+  ['src/dev/m5-debug-surface-map.ts', 'Fixed material transitions for contact tests'],
+  ['src/dev/m6-19-stage-runtime-content.ts', 'Stage registry ownership fixture'],
+  ['src/dev/m6-20-live-point-to-point.ts', 'Focused single-fork route assembly'],
+  ['src/dev/m6-23-child-environment-content.ts', 'Child environment continuation fixture'],
+  ['src/dev/m6-23-live-runtime-content.ts', 'Child environment registry fixture'],
+  ['src/dev/m6-24-live-runtime-content.ts', 'Declarative environment registry fixture'],
+  ['src/dev/m6-28-declarative-live-route.ts', 'Minimal declarative route fixture'],
+  ['src/dev/m6-35-second-live-fork.ts', 'Focused left second-fork fixture'],
+  ['src/dev/m6-37-symmetric-right-second-live-fork.ts', 'Focused right second-fork fixture'],
+  ['src/dev/m6-43-course-mode.ts', 'Route-mode contract fixture'],
+  ['src/dev/m6-51-circuit-live-runtime.ts', 'Stadium finite circuit fixture'],
+  ['src/dev/m6-54-circuit-multi-actor.ts', 'Stadium multi-actor race fixture'],
+  ['src/dev/m6-debug-route-boundary-gates.ts', 'Minimal physical route-gate fixture'],
+  ['src/dev/m6-debug-route-dag.ts', 'Minimal route graph fixture'],
+  ['src/dev/m6-debug-route-stage-content.ts', 'Minimal stage manifest fixture'],
+  ['src/dev/m9-1-low-mid-speed-mountain-circuit.ts', 'Fixed mountain handling acceptance course'],
+  ['src/dev/vehicle-telemetry.ts', 'Read-only diagnostic telemetry, also used by offline probes'],
+]);
+
+test('every source module is reachable from a composition/build/tool entry or an explicit regression fixture', async () => {
   const sourceFiles = await collectFiles(sourceRoot, ['.ts']);
-  const consumers = [
-    ...sourceFiles,
-    ...await collectFiles(path.join(repositoryRoot, 'tests'), ['.mjs']),
-    ...await collectFiles(path.join(repositoryRoot, 'tools'), ['.mjs']),
-  ];
-  const incoming = new Map(sourceFiles.map((file) => [file, []]));
-
-  for (const consumer of consumers) {
-    const source = await readFile(consumer, 'utf8');
-    for (const match of source.matchAll(/(?:from\s+|import\s*\()\s*['"]([^'"]+)['"]/g)) {
-      const specifier = match[1];
-      if (!specifier.startsWith('.')) continue;
-      let resolved = path.resolve(path.dirname(consumer), specifier);
-      resolved = resolved.replace(`${path.sep}dist${path.sep}`, `${path.sep}src${path.sep}`);
-      resolved = resolved.replace(/\.js$/, '.ts');
-      incoming.get(resolved)?.push(consumer);
+  const toolFiles = await collectFiles(path.join(repositoryRoot, 'tools'), ['.mjs', '.html']);
+  const tests = await collectFiles(path.join(repositoryRoot, 'tests'), ['.mjs']);
+  const graph = new Map();
+  for (const file of [...sourceFiles, ...toolFiles.filter((file) => file.endsWith('.mjs')), ...tests]) {
+    const source = await readFile(file, 'utf8');
+    const dependencies = [];
+    const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    function visitSyntax(node) {
+      const reference =
+        ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
+          ? node.moduleSpecifier
+          : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
+            ? node.arguments[0]
+            : undefined;
+      if (reference && ts.isStringLiteral(reference) && reference.text.startsWith('.')) {
+        dependencies.push(
+          path
+            .resolve(path.dirname(file), reference.text)
+            .replace(`${path.sep}dist${path.sep}`, `${path.sep}src${path.sep}`)
+            .replace(/\.js$/, '.ts'),
+        );
+      }
+      ts.forEachChild(node, visitSyntax);
     }
+    visitSyntax(syntax);
+    graph.set(file, dependencies);
   }
-
-  const compositionRoots = new Set([
-    'src/boot.ts',
-    'src/main-linear.ts',
-    'src/main.ts',
-    'src/main-circuit.ts',
-  ].map((relative) => path.join(repositoryRoot, relative)));
-  const unconsumed = [...incoming]
-    .filter(([file, consumersForFile]) => (
-      consumersForFile.length === 0 && !compositionRoots.has(file)
-    ))
-    .map(([file]) => path.relative(repositoryRoot, file))
-    .sort();
-  assert.deepEqual(unconsumed, []);
+  const reached = new Set();
+  function visit(file) {
+    if (reached.has(file)) return;
+    reached.add(file);
+    for (const dependency of graph.get(file) ?? []) visit(dependency);
+  }
+  // Dynamic boot selection deliberately assembles exactly these browser roots.
+  for (const relative of ['src/boot.ts', 'src/main.ts', 'src/main-linear.ts', 'src/main-circuit.ts']) {
+    visit(path.join(repositoryRoot, relative));
+  }
+  for (const tool of toolFiles) visit(tool);
+  const unreachable = sourceFiles.filter((file) => !reached.has(file));
+  for (const file of unreachable) {
+    const relative = path.relative(repositoryRoot, file);
+    assert.ok(regressionOnlyModules.has(relative), `unreachable source module: ${relative}`);
+  }
+  // Regression exemptions must themselves still exist and have a test or diagnostic consumer.
+  for (const file of tests) visit(file);
+  for (const [file, reason] of regressionOnlyModules) {
+    assert.ok(await pathExists(path.join(repositoryRoot, file)), `stale fixture exemption: ${file}`);
+    assert.ok(reason.length > 0);
+    assert.ok(reached.has(path.join(repositoryRoot, file)), `unused exempt fixture: ${file}`);
+  }
 });
-
 
 // Discover all maintained documents: a new topic must not escape link/encoding checks.
 const currentHandoff = 'docs/NEXT.md';
 async function currentDocuments() {
-  return ['AGENTS.md', 'README.md',
-    ...await collectFiles(path.join(repositoryRoot, 'docs'), ['.md']),
-    ...await collectFiles(sourceRoot, ['.md'])].map(file => path.resolve(repositoryRoot, file));
+  return [
+    'AGENTS.md',
+    'README.md',
+    ...(await collectFiles(path.join(repositoryRoot, 'docs'), ['.md'])),
+    ...(await collectFiles(sourceRoot, ['.md'])),
+  ].map((file) => path.resolve(repositoryRoot, file));
 }
 function documentReferences(source) {
   return [...source.matchAll(/\[[^\]\n]*\]\(([^\s)]+)\)/g)]
-    .map(match => match[1]).filter(ref => !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(ref))
-    .map(ref => ref.split(/[?#]/)[0]).filter(Boolean);
+    .map((match) => match[1])
+    .filter((ref) => !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(ref))
+    .map((ref) => ref.split(/[?#]/)[0])
+    .filter(Boolean);
 }
 
 test('all maintained Markdown has valid UTF-8 and existing local link targets', async () => {
@@ -88,7 +136,7 @@ test('all maintained Markdown has valid UTF-8 and existing local link targets', 
     assert.doesNotMatch(source, /\uFFFD/, `encoding damage: ${file}`);
     for (const reference of documentReferences(source)) {
       const target = path.resolve(path.dirname(file), reference);
-      if (!await pathExists(target)) missing.push(`${path.relative(repositoryRoot, file)}: ${reference}`);
+      if (!(await pathExists(target))) missing.push(`${path.relative(repositoryRoot, file)}: ${reference}`);
     }
   }
   assert.deepEqual(missing, []);
@@ -97,11 +145,27 @@ test('all maintained Markdown has valid UTF-8 and existing local link targets', 
 test('every entry points directly to the sole current restart checkpoint', async () => {
   for (const entry of ['AGENTS.md', 'README.md', 'docs/README.md']) {
     const source = await readFile(path.join(repositoryRoot, entry), 'utf8');
-    const targets = documentReferences(source).map(ref => path.resolve(repositoryRoot, path.dirname(entry), ref));
+    const targets = documentReferences(source).map((ref) => path.resolve(repositoryRoot, path.dirname(entry), ref));
     assert.ok(targets.includes(path.join(repositoryRoot, currentHandoff)), `${entry} lacks restart link`);
   }
   const source = await readFile(path.join(repositoryRoot, currentHandoff), 'utf8');
   assert.match(source, /DEV_UNCALIBRATED/);
-  assert.doesNotMatch(source, /sandbox:|\/mnt\/data\/|\/private\/tmp\/|file_[0-9a-f]{16,}/,
-    'restart must not require a former session directory or attachment');
+  assert.doesNotMatch(
+    source,
+    /sandbox:|\/mnt\/data\/|\/private\/tmp\/|file_[0-9a-f]{16,}/,
+    'restart must not require a former session directory or attachment',
+  );
+});
+
+test('general engine identifiers remain independent of development milestone names', async () => {
+  for (const file of await collectFiles(sourceRoot, ['.ts'])) {
+    const relative = path.relative(sourceRoot, file);
+    if (relative.startsWith('dev/') || /^main(?:-.*)?\.ts$/.test(relative)) continue;
+    const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    function visit(node) {
+      if (ts.isIdentifier(node)) assert.doesNotMatch(node.text, /^(?:[a-z]+)?M[0-9]/, relative);
+      ts.forEachChild(node, visit);
+    }
+    visit(syntax);
+  }
 });

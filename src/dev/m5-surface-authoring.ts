@@ -1,6 +1,6 @@
-import type { LongitudinalRoadMarking } from '../visual/ground-map.js';
 import type { AuthoredSurfaceBand, AuthoredSurfaceType, SurfaceRegionAuthoring } from '../course/surface-region.js';
 import { rgba } from '../render/software-surface.js';
+import type { LongitudinalRoadMarking } from '../visual/ground-map.js';
 
 export const CENTER_DASH_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
   Object.freeze({ centerL: 0, width: 0.14, pattern: 'DASHED', dashLength: 7, gapLength: 5 }),
@@ -18,8 +18,15 @@ export function createM5DebugSurfaceRegionAuthoring(courseLength: number): Surfa
     { sStart: 280, name: 'SAND PATCH', left: 'GRASS' as AuthoredSurfaceType, right: 'SAND' as AuthoredSurfaceType },
     { sStart: 360, name: 'DIRT PATCH', left: 'DIRT' as AuthoredSurfaceType, right: 'GRASS' as AuthoredSurfaceType },
     { sStart: 455, name: 'CLIFF / SEA', left: null, right: 'GRASS' as AuthoredSurfaceType },
-    { sStart: Math.min(625, courseLength - 1), name: 'GRASSLAND', left: 'GRASS' as AuthoredSurfaceType, right: 'GRASS' as AuthoredSurfaceType },
-  ].filter((entry, index, array) => entry.sStart < courseLength && (index === 0 || entry.sStart > array[index - 1]!.sStart));
+    {
+      sStart: Math.min(625, courseLength - 1),
+      name: 'GRASSLAND',
+      left: 'GRASS' as AuthoredSurfaceType,
+      right: 'GRASS' as AuthoredSurfaceType,
+    },
+  ].filter(
+    (entry, index, array) => entry.sStart < courseLength && (index === 0 || entry.sStart > array[index - 1]!.sStart),
+  );
 
   return starts.map((entry) => {
     const cliff = entry.name === 'CLIFF / SEA';

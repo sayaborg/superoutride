@@ -1,4 +1,3 @@
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
@@ -6,12 +5,13 @@ import {
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
 import { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
-import type { M5RecoveryProfile } from '../gameplay/recovery.js';
+import type { RecoveryProfile } from '../gameplay/recovery.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import { GROUND_COLORS, type GroundMapProfile } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { M622ParentForkGeometry } from './m6-22-child-stage-continuation.js';
 import {
   M7_1_HIGHWAY_RECOVERY_PROFILE,
@@ -47,8 +47,8 @@ export const M7_2_DEFAULT_BRANCHING_FORK: Readonly<M622ParentForkGeometry> = Obj
 
 export const M7_2_PLAYER_START_L = M7_1_PLAYER_START_L;
 export const M7_2_RIVAL_START_L = M7_1_RIVAL_START_L;
-export const M7_2_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = M7_1_HIGHWAY_RECOVERY_PROFILE;
-export const M7_2_RIVAL_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE;
+export const M7_2_PLAYER_RECOVERY_PROFILE: Readonly<RecoveryProfile> = M7_1_HIGHWAY_RECOVERY_PROFILE;
+export const M7_2_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE;
 
 export interface M72DefaultBranchingParent {
   readonly guide: GuidePath;
@@ -68,23 +68,21 @@ export interface M72DefaultBranchingParent {
  */
 export function createM72DefaultBranchingParent(): M72DefaultBranchingParent {
   const guide = compileGuidePath(createM71HighwayCalibrationLapRaster(), {
-    lMax: 13,
+    lMax: 20,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });
   const heightProfile = createM72BranchingHeightProfile(guide.length);
-  const visualProfile = new VisualProfile(guide.length, [{
-    sStart: 0,
-    name: 'M7.2 DEFAULT FOUR-LANE BRANCHING HIGHWAY',
-    groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
-    groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
-  }]);
+  const visualProfile = new VisualProfile(guide.length, [
+    {
+      sStart: 0,
+      name: 'M7.2 DEFAULT FOUR-LANE BRANCHING HIGHWAY',
+      groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
+      groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
+    },
+  ]);
   const baseSurface = createM71HighwaySurfaceMap(guide.length);
-  const surfaceMap = new SurfaceMap(
-    guide.length,
-    baseSurface.sections,
-    M7_2_DEFAULT_BRANCHING_JUNCTION,
-  );
+  const surfaceMap = new SurfaceMap(guide.length, baseSurface.sections, M7_2_DEFAULT_BRANCHING_JUNCTION);
   const groundProfile: GroundMapProfile = {
     ...createM71HighwayGroundProfile(),
     groundLeft: 13,

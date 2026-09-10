@@ -1,12 +1,11 @@
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
+import { compileRasterPath, type RasterVertex } from '../core/course.js';
+import { compileGuidePath, guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
+import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
-import { compileRasterPath, type RasterVertex } from '../core/course.js';
-import { compileGuidePath, guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
-import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import { createGuideChart, guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
@@ -23,11 +22,12 @@ import {
 } from '../gameplay/route-stage-handoff.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
+import { rgba } from '../render/software-surface.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
-import { rgba } from '../render/software-surface.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
@@ -166,9 +166,7 @@ function createChildGuide(
   side: 'LEFT' | 'RIGHT',
 ): GuidePath {
   const parentRaster = parentGuide.raster;
-  const prefix = parentRaster.vertices
-    .slice(overlap.startIndex, overlap.endIndex + 1)
-    .map((vertex) => ({ ...vertex }));
+  const prefix = parentRaster.vertices.slice(overlap.startIndex, overlap.endIndex + 1).map((vertex) => ({ ...vertex }));
   const divergence = prefix[prefix.length - 1]!;
   const turnSign = side === 'LEFT' ? -1 : 1;
   const continuation: RasterVertex[] = [];
@@ -183,7 +181,7 @@ function createChildGuide(
   append(30);
   append(30);
   for (let step = 0; step < 12; step += 1) {
-    heading += turnSign * 3 * Math.PI / 180;
+    heading += (turnSign * 3 * Math.PI) / 180;
     append(30);
   }
   const finalStraightLength = side === 'LEFT' ? 520 : 570;
@@ -215,23 +213,27 @@ function createChildRuntimeSource(
     roadRight: CHILD_ROAD_HALF_WIDTH,
     shoulderWidth: CHILD_SHOULDER_WIDTH,
   });
-  const sourceSurfaceMap = new SurfaceMap(guide.length, [{
-    sStart: 0,
-    name: `${side}_CHILD_STAGE`,
-    bands: childSurfaceBands(sourceLateralOrigin),
-  }]);
+  const sourceSurfaceMap = new SurfaceMap(guide.length, [
+    {
+      sStart: 0,
+      name: `${side}_CHILD_STAGE`,
+      bands: childSurfaceBands(sourceLateralOrigin),
+    },
+  ]);
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
   const heightProfile = new HeightProfile(guide.length, [
     { s: 0, y: 0 },
     { s: guide.length * 0.5, y: 0 },
     { s: guide.length, y: 0 },
   ]);
-  const visualProfile = new VisualProfile(guide.length, [{
-    sStart: 0,
-    name: `${side}_CHILD_STAGE`,
-    groundBaseLeft: { kind: 'color', color: rgba(39, 88, 46) },
-    groundBaseRight: { kind: 'color', color: rgba(45, 100, 53) },
-  }]);
+  const visualProfile = new VisualProfile(guide.length, [
+    {
+      sStart: 0,
+      name: `${side}_CHILD_STAGE`,
+      groundBaseLeft: { kind: 'color', color: rgba(39, 88, 46) },
+      groundBaseRight: { kind: 'color', color: rgba(45, 100, 53) },
+    },
+  ]);
   const groundProfile: GroundMapProfile = {
     groundLeft: 12,
     groundRight: 12,

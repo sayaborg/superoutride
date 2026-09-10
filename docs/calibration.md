@@ -6,16 +6,16 @@ Handling remains `DEV_UNCALIBRATED`. The common mechanics/control structure is f
 
 Cars and bikes start with the same browser baseline. Player replacement carries the active tire settings to the next vehicle; there is no per-vehicle saved tuning store yet. Final tire parameters may differ by vehicle; front/rear specialization remains future tuning work.
 
-| Selector | Meaning | Default | Range / step |
-| --- | --- | --- | --- |
-| GX | Longitudinal reference friction | 5 | 2–8 / 0.05 |
-| PX | Longitudinal pure-slip plateau start | 20% | 2–40% / 1 point |
-| GY | Lateral reference friction | 2.5 | 1–4 / 0.05 |
-| PY | Lateral pure-slip plateau start | 10% | 2–20% / 1 point |
-| KN | Normalized radial knee start | 0.74 | 0.10–0.95 / 0.01 |
-| D | Maximum driver road-wheel offset | 20° | 10–30° / 1° |
-| M | Mechanical road-wheel rack bound | 65° | 50–80° / 5° |
-| ACT | Symmetric normalized steering traversal | 0.30 s | 0.20–0.40 s / 0.025 s |
+| Selector | Meaning                                 | Default | Range / step          |
+| -------- | --------------------------------------- | ------- | --------------------- |
+| GX       | Longitudinal reference friction         | 5       | 2–8 / 0.05            |
+| PX       | Longitudinal pure-slip plateau start    | 20%     | 2–40% / 1 point       |
+| GY       | Lateral reference friction              | 2.5     | 1–4 / 0.05            |
+| PY       | Lateral pure-slip plateau start         | 10%     | 2–20% / 1 point       |
+| KN       | Normalized radial knee start            | 0.74    | 0.10–0.95 / 0.01      |
+| D        | Maximum driver road-wheel offset        | 20°     | 10–30° / 1°           |
+| M        | Mechanical road-wheel rack bound        | 65°     | 50–80° / 5°           |
+| ACT      | Symmetric normalized steering traversal | 0.30 s  | 0.20–0.40 s / 0.025 s |
 
 [Tire selector](../src/browser/tire-friction-selection.ts), [steering selector](../src/browser/steering-calibration-selection.ts) and [driving shell](../src/browser/driving-shell.ts) own browser initialization. Raw vehicle construction and rivals use compiled profile defaults unless composition explicitly supplies calibration. Do not silently replace profile seeds with browser debug settings.
 

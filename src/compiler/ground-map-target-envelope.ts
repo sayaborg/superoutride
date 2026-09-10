@@ -1,5 +1,6 @@
-import type { TerrainFootprintSummary } from './terrain-footprint-analysis.js';
+import { positiveFinite } from '../core/validation.js';
 import { requiredPyramidMaxLevel } from './ground-map-lod.js';
+import type { TerrainFootprintSummary } from './terrain-footprint-analysis.js';
 
 export interface GroundMapTargetEnvelopeInput {
   readonly dMin: number;
@@ -31,14 +32,12 @@ export interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeIn
  * interval, therefore Delta_s_collapse <= dMax-dMin as well. Consequently
  * Delta_s_eff=max(Delta_s,Delta_s_collapse) has the same absolute bound.
  */
-export function deriveGroundMapTargetEnvelope(
-  input: GroundMapTargetEnvelopeInput,
-): GroundMapTargetEnvelopeReport {
-  validatePositiveFinite(input.dMin, 'dMin');
-  validatePositiveFinite(input.dMax, 'dMax');
+export function deriveGroundMapTargetEnvelope(input: GroundMapTargetEnvelopeInput): GroundMapTargetEnvelopeReport {
+  positiveFinite(input.dMin, 'dMin');
+  positiveFinite(input.dMax, 'dMax');
   if (!(input.dMax > input.dMin)) throw new RangeError('dMax must be > dMin');
-  validatePositiveFinite(input.qS, 'qS');
-  validatePositiveFinite(input.thinSpanScreenRows, 'thinSpanScreenRows');
+  positiveFinite(input.qS, 'qS');
+  positiveFinite(input.thinSpanScreenRows, 'thinSpanScreenRows');
 
   const maxDeltaSEffectiveUpperBound = input.dMax - input.dMin;
   const kMax = requiredPyramidMaxLevel(maxDeltaSEffectiveUpperBound, input.qS);
@@ -49,13 +48,14 @@ export function deriveGroundMapTargetEnvelope(
   let observedRequiredLevel: number | null = null;
   let necessityProven = false;
   if (input.observedMaxDeltaSEffective !== undefined) {
-    validatePositiveFinite(input.observedMaxDeltaSEffective, 'observedMaxDeltaSEffective');
+    positiveFinite(input.observedMaxDeltaSEffective, 'observedMaxDeltaSEffective');
     if (input.observedMaxDeltaSEffective > maxDeltaSEffectiveUpperBound + 1e-9) {
       throw new Error('observed Delta_s_eff exceeds the depth-clip upper bound');
     }
     observedRequiredLevel = requiredPyramidMaxLevel(input.observedMaxDeltaSEffective, input.qS);
-    necessityProven = observedRequiredLevel === kMax
-      && (kMax === 0 || input.observedMaxDeltaSEffective > previousLevelCapacity + 1e-12);
+    necessityProven =
+      observedRequiredLevel === kMax &&
+      (kMax === 0 || input.observedMaxDeltaSEffective > previousLevelCapacity + 1e-12);
   }
 
   if (!sufficiencyProven) throw new Error('internal GroundMap kMax proof failure');
@@ -82,11 +82,5 @@ export function validateTerrainFootprintsAgainstTarget(
   }
   if (summary.requiredChainageLevel > target.kMax) {
     throw new Error('TerrainLine requires GroundMap level above compiled kMax');
-  }
-}
-
-function validatePositiveFinite(value: number, name: string): void {
-  if (!(value > 0) || !Number.isFinite(value)) {
-    throw new RangeError(`${name} must be finite and > 0`);
   }
 }

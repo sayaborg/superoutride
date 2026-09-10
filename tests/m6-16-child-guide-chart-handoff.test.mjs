@@ -4,11 +4,7 @@ import assert from 'node:assert/strict';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import {
-  guideChartToWorld,
-  handoffGuideChart,
-  locateWorldOnGuideChartGlobal,
-} from '../dist/gameplay/guide-chart.js';
+import { guideChartToWorld, handoffGuideChart, locateWorldOnGuideChartGlobal } from '../dist/gameplay/guide-chart.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -21,7 +17,10 @@ test('M6.16 child charts put l=0 on the two separated visible road centers', () 
   assert.equal(charts.left.lateralOrigin, -7.5);
   assert.equal(charts.right.lateralOrigin, 7.5);
 
-  for (const [chart, parentL] of [[charts.left, -7.5], [charts.right, 7.5]]) {
+  for (const [chart, parentL] of [
+    [charts.left, -7.5],
+    [charts.right, 7.5],
+  ]) {
     const childCenter = guideChartToWorld(chart, 570, 0);
     const parentPoint = guidePathToWorld(guide, 570, parentL);
     near(childCenter.x, parentPoint.x);
@@ -59,7 +58,10 @@ test('handoff changes road coordinates only: world pose and motion remain byte-f
 test('child chart preserves signed lateral freedom around its own road center', () => {
   const guide = createM2StadiumGuide();
   const charts = createM616ChildGuideCharts(guide);
-  for (const [chart, parentOrigin] of [[charts.left, -7.5], [charts.right, 7.5]]) {
+  for (const [chart, parentOrigin] of [
+    [charts.left, -7.5],
+    [charts.right, 7.5],
+  ]) {
     for (const localL of [-3, -1, 0, 1, 3]) {
       const world = guideChartToWorld(chart, 560, localL);
       const parent = guidePathToWorld(guide, 560, parentOrigin + localL);
@@ -77,8 +79,17 @@ test('Guide chart handoff remains gameplay/core coordinate logic with no rendere
   for (const path of ['../src/gameplay/guide-chart.ts', '../src/dev/m6-16-child-guide-charts.ts']) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-    assert.equal(imports.some((entry) => entry.includes('/render/')), false);
-    assert.equal(imports.some((entry) => entry.includes('/physics/')), false);
-    assert.equal(imports.some((entry) => entry.includes('/input/')), false);
+    assert.equal(
+      imports.some((entry) => entry.includes('/render/')),
+      false,
+    );
+    assert.equal(
+      imports.some((entry) => entry.includes('/physics/')),
+      false,
+    );
+    assert.equal(
+      imports.some((entry) => entry.includes('/input/')),
+      false,
+    );
   }
 });

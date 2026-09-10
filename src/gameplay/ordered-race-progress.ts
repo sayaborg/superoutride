@@ -188,9 +188,8 @@ export function updateOrderedRaceProgress(
   }
 
   const rawDeltaS = current.s - state.previous.s;
-  const interpolationDelta = state.direction === 'FORWARD'
-    ? Math.max(0, rawDeltaS)
-    : state.direction === 'REVERSE' ? Math.min(0, rawDeltaS) : 0;
+  const interpolationDelta =
+    state.direction === 'FORWARD' ? Math.max(0, rawDeltaS) : state.direction === 'REVERSE' ? Math.min(0, rawDeltaS) : 0;
   state.lastEvent = 'NONE';
 
   const crossings = candidateGates(rules.gates, state.previous, current)
@@ -287,18 +286,13 @@ function candidateGates(
   return gates.filter((gate) => gate.s >= low && gate.s <= high);
 }
 
-function checkedSample(
-  sample: OrderedRaceProgressSample,
-  courseLength: number,
-): OrderedRaceProgressSample {
+function checkedSample(sample: OrderedRaceProgressSample, courseLength: number): OrderedRaceProgressSample {
   if (![sample.x, sample.z, sample.s].every(Number.isFinite)) {
     throw new RangeError('ordered race progress sample must be finite');
   }
   if (sample.s < -EPSILON || sample.s > courseLength + EPSILON) {
     throw new RangeError('ordered race progress chainage is outside the finite open Guide domain');
   }
-  const s = Math.abs(sample.s) <= EPSILON
-    ? 0
-    : Math.abs(sample.s - courseLength) <= EPSILON ? courseLength : sample.s;
+  const s = Math.abs(sample.s) <= EPSILON ? 0 : Math.abs(sample.s - courseLength) <= EPSILON ? courseLength : sample.s;
   return { x: sample.x, z: sample.z, s };
 }

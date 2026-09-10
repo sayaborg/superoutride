@@ -66,10 +66,8 @@ export function classifyStageRoadLocalL(view: StageRoadView, localL: number): St
   if (localL < -view.groundLeft - epsilon || localL > view.groundRight + epsilon) return 'OUTSIDE';
   if (localL >= -view.roadLeft - epsilon && localL <= view.roadRight + epsilon) return 'ROAD';
 
-  const inLeftShoulder = localL >= -view.roadLeft - view.shoulderWidth - epsilon
-    && localL < -view.roadLeft + epsilon;
-  const inRightShoulder = localL > view.roadRight - epsilon
-    && localL <= view.roadRight + view.shoulderWidth + epsilon;
+  const inLeftShoulder = localL >= -view.roadLeft - view.shoulderWidth - epsilon && localL < -view.roadLeft + epsilon;
+  const inRightShoulder = localL > view.roadRight - epsilon && localL <= view.roadRight + view.shoulderWidth + epsilon;
   if (inLeftShoulder || inRightShoulder) return 'SHOULDER';
   return 'TERRAIN';
 }

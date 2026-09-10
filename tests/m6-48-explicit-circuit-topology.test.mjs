@@ -31,8 +31,8 @@ test('M6.48 circuit topology identifies only an explicitly duplicated open-lap e
   assert.equal(topology.lapPath, lap);
   assert.equal(topology.lapLength, lap.length);
   assert.equal(lap.segments.length, 72);
-  assert.ok(Math.abs(topology.seamTurn) <= (10 * Math.PI / 180) + 1e-8);
-  assert.ok(Math.abs(Math.abs(topology.seamTurn) - (5 * Math.PI / 180)) < 1e-10);
+  assert.ok(Math.abs(topology.seamTurn) <= (10 * Math.PI) / 180 + 1e-8);
+  assert.ok(Math.abs(Math.abs(topology.seamTurn) - (5 * Math.PI) / 180) < 1e-10);
 });
 
 test('M6.48 circuit topology rejects an ordinary open path instead of inventing last-to-first geometry', () => {
@@ -42,10 +42,7 @@ test('M6.48 circuit topology rejects an ordinary open path instead of inventing 
     { x: 5, z: 200 },
   ]);
 
-  assert.throws(
-    () => compileCircuitTopology('NOT_CLOSED', open),
-    /explicitly repeat its first world vertex/,
-  );
+  assert.throws(() => compileCircuitTopology('NOT_CLOSED', open), /explicitly repeat its first world vertex/);
 });
 
 test('M6.48 circuit seam has one unambiguous copy of endpoint authoring metadata', () => {
@@ -60,10 +57,7 @@ test('M6.48 circuit seam has one unambiguous copy of endpoint authoring metadata
   vertices.push({ ...vertices[0], sourceRadius: 160 });
   const lap = compileRasterPath(vertices);
 
-  assert.throws(
-    () => compileCircuitTopology('CONFLICTING_SEAM', lap),
-    /sourceRadius metadata must match exactly/,
-  );
+  assert.throws(() => compileCircuitTopology('CONFLICTING_SEAM', lap), /sourceRadius metadata must match exactly/);
 });
 
 test('M6.48 unfolding repeats lap geometry into one ordinary open RasterPath', () => {
@@ -105,10 +99,7 @@ test('M6.48 local source chainage lifts through the seam without giving modulo a
   assert.ok(Math.abs(liftCircuitLocalChainageNear(topology, L - 2, L + 1) - (L - 2)) < 1e-12);
   assert.ok(Math.abs(liftCircuitLocalChainageNear(topology, L, L - 1) - L) < 1e-12);
 
-  assert.throws(
-    () => liftCircuitLocalChainageNear(topology, L + 0.001, L),
-    /within the authored \[0,L\] lap domain/,
-  );
+  assert.throws(() => liftCircuitLocalChainageNear(topology, L + 0.001, L), /within the authored \[0,L\] lap domain/);
 });
 
 test('M6.48 circuit topology remains above Core and outside renderer and RouteDag authority', async () => {

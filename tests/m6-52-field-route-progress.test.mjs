@@ -24,13 +24,10 @@ import { rankRaceProgress } from '../dist/gameplay/race-session.js';
 import { createValidatedRunFinishFromRoute } from '../dist/gameplay/run-objective.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
-import {
-  createLiveRouteTravelerState,
-  resyncLiveRouteTraveler,
-} from '../dist/runtime/live-route-traveler.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createLiveRouteTravelerState, resyncLiveRouteTraveler } from '../dist/runtime/live-route-traveler.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createLiveFixture() {
@@ -68,10 +65,10 @@ function createLiveFixture() {
         visual: visualProfile,
         thinSpanScreenRows: 1,
       },
-      selectFarBackground: () => createM3FarBackground(),
+      selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },
-    createM4SpriteAssets(),
+    createSpriteAssets(),
   );
 }
 
@@ -96,9 +93,7 @@ function gate(live, choiceId) {
 }
 
 function finishGate(live, stageId) {
-  const result = live.gates.gates.find(
-    (candidate) => candidate.kind === 'FINISH' && candidate.stageId === stageId,
-  );
+  const result = live.gates.gates.find((candidate) => candidate.kind === 'FINISH' && candidate.stageId === stageId);
   assert.ok(result, `missing FINISH gate ${stageId}`);
   return result;
 }
@@ -131,9 +126,7 @@ function createActor(live, actorId, world) {
 function resyncActor(live, actor, world, stagedCoordinate = null) {
   resyncLiveRouteTraveler(live, actor.traveler, world);
   if (stagedCoordinate !== null) {
-    const chart = live.charts.find(
-      (candidate) => candidate.id === actor.traveler.handoffState.activeChartId,
-    );
+    const chart = live.charts.find((candidate) => candidate.id === actor.traveler.handoffState.activeChartId);
     assert.ok(chart);
     const sample = sampleGuidePath(chart.guide, stagedCoordinate.s);
     actor.traveler.handoffState.coordinate = {
@@ -160,7 +153,7 @@ function applyActorProgress(live, actor, result) {
 }
 
 function actorResult(tick, actorId) {
-  const result = tick.actors.find((candidate) => candidate.actorId === actorId);
+  const result = tick.actors[actorId];
   assert.ok(result, `missing actor tick result ${actorId}`);
   return result;
 }
@@ -236,9 +229,13 @@ test('M6.52 compiler derives one finite progress ruler with invariant handoff re
   }
 
   for (const stage of live.route.stages.filter((candidate) => candidate.outgoingChoiceIds.length > 1)) {
-    const boundaries = stage.outgoingChoiceIds.map((choiceId) =>
-      live.progress.choices.find((candidate) => candidate.choiceId === choiceId).gateProgress);
-    assert.ok(boundaries.every((value) => Math.abs(value - boundaries[0]) < 1e-6), stage.id);
+    const boundaries = stage.outgoingChoiceIds.map(
+      (choiceId) => live.progress.choices.find((candidate) => candidate.choiceId === choiceId).gateProgress,
+    );
+    assert.ok(
+      boundaries.every((value) => Math.abs(value - boundaries[0]) < 1e-6),
+      stage.id,
+    );
   }
 });
 
@@ -247,12 +244,14 @@ test('M6.52 compiler rejects sibling gates that would create two ranking authori
   const movedChoiceId = 'S1_LEFT';
   const moved = gate(live, movedChoiceId);
   const gates = {
-    gates: live.gates.gates.map((candidate) => candidate === moved
-      ? {
-          ...candidate,
-          center: pointAlong(candidate, 5),
-        }
-      : candidate),
+    gates: live.gates.gates.map((candidate) =>
+      candidate === moved
+        ? {
+            ...candidate,
+            center: pointAlong(candidate, 5),
+          }
+        : candidate,
+    ),
   };
 
   assert.throws(
@@ -333,10 +332,7 @@ test('M6.52 first and second fork rank the shared physical route across PENDING,
   commitChoice(live, shared, winner, 'S4R_FORK_B');
   commitChoice(live, shared, loser, 'S4R_FORK_B');
 
-  assert.deepEqual(
-    winner.traveler.routeState.selectedChoiceIds,
-    loser.traveler.routeState.selectedChoiceIds,
-  );
+  assert.deepEqual(winner.traveler.routeState.selectedChoiceIds, loser.traveler.routeState.selectedChoiceIds);
   const standings = rankRaceProgress([
     {
       competitorId: winner.actorId,
@@ -349,7 +345,10 @@ test('M6.52 first and second fork rank the shared physical route across PENDING,
       validatedProgressFloor: loser.progress.validatedProgressFloor,
     },
   ]);
-  assert.deepEqual(standings.map((entry) => entry.competitorId), ['WINNER', 'LOSER']);
+  assert.deepEqual(
+    standings.map((entry) => entry.competitorId),
+    ['WINNER', 'LOSER'],
+  );
 
   const finish = finishGate(live, 'GOAL_RB');
   const finishRule = live.progress.stages.find((candidate) => candidate.stageId === 'GOAL_RB');
@@ -382,9 +381,9 @@ test('M6.52 first and second fork rank the shared physical route across PENDING,
 test('M6.52 browser preserves field-route progress beneath the M9.1 HUD', () => {
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const progress = fs.readFileSync(new URL('../src/gameplay/field-route-progress.ts', import.meta.url), 'utf8');
-  assert.match(main, /updateFieldRouteProgress\(\s*playerFieldProgress/);
-  assert.match(main, /updateFieldRouteProgress\(\s*rivalFrame\.rival\.fieldProgress/);
-  assert.match(main, /resyncFieldRouteProgress/);
+  assert.match(main, /advanceRouteDrivingTick/);
+  assert.match(main, /const drivingActors = \[playerActor, \.\.\.rivals\]/);
+  assert.match(main, /resyncRouteDrivingActor/);
   assert.match(main, /createValidatedRunFinishFromRoute\(routeState, routeUpdate, playerFieldProgress\)/);
   assert.match(main, /shell\.present\(/);
   assert.doesNotMatch(main, /sProgress: playerFieldProgress\.sProgress/);

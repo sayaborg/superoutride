@@ -7,20 +7,17 @@ import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
-import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../dist/core/presentation-scale.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/render/sprite.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import {
   createTunnelPresentation,
@@ -29,19 +26,19 @@ import {
   TUNNEL_EXIT_S,
   selectTunnelBackground,
 } from '../dist/dev/tunnel.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
 const visual = new VisualProfile(guide.length, compiled.visualSections);
 const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
-const outdoor = createM3FarBackground();
+const outdoor = createFarBackground();
 const tunnel = createTunnelPresentation(guide.length, 5);
-const assets = createM4SpriteAssets();
+const assets = createSpriteAssets();
 const tunnelWorld = createTunnelWorldSprites(guide, height, tunnel);
 const world = [...createM4DebugWorldSprites(guide, height, assets), ...tunnelWorld];
 const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
@@ -70,7 +67,7 @@ const terrainProfile = {
   visual,
   thinSpanScreenRows: 1,
 };
-const cameraProfile = CURRENT_M5_CAMERA_PROFILE;
+const cameraProfile = CURRENT_CAMERA_PROFILE;
 
 function placeCar(car, s, yawOffset = 0) {
   const p = guidePathToWorld(guide, s, 0);
@@ -93,21 +90,22 @@ function placeCar(car, s, yawOffset = 0) {
 function renderProbe(s, yawOffset = 0) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, yawOffset);
-  const camera = updateM5Camera(createM5CameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateCamera(createCameraRig(), guide, height, car, cameraProfile, 1 / 60);
   const selected = selectTunnelBackground(camera.s, guide.length, outdoor, tunnel);
-  const stats = renderM5Driving(
+  const stats = renderDriving(
     new SoftwareSurface(320, 240),
-    selected.background,
-    guide,
-    camera,
-    car,
-    terrainProfile,
-    groundProfile,
-    world,
-    assets,
-    'car',
-    undefined,
-    true,
+    {
+      background: selected.background,
+      guide,
+      camera,
+      vehicle: car,
+      terrainProfile,
+      groundProfile,
+      worldSprites: world,
+      assets,
+      playerKind: 'car',
+    },
+    { observeWorkload: true },
   );
   return { stats, backgroundKind: selected.kind, camera };
 }
@@ -130,20 +128,32 @@ test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-
   assert.ok(countOpaqueSpriteColors(tunnel.portalAsset) <= 15);
   assert.ok(countOpaqueSpriteColors(tunnel.ribAsset) <= 15);
   const center = Math.floor(tunnel.portalAsset.width / 2);
-  assert.equal(tunnel.portalAsset.pixels[(tunnel.portalAsset.height - 2) * tunnel.portalAsset.width + center], SPRITE_TRANSPARENT);
+  assert.equal(
+    tunnel.portalAsset.pixels[(tunnel.portalAsset.height - 2) * tunnel.portalAsset.width + center],
+    SPRITE_TRANSPARENT,
+  );
 });
 
 test('M5.9 Far Background transition is aligned to player portal crossing by D_cam', () => {
   assert.equal(tunnel.cameraTransitionStartS, TUNNEL_ENTRY_S - 5);
   assert.equal(tunnel.cameraTransitionEndS, TUNNEL_EXIT_S - 5);
-  assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-4, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
+  assert.equal(
+    selectTunnelBackground(tunnel.cameraTransitionStartS - 1e-4, guide.length, outdoor, tunnel).kind,
+    'OUTDOOR',
+  );
   assert.equal(selectTunnelBackground(tunnel.cameraTransitionStartS, guide.length, outdoor, tunnel).kind, 'TUNNEL');
-  assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-4, guide.length, outdoor, tunnel).kind, 'TUNNEL');
+  assert.equal(
+    selectTunnelBackground(tunnel.cameraTransitionEndS - 1e-4, guide.length, outdoor, tunnel).kind,
+    'TUNNEL',
+  );
   assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
 });
 
 test('M5.9 tunnel world keeps only two portals and two near ribs in the existing world-sprite path', () => {
-  assert.deepEqual(tunnelWorld.map((sprite) => sprite.sRender), [130, 142, 168, 180]);
+  assert.deepEqual(
+    tunnelWorld.map((sprite) => sprite.sRender),
+    [130, 142, 168, 180],
+  );
   assert.equal(tunnelWorld.filter((sprite) => sprite.asset === tunnel.portalAsset).length, 2);
   assert.equal(tunnelWorld.filter((sprite) => sprite.asset === tunnel.ribAsset).length, 2);
 });
@@ -151,7 +161,7 @@ test('M5.9 tunnel world keeps only two portals and two near ribs in the existing
 test('portal is screen-filling at the metric player crossing without a special projection scale', () => {
   const pixelsPerMeter = 200 / 5;
   const projectedWidth = tunnel.portalAsset.worldWidthMeters * pixelsPerMeter;
-  const projectedHeight = tunnel.portalAsset.height / tunnel.portalAsset.width * projectedWidth;
+  const projectedHeight = (tunnel.portalAsset.height / tunnel.portalAsset.width) * projectedWidth;
   assert.ok(projectedWidth > 320);
   assert.ok(projectedHeight > 240);
   assert.equal(projectedWidth, 480);

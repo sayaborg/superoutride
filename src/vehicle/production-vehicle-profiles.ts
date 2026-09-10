@@ -1,6 +1,6 @@
-import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
-import type { TireCharacteristics } from '../physics/tire-friction-calibration.js';
 import type { DrivingActuatorProfile } from '../physics/driving-actuator.js';
+import type { TireCharacteristics } from '../physics/tire-friction-calibration.js';
+import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
 
 /** Product-authored values; generic mechanics imports no catalog or production data. */
 const DEG = Math.PI / 180;
@@ -8,11 +8,16 @@ const DEG = Math.PI / 180;
 /** Stock construction seed preserves M9.9's equal 1.35 capacity / 9.75 stiffness.
  * Both stations currently share data; the lower law/compiler also accept distinct tire data. */
 const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
-  gripX: 1.35, peakSlipX: 1.26 * 1.35 / 9.75,
-  gripY: 1.35, peakSlipY: 1.26 * 1.35 / 9.75, knee: 0.74,
+  gripX: 1.35,
+  peakSlipX: (1.26 * 1.35) / 9.75,
+  gripY: 1.35,
+  peakSlipY: (1.26 * 1.35) / 9.75,
+  knee: 0.74,
 });
 export const COMMON_SELECTABLE_VEHICLE_TIRE = Object.freeze({
-  frontTire: REFERENCE_TIRE, rearTire: REFERENCE_TIRE, lowSpeedRegularization: 1.0,
+  frontTire: REFERENCE_TIRE,
+  rearTire: REFERENCE_TIRE,
+  lowSpeedRegularization: 1.0,
 });
 
 const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
@@ -21,7 +26,7 @@ const COMMON_ACTUATOR: Readonly<DrivingActuatorProfile> = Object.freeze({
     releaseRate: 1 / 0.25,
   }),
   throttle: Object.freeze({ applyRate: 1 / 0.25, releaseRate: 1 / 0.125 }),
-  brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.10 }),
+  brake: Object.freeze({ applyRate: 1 / 0.15, releaseRate: 1 / 0.1 }),
 });
 
 const COMMON_STEERING = Object.freeze({
@@ -47,13 +52,13 @@ export const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile
   mass: 1625,
   yawInertia: 3100,
   pitchInertia: 3000,
-  frontAxle: 1.530,
-  rearAxle: 1.020,
+  frontAxle: 1.53,
+  rearAxle: 1.02,
   desiredCgHeight: 0.48,
   frontRideFrequency: 1.75,
   rearRideFrequency: 1.85,
   frontDampingRatio: 0.38,
-  rearDampingRatio: 0.40,
+  rearDampingRatio: 0.4,
   frontQBump: 0.19,
   rearQBump: 0.19,
   frontQTravel: 0.29,
@@ -77,7 +82,7 @@ export const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile
     upshiftRpm: 6_450,
     downshiftRpm: 2_700,
     finalDriveRatio: (30 / 27) * (45 / 14),
-    efficiency: 0.90,
+    efficiency: 0.9,
     gearRatios: [38 / 13, 30 / 16, 27 / 19, 25 / 23, 22 / 27],
     torqueCurve: [
       { rpm: 1_000, torqueNewtonMeters: 270 },
@@ -98,10 +103,10 @@ export const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProf
   pitchInertia: 2250,
   frontAxle: 1.409,
   rearAxle: 0.863,
-  desiredCgHeight: 0.50,
+  desiredCgHeight: 0.5,
   frontRideFrequency: 1.85,
   rearRideFrequency: 1.95,
-  frontDampingRatio: 0.40,
+  frontDampingRatio: 0.4,
   rearDampingRatio: 0.42,
   frontQBump: 0.19,
   rearQBump: 0.19,
@@ -138,7 +143,9 @@ export const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProf
     ],
   },
 });
-export const PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE = compileArcadeVehicleProfile(PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING);
+export const PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING,
+);
 
 /** 1989 US Chevrolet Corvette L98 with ZF six-speed and base pre-facelift chassis. */
 export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
@@ -149,14 +156,14 @@ export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProf
   frontAxle: 1.197,
   rearAxle: 1.246,
   desiredCgHeight: 0.47,
-  frontRideFrequency: 1.70,
+  frontRideFrequency: 1.7,
   rearRideFrequency: 1.75,
   frontDampingRatio: 0.38,
   rearDampingRatio: 0.38,
-  frontQBump: 0.20,
-  rearQBump: 0.20,
-  frontQTravel: 0.30,
-  rearQTravel: 0.30,
+  frontQBump: 0.2,
+  rearQBump: 0.2,
+  frontQTravel: 0.3,
+  rearQTravel: 0.3,
   frontBumpForceMax: 105_000,
   rearBumpForceMax: 92_000,
   frontWheelRadius: 0.331,
@@ -177,7 +184,7 @@ export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProf
     downshiftRpm: 1_800,
     finalDriveRatio: 3.45,
     efficiency: 0.89,
-    gearRatios: [2.68, 1.80, 1.29, 1.00, 0.75, 0.50],
+    gearRatios: [2.68, 1.8, 1.29, 1.0, 0.75, 0.5],
     torqueCurve: [
       { rpm: 700, torqueNewtonMeters: 300 },
       { rpm: 1_600, torqueNewtonMeters: 395 },
@@ -187,7 +194,9 @@ export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProf
     ],
   },
 });
-export const CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE = compileArcadeVehicleProfile(CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING);
+export const CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING,
+);
 
 /** 1988 European non-catalyst three-door Volkswagen Golf GTI 16V with small bumpers. */
 export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
@@ -198,8 +207,8 @@ export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
   frontAxle: 0.941,
   rearAxle: 1.534,
   desiredCgHeight: 0.53,
-  frontRideFrequency: 1.60,
-  rearRideFrequency: 1.70,
+  frontRideFrequency: 1.6,
+  rearRideFrequency: 1.7,
   frontDampingRatio: 0.37,
   rearDampingRatio: 0.39,
   frontQBump: 0.21,
@@ -225,7 +234,7 @@ export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
     upshiftRpm: 6_400,
     downshiftRpm: 2_400,
     finalDriveRatio: 3.667,
-    efficiency: 0.90,
+    efficiency: 0.9,
     gearRatios: [3.455, 2.118, 1.444, 1.129, 0.912],
     torqueCurve: [
       { rpm: 900, torqueNewtonMeters: 88 },
@@ -236,7 +245,9 @@ export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
     ],
   },
 });
-export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE = compileArcadeVehicleProfile(VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING);
+export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING,
+);
 
 /** 1988 European road-going Lancia Delta HF Integrale 8V, 185 PS. */
 export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
@@ -247,9 +258,9 @@ export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicle
   frontAxle: 1.064,
   rearAxle: 1.411,
   desiredCgHeight: 0.55,
-  frontRideFrequency: 1.70,
-  rearRideFrequency: 1.80,
-  frontDampingRatio: 0.40,
+  frontRideFrequency: 1.7,
+  rearRideFrequency: 1.8,
+  frontDampingRatio: 0.4,
   rearDampingRatio: 0.42,
   frontQBump: 0.21,
   rearQBump: 0.21,
@@ -285,7 +296,9 @@ export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING: Readonly<ArcadeVehicle
     ],
   },
 });
-export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE = compileArcadeVehicleProfile(LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING);
+export const LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING,
+);
 
 /** 1988 export/ROW full-power Honda VFR750R using the factory RC30 six-speed ratios. */
 export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
@@ -296,17 +309,17 @@ export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
   frontAxle: 0.719,
   rearAxle: 0.691,
   desiredCgHeight: 0.423, // M9.28 game calibration: 30% of wheelbase.
-  frontRideFrequency: 2.00,
-  rearRideFrequency: 2.10,
+  frontRideFrequency: 2.0,
+  rearRideFrequency: 2.1,
   frontDampingRatio: 0.42,
   rearDampingRatio: 0.44,
-  frontQBump: 0.20,
-  rearQBump: 0.20,
+  frontQBump: 0.2,
+  rearQBump: 0.2,
   frontQTravel: 0.45,
   rearQTravel: 0.45,
   frontBumpForceMax: 18_000,
   rearBumpForceMax: 17_000,
-  frontWheelRadius: 0.300,
+  frontWheelRadius: 0.3,
   rearWheelRadius: 0.331,
   frontWheelInertia: 0.47,
   rearWheelInertia: 0.72,
@@ -324,7 +337,7 @@ export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
     downshiftRpm: 4_500,
     finalDriveRatio: 1.939 * 2.5,
     efficiency: 0.92,
-    gearRatios: [2.400, 1.941, 1.631, 1.434, 1.291, 1.192],
+    gearRatios: [2.4, 1.941, 1.631, 1.434, 1.291, 1.192],
     torqueCurve: [
       { rpm: 1_200, torqueNewtonMeters: 34 },
       { rpm: 4_000, torqueNewtonMeters: 55 },
@@ -348,7 +361,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
   frontRideFrequency: 1.65,
   rearRideFrequency: 1.75,
   frontDampingRatio: 0.38,
-  rearDampingRatio: 0.40,
+  rearDampingRatio: 0.4,
   frontQBump: 0.24,
   rearQBump: 0.22,
   frontQTravel: 0.38,
@@ -356,7 +369,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
   frontBumpForceMax: 18_000,
   rearBumpForceMax: 18_000,
   frontWheelRadius: 0.343,
-  rearWheelRadius: 0.330,
+  rearWheelRadius: 0.33,
   frontWheelInertia: 0.62,
   rearWheelInertia: 0.82,
   frontDriveTorqueFraction: 0,
@@ -373,7 +386,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
     downshiftRpm: 2_300,
     finalDriveRatio: 1.5 * 3.36,
     efficiency: 0.88,
-    gearRatios: [2.60, 1.67, 1.26, 1.00, 0.84],
+    gearRatios: [2.6, 1.67, 1.26, 1.0, 0.84],
     torqueCurve: [
       { rpm: 950, torqueNewtonMeters: 35 },
       { rpm: 2_500, torqueNewtonMeters: 52 },
@@ -383,7 +396,9 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
     ],
   },
 });
-export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE = compileArcadeVehicleProfile(BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING);
+export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING,
+);
 
 /** 1988 US Harley-Davidson FXRT Sport Glide with Evolution 1340 power. */
 export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
@@ -395,9 +410,9 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
   rearAxle: 0.684,
   desiredCgHeight: 0.4458, // M9.28 game calibration: 30% of wheelbase.
   frontRideFrequency: 1.55,
-  rearRideFrequency: 1.60,
+  rearRideFrequency: 1.6,
   frontDampingRatio: 0.38,
-  rearDampingRatio: 0.40,
+  rearDampingRatio: 0.4,
   frontQBump: 0.22,
   rearQBump: 0.22,
   frontQTravel: 0.34,
@@ -405,9 +420,9 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
   frontBumpForceMax: 24_000,
   rearBumpForceMax: 23_000,
   frontWheelRadius: 0.286,
-  rearWheelRadius: 0.320,
+  rearWheelRadius: 0.32,
   frontWheelInertia: 0.75,
-  rearWheelInertia: 1.10,
+  rearWheelInertia: 1.1,
   frontDriveTorqueFraction: 0,
   ...COMMON_SELECTABLE_VEHICLE_TIRE,
   ...BIKE_STEERING,
@@ -422,7 +437,7 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
     downshiftRpm: 1_700,
     finalDriveRatio: 1.54 * 2.19,
     efficiency: 0.87,
-    gearRatios: [3.21, 2.21, 1.60, 1.23, 1.00],
+    gearRatios: [3.21, 2.21, 1.6, 1.23, 1.0],
     torqueCurve: [
       { rpm: 850, torqueNewtonMeters: 62 },
       { rpm: 2_000, torqueNewtonMeters: 84 },
@@ -443,7 +458,7 @@ export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
   frontAxle: 0.704,
   rearAxle: 0.531,
   desiredCgHeight: 0.3705, // M9.28 game calibration: 30% of wheelbase.
-  frontRideFrequency: 1.50,
+  frontRideFrequency: 1.5,
   rearRideFrequency: 1.55,
   frontDampingRatio: 0.36,
   rearDampingRatio: 0.38,
@@ -456,7 +471,7 @@ export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
   frontWheelRadius: 0.216,
   rearWheelRadius: 0.216,
   frontWheelInertia: 0.14,
-  rearWheelInertia: 0.20,
+  rearWheelInertia: 0.2,
   frontDriveTorqueFraction: 0,
   ...COMMON_SELECTABLE_VEHICLE_TIRE,
   ...BIKE_STEERING,
@@ -481,4 +496,6 @@ export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
     ],
   },
 });
-export const VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE = compileArcadeVehicleProfile(VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING);
+export const VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE = compileArcadeVehicleProfile(
+  VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING,
+);

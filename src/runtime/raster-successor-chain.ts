@@ -1,3 +1,4 @@
+import { uniqueKey } from '../core/validation.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import type {
   DeclarativeGateGeometry,
@@ -57,9 +58,7 @@ export interface CompiledRasterSuccessorChain {
  * Transition gates and handoff seams are derived from each generated StageContinuationLink rather
  * than being duplicated by route authoring.
  */
-export function compileRasterSuccessorChain(
-  source: RasterSuccessorChainAuthoring,
-): CompiledRasterSuccessorChain {
+export function compileRasterSuccessorChain(source: RasterSuccessorChainAuthoring): CompiledRasterSuccessorChain {
   if (source.steps.length === 0) {
     throw new RangeError('Raster successor chain requires at least one successor step');
   }
@@ -72,11 +71,13 @@ export function compileRasterSuccessorChain(
   const choiceIds = new Set<string>();
   const geometryIds = new Set<string>();
 
-  const stages: DeclarativeLiveRouteStageAuthoring[] = [{
-    id: source.sourceStageId,
-    kind: 'STAGE',
-    runtime: source.sourceRuntime,
-  }];
+  const stages: DeclarativeLiveRouteStageAuthoring[] = [
+    {
+      id: source.sourceStageId,
+      kind: 'STAGE',
+      runtime: source.sourceRuntime,
+    },
+  ];
   const transitions: DeclarativeLiveRouteTransitionAuthoring[] = [];
   const structurals: RasterSuccessorRuntimeSource[] = [source.sourceStructural];
   const runtimes: GuideChartRuntimePackage[] = [source.sourceRuntime];
@@ -85,11 +86,11 @@ export function compileRasterSuccessorChain(
   let currentStructural = source.sourceStructural;
 
   source.steps.forEach((step, index) => {
-    requireUnique(stageIds, step.stageId, 'stage id');
-    requireUnique(packageIds, step.packageId, 'package id');
-    requireUnique(choiceIds, step.choiceId, 'choice id');
-    requireUnique(geometryIds, step.gateId, 'gate/handoff id');
-    requireUnique(geometryIds, step.handoffId, 'gate/handoff id');
+    uniqueKey(stageIds, step.stageId, 'Raster successor chain stage id');
+    uniqueKey(packageIds, step.packageId, 'Raster successor chain package id');
+    uniqueKey(choiceIds, step.choiceId, 'Raster successor chain choice id');
+    uniqueKey(geometryIds, step.gateId, 'Raster successor chain gate/handoff id');
+    uniqueKey(geometryIds, step.handoffId, 'Raster successor chain gate/handoff id');
 
     const sourceChart = currentStructural.chart;
     const nextStructural = createRasterStageSuccessor(currentStructural, step.successor);
@@ -116,7 +117,7 @@ export function compileRasterSuccessorChain(
     currentStructural = nextStructural;
   });
 
-  requireUnique(geometryIds, source.finishGateId, 'gate/handoff id');
+  uniqueKey(geometryIds, source.finishGateId, 'Raster successor chain gate/handoff id');
   const finalStep = source.steps[source.steps.length - 1]!;
   const finish: DeclarativeLiveRouteFinishAuthoring = {
     stageId: finalStep.stageId,
@@ -151,11 +152,7 @@ function chainGeometry(
   sourceS: number,
   halfWidth: number,
 ): DeclarativeGateGeometry {
-  return pointGeometry(
-    id,
-    guideChartToWorld(sourceChart, sourceS, 0),
-    halfWidth,
-  );
+  return pointGeometry(id, guideChartToWorld(sourceChart, sourceS, 0), halfWidth);
 }
 
 function chainHandoffGeometry(
@@ -179,10 +176,4 @@ function pointGeometry(
   halfWidth: number,
 ): DeclarativeGateGeometry {
   return { id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth };
-}
-
-function requireUnique(set: Set<string>, value: string, label: string): void {
-  if (value.length === 0) throw new RangeError(`Raster successor chain ${label} must not be empty`);
-  if (set.has(value)) throw new RangeError(`duplicate Raster successor chain ${label}: ${value}`);
-  set.add(value);
 }

@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  GroundMapLogicalProfile
-} from '../dist/compiler/surface-region-compiler.js';
+import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -31,7 +29,11 @@ const logicalSections = [
 
 test('M6.45 HeightProfile is open, explicit at both endpoints and never wraps', () => {
   assert.throws(
-    () => new HeightProfile(100, [{ s: 0, y: 0 }, { s: 80, y: 5 }]),
+    () =>
+      new HeightProfile(100, [
+        { s: 0, y: 0 },
+        { s: 80, y: 5 },
+      ]),
     /must end at courseLength/,
   );
   const profile = new HeightProfile(100, [
@@ -46,7 +48,6 @@ test('M6.45 HeightProfile is open, explicit at both endpoints and never wraps', 
   assert.throws(() => profile.sampleRender(100.001), RangeError);
 });
 
-
 test('M6.45 VisualProfile owns an open interval', () => {
   const open = new VisualProfile(100, visualSections);
   assert.equal(open.sample(0).name, 'START');
@@ -54,7 +55,6 @@ test('M6.45 VisualProfile owns an open interval', () => {
   assert.equal(open.distanceToNextSection(100), 0);
   assert.throws(() => open.sample(-0.001), RangeError);
   assert.throws(() => open.sample(100.001), RangeError);
-
 });
 
 test('M6.45 logical GroundMap owns an open interval', () => {
@@ -63,7 +63,6 @@ test('M6.45 logical GroundMap owns an open interval', () => {
   assert.equal(open.sample(100).name, 'LATE');
   assert.throws(() => open.sample(-0.001), RangeError);
   assert.throws(() => open.sample(100.001), RangeError);
-
 });
 
 test('M6.45 stage compiler explicitly extends authored final height to the open Guide endpoint', () => {

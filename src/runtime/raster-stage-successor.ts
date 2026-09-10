@@ -6,8 +6,8 @@ import type { GuideChart } from '../gameplay/guide-chart.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
-import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
+import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 
 export interface RasterSuccessorSource {
   readonly guide: GuidePath;
@@ -120,7 +120,7 @@ export function createRasterStageSuccessor(
   const runoutTurnStart = Math.max(1, prefix.length - 1);
   const maxRunoutTurnDegrees = successorRaster.vertexTurns
     .slice(runoutTurnStart)
-    .reduce((max, turn) => Math.max(max, Math.abs(turn) * 180 / Math.PI), 0);
+    .reduce((max, turn) => Math.max(max, (Math.abs(turn) * 180) / Math.PI), 0);
   if (maxRunoutTurnDegrees > authoring.gentleTurnLimitDegrees + 1e-9) {
     throw new Error(
       `${authoring.id} generated runout turn ${maxRunoutTurnDegrees.toFixed(6)}° exceeds authored gentle-turn limit`,
@@ -147,11 +147,13 @@ export function createRasterStageSuccessor(
     roadRight: authoring.roadHalfWidth,
     shoulderWidth: authoring.shoulderWidth,
   });
-  const sourceSurfaceMap = new SurfaceMap(guide.length, [{
-    sStart: 0,
-    name: authoring.surfaceSectionName,
-    bands: singleRoadSurfaceBands(origin, authoring),
-  }]);
+  const sourceSurfaceMap = new SurfaceMap(guide.length, [
+    {
+      sStart: 0,
+      name: authoring.surfaceSectionName,
+      bands: singleRoadSurfaceBands(origin, authoring),
+    },
+  ]);
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
   const sourceStartS = raster.vertexS[sourceStartIndex]!;
   const groundProfile: GroundMapProfile = {
@@ -219,10 +221,14 @@ function assertAuthoring(authoring: RasterSuccessorAuthoring): void {
   if (!Number.isInteger(authoring.minDeformationRunVertices) || authoring.minDeformationRunVertices < 3) {
     throw new RangeError('successor deformation run must contain at least three vertices');
   }
-  if (!(authoring.dCam > 0 && authoring.dMax > authoring.dCam)) throw new RangeError('successor depth envelope is invalid');
-  if (!(authoring.groundMapHalfWidth >= authoring.groundHalfWidth)) throw new RangeError('successor GroundMap must cover the local ground span');
-  if (!(authoring.groundHalfWidth > authoring.roadHalfWidth)) throw new RangeError('successor ground must extend beyond road');
-  if (!(authoring.roadHalfWidth > 0 && authoring.shoulderWidth >= 0)) throw new RangeError('successor road dimensions are invalid');
+  if (!(authoring.dCam > 0 && authoring.dMax > authoring.dCam))
+    throw new RangeError('successor depth envelope is invalid');
+  if (!(authoring.groundMapHalfWidth >= authoring.groundHalfWidth))
+    throw new RangeError('successor GroundMap must cover the local ground span');
+  if (!(authoring.groundHalfWidth > authoring.roadHalfWidth))
+    throw new RangeError('successor ground must extend beyond road');
+  if (!(authoring.roadHalfWidth > 0 && authoring.shoulderWidth >= 0))
+    throw new RangeError('successor road dimensions are invalid');
 }
 
 function buildOpenRunout(
@@ -261,7 +267,7 @@ function buildStraightRunout(
   const forwardZ = Math.cos(heading);
   const vertices: RasterVertex[] = [];
   for (let i = 1; i <= segmentCount; i += 1) {
-    const distance = length * i / segmentCount;
+    const distance = (length * i) / segmentCount;
     vertices.push({
       x: start.x + forwardX * distance,
       z: start.z + forwardZ * distance,

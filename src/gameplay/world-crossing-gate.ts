@@ -1,10 +1,5 @@
-import {
-  dot,
-  normalFromHeading,
-  subtract,
-  tangentFromHeading,
-  type Vec2,
-} from '../core/math.js';
+import { dot, normalFromHeading, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
+import { finitePoint } from '../core/validation.js';
 
 const CROSSING_EPSILON = 1e-9;
 
@@ -48,8 +43,8 @@ export function observeWorldCrossingGate(
   previous: Vec2,
   current: Vec2,
 ): WorldGateCrossing | null {
-  assertFinitePoint(previous, 'previous world-gate point');
-  assertFinitePoint(current, 'current world-gate point');
+  finitePoint(previous, 'previous world-gate point');
+  finitePoint(current, 'current world-gate point');
 
   const previousRelative = subtract(previous, gate.center);
   const currentRelative = subtract(current, gate.center);
@@ -75,8 +70,4 @@ export function observeWorldCrossingGate(
   if (Math.abs(lateral) > gate.halfWidth + CROSSING_EPSILON) return null;
 
   return Object.freeze({ direction, u, lateral });
-}
-
-function assertFinitePoint(point: Vec2, label: string): void {
-  if (![point.x, point.z].every(Number.isFinite)) throw new RangeError(`${label} must be finite`);
 }

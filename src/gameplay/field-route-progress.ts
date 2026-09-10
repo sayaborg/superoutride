@@ -1,7 +1,4 @@
-import {
-  locateWorldOnGuideCoordinateGlobal,
-  type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
+import { locateWorldOnGuideCoordinateGlobal, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import type { RouteBoundaryGateSet } from './route-boundary-gates.js';
 import {
@@ -12,10 +9,7 @@ import {
   type RouteDagStatus,
   type RouteDagUpdate,
 } from './route-dag.js';
-import type {
-  RouteStageHandoffManifest,
-  RouteStageHandoffState,
-} from './route-stage-handoff.js';
+import type { RouteStageHandoffManifest, RouteStageHandoffState } from './route-stage-handoff.js';
 
 const PROGRESS_EPSILON = 1e-6;
 
@@ -57,8 +51,7 @@ export interface FieldRouteProgressTravelerView {
 }
 
 export type FieldRouteProgressValidatedBoundary =
-  | { readonly kind: 'TRANSITION'; readonly choiceId: string }
-  | { readonly kind: 'FINISH'; readonly stageId: string };
+  { readonly kind: 'TRANSITION'; readonly choiceId: string } | { readonly kind: 'FINISH'; readonly stageId: string };
 
 export type FieldRouteProgressEvent = 'NONE' | 'TRANSITION' | 'FINISH' | 'RESYNC';
 
@@ -141,9 +134,7 @@ export function compileFieldRouteProgressRules(
 
     for (const choiceId of stage.outgoingChoiceIds) {
       const choice = getRouteChoice(route, choiceId);
-      const gate = gates.gates.find(
-        (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choice.id,
-      );
+      const gate = gates.gates.find((candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choice.id);
       const seam = handoffs.seams.find((candidate) => candidate.choiceId === choice.id);
       if (!gate || !seam) throw new Error(`compiled field route boundary missing for choice: ${choice.id}`);
 
@@ -163,13 +154,16 @@ export function compileFieldRouteProgressRules(
         throw new RangeError(`field route merge has inconsistent progress authority: ${choice.toStageId}`);
       }
 
-      choiceRules.set(choice.id, Object.freeze({
-        choiceId: choice.id,
-        fromStageId: choice.fromStageId,
-        toStageId: choice.toStageId,
-        gateProgress,
-        handoffProgress,
-      }));
+      choiceRules.set(
+        choice.id,
+        Object.freeze({
+          choiceId: choice.id,
+          fromStageId: choice.fromStageId,
+          toStageId: choice.toStageId,
+          gateProgress,
+          handoffProgress,
+        }),
+      );
     }
   }
 
@@ -179,12 +173,9 @@ export function compileFieldRouteProgressRules(
     if (offset === undefined) throw new Error(`unreachable field route progress stage: ${stage.id}`);
 
     if (stage.kind === 'TERMINAL') {
-      const finish = gates.gates.find(
-        (candidate) => candidate.kind === 'FINISH' && candidate.stageId === stage.id,
-      );
+      const finish = gates.gates.find((candidate) => candidate.kind === 'FINISH' && candidate.stageId === stage.id);
       if (!finish) throw new Error(`compiled field route FINISH missing for stage: ${stage.id}`);
-      const boundaryProgress = offset
-        + locateWorldOnGuideCoordinateGlobal(frame, finish.center, false).s;
+      const boundaryProgress = offset + locateWorldOnGuideCoordinateGlobal(frame, finish.center, false).s;
       return Object.freeze({
         stageId: stage.id,
         progressOffset: offset,
@@ -230,11 +221,7 @@ export function createFieldRouteProgressState(
   traveler: FieldRouteProgressTravelerView,
 ): FieldRouteProgressState {
   assertTravelerView(traveler);
-  const geometric = fieldRouteGeometricProgress(
-    rules,
-    traveler.committedStageId,
-    traveler.committedS,
-  );
+  const geometric = fieldRouteGeometricProgress(rules, traveler.committedStageId, traveler.committedS);
   const firstWindow = fieldRouteProgressWindow(rules, traveler.routeStageId, rules.startProgress);
   return {
     validatedProgressFloor: rules.startProgress,
@@ -257,11 +244,7 @@ export function updateFieldRouteProgress(
   boundary: FieldRouteProgressValidatedBoundary | null,
 ): FieldRouteProgressWindow {
   assertTravelerView(traveler);
-  const geometric = fieldRouteGeometricProgress(
-    rules,
-    traveler.committedStageId,
-    traveler.committedS,
-  );
+  const geometric = fieldRouteGeometricProgress(rules, traveler.committedStageId, traveler.committedS);
   const delta = geometric - state.previousGeometricProgress;
   state.lastEvent = 'NONE';
 
@@ -276,9 +259,9 @@ export function updateFieldRouteProgress(
   } else if (boundary?.kind === 'FINISH') {
     const finishStage = getStageRule(rules, boundary.stageId);
     if (
-      finishStage.boundaryKind !== 'FINISH'
-      || traveler.routeStageId !== boundary.stageId
-      || traveler.routeStatus !== 'FINISHED'
+      finishStage.boundaryKind !== 'FINISH' ||
+      traveler.routeStageId !== boundary.stageId ||
+      traveler.routeStatus !== 'FINISHED'
     ) {
       throw new Error(`field progress FINISH disagrees with RouteDag stage: ${boundary.stageId}`);
     }
@@ -311,11 +294,7 @@ export function resyncFieldRouteProgress(
   traveler: FieldRouteProgressTravelerView,
 ): void {
   assertTravelerView(traveler);
-  state.previousGeometricProgress = fieldRouteGeometricProgress(
-    rules,
-    traveler.committedStageId,
-    traveler.committedS,
-  );
+  state.previousGeometricProgress = fieldRouteGeometricProgress(rules, traveler.committedStageId, traveler.committedS);
   state.status = traveler.routeStatus;
   state.lastEvent = 'RESYNC';
 }

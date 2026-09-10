@@ -12,17 +12,10 @@ import {
   sampleGuidePath,
   sampleGuideSegment,
 } from '../dist/core/guide-curve.js';
-import {
-  normalFromHeading,
-  tangentFromHeading,
-  wrapSigned,
-} from '../dist/core/math.js';
-import {
-  pseudoProject,
-  straightRoadScreenX,
-} from '../dist/core/projection.js';
+import { normalFromHeading, tangentFromHeading, wrapSigned } from '../dist/core/math.js';
+import { pseudoProject, straightRoadScreenX } from '../dist/core/projection.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-8) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
@@ -154,12 +147,16 @@ test('general pseudo projection reduces to Core straight-road yaw equation', () 
 });
 
 test('raster compiler rejects an interior turn sharper than the Core 10-degree hard limit', () => {
-  assert.throws(() => compileRasterPath([
-    { x: 0, z: 0 },
-    { x: 0, z: 20 },
-    { x: 10, z: 30 },
-    { x: 20, z: 0 },
-  ]), /10deg limit/);
+  assert.throws(
+    () =>
+      compileRasterPath([
+        { x: 0, z: 0 },
+        { x: 0, z: 20 },
+        { x: 10, z: 30 },
+        { x: 20, z: 0 },
+      ]),
+    /10deg limit/,
+  );
 });
 
 test('raster fixed-l strip edges converge to the same miter point from both sides of every interior vertex', () => {

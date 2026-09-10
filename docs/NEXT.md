@@ -1,35 +1,37 @@
 # Next task checkpoint
 
-車両の力学・制御仕様はパラメータ以外をfreezeした。次の作業は映像表現、サウンド表現、ゲームシステム。コアの座標・描画・車両・分岐・ラップ・復帰の構造を土台に進める。車種別のパラメータ調整は完成までの継続課題とし、現状は `DEV_UNCALIBRATED`。
+Vehicle mechanics and control laws are frozen; parameter calibration remains open and handling is `DEV_UNCALIBRATED`. Continue with visuals, sound and game systems above the existing coordinate, rendering, vehicle, route, lap and recovery contracts.
 
-## 再開
+All repository documentation must be maintained in English. Prefer architectural elegance, simplicity, a single authority per concept and ordinary data over ad hoc exceptions.
 
-1. 通常のSUPER OUTRIDE作業ディレクトリで `git status`、現在のブランチ、remoteを確認し、mainをfetchする。前のチャットや添付資料は不要。
-2. [AGENTS](../AGENTS.md)、[現行仕様一覧](README.md)、[監査結果](AUDIT.md)を読む。
-3. 最新mainのCI・Pagesと作業ツリーを確認し、mainの正確なSHAから新しい `codex/` ブランチを作る。
-4. 変更対象の仕様、ソース、回帰テストを読み、[開発手順](development.md)に従う。
+## Restart
 
-## 現行の要点
+1. Inspect status, branch, remotes and worktrees in the canonical workspace. Fetch main; previous conversations and attachments are unnecessary.
+2. Read [AGENTS](../AGENTS.md), the [current specifications](README.md) and the [current audit](AUDIT.md).
+3. Inspect exact-main CI and Pages evidence. Create a new `codex/` branch from the inspected SHA.
+4. Read the relevant topic, implementation and causal tests; follow [development](development.md).
 
-- [描画と座標](architecture.md)：320×240、Raster道路、chainage差による奥行き、40 px/m、単一Painter、物理と表示の高さ変換。
-- [監査](AUDIT.md)：車種切替のカメラ同期、微小ゲート通過、Guide境界と曲線接続、コンパイル済みデータの不変性を修正。物理の式・調整値は維持。
-- [車両力学](vehicle-physics.md)：車・バイク共通の二接地点モデル、楕円タイヤ、陰的な車輪解法、トルク制限、セルフステア＋操舵入力リミッター。パワー倍率なし。
-- [調整値](calibration.md)：GX=5 / PX=20%、GY=2.5 / PY=10%、KN=0.74、D=20°、M=65°、ACT=0.30 s。全選択車両の初期比較基準であり、最終的な車種別タイヤの共通化を意味しない。
-- バイクCGはホイールベースの30%。リーンは横加速度に応じた表示で、接地アンカーから線を描く。物理ロール・ライダーはモデル化していない。
-- [ゲーム進行](content-and-gameplay.md)：物理ゲートによる分岐、有限展開したサーキット、順序付きチェックポイントとFINISH。復帰は進行を加算しない。
+## Current foundation
 
-## 次に触る場所
+- [Architecture](architecture.md): 320×240 Raster roads, chainage-difference depth, 40 px/m, a single Painter and explicit physical/render height mapping.
+- [Vehicle physics](vehicle-physics.md): one two-contact solver for cars and bikes, elliptical tires, implicit signed wheel balance, torque protection, automatic steering and the driver-offset limiter. No power multiplier.
+- [Calibration](calibration.md): GX=5 / PX=20%, GY=2.5 / PY=10%, KN=0.74, D=20°, M=65°, ACT=0.30 s. These common initial comparison values do not require identical finished tires across vehicles.
+- Bike CG is 30% of wheelbase. Lean is lateral-acceleration-driven presentation, with a debug line from the contact anchor. Physical roll and rider motion are not modeled.
+- [Gameplay](content-and-gameplay.md): physical branch gates, finite circuit unfolding, ordered checkpoints and FINISH. Recovery never awards progress.
+- The [current audit](AUDIT.md) resolves the external review: live strict supported-chart validation, shared profile/validation primitives, explicit terrain boundaries, one browser scheduler and common actor lifecycles. General APIs use role names and named options. Lint and formatting are part of the mandatory full test command.
 
-具体的なトンネル配置と素材は [DEVコース素材](../src/dev/tunnel.ts) が所有する。一般プロファイルは有限区間のみで、周回は上位の展開処理が担当する。道路の線はコース側で明示する。
+## Next implementation areas
 
-映像は [描画](../src/render/m5-renderer.ts)、[スプライト資産](../src/visual/m4-sprite-assets.ts)、[カメラ](../src/camera/m5-camera.ts)、[ブラウザ表示](../src/browser/driving-shell.ts)。車両・コース読み取り状態から表現を作り、別の物理状態や奥行き規則を追加しない。
+[Tunnel fixtures](../src/dev/tunnel.ts) own concrete placements and materials. General profiles remain finite; topology unfolding belongs above them. Course data explicitly authors road paint.
 
-サウンドは専用の表示側の層を設計し、RPM、ペダル、タイヤ状態など既存の読み取り値とゲームイベントを入力にする。現在サウンドエンジンはない。開始・終了・得点などのゲームルールは [session](../src/gameplay/race-session.ts) と [objective](../src/gameplay/run-objective.ts)、各composition rootへ組み込む。
+Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). Derive presentation from vehicle/course observations without introducing another physical state or depth rule.
 
-## 残課題と限界
+There is no sound engine yet. Design a presentation layer that consumes existing RPM, pedals, tire observations and game events. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
 
-一般の道路帯の非隣接交差判定は未実装であり、新規コースの安全性を既存テストだけで認定しない。座標・描画の不変条件を維持し、周回の意図的な重なりとは上位で区別する。
+## Remaining limits
 
-車種別・前後タイヤ調整、アクセルオフ旋回の振動、複合操作・起伏での操縦性、実際のスマートフォンでの性能・入力確認は未完了。現行の有限サスペンション範囲を超えた場合はゲームの復帰処理へ渡すが、あらゆる地形での物理的安定性を保証するものではない。
+General nonadjacent road-band intersection classification is not implemented. Existing vertex/fillet tests cannot certify new courses. Preserve the validity requirement and distinguish intentional coincident circuit copies above Core.
 
-この区切りは、コアを使って次の開発へ進める整理点。全状態の無欠陥証明や実車再現性の認定ではない。構造的な不具合が今後見つかれば、調整だけで隠さず原因を修正する。
+Per-vehicle/front/rear tire calibration, coast/turn oscillation, combined controls and changing-terrain acceptance, and actual smartphone performance/input checks remain open. Exiting finite suspension travel invokes gameplay recovery; this is not a guarantee of physical stability over arbitrary terrain.
+
+This checkpoint supports further development, not a defect-free proof or a real-vehicle fidelity certification. Correct any future structural defect with a causal regression and an explicit specification revision; never conceal it through tuning.

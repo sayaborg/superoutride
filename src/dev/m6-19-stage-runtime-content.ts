@@ -1,16 +1,16 @@
-import type { FarBackground } from '../visual/far-background.js';
-import type { HeightProfile } from '../visual/height-profile.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
-import type { CourseSprite } from '../world/course-sprite.js';
-import type { TerrainVisualProfile } from '../road/terrain-line.js';
+import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import type { SurfaceMap } from '../physics/surface-map.js';
-import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
+import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import {
   compileStageRuntimeContentRegistry,
   type StageRuntimeContentPackage,
   type StageRuntimeContentRegistry,
 } from '../runtime/stage-runtime-content.js';
+import type { FarBackground } from '../visual/far-background.js';
+import type { GroundMapProfile } from '../visual/ground-map.js';
+import type { HeightProfile } from '../visual/height-profile.js';
+import type { CourseSprite } from '../world/course-sprite.js';
 import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import type { M618StageRoadViews } from './m6-18-stage-road-views.js';
 
@@ -31,22 +31,24 @@ export function createM619DebugStageRuntimeRegistry(
   shared: M619SharedRuntimeContent,
 ): StageRuntimeContentRegistry {
   const parent = makePackage('CONTENT_STAGE_1', charts.parent, null, shared.surfaceMap, manifest, shared);
-  const left = (packageId: string): StageRuntimeContentPackage => makePackage(
-    packageId,
-    charts.left,
-    roadViews.left,
-    new StageSurfaceMapView(shared.surfaceMap, roadViews.left),
-    manifest,
-    shared,
-  );
-  const right = (packageId: string): StageRuntimeContentPackage => makePackage(
-    packageId,
-    charts.right,
-    roadViews.right,
-    new StageSurfaceMapView(shared.surfaceMap, roadViews.right),
-    manifest,
-    shared,
-  );
+  const left = (packageId: string): StageRuntimeContentPackage =>
+    makePackage(
+      packageId,
+      charts.left,
+      roadViews.left,
+      new StageSurfaceMapView(shared.surfaceMap, roadViews.left),
+      manifest,
+      shared,
+    );
+  const right = (packageId: string): StageRuntimeContentPackage =>
+    makePackage(
+      packageId,
+      charts.right,
+      roadViews.right,
+      new StageSurfaceMapView(shared.surfaceMap, roadViews.right),
+      manifest,
+      shared,
+    );
 
   return compileStageRuntimeContentRegistry(manifest, [
     parent,

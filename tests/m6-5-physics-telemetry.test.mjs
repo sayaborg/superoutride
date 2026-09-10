@@ -61,7 +61,7 @@ test('telemetry summary is seam-safe in chainage and wrap-safe in yaw rate', () 
 
   const summary = summarizeVehicleTelemetry(recorder);
   assert.ok(Math.abs(summary.netSignedChainageMeters - 2) < 1e-9);
-  assert.ok(Math.abs(summary.maxAbsYawRateDegreesPerSecond - (0.2 * 180 / Math.PI)) < 1e-7);
+  assert.ok(Math.abs(summary.maxAbsYawRateDegreesPerSecond - (0.2 * 180) / Math.PI) < 1e-7);
   assert.equal(summary.durationSeconds, 0.1);
   assert.equal(summary.planarDistanceMeters, 1);
 });
@@ -74,9 +74,8 @@ function runCurrentDevProbe() {
   const recorder = createVehicleTelemetryRecorder(SIM_DT, guide.length, car);
 
   for (let tick = 0; tick < 180; tick += 1) {
-    const input = tick < 120
-      ? { steering: 0, throttle: true, brake: false }
-      : { steering: 0.12, throttle: false, brake: false };
+    const input =
+      tick < 120 ? { steering: 0, throttle: true, brake: false } : { steering: 0.12, throttle: false, brake: false };
     updateTestVehicle(guide, height, surfaces, car, input, SIM_DT);
     recordVehicleTelemetryTick(recorder, input, car);
   }

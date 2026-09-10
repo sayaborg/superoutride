@@ -54,9 +54,7 @@ export function pseudoProject(anchor: PseudoAnchor, camera: PseudoCamera): Pseud
 
   return {
     x: camera.centerX + scale * xRight,
-    y: camera.centerY
-      - camera.focalLength * Math.sin(camera.pitch)
-      - scale * vertical * Math.cos(camera.pitch),
+    y: horizonY(camera) - scale * vertical * Math.cos(camera.pitch),
     scale,
     depth,
     cameraRightDistance: xRight,
@@ -71,7 +69,5 @@ export function straightRoadScreenX(
   lateral: number,
   cameraLateral: number,
 ): number {
-  return centerX
-    - focalLength * Math.sin(theta)
-    + (focalLength / depth) * (lateral - cameraLateral) * Math.cos(theta);
+  return centerX - focalLength * Math.sin(theta) + (focalLength / depth) * (lateral - cameraLateral) * Math.cos(theta);
 }

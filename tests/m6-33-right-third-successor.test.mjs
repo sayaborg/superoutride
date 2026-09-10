@@ -8,27 +8,31 @@ import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 
 import { createM630ThirdLiveSuccessorRuntime } from '../dist/dev/m6-30-third-live-successor.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createM2StadiumGuide();
-  return createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createM4SpriteAssets());
+  return createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createSpriteAssets());
 }
 
 test('M6.33 live route has independent third stages on both LEFT and RIGHT paths', () => {
   const live = setup();
-  assert.deepEqual(live.route.stages.map((stage) => [stage.id, stage.kind]), [
-    ['STAGE_1', 'STAGE'],
-    ['STAGE_2_L', 'STAGE'],
-    ['STAGE_2_R', 'STAGE'],
-    ['STAGE_3_L', 'STAGE'],
-    ['GOAL_L', 'TERMINAL'],
-    ['STAGE_3_R', 'STAGE'],
-    ['GOAL_R', 'TERMINAL'],
-  ]);
-  assert.deepEqual(live.route.choices.map((choice) => choice.id), [
-    'S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE', 'S3R_CONTINUE',
-  ]);
+  assert.deepEqual(
+    live.route.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['STAGE_1', 'STAGE'],
+      ['STAGE_2_L', 'STAGE'],
+      ['STAGE_2_R', 'STAGE'],
+      ['STAGE_3_L', 'STAGE'],
+      ['GOAL_L', 'TERMINAL'],
+      ['STAGE_3_R', 'STAGE'],
+      ['GOAL_R', 'TERMINAL'],
+    ],
+  );
+  assert.deepEqual(
+    live.route.choices.map((choice) => choice.id),
+    ['S1_LEFT', 'S1_RIGHT', 'S2L_CONTINUE', 'S3L_CONTINUE', 'S2R_CONTINUE', 'S3R_CONTINUE'],
+  );
 });
 
 test('M6.33 promotes the old RIGHT goal geometry into STAGE_3_R and generates a distinct new GOAL_R chart', () => {
@@ -64,7 +68,7 @@ test('M6.33 S3R_CONTINUE resolves physical handoff, new GOAL_R package binding a
 test('M6.33 extends RIGHT through M6.31 chain + M6.32 fragments without renderer or browser topology logic', async () => {
   const [liveSource, rendererSource, mainSource] = await Promise.all([
     readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(liveSource, /compileRasterSuccessorChain/);

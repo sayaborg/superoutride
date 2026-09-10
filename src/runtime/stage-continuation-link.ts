@@ -1,5 +1,7 @@
 import {
-  guideCoordinateCurve, guideCoordinateToWorld, type GuideCoordinateSource,
+  guideCoordinateCurve,
+  guideCoordinateToWorld,
+  type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import { wrapAngle } from '../core/math.js';
 
@@ -40,12 +42,18 @@ const DEFAULT_HEADING_TOLERANCE = 1e-7;
  * the same physical road center as child l=0. A later gameplay handoff can therefore swap charts
  * without changing vehicle world pose, camera world anchor, or renderer mathematics.
  */
-export function compileStageContinuationLink(
-  source: StageContinuationLinkAuthoring,
-): StageContinuationLink {
+export function compileStageContinuationLink(source: StageContinuationLinkAuthoring): StageContinuationLink {
   if (source.id.trim().length === 0) throw new RangeError('stage continuation link id must not be empty');
-  if (![source.sourceSeamS, source.targetSeamS, source.sourceLocalL, source.targetLocalL,
-    source.overlapBehind, source.overlapAhead].every(Number.isFinite)) {
+  if (
+    ![
+      source.sourceSeamS,
+      source.targetSeamS,
+      source.sourceLocalL,
+      source.targetLocalL,
+      source.overlapBehind,
+      source.overlapAhead,
+    ].every(Number.isFinite)
+  ) {
     throw new RangeError('stage continuation coordinates and overlap must be finite');
   }
   if (!(source.overlapBehind > 0)) throw new RangeError('stage continuation overlapBehind must be > 0');
@@ -53,8 +61,12 @@ export function compileStageContinuationLink(
 
   const positionTolerance = source.positionTolerance ?? DEFAULT_POSITION_TOLERANCE;
   const headingTolerance = source.headingTolerance ?? DEFAULT_HEADING_TOLERANCE;
-  if (!Number.isFinite(positionTolerance) || !Number.isFinite(headingTolerance)
-    || positionTolerance < 0 || headingTolerance < 0) {
+  if (
+    !Number.isFinite(positionTolerance) ||
+    !Number.isFinite(headingTolerance) ||
+    positionTolerance < 0 ||
+    headingTolerance < 0
+  ) {
     throw new RangeError('stage continuation tolerances must be finite and >= 0');
   }
 
@@ -62,7 +74,8 @@ export function compileStageContinuationLink(
   // entire local bend; each ordinary primitive must participate in the overlap check.
   const boundaries = new Set([-source.overlapBehind, 0, source.overlapAhead]);
   for (const [frame, seamS] of [
-    [source.sourceFrame, source.sourceSeamS], [source.targetFrame, source.targetSeamS],
+    [source.sourceFrame, source.sourceSeamS],
+    [source.targetFrame, source.targetSeamS],
   ] as const) {
     for (const segment of guideCoordinateCurve(frame).segments) {
       for (const s of [segment.sStart, segment.sEnd]) {
@@ -92,18 +105,12 @@ export function compileStageContinuationLink(
 }
 
 /** Map one source-stage chainage in the validated overlap to target-stage chainage. */
-export function mapStageContinuationChainage(
-  link: StageContinuationLink,
-  sourceS: number,
-): number {
+export function mapStageContinuationChainage(link: StageContinuationLink, sourceS: number): number {
   return link.targetSeamS + (sourceS - link.sourceSeamS);
 }
 
 /** Preserve signed lateral displacement from the linked road locus across the chart rebase. */
-export function mapStageContinuationLateral(
-  link: StageContinuationLink,
-  sourceL: number,
-): number {
+export function mapStageContinuationLateral(link: StageContinuationLink, sourceL: number): number {
   return link.targetLocalL + (sourceL - link.sourceLocalL);
 }
 
@@ -113,16 +120,8 @@ function assertEquivalentSample(
   positionTolerance: number,
   headingTolerance: number,
 ): void {
-  const a = guideCoordinateToWorld(
-    source.sourceFrame,
-    source.sourceSeamS + delta,
-    source.sourceLocalL,
-  );
-  const b = guideCoordinateToWorld(
-    source.targetFrame,
-    source.targetSeamS + delta,
-    source.targetLocalL,
-  );
+  const a = guideCoordinateToWorld(source.sourceFrame, source.sourceSeamS + delta, source.sourceLocalL);
+  const b = guideCoordinateToWorld(source.targetFrame, source.targetSeamS + delta, source.targetLocalL);
   const dx = a.x - b.x;
   const dz = a.z - b.z;
   if (Math.hypot(dx, dz) > positionTolerance) {

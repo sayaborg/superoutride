@@ -8,13 +8,8 @@ import {
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
-import {
-  observeRouteBoundaryCrossing,
-} from '../dist/gameplay/route-boundary-gates.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
+import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 
 test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgressUpdate or lap semantics', () => {
   const route = createM6DebugRouteDag();
@@ -39,13 +34,7 @@ test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgr
   assert.equal(routeState.status, 'RUNNING');
   assert.equal(createValidatedRunFinishFromRoute(routeState, second), null);
 
-  const finishObservation = observeRouteBoundaryCrossing(
-    route,
-    routeState,
-    gates,
-    { x: 3, z: 29 },
-    { x: 3, z: 31 },
-  );
+  const finishObservation = observeRouteBoundaryCrossing(route, routeState, gates, { x: 3, z: 29 }, { x: 3, z: 31 });
   assert.equal(finishObservation.event, 'VALIDATED_FINISH');
   const routeFinishUpdate = updateRouteDag(routeState, route, finishObservation.boundary);
   assert.equal(routeFinishUpdate.event, 'FINISHED');
@@ -57,11 +46,7 @@ test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgr
     validatedProgress: null,
   });
 
-  const result = updateRunObjectiveFromValidatedFinish(
-    objective,
-    finish,
-    32.75,
-  );
+  const result = updateRunObjectiveFromValidatedFinish(objective, finish, 32.75);
   assert.equal(result.event, 'FINISHED');
   assert.equal(result.justFinished, true);
   assert.equal(objective.status, 'FINISHED');
@@ -86,11 +71,7 @@ test('route entry into a terminal stage cannot be adapted into a run finish befo
 
 test('generic objective ignores null finish and records no source/id from unvalidated state', () => {
   const state = createRunObjectiveState();
-  const result = updateRunObjectiveFromValidatedFinish(
-    state,
-    null,
-    10,
-  );
+  const result = updateRunObjectiveFromValidatedFinish(state, null, 10);
 
   assert.equal(result.event, 'NONE');
   assert.equal(state.status, 'RUNNING');
@@ -103,11 +84,7 @@ test('generic objective finishes exactly once from route authority', () => {
   const state = createRunObjectiveState();
   const routeFinish = { source: 'ROUTE_DAG', id: 'GOAL_RR', validatedProgress: null };
 
-  const first = updateRunObjectiveFromValidatedFinish(
-    state,
-    routeFinish,
-    15,
-  );
+  const first = updateRunObjectiveFromValidatedFinish(state, routeFinish, 15);
   const second = updateRunObjectiveFromValidatedFinish(
     state,
     { source: 'ROUTE_DAG', id: 'GOAL_LL', validatedProgress: 1000 },

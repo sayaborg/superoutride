@@ -7,9 +7,9 @@ import {
   type RouteStageHandoffManifest,
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
-import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
+import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 
 /**
  * Authored overlap handoff seam. It is intentionally after the physical route-choice gate.
@@ -46,11 +46,12 @@ export function createM617RouteStageHandoffManifest(
     if (!side) throw new Error(`DEV handoff side missing for route choice: ${choice.id}`);
     const l = M6_13_JUNCTION.separatedChildCenterL(side);
     const center = guidePathToWorld(guide, M6_17_HANDOFF_SEAM_S, l);
-    const sourceOrigin = choice.fromStageId === route.startStageId
-      ? charts.parent.lateralOrigin
-      : choice.fromStageId.includes('_L')
-        ? charts.left.lateralOrigin
-        : charts.right.lateralOrigin;
+    const sourceOrigin =
+      choice.fromStageId === route.startStageId
+        ? charts.parent.lateralOrigin
+        : choice.fromStageId.includes('_L')
+          ? charts.left.lateralOrigin
+          : charts.right.lateralOrigin;
     return {
       id: `H_${choice.id}`,
       choiceId: choice.id,

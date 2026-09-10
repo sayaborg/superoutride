@@ -1,7 +1,4 @@
-import {
-  createArcadeVehicle,
-  updateArcadeVehicle,
-} from '../../dist/physics/arcade-vehicle-physics.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { compileArcadeVehicleProfile } from '../../dist/physics/vehicle-profiles.js';
 import {
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
@@ -31,19 +28,11 @@ export function createTestCar(
   speed = 45,
   profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE,
 ) {
-  return createArcadeVehicle(profile, guide, height, surfaces, s, l, speed);
+  return createArcadeVehicle(profile, { guide, height, surfaces }, { s, l, initialSpeed: speed });
 }
 
-export function createTestBike(
-  guide,
-  height,
-  surfaces,
-  s,
-  l = 0,
-  speed = 45,
-  profile = HONDA_VFR750R_VEHICLE_PROFILE,
-) {
-  return createArcadeVehicle(profile, guide, height, surfaces, s, l, speed);
+export function createTestBike(guide, height, surfaces, s, l = 0, speed = 45, profile = HONDA_VFR750R_VEHICLE_PROFILE) {
+  return createArcadeVehicle(profile, { guide, height, surfaces }, { s, l, initialSpeed: speed });
 }
 
 export function updateTestVehicle(guide, height, surfaces, vehicle, input, dt) {

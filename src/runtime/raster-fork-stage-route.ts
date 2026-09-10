@@ -1,3 +1,5 @@
+import { nonEmptyId } from '../core/validation.js';
+import { uniqueKey } from '../core/validation.js';
 import { guideChartToWorld } from '../gameplay/guide-chart.js';
 import type {
   DeclarativeGateGeometry,
@@ -9,11 +11,8 @@ import type {
 } from './declarative-live-route.js';
 import { composeDeclarativeLiveRouteAuthoring } from './declarative-route-fragment.js';
 import { createRasterForkStageSuccessor } from './raster-fork-successor.js';
+import type { RasterSuccessorAuthoring, RasterSuccessorRuntimeSource } from './raster-stage-successor.js';
 import { repackageGuideChartRuntime } from './raster-successor-chain.js';
-import type {
-  RasterSuccessorAuthoring,
-  RasterSuccessorRuntimeSource,
-} from './raster-stage-successor.js';
 import {
   compileStageJunction,
   type CompiledStageJunction,
@@ -81,9 +80,7 @@ export interface CompiledRasterForkStageRoute {
  * the fork coordinate adapter, and final route validation remains the M6.28 declarative compiler.
  * Renderer, camera and vehicle physics are deliberately absent from this layer.
  */
-export function compileRasterForkStageRoute(
-  source: RasterForkStageRouteAuthoring,
-): CompiledRasterForkStageRoute {
+export function compileRasterForkStageRoute(source: RasterForkStageRouteAuthoring): CompiledRasterForkStageRoute {
   validateBasicAuthoring(source);
 
   const oldTerminal = requireUniqueStage(source.upstream, source.terminalStageId);
@@ -103,11 +100,14 @@ export function compileRasterForkStageRoute(
   }
 
   const promoted = repackageGuideChartRuntime(oldTerminal.runtime, source.forkPackageId);
-  const junction = compileStageJunction({
-    courseLength: promoted.coordinateFrame.guide.length,
-    roadView: sourceRoadView,
-    groundProfile: promoted.groundProfile,
-  }, source.junction);
+  const junction = compileStageJunction(
+    {
+      courseLength: promoted.coordinateFrame.guide.length,
+      roadView: sourceRoadView,
+      groundProfile: promoted.groundProfile,
+    },
+    source.junction,
+  );
   const forkRuntime: GuideChartRuntimePackage = Object.freeze({
     ...promoted,
     roadView: junction.roadView,
@@ -204,14 +204,15 @@ export function compileRasterForkStageRoute(
     });
   });
 
-  const baseStages = source.upstream.stages.map((stage) => stage.id === source.terminalStageId ? forkStage : stage);
-  const baseTransitions = source.upstream.transitions.map((transition) => transition.toStageId === source.terminalStageId
-    ? Object.freeze({ ...transition, toStageId: source.forkStageId })
-    : transition);
+  const baseStages = source.upstream.stages.map((stage) => (stage.id === source.terminalStageId ? forkStage : stage));
+  const baseTransitions = source.upstream.transitions.map((transition) =>
+    transition.toStageId === source.terminalStageId
+      ? Object.freeze({ ...transition, toStageId: source.forkStageId })
+      : transition,
+  );
   const baseFinishes = source.upstream.finishes.filter((finish) => finish.stageId !== source.terminalStageId);
-  const startStageId = source.upstream.startStageId === source.terminalStageId
-    ? source.forkStageId
-    : source.upstream.startStageId;
+  const startStageId =
+    source.upstream.startStageId === source.terminalStageId ? source.forkStageId : source.upstream.startStageId;
 
   const authoring = composeDeclarativeLiveRouteAuthoring({
     startStageId,
@@ -239,9 +240,9 @@ export function compileRasterForkStageRoute(
 }
 
 function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
-  requireNonEmpty(source.terminalStageId, 'source terminal stage id');
-  requireNonEmpty(source.forkStageId, 'fork stage id');
-  requireNonEmpty(source.forkPackageId, 'fork package id');
+  nonEmptyId(source.terminalStageId, 'source terminal stage id');
+  nonEmptyId(source.forkStageId, 'fork stage id');
+  nonEmptyId(source.forkPackageId, 'fork package id');
   if (source.forkStageId === source.terminalStageId) {
     throw new RangeError('Raster fork stage id must differ from the replaced terminal stage id');
   }
@@ -252,9 +253,9 @@ function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
     throw new RangeError('Raster fork requires exactly two branch rows');
   }
 
-  const otherStageIds = new Set(source.upstream.stages
-    .filter((stage) => stage.id !== source.terminalStageId)
-    .map((stage) => stage.id));
+  const otherStageIds = new Set(
+    source.upstream.stages.filter((stage) => stage.id !== source.terminalStageId).map((stage) => stage.id),
+  );
   if (otherStageIds.has(source.forkStageId)) {
     throw new RangeError(`duplicate Raster fork stage id: ${source.forkStageId}`);
   }
@@ -262,9 +263,11 @@ function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
   const sides = new Set<RasterForkBranchSide>();
   const stageIds = new Set(otherStageIds);
   stageIds.add(source.forkStageId);
-  const packageIds = new Set(source.upstream.stages
-    .filter((stage) => stage.id !== source.terminalStageId)
-    .map((stage) => stage.runtime.packageId));
+  const packageIds = new Set(
+    source.upstream.stages
+      .filter((stage) => stage.id !== source.terminalStageId)
+      .map((stage) => stage.runtime.packageId),
+  );
   if (packageIds.has(source.forkPackageId)) {
     throw new RangeError(`duplicate Raster fork package id: ${source.forkPackageId}`);
   }
@@ -282,22 +285,19 @@ function validateBasicAuthoring(source: RasterForkStageRouteAuthoring): void {
   for (const branch of source.branches) {
     if (sides.has(branch.side)) throw new RangeError(`duplicate Raster fork branch side: ${branch.side}`);
     sides.add(branch.side);
-    requireUnique(stageIds, branch.stageId, 'stage id');
-    requireUnique(packageIds, branch.packageId, 'package id');
-    requireUnique(choiceIds, branch.choiceId, 'choice id');
-    requireUnique(geometryIds, branch.gateId, 'gate/handoff/finish id');
-    requireUnique(geometryIds, branch.handoffId, 'gate/handoff/finish id');
-    requireUnique(geometryIds, branch.finishGateId, 'gate/handoff/finish id');
+    uniqueKey(stageIds, branch.stageId, 'Raster fork stage id');
+    uniqueKey(packageIds, branch.packageId, 'Raster fork package id');
+    uniqueKey(choiceIds, branch.choiceId, 'Raster fork choice id');
+    uniqueKey(geometryIds, branch.gateId, 'Raster fork gate/handoff/finish id');
+    uniqueKey(geometryIds, branch.handoffId, 'Raster fork gate/handoff/finish id');
+    uniqueKey(geometryIds, branch.finishGateId, 'Raster fork gate/handoff/finish id');
   }
   if (!sides.has('LEFT') || !sides.has('RIGHT')) {
     throw new RangeError('Raster fork requires exactly one LEFT and one RIGHT branch');
   }
 }
 
-function requireUniqueStage(
-  source: DeclarativeLiveRouteAuthoring,
-  id: string,
-): DeclarativeLiveRouteStageAuthoring {
+function requireUniqueStage(source: DeclarativeLiveRouteAuthoring, id: string): DeclarativeLiveRouteStageAuthoring {
   const found = source.stages.filter((stage) => stage.id === id);
   if (found.length !== 1) throw new RangeError(`Raster fork source stage must exist exactly once: ${id}`);
   return found[0]!;
@@ -314,14 +314,4 @@ function pointGeometry(
     heading: point.heading,
     halfWidth,
   });
-}
-
-function requireNonEmpty(value: string, label: string): void {
-  if (value.length === 0) throw new RangeError(`Raster fork ${label} must not be empty`);
-}
-
-function requireUnique(set: Set<string>, value: string, label: string): void {
-  requireNonEmpty(value, label);
-  if (set.has(value)) throw new RangeError(`duplicate Raster fork ${label}: ${value}`);
-  set.add(value);
 }

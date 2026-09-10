@@ -1,8 +1,13 @@
 import type { Vec2 } from '../core/math.js';
+import { observeRouteBoundaryCrossing, type RouteBoundaryObservation } from '../gameplay/route-boundary-gates.js';
+import { updateRouteDag, type RouteDagUpdate, type ValidatedRouteBoundary } from '../gameplay/route-dag.js';
 import {
-  observeRouteBoundaryCrossing,
-  type RouteBoundaryObservation,
-} from '../gameplay/route-boundary-gates.js';
+  commitRouteStageHandoff,
+  observePendingRouteStageHandoff,
+  queueRouteStageHandoff,
+  syncRouteStageHandoffCoordinate,
+  type RouteStageHandoffEvent,
+} from '../gameplay/route-stage-handoff.js';
 import {
   arbitrateSharedRouteChoiceCandidates,
   getSharedRouteChoiceLock,
@@ -12,18 +17,6 @@ import {
   type SharedRouteChoiceDecision,
   type SharedRouteChoiceState,
 } from '../gameplay/shared-route-choice-authority.js';
-import {
-  updateRouteDag,
-  type RouteDagUpdate,
-  type ValidatedRouteBoundary,
-} from '../gameplay/route-dag.js';
-import {
-  commitRouteStageHandoff,
-  observePendingRouteStageHandoff,
-  queueRouteStageHandoff,
-  syncRouteStageHandoffCoordinate,
-  type RouteStageHandoffEvent,
-} from '../gameplay/route-stage-handoff.js';
 import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
 import type { LiveRouteTravelerState } from './live-route-traveler.js';
 
@@ -55,7 +48,7 @@ export interface LiveRouteActorTickResult {
 }
 
 export interface LiveRouteMultiActorTickResult {
-  readonly actors: readonly LiveRouteActorTickResult[];
+  readonly actors: Readonly<Record<string, LiveRouteActorTickResult>>;
   readonly arbitration: SharedRouteChoiceArbitration;
 }
 
@@ -89,8 +82,7 @@ export function advanceLiveRouteMultiActorTick(
   assertActorSamples(samples);
 
   const observed: ObservedActor[] = samples.map((sample) => {
-    const routeMutationEligible = sample.state.handoffState.pending === null
-      && sample.observeRouteBoundary !== false;
+    const routeMutationEligible = sample.state.handoffState.pending === null && sample.observeRouteBoundary !== false;
     if (!routeMutationEligible) {
       return Object.freeze({
         sample,
@@ -113,16 +105,17 @@ export function advanceLiveRouteMultiActorTick(
       sample.state.previousWorldPoint,
       sample.currentWorldPoint,
     );
-    const observation = allowedChoiceId === null
-      ? physicalObservation
-      : observeRouteBoundaryCrossing(
-        live.route,
-        sample.state.routeState,
-        live.gates,
-        sample.state.previousWorldPoint,
-        sample.currentWorldPoint,
-        allowedChoiceId,
-      );
+    const observation =
+      allowedChoiceId === null
+        ? physicalObservation
+        : observeRouteBoundaryCrossing(
+            live.route,
+            sample.state.routeState,
+            live.gates,
+            sample.state.previousWorldPoint,
+            sample.currentWorldPoint,
+            allowedChoiceId,
+          );
     return Object.freeze({
       sample,
       routeMutationEligible,
@@ -140,31 +133,25 @@ export function advanceLiveRouteMultiActorTick(
     if (crossingFraction === null || crossingFraction === undefined) {
       throw new Error(`validated transition is missing physical crossing fraction: ${item.sample.actorId}`);
     }
-    transitionCandidates.push(Object.freeze({
-      actorId: item.sample.actorId,
-      activeStageId: item.sample.state.routeState.activeStageId,
-      boundary,
-      crossingFraction,
-    }));
+    transitionCandidates.push(
+      Object.freeze({
+        actorId: item.sample.actorId,
+        activeStageId: item.sample.state.routeState.activeStageId,
+        boundary,
+        crossingFraction,
+      }),
+    );
   }
 
-  const arbitration = arbitrateSharedRouteChoiceCandidates(
-    live.route,
-    shared,
-    transitionCandidates,
-  );
-  const decisionsByActor = new Map(
-    arbitration.decisions.map((decision) => [decision.actorId, decision] as const),
-  );
+  const arbitration = arbitrateSharedRouteChoiceCandidates(live.route, shared, transitionCandidates);
+  const decisionsByActor = new Map(arbitration.decisions.map((decision) => [decision.actorId, decision] as const));
 
-  const results: LiveRouteActorTickResult[] = [];
+  const results: Record<string, LiveRouteActorTickResult> = Object.create(null);
   for (const item of observed) {
     const { sample, observation, routeMutationEligible } = item;
     let routeUpdate: RouteDagUpdate | null = null;
     const sharedDecision = decisionsByActor.get(sample.actorId) ?? null;
-    const branchViolation = routeMutationEligible
-      ? detectBranchViolation(item, sharedDecision, shared)
-      : null;
+    const branchViolation = routeMutationEligible ? detectBranchViolation(item, sharedDecision, shared) : null;
 
     if (routeMutationEligible) {
       const acceptedBoundary = acceptedBoundaryForActor(observation, sharedDecision);
@@ -187,15 +174,11 @@ export function advanceLiveRouteMultiActorTick(
       sample.currentWorldPoint,
     );
     if (handoffEvent !== 'COMMITTED') {
-      syncRouteStageHandoffCoordinate(
-        sample.state.handoffState,
-        live.charts,
-        sample.currentWorldPoint,
-      );
+      syncRouteStageHandoffCoordinate(sample.state.handoffState, live.charts, sample.currentWorldPoint);
     }
     sample.state.previousWorldPoint = { ...sample.currentWorldPoint };
 
-    results.push(Object.freeze({
+    results[sample.actorId] = Object.freeze({
       actorId: sample.actorId,
       observation,
       sharedDecision,
@@ -203,7 +186,7 @@ export function advanceLiveRouteMultiActorTick(
       routeUpdate,
       handoffEvent,
       committed: handoffEvent === 'COMMITTED',
-    }));
+    });
   }
 
   return Object.freeze({

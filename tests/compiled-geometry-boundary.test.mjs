@@ -3,8 +3,12 @@ import test from 'node:test';
 import { compileRasterPath, rasterPathToWorld } from '../dist/core/course.js';
 import { compileGuidePath, guidePathToWorld, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
 
-const vertices = () => [{ x: 0, z: 0 }, { x: 0, z: 100 }, { x: 10, z: 200 }];
-const options = { lMax: 12, mMin: .25, dCam: 5 };
+const vertices = () => [
+  { x: 0, z: 0 },
+  { x: 0, z: 100 },
+  { x: 10, z: 200 },
+];
+const options = { lMax: 12, mMin: 0.25, dCam: 5 };
 
 test('Raster rejects nonfinite vertices, radius metadata and overflow before deriving geometry', () => {
   for (const value of [NaN, Infinity, -Infinity]) {
@@ -16,7 +20,14 @@ test('Raster rejects nonfinite vertices, radius metadata and overflow before der
       }
     }
   }
-  assert.throws(() => compileRasterPath([{ x: -1e308, z: 0 }, { x: 1e308, z: 0 }]), RangeError);
+  assert.throws(
+    () =>
+      compileRasterPath([
+        { x: -1e308, z: 0 },
+        { x: 1e308, z: 0 },
+      ]),
+    RangeError,
+  );
 });
 
 test('Guide validates chart options even when a straight path needs no fillet', () => {
@@ -36,11 +47,19 @@ test('compiled Raster and Guide cannot acquire conflicting geometry through nest
   const guide = compileGuidePath(raster, options);
   const before = guidePathToWorld(guide, 100, 4);
   authored[1].x = 99;
-  const objects = [raster.vertices[1], raster.segments[0], raster.vertexMiters[1],
-    guide.segments[0], guide.corners[1], guide.corners[1].center];
+  const objects = [
+    raster.vertices[1],
+    raster.segments[0],
+    raster.vertexMiters[1],
+    guide.segments[0],
+    guide.corners[1],
+    guide.corners[1].center,
+  ];
   for (const object of objects) {
-    const key = Object.keys(object).find(key => typeof object[key] === 'number');
-    assert.throws(() => { object[key] += 1; }, TypeError);
+    const key = Object.keys(object).find((key) => typeof object[key] === 'number');
+    assert.throws(() => {
+      object[key] += 1;
+    }, TypeError);
   }
   assert.deepEqual(guidePathToWorld(guide, 100, 4), before);
   const observed = locateWorldOnGuideLocal(guide, before, before.segmentIndex);

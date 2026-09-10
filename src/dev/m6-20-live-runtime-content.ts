@@ -1,6 +1,7 @@
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import type { SurfaceMap } from '../physics/surface-map.js';
+import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import {
   compileStageRuntimeContentRegistry,
   type StageRuntimeContentPackage,
@@ -9,14 +10,10 @@ import {
 import type { FarBackground } from '../visual/far-background.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
-import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import type { M618StageRoadViews } from './m6-18-stage-road-views.js';
-import {
-  createM621ChildVisualIdentity,
-  type M621ChildVisualIdentity,
-} from './m6-21-child-visual-identity.js';
+import { createM621ChildVisualIdentity, type M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 
 export interface M620SharedRuntimeContent {
   readonly heightProfile: HeightProfileReader;

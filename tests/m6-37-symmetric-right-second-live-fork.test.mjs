@@ -18,11 +18,11 @@ import {
   queueRouteStageHandoff,
 } from '../dist/gameplay/route-stage-handoff.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createM2StadiumGuide();
-  return createM637SymmetricSecondLiveForkRuntime(guide, parentShared(guide), createM4SpriteAssets());
+  return createM637SymmetricSecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
 }
 
 function crossing(gate, distance = 2) {
@@ -36,20 +36,26 @@ function crossing(gate, distance = 2) {
 
 test('M6.37 live topology owns a real second fork on both LEFT and RIGHT paths', () => {
   const live = setup();
-  assert.deepEqual(live.route.stages.map((stage) => [stage.id, stage.kind]), [
-    ['STAGE_1', 'STAGE'],
-    ['STAGE_2_L', 'STAGE'],
-    ['STAGE_2_R', 'STAGE'],
-    ['STAGE_3_L', 'STAGE'],
-    ['STAGE_4_L_FORK', 'STAGE'],
-    ['STAGE_3_R', 'STAGE'],
-    ['STAGE_4_R_FORK', 'STAGE'],
-    ['GOAL_LA', 'TERMINAL'],
-    ['GOAL_LB', 'TERMINAL'],
-    ['GOAL_RA', 'TERMINAL'],
-    ['GOAL_RB', 'TERMINAL'],
-  ]);
-  assert.equal(live.route.stages.some((stage) => stage.id === 'GOAL_L' || stage.id === 'GOAL_R'), false);
+  assert.deepEqual(
+    live.route.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['STAGE_1', 'STAGE'],
+      ['STAGE_2_L', 'STAGE'],
+      ['STAGE_2_R', 'STAGE'],
+      ['STAGE_3_L', 'STAGE'],
+      ['STAGE_4_L_FORK', 'STAGE'],
+      ['STAGE_3_R', 'STAGE'],
+      ['STAGE_4_R_FORK', 'STAGE'],
+      ['GOAL_LA', 'TERMINAL'],
+      ['GOAL_LB', 'TERMINAL'],
+      ['GOAL_RA', 'TERMINAL'],
+      ['GOAL_RB', 'TERMINAL'],
+    ],
+  );
+  assert.equal(
+    live.route.stages.some((stage) => stage.id === 'GOAL_L' || stage.id === 'GOAL_R'),
+    false,
+  );
 });
 
 test('M6.37 RIGHT fork package owns the same derived 12m stage-local junction envelope', () => {
@@ -131,22 +137,29 @@ test('M6.37 complete RIGHT-B route performs four PENDING/COMMIT handoffs then ph
     const gate = live.gates.gates.find((entry) => entry.kind === 'TRANSITION' && entry.choiceId === choiceId);
     assert.ok(gate);
     const motion = crossing(gate);
-    const observation = observeRouteBoundaryCrossing(live.route, routeState, live.gates, motion.previous, motion.current);
+    const observation = observeRouteBoundaryCrossing(
+      live.route,
+      routeState,
+      live.gates,
+      motion.previous,
+      motion.current,
+    );
     const routeUpdate = updateRouteDag(routeState, live.route, observation.boundary);
     assert.equal(routeUpdate.event, 'TRANSITION_ACCEPTED');
     assert.equal(queueRouteStageHandoff(handoffState, live.handoffs, routeUpdate), 'PENDING');
     const seam = live.handoffs.seams.find((entry) => entry.choiceId === choiceId);
     assert.ok(seam);
     const seamMotion = crossing(seam);
-    const seamObservation = observePendingRouteStageHandoff(handoffState, live.handoffs, seamMotion.previous, seamMotion.current);
-    assert.equal(commitRouteStageHandoff(
+    const seamObservation = observePendingRouteStageHandoff(
       handoffState,
-      routeState,
-      live.content,
-      live.charts,
-      seamObservation.seam,
-      seam.center,
-    ), 'COMMITTED');
+      live.handoffs,
+      seamMotion.previous,
+      seamMotion.current,
+    );
+    assert.equal(
+      commitRouteStageHandoff(handoffState, routeState, live.content, live.charts, seamObservation.seam, seam.center),
+      'COMMITTED',
+    );
     assert.equal(handoffState.activePackageId, packageId);
   }
 
@@ -164,7 +177,7 @@ test('M6.37 remains a direct symmetric-fork fixture beneath the M6.38 live plan'
     readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(source, /createM635SecondLiveForkAuthoring/);
   assert.match(source, /compileRasterForkStageRoute/);

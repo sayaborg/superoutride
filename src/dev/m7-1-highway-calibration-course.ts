@@ -1,14 +1,10 @@
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
-import { M5_RECOVERY_PROFILE, type M5RecoveryProfile } from '../gameplay/recovery.js';
+import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import {
-  GROUND_COLORS,
-  type GroundMapProfile,
-  type LongitudinalRoadMarking,
-} from '../visual/ground-map.js';
+import { GROUND_COLORS, type GroundMapProfile, type LongitudinalRoadMarking } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 
@@ -21,7 +17,7 @@ export const M7_1_PLAYER_START_L = -M7_1_LANE_WIDTH_METERS * 0.5;
 export const M7_1_RIVAL_START_L = M7_1_LANE_WIDTH_METERS * 0.5;
 
 export const M7_1_LANE_MARKING_WIDTH_METERS = 0.15;
-export const M7_1_EDGE_MARKING_WIDTH_METERS = 0.20;
+export const M7_1_EDGE_MARKING_WIDTH_METERS = 0.2;
 export const M7_1_MARKING_DASH_LENGTH_METERS = 8;
 export const M7_1_MARKING_GAP_LENGTH_METERS = 12;
 
@@ -32,13 +28,13 @@ export const M8_4_LOW_SPEED_COMPLEX_COUNT = 2;
 export const M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS = 200;
 export const M7_1_AIRBORNE_PROBE_START_S = 250;
 
-export const M7_1_HIGHWAY_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M7_1_HIGHWAY_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M7_1_PLAYER_START_L,
 });
 
-export const M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M7_1_RIVAL_START_L,
 });
 
@@ -48,13 +44,15 @@ const HIGHWAY_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
     width: M7_1_EDGE_MARKING_WIDTH_METERS,
     pattern: 'SOLID' as const,
   }),
-  ...[-M7_1_LANE_WIDTH_METERS, 0, M7_1_LANE_WIDTH_METERS].map((centerL) => Object.freeze({
-    centerL,
-    width: M7_1_LANE_MARKING_WIDTH_METERS,
-    pattern: 'DASHED' as const,
-    dashLength: M7_1_MARKING_DASH_LENGTH_METERS,
-    gapLength: M7_1_MARKING_GAP_LENGTH_METERS,
-  })),
+  ...[-M7_1_LANE_WIDTH_METERS, 0, M7_1_LANE_WIDTH_METERS].map((centerL) =>
+    Object.freeze({
+      centerL,
+      width: M7_1_LANE_MARKING_WIDTH_METERS,
+      pattern: 'DASHED' as const,
+      dashLength: M7_1_MARKING_DASH_LENGTH_METERS,
+      gapLength: M7_1_MARKING_GAP_LENGTH_METERS,
+    }),
+  ),
   Object.freeze({
     centerL: M7_1_ROAD_HALF_WIDTH_METERS,
     width: M7_1_EDGE_MARKING_WIDTH_METERS,
@@ -85,11 +83,13 @@ export function createM71HighwayGroundProfile(): GroundMapProfile {
  * ten-degree limit.
  */
 export function createM71HighwayCalibrationLapRaster(): RasterPath {
-  const vertices: RasterVertex[] = [{
-    x: 0,
-    z: 0,
-    sourceRadius: M7_1_STANDARD_CURVE_RADIUS_METERS,
-  }];
+  const vertices: RasterVertex[] = [
+    {
+      x: 0,
+      z: 0,
+      sourceRadius: M7_1_STANDARD_CURVE_RADIUS_METERS,
+    },
+  ];
   const turtle = { x: 0, z: 0, heading: 0 };
 
   const appendStraight = (length: number): void => {
@@ -111,11 +111,11 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
     const startHeading = turtle.heading;
     const centerX = startX + sign * radius * Math.cos(startHeading);
     const centerZ = startZ - sign * radius * Math.sin(startHeading);
-    const maxTurnStep = 5 * Math.PI / 180;
+    const maxTurnStep = (5 * Math.PI) / 180;
     const steps = Math.ceil(Math.abs(turn) / maxTurnStep);
 
     for (let i = 1; i <= steps; i += 1) {
-      const heading = startHeading + turn * i / steps;
+      const heading = startHeading + (turn * i) / steps;
       turtle.x = centerX - sign * radius * Math.cos(heading);
       turtle.z = centerZ + sign * radius * Math.sin(heading);
       vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
@@ -124,16 +124,16 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
   };
 
   const appendLowSpeedComplex = (firstTurnSign: -1 | 1): void => {
-    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, firstTurnSign * Math.PI / 2);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, (firstTurnSign * Math.PI) / 2);
     appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, -firstTurnSign * Math.PI);
-    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, firstTurnSign * Math.PI / 2);
+    appendArc(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, (firstTurnSign * Math.PI) / 2);
   };
 
   const appendHighwaySide = (includeLowSpeedFinish: boolean): void => {
     appendStraight(700);
-    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, -20 * Math.PI / 180);
-    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, 40 * Math.PI / 180);
-    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, -20 * Math.PI / 180);
+    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, (-20 * Math.PI) / 180);
+    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, (40 * Math.PI) / 180);
+    appendArc(M7_1_SWEEP_CURVE_RADIUS_METERS, (-20 * Math.PI) / 180);
     if (includeLowSpeedFinish) {
       // Keep the M7.2 gate/seam interval unchanged, then leave enough straight
       // between the right-left-right and mirrored left-right-left complexes for
@@ -153,10 +153,10 @@ export function createM71HighwayCalibrationLapRaster(): RasterPath {
   appendHighwaySide(true);
   appendArc(M7_1_STANDARD_CURVE_RADIUS_METERS, Math.PI);
   if (!(
-    turtle.z < 0
-    && Math.abs(turtle.x) < 1e-7
-    && Math.abs(Math.sin(turtle.heading)) < 1e-7
-    && Math.cos(turtle.heading) > 1 - 1e-7
+    turtle.z < 0 &&
+    Math.abs(turtle.x) < 1e-7 &&
+    Math.abs(Math.sin(turtle.heading)) < 1e-7 &&
+    Math.cos(turtle.heading) > 1 - 1e-7
   )) {
     throw new Error('M8.4 low-speed complexes must return on the start-side axis');
   }
@@ -191,37 +191,39 @@ function createM71HighwayHeightProfile(courseLength: number): HeightProfile {
 }
 
 export function createM71HighwaySurfaceMap(courseLength: number): SurfaceMap {
-  return new SurfaceMap(courseLength, [{
-    sStart: 0,
-    name: 'M7.1 FOUR-LANE HIGHWAY CALIBRATION SURFACE',
-    bands: [
-      {
-        lMin: -M7_1_GROUND_HALF_WIDTH_METERS,
-        lMax: -(M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS),
-        type: 'GRASS',
-      },
-      {
-        lMin: -(M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS),
-        lMax: -M7_1_ROAD_HALF_WIDTH_METERS,
-        type: 'SHOULDER',
-      },
-      {
-        lMin: -M7_1_ROAD_HALF_WIDTH_METERS,
-        lMax: M7_1_ROAD_HALF_WIDTH_METERS,
-        type: 'ASPHALT',
-      },
-      {
-        lMin: M7_1_ROAD_HALF_WIDTH_METERS,
-        lMax: M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS,
-        type: 'SHOULDER',
-      },
-      {
-        lMin: M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS,
-        lMax: M7_1_GROUND_HALF_WIDTH_METERS,
-        type: 'GRASS',
-      },
-    ],
-  }]);
+  return new SurfaceMap(courseLength, [
+    {
+      sStart: 0,
+      name: 'M7.1 FOUR-LANE HIGHWAY CALIBRATION SURFACE',
+      bands: [
+        {
+          lMin: -M7_1_GROUND_HALF_WIDTH_METERS,
+          lMax: -(M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS),
+          type: 'GRASS',
+        },
+        {
+          lMin: -(M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS),
+          lMax: -M7_1_ROAD_HALF_WIDTH_METERS,
+          type: 'SHOULDER',
+        },
+        {
+          lMin: -M7_1_ROAD_HALF_WIDTH_METERS,
+          lMax: M7_1_ROAD_HALF_WIDTH_METERS,
+          type: 'ASPHALT',
+        },
+        {
+          lMin: M7_1_ROAD_HALF_WIDTH_METERS,
+          lMax: M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS,
+          type: 'SHOULDER',
+        },
+        {
+          lMin: M7_1_ROAD_HALF_WIDTH_METERS + M7_1_SHOULDER_WIDTH_METERS,
+          lMax: M7_1_GROUND_HALF_WIDTH_METERS,
+          type: 'GRASS',
+        },
+      ],
+    },
+  ]);
 }
 
 export function createM71HighwayCalibrationRuntime(): CircuitLiveRuntime {
@@ -229,19 +231,21 @@ export function createM71HighwayCalibrationRuntime(): CircuitLiveRuntime {
   const topology = compileCircuitTopology('DEV_M7_1_HIGHWAY_CALIBRATION_LOOP', lapRaster);
   const lapLength = topology.lapLength;
   const height = createM71HighwayHeightProfile(lapLength);
-  const visual = new VisualProfile(lapLength, [{
-    sStart: 0,
-    groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
-    groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
-    name: 'M7.1 FOUR-LANE HIGHWAY CALIBRATION',
-  }]);
+  const visual = new VisualProfile(lapLength, [
+    {
+      sStart: 0,
+      groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
+      groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
+      name: 'M7.1 FOUR-LANE HIGHWAY CALIBRATION',
+    },
+  ]);
   const surface = createM71HighwaySurfaceMap(lapLength);
 
   return compileCircuitLiveRuntime(
     topology,
     0,
     {
-      lMax: M7_1_GROUND_HALF_WIDTH_METERS,
+      lMax: M7_1_GROUND_HALF_WIDTH_METERS + 1,
       mMin: 0.25,
       dCam: CURRENT_CAMERA_DISTANCE_METERS,
     },

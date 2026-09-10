@@ -46,8 +46,5 @@ export function rotateAroundAxis(v: Vec3, axis: Vec3, angle: number): Vec3 {
   const unit = normalize3(axis);
   const cosine = Math.cos(angle);
   const sine = Math.sin(angle);
-  return add3(
-    add3(scale3(v, cosine), scale3(cross3(unit, v), sine)),
-    scale3(unit, dot3(unit, v) * (1 - cosine)),
-  );
+  return add3(add3(scale3(v, cosine), scale3(cross3(unit, v), sine)), scale3(unit, dot3(unit, v) * (1 - cosine)));
 }

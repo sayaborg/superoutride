@@ -3,8 +3,8 @@ import {
   VEHICLE_CATALOG,
   formatVehicleCatalogLine,
   vehicleCatalogEntryForId,
-  type VehicleSelectionKeyCode,
   type VehicleCatalogEntry,
+  type VehicleSelectionKeyCode,
 } from '../vehicle/vehicle-catalog.js';
 
 export interface BrowserVehicleProfileSelection {
@@ -18,13 +18,17 @@ export interface BrowserVehicleProfileSelection {
 export function createBrowserVehicleProfileSelections(
   catalog: readonly Readonly<VehicleCatalogEntry>[],
 ): readonly BrowserVehicleProfileSelection[] {
-  return Object.freeze(catalog.map((catalogEntry) => Object.freeze({
-    code: catalogEntry.keyCode,
-    keyLabel: catalogEntry.keyLabel,
-    mobileLabel: catalogEntry.mobileLabel,
-    accessibleName: formatVehicleCatalogLine(catalogEntry),
-    profile: catalogEntry.profile,
-  })));
+  return Object.freeze(
+    catalog.map((catalogEntry) =>
+      Object.freeze({
+        code: catalogEntry.keyCode,
+        keyLabel: catalogEntry.keyLabel,
+        mobileLabel: catalogEntry.mobileLabel,
+        accessibleName: formatVehicleCatalogLine(catalogEntry),
+        profile: catalogEntry.profile,
+      }),
+    ),
+  );
 }
 
 export const BROWSER_VEHICLE_PROFILES = createBrowserVehicleProfileSelections(VEHICLE_CATALOG);

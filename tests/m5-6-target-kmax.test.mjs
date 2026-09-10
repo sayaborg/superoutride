@@ -7,10 +7,7 @@ import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   CURRENT_CAMERA_HEIGHT_METERS,
 } from '../dist/camera/current-camera-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../dist/core/presentation-scale.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import {
   deriveGroundMapTargetEnvelope,
   validateTerrainFootprintsAgainstTarget,
@@ -25,7 +22,7 @@ import {
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const visual = createM3DebugVisualProfile(guide.length);

@@ -59,11 +59,11 @@ export function createValidatedRunFinishFromRoute(
   if (!routeUpdate || routeUpdate.event !== 'FINISHED' || !routeUpdate.justFinished) return null;
 
   if (
-    routeUpdate.status !== 'FINISHED'
-    || routeState.status !== 'FINISHED'
-    || routeState.finishStageId === null
-    || routeState.finishStageId !== routeState.activeStageId
-    || routeUpdate.activeStageId !== routeState.finishStageId
+    routeUpdate.status !== 'FINISHED' ||
+    routeState.status !== 'FINISHED' ||
+    routeState.finishStageId === null ||
+    routeState.finishStageId !== routeState.activeStageId ||
+    routeUpdate.activeStageId !== routeState.finishStageId
   ) {
     throw new Error('inconsistent validated Route DAG finish state');
   }

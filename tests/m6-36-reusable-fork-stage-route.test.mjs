@@ -16,7 +16,7 @@ import { compileDeclarativeLiveRoute } from '../dist/runtime/declarative-live-ro
 import { compileRasterForkStageRoute } from '../dist/runtime/raster-fork-stage-route.js';
 import { compileAuthoredStageRuntimePackage } from '../dist/runtime/stage-authoring-compiler.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -56,7 +56,7 @@ function branch(label, side, deformationDirection) {
 
 function fixture() {
   const guide = createM2StadiumGuide();
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const upstream = createM630ThirdLiveSuccessorAuthoring(guide, parentShared(guide), assets);
   const authored = createM624ChildStageAuthoring(assets, createM621ChildVisualIdentity());
   const oldTerminal = upstream.stages.find((stage) => stage.id === 'GOAL_L');
@@ -83,14 +83,18 @@ function fixture() {
       outerSurfaceType: 'GRASS',
     },
     branches,
-    createRuntime: (structural, forkBranch) => compileAuthoredStageRuntimePackage({
-      packageId: forkBranch.packageId,
-      worldFrameId: oldTerminal.runtime.worldFrameId,
-      coordinateFrame: structural.chart,
-      roadView: structural.roadView,
-      surfaceMap: structural.surfaceMap,
-      groundProfile: structural.groundProfile,
-    }, forkBranch.side === 'LEFT' ? authored.left : authored.right),
+    createRuntime: (structural, forkBranch) =>
+      compileAuthoredStageRuntimePackage(
+        {
+          packageId: forkBranch.packageId,
+          worldFrameId: oldTerminal.runtime.worldFrameId,
+          coordinateFrame: structural.chart,
+          roadView: structural.roadView,
+          surfaceMap: structural.surfaceMap,
+          groundProfile: structural.groundProfile,
+        },
+        forkBranch.side === 'LEFT' ? authored.left : authored.right,
+      ),
   };
   return { guide, assets, upstream, source, branches, oldTerminal };
 }
@@ -107,11 +111,17 @@ test('M6.36 generic compiler promotes one terminal and derives a two-child route
   const incoming = compiled.authoring.transitions.find((edge) => edge.id === 'S3L_CONTINUE');
   assert.ok(incoming);
   assert.equal(incoming.toStageId, 'TEST_FORK_STAGE');
-  assert.deepEqual(compiled.branches.map((entry) => [entry.transition.fromStageId, entry.transition.toStageId]), [
-    ['TEST_FORK_STAGE', 'TEST_GOAL_A'],
-    ['TEST_FORK_STAGE', 'TEST_GOAL_B'],
-  ]);
-  assert.deepEqual(compiled.branches.map((entry) => entry.finish.stageId), ['TEST_GOAL_A', 'TEST_GOAL_B']);
+  assert.deepEqual(
+    compiled.branches.map((entry) => [entry.transition.fromStageId, entry.transition.toStageId]),
+    [
+      ['TEST_FORK_STAGE', 'TEST_GOAL_A'],
+      ['TEST_FORK_STAGE', 'TEST_GOAL_B'],
+    ],
+  );
+  assert.deepEqual(
+    compiled.branches.map((entry) => entry.finish.stageId),
+    ['TEST_GOAL_A', 'TEST_GOAL_B'],
+  );
 
   const live = compileDeclarativeLiveRoute(compiled.authoring);
   assert.equal(live.route.stages.filter((stage) => stage.kind === 'TERMINAL').length, 3);
@@ -122,7 +132,10 @@ test('M6.36 derives child centers and gate width from the stage-local junction a
   const { source } = fixture();
   const compiled = compileRasterForkStageRoute(source);
   assert.equal(compiled.junction.requiredGroundHalfWidth, 12);
-  assert.deepEqual(compiled.branches.map((entry) => entry.sourceLocalL), [-7.5, 7.5]);
+  assert.deepEqual(
+    compiled.branches.map((entry) => entry.sourceLocalL),
+    [-7.5, 7.5],
+  );
 
   for (const entry of compiled.branches) {
     assert.equal(entry.transition.gate.halfWidth, 3.5);
@@ -157,7 +170,7 @@ test('M6.36 rejects invalid terminal promotion, duplicate branch side and pre-se
     ...source,
     upstream: {
       ...source.upstream,
-      stages: source.upstream.stages.map((stage) => stage.id === 'GOAL_L' ? { ...stage, kind: 'STAGE' } : stage),
+      stages: source.upstream.stages.map((stage) => (stage.id === 'GOAL_L' ? { ...stage, kind: 'STAGE' } : stage)),
     },
   };
   assert.throws(() => compileRasterForkStageRoute(nonTerminal), /must be TERMINAL/);
@@ -181,18 +194,26 @@ test('M6.36 rejects invalid terminal promotion, duplicate branch side and pre-se
 
 test('M6.36 rejects branch runtime package/chart ownership mismatches before route compilation', () => {
   const { source, oldTerminal } = fixture();
-  assert.throws(() => compileRasterForkStageRoute({
-    ...source,
-    createRuntime: () => oldTerminal.runtime,
-  }), /runtime package mismatch/);
+  assert.throws(
+    () =>
+      compileRasterForkStageRoute({
+        ...source,
+        createRuntime: () => oldTerminal.runtime,
+      }),
+    /runtime package mismatch/,
+  );
 
-  assert.throws(() => compileRasterForkStageRoute({
-    ...source,
-    createRuntime: (_structural, forkBranch) => ({
-      ...oldTerminal.runtime,
-      packageId: forkBranch.packageId,
-    }),
-  }), /runtime must own generated chart/);
+  assert.throws(
+    () =>
+      compileRasterForkStageRoute({
+        ...source,
+        createRuntime: (_structural, forkBranch) => ({
+          ...oldTerminal.runtime,
+          packageId: forkBranch.packageId,
+        }),
+      }),
+    /runtime must own generated chart/,
+  );
 });
 
 test('M6.36 keeps generic fork composition route/runtime-only and M6.35 delegates to it', async () => {
@@ -200,15 +221,18 @@ test('M6.36 keeps generic fork composition route/runtime-only and M6.35 delegate
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
-  assert.doesNotMatch(compiler, /\.\.\/dev\/|render\/|m5-camera|car-physics|motorcycle-physics/);
+  assert.doesNotMatch(compiler, /\.\.\/dev\/|render\/|camera\/|car-physics|motorcycle-physics/);
   assert.match(compiler, /compileStageJunction/);
   assert.match(compiler, /createRasterForkStageSuccessor/);
   assert.match(compiler, /composeDeclarativeLiveRouteAuthoring/);
 
   assert.match(milestone, /compileRasterForkStageRoute/);
-  assert.doesNotMatch(milestone, /compileStageJunction|createRasterForkStageSuccessor|baseStages|baseTransitions|forkTransition|pointGeometry/);
+  assert.doesNotMatch(
+    milestone,
+    /compileStageJunction|createRasterForkStageSuccessor|baseStages|baseTransitions|forkTransition|pointGeometry/,
+  );
   assert.doesNotMatch(milestone, /sourceLocalL\s*:/);
   assert.doesNotMatch(milestone, /roadHalfWidth\s*:/);
   assert.doesNotMatch(main, /TEST_FORK_STAGE|STAGE_4_L_FORK|GOAL_LA|GOAL_LB|S4L_FORK/);

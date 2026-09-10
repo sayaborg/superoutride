@@ -15,14 +15,8 @@ import {
   resyncFieldRouteProgress,
   updateFieldRouteProgress,
 } from '../dist/gameplay/field-route-progress.js';
-import {
-  createM5RecoveryState,
-  updateM5Recovery,
-} from '../dist/gameplay/recovery.js';
-import {
-  estimateUpcomingTargetSpeed,
-  sampleRivalDrivingInput,
-} from '../dist/gameplay/rival-driver.js';
+import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
@@ -32,18 +26,15 @@ import {
   resolveLiveRouteTravelerRuntime,
   sampleLiveRouteChoicePlanTargetL,
 } from '../dist/runtime/live-route-traveler.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const DT = 1 / 60;
 
 function createParentRuntime(guide) {
-  const compiled = compileSurfaceRegions(
-    guide.length,
-    createM5DebugSurfaceRegionAuthoring(guide.length),
-  );
+  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
   const heightProfile = createM3DebugHeightProfile(guide.length);
   const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
   const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
@@ -73,7 +64,7 @@ function createParentRuntime(guide) {
       visual: visualProfile,
       thinSpanScreenRows: 1,
     },
-    selectFarBackground: () => createM3FarBackground(),
+    selectFarBackground: () => createFarBackground(),
     worldSprites: [],
   };
 }
@@ -91,9 +82,9 @@ test('open Guide rival lookahead never samples beyond the endpoint', () => {
 test('actual Pages rival physically takes RIGHT first fork, commits child runtime and keeps driving', () => {
   const parentGuide = createM2StadiumGuide();
   const parent = createParentRuntime(parentGuide);
-  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, createM4SpriteAssets());
+  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, createSpriteAssets());
   const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
-  const recovery = createM5RecoveryState(car);
+  const recovery = createRecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
   const fieldProgress = createFieldRouteProgressState(
     live.progress,
@@ -107,12 +98,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
 
   for (let tick = 0; tick < 2200 && !continuedOnChild; tick += 1) {
     const runtimeBefore = resolveLiveRouteTravelerRuntime(live, traveler);
-    const targetL = sampleLiveRouteChoicePlanTargetL(
-      live,
-      traveler,
-      plan,
-      car.course.s,
-    );
+    const targetL = sampleLiveRouteChoicePlanTargetL(live, traveler, plan, car.course.s);
     const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, targetL);
     updateTestVehicle(
       runtimeBefore.coordinateFrame,
@@ -123,13 +109,10 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
       DT,
     );
 
-    const recovered = updateM5Recovery(
-      recovery,
-      runtimeBefore.coordinateFrame,
-      runtimeBefore.heightProfile,
-      runtimeBefore.surfaceMap,
+    const recovered = updateRecovery(
+      { guide: runtimeBefore.coordinateFrame, height: runtimeBefore.heightProfile, surfaces: runtimeBefore.surfaceMap },
       car,
-      DT,
+      { state: recovery, dt: DT },
     );
     const world = { x: car.x, z: car.z };
     if (recovered !== null) {
@@ -163,11 +146,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
         committedRightChild = true;
       }
     }
-    if (
-      committedRightChild
-      && traveler.handoffState.activePackageId === 'CONTENT_STAGE_2_R'
-      && car.course.s >= 150
-    ) {
+    if (committedRightChild && traveler.handoffState.activePackageId === 'CONTENT_STAGE_2_R' && car.course.s >= 150) {
       continuedOnChild = true;
     }
   }

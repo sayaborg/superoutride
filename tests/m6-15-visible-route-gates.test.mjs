@@ -10,13 +10,8 @@ import {
   M6_15_FINISH_GATE_S,
   M6_15_ROUTE_GATE_S,
 } from '../dist/dev/m6-15-visible-route-gates.js';
-import {
-  observeRouteBoundaryCrossing,
-} from '../dist/gameplay/route-boundary-gates.js';
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
+import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 
 const near = (actual, expected, tolerance = 1e-8) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -52,7 +47,10 @@ test('M6.15 visible route gates exactly cover the two separated asphalt child ro
   assert.ok(M6_15_ROUTE_GATE_S > M6_13_JUNCTION.authoring.sSeparatedStart);
   assert.equal(gates.gates.length, route.choices.length + 4);
 
-  for (const [choiceId, side] of [['S1_LEFT', 'LEFT'], ['S1_RIGHT', 'RIGHT']]) {
+  for (const [choiceId, side] of [
+    ['S1_LEFT', 'LEFT'],
+    ['S1_RIGHT', 'RIGHT'],
+  ]) {
     const gate = gateForChoice(gates, choiceId);
     assert.ok(gate);
     const l = M6_13_JUNCTION.separatedChildCenterL(side);
@@ -110,7 +108,13 @@ test('the same physical visible junction can validate the second DEV route stage
   const second = gateForChoice(gates, 'S2L_RIGHT');
   assert.ok(second);
   const secondSegment = crossingSegment(second);
-  const secondObservation = observeRouteBoundaryCrossing(route, state, gates, secondSegment.previous, secondSegment.current);
+  const secondObservation = observeRouteBoundaryCrossing(
+    route,
+    state,
+    gates,
+    secondSegment.previous,
+    secondSegment.current,
+  );
   assert.deepEqual(secondObservation.boundary, { kind: 'TRANSITION', choiceId: 'S2L_RIGHT' });
   updateRouteDag(state, route, secondObservation.boundary);
   assert.equal(state.activeStageId, 'GOAL_LR');
@@ -143,9 +147,19 @@ test('terminal route completes only at the real single-road physical FINISH gate
 
 test('M6.15 route-gate authoring imports no renderer, input or vehicle-physics module', async () => {
   const source = await import('node:fs/promises').then(({ readFile }) =>
-    readFile(new URL('../src/dev/m6-15-visible-route-gates.ts', import.meta.url), 'utf8'));
+    readFile(new URL('../src/dev/m6-15-visible-route-gates.ts', import.meta.url), 'utf8'),
+  );
   const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-  assert.equal(imports.some((path) => path.includes('/render/')), false);
-  assert.equal(imports.some((path) => path.includes('/input/')), false);
-  assert.equal(imports.some((path) => path.includes('/physics/')), false);
+  assert.equal(
+    imports.some((path) => path.includes('/render/')),
+    false,
+  );
+  assert.equal(
+    imports.some((path) => path.includes('/input/')),
+    false,
+  );
+  assert.equal(
+    imports.some((path) => path.includes('/physics/')),
+    false,
+  );
 });

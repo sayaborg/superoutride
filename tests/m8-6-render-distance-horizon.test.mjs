@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
-  CURRENT_M5_CAMERA_PROFILE,
+  CURRENT_CAMERA_PROFILE,
 } from '../dist/camera/current-camera-profile.js';
 import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
@@ -20,14 +20,14 @@ import { drawFarBackground } from '../dist/visual/far-background.js';
 
 const flatCamera = Object.freeze({
   x: 0,
-  y: CURRENT_M5_CAMERA_PROFILE.height,
+  y: CURRENT_CAMERA_PROFILE.height,
   z: 0,
   yaw: 0,
   pitch: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   s: 0,
-  focalLength: CURRENT_M5_CAMERA_PROFILE.focalLength,
-  centerX: CURRENT_M5_CAMERA_PROFILE.centerX,
-  centerY: CURRENT_M5_CAMERA_PROFILE.centerY,
+  focalLength: CURRENT_CAMERA_PROFILE.focalLength,
+  centerX: CURRENT_CAMERA_PROFILE.centerX,
+  centerY: CURRENT_CAMERA_PROFILE.centerY,
 });
 
 test('M8.6 current forward render interval is 200 m camera-relative and 195 m player-relative', () => {
@@ -35,26 +35,23 @@ test('M8.6 current forward render interval is 200 m camera-relative and 195 m pl
   assert.equal(CURRENT_RENDER_FAR_DEPTH_METERS, 200);
   assert.equal(CURRENT_RENDER_FAR_DEPTH_METERS - CURRENT_CAMERA_DISTANCE_METERS, 195);
 
-  const raster = compileRasterPath([{ x: 0, z: 0 }, { x: 0, z: 1_000 }]);
+  const raster = compileRasterPath([
+    { x: 0, z: 0 },
+    { x: 0, z: 1_000 },
+  ]);
   const guide = compileGuidePath(raster, {
     lMax: 12,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });
   assert.deepEqual(
-    computeForwardVisibleInterval(
-      guide,
-      0,
-      100,
-      CURRENT_RENDER_NEAR_DEPTH_METERS,
-      CURRENT_RENDER_FAR_DEPTH_METERS,
-    ),
+    computeForwardVisibleInterval(guide, 0, 100, CURRENT_RENDER_NEAR_DEPTH_METERS, CURRENT_RENDER_FAR_DEPTH_METERS),
     { dStart: 2.5, dEnd: 200 },
   );
 });
 
 test('current flat-camera geometric horizon is exact and independent of far depth', () => {
-  const expected = 120 - 200 * Math.sin(12 * Math.PI / 180);
+  const expected = 120 - 200 * Math.sin((12 * Math.PI) / 180);
   assert.ok(Math.abs(horizonY(flatCamera) - expected) <= 1e-12);
   assert.ok(Math.abs(expected - 78.41766183644815) <= 1e-12);
   assert.equal(CURRENT_RENDER_FAR_DEPTH_METERS, 200);

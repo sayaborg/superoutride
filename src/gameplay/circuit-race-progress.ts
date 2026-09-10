@@ -1,4 +1,5 @@
 import type { Vec2 } from '../core/math.js';
+import { nonEmptyId, positiveInteger } from '../core/validation.js';
 import type { CircuitRuntimeWindow } from '../runtime/circuit-runtime-window.js';
 import {
   compileOrderedRaceCourseRules,
@@ -60,8 +61,8 @@ export function compileCircuitRaceRules(
   window: CircuitRuntimeWindow,
   authoring: CircuitRaceAuthoring,
 ): CircuitRaceRules {
-  assertNonEmpty(authoring.id, 'circuit race id');
-  assertPositiveInteger(authoring.lapCount, 'circuit race lapCount');
+  nonEmptyId(authoring.id, 'circuit race id');
+  positiveInteger(authoring.lapCount, 'circuit race lapCount');
   if (authoring.checkpointChainages.length === 0) {
     throw new RangeError('circuit race requires at least one physical checkpoint per lap');
   }
@@ -157,16 +158,4 @@ export function getValidatedCircuitLapCount(state: CircuitRaceProgressState): nu
 
 function toOrderedSample(sample: CircuitRaceProgressSample) {
   return { x: sample.x, z: sample.z, s: sample.sWindow };
-}
-
-function assertPositiveInteger(value: number, label: string): void {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new RangeError(`${label} must be a positive integer`);
-  }
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }

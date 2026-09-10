@@ -4,9 +4,7 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/core/constants.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
-import {
-  M7_1_ROAD_HALF_WIDTH_METERS,
-} from '../dist/dev/m7-1-highway-calibration-course.js';
+import { M7_1_ROAD_HALF_WIDTH_METERS } from '../dist/dev/m7-1-highway-calibration-course.js';
 import {
   createM91LowMidSpeedMountainCircuitLap,
   createM91LowMidSpeedMountainCircuitRuntime,
@@ -31,16 +29,31 @@ test('M9.1 circuit is predominantly low/mid-speed corners on one explicit closed
     .reduce((total, segment) => total + segment.sEnd - segment.sStart, 0);
 
   assert.ok(raster.length > 6_900 && raster.length < 7_300, `lap length=${raster.length}`);
-  assert.ok(radii.some((radius) => radius > 90 && radius < 100), '95 m family missing');
-  assert.ok(radii.some((radius) => radius > 130 && radius < 140), '135 m family missing');
-  assert.ok(radii.some((radius) => radius > 145 && radius < 160), '150 m hairpin family missing');
-  assert.ok(radii.some((radius) => radius > 170 && radius < 190), '180 m family missing');
-  assert.ok(radii.some((radius) => radius > 230 && radius < 250), '240 m family missing');
+  assert.ok(
+    radii.some((radius) => radius > 90 && radius < 100),
+    '95 m family missing',
+  );
+  assert.ok(
+    radii.some((radius) => radius > 130 && radius < 140),
+    '135 m family missing',
+  );
+  assert.ok(
+    radii.some((radius) => radius > 145 && radius < 160),
+    '150 m hairpin family missing',
+  );
+  assert.ok(
+    radii.some((radius) => radius > 170 && radius < 190),
+    '180 m family missing',
+  );
+  assert.ok(
+    radii.some((radius) => radius > 230 && radius < 250),
+    '240 m family missing',
+  );
   assert.ok(Math.max(...radii) < 250, `unexpected high-speed radius=${Math.max(...radii)}`);
   assert.ok(curvedLength / raster.length > 0.6, `curved share=${curvedLength / raster.length}`);
   assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9));
   assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9));
-  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= 5.000001 * Math.PI / 180);
+  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= (5.000001 * Math.PI) / 180);
 });
 
 test('M9.1 mountain height owns stronger repeated smooth elevation changes', () => {
@@ -71,34 +84,18 @@ test('M9.1 mountain height owns stronger repeated smooth elevation changes', () 
   assert.ok(Math.abs(height.samplePhysics(lapLength)) <= 1e-12);
 });
 
-for (const [profile, createVehicle] of [
-  [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar],
-]) {
+for (const [profile, createVehicle] of [[FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar]]) {
   test(`ordinary rival-controlled ${profile.id} completes the low/mid-speed mountain lap`, () => {
     const live = createM91LowMidSpeedMountainCircuitRuntime();
     const lapLength = live.window.topology.lapLength;
-    const vehicle = createVehicle(
-      live.window.guide,
-      live.window.height,
-      live.window.surface,
-      45,
-      0,
-      0,
-    );
+    const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 0);
     let ticks = 0;
     let maximumAbsoluteL = 0;
     let minimumCornerSpeed = Number.POSITIVE_INFINITY;
 
     while (vehicle.course.s < lapLength + 25 && ticks < 30_000) {
       const input = sampleRivalDrivingInput(live.window.guide, vehicle, 0);
-      updateTestVehicle(
-        live.window.guide,
-        live.window.height,
-        live.window.surface,
-        vehicle,
-        input,
-        SIM_DT,
-      );
+      updateTestVehicle(live.window.guide, live.window.height, live.window.surface, vehicle, input, SIM_DT);
       maximumAbsoluteL = Math.max(maximumAbsoluteL, Math.abs(vehicle.course.l));
       if (Math.abs(input.steering) > 0.25) {
         minimumCornerSpeed = Math.min(minimumCornerSpeed, vehicle.longitudinalSpeed);

@@ -1,28 +1,20 @@
+import { CAMERA_YAW_MODES, type CameraYawMode } from '../camera/camera.js';
+import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
+import { readTireCharacteristics } from '../physics/tire-friction-calibration.js';
+import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
 import {
   BROWSER_COURSE_MODES,
   type BrowserCourseModeQuery,
   type BrowserCourseModeSelection,
 } from './course-mode-selection.js';
 import {
-  BROWSER_VEHICLE_PROFILES,
-  type BrowserVehicleProfileSelection,
-} from './vehicle-profile-selection.js';
-import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
-import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
-import {
-  M5_CAMERA_YAW_MODES,
-  type M5CameraYawMode,
-} from '../camera/m5-camera.js';
-import {
   BROWSER_MAX_ROAD_WHEEL_STEERS,
   BROWSER_STEERING_OFFSETS,
   BROWSER_STEERING_RESPONSES,
   formatTraversalSeconds,
 } from './steering-calibration-selection.js';
-import {
-  BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis,
-} from './tire-friction-selection.js';
-import { readTireCharacteristics } from '../physics/tire-friction-calibration.js';
+import { BROWSER_TIRE_AXES, formatTireAxisValue, type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
+import { BROWSER_VEHICLE_PROFILES, type BrowserVehicleProfileSelection } from './vehicle-profile-selection.js';
 
 export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly value: Value;
@@ -70,14 +62,13 @@ export function createMobileVehicleSelectorModel(
 }
 
 export function createMobileCameraYawSelectorModel(
-  activeMode: M5CameraYawMode,
-): readonly MobileSelectorButtonModel<M5CameraYawMode>[] {
-  return M5_CAMERA_YAW_MODES.map((mode) => ({
+  activeMode: CameraYawMode,
+): readonly MobileSelectorButtonModel<CameraYawMode>[] {
+  return CAMERA_YAW_MODES.map((mode) => ({
     value: mode,
     label: mode === 'BODY_FIXED' ? 'BODY' : 'MOVE',
-    ariaLabel: mode === 'BODY_FIXED'
-      ? 'Lock camera yaw to vehicle body'
-      : 'Follow vehicle movement direction with camera yaw',
+    ariaLabel:
+      mode === 'BODY_FIXED' ? 'Lock camera yaw to vehicle body' : 'Follow vehicle movement direction with camera yaw',
     active: mode === activeMode,
   }));
 }
@@ -118,11 +109,14 @@ export function createMobileSteeringResponseSelectorModel(
 export function createMobileTireCalibrationSelectorModel(
   calibration: Readonly<ArcadeTireFrictionCalibrationState>,
 ): readonly MobileTireCalibrationButtonModel[] {
-  return BROWSER_TIRE_AXES.map(axis => ({
+  return BROWSER_TIRE_AXES.map((axis) => ({
     axis: axis.id,
     label: `${axis.id === 'KNEE' ? 'KN' : axis.id} ${formatTireAxisValue(axis.id, calibration)}`,
-    ariaLabel: `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} cycles forward; minus/plus buttons step either direction; front/rear linked`
-      + (axis.id === 'PY' ? `; pure lateral equivalent ${(Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180 / Math.PI).toFixed(2)} degrees` : ''),
+    ariaLabel:
+      `${axis.id} ${formatTireAxisValue(axis.id, calibration)}; ${axis.code.slice(3)} cycles forward; minus/plus buttons step either direction; front/rear linked` +
+      (axis.id === 'PY'
+        ? `; pure lateral equivalent ${((Math.atan(readTireCharacteristics(calibration.front).peakSlipY) * 180) / Math.PI).toFixed(2)} degrees`
+        : ''),
   }));
 }
 
@@ -162,16 +156,11 @@ export function mountMobileVehicleSelector(
 
 export function mountMobileCameraYawSelector(
   container: HTMLElement,
-  activeMode: M5CameraYawMode,
-  onSelect: (mode: M5CameraYawMode) => void,
+  activeMode: CameraYawMode,
+  onSelect: (mode: CameraYawMode) => void,
   documentRef: Document = document,
-): MobileSelectorController<M5CameraYawMode> {
-  return mountMobileSelector(
-    container,
-    createMobileCameraYawSelectorModel(activeMode),
-    onSelect,
-    documentRef,
-  );
+): MobileSelectorController<CameraYawMode> {
+  return mountMobileSelector(container, createMobileCameraYawSelectorModel(activeMode), onSelect, documentRef);
 }
 
 export function mountMobileSteeringOffsetSelector(
@@ -180,12 +169,7 @@ export function mountMobileSteeringOffsetSelector(
   onSelect: (radians: number) => void,
   documentRef: Document = document,
 ): MobileSelectorController<number> {
-  return mountMobileSelector(
-    container,
-    createMobileSteeringOffsetSelectorModel(activeRadians),
-    onSelect,
-    documentRef,
-  );
+  return mountMobileSelector(container, createMobileSteeringOffsetSelectorModel(activeRadians), onSelect, documentRef);
 }
 
 export function mountMobileMaxRoadWheelSteerSelector(
@@ -208,12 +192,7 @@ export function mountMobileSteeringResponseSelector(
   onSelect: (rate: number) => void,
   documentRef: Document = document,
 ): MobileSelectorController<number> {
-  return mountMobileSelector(
-    container,
-    createMobileSteeringResponseSelectorModel(activeRate),
-    onSelect,
-    documentRef,
-  );
+  return mountMobileSelector(container, createMobileSteeringResponseSelectorModel(activeRate), onSelect, documentRef);
 }
 
 export function mountMobileTireCalibrationSelector(
@@ -223,7 +202,7 @@ export function mountMobileTireCalibrationSelector(
   documentRef: Document = document,
 ): MobileTireCalibrationController {
   const outputs = new Map<BrowserTireCalibrationAxis, HTMLElement>();
-  const groups = createMobileTireCalibrationSelectorModel(calibration).map(item => {
+  const groups = createMobileTireCalibrationSelectorModel(calibration).map((item) => {
     const group = documentRef.createElement('div');
     group.className = 'tire-control';
     group.setAttribute('role', 'group');
@@ -279,9 +258,10 @@ function mountMobileSelector<Value extends string | number>(
   const controller: MobileSelectorController<Value> = {
     setActive(value) {
       for (const [buttonValue, button] of buttons) {
-        const active = typeof value === 'number' && typeof buttonValue === 'number'
-          ? approximatelyEqual(buttonValue, value)
-          : buttonValue === value;
+        const active =
+          typeof value === 'number' && typeof buttonValue === 'number'
+            ? approximatelyEqual(buttonValue, value)
+            : buttonValue === value;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
       }
@@ -292,11 +272,7 @@ function mountMobileSelector<Value extends string | number>(
   return controller;
 }
 
-function mustSelect<Key, Value>(
-  selections: ReadonlyMap<Key, Value>,
-  key: Key,
-  kind: string,
-): Value {
+function mustSelect<Key, Value>(selections: ReadonlyMap<Key, Value>, key: Key, kind: string): Value {
   const selection = selections.get(key);
   if (selection === undefined) throw new Error(`Unknown mobile ${kind} selection`);
   return selection;

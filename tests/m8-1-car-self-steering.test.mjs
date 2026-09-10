@@ -16,10 +16,7 @@ import {
   HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
 } from '../dist/vehicle/production-vehicle-profiles.js';
-import {
-  createArcadeSteeringCalibration,
-  steeringAutomaticMax,
-} from '../dist/physics/vehicle-calibration.js';
+import { createArcadeSteeringCalibration, steeringAutomaticMax } from '../dist/physics/vehicle-calibration.js';
 import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -30,11 +27,13 @@ const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },
 ]);
-const wideSurface = new SurfaceMap(highway.guide.length, [{
-  sStart: 0,
-  name: 'M9 WIDE STEERING PROBE',
-  bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
-}]);
+const wideSurface = new SurfaceMap(highway.guide.length, [
+  {
+    sStart: 0,
+    name: 'M9 WIDE STEERING PROBE',
+    bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
+  },
+]);
 
 test('regularized front slip observation matches the one-k lateral denominator', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
@@ -53,10 +52,7 @@ test('common body travel direction derives self-steering from authoritative CG v
     forward: { x: 0, y: 0, z: 1 },
     omegaWorld: { x: 0, y: 0.2, z: 0 },
   };
-  const actual = vehicleBodyTravelDirection(
-    body,
-    FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization,
-  );
+  const actual = vehicleBodyTravelDirection(body, FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization);
   const expected = Math.atan2(
     -3,
     Math.sqrt(30 ** 2 + FERRARI_TESTAROSSA_VEHICLE_PROFILE.steeringLowSpeedRegularization ** 2),
@@ -67,7 +63,11 @@ test('common body travel direction derives self-steering from authoritative CG v
 
 for (const profile of [FERRARI_TESTAROSSA_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_PROFILE]) {
   test(`${profile.id} uses the same actuator and sole front-road-wheel steering response`, () => {
-    const vehicle = createArcadeVehicle(profile, highway.guide, flatHeight, wideSurface, 800, -1.75, 45);
+    const vehicle = createArcadeVehicle(
+      profile,
+      { guide: highway.guide, height: flatHeight, surfaces: wideSurface },
+      { s: 800, l: -1.75, initialSpeed: 45 },
+    );
     updateArcadeVehicle(
       highway.guide,
       flatHeight,
@@ -87,12 +87,8 @@ test('neutral request releases the actuator and self-steers a yawed body toward 
   const speed = 25;
   const vehicle = createArcadeVehicle(
     FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-    highway.guide,
-    flatHeight,
-    wideSurface,
-    800,
-    -1.75,
-    speed,
+    { guide: highway.guide, height: flatHeight, surfaces: wideSurface },
+    { s: 800, l: -1.75, initialSpeed: speed },
   );
   vehicle.yaw = 0.15;
   vehicle.velocityX = 0;
@@ -132,11 +128,7 @@ test('common rack has one mechanical stop while A is derived only as M-D', () =>
   );
   assert.ok(atStop <= calibration.maxRoadWheelSteer);
 
-  const saturated = travelDirectionSteeringTarget(
-    calibration.steeringOffsetMax,
-    Math.PI / 3,
-    calibration,
-  );
+  const saturated = travelDirectionSteeringTarget(calibration.steeringOffsetMax, Math.PI / 3, calibration);
   assert.equal(saturated, calibration.maxRoadWheelSteer);
   assert.throws(
     () => compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, steeringResponseTau: 0 }),
@@ -151,21 +143,13 @@ test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics'
   });
   const standard = createArcadeVehicle(
     FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-    highway.guide,
-    flatHeight,
-    wideSurface,
-    800,
-    -1.75,
-    35,
+    { guide: highway.guide, height: flatHeight, surfaces: wideSurface },
+    { s: 800, l: -1.75, initialSpeed: 35 },
   );
   const presentationVariant = createArcadeVehicle(
     directHudRatio,
-    highway.guide,
-    flatHeight,
-    wideSurface,
-    800,
-    -1.75,
-    35,
+    { guide: highway.guide, height: flatHeight, surfaces: wideSurface },
+    { s: 800, l: -1.75, initialSpeed: 35 },
   );
   const input = { steering: 0.6, throttle: true, brake: false };
   for (let tick = 0; tick < 90; tick += 1) {
@@ -185,10 +169,7 @@ test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics'
   });
   assert.deepEqual(physicalSnapshot(standard), physicalSnapshot(presentationVariant));
   assert.equal(standard.control.actualSteerAngle, presentationVariant.control.actualSteerAngle);
-  assert.equal(
-    standard.control.handwheelAngle,
-    presentationVariant.control.handwheelAngle * 18,
-  );
+  assert.equal(standard.control.handwheelAngle, presentationVariant.control.handwheelAngle * 18);
 });
 
 test('M9.11 common solver contains pure travel-direction geometry and no yaw steering assist', async () => {
@@ -202,11 +183,14 @@ test('M9.11 common solver contains pure travel-direction geometry and no yaw ste
   assert.doesNotMatch(solver, /usefulLateralCapacity|countersteerMode|steeringOffsetCommand/);
   assert.match(solver, /const automaticSteer = clamp\(\s*bodyTravelDirection,/s);
   for (const source of [solver, calibration]) {
-    assert.doesNotMatch(source, /travelDirectionGain|yawTransientGain|yawWashoutTime|yawRateBaseline|steeringAssist|driftMode|driftAssist/i);
+    assert.doesNotMatch(
+      source,
+      /travelDirectionGain|yawTransientGain|yawWashoutTime|yawRateBaseline|steeringAssist|driftMode|driftAssist/i,
+    );
   }
   for (const source of [linear, branching, circuit]) {
     assert.match(source, /createBrowserDrivingShell/);
-    assert.match(source, /advanceVehicleWithRecovery/);
+    assert.match(source, /advanceVehicleWithRecovery|advanceRouteDrivingTick|advanceCircuitDrivingActor/);
     assert.doesNotMatch(source, /createM5Car|createM5Bike|updateM5Car|updateM5Bike/);
   }
 });

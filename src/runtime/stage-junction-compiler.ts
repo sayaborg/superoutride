@@ -1,12 +1,6 @@
-import {
-  JunctionCrossSectionProfile,
-  type JunctionCrossSectionAuthoring,
-} from '../course/junction-cross-section.js';
+import { JunctionCrossSectionProfile, type JunctionCrossSectionAuthoring } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
-import {
-  StageJunctionSurfaceMap,
-  type StageJunctionOuterSurfaceType,
-} from '../physics/stage-junction-surface-map.js';
+import { StageJunctionSurfaceMap, type StageJunctionOuterSurfaceType } from '../physics/stage-junction-surface-map.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 
 export interface StageJunctionSource {
@@ -50,15 +44,16 @@ export function compileStageJunction(
   const junction = new JunctionCrossSectionProfile(authoring.crossSection);
   const incomingHalfWidth = authoring.crossSection.parentRoadWidth * 0.5;
   if (
-    Math.abs(source.roadView.roadLeft - incomingHalfWidth) > EPSILON
-    || Math.abs(source.roadView.roadRight - incomingHalfWidth) > EPSILON
+    Math.abs(source.roadView.roadLeft - incomingHalfWidth) > EPSILON ||
+    Math.abs(source.roadView.roadRight - incomingHalfWidth) > EPSILON
   ) {
     throw new RangeError('stage junction incoming road width must match the active StageRoadView');
   }
 
-  const requiredGroundHalfWidth = authoring.crossSection.childRoadWidth
-    + authoring.crossSection.finalMedianWidth * 0.5
-    + authoring.crossSection.shoulderWidth;
+  const requiredGroundHalfWidth =
+    authoring.crossSection.childRoadWidth +
+    authoring.crossSection.finalMedianWidth * 0.5 +
+    authoring.crossSection.shoulderWidth;
   const roadView = createStageRoadView({
     ...source.roadView,
     id: authoring.roadViewId,

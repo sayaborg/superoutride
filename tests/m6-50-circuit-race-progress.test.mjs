@@ -62,17 +62,13 @@ function createFixture({ startWinding = 0, repeatCount = 4, lapCount = 3 } = {})
     topology,
     startWinding,
     repeatCount,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
+    { lMax: 6, mMin: 0.72, dCam: 5 },
     createSources(topology),
   );
   const rules = compileCircuitRaceRules(window, {
     id: 'M6_50_THREE_LAP_RACE',
     lapCount,
-    checkpointChainages: [
-      topology.lapLength * 0.25,
-      topology.lapLength * 0.50,
-      topology.lapLength * 0.75,
-    ],
+    checkpointChainages: [topology.lapLength * 0.25, topology.lapLength * 0.5, topology.lapLength * 0.75],
   });
   return { topology, window, rules };
 }
@@ -106,12 +102,27 @@ test('M6.50 circuit authoring expands into one finite strictly ordered physical 
 
   assert.equal(rules.lapCount, 3);
   assert.equal(rules.gates.length, 12);
-  assert.deepEqual(rules.gates.map((gate) => gate.kind), [
-    'checkpoint', 'checkpoint', 'checkpoint', 'finish',
-    'checkpoint', 'checkpoint', 'checkpoint', 'finish',
-    'checkpoint', 'checkpoint', 'checkpoint', 'finish',
-  ]);
-  assert.deepEqual(rules.gates.filter((gate) => gate.kind === 'finish').map((gate) => gate.s), [L, 2 * L, 3 * L]);
+  assert.deepEqual(
+    rules.gates.map((gate) => gate.kind),
+    [
+      'checkpoint',
+      'checkpoint',
+      'checkpoint',
+      'finish',
+      'checkpoint',
+      'checkpoint',
+      'checkpoint',
+      'finish',
+      'checkpoint',
+      'checkpoint',
+      'checkpoint',
+      'finish',
+    ],
+  );
+  assert.deepEqual(
+    rules.gates.filter((gate) => gate.kind === 'finish').map((gate) => gate.s),
+    [L, 2 * L, 3 * L],
+  );
   assert.ok(rules.gates.every((gate, i) => i === 0 || gate.s > rules.gates[i - 1].s));
   assert.ok(rules.raceDistance < window.length, 'scored race must finish before the finite open endpoint');
 });
@@ -119,20 +130,15 @@ test('M6.50 circuit authoring expands into one finite strictly ordered physical 
 test('M6.50 requires one unscored lookahead lap so final FINISH is an ordinary interior Guide seam', () => {
   const topology = createGentleCircuit();
   const sources = createSources(topology);
-  const tooShort = compileCircuitRuntimeWindow(
-    topology,
-    0,
-    3,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
-    sources,
-  );
+  const tooShort = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, sources);
 
   assert.throws(
-    () => compileCircuitRaceRules(tooShort, {
-      id: 'BAD_THREE_LAP_RACE',
-      lapCount: 3,
-      checkpointChainages: [topology.lapLength * 0.5],
-    }),
+    () =>
+      compileCircuitRaceRules(tooShort, {
+        id: 'BAD_THREE_LAP_RACE',
+        lapCount: 3,
+        checkpointChainages: [topology.lapLength * 0.5],
+      }),
     /lapCount \+ 1/,
   );
 
@@ -142,19 +148,22 @@ test('M6.50 requires one unscored lookahead lap so final FINISH is an ordinary i
 
 test('M6.50 circuit race compiler rejects missing unordered and out-of-range lap checkpoints', () => {
   const topology = createGentleCircuit();
-  const window = compileCircuitRuntimeWindow(
-    topology,
-    0,
-    3,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
-    createSources(topology),
-  );
+  const window = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, createSources(topology));
   const base = { id: 'BAD', lapCount: 2 };
 
-  assert.throws(() => compileCircuitRaceRules(window, { ...base, checkpointChainages: [] }), /at least one physical checkpoint/);
-  assert.throws(() => compileCircuitRaceRules(window, { ...base, checkpointChainages: [20, 10] }), /strictly increasing/);
+  assert.throws(
+    () => compileCircuitRaceRules(window, { ...base, checkpointChainages: [] }),
+    /at least one physical checkpoint/,
+  );
+  assert.throws(
+    () => compileCircuitRaceRules(window, { ...base, checkpointChainages: [20, 10] }),
+    /strictly increasing/,
+  );
   assert.throws(() => compileCircuitRaceRules(window, { ...base, checkpointChainages: [0] }), /0 < s < lapLength/);
-  assert.throws(() => compileCircuitRaceRules(window, { ...base, checkpointChainages: [topology.lapLength] }), /0 < s < lapLength/);
+  assert.throws(
+    () => compileCircuitRaceRules(window, { ...base, checkpointChainages: [topology.lapLength] }),
+    /0 < s < lapLength/,
+  );
 });
 
 test('M6.50 topological startWinding does not seed validated race laps or progress', () => {
@@ -279,12 +288,15 @@ test('M6.50 recovery resync cannot award erase or move validated circuit progres
 
   resyncCircuitRaceProgress(state, rules, atWindowGuide(window, rules.lapLength * 2.8));
   assert.equal(state.lastEvent, 'RESYNC');
-  assert.deepEqual({
-    floor: state.validatedProgressFloor,
-    progress: state.sProgress,
-    next: state.nextGateIndex,
-    laps: state.acceptedFinishCount,
-  }, before);
+  assert.deepEqual(
+    {
+      floor: state.validatedProgressFloor,
+      progress: state.sProgress,
+      next: state.nextGateIndex,
+      laps: state.acceptedFinishCount,
+    },
+    before,
+  );
 });
 
 test('M6.50 full three-lap ordered physical sequence finishes exactly at validated third FINISH', () => {
@@ -311,14 +323,13 @@ test('M6.50 full three-lap ordered physical sequence finishes exactly at validat
 });
 
 test('M6.50 physical gate math is shared while finite ordered progress stays topology and renderer blind', async () => {
-  await assert.rejects(
-    readFile(new URL('../src/gameplay/race-progress.ts', import.meta.url), 'utf8'),
-    { code: 'ENOENT' },
-  );
+  await assert.rejects(readFile(new URL('../src/gameplay/race-progress.ts', import.meta.url), 'utf8'), {
+    code: 'ENOENT',
+  });
   const physical = await readFile(new URL('../src/gameplay/physical-race-gate.ts', import.meta.url), 'utf8');
   const ordered = await readFile(new URL('../src/gameplay/ordered-race-progress.ts', import.meta.url), 'utf8');
   const circuit = await readFile(new URL('../src/gameplay/circuit-race-progress.ts', import.meta.url), 'utf8');
-  const renderer = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const renderer = await readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
 
   assert.match(ordered, /physical-race-gate/);
   assert.match(physical, /detectPhysicalRaceGateCrossing/);

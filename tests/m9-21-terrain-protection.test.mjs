@@ -1,11 +1,16 @@
-import {M9_28_STEERING_REFERENCE} from './helpers/m9-28-steering-reference.mjs';
+import { M9_28_STEERING_REFERENCE } from './helpers/m9-28-steering-reference.mjs';
 import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
-import {M9_21_TIRE_REFERENCE} from './helpers/m9-21-tire-reference.mjs';
+import { M9_21_TIRE_REFERENCE } from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { createTerrainProbe as createCurrentTerrainProbe, runTerrainProbe as runCurrentTerrainProbe, TERRAIN_CASES, terrainInput } from '../tools/torque-protection-terrain-probe.mjs';
+import {
+  createTerrainProbe as createCurrentTerrainProbe,
+  runTerrainProbe as runCurrentTerrainProbe,
+  TERRAIN_CASES,
+  terrainInput,
+} from '../tools/torque-protection-terrain-probe.mjs';
 
 function assertBudgets(run) {
   const message = JSON.stringify(run);
@@ -26,26 +31,36 @@ function assertCompleted(run) {
 }
 
 // These are mechanical acceptance probes, NOT a guarantee of yaw stability or human handling.
-const supportedCases = ['lowGripDrive', 'lowGripBrake', 'uphillDrive', 'downhillBrake',
-  'gripDropBrake', 'turnDrive', 'turnBrake', 'lowGripReversal'];
-for (const entry of VEHICLE_CATALOG) for (const name of supportedCases) {
-  test(`M9.21 ${entry.profile.id} ${name}: finite torque/force contract, not yaw certification`, () => {
-    const run = runTerrainProbe(entry, { ...TERRAIN_CASES[name], hz: 120 });
-    assertCompleted(run);
-    assert.equal(run.infeasibleTime, 0, JSON.stringify(run));
-    if (entry.torqueProtection.supportReserve !== null) {
-      assert.equal(run.frontLiftTime, 0, JSON.stringify(run));
-      assert.equal(run.rearLiftTime, 0, JSON.stringify(run));
-    }
-    if (name === 'lowGripDrive' || name === 'uphillDrive') assert.ok(run.finalSpeed > run.initialSpeed);
-    if (['lowGripBrake', 'downhillBrake', 'gripDropBrake', 'turnBrake'].includes(name)) assert.ok(run.finalSpeed < .5);
-    if (name === 'gripDropBrake') {
-      assert.equal(run.gripTransition, true);
-      assert.equal(run.minGrip, .25);
-      assert.equal(run.maxGrip, 1);
-    }
-  });
-}
+const supportedCases = [
+  'lowGripDrive',
+  'lowGripBrake',
+  'uphillDrive',
+  'downhillBrake',
+  'gripDropBrake',
+  'turnDrive',
+  'turnBrake',
+  'lowGripReversal',
+];
+for (const entry of VEHICLE_CATALOG)
+  for (const name of supportedCases) {
+    test(`M9.21 ${entry.profile.id} ${name}: finite torque/force contract, not yaw certification`, () => {
+      const run = runTerrainProbe(entry, { ...TERRAIN_CASES[name], hz: 120 });
+      assertCompleted(run);
+      assert.equal(run.infeasibleTime, 0, JSON.stringify(run));
+      if (entry.torqueProtection.supportReserve !== null) {
+        assert.equal(run.frontLiftTime, 0, JSON.stringify(run));
+        assert.equal(run.rearLiftTime, 0, JSON.stringify(run));
+      }
+      if (name === 'lowGripDrive' || name === 'uphillDrive') assert.ok(run.finalSpeed > run.initialSpeed);
+      if (['lowGripBrake', 'downhillBrake', 'gripDropBrake', 'turnBrake'].includes(name))
+        assert.ok(run.finalSpeed < 0.5);
+      if (name === 'gripDropBrake') {
+        assert.equal(run.gripTransition, true);
+        assert.equal(run.minGrip, 0.25);
+        assert.equal(run.maxGrip, 1);
+      }
+    });
+  }
 
 for (const hz of [60, 120, 240]) {
   for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
@@ -54,7 +69,7 @@ for (const hz of [60, 120, 240]) {
       const raw = runTerrainProbe(entry, { ...options, protectedRun: false });
       const protectedRun = runTerrainProbe(entry, { ...options, protectedRun: true });
       assertCompleted(protectedRun);
-      assert.ok(protectedRun.airborneTime > .3);
+      assert.ok(protectedRun.airborneTime > 0.3);
       assert.ok(protectedRun.recontacts >= 1);
       const { protectedRun: rawPolicy, ...a } = raw;
       const { protectedRun: enabledPolicy, ...b } = protectedRun;
@@ -65,13 +80,18 @@ for (const hz of [60, 120, 240]) {
   }
   test(`M9.21 powered VFR crest ${hz}Hz exposes infeasibility without forcing support`, () => {
     const run = runTerrainProbe(VEHICLE_CATALOG[5], {
-      terrain: 'crest', speed: 45, seconds: 5, kind: 'drive', hz, capture: true,
+      terrain: 'crest',
+      speed: 45,
+      seconds: 5,
+      kind: 'drive',
+      hz,
+      capture: true,
     });
     assertCompleted(run);
-    assert.ok(run.airborneTime > .3);
+    assert.ok(run.airborneTime > 0.3);
     assert.ok(run.recontacts >= 1);
     assert.ok(run.infeasibleTime > 0, 'natural crest can escape the local tangent-plane margin');
-    const infeasible = run.rows.filter(row => !row.supportFeasible);
+    const infeasible = run.rows.filter((row) => !row.supportFeasible);
     assert.ok(infeasible.length > 0);
     for (const row of infeasible) {
       assert.equal(row.supportTorqueScale, 0);
@@ -104,34 +124,54 @@ test('M9.21 terrain diagnostics retain moving-beta information and distinguish i
   assert.ok(run.maxAbsMovingBeta <= run.maxAbsBeta);
 });
 test('M9.21 terrain fixture preserves exact grade, material isolation and explicit policy', () => {
-  const p = createTerrainProbe(VEHICLE_CATALOG[5], { grade: .1, grip: .25 });
-  assert.equal(p.height.samplePhysicsDifferential(1050).dYdS, .1);
+  const p = createTerrainProbe(VEHICLE_CATALOG[5], { grade: 0.1, grip: 0.25 });
+  assert.equal(p.height.samplePhysicsDifferential(1050).dYdS, 0.1);
   assert.equal(p.height.samplePhysicsDifferential(1050).y, 5);
-  assert.equal(p.surface.sample(1050, 0).material.rollingResistance, .014);
-  assert.equal(p.surface.sample(1050, 0).material.gripFactor, .25);
+  assert.equal(p.surface.sample(1050, 0).material.rollingResistance, 0.014);
+  assert.equal(p.surface.sample(1050, 0).material.gripFactor, 0.25);
   assert.equal(p.surface.sample(1050, 501).material.supported, false);
   assert.equal(p.surface.sample(1050, 501).material.gripFactor, 0);
-  assert.equal(p.vehicle.torqueProtection.supportReserve, .08);
+  assert.equal(p.vehicle.torqueProtection.supportReserve, 0.08);
   const stock = createTerrainProbe(VEHICLE_CATALOG[0], { calibration: 'stock' });
   assert.equal(stock.vehicle.tireFrictionCalibration.front.muX, VEHICLE_CATALOG[0].profile.frontStation.tire.muX);
 });
 test('M9.21 terrain probe rejects malformed domains and never imports recovery or overwrites motion', async () => {
-  for (const options of [{ hz: 90 }, { seconds: 0 }, { seconds: .0001 }, { kind: 'unknown' },
-    { direction: 0 }, { grip: -1 }, { speed: NaN }, { calibration: 'unknown' }, { terrain: 'unknown' }]) {
+  for (const options of [
+    { hz: 90 },
+    { seconds: 0 },
+    { seconds: 0.0001 },
+    { kind: 'unknown' },
+    { direction: 0 },
+    { grip: -1 },
+    { speed: NaN },
+    { calibration: 'unknown' },
+    { terrain: 'unknown' },
+  ]) {
     assert.throws(() => runTerrainProbe(VEHICLE_CATALOG[0], options), RangeError);
   }
   assert.deepEqual(terrainInput(0, 'drive'), { steering: 0, throttle: false, brake: false });
-  assert.equal(terrainInput(2, 'reversal', -1).steering, .35);
+  assert.equal(terrainInput(2, 'reversal', -1).steering, 0.35);
   const source = await readFile(new URL('../tools/torque-protection-terrain-probe.mjs', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /from .*recovery|recoverM5|v\.(?:x|y|z|yaw|pitch|velocityX|velocityY|velocityZ|frontWheelOmega|rearWheelOmega)\s*=/);
+  assert.doesNotMatch(
+    source,
+    /from .*recovery|recoverM5|v\.(?:x|y|z|yaw|pitch|velocityX|velocityY|velocityZ|frontWheelOmega|rearWheelOmega)\s*=/,
+  );
   assert.match(source, /updateArcadeVehicle/);
   assert.match(source, /evaluateTireForce/);
 });
 
 // M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
-function createTerrainProbe(entry, options={}) {
- return createCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,steeringCalibration:M9_28_STEERING_REFERENCE,...options});
+function createTerrainProbe(entry, options = {}) {
+  return createCurrentTerrainProbe(withM927BikeCgEntry(entry), {
+    calibration: M9_21_TIRE_REFERENCE,
+    steeringCalibration: M9_28_STEERING_REFERENCE,
+    ...options,
+  });
 }
-function runTerrainProbe(entry, options={}) {
- return runCurrentTerrainProbe(withM927BikeCgEntry(entry),{calibration:M9_21_TIRE_REFERENCE,steeringCalibration:M9_28_STEERING_REFERENCE,...options});
+function runTerrainProbe(entry, options = {}) {
+  return runCurrentTerrainProbe(withM927BikeCgEntry(entry), {
+    calibration: M9_21_TIRE_REFERENCE,
+    steeringCalibration: M9_28_STEERING_REFERENCE,
+    ...options,
+  });
 }

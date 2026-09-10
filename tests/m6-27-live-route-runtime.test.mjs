@@ -9,9 +9,9 @@ import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declar
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { compileLiveRouteRuntimeAssembly } from '../dist/runtime/live-route-runtime.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function setup() {
@@ -50,10 +50,10 @@ function setup() {
       surfaceMap,
       terrainProfile,
       groundProfile,
-      selectFarBackground: () => createM3FarBackground(),
+      selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },
-    createM4SpriteAssets(),
+    createSpriteAssets(),
   );
 }
 
@@ -63,10 +63,7 @@ test('M6.27 browser-facing bundle remains complete as later milestones deepen th
   assert.equal(live.route.choices.length, live.handoffs.seams.length);
   assert.equal(live.charts.length, live.registry.packages.length);
   assert.equal(live.content.bindings.length, live.route.stages.length);
-  assert.equal(
-    live.gates.gates.filter((gate) => gate.kind === 'TRANSITION').length,
-    live.route.choices.length,
-  );
+  assert.equal(live.gates.gates.filter((gate) => gate.kind === 'TRANSITION').length, live.route.choices.length);
   const terminalCount = live.route.stages.filter((stage) => stage.kind === 'TERMINAL').length;
   assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, terminalCount);
 });
@@ -99,7 +96,10 @@ test('M6.27 browser main consumes one assembly and no longer constructs route pi
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(source, /createM638DeclarativeForkGrowthRuntime/);
   assert.match(source, /const liveRoute = createM638DeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(source, /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveHandoffManifest|createM626LiveStageRuntimeRegistry/);
+  assert.doesNotMatch(
+    source,
+    /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveHandoffManifest|createM626LiveStageRuntimeRegistry/,
+  );
   assert.doesNotMatch(source, /createM630ThirdLiveSuccessorRuntime|STAGE_3_L|S3L_CONTINUE/);
 });
 
@@ -107,7 +107,7 @@ test('M6.27 generic assembly contains no renderer, camera or vehicle-physics dep
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/live-route-runtime.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /render\//);
-  assert.doesNotMatch(source, /m5-camera/);
+  assert.doesNotMatch(source, /camera\//);
   assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
   assert.doesNotMatch(source, /M6_26|M626/);
 });

@@ -16,12 +16,12 @@ import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runti
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const identity = createM621ChildVisualIdentity();
   const authoring = createM624ChildStageAuthoring(assets, identity);
   const route = createM620LivePointToPointRouteDag();
@@ -43,11 +43,7 @@ test('M6.24 compiler performs the single lateral rebase when compiling raster-at
   const environment = compileStageEnvironment(continuation.left.chart, authoring.left);
   const sprite = environment.worldSprites.find((entry) => entry.name === 'COAST_SIGN_1');
   assert.ok(sprite);
-  const expected = rasterPathToWorld(
-    continuation.left.guide.raster,
-    82,
-    continuation.left.chart.lateralOrigin + 5.2,
-  );
+  const expected = rasterPathToWorld(continuation.left.guide.raster, 82, continuation.left.chart.lateralOrigin + 5.2);
   assert.ok(Math.abs(sprite.x - expected.x) < 1e-9);
   assert.ok(Math.abs(sprite.z - expected.z) < 1e-9);
 });
@@ -82,9 +78,9 @@ test('M6.24 reusable compiler contains no route-side or renderer-core dependency
   const [compilerSource, authoringSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/runtime/stage-authoring-compiler.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-24-stage-authoring.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
-  assert.doesNotMatch(compilerSource, /route-dag|route-boundary|m6-2[0-9]|renderM5Driving/);
-  assert.doesNotMatch(authoringSource, /sourceLateralOrigin|CONTENT_GOAL_|RouteDag|renderM5Driving/);
+  assert.doesNotMatch(compilerSource, /route-dag|route-boundary|m6-2[0-9]|renderDriving/);
+  assert.doesNotMatch(authoringSource, /sourceLateralOrigin|CONTENT_GOAL_|RouteDag|renderDriving/);
   assert.doesNotMatch(rendererSource, /M6_24|stage-authoring-compiler|LEFT_COAST_STAGE|RIGHT_MOUNTAIN_STAGE/);
 });

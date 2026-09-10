@@ -70,7 +70,7 @@ function compileWindow({ startWinding = -1, repeatCount = 3, ground } = {}) {
     topology,
     startWinding,
     repeatCount,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
+    { lMax: 6, mMin: 0.72, dCam: 5 },
     createSources(topology, ground),
   );
   return { topology, window };
@@ -100,8 +100,8 @@ test('M6.49 window/unwrapped conversion is exact and bounded without giving rend
   assert.equal(circuitUnwrappedToWindowChainage(window, -2 * L), 0);
   assert.ok(Math.abs(circuitUnwrappedToWindowChainage(window, 0) - 2 * L) < 1e-8);
   assert.ok(Math.abs(circuitWindowToUnwrappedChainage(window, 3 * L) - L) < 1e-8);
-  assert.throws(() => circuitUnwrappedToWindowChainage(window, -2 * L - 1), /outside \[0, length\]/);
-  assert.throws(() => circuitWindowToUnwrappedChainage(window, 4 * L + 1), /outside \[0, length\]/);
+  assert.throws(() => circuitUnwrappedToWindowChainage(window, -2 * L - 1), /outside \[0, courseLength\]/);
+  assert.throws(() => circuitWindowToUnwrappedChainage(window, 4 * L + 1), /outside \[0, courseLength\]/);
 });
 
 test('M6.49 source-chainage ownership is explicit: interior seam -> 0, final open endpoint -> L', () => {
@@ -123,10 +123,15 @@ test('M6.49 height and visual readers expose one finite open window and repeat s
   assert.equal(window.height.samplePhysics(L), 0);
   assert.ok(Math.abs(window.height.samplePhysics(1.5 * L) - 4) < 1e-8);
   assert.equal(window.visual.sample(L).name, 'START_GREEN');
+  assert.equal(window.visual.sample(L).sStart, L);
+  assert.equal(
+    window.visual.sample(L),
+    window.visual.sections.find((section) => section.sStart === L),
+  );
   assert.equal(window.visual.sample(1.75 * L).name, 'BACK_ROCK');
   assert.equal(window.visual.sample(3 * L).name, 'BACK_ROCK');
-  assert.throws(() => window.height.sampleRender(3 * L + 0.01), /outside \[0, length\]/);
-  assert.throws(() => window.visual.sample(-0.01), /outside \[0, length\]/);
+  assert.throws(() => window.height.sampleRender(3 * L + 0.01), /outside \[0, courseLength\]/);
+  assert.throws(() => window.visual.sample(-0.01), /outside \[0, courseLength\]/);
 });
 
 test('M6.49 circuit height source must physically return to the same seam height', () => {
@@ -140,13 +145,8 @@ test('M6.49 circuit height source must physically return to the same seam height
   ]);
 
   assert.throws(
-    () => compileCircuitRuntimeWindow(
-      topology,
-      0,
-      2,
-      { lMax: 4.5, mMin: 0.72, dCam: 5 },
-      { ...sources, height: badHeight },
-    ),
+    () =>
+      compileCircuitRuntimeWindow(topology, 0, 2, { lMax: 6, mMin: 0.72, dCam: 5 }, { ...sources, height: badHeight }),
     /must return to the same world height/,
   );
 });
@@ -158,7 +158,7 @@ test('M6.49 SurfaceMap window resets at internal seam while preserving the final
   assert.equal(window.surface.sample(L - 1, 0).sectionName, 'BACK_GRASS');
   assert.equal(window.surface.sample(L, 0).sectionName, 'START_ASPHALT');
   assert.equal(window.surface.sample(2 * L, 0).sectionName, 'BACK_GRASS');
-  assert.throws(() => window.surface.sample(2 * L + 1, 0), /outside \[0, length\]/);
+  assert.throws(() => window.surface.sample(2 * L + 1, 0), /outside \[0, courseLength\]/);
 });
 
 test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating source payload identity', () => {
@@ -207,7 +207,7 @@ test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating so
     texelCenter(levelIndex, row, column) {
       assert.equal(levelIndex, 0);
       return {
-        s: (row + 0.5) * L / sourceLevel.chainageTexels,
+        s: ((row + 0.5) * L) / sourceLevel.chainageTexels,
         l: -2 + (column + 0.5),
       };
     },
@@ -216,7 +216,7 @@ test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating so
     topology,
     0,
     2,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
+    { lMax: 6, mMin: 0.72, dCam: 5 },
     createSources(topology, ground),
   );
 
@@ -267,7 +267,10 @@ test('M6.49 ordinary TerrainLine generation crosses a circuit seam with open win
   });
 
   assert.ok(lines.length > 0);
-  assert.ok(lines.some((line) => line.s > L), 'terrain must continue beyond the former one-lap endpoint');
+  assert.ok(
+    lines.some((line) => line.s > L),
+    'terrain must continue beyond the former one-lap endpoint',
+  );
 });
 
 test('M6.49 TerrainVisualProfile source contract is topology-neutral reader authority', async () => {
@@ -280,7 +283,7 @@ test('M6.49 TerrainVisualProfile source contract is topology-neutral reader auth
 
 test('M6.49 circuit runtime integration stays outside renderer and RouteDag while renderer stays topology-blind', async () => {
   const runtimeSource = await readFile(new URL('../src/runtime/circuit-runtime-window.ts', import.meta.url), 'utf8');
-  const rendererSource = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const rendererSource = await readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(runtimeSource, /render\//);
   assert.doesNotMatch(runtimeSource, /route-dag/);

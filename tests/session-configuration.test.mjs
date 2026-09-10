@@ -21,7 +21,9 @@ test('each route structure pairs with 0/1/16 opponents without changing or recom
       assert.equal(1 + roster.length, rivalCount + 1, 'player is separate from opponents');
       assert.equal(Object.isFrozen(session), true);
       assert.equal(Object.isFrozen(roster), true);
-      assert.throws(() => { session.rivalCount = 99; }, TypeError);
+      assert.throws(() => {
+        session.rivalCount = 99;
+      }, TypeError);
     }
   }
 });

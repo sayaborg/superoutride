@@ -5,6 +5,11 @@ import {
   setArcadeVehicleSymmetricSteeringActuatorRate,
 } from '../physics/vehicle-calibration.js';
 import {
+  mountMobileMaxRoadWheelSteerSelector,
+  mountMobileSteeringOffsetSelector,
+  mountMobileSteeringResponseSelector,
+} from './mobile-selector-controls.js';
+import {
   BROWSER_MAX_STEER_CYCLE_CODE,
   BROWSER_STEERING_OFFSET_CYCLE_CODE,
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
@@ -15,11 +20,6 @@ import {
   nextBrowserSteeringOffset,
   nextBrowserSteeringResponseRate,
 } from './steering-calibration-selection.js';
-import {
-  mountMobileMaxRoadWheelSteerSelector,
-  mountMobileSteeringOffsetSelector,
-  mountMobileSteeringResponseSelector,
-} from './mobile-selector-controls.js';
 
 export interface BrowserSteeringCalibrationContainers {
   readonly steeringOffset: HTMLElement;
@@ -81,21 +81,15 @@ export function mountBrowserSteeringCalibrationControls(
     handleKey(code: string): boolean {
       const vehicle = getVehicle();
       if (code === BROWSER_STEERING_OFFSET_CYCLE_CODE) {
-        selectSteeringOffset(nextBrowserSteeringOffset(
-          vehicle.steeringCalibration.steeringOffsetMax,
-        ));
+        selectSteeringOffset(nextBrowserSteeringOffset(vehicle.steeringCalibration.steeringOffsetMax));
         return true;
       }
       if (code === BROWSER_MAX_STEER_CYCLE_CODE) {
-        selectMaxSteer(nextBrowserMaxRoadWheelSteer(
-          vehicle.steeringCalibration.maxRoadWheelSteer,
-        ));
+        selectMaxSteer(nextBrowserMaxRoadWheelSteer(vehicle.steeringCalibration.maxRoadWheelSteer));
         return true;
       }
       if (code === BROWSER_STEERING_RESPONSE_CYCLE_CODE) {
-        selectResponse(nextBrowserSteeringResponseRate(
-          vehicle.steeringCalibration.steeringActuatorResponse.applyRate,
-        ));
+        selectResponse(nextBrowserSteeringResponseRate(vehicle.steeringCalibration.steeringActuatorResponse.applyRate));
         return true;
       }
       return false;

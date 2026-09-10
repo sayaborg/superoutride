@@ -8,7 +8,7 @@
 - [BRANCHING](../src/main.ts): default open branching highway, field route choice and rivals.
 - [CIRCUIT](../src/main-circuit.ts): Tsukuba or FISCO selection, finite runtime window and lap race.
 
-The [driving shell](../src/browser/driving-shell.ts) owns common browser input, player replacement, selectors, HUD and presentation. General rendering/physics/camera layers consume ordinary data, not course-mode switches.
+The [driving shell](../src/browser/driving-shell.ts) owns common browser input, fixed-step scheduling, player replacement, selectors, HUD and presentation. [Frame loop](../src/browser/frame-loop.ts) owns the accumulator and the 0.25 s catch-up limit; roots supply tick/render callbacks. [Route driving](../src/runtime/route-driving-tick.ts) completes every actor's physics before shared arbitration, then applies recovery, chart rebinding and progress observation once per actor. [Circuit driving](../src/runtime/circuit-driving-tick.ts) shares recovery/race/session updates between player and rivals. Root code chooses content and input policy. Results are keyed by actor ID, independent of roster positions. General rendering/physics/camera layers consume ordinary data, not course-mode switches.
 
 The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine selectable production identities and references nine distinct [compiled profiles](../src/vehicle/production-vehicle-profiles.ts). Manufacturer/model, identifier, specification and period are separate fields. Presentation uses explicit car/bike metadata. Testarossa is the default player and fixed rival profile. Shared initial player tire settings do not imply that all finished vehicles must share tires.
 
@@ -51,7 +51,7 @@ The current Tsukuba and FISCO authoring lives in [Tsukuba](../src/dev/m9-3-tsuku
 
 Recovery reconstructs complete pose, velocity, wheel state, actuators, powertrain and observations at a supported known Guide coordinate. It retains selected steering/tire calibration. Ordinary same-chart recovery derives a backed-off target from the farther of last-safe and current causal chainage; it cannot loop forever onto the same launch face solely because last-safe did not advance in air. Explicit wrong-route recovery supplies the legal gate-derived target.
 
-Each root treats the resulting discontinuity as recovery: reset the camera and resync the route/race observer, suppressing ordinary physical crossing observation for that reset. It never awards gates, checkpoints or laps and never erases accepted progress. Known coordinates preserve the correct overlapping circuit copy. Global nearest geometry is not a substitute for that knowledge.
+The shared driving lifecycle resyncs the route/race observer after recovery, suppressing ordinary physical crossing observation for that reset. Roots synchronize the player's camera with the resulting discontinuity. Recovery never awards gates, checkpoints or laps and never erases accepted progress. Known coordinates preserve the correct overlapping circuit copy. Global nearest geometry is not a substitute for that knowledge.
 
 Vehicle replacement completes camera reconstruction in the same selector callback. A render frame may arrive before the next fixed physics tick; it must already have the new player's camera anchor.
 
@@ -64,3 +64,11 @@ Next work can add visual assets, sound and game flow above these contracts. Read
 ## Concrete visual content
 
 The [tunnel fixture](../src/dev/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.
+
+## Audit contract revisions
+
+The source-location assertions that formerly required duplicate player/rival recovery and progress calls inside each browser root are superseded by the shared driving lifecycle. Their causal coverage remains: all actor physics precedes route arbitration; recovery suppresses crossing awards, accepted progress survives resync, and handoff preserves world pose. Structural tests now check these owning modules and root composition rather than the obsolete duplicated call sites. The frozen mechanics are unchanged.
+
+General API names describe their role, without milestone numbers or compatibility aliases. Vehicle creation and recovery accept a common `VehicleWorld` and named options; rendering accepts target, scene and options. Product labels identify SUPER OUTRIDE independently of semantic package version. This supersedes the historical requirement that visible labels contain the package milestone.
+
+Circuit visual sections are unfolded into an ordinary `VisualProfile`. Both its boundary list and sampled section starts use window chainage; a sampled second-lap section must not report a first-lap start. Topology conversion remains above the general profile and renderer.

@@ -41,10 +41,7 @@ test('document 117 moves the unchanged 0..16 opponent envelope to session config
   assert.equal(compileSessionConfiguration({ rivalCount: 16 }).rivalCount, 16);
 
   for (const rivalCount of [-1, 1.5, 17, NaN, Infinity, undefined]) {
-    assert.throws(
-      () => compileSessionConfiguration({ rivalCount }),
-      /rivalCount must be an integer within 0\.\.16/,
-    );
+    assert.throws(() => compileSessionConfiguration({ rivalCount }), /rivalCount must be an integer within 0\.\.16/);
   }
 });
 
@@ -56,7 +53,10 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
   assert.equal(max.length, 16);
   assert.equal(max[0].actorId, 'RIVAL_01');
   assert.equal(max[15].actorId, 'RIVAL_16');
-  assert.deepEqual(max.map((entry) => entry.rivalIndex), [...Array(16).keys()]);
+  assert.deepEqual(
+    max.map((entry) => entry.rivalIndex),
+    [...Array(16).keys()],
+  );
   assert.equal(new Set(max.map((entry) => entry.actorId)).size, 16);
 });
 
@@ -74,7 +74,7 @@ test('M6.46 one-rival fixture remains historical while M8.3 course debug gives b
   assert.match(source, /createRivalRoster\(M8_3_BRANCHING_SESSION_CONFIGURATION\)/);
   assert.match(source, /const rivals = rivalRoster\.map/);
   assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
-  assert.match(source, /recoverActorToLockedBranch\(/);
+  assert.match(source, /branchViolationPolicy: M8_3_BRANCHING_COURSE_MODE\.branchViolationPolicy/);
   assert.doesNotMatch(source, /const rival = createTestCar/);
   assert.doesNotMatch(source, /const rivalTraveler =/);
 });
@@ -83,7 +83,7 @@ test('M6.43 circuit extensibility does not weaken the acyclic RouteDag or enter 
   const modeSource = fs.readFileSync(new URL('../src/gameplay/course-mode.ts', import.meta.url), 'utf8');
   const rosterSource = fs.readFileSync(new URL('../src/runtime/rival-roster.ts', import.meta.url), 'utf8');
   const routeDagSource = fs.readFileSync(new URL('../src/gameplay/route-dag.ts', import.meta.url), 'utf8');
-  const rendererSource = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const rendererSource = fs.readFileSync(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
   const forbiddenImport = /from\s+['"][^'"]*(?:route-dag|physics|render|camera)[^'"]*['"]/i;
 
   assert.doesNotMatch(modeSource, forbiddenImport);

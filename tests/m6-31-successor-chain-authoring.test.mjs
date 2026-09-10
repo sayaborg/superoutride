@@ -5,10 +5,7 @@ import { readFile } from 'node:fs/promises';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
-import {
-  compileRasterSuccessorChain,
-  repackageGuideChartRuntime,
-} from '../dist/runtime/raster-successor-chain.js';
+import { compileRasterSuccessorChain, repackageGuideChartRuntime } from '../dist/runtime/raster-successor-chain.js';
 
 const successorAuthoring = (suffix, direction) => ({
   id: `CHAIN_${suffix}`,
@@ -84,15 +81,21 @@ test('M6.31 compiles a two-step successor chain with derived stage kinds, transi
     createRuntime: (structural, packageId) => fakeRuntime(structural, packageId),
   });
 
-  assert.deepEqual(chain.stages.map((stage) => [stage.id, stage.kind]), [
-    ['SOURCE', 'STAGE'],
-    ['MID', 'STAGE'],
-    ['GOAL', 'TERMINAL'],
-  ]);
-  assert.deepEqual(chain.transitions.map((edge) => [edge.id, edge.fromStageId, edge.toStageId]), [
-    ['TO_MID', 'SOURCE', 'MID'],
-    ['TO_GOAL', 'MID', 'GOAL'],
-  ]);
+  assert.deepEqual(
+    chain.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['SOURCE', 'STAGE'],
+      ['MID', 'STAGE'],
+      ['GOAL', 'TERMINAL'],
+    ],
+  );
+  assert.deepEqual(
+    chain.transitions.map((edge) => [edge.id, edge.fromStageId, edge.toStageId]),
+    [
+      ['TO_MID', 'SOURCE', 'MID'],
+      ['TO_GOAL', 'MID', 'GOAL'],
+    ],
+  );
   assert.equal(chain.finish.stageId, 'GOAL');
   assert.equal(chain.finish.gate.id, 'FINISH_CHAIN');
   assert.equal(chain.structurals.length, 3);
@@ -109,14 +112,16 @@ test('M6.31 derives each physical transition and handoff from the generated cont
     sourceStructural: initial,
     halfWidth: 3.5,
     finishGateId: 'FINISH',
-    steps: [{
-      stageId: 'GOAL',
-      packageId: 'PKG_GOAL',
-      choiceId: 'NEXT',
-      gateId: 'G_NEXT',
-      handoffId: 'H_NEXT',
-      successor: successorAuthoring('ONE', -1),
-    }],
+    steps: [
+      {
+        stageId: 'GOAL',
+        packageId: 'PKG_GOAL',
+        choiceId: 'NEXT',
+        gateId: 'G_NEXT',
+        handoffId: 'H_NEXT',
+        successor: successorAuthoring('ONE', -1),
+      },
+    ],
     createRuntime: (structural, packageId) => fakeRuntime(structural, packageId),
   });
   const generated = chain.structurals[1];
@@ -137,31 +142,46 @@ test('M6.31 rejects empty chains, duplicate ids and runtime/chart mismatches bef
     halfWidth: 3.5,
     finishGateId: 'FINISH',
   };
-  assert.throws(() => compileRasterSuccessorChain({ ...base, steps: [], createRuntime: fakeRuntime }), /at least one successor step/);
-  assert.throws(() => compileRasterSuccessorChain({
-    ...base,
-    steps: [{
-      stageId: 'SOURCE',
-      packageId: 'PKG_GOAL',
-      choiceId: 'NEXT',
-      gateId: 'G',
-      handoffId: 'H',
-      successor: successorAuthoring('DUP', -1),
-    }],
-    createRuntime: fakeRuntime,
-  }), /duplicate Raster successor chain stage id/);
-  assert.throws(() => compileRasterSuccessorChain({
-    ...base,
-    steps: [{
-      stageId: 'GOAL',
-      packageId: 'PKG_GOAL',
-      choiceId: 'NEXT',
-      gateId: 'G',
-      handoffId: 'H',
-      successor: successorAuthoring('BAD_RUNTIME', -1),
-    }],
-    createRuntime: (structural) => fakeRuntime(initial, 'PKG_GOAL'),
-  }), /runtime must own generated chart/);
+  assert.throws(
+    () => compileRasterSuccessorChain({ ...base, steps: [], createRuntime: fakeRuntime }),
+    /at least one successor step/,
+  );
+  assert.throws(
+    () =>
+      compileRasterSuccessorChain({
+        ...base,
+        steps: [
+          {
+            stageId: 'SOURCE',
+            packageId: 'PKG_GOAL',
+            choiceId: 'NEXT',
+            gateId: 'G',
+            handoffId: 'H',
+            successor: successorAuthoring('DUP', -1),
+          },
+        ],
+        createRuntime: fakeRuntime,
+      }),
+    /duplicate Raster successor chain stage id/,
+  );
+  assert.throws(
+    () =>
+      compileRasterSuccessorChain({
+        ...base,
+        steps: [
+          {
+            stageId: 'GOAL',
+            packageId: 'PKG_GOAL',
+            choiceId: 'NEXT',
+            gateId: 'G',
+            handoffId: 'H',
+            successor: successorAuthoring('BAD_RUNTIME', -1),
+          },
+        ],
+        createRuntime: (structural) => fakeRuntime(initial, 'PKG_GOAL'),
+      }),
+    /runtime must own generated chart/,
+  );
 });
 
 test('M6.31 runtime helper is renderer, route-DAG and vehicle-physics independent while M6.30 delegates deep LEFT construction', async () => {

@@ -4,7 +4,7 @@ import { compileSurfaceRegions } from '../../dist/compiler/surface-region-compil
 import { M6_13_JUNCTION } from '../../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../../dist/dev/m5-surface-authoring.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { createM3FarBackground } from '../../dist/visual/far-background.js';
+import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../../dist/dev/m3-debug-height-profile.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
@@ -40,7 +40,7 @@ export function parentShared(guide) {
       visual: visualProfile,
       thinSpanScreenRows: 1,
     },
-    selectFarBackground: () => createM3FarBackground(),
+    selectFarBackground: () => createFarBackground(),
     worldSprites: [],
   };
 }

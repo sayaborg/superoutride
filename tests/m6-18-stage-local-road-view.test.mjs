@@ -94,13 +94,12 @@ test('GroundMap child-local road reuses parent source while both shoulders are s
     const center = sampleStageGroundMapRuntime(600, 0, 0.1, child, ground).color;
     const leftShoulder = sampleStageGroundMapRuntime(600, -4.0, 0.1, child, ground).color;
     const rightShoulder = sampleStageGroundMapRuntime(600, 4.0, 0.1, child, ground).color;
-    assert.ok(center === GROUND_COLORS.asphaltA || center === GROUND_COLORS.asphaltB || center === GROUND_COLORS.marking);
+    assert.ok(
+      center === GROUND_COLORS.asphaltA || center === GROUND_COLORS.asphaltB || center === GROUND_COLORS.marking,
+    );
     assert.equal(leftShoulder, GROUND_COLORS.shoulder);
     assert.equal(rightShoulder, GROUND_COLORS.shoulder);
-    assert.throws(
-      () => sampleStageGroundMapRuntime(600, 4.6, 0.1, child, ground),
-      /outside the local ground envelope/,
-    );
+    assert.throws(() => sampleStageGroundMapRuntime(600, 4.6, 0.1, child, ground), /outside the local ground envelope/);
   }
 });
 
@@ -127,7 +126,7 @@ test('stage-local TerrainLine contains selected road while sibling road projects
     y: 2.469902425419539,
     z: cameraPoint.z,
     yaw: linePoint.heading,
-    pitch: 8 * Math.PI / 180,
+    pitch: (8 * Math.PI) / 180,
     s: 580,
     focalLength: 200,
     centerX: 160,
@@ -183,14 +182,23 @@ test('M6.18 source adapters contain no camera, projection or route-DAG decision 
   ]) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-    assert.equal(imports.some((entry) => entry.includes('/projection')), false);
-    assert.equal(imports.some((entry) => entry.includes('/route-dag')), false);
+    assert.equal(
+      imports.some((entry) => entry.includes('/projection')),
+      false,
+    );
+    assert.equal(
+      imports.some((entry) => entry.includes('/route-dag')),
+      false,
+    );
     assert.doesNotMatch(source, /screenX|screenY/);
   }
 
-  const rendererSource = await readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const rendererSource = await readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
   const rendererImports = [...rendererSource.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
   assert.match(rendererSource, /applyStageRoadViewToTerrainLine/);
   assert.match(rendererSource, /sampleStageGroundMapAtLevel/);
-  assert.equal(rendererImports.some((entry) => entry.includes('/route-dag')), false);
+  assert.equal(
+    rendererImports.some((entry) => entry.includes('/route-dag')),
+    false,
+  );
 });

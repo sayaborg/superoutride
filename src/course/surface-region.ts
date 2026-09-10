@@ -1,8 +1,6 @@
 export type AuthoredSurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND';
 export type GroundMapMaterial = 'GRASS' | 'ROCK';
-export type AuthoredGroundBase =
-  | { readonly kind: 'color'; readonly color: number }
-  | { readonly kind: 'transparent' };
+export type AuthoredGroundBase = { readonly kind: 'color'; readonly color: number } | { readonly kind: 'transparent' };
 
 /** Shared GroundBase boundary for authored regions and ordinary visual sources. */
 export function compileGroundBase(base: AuthoredGroundBase): AuthoredGroundBase {

@@ -1,23 +1,14 @@
 import type { Vec2 } from '../core/math.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
-import {
-  compileRouteBoundaryGateSet,
-  type RouteBoundaryGateAuthoringBase,
-} from '../gameplay/route-boundary-gates.js';
+import { compileRouteBoundaryGateSet, type RouteBoundaryGateAuthoringBase } from '../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteStageKind } from '../gameplay/route-dag.js';
 import { compileRouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import {
   compileRouteStageHandoffManifest,
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
-import {
-  compileLiveRouteRuntimeAssembly,
-  type LiveRouteRuntimeAssembly,
-} from './live-route-runtime.js';
-import {
-  compileStageRuntimeContentRegistry,
-  type StageRuntimeContentPackage,
-} from './stage-runtime-content.js';
+import { compileLiveRouteRuntimeAssembly, type LiveRouteRuntimeAssembly } from './live-route-runtime.js';
+import { compileStageRuntimeContentRegistry, type StageRuntimeContentPackage } from './stage-runtime-content.js';
 
 export type GuideChartRuntimePackage = StageRuntimeContentPackage & {
   readonly coordinateFrame: GuideChart;
@@ -71,9 +62,7 @@ export interface DeclarativeLiveRouteAuthoring {
  * Package refs, stage-content bindings, transition choiceIds and handoff targetChartIds are all
  * derived here rather than repeated in authoring. Physical gate/seam geometry remains explicit.
  */
-export function compileDeclarativeLiveRoute(
-  source: DeclarativeLiveRouteAuthoring,
-): LiveRouteRuntimeAssembly {
+export function compileDeclarativeLiveRoute(source: DeclarativeLiveRouteAuthoring): LiveRouteRuntimeAssembly {
   if (source.stages.length === 0) throw new RangeError('declarative live route requires at least one stage');
 
   const stageById = new Map<string, DeclarativeLiveRouteStageAuthoring>();
@@ -92,7 +81,9 @@ export function compileDeclarativeLiveRoute(
   for (const stage of source.stages) {
     const existing = packageRuntimeById.get(stage.runtime.packageId);
     if (existing && existing !== stage.runtime) {
-      throw new RangeError(`declarative live route packageId maps to multiple runtime objects: ${stage.runtime.packageId}`);
+      throw new RangeError(
+        `declarative live route packageId maps to multiple runtime objects: ${stage.runtime.packageId}`,
+      );
     }
     packageRuntimeById.set(stage.runtime.packageId, stage.runtime);
   }

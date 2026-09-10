@@ -7,17 +7,14 @@ import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   CURRENT_CAMERA_HEIGHT_METERS,
 } from '../dist/camera/current-camera-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../dist/core/presentation-scale.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { summarizeTerrainFootprints } from '../dist/compiler/terrain-footprint-analysis.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { computeTerrainRowDeltaS, generateTerrainLines } from '../dist/road/terrain-line.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-9) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
@@ -74,7 +71,9 @@ test('actual M3 TerrainLines carry finite Core source-footprint telemetry withou
     const fp = line.sourceFootprint;
     assert.ok(Number.isFinite(fp.deltaS) && fp.deltaS >= 0);
     assert.ok(Number.isFinite(fp.deltaSCollapse) && fp.deltaSCollapse >= 0);
-    assert.ok(Number.isFinite(fp.deltaSEffective) && fp.deltaSEffective >= Math.max(fp.deltaS, fp.deltaSCollapse) - 1e-12);
+    assert.ok(
+      Number.isFinite(fp.deltaSEffective) && fp.deltaSEffective >= Math.max(fp.deltaS, fp.deltaSCollapse) - 1e-12,
+    );
     assert.ok(Number.isFinite(fp.deltaL) && fp.deltaL > 0);
     if (!fp.collapsed) assert.equal(fp.deltaSCollapse, 0);
   }
@@ -92,7 +91,9 @@ test('flat-road ordinary Delta_s agrees with the Core d^2/(f h cosPhi) baseline'
   const lines = linesAt(20);
   const line = lines.find((candidate) => {
     const sample = height.sampleRender(candidate.s);
-    return !candidate.sourceFootprint.collapsed && candidate.d > 15 && candidate.d < 22 && Math.abs(sample.grade) < 1e-12;
+    return (
+      !candidate.sourceFootprint.collapsed && candidate.d > 15 && candidate.d < 22 && Math.abs(sample.grade) < 1e-12
+    );
   });
   assert.ok(line);
   const approximate = line.d ** 2 / (200 * cameraHeight * Math.cos(CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS));

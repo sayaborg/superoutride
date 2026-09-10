@@ -1,16 +1,11 @@
-import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
-import { compileCourseMode } from '../gameplay/course-mode.js';
-import { M5_RECOVERY_PROFILE, type M5RecoveryProfile } from '../gameplay/recovery.js';
+import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import {
-  GROUND_COLORS,
-  type GroundMapProfile,
-  type LongitudinalRoadMarking,
-} from '../visual/ground-map.js';
+import { GROUND_COLORS, type GroundMapProfile, type LongitudinalRoadMarking } from '../visual/ground-map.js';
 import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 
@@ -36,19 +31,15 @@ const ONE_SEVENTY_R_TO_SECOND_HAIRPIN_METERS = 50;
 const EIGHTY_TO_ONE_SEVENTY_TRANSITION_METERS = 12;
 const SECOND_HAIRPIN_COMPOUND_TRANSITION_METERS = 8;
 
-export const M9_3_DEV_COURSE_MODE = compileCourseMode({
-  id: 'DEV_M9_3_TSUKUBA_COURSE_2000_THREE_LAP_ONE_RIVAL',
-  routeKind: 'CIRCUIT',
-});
 export const M9_3_DEV_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 1 });
 
-export const M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M9_3_TSUKUBA_PLAYER_START_L,
 });
 
-export const M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> = Object.freeze({
-  ...M5_RECOVERY_PROFILE,
+export const M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.freeze({
+  ...RECOVERY_PROFILE,
   targetL: M9_3_TSUKUBA_RIVAL_START_L,
 });
 
@@ -107,7 +98,7 @@ export function createM93TsukubaCourse2000Lap(): M93TsukubaCourse2000Lap {
     const chordLength = 2 * radius * Math.sin(Math.abs(turn) / (2 * steps));
 
     for (let step = 1; step <= steps; step += 1) {
-      const heading = startHeading + turn * step / steps;
+      const heading = startHeading + (turn * step) / steps;
       turtle.x = centerX - sign * radius * Math.cos(heading);
       turtle.z = centerZ + sign * radius * Math.sin(heading);
       vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
@@ -238,21 +229,23 @@ export function createM93TsukubaGroundProfile(): GroundMapProfile {
 
 function createM93TsukubaSurfaceMap(courseLength: number): SurfaceMap {
   const shoulderEdge = M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS + SHOULDER_WIDTH_METERS;
-  return new SurfaceMap(courseLength, [{
-    sStart: 0,
-    name: 'M9.3 TSUKUBA COURSE 2000 SURFACE',
-    bands: [
-      { lMin: -M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
-      { lMin: -shoulderEdge, lMax: -M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
-      {
-        lMin: -M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-        lMax: M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-        type: 'ASPHALT',
-      },
-      { lMin: M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
-      { lMin: shoulderEdge, lMax: M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
-    ],
-  }]);
+  return new SurfaceMap(courseLength, [
+    {
+      sStart: 0,
+      name: 'M9.3 TSUKUBA COURSE 2000 SURFACE',
+      bands: [
+        { lMin: -M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
+        { lMin: -shoulderEdge, lMax: -M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
+        {
+          lMin: -M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
+          lMax: M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
+          type: 'ASPHALT',
+        },
+        { lMin: M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
+        { lMin: shoulderEdge, lMax: M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
+      ],
+    },
+  ]);
 }
 
 export function createM93TsukubaCourse2000Runtime(): CircuitLiveRuntime {
@@ -260,19 +253,21 @@ export function createM93TsukubaCourse2000Runtime(): CircuitLiveRuntime {
   const topology = compileCircuitTopology('DEV_M9_3_TSUKUBA_COURSE_2000', authored.raster);
   const lapLength = topology.lapLength;
   const height = createM93TsukubaHeightProfile(lapLength);
-  const visual = new VisualProfile(lapLength, [{
-    sStart: 0,
-    groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
-    groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
-    name: 'M9.3 TSUKUBA COURSE 2000',
-  }]);
+  const visual = new VisualProfile(lapLength, [
+    {
+      sStart: 0,
+      groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
+      groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
+      name: 'M9.3 TSUKUBA COURSE 2000',
+    },
+  ]);
   const surface = createM93TsukubaSurfaceMap(lapLength);
 
   return compileCircuitLiveRuntime(
     topology,
     0,
     {
-      lMax: M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS,
+      lMax: M9_3_TSUKUBA_GROUND_HALF_WIDTH_METERS + 1,
       mMin: 0.25,
       dCam: CURRENT_CAMERA_DISTANCE_METERS,
     },

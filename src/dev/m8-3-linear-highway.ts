@@ -1,4 +1,4 @@
-import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
+import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import { compileRasterPath } from '../core/course.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import {
@@ -7,7 +7,8 @@ import {
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../core/presentation-scale.js';
 import { compileCourseMode, type CourseModeProfile } from '../gameplay/course-mode.js';
-import type { M5RecoveryProfile } from '../gameplay/recovery.js';
+import type { RecoveryProfile } from '../gameplay/recovery.js';
+import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import { GROUND_COLORS, type GroundMapProfile } from '../visual/ground-map.js';
@@ -22,8 +23,7 @@ import {
 
 export const M8_3_LINEAR_LENGTH_METERS = 8_000;
 export const M8_3_LINEAR_PLAYER_START_L = M7_1_PLAYER_START_L;
-export const M8_3_LINEAR_RECOVERY_PROFILE: Readonly<M5RecoveryProfile> =
-  M7_1_HIGHWAY_RECOVERY_PROFILE;
+export const M8_3_LINEAR_RECOVERY_PROFILE: Readonly<RecoveryProfile> = M7_1_HIGHWAY_RECOVERY_PROFILE;
 export const M8_3_LINEAR_COURSE_MODE: CourseModeProfile = compileCourseMode({
   id: 'DEV_OPEN_EIGHT_KILOMETER_HIGHWAY',
   routeKind: 'LINEAR',
@@ -46,7 +46,7 @@ export function createM83LinearHighwayRuntime(): M83LinearHighwayRuntime {
     { x: 0, z: M8_3_LINEAR_LENGTH_METERS },
   ]);
   const guide = compileGuidePath(raster, {
-    lMax: 12,
+    lMax: 13,
     mMin: 0.25,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });
@@ -62,13 +62,16 @@ export function createM83LinearHighwayRuntime(): M83LinearHighwayRuntime {
     { s: 7_300, y: 0 },
     { s: guide.length, y: 0 },
   ]);
-  const visualProfile = new VisualProfile(guide.length, [{
-    sStart: 0,
-    name: 'M8.3 OPEN EIGHT KILOMETER HIGHWAY',
-    groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
-    groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
-  }]);
+  const visualProfile = new VisualProfile(guide.length, [
+    {
+      sStart: 0,
+      name: 'M8.3 OPEN EIGHT KILOMETER HIGHWAY',
+      groundBaseLeft: { kind: 'color', color: GROUND_COLORS.grassA },
+      groundBaseRight: { kind: 'color', color: GROUND_COLORS.grassA },
+    },
+  ]);
   const surfaceMap = createM71HighwaySurfaceMap(guide.length);
+  validateSurfaceGuideEnvelope(guide, surfaceMap);
   const groundProfile = createM71HighwayGroundProfile();
   const terrainProfile: TerrainVisualProfile = {
     screenHeight: 240,

@@ -6,23 +6,20 @@ import test from 'node:test';
 import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import { CURRENT_M5_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-} from '../dist/core/presentation-scale.js';
+import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
@@ -31,10 +28,7 @@ const baked = new BakedGroundMapAsset(metadata, binary);
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);
 const visual = createM3DebugVisualProfile(guide.length);
-const compiledSurfaces = compileSurfaceRegions(
-  guide.length,
-  createM5DebugSurfaceRegionAuthoring(guide.length),
-);
+const compiledSurfaces = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -90,7 +84,6 @@ test('M6.45 baked GroundMap general asset owns an open chainage domain', () => {
   }
 });
 
-
 test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid size', () => {
   const chunkRefs = metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);
   assert.ok(chunkRefs > 7);
@@ -104,14 +97,7 @@ test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid s
 test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap', () => {
   const surfaces = createM5DebugSurfaceMap(guide.length);
   const car = createTestCar(guide, height, surfaces, 45);
-  const camera = updateM5Camera(
-    createM5CameraRig(),
-    guide,
-    height,
-    car,
-    CURRENT_M5_CAMERA_PROFILE,
-    1 / 60,
-  );
+  const camera = updateCamera(createCameraRig(), guide, height, car, CURRENT_CAMERA_PROFILE, 1 / 60);
   const terrainProfile = {
     screenHeight: 240,
     dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -123,19 +109,22 @@ test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural Grou
     height,
     visual,
   };
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const world = createM4DebugWorldSprites(guide, height, assets);
-  const stats = renderM5Driving(
+  const stats = renderDriving(
     new SoftwareSurface(320, 240),
-    createM3FarBackground(),
-    guide,
-    camera,
-    car,
-    terrainProfile,
-    groundProfile,
-    world,
-    assets,
-    'car',
+    {
+      background: createFarBackground(),
+      guide,
+      camera,
+      vehicle: car,
+      terrainProfile,
+      groundProfile,
+      worldSprites: world,
+      assets,
+      playerKind: 'car',
+    },
+    {},
   );
   assert.equal(stats.groundMapBaked, true);
   assert.ok(stats.groundMapMaxLevel > 0);

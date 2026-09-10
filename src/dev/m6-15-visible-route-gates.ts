@@ -1,13 +1,13 @@
 import type { GuidePath } from '../core/guide-curve.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import type { JunctionCrossSectionProfile, JunctionSide } from '../course/junction-cross-section.js';
-import { M6_13_JUNCTION } from './m6-13-junction.js';
 import {
   compileRouteBoundaryGateSet,
   type RouteBoundaryGateAuthoring,
   type RouteBoundaryGateSet,
 } from '../gameplay/route-boundary-gates.js';
 import type { RouteDag } from '../gameplay/route-dag.js';
+import { M6_13_JUNCTION } from './m6-13-junction.js';
 
 /**
  * Physical branch-choice gate inside the fully separated child roads.

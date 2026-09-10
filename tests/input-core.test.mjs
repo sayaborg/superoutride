@@ -67,7 +67,12 @@ test('keyboard pedal aliases preserve demand until every equivalent key is relea
   const keyboard = new KeyboardInput(lifecycle, visibility);
   const dispatchKey = (type, code) => {
     let prevented = false;
-    lifecycle.dispatch(type, { code, preventDefault: () => { prevented = true; } });
+    lifecycle.dispatch(type, {
+      code,
+      preventDefault: () => {
+        prevented = true;
+      },
+    });
     assert.equal(prevented, true, `${code} must suppress browser default behavior`);
   };
 
@@ -149,10 +154,7 @@ test('keyboard throttle resumes after a later touch brake tap through one shared
 });
 
 test('canonical pedal requests remain exclusive after steering authority is separated', () => {
-  assert.throws(
-    () => assertExclusivePedalInput({ throttle: true, brake: true }),
-    /mutually exclusive/,
-  );
+  assert.throws(() => assertExclusivePedalInput({ throttle: true, brake: true }), /mutually exclusive/);
 });
 
 test('touch steering releases a pointer whose terminal event reaches the window', () => {
@@ -161,14 +163,7 @@ test('touch steering releases a pointer whose terminal event reaches the window'
   visibility.visibilityState = 'visible';
   const left = new FakeElement();
   const right = new FakeElement();
-  const touch = new TouchInput(
-    left,
-    right,
-    new FakeElement(),
-    new FakeElement(),
-    lifecycle,
-    visibility,
-  );
+  const touch = new TouchInput(left, right, new FakeElement(), new FakeElement(), lifecycle, visibility);
 
   right.dispatch('pointerdown', pointerEvent(7));
   assert.equal(touch.sample().steering, 1);
@@ -185,14 +180,7 @@ test('touch opposite correction supersedes a stale pointer and releases to exact
   const left = new FakeElement();
   const right = new FakeElement();
   right.captureThrows = true;
-  const touch = new TouchInput(
-    left,
-    right,
-    new FakeElement(),
-    new FakeElement(),
-    lifecycle,
-    visibility,
-  );
+  const touch = new TouchInput(left, right, new FakeElement(), new FakeElement(), lifecycle, visibility);
 
   right.dispatch('pointerdown', pointerEvent(11));
   assert.equal(touch.sample().steering, 1);
@@ -208,11 +196,12 @@ test('keyboard opposite correction neutralizes a stale key and repeat cannot res
   const visibility = new FakeEventTarget();
   visibility.visibilityState = 'visible';
   const keyboard = new KeyboardInput(lifecycle, visibility);
-  const key = (type, code, repeat = false) => lifecycle.dispatch(type, {
-    code,
-    repeat,
-    preventDefault() {},
-  });
+  const key = (type, code, repeat = false) =>
+    lifecycle.dispatch(type, {
+      code,
+      repeat,
+      preventDefault() {},
+    });
 
   key('keydown', 'ArrowRight');
   assert.equal(keyboard.sample().steering, 1);

@@ -1,6 +1,9 @@
-import { rasterPathToWorld, sampleRasterPath } from '../core/course.js';
+import { profileIndexAt } from '../core/open-profile.js';
+import { rasterPathToWorld } from '../core/course.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
+import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
 
 export interface FlatRoadProfile {
   screenHeight: number;
@@ -13,7 +16,7 @@ export interface FlatRoadProfile {
   roadRight: number;
 }
 
-export interface TerrainLine {
+export interface TerrainLineGeometry {
   d: number;
   s: number;
   y: number;
@@ -59,23 +62,16 @@ export function computeForwardVisibleInterval(
   if (dEnd <= dMin + EPSILON) return null;
 
   const end = sCamera + dEnd;
-  let cursor = sCamera + dMin;
-
-  while (cursor <= end + EPSILON) {
-    const sLocal = Math.min(guide.length, Math.max(0, cursor));
-    const sample = sampleRasterPath(guide.raster, sLocal);
-    const facing = Math.cos(sample.heading - cameraYaw);
+  const start = sCamera + dMin;
+  const segments = guide.raster.segments;
+  for (let index = profileIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
+    const segment = segments[index]!;
+    if (segment.sStart >= end - EPSILON) break;
+    const facing = Math.cos(segment.heading - cameraYaw);
     if (facing <= 0) {
-      const facingEnd = cursor - sCamera;
+      const facingEnd = Math.max(start, segment.sStart) - sCamera;
       return facingEnd <= dMin + EPSILON ? null : { dStart: dMin, dEnd: facingEnd };
     }
-
-    const segment = guide.raster.segments[sample.segmentIndex]!;
-    const localToSegmentEnd = segment.sStart + segment.length - sLocal;
-    const step = Math.max(localToSegmentEnd, EPSILON);
-    const next = Math.min(end, cursor + step);
-    if (next >= end - EPSILON) return { dStart: dMin, dEnd };
-    cursor = next;
   }
 
   return { dStart: dMin, dEnd };
@@ -85,14 +81,8 @@ export function generateFlatTerrainLines(
   guide: GuidePath,
   camera: PseudoCamera,
   profile: FlatRoadProfile,
-): TerrainLine[] {
-  const visible = computeForwardVisibleInterval(
-    guide,
-    camera.yaw,
-    camera.s,
-    profile.dMin,
-    profile.dMax,
-  );
+): TerrainLineGeometry[] {
+  const visible = computeForwardVisibleInterval(guide, camera.yaw, camera.s, profile.dMin, profile.dMax);
   if (!visible) return [];
 
   const h = camera.y - profile.groundY;
@@ -100,7 +90,7 @@ export function generateFlatTerrainLines(
   if (!(numerator > 0)) throw new Error('flat terrain prototype requires camera above ground');
 
   const yHorizon = horizonY(camera);
-  const lines: TerrainLine[] = [];
+  const lines: TerrainLineGeometry[] = [];
 
   for (let y = 0; y < profile.screenHeight; y += 1) {
     const sampleY = y + 0.5;
@@ -120,20 +110,8 @@ export function generateFlatTerrainLines(
     const xGroundR = projectedRight.x;
     if (!(xGroundR > xGroundL)) continue;
 
-    const xRoadL = lateralToScreenX(
-      -profile.roadLeft,
-      xGroundL,
-      xGroundR,
-      profile.groundLeft,
-      profile.groundRight,
-    );
-    const xRoadR = lateralToScreenX(
-      profile.roadRight,
-      xGroundL,
-      xGroundR,
-      profile.groundLeft,
-      profile.groundRight,
-    );
+    const xRoadL = lateralToScreenX(-profile.roadLeft, xGroundL, xGroundR, profile.groundLeft, profile.groundRight);
+    const xRoadR = lateralToScreenX(profile.roadRight, xGroundL, xGroundR, profile.groundLeft, profile.groundRight);
 
     lines.push({
       d,
@@ -173,9 +151,6 @@ export function screenXToLateral(
   return -groundLeft + ((x - xGroundL) / dx) * (groundLeft + groundRight);
 }
 
-import type { HeightProfileReader } from '../visual/height-profile.js';
-import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
-
 export interface TerrainVisualProfile {
   screenHeight: number;
   dMin: number;
@@ -202,7 +177,7 @@ export interface TerrainLineSourceFootprint {
   collapsed: boolean;
 }
 
-export interface M3TerrainLine extends TerrainLine {
+export interface TerrainLine extends TerrainLineGeometry {
   groundBaseLeft: GroundBase;
   groundBaseRight: GroundBase;
   sectionName: string;
@@ -220,7 +195,7 @@ export function generateTerrainLines(
   guide: GuidePath,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
-): M3TerrainLine[] {
+): TerrainLine[] {
   const visible = computeForwardVisibleInterval(guide, camera.yaw, camera.s, profile.dMin, profile.dMax);
   if (!visible) return [];
 
@@ -232,26 +207,22 @@ export function generateTerrainLines(
   const yH = horizonY(camera);
   const cosPitch = Math.cos(camera.pitch);
   const f = camera.focalLength;
-  const lines: M3TerrainLine[] = [];
+  const lines: TerrainLine[] = [];
   const start = camera.s + visible.dStart;
   const end = camera.s + visible.dEnd;
-  let cursor = start;
-
-  while (cursor < end - 1e-8) {
-    const local = cursor;
-    const raster = sampleRasterPath(guide.raster, local);
-    const rasterSegment = guide.raster.segments[raster.segmentIndex]!;
-    const rasterDistance = rasterSegment.sStart + rasterSegment.length - local;
-    const heightDistance = profile.height.distanceToNextRenderNode(local);
-    const visualDistance = profile.visual.distanceToNextSection(local);
-    const intervalLength = Math.min(rasterDistance, heightDistance, visualDistance, end - cursor);
-    if (!(intervalLength > 1e-8)) {
-      cursor += 1e-7;
-      continue;
-    }
-
-    const d0 = cursor - camera.s;
-    const d1 = d0 + intervalLength;
+  // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
+  const boundaries = [start, end];
+  appendVisibleBoundaries(boundaries, guide.raster.segments, 'sStart', start, end);
+  appendVisibleBoundaries(boundaries, profile.height.nodes, 's', start, end);
+  appendVisibleBoundaries(boundaries, profile.visual.sections, 'sStart', start, end);
+  boundaries.sort((a, b) => a - b);
+  const distinct = boundaries.filter((s, index) => index === 0 || s > boundaries[index - 1]!);
+  for (let index = 0; index + 1 < distinct.length; index += 1) {
+    const local = distinct[index]!;
+    const intervalEnd = distinct[index + 1]!;
+    const intervalLength = intervalEnd - local;
+    const d0 = local - camera.s;
+    const d1 = intervalEnd - camera.s;
     const heightStart = profile.height.sampleRender(local);
     const grade = heightStart.grade;
     const yIntercept = heightStart.y - grade * d0;
@@ -268,14 +239,11 @@ export function generateTerrainLines(
       const y = Math.floor(representativeY);
       if (y >= 0 && y < profile.screenHeight) {
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createM3TerrainLine(
-          guide,
-          camera,
-          profile,
-          d,
-          y,
-          { deltaS, deltaSCollapse: intervalLength, collapsed: true },
-        );
+        const line = createTerrainLine(guide, camera, profile, d, y, {
+          deltaS,
+          deltaSCollapse: intervalLength,
+          collapsed: true,
+        });
         if (line) lines.push(line);
       }
     } else {
@@ -292,19 +260,10 @@ export function generateTerrainLines(
         if (d < d0 - 1e-7 || d > d1 + 1e-7) continue;
         if (d < visible.dStart - 1e-7 || d > visible.dEnd + 1e-7) continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createM3TerrainLine(
-          guide,
-          camera,
-          profile,
-          d,
-          y,
-          { deltaS, deltaSCollapse: 0, collapsed: false },
-        );
+        const line = createTerrainLine(guide, camera, profile, d, y, { deltaS, deltaSCollapse: 0, collapsed: false });
         if (line) lines.push(line);
       }
     }
-
-    cursor += intervalLength;
   }
 
   // Core Painter order. Hills/dips may produce multiple TerrainLines on the same output row.
@@ -326,13 +285,7 @@ export function projectedTerrainSpanRows(bY: number, d0: number, d1: number): nu
  * those pixel boundaries are screen coordinates y and y+1.
  * The footprint is clipped only by the current forward near/far interval.
  */
-export function computeTerrainRowDeltaS(
-  row: number,
-  aY: number,
-  bY: number,
-  dMin: number,
-  dMax: number,
-): number {
+export function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMin: number, dMax: number): number {
   if (!Number.isFinite(row) || !Number.isFinite(aY) || !Number.isFinite(bY)) {
     throw new RangeError('terrain footprint inputs must be finite');
   }
@@ -344,13 +297,7 @@ export function computeTerrainRowDeltaS(
   return Math.abs(dTop - dBottom);
 }
 
-function depthAtScreenBoundary(
-  screenY: number,
-  aY: number,
-  bY: number,
-  dMin: number,
-  dMax: number,
-): number {
+function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: number, dMax: number): number {
   const denom = screenY - aY;
   if (Math.abs(denom) < 1e-12) return dMax;
   const d = bY / denom;
@@ -360,14 +307,14 @@ function depthAtScreenBoundary(
   return Math.min(dMax, Math.max(dMin, d));
 }
 
-function createM3TerrainLine(
+function createTerrainLine(
   guide: GuidePath,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
   d: number,
   y: number,
   verticalFootprint: VerticalFootprintSetup,
-): M3TerrainLine | null {
+): TerrainLine | null {
   const s = camera.s + d;
   const renderHeight = profile.height.sampleRender(s).y;
   const groundLeft = rasterPathToWorld(guide.raster, s, -profile.groundLeft);
@@ -378,8 +325,20 @@ function createM3TerrainLine(
   if (!(groundSpan > 1e-7)) return null;
 
   const section = profile.visual.sample(s);
-  const xRoadL = lateralToScreenX(-profile.roadLeft, projectedLeft.x, projectedRight.x, profile.groundLeft, profile.groundRight);
-  const xRoadR = lateralToScreenX(profile.roadRight, projectedLeft.x, projectedRight.x, profile.groundLeft, profile.groundRight);
+  const xRoadL = lateralToScreenX(
+    -profile.roadLeft,
+    projectedLeft.x,
+    projectedRight.x,
+    profile.groundLeft,
+    profile.groundRight,
+  );
+  const xRoadR = lateralToScreenX(
+    profile.roadRight,
+    projectedLeft.x,
+    projectedRight.x,
+    profile.groundLeft,
+    profile.groundRight,
+  );
   const deltaL = (profile.groundLeft + profile.groundRight) / groundSpan;
   const deltaSEffective = Math.max(verticalFootprint.deltaS, verticalFootprint.deltaSCollapse);
 
@@ -403,4 +362,19 @@ function createM3TerrainLine(
       collapsed: verticalFootprint.collapsed,
     },
   };
+}
+
+/** Binary entry lookup bounds work by visible intervals, not total course length. */
+function appendVisibleBoundaries<T, K extends keyof T>(
+  out: number[],
+  entries: readonly T[],
+  key: K,
+  start: number,
+  end: number,
+): void {
+  for (let i = profileIndexAt(entries, key, start) + 1; i < entries.length; i += 1) {
+    const s = entries[i]![key] as number;
+    if (s >= end) break;
+    out.push(s);
+  }
 }

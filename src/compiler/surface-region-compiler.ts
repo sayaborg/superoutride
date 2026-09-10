@@ -1,11 +1,14 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { compileGroundBase } from '../course/surface-region.js';
+import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
+import { nonEmptyId } from '../core/validation.js';
 import type {
   AuthoredGroundBase,
   AuthoredSurfaceBand,
   GroundMapMaterial,
   SurfaceRegionAuthoring,
 } from '../course/surface-region.js';
+import { compileGroundBase } from '../course/surface-region.js';
+import { compileSurfaceBands } from '../physics/surface-map.js';
 
 export interface GroundMapLogicalSection {
   readonly sStart: number;
@@ -32,43 +35,25 @@ export interface CompiledSurfaceSection {
   readonly bands: readonly AuthoredSurfaceBand[];
 }
 
-const EPSILON = 1e-9;
-
 /** General logical GroundMap source. Chainage is the open interval [0, courseLength]. */
 export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
   readonly sections: readonly GroundMapLogicalSection[];
 
-  constructor(readonly courseLength: number, sections: readonly GroundMapLogicalSection[]) {
-    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
-      throw new RangeError('GroundMap logical profile length must be finite and > 0');
-    }
-    for (const section of sections) {
-      if (!Number.isFinite(section.sStart)) throw new RangeError('GroundMap section chainage must be finite');
-    }
-    const copied = sections.map((section) => ({ ...section })).sort((a, b) => a.sStart - b.sStart);
-    if (copied.length === 0 || Math.abs(copied[0]!.sStart) > EPSILON) {
-      throw new Error('GroundMap logical profile must start at s=0');
-    }
-    copied[0]!.sStart = 0;
-    for (let i = 0; i < copied.length; i += 1) {
-      const section = copied[i]!;
-      if (section.sStart < 0 || section.sStart >= courseLength) {
-        throw new RangeError('GroundMap section outside open profile');
-      }
-      if (section.name.trim().length === 0) throw new Error('GroundMap section name must be non-empty');
-      if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('GroundMap sections must be unique');
-    }
-    this.sections = Object.freeze(copied.map((section) => Object.freeze(section)));
+  constructor(
+    readonly courseLength: number,
+    sections: readonly GroundMapLogicalSection[],
+  ) {
+    for (const section of sections) nonEmptyId(section.name, 'GroundMap section name');
+    this.sections = compileOpenProfile(sections, {
+      length: courseLength,
+      chainage: 'sStart',
+      label: 'GroundMap logical profile',
+    });
   }
 
   sample(s: number): GroundMapLogicalSection {
     const local = openProfileChainage(s, this.courseLength, 'GroundMap logical profile');
-    let index = this.sections.length - 1;
-    for (let i = 0; i < this.sections.length; i += 1) {
-      if (this.sections[i]!.sStart <= local) index = i;
-      else break;
-    }
-    return this.sections[index]!;
+    return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
   }
 }
 
@@ -114,45 +99,19 @@ export function compileSurfaceRegions(
 function validateAndCopyRegions(
   courseLength: number,
   regions: readonly SurfaceRegionAuthoring[],
-): SurfaceRegionAuthoring[] {
-  if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
-    throw new RangeError('course length must be finite and > 0');
-  }
-  const copied = regions
-    .map((region) => ({
-      ...region,
-      groundBaseLeft: compileGroundBase(region.groundBaseLeft),
-      groundBaseRight: compileGroundBase(region.groundBaseRight),
-      surfaceBands: region.surfaceBands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin),
-    }))
-    .sort((a, b) => a.sStart - b.sStart);
-
-  if (copied.length === 0 || Math.abs(copied[0]!.sStart) > 1e-9) {
-    throw new Error('Surface Region authoring must start at s=0');
-  }
-
-  for (let i = 0; i < copied.length; i += 1) {
-    const region = copied[i]!;
-    if (!Number.isFinite(region.sStart) || region.sStart < 0 || region.sStart >= courseLength) {
-      throw new RangeError('Surface Region outside course');
-    }
-    if (i > 0 && region.sStart <= copied[i - 1]!.sStart) {
-      throw new Error('Surface Region starts must be unique');
-    }
-    if (region.name.trim().length === 0) throw new Error('Surface Region name must be non-empty');
-
-    for (let j = 0; j < region.surfaceBands.length; j += 1) {
-      const band = region.surfaceBands[j]!;
-      if (!Number.isFinite(band.lMin) || !Number.isFinite(band.lMax) || !(band.lMax > band.lMin)) {
-        throw new Error('Surface Region band must have finite positive width');
-      }
-      if (j > 0 && band.lMin < region.surfaceBands[j - 1]!.lMax - 1e-9) {
-        throw new Error('Surface Region bands must not overlap');
-      }
-    }
-  }
-
-  return copied;
+): readonly SurfaceRegionAuthoring[] {
+  return compileOpenProfile(
+    regions.map((region) => {
+      nonEmptyId(region.name, 'Surface Region name');
+      return {
+        ...region,
+        groundBaseLeft: compileGroundBase(region.groundBaseLeft),
+        groundBaseRight: compileGroundBase(region.groundBaseRight),
+        surfaceBands: compileSurfaceBands(region.surfaceBands),
+      };
+    }),
+    { length: courseLength, chainage: 'sStart', label: 'Surface Region authoring' },
+  );
 }
 
 function sameGroundBase(a: AuthoredGroundBase, b: AuthoredGroundBase): boolean {
@@ -164,8 +123,7 @@ function sameGroundMap(a: SurfaceRegionAuthoring, b: SurfaceRegionAuthoring): bo
 }
 
 function sameVisual(a: SurfaceRegionAuthoring, b: SurfaceRegionAuthoring): boolean {
-  return sameGroundBase(a.groundBaseLeft, b.groundBaseLeft)
-    && sameGroundBase(a.groundBaseRight, b.groundBaseRight);
+  return sameGroundBase(a.groundBaseLeft, b.groundBaseLeft) && sameGroundBase(a.groundBaseRight, b.groundBaseRight);
 }
 
 function sameSurfaceBands(a: SurfaceRegionAuthoring, b: SurfaceRegionAuthoring): boolean {
@@ -176,11 +134,7 @@ function sameSurfaceBands(a: SurfaceRegionAuthoring, b: SurfaceRegionAuthoring):
   });
 }
 
-function coalesce<T, U>(
-  regions: readonly T[],
-  same: (a: T, b: T) => boolean,
-  map: (region: T) => U,
-): U[] {
+function coalesce<T, U>(regions: readonly T[], same: (a: T, b: T) => boolean, map: (region: T) => U): U[] {
   const out: U[] = [];
   let previous: T | undefined;
   for (const region of regions) {

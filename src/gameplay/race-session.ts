@@ -98,9 +98,10 @@ export function advanceRaceSession(
   };
   session.boundaryTimings.push(boundary);
   session.lastBoundarySeconds = session.elapsedSeconds;
-  session.bestBoundaryIntervalSeconds = session.bestBoundaryIntervalSeconds === null
-    ? intervalSeconds
-    : Math.min(session.bestBoundaryIntervalSeconds, intervalSeconds);
+  session.bestBoundaryIntervalSeconds =
+    session.bestBoundaryIntervalSeconds === null
+      ? intervalSeconds
+      : Math.min(session.bestBoundaryIntervalSeconds, intervalSeconds);
 }
 
 /**
@@ -140,10 +141,11 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
 
   for (let i = 0; i < indexed.length; i += 1) {
     const input = indexed[i]!.input;
-    const tied = previous !== null
-      && Math.abs(input.sProgress - previous.sProgress) <= EPSILON
-      && Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= EPSILON
-      && equalFinishTime(input.finishElapsedSeconds, previous.finishElapsedSeconds);
+    const tied =
+      previous !== null &&
+      Math.abs(input.sProgress - previous.sProgress) <= EPSILON &&
+      Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= EPSILON &&
+      equalFinishTime(input.finishElapsedSeconds, previous.finishElapsedSeconds);
     const rank = tied ? previousRank : i + 1;
     standings.push({ ...input, rank });
     previous = input;
@@ -168,9 +170,9 @@ function validateRankingInput(input: RaceRankingInput): void {
     throw new RangeError('ranking progress must be finite');
   }
   if (
-    input.finishElapsedSeconds !== undefined
-    && input.finishElapsedSeconds !== null
-    && (!(input.finishElapsedSeconds >= 0) || !Number.isFinite(input.finishElapsedSeconds))
+    input.finishElapsedSeconds !== undefined &&
+    input.finishElapsedSeconds !== null &&
+    (!(input.finishElapsedSeconds >= 0) || !Number.isFinite(input.finishElapsedSeconds))
   ) {
     throw new RangeError('ranking finishElapsedSeconds must be finite and >= 0 or null');
   }

@@ -44,8 +44,7 @@ function createCoastFarBackground(): FarBackground {
         if ((y - FAR_HORIZON_Y) % 23 === 0) color = foam;
       }
 
-      const coastY = FAR_HORIZON_Y + 22
-        + Math.round(5 * Math.sin(x * 0.031) + 3 * Math.sin(x * 0.083));
+      const coastY = FAR_HORIZON_Y + 22 + Math.round(5 * Math.sin(x * 0.031) + 3 * Math.sin(x * 0.083));
       if (x > 360 && y >= coastY) {
         color = y < coastY + 12 ? headland : headlandDark;
       }
@@ -71,18 +70,19 @@ function createMountainFarBackground(): FarBackground {
 
   for (let y = 0; y < FAR_HEIGHT; y += 1) {
     for (let x = 0; x < FAR_WIDTH; x += 1) {
-      let color = y < FAR_HORIZON_Y
-        ? mixColor(skyTop, skyBottom, y / FAR_HORIZON_Y)
-        : ((((y - FAR_HORIZON_Y) >> 3) & 1) === 0 ? valleyA : valleyB);
+      let color =
+        y < FAR_HORIZON_Y
+          ? mixColor(skyTop, skyBottom, y / FAR_HORIZON_Y)
+          : (((y - FAR_HORIZON_Y) >> 3) & 1) === 0
+            ? valleyA
+            : valleyB;
 
-      const farRidgeY = FAR_HORIZON_Y - 24
-        - Math.round(13 * Math.sin(x * 0.021) + 7 * Math.sin(x * 0.049));
-      const nearRidgeY = FAR_HORIZON_Y - 4
-        - Math.round(18 * Math.sin(x * 0.014 + 0.8) + 5 * Math.sin(x * 0.057));
+      const farRidgeY = FAR_HORIZON_Y - 24 - Math.round(13 * Math.sin(x * 0.021) + 7 * Math.sin(x * 0.049));
+      const nearRidgeY = FAR_HORIZON_Y - 4 - Math.round(18 * Math.sin(x * 0.014 + 0.8) + 5 * Math.sin(x * 0.057));
       if (y >= farRidgeY) color = farMountain;
       if (y >= nearRidgeY) color = nearMountain;
       if (y >= FAR_HORIZON_Y + 36) {
-        color = ((((y - FAR_HORIZON_Y) >> 3) & 1) === 0 ? valleyA : valleyB);
+        color = (((y - FAR_HORIZON_Y) >> 3) & 1) === 0 ? valleyA : valleyB;
       }
       surface.setPixel(x, y, color);
     }
@@ -96,9 +96,5 @@ function createMountainFarBackground(): FarBackground {
 }
 
 function mixColor(a: Rgb, b: Rgb, t: number): number {
-  return rgba(
-    a[0] + (b[0] - a[0]) * t,
-    a[1] + (b[1] - a[1]) * t,
-    a[2] + (b[2] - a[2]) * t,
-  );
+  return rgba(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
 }

@@ -4,10 +4,7 @@ import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-rou
 import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 import { readFile } from 'node:fs/promises';
 
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
   compileRouteStageContentManifest,
   resolveActiveRouteStageContent,
@@ -73,11 +70,12 @@ test('content compiler rejects missing/duplicate stage bindings and unknown pack
     /more than one content binding/,
   );
   assert.throws(
-    () => compileRouteStageContentManifest(
-      route,
-      packages,
-      bindings.map((binding, index) => index === 0 ? { ...binding, packageId: 'MISSING' } : binding),
-    ),
+    () =>
+      compileRouteStageContentManifest(
+        route,
+        packages,
+        bindings.map((binding, index) => (index === 0 ? { ...binding, packageId: 'MISSING' } : binding)),
+      ),
     /unknown package/,
   );
 });
@@ -90,10 +88,7 @@ test('M6.11 rejects mixed world frames because stage selection must not silently
   }));
   const bindings = route.stages.map((stage) => ({ stageId: stage.id, packageId: `P_${stage.id}` }));
 
-  assert.throws(
-    () => compileRouteStageContentManifest(route, packages, bindings),
-    /share one worldFrameId/,
-  );
+  assert.throws(() => compileRouteStageContentManifest(route, packages, bindings), /share one worldFrameId/);
 });
 
 test('stage content manifest remains a gameplay selection table with no renderer or vehicle-physics dependency', async () => {

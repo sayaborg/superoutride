@@ -1,3 +1,4 @@
+import { uniqueKey } from '../core/validation.js';
 import {
   type DeclarativeLiveRouteAuthoring,
   type DeclarativeLiveRouteFinishAuthoring,
@@ -57,15 +58,15 @@ export function composeDeclarativeLiveRouteAuthoring(
     }
 
     for (const transition of fragment.transitions ?? []) {
-      requireUnique(transitionIds, transition.id, 'transition id');
-      requireUnique(physicalGeometryIds, transition.gate.id, 'physical gate/handoff id');
-      requireUnique(physicalGeometryIds, transition.handoff.id, 'physical gate/handoff id');
+      uniqueKey(transitionIds, transition.id, 'declarative route fragment transition id');
+      uniqueKey(physicalGeometryIds, transition.gate.id, 'declarative route fragment physical gate/handoff id');
+      uniqueKey(physicalGeometryIds, transition.handoff.id, 'declarative route fragment physical gate/handoff id');
       transitions.push(transition);
     }
 
     for (const finish of fragment.finishes ?? []) {
-      requireUnique(finishStageIds, finish.stageId, 'finish stage id');
-      requireUnique(physicalGeometryIds, finish.gate.id, 'physical gate/handoff id');
+      uniqueKey(finishStageIds, finish.stageId, 'declarative route fragment finish stage id');
+      uniqueKey(physicalGeometryIds, finish.gate.id, 'declarative route fragment physical gate/handoff id');
       finishes.push(finish);
     }
   }
@@ -80,10 +81,4 @@ export function composeDeclarativeLiveRouteAuthoring(
     transitions: Object.freeze(transitions),
     finishes: Object.freeze(finishes),
   });
-}
-
-function requireUnique(set: Set<string>, value: string, label: string): void {
-  if (value.length === 0) throw new RangeError(`declarative route fragment ${label} must not be empty`);
-  if (set.has(value)) throw new RangeError(`duplicate declarative route fragment ${label}: ${value}`);
-  set.add(value);
 }

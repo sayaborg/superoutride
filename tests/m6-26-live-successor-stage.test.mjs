@@ -26,7 +26,7 @@ import {
 
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function crossing(gate, distance = 2) {
   const nx = Math.sin(gate.heading);
@@ -44,14 +44,17 @@ function setup() {
   const gates = createM626LiveGateSet(route, continuation);
   const handoffs = createM626LiveHandoffManifest(route, continuation);
   const content = createM6DebugRouteStageContentManifest(route);
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const registry = createM626LiveStageRuntimeRegistry(content, continuation, parentShared(parent), assets);
   return { parent, route, continuation, gates, handoffs, content, registry };
 }
 
 test('M6.26 live route is one fork followed by one successor stage on each selected side', () => {
   const { route } = setup();
-  assert.deepEqual(route.stages.map((stage) => stage.id), ['STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'GOAL_L', 'GOAL_R']);
+  assert.deepEqual(
+    route.stages.map((stage) => stage.id),
+    ['STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'GOAL_L', 'GOAL_R'],
+  );
   assert.equal(route.choices.length, 4);
   assert.equal(route.stages.filter((stage) => stage.kind === 'TERMINAL').length, 2);
 });
@@ -75,10 +78,12 @@ test('M6.26 gate/handoff manifests cover all four route choices and finish only 
   assert.equal(gates.gates.filter((gate) => gate.kind === 'FINISH').length, 2);
   const leftFinish = gates.gates.find((gate) => gate.kind === 'FINISH' && gate.stageId === 'GOAL_L');
   assert.ok(leftFinish);
-  assert.ok(Math.hypot(
-    leftFinish.center.x - continuation.leftSuccessor.chart.guide.raster.vertices[0].x,
-    leftFinish.center.z - continuation.leftSuccessor.chart.guide.raster.vertices[0].z,
-  ) > 1);
+  assert.ok(
+    Math.hypot(
+      leftFinish.center.x - continuation.leftSuccessor.chart.guide.raster.vertices[0].x,
+      leftFinish.center.z - continuation.leftSuccessor.chart.guide.raster.vertices[0].z,
+    ) > 1,
+  );
 });
 
 test('M6.26 runtime registry owns parent, intermediate children and independent successor packages', () => {
@@ -96,12 +101,7 @@ test('M6.26 runtime registry owns parent, intermediate children and independent 
 test('M6.26 left path can commit parent->child, child->successor, then physically FINISH without world teleport', () => {
   const { route, continuation, gates, handoffs, content } = setup();
   const state = createRouteDagState(route);
-  const handoffState = createRouteStageHandoffState(
-    route,
-    content,
-    continuation.base.charts.parent,
-    { x: 0, z: -55 },
-  );
+  const handoffState = createRouteStageHandoffState(route, content, continuation.base.charts.parent, { x: 0, z: -55 });
 
   const sequence = [
     { choiceId: 'S1_LEFT', targetPackage: 'CONTENT_STAGE_2_L' },
@@ -126,14 +126,10 @@ test('M6.26 left path can commit parent->child, child->successor, then physicall
       seamMotion.current,
     );
     const worldBefore = { ...seam.center };
-    assert.equal(commitRouteStageHandoff(
-      handoffState,
-      state,
-      content,
-      continuation.charts,
-      seamObservation.seam,
-      seam.center,
-    ), 'COMMITTED');
+    assert.equal(
+      commitRouteStageHandoff(handoffState, state, content, continuation.charts, seamObservation.seam, seam.center),
+      'COMMITTED',
+    );
     assert.deepEqual(seam.center, worldBefore);
     assert.equal(handoffState.activePackageId, step.targetPackage);
   }
@@ -141,7 +137,13 @@ test('M6.26 left path can commit parent->child, child->successor, then physicall
   const finish = gates.gates.find((entry) => entry.kind === 'FINISH' && entry.stageId === 'GOAL_L');
   assert.ok(finish);
   const finishMotion = crossing(finish);
-  const finishObservation = observeRouteBoundaryCrossing(route, state, gates, finishMotion.previous, finishMotion.current);
+  const finishObservation = observeRouteBoundaryCrossing(
+    route,
+    state,
+    gates,
+    finishMotion.previous,
+    finishMotion.current,
+  );
   const finishUpdate = updateRouteDag(state, route, finishObservation.boundary);
   assert.equal(finishUpdate.event, 'FINISHED');
   assert.equal(state.status, 'FINISHED');
@@ -151,7 +153,7 @@ test('M6.26 left path can commit parent->child, child->successor, then physicall
 test('M6.26 browser/runtime additions stay outside renderer Core while M6.29 owns continuation construction', async () => {
   const { readFile } = await import('node:fs/promises');
   const [rendererSource, liveSource, successorFactorySource] = await Promise.all([
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-26-live-successor-stage.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
   ]);

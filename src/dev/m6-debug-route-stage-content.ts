@@ -1,8 +1,5 @@
-import {
-  compileRouteStageContentManifest,
-  type RouteStageContentManifest,
-} from '../gameplay/route-stage-content.js';
 import type { RouteDag } from '../gameplay/route-dag.js';
+import { compileRouteStageContentManifest, type RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 
 /** Detached content manifest for the M6 DEV DAG. Package ids remain opaque. */
 export function createM6DebugRouteStageContentManifest(route: RouteDag): RouteStageContentManifest {

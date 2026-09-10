@@ -1,11 +1,17 @@
-import { guideCoordinateCurve, guideCoordinateLateralOrigin, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
+import {
+  guideCoordinateCurve,
+  guideCoordinateLateralOrigin,
+  type GuideCoordinateSource,
+} from '../core/guide-coordinate-frame.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
+import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
+import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 
 export interface StageRuntimeContentPackage {
@@ -24,6 +30,11 @@ export interface StageRuntimeContentPackage {
 export interface StageRuntimeContentRegistry {
   readonly worldFrameId: string;
   readonly packages: readonly StageRuntimeContentPackage[];
+}
+
+/** Resolve the common physics reader contract from the active content package. */
+export function stageVehicleWorld(runtime: StageRuntimeContentPackage): VehicleWorld {
+  return { guide: runtime.coordinateFrame, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 }
 
 /**
@@ -81,6 +92,7 @@ export function resolveActiveStageRuntimeContent(
 }
 
 function validatePackageGeometry(source: StageRuntimeContentPackage): void {
+  validateSurfaceGuideEnvelope(source.coordinateFrame, source.surfaceMap);
   const guide = guideCoordinateCurve(source.coordinateFrame);
   const epsilon = 1e-7;
 
@@ -90,8 +102,10 @@ function validatePackageGeometry(source: StageRuntimeContentPackage): void {
   if (source.terrainProfile.height !== source.heightProfile) {
     throw new RangeError(`runtime package terrain/height authority mismatch: ${source.packageId}`);
   }
-  if (source.groundProfile.baked
-    && Math.abs(source.groundProfile.baked.metadata.courseLength - guide.length) > epsilon) {
+  if (
+    source.groundProfile.baked &&
+    Math.abs(source.groundProfile.baked.metadata.courseLength - guide.length) > epsilon
+  ) {
     throw new RangeError(`runtime package baked GroundMap length mismatch: ${source.packageId}`);
   }
   if (source.roadView !== null) {

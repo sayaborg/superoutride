@@ -52,11 +52,13 @@ export function validateDrivingActuatorProfile(profile: DrivingActuatorProfile):
 }
 
 /** Current steering calibration permits one traversal rate, never separate apply/release authority. */
-export function validateSymmetricSteeringActuatorRateProfile(
-  profile: NormalizedActuatorRateProfile,
-): void {
-  if (!(profile.applyRate > 0) || !Number.isFinite(profile.applyRate)
-    || !(profile.releaseRate > 0) || !Number.isFinite(profile.releaseRate)) {
+export function validateSymmetricSteeringActuatorRateProfile(profile: NormalizedActuatorRateProfile): void {
+  if (
+    !(profile.applyRate > 0) ||
+    !Number.isFinite(profile.applyRate) ||
+    !(profile.releaseRate > 0) ||
+    !Number.isFinite(profile.releaseRate)
+  ) {
     throw new RangeError('vehicle steering actuator rates must be finite and > 0');
   }
   if (profile.applyRate !== profile.releaseRate) {
@@ -82,8 +84,12 @@ export function stepNormalizedActuator(
   if (![current, target, minimum, maximum].every(Number.isFinite) || minimum >= maximum) {
     throw new RangeError('actuator state, target and bounds must be finite and ordered');
   }
-  if (!(profile.applyRate > 0) || !(profile.releaseRate > 0)
-    || !Number.isFinite(profile.applyRate) || !Number.isFinite(profile.releaseRate)) {
+  if (
+    !(profile.applyRate > 0) ||
+    !(profile.releaseRate > 0) ||
+    !Number.isFinite(profile.applyRate) ||
+    !Number.isFinite(profile.releaseRate)
+  ) {
     throw new RangeError('actuator rates must be finite and > 0');
   }
   const boundedCurrent = clamp(current, minimum, maximum);
@@ -92,11 +98,7 @@ export function stepNormalizedActuator(
   const difference = boundedTarget - boundedCurrent;
   const maximumChange = rate * dt;
   if (Math.abs(difference) <= maximumChange + 1e-12) return boundedTarget;
-  return clamp(
-    boundedCurrent + Math.sign(difference) * maximumChange,
-    minimum,
-    maximum,
-  );
+  return clamp(boundedCurrent + Math.sign(difference) * maximumChange, minimum, maximum);
 }
 
 export function updateDrivingActuators(
@@ -113,33 +115,9 @@ export function updateDrivingActuators(
   const brakeTarget = normalizedPedalRequest(input.brake);
   const steeringMode = drivingInputApplyMode(input.steeringApplyMode);
   const pedalMode = drivingInputApplyMode(input.pedalApplyMode);
-  state.steering = applyRequestedActuator(
-    state.steering,
-    steeringTarget,
-    dt,
-    steeringResponse,
-    -1,
-    1,
-    steeringMode,
-  );
-  state.throttle = applyRequestedActuator(
-    state.throttle,
-    throttleTarget,
-    dt,
-    profile.throttle,
-    0,
-    1,
-    pedalMode,
-  );
-  state.brake = applyRequestedActuator(
-    state.brake,
-    brakeTarget,
-    dt,
-    profile.brake,
-    0,
-    1,
-    pedalMode,
-  );
+  state.steering = applyRequestedActuator(state.steering, steeringTarget, dt, steeringResponse, -1, 1, steeringMode);
+  state.throttle = applyRequestedActuator(state.throttle, throttleTarget, dt, profile.throttle, 0, 1, pedalMode);
+  state.brake = applyRequestedActuator(state.brake, brakeTarget, dt, profile.brake, 0, 1, pedalMode);
 }
 
 function applyRequestedActuator(

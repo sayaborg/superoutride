@@ -14,7 +14,7 @@ import {
   createM96FiscoRuntime,
 } from '../dist/dev/m9-6-fisco-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createM5RecoveryState, updateM5Recovery } from '../dist/gameplay/recovery.js';
+import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
@@ -28,31 +28,32 @@ import {
 } from './helpers/vehicle-fixture.mjs';
 
 function segmentsCross(a, b, c, d) {
-  const orientation = (p, q, r) => (
-    (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x)
-  );
-  return orientation(a, b, c) * orientation(a, b, d) < -1e-8
-    && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
+  const orientation = (p, q, r) => (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x);
+  return orientation(a, b, c) * orientation(a, b, d) < -1e-8 && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
 }
 
 test('M9.6 authors current FISCO as one exact clockwise 4563 m closed lap', () => {
   const { raster, landmarks } = createM96FiscoLap();
   const guide = compileGuidePath(raster, { lMax: 17, mMin: 0.25, dCam: 5 });
-  const radiusFamilies = new Set(guide.corners
-    .filter((corner) => Number.isFinite(corner.radius))
-    .map((corner) => Math.round(corner.radius)));
+  const radiusFamilies = new Set(
+    guide.corners.filter((corner) => Number.isFinite(corner.radius)).map((corner) => Math.round(corner.radius)),
+  );
 
   assert.ok(Math.abs(raster.length - M9_6_FISCO_LENGTH_METERS) < 1e-7);
   assert.equal(M9_6_FISCO_LENGTH_METERS, 4_563);
-  assert.ok(Math.abs(
-    landmarks.homeStraightEndS - M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS
-  ) < 1e-9);
+  assert.ok(Math.abs(landmarks.homeStraightEndS - M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS) < 1e-9);
   assert.equal(M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS, 1_475);
   assert.equal(M9_6_FISCO_CORNER_COUNT, 17);
   assert.deepEqual(raster.vertices[0], raster.vertices.at(-1));
-  assert.ok(raster.vertexTurns.some((turn) => turn > 1e-9), 'right turns missing');
-  assert.ok(raster.vertexTurns.some((turn) => turn < -1e-9), 'left turns missing');
-  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= 5.000001 * Math.PI / 180);
+  assert.ok(
+    raster.vertexTurns.some((turn) => turn > 1e-9),
+    'right turns missing',
+  );
+  assert.ok(
+    raster.vertexTurns.some((turn) => turn < -1e-9),
+    'left turns missing',
+  );
+  assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= (5.000001 * Math.PI) / 180);
 
   for (let first = 0; first < raster.vertices.length - 1; first += 1) {
     for (let second = first + 2; second < raster.vertices.length - 1; second += 1) {
@@ -98,10 +99,7 @@ test('M9.6 FISCO preserves the published elevation envelope and circuit cross-se
   }
 
   assert.ok(Math.abs(maximumY - minimumY - 40) < 0.001, `relief=${maximumY - minimumY}`);
-  assert.ok(
-    maximumUphillGrade > 0.08 && maximumUphillGrade <= 0.0888,
-    `maximum uphill grade=${maximumUphillGrade}`,
-  );
+  assert.ok(maximumUphillGrade > 0.08 && maximumUphillGrade <= 0.0888, `maximum uphill grade=${maximumUphillGrade}`);
   assert.ok(
     maximumDownhillGrade > 0.09 && maximumDownhillGrade <= 0.1005,
     `maximum downhill grade=${maximumDownhillGrade}`,
@@ -125,7 +123,10 @@ test('M9.6 FISCO remains an ordinary finite open runtime for a three-lap race', 
   assert.equal(live.window.repeatCount, 4);
   assert.ok(Math.abs(live.window.length - 4_563 * 4) < 1e-7);
   const checkpoints = live.raceRules.gates.slice(0, 3);
-  assert.deepEqual(checkpoints.map((gate) => gate.kind), ['checkpoint', 'checkpoint', 'checkpoint']);
+  assert.deepEqual(
+    checkpoints.map((gate) => gate.kind),
+    ['checkpoint', 'checkpoint', 'checkpoint'],
+  );
   for (const [index, expectedS] of [1_140.75, 2_281.5, 3_422.25].entries()) {
     assert.ok(Math.abs(checkpoints[index].s - expectedS) < 1e-8);
   }
@@ -137,15 +138,8 @@ for (const [profile, createVehicle] of [
 ]) {
   test(`ordinary ${profile.id} mechanics advance on the FISCO home straight with permitted wheel lift`, () => {
     const live = createM96FiscoRuntime();
-    const vehicle = createVehicle(
-      live.window.guide,
-      live.window.height,
-      live.window.surface,
-      45,
-      0,
-      15,
-    );
-    const recovery = createM5RecoveryState(vehicle);
+    const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 15);
+    const recovery = createRecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
       updateTestVehicle(
         live.window.guide,
@@ -158,9 +152,18 @@ for (const [profile, createVehicle] of [
       for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
         assert.ok(Number.isFinite(value), profile.id);
       }
-      const reason = updateM5Recovery(recovery, live.window.guide, live.window.height, live.window.surface, vehicle, SIM_DT);
+      const reason = updateRecovery(
+        { guide: live.window.guide, height: live.window.height, surfaces: live.window.surface },
+        vehicle,
+        { state: recovery, dt: SIM_DT },
+      );
       if (reason !== null) assert.equal(reason, 'overturned');
-      const surface = sampleSurfaceGeometryAtCoordinate(live.window.guide, live.window.height, live.window.surface, vehicle.course);
+      const surface = sampleSurfaceGeometryAtCoordinate(
+        live.window.guide,
+        live.window.height,
+        live.window.surface,
+        vehicle.course,
+      );
       assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
     }
     assert.ok(vehicle.course.s > 100 && vehicle.course.s < 1_475, `s=${vehicle.course.s}`);
@@ -185,8 +188,8 @@ test('course 4 selects FISCO only at the browser CIRCUIT composition root', asyn
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main-linear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/camera/m5-camera.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/camera/camera.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/gameplay/circuit-topology.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(selectionSource, /digitCode: 'Digit4'[\s\S]*?query: 'fisco'[\s\S]*?routeKind: 'CIRCUIT'/);

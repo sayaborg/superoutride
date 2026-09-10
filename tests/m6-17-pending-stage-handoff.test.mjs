@@ -6,15 +6,9 @@ import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import {
-  createM617RouteStageHandoffManifest,
-  M6_17_HANDOFF_SEAM_S,
-} from '../dist/dev/m6-17-handoff-seams.js';
+import { createM617RouteStageHandoffManifest, M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { M6_15_ROUTE_GATE_S } from '../dist/dev/m6-15-visible-route-gates.js';
-import {
-  createRouteDagState,
-  updateRouteDag,
-} from '../dist/gameplay/route-dag.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -60,7 +54,10 @@ test('M6.17 handoff seams are authored after route selection and cover the same 
   assert.ok(M6_17_HANDOFF_SEAM_S > M6_15_ROUTE_GATE_S);
   assert.equal(manifest.seams.length, 6);
 
-  for (const [choiceId, chart] of [['S1_LEFT', charts.left], ['S1_RIGHT', charts.right]]) {
+  for (const [choiceId, chart] of [
+    ['S1_LEFT', charts.left],
+    ['S1_RIGHT', charts.right],
+  ]) {
     const seam = manifest.seams.find((candidate) => candidate.choiceId === choiceId);
     assert.ok(seam);
     const expected = guidePathToWorld(guide, M6_17_HANDOFF_SEAM_S, chart.lateralOrigin);
@@ -175,7 +172,12 @@ test('two DEV junction passes can commit two independent child charts from one c
 
   const secondSeam = manifest.seams.find((candidate) => candidate.choiceId === 'S2L_RIGHT');
   const secondSegment = crossingSegment(secondSeam);
-  const secondObserved = observePendingRouteStageHandoff(state, manifest, secondSegment.previous, secondSegment.current);
+  const secondObserved = observePendingRouteStageHandoff(
+    state,
+    manifest,
+    secondSegment.previous,
+    secondSegment.current,
+  );
   commitRouteStageHandoff(state, routeState, content, chartList, secondObserved.seam, secondSeam.center);
 
   assert.equal(state.activeStageId, 'GOAL_LR');
@@ -194,8 +196,17 @@ test('M6.17 handoff layer has no renderer, input or vehicle-physics dependency',
   ]) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-    assert.equal(imports.some((entry) => entry.includes('/render/')), false);
-    assert.equal(imports.some((entry) => entry.includes('/input/')), false);
-    assert.equal(imports.some((entry) => entry.includes('/physics/')), false);
+    assert.equal(
+      imports.some((entry) => entry.includes('/render/')),
+      false,
+    );
+    assert.equal(
+      imports.some((entry) => entry.includes('/input/')),
+      false,
+    );
+    assert.equal(
+      imports.some((entry) => entry.includes('/physics/')),
+      false,
+    );
   }
 });

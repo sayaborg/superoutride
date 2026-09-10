@@ -6,20 +6,20 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/core/constants.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
-import { createM5CameraRig, updateM5Camera } from '../dist/camera/m5-camera.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function cameraProfile() {
   return {
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     height: 2.469902425419539,
-    baseDownPitch: 8 * Math.PI / 180,
+    baseDownPitch: (8 * Math.PI) / 180,
     focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
     centerX: 160,
     centerY: 120,
@@ -90,30 +90,16 @@ test('M6.51 ordinary M5 car physics carries finite window chainage across an int
 test('M6.51 existing open camera follows the same finite window ruler after the seam without wrap logic', () => {
   const live = createM651CircuitLiveRuntime();
   const { car, L } = driveAcrossFirstSeam(live);
-  const camera = updateM5Camera(
-    createM5CameraRig(),
-    live.window.guide,
-    live.window.height,
-    car,
-    cameraProfile(),
-    SIM_DT,
-  );
+  const camera = updateCamera(createCameraRig(), live.window.guide, live.window.height, car, cameraProfile(), SIM_DT);
 
   assert.ok(camera.s > L, 'camera chainage should remain in the second finite copy');
-  assert.ok(Math.abs((car.course.s - camera.s) - CURRENT_CAMERA_DISTANCE_METERS) < 1e-8);
+  assert.ok(Math.abs(car.course.s - camera.s - CURRENT_CAMERA_DISTANCE_METERS) < 1e-8);
 });
 
 test('M6.51 unchanged M5 renderer draws a normal frame after the live physics seam crossing', () => {
   const live = createM651CircuitLiveRuntime();
   const { car, L } = driveAcrossFirstSeam(live);
-  const camera = updateM5Camera(
-    createM5CameraRig(),
-    live.window.guide,
-    live.window.height,
-    car,
-    cameraProfile(),
-    SIM_DT,
-  );
+  const camera = updateCamera(createCameraRig(), live.window.guide, live.window.height, car, cameraProfile(), SIM_DT);
   const surface = new SoftwareSurface(320, 240);
   const ground = {
     groundLeft: 12,
@@ -124,28 +110,31 @@ test('M6.51 unchanged M5 renderer draws a normal frame after the live physics se
     junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
   };
-  const stats = renderM5Driving(
+  const stats = renderDriving(
     surface,
-    createM3FarBackground(),
-    live.window.guide,
-    camera,
-    car,
     {
-      screenHeight: 240,
-      dMin: 2.5,
-      dMax: 150,
-      groundLeft: 12,
-      groundRight: 12,
-      roadLeft: 4.5,
-      roadRight: 4.5,
-      height: live.window.height,
-      visual: live.window.visual,
-      thinSpanScreenRows: 1,
+      background: createFarBackground(),
+      guide: live.window.guide,
+      camera,
+      vehicle: car,
+      terrainProfile: {
+        screenHeight: 240,
+        dMin: 2.5,
+        dMax: 150,
+        groundLeft: 12,
+        groundRight: 12,
+        roadLeft: 4.5,
+        roadRight: 4.5,
+        height: live.window.height,
+        visual: live.window.visual,
+        thinSpanScreenRows: 1,
+      },
+      groundProfile: ground,
+      worldSprites: [],
+      assets: createSpriteAssets(),
+      playerKind: 'car',
     },
-    ground,
-    [],
-    createM4SpriteAssets(),
-    'car',
+    {},
   );
 
   assert.ok(car.course.s > L);
@@ -157,10 +146,22 @@ test('M6.51 generic live compiler remains topology integration only and owns no 
   const source = await readFile(new URL('../src/runtime/circuit-live-runtime.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
-  assert.equal(importSpecifiers.some((path) => path.includes('/render/')), false);
-  assert.equal(importSpecifiers.some((path) => path.includes('/physics/')), false);
-  assert.equal(importSpecifiers.some((path) => path.includes('route-dag')), false);
-  assert.equal(importSpecifiers.some((path) => path.includes('main-circuit')), false);
+  assert.equal(
+    importSpecifiers.some((path) => path.includes('/render/')),
+    false,
+  );
+  assert.equal(
+    importSpecifiers.some((path) => path.includes('/physics/')),
+    false,
+  );
+  assert.equal(
+    importSpecifiers.some((path) => path.includes('route-dag')),
+    false,
+  );
+  assert.equal(
+    importSpecifiers.some((path) => path.includes('main-circuit')),
+    false,
+  );
   assert.doesNotMatch(source, /\bdocument\b|\bglobalThis\.window\b/);
   assert.match(source, /raceAuthoring\.lapCount \+ 1/);
 });
@@ -169,9 +170,12 @@ test('M6.51 circuit browser composition uses existing open engine paths and cont
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
-  assert.match(source, /advanceVehicleWithRecovery\(\s*shell\.recovery,\s*guide,\s*height,\s*surfaces/);
-  assert.match(source, /updateM5Camera\(cameraRig, guide, height/);
-  assert.match(source, /renderM5Driving\(/);
-  assert.match(source, /updateCircuitRaceProgress/);
-  assert.equal(importSpecifiers.some((path) => /route-dag|live-route|shared-route-choice|branch-violation/.test(path)), false);
+  assert.match(source, /advanceCircuitDrivingActor\(vehicleWorld, playerActor/);
+  assert.match(source, /updateCamera\(cameraRig, guide, height/);
+  assert.match(source, /renderDriving\(/);
+  assert.match(source, /advanceCircuitDrivingActor/);
+  assert.equal(
+    importSpecifiers.some((path) => /route-dag|live-route|shared-route-choice|branch-violation/.test(path)),
+    false,
+  );
 });

@@ -1,22 +1,9 @@
-import { compileTireCharacteristics, type TireCharacteristics } from './tire-friction-calibration.js';
-import {
-  validateAutomaticPowertrainProfile,
-  type AutomaticPowertrainProfile,
-} from './automatic-powertrain.js';
+import { validateAutomaticPowertrainProfile, type AutomaticPowertrainProfile } from './automatic-powertrain.js';
 import type { DrivingActuatorProfile } from './driving-actuator.js';
-import {
-  validateDrivingActuatorProfile,
-  validateSymmetricSteeringActuatorRateProfile,
-} from './driving-actuator.js';
-import {
-  VEHICLE_GRAVITY,
-  compileSuspensionStation,
-  type ContactStationProfile,
-} from './vehicle-dynamics.js';
-import {
-  validateCompiledTireProfile,
-  type CompiledTireProfile,
-} from './tire-wheel.js';
+import { validateDrivingActuatorProfile, validateSymmetricSteeringActuatorRateProfile } from './driving-actuator.js';
+import { compileTireCharacteristics, type TireCharacteristics } from './tire-friction-calibration.js';
+import { validateCompiledTireProfile, type CompiledTireProfile } from './tire-wheel.js';
+import { VEHICLE_GRAVITY, compileSuspensionStation, type ContactStationProfile } from './vehicle-dynamics.js';
 
 /** Opaque content identity; production membership belongs to the upper catalog. */
 export type VehicleProfileId = string;
@@ -69,18 +56,30 @@ export interface ArcadeVehicleProfile {
 }
 
 /** Runtime body/driver data plus resolved stations; authored tire/suspension/wheel fields do not leak. */
-export interface CompiledArcadeVehicleProfile extends Pick<ArcadeVehicleProfile,
-  'id' | 'mass' | 'yawInertia' | 'pitchInertia' |
-  'frontAxle' | 'rearAxle' | 'desiredCgHeight' | 'frontDriveTorqueFraction' |
-  'maxRoadWheelSteer' | 'steeringOffsetMax' | 'steeringResponseTau' |
-  'steeringLowSpeedRegularization' | 'steeringRatio' | 'quadraticDrag' | 'actuator' | 'powertrain'> {
+export interface CompiledArcadeVehicleProfile extends Pick<
+  ArcadeVehicleProfile,
+  | 'id'
+  | 'mass'
+  | 'yawInertia'
+  | 'pitchInertia'
+  | 'frontAxle'
+  | 'rearAxle'
+  | 'desiredCgHeight'
+  | 'frontDriveTorqueFraction'
+  | 'maxRoadWheelSteer'
+  | 'steeringOffsetMax'
+  | 'steeringResponseTau'
+  | 'steeringLowSpeedRegularization'
+  | 'steeringRatio'
+  | 'quadraticDrag'
+  | 'actuator'
+  | 'powertrain'
+> {
   readonly frontStation: ContactStationProfile;
   readonly rearStation: ContactStationProfile;
 }
 
-export function compileArcadeVehicleProfile(
-  profile: ArcadeVehicleProfile,
-): Readonly<CompiledArcadeVehicleProfile> {
+export function compileArcadeVehicleProfile(profile: ArcadeVehicleProfile): Readonly<CompiledArcadeVehicleProfile> {
   if (typeof profile.id !== 'string' || profile.id.length === 0 || profile.id.trim() !== profile.id) {
     throw new RangeError('vehicle profile id must be a nonempty trimmed string');
   }
@@ -113,12 +112,16 @@ export function compileArcadeVehicleProfile(
   if (!(profile.steeringRatio >= 0) || !Number.isFinite(profile.steeringRatio)) {
     throw new RangeError('vehicle steering ratio must be finite and >= 0');
   }
-  if (!(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0)
-    || ![profile.frontBrakeTorqueMax, profile.rearBrakeTorqueMax].every(Number.isFinite)) {
+  if (
+    !(profile.frontBrakeTorqueMax >= 0 && profile.rearBrakeTorqueMax >= 0) ||
+    ![profile.frontBrakeTorqueMax, profile.rearBrakeTorqueMax].every(Number.isFinite)
+  ) {
     throw new RangeError('vehicle brake torques must be finite and >= 0');
   }
-  if (!(profile.frontDriveTorqueFraction >= 0 && profile.frontDriveTorqueFraction <= 1)
-    || !Number.isFinite(profile.frontDriveTorqueFraction)) {
+  if (
+    !(profile.frontDriveTorqueFraction >= 0 && profile.frontDriveTorqueFraction <= 1) ||
+    !Number.isFinite(profile.frontDriveTorqueFraction)
+  ) {
     throw new RangeError('vehicle front drive torque fraction must be finite and lie in [0,1]');
   }
   if (!(profile.quadraticDrag >= 0) || !Number.isFinite(profile.quadraticDrag)) {
@@ -129,8 +132,8 @@ export function compileArcadeVehicleProfile(
   validateAutomaticPowertrainProfile(profile.powertrain);
 
   const wheelbase = profile.frontAxle + profile.rearAxle;
-  const frontStaticLoad = profile.mass * VEHICLE_GRAVITY * profile.rearAxle / wheelbase;
-  const rearStaticLoad = profile.mass * VEHICLE_GRAVITY * profile.frontAxle / wheelbase;
+  const frontStaticLoad = (profile.mass * VEHICLE_GRAVITY * profile.rearAxle) / wheelbase;
+  const rearStaticLoad = (profile.mass * VEHICLE_GRAVITY * profile.frontAxle) / wheelbase;
   const frontSuspension = compileSuspensionStation(
     frontStaticLoad,
     profile.frontRideFrequency,
@@ -148,10 +151,12 @@ export function compileArcadeVehicleProfile(
     profile.rearBumpForceMax,
   );
   const frontTire: CompiledTireProfile = Object.freeze({
-    ...compileTireCharacteristics(profile.frontTire), lowSpeedRegularization: profile.lowSpeedRegularization,
+    ...compileTireCharacteristics(profile.frontTire),
+    lowSpeedRegularization: profile.lowSpeedRegularization,
   });
   const rearTire: CompiledTireProfile = Object.freeze({
-    ...compileTireCharacteristics(profile.rearTire), lowSpeedRegularization: profile.lowSpeedRegularization,
+    ...compileTireCharacteristics(profile.rearTire),
+    lowSpeedRegularization: profile.lowSpeedRegularization,
   });
   validateCompiledTireProfile(frontTire);
   validateCompiledTireProfile(rearTire);
@@ -199,7 +204,7 @@ export function compileArcadeVehicleProfile(
     powertrain: Object.freeze({
       ...profile.powertrain,
       gearRatios: Object.freeze([...profile.powertrain.gearRatios]),
-      torqueCurve: Object.freeze(profile.powertrain.torqueCurve.map(point => Object.freeze({ ...point }))),
+      torqueCurve: Object.freeze(profile.powertrain.torqueCurve.map((point) => Object.freeze({ ...point }))),
     }),
     frontStation,
     rearStation,
@@ -212,6 +217,5 @@ export function drivenWheelOmega(
   frontWheelOmega: number,
   rearWheelOmega: number,
 ): number {
-  return frontWheelOmega * profile.frontDriveTorqueFraction
-    + rearWheelOmega * (1 - profile.frontDriveTorqueFraction);
+  return frontWheelOmega * profile.frontDriveTorqueFraction + rearWheelOmega * (1 - profile.frontDriveTorqueFraction);
 }

@@ -55,18 +55,12 @@ test('driving input trace JSON round-trip preserves the exact command sequence',
 
 test('trace rejects non-canonical steering values rather than silently clamping them', () => {
   const trace = createDrivingInputTrace(1 / 60);
-  assert.throws(
-    () => appendDrivingInput(trace, { steering: 1.1, throttle: false, brake: false }),
-    /steering/,
-  );
+  assert.throws(() => appendDrivingInput(trace, { steering: 1.1, throttle: false, brake: false }), /steering/);
 });
 
 test('trace rejects contradictory pedals because event order must be resolved before recording', () => {
   const trace = createDrivingInputTrace(1 / 60);
-  assert.throws(
-    () => appendDrivingInput(trace, { steering: 0, throttle: true, brake: true }),
-    /mutually exclusive/,
-  );
+  assert.throws(() => appendDrivingInput(trace, { steering: 0, throttle: true, brake: true }), /mutually exclusive/);
 });
 
 function replayProbe(trace, profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE) {

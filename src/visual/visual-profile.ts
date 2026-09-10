@@ -1,4 +1,6 @@
 import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
+import { nonEmptyId } from '../core/validation.js';
 import { compileGroundBase, type AuthoredGroundBase } from '../course/surface-region.js';
 
 export type GroundBase = AuthoredGroundBase;
@@ -12,6 +14,7 @@ export interface VisualSection {
 
 export interface VisualProfileReader {
   readonly courseLength: number;
+  readonly sections: readonly VisualSection[];
   sample(s: number): VisualSection;
   distanceToNextSection(s: number): number;
 }
@@ -22,53 +25,32 @@ const EPSILON = 1e-9;
 export class VisualProfile implements VisualProfileReader {
   readonly sections: readonly VisualSection[];
 
-  constructor(readonly courseLength: number, sections: readonly VisualSection[]) {
-    if (!(courseLength > 0) || !Number.isFinite(courseLength)) {
-      throw new RangeError('visual profile length must be finite and > 0');
-    }
-    for (const section of sections) {
-      if (!Number.isFinite(section.sStart)) throw new RangeError('visual section chainage must be finite');
-    }
-    const copied = sections.map((section) => ({
-      ...section,
-      groundBaseLeft: compileGroundBase(section.groundBaseLeft),
-      groundBaseRight: compileGroundBase(section.groundBaseRight),
-    })).sort((a, b) => a.sStart - b.sStart);
-    if (copied.length === 0 || Math.abs(copied[0]!.sStart) > EPSILON) {
-      throw new Error('visual profile must start at s=0');
-    }
-    copied[0]!.sStart = 0;
-    for (let i = 0; i < copied.length; i += 1) {
-      const section = copied[i]!;
-      if (section.sStart < 0 || section.sStart >= courseLength) {
-        throw new RangeError('visual section outside open profile');
-      }
-      if (section.name.trim().length === 0) throw new Error('visual section name must be non-empty');
-      if (i > 0 && section.sStart <= copied[i - 1]!.sStart) throw new Error('visual sections must be unique');
-    }
-    this.sections = Object.freeze(copied.map((section) => Object.freeze(section)));
+  constructor(
+    readonly courseLength: number,
+    sections: readonly VisualSection[],
+  ) {
+    this.sections = compileOpenProfile(
+      sections.map((section) => {
+        nonEmptyId(section.name, 'visual section name');
+        return {
+          ...section,
+          groundBaseLeft: compileGroundBase(section.groundBaseLeft),
+          groundBaseRight: compileGroundBase(section.groundBaseRight),
+        };
+      }),
+      { length: courseLength, chainage: 'sStart', label: 'visual profile' },
+    );
   }
 
   sample(s: number): VisualSection {
     const local = openProfileChainage(s, this.courseLength, 'visual profile');
-    return sectionAt(this.sections, local);
+    return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
   }
 
   distanceToNextSection(s: number): number {
     const local = openProfileChainage(s, this.courseLength, 'visual profile');
     if (local === this.courseLength) return 0;
-    for (const section of this.sections) {
-      if (section.sStart > local + EPSILON) return section.sStart - local;
-    }
-    return this.courseLength - local;
+    const index = profileIndexAt(this.sections, 'sStart', local + EPSILON);
+    return (this.sections[index + 1]?.sStart ?? this.courseLength) - local;
   }
-}
-
-function sectionAt(sections: readonly VisualSection[], local: number): VisualSection {
-  let index = sections.length - 1;
-  for (let i = 0; i < sections.length; i += 1) {
-    if (sections[i]!.sStart <= local) index = i;
-    else break;
-  }
-  return sections[index]!;
 }

@@ -1,20 +1,17 @@
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { GuidePath } from '../core/guide-curve.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-} from '../core/presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
   type DeclarativeLiveRouteAuthoring,
   type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
+import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import { compileRasterForkStageRoute } from '../runtime/raster-fork-stage-route.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
-import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
-import type { M4SpriteAssets } from '../visual/m4-sprite-assets.js';
+import type { SpriteAssets } from '../visual/sprite-assets.js';
+import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
@@ -37,7 +34,7 @@ const FORK_SOURCE_SEAM_MIN_S = 235;
 function createM637SymmetricSecondLiveForkAuthoring(
   parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
 ): DeclarativeLiveRouteAuthoring {
   const upstream = createM635SecondLiveForkAuthoring(parentGuide, parentContent, spriteAssets);
   const identity = createM621ChildVisualIdentity();
@@ -63,36 +60,35 @@ function createM637SymmetricSecondLiveForkAuthoring(
       },
       outerSurfaceType: 'GRASS',
     },
-    branches: [
-      forkBranchAuthoring('A', 'LEFT', -1),
-      forkBranchAuthoring('B', 'RIGHT', 1),
-    ],
-    createRuntime: (structural, branch) => chartPackage(compileAuthoredStageRuntimePackage({
-      packageId: branch.packageId,
-      worldFrameId: WORLD_FRAME_ID,
-      coordinateFrame: structural.chart,
-      roadView: structural.roadView,
-      surfaceMap: structural.surfaceMap,
-      groundProfile: structural.groundProfile,
-    }, branch.side === 'LEFT' ? authored.left : authored.right)),
+    branches: [forkBranchAuthoring('A', 'LEFT', -1), forkBranchAuthoring('B', 'RIGHT', 1)],
+    createRuntime: (structural, branch) =>
+      chartPackage(
+        compileAuthoredStageRuntimePackage(
+          {
+            packageId: branch.packageId,
+            worldFrameId: WORLD_FRAME_ID,
+            coordinateFrame: structural.chart,
+            roadView: structural.roadView,
+            surfaceMap: structural.surfaceMap,
+            groundProfile: structural.groundProfile,
+          },
+          branch.side === 'LEFT' ? authored.left : authored.right,
+        ),
+      ),
   }).authoring;
 }
 
 export function createM637SymmetricSecondLiveForkRuntime(
   parentGuide: GuidePath,
   parentContent: M620SharedRuntimeContent,
-  spriteAssets: M4SpriteAssets,
+  spriteAssets: SpriteAssets,
 ): LiveRouteRuntimeAssembly {
   return compileDeclarativeLiveRoute(
     createM637SymmetricSecondLiveForkAuthoring(parentGuide, parentContent, spriteAssets),
   );
 }
 
-function forkBranchAuthoring(
-  label: 'A' | 'B',
-  side: 'LEFT' | 'RIGHT',
-  deformationDirection: -1 | 1,
-) {
+function forkBranchAuthoring(label: 'A' | 'B', side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1) {
   return {
     side,
     stageId: `GOAL_R${label}`,

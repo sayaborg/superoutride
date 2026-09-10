@@ -65,9 +65,7 @@ export function recordVehicleTelemetryTick(
   return sample;
 }
 
-export function summarizeVehicleTelemetry(
-  recorder: VehicleTelemetryRecorder,
-): VehicleTelemetrySummary {
+export function summarizeVehicleTelemetry(recorder: VehicleTelemetryRecorder): VehicleTelemetrySummary {
   let previous = recorder.origin;
   let planarDistanceMeters = 0;
   let netSignedChainageMeters = 0;
@@ -78,14 +76,11 @@ export function summarizeVehicleTelemetry(
 
   for (const sample of recorder.samples) {
     planarDistanceMeters += Math.hypot(sample.x - previous.x, sample.z - previous.z);
-    netSignedChainageMeters += wrapSigned(
-      sample.sLocal - previous.sLocal,
-      recorder.courseLength,
-    );
+    netSignedChainageMeters += wrapSigned(sample.sLocal - previous.sLocal, recorder.courseLength);
     maxSpeedMetersPerSecond = Math.max(maxSpeedMetersPerSecond, speedOf(sample));
     maxAbsLateralMeters = Math.max(maxAbsLateralMeters, Math.abs(sample.lateral));
     maxAbsSideslipDegrees = Math.max(maxAbsSideslipDegrees, Math.abs(sideslipDegrees(sample)));
-    const yawRate = Math.abs(wrapAngle(sample.yaw - previous.yaw) / recorder.dt) * 180 / Math.PI;
+    const yawRate = (Math.abs(wrapAngle(sample.yaw - previous.yaw) / recorder.dt) * 180) / Math.PI;
     maxAbsYawRateDegreesPerSecond = Math.max(maxAbsYawRateDegreesPerSecond, yawRate);
     previous = sample;
   }
@@ -102,11 +97,7 @@ export function summarizeVehicleTelemetry(
   };
 }
 
-function snapshot(
-  tick: number,
-  input: DrivingInput,
-  vehicle: VehicleCameraReadState,
-): VehicleTelemetrySample {
+function snapshot(tick: number, input: DrivingInput, vehicle: VehicleCameraReadState): VehicleTelemetrySample {
   return {
     tick,
     input: {
@@ -130,6 +121,5 @@ function speedOf(sample: VehicleTelemetrySample): number {
 }
 
 function sideslipDegrees(sample: VehicleTelemetrySample): number {
-  return Math.atan2(sample.lateralSpeed, Math.max(Math.abs(sample.longitudinalSpeed), 1e-6))
-    * 180 / Math.PI;
+  return (Math.atan2(sample.lateralSpeed, Math.max(Math.abs(sample.longitudinalSpeed), 1e-6)) * 180) / Math.PI;
 }

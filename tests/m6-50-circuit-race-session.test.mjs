@@ -31,20 +31,27 @@ function createFixture() {
     topology,
     0,
     3,
-    { lMax: 4.5, mMin: 0.72, dCam: 5 },
+    { lMax: 6, mMin: 0.72, dCam: 5 },
     {
-      height: new HeightProfile(L, [{ s: 0, y: 0 }, { s: L, y: 0 }]),
-      visual: new VisualProfile(L, [{
-        sStart: 0,
-        name: 'CIRCUIT',
-        groundBaseLeft: { kind: 'color', color: 0x111111ff },
-        groundBaseRight: { kind: 'color', color: 0x111111ff },
-      }]),
-      surface: new SurfaceMap(L, [{
-        sStart: 0,
-        name: 'ASPHALT',
-        bands: [{ lMin: -5, lMax: 5, type: 'ASPHALT' }],
-      }]),
+      height: new HeightProfile(L, [
+        { s: 0, y: 0 },
+        { s: L, y: 0 },
+      ]),
+      visual: new VisualProfile(L, [
+        {
+          sStart: 0,
+          name: 'CIRCUIT',
+          groundBaseLeft: { kind: 'color', color: 0x111111ff },
+          groundBaseRight: { kind: 'color', color: 0x111111ff },
+        },
+      ]),
+      surface: new SurfaceMap(L, [
+        {
+          sStart: 0,
+          name: 'ASPHALT',
+          bands: [{ lMin: -5, lMax: 5, type: 'ASPHALT' }],
+        },
+      ]),
     },
   );
   const rules = compileCircuitRaceRules(window, {
@@ -87,7 +94,10 @@ test('M6.50 generic race session records circuit checkpoint and physical lap-bou
 
   assert.equal(session.elapsedSeconds, 0.5);
   assert.equal(session.gateTimings.length, 2);
-  assert.deepEqual(session.gateTimings.map((timing) => timing.gateKind), ['checkpoint', 'finish']);
+  assert.deepEqual(
+    session.gateTimings.map((timing) => timing.gateKind),
+    ['checkpoint', 'finish'],
+  );
   assert.equal(session.boundaryTimings.length, 1);
   assert.equal(session.boundaryTimings[0].elapsedSeconds, 0.5);
   assert.equal(session.boundaryTimings[0].intervalSeconds, 0.5);

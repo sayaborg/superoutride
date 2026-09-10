@@ -14,7 +14,7 @@ import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-id
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
@@ -51,7 +51,7 @@ function setupRegistry() {
     visual: visualProfile,
     thinSpanScreenRows: 1,
   };
-  const parentFarBackground = createM3FarBackground();
+  const parentFarBackground = createFarBackground();
   const identity = createM621ChildVisualIdentity();
   const registry = createM620LiveStageRuntimeRegistry(
     manifest,
@@ -103,7 +103,7 @@ test('M6.21 keeps LEFT/RIGHT visual choice outside renderer Core', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource, contentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-20-live-runtime-content.ts', import.meta.url), 'utf8'),
   ]);
 

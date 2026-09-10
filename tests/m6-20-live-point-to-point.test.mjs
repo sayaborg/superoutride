@@ -17,7 +17,7 @@ import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runti
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createM5CameraRig } from '../dist/camera/m5-camera.js';
+import { createCameraRig } from '../dist/camera/camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
@@ -33,7 +33,7 @@ import {
 } from '../dist/gameplay/run-objective.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
@@ -87,26 +87,16 @@ function setup() {
     visual: visualProfile,
     thinSpanScreenRows: 1,
   };
-  const background = createM3FarBackground();
-  const registry = createM620LiveStageRuntimeRegistry(
-    content,
-    charts,
-    roadViews,
-    {
-      heightProfile,
-      surfaceMap,
-      terrainProfile,
-      groundProfile,
-      selectFarBackground: () => background,
-      worldSprites: [],
-    },
-  );
-  const handoffState = createRouteStageHandoffState(
-    route,
-    content,
-    charts.parent,
-    { x: 0, z: 0 },
-  );
+  const background = createFarBackground();
+  const registry = createM620LiveStageRuntimeRegistry(content, charts, roadViews, {
+    heightProfile,
+    surfaceMap,
+    terrainProfile,
+    groundProfile,
+    selectFarBackground: () => background,
+    worldSprites: [],
+  });
+  const handoffState = createRouteStageHandoffState(route, content, charts.parent, { x: 0, z: 0 });
   return {
     guide,
     route,
@@ -125,12 +115,18 @@ function setup() {
 test('M6.20 live DAG is one physical fork into two terminal child stages', () => {
   const { route } = setup();
   assert.equal(route.startStageId, 'STAGE_1');
-  assert.deepEqual(route.stages.map((stage) => [stage.id, stage.kind]), [
-    ['STAGE_1', 'STAGE'],
-    ['GOAL_L', 'TERMINAL'],
-    ['GOAL_R', 'TERMINAL'],
-  ]);
-  assert.deepEqual(route.choices.map((choice) => choice.id), ['S1_LEFT', 'S1_RIGHT']);
+  assert.deepEqual(
+    route.stages.map((stage) => [stage.id, stage.kind]),
+    [
+      ['STAGE_1', 'STAGE'],
+      ['GOAL_L', 'TERMINAL'],
+      ['GOAL_R', 'TERMINAL'],
+    ],
+  );
+  assert.deepEqual(
+    route.choices.map((choice) => choice.id),
+    ['S1_LEFT', 'S1_RIGHT'],
+  );
 });
 
 test('M6.20 child FINISH lies after handoff and before the open Guide endpoint', () => {
@@ -147,16 +143,7 @@ test('M6.20 child FINISH lies after handoff and before the open Guide endpoint',
 
 for (const side of ['LEFT', 'RIGHT']) {
   test(`M6.20 ${side.toLowerCase()} path selects, commits child runtime and physically finishes without a second fork`, () => {
-    const {
-      route,
-      routeState,
-      gates,
-      content,
-      chartList,
-      handoffManifest,
-      registry,
-      handoffState,
-    } = setup();
+    const { route, routeState, gates, content, chartList, handoffManifest, registry, handoffState } = setup();
     const choiceId = side === 'LEFT' ? 'S1_LEFT' : 'S1_RIGHT';
     const goalId = side === 'LEFT' ? 'GOAL_L' : 'GOAL_R';
     const expectedPackage = `CONTENT_${goalId}`;
@@ -187,14 +174,7 @@ for (const side of ['LEFT', 'RIGHT']) {
       seamMotion.current,
     );
     assert.equal(
-      commitRouteStageHandoff(
-        handoffState,
-        routeState,
-        content,
-        chartList,
-        handoffObservation.seam,
-        seam.center,
-      ),
+      commitRouteStageHandoff(handoffState, routeState, content, chartList, handoffObservation.seam, seam.center),
       'COMMITTED',
     );
     const runtime = resolveActiveStageRuntimeContent(registry, handoffState);
@@ -218,11 +198,7 @@ for (const side of ['LEFT', 'RIGHT']) {
 
     const finish = createValidatedRunFinishFromRoute(routeState, finishUpdate);
     const objective = createRunObjectiveState();
-    const objectiveUpdate = updateRunObjectiveFromValidatedFinish(
-      objective,
-      finish,
-      12.5,
-    );
+    const objectiveUpdate = updateRunObjectiveFromValidatedFinish(objective, finish, 12.5);
     assert.equal(objectiveUpdate.justFinished, true);
     assert.equal(objective.status, 'FINISHED');
     assert.equal(objective.finishId, goalId);
@@ -230,7 +206,7 @@ for (const side of ['LEFT', 'RIGHT']) {
 }
 
 test('M6.20 camera rig carries no chart-local lateral authority through child handoff', () => {
-  assert.deepEqual(createM5CameraRig(), {
+  assert.deepEqual(createCameraRig(), {
     yawMode: 'BODY_FIXED',
     yaw: 0,
     movementYaw: 0,
@@ -253,14 +229,17 @@ test('M6.20 fixture stays validated while browser live authority consumes the M6
 
   assert.match(source, /createM638DeclarativeForkGrowthRuntime/);
   assert.match(source, /const liveRoute = createM638DeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(source, /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/);
+  assert.doesNotMatch(
+    source,
+    /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/,
+  );
   assert.doesNotMatch(source, /createM620LivePointToPointRouteDag/);
   assert.doesNotMatch(source, /createM622ChildStageContinuation/);
-  assert.match(source, /resolveActiveStageRuntimeContent/);
+  assert.match(source, /resolveLiveRouteTravelerRuntime/);
   assert.doesNotMatch(source, /POINT_TO_POINT_OBJECTIVE|REPEATABLE_DEV/);
   assert.doesNotMatch(source, /createM6DebugRouteDag/);
   assert.doesNotMatch(source, /createM615VisibleRouteBoundaryGateSet/);
-  assert.match(source, /runtimeBefore\.coordinateFrame/);
-  assert.match(source, /runtimeBefore\.surfaceMap/);
+  assert.match(source, /stageVehicleWorld\(runtime\)/);
+  assert.match(source, /advanceRouteDrivingTick/);
   assert.match(source, /runtime\.roadView \?\? undefined/);
 });

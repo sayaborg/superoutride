@@ -1,11 +1,17 @@
-import { compileTireCharacteristics, createArcadeTireFrictionCalibration } from '../dist/physics/tire-friction-calibration.js';
+import {
+  compileTireCharacteristics,
+  createArcadeTireFrictionCalibration,
+} from '../dist/physics/tire-friction-calibration.js';
 import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
-  createAutomaticPowertrainState, updateAutomaticPowertrain,
-  validateAutomaticPowertrainProfile, sampleEngineTorque, engineRevLimiterScale,
+  createAutomaticPowertrainState,
+  updateAutomaticPowertrain,
+  validateAutomaticPowertrainProfile,
+  sampleEngineTorque,
+  engineRevLimiterScale,
 } from '../dist/physics/automatic-powertrain.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -14,26 +20,54 @@ import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 
 const dt = 1 / 60;
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(b)), `${a} != ${b}`);
-const omegaAt = (p, rpm, gear) => rpm * 2 * Math.PI / (60 * p.finalDriveRatio * p.gearRatios[gear - 1]);
-const rpmAt = (p, omega, gear) => Math.abs(omega) * p.gearRatios[gear - 1] * p.finalDriveRatio * 60 / (2 * Math.PI);
-const guide = compileGuidePath(compileRasterPath([{ x: 0, z: -10000 }, { x: 0, z: 10000 }]), { lMax: 5000, mMin: 0.25, dCam: 5 });
-const height = new HeightProfile(guide.length, [{ s: 0, y: 0 }, { s: guide.length, y: 0 }]);
-const surface = new SurfaceMap(guide.length, [{ sStart: 0, name: 'M9.17 FLAT DRIVE PROBE', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] }]);
-const tire = createArcadeTireFrictionCalibration(compileTireCharacteristics({gripX:2,gripY:2,peakSlipX:.24,peakSlipY:.24,knee:.74}));
-const steering = { maxRoadWheelSteer: Math.PI / 3, steeringOffsetMax: 12 * Math.PI / 180, steeringActuatorResponse: { applyRate: 4, releaseRate: 4 } };
-const makeVehicle = (profile = car, speed = 10) => createArcadeVehicle(profile, guide, height, surface, 10000, 0, speed, steering, tire);
+const omegaAt = (p, rpm, gear) => (rpm * 2 * Math.PI) / (60 * p.finalDriveRatio * p.gearRatios[gear - 1]);
+const rpmAt = (p, omega, gear) => (Math.abs(omega) * p.gearRatios[gear - 1] * p.finalDriveRatio * 60) / (2 * Math.PI);
+const guide = compileGuidePath(
+  compileRasterPath([
+    { x: 0, z: -10000 },
+    { x: 0, z: 10000 },
+  ]),
+  { lMax: 5000, mMin: 0.25, dCam: 5 },
+);
+const height = new HeightProfile(guide.length, [
+  { s: 0, y: 0 },
+  { s: guide.length, y: 0 },
+]);
+const surface = new SurfaceMap(guide.length, [
+  { sStart: 0, name: 'M9.17 FLAT DRIVE PROBE', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+]);
+const tire = createArcadeTireFrictionCalibration(
+  compileTireCharacteristics({ gripX: 2, gripY: 2, peakSlipX: 0.24, peakSlipY: 0.24, knee: 0.74 }),
+);
+const steering = {
+  maxRoadWheelSteer: Math.PI / 3,
+  steeringOffsetMax: (12 * Math.PI) / 180,
+  steeringActuatorResponse: { applyRate: 4, releaseRate: 4 },
+};
+const makeVehicle = (profile = car, speed = 10) =>
+  createArcadeVehicle(
+    profile,
+    { guide, height, surfaces: surface },
+    { s: 10000, l: 0, initialSpeed: speed, steeringCalibration: steering, tireFrictionCalibration: tire },
+  );
 
 test('M9.17 all nine profiles retain separate ratio-safe thresholds and remove artificial coupling fields', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     validateAutomaticPowertrainProfile(p);
     for (const name of ['shiftDuration', 'engineResponseTau', 'launchCouplingSlipRpm']) assert.equal(name in p, false);
-    for (let i = 1; i < p.gearRatios.length; i++) assert.ok(p.downshiftRpm < p.upshiftRpm * p.gearRatios[i] / p.gearRatios[i - 1]);
+    for (let i = 1; i < p.gearRatios.length; i++)
+      assert.ok(p.downshiftRpm < (p.upshiftRpm * p.gearRatios[i]) / p.gearRatios[i - 1]);
     const s = createAutomaticPowertrainState(p);
-    assert.deepEqual(Object.keys(s).sort(), ['gear', 'engineRpm', 'engineTorqueNewtonMeters', 'outputDriveTorque'].sort());
+    assert.deepEqual(
+      Object.keys(s).sort(),
+      ['gear', 'engineRpm', 'engineTorqueNewtonMeters', 'outputDriveTorque'].sort(),
+    );
   }
 });
 
@@ -54,7 +88,9 @@ test('M9.17 RPM is direct wheel-ratio algebra and stale observation caches are n
 });
 
 test('M9.17 zero-speed launch has zero derived RPM, finite idle-floor torque and no zero-throttle creep', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     const s = createAutomaticPowertrainState(p, 0);
     assert.equal(s.engineRpm, 0);
     assert.equal(updateAutomaticPowertrain(s, p, 0, 0, dt), 0);
@@ -69,7 +105,9 @@ test('M9.17 zero-speed launch has zero derived RPM, finite idle-floor torque and
 });
 
 test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately without inverse hunting', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     for (let lower = 1; lower < p.gearRatios.length; lower++) {
       for (const up of [true, false]) {
         const gear = up ? lower : lower + 1;
@@ -82,7 +120,10 @@ test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately
           assert.equal(s.gear, expected);
           assert.ok(output > 0);
           near(s.engineRpm, rpmAt(p, omega, expected));
-          near(output, sampleEngineTorque(p, s.engineRpm) * p.gearRatios[expected - 1] * p.finalDriveRatio * p.efficiency);
+          near(
+            output,
+            sampleEngineTorque(p, s.engineRpm) * p.gearRatios[expected - 1] * p.finalDriveRatio * p.efficiency,
+          );
         }
       }
     }
@@ -96,10 +137,21 @@ test('M9.17 invalid ratio gaps and nonpositive engine curves fail compilation', 
     { ...p, gearRatios: [10, 1] },
     { ...p, downshiftRpm: p.upshiftRpm },
     { ...p, torqueCurve: [...p.torqueCurve, { rpm: p.redlineRpm, torqueNewtonMeters: 0 }] },
-    { ...p, torqueCurve: [{ rpm: p.idleRpm, torqueNewtonMeters: 1 }, { rpm: p.upshiftRpm - 1, torqueNewtonMeters: 1 }] },
-  ]) assert.throws(() => validateAutomaticPowertrainProfile(bad), RangeError);
+    {
+      ...p,
+      torqueCurve: [
+        { rpm: p.idleRpm, torqueNewtonMeters: 1 },
+        { rpm: p.upshiftRpm - 1, torqueNewtonMeters: 1 },
+      ],
+    },
+  ])
+    assert.throws(() => validateAutomaticPowertrainProfile(bad), RangeError);
   const s = createAutomaticPowertrainState(p);
-  for (const [omega, pedal, h] of [[NaN, 1, dt], [0, NaN, dt], [0, 1, 0]]) {
+  for (const [omega, pedal, h] of [
+    [NaN, 1, dt],
+    [0, NaN, dt],
+    [0, 1, 0],
+  ]) {
     const before = { ...s };
     assert.throws(() => updateAutomaticPowertrain(s, p, omega, pedal, h), RangeError);
     assert.deepEqual(s, before);
@@ -107,7 +159,9 @@ test('M9.17 invalid ratio gaps and nonpositive engine curves fail compilation', 
 });
 
 test('M9.17 all positive engine samples survive and the curve itself does not collapse at redline', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     for (const point of p.torqueCurve) {
       assert.ok(point.torqueNewtonMeters > 0);
       near(sampleEngineTorque(p, point.rpm), point.torqueNewtonMeters);
@@ -119,7 +173,9 @@ test('M9.17 all positive engine samples survive and the curve itself does not co
 });
 
 test('M9.17 one averaged rev limiter is monotone, bounded and C1 at both endpoints', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     const span = p.redlineRpm - p.upshiftRpm;
     near(engineRevLimiterScale(p, 0), 1);
     near(engineRevLimiterScale(p, p.upshiftRpm), 1);
@@ -128,7 +184,7 @@ test('M9.17 one averaged rev limiter is monotone, bounded and C1 at both endpoin
     near(engineRevLimiterScale(p, p.redlineRpm * 2), 0);
     let previous = 1;
     for (let i = 0; i <= 100; i++) {
-      const value = engineRevLimiterScale(p, p.upshiftRpm + span * i / 100);
+      const value = engineRevLimiterScale(p, p.upshiftRpm + (span * i) / 100);
       assert.ok(value >= 0 && value <= previous + 1e-12);
       previous = value;
     }
@@ -139,7 +195,9 @@ test('M9.17 one averaged rev limiter is monotone, bounded and C1 at both endpoin
 });
 
 test('M9.17 rev limiting cuts only drive, permits observed overrun and recovers without a timer', () => {
-  for (const { profile: { powertrain: p } } of VEHICLE_CATALOG) {
+  for (const {
+    profile: { powertrain: p },
+  } of VEHICLE_CATALOG) {
     const top = p.gearRatios.length;
     const omega = omegaAt(p, p.redlineRpm * 1.2, top);
     const s = createAutomaticPowertrainState(p, omega);
@@ -155,9 +213,10 @@ test('M9.17 rev limiting cuts only drive, permits observed overrun and recovers 
 test('M9.17 all nine stock profiles launch through ordinary wheel/contact dynamics and reconstruct unscaled powertrain in recovery', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     const v = makeVehicle(profile, 0);
-    for (let tick = 0; tick < 120; tick++) updateArcadeVehicle(guide, height, surface, v, { steering: 0, throttle: true, brake: false }, dt);
+    for (let tick = 0; tick < 120; tick++)
+      updateArcadeVehicle(guide, height, surface, v, { steering: 0, throttle: true, brake: false }, dt);
     assert.ok(v.speed > 0 && Number.isFinite(v.speed), profile.id);
-    recoverM5Vehicle(createM5RecoveryState(v), guide, height, surface, v);
+    recoverVehicle({ guide, height, surfaces: surface }, v, { state: createRecoveryState(v) });
     assert.equal(v.powertrain.engineTorqueNewtonMeters, sampleEngineTorque(profile.powertrain, v.powertrain.engineRpm));
     assert.equal(v.powertrain.outputDriveTorque, 0);
     assert.equal('shiftTimer' in v.powertrain, false);
@@ -167,7 +226,11 @@ test('M9.17 all nine stock profiles launch through ordinary wheel/contact dynami
 function huntingProbe() {
   const v = makeVehicle(withEngineCurveScale(car, 3));
   const input = { steering: 1, throttle: 1, brake: 0, steeringApplyMode: 'DIRECT', pedalApplyMode: 'DIRECT' };
-  let previousGear = 1, changes = 0, downshifts = 0, tailZeros = 0, tailChanges = 0;
+  let previousGear = 1,
+    changes = 0,
+    downshifts = 0,
+    tailZeros = 0,
+    tailChanges = 0;
   for (let tick = 0; tick < 1200; tick++) {
     updateArcadeVehicle(guide, height, surface, v, input, dt);
     if (v.powertrain.gear !== previousGear) {
@@ -177,9 +240,18 @@ function huntingProbe() {
     }
     if (tick >= 900 && v.powertrain.outputDriveTorque === 0) tailZeros++;
     previousGear = v.powertrain.gear;
-    for (const value of [v.speed, v.x, v.z, v.yawRate, v.rearWheelOmega, v.powertrain.outputDriveTorque]) assert.ok(Number.isFinite(value));
+    for (const value of [v.speed, v.x, v.z, v.yawRate, v.rearWheelOmega, v.powertrain.outputDriveTorque])
+      assert.ok(Number.isFinite(value));
   }
-  return { changes, downshifts, tailZeros, tailChanges, finalSpeed: v.speed, finalYaw: v.yaw, finalGear: v.powertrain.gear };
+  return {
+    changes,
+    downshifts,
+    tailZeros,
+    tailChanges,
+    finalSpeed: v.speed,
+    finalYaw: v.yaw,
+    finalGear: v.powertrain.gear,
+  };
 }
 
 test('M9.17 authored threefold-torque low-speed hunting case keeps drive through a full 20 seconds without forced state', () => {
@@ -198,6 +270,9 @@ test('M9.17 complete 20-second drive trace remains deterministic', () => {
 test('M9.17 removes coupling, RPM lag and shift-cut state without introducing a vehicle-specific force path', async () => {
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   const profiles = await readFile(new URL('../src/vehicle/production-vehicle-profiles.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(`${source}\n${profiles}`, /shiftDuration|shiftTimer|shiftDirection|engineResponseTau|launchCouplingSlipRpm|shiftDriveScale|redlineScale/);
+  assert.doesNotMatch(
+    `${source}\n${profiles}`,
+    /shiftDuration|shiftTimer|shiftDirection|engineResponseTau|launchCouplingSlipRpm|shiftDriveScale|redlineScale/,
+  );
   assert.doesNotMatch(source, /vehicle\.velocity|driftMode|yawRate|Math\.exp|from ['"].*(browser|dev\/)/);
 });

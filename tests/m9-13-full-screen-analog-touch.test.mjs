@@ -3,7 +3,12 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { normalizedPedalRequest } from '../dist/input/driving-input.js';
-import { TouchInput, touchAnalogFullScaleDistance, touchPedalRequests, touchSteeringRequest } from '../dist/input/touch-input.js';
+import {
+  TouchInput,
+  touchAnalogFullScaleDistance,
+  touchPedalRequests,
+  touchSteeringRequest,
+} from '../dist/input/touch-input.js';
 import { createDrivingActuatorState, updateDrivingActuators } from '../dist/physics/driving-actuator.js';
 
 class FakeEventTarget {
@@ -24,14 +29,22 @@ class FakeEventTarget {
 
 class FakeClassList {
   values = new Set();
-  add(name) { this.values.add(name); }
-  remove(name) { this.values.delete(name); }
-  contains(name) { return this.values.has(name); }
+  add(name) {
+    this.values.add(name);
+  }
+  remove(name) {
+    this.values.delete(name);
+  }
+  contains(name) {
+    return this.values.has(name);
+  }
 }
 
 class FakeStyle {
   values = new Map();
-  setProperty(name, value) { this.values.set(name, value); }
+  setProperty(name, value) {
+    this.values.set(name, value);
+  }
 }
 
 class FakeElement extends FakeEventTarget {
@@ -43,15 +56,24 @@ class FakeElement extends FakeEventTarget {
   attributes = new Map();
 
   setPointerCapture() {}
-  append(...children) { this.children.push(...children); }
-  appendChild(child) { this.children.push(child); return child; }
-  setAttribute(name, value) { this.attributes.set(name, value); }
+  append(...children) {
+    this.children.push(...children);
+  }
+  appendChild(child) {
+    this.children.push(child);
+    return child;
+  }
+  setAttribute(name, value) {
+    this.attributes.set(name, value);
+  }
 }
 
 class FakeDocument extends FakeEventTarget {
   visibilityState = 'visible';
   body = new FakeElement();
-  createElement() { return new FakeElement(); }
+  createElement() {
+    return new FakeElement();
+  }
 }
 
 function pointer(pointerId, clientX, clientY) {

@@ -29,10 +29,12 @@ export function compileRasterForkGrowthPlan(
   const compiled: CompiledRasterForkStageRoute[] = [];
 
   for (const step of steps) {
-    const result = compileRasterForkStageRoute(Object.freeze({
-      ...step,
-      upstream: authoring,
-    }));
+    const result = compileRasterForkStageRoute(
+      Object.freeze({
+        ...step,
+        upstream: authoring,
+      }),
+    );
     compiled.push(result);
     authoring = result.authoring;
   }

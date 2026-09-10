@@ -13,9 +13,11 @@ export interface RivalRosterEntry {
  * empty array rather than a special-case null rival.
  */
 export function createRivalRoster(session: SessionConfiguration): readonly RivalRosterEntry[] {
-  const entries = Array.from({ length: session.rivalCount }, (_, rivalIndex) => Object.freeze({
-    actorId: `RIVAL_${String(rivalIndex + 1).padStart(2, '0')}`,
-    rivalIndex,
-  }));
+  const entries = Array.from({ length: session.rivalCount }, (_, rivalIndex) =>
+    Object.freeze({
+      actorId: `RIVAL_${String(rivalIndex + 1).padStart(2, '0')}`,
+      rivalIndex,
+    }),
+  );
   return Object.freeze(entries);
 }

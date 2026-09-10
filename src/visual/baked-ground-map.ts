@@ -1,5 +1,5 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { selectGroundMapLevel } from '../compiler/ground-map-lod.js';
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { rgb555ToRgba } from '../render/rgb555.js';
 
 export type BakedGroundMapStorageFormat = 'palette8' | 'rgb555le';
@@ -86,11 +86,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
 
   /** Shared-pyramid authority remains chainage footprint only. */
   selectLevel(deltaSEffective: number): number {
-    return selectGroundMapLevel(
-      deltaSEffective,
-      this.metadata.qSAuthority,
-      this.metadata.kMax,
-    );
+    return selectGroundMapLevel(deltaSEffective, this.metadata.qSAuthority, this.metadata.kMax);
   }
 
   sample(s: number, l: number, deltaSEffective: number): BakedGroundMapSample {
@@ -103,15 +99,13 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
 
     const sLocal = openProfileChainage(s, this.metadata.courseLength, 'baked GroundMap');
-    const row = sLocal === this.metadata.courseLength
-      ? level.chainageTexels - 1
-      : Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels);
+    const row =
+      sLocal === this.metadata.courseLength
+        ? level.chainageTexels - 1
+        : Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels);
     const lateralWidth = this.metadata.groundLeft + this.metadata.groundRight;
     const normalizedL = (l + this.metadata.groundLeft) / lateralWidth;
-    const column = Math.max(
-      0,
-      Math.min(level.lateralTexels - 1, Math.floor(normalizedL * level.lateralTexels)),
-    );
+    const column = Math.max(0, Math.min(level.lateralTexels - 1, Math.floor(normalizedL * level.lateralTexels)));
     const chunk = findChunk(level.chunks, row);
     const payload = this.metadata.payloads[chunk.payloadId];
     if (!payload) throw new Error('GroundMap chunk references missing payload');
@@ -141,9 +135,10 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
       throw new RangeError('GroundMap texel outside level');
     }
     return {
-      s: (row + 0.5) * this.metadata.courseLength / level.chainageTexels,
-      l: -this.metadata.groundLeft
-        + (column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight) / level.lateralTexels,
+      s: ((row + 0.5) * this.metadata.courseLength) / level.chainageTexels,
+      l:
+        -this.metadata.groundLeft +
+        ((column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight)) / level.lateralTexels,
     };
   }
 }
@@ -185,8 +180,12 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
   for (let k = 0; k < metadata.levels.length; k += 1) {
     const level = metadata.levels[k]!;
     if (level.level !== k) throw new Error('GroundMap levels must be ordered by level index');
-    if (!Number.isInteger(level.lateralTexels) || level.lateralTexels <= 0
-      || !Number.isInteger(level.chainageTexels) || level.chainageTexels <= 0) {
+    if (
+      !Number.isInteger(level.lateralTexels) ||
+      level.lateralTexels <= 0 ||
+      !Number.isInteger(level.chainageTexels) ||
+      level.chainageTexels <= 0
+    ) {
       throw new Error('GroundMap level dimensions invalid');
     }
     let nextRow = 0;
@@ -195,10 +194,12 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
         throw new Error('GroundMap chunks must cover rows contiguously');
       }
       const payload = metadata.payloads[chunk.payloadId];
-      if (!payload
-        || payload.format !== level.format
-        || payload.lateralTexels !== level.lateralTexels
-        || payload.rowCount !== chunk.rowCount) {
+      if (
+        !payload ||
+        payload.format !== level.format ||
+        payload.lateralTexels !== level.lateralTexels ||
+        payload.rowCount !== chunk.rowCount
+      ) {
         throw new Error('GroundMap chunk payload metadata mismatch');
       }
       nextRow += chunk.rowCount;

@@ -17,9 +17,9 @@ import {
   resyncLiveRouteTraveler,
   resolveLiveRouteTravelerRuntime,
 } from '../dist/runtime/live-route-traveler.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createLiveFixture() {
@@ -57,10 +57,10 @@ function createLiveFixture() {
         visual: visualProfile,
         thinSpanScreenRows: 1,
       },
-      selectFarBackground: () => createM3FarBackground(),
+      selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },
-    createM4SpriteAssets(),
+    createSpriteAssets(),
   );
 }
 
@@ -86,7 +86,7 @@ function pointAlong(boundary, signedMeters) {
 }
 
 function actorResult(tick, actorId) {
-  const result = tick.actors.find((candidate) => candidate.actorId === actorId);
+  const result = tick.actors[actorId];
   assert.ok(result, `missing actor result ${actorId}`);
   return result;
 }
@@ -165,13 +165,9 @@ test('M6.42 batching has no hidden one-rival assumption at 0 and 16 rival extrem
       };
     });
 
-    const tick = advanceLiveRouteMultiActorTick(
-      live,
-      createSharedRouteChoiceState('INDEPENDENT'),
-      actors,
-    );
+    const tick = advanceLiveRouteMultiActorTick(live, createSharedRouteChoiceState('INDEPENDENT'), actors);
 
-    assert.equal(tick.actors.length, actorCount);
+    assert.equal(Object.keys(tick.actors).length, actorCount);
     for (const actor of actors) {
       assert.equal(actorResult(tick, actor.actorId).routeUpdate?.acceptedChoice?.id, 'S1_RIGHT');
       assert.equal(actor.state.routeState.activeStageId, 'STAGE_2_R');
@@ -256,11 +252,9 @@ test('M6.42 single-actor INDEPENDENT multi-actor path is state-equivalent to leg
   const batched = createLiveRouteTravelerState(live, start);
 
   const legacyUpdate = advanceLiveRouteTraveler(live, legacy, pointAlong(right, 1));
-  const batch = advanceLiveRouteMultiActorTick(
-    live,
-    createSharedRouteChoiceState('INDEPENDENT'),
-    [{ actorId: 'ONLY', state: batched, currentWorldPoint: pointAlong(right, 1) }],
-  );
+  const batch = advanceLiveRouteMultiActorTick(live, createSharedRouteChoiceState('INDEPENDENT'), [
+    { actorId: 'ONLY', state: batched, currentWorldPoint: pointAlong(right, 1) },
+  ]);
 
   const batchUpdate = actorResult(batch, 'ONLY');
   assert.equal(batchUpdate.routeUpdate?.acceptedChoice?.id, legacyUpdate.routeUpdate?.acceptedChoice?.id);

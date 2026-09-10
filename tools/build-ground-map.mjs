@@ -24,10 +24,7 @@ const pitch = CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS;
 const dMin = CURRENT_RENDER_NEAR_DEPTH_METERS;
 const dMax = CURRENT_RENDER_FAR_DEPTH_METERS;
 const guide = createM2StadiumGuide();
-const compiledSurfaces = compileSurfaceRegions(
-  guide.length,
-  createM5DebugSurfaceRegionAuthoring(guide.length),
-);
+const compiledSurfaces = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -51,31 +48,31 @@ const target = deriveGroundMapTargetEnvelope({
   qS: density.qS,
   thinSpanScreenRows: 1,
 });
-const asset = await compileBakedGroundMapAsset(
-  guide.length,
-  groundProfile,
-  density,
-  target.kMax,
-  32,
-);
+const asset = await compileBakedGroundMapAsset(guide.length, groundProfile, density, target.kMax, 32);
 
 await mkdir(new URL('../dist/assets/', import.meta.url), { recursive: true });
 await Promise.all([
-  writeFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), `${JSON.stringify(asset.metadata, null, 2)}\n`),
+  writeFile(
+    new URL('../dist/assets/m5-ground-map.json', import.meta.url),
+    `${JSON.stringify(asset.metadata, null, 2)}\n`,
+  ),
   writeFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url), asset.bytes),
 ]);
 
 const chunkRefs = asset.metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);
-console.log('M6.13 BAKED GROUND MAP', JSON.stringify({
-  courseLength: asset.metadata.courseLength,
-  baseLateralTexels: asset.metadata.levels[0].lateralTexels,
-  baseChainageTexels: asset.metadata.levels[0].chainageTexels,
-  actualBaseQL: asset.metadata.actualBaseQL,
-  actualBaseQS: asset.metadata.actualBaseQS,
-  kMax: asset.metadata.kMax,
-  chunkRefs,
-  uniquePayloads: asset.metadata.payloads.length,
-  binaryBytes: asset.metadata.binaryBytes,
-  uncompressedRgbaBytes: asset.metadata.uncompressedRgbaBytes,
-  compressionRatio: asset.metadata.binaryBytes / asset.metadata.uncompressedRgbaBytes,
-}));
+console.log(
+  'M6.13 BAKED GROUND MAP',
+  JSON.stringify({
+    courseLength: asset.metadata.courseLength,
+    baseLateralTexels: asset.metadata.levels[0].lateralTexels,
+    baseChainageTexels: asset.metadata.levels[0].chainageTexels,
+    actualBaseQL: asset.metadata.actualBaseQL,
+    actualBaseQS: asset.metadata.actualBaseQS,
+    kMax: asset.metadata.kMax,
+    chunkRefs,
+    uniquePayloads: asset.metadata.payloads.length,
+    binaryBytes: asset.metadata.binaryBytes,
+    uncompressedRgbaBytes: asset.metadata.uncompressedRgbaBytes,
+    compressionRatio: asset.metadata.binaryBytes / asset.metadata.uncompressedRgbaBytes,
+  }),
+);

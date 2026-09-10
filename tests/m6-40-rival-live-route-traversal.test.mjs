@@ -7,10 +7,7 @@ import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import {
-  M6_40_RIVAL_ROUTE_CHOICE_IDS,
-  createM640RivalRouteChoicePlan,
-} from '../dist/dev/m6-40-rival-live-route.js';
+import { M6_40_RIVAL_ROUTE_CHOICE_IDS, createM640RivalRouteChoicePlan } from '../dist/dev/m6-40-rival-live-route.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
@@ -22,9 +19,9 @@ import {
   resolveLiveRouteTravelerRuntime,
   sampleLiveRouteChoicePlanTargetL,
 } from '../dist/runtime/live-route-traveler.js';
-import { createM3FarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createLiveFixture() {
@@ -62,10 +59,10 @@ function createLiveFixture() {
         visual: visualProfile,
         thinSpanScreenRows: 1,
       },
-      selectFarBackground: () => createM3FarBackground(),
+      selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },
-    createM4SpriteAssets(),
+    createSpriteAssets(),
   );
 }
 
@@ -77,9 +74,7 @@ function pointAlongGate(gate, signedMeters) {
 }
 
 function transitionGate(live, choiceId) {
-  const gate = live.gates.gates.find(
-    (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId,
-  );
+  const gate = live.gates.gates.find((candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId);
   assert.ok(gate, `missing gate for ${choiceId}`);
   return gate;
 }
@@ -111,23 +106,18 @@ test('M6.40 DEV rival plan is one validated RIGHT-B path ending at GOAL_RB', () 
   const live = createLiveFixture();
   const plan = createM640RivalRouteChoicePlan(live);
 
-  assert.deepEqual(plan.steps.map((step) => step.choiceId), [...M6_40_RIVAL_ROUTE_CHOICE_IDS]);
-  assert.deepEqual(plan.steps.map((step) => step.stageId), [
-    'STAGE_1',
-    'STAGE_2_R',
-    'STAGE_3_R',
-    'STAGE_4_R_FORK',
-  ]);
+  assert.deepEqual(
+    plan.steps.map((step) => step.choiceId),
+    [...M6_40_RIVAL_ROUTE_CHOICE_IDS],
+  );
+  assert.deepEqual(
+    plan.steps.map((step) => step.stageId),
+    ['STAGE_1', 'STAGE_2_R', 'STAGE_3_R', 'STAGE_4_R_FORK'],
+  );
   assert.equal(plan.terminalStageId, 'GOAL_RB');
 
-  assert.throws(
-    () => compileLiveRouteChoicePlan(live, ['S1_RIGHT', 'S2L_CONTINUE']),
-    /does not leave stage STAGE_2_R/,
-  );
-  assert.throws(
-    () => compileLiveRouteChoicePlan(live, ['S1_RIGHT']),
-    /must end at a terminal stage/,
-  );
+  assert.throws(() => compileLiveRouteChoicePlan(live, ['S1_RIGHT', 'S2L_CONTINUE']), /does not leave stage STAGE_2_R/);
+  assert.throws(() => compileLiveRouteChoicePlan(live, ['S1_RIGHT']), /must end at a terminal stage/);
 });
 
 test('M6.40 route intent follows authored junction growth instead of steering directly to the final branch center', () => {
@@ -231,7 +221,7 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
 test('M6.40 generic traveler stays renderer/physics independent while browser consumes it through M6.42 batching', () => {
   const source = fs.readFileSync(new URL('../src/runtime/live-route-traveler.ts', import.meta.url), 'utf8');
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  const renderer = fs.readFileSync(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8');
+  const renderer = fs.readFileSync(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /physics\//);
@@ -244,7 +234,7 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
     'sampleLiveRouteChoicePlanTargetL',
     'resolveLiveRouteTravelerRuntime',
     'liveRouteTravelersShareRuntimePackage',
-    'advanceLiveRouteMultiActorTick',
+    'advanceRouteDrivingTick',
   ]) {
     assert.match(main, new RegExp(symbol));
   }

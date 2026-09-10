@@ -1,4 +1,5 @@
 import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
+import { finite, nonEmptyId, positiveInteger } from '../core/validation.js';
 
 /**
  * Explicit upper-level circuit topology over one ordinary open RasterPath lap.
@@ -34,7 +35,7 @@ export interface CircuitChainagePosition {
  * 10-degree turn limit and miter validity.
  */
 export function compileCircuitTopology(id: string, lapPath: RasterPath): CircuitTopology {
-  assertNonEmpty(id, 'circuit topology id');
+  nonEmptyId(id, 'circuit topology id');
 
   const first = lapPath.vertices[0];
   const last = lapPath.vertices[lapPath.vertices.length - 1];
@@ -65,20 +66,14 @@ export function compileCircuitTopology(id: string, lapPath: RasterPath): Circuit
  * Materialize a finite circuit window as one completely ordinary open RasterPath.
  * Renderer/Core consumers therefore see only monotonically increasing chainage.
  */
-export function unfoldCircuitRasterPath(
-  topology: CircuitTopology,
-  repeatCount: number,
-): RasterPath {
-  assertPositiveInteger(repeatCount, 'circuit repeatCount');
+export function unfoldCircuitRasterPath(topology: CircuitTopology, repeatCount: number): RasterPath {
+  positiveInteger(repeatCount, 'circuit repeatCount');
   return compileRasterPath(repeatLapVertices(topology.lapPath, repeatCount));
 }
 
 /** Map continuous circuit chainage to canonical local chainage plus topological winding. */
-export function decomposeCircuitChainage(
-  topology: CircuitTopology,
-  sUnwrapped: number,
-): CircuitChainagePosition {
-  assertFinite(sUnwrapped, 'circuit unwrapped chainage');
+export function decomposeCircuitChainage(topology: CircuitTopology, sUnwrapped: number): CircuitChainagePosition {
+  finite(sUnwrapped, 'circuit unwrapped chainage');
   const lapLength = topology.lapLength;
   let winding = Math.floor(sUnwrapped / lapLength);
   let sLocal = sUnwrapped - winding * lapLength;
@@ -113,7 +108,7 @@ export function liftCircuitLocalChainageNear(
   sLocalSource: number,
   referenceUnwrappedS: number,
 ): number {
-  assertFinite(referenceUnwrappedS, 'circuit reference chainage');
+  finite(referenceUnwrappedS, 'circuit reference chainage');
   const local = checkedLapSourceChainage(topology, sLocalSource);
   const lapLength = topology.lapLength;
   const referenceWinding = Math.floor(referenceUnwrappedS / lapLength);
@@ -126,7 +121,7 @@ export function liftCircuitLocalChainageNear(
 }
 
 function checkedLapSourceChainage(topology: CircuitTopology, s: number): number {
-  assertFinite(s, 'circuit local source chainage');
+  finite(s, 'circuit local source chainage');
   if (s < 0 || s > topology.lapLength) {
     throw new RangeError('circuit local source chainage must be within the authored [0,L] lap domain');
   }
@@ -134,7 +129,7 @@ function checkedLapSourceChainage(topology: CircuitTopology, s: number): number 
 }
 
 function repeatLapVertices(lapPath: RasterPath, repeatCount: number): RasterVertex[] {
-  assertPositiveInteger(repeatCount, 'circuit repeatCount');
+  positiveInteger(repeatCount, 'circuit repeatCount');
   const vertices: RasterVertex[] = lapPath.vertices.map((vertex) => ({ ...vertex }));
   for (let repeat = 1; repeat < repeatCount; repeat += 1) {
     // The previous copy already ends at the duplicated seam vertex. Start the
@@ -144,20 +139,4 @@ function repeatLapVertices(lapPath: RasterPath, repeatCount: number): RasterVert
     }
   }
   return vertices;
-}
-
-function assertPositiveInteger(value: number, label: string): void {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new RangeError(`${label} must be a positive integer`);
-  }
-}
-
-function assertFinite(value: number, label: string): void {
-  if (!Number.isFinite(value)) throw new RangeError(`${label} must be finite`);
-}
-
-function assertNonEmpty(value: string, label: string): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new RangeError(`${label} must be a non-empty string`);
-  }
 }

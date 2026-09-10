@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM5RecoveryState, recoverM5Vehicle } from '../dist/gameplay/recovery.js';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { HeightProfile } from '../dist/visual/height-profile.js';
@@ -57,7 +57,7 @@ test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
 
 test('M8.0 recovery reconstructs authoritative state without clearing nonexistent tire memory', () => {
   const { parent, height, car } = fixture();
-  const recovery = createM5RecoveryState(car);
+  const recovery = createRecoveryState(car);
   recovery.lastSafeS = car.course.s;
   car.velocityX = 12;
   car.velocityY = -8;
@@ -65,7 +65,10 @@ test('M8.0 recovery reconstructs authoritative state without clearing nonexisten
   car.pitch = 0.4;
   car.pitchRate = 1.2;
 
-  recoverM5Vehicle(recovery, parent.guide, height, parent.surfaceMap, car, 'manual');
+  recoverVehicle({ guide: parent.guide, height, surfaces: parent.surfaceMap }, car, {
+    state: recovery,
+    reason: 'manual',
+  });
 
   assert.equal('frontLateralForce' in car, false);
   assert.equal('rearLateralForce' in car, false);

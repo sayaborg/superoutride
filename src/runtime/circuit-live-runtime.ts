@@ -35,13 +35,7 @@ export function compileCircuitLiveRuntime(
   sources: CircuitLapRuntimeSources,
   raceAuthoring: CircuitRaceAuthoring,
 ): CircuitLiveRuntime {
-  const window = compileCircuitRuntimeWindow(
-    topology,
-    startWinding,
-    raceAuthoring.lapCount + 1,
-    guideOptions,
-    sources,
-  );
+  const window = compileCircuitRuntimeWindow(topology, startWinding, raceAuthoring.lapCount + 1, guideOptions, sources);
   const raceRules = compileCircuitRaceRules(window, raceAuthoring);
   return Object.freeze({ window, raceRules });
 }

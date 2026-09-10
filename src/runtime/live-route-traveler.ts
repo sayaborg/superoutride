@@ -1,12 +1,7 @@
-import {
-  guideCoordinateLateralOrigin,
-  locateWorldOnGuideCoordinateGlobal,
-} from '../core/guide-coordinate-frame.js';
+import { guideCoordinateLateralOrigin, locateWorldOnGuideCoordinateGlobal } from '../core/guide-coordinate-frame.js';
 import type { Vec2 } from '../core/math.js';
 import type { JunctionSide } from '../course/junction-cross-section.js';
-import {
-  observeRouteBoundaryCrossing,
-} from '../gameplay/route-boundary-gates.js';
+import { observeRouteBoundaryCrossing } from '../gameplay/route-boundary-gates.js';
 import {
   createRouteDagState,
   getRouteChoice,
@@ -25,10 +20,7 @@ import {
   type RouteStageHandoffState,
 } from '../gameplay/route-stage-handoff.js';
 import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
-import {
-  resolveActiveStageRuntimeContent,
-  type StageRuntimeContentPackage,
-} from './stage-runtime-content.js';
+import { resolveActiveStageRuntimeContent, type StageRuntimeContentPackage } from './stage-runtime-content.js';
 
 const EPSILON = 1e-9;
 
@@ -61,18 +53,10 @@ export interface LiveRouteChoicePlan {
  * ordinary physics and mirrors handoffState.coordinate into its own road-coordinate cache only
  * after a returned COMMITTED event.
  */
-export function createLiveRouteTravelerState(
-  live: LiveRouteRuntimeAssembly,
-  world: Vec2,
-): LiveRouteTravelerState {
+export function createLiveRouteTravelerState(live: LiveRouteRuntimeAssembly, world: Vec2): LiveRouteTravelerState {
   return {
     routeState: createRouteDagState(live.route),
-    handoffState: createRouteStageHandoffState(
-      live.route,
-      live.content,
-      live.initialChart,
-      world,
-    ),
+    handoffState: createRouteStageHandoffState(live.route, live.content, live.initialChart, world),
     previousWorldPoint: { ...world },
   };
 }
@@ -216,9 +200,7 @@ export function sampleLiveRouteChoiceTargetL(
     );
   }
 
-  const gate = live.gates.gates.find(
-    (candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId,
-  );
+  const gate = live.gates.gates.find((candidate) => candidate.kind === 'TRANSITION' && candidate.choiceId === choiceId);
   if (!gate) throw new Error(`live route target choice is missing physical gate: ${choiceId}`);
 
   const runtime = resolveLiveRouteTravelerRuntime(live, state);
@@ -227,28 +209,25 @@ export function sampleLiveRouteChoiceTargetL(
   if (Math.abs(finalTargetL) <= EPSILON) return 0;
 
   const stageJunction = runtime.groundProfile.stageJunction;
-  const sourceJunction = Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= EPSILON
-    ? runtime.groundProfile.junction
-    : undefined;
+  const sourceJunction =
+    Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= EPSILON
+      ? runtime.groundProfile.junction
+      : undefined;
   const junction = stageJunction ?? sourceJunction;
   if (!junction) return finalTargetL;
 
-  const junctionS = stageJunction === junction
-    ? s
-    : s + (runtime.groundProfile.chainageOffsetS ?? 0);
+  const junctionS = stageJunction === junction ? s : s + (runtime.groundProfile.chainageOffsetS ?? 0);
   const side: JunctionSide = finalTargetL < 0 ? 'LEFT' : 'RIGHT';
   const sign = side === 'LEFT' ? -1 : 1;
   const authoring = junction.authoring;
 
   if (junctionS <= authoring.sWidenStart) return 0;
   if (junctionS < authoring.sMedianStart) {
-    const t = (junctionS - authoring.sWidenStart)
-      / (authoring.sMedianStart - authoring.sWidenStart);
+    const t = (junctionS - authoring.sWidenStart) / (authoring.sMedianStart - authoring.sWidenStart);
     return sign * t * authoring.childRoadWidth * 0.5;
   }
 
-  return junction.childCenterLAt(junctionS, side)
-    ?? sign * authoring.childRoadWidth * 0.5;
+  return junction.childCenterLAt(junctionS, side) ?? sign * authoring.childRoadWidth * 0.5;
 }
 
 /** One active package/chart can safely interpret the actor's sRender iff package identity matches. */

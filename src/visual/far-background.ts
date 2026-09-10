@@ -1,6 +1,6 @@
-import { SoftwareSurface, rgba } from '../render/software-surface.js';
 import type { PseudoCamera } from '../core/projection.js';
 import { horizonY } from '../core/projection.js';
+import { SoftwareSurface, rgba } from '../render/software-surface.js';
 
 export interface FarBackground {
   surface: SoftwareSurface;
@@ -8,7 +8,7 @@ export interface FarBackground {
   pixelsPerRadian: number;
 }
 
-export function createM3FarBackground(): FarBackground {
+export function createFarBackground(): FarBackground {
   const width = 640;
   const height = 320;
   const sourceHorizonY = 126;
@@ -41,11 +41,7 @@ export function createM3FarBackground(): FarBackground {
   return { surface, sourceHorizonY, pixelsPerRadian: 200 };
 }
 
-export function drawFarBackground(
-  target: SoftwareSurface,
-  background: FarBackground,
-  camera: PseudoCamera,
-): void {
+export function drawFarBackground(target: SoftwareSurface, background: FarBackground, camera: PseudoCamera): void {
   const yH = horizonY(camera);
   const xPan = Math.round(background.pixelsPerRadian * camera.yaw);
   for (let y = 0; y < target.height; y += 1) {
@@ -64,11 +60,7 @@ function mod(value: number, modulus: number): number {
 function lerpColor(a: number, b: number, t: number): number {
   const av = unpack(a);
   const bv = unpack(b);
-  return rgba(
-    av.r + (bv.r - av.r) * t,
-    av.g + (bv.g - av.g) * t,
-    av.b + (bv.b - av.b) * t,
-  );
+  return rgba(av.r + (bv.r - av.r) * t, av.g + (bv.g - av.g) * t, av.b + (bv.b - av.b) * t);
 }
 
 function unpack(value: number): { r: number; g: number; b: number } {

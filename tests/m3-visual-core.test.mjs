@@ -7,15 +7,15 @@ import test from 'node:test';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import { generateTerrainLines } from '../dist/road/terrain-line.js';
-import { renderM5Driving } from '../dist/render/m5-renderer.js';
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
-import { createM3FarBackground, drawFarBackground } from '../dist/visual/far-background.js';
+import { createFarBackground, drawFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/dev/m3-debug-visual.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
-const deg = (value) => value * Math.PI / 180;
+const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
@@ -116,18 +116,39 @@ test('GroundMap source sampling distinguishes road, shoulder, marking and terrai
   assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sampleGroundMap(9, 2, groundProfile)));
   assert.equal(sampleGroundMap(9, 5, groundProfile), GROUND_COLORS.shoulder);
   assert.ok([GROUND_COLORS.grassA, GROUND_COLORS.grassB].includes(sampleGroundMap(9, 8, groundProfile)));
-  assert.ok([GROUND_COLORS.rockA, GROUND_COLORS.rockB].includes(sampleGroundMap(9, -8, { ...groundProfile, logical: new GroundMapLogicalProfile(guide.length, [{ sStart: 0, name: 'rock', left: 'ROCK', right: 'GRASS' }]) })));
+  assert.ok(
+    [GROUND_COLORS.rockA, GROUND_COLORS.rockB].includes(
+      sampleGroundMap(9, -8, {
+        ...groundProfile,
+        logical: new GroundMapLogicalProfile(guide.length, [{ sStart: 0, name: 'rock', left: 'ROCK', right: 'GRASS' }]),
+      }),
+    ),
+  );
 });
 
 test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon while right GroundBase paints rock', () => {
   const vehicle = renderPose(guide, 520);
   const camera = terrainCamera(guide, height, vehicle, cameraProfile);
-  const background = createM3FarBackground();
+  const background = createFarBackground();
   const expectedBackground = new SoftwareSurface(320, 240);
   const actual = new SoftwareSurface(320, 240);
   drawFarBackground(expectedBackground, background, camera);
   vehicle.y = height.samplePhysics(vehicle.course.s);
-  renderM5Driving(actual, background, guide, camera, vehicle, terrainProfile, groundProfile, [], createM4SpriteAssets(), 'car');
+  renderDriving(
+    actual,
+    {
+      background,
+      guide,
+      camera,
+      vehicle,
+      terrainProfile,
+      groundProfile,
+      worldSprites: [],
+      assets: createSpriteAssets(),
+      playerKind: 'car',
+    },
+    {},
+  );
 
   const lines = generateTerrainLines(guide, camera, terrainProfile);
   const line = lines.find((candidate) => candidate.y === 100 && candidate.sectionName === 'CLIFF / SEA');
@@ -141,7 +162,7 @@ test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon whil
 });
 
 test('Far Background is a full image with meaningful pixels below its horizon', () => {
-  const background = createM3FarBackground();
+  const background = createFarBackground();
   const above = background.surface.getPixel(100, background.sourceHorizonY - 40);
   const below = background.surface.getPixel(100, background.sourceHorizonY + 40);
   assert.notEqual(above, below);

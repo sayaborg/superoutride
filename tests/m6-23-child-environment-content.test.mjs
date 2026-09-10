@@ -13,12 +13,12 @@ import { createM623LiveStageRuntimeRegistry } from '../dist/dev/m6-23-live-runti
 
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
-import { createM4SpriteAssets } from '../dist/visual/m4-sprite-assets.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const parent = createM2StadiumGuide();
   const continuation = createM622ChildStageContinuation(parent);
-  const assets = createM4SpriteAssets();
+  const assets = createSpriteAssets();
   const environment = createM623ChildEnvironmentContent(continuation, assets);
   const route = createM620LivePointToPointRouteDag();
   const manifest = createM6DebugRouteStageContentManifest(route);
@@ -57,8 +57,16 @@ test('M6.23 child world sprites are compiled in their own child chainage domains
   const { continuation, environment } = setup();
   assert.ok(environment.left.worldSprites.length >= 5);
   assert.ok(environment.right.worldSprites.length >= 7);
-  assert.ok(environment.left.worldSprites.every((sprite) => sprite.sRender >= 0 && sprite.sRender < continuation.left.guide.length));
-  assert.ok(environment.right.worldSprites.every((sprite) => sprite.sRender >= 0 && sprite.sRender < continuation.right.guide.length));
+  assert.ok(
+    environment.left.worldSprites.every(
+      (sprite) => sprite.sRender >= 0 && sprite.sRender < continuation.left.guide.length,
+    ),
+  );
+  assert.ok(
+    environment.right.worldSprites.every(
+      (sprite) => sprite.sRender >= 0 && sprite.sRender < continuation.right.guide.length,
+    ),
+  );
   assert.ok(environment.left.worldSprites.some((sprite) => sprite.name.startsWith('COAST_')));
   assert.ok(environment.right.worldSprites.some((sprite) => sprite.name.startsWith('MOUNTAIN_')));
 });
@@ -91,7 +99,7 @@ test('M6.23 package sprites are not copied from parent chainage content', () => 
 test('M6.23 keeps route-side environment choice outside renderer Core', async () => {
   const { readFile } = await import('node:fs/promises');
   const [rendererSource, environmentSource, liveSource] = await Promise.all([
-    readFile(new URL('../src/render/m5-renderer.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-23-child-environment-content.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/m6-23-live-runtime-content.ts', import.meta.url), 'utf8'),
   ]);
