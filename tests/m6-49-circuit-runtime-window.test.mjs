@@ -134,6 +134,16 @@ test('M6.49 height and visual readers expose one finite open window and repeat s
   assert.throws(() => window.visual.sample(-0.01), /outside \[0, courseLength\]/);
 });
 
+test('circuit source conversion preserves offsets beyond the common domain tolerance at every copy', () => {
+  const { topology, window } = compileWindow({ repeatCount: 3 });
+  for (const lap of [0, 1, 2]) {
+    const offset = lap * topology.lapLength;
+    const s = offset + 5e-9;
+    assert.equal(circuitWindowToLapSourceChainage(window, s), s - offset);
+    assert.ok(window.height.sampleRender(s).y > 0, 'the old separate 1e-8 snap erased this slope sample');
+  }
+});
+
 test('M6.49 circuit height source must physically return to the same seam height', () => {
   const topology = createGentleCircuit();
   const L = topology.lapLength;

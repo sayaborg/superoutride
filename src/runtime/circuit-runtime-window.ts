@@ -327,8 +327,7 @@ function resolveWindowSourcePosition(
   let lapIndex = Math.floor(checked / lapLength);
   if (lapIndex >= repeatCount) lapIndex = repeatCount - 1;
   const lapOffsetS = lapIndex * lapLength;
-  let sourceS = checked - lapOffsetS;
-  if (Math.abs(sourceS) <= EPSILON) sourceS = 0;
+  const sourceS = openProfileChainage(checked - lapOffsetS, lapLength, 'circuit lap source');
 
   return { lapIndex, lapOffsetS, sourceS };
 }
