@@ -4,12 +4,12 @@ import type { RouteDag, RouteDagState } from './route-dag.js';
 /**
  * Opaque reference to one complete stage content package.
  *
- * M6.11 intentionally does not define the package's renderer internals. The loader/compiler may
+ * The gameplay manifest intentionally does not define the package's renderer internals. The loader/compiler may
  * later resolve packageId to Guide/Raster Course/GroundMap/SurfaceMap/background/sprite assets,
  * while gameplay only knows which package is active.
  *
  * worldFrameId is explicit because changing stage content must not silently change the physical
- * world coordinate frame. M6.11 supports only one shared world frame; no teleport/transform is
+ * world coordinate frame. The content contract supports only one shared world frame; no teleport/transform is
  * invented here.
  */
 export interface RouteStageContentPackageRef {

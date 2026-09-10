@@ -2,11 +2,14 @@ import { positiveFinite } from '../core/validation.js';
 import { requiredPyramidMaxLevel } from './ground-map-lod.js';
 import type { TerrainFootprintSummary } from './terrain-footprint-analysis.js';
 
+const LEVEL_CAPACITY_TOLERANCE_METERS = 1e-12;
+const OBSERVED_FOOTPRINT_TOLERANCE_METERS = 1e-9;
+
 export interface GroundMapTargetEnvelopeInput {
   readonly dMin: number;
   readonly dMax: number;
   readonly qS: number;
-  /** Explicit Core §64 single-scanline collapse threshold in destination-row units. */
+  /** Explicit single-scanline collapse threshold in destination-row units. */
   readonly thinSpanScreenRows: number;
   /** Optional measured envelope used to prove that the conservative kMax is also necessary. */
   readonly observedMaxDeltaSEffective?: number;
@@ -25,7 +28,7 @@ export interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeIn
 }
 
 /**
- * Core proof used by M5.6.
+ * GroundMap footprint capacity proof.
  *
  * Both endpoints of ordinary Delta_s are clipped to [dMin,dMax], therefore
  * Delta_s <= dMax-dMin. A collapsed segment is a subset of the same visible
@@ -43,19 +46,19 @@ export function deriveGroundMapTargetEnvelope(input: GroundMapTargetEnvelopeInpu
   const kMax = requiredPyramidMaxLevel(maxDeltaSEffectiveUpperBound, input.qS);
   const kMaxCapacity = input.qS * 4 ** kMax;
   const previousLevelCapacity = kMax > 0 ? input.qS * 4 ** (kMax - 1) : 0;
-  const sufficiencyProven = kMaxCapacity + 1e-12 >= maxDeltaSEffectiveUpperBound;
+  const sufficiencyProven = kMaxCapacity + LEVEL_CAPACITY_TOLERANCE_METERS >= maxDeltaSEffectiveUpperBound;
 
   let observedRequiredLevel: number | null = null;
   let necessityProven = false;
   if (input.observedMaxDeltaSEffective !== undefined) {
     positiveFinite(input.observedMaxDeltaSEffective, 'observedMaxDeltaSEffective');
-    if (input.observedMaxDeltaSEffective > maxDeltaSEffectiveUpperBound + 1e-9) {
+    if (input.observedMaxDeltaSEffective > maxDeltaSEffectiveUpperBound + OBSERVED_FOOTPRINT_TOLERANCE_METERS) {
       throw new Error('observed Delta_s_eff exceeds the depth-clip upper bound');
     }
     observedRequiredLevel = requiredPyramidMaxLevel(input.observedMaxDeltaSEffective, input.qS);
     necessityProven =
       observedRequiredLevel === kMax &&
-      (kMax === 0 || input.observedMaxDeltaSEffective > previousLevelCapacity + 1e-12);
+      (kMax === 0 || input.observedMaxDeltaSEffective > previousLevelCapacity + LEVEL_CAPACITY_TOLERANCE_METERS);
   }
 
   if (!sufficiencyProven) throw new Error('internal GroundMap kMax proof failure');
@@ -77,7 +80,7 @@ export function validateTerrainFootprintsAgainstTarget(
   summary: TerrainFootprintSummary,
   target: GroundMapTargetEnvelopeReport,
 ): void {
-  if (summary.maxDeltaSEffective > target.maxDeltaSEffectiveUpperBound + 1e-9) {
+  if (summary.maxDeltaSEffective > target.maxDeltaSEffectiveUpperBound + OBSERVED_FOOTPRINT_TOLERANCE_METERS) {
     throw new Error('TerrainLine Delta_s_eff exceeds compiled target envelope');
   }
   if (summary.requiredChainageLevel > target.kMax) {

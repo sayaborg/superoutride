@@ -1,3 +1,5 @@
+import { MIN_TERRAIN_SPAN_PIXELS } from './terrain-line.js';
+
 import type { GuidePath } from '../core/guide-curve.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { stageRoadToWorld, type StageRoadView } from '../course/stage-road-view.js';
@@ -26,7 +28,7 @@ export function applyStageRoadViewToTerrainLine(
   const projectedRoadLeft = pseudoProject({ ...roadLeft, y: line.renderHeight }, camera);
   const projectedRoadRight = pseudoProject({ ...roadRight, y: line.renderHeight }, camera);
   const groundSpan = projectedGroundRight.x - projectedGroundLeft.x;
-  if (!(groundSpan > 1e-7)) return null;
+  if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
   return {
     ...line,

@@ -2,7 +2,7 @@
 
 This directory describes the current system. It is not a chronological milestone archive.
 
-All repository documentation must be written and maintained in English. Architectural elegance, simplicity, consistency and the absence of ad hoc implementations are the highest design priorities.
+[AGENTS.md](../AGENTS.md) defines project authority and development priorities.
 
 | Document                                        | Authority                                                                              |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -12,8 +12,7 @@ All repository documentation must be written and maintained in English. Architec
 | [calibration](calibration.md)                   | Parameter ownership, present defaults and unfinished handling work                     |
 | [development](development.md)                   | Build, tests, diagnostics and exact-commit release procedure                           |
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
-| [AUDIT](AUDIT.md)                               | Scope and verification of the current cleanup                                          |
 
 [AGENTS.md](../AGENTS.md) owns the development contract. Types, compilers and causal regressions enforce the implementation. If code and prose disagree, determine the responsible authority and resolve the conflict explicitly. Do not silently choose a convenient historical statement.
 
-The current topic documents consolidate the retained Core Freeze/addenda and later decisions. Removing those chronological files does not loosen their retained invariants. Previous versions, experiments, audit reports and release records remain available through Git history and GitHub Actions. Do not duplicate them in this directory.
+Previous specifications, experiments, audit reports and release records remain in Git and GitHub Actions. Keep only current contracts and the [restart checkpoint](NEXT.md) here.

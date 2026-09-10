@@ -16,7 +16,7 @@ export interface CompiledRasterForkGrowthPlan {
 /**
  * Apply an ordered list of terminal -> fork operations to one declarative route authoring source.
  *
- * This is deliberately only composition. Each step still flows through the complete M6.36
+ * This is deliberately only composition. Each step still flows through the complete raster-fork-stage-route
  * compiler, so terminal promotion, visible junction geometry, Raster successor construction,
  * package/chart/world-frame ownership and physical gate/seam/FINISH derivation retain one
  * authority. No route geometry is recomputed here.

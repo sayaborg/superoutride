@@ -133,7 +133,7 @@ const rivals = rivalRoster.map((entry) => {
 const cameraProfile = CURRENT_CAMERA_PROFILE;
 
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
-let camera: CameraState = updateCamera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
+let camera: CameraState = updateCamera(cameraRig, { guide, height }, shell.vehicle, cameraProfile, SIM_DT);
 shell.mountControls(switchVehicleAtSafeSpawn, () => {
   recoverVehicle({ guide, height, surfaces }, shell.vehicle, {
     state: shell.recovery,
@@ -142,7 +142,7 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
   });
   resetCameraRig(cameraRig);
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
-  camera = updateCamera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
+  camera = updateCamera(cameraRig, { guide, height }, shell.vehicle, cameraProfile, SIM_DT);
 });
 
 function tick(dt: number): void {
@@ -163,7 +163,7 @@ function tick(dt: number): void {
       profile: selectedCircuit.rivalRecoveryProfile,
     });
   }
-  camera = updateCamera(cameraRig, guide, height, shell.vehicle, cameraProfile, dt);
+  camera = updateCamera(cameraRig, { guide, height }, shell.vehicle, cameraProfile, dt);
 }
 
 function render(): void {
@@ -203,7 +203,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   });
   shell.replacePlayer(profile, { guide, height, surfaces });
   resyncCircuitRaceProgress(raceProgress, raceRules, raceSample());
-  camera = updateCamera(cameraRig, guide, height, shell.vehicle, cameraProfile, SIM_DT);
+  camera = updateCamera(cameraRig, { guide, height }, shell.vehicle, cameraProfile, SIM_DT);
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {

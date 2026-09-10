@@ -16,7 +16,6 @@ import {
   type WorldCrossingGateAuthoring,
 } from './world-crossing-gate.js';
 
-export type RouteBoundaryGateKind = 'TRANSITION' | 'FINISH';
 export type RouteBoundaryObservationEvent =
   'NONE' | 'VALIDATED_TRANSITION' | 'VALIDATED_FINISH' | 'REVERSE_CROSSING' | 'AMBIGUOUS_FORWARD_CROSSING';
 

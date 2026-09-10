@@ -2,6 +2,8 @@ import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 
+const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
+
 export type SurfaceType = 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 
 /**
@@ -139,7 +141,7 @@ export function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly Sur
     if (!Object.hasOwn(SURFACE_MATERIALS, band.type) || !SURFACE_MATERIALS[band.type].supported) {
       throw new RangeError('surface band must name a supported material');
     }
-    if (i > 0 && band.lMin < copied[i - 1]!.lMax - 1e-9) {
+    if (i > 0 && band.lMin < copied[i - 1]!.lMax - BAND_OVERLAP_TOLERANCE_METERS) {
       throw new Error('surface bands must not overlap');
     }
   }

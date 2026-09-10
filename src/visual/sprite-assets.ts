@@ -146,7 +146,7 @@ function createCarVariant(angle: number, yawIndex: number): SpriteAsset {
   const facing = Math.cos(angle);
   const roofShift = Math.round(side * 11);
 
-  // Programmer art only; the important M5.2 property is the 80 px / 2.0 m metric reference.
+  // Programmer art only; the fixed metric property is the 80 px / 2.0 m metric reference.
   for (let y = 20; y <= 50; y += 1) {
     const t = (y - 20) / 30;
     const half = Math.round(23 + t * 16);

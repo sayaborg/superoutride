@@ -1,3 +1,4 @@
+import { BROWSER_COURSE_KEYS } from './key-bindings.js';
 import type { CourseRouteKind } from '../gameplay/course-mode.js';
 
 export type BrowserCourseModeQuery = string;
@@ -50,29 +51,25 @@ export function compileBrowserCourseModes(
 
 export const BROWSER_COURSE_MODES = compileBrowserCourseModes([
   Object.freeze({
-    digitCode: 'Digit1',
-    numpadCode: 'Numpad1',
+    ...BROWSER_COURSE_KEYS.linear,
     label: 'LINEAR',
     query: 'linear',
     routeKind: 'LINEAR',
   }),
   Object.freeze({
-    digitCode: 'Digit2',
-    numpadCode: 'Numpad2',
+    ...BROWSER_COURSE_KEYS.branching,
     label: 'BRANCHING',
     query: 'branching',
     routeKind: 'BRANCHING',
   }),
   Object.freeze({
-    digitCode: 'Digit3',
-    numpadCode: 'Numpad3',
+    ...BROWSER_COURSE_KEYS.circuit,
     label: 'TSUKUBA',
     query: 'circuit',
     routeKind: 'CIRCUIT',
   }),
   Object.freeze({
-    digitCode: 'Digit4',
-    numpadCode: 'Numpad4',
+    ...BROWSER_COURSE_KEYS.fisco,
     label: 'FISCO',
     query: 'fisco',
     routeKind: 'CIRCUIT',

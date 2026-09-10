@@ -91,7 +91,7 @@ function renderProbe(
 ) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, l, yawOffset);
-  const camera = updateCamera(createCameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateCamera(createCameraRig(), { guide, height }, car, cameraProfile, 1 / 60);
   return renderer(
     target,
     {

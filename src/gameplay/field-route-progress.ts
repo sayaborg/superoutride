@@ -11,7 +11,7 @@ import {
 } from './route-dag.js';
 import type { RouteStageHandoffManifest, RouteStageHandoffState } from './route-stage-handoff.js';
 
-const PROGRESS_EPSILON = 1e-6;
+const ROUTE_PROGRESS_TOLERANCE_METERS = 1e-6;
 
 export interface FieldRouteProgressStageSource {
   readonly stageId: string;
@@ -141,7 +141,7 @@ export function compileFieldRouteProgressRules(
       const gateS = locateWorldOnGuideCoordinateGlobal(sourceFrame, gate.center, false).s;
       const gateProgress = sourceOffset + gateS;
       const handoffProgress = sourceOffset + seam.sourceSeamS;
-      if (!(handoffProgress > gateProgress + PROGRESS_EPSILON)) {
+      if (!(handoffProgress > gateProgress + ROUTE_PROGRESS_TOLERANCE_METERS)) {
         throw new RangeError(`field route handoff must follow its physical route gate: ${choice.id}`);
       }
 
@@ -150,7 +150,7 @@ export function compileFieldRouteProgressRules(
       if (existingOffset === undefined) {
         offsets.set(choice.toStageId, targetOffset);
         pendingStages.push(choice.toStageId);
-      } else if (Math.abs(existingOffset - targetOffset) > PROGRESS_EPSILON) {
+      } else if (Math.abs(existingOffset - targetOffset) > ROUTE_PROGRESS_TOLERANCE_METERS) {
         throw new RangeError(`field route merge has inconsistent progress authority: ${choice.toStageId}`);
       }
 
@@ -190,7 +190,7 @@ export function compileFieldRouteProgressRules(
       throw new Error(`field route stage has no outgoing progress boundary: ${stage.id}`);
     }
     for (const rule of outgoing.slice(1)) {
-      if (Math.abs(rule.gateProgress - boundaryProgress) > PROGRESS_EPSILON) {
+      if (Math.abs(rule.gateProgress - boundaryProgress) > ROUTE_PROGRESS_TOLERANCE_METERS) {
         throw new RangeError(`sibling route gates must share one field progress boundary: ${stage.id}`);
       }
     }
@@ -204,7 +204,7 @@ export function compileFieldRouteProgressRules(
 
   for (const choice of choiceRules.values()) {
     const targetBoundary = stageRules.find((stage) => stage.stageId === choice.toStageId)!.boundaryProgress;
-    if (!(targetBoundary > choice.handoffProgress + PROGRESS_EPSILON)) {
+    if (!(targetBoundary > choice.handoffProgress + ROUTE_PROGRESS_TOLERANCE_METERS)) {
       throw new RangeError(`field route target boundary must follow handoff seam: ${choice.choiceId}`);
     }
   }
@@ -308,7 +308,7 @@ export function fieldRouteProgressWindow(
     throw new RangeError('field route validated progress floor must be finite');
   }
   const stage = getStageRule(rules, routeStageId);
-  if (stage.boundaryProgress + PROGRESS_EPSILON < validatedProgressFloor) {
+  if (stage.boundaryProgress + ROUTE_PROGRESS_TOLERANCE_METERS < validatedProgressFloor) {
     throw new Error(`field route progress window is inverted: ${routeStageId}`);
   }
   return Object.freeze({ floor: validatedProgressFloor, ceiling: stage.boundaryProgress });

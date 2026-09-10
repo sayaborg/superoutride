@@ -1,3 +1,4 @@
+import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
 import {
   createRasterStageSuccessor,
@@ -15,7 +16,7 @@ export interface RasterForkSuccessorAuthoring {
 
 /**
  * Create one independent successor whose local l=0 follows a separated child road in the source
- * stage. The ordinary M6.29 successor algorithm remains the geometry authority; this adapter only
+ * stage. The ordinary raster-stage-successor algorithm remains the geometry authority; this adapter only
  * shifts the coordinate chart used as its structural road center, then recompiles the public link
  * against the real active source chart with sourceLocalL explicitly preserved.
  */
@@ -26,7 +27,7 @@ export function createRasterForkStageSuccessor(
   if (!Number.isFinite(authoring.sourceLocalL)) {
     throw new RangeError('fork successor sourceLocalL must be finite');
   }
-  if (Math.abs(authoring.sourceLocalL) > source.guide.lMax + 1e-9) {
+  if (Math.abs(authoring.sourceLocalL) > source.guide.lMax + LATERAL_BOUNDARY_TOLERANCE_METERS) {
     throw new RangeError('fork successor child center must fit inside the source Guide lateral envelope');
   }
 

@@ -1,3 +1,4 @@
+import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import {
@@ -10,8 +11,9 @@ import {
   type RaceMotionDirection,
 } from './physical-race-gate.js';
 
-const EPSILON = 1e-9;
-const CANDIDATE_EPSILON = 1e-7;
+const RACE_PROGRESS_TOLERANCE_METERS = 1e-9;
+
+const GATE_CANDIDATE_PADDING_METERS = 1e-7;
 
 export interface OrderedRaceGateAuthoring {
   readonly kind: PhysicalRaceGateKind;
@@ -122,7 +124,7 @@ export function createOrderedRaceProgressState(
   const normalized = checkedSample(initial, rules.courseLength);
   const firstGate = rules.gates[0];
   if (!firstGate) throw new Error('ordered race rules require a gate');
-  if (normalized.s > firstGate.s + EPSILON) {
+  if (normalized.s > firstGate.s + RACE_PROGRESS_TOLERANCE_METERS) {
     throw new RangeError('ordered race initial sample must be inside the first unvalidated sector');
   }
   return {
@@ -149,7 +151,7 @@ export function getOrderedRaceProgressWindow(
   }
   const nextGate = rules.gates[state.nextGateIndex];
   if (!nextGate) throw new Error('ordered race next gate is missing');
-  if (nextGate.s + EPSILON < state.validatedProgressFloor) {
+  if (nextGate.s + RACE_PROGRESS_TOLERANCE_METERS < state.validatedProgressFloor) {
     throw new Error('ordered race progress window is inverted');
   }
   return { floor: state.validatedProgressFloor, ceiling: nextGate.s };
@@ -280,7 +282,7 @@ function candidateGates(
   // Window chainage identifies the logical copy of repeated world geometry. Expand the
   // interval by actual world travel so a small Guide projection lag cannot hide a real gate.
   const worldTravel = Math.hypot(current.x - previous.x, current.z - previous.z);
-  const pad = worldTravel + CANDIDATE_EPSILON;
+  const pad = worldTravel + GATE_CANDIDATE_PADDING_METERS;
   const low = Math.min(previous.s, current.s) - pad;
   const high = Math.max(previous.s, current.s) + pad;
   return gates.filter((gate) => gate.s >= low && gate.s <= high);
@@ -290,9 +292,6 @@ function checkedSample(sample: OrderedRaceProgressSample, courseLength: number):
   if (![sample.x, sample.z, sample.s].every(Number.isFinite)) {
     throw new RangeError('ordered race progress sample must be finite');
   }
-  if (sample.s < -EPSILON || sample.s > courseLength + EPSILON) {
-    throw new RangeError('ordered race progress chainage is outside the finite open Guide domain');
-  }
-  const s = Math.abs(sample.s) <= EPSILON ? 0 : Math.abs(sample.s - courseLength) <= EPSILON ? courseLength : sample.s;
+  const s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
   return { x: sample.x, z: sample.z, s };
 }

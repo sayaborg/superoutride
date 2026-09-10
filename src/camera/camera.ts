@@ -1,9 +1,10 @@
-import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
 import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
+import type { VehicleCameraReadState, VehicleWorld } from '../physics/vehicle-contract.js';
+
+const MIN_VERTICAL_RESPONSE_SECONDS = 1e-4;
 
 export interface CameraProfile {
   readonly dCam: number;
@@ -115,8 +116,7 @@ export function movementYawInBodyPitchFrame(
 
 export function updateCamera(
   rig: CameraRig,
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
+  { guide, height }: Pick<VehicleWorld, 'guide' | 'height'>,
   vehicle: VehicleCameraReadState,
   profile: CameraProfile,
   dt: number,
@@ -189,7 +189,7 @@ export function updateCamera(
     (profile.dCam / (profile.focalLength * cosCameraPitch)) *
       (profile.centerY - profile.focalLength * Math.sin(cameraPitch) - profile.playerTargetY);
   const frameDelta = yFrame - baseY;
-  const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, 1e-4));
+  const verticalAlpha = 1 - Math.exp(-dt / Math.max(profile.tauVertical, MIN_VERTICAL_RESPONSE_SECONDS));
   rig.verticalCorrection += (frameDelta - rig.verticalCorrection) * verticalAlpha;
   rig.verticalCorrection = clamp(rig.verticalCorrection, -profile.deltaYMax, profile.deltaYMax);
 

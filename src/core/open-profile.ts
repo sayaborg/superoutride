@@ -1,4 +1,5 @@
-import { DOMAIN_TOLERANCE } from './open-profile-chainage.js';
+import { SOURCE_ENDPOINT_TOLERANCE_METERS } from './tolerances.js';
+
 import { finite, positiveFinite } from './validation.js';
 
 /** Immutable ordered source entries. Height nodes include L; constant sections exclude it. */
@@ -14,12 +15,12 @@ export function compileOpenProfile<T extends object, K extends keyof T>(
     .sort((a, b) => (a[chainage] as number) - (b[chainage] as number));
   if (copied.length < (endNode ? 2 : 1))
     throw new Error(`${label} requires ${endNode ? 'at least two nodes' : 'at least one section'}`);
-  if (Math.abs(copied[0]![chainage] as number) > DOMAIN_TOLERANCE) {
+  if (Math.abs(copied[0]![chainage] as number) > SOURCE_ENDPOINT_TOLERANCE_METERS) {
     throw new Error(`${label} must start at s=0`);
   }
   copied[0]![chainage] = 0 as T[K];
   if (endNode) {
-    if (Math.abs((copied.at(-1)![chainage] as number) - length) > DOMAIN_TOLERANCE) {
+    if (Math.abs((copied.at(-1)![chainage] as number) - length) > SOURCE_ENDPOINT_TOLERANCE_METERS) {
       throw new Error(`${label} must end at courseLength`);
     }
     copied.at(-1)![chainage] = length as T[K];

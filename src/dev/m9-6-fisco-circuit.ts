@@ -1,4 +1,5 @@
-import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
+import { RasterTurtle } from '../course/raster-turtle.js';
+import { compileRasterPath, type RasterPath } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
@@ -18,8 +19,6 @@ export const M9_6_FISCO_PLAYER_START_L = -2;
 export const M9_6_FISCO_RIVAL_START_L = 2;
 
 const SHOULDER_WIDTH_METERS = 2;
-const MAX_ARC_STEP_DEGREES = 5;
-const DEGREES = Math.PI / 180;
 
 // Fixed original connectors close the simplified 17-corner reconstruction at exactly 4563 m.
 // They are ordinary DEV course authoring, never a runtime correction or hidden geometry warp.
@@ -67,75 +66,40 @@ export interface M96FiscoLap {
  * original simplified reconstruction. No handling, grip, camera or renderer rule is encoded here.
  */
 export function createM96FiscoLap(): M96FiscoLap {
-  const vertices: RasterVertex[] = [{ x: 0, z: 0, sourceRadius: 70 }];
-  const turtle = { x: 0, z: 0, heading: 0 };
-  let authoredS = 0;
-  let authoredCornerCount = 0;
-
-  const appendStraight = (length: number): void => {
-    const steps = Math.ceil(length / 50);
-    const stepLength = length / steps;
-    for (let step = 0; step < steps; step += 1) {
-      turtle.x += Math.sin(turtle.heading) * stepLength;
-      turtle.z += Math.cos(turtle.heading) * stepLength;
-      vertices.push({ x: turtle.x, z: turtle.z });
-      authoredS += stepLength;
-    }
-  };
-
-  const appendArc = (radius: number, turnDegrees: number): void => {
-    const turn = turnDegrees * DEGREES;
-    const sign = Math.sign(turn);
-    if (sign === 0) throw new RangeError('M9.6 FISCO arc turn must be non-zero');
-    authoredCornerCount += 1;
-    vertices[vertices.length - 1]!.sourceRadius = radius;
-    const startX = turtle.x;
-    const startZ = turtle.z;
-    const startHeading = turtle.heading;
-    const centerX = startX + sign * radius * Math.cos(startHeading);
-    const centerZ = startZ - sign * radius * Math.sin(startHeading);
-    const steps = Math.ceil(Math.abs(turnDegrees) / MAX_ARC_STEP_DEGREES);
-    const chordLength = 2 * radius * Math.sin(Math.abs(turn) / (2 * steps));
-
-    for (let step = 1; step <= steps; step += 1) {
-      const heading = startHeading + (turn * step) / steps;
-      turtle.x = centerX - sign * radius * Math.cos(heading);
-      turtle.z = centerZ + sign * radius * Math.sin(heading);
-      vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
-      authoredS += chordLength;
-    }
-    turtle.heading = startHeading + turn;
-  };
+  const turtle = new RasterTurtle({ x: 0, z: 0, sourceRadius: 70 });
+  const { vertices } = turtle;
+  const appendStraight = (length: number) => turtle.appendStraight(length);
+  const appendArc = (radius: number, turn: number) => turtle.appendArcDegrees(radius, turn);
 
   appendStraight(M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS);
-  const homeStraightEndS = authoredS;
+  const homeStraightEndS = turtle.chainage;
 
   // T1/T2: heavy-braking TGR right followed by the official 75R right.
   appendArc(45, 105);
-  const tgrCornerEndS = authoredS;
+  const tgrCornerEndS = turtle.chainage;
   appendStraight(20);
   appendArc(75, 75);
-  const secondCornerEndS = authoredS;
+  const secondCornerEndS = turtle.chainage;
   appendStraight(20);
 
   // T3 Coca-Cola is the official 80R left leading into the sustained 100R right family.
   appendArc(80, -80);
-  const cocaColaCornerEndS = authoredS;
+  const cocaColaCornerEndS = turtle.chainage;
   appendStraight(80);
   appendArc(100, 60);
   appendStraight(20);
   appendArc(100, 60);
-  const hundredREndS = authoredS;
+  const hundredREndS = turtle.chainage;
   appendStraight(HUNDRED_R_EXIT_TO_ADVAN_METERS);
 
   // T6 ADVAN left hairpin, then the fast two-part 300R right.
   appendArc(40, -150);
-  const advanCornerEndS = authoredS;
+  const advanCornerEndS = turtle.chainage;
   appendStraight(ADVAN_EXIT_TO_THREE_HUNDRED_R_METERS);
   appendArc(300, 30);
   appendStraight(20);
   appendArc(300, 30);
-  const threeHundredREndS = authoredS;
+  const threeHundredREndS = turtle.chainage;
   appendStraight(20);
 
   // Dunlop braking complex: right-left-right before the uphill technical section.
@@ -144,36 +108,36 @@ export function createM96FiscoLap(): M96FiscoLap {
   appendArc(30, -80);
   appendStraight(20);
   appendArc(40, 70);
-  const dunlopComplexEndS = authoredS;
+  const dunlopComplexEndS = turtle.chainage;
   appendStraight(20);
 
   // T12/T13 begin the official low-speed uphill technical section.
   appendArc(55, 60);
   appendStraight(80);
   appendArc(50, -70);
-  const turnThirteenEndS = authoredS;
+  const turnThirteenEndS = turtle.chainage;
   appendStraight(TURN_THIRTEEN_TO_TURN_FOURTEEN_METERS);
 
   // T14 through T17: alternating technical corners into the Panasonic exit.
   appendArc(60, 60);
-  const turnFourteenEndS = authoredS;
+  const turnFourteenEndS = turtle.chainage;
   appendStraight(20);
   appendArc(65, -55);
-  const turnFifteenEndS = authoredS;
+  const turnFifteenEndS = turtle.chainage;
   appendStraight(80);
   appendArc(90, 80);
   appendStraight(20);
   appendArc(70, 75);
-  const panasonicCornerEndS = authoredS;
+  const panasonicCornerEndS = turtle.chainage;
   appendStraight(20);
 
   if (Math.hypot(turtle.x, turtle.z) > 1e-7) {
     throw new Error('M9.6 FISCO authoring failed to close');
   }
-  if (Math.abs(authoredS - M9_6_FISCO_LENGTH_METERS) > 1e-7) {
-    throw new Error(`M9.6 FISCO authored length ${authoredS} must equal 4563 m`);
+  if (Math.abs(turtle.chainage - M9_6_FISCO_LENGTH_METERS) > 1e-7) {
+    throw new Error(`M9.6 FISCO authored length ${turtle.chainage} must equal 4563 m`);
   }
-  if (authoredCornerCount !== M9_6_FISCO_CORNER_COUNT) {
+  if (turtle.arcCount !== M9_6_FISCO_CORNER_COUNT) {
     throw new Error(`M9.6 FISCO must author ${M9_6_FISCO_CORNER_COUNT} corners`);
   }
 

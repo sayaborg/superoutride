@@ -1,3 +1,4 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
@@ -18,7 +19,6 @@ import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-c
 import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
-import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { M6_22_PARENT_FORK_GEOMETRY, type M622ParentForkGeometry } from './m6-22-child-stage-continuation.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
@@ -39,7 +39,7 @@ const THIRD_FINISH_AFTER_SEAM = 150;
  */
 export function createM630ThirdLiveSuccessorAuthoring(
   parentGuide: GuidePath,
-  parentContent: M620SharedRuntimeContent,
+  parentContent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): DeclarativeLiveRouteAuthoring {
@@ -225,7 +225,7 @@ export function createM630ThirdLiveSuccessorAuthoring(
  */
 export function createM630ThirdLiveSuccessorRuntime(
   parentGuide: GuidePath,
-  parentContent: M620SharedRuntimeContent,
+  parentContent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
   parentFork: M622ParentForkGeometry = M6_22_PARENT_FORK_GEOMETRY,
 ): LiveRouteRuntimeAssembly {

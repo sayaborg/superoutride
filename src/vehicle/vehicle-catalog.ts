@@ -18,8 +18,6 @@ import {
 
 import type { VehiclePresentationFamily } from '../render/vehicle-presentation.js';
 
-export type VehicleSelectionKeyCode = string;
-
 export interface VehicleIdentifier {
   readonly officialLabel: string;
   readonly shortLabel: string;
@@ -35,24 +33,12 @@ export interface VehicleCatalogEntry {
   readonly profile: Readonly<CompiledArcadeVehicleProfile>;
   readonly presentationFamily: VehiclePresentationFamily;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
-  readonly keyCode?: VehicleSelectionKeyCode;
-  readonly keyLabel?: string;
   readonly mobileLabel: string;
 }
 
 function entry(value: VehicleCatalogEntry): Readonly<VehicleCatalogEntry> {
   if (value.presentationFamily !== 'CAR' && value.presentationFamily !== 'BIKE') {
     throw new RangeError('vehicle presentation family must be CAR or BIKE');
-  }
-  if (
-    (value.keyCode === undefined) !== (value.keyLabel === undefined) ||
-    (value.keyCode !== undefined &&
-      (typeof value.keyCode !== 'string' ||
-        !value.keyCode.trim() ||
-        typeof value.keyLabel !== 'string' ||
-        !value.keyLabel.trim()))
-  ) {
-    throw new RangeError('vehicle shortcut requires a nonempty code and label, or neither');
   }
   return Object.freeze({
     ...value,
@@ -66,19 +52,14 @@ export function compileVehicleCatalog(
   values: readonly VehicleCatalogEntry[],
 ): readonly Readonly<VehicleCatalogEntry>[] {
   const ids = new Set<string>();
-  const keys = new Set<string>();
   for (const value of values) {
     if (ids.has(value.profile.id)) throw new RangeError(`duplicate vehicle id: ${value.profile.id}`);
     ids.add(value.profile.id);
-    if (value.keyCode !== undefined) {
-      if (keys.has(value.keyCode)) throw new RangeError(`duplicate vehicle shortcut: ${value.keyCode}`);
-      keys.add(value.keyCode);
-    }
   }
   return Object.freeze(values.map(entry));
 }
 
-/** M9.8 product catalog. Metadata roles remain separate from compiled mechanical profiles. */
+/** Product catalog. Metadata roles remain separate from compiled mechanical profiles. */
 export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compileVehicleCatalog([
   {
     manufacturer: 'Ferrari',
@@ -90,8 +71,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'CAR',
     profile: FERRARI_TESTAROSSA_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
-    keyCode: 'KeyQ',
-    keyLabel: 'Q',
     mobileLabel: 'F110',
   },
   {
@@ -104,8 +83,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'CAR',
     profile: PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
-    keyCode: 'KeyW',
-    keyLabel: 'W',
     mobileLabel: '930',
   },
   {
@@ -118,8 +95,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'CAR',
     profile: CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
-    keyCode: 'KeyE',
-    keyLabel: 'E',
     mobileLabel: 'C4',
   },
   {
@@ -132,8 +107,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'CAR',
     profile: VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
-    keyCode: 'KeyR',
-    keyLabel: 'R',
     mobileLabel: 'GTI',
   },
   {
@@ -146,8 +119,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'CAR',
     profile: LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
     torqueProtection: ROAD_TORQUE_POLICY,
-    keyCode: 'KeyA',
-    keyLabel: 'A',
     mobileLabel: 'DELTA',
   },
   {
@@ -160,8 +131,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'BIKE',
     profile: HONDA_VFR750R_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
-    keyCode: 'KeyS',
-    keyLabel: 'S',
     mobileLabel: 'RC30',
   },
   {
@@ -174,8 +143,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'BIKE',
     profile: BMW_R80_GS_PARIS_DAKAR_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
-    keyCode: 'KeyD',
-    keyLabel: 'D',
     mobileLabel: 'R80',
   },
   {
@@ -188,8 +155,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'BIKE',
     profile: HARLEY_DAVIDSON_FXRT_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
-    keyCode: 'KeyF',
-    keyLabel: 'F',
     mobileLabel: 'FXRT',
   },
   {
@@ -202,8 +167,6 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     presentationFamily: 'BIKE',
     profile: VESPA_PX200E_ARCOBALENO_VEHICLE_PROFILE,
     torqueProtection: TWO_WHEEL_TORQUE_POLICY,
-    keyCode: 'KeyV',
-    keyLabel: 'V',
     mobileLabel: 'PX200',
   },
 ]);

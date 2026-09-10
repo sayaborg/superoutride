@@ -1,3 +1,5 @@
+const LEVEL_ROUNDING_TOLERANCE = 1e-12;
+
 import { positiveFinite } from '../core/validation.js';
 export interface GroundMapDensityInput {
   readonly d0: number;
@@ -91,7 +93,7 @@ export function requiredPyramidMaxLevel(deltaSEffectiveMax: number, qS: number):
 function ceilLogRatio(ratio: number, base: number): number {
   if (!(ratio > 1)) return 0;
   const value = Math.log(ratio) / Math.log(base);
-  return Math.max(0, Math.ceil(value - 1e-12));
+  return Math.max(0, Math.ceil(value - LEVEL_ROUNDING_TOLERANCE));
 }
 
 function validateLevel(level: number): void {

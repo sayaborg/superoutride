@@ -4,17 +4,15 @@ import type { CircuitRuntimeWindow } from '../runtime/circuit-runtime-window.js'
 import {
   compileOrderedRaceCourseRules,
   createOrderedRaceProgressState,
-  getOrderedRaceProgressWindow,
   resyncOrderedRaceProgress,
   updateOrderedRaceProgress,
   type OrderedRaceCourseRules,
   type OrderedRaceGateAuthoring,
   type OrderedRaceProgressState,
   type OrderedRaceProgressUpdate,
-  type OrderedRaceProgressWindow,
 } from './ordered-race-progress.js';
 
-const EPSILON = 1e-8;
+const FINISH_RUNOUT_TOLERANCE_METERS = 1e-8;
 
 export interface CircuitRaceAuthoring {
   readonly id: string;
@@ -41,13 +39,12 @@ export interface CircuitRaceRules extends OrderedRaceCourseRules {
 }
 
 export interface CircuitRaceProgressSample extends Vec2 {
-  /** Finite monotonically increasing M6.49 runtime-window chainage. */
+  /** Finite monotonically increasing unfolded runtime-window chainage. */
   readonly sWindow: number;
 }
 
 export type CircuitRaceProgressState = OrderedRaceProgressState;
 export type CircuitRaceProgressUpdate = OrderedRaceProgressUpdate;
-export type CircuitRaceProgressWindow = OrderedRaceProgressWindow;
 
 /**
  * Expand one-lap circuit checkpoint authoring into a finite physical gate sequence.
@@ -87,7 +84,7 @@ export function compileCircuitRaceRules(
   }
 
   const raceDistance = authoring.lapCount * lapLength;
-  if (!(raceDistance < window.length - EPSILON)) {
+  if (!(raceDistance < window.length - FINISH_RUNOUT_TOLERANCE_METERS)) {
     throw new Error('circuit race finish must lie strictly inside the finite runtime window');
   }
 
@@ -126,13 +123,6 @@ export function createCircuitRaceProgressState(
   initial: CircuitRaceProgressSample,
 ): CircuitRaceProgressState {
   return createOrderedRaceProgressState(rules, toOrderedSample(initial));
-}
-
-export function getCircuitRaceProgressWindow(
-  state: CircuitRaceProgressState,
-  rules: CircuitRaceRules,
-): CircuitRaceProgressWindow {
-  return getOrderedRaceProgressWindow(state, rules);
 }
 
 export function updateCircuitRaceProgress(

@@ -2,7 +2,7 @@
 
 CAR and BIKE use one two-station arcade solver. The model is a game approximation, not a complete real vehicle or motorcycle simulator. Mass, geometry, inertia, suspension, wheel, brakes, drag, fixed drive split and powertrain are compiled profile data. Browser calibration and torque-protection policy are explicit instance/composition inputs. There is no vehicle-ID branch inside the tire or wheel solver.
 
-The mechanics and control laws in this document are frozen; parameter calibration remains open. A future structural defect must be corrected with its causal regression and an explicit specification revision, never hidden by tuning. Compiled profiles own immutable snapshots, including nested actuator rates, ratios and torque points. Equal authored settings mean equal values; sharing the original authoring object's identity is not a mechanics invariant. This supersedes the historical reference-identity assertion in the M8.3 profile test while retaining its common-value and common-solver coverage.
+The mechanics and control laws in this document are frozen; parameter calibration remains open. A future structural defect must be corrected with its causal regression and an explicit specification revision, never hidden by tuning. Compiled profiles own immutable snapshots, including nested actuator rates, ratios and torque points. Equal authored settings mean equal values; sharing the original authoring object's identity is not a mechanics invariant.
 
 ## State and integration
 
@@ -74,7 +74,7 @@ I*(Ω-Ωold)/dt + r*Fx(Ω) + rollingTorque(Ω) = driveTorque - signedBrakeTorque
 rollingTorque = Cr*N*r * (r*Ω)/hypot(r*Ω, v0)
 ```
 
-If Ω=0 satisfies the static brake interval, it is the solution. Otherwise a finite torque/force bracket and up to 60 bisection iterations solve the monotone residual (early return at absolute torque residual below 1e-10 N·m). Rolling resistance is nonnegative. Contact reference speed is constant during this scalar solve and is evaluated once. No wheel-speed, body-speed or force cap substitutes for the solve.
+If Ω=0 satisfies the static brake interval, it is the solution. Otherwise a finite torque/force bracket and up to 60 bisection iterations solve the monotone residual (early return at absolute torque residual below 1e-10 N·m). Rolling resistance is nonnegative. Contact reference speed is constant during this scalar solve and is evaluated once. Each solve owns a private temporary force result reused by its residual trials. The final result escapes only after solving; subsequent solves never mutate it. This is allocation management, not tire memory. No wheel-speed, body-speed or force cap substitutes for the solve.
 
 [Automatic powertrain](../src/physics/automatic-powertrain.ts) derives RPM directly from the fixed drive split's wheel speed and current ratio. It interpolates profile torque, shifts with compiled adjacent-ratio hysteresis, and tapers torque to zero at redline. There is no runtime power multiplier, separate engine inertia, clutch lag or fabricated engine braking. Gear changes are discrete; available wheel torque uses the selected profile's ratio and efficiency.
 
@@ -91,7 +91,7 @@ w = sqrt(g/qStatic)
 
 The acceleration uses the same force/moment, wheel reaction and current angular motion as integration. Drive checks front support and brake checks rear support only when an opposite loaded station exists. It does not attach an airborne vehicle to a crest or VOID.
 
-Try requested torque; if infeasible, try zero. If zero is feasible, 12 bounded bisections find a feasible boundary connected to release. The algorithm does not assert global monotonicity or global optimality. If even zero is infeasible, deliver zero pedal torque and report `supportFeasible=false`. Gravity/inertia/contact still act. This local-plane constraint is not a proof of stability over arbitrary changing terrain.
+Try requested torque; if infeasible, try zero. If zero is feasible, 12 bounded bisections retain a feasible sampled lower endpoint and an infeasible upper endpoint. The algorithm does not establish that unsampled torques between zero and the retained candidate are feasible, nor global monotonicity or optimality. This explicitly corrects the former “connected to release” claim without changing the delivered-torque algorithm. If even zero is infeasible, deliver zero pedal torque and report `supportFeasible=false`. Gravity/inertia/contact still act. This local-plane constraint is not a proof of stability over arbitrary changing terrain.
 
 ## Input, automatic steering and limiter
 
@@ -134,4 +134,4 @@ HUD reads raw request, actuator, automatic steering, requested/delivered offset,
 
 Bike lean is presentation: `atan2(lateralAcceleration,g)`, with discrete bank variants using the normalized angle and a ground-anchored debug line. Bike CG is currently 30% of wheelbase. There is no physical roll, rider shift or tire-camber thrust. New graphics/sound should read observations rather than add a second physics authority.
 
-[Calibration](calibration.md) lists current settings and remaining acceptance work. [Recovery](content-and-gameplay.md) defines the explicit gameplay reset boundary.
+[Calibration](calibration.md) lists current settings; [NEXT](NEXT.md#remaining-limits) owns open acceptance work. [Recovery](content-and-gameplay.md) defines the explicit gameplay reset boundary.

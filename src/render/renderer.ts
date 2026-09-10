@@ -21,6 +21,8 @@ import { SoftwareSurface } from './software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
+const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
+
 export type PlayerVisualKind = 'car' | 'bike';
 
 export interface RenderResult {
@@ -237,7 +239,7 @@ function drawTerrainLine(
   const x1 = Math.min(target.width - 1, rightEdge);
   if (x1 >= x0) {
     const dx = line.xGroundR - line.xGroundL;
-    if (Math.abs(dx) >= 1e-8) {
+    if (Math.abs(dx) >= MIN_TEXTURE_SPAN_PIXELS) {
       const localGroundLeft = roadView?.groundLeft ?? groundProfile.groundLeft;
       const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
       let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);

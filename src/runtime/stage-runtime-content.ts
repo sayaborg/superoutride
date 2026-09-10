@@ -14,6 +14,8 @@ import type { GroundMapProfile } from '../visual/ground-map.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { CourseSprite } from '../world/course-sprite.js';
 
+const PACKAGE_GEOMETRY_TOLERANCE_METERS = 1e-7;
+
 export interface StageRuntimeContentPackage {
   readonly packageId: string;
   readonly worldFrameId: string;
@@ -43,7 +45,7 @@ export function stageVehicleWorld(runtime: StageRuntimeContentPackage): VehicleW
  *
  * Every package reference in the gameplay manifest must have exactly one runtime package, and the
  * lateral origin used by the coordinate frame must exactly agree with the StageRoadView used by
- * the renderer. This is the key M6.19 invariant that keeps physics/camera/rendering in one child
+ * the renderer. This is the shared-chart invariant that keeps physics/camera/rendering in one child
  * coordinate chart after a validated handoff.
  */
 export function compileStageRuntimeContentRegistry(
@@ -94,9 +96,8 @@ export function resolveActiveStageRuntimeContent(
 function validatePackageGeometry(source: StageRuntimeContentPackage): void {
   validateSurfaceGuideEnvelope(source.coordinateFrame, source.surfaceMap);
   const guide = guideCoordinateCurve(source.coordinateFrame);
-  const epsilon = 1e-7;
 
-  if (Math.abs(source.heightProfile.courseLength - guide.length) > epsilon) {
+  if (Math.abs(source.heightProfile.courseLength - guide.length) > PACKAGE_GEOMETRY_TOLERANCE_METERS) {
     throw new RangeError(`runtime package height profile length mismatch: ${source.packageId}`);
   }
   if (source.terrainProfile.height !== source.heightProfile) {
@@ -104,13 +105,13 @@ function validatePackageGeometry(source: StageRuntimeContentPackage): void {
   }
   if (
     source.groundProfile.baked &&
-    Math.abs(source.groundProfile.baked.metadata.courseLength - guide.length) > epsilon
+    Math.abs(source.groundProfile.baked.metadata.courseLength - guide.length) > PACKAGE_GEOMETRY_TOLERANCE_METERS
   ) {
     throw new RangeError(`runtime package baked GroundMap length mismatch: ${source.packageId}`);
   }
   if (source.roadView !== null) {
     const origin = guideCoordinateLateralOrigin(source.coordinateFrame);
-    if (Math.abs(source.roadView.sourceLateralOrigin - origin) > epsilon) {
+    if (Math.abs(source.roadView.sourceLateralOrigin - origin) > PACKAGE_GEOMETRY_TOLERANCE_METERS) {
       throw new RangeError(`runtime package coordinate/road lateral origin mismatch: ${source.packageId}`);
     }
   }

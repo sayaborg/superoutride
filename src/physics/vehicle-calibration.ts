@@ -4,14 +4,12 @@ import {
 } from './driving-actuator.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 
-export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
-
 /**
  * This is intentionally not a versioned handling target.
  * The common mechanics/control structure is frozen in docs/vehicle-physics.md.
  * Parameter values remain provisional until product handling and device acceptance.
  */
-export type VehiclePhysicsCalibrationStatus = typeof VEHICLE_PHYSICS_CALIBRATION_STATUS;
+export const VEHICLE_PHYSICS_CALIBRATION_STATUS = 'DEV_UNCALIBRATED' as const;
 
 /** The selectable steering geometry/response values. Angles are road-wheel radians. */
 export interface ArcadeSteeringCalibrationInput {

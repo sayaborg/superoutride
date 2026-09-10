@@ -1,3 +1,4 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
 import {
@@ -6,7 +7,6 @@ import {
   type StageRuntimeContentRegistry,
 } from '../runtime/stage-runtime-content.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
-import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity, type M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import type { M626LiveContinuation, M626SuccessorRuntimeSource } from './m6-26-live-successor-stage.js';
@@ -18,7 +18,7 @@ import type { M626LiveContinuation, M626SuccessorRuntimeSource } from './m6-26-l
 export function createM626LiveStageRuntimeRegistry(
   manifest: RouteStageContentManifest,
   continuation: M626LiveContinuation,
-  parent: M620SharedRuntimeContent,
+  parent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
   identity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
 ): StageRuntimeContentRegistry {
@@ -34,7 +34,7 @@ export function createM626LiveStageRuntimeRegistry(
  */
 export function createM626LiveStageRuntimePackages(
   continuation: M626LiveContinuation,
-  parent: M620SharedRuntimeContent,
+  parent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
   worldFrameId: string,
   identity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
@@ -91,18 +91,13 @@ function successorPackage(
 function parentPackage(
   worldFrameId: string,
   continuation: M626LiveContinuation,
-  parent: M620SharedRuntimeContent,
+  parent: SharedRuntimeContent,
 ): StageRuntimeContentPackage {
   return {
+    ...parent,
     packageId: 'CONTENT_STAGE_1',
     worldFrameId,
     coordinateFrame: continuation.base.charts.parent,
     roadView: null,
-    surfaceMap: parent.surfaceMap,
-    heightProfile: parent.heightProfile,
-    terrainProfile: parent.terrainProfile,
-    groundProfile: parent.groundProfile,
-    selectFarBackground: parent.selectFarBackground,
-    worldSprites: parent.worldSprites,
   };
 }

@@ -1,129 +1,21 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { GuidePath } from '../core/guide-curve.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
-import type { GuideChart } from '../gameplay/guide-chart.js';
-import {
-  compileDeclarativeLiveRoute,
-  type DeclarativeLiveRouteAuthoring,
-  type GuideChartRuntimePackage,
-} from '../runtime/declarative-live-route.js';
-import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
+import { compileDeclarativeLiveRoute } from '../runtime/declarative-live-route.js';
 import { compileRasterForkStageRoute } from '../runtime/raster-fork-stage-route.js';
-import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
-import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
-import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
-import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
-import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
-import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import { createM630ThirdLiveSuccessorAuthoring } from './m6-30-third-live-successor.js';
+import { createSecondForkStep } from './second-fork-authoring.js';
 
-const WORLD_FRAME_ID = 'DEV_ROUTE_WORLD_V1';
-const INCOMING_ROAD_WIDTH = 7;
-const CHILD_ROAD_WIDTH = 7;
-const FORK_WIDEN_START_S = 80;
-const FORK_MEDIAN_START_S = 110;
-const FORK_SEPARATED_START_S = 170;
-const FORK_ROUTE_GATE_S = 195;
-const FORK_SOURCE_SEAM_MIN_S = 235;
-
-/**
- * M6.35 LEFT second-fork authoring. Later milestones can compose another generic fork onto this
- * exact validated topology without reconstructing the first fork or either third-stage chain.
- */
+/** Focused left terminal promotion with the other authored stages retained. */
 export function createM635SecondLiveForkAuthoring(
-  parentGuide: GuidePath,
-  parentContent: M620SharedRuntimeContent,
-  spriteAssets: SpriteAssets,
-): DeclarativeLiveRouteAuthoring {
-  const upstream = createM630ThirdLiveSuccessorAuthoring(parentGuide, parentContent, spriteAssets);
-  const identity = createM621ChildVisualIdentity();
-  const authored = createM624ChildStageAuthoring(spriteAssets, identity);
-
-  return compileRasterForkStageRoute({
-    upstream,
-    terminalStageId: 'GOAL_L',
-    forkStageId: 'STAGE_4_L_FORK',
-    forkPackageId: 'CONTENT_STAGE_4_L_FORK',
-    routeGateS: FORK_ROUTE_GATE_S,
-    junction: {
-      roadViewId: 'LEFT_SECOND_FORK_VIEW',
-      surfaceSectionName: 'LEFT_SECOND_FORK',
-      crossSection: {
-        sWidenStart: FORK_WIDEN_START_S,
-        sMedianStart: FORK_MEDIAN_START_S,
-        sSeparatedStart: FORK_SEPARATED_START_S,
-        parentRoadWidth: INCOMING_ROAD_WIDTH,
-        childRoadWidth: CHILD_ROAD_WIDTH,
-        finalMedianWidth: 8,
-        shoulderWidth: 1,
-      },
-      outerSurfaceType: 'GRASS',
-    },
-    branches: [forkBranchAuthoring('A', 'LEFT', -1), forkBranchAuthoring('B', 'RIGHT', 1)],
-    createRuntime: (structural, branch) =>
-      chartPackage(
-        compileAuthoredStageRuntimePackage(
-          {
-            packageId: branch.packageId,
-            worldFrameId: WORLD_FRAME_ID,
-            coordinateFrame: structural.chart,
-            roadView: structural.roadView,
-            surfaceMap: structural.surfaceMap,
-            groundProfile: structural.groundProfile,
-          },
-          branch.side === 'LEFT' ? authored.left : authored.right,
-        ),
-      ),
-  }).authoring;
+  guide: GuidePath,
+  parent: SharedRuntimeContent,
+  assets: SpriteAssets,
+) {
+  const upstream = createM630ThirdLiveSuccessorAuthoring(guide, parent, assets);
+  return compileRasterForkStageRoute({ upstream, ...createSecondForkStep('LEFT', assets) }).authoring;
 }
 
-/** A two-level branching fixture for route assembly and physical handoff tests. */
-export function createM635SecondLiveForkRuntime(
-  parentGuide: GuidePath,
-  parentContent: M620SharedRuntimeContent,
-  spriteAssets: SpriteAssets,
-): LiveRouteRuntimeAssembly {
-  return compileDeclarativeLiveRoute(createM635SecondLiveForkAuthoring(parentGuide, parentContent, spriteAssets));
-}
-
-function forkBranchAuthoring(label: 'A' | 'B', side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1) {
-  return {
-    side,
-    stageId: `GOAL_L${label}`,
-    packageId: `CONTENT_GOAL_L${label}`,
-    choiceId: `S4L_FORK_${label}`,
-    gateId: `G_LIVE_SECOND_FORK_${label}`,
-    handoffId: `H_S4L_FORK_${label}`,
-    finishGateId: `G_LIVE_FINISH_L${label}`,
-    successor: {
-      id: `LEFT_SECOND_FORK_${label}_SUCCESSOR`,
-      chartId: `LEFT_SECOND_FORK_${label}_CHART`,
-      roadViewId: `LEFT_SECOND_FORK_${label}_VIEW`,
-      surfaceSectionName: `LEFT_SECOND_FORK_${label}_STAGE`,
-      sourceSeamMinS: FORK_SOURCE_SEAM_MIN_S,
-      overlapMargin: 30,
-      transitionLead: 20,
-      finishAfterSeam: 140,
-      deformationMeters: 2.5,
-      deformationDirection,
-      gentleTurnLimitDegrees: 5,
-      minDeformationRunVertices: 5,
-      dCam: CURRENT_CAMERA_DISTANCE_METERS,
-      dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-      finishClosureMargin: 20,
-      groundMapHalfWidth: 12,
-      groundHalfWidth: 4.5,
-      roadMarkings: CENTER_DASH_MARKINGS,
-      junctionMarkings: CENTER_DASH_MARKINGS,
-      shoulderWidth: 1,
-    },
-  } as const;
-}
-
-function chartPackage(runtime: StageRuntimeContentPackage): GuideChartRuntimePackage {
-  const frame = runtime.coordinateFrame as Partial<GuideChart>;
-  if (typeof frame.id !== 'string' || frame.guide === undefined || typeof frame.lateralOrigin !== 'number') {
-    throw new RangeError(`M6.35 runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
-  }
-  return runtime as GuideChartRuntimePackage;
+export function createM635SecondLiveForkRuntime(guide: GuidePath, parent: SharedRuntimeContent, assets: SpriteAssets) {
+  return compileDeclarativeLiveRoute(createM635SecondLiveForkAuthoring(guide, parent, assets));
 }

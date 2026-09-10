@@ -1,3 +1,4 @@
+import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import {
   guideCoordinateCurve,
@@ -61,7 +62,6 @@ const DEFAULT_TERRAIN = Object.freeze({
   roadRight: 3.5,
   thinSpanScreenRows: 1,
 });
-const EPSILON = 1e-9;
 
 /**
  * Compile declarative stage-local environment authoring against one active Guide coordinate frame.
@@ -134,10 +134,10 @@ function compileOpenHeightNodes(courseLength: number, nodes: readonly HeightNode
   if (nodes.length === 0) throw new Error('stage height authoring requires at least one node');
   const copied = nodes.map((node) => ({ ...node })).sort((a, b) => a.s - b.s);
   const last = copied.at(-1)!;
-  if (last.s > courseLength + EPSILON) {
+  if (last.s > courseLength + SOURCE_ENDPOINT_TOLERANCE_METERS) {
     throw new RangeError('stage height authoring extends beyond Guide endpoint');
   }
-  if (Math.abs(last.s - courseLength) <= EPSILON) {
+  if (Math.abs(last.s - courseLength) <= SOURCE_ENDPOINT_TOLERANCE_METERS) {
     copied[copied.length - 1] = { ...last, s: courseLength };
     return copied;
   }

@@ -1,3 +1,4 @@
+import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import { classifyStageRoadLocalL, stageRoadSourceLateral, type StageRoadView } from '../course/stage-road-view.js';
 import { SURFACE_MATERIALS, type SurfaceMap, type SurfaceMapReader, type SurfaceSample } from './surface-map.js';
 
@@ -10,7 +11,7 @@ import { SURFACE_MATERIALS, type SurfaceMap, type SurfaceMapReader, type Surface
  */
 export class StageSurfaceMapView implements SurfaceMapReader {
   get maxSupportedAbsL(): number {
-    return Math.max(this.roadView.groundLeft, this.roadView.groundRight) + 1e-9;
+    return Math.max(this.roadView.groundLeft, this.roadView.groundRight) + LATERAL_BOUNDARY_TOLERANCE_METERS;
   }
 
   constructor(

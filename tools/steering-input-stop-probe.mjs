@@ -1,3 +1,4 @@
+import { vehicleUpdateForBuild } from './build-contract.mjs';
 /** Input-only comparison of steering policies. No state/force correction or new runtime authority. */
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -21,6 +22,7 @@ export const STEERING_STOP_CASES = Object.freeze([
 export function runSteeringStopCase(parent, scenario, { hz = 120, direction = 1, update = updateArcadeVehicle } = {}) {
   if (![60, 120, 240].includes(hz) || ![-1, 1].includes(direction) || !STEERING_STOP_CASES.includes(scenario))
     throw new RangeError('invalid steering probe');
+  const stepVehicle = vehicleUpdateForBuild(update);
   const p = forkProbe(parent),
     v = p.vehicle,
     dt = 1 / hz;
@@ -46,7 +48,7 @@ export function runSteeringStopCase(parent, scenario, { hz = 120, direction = 1,
     const vx = v.velocityX,
       vz = v.velocityZ,
       speed = Math.hypot(vx, vz);
-    update(p.guide, p.height, p.surface, v, input, dt);
+    stepVehicle({ guide: p.guide, height: p.height, surfaces: p.surface }, v, input, dt);
     if (![v.speed, v.yawRate, v.frontSteerAngle].every(Number.isFinite)) throw new Error('nonfinite steering probe');
     const beta = Math.abs(Math.atan2(v.lateralSpeed, v.longitudinalSpeed) * DEG),
       c = v.control;
@@ -70,15 +72,14 @@ export function runSteeringStopCase(parent, scenario, { hz = 120, direction = 1,
   };
 }
 export function runMatchedSteeringBrake(parent, update = updateArcadeVehicle, hz = 120) {
+  const stepVehicle = vehicleUpdateForBuild(update);
   const p = forkProbe(parent),
     v = p.vehicle;
   let peakBetaAbove15 = 0,
     peakAt = null;
   for (let i = 0; i < hz * 4.5; i++) {
-    update(
-      p.guide,
-      p.height,
-      p.surface,
+    stepVehicle(
+      { guide: p.guide, height: p.height, surfaces: p.surface },
       v,
       { steering: i < hz * 1.5 ? 1 : 0, throttle: 0, brake: i < hz * 1.5 ? 1 : 0 },
       1 / hz,
@@ -135,12 +136,10 @@ async function main() {
     { grip: 0.25, speed: 30 },
   );
   // One identical, ordinarily reached state for all post-prefix policies and step refinements.
-  const prefixUpdate = baseline ?? updateArcadeVehicle;
+  const prefixUpdate = vehicleUpdateForBuild(baseline ?? updateArcadeVehicle);
   for (let i = 0; i < 180; i++)
     prefixUpdate(
-      parent.guide,
-      parent.height,
-      parent.surface,
+      { guide: parent.guide, height: parent.height, surfaces: parent.surface },
       parent.vehicle,
       { steering: i < 60 ? 0 : 1, throttle: 0, brake: 0 },
       1 / 120,

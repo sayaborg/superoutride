@@ -44,7 +44,7 @@ test('an additional opaque content identity compiles and drives without catalog 
   const { guide, heightProfile: height, surfaceMap: surfaces } = createM83LinearHighwayRuntime();
   const vehicle = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 45, l: 0, initialSpeed: 15 });
   for (let tick = 0; tick < 60; tick++) {
-    updateArcadeVehicle(guide, height, surfaces, vehicle, { steering: 0, throttle: 1, brake: 0 }, 1 / 60);
+    updateArcadeVehicle({ guide, height, surfaces }, vehicle, { steering: 0, throttle: 1, brake: 0 }, 1 / 60);
   }
   assert.equal(vehicle.profile.id, 'audit-synthetic-10');
   assert.ok(Number.isFinite(vehicle.x + vehicle.y + vehicle.z + vehicle.yaw));
@@ -107,7 +107,7 @@ test('compiled profiles expose one resolved station authority, not authored whee
   assert.equal(vehicle.frontWheelOmega, 15 / 0.37);
   assert.equal(vehicle.rearWheelOmega, 15 / 0.41);
   for (let i = 0; i < 20; i++)
-    updateArcadeVehicle(guide, height, surfaces, vehicle, { steering: 0, throttle: 0, brake: 1 }, 1 / 60);
+    updateArcadeVehicle({ guide, height, surfaces }, vehicle, { steering: 0, throttle: 0, brake: 1 }, 1 / 60);
   assert.equal(vehicle.control.requestedFrontBrakeTorque, vehicle.actuator.brake * 111);
   assert.equal(vehicle.control.requestedRearBrakeTorque, vehicle.actuator.brake * 222);
 });

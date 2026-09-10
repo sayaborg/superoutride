@@ -40,9 +40,7 @@ for (const [name, createRuntime] of [
       let ticks = 0;
       while (vehicle.course.s < s && ticks++ < 30_000) {
         updateArcadeVehicle(
-          w.guide,
-          w.height,
-          w.surface,
+          { guide: w.guide, height: w.height, surfaces: w.surface },
           vehicle,
           sampleRivalDrivingInput(w.guide, vehicle, 0),
           SIM_DT,

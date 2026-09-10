@@ -4,7 +4,7 @@ export interface DepthItem {
 
 /**
  * Merge two far->near lists without allocating a combined sort buffer.
- * Core §52 tie rule: when d is equal, terrain is drawn before sprite.
+ * Painter tie rule: when d is equal, terrain is drawn before sprite.
  */
 export function mergeTerrainAndSprites<TTerrain extends DepthItem, TSprite extends DepthItem>(
   terrain: readonly TTerrain[],

@@ -1,12 +1,10 @@
-import { guideCoordinateCurve, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
 import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { limitSteeringInput } from './steering-input-limiter.js';
-import type { SurfaceMapReader } from './surface-map.js';
 import {
   createArcadeTireFrictionCalibration,
   type ArcadeTireFrictionCalibrationState,
@@ -157,9 +155,7 @@ export function createArcadeVehicle(
 }
 
 export function updateArcadeVehicle(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
+  { guide, height, surfaces }: VehicleWorld,
   vehicle: ArcadeVehicleState,
   input: DrivingInput,
   dt: number,

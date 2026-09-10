@@ -1,7 +1,7 @@
 import { dot, normalFromHeading, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
 import { finitePoint } from '../core/validation.js';
 
-const CROSSING_EPSILON = 1e-9;
+const GATE_WIDTH_TOLERANCE_METERS = 1e-9;
 
 export interface WorldCrossingGateAuthoring {
   readonly id: string;
@@ -67,7 +67,7 @@ export function observeWorldCrossingGate(
     z: previous.z + (current.z - previous.z) * u,
   };
   const lateral = dot(subtract(crossingPoint, gate.center), gate.normal);
-  if (Math.abs(lateral) > gate.halfWidth + CROSSING_EPSILON) return null;
+  if (Math.abs(lateral) > gate.halfWidth + GATE_WIDTH_TOLERANCE_METERS) return null;
 
   return Object.freeze({ direction, u, lateral });
 }

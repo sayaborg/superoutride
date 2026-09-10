@@ -48,10 +48,10 @@ function trial(count, observe) {
   let presentMs = 0;
   for (let frame = 0; frame < frames; frame++) {
     let start = performance.now();
-    for (const actor of actors) updateArcadeVehicle(guide, height, surfaces, actor, input, SIM_DT);
+    for (const actor of actors) updateArcadeVehicle({ guide, height, surfaces }, actor, input, SIM_DT);
     physicsMs += performance.now() - start;
     start = performance.now();
-    const camera = updateCamera(rig, guide, height, actors[0], CURRENT_CAMERA_PROFILE, SIM_DT);
+    const camera = updateCamera(rig, { guide, height }, actors[0], CURRENT_CAMERA_PROFILE, SIM_DT);
     const sprites = actors
       .slice(1)
       .map((actor, i) => createDynamicVehicleCourseSprite(`probe-${i}`, actor, camera.yaw, assets.car, height));

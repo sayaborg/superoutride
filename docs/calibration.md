@@ -1,4 +1,4 @@
-# Calibration and remaining handling work
+# Vehicle calibration
 
 Handling remains `DEV_UNCALIBRATED`. The common mechanics/control structure is frozen in [vehicle physics](vehicle-physics.md); the following values are a playtest starting point, not a real-vehicle claim or a completed stability certification.
 
@@ -33,4 +33,4 @@ Before accepting a tune, compare coast, acceleration, braking, held turns, rever
 
 The available [terrain probe](../tools/torque-protection-terrain-probe.mjs), [braking/yaw probe](../tools/braking-yaw-probe.mjs) and [drift control probe](../tools/drift-control-probe.mjs) use the production solver. Check each tool's arguments in source. Diagnostic probes intentionally omit gameplay recovery when measuring raw model-domain exits. Tests with explicit coefficients are fixed causal fixtures, not assertions that those values are the current browser default.
 
-Open work: per-vehicle/front-rear tuning, coast/turn oscillation acceptance, combined pedal/steering and changing-terrain envelope, and target-phone performance/input validation. The finite-domain recovery prevents a suspension exception from freezing play; it does not certify arbitrary-terrain physical accuracy. Next presentation/game-system work may proceed while these calibration and acceptance tasks remain open.
+Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#remaining-limits).

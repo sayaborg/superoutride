@@ -20,7 +20,7 @@ import { drawVehicleLeanDebug } from '../render/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from '../render/vehicle-yaw-debug.js';
 import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
-import { browserRequestsCameraYawToggle } from './camera-yaw-mode-selection.js';
+import { browserRequestsCameraYawToggle, BROWSER_RECOVERY_CODE } from './key-bindings.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
@@ -62,17 +62,13 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     mustGet('throttle-button'),
     mustGet('brake-button'),
   );
-  let vehicle = createArcadeVehicle(
-    DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-    { guide: runtime.guide, height: runtime.height, surfaces: runtime.surfaces },
-    {
-      s: 45,
-      l: startL,
-      initialSpeed: 45,
-      tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
-      torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
-    },
-  );
+  let vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
+    s: 45,
+    l: startL,
+    initialSpeed: 45,
+    tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
+    torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+  });
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
@@ -102,18 +98,14 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, active: VehicleWorld): void {
       const steeringCalibration = vehicle.steeringCalibration;
       const tireFrictionCalibration = vehicle.tireFrictionCalibration;
-      vehicle = createArcadeVehicle(
-        profile,
-        { guide: active.guide, height: active.height, surfaces: active.surfaces },
-        {
-          s: vehicle.course.s,
-          l: vehicle.course.l,
-          initialSpeed: vehicle.longitudinalSpeed,
-          steeringCalibration,
-          tireFrictionCalibration,
-          torqueProtection: vehicleCatalogEntryForId(profile.id).torqueProtection,
-        },
-      );
+      vehicle = createArcadeVehicle(profile, active, {
+        s: vehicle.course.s,
+        l: vehicle.course.l,
+        initialSpeed: vehicle.longitudinalSpeed,
+        steeringCalibration,
+        tireFrictionCalibration,
+        torqueProtection: vehicleCatalogEntryForId(profile.id).torqueProtection,
+      });
       recovery = createRecoveryState(vehicle);
       resetCameraRig(cameraRig);
     },
@@ -157,7 +149,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
         const selectedProfile = browserVehicleProfileForKey(event.code);
         if (selectedProfile !== null) {
           selectVehicleProfile(selectedProfile);
-        } else if (event.code === 'Backspace') {
+        } else if (event.code === BROWSER_RECOVERY_CODE) {
           event.preventDefault();
           onRecover();
         }

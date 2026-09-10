@@ -149,8 +149,7 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
   resyncRouteDrivingActor(liveRoute, playerActor);
   camera = updateCamera(
     cameraRig,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
+    { guide: runtime.coordinateFrame, height: runtime.heightProfile },
     shell.vehicle,
     cameraProfile,
     SIM_DT,
@@ -160,8 +159,7 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
 const initialRuntime = activeRuntime();
 let camera: CameraState = updateCamera(
   cameraRig,
-  initialRuntime.coordinateFrame,
-  initialRuntime.heightProfile,
+  { guide: initialRuntime.coordinateFrame, height: initialRuntime.heightProfile },
   shell.vehicle,
   cameraProfile,
   SIM_DT,
@@ -184,8 +182,7 @@ function tick(dt: number): void {
   const runtimeAfterTick = activeRuntime();
   camera = updateCamera(
     cameraRig,
-    runtimeAfterTick.coordinateFrame,
-    runtimeAfterTick.heightProfile,
+    { guide: runtimeAfterTick.coordinateFrame, height: runtimeAfterTick.heightProfile },
     shell.vehicle,
     cameraProfile,
     dt,
@@ -240,8 +237,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   resyncRouteDrivingActor(liveRoute, playerActor);
   camera = updateCamera(
     cameraRig,
-    runtime.coordinateFrame,
-    runtime.heightProfile,
+    { guide: runtime.coordinateFrame, height: runtime.heightProfile },
     shell.vehicle,
     cameraProfile,
     SIM_DT,

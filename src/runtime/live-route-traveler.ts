@@ -22,7 +22,7 @@ import {
 import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
 import { resolveActiveStageRuntimeContent, type StageRuntimeContentPackage } from './stage-runtime-content.js';
 
-const EPSILON = 1e-9;
+const LATERAL_INTENT_TOLERANCE_METERS = 1e-9;
 
 export interface LiveRouteTravelerState {
   readonly routeState: RouteDagState;
@@ -206,11 +206,11 @@ export function sampleLiveRouteChoiceTargetL(
   const runtime = resolveLiveRouteTravelerRuntime(live, state);
   const gateCoordinate = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, gate.center, false);
   const finalTargetL = gateCoordinate.l;
-  if (Math.abs(finalTargetL) <= EPSILON) return 0;
+  if (Math.abs(finalTargetL) <= LATERAL_INTENT_TOLERANCE_METERS) return 0;
 
   const stageJunction = runtime.groundProfile.stageJunction;
   const sourceJunction =
-    Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= EPSILON
+    Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= LATERAL_INTENT_TOLERANCE_METERS
       ? runtime.groundProfile.junction
       : undefined;
   const junction = stageJunction ?? sourceJunction;

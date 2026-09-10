@@ -27,8 +27,7 @@ const cameraProfile = CURRENT_CAMERA_PROFILE;
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
 let camera: CameraState = updateCamera(
   cameraRig,
-  runtime.guide,
-  runtime.heightProfile,
+  { guide: runtime.guide, height: runtime.heightProfile },
   shell.vehicle,
   cameraProfile,
   SIM_DT,
@@ -40,7 +39,13 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
     profile: M8_3_LINEAR_RECOVERY_PROFILE,
   });
   resetCameraRig(cameraRig);
-  camera = updateCamera(cameraRig, runtime.guide, runtime.heightProfile, shell.vehicle, cameraProfile, SIM_DT);
+  camera = updateCamera(
+    cameraRig,
+    { guide: runtime.guide, height: runtime.heightProfile },
+    shell.vehicle,
+    cameraProfile,
+    SIM_DT,
+  );
 });
 
 function tick(dt: number): void {
@@ -51,7 +56,13 @@ function tick(dt: number): void {
     { state: shell.recovery, input, dt, profile: M8_3_LINEAR_RECOVERY_PROFILE },
   );
   if (recovered !== null) resetCameraRig(cameraRig);
-  camera = updateCamera(cameraRig, runtime.guide, runtime.heightProfile, shell.vehicle, cameraProfile, dt);
+  camera = updateCamera(
+    cameraRig,
+    { guide: runtime.guide, height: runtime.heightProfile },
+    shell.vehicle,
+    cameraProfile,
+    dt,
+  );
 }
 
 function render(): void {
@@ -81,7 +92,13 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
     profile: M8_3_LINEAR_RECOVERY_PROFILE,
   });
   shell.replacePlayer(profile, { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap });
-  camera = updateCamera(cameraRig, runtime.guide, runtime.heightProfile, shell.vehicle, cameraProfile, SIM_DT);
+  camera = updateCamera(
+    cameraRig,
+    { guide: runtime.guide, height: runtime.heightProfile },
+    shell.vehicle,
+    cameraProfile,
+    SIM_DT,
+  );
 }
 
 shell.start(tick, render);

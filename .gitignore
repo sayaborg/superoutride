@@ -2,3 +2,4 @@
 /dist/
 /_site/
 .DS_Store
+/.audit-baseline/

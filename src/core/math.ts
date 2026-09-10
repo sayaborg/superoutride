@@ -15,7 +15,7 @@ export function wrapPositive(value: number, period: number): number {
   return wrapped < 0 ? wrapped + period : wrapped;
 }
 
-// Core §5: normalize to (-period/2, +period/2].
+// Normalize to (-period/2, +period/2].
 export function wrapSigned(delta: number, period: number): number {
   if (!(period > 0)) throw new RangeError('period must be > 0');
   const half = period * 0.5;

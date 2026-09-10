@@ -31,8 +31,8 @@ export interface StageContinuationLink {
   readonly overlapAhead: number;
 }
 
-const DEFAULT_POSITION_TOLERANCE = 1e-7;
-const DEFAULT_HEADING_TOLERANCE = 1e-7;
+const DEFAULT_POSITION_TOLERANCE_METERS = 1e-7;
+const DEFAULT_HEADING_TOLERANCE_RADIANS = 1e-7;
 
 /**
  * Compile a coordinate-only stage continuation link.
@@ -59,8 +59,8 @@ export function compileStageContinuationLink(source: StageContinuationLinkAuthor
   if (!(source.overlapBehind > 0)) throw new RangeError('stage continuation overlapBehind must be > 0');
   if (!(source.overlapAhead > 0)) throw new RangeError('stage continuation overlapAhead must be > 0');
 
-  const positionTolerance = source.positionTolerance ?? DEFAULT_POSITION_TOLERANCE;
-  const headingTolerance = source.headingTolerance ?? DEFAULT_HEADING_TOLERANCE;
+  const positionTolerance = source.positionTolerance ?? DEFAULT_POSITION_TOLERANCE_METERS;
+  const headingTolerance = source.headingTolerance ?? DEFAULT_HEADING_TOLERANCE_RADIANS;
   if (
     !Number.isFinite(positionTolerance) ||
     !Number.isFinite(headingTolerance) ||

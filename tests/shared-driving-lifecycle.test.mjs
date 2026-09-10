@@ -119,3 +119,49 @@ test('common circuit actor recovery resyncs observations without awarding FINISH
   assert.ok(vehicle.course.s > rules.lapLength, 'known second copy survives recovery');
   assert.ok(actor.raceSession.elapsedSeconds >= 12);
 });
+
+test('wrong-branch recovery honors the actor profile without awarding route progress', () => {
+  const guide = createM2StadiumGuide(),
+    parent = parentShared(guide);
+  const live = createM638DeclarativeForkGrowthRuntime(guide, parent, createSpriteAssets());
+  const world = { guide, height: parent.heightProfile, surfaces: parent.surfaceMap };
+  const gates = ['S1_LEFT', 'S1_RIGHT'].map((id) => live.gates.gates.find((g) => g.choiceId === id));
+  const actors = gates.map((gate, index) => {
+    const at = (distance) => ({
+      x: gate.center.x + gate.tangent.x * distance,
+      z: gate.center.z + gate.tangent.z * distance,
+    });
+    const start = locateWorldOnGuideCoordinateGlobal(guide, at(0.1));
+    const vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, world, {
+      s: start.s,
+      l: start.l,
+      initialSpeed: 0,
+    });
+    const traveler = createLiveRouteTravelerState(live, { x: vehicle.x, z: vehicle.z });
+    traveler.previousWorldPoint = at(index ? -2 : -0.1);
+    return {
+      actorId: `actor-${index}`,
+      vehicle,
+      traveler,
+      recovery: createRecoveryState(vehicle),
+      recoveryProfile: { ...RECOVERY_PROFILE, backtrackDistance: 3, minRecoverySpeed: 7, maxRecoverySpeed: 7 },
+      fieldProgress: createFieldRouteProgressState(
+        live.progress,
+        fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
+      ),
+      sampleInput: () => neutral,
+    };
+  });
+  const results = advanceRouteDrivingTick(live, createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS'), actors, {
+    dt: 1 / 60,
+    branchViolationPolicy: 'RECOVER_TO_LOCKED_BRANCH',
+  });
+  const loser = actors[1],
+    gate = gates[0];
+  assert.equal(results[loser.actorId].recovered, 'wrong-course');
+  assert.ok(Math.abs(loser.vehicle.speed - 7) < 1e-10);
+  const approach = { x: gate.center.x - 3 * gate.tangent.x, z: gate.center.z - 3 * gate.tangent.z };
+  assert.ok(Math.hypot(loser.vehicle.x - approach.x, loser.vehicle.z - approach.z) < 1e-8);
+  assert.equal(loser.fieldProgress.acceptedTransitionCount, 0);
+  assert.equal(loser.traveler.handoffState.commitCount, 0);
+});

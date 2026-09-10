@@ -16,33 +16,8 @@ export function sampleStageGroundMapRuntime(
   view: StageRoadView,
   profile: GroundMapProfile,
 ): BakedGroundMapSample {
-  const localClass = classifyStageRoadLocalL(view, localL);
-  if (localClass === 'OUTSIDE') throw new RangeError('stage GroundMap sample is outside the local ground envelope');
-
-  const sourceS = s + (profile.chainageOffsetS ?? 0);
-  if (profile.stageJunction) {
-    const junctionColor = sampleJunctionGroundMap(s, localL, profile.stageJunction, profile.junctionMarkings, sourceS);
-    if (junctionColor !== null) {
-      return {
-        color: junctionColor,
-        level: profile.baked?.selectLevel(deltaSEffective) ?? 0,
-      };
-    }
-  }
-
-  if (localClass === 'SHOULDER') {
-    return {
-      color: GROUND_COLORS.shoulder,
-      level: profile.baked?.selectLevel(deltaSEffective) ?? 0,
-    };
-  }
-
-  const sourceL = stageRoadSourceLateral(view, localL);
-  if (profile.baked) return profile.baked.sample(sourceS, sourceL, deltaSEffective);
-  return {
-    color: sampleGroundMap(s, sourceL, profile),
-    level: 0,
-  };
+  const level = profile.baked?.selectLevel(deltaSEffective) ?? 0;
+  return { color: sampleStageGroundMapAtLevel(s, localL, level, view, profile), level };
 }
 
 export function sampleStageGroundMapAtLevel(

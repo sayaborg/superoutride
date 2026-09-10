@@ -9,6 +9,9 @@ import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
 import type { GroundMapProfile } from '../visual/ground-map.js';
 import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 
+const RUNOUT_TURN_TOLERANCE_DEGREES = 1e-9;
+const MIN_RUNOUT_SEGMENT_METERS = 1e-9;
+
 export interface RasterSuccessorSource {
   readonly guide: GuidePath;
   readonly chart: GuideChart;
@@ -121,7 +124,7 @@ export function createRasterStageSuccessor(
   const maxRunoutTurnDegrees = successorRaster.vertexTurns
     .slice(runoutTurnStart)
     .reduce((max, turn) => Math.max(max, (Math.abs(turn) * 180) / Math.PI), 0);
-  if (maxRunoutTurnDegrees > authoring.gentleTurnLimitDegrees + 1e-9) {
+  if (maxRunoutTurnDegrees > authoring.gentleTurnLimitDegrees + RUNOUT_TURN_TOLERANCE_DEGREES) {
     throw new Error(
       `${authoring.id} generated runout turn ${maxRunoutTurnDegrees.toFixed(6)}° exceeds authored gentle-turn limit`,
     );
@@ -261,7 +264,7 @@ function buildStraightRunout(
   length: number,
   maximumSegmentLength: number,
 ): RasterVertex[] {
-  if (length <= 1e-9) return [];
+  if (length <= MIN_RUNOUT_SEGMENT_METERS) return [];
   const segmentCount = Math.ceil(length / maximumSegmentLength);
   const forwardX = Math.sin(heading);
   const forwardZ = Math.cos(heading);

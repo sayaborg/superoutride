@@ -1,3 +1,4 @@
+import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { positiveFinite } from '../core/validation.js';
 import { rgbaToRgb555 } from '../render/rgb555.js';
 import type {
@@ -10,6 +11,8 @@ import type {
 import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
 import { buildGroundMapAnisotropicPyramid, type GroundMapTexelLevel } from './ground-map-prefilter.js';
+
+const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
 
 export interface CompiledBakedGroundMapAsset {
   readonly metadata: BakedGroundMapMetadata;
@@ -25,7 +28,7 @@ interface PendingPayload {
 }
 
 /**
- * M5.7 offline compiler. Runtime never performs anisotropic filtering.
+ * GroundMap offline compiler. Runtime never performs anisotropic filtering.
  * The exact open chainage domain is rasterized once at level 0, prefiltered through kMax,
  * then split into bounded row chunks. Identical encoded chunks share one payload.
  */
@@ -46,11 +49,11 @@ export async function compileBakedGroundMapAsset(
   const lateralWidth = profile.groundLeft + profile.groundRight;
   positiveFinite(lateralWidth, 'ground width');
 
-  const baseLateralTexels = alignUp(Math.ceil(lateralWidth / density.qL - 1e-12), 2 ** kMax);
-  const baseChainageTexels = alignUp(Math.ceil(courseLength / density.qS - 1e-12), 4 ** kMax);
+  const baseLateralTexels = alignUp(Math.ceil(lateralWidth / density.qL - TEXEL_COUNT_ROUNDING_TOLERANCE), 2 ** kMax);
+  const baseChainageTexels = alignUp(Math.ceil(courseLength / density.qS - TEXEL_COUNT_ROUNDING_TOLERANCE), 4 ** kMax);
   const actualBaseQL = lateralWidth / baseLateralTexels;
   const actualBaseQS = courseLength / baseChainageTexels;
-  if (actualBaseQL > density.qL + 1e-12 || actualBaseQS > density.qS + 1e-12) {
+  if (actualBaseQL > density.qL + TEXEL_SPACING_TOLERANCE || actualBaseQS > density.qS + TEXEL_SPACING_TOLERANCE) {
     throw new Error('aligned GroundMap density became coarser than authority');
   }
 

@@ -1,48 +1,30 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import type { SurfaceMap } from '../physics/surface-map.js';
-import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import {
   compileStageRuntimeContentRegistry,
   type StageRuntimeContentPackage,
   type StageRuntimeContentRegistry,
 } from '../runtime/stage-runtime-content.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
-import type { CourseSprite } from '../world/course-sprite.js';
 import type { M616ChildGuideCharts } from './m6-16-child-guide-charts.js';
 import type { M618StageRoadViews } from './m6-18-stage-road-views.js';
 import { createM621ChildVisualIdentity, type M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
-
-export interface M620SharedRuntimeContent {
-  readonly heightProfile: HeightProfileReader;
-  readonly surfaceMap: SurfaceMap;
-  readonly terrainProfile: TerrainVisualProfile;
-  readonly groundProfile: GroundMapProfile;
-  readonly selectFarBackground: (cameraS: number) => FarBackground;
-  readonly worldSprites: readonly CourseSprite[];
-}
 
 export function createM620LiveStageRuntimeRegistry(
   manifest: RouteStageContentManifest,
   charts: M616ChildGuideCharts,
   roadViews: M618StageRoadViews,
-  shared: M620SharedRuntimeContent,
+  shared: SharedRuntimeContent,
   childVisualIdentity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
 ): StageRuntimeContentRegistry {
   const packages: StageRuntimeContentPackage[] = [
     {
+      ...shared,
       packageId: 'CONTENT_STAGE_1',
       worldFrameId: manifest.worldFrameId,
       coordinateFrame: charts.parent,
       roadView: null,
-      surfaceMap: shared.surfaceMap,
-      heightProfile: shared.heightProfile,
-      terrainProfile: shared.terrainProfile,
-      groundProfile: shared.groundProfile,
-      selectFarBackground: shared.selectFarBackground,
-      worldSprites: shared.worldSprites,
     },
     childPackage(
       'CONTENT_GOAL_L',
@@ -73,7 +55,7 @@ function childPackage(
   roadView: NonNullable<StageRuntimeContentPackage['roadView']>,
   surfaceMap: StageRuntimeContentPackage['surfaceMap'],
   worldFrameId: string,
-  shared: M620SharedRuntimeContent,
+  shared: SharedRuntimeContent,
   farBackground: FarBackground,
 ): StageRuntimeContentPackage {
   return {

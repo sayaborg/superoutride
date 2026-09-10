@@ -5,7 +5,7 @@ import { compileArcadeVehicleProfile, type ArcadeVehicleProfile } from '../physi
 /** Product-authored values; generic mechanics imports no catalog or production data. */
 const DEG = Math.PI / 180;
 
-/** Stock construction seed preserves M9.9's equal 1.35 capacity / 9.75 stiffness.
+/** Stock construction seed uses equal 1.35 capacity / 9.75 stiffness.
  * Both stations currently share data; the lower law/compiler also accept distinct tire data. */
 const REFERENCE_TIRE: Readonly<TireCharacteristics> = Object.freeze({
   gripX: 1.35,
@@ -308,7 +308,7 @@ export const HONDA_VFR750R_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = O
   pitchInertia: 205,
   frontAxle: 0.719,
   rearAxle: 0.691,
-  desiredCgHeight: 0.423, // M9.28 game calibration: 30% of wheelbase.
+  desiredCgHeight: 0.423, // Game calibration: 30% of wheelbase.
   frontRideFrequency: 2.0,
   rearRideFrequency: 2.1,
   frontDampingRatio: 0.42,
@@ -357,7 +357,7 @@ export const BMW_R80_GS_PARIS_DAKAR_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePro
   pitchInertia: 260,
   frontAxle: 0.776,
   rearAxle: 0.689,
-  desiredCgHeight: 0.4395, // M9.28 game calibration: 30% of wheelbase.
+  desiredCgHeight: 0.4395, // Game calibration: 30% of wheelbase.
   frontRideFrequency: 1.65,
   rearRideFrequency: 1.75,
   frontDampingRatio: 0.38,
@@ -408,7 +408,7 @@ export const HARLEY_DAVIDSON_FXRT_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfi
   pitchInertia: 340,
   frontAxle: 0.802,
   rearAxle: 0.684,
-  desiredCgHeight: 0.4458, // M9.28 game calibration: 30% of wheelbase.
+  desiredCgHeight: 0.4458, // Game calibration: 30% of wheelbase.
   frontRideFrequency: 1.55,
   rearRideFrequency: 1.6,
   frontDampingRatio: 0.38,
@@ -457,7 +457,7 @@ export const VESPA_PX200E_ARCOBALENO_VEHICLE_AUTHORING: Readonly<ArcadeVehiclePr
   pitchInertia: 108,
   frontAxle: 0.704,
   rearAxle: 0.531,
-  desiredCgHeight: 0.3705, // M9.28 game calibration: 30% of wheelbase.
+  desiredCgHeight: 0.3705, // Game calibration: 30% of wheelbase.
   frontRideFrequency: 1.5,
   rearRideFrequency: 1.55,
   frontDampingRatio: 0.36,

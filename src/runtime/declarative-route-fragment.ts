@@ -25,7 +25,7 @@ export interface DeclarativeRouteFragmentComposition {
 }
 
 /**
- * Compose route fragments into the existing M6.28 declarative authority.
+ * Compose route fragments into the declarative-live-route authority.
  *
  * This layer only canonicalizes repeated shared stage rows and rejects cross-fragment identity
  * collisions before the ordinary RouteDag/content/gate/handoff compilers run.

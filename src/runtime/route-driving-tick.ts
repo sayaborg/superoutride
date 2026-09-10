@@ -12,7 +12,6 @@ import {
 import {
   advanceVehicleWithRecovery,
   recoverVehicleToGuideCoordinate,
-  RECOVERY_PROFILE,
   type RecoveryProfile,
   type RecoveryReason,
   type RecoveryState,
@@ -102,13 +101,14 @@ export function advanceRouteDrivingTick(
       const approach = lockedBranchRecoveryApproach(
         live.gates,
         route.branchViolation.lockedChoiceId,
-        RECOVERY_PROFILE.backtrackDistance,
+        actor.recoveryProfile.backtrackDistance,
       );
       const target = locateWorldOnGuideCoordinateGlobal(runtime.coordinateFrame, approach.worldPoint);
       recoverVehicleToGuideCoordinate(stageVehicleWorld(runtime), actor.vehicle, {
         state: actor.recovery,
         target,
         reason: 'wrong-course',
+        profile: actor.recoveryProfile,
       });
       resyncLiveRouteTraveler(live, actor.traveler, { x: actor.vehicle.x, z: actor.vehicle.z });
       recoveryReason = 'wrong-course';

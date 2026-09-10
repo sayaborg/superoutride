@@ -27,7 +27,12 @@ for (const entry of VEHICLE_CATALOG.filter((e) => /TESTAROSSA|R80/.test(e.profil
     assert.throws(
       () => {
         for (let i = 0; i < 600; i++) {
-          updateArcadeVehicle(raw.guide, raw.height, raw.surface, raw.vehicle, neutral, 1 / 120);
+          updateArcadeVehicle(
+            { guide: raw.guide, height: raw.height, surfaces: raw.surface },
+            raw.vehicle,
+            neutral,
+            1 / 120,
+          );
           updateRecovery({ guide: raw.guide, height: raw.height, surfaces: raw.surface }, raw.vehicle, {
             state: rawRecovery,
             dt: 1 / 120,

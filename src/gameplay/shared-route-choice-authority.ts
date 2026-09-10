@@ -1,7 +1,7 @@
 import { nonEmptyId } from '../core/validation.js';
 import { getRouteChoice, getRouteStage, type RouteDag, type ValidatedRouteBoundary } from './route-dag.js';
 
-const EPSILON = 1e-9;
+const CROSSING_FRACTION_TIE_TOLERANCE = 1e-9;
 
 export type SharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
 
@@ -43,7 +43,7 @@ export interface SharedRouteChoiceArbitration {
 /**
  * Race/session route-choice authority.
  *
- * INDEPENDENT preserves the M6.40 behavior exactly.
+ * INDEPENDENT gives each actor its own legal physical route choices.
  * FIRST_PHYSICAL_CROSSING_LOCKS records one shared choice only for authored branch stages.
  * Single-successor continuation stages remain ordinary per-actor route transactions and do not
  * consume shared-choice state.
@@ -65,7 +65,7 @@ export function getSharedRouteChoiceLock(state: SharedRouteChoiceState, stageId:
  *
  * Candidates may belong to different route stages because the race field can be spread across
  * the point-to-point course. For each unlocked branching stage, the smallest crossingFraction
- * wins. If two fractions are exactly equal within EPSILON, input order is the deterministic
+ * wins. If two fractions are tied within CROSSING_FRACTION_TIE_TOLERANCE, input order is the deterministic
  * tie-break; callers can therefore pass candidates in their already-established race order.
  *
  * All actors that crossed the winning physical gate in the same tick are accepted. A sibling
@@ -135,7 +135,7 @@ export function arbitrateSharedRouteChoiceCandidates(
       let winner = stageCandidates[0]!;
       for (let i = 1; i < stageCandidates.length; i += 1) {
         const candidate = stageCandidates[i]!;
-        if (candidate.crossingFraction < winner.crossingFraction - EPSILON) winner = candidate;
+        if (candidate.crossingFraction < winner.crossingFraction - CROSSING_FRACTION_TIE_TOLERANCE) winner = candidate;
       }
       lock = Object.freeze({
         stageId,

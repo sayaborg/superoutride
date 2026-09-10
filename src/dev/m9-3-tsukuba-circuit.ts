@@ -1,4 +1,5 @@
-import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
+import { RasterTurtle } from '../course/raster-turtle.js';
+import { compileRasterPath, type RasterPath } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
@@ -18,8 +19,6 @@ export const M9_3_TSUKUBA_PLAYER_START_L = -1.5;
 export const M9_3_TSUKUBA_RIVAL_START_L = 1.5;
 
 const SHOULDER_WIDTH_METERS = 1.5;
-const MAX_ARC_STEP_DEGREES = 5;
-const DEGREES = Math.PI / 180;
 
 // These connector lengths close the original simplified arc reconstruction at exactly 2045 m.
 // They are ordinary course authoring, not hidden runtime correction.
@@ -69,87 +68,54 @@ export interface M93TsukubaCourse2000Lap {
  * deliberately absent. No handling, grip, camera or renderer rule is encoded here.
  */
 export function createM93TsukubaCourse2000Lap(): M93TsukubaCourse2000Lap {
-  const vertices: RasterVertex[] = [{ x: 0, z: 0, sourceRadius: 90 }];
-  const turtle = { x: 0, z: 0, heading: 0 };
-  let authoredS = 0;
-
-  const appendStraight = (length: number): void => {
-    const steps = Math.ceil(length / 50);
-    const stepLength = length / steps;
-    for (let step = 0; step < steps; step += 1) {
-      turtle.x += Math.sin(turtle.heading) * stepLength;
-      turtle.z += Math.cos(turtle.heading) * stepLength;
-      vertices.push({ x: turtle.x, z: turtle.z });
-      authoredS += stepLength;
-    }
-  };
-
-  const appendArc = (radius: number, turnDegrees: number): void => {
-    const turn = turnDegrees * DEGREES;
-    const sign = Math.sign(turn);
-    if (sign === 0) throw new RangeError('M9.3 Tsukuba arc turn must be non-zero');
-    vertices[vertices.length - 1]!.sourceRadius = radius;
-    const startX = turtle.x;
-    const startZ = turtle.z;
-    const startHeading = turtle.heading;
-    const centerX = startX + sign * radius * Math.cos(startHeading);
-    const centerZ = startZ - sign * radius * Math.sin(startHeading);
-    const steps = Math.ceil(Math.abs(turnDegrees) / MAX_ARC_STEP_DEGREES);
-    const chordLength = 2 * radius * Math.sin(Math.abs(turn) / (2 * steps));
-
-    for (let step = 1; step <= steps; step += 1) {
-      const heading = startHeading + (turn * step) / steps;
-      turtle.x = centerX - sign * radius * Math.cos(heading);
-      turtle.z = centerZ + sign * radius * Math.sin(heading);
-      vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
-      authoredS += chordLength;
-    }
-    turtle.heading = startHeading + turn;
-  };
+  const turtle = new RasterTurtle({ x: 0, z: 0, sourceRadius: 90 });
+  const { vertices } = turtle;
+  const appendStraight = (length: number) => turtle.appendStraight(length);
+  const appendArc = (radius: number, turn: number) => turtle.appendArcDegrees(radius, turn);
 
   appendStraight(M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS);
-  const homeStraightEndS = authoredS;
+  const homeStraightEndS = turtle.chainage;
 
   // Turn 1: published compound 55R entry / 35R exit, followed by its downhill exit.
   appendArc(55, 95);
   appendArc(35, 70);
-  const turnOneEndS = authoredS;
+  const turnOneEndS = turtle.chainage;
   appendStraight(TURN_ONE_TO_S_CURVE_METERS);
 
   // The broad S is effectively straight in the official driving description.
   appendArc(75, -20);
   appendArc(75, 40);
   appendArc(75, -20);
-  const sCurveEndS = authoredS;
+  const sCurveEndS = turtle.chainage;
   appendStraight(S_CURVE_TO_FIRST_HAIRPIN_METERS);
 
   // First hairpin: wide approach into the tight apex family.
   appendArc(105, -30);
   appendArc(25, -140);
-  const firstHairpinEndS = authoredS;
+  const firstHairpinEndS = turtle.chainage;
   appendStraight(FIRST_HAIRPIN_TO_DUNLOP_METERS);
 
   // Dunlop is the published 35R, approximately 90-degree right.
   appendArc(35, 90);
-  const dunlopEndS = authoredS;
+  const dunlopEndS = turtle.chainage;
   appendStraight(DUNLOP_TO_EIGHTY_R_METERS);
 
   // Four-wheel route only: 80R right into the long 170R left.
   appendArc(80, 25);
   appendStraight(EIGHTY_TO_ONE_SEVENTY_TRANSITION_METERS);
   appendArc(170, -40);
-  const oneSeventyREndS = authoredS;
+  const oneSeventyREndS = turtle.chainage;
   appendStraight(ONE_SEVENTY_R_TO_SECOND_HAIRPIN_METERS);
 
   // Second hairpin: published 25R / 105R compound right.
   appendArc(25, 120);
   appendStraight(SECOND_HAIRPIN_COMPOUND_TRANSITION_METERS);
   appendArc(105, 50);
-  const secondHairpinEndS = authoredS;
+  const secondHairpinEndS = turtle.chainage;
 
-  const backStraightStartS = authoredS;
+  const backStraightStartS = turtle.chainage;
   appendStraight(M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS);
-  const backStraightEndS = authoredS;
+  const backStraightEndS = turtle.chainage;
 
   // Final compound: published 100R entry / 90R exit reconnects to the home straight.
   appendArc(100, 45);
@@ -158,8 +124,8 @@ export function createM93TsukubaCourse2000Lap(): M93TsukubaCourse2000Lap {
   if (Math.hypot(turtle.x, turtle.z) > 1e-7) {
     throw new Error('M9.3 Tsukuba Course 2000 authoring failed to close');
   }
-  if (Math.abs(authoredS - M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS) > 1e-7) {
-    throw new Error(`M9.3 Tsukuba authored length ${authoredS} must equal 2045 m`);
+  if (Math.abs(turtle.chainage - M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS) > 1e-7) {
+    throw new Error(`M9.3 Tsukuba authored length ${turtle.chainage} must equal 2045 m`);
   }
 
   const last = vertices[vertices.length - 1]!;

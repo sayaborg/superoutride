@@ -38,7 +38,9 @@ const regressionOnlyModules = new Map([
   ['src/dev/m3-debug-height-profile.ts', 'Fixed hill/dip source for renderer and route regressions'],
   ['src/dev/m3-debug-visual.ts', 'Fixed transparent/cliff visual source'],
   ['src/dev/m5-debug-surface-map.ts', 'Fixed material transitions for contact tests'],
+  ['src/dev/m6-18-stage-road-views.ts', 'Focused stage-local road projection fixture'],
   ['src/dev/m6-19-stage-runtime-content.ts', 'Stage registry ownership fixture'],
+  ['src/dev/m6-20-live-runtime-content.ts', 'Focused single-fork registry fixture'],
   ['src/dev/m6-20-live-point-to-point.ts', 'Focused single-fork route assembly'],
   ['src/dev/m6-23-child-environment-content.ts', 'Child environment continuation fixture'],
   ['src/dev/m6-23-live-runtime-content.ts', 'Child environment registry fixture'],
@@ -97,10 +99,11 @@ test('every source module is reachable from a composition/build/tool entry or an
   }
   for (const tool of toolFiles) visit(tool);
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
-  for (const file of unreachable) {
-    const relative = path.relative(repositoryRoot, file);
-    assert.ok(regressionOnlyModules.has(relative), `unreachable source module: ${relative}`);
-  }
+  assert.deepEqual(
+    unreachable.map((file) => path.relative(repositoryRoot, file)).filter((file) => !regressionOnlyModules.has(file)),
+    [],
+    'unreachable source modules',
+  );
   // Regression exemptions must themselves still exist and have a test or diagnostic consumer.
   for (const file of tests) visit(file);
   for (const [file, reason] of regressionOnlyModules) {
@@ -157,11 +160,13 @@ test('every entry points directly to the sole current restart checkpoint', async
   );
 });
 
-test('general engine identifiers remain independent of development milestone names', async () => {
+test('general engine source remains independent of development milestone names', async () => {
   for (const file of await collectFiles(sourceRoot, ['.ts'])) {
     const relative = path.relative(sourceRoot, file);
     if (relative.startsWith('dev/') || /^main(?:-.*)?\.ts$/.test(relative)) continue;
-    const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(source, /\bM[0-9]+(?:[._][0-9]+)?\b/, relative);
+    const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
     function visit(node) {
       if (ts.isIdentifier(node)) assert.doesNotMatch(node.text, /^(?:[a-z]+)?M[0-9]/, relative);
       ts.forEachChild(node, visit);

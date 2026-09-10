@@ -1,3 +1,4 @@
+import { vehicleUpdateForBuild } from './build-contract.mjs';
 /** Exact-trace comparison across builds; timings are host diagnostics, not frame-rate certification. */
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -37,6 +38,7 @@ export async function runHotPathProbe(buildPath = 'dist') {
             torqueProtection: entry.torqueProtection,
           },
         );
+  const updateProbeVehicle = vehicleUpdateForBuild(updateArcadeVehicle);
   const guide = compileGuidePath(
     compileRasterPath([
       { x: 0, z: 0 },
@@ -80,10 +82,8 @@ export async function runHotPathProbe(buildPath = 'dist') {
         const v = spawnProbeVehicle(entry);
         for (let tick = 0; tick < hz * 2; tick++) {
           const t = tick / hz;
-          updateArcadeVehicle(
-            guide,
-            height,
-            surface,
+          updateProbeVehicle(
+            { guide, height, surfaces: surface },
             v,
             { steering: turning ? 0.35 * Math.sin(4 * t) : 0, throttle: t < 0.7 ? 1 : 0, brake: t >= 1 ? 1 : 0 },
             1 / hz,
@@ -107,6 +107,34 @@ export async function runHotPathProbe(buildPath = 'dist') {
   };
 }
 
+/** Warm both builds, alternate trial order and require exact outputs before reporting host timing. */
+export async function compareHotPathBuilds(referenceBuild, candidateBuild = 'dist', pairs = 5) {
+  if (!Number.isInteger(pairs) || pairs < 1) throw new RangeError('benchmark pairs must be a positive integer');
+  const builds = [referenceBuild, candidateBuild];
+  for (const build of builds) await runHotPathProbe(build);
+  const results = [[], []];
+  for (let pair = 0; pair < pairs; pair++) {
+    for (const index of pair % 2 ? [1, 0] : [0, 1]) results[index].push(await runHotPathProbe(builds[index]));
+  }
+  if (new Set(results.flat().map((result) => result.sha256)).size !== 1) throw new Error('build traces differ');
+  const median = (rows) => rows.map((row) => row.milliseconds).sort((a, b) => a - b)[Math.floor(rows.length / 2)];
+  const milliseconds = results.map(median);
+  return {
+    node: process.version,
+    warmupTrialsPerBuild: 1,
+    measuredPairs: pairs,
+    reference: { build: referenceBuild, medianMilliseconds: milliseconds[0], trials: results[0] },
+    candidate: { build: candidateBuild, medianMilliseconds: milliseconds[1], trials: results[1] },
+    candidateToReferenceRatio: milliseconds[1] / milliseconds[0],
+  };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  console.log(JSON.stringify(await runHotPathProbe(process.argv[2] ?? 'dist')));
+  console.log(
+    JSON.stringify(
+      process.argv[3]
+        ? await compareHotPathBuilds(process.argv[2], process.argv[3])
+        : await runHotPathProbe(process.argv[2] ?? 'dist'),
+    ),
+  );
 }

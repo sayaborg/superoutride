@@ -76,8 +76,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
   const initialRuntime = resolveActiveStageRuntimeContent(live.registry, handoffState);
   let camera = updateCamera(
     cameraRig,
-    initialRuntime.coordinateFrame,
-    initialRuntime.heightProfile,
+    { guide: initialRuntime.coordinateFrame, height: initialRuntime.heightProfile },
     car,
     CAMERA_PROFILE,
     DT,
@@ -151,8 +150,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
     const runtimeAfterTick = resolveActiveStageRuntimeContent(live.registry, handoffState);
     camera = updateCamera(
       cameraRig,
-      runtimeAfterTick.coordinateFrame,
-      runtimeAfterTick.heightProfile,
+      { guide: runtimeAfterTick.coordinateFrame, height: runtimeAfterTick.heightProfile },
       car,
       CAMERA_PROFILE,
       DT,

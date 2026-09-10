@@ -183,7 +183,7 @@ export function solveProtectedWheelPair(
   if (safe(requested)) return requested;
   let accepted = evaluate(0);
   if (!safe(accepted)) return { ...accepted, supportFeasible: false };
-  // Bracket a feasible release-connected boundary; do NOT claim global monotonicity/optimality.
+  // Keep a feasible sampled lower endpoint; unsampled torque intervals need not be feasible.
   let lower = 0,
     upper = 1;
   for (let i = 0; i < 12; i += 1) {

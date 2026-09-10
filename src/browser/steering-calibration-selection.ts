@@ -1,7 +1,9 @@
-export type BrowserSteeringOffsetDegrees =
-  10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
-export type BrowserMaxRoadWheelSteerDegrees = 50 | 55 | 60 | 65 | 70 | 75 | 80;
-export type BrowserSteeringTraversalSeconds = 0.2 | 0.225 | 0.25 | 0.275 | 0.3 | 0.325 | 0.35 | 0.375 | 0.4;
+import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
+import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
+const OFFSET_DEGREES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] as const;
+const MAX_STEER_DEGREES = [50, 55, 60, 65, 70, 75, 80] as const;
+const TRAVERSAL_SECONDS = [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4] as const;
+export type BrowserSteeringTraversalSeconds = (typeof TRAVERSAL_SECONDS)[number];
 
 export interface BrowserSteeringAngleSelection<Degrees extends number = number> {
   readonly degrees: Degrees;
@@ -13,49 +15,13 @@ export interface BrowserSteeringResponseSelection {
   readonly rate: number;
 }
 
-export const BROWSER_STEERING_OFFSET_CYCLE_CODE = 'KeyY';
-export const BROWSER_MAX_STEER_CYCLE_CODE = 'KeyU';
-export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = 'KeyT';
+export const BROWSER_STEERING_OFFSET_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.D;
+export const BROWSER_MAX_STEER_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.M;
+export const BROWSER_STEERING_RESPONSE_CYCLE_CODE = BROWSER_CALIBRATION_KEYS.ACT;
 
-export const BROWSER_STEERING_OFFSETS: readonly BrowserSteeringAngleSelection<BrowserSteeringOffsetDegrees>[] =
-  Object.freeze([
-    angle(10),
-    angle(11),
-    angle(12),
-    angle(13),
-    angle(14),
-    angle(15),
-    angle(16),
-    angle(17),
-    angle(18),
-    angle(19),
-    angle(20),
-    angle(21),
-    angle(22),
-    angle(23),
-    angle(24),
-    angle(25),
-    angle(26),
-    angle(27),
-    angle(28),
-    angle(29),
-    angle(30),
-  ]);
-
-export const BROWSER_MAX_ROAD_WHEEL_STEERS: readonly BrowserSteeringAngleSelection<BrowserMaxRoadWheelSteerDegrees>[] =
-  Object.freeze([angle(50), angle(55), angle(60), angle(65), angle(70), angle(75), angle(80)]);
-
-export const BROWSER_STEERING_RESPONSES: readonly BrowserSteeringResponseSelection[] = Object.freeze([
-  response(0.2),
-  response(0.225),
-  response(0.25),
-  response(0.275),
-  response(0.3),
-  response(0.325),
-  response(0.35),
-  response(0.375),
-  response(0.4),
-]);
+export const BROWSER_STEERING_OFFSETS = Object.freeze(OFFSET_DEGREES.map(angle));
+export const BROWSER_MAX_ROAD_WHEEL_STEERS = Object.freeze(MAX_STEER_DEGREES.map(angle));
+export const BROWSER_STEERING_RESPONSES = Object.freeze(TRAVERSAL_SECONDS.map(response));
 
 export const DEFAULT_BROWSER_STEERING_OFFSET = mustAngleDegrees(BROWSER_STEERING_OFFSETS, 20).radians;
 export const DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER = mustAngleDegrees(BROWSER_MAX_ROAD_WHEEL_STEERS, 65).radians;
@@ -68,20 +34,19 @@ export function nextBrowserMaxRoadWheelSteer(currentRadians: number): number {
   return nextAngleChoice(BROWSER_MAX_ROAD_WHEEL_STEERS, currentRadians).radians;
 }
 export function nextBrowserSteeringResponseRate(currentRate: number): number {
-  const currentIndex = BROWSER_STEERING_RESPONSES.findIndex(({ rate }) => approximatelyEqual(rate, currentRate));
-  return mustChoice(BROWSER_STEERING_RESPONSES, (currentIndex + 1) % BROWSER_STEERING_RESPONSES.length).rate;
+  return cycleSelectorChoice(BROWSER_STEERING_RESPONSES, currentRate, (choice) => choice.rate).rate;
 }
 
 export function formatSteeringOffsetSelector(activeRadians: number): string {
-  return `D [Y] ${formatDegrees(activeRadians)}°`;
+  return `D [${BROWSER_STEERING_OFFSET_CYCLE_CODE.slice(3)}] ${formatDegrees(activeRadians)}°`;
 }
 export function formatMaxRoadWheelSteerSelector(activeRadians: number): string {
-  return `M [U] ${formatDegrees(activeRadians)}°`;
+  return `M [${BROWSER_MAX_STEER_CYCLE_CODE.slice(3)}] ${formatDegrees(activeRadians)}°`;
 }
 export function formatSteeringResponseSelector(activeRate: number): string {
-  const selection = BROWSER_STEERING_RESPONSES.find(({ rate }) => approximatelyEqual(rate, activeRate));
+  const selection = BROWSER_STEERING_RESPONSES.find(({ rate }) => sameSelectorValue(rate, activeRate));
   const traversalSeconds = selection?.traversalSeconds ?? 1 / activeRate;
-  return `ACT [T] ${formatTraversalSeconds(traversalSeconds)}s`;
+  return `ACT [${BROWSER_STEERING_RESPONSE_CYCLE_CODE.slice(3)}] ${formatTraversalSeconds(traversalSeconds)}s`;
 }
 export function formatTraversalSeconds(seconds: number): string {
   const roundedMilliseconds = Math.round(seconds * 1_000);
@@ -105,8 +70,7 @@ function nextAngleChoice<Degrees extends number>(
   choices: readonly BrowserSteeringAngleSelection<Degrees>[],
   currentRadians: number,
 ): BrowserSteeringAngleSelection<Degrees> {
-  const currentIndex = choices.findIndex(({ radians }) => approximatelyEqual(radians, currentRadians));
-  return mustChoice(choices, (currentIndex + 1) % choices.length);
+  return cycleSelectorChoice(choices, currentRadians, (choice) => choice.radians);
 }
 function mustAngleDegrees<Degrees extends number>(
   choices: readonly BrowserSteeringAngleSelection<Degrees>[],
@@ -123,12 +87,4 @@ function mustTraversalSeconds(
   const choice = choices.find((candidate) => candidate.traversalSeconds === traversalSeconds);
   if (choice === undefined) throw new RangeError(`missing browser steering response default: ${traversalSeconds}`);
   return choice;
-}
-function mustChoice<Value>(choices: readonly Value[], index: number): Value {
-  const choice = choices[index];
-  if (choice === undefined) throw new RangeError('browser steering calibration choices must not be empty');
-  return choice;
-}
-function approximatelyEqual(a: number, b: number): boolean {
-  return Math.abs(a - b) < 1e-12;
 }

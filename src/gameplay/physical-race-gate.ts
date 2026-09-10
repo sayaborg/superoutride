@@ -2,7 +2,7 @@ import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../core/guide
 import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
 
 import { compileWorldCrossingGate, observeWorldCrossingGate } from './world-crossing-gate.js';
-const MOTION_EPSILON = 1e-7;
+const MOTION_DIRECTION_TOLERANCE_METERS = 1e-7;
 
 export type RaceMotionDirection = 'FORWARD' | 'REVERSE' | 'STATIONARY';
 export type PhysicalRaceGateKind = 'checkpoint' | 'finish';
@@ -92,8 +92,8 @@ export function classifyPhysicalRaceMotionDirection(
   const guideSample = sampleGuidePath(guide, currentS);
   const tangent = tangentFromHeading(guideSample.heading);
   const longitudinal = dot(movement, tangent);
-  if (longitudinal > MOTION_EPSILON) return 'FORWARD';
-  if (longitudinal < -MOTION_EPSILON) return 'REVERSE';
+  if (longitudinal > MOTION_DIRECTION_TOLERANCE_METERS) return 'FORWARD';
+  if (longitudinal < -MOTION_DIRECTION_TOLERANCE_METERS) return 'REVERSE';
   return 'STATIONARY';
 }
 

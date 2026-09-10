@@ -43,7 +43,12 @@ export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
     readonly courseLength: number,
     sections: readonly GroundMapLogicalSection[],
   ) {
-    for (const section of sections) nonEmptyId(section.name, 'GroundMap section name');
+    for (const section of sections) {
+      nonEmptyId(section.name, 'GroundMap section name');
+      for (const material of [section.left, section.right]) {
+        if (material !== 'GRASS' && material !== 'ROCK') throw new RangeError('unknown GroundMap material');
+      }
+    }
     this.sections = compileOpenProfile(sections, {
       length: courseLength,
       chainage: 'sStart',

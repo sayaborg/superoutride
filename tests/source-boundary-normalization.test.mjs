@@ -132,8 +132,8 @@ test('source modules do not revive retired authorities as pure re-export shims',
 test('open-route regression fixtures do not hide endpoint defects behind cyclic profiles', async () => {
   const openRouteFixtures = [
     'tests/live-fork-driving-regression.test.mjs',
-    'tests/m6-46-branch-violation-recovery.test.mjs',
-    'tests/m6-52-field-route-progress.test.mjs',
+    'tests/branch-violation-recovery.test.mjs',
+    'tests/field-route-progress.test.mjs',
   ];
   for (const relativePath of openRouteFixtures) {
     const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');

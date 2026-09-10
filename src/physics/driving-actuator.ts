@@ -8,6 +8,8 @@ import {
   type DrivingInputApplyMode,
 } from '../input/driving-input.js';
 
+const ACTUATOR_TARGET_TOLERANCE = 1e-12;
+
 export interface NormalizedActuatorRateProfile {
   /** Normalized units per second toward any non-neutral target, including steering reversal. */
   readonly applyRate: number;
@@ -97,7 +99,7 @@ export function stepNormalizedActuator(
   const rate = boundedTarget === 0 ? profile.releaseRate : profile.applyRate;
   const difference = boundedTarget - boundedCurrent;
   const maximumChange = rate * dt;
-  if (Math.abs(difference) <= maximumChange + 1e-12) return boundedTarget;
+  if (Math.abs(difference) <= maximumChange + ACTUATOR_TARGET_TOLERANCE) return boundedTarget;
   return clamp(boundedCurrent + Math.sign(difference) * maximumChange, minimum, maximum);
 }
 

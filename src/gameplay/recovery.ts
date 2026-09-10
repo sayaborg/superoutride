@@ -12,6 +12,7 @@ import { resetDrivingActuatorState } from '../physics/driving-actuator.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import {
   VehicleOutsideModelError,
+  VEHICLE_GRAVITY,
   initializeGuideObservation,
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
@@ -29,7 +30,7 @@ export type RecoveryReason =
   | 'manual'
   | 'wrong-course';
 
-const SURFACE_PENETRATION_TOLERANCE = 1e-3;
+const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
 
 export interface RecoveryProfile {
   maxUnsupportedTime: number;
@@ -91,9 +92,8 @@ export function advanceVehicleWithRecovery(
     target = null,
   }: RecoveryOptions & { input: DrivingInput; dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
-  const { guide, height, surfaces } = world;
   try {
-    updateArcadeVehicle(guide, height, surfaces, vehicle, input, dt);
+    updateArcadeVehicle(world, vehicle, input, dt);
   } catch (error) {
     if (!(error instanceof VehicleOutsideModelError)) throw error;
     recoverVehicle(world, vehicle, { state, reason: 'suspension-travel', profile, target });
@@ -140,7 +140,7 @@ export function updateRecovery(
   // VOID is non-load-bearing, but it still shares the rendered heightfield. Letting the CG pass
   // below that authored surface makes the vehicle visibly drive under terrain while gameplay waits
   // for the larger fall-distance/chart limits.
-  const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE;
+  const penetratedSurface = surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS;
 
   let reason: RecoveryReason | null = null;
   if (overturned) reason = 'overturned';
@@ -268,8 +268,8 @@ function reconstructVehicle(
   resetDrivingActuatorState(vehicle.actuator);
   vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
   vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
-  vehicle.frontNormalLoad = (p.mass * 9.80665 * p.rearAxle) / wheelbase;
-  vehicle.rearNormalLoad = (p.mass * 9.80665 * p.frontAxle) / wheelbase;
+  vehicle.frontNormalLoad = (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase;
+  vehicle.rearNormalLoad = (p.mass * VEHICLE_GRAVITY * p.frontAxle) / wheelbase;
   vehicle.frontGap = -p.frontStation.suspension.qStatic;
   vehicle.rearGap = -p.rearStation.suspension.qStatic;
   vehicle.frontSupportAvailable = true;

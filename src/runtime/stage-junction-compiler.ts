@@ -1,3 +1,4 @@
+import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import { JunctionCrossSectionProfile, type JunctionCrossSectionAuthoring } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import { StageJunctionSurfaceMap, type StageJunctionOuterSurfaceType } from '../physics/stage-junction-surface-map.js';
@@ -24,8 +25,6 @@ export interface CompiledStageJunction {
   readonly requiredGroundHalfWidth: number;
 }
 
-const EPSILON = 1e-9;
-
 /**
  * Attach one visible two-way JunctionCrossSectionProfile to an arbitrary centered stage chart.
  *
@@ -44,8 +43,8 @@ export function compileStageJunction(
   const junction = new JunctionCrossSectionProfile(authoring.crossSection);
   const incomingHalfWidth = authoring.crossSection.parentRoadWidth * 0.5;
   if (
-    Math.abs(source.roadView.roadLeft - incomingHalfWidth) > EPSILON ||
-    Math.abs(source.roadView.roadRight - incomingHalfWidth) > EPSILON
+    Math.abs(source.roadView.roadLeft - incomingHalfWidth) > LATERAL_BOUNDARY_TOLERANCE_METERS ||
+    Math.abs(source.roadView.roadRight - incomingHalfWidth) > LATERAL_BOUNDARY_TOLERANCE_METERS
   ) {
     throw new RangeError('stage junction incoming road width must match the active StageRoadView');
   }

@@ -10,6 +10,8 @@ import {
   type WorldCrossingGateAuthoring,
 } from './world-crossing-gate.js';
 
+const HANDOFF_ANCHOR_TOLERANCE_METERS = 1e-6;
+
 export type RouteStageHandoffEvent =
   | 'NONE'
   | 'PENDING'
@@ -133,7 +135,9 @@ export function compileRouteStageHandoffManifest(
       throw new RangeError(`handoff target seam lies outside target chart: ${source.id}`);
     }
     const targetAnchor = guideChartToWorld(targetChart, source.targetSeamS, source.targetLocalL);
-    if (Math.hypot(targetAnchor.x - source.center.x, targetAnchor.z - source.center.z) > 1e-6) {
+    if (
+      Math.hypot(targetAnchor.x - source.center.x, targetAnchor.z - source.center.z) > HANDOFF_ANCHOR_TOLERANCE_METERS
+    ) {
       throw new RangeError(`handoff target coordinate map disagrees with world seam: ${source.id}`);
     }
     choiceIds.add(choice.id);

@@ -2,6 +2,16 @@ import type { DrivingInput } from './driving-input.js';
 import { PedalInputArbiter, type PedalChannel } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter, type SteeringDirection } from './steering-input-arbiter.js';
 
+/** Driving aliases owned by the input adapter; browser product shortcuts are composed above it. */
+export const DRIVING_KEYS = Object.freeze({
+  left: 'ArrowLeft',
+  right: 'ArrowRight',
+  throttle: 'ArrowUp',
+  throttleAlias: 'KeyX',
+  brake: 'ArrowDown',
+  brakeAlias: 'KeyZ',
+});
+
 export class KeyboardInput {
   constructor(
     target: Window = window,
@@ -28,18 +38,18 @@ export class KeyboardInput {
 
   private onKey(event: KeyboardEvent, down: boolean): void {
     switch (event.code) {
-      case 'ArrowLeft':
-      case 'ArrowRight':
+      case DRIVING_KEYS.left:
+      case DRIVING_KEYS.right:
         this.setSteering(event, down);
         event.preventDefault();
         break;
-      case 'ArrowUp':
-      case 'KeyX':
+      case DRIVING_KEYS.throttle:
+      case DRIVING_KEYS.throttleAlias:
         this.setPedal(event.code, 'throttle', down);
         event.preventDefault();
         break;
-      case 'ArrowDown':
-      case 'KeyZ':
+      case DRIVING_KEYS.brake:
+      case DRIVING_KEYS.brakeAlias:
         this.setPedal(event.code, 'brake', down);
         event.preventDefault();
         break;
@@ -53,7 +63,7 @@ export class KeyboardInput {
       return;
     }
     if (event.repeat) return;
-    const direction: SteeringDirection = event.code === 'ArrowLeft' ? -1 : 1;
+    const direction: SteeringDirection = event.code === DRIVING_KEYS.left ? -1 : 1;
     this.steering.press(source, direction);
   }
 

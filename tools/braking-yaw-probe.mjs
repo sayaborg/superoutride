@@ -194,7 +194,12 @@ export function runBrakingComparison(
       steeringApplyMode: applyMode,
       pedalApplyMode: applyMode,
     };
-    updateArcadeVehicle(parent.guide, parent.height, parent.surface, parent.vehicle, input, 1 / hz);
+    updateArcadeVehicle(
+      { guide: parent.guide, height: parent.height, surfaces: parent.surface },
+      parent.vehicle,
+      input,
+      1 / hz,
+    );
   }
   const fingerprint = brakingStateFingerprint(parent.vehicle);
   const initial = observeBrakingState(parent, 0),
@@ -239,7 +244,7 @@ export function runBrakingComparison(
     for (let tick = 0; tick < seconds * hz; tick++) {
       const input = brakingInput(tick / hz, action, { direction, correctionSeconds, applyMode });
       try {
-        updateArcadeVehicle(probe.guide, probe.height, probe.surface, v, input, 1 / hz);
+        updateArcadeVehicle({ guide: probe.guide, height: probe.height, surfaces: probe.surface }, v, input, 1 / hz);
         if (
           ![
             v.x,

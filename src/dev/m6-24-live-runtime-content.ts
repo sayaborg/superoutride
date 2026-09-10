@@ -1,3 +1,4 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
 import {
@@ -6,7 +7,6 @@ import {
   type StageRuntimeContentRegistry,
 } from '../runtime/stage-runtime-content.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
-import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM621ChildVisualIdentity, type M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 import type { M622ChildStageContinuation } from './m6-22-child-stage-continuation.js';
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
@@ -18,7 +18,7 @@ import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 export function createM624LiveStageRuntimeRegistry(
   manifest: RouteStageContentManifest,
   continuation: M622ChildStageContinuation,
-  parent: M620SharedRuntimeContent,
+  parent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
   childVisualIdentity: M621ChildVisualIdentity = createM621ChildVisualIdentity(),
 ): StageRuntimeContentRegistry {
@@ -53,18 +53,13 @@ export function createM624LiveStageRuntimeRegistry(
 function parentPackage(
   manifest: RouteStageContentManifest,
   continuation: M622ChildStageContinuation,
-  parent: M620SharedRuntimeContent,
+  parent: SharedRuntimeContent,
 ): StageRuntimeContentPackage {
   return {
+    ...parent,
     packageId: 'CONTENT_STAGE_1',
     worldFrameId: manifest.worldFrameId,
     coordinateFrame: continuation.charts.parent,
     roadView: null,
-    surfaceMap: parent.surfaceMap,
-    heightProfile: parent.heightProfile,
-    terrainProfile: parent.terrainProfile,
-    groundProfile: parent.groundProfile,
-    selectFarBackground: parent.selectFarBackground,
-    worldSprites: parent.worldSprites,
   };
 }

@@ -203,7 +203,12 @@ export function runTerrainProbe(entry, options = {}) {
   if (ticks < 1) throw new RangeError('probe duration must contain at least one tick');
   for (let tick = 0; tick < ticks; tick++) {
     try {
-      updateArcadeVehicle(p.guide, p.height, p.surface, v, terrainInput(tick / hz, kind, direction), 1 / hz);
+      updateArcadeVehicle(
+        { guide: p.guide, height: p.height, surfaces: p.surface },
+        v,
+        terrainInput(tick / hz, kind, direction),
+        1 / hz,
+      );
       const body = arcadeBodyKinematics(v);
       const f = deriveContactObservation(
         p.guide,

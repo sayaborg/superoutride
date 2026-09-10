@@ -1,3 +1,4 @@
+import { PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import { SoftwareSurface } from './software-surface.js';
 
 export const SPRITE_TRANSPARENT = 0;
@@ -21,8 +22,6 @@ export interface SpriteDrawStats {
 
 /** Optional workload observer. It does not change sprite visibility or rasterization. */
 export type SpriteScanlineObserver = (screenY: number, outputSamples: number, writtenPixels: number) => void;
-
-const EPSILON = 1e-9;
 
 export function createSpriteAsset(
   name: string,
@@ -79,10 +78,10 @@ export function drawScaledSprite(
   const rightBoundary = leftBoundary + scale * asset.width;
   const bottomBoundary = topBoundary + scale * asset.height;
 
-  const unclippedX0 = Math.ceil(leftBoundary - 0.5 - EPSILON);
-  const unclippedX1 = Math.floor(rightBoundary - 0.5 - EPSILON);
-  const unclippedY0 = Math.ceil(topBoundary - 0.5 - EPSILON);
-  const unclippedY1 = Math.floor(bottomBoundary - 0.5 - EPSILON);
+  const unclippedX0 = Math.ceil(leftBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
+  const unclippedX1 = Math.floor(rightBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
+  const unclippedY0 = Math.ceil(topBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
+  const unclippedY1 = Math.floor(bottomBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
 
   const x0 = Math.max(0, unclippedX0);
   const x1 = Math.min(target.width - 1, unclippedX1);

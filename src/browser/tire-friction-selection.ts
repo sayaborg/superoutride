@@ -1,3 +1,4 @@
+import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
@@ -5,6 +6,8 @@ import {
   type ArcadeTireFrictionCalibrationState,
   type TireCharacteristics,
 } from '../physics/tire-friction-calibration.js';
+
+const SELECTOR_GRID_TOLERANCE = 1e-9;
 
 export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE';
 export interface BrowserTireAxis {
@@ -20,11 +23,11 @@ export interface BrowserTireAxis {
 /** Integer hundredths avoid cumulative floating-point stepping. One registry for all UI. */
 export const BROWSER_TIRE_AXES: readonly BrowserTireAxis[] = Object.freeze(
   [
-    { id: 'GX', field: 'gripX', code: 'KeyH', min: 200, max: 800, step: 5, percent: false },
-    { id: 'PX', field: 'peakSlipX', code: 'KeyJ', min: 2, max: 40, step: 1, percent: true },
-    { id: 'GY', field: 'gripY', code: 'KeyG', min: 100, max: 400, step: 5, percent: false },
-    { id: 'PY', field: 'peakSlipY', code: 'KeyL', min: 2, max: 20, step: 1, percent: true },
-    { id: 'KNEE', field: 'knee', code: 'KeyN', min: 10, max: 95, step: 1, percent: false },
+    { id: 'GX', field: 'gripX', code: BROWSER_CALIBRATION_KEYS.GX, min: 200, max: 800, step: 5, percent: false },
+    { id: 'PX', field: 'peakSlipX', code: BROWSER_CALIBRATION_KEYS.PX, min: 2, max: 40, step: 1, percent: true },
+    { id: 'GY', field: 'gripY', code: BROWSER_CALIBRATION_KEYS.GY, min: 100, max: 400, step: 5, percent: false },
+    { id: 'PY', field: 'peakSlipY', code: BROWSER_CALIBRATION_KEYS.PY, min: 2, max: 20, step: 1, percent: true },
+    { id: 'KNEE', field: 'knee', code: BROWSER_CALIBRATION_KEYS.KNEE, min: 10, max: 95, step: 1, percent: false },
   ].map((axis) => Object.freeze(axis)) as BrowserTireAxis[],
 );
 
@@ -55,9 +58,9 @@ export function browserTireCalibrationForAxis(
   const index = (ticks - axis.min) / axis.step;
   if (
     !Number.isFinite(value) ||
-    ticks < axis.min - 1e-9 ||
-    ticks > axis.max + 1e-9 ||
-    Math.abs(index - Math.round(index)) > 1e-9
+    ticks < axis.min - SELECTOR_GRID_TOLERANCE ||
+    ticks > axis.max + SELECTOR_GRID_TOLERANCE ||
+    Math.abs(index - Math.round(index)) > SELECTOR_GRID_TOLERANCE
   ) {
     throw new RangeError(`${id} is outside its browser selector grid`);
   }
@@ -74,7 +77,8 @@ export function stepBrowserTireCalibration(
   const axis = browserTireAxis(id);
   const index = (100 * readTireCharacteristics(current.front)[axis.field] - axis.min) / axis.step;
   const count = (axis.max - axis.min) / axis.step + 1;
-  const next = direction > 0 ? Math.floor(index + 1e-9) + 1 : Math.ceil(index - 1e-9) - 1;
+  const next =
+    direction > 0 ? Math.floor(index + SELECTOR_GRID_TOLERANCE) + 1 : Math.ceil(index - SELECTOR_GRID_TOLERANCE) - 1;
   const wrapped = ((next % count) + count) % count;
   return browserTireCalibrationForAxis(id, (axis.min + wrapped * axis.step) / 100, current);
 }

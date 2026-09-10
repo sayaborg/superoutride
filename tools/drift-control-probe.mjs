@@ -195,7 +195,7 @@ export function runProbe(probe, seconds, inputAtTime, { hz = 60 } = {}) {
     brakeTicks += Number(Number(input.brake) > 0);
     const vx = v.velocityX,
       vz = v.velocityZ;
-    updateArcadeVehicle(probe.guide, probe.height, probe.surface, v, input, dt);
+    updateArcadeVehicle({ guide: probe.guide, height: probe.height, surfaces: probe.surface }, v, input, dt);
     if (
       ![
         v.x,

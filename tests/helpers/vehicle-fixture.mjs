@@ -36,5 +36,5 @@ export function createTestBike(guide, height, surfaces, s, l = 0, speed = 45, pr
 }
 
 export function updateTestVehicle(guide, height, surfaces, vehicle, input, dt) {
-  updateArcadeVehicle(guide, height, surfaces, vehicle, input, dt);
+  updateArcadeVehicle({ guide, height, surfaces }, vehicle, input, dt);
 }

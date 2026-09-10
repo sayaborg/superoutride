@@ -1,3 +1,4 @@
+import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 import {
   guideCoordinateCurve,
   guideCoordinateToWorld,
@@ -8,7 +9,8 @@ import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
 
-const G = 9.80665;
+const STRAIGHT_CURVATURE_PER_METER = 1e-6;
+
 const STEERING_LOOKAHEAD_METERS = 36;
 const CURVATURE_PROBE_SPAN_METERS = 10;
 const CURVATURE_PROBE_STEP_METERS = 10;
@@ -25,7 +27,7 @@ const CURVATURE_LOOKAHEAD_METERS =
   2 * CURVATURE_PROBE_SPAN_METERS;
 const MAX_STEERING_REQUEST = 0.72;
 const SPEED_DEADBAND_MPS = 0.25;
-const GUIDE_EPSILON = 1e-9;
+const LOOKAHEAD_INTERVAL_TOLERANCE_METERS = 1e-9;
 
 /**
  * Small deterministic DEV rival driver.
@@ -69,15 +71,15 @@ export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: num
   for (let offset = 0; offset < CURVATURE_LOOKAHEAD_METERS; offset += CURVATURE_PROBE_STEP_METERS) {
     const aS = Math.min(curve.length, s + offset);
     const bS = Math.min(curve.length, aS + CURVATURE_PROBE_SPAN_METERS);
-    if (bS <= aS + GUIDE_EPSILON) break;
+    if (bS <= aS + LOOKAHEAD_INTERVAL_TOLERANCE_METERS) break;
 
     const a = sampleGuidePath(curve, aS);
     const b = sampleGuidePath(curve, bS);
     const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / (bS - aS);
-    if (curvature < 1e-6) continue;
+    if (curvature < STRAIGHT_CURVATURE_PER_METER) continue;
 
     const curveSpeed = clamp(
-      Math.sqrt((LATERAL_ACCEL_TARGET_G * G) / curvature),
+      Math.sqrt((LATERAL_ACCEL_TARGET_G * VEHICLE_GRAVITY) / curvature),
       MIN_CURVE_SPEED_MPS,
       STRAIGHT_CRUISE_SPEED_MPS,
     );

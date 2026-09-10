@@ -1,3 +1,4 @@
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
@@ -12,7 +13,6 @@ import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
 import { M6_17_HANDOFF_SEAM_S } from './m6-17-handoff-seams.js';
-import type { M620SharedRuntimeContent } from './m6-20-live-runtime-content.js';
 import { createM626LiveStageRuntimePackages } from './m6-26-live-runtime-content.js';
 import {
   createM626LiveContinuation,
@@ -30,7 +30,7 @@ const ROAD_HALF_WIDTH = 3.5;
  */
 export function createM628DeclarativeLiveRouteRuntime(
   parentGuide: GuidePath,
-  parentContent: M620SharedRuntimeContent,
+  parentContent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
 ): LiveRouteRuntimeAssembly {
   const continuation = createM626LiveContinuation(parentGuide);

@@ -23,6 +23,8 @@ import {
   type Vec3,
 } from './vehicle-math3.js';
 
+const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
+
 export const VEHICLE_GRAVITY = 9.80665;
 export const VEHICLE_SUBSTEPS = 12;
 
@@ -368,7 +370,7 @@ function contactTireFrame(
   const wheelAxis = normalize3(cross3(body.up, wheelForward));
 
   const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
-  const tireFrameValid = magnitude3(tireForwardRaw) > 1e-8;
+  const tireFrameValid = magnitude3(tireForwardRaw) > MIN_PROJECTED_TIRE_DIRECTION_LENGTH;
   const tireForward = tireFrameValid ? normalize3(tireForwardRaw) : surface.tangent;
   const tireRight = tireFrameValid ? normalize3(cross3(surface.normal, tireForward)) : surface.right;
   const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;

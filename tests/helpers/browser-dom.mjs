@@ -1,28 +1,4 @@
-class Element {
-  listeners = new Map();
-  children = [];
-  attributes = new Map();
-  classList = { toggle() {}, add() {}, remove() {} };
-  style = { setProperty() {} };
-  addEventListener(name, listener) {
-    const list = this.listeners.get(name) ?? [];
-    list.push(listener);
-    this.listeners.set(name, list);
-  }
-  emit(name, event = {}) {
-    for (const listener of this.listeners.get(name) ?? []) listener(event);
-  }
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-  replaceChildren(...children) {
-    this.children = children;
-  }
-  appendChild(child) {
-    this.children.push(child);
-  }
-}
-
+import { SelectorElement as Element } from './fake-selector-dom.mjs';
 export function installBrowserDom(t, search = '') {
   const frames = [];
   const ids = [

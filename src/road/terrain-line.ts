@@ -1,9 +1,18 @@
+import { SOURCE_ENDPOINT_TOLERANCE_METERS, PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
 import { profileIndexAt } from '../core/open-profile.js';
 import { rasterPathToWorld } from '../core/course.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
 import type { HeightProfileReader } from '../visual/height-profile.js';
 import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
+
+const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
+const MIN_INVERTIBLE_SPAN_PIXELS = 1e-9;
+const ROW_SAMPLE_DENOMINATOR_TOLERANCE_PIXELS = 1e-10;
+const DEPTH_INTERVAL_TOLERANCE_METERS = 1e-7;
+const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
+const BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS = 1e-12;
+export const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
 
 export interface FlatRoadProfile {
   screenHeight: number;
@@ -31,9 +40,7 @@ export interface ForwardVisibleInterval {
   dEnd: number;
 }
 
-const EPSILON = 1e-9;
-
-/** Core §64 target rule: a projected segment thinner than one destination row collapses to one row. */
+/** Thin-span target rule: a projected segment thinner than one destination row collapses to one row. */
 export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
 
 /**
@@ -53,24 +60,28 @@ export function computeForwardVisibleInterval(
   if (!(dMin > 0 && dMax > dMin) || !Number.isFinite(dMin) || !Number.isFinite(dMax)) {
     throw new RangeError('renderer requires finite 0 < dMin < dMax');
   }
-  if (!Number.isFinite(sCamera) || sCamera < -EPSILON || sCamera > guide.length + EPSILON) {
+  if (
+    !Number.isFinite(sCamera) ||
+    sCamera < -SOURCE_ENDPOINT_TOLERANCE_METERS ||
+    sCamera > guide.length + SOURCE_ENDPOINT_TOLERANCE_METERS
+  ) {
     throw new RangeError('camera render chainage is outside the open GuidePath');
   }
 
   const available = Math.max(0, guide.length - Math.max(0, sCamera));
   const dEnd = Math.min(dMax, available);
-  if (dEnd <= dMin + EPSILON) return null;
+  if (dEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
 
   const end = sCamera + dEnd;
   const start = sCamera + dMin;
   const segments = guide.raster.segments;
   for (let index = profileIndexAt(segments, 'sStart', start); index < segments.length; index += 1) {
     const segment = segments[index]!;
-    if (segment.sStart >= end - EPSILON) break;
+    if (segment.sStart >= end - VISIBLE_INTERVAL_TOLERANCE_METERS) break;
     const facing = Math.cos(segment.heading - cameraYaw);
     if (facing <= 0) {
       const facingEnd = Math.max(start, segment.sStart) - sCamera;
-      return facingEnd <= dMin + EPSILON ? null : { dStart: dMin, dEnd: facingEnd };
+      return facingEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS ? null : { dStart: dMin, dEnd: facingEnd };
     }
   }
 
@@ -147,7 +158,7 @@ export function screenXToLateral(
   groundRight: number,
 ): number {
   const dx = xGroundR - xGroundL;
-  if (Math.abs(dx) < EPSILON) throw new RangeError('degenerate horizontal span');
+  if (Math.abs(dx) < MIN_INVERTIBLE_SPAN_PIXELS) throw new RangeError('degenerate horizontal span');
   return -groundLeft + ((x - xGroundL) / dx) * (groundLeft + groundRight);
 }
 
@@ -249,16 +260,17 @@ export function generateTerrainLines(
     } else {
       const minY = Math.min(y0, y1);
       const maxY = Math.max(y0, y1);
-      const rowStart = Math.max(0, Math.ceil(minY - 0.5 - 1e-9));
-      const rowEnd = Math.min(profile.screenHeight - 1, Math.floor(maxY - 0.5 + 1e-9));
+      const rowStart = Math.max(0, Math.ceil(minY - 0.5 - PIXEL_EDGE_TOLERANCE));
+      const rowEnd = Math.min(profile.screenHeight - 1, Math.floor(maxY - 0.5 + PIXEL_EDGE_TOLERANCE));
 
       for (let y = rowStart; y <= rowEnd; y += 1) {
         const sampleY = y + 0.5;
         const denom = sampleY - aY;
-        if (Math.abs(denom) < 1e-10) continue;
+        if (Math.abs(denom) < ROW_SAMPLE_DENOMINATOR_TOLERANCE_PIXELS) continue;
         const d = bY / denom;
-        if (d < d0 - 1e-7 || d > d1 + 1e-7) continue;
-        if (d < visible.dStart - 1e-7 || d > visible.dEnd + 1e-7) continue;
+        if (d < d0 - DEPTH_INTERVAL_TOLERANCE_METERS || d > d1 + DEPTH_INTERVAL_TOLERANCE_METERS) continue;
+        if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
+          continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
         const line = createTerrainLine(guide, camera, profile, d, y, { deltaS, deltaSCollapse: 0, collapsed: false });
         if (line) lines.push(line);
@@ -290,7 +302,7 @@ export function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMi
     throw new RangeError('terrain footprint inputs must be finite');
   }
   if (!(dMin > 0 && dMax > dMin)) throw new RangeError('terrain footprint requires 0 < dMin < dMax');
-  if (Math.abs(bY) < 1e-12) return 0;
+  if (Math.abs(bY) < FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS) return 0;
 
   const dTop = depthAtScreenBoundary(row, aY, bY, dMin, dMax);
   const dBottom = depthAtScreenBoundary(row + 1, aY, bY, dMin, dMax);
@@ -299,7 +311,7 @@ export function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMi
 
 function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: number, dMax: number): number {
   const denom = screenY - aY;
-  if (Math.abs(denom) < 1e-12) return dMax;
+  if (Math.abs(denom) < BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS) return dMax;
   const d = bY / denom;
   // Crossing the positive-depth asymptote means the footprint extends toward infinity;
   // the renderer's actual source interval is clipped at dMax.
@@ -322,7 +334,7 @@ function createTerrainLine(
   const projectedLeft = pseudoProject({ ...groundLeft, y: renderHeight }, camera);
   const projectedRight = pseudoProject({ ...groundRight, y: renderHeight }, camera);
   const groundSpan = projectedRight.x - projectedLeft.x;
-  if (!(groundSpan > 1e-7)) return null;
+  if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
   const section = profile.visual.sample(s);
   const xRoadL = lateralToScreenX(

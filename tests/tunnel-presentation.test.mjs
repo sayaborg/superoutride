@@ -90,7 +90,7 @@ function placeCar(car, s, yawOffset = 0) {
 function renderProbe(s, yawOffset = 0) {
   const car = createTestCar(guide, height, surfaces, s);
   placeCar(car, s, yawOffset);
-  const camera = updateCamera(createCameraRig(), guide, height, car, cameraProfile, 1 / 60);
+  const camera = updateCamera(createCameraRig(), { guide, height }, car, cameraProfile, 1 / 60);
   const selected = selectTunnelBackground(camera.s, guide.length, outdoor, tunnel);
   const stats = renderDriving(
     new SoftwareSurface(320, 240),

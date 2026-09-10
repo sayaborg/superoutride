@@ -1,4 +1,5 @@
-import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
+import { RasterTurtle } from '../course/raster-turtle.js';
+import { compileRasterPath, type RasterPath } from '../core/course.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
@@ -26,38 +27,10 @@ export interface M91LowMidSpeedMountainCircuitLap {
  * or handling override exists.
  */
 export function createM91LowMidSpeedMountainCircuitLap(): M91LowMidSpeedMountainCircuitLap {
-  const vertices: RasterVertex[] = [{ x: 0, z: 0, sourceRadius: HAIRPIN_RADIUS_METERS }];
-  const turtle = { x: 0, z: 0, heading: 0 };
-
-  const appendStraight = (length: number): void => {
-    const steps = Math.ceil(length / 50);
-    const stepLength = length / steps;
-    for (let step = 0; step < steps; step += 1) {
-      turtle.x += Math.sin(turtle.heading) * stepLength;
-      turtle.z += Math.cos(turtle.heading) * stepLength;
-      vertices.push({ x: turtle.x, z: turtle.z });
-    }
-  };
-
-  const appendArc = (radius: number, turn: number): void => {
-    const sign = Math.sign(turn);
-    if (sign === 0) throw new RangeError('M9.1 circuit arc turn must be non-zero');
-    vertices[vertices.length - 1]!.sourceRadius = radius;
-    const startX = turtle.x;
-    const startZ = turtle.z;
-    const startHeading = turtle.heading;
-    const centerX = startX + sign * radius * Math.cos(startHeading);
-    const centerZ = startZ - sign * radius * Math.sin(startHeading);
-    const steps = Math.ceil(Math.abs(turn) / ((5 * Math.PI) / 180));
-
-    for (let i = 1; i <= steps; i += 1) {
-      const heading = startHeading + (turn * i) / steps;
-      turtle.x = centerX - sign * radius * Math.cos(heading);
-      turtle.z = centerZ + sign * radius * Math.sin(heading);
-      vertices.push({ x: turtle.x, z: turtle.z, sourceRadius: radius });
-    }
-    turtle.heading = startHeading + turn;
-  };
+  const turtle = new RasterTurtle({ x: 0, z: 0, sourceRadius: HAIRPIN_RADIUS_METERS });
+  const { vertices } = turtle;
+  const appendStraight = (length: number) => turtle.appendStraight(length);
+  const appendArc = (radius: number, turn: number) => turtle.appendArc(radius, turn);
 
   const appendBalancedComplex = (radius: number, firstSign: -1 | 1, angleDegrees: number): void => {
     const angle = (angleDegrees * Math.PI) / 180;

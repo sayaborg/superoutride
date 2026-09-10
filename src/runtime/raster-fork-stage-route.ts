@@ -76,8 +76,8 @@ export interface CompiledRasterForkStageRoute {
  * successors.
  *
  * This compiler owns only route/stage composition and world-space geometry derivation. The fork
- * cross-section comes from M6.34, each child Raster comes from the ordinary M6.29 successor through
- * the fork coordinate adapter, and final route validation remains the M6.28 declarative compiler.
+ * cross-section comes from stage-junction-compiler, each child Raster comes from the ordinary raster-stage-successor through
+ * the fork coordinate adapter, and final route validation remains the declarative-live-route compiler.
  * Renderer, camera and vehicle physics are deliberately absent from this layer.
  */
 export function compileRasterForkStageRoute(source: RasterForkStageRouteAuthoring): CompiledRasterForkStageRoute {

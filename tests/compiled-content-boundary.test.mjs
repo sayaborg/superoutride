@@ -41,3 +41,23 @@ test('compiled route observations cannot mutate validated graph topology', () =>
   updateRouteDag(second, route, { kind: 'TRANSITION', choiceId: 'a-b' });
   assert.equal(updateRouteDag(second, route, { kind: 'FINISH', stageId: 'b' }).justFinished, true);
 });
+
+test('unknown logical GroundMap materials fail authoring rather than rendering as grass', () => {
+  for (const groundMapLeft of ['SOIL', 'toString', undefined]) {
+    assert.throws(
+      () =>
+        compileSurfaceRegions(100, [
+          {
+            sStart: 0,
+            name: 'invalid',
+            groundMapLeft,
+            groundMapRight: 'GRASS',
+            groundBaseLeft: { kind: 'transparent' },
+            groundBaseRight: { kind: 'transparent' },
+            surfaceBands: [],
+          },
+        ]),
+      /unknown GroundMap material/,
+    );
+  }
+});

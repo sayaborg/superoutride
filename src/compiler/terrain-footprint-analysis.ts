@@ -2,6 +2,8 @@ import type { TerrainLine } from '../road/terrain-line.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
 import { diagnosticLateralLevel, requiredPyramidMaxLevel } from './ground-map-lod.js';
 
+const FOOTPRINT_TOLERANCE_METERS = 1e-12;
+
 export interface TerrainFootprintSummary {
   readonly lineCount: number;
   readonly collapsedLineCount: number;
@@ -33,7 +35,7 @@ export function summarizeTerrainFootprints(
     validateFootprint(fp.deltaSCollapse, 'deltaSCollapse');
     validateFootprint(fp.deltaSEffective, 'deltaSEffective');
     validateFootprint(fp.deltaL, 'deltaL', true);
-    if (fp.deltaSEffective + 1e-12 < Math.max(fp.deltaS, fp.deltaSCollapse)) {
+    if (fp.deltaSEffective + FOOTPRINT_TOLERANCE_METERS < Math.max(fp.deltaS, fp.deltaSCollapse)) {
       throw new Error('TerrainLine deltaSEffective must cover ordinary and collapse footprints');
     }
     if (fp.collapsed) collapsedLineCount += 1;

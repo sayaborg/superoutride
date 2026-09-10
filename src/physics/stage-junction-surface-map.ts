@@ -1,3 +1,4 @@
+import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { classifyStageRoadLocalL, type StageRoadView } from '../course/stage-road-view.js';
@@ -15,7 +16,7 @@ export type StageJunctionOuterSurfaceType = Extract<SurfaceType, 'GRASS' | 'DIRT
  */
 export class StageJunctionSurfaceMap implements SurfaceMapReader {
   get maxSupportedAbsL(): number {
-    const corridor = Math.max(this.roadView.groundLeft, this.roadView.groundRight) + 1e-9;
+    const corridor = Math.max(this.roadView.groundLeft, this.roadView.groundRight) + LATERAL_BOUNDARY_TOLERANCE_METERS;
     return this.outerSurfaceType === 'VOID' ? Math.min(corridor, this.junction.maxSupportedAbsL) : corridor;
   }
 

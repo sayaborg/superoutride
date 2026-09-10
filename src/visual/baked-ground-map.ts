@@ -1,5 +1,7 @@
+import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { selectGroundMapLevel } from '../compiler/ground-map-lod.js';
 import { openProfileChainage } from '../core/open-profile-chainage.js';
+import { finite } from '../core/validation.js';
 import { rgb555ToRgba } from '../render/rgb555.js';
 
 export type BakedGroundMapStorageFormat = 'palette8' | 'rgb555le';
@@ -70,14 +72,25 @@ for (let i = 0; i < RGB555_TO_RGBA.length; i += 1) RGB555_TO_RGBA[i] = rgb555ToR
  * from Delta_s_eff and performs a nearest texel lookup in that level.
  */
 export class BakedGroundMapAsset implements BakedGroundMapReader {
-  readonly bytes: Uint8Array;
+  readonly metadata: BakedGroundMapMetadata;
+  readonly #bytes: Uint8Array;
 
-  constructor(
-    readonly metadata: BakedGroundMapMetadata,
-    bytes: Uint8Array,
-  ) {
-    this.bytes = bytes;
+  constructor(metadata: BakedGroundMapMetadata, bytes: Uint8Array) {
     validateMetadata(metadata, bytes.byteLength);
+    this.metadata = Object.freeze({
+      ...metadata,
+      paletteRgba: Object.freeze([...metadata.paletteRgba]),
+      payloads: Object.freeze(metadata.payloads.map((payload) => Object.freeze({ ...payload }))),
+      levels: Object.freeze(
+        metadata.levels.map((level) =>
+          Object.freeze({
+            ...level,
+            chunks: Object.freeze(level.chunks.map((chunk) => Object.freeze({ ...chunk }))),
+          }),
+        ),
+      ),
+    });
+    this.#bytes = Uint8Array.from(bytes);
   }
 
   get kMax(): number {
@@ -98,6 +111,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     const level = this.metadata.levels[levelIndex];
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
 
+    finite(l, 'baked GroundMap lateral coordinate');
     const sLocal = openProfileChainage(s, this.metadata.courseLength, 'baked GroundMap');
     const row =
       sLocal === this.metadata.courseLength
@@ -113,7 +127,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     const texelIndex = localRow * level.lateralTexels + column;
 
     if (payload.format === 'palette8') {
-      const paletteIndex = this.bytes[payload.offsetBytes + texelIndex];
+      const paletteIndex = this.#bytes[payload.offsetBytes + texelIndex];
       if (paletteIndex === undefined) throw new Error('GroundMap palette texel outside payload');
       const color = this.metadata.paletteRgba[paletteIndex];
       if (color === undefined) throw new Error('GroundMap palette index outside palette');
@@ -121,26 +135,41 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     }
 
     const byteOffset = payload.offsetBytes + texelIndex * 2;
-    const low = this.bytes[byteOffset];
-    const high = this.bytes[byteOffset + 1];
+    const low = this.#bytes[byteOffset];
+    const high = this.#bytes[byteOffset + 1];
     if (low === undefined || high === undefined) throw new Error('GroundMap RGB555 texel outside payload');
     return RGB555_TO_RGBA[(low | (high << 8)) & 0x7fff]!;
   }
 
   /** Physical texel center useful for compiler/runtime equivalence tests. */
   texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
-    const level = this.metadata.levels[levelIndex];
-    if (!level) throw new RangeError('GroundMap level outside baked pyramid');
-    if (row < 0 || row >= level.chainageTexels || column < 0 || column >= level.lateralTexels) {
-      throw new RangeError('GroundMap texel outside level');
-    }
-    return {
-      s: ((row + 0.5) * this.metadata.courseLength) / level.chainageTexels,
-      l:
-        -this.metadata.groundLeft +
-        ((column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight)) / level.lateralTexels,
-    };
+    return bakedGroundMapTexelCenter(this.metadata, levelIndex, row, column);
   }
+}
+
+/** One texel metric for source assets and upper-layer virtual windows. */
+export function bakedGroundMapTexelCenter(
+  metadata: BakedGroundMapMetadata,
+  levelIndex: number,
+  row: number,
+  column: number,
+): { s: number; l: number } {
+  const level = metadata.levels[levelIndex];
+  if (!level) throw new RangeError('GroundMap level outside baked pyramid');
+  if (
+    !Number.isInteger(row) ||
+    !Number.isInteger(column) ||
+    row < 0 ||
+    row >= level.chainageTexels ||
+    column < 0 ||
+    column >= level.lateralTexels
+  ) {
+    throw new RangeError('GroundMap texel outside level');
+  }
+  return {
+    s: ((row + 0.5) * metadata.courseLength) / level.chainageTexels,
+    l: -metadata.groundLeft + ((column + 0.5) * (metadata.groundLeft + metadata.groundRight)) / level.lateralTexels,
+  };
 }
 
 function findChunk(chunks: readonly BakedGroundMapChunkMetadata[], row: number): BakedGroundMapChunkMetadata {
@@ -172,7 +201,10 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
   }
   if (!Number.isInteger(metadata.kMax) || metadata.kMax < 0) throw new RangeError('GroundMap kMax invalid');
   if (metadata.levels.length !== metadata.kMax + 1) throw new Error('GroundMap level count must equal kMax+1');
-  if (metadata.actualBaseQL > metadata.qLAuthority + 1e-12 || metadata.actualBaseQS > metadata.qSAuthority + 1e-12) {
+  if (
+    metadata.actualBaseQL > metadata.qLAuthority + TEXEL_SPACING_TOLERANCE ||
+    metadata.actualBaseQS > metadata.qSAuthority + TEXEL_SPACING_TOLERANCE
+  ) {
     throw new Error('baked GroundMap base density is coarser than compiler authority');
   }
   if (metadata.binaryBytes !== binaryLength) throw new Error('GroundMap binary byte length mismatch');
@@ -208,11 +240,18 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
   }
 
   for (const payload of metadata.payloads) {
+    if (payload.format !== 'palette8' && payload.format !== 'rgb555le') {
+      throw new Error('unsupported GroundMap payload format');
+    }
     const bytesPerTexel = payload.format === 'palette8' ? 1 : 2;
     if (payload.byteLength !== payload.lateralTexels * payload.rowCount * bytesPerTexel) {
       throw new Error('GroundMap payload byte length mismatch');
     }
-    if (payload.offsetBytes < 0 || payload.offsetBytes + payload.byteLength > binaryLength) {
+    if (
+      !Number.isSafeInteger(payload.offsetBytes) ||
+      payload.offsetBytes < 0 ||
+      payload.offsetBytes + payload.byteLength > binaryLength
+    ) {
       throw new Error('GroundMap payload outside binary asset');
     }
   }

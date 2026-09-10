@@ -1,37 +1,31 @@
 # Next task checkpoint
 
-Vehicle mechanics and control laws are frozen; parameter calibration remains open and handling is `DEV_UNCALIBRATED`. Continue with visuals, sound and game systems above the existing coordinate, rendering, vehicle, route, lap and recovery contracts.
-
-All repository documentation must be maintained in English. Prefer architectural elegance, simplicity, a single authority per concept and ordinary data over ad hoc exceptions.
+Vehicle mechanics and control laws are frozen in [vehicle physics](vehicle-physics.md); parameters remain tunable and handling is `DEV_UNCALIBRATED`. [AGENTS](../AGENTS.md) owns project authority, architectural priorities and release gates. The repository is the continuing project memory.
 
 ## Restart
 
-1. Inspect status, branch, remotes and worktrees in the canonical workspace. Fetch main; previous conversations and attachments are unnecessary.
-2. Read [AGENTS](../AGENTS.md), the [current specifications](README.md) and the [current audit](AUDIT.md).
-3. Inspect exact-main CI and Pages evidence. Create a new `codex/` branch from the inspected SHA.
-4. Read the relevant topic, implementation and causal tests; follow [development](development.md).
+1. Inspect the canonical workspace, worktrees and local changes. Fetch main and inspect active PRs and exact-main CI/Pages evidence.
+2. Read [AGENTS](../AGENTS.md), the [specification index](README.md) and the relevant topic/source/tests. Create a `codex/` branch from the inspected main SHA.
+3. Follow [development](development.md). PR refs, workflow logs and deployed version.txt establish exact release state; do not infer it from this file or prior conversations.
 
-## Current foundation
+## Current audit boundaries
 
-- [Architecture](architecture.md): 320×240 Raster roads, chainage-difference depth, 40 px/m, a single Painter and explicit physical/render height mapping.
-- [Vehicle physics](vehicle-physics.md): one two-contact solver for cars and bikes, elliptical tires, implicit signed wheel balance, torque protection, automatic steering and the driver-offset limiter. No power multiplier.
-- [Calibration](calibration.md): GX=5 / PX=20%, GY=2.5 / PY=10%, KN=0.74, D=20°, M=65°, ACT=0.30 s. These common initial comparison values do not require identical finished tires across vehicles.
-- Bike CG is 30% of wheelbase. Lean is lateral-acceleration-driven presentation, with a debug line from the contact anchor. Physical roll and rider motion are not modeled.
-- [Gameplay](content-and-gameplay.md): physical branch gates, finite circuit unfolding, ordered checkpoints and FINISH. Recovery never awards progress.
-- The [current audit](AUDIT.md) resolves the external review: live strict supported-chart validation, shared profile/validation primitives, explicit terrain boundaries, one browser scheduler and common actor lifecycles. General APIs use role names and named options. Lint and formatting are part of the mandatory full test command.
+- Core owns source endpoint normalization and geometric sampling tolerances. Lateral classifiers and supported envelopes share one boundary tolerance; residual, screen and control thresholds keep their own meanings and units. Guide compilation preserves micro-intervals that exceed the reader's join tolerance. Visual next-boundary queries use the same exact section lookup as sampling.
+- All vehicles use the same mechanics. Wheel residual trials reuse one private temporary result per solve. Signed roots, full nine-profile traces at 60/120/240 Hz, force bounds and dissipativity remain executable regression contracts. Torque protection guarantees a feasible sampled candidate when it reports feasibility; it does not certify unsampled torque intervals or future terrain.
+- Circuit height nodes and loaded baked assets preserve immutable source ownership. Malformed binary offsets, encodings and logical materials fail before rendering. Wrong-branch recovery uses the same actor-owned recovery profile as ordinary recovery, preserving validated progress.
+- Browser input owns product shortcuts; content IDs remain independent of keyboard allocation. Numeric selector operations, test DOM behavior, straight/arc course authoring and second-fork authoring use shared primitives. Runtime and camera updates consume named world readers.
+- Current topic documents own specifications; calibration values live in [calibration](calibration.md). Reproducible probes and exact reference comparisons replace copied timing/release archives. Audit change details belong in the PR.
 
 ## Next implementation areas
 
-[Tunnel fixtures](../src/dev/tunnel.ts) own concrete placements and materials. General profiles remain finite; topology unfolding belongs above them. Course data explicitly authors road paint.
+Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). [Tunnel fixtures](../src/dev/tunnel.ts) own concrete placements and materials. Presentation consumes vehicle/course observations without adding another physical state or depth rule.
 
-Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). Derive presentation from vehicle/course observations without introducing another physical state or depth rule.
-
-There is no sound engine yet. Design a presentation layer that consumes existing RPM, pedals, tire observations and game events. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
+There is no sound engine yet. A presentation layer can consume existing RPM, pedals, tire observations and game events. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
 
 ## Remaining limits
 
-General nonadjacent road-band intersection classification is not implemented. Existing vertex/fillet tests cannot certify new courses. Preserve the validity requirement and distinguish intentional coincident circuit copies above Core.
+General nonadjacent road-band intersection classification is not implemented. Vertex, fillet and supported-envelope checks do not certify a new course's complete band geometry. Preserve the [validity requirement](architecture.md#raster-and-guide) and distinguish intentional coincident circuit copies above Core.
 
-Per-vehicle/front/rear tire calibration, coast/turn oscillation, combined controls and changing-terrain acceptance, and actual smartphone performance/input checks remain open. Exiting finite suspension travel invokes gameplay recovery; this is not a guarantee of physical stability over arbitrary terrain.
+Per-vehicle/front/rear tire calibration, coast/turn oscillation, combined controls and changing-terrain acceptance, and actual smartphone performance/input checks remain open. Exiting finite suspension travel invokes gameplay recovery; this does not establish physical stability over arbitrary terrain. The common model has no physical roll or rider motion.
 
-This checkpoint supports further development, not a defect-free proof or a real-vehicle fidelity certification. Correct any future structural defect with a causal regression and an explicit specification revision; never conceal it through tuning.
+The executable checks cover their stated scenarios and boundaries, not every possible state. Correct a future structural defect with a causal regression and explicit specification revision; never conceal it through parameter tuning.

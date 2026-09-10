@@ -5,6 +5,7 @@ import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { finite, positiveInteger } from '../core/validation.js';
 import { unfoldCircuitRasterPath, type CircuitTopology } from '../gameplay/circuit-topology.js';
 import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
+import { bakedGroundMapTexelCenter } from '../visual/baked-ground-map.js';
 import type {
   BakedGroundMapChunkMetadata,
   BakedGroundMapLevelMetadata,
@@ -15,7 +16,7 @@ import type {
 import type { HeightNode, HeightProfileReader, HeightSample, PhysicsHeightSample } from '../visual/height-profile.js';
 import { VisualProfile, type VisualProfileReader } from '../visual/visual-profile.js';
 
-const EPSILON = 1e-8;
+const CIRCUIT_SEAM_TOLERANCE_METERS = 1e-8;
 
 export interface CircuitLapRuntimeSources {
   readonly height: HeightProfileReader;
@@ -207,17 +208,7 @@ class CircuitBakedGroundMapWindow implements BakedGroundMapReader {
   }
 
   texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
-    const level = this.metadata.levels[levelIndex];
-    if (!level) throw new RangeError('GroundMap level outside circuit window pyramid');
-    if (row < 0 || row >= level.chainageTexels || column < 0 || column >= level.lateralTexels) {
-      throw new RangeError('GroundMap texel outside circuit window level');
-    }
-    return {
-      s: ((row + 0.5) * this.metadata.courseLength) / level.chainageTexels,
-      l:
-        -this.metadata.groundLeft +
-        ((column + 0.5) * (this.metadata.groundLeft + this.metadata.groundRight)) / level.lateralTexels,
-    };
+    return bakedGroundMapTexelCenter(this.metadata, levelIndex, row, column);
   }
 
   private sourceS(s: number): number {
@@ -280,7 +271,7 @@ function validateHeightSeam(topology: CircuitTopology, height: HeightProfileRead
     ['physics', startPhysics, endPhysics],
     ['camera', startCamera, endCamera],
   ] as const) {
-    if (Math.abs(a - b) > EPSILON) {
+    if (!Number.isFinite(a) || !Number.isFinite(b) || Math.abs(a - b) > CIRCUIT_SEAM_TOLERANCE_METERS) {
       throw new Error(`circuit height ${label} seam must return to the same world height`);
     }
   }
@@ -290,7 +281,10 @@ function repeatHeightNodes(source: HeightProfileReader, lapLength: number, repea
   if (source.nodes.length < 2) throw new Error('circuit height source requires at least two nodes');
   const first = source.nodes[0]!;
   const last = source.nodes[source.nodes.length - 1]!;
-  if (Math.abs(first.s) > EPSILON || Math.abs(last.s - lapLength) > EPSILON) {
+  if (
+    Math.abs(first.s) > CIRCUIT_SEAM_TOLERANCE_METERS ||
+    Math.abs(last.s - lapLength) > CIRCUIT_SEAM_TOLERANCE_METERS
+  ) {
     throw new Error('circuit height source nodes must explicitly cover [0,L]');
   }
 
@@ -300,7 +294,7 @@ function repeatHeightNodes(source: HeightProfileReader, lapLength: number, repea
     for (let i = 0; i < source.nodes.length; i += 1) {
       if (lap > 0 && i === 0) continue;
       const node = source.nodes[i]!;
-      nodes.push({ s: offset + node.s, y: node.y });
+      nodes.push(Object.freeze({ s: offset + node.s, y: node.y }));
     }
   }
   return nodes;
@@ -337,7 +331,7 @@ function checkedWindowChainage(window: Pick<CircuitRuntimeWindow, 'length'>, s: 
 }
 
 function assertSameLength(actual: number, expected: number, label: string): void {
-  if (!Number.isFinite(actual) || Math.abs(actual - expected) > EPSILON) {
+  if (!Number.isFinite(actual) || Math.abs(actual - expected) > CIRCUIT_SEAM_TOLERANCE_METERS) {
     throw new RangeError(`circuit ${label} source length must equal topology lapLength`);
   }
 }

@@ -1,3 +1,4 @@
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 import { sampleRasterPath, type RasterPath } from './course.js';
 import {
   clamp,
@@ -11,6 +12,8 @@ import {
   wrapAngle,
   type Vec2,
 } from './math.js';
+
+const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
 export interface GuideCompileOptions {
   lMax: number;
@@ -80,13 +83,12 @@ export interface CourseCoordinate {
   distanceSquared: number;
 }
 
-const DEFAULT_TOLERANCE = 1e-7;
-const ZERO_TURN = 1e-10;
-const SAMPLING_TOLERANCE = 1e-8;
+const GUIDE_COMPILATION_TOLERANCE_METERS = 1e-7;
+const ZERO_TURN_RADIANS = 1e-10;
 
 export function filletMetric(turn: number): number {
   const absTurn = Math.abs(turn);
-  if (absTurn < ZERO_TURN) return 1;
+  if (absTurn < ZERO_TURN_RADIANS) return 1;
   return absTurn / (2 * Math.tan(absTurn * 0.5));
 }
 
@@ -100,7 +102,7 @@ export function minimumGuideRadius(lMax: number, mMin: number, mu: number): numb
 }
 
 export function compileGuidePath(path: RasterPath, options: GuideCompileOptions): GuidePath {
-  const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
+  const tolerance = options.tolerance ?? GUIDE_COMPILATION_TOLERANCE_METERS;
   // The chart contract also applies to straight paths, which never enter the fillet branch.
   minimumGuideRadius(options.lMax, options.mMin, 1);
   if (!Number.isFinite(tolerance) || tolerance < 0) throw new RangeError('Guide tolerance must be finite and >= 0');
@@ -116,7 +118,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
     const turn = isStart || isEnd ? 0 : path.vertexTurns[i]!;
     const mu = filletMetric(turn);
 
-    if (Math.abs(turn) < ZERO_TURN) {
+    if (Math.abs(turn) < ZERO_TURN_RADIANS) {
       return {
         vertexIndex: i,
         sVertex: path.vertexS[i]!,
@@ -169,6 +171,9 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
 
   validateFilletOverlap(path, corners, options.dCam, tolerance);
 
+  // A compiler may forgive dimensional roundoff, but must never omit more chainage
+  // than the reader can sample at a join. Keep every larger straight/arc primitive.
+  const intervalTolerance = Math.min(tolerance, GEOMETRY_SAMPLING_TOLERANCE_METERS);
   const unsorted: GuideSegmentDraft[] = [];
   for (let i = 0; i < path.segments.length; i += 1) {
     const segment = path.segments[i]!;
@@ -176,7 +181,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
     const nextCorner = corners[i + 1]!;
     const sStart = segment.sStart + currentCorner.trim;
     const sEnd = segment.sStart + segment.length - nextCorner.trim;
-    if (sEnd - sStart > tolerance) {
+    if (sEnd - sStart > intervalTolerance) {
       unsorted.push({
         kind: 'straight',
         sStart,
@@ -189,7 +194,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
   // Open endpoints never receive synthetic wrap fillets.
   for (let i = 1; i < corners.length - 1; i += 1) {
     const corner = corners[i]!;
-    if (!(corner.trim > tolerance)) continue;
+    if (!(2 * corner.trim > intervalTolerance)) continue;
     unsorted.push({
       kind: 'arc',
       sStart: corner.sVertex - corner.trim,
@@ -202,7 +207,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
 
   unsorted.sort((a, b) => a.sStart - b.sStart);
   const segments: GuideSegment[] = unsorted.map((segment, index) => ({ ...segment, index }) as GuideSegment);
-  validateGuideCoverage(segments, path.length, tolerance);
+  validateGuideCoverage(segments, path.length, intervalTolerance);
 
   return Object.freeze({
     raster: path,
@@ -264,7 +269,10 @@ export function locateWorldOnGuideLocal(
 
 export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {
   const checked = checkedGuideChainage(guide, sLocal);
-  if (checked < segment.sStart - SAMPLING_TOLERANCE || checked > segment.sEnd + SAMPLING_TOLERANCE) {
+  if (
+    checked < segment.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS ||
+    checked > segment.sEnd + GEOMETRY_SAMPLING_TOLERANCE_METERS
+  ) {
     throw new RangeError('guide segment sample is outside the segment interval');
   }
 
@@ -326,7 +334,7 @@ function projectWorldToGuideSegment(
     const radialLength = Math.hypot(radial.x, radial.z);
 
     let q: number;
-    if (radialLength < 1e-9) {
+    if (radialLength < ARC_CENTER_TOLERANCE_METERS) {
       q = (segment.qStart + segment.qEnd) * 0.5;
     } else {
       const sign = Math.sign(corner.turn);
@@ -383,7 +391,9 @@ function validateFilletOverlap(
     }
 
     const opposite =
-      Math.abs(a.turn) > ZERO_TURN && Math.abs(b.turn) > ZERO_TURN && Math.sign(a.turn) !== Math.sign(b.turn);
+      Math.abs(a.turn) > ZERO_TURN_RADIANS &&
+      Math.abs(b.turn) > ZERO_TURN_RADIANS &&
+      Math.sign(a.turn) !== Math.sign(b.turn);
     if (opposite && dCam !== undefined) {
       const remaining = segment.length - required;
       if (remaining + tolerance < dCam) {
@@ -410,7 +420,7 @@ function validateGuideCoverage(segments: readonly GuideSegment[], pathLength: nu
 
 function checkedGuideChainage(guide: GuidePath, s: number): number {
   if (!Number.isFinite(s)) throw new RangeError('guide path chainage must be finite');
-  if (s < -SAMPLING_TOLERANCE || s > guide.length + SAMPLING_TOLERANCE) {
+  if (s < -GEOMETRY_SAMPLING_TOLERANCE_METERS || s > guide.length + GEOMETRY_SAMPLING_TOLERANCE_METERS) {
     throw new RangeError(`guide path chainage ${s} is outside [0, ${guide.length}]`);
   }
   if (s <= 0) return 0;

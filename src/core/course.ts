@@ -1,7 +1,8 @@
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 import { headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
 
 export interface RasterVertex extends Vec2 {
-  // Optional editor/compiler metadata from Core §14.
+  // Optional editor/compiler circular-arc provenance.
   sourceRadius?: number;
 }
 
@@ -45,9 +46,11 @@ export interface CourseWorldSample extends RasterSample {
   l: number;
 }
 
-const MAX_VERTEX_TURN = (10 * Math.PI) / 180;
-const EPSILON = 1e-9;
-const SAMPLING_TOLERANCE = 1e-8;
+export const MAX_RASTER_VERTEX_TURN_DEGREES = 10;
+const MAX_VERTEX_TURN = (MAX_RASTER_VERTEX_TURN_DEGREES * Math.PI) / 180;
+const MIN_RASTER_SEGMENT_METERS = 1e-9;
+const MIN_MITER_DENOMINATOR = 1e-9;
+const VERTEX_TURN_TOLERANCE_RADIANS = 1e-8;
 
 export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
   if (vertices.length < 2) throw new Error('open raster path requires at least 2 vertices');
@@ -74,7 +77,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     if (!Number.isFinite(length) || !Number.isFinite(s + length)) {
       throw new RangeError('raster path length must be finite');
     }
-    if (!(length > EPSILON)) throw new Error(`raster segment ${i} has zero length`);
+    if (!(length > MIN_RASTER_SEGMENT_METERS)) throw new Error(`raster segment ${i} has zero length`);
 
     vertexS[i] = s;
     segments.push({
@@ -94,7 +97,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const incoming = segments[i - 1]!.heading;
     const outgoing = segments[i]!.heading;
     const turn = wrapAngle(outgoing - incoming);
-    if (Math.abs(turn) > MAX_VERTEX_TURN + 1e-8) {
+    if (Math.abs(turn) > MAX_VERTEX_TURN + VERTEX_TURN_TOLERANCE_RADIANS) {
       throw new Error(
         `raster vertex ${i} turn ${((Math.abs(turn) * 180) / Math.PI).toFixed(4)}deg exceeds Core 10deg limit`,
       );
@@ -111,7 +114,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const nIn = normalFromHeading(incoming);
     const nOut = normalFromHeading(outgoing);
     const denominator = 1 + nIn.x * nOut.x + nIn.z * nOut.z;
-    if (!(denominator > EPSILON)) {
+    if (!(denominator > MIN_MITER_DENOMINATOR)) {
       throw new Error(`raster vertex ${i} has degenerate lateral miter`);
     }
     return {
@@ -178,7 +181,7 @@ export function rasterPathToWorld(path: RasterPath, s: number, l: number): Cours
 
 function checkedPathChainage(path: RasterPath, s: number): number {
   if (!Number.isFinite(s)) throw new RangeError('raster path chainage must be finite');
-  if (s < -SAMPLING_TOLERANCE || s > path.length + SAMPLING_TOLERANCE) {
+  if (s < -GEOMETRY_SAMPLING_TOLERANCE_METERS || s > path.length + GEOMETRY_SAMPLING_TOLERANCE_METERS) {
     throw new RangeError(`raster path chainage ${s} is outside [0, ${path.length}]`);
   }
   if (s <= 0) return 0;

@@ -1,6 +1,8 @@
 import type { PhysicalRaceGate } from './physical-race-gate.js';
 
-const EPSILON = 1e-9;
+const RANK_PROGRESS_TOLERANCE_METERS = 1e-9;
+const RACE_TIME_TOLERANCE_SECONDS = 1e-9;
+const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
 
 export interface ValidatedGateTiming {
   readonly gateName: string;
@@ -121,16 +123,16 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
 
   indexed.sort((a, b) => {
     const progressDelta = b.input.sProgress - a.input.sProgress;
-    if (Math.abs(progressDelta) > EPSILON) return progressDelta;
+    if (Math.abs(progressDelta) > RANK_PROGRESS_TOLERANCE_METERS) return progressDelta;
     const floorDelta = b.input.validatedProgressFloor - a.input.validatedProgressFloor;
-    if (Math.abs(floorDelta) > EPSILON) return floorDelta;
+    if (Math.abs(floorDelta) > RANK_PROGRESS_TOLERANCE_METERS) return floorDelta;
     const aFinish = a.input.finishElapsedSeconds ?? null;
     const bFinish = b.input.finishElapsedSeconds ?? null;
     if (aFinish !== null || bFinish !== null) {
       if (aFinish === null) return 1;
       if (bFinish === null) return -1;
       const finishDelta = aFinish - bFinish;
-      if (Math.abs(finishDelta) > EPSILON) return finishDelta;
+      if (Math.abs(finishDelta) > RACE_TIME_TOLERANCE_SECONDS) return finishDelta;
     }
     return a.inputIndex - b.inputIndex;
   });
@@ -143,8 +145,8 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
     const input = indexed[i]!.input;
     const tied =
       previous !== null &&
-      Math.abs(input.sProgress - previous.sProgress) <= EPSILON &&
-      Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= EPSILON &&
+      Math.abs(input.sProgress - previous.sProgress) <= RANK_PROGRESS_TOLERANCE_METERS &&
+      Math.abs(input.validatedProgressFloor - previous.validatedProgressFloor) <= RANK_PROGRESS_TOLERANCE_METERS &&
       equalFinishTime(input.finishElapsedSeconds, previous.finishElapsedSeconds);
     const rank = tied ? previousRank : i + 1;
     standings.push({ ...input, rank });
@@ -157,7 +159,7 @@ export function rankRaceProgress(inputs: readonly RaceRankingInput[]): RaceStand
 
 export function formatRaceTime(seconds: number): string {
   if (!(seconds >= 0) || !Number.isFinite(seconds)) throw new RangeError('race time must be finite and >= 0');
-  const totalMilliseconds = Math.floor(seconds * 1000 + 1e-7);
+  const totalMilliseconds = Math.floor(seconds * 1000 + TIMER_ROUNDING_TOLERANCE_MILLISECONDS);
   const minutes = Math.floor(totalMilliseconds / 60_000);
   const secondsPart = Math.floor((totalMilliseconds % 60_000) / 1000);
   const milliseconds = totalMilliseconds % 1000;
@@ -176,7 +178,7 @@ function validateRankingInput(input: RaceRankingInput): void {
   ) {
     throw new RangeError('ranking finishElapsedSeconds must be finite and >= 0 or null');
   }
-  if (input.sProgress + EPSILON < input.validatedProgressFloor) {
+  if (input.sProgress + RANK_PROGRESS_TOLERANCE_METERS < input.validatedProgressFloor) {
     throw new RangeError('sProgress cannot be below validatedProgressFloor');
   }
 }
@@ -185,5 +187,5 @@ function equalFinishTime(a: number | null | undefined, b: number | null | undefi
   const normalizedA = a ?? null;
   const normalizedB = b ?? null;
   if (normalizedA === null || normalizedB === null) return normalizedA === normalizedB;
-  return Math.abs(normalizedA - normalizedB) <= EPSILON;
+  return Math.abs(normalizedA - normalizedB) <= RACE_TIME_TOLERANCE_SECONDS;
 }

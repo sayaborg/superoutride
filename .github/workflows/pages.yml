@@ -13,6 +13,10 @@ permissions:
   pages: write
   id-token: write
 
+# Accepted force/control and renderer oracle. Update policy: docs/development.md.
+env:
+  HOT_PATH_REFERENCE_SHA: fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8
+
 concurrency:
   group: pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
@@ -46,12 +50,12 @@ jobs:
       - name: Checkout immutable hot-path reference
         uses: actions/checkout@v5
         with:
-          ref: fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8
+          ref: ${{ env.HOT_PATH_REFERENCE_SHA }}
           path: .audit-baseline
 
       - name: Build immutable hot-path reference
         run: |
-          test "$(git -C .audit-baseline rev-parse HEAD)" = fa2a3bfbc73785d1975d1f5b94b3a31b6e98cef8
+          test "$(git -C .audit-baseline rev-parse HEAD)" = "${HOT_PATH_REFERENCE_SHA}"
           npm ci --prefix .audit-baseline
           npm run build --prefix .audit-baseline
 

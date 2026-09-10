@@ -4,12 +4,11 @@ A 320×240 raster pseudo-3D driving game for the browser. Cars and bikes share w
 
 Vehicle mechanics and control laws are frozen; parameters remain tunable. Handling is `DEV_UNCALIBRATED`. Visuals, sound and game systems can build on this foundation while vehicle calibration and target-device acceptance continue.
 
-All repository documentation must be written and maintained in English. Architectural elegance, simplicity, consistency and the absence of ad hoc implementations take priority over convenience.
+[AGENTS.md](AGENTS.md) defines project authority and development priorities.
 
 - [Restart and next work](docs/NEXT.md)
 - [Current specifications](docs/README.md)
 - [Development contract](AGENTS.md)
-- [Current audit](docs/AUDIT.md)
 - [Play the game](https://sayaborg.github.io/superoutride/)
 
 ## Run
@@ -30,10 +29,10 @@ Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens,
 
 Use the selectors for vehicle, course and calibration. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-Current defaults: GX=5, PX=20%, GY=2.5, PY=10%, KN=0.74, D=20°, M=65°, ACT=0.30 s. See [calibration ownership and meanings](docs/calibration.md).
+See [current calibration values and meanings](docs/calibration.md).
 
 ## Structure
 
 `src/core` owns open coordinates and projection; `src/physics` owns common mechanics. `src/course` and `src/runtime` compile and assemble course content. `src/gameplay` owns route choices, laps and recovery. `src/render` and `src/visual` own presentation; `src/browser` owns browser input, scheduling and UI. `src/dev` contains concrete trial courses and regression fixtures.
 
-The working tree contains current specifications, executable regressions and one restart checkpoint. Git retains history. Historical fixture/test names do not supersede current specifications.
+The working tree contains current specifications, executable regressions and one restart checkpoint. Git retains history. Fixture names do not supersede current specifications.

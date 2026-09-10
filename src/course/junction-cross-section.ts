@@ -1,3 +1,4 @@
+import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 export type JunctionPhase = 'SINGLE' | 'WIDENING' | 'MEDIAN_GROWTH' | 'SEPARATED';
 export type JunctionSide = 'LEFT' | 'RIGHT';
 
@@ -44,10 +45,8 @@ interface JunctionScalarSection {
   readonly medianHalfWidth: number;
 }
 
-const EPSILON = 1e-9;
-
 /**
- * M6.12 junction authority.
+ * Authored junction cross-section authority.
  *
  * A junction remains one chainage-driven lateral cross-section. No second perspective road,
  * camera-space Z or branch-specific depth exists here.
@@ -63,7 +62,10 @@ export class JunctionCrossSectionProfile {
 
   get maxSupportedAbsL(): number {
     return (
-      this.authoring.childRoadWidth + this.authoring.finalMedianWidth * 0.5 + this.authoring.shoulderWidth + EPSILON
+      this.authoring.childRoadWidth +
+      this.authoring.finalMedianWidth * 0.5 +
+      this.authoring.shoulderWidth +
+      LATERAL_BOUNDARY_TOLERANCE_METERS
     );
   }
 
@@ -77,19 +79,20 @@ export class JunctionCrossSectionProfile {
     const { phase, outerHalfWidth, medianHalfWidth } = scalar;
     const a = this.authoring;
     const asphaltBands: LateralInterval[] =
-      medianHalfWidth <= EPSILON
+      medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS
         ? [{ min: -outerHalfWidth, max: outerHalfWidth }]
         : [
             { min: -outerHalfWidth, max: -medianHalfWidth },
             { min: medianHalfWidth, max: outerHalfWidth },
           ];
-    const medianBand = medianHalfWidth <= EPSILON ? null : { min: -medianHalfWidth, max: medianHalfWidth };
+    const medianBand =
+      medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS ? null : { min: -medianHalfWidth, max: medianHalfWidth };
     const shoulderBands: [LateralInterval, LateralInterval] = [
       { min: -outerHalfWidth - a.shoulderWidth, max: -outerHalfWidth },
       { min: outerHalfWidth, max: outerHalfWidth + a.shoulderWidth },
     ];
     const childCenterL =
-      medianHalfWidth <= EPSILON
+      medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS
         ? null
         : Object.freeze({
             LEFT: -(medianHalfWidth + a.childRoadWidth * 0.5),
@@ -117,16 +120,30 @@ export class JunctionCrossSectionProfile {
     const { outerHalfWidth, medianHalfWidth } = sampleScalarSection(this.authoring, s);
     const shoulderWidth = this.authoring.shoulderWidth;
 
-    if (medianHalfWidth > EPSILON && Math.abs(l) <= medianHalfWidth + EPSILON) return 'MEDIAN';
-    if (medianHalfWidth <= EPSILON) {
-      if (Math.abs(l) <= outerHalfWidth + EPSILON) return 'ASPHALT_SINGLE';
+    if (
+      medianHalfWidth > LATERAL_BOUNDARY_TOLERANCE_METERS &&
+      Math.abs(l) <= medianHalfWidth + LATERAL_BOUNDARY_TOLERANCE_METERS
+    )
+      return 'MEDIAN';
+    if (medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS) {
+      if (Math.abs(l) <= outerHalfWidth + LATERAL_BOUNDARY_TOLERANCE_METERS) return 'ASPHALT_SINGLE';
     } else {
-      if (l >= -outerHalfWidth - EPSILON && l <= -medianHalfWidth + EPSILON) return 'ASPHALT_LEFT';
-      if (l >= medianHalfWidth - EPSILON && l <= outerHalfWidth + EPSILON) return 'ASPHALT_RIGHT';
+      if (
+        l >= -outerHalfWidth - LATERAL_BOUNDARY_TOLERANCE_METERS &&
+        l <= -medianHalfWidth + LATERAL_BOUNDARY_TOLERANCE_METERS
+      )
+        return 'ASPHALT_LEFT';
+      if (
+        l >= medianHalfWidth - LATERAL_BOUNDARY_TOLERANCE_METERS &&
+        l <= outerHalfWidth + LATERAL_BOUNDARY_TOLERANCE_METERS
+      )
+        return 'ASPHALT_RIGHT';
     }
     if (
-      (l >= -outerHalfWidth - shoulderWidth - EPSILON && l <= -outerHalfWidth + EPSILON) ||
-      (l >= outerHalfWidth - EPSILON && l <= outerHalfWidth + shoulderWidth + EPSILON)
+      (l >= -outerHalfWidth - shoulderWidth - LATERAL_BOUNDARY_TOLERANCE_METERS &&
+        l <= -outerHalfWidth + LATERAL_BOUNDARY_TOLERANCE_METERS) ||
+      (l >= outerHalfWidth - LATERAL_BOUNDARY_TOLERANCE_METERS &&
+        l <= outerHalfWidth + shoulderWidth + LATERAL_BOUNDARY_TOLERANCE_METERS)
     )
       return 'SHOULDER';
     return 'OUTSIDE';
@@ -138,7 +155,7 @@ export class JunctionCrossSectionProfile {
 
   childCenterLAt(s: number, side: JunctionSide): number | null {
     const medianHalfWidth = this.medianHalfWidthAt(s);
-    if (medianHalfWidth <= EPSILON) return null;
+    if (medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS) return null;
     const magnitude = medianHalfWidth + this.authoring.childRoadWidth * 0.5;
     return side === 'LEFT' ? -magnitude : magnitude;
   }
@@ -192,7 +209,7 @@ function validateAuthoring(a: JunctionCrossSectionAuthoring): void {
   if (!(a.sSeparatedStart > a.sMedianStart)) throw new RangeError('sSeparatedStart must be after sMedianStart');
   if (!(a.parentRoadWidth > 0)) throw new RangeError('parentRoadWidth must be > 0');
   if (!(a.childRoadWidth > 0)) throw new RangeError('childRoadWidth must be > 0');
-  if (2 * a.childRoadWidth + EPSILON < a.parentRoadWidth) {
+  if (2 * a.childRoadWidth + LATERAL_BOUNDARY_TOLERANCE_METERS < a.parentRoadWidth) {
     throw new RangeError('junction widening cannot end narrower than the parent road');
   }
   if (!(a.finalMedianWidth > 0)) throw new RangeError('finalMedianWidth must be > 0');

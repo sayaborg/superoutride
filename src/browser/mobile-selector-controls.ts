@@ -1,3 +1,4 @@
+import { sameSelectorValue } from './selector-values.js';
 import { CAMERA_YAW_MODES, type CameraYawMode } from '../camera/camera.js';
 import type { ArcadeTireFrictionCalibrationState } from '../physics/tire-friction-calibration.js';
 import { readTireCharacteristics } from '../physics/tire-friction-calibration.js';
@@ -80,7 +81,7 @@ export function createMobileSteeringOffsetSelectorModel(
     value: radians,
     label: String(degrees),
     ariaLabel: `Set driver steering offset D to ${degrees} degrees`,
-    active: approximatelyEqual(radians, activeRadians),
+    active: sameSelectorValue(radians, activeRadians),
   }));
 }
 
@@ -91,7 +92,7 @@ export function createMobileMaxRoadWheelSteerSelectorModel(
     value: radians,
     label: String(degrees),
     ariaLabel: `Set maximum road-wheel steer M to ${degrees} degrees`,
-    active: approximatelyEqual(radians, activeRadians),
+    active: sameSelectorValue(radians, activeRadians),
   }));
 }
 
@@ -102,7 +103,7 @@ export function createMobileSteeringResponseSelectorModel(
     value: rate,
     label: formatTraversalSeconds(traversalSeconds),
     ariaLabel: `Set symmetric steering traversal to ${formatTraversalSeconds(traversalSeconds)} seconds`,
-    active: approximatelyEqual(rate, activeRate),
+    active: sameSelectorValue(rate, activeRate),
   }));
 }
 
@@ -260,7 +261,7 @@ function mountMobileSelector<Value extends string | number>(
       for (const [buttonValue, button] of buttons) {
         const active =
           typeof value === 'number' && typeof buttonValue === 'number'
-            ? approximatelyEqual(buttonValue, value)
+            ? sameSelectorValue(buttonValue, value)
             : buttonValue === value;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
@@ -276,8 +277,4 @@ function mustSelect<Key, Value>(selections: ReadonlyMap<Key, Value>, key: Key, k
   const selection = selections.get(key);
   if (selection === undefined) throw new Error(`Unknown mobile ${kind} selection`);
   return selection;
-}
-
-function approximatelyEqual(a: number, b: number): boolean {
-  return Math.abs(a - b) < 1e-12;
 }

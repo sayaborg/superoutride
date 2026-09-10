@@ -56,7 +56,7 @@ export function runProtectionProbe(
     const t = tick / hz;
     const input = { steering: 0, throttle: t >= 0.5 && kind === 'drive', brake: t >= 0.5 && kind === 'brake' };
     try {
-      updateArcadeVehicle(p.guide, p.height, p.surface, v, input, 1 / hz);
+      updateArcadeVehicle({ guide: p.guide, height: p.height, surfaces: p.surface }, v, input, 1 / hz);
     } catch (e) {
       out.error = String(e);
       break;

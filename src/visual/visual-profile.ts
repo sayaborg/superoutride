@@ -19,8 +19,6 @@ export interface VisualProfileReader {
   distanceToNextSection(s: number): number;
 }
 
-const EPSILON = 1e-9;
-
 /** General stage visual source. Chainage is the open interval [0, courseLength]. */
 export class VisualProfile implements VisualProfileReader {
   readonly sections: readonly VisualSection[];
@@ -50,7 +48,7 @@ export class VisualProfile implements VisualProfileReader {
   distanceToNextSection(s: number): number {
     const local = openProfileChainage(s, this.courseLength, 'visual profile');
     if (local === this.courseLength) return 0;
-    const index = profileIndexAt(this.sections, 'sStart', local + EPSILON);
+    const index = profileIndexAt(this.sections, 'sStart', local);
     return (this.sections[index + 1]?.sStart ?? this.courseLength) - local;
   }
 }
