@@ -31,7 +31,7 @@ import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function createLiveFixture() {
   const guide = createStadiumGuide();
-  const { heightProfile, visualProfile, surfaceMap, groundProfile } = parentShared(guide);
+  const { heightProfile, surfaceMap, groundProfile, terrainProfile } = parentShared(guide);
 
   return createDeclarativeForkGrowthRuntime(
     guide,
@@ -39,18 +39,7 @@ function createLiveFixture() {
       heightProfile,
       surfaceMap,
       groundProfile,
-      terrainProfile: {
-        screenHeight: 240,
-        dMin: 2.5,
-        dMax: 150,
-        groundLeft: 12,
-        groundRight: 12,
-        roadLeft: 4.5,
-        roadRight: 4.5,
-        height: heightProfile,
-        visual: visualProfile,
-        thinSpanScreenRows: 1,
-      },
+      terrainProfile,
       selectFarBackground: () => createFarBackground(),
       worldSprites: [],
     },

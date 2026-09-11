@@ -57,20 +57,8 @@ function setup() {
   const chartList = [charts.parent, charts.left, charts.right];
   const roadViews = createStageRoadViews(charts);
   const handoffManifest = createStadiumRouteStageHandoffManifest(route, guide, charts);
-  const { surfaceMap, heightProfile, visualProfile, groundProfile } = parentShared(guide);
+  const { surfaceMap, heightProfile, groundProfile, terrainProfile } = parentShared(guide);
 
-  const terrainProfile = {
-    screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
   const background = createFarBackground();
   const registry = createSingleForkStageRegistry(content, charts, roadViews, {
     heightProfile,

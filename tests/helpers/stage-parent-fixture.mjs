@@ -27,8 +27,6 @@ export function parentShared(guide) {
     logical: compiled.groundMap,
   };
   return {
-    compiled,
-    visualProfile,
     heightProfile,
     surfaceMap,
     groundProfile,

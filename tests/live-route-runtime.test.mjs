@@ -14,20 +14,8 @@ import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createStadiumGuide();
-  const { heightProfile, surfaceMap, visualProfile, groundProfile } = parentShared(guide);
+  const { heightProfile, surfaceMap, groundProfile, terrainProfile } = parentShared(guide);
 
-  const terrainProfile = {
-    screenHeight: 240,
-    dMin: 2.5,
-    dMax: 150,
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
   return createDeclarativeForkGrowthRuntime(
     guide,
     {
