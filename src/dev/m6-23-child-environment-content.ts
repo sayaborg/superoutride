@@ -1,10 +1,14 @@
-import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../core/presentation-scale.js';
-import { rgba } from '../render/software-surface.js';
+import { HeightProfile } from '../core/height-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
+} from '../core/presentation-scale.js';
+import { rgba } from '../graphics/software-surface.js';
+import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../render/course-sprite.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { VisualProfile } from '../visual/visual-profile.js';
-import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 import type { M622ChildStageContinuation, M622ChildStageRuntimeSource } from './m6-22-child-stage-continuation.js';
 
 const TERRAIN_D_MIN = CURRENT_RENDER_NEAR_DEPTH_METERS;
@@ -116,7 +120,7 @@ function createMountainEnvironment(source: M622ChildStageRuntimeSource, assets: 
 
 function terrain(height: HeightProfile, visual: VisualProfile): TerrainVisualProfile {
   return {
-    screenHeight: 240,
+    screenHeight: LOGICAL_HEIGHT,
     dMin: TERRAIN_D_MIN,
     dMax: TERRAIN_D_MAX,
     groundLeft: GROUND_HALF_WIDTH,

@@ -1,15 +1,20 @@
 import { vehicleUpdateForBuild } from './build-contract.mjs';
 /** Exact-trace comparison across builds; timings are host diagnostics, not frame-rate certification. */
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export async function runHotPathProbe(buildPath = 'dist') {
   const load = (path) => import(pathToFileURL(resolve(buildPath, path)).href);
   const { VEHICLE_CATALOG } = await load('vehicle/vehicle-catalog.js');
-  const { compileRasterPath } = await load('core/course.js');
+  const { compileRasterPath } = await load(
+    existsSync(resolve(buildPath, 'core/raster-path.js')) ? 'core/raster-path.js' : 'core/course.js',
+  );
   const { compileGuidePath } = await load('core/guide-curve.js');
-  const { HeightProfile } = await load('visual/height-profile.js');
+  const { HeightProfile } = await load(
+    existsSync(resolve(buildPath, 'core/height-profile.js')) ? 'core/height-profile.js' : 'visual/height-profile.js',
+  );
   const { SurfaceMap } = await load('physics/surface-map.js');
   const { createArcadeVehicle, updateArcadeVehicle } = await load('physics/arcade-vehicle-physics.js');
   const { solveWheelOmega } = await load('physics/tire-wheel.js');

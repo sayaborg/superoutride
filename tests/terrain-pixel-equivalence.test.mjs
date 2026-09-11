@@ -1,8 +1,8 @@
-import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import test from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 const build = fileURLToPath(new URL('../dist', import.meta.url));
 const load = (p) => import(pathToFileURL(`${build}/${p}.js`).href);
 const { createM2StadiumGuide } = await load('dev/debug-course');
@@ -12,7 +12,7 @@ const { guidePathToWorld } = await load('core/guide-curve');
 const { createFarBackground } = await load('visual/far-background');
 const { createSpriteAssets } = await load('visual/sprite-assets');
 const { renderDriving } = await load('render/renderer');
-const { SoftwareSurface } = await load('render/software-surface');
+const { SoftwareSurface } = await load('graphics/software-surface');
 const guide = createM2StadiumGuide(),
   height = createM3DebugHeightProfile(guide.length),
   visual = createM3DebugVisualProfile(guide.length);
@@ -81,9 +81,9 @@ test('terrain interval traversal preserves the complete pre-change framebuffer a
 });
 
 test('distinct authored sub-epsilon visual intervals survive terrain traversal without a cursor nudge', async () => {
-  const { compileRasterPath } = await load('core/course');
+  const { compileRasterPath } = await load('core/raster-path');
   const { compileGuidePath } = await load('core/guide-curve');
-  const { HeightProfile } = await load('visual/height-profile');
+  const { HeightProfile } = await load('core/height-profile');
   const { VisualProfile } = await load('visual/visual-profile');
   const { generateTerrainLines } = await load('road/terrain-line');
   const path = compileGuidePath(

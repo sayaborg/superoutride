@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compileRasterPath, rasterPathToWorld, sampleRasterPath } from '../dist/core/course.js';
 import {
   compileGuidePath,
   guidePathToWorld,
@@ -9,6 +8,7 @@ import {
   sampleGuidePath,
 } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
+import { compileRasterPath, rasterPathToWorld, sampleRasterPath } from '../dist/core/raster-path.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { computeForwardVisibleInterval } from '../dist/road/terrain-line.js';
 

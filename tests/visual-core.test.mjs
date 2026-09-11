@@ -1,19 +1,19 @@
-import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoProject } from '../dist/core/projection.js';
-import { generateTerrainLines } from '../dist/road/terrain-line.js';
-import { renderDriving } from '../dist/render/renderer.js';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
-import { createFarBackground, drawFarBackground } from '../dist/visual/far-background.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/dev/m3-debug-visual.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
+import { rgba, SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { generateTerrainLines } from '../dist/road/terrain-line.js';
+import { createFarBackground, drawFarBackground } from '../dist/visual/far-background.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-7) => {

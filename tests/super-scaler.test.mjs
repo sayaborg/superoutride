@@ -1,25 +1,25 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { pseudoDepth } from '../dist/core/projection.js';
-import { mergeTerrainAndSprites } from '../dist/render/painter-merge.js';
-import { createSpriteAsset, countOpaqueSpriteColors, drawScaledSprite } from '../dist/render/sprite.js';
-import { renderDriving } from '../dist/render/renderer.js';
-import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
-import { createFarBackground } from '../dist/visual/far-background.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { mergeTerrainAndSprites } from '../dist/graphics/painter-merge.js';
+import { rgba, SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { countOpaqueSpriteColors, createSpriteAsset, drawScaledSprite } from '../dist/graphics/sprite.js';
+import { collectVisibleCourseSprites, compileCourseSprite } from '../dist/render/course-sprite.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import {
   createSpriteAssets,
   selectBankVariant,
   selectVehicleSprite,
   selectYawVariant,
 } from '../dist/visual/sprite-assets.js';
-import { compileCourseSprite, collectVisibleCourseSprites } from '../dist/world/course-sprite.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-7) => {

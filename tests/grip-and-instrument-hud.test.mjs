@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
+import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import {
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  createTestCar,
-  updateTestVehicle,
-} from './helpers/vehicle-fixture.mjs';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
 import { radialC1Magnitude, usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
-import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import {
+  createTestCar,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  updateTestVehicle,
+} from './helpers/vehicle-fixture.mjs';
 
 test('M8.0 SurfaceMap owns relative grip while tire profiles own reference friction', () => {
   assert.equal(SURFACE_MATERIALS.ASPHALT.gripFactor, 1.0);

@@ -2,28 +2,28 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import {
-  createArcadeVehicle,
-  updateArcadeVehicle,
-  arcadeBodyKinematics,
-} from '../dist/physics/arcade-vehicle-physics.js';
-import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
-import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import {
-  compileTireCharacteristics,
-  createArcadeTireFrictionCalibration,
-} from '../dist/physics/tire-friction-calibration.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import {
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
   DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
 } from '../dist/browser/steering-calibration-selection.js';
+import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import {
+  arcadeBodyKinematics,
+  createArcadeVehicle,
+  updateArcadeVehicle,
+} from '../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import {
+  compileTireCharacteristics,
+  createArcadeTireFrictionCalibration,
+} from '../dist/physics/tire-friction-calibration.js';
+import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
+import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const DEG = 180 / Math.PI,
   START = 1000,

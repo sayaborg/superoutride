@@ -5,10 +5,10 @@ import test from 'node:test';
 import {
   BROWSER_MAX_ROAD_WHEEL_STEERS,
   BROWSER_MAX_STEER_CYCLE_CODE,
-  BROWSER_STEERING_OFFSETS,
   BROWSER_STEERING_OFFSET_CYCLE_CODE,
-  BROWSER_STEERING_RESPONSES,
+  BROWSER_STEERING_OFFSETS,
   BROWSER_STEERING_RESPONSE_CYCLE_CODE,
+  BROWSER_STEERING_RESPONSES,
   DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
   DEFAULT_BROWSER_STEERING_OFFSET,
   DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
@@ -16,6 +16,7 @@ import {
   formatSteeringOffsetSelector,
   formatSteeringResponseSelector,
 } from '../dist/browser/steering-calibration-selection.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createRecoveryState, recoverVehicle, updateRecovery } from '../dist/gameplay/recovery.js';
 import {
@@ -23,6 +24,7 @@ import {
   travelDirectionSteeringTarget,
   updateArcadeVehicle,
 } from '../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   setArcadeVehicleMaxRoadWheelSteer,
   setArcadeVehicleSteeringOffsetMax,
@@ -30,9 +32,7 @@ import {
   steeringAutomaticMax,
 } from '../dist/physics/vehicle-calibration.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const DEG = Math.PI / 180;
 const DT = 1 / 60;

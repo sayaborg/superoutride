@@ -1,4 +1,4 @@
-import { compileSurfaceRegions } from '../compiler/surface-region-compiler.js';
+import { compileSurfaceRegions } from '../runtime/surface-region-compiler.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { createM5DebugSurfaceRegionAuthoring, M5_SURFACE_BASE_COLORS } from './m5-surface-authoring.js';
 

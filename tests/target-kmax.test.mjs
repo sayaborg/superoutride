@@ -1,26 +1,26 @@
-import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
-import { deriveGroundMapDensity } from '../dist/compiler/ground-map-lod.js';
 import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   CURRENT_CAMERA_HEIGHT_METERS,
 } from '../dist/camera/current-camera-profile.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
 import {
   deriveGroundMapTargetEnvelope,
   validateTerrainFootprintsAgainstTarget,
-} from '../dist/compiler/ground-map-target-envelope.js';
-import { summarizeTerrainFootprints } from '../dist/compiler/terrain-footprint-analysis.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+} from '../dist/groundmap/ground-map-target-envelope.js';
+import { summarizeTerrainFootprints } from '../dist/groundmap/terrain-footprint-analysis.js';
 import {
   DEFAULT_THIN_SPAN_SCREEN_ROWS,
   generateTerrainLines,
   projectedTerrainSpanRows,
 } from '../dist/road/terrain-line.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 const guide = createM2StadiumGuide();

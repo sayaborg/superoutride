@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import {
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-} from '../dist/vehicle/production-vehicle-profiles.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import {
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+} from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DT = 1 / 60;
 const highway = createM72DefaultBranchingParent();

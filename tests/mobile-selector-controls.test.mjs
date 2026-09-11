@@ -1,38 +1,40 @@
-import { SelectorElement, selectorDocument } from './helpers/fake-selector-dom.mjs';
-import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { VEHICLE_CATALOG, compileVehicleCatalog } from '../dist/vehicle/vehicle-catalog.js';
-import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
-import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
-import {
-  createBrowserVehicleProfileSelections,
-  browserVehicleProfileForKey,
-} from '../dist/browser/vehicle-profile-selection.js';
 import {
   BROWSER_COURSE_MODES,
+  browserCourseModeForKey,
   compileBrowserCourseModes,
   selectBrowserCourseMode,
-  browserCourseModeForKey,
 } from '../dist/browser/course-mode-selection.js';
+import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
+import {
+  browserVehicleProfileForKey,
+  createBrowserVehicleProfileSelections,
+} from '../dist/browser/vehicle-profile-selection.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
+import { compileVehicleCatalog, VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { selectorDocument, SelectorElement } from './helpers/fake-selector-dom.mjs';
 
 import {
-  createMobileCourseSelectorModel,
-  createMobileCameraYawSelectorModel,
-  createMobileVehicleSelectorModel,
-  createMobileMaxRoadWheelSteerSelectorModel,
-  createMobileSteeringOffsetSelectorModel,
-  createMobileSteeringResponseSelectorModel,
   mountMobileCameraYawSelector,
   mountMobileCourseSelector,
-  mountMobileVehicleSelector,
   mountMobileMaxRoadWheelSteerSelector,
   mountMobileSteeringOffsetSelector,
   mountMobileSteeringResponseSelector,
+  mountMobileVehicleSelector,
 } from '../dist/browser/mobile-selector-controls.js';
+import {
+  createMobileCameraYawSelectorModel,
+  createMobileCourseSelectorModel,
+  createMobileMaxRoadWheelSteerSelectorModel,
+  createMobileSteeringOffsetSelectorModel,
+  createMobileSteeringResponseSelectorModel,
+  createMobileVehicleSelectorModel,
+} from '../dist/browser/mobile-selector-model.js';
 import { mountBrowserSteeringCalibrationControls } from '../dist/browser/steering-calibration-controls.js';
-import { TOUCH_INTERFACE_MAX_SHORT_SIDE_PX, isTouchInterface } from '../dist/browser/touch-interface.js';
+import { isTouchInterface, TOUCH_INTERFACE_MAX_SHORT_SIDE_PX } from '../dist/browser/touch-interface.js';
 
 const DEG = Math.PI / 180;
 

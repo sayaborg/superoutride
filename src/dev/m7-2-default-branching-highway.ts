@@ -1,26 +1,27 @@
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { HeightProfile } from '../core/height-profile.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
 } from '../core/presentation-scale.js';
 import { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import type { RecoveryProfile } from '../gameplay/recovery.js';
+import { GROUND_COLORS, type GroundMapProfile } from '../groundmap/ground-map.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
-import { GROUND_COLORS, type GroundMapProfile } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import type { M622ParentForkGeometry } from './m6-22-child-stage-continuation.js';
 import {
+  createM71HighwayCalibrationLapRaster,
+  createM71HighwayGroundProfile,
+  createM71HighwaySurfaceMap,
   M7_1_HIGHWAY_RECOVERY_PROFILE,
   M7_1_HIGHWAY_RIVAL_RECOVERY_PROFILE,
   M7_1_PLAYER_START_L,
   M7_1_RIVAL_START_L,
-  createM71HighwayCalibrationLapRaster,
-  createM71HighwayGroundProfile,
-  createM71HighwaySurfaceMap,
 } from './m7-1-highway-calibration-course.js';
 
 export const M7_2_FORK_WIDEN_START_S = 5_800;
@@ -91,7 +92,7 @@ export function createM72DefaultBranchingParent(): M72DefaultBranchingParent {
     junctionMarkings: CENTER_DASH_MARKINGS,
   };
   const terrainProfile: TerrainVisualProfile = {
-    screenHeight: 240,
+    screenHeight: LOGICAL_HEIGHT,
     dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
     dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: groundProfile.groundLeft,

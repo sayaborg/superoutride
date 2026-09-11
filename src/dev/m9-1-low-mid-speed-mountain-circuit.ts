@@ -1,12 +1,12 @@
-import { RasterTurtle } from '../course/raster-turtle.js';
-import { compileRasterPath, type RasterPath } from '../core/course.js';
+import { HeightProfile } from '../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import { compileRasterPath, type RasterPath } from '../core/raster-path.js';
+import { RasterTurtle } from '../course/raster-turtle.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
+import { GROUND_COLORS } from '../groundmap/ground-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import { GROUND_COLORS } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
-import { M7_1_GROUND_HALF_WIDTH_METERS, createM71HighwaySurfaceMap } from './m7-1-highway-calibration-course.js';
+import { createM71HighwaySurfaceMap, M7_1_GROUND_HALF_WIDTH_METERS } from './m7-1-highway-calibration-course.js';
 
 const LOW_RADIUS_METERS = 95;
 const HAIRPIN_RADIUS_METERS = 150;

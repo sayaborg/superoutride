@@ -1,6 +1,6 @@
 import type { AuthoredSurfaceBand, AuthoredSurfaceType, SurfaceRegionAuthoring } from '../course/surface-region.js';
-import { rgba } from '../render/software-surface.js';
-import type { LongitudinalRoadMarking } from '../visual/ground-map.js';
+import { rgba } from '../graphics/software-surface.js';
+import type { LongitudinalRoadMarking } from '../groundmap/ground-map.js';
 
 export const CENTER_DASH_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
   Object.freeze({ centerL: 0, width: 0.14, pattern: 'DASHED', dashLength: 7, gapLength: 5 }),

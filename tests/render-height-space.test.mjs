@@ -5,13 +5,13 @@ import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { pseudoProject } from '../dist/core/projection.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { renderDriving } from '../dist/render/renderer.js';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from '../dist/render/render-height-space.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
+import { renderDriving } from '../dist/render/renderer.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const near = (actual, expected, tolerance = 1e-6) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);

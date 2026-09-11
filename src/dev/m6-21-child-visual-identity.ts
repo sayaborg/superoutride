@@ -1,10 +1,12 @@
-import { SoftwareSurface, rgba } from '../render/software-surface.js';
-import type { FarBackground } from '../visual/far-background.js';
+import { rgba, SoftwareSurface } from '../graphics/software-surface.js';
+import { FAR_BACKGROUND_SOURCE, type FarBackground } from '../visual/far-background.js';
 
-const FAR_WIDTH = 640;
-const FAR_HEIGHT = 320;
-const FAR_HORIZON_Y = 126;
-const FAR_PIXELS_PER_RADIAN = 200;
+const {
+  width: FAR_WIDTH,
+  height: FAR_HEIGHT,
+  sourceHorizonY: FAR_HORIZON_Y,
+  pixelsPerRadian: FAR_PIXELS_PER_RADIAN,
+} = FAR_BACKGROUND_SOURCE;
 
 type Rgb = readonly [number, number, number];
 

@@ -1,5 +1,3 @@
-import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
-import { sampleRasterPath, type RasterPath } from './course.js';
 import {
   clamp,
   distanceSquared,
@@ -12,6 +10,8 @@ import {
   wrapAngle,
   type Vec2,
 } from './math.js';
+import { sampleRasterPath, type RasterPath } from './raster-path.js';
+import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 

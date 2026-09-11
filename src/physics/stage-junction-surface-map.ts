@@ -1,5 +1,5 @@
+import { openProfileChainage } from '../core/open-profile.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
-import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { classifyStageRoadLocalL, type StageRoadView } from '../course/stage-road-view.js';
 import { SURFACE_MATERIALS, type SurfaceMapReader, type SurfaceSample, type SurfaceType } from './surface-map.js';

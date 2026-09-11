@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
 import { compileStageContinuationLink } from '../dist/runtime/stage-continuation-link.js';
 
 const bump = (sign) =>

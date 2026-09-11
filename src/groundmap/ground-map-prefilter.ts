@@ -1,4 +1,4 @@
-import { LITTLE_ENDIAN, rgba } from '../render/software-surface.js';
+import { rgba, unpackRgba } from '../graphics/software-surface.js';
 
 export interface GroundMapTexelLevel {
   readonly lateralTexels: number;
@@ -80,21 +80,4 @@ function validateLevel(level: GroundMapTexelLevel): void {
   if (level.pixels.length !== level.lateralTexels * level.chainageTexels) {
     throw new RangeError('GroundMap texel buffer size mismatch');
   }
-}
-
-function unpackRgba(color: number): { r: number; g: number; b: number; a: number } {
-  if (LITTLE_ENDIAN) {
-    return {
-      r: color & 0xff,
-      g: (color >>> 8) & 0xff,
-      b: (color >>> 16) & 0xff,
-      a: (color >>> 24) & 0xff,
-    };
-  }
-  return {
-    r: (color >>> 24) & 0xff,
-    g: (color >>> 16) & 0xff,
-    b: (color >>> 8) & 0xff,
-    a: color & 0xff,
-  };
 }

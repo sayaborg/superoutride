@@ -1,6 +1,6 @@
-import { compileRasterPath, type RasterVertex } from '../core/course.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import { compileRasterPath, type RasterVertex } from '../core/raster-path.js';
 
 export function createM1DebugGuide(): GuidePath {
   const radius = 100;

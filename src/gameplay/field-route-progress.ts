@@ -299,7 +299,7 @@ export function resyncFieldRouteProgress(
   state.lastEvent = 'RESYNC';
 }
 
-export function fieldRouteProgressWindow(
+function fieldRouteProgressWindow(
   rules: FieldRouteProgressRules,
   routeStageId: string,
   validatedProgressFloor: number,

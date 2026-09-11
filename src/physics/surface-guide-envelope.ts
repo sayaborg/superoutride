@@ -3,7 +3,7 @@ import {
   guideCoordinateLateralOrigin,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import type { SurfaceMapReader } from '../physics/surface-map.js';
+import type { SurfaceMapReader } from './surface-map.js';
 
 /** Compile-time containment, including a stage chart's translation into its Guide's basis. */
 export function validateSurfaceGuideEnvelope(frame: GuideCoordinateSource, surface: SurfaceMapReader): void {

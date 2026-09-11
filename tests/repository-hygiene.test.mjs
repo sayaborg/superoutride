@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -173,4 +173,60 @@ test('general engine source remains independent of development milestone names',
     }
     visit(syntax);
   }
+});
+
+// Import direction includes type-only contracts: a reader is owned by its consumer.
+const layerDependencies = {
+  core: [],
+  graphics: ['core'],
+  course: ['core'],
+  input: ['core'],
+  physics: ['core', 'course', 'input'],
+  vehicle: ['physics'],
+  camera: ['core', 'physics'],
+  gameplay: ['core', 'input', 'physics'],
+  visual: ['core', 'course', 'graphics'],
+  road: ['core', 'course', 'visual'],
+  groundmap: ['core', 'course', 'graphics', 'road'],
+  render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'road', 'vehicle', 'visual'],
+  runtime: ['core', 'course', 'gameplay', 'groundmap', 'input', 'physics', 'render', 'road', 'visual'],
+  browser: ['camera', 'core', 'gameplay', 'graphics', 'input', 'physics', 'render', 'vehicle'],
+};
+
+test('engine ownership follows an acyclic dependency direction, including type imports', async () => {
+  const graph = new Map();
+  for (const file of await collectFiles(sourceRoot, ['.ts'])) {
+    const relative = path.relative(sourceRoot, file);
+    const layer = relative.split(path.sep)[0];
+    if (layer === 'dev' || !relative.includes(path.sep)) continue;
+    assert.ok(Object.hasOwn(layerDependencies, layer), `unowned layer: ${layer}`);
+    const targets = graph.get(layer) ?? new Set();
+    graph.set(layer, targets);
+    const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    function visit(node) {
+      const ref =
+        ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
+          ? node.moduleSpecifier
+          : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
+            ? node.arguments[0]
+            : undefined;
+      if (ref && ts.isStringLiteral(ref) && ref.text.startsWith('.')) {
+        const target = path.relative(sourceRoot, path.resolve(path.dirname(file), ref.text)).split(path.sep)[0];
+        if (target !== layer) {
+          assert.ok(layerDependencies[layer].includes(target), `${relative} imports ${target}`);
+          targets.add(target);
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(syntax);
+  }
+  const complete = new Set();
+  function visit(layer, trail = []) {
+    assert.ok(!trail.includes(layer), `layer cycle: ${[...trail, layer].join(' -> ')}`);
+    if (complete.has(layer)) return;
+    for (const target of graph.get(layer) ?? []) visit(target, [...trail, layer]);
+    complete.add(layer);
+  }
+  for (const layer of graph.keys()) visit(layer);
 });

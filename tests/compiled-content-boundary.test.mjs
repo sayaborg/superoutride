@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { compileRouteDag, createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
+import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 test('invalid authored GroundBase colors fail before numeric coercion in either source', () => {
   for (const color of [NaN, Infinity, -1, 0.5, 0x100000000]) {

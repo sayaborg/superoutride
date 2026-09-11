@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar } from './helpers/vehicle-fixture.mjs';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE } from './helpers/vehicle-fixture.mjs';
 
 function fixture() {
   const parent = createM72DefaultBranchingParent();

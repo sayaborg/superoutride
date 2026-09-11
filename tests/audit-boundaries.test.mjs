@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
-import { RasterTurtle } from '../dist/course/raster-turtle.js';
-import { compileRasterPath, MAX_RASTER_VERTEX_TURN_DEGREES } from '../dist/core/course.js';
 import {
-  BROWSER_VEHICLE_KEYS,
-  BROWSER_COURSE_KEYS,
   BROWSER_CALIBRATION_KEYS,
   BROWSER_CAMERA_YAW_TOGGLE_CODE,
+  BROWSER_COURSE_KEYS,
   BROWSER_RECOVERY_CODE,
+  BROWSER_VEHICLE_KEYS,
 } from '../dist/browser/key-bindings.js';
+import { createBrowserVehicleProfileSelections } from '../dist/browser/vehicle-profile-selection.js';
+import { compileRasterPath, MAX_RASTER_VERTEX_TURN_DEGREES } from '../dist/core/raster-path.js';
+import { RasterTurtle } from '../dist/course/raster-turtle.js';
 import { DRIVING_KEYS } from '../dist/input/keyboard-input.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { createBrowserVehicleProfileSelections } from '../dist/browser/vehicle-profile-selection.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 // Regression: looking ahead with s+epsilon skipped the next boundary while sample(s)
 // still selected the preceding material. Arbitrarily narrow positive intervals are authored data.

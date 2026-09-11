@@ -1,11 +1,13 @@
-import { compileRasterPath, type RasterVertex } from '../core/course.js';
 import { compileGuidePath, guidePathToWorld, type GuidePath } from '../core/guide-curve.js';
+import { HeightProfile } from '../core/height-profile.js';
 import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
 } from '../core/presentation-scale.js';
+import { compileRasterPath, type RasterVertex } from '../core/raster-path.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import { createGuideChart, guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
@@ -20,12 +22,11 @@ import {
   type RouteStageHandoffManifest,
   type RouteStageHandoffSeamAuthoring,
 } from '../gameplay/route-stage-handoff.js';
+import { rgba } from '../graphics/software-surface.js';
+import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
-import { rgba } from '../render/software-surface.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
@@ -246,7 +247,7 @@ function createChildRuntimeSource(
     chainageOffsetS,
   };
   const terrainProfile: TerrainVisualProfile = {
-    screenHeight: 240,
+    screenHeight: LOGICAL_HEIGHT,
     dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
     dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: 12,

@@ -1,62 +1,25 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { drivingEnvironment } from './helpers/driving-environment.mjs';
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
-import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { renderDriving } from '../dist/render/renderer.js';
 import { deriveVehicleLeanRadians, deriveVehicleNormalizedBank } from '../dist/render/vehicle-presentation.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+
 import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const deg = (v) => (v * Math.PI) / 180;
 const near = (a, b, eps = 1e-7) => assert.ok(Math.abs(a - b) <= eps, `${a} != ${b} ± ${eps}`);
 
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
-const surfaces = createM5DebugSurfaceMap(guide.length);
-const cameraProfile = {
-  dCam: CURRENT_CAMERA_DISTANCE_METERS,
-  height: 2.469902425419539,
-  baseDownPitch: deg(8),
-  focalLength: CURRENT_FOCAL_LENGTH_PIXELS,
-  centerX: 160,
-  centerY: 120,
-  directionSpeedMin: 0.25,
-  playerTargetY: 190,
-  tauVertical: 0.22,
-  deltaYMax: 4,
-};
-const groundProfile = {
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  shoulderWidth: 1,
-  roadMarkings: CENTER_DASH_MARKINGS,
-};
-const terrainProfile = {
-  screenHeight: 240,
-  dMin: 2.5,
-  dMax: 150,
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  height,
-  visual,
-};
+const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();
 
 function placeCar(car, s, l, speed = 30) {
   const p = guidePathToWorld(guide, s, l);

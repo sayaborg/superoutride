@@ -1,6 +1,6 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
+import { openProfileChainage } from '../core/open-profile.js';
 import {
   classifyPhysicalRaceMotionDirection,
   compilePhysicalRaceGate,
@@ -142,7 +142,7 @@ export function createOrderedRaceProgressState(
   };
 }
 
-export function getOrderedRaceProgressWindow(
+function getOrderedRaceProgressWindow(
   state: OrderedRaceProgressState,
   rules: OrderedRaceCourseRules,
 ): OrderedRaceProgressWindow {

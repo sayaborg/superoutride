@@ -1,6 +1,13 @@
+export const FAR_BACKGROUND_SOURCE = Object.freeze({
+  width: 640,
+  height: 320,
+  sourceHorizonY: 126,
+  pixelsPerRadian: 200,
+});
+
 import type { PseudoCamera } from '../core/projection.js';
 import { horizonY } from '../core/projection.js';
-import { SoftwareSurface, rgba } from '../render/software-surface.js';
+import { rgba, SoftwareSurface, unpackRgba } from '../graphics/software-surface.js';
 
 export interface FarBackground {
   surface: SoftwareSurface;
@@ -9,9 +16,7 @@ export interface FarBackground {
 }
 
 export function createFarBackground(): FarBackground {
-  const width = 640;
-  const height = 320;
-  const sourceHorizonY = 126;
+  const { width, height, sourceHorizonY, pixelsPerRadian } = FAR_BACKGROUND_SOURCE;
   const surface = new SoftwareSurface(width, height);
   const skyTop = rgba(22, 60, 94);
   const skyBottom = rgba(74, 125, 153);
@@ -38,7 +43,7 @@ export function createFarBackground(): FarBackground {
     }
   }
 
-  return { surface, sourceHorizonY, pixelsPerRadian: 200 };
+  return { surface, sourceHorizonY, pixelsPerRadian };
 }
 
 export function drawFarBackground(target: SoftwareSurface, background: FarBackground, camera: PseudoCamera): void {
@@ -58,13 +63,7 @@ function mod(value: number, modulus: number): number {
 }
 
 function lerpColor(a: number, b: number, t: number): number {
-  const av = unpack(a);
-  const bv = unpack(b);
+  const av = unpackRgba(a);
+  const bv = unpackRgba(b);
   return rgba(av.r + (bv.r - av.r) * t, av.g + (bv.g - av.g) * t, av.b + (bv.b - av.b) * t);
-}
-
-function unpack(value: number): { r: number; g: number; b: number } {
-  // Generated colors are opaque and tests care about identity, not channel extraction on unusual endianness.
-  const bytes = new Uint8Array(new Uint32Array([value >>> 0]).buffer);
-  return { r: bytes[0]!, g: bytes[1]!, b: bytes[2]! };
 }

@@ -16,7 +16,7 @@ import {
   VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE,
 } from './production-vehicle-profiles.js';
 
-import type { VehiclePresentationFamily } from '../render/vehicle-presentation.js';
+export type VehiclePresentationFamily = 'CAR' | 'BIKE';
 
 export interface VehicleIdentifier {
   readonly officialLabel: string;

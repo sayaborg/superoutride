@@ -1,12 +1,12 @@
-import { compileRasterPath } from '../core/course.js';
+import { HeightProfile } from '../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import { compileRasterPath } from '../core/raster-path.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { compileCourseMode } from '../gameplay/course-mode.js';
 import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
+import { GROUND_COLORS } from '../groundmap/ground-map.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import { GROUND_COLORS } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import { createM2StadiumGuide } from './debug-course.js';
 

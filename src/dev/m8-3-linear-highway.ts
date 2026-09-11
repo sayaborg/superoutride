@@ -1,24 +1,25 @@
-import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
-import { compileRasterPath } from '../core/course.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { HeightProfile } from '../core/height-profile.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
 } from '../core/presentation-scale.js';
+import { compileRasterPath } from '../core/raster-path.js';
 import { compileCourseMode, type CourseModeProfile } from '../gameplay/course-mode.js';
 import type { RecoveryProfile } from '../gameplay/recovery.js';
 import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
+import { GROUND_COLORS, type GroundMapProfile } from '../groundmap/ground-map.js';
+import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
-import { GROUND_COLORS, type GroundMapProfile } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 import {
-  M7_1_HIGHWAY_RECOVERY_PROFILE,
-  M7_1_PLAYER_START_L,
   createM71HighwayGroundProfile,
   createM71HighwaySurfaceMap,
+  M7_1_HIGHWAY_RECOVERY_PROFILE,
+  M7_1_PLAYER_START_L,
 } from './m7-1-highway-calibration-course.js';
 
 export const M8_3_LINEAR_LENGTH_METERS = 8_000;
@@ -74,7 +75,7 @@ export function createM83LinearHighwayRuntime(): M83LinearHighwayRuntime {
   validateSurfaceGuideEnvelope(guide, surfaceMap);
   const groundProfile = createM71HighwayGroundProfile();
   const terrainProfile: TerrainVisualProfile = {
-    screenHeight: 240,
+    screenHeight: LOGICAL_HEIGHT,
     dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
     dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundLeft: groundProfile.groundLeft,

@@ -1,9 +1,10 @@
-import { rgba } from '../render/software-surface.js';
+import { rgba } from '../graphics/software-surface.js';
 import type { StageEnvironmentAuthoring } from '../runtime/stage-authoring-compiler.js';
 import type { SpriteAssets } from '../visual/sprite-assets.js';
 import type { M621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
 
 const SHARED_FLAT_END_S = 60;
+const CHILD_TERRAIN = Object.freeze({ groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 });
 
 export interface M624ChildStageAuthoring {
   readonly left: StageEnvironmentAuthoring;
@@ -20,6 +21,7 @@ export function createM624ChildStageAuthoring(
 ): M624ChildStageAuthoring {
   return Object.freeze({
     left: Object.freeze({
+      terrain: CHILD_TERRAIN,
       farBackground: identity.leftFarBackground,
       heightNodes: Object.freeze([
         { s: 0, y: 0 },
@@ -46,6 +48,7 @@ export function createM624ChildStageAuthoring(
       ]),
     }),
     right: Object.freeze({
+      terrain: CHILD_TERRAIN,
       farBackground: identity.rightFarBackground,
       heightNodes: Object.freeze([
         { s: 0, y: 0 },

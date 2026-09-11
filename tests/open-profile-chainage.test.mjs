@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { openProfileChainage } from '../dist/core/open-profile-chainage.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
-import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { compileRasterPath, sampleRasterPath } from '../dist/core/course.js';
+import test from 'node:test';
 import { compileGuidePath, sampleGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { openProfileChainage } from '../dist/core/open-profile.js';
+import { compileRasterPath, sampleRasterPath } from '../dist/core/raster-path.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 test('open profile normalization retains exact two-sided snapping, interior values and error text', () => {
   for (const s of [-1e-9, -5e-10, -0, 0, 5e-10, 1e-9]) assert.equal(openProfileChainage(s, 1, 'probe'), 0);
@@ -68,13 +68,13 @@ test('profile consumers share snapping including physical surfaces while retaini
 
 test('all four equivalent source validators share one helper without alternate cyclic implementations', async () => {
   for (const file of [
-    'visual/height-profile',
+    'core/height-profile',
     'visual/visual-profile',
-    'visual/baked-ground-map',
-    'compiler/surface-region-compiler',
+    'groundmap/baked-ground-map',
+    'groundmap/logical-profile',
   ]) {
     const source = await readFile(new URL(`../src/${file}.ts`, import.meta.url), 'utf8');
-    assert.match(source, /import \{ openProfileChainage \}/);
+    assert.match(source, /import\s*\{[^}]*\bopenProfileChainage\b/);
     assert.doesNotMatch(source, /function openChainage/);
     assert.doesNotMatch(source, /class Cyclic/);
   }

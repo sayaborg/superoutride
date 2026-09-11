@@ -1,4 +1,3 @@
-import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
@@ -6,6 +5,7 @@ import {
   type ArcadeTireFrictionCalibrationState,
   type TireCharacteristics,
 } from '../physics/tire-friction-calibration.js';
+import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 
 const SELECTOR_GRID_TOLERANCE = 1e-9;
 
@@ -42,7 +42,7 @@ export const DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION = createArcadeTireFrictio
   compileTireCharacteristics(DEFAULT_BROWSER_TIRE_CHARACTERISTICS),
 );
 
-export function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
+function browserTireAxis(id: BrowserTireCalibrationAxis): BrowserTireAxis {
   const axis = BROWSER_TIRE_AXES.find((axis) => axis.id === id);
   if (!axis) throw new RangeError(`unknown tire axis: ${id}`);
   return axis;

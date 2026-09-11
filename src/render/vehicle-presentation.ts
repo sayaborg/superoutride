@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
-export type VehiclePresentationFamily = 'CAR' | 'BIKE';
+import type { VehiclePresentationFamily } from '../vehicle/vehicle-catalog.js';
 
 export interface VehicleTurnPresentationRead {
   readonly lateralAcceleration?: number;

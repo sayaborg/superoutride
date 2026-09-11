@@ -1,16 +1,16 @@
 import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { positiveFinite } from '../core/validation.js';
-import { rgbaToRgb555 } from '../render/rgb555.js';
+import { rgbaToRgb555 } from '../graphics/rgb555.js';
 import type {
   BakedGroundMapChunkMetadata,
   BakedGroundMapLevelMetadata,
   BakedGroundMapMetadata,
   BakedGroundMapPayloadMetadata,
   BakedGroundMapStorageFormat,
-} from '../visual/baked-ground-map.js';
-import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
+} from './baked-ground-map.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
 import { buildGroundMapAnisotropicPyramid, type GroundMapTexelLevel } from './ground-map-prefilter.js';
+import { sampleGroundMap, type GroundMapProfile } from './ground-map.js';
 
 const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
 

@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
+  CURRENT_CAMERA_HEIGHT_METERS,
+} from '../dist/camera/current-camera-profile.js';
+import { rgba } from '../dist/graphics/software-surface.js';
+import {
   deriveGroundMapDensity,
   diagnosticLateralLevel,
   estimateUniqueBaseTexels,
@@ -9,13 +14,8 @@ import {
   requiredChainageLevel,
   requiredPyramidMaxLevel,
   selectGroundMapLevel,
-} from '../dist/compiler/ground-map-lod.js';
-import { buildGroundMapAnisotropicPyramid, downsampleGroundMap2x4 } from '../dist/compiler/ground-map-prefilter.js';
-import {
-  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
-  CURRENT_CAMERA_HEIGHT_METERS,
-} from '../dist/camera/current-camera-profile.js';
-import { rgba } from '../dist/render/software-surface.js';
+} from '../dist/groundmap/ground-map-lod.js';
+import { buildGroundMapAnisotropicPyramid, downsampleGroundMap2x4 } from '../dist/groundmap/ground-map-prefilter.js';
 
 const current = deriveGroundMapDensity({
   d0: 5,

@@ -1,23 +1,23 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
-import { compileBakedGroundMapAsset } from '../dist/compiler/ground-map-asset-compiler.js';
-import { deriveGroundMapDensity } from '../dist/compiler/ground-map-lod.js';
-import { deriveGroundMapTargetEnvelope } from '../dist/compiler/ground-map-target-envelope.js';
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import {
+  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
+  CURRENT_CAMERA_HEIGHT_METERS,
+} from '../dist/camera/current-camera-profile.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_FOCAL_LENGTH_PIXELS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../dist/core/presentation-scale.js';
-import {
-  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
-  CURRENT_CAMERA_HEIGHT_METERS,
-} from '../dist/camera/current-camera-profile.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { compileBakedGroundMapAsset } from '../dist/groundmap/ground-map-asset-compiler.js';
+import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
+import { deriveGroundMapTargetEnvelope } from '../dist/groundmap/ground-map-target-envelope.js';
+import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 
 const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const pitch = CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS;

@@ -1,27 +1,27 @@
-import { withM927BikeCg } from './helpers/m9-27-bike-cg-reference.mjs';
-import {
-  createArcadeTireFrictionCalibration,
-  compileTireCharacteristics,
-} from '../dist/physics/tire-friction-calibration.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  compileTireCharacteristics,
+  createArcadeTireFrictionCalibration,
+} from '../dist/physics/tire-friction-calibration.js';
+import { withM927BikeCg } from './helpers/m9-27-bike-cg-reference.mjs';
 
-import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
+import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
   arcadeBodyKinematics,
   createArcadeVehicle,
   updateArcadeVehicle,
 } from '../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { deriveContactObservation, sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
-import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { HONDA_VFR750R_VEHICLE_PROFILE as profile } from '../dist/vehicle/production-vehicle-profiles.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 
 const DEG = Math.PI / 180;
 const guide = compileGuidePath(

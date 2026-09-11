@@ -1,14 +1,13 @@
-import { nonEmptyId } from '../core/validation.js';
-import { uniqueKey } from '../core/validation.js';
+import { nonEmptyId, uniqueKey } from '../core/validation.js';
 import { guideChartToWorld } from '../gameplay/guide-chart.js';
 import type {
-  DeclarativeGateGeometry,
   DeclarativeLiveRouteAuthoring,
   DeclarativeLiveRouteFinishAuthoring,
   DeclarativeLiveRouteStageAuthoring,
   DeclarativeLiveRouteTransitionAuthoring,
   GuideChartRuntimePackage,
 } from './declarative-live-route.js';
+import { pointGeometry } from './declarative-live-route.js';
 import { composeDeclarativeLiveRouteAuthoring } from './declarative-route-fragment.js';
 import { createRasterForkStageSuccessor } from './raster-fork-successor.js';
 import type { RasterSuccessorAuthoring, RasterSuccessorRuntimeSource } from './raster-stage-successor.js';
@@ -301,17 +300,4 @@ function requireUniqueStage(source: DeclarativeLiveRouteAuthoring, id: string): 
   const found = source.stages.filter((stage) => stage.id === id);
   if (found.length !== 1) throw new RangeError(`Raster fork source stage must exist exactly once: ${id}`);
   return found[0]!;
-}
-
-function pointGeometry(
-  id: string,
-  point: { readonly x: number; readonly z: number; readonly heading: number },
-  halfWidth: number,
-): DeclarativeGateGeometry {
-  return Object.freeze({
-    id,
-    center: Object.freeze({ x: point.x, z: point.z }),
-    heading: point.heading,
-    halfWidth,
-  });
 }

@@ -1,17 +1,17 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
+import { rasterPathToWorld } from '../dist/core/raster-path.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { rasterPathToWorld } from '../dist/core/course.js';
 
 import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
 import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-identity.js';
 import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM624ChildStageAuthoring } from '../dist/dev/m6-24-stage-authoring.js';
 import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runtime-content.js';
+import { createM624ChildStageAuthoring } from '../dist/dev/m6-24-stage-authoring.js';
 
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
@@ -83,4 +83,26 @@ test('M6.24 reusable compiler contains no route-side or renderer-core dependency
   assert.doesNotMatch(compilerSource, /route-dag|route-boundary|m6-2[0-9]|renderDriving/);
   assert.doesNotMatch(authoringSource, /sourceLateralOrigin|CONTENT_GOAL_|RouteDag|renderDriving/);
   assert.doesNotMatch(rendererSource, /M6_24|stage-authoring-compiler|LEFT_COAST_STAGE|RIGHT_MOUNTAIN_STAGE/);
+});
+
+test('stage environment requires authored terrain widths and snapshots their values', () => {
+  const { continuation, authoring } = setup();
+  const source = { ...authoring.left, terrain: { ...authoring.left.terrain } };
+  const compiled = compileStageEnvironment(continuation.left.chart, source);
+  source.terrain.roadLeft = 100;
+  assert.equal(compiled.terrainProfile.roadLeft, authoring.left.terrain.roadLeft);
+  assert.throws(
+    () => compileStageEnvironment(continuation.left.chart, { ...source, terrain: undefined }),
+    /widths must be authored/,
+  );
+  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight']) {
+    assert.throws(
+      () =>
+        compileStageEnvironment(continuation.left.chart, {
+          ...source,
+          terrain: { ...source.terrain, [key]: undefined },
+        }),
+      /terrain/,
+    );
+  }
 });

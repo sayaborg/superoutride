@@ -1,19 +1,19 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import { M6_51_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { M6_51_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-51-circuit-live-runtime.js';
 
-import { SIM_DT } from '../dist/core/constants.js';
-import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
-import { M6_51_DEV_COURSE_MODE, createM651CircuitLiveRuntime } from '../dist/dev/m6-51-circuit-live-runtime.js';
+import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
+import { createM651CircuitLiveRuntime, M6_51_DEV_COURSE_MODE } from '../dist/dev/m6-51-circuit-live-runtime.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { renderDriving } from '../dist/render/renderer.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 function cameraProfile() {
   return {

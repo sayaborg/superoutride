@@ -6,15 +6,15 @@ import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
   CURRENT_CAMERA_PROFILE,
 } from '../dist/camera/current-camera-profile.js';
-import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { horizonY } from '../dist/core/projection.js';
 import {
   CURRENT_CAMERA_DISTANCE_METERS,
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../dist/core/presentation-scale.js';
-import { SoftwareSurface, rgba } from '../dist/render/software-surface.js';
+import { horizonY } from '../dist/core/projection.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import { rgba, SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { computeForwardVisibleInterval } from '../dist/road/terrain-line.js';
 import { drawFarBackground } from '../dist/visual/far-background.js';
 

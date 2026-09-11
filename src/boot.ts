@@ -3,6 +3,7 @@ import {
   selectBrowserCourseMode,
   type BrowserCourseModeSelection,
 } from './browser/course-mode-selection.js';
+import { mustGet } from './browser/dom.js';
 import { mountMobileCourseSelector } from './browser/mobile-selector-controls.js';
 
 const parameters = new URLSearchParams(location.search);
@@ -22,12 +23,6 @@ function navigateToCourseMode(targetMode: BrowserCourseModeSelection): void {
   const next = new URL(location.href);
   next.searchParams.set('mode', targetMode.query);
   location.assign(next.href);
-}
-
-function mustGet<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing #${id}`);
-  return element as T;
 }
 
 await import(`./${selectedMode.entryName}`);

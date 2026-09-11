@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { SIM_DT } from '../dist/core/constants.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import {
   createVehicleTelemetryRecorder,
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
 } from '../dist/dev/vehicle-telemetry.js';
-import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { VEHICLE_PHYSICS_CALIBRATION_STATUS } from '../dist/physics/vehicle-calibration.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 function plainVehicle() {
   return {

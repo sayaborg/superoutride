@@ -1,12 +1,12 @@
-import { compileRasterPath, type RasterVertex } from '../core/course.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import { normalFromHeading } from '../core/math.js';
+import { compileRasterPath, type RasterVertex } from '../core/raster-path.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
 import type { GuideChart } from '../gameplay/guide-chart.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
+import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
 import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
 import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 
 const RUNOUT_TURN_TOLERANCE_DEGREES = 1e-9;

@@ -1,26 +1,30 @@
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
+import { SIM_DT } from './browser/frame-loop.js';
 import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
-import { LOGICAL_HEIGHT, SIM_DT } from './core/constants.js';
-import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from './core/presentation-scale.js';
 import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
+} from './core/presentation-scale.js';
+import {
+  createM93TsukubaCourse2000Runtime,
+  createM93TsukubaGroundProfile,
   M9_3_DEV_SESSION_CONFIGURATION,
   M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
   M9_3_TSUKUBA_PLAYER_START_L,
   M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
   M9_3_TSUKUBA_RIVAL_START_L,
-  createM93TsukubaCourse2000Runtime,
-  createM93TsukubaGroundProfile,
 } from './dev/m9-3-tsukuba-circuit.js';
 import {
+  createM96FiscoGroundProfile,
+  createM96FiscoRuntime,
   M9_6_FISCO_DEV_SESSION_CONFIGURATION,
   M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
   M9_6_FISCO_PLAYER_START_L,
   M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
   M9_6_FISCO_RIVAL_START_L,
-  createM96FiscoGroundProfile,
-  createM96FiscoRuntime,
 } from './dev/m9-6-fisco-circuit.js';
 import { createCircuitRaceProgressState, resyncCircuitRaceProgress } from './gameplay/circuit-race-progress.js';
 import { createRaceSessionState } from './gameplay/race-session.js';
@@ -29,6 +33,7 @@ import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
+import { createDynamicVehicleCourseSprite } from './render/dynamic-vehicle-sprite.js';
 import { renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import type { TerrainVisualProfile } from './road/terrain-line.js';
@@ -37,7 +42,6 @@ import { createRivalRoster } from './runtime/rival-roster.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { createFarBackground } from './visual/far-background.js';
 import { createSpriteAssets } from './visual/sprite-assets.js';
-import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 
 const selectedCourseMode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode'));
 const circuitBuilders = {

@@ -1,22 +1,21 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
+
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM617RouteStageHandoffManifest } from '../dist/dev/m6-17-handoff-seams.js';
+import { createM617RouteStageHandoffManifest, M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
 import {
-  M6_20_FINISH_GATE_S,
   createM620LivePointToPointGateSet,
   createM620LivePointToPointRouteDag,
+  M6_20_FINISH_GATE_S,
 } from '../dist/dev/m6-20-live-point-to-point.js';
 import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runtime-content.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+
 import { createCameraRig } from '../dist/camera/camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
@@ -31,11 +30,9 @@ import {
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function crossing(gate, distance = 2) {
   return {
@@ -60,21 +57,8 @@ function setup() {
   const chartList = [charts.parent, charts.left, charts.right];
   const roadViews = createM618StageRoadViews(charts);
   const handoffManifest = createM617RouteStageHandoffManifest(route, guide, charts);
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const heightProfile = createM3DebugHeightProfile(guide.length);
-  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
-  const groundProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    roadMarkings: CENTER_DASH_MARKINGS,
-    junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
+  const { surfaceMap, heightProfile, visualProfile, groundProfile } = parentShared(guide);
+
   const terrainProfile = {
     screenHeight: 240,
     dMin: 2.5,

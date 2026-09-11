@@ -1,3 +1,5 @@
+const WHEEL_BISECTION_ITERATIONS = 60;
+
 import { validateTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
 
 const WHEEL_TORQUE_RESIDUAL_NEWTON_METERS = 1e-10;
@@ -344,7 +346,7 @@ function bisectMonotone(fn: (value: number) => number, lowerInput: number, upper
   if (fLower > 0 || fUpper < 0) {
     throw new Error(`wheel root bracket invalid: [${fLower}, ${fUpper}]`);
   }
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < WHEEL_BISECTION_ITERATIONS; i += 1) {
     const mid = (lower + upper) * 0.5;
     const fMid = fn(mid);
     if (Math.abs(fMid) < WHEEL_TORQUE_RESIDUAL_NEWTON_METERS) return mid;

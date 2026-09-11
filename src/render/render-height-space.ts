@@ -1,5 +1,5 @@
+import type { HeightProfileReader } from '../core/height-profile.js';
 import type { PseudoCamera } from '../core/projection.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
 
 /**
  * Preserve an anchor's physical road-relative height while expressing it against the renderer's

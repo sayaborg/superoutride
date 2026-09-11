@@ -1,19 +1,19 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import {
-  CAR_WIDTH_METERS,
-  PLAYER_REFERENCE_WIDTH_PIXELS,
-  PLAYER_PIXELS_PER_METER,
-  CURRENT_FOCAL_LENGTH_PIXELS,
-  CURRENT_CAMERA_DISTANCE_METERS,
   cameraDistanceForFocalLength,
+  CAR_WIDTH_METERS,
+  CURRENT_CAMERA_DISTANCE_METERS,
+  CURRENT_FOCAL_LENGTH_PIXELS,
   pixelsPerMeterAtDepth,
+  PLAYER_PIXELS_PER_METER,
+  PLAYER_REFERENCE_WIDTH_PIXELS,
   screenWidthForWorldWidth,
 } from '../dist/core/presentation-scale.js';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { drawScaledSprite } from '../dist/graphics/sprite.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { drawScaledSprite } from '../dist/render/sprite.js';
 
 test('M5.2 canonical player presentation is exactly 2.0 m = 80 px', () => {
   assert.equal(CAR_WIDTH_METERS, 2);

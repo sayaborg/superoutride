@@ -1,4 +1,4 @@
-import { HeightProfile } from '../visual/height-profile.js';
+import { HeightProfile } from '../core/height-profile.js';
 
 /** Historical M3 DEV elevation fixture. Product height authority remains HeightProfile authoring. */
 export function createM3DebugHeightProfile(courseLength: number): HeightProfile {

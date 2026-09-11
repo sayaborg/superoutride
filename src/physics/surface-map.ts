@@ -1,5 +1,4 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
+import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;

@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createFarBackground } from '../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import { createTunnelPresentation, selectTunnelBackground } from '../dist/dev/tunnel.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
+import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const guide = createM2StadiumGuide();
 const height = createM3DebugHeightProfile(guide.length);

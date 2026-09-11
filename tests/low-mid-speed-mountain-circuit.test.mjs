@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { SIM_DT } from '../dist/core/constants.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { M7_1_ROAD_HALF_WIDTH_METERS } from '../dist/dev/m7-1-highway-calibration-course.js';
 import {
@@ -10,7 +10,7 @@ import {
   createM91LowMidSpeedMountainCircuitRuntime,
 } from '../dist/dev/m9-1-low-mid-speed-mountain-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 test('M9.1 circuit is predominantly low/mid-speed corners on one explicit closed lap', () => {
   const authored = createM91LowMidSpeedMountainCircuitLap();

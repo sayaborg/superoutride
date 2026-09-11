@@ -2,28 +2,28 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { SIM_DT } from '../dist/core/constants.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import {
+  createM93TsukubaCourse2000Lap,
+  createM93TsukubaCourse2000Runtime,
+  createM93TsukubaGroundProfile,
   M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS,
   M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS,
   M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS,
   M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-  createM93TsukubaCourse2000Lap,
-  createM93TsukubaCourse2000Runtime,
-  createM93TsukubaGroundProfile,
 } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import {
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
 

@@ -1,26 +1,26 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import {
+  createAutomaticPowertrainState,
+  engineRevLimiterScale,
+  sampleEngineTorque,
+  updateAutomaticPowertrain,
+  validateAutomaticPowertrainProfile,
+} from '../dist/physics/automatic-powertrain.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
 } from '../dist/physics/tire-friction-calibration.js';
-import { withEngineCurveScale } from './helpers/authored-engine.mjs';
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import test from 'node:test';
-import {
-  createAutomaticPowertrainState,
-  updateAutomaticPowertrain,
-  validateAutomaticPowertrainProfile,
-  sampleEngineTorque,
-  engineRevLimiterScale,
-} from '../dist/physics/automatic-powertrain.js';
-import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/vehicle/production-vehicle-profiles.js';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 
 const dt = 1 / 60;
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(b)), `${a} != ${b}`);

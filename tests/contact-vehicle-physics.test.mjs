@@ -2,19 +2,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { evaluateTireForce, rollingResistanceTorque, solveWheelOmega } from '../dist/physics/tire-wheel.js';
 import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-} from '../dist/vehicle/production-vehicle-profiles.js';
-import { evaluateTireForce, rollingResistanceTorque, solveWheelOmega } from '../dist/physics/tire-wheel.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import {
   FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   HONDA_VFR750R_VEHICLE_AUTHORING,
+  HONDA_VFR750R_VEHICLE_PROFILE,
 } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const highway = createM72DefaultBranchingParent();

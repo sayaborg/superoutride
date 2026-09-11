@@ -6,12 +6,11 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import type { CourseCoordinate } from '../core/guide-curve.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
+import type { HeightProfileReader } from '../core/height-profile.js';
 import type { AutomaticPowertrainState } from './automatic-powertrain.js';
 import type { SurfaceMapReader, SurfaceMaterial, SurfaceType } from './surface-map.js';
 import type { CompiledTireProfile } from './tire-wheel.js';
 import {
-  WORLD_UP,
   add3,
   cross3,
   dot3,
@@ -20,6 +19,7 @@ import {
   rotateAroundAxis,
   scale3,
   sub3,
+  WORLD_UP,
   type Vec3,
 } from './vehicle-math3.js';
 

@@ -1,6 +1,6 @@
+import type { GuidePath } from '../core/guide-curve.js';
 import type { Vec2 } from '../core/math.js';
 import { nonEmptyId, positiveInteger } from '../core/validation.js';
-import type { CircuitRuntimeWindow } from '../runtime/circuit-runtime-window.js';
 import {
   compileOrderedRaceCourseRules,
   createOrderedRaceProgressState,
@@ -11,6 +11,15 @@ import {
   type OrderedRaceProgressState,
   type OrderedRaceProgressUpdate,
 } from './ordered-race-progress.js';
+
+/** Finite unfolded circuit observations required to compile ordered race gates. */
+export interface CircuitRaceWindowRead {
+  readonly topology: { readonly id: string; readonly lapLength: number };
+  readonly repeatCount: number;
+  readonly length: number;
+  readonly guide: GuidePath;
+  readonly startWinding: number;
+}
 
 const FINISH_RUNOUT_TOLERANCE_METERS = 1e-8;
 
@@ -55,7 +64,7 @@ export type CircuitRaceProgressUpdate = OrderedRaceProgressUpdate;
  * the finish without any endpoint special case.
  */
 export function compileCircuitRaceRules(
-  window: CircuitRuntimeWindow,
+  window: CircuitRaceWindowRead,
   authoring: CircuitRaceAuthoring,
 ): CircuitRaceRules {
   nonEmptyId(authoring.id, 'circuit race id');

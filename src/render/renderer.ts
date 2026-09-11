@@ -2,6 +2,11 @@ import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
+import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';
+import { SoftwareSurface } from '../graphics/software-surface.js';
+import { drawScaledSprite, type SpriteScanlineObserver } from '../graphics/sprite.js';
+import { sampleGroundMap, type GroundMapProfile } from '../groundmap/ground-map.js';
+import { sampleStageGroundMapAtLevel } from '../groundmap/stage-ground-map-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { applyStageRoadViewToTerrainLine } from '../road/stage-terrain-view.js';
 import {
@@ -11,14 +16,9 @@ import {
   type TerrainVisualProfile,
 } from '../road/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
-import { sampleGroundMap, type GroundMapProfile } from '../visual/ground-map.js';
 import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
-import { sampleStageGroundMapAtLevel } from '../visual/stage-ground-map-view.js';
-import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from '../world/course-sprite.js';
-import { mergeTerrainAndSprites } from './painter-merge.js';
+import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
-import { SoftwareSurface } from './software-surface.js';
-import { drawScaledSprite, type SpriteScanlineObserver } from './sprite.js';
 import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
 const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
@@ -244,15 +244,22 @@ function drawTerrainLine(
       const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
       let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
+      const sample =
+        roadView === undefined
+          ? baked
+            ? (l: number) => baked.sampleAtLevel(line.s, l, groundMapLevel)
+            : (l: number) => sampleGroundMap(line.s, l, groundProfile)
+          : (l: number) =>
+              sampleStageGroundMapAtLevel(
+                line.s,
+                clamp(l, -localGroundLeft, localGroundRight),
+                groundMapLevel,
+                roadView,
+                groundProfile,
+              );
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        const sampledLateral = roadView === undefined ? lateral : clamp(lateral, -localGroundLeft, localGroundRight);
-        target.pixels[offset + x] =
-          roadView === undefined
-            ? baked
-              ? baked.sampleAtLevel(line.s, sampledLateral, groundMapLevel)
-              : sampleGroundMap(line.s, sampledLateral, groundProfile)
-            : sampleStageGroundMapAtLevel(line.s, sampledLateral, groundMapLevel, roadView, groundProfile);
+        target.pixels[offset + x] = sample(lateral);
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;

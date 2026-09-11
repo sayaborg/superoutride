@@ -1,7 +1,7 @@
-import type { GroundMapLogicalProfileReader, GroundMapLogicalSection } from '../compiler/surface-region-compiler.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
-import { rgba } from '../render/software-surface.js';
+import { rgba } from '../graphics/software-surface.js';
 import type { BakedGroundMapReader } from './baked-ground-map.js';
+import type { GroundMapLogicalProfileReader, GroundMapLogicalSection } from './logical-profile.js';
 
 export const GROUND_COLORS = {
   grassA: rgba(45, 100, 53),

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
 import {
   createArcadeVehicle,
@@ -11,15 +12,14 @@ import {
   updateArcadeVehicle,
   vehicleBodyTravelDirection,
 } from '../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
+import { createArcadeSteeringCalibration, steeringAutomaticMax } from '../dist/physics/vehicle-calibration.js';
 import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
-  HONDA_VFR750R_VEHICLE_PROFILE,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
 } from '../dist/vehicle/production-vehicle-profiles.js';
-import { createArcadeSteeringCalibration, steeringAutomaticMax } from '../dist/physics/vehicle-calibration.js';
-import { regularizedTireSlipAngle, tireLinearDemand } from '../dist/physics/tire-wheel.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const DT = 1 / 60;
 const highway = createM72DefaultBranchingParent();

@@ -2,18 +2,18 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { SIM_DT } from '../dist/core/constants.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { M7_1_ROAD_HALF_WIDTH_METERS } from '../dist/dev/m7-1-highway-calibration-course.js';
 import { createM91LowMidSpeedMountainCircuitRuntime } from '../dist/dev/m9-1-low-mid-speed-mountain-circuit.js';
 import {
+  createM93TsukubaCourse2000Runtime,
   M9_3_TSUKUBA_RIVAL_START_L,
   M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-  createM93TsukubaCourse2000Runtime,
 } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import {
+  createM96FiscoRuntime,
   M9_6_FISCO_RIVAL_START_L,
   M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
-  createM96FiscoRuntime,
 } from '../dist/dev/m9-6-fisco-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';

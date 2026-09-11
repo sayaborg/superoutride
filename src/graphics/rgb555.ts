@@ -1,4 +1,4 @@
-import { LITTLE_ENDIAN, rgba } from './software-surface.js';
+import { rgba, unpackRgba } from './software-surface.js';
 
 /** Pack the framebuffer's RGBA value into opaque RGB555 storage. */
 export function rgbaToRgb555(color: number): number {
@@ -15,19 +15,4 @@ export function rgb555ToRgba(value: number): number {
   const g5 = (value >>> 5) & 0x1f;
   const b5 = value & 0x1f;
   return rgba(Math.round((r5 * 255) / 31), Math.round((g5 * 255) / 31), Math.round((b5 * 255) / 31));
-}
-
-function unpackRgba(color: number): { r: number; g: number; b: number } {
-  if (LITTLE_ENDIAN) {
-    return {
-      r: color & 0xff,
-      g: (color >>> 8) & 0xff,
-      b: (color >>> 16) & 0xff,
-    };
-  }
-  return {
-    r: (color >>> 24) & 0xff,
-    g: (color >>> 16) & 0xff,
-    b: (color >>> 8) & 0xff,
-  };
 }

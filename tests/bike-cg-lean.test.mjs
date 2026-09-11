@@ -1,20 +1,20 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import {
-  deriveVehicleLeanRadians as lean,
-  deriveVehicleNormalizedBank as bank,
-} from '../dist/render/vehicle-presentation.js';
-import { drawVehicleLeanDebug } from '../dist/render/vehicle-lean-debug.js';
-import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
-import { createSpriteAssets, selectVehicleSprite } from '../dist/visual/sprite-assets.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import test from 'node:test';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { VEHICLE_GRAVITY as g } from '../dist/physics/vehicle-dynamics.js';
+import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
+import { drawVehicleLeanDebug } from '../dist/render/vehicle-lean-debug.js';
+import {
+  deriveVehicleNormalizedBank as bank,
+  deriveVehicleLeanRadians as lean,
+} from '../dist/render/vehicle-presentation.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { createSpriteAssets, selectVehicleSprite } from '../dist/visual/sprite-assets.js';
 import { createTerrainProbe, runTerrainProbe } from '../tools/torque-protection-terrain-probe.mjs';
-import { withM927BikeCgEntry, withM927BikeCg } from './helpers/m9-27-bike-cg-reference.mjs';
+import { withM927BikeCg, withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
 const bikes = VEHICLE_CATALOG.filter((e) => e.presentationFamily === 'BIKE');
 
 test('M9.28 four bikes lower only compiled CG/free reach to 30% wheelbase; five cars are exact M9.27', () => {

@@ -6,23 +6,24 @@ import {
   toggleCameraYawMode,
   type CameraState,
 } from '../camera/camera.js';
-import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../core/constants.js';
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../core/presentation-scale.js';
 import type { RecoveryState } from '../gameplay/recovery.js';
 import { createRecoveryState } from '../gameplay/recovery.js';
+import { SoftwareSurface } from '../graphics/software-surface.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import { InputManager } from '../input/input-manager.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createArcadeVehicle } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import type { CompiledArcadeVehicleProfile } from '../physics/vehicle-profiles.js';
-import { SoftwareSurface } from '../render/software-surface.js';
 import { drawVehicleLeanDebug } from '../render/vehicle-lean-debug.js';
 import { drawVehicleYawDebug } from '../render/vehicle-yaw-debug.js';
 import type { VehicleCatalogEntry } from '../vehicle/vehicle-catalog.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
-import { browserRequestsCameraYawToggle, BROWSER_RECOVERY_CODE } from './key-bindings.js';
 import type { BrowserCourseModeQuery } from './course-mode-selection.js';
+import { mustGet } from './dom.js';
 import { createFrameLoop, type FrameLoop } from './frame-loop.js';
+import { BROWSER_RECOVERY_CODE, browserRequestsCameraYawToggle } from './key-bindings.js';
 import { mountMobileCameraYawSelector, mountMobileVehicleSelector } from './mobile-selector-controls.js';
 import { mountBrowserSteeringCalibrationControls } from './steering-calibration-controls.js';
 import { mountBrowserTireFrictionControls } from './tire-friction-controls.js';
@@ -172,10 +173,4 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
       );
     },
   };
-}
-
-function mustGet<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing #${id}`);
-  return element as T;
 }

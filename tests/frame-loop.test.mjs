@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createFrameLoop, MAX_FRAME_ELAPSED_SECONDS } from '../dist/browser/frame-loop.js';
-import { SIM_DT } from '../dist/core/constants.js';
+import { createFrameLoop, MAX_FRAME_ELAPSED_SECONDS, SIM_DT } from '../dist/browser/frame-loop.js';
 
 function clockFixture() {
   let now = 0,

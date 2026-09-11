@@ -8,6 +8,7 @@ import type {
   DeclarativeLiveRouteTransitionAuthoring,
   GuideChartRuntimePackage,
 } from './declarative-live-route.js';
+import { pointGeometry } from './declarative-live-route.js';
 import {
   createRasterStageSuccessor,
   type RasterSuccessorAuthoring,
@@ -129,8 +130,8 @@ export function compileRasterSuccessorChain(source: RasterSuccessorChainAuthorin
   };
 
   return Object.freeze({
-    stages: Object.freeze(stages),
-    transitions: Object.freeze(transitions),
+    stages: Object.freeze(stages.map((stage) => Object.freeze(stage))),
+    transitions: Object.freeze(transitions.map((transition) => Object.freeze(transition))),
     finish: Object.freeze(finish),
     structurals: Object.freeze(structurals),
     runtimes: Object.freeze(runtimes),
@@ -161,19 +162,11 @@ function chainHandoffGeometry(
   target: RasterSuccessorRuntimeSource,
   halfWidth: number,
 ): DeclarativeHandoffGeometry {
-  return {
+  return Object.freeze({
     ...chainGeometry(id, sourceChart, target.link.sourceSeamS, halfWidth),
     sourceSeamS: target.link.sourceSeamS,
     targetSeamS: target.link.targetSeamS,
     sourceLocalL: target.link.sourceLocalL,
     targetLocalL: target.link.targetLocalL,
-  };
-}
-
-function pointGeometry(
-  id: string,
-  point: { readonly x: number; readonly z: number; readonly heading: number },
-  halfWidth: number,
-): DeclarativeGateGeometry {
-  return { id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth };
+  });
 }

@@ -52,3 +52,20 @@ export class SoftwareSurface {
 function clampByte(value: number): number {
   return Math.max(0, Math.min(255, Math.round(value)));
 }
+
+export function unpackRgba(color: number): { r: number; g: number; b: number; a: number } {
+  if (LITTLE_ENDIAN) {
+    return {
+      r: color & 0xff,
+      g: (color >>> 8) & 0xff,
+      b: (color >>> 16) & 0xff,
+      a: (color >>> 24) & 0xff,
+    };
+  }
+  return {
+    r: (color >>> 24) & 0xff,
+    g: (color >>> 16) & 0xff,
+    b: (color >>> 8) & 0xff,
+    a: color & 0xff,
+  };
+}

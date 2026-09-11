@@ -1,16 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { compileGuidePath, guidePathToWorld } from '../dist/core/guide-curve.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
-import { deriveVehicleSpriteFamily, deriveVehicleNormalizedBank } from '../dist/render/vehicle-presentation.js';
-import { selectVehicleSprite } from '../dist/visual/sprite-assets.js';
+import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
+import { deriveVehicleNormalizedBank, deriveVehicleSpriteFamily } from '../dist/render/vehicle-presentation.js';
+import { createSpriteAssets, selectVehicleSprite } from '../dist/visual/sprite-assets.js';
 
 test('rival presentation uses supplied metadata and the same presentation-only bank primitive', () => {
   const guide = createM2StadiumGuide();

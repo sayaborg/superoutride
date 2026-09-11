@@ -1,4 +1,4 @@
-import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/course.js';
+import { compileRasterPath, type RasterPath, type RasterVertex } from '../core/raster-path.js';
 import { finite, nonEmptyId, positiveInteger } from '../core/validation.js';
 
 /**

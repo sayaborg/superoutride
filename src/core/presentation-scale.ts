@@ -1,3 +1,6 @@
+export const LOGICAL_WIDTH = 320;
+export const LOGICAL_HEIGHT = 240;
+
 /**
  * SUPER OUTRIDE fixed presentation scale.
  *

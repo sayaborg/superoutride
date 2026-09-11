@@ -1,12 +1,12 @@
-import { RasterTurtle } from '../course/raster-turtle.js';
-import { compileRasterPath, type RasterPath } from '../core/course.js';
+import { HeightProfile } from '../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../core/presentation-scale.js';
+import { compileRasterPath, type RasterPath } from '../core/raster-path.js';
+import { RasterTurtle } from '../course/raster-turtle.js';
 import { compileCircuitTopology } from '../gameplay/circuit-topology.js';
 import { RECOVERY_PROFILE, type RecoveryProfile } from '../gameplay/recovery.js';
+import { GROUND_COLORS, type GroundMapProfile, type LongitudinalRoadMarking } from '../groundmap/ground-map.js';
 import { SurfaceMap } from '../physics/surface-map.js';
 import { compileCircuitLiveRuntime, type CircuitLiveRuntime } from '../runtime/circuit-live-runtime.js';
-import { GROUND_COLORS, type GroundMapProfile, type LongitudinalRoadMarking } from '../visual/ground-map.js';
-import { HeightProfile } from '../visual/height-profile.js';
 import { VisualProfile } from '../visual/visual-profile.js';
 
 export const M7_1_LANE_COUNT = 4;

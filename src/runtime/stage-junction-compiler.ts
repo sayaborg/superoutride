@@ -1,8 +1,8 @@
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import { JunctionCrossSectionProfile, type JunctionCrossSectionAuthoring } from '../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
+import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { StageJunctionSurfaceMap, type StageJunctionOuterSurfaceType } from '../physics/stage-junction-surface-map.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
 
 export interface StageJunctionSource {
   readonly courseLength: number;

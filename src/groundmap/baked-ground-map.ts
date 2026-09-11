@@ -1,8 +1,8 @@
+import { openProfileChainage } from '../core/open-profile.js';
 import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
-import { selectGroundMapLevel } from '../compiler/ground-map-lod.js';
-import { openProfileChainage } from '../core/open-profile-chainage.js';
 import { finite } from '../core/validation.js';
-import { rgb555ToRgba } from '../render/rgb555.js';
+import { rgb555ToRgba } from '../graphics/rgb555.js';
+import { selectGroundMapLevel } from './ground-map-lod.js';
 
 export type BakedGroundMapStorageFormat = 'palette8' | 'rgb555le';
 

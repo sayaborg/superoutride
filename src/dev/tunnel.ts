@@ -1,9 +1,10 @@
 import type { GuidePath } from '../core/guide-curve.js';
-import { rgba, SoftwareSurface } from '../render/software-surface.js';
-import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
+import type { HeightProfileReader } from '../core/height-profile.js';
+import { rgba, SoftwareSurface } from '../graphics/software-surface.js';
+import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../graphics/sprite.js';
+import { compileCourseSprite, type CourseSprite } from '../render/course-sprite.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
-import { compileCourseSprite, type CourseSprite } from '../world/course-sprite.js';
+import { FAR_BACKGROUND_SOURCE } from '../visual/far-background.js';
 
 export const TUNNEL_ENTRY_S = 130;
 export const TUNNEL_EXIT_S = 180;
@@ -70,9 +71,7 @@ export function selectTunnelBackground(
 }
 
 function createTunnelInteriorBackground(): FarBackground {
-  const width = 640;
-  const height = 320;
-  const sourceHorizonY = 126;
+  const { width, height, sourceHorizonY, pixelsPerRadian } = FAR_BACKGROUND_SOURCE;
   const surface = new SoftwareSurface(width, height);
   const ceilingA = rgba(18, 20, 22);
   const ceilingB = rgba(29, 31, 31);
@@ -99,7 +98,7 @@ function createTunnelInteriorBackground(): FarBackground {
     }
   }
 
-  return { surface, sourceHorizonY, pixelsPerRadian: 200 };
+  return { surface, sourceHorizonY, pixelsPerRadian };
 }
 
 function createTunnelPortalAsset(): SpriteAsset {

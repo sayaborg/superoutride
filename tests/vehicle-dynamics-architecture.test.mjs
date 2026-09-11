@@ -2,18 +2,18 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from '../dist/physics/automatic-powertrain.js';
+import { bodyFrameVelocity } from '../dist/physics/vehicle-dynamics.js';
 import {
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   createTestBike,
   createTestCar,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
-import { bodyFrameVelocity } from '../dist/physics/vehicle-dynamics.js';
-import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
 
 const guide = createM2StadiumGuide();
 const height = new HeightProfile(guide.length, [

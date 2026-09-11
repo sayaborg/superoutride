@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const visualSections = [
@@ -68,6 +68,7 @@ test('M6.45 logical GroundMap owns an open interval', () => {
 test('M6.45 stage compiler explicitly extends authored final height to the open Guide endpoint', () => {
   const guide = createM2StadiumGuide();
   const environment = compileStageEnvironment(guide, {
+    terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
     heightNodes: [
       { s: 0, y: 0 },
       { s: 60, y: 3 },

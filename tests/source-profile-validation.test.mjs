@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
-import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const visualSection = () => ({
   sStart: 0,

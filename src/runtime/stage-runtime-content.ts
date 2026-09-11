@@ -1,18 +1,18 @@
-import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
+import type { HeightProfileReader } from '../core/height-profile.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import type { RouteStageContentManifest } from '../gameplay/route-stage-content.js';
+import type { GroundMapProfile } from '../groundmap/ground-map.js';
+import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
+import type { CourseSprite } from '../render/course-sprite.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
-import type { CourseSprite } from '../world/course-sprite.js';
 
 const PACKAGE_GEOMETRY_TOLERANCE_METERS = 1e-7;
 

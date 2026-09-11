@@ -1,10 +1,10 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 
@@ -21,11 +21,11 @@ import {
   queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
-import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { renderDriving } from '../dist/render/renderer.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';

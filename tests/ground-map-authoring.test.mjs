@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { GroundMapLogicalProfile } from '../dist/compiler/surface-region-compiler.js';
 import { JunctionCrossSectionProfile } from '../dist/course/junction-cross-section.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createStageRoadView } from '../dist/course/stage-road-view.js';
-import { sampleStageGroundMapAtLevel } from '../dist/visual/stage-ground-map-view.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
+import { sampleStageGroundMapAtLevel } from '../dist/groundmap/stage-ground-map-view.js';
 
 const profile = {
   groundLeft: 12,
@@ -82,8 +82,12 @@ test('current browser course and successor paint matches the immutable reference
   const { resolve } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
   const load = (path) => import(pathToFileURL(resolve(process.env.HOT_PATH_BASELINE_BUILD ?? 'dist', path)).href);
-  const reference = await load('visual/ground-map.js');
-  const referenceStage = await load('visual/stage-ground-map-view.js');
+  const { existsSync } = await import('node:fs');
+  const folder = existsSync(resolve(process.env.HOT_PATH_BASELINE_BUILD ?? 'dist', 'groundmap/ground-map.js'))
+    ? 'groundmap'
+    : 'visual';
+  const reference = await load(`${folder}/ground-map.js`);
+  const referenceStage = await load(`${folder}/stage-ground-map-view.js`);
   const { createM72DefaultBranchingParent, M7_2_DEFAULT_BRANCHING_FORK } =
     await import('../dist/dev/m7-2-default-branching-highway.js');
   const { createM638DeclarativeForkGrowthRuntime } = await import('../dist/dev/m6-38-declarative-fork-growth-plan.js');

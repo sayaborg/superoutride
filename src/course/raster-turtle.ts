@@ -1,5 +1,5 @@
-import type { RasterVertex } from '../core/course.js';
-import { MAX_RASTER_VERTEX_TURN_DEGREES } from '../core/course.js';
+import type { RasterVertex } from '../core/raster-path.js';
+import { MAX_RASTER_VERTEX_TURN_DEGREES } from '../core/raster-path.js';
 import { finite, positiveFinite } from '../core/validation.js';
 
 const MAX_STRAIGHT_STEP_METERS = 50;

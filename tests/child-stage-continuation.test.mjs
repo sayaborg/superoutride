@@ -1,20 +1,20 @@
-import { parentShared } from './helpers/stage-parent-fixture.mjs';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
 import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
 import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
 import {
-  M6_22_CHILD_FINISH_S,
   createM622ChildStageContinuation,
   createM622LivePointToPointGateSet,
   createM622RouteStageHandoffManifest,
+  M6_22_CHILD_FINISH_S,
 } from '../dist/dev/m6-22-child-stage-continuation.js';
 import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runtime-content.js';
 
@@ -30,7 +30,7 @@ import {
 
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 
 const near = (actual, expected, tolerance = 2e-6) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);

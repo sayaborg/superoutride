@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileRasterPath } from '../dist/core/course.js';
 import { compileGuidePath, sampleGuidePath } from '../dist/core/guide-curve.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
 import { createGuideChart, guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
 

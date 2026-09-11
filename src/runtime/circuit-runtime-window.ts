@@ -1,19 +1,19 @@
-import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
-import type { RasterPath } from '../core/course.js';
 import { compileGuidePath, type GuideCompileOptions, type GuidePath } from '../core/guide-curve.js';
-import { openProfileChainage } from '../core/open-profile-chainage.js';
+import type { HeightNode, HeightProfileReader, HeightSample, PhysicsHeightSample } from '../core/height-profile.js';
+import { openProfileChainage } from '../core/open-profile.js';
+import type { RasterPath } from '../core/raster-path.js';
 import { finite, positiveInteger } from '../core/validation.js';
 import { unfoldCircuitRasterPath, type CircuitTopology } from '../gameplay/circuit-topology.js';
-import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
-import { bakedGroundMapTexelCenter } from '../visual/baked-ground-map.js';
 import type {
   BakedGroundMapChunkMetadata,
   BakedGroundMapLevelMetadata,
   BakedGroundMapMetadata,
   BakedGroundMapReader,
   BakedGroundMapSample,
-} from '../visual/baked-ground-map.js';
-import type { HeightNode, HeightProfileReader, HeightSample, PhysicsHeightSample } from '../visual/height-profile.js';
+} from '../groundmap/baked-ground-map.js';
+import { bakedGroundMapTexelCenter } from '../groundmap/baked-ground-map.js';
+import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
+import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
 import { VisualProfile, type VisualProfileReader } from '../visual/visual-profile.js';
 
 const CIRCUIT_SEAM_TOLERANCE_METERS = 1e-8;

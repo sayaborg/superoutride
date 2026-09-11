@@ -1,26 +1,10 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
+import { GroundMapLogicalProfile, type GroundMapLogicalSection } from '../groundmap/logical-profile.js';
+
+import { compileOpenProfile } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
-import type {
-  AuthoredGroundBase,
-  AuthoredSurfaceBand,
-  GroundMapMaterial,
-  SurfaceRegionAuthoring,
-} from '../course/surface-region.js';
+import type { AuthoredGroundBase, AuthoredSurfaceBand, SurfaceRegionAuthoring } from '../course/surface-region.js';
 import { compileGroundBase } from '../course/surface-region.js';
 import { compileSurfaceBands } from '../physics/surface-map.js';
-
-export interface GroundMapLogicalSection {
-  readonly sStart: number;
-  readonly name: string;
-  readonly left: GroundMapMaterial;
-  readonly right: GroundMapMaterial;
-}
-
-export interface GroundMapLogicalProfileReader {
-  readonly courseLength: number;
-  sample(s: number): GroundMapLogicalSection;
-}
 
 export interface CompiledVisualSection {
   readonly sStart: number;
@@ -33,33 +17,6 @@ export interface CompiledSurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly bands: readonly AuthoredSurfaceBand[];
-}
-
-/** General logical GroundMap source. Chainage is the open interval [0, courseLength]. */
-export class GroundMapLogicalProfile implements GroundMapLogicalProfileReader {
-  readonly sections: readonly GroundMapLogicalSection[];
-
-  constructor(
-    readonly courseLength: number,
-    sections: readonly GroundMapLogicalSection[],
-  ) {
-    for (const section of sections) {
-      nonEmptyId(section.name, 'GroundMap section name');
-      for (const material of [section.left, section.right]) {
-        if (material !== 'GRASS' && material !== 'ROCK') throw new RangeError('unknown GroundMap material');
-      }
-    }
-    this.sections = compileOpenProfile(sections, {
-      length: courseLength,
-      chainage: 'sStart',
-      label: 'GroundMap logical profile',
-    });
-  }
-
-  sample(s: number): GroundMapLogicalSection {
-    const local = openProfileChainage(s, this.courseLength, 'GroundMap logical profile');
-    return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
-  }
 }
 
 export interface CompiledSurfaceRegions {

@@ -1,21 +1,25 @@
-import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
-import { validateSurfaceGuideEnvelope } from '../compiler/surface-guide-envelope.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../core/presentation-scale.js';
+import { HeightProfile, type HeightNode } from '../core/height-profile.js';
+import {
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+  LOGICAL_HEIGHT,
+} from '../core/presentation-scale.js';
+import { SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
+import { positiveFinite } from '../core/validation.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
+import type { GroundMapProfile } from '../groundmap/ground-map.js';
+import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
+import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../render/course-sprite.js';
 import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import type { GroundMapProfile } from '../visual/ground-map.js';
-import { HeightProfile, type HeightNode } from '../visual/height-profile.js';
 import { VisualProfile, type VisualSection } from '../visual/visual-profile.js';
-import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../world/course-sprite.js';
 import type { StageRuntimeContentPackage } from './stage-runtime-content.js';
-import { positiveFinite } from '../core/validation.js';
 
 export interface StageLocalSpriteAuthoring extends Omit<CourseSpriteAuthoring, 'l'> {
   /** Lateral position in the active stage chart, not the underlying raster source frame. */
@@ -27,13 +31,13 @@ export interface StageEnvironmentAuthoring {
   readonly visualSections: readonly VisualSection[];
   readonly sprites?: readonly StageLocalSpriteAuthoring[];
   readonly farBackground: FarBackground;
-  readonly terrain?: Readonly<{
+  readonly terrain: Readonly<{
     dMin?: number;
     dMax?: number;
-    groundLeft?: number;
-    groundRight?: number;
-    roadLeft?: number;
-    roadRight?: number;
+    groundLeft: number;
+    groundRight: number;
+    roadLeft: number;
+    roadRight: number;
     thinSpanScreenRows?: number;
   }>;
 }
@@ -56,10 +60,6 @@ export interface CompiledStageEnvironment {
 const DEFAULT_TERRAIN = Object.freeze({
   dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
   dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 3.5,
-  roadRight: 3.5,
   thinSpanScreenRows: 1,
 });
 
@@ -81,12 +81,16 @@ export function compileStageEnvironment(
   const lateralOrigin = guideCoordinateLateralOrigin(coordinateFrame);
   const heightProfile = new HeightProfile(guide.length, compileOpenHeightNodes(guide.length, authoring.heightNodes));
   const visual = new VisualProfile(guide.length, authoring.visualSections);
+  if (!authoring.terrain) throw new RangeError('stage terrain widths must be authored');
   const terrain = { ...DEFAULT_TERRAIN, ...authoring.terrain };
+  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight'] as const) {
+    positiveFinite(terrain[key], `terrain ${key}`);
+  }
   positiveFinite(terrain.dMin, 'near draw distance');
   positiveFinite(terrain.dMax, 'far draw distance');
   if (terrain.dMax <= terrain.dMin) throw new RangeError('far draw distance must exceed near draw distance');
   const terrainProfile: TerrainVisualProfile = {
-    screenHeight: 240,
+    screenHeight: LOGICAL_HEIGHT,
     dMin: terrain.dMin,
     dMax: terrain.dMax,
     groundLeft: terrain.groundLeft,

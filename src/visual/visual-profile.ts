@@ -1,5 +1,4 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
+import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
 import { compileGroundBase, type AuthoredGroundBase } from '../course/surface-region.js';
 

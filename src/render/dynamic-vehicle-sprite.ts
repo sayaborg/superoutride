@@ -1,10 +1,10 @@
+import type { HeightProfileReader } from '../core/height-profile.js';
 import { wrapAngle } from '../core/math.js';
 import type { VehicleWorldPoseRead } from '../physics/vehicle-contract.js';
-import { mapPhysicalHeightToRender } from '../render/render-height-space.js';
-import { deriveVehicleNormalizedBank, type VehicleTurnPresentationRead } from '../render/vehicle-presentation.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
 import { selectVehicleSprite, type VehicleSpriteSet } from '../visual/sprite-assets.js';
 import type { CourseSprite } from './course-sprite.js';
+import { mapPhysicalHeightToRender } from './render-height-space.js';
+import { deriveVehicleNormalizedBank, type VehicleTurnPresentationRead } from './vehicle-presentation.js';
 
 /** Rendering adapter only. Physical x/y/z remains the CG authority. */
 export function createDynamicVehicleCourseSprite(

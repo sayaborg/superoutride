@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const srcRoot = path.join(repositoryRoot, 'src');
@@ -147,10 +147,10 @@ test('open-route regression fixtures do not hide endpoint defects behind cyclic 
 
 test('general source profiles expose one finite domain without cyclic implementations', async () => {
   for (const relativePath of [
-    'src/visual/height-profile.ts',
+    'src/core/height-profile.ts',
     'src/visual/visual-profile.ts',
-    'src/visual/baked-ground-map.ts',
-    'src/compiler/surface-region-compiler.ts',
+    'src/groundmap/baked-ground-map.ts',
+    'src/groundmap/logical-profile.ts',
     'src/physics/surface-map.ts',
   ]) {
     const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');

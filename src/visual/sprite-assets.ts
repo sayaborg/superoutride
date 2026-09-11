@@ -1,6 +1,6 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import { rgba } from '../render/software-surface.js';
-import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../render/sprite.js';
+import { rgba } from '../graphics/software-surface.js';
+import { createSpriteAsset, SPRITE_TRANSPARENT, type SpriteAsset } from '../graphics/sprite.js';
 
 export interface VehicleSpriteSet {
   kind: 'car' | 'bike';

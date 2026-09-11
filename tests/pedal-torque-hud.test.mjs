@@ -1,27 +1,27 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
+import {
+  createVehicleDebugHudModel,
+  drawVehicleControlGraphics,
+  drawVehicleDebugHud,
+  HUD_DELIVERED_COLOR,
+  HUD_INPUT_ACCEL_COLOR,
+  HUD_INPUT_BRAKE_COLOR,
+  HUD_PROTECTION_CUT_COLOR,
+} from '../dist/browser/vehicle-debug-hud.js';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import {
   FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING,
 } from '../dist/vehicle/production-vehicle-profiles.js';
-import test from 'node:test';
-import { readFile } from 'node:fs/promises';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
-import {
-  createVehicleDebugHudModel,
-  drawVehicleDebugHud,
-  drawVehicleControlGraphics,
-  HUD_PROTECTION_CUT_COLOR,
-  HUD_DELIVERED_COLOR,
-  HUD_INPUT_ACCEL_COLOR,
-  HUD_INPUT_BRAKE_COLOR,
-} from '../dist/browser/vehicle-debug-hud.js';
 
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-12, `${a} != ${b}`);
 const neutral = { steering: 0, throttle: 0, brake: 0 };

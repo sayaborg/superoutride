@@ -1,12 +1,12 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
 import { createStageRoadView } from '../dist/course/stage-road-view.js';
+import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
+import { sampleStageGroundMapRuntime } from '../dist/groundmap/stage-ground-map-view.js';
 import { compileStageJunction } from '../dist/runtime/stage-junction-compiler.js';
-import { GROUND_COLORS } from '../dist/visual/ground-map.js';
-import { sampleStageGroundMapRuntime } from '../dist/visual/stage-ground-map-view.js';
 
 const CROSS_SECTION = Object.freeze({
   sWidenStart: 40,
@@ -129,7 +129,7 @@ test('M6.34 reusable junction layer adds no RouteDag, renderer, camera or vehicl
   const [compilerSource, surfaceSource, groundSource] = await Promise.all([
     readFile(new URL('../src/runtime/stage-junction-compiler.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/stage-junction-surface-map.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/visual/stage-ground-map-view.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/groundmap/stage-ground-map-view.ts', import.meta.url), 'utf8'),
   ]);
   const implementationImports = `${compilerSource}\n${surfaceSource}`
     .split('\n')

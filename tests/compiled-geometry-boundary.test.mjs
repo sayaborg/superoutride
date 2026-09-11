@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileRasterPath, rasterPathToWorld } from '../dist/core/course.js';
 import { compileGuidePath, guidePathToWorld, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
+import { compileRasterPath, rasterPathToWorld } from '../dist/core/raster-path.js';
 
 const vertices = () => [
   { x: 0, z: 0 },

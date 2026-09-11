@@ -1,5 +1,5 @@
-import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
+import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 const OFFSET_DEGREES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] as const;
 const MAX_STEER_DEGREES = [50, 55, 60, 65, 70, 75, 80] as const;
 const TRAVERSAL_SECONDS = [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4] as const;
@@ -54,7 +54,7 @@ export function formatTraversalSeconds(seconds: number): string {
     ? (roundedMilliseconds / 1_000).toFixed(2)
     : (roundedMilliseconds / 1_000).toFixed(3);
 }
-export function formatDegrees(radians: number): string {
+function formatDegrees(radians: number): string {
   const degrees = (radians * 180) / Math.PI;
   const rounded = Math.round(degrees * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);

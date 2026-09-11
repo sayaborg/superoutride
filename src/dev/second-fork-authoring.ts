@@ -1,10 +1,11 @@
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
-import type { GuideChart } from '../gameplay/guide-chart.js';
+import { chartPackage } from './shared-runtime-content.js';
+
 import { type GuideChartRuntimePackage } from '../runtime/declarative-live-route.js';
 import { type RasterForkGrowthStep } from '../runtime/raster-fork-growth-plan.js';
 import type { RasterForkStageBranchAuthoring } from '../runtime/raster-fork-stage-route.js';
 import { compileAuthoredStageRuntimePackage } from '../runtime/stage-authoring-compiler.js';
-import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
+
 import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { CENTER_DASH_MARKINGS } from './m5-surface-authoring.js';
 import { createM621ChildVisualIdentity } from './m6-21-child-visual-identity.js';
@@ -155,12 +156,4 @@ function liveForkBranch(
       shoulderWidth: 1,
     }),
   });
-}
-
-function chartPackage(runtime: StageRuntimeContentPackage): GuideChartRuntimePackage {
-  const frame = runtime.coordinateFrame as Partial<GuideChart>;
-  if (typeof frame.id !== 'string' || frame.guide === undefined || typeof frame.lateralOrigin !== 'number') {
-    throw new RangeError(`M6.38 runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
-  }
-  return runtime as GuideChartRuntimePackage;
 }

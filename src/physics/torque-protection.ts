@@ -1,3 +1,5 @@
+const SUPPORT_BISECTION_ITERATIONS = 12;
+
 import {
   deriveTireSlip,
   solveWheelOmega,
@@ -7,7 +9,7 @@ import {
   type WheelSolveResult,
 } from './tire-wheel.js';
 import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
-import { WORLD_UP, add3, cross3, dot3, scale3, sub3 } from './vehicle-math3.js';
+import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from './vehicle-math3.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 import { evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
@@ -186,7 +188,7 @@ export function solveProtectedWheelPair(
   // Keep a feasible sampled lower endpoint; unsampled torque intervals need not be feasible.
   let lower = 0,
     upper = 1;
-  for (let i = 0; i < 12; i += 1) {
+  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i += 1) {
     const scale = (lower + upper) * 0.5;
     const candidate = evaluate(scale);
     if (safe(candidate)) {

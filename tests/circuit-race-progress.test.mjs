@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { compileRasterPath } from '../dist/core/course.js';
 import { sampleGuidePath } from '../dist/core/guide-curve.js';
-import { compileCircuitTopology } from '../dist/gameplay/circuit-topology.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
 import {
   compileCircuitRaceRules,
   createCircuitRaceProgressState,
@@ -12,12 +12,12 @@ import {
   resyncCircuitRaceProgress,
   updateCircuitRaceProgress,
 } from '../dist/gameplay/circuit-race-progress.js';
+import { compileCircuitTopology } from '../dist/gameplay/circuit-topology.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   circuitWindowToUnwrappedChainage,
   compileCircuitRuntimeWindow,
 } from '../dist/runtime/circuit-runtime-window.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function createGentleCircuit(segmentCount = 72, radius = 120) {

@@ -1,15 +1,24 @@
-import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
-import { M8_3_LINEAR_SESSION_CONFIGURATION } from '../dist/dev/m8-3-linear-highway.js';
-import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
+import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
+import { M8_3_LINEAR_SESSION_CONFIGURATION } from '../dist/dev/m8-3-linear-highway.js';
 
 import {
   BROWSER_COURSE_MODES,
   browserCourseModeForKey,
   selectBrowserCourseMode,
 } from '../dist/browser/course-mode-selection.js';
+import {
+  createVehicleDebugHudModel,
+  drawTopDownGSensor,
+  drawVehicleControlGraphics,
+  drawVehicleDebugHud,
+  gSensorPoint,
+  HUD_INPUT_ACCEL_COLOR,
+  HUD_INPUT_BRAKE_COLOR,
+} from '../dist/browser/vehicle-debug-hud.js';
 import {
   BROWSER_VEHICLE_PROFILES,
   browserVehicleProfileForKey,
@@ -18,53 +27,44 @@ import {
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
-  M7_2_DEFAULT_BRANCHING_FORK,
   createM72DefaultBranchingParent,
+  M7_2_DEFAULT_BRANCHING_FORK,
 } from '../dist/dev/m7-2-default-branching-highway.js';
+import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
 import {
+  createM83LinearHighwayRuntime,
   M8_3_LINEAR_COURSE_MODE,
   M8_3_LINEAR_LENGTH_METERS,
-  createM83LinearHighwayRuntime,
 } from '../dist/dev/m8-3-linear-highway.js';
-import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
-import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../dist/physics/vehicle-math3.js';
-import {
-  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
-  HONDA_VFR750R_VEHICLE_PROFILE,
-  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  createTestBike,
-  createTestCar,
-  updateTestVehicle,
-} from './helpers/vehicle-fixture.mjs';
-import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { renderDriving } from '../dist/render/renderer.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
-import {
-  HUD_INPUT_ACCEL_COLOR,
-  HUD_INPUT_BRAKE_COLOR,
-  createVehicleDebugHudModel,
-  drawVehicleDebugHud,
-  drawTopDownGSensor,
-  drawVehicleControlGraphics,
-  gSensorPoint,
-} from '../dist/browser/vehicle-debug-hud.js';
 import {
   advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
-  resyncLiveRouteTraveler,
   resolveLiveRouteTravelerRuntime,
+  resyncLiveRouteTraveler,
   sampleLiveRouteChoiceTargetL,
 } from '../dist/runtime/live-route-traveler.js';
+import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
+import { formatVehicleCatalogLine, VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { VEHICLE_CATALOG, formatVehicleCatalogLine } from '../dist/vehicle/vehicle-catalog.js';
+import {
+  createTestBike,
+  createTestCar,
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE,
+  HONDA_VFR750R_VEHICLE_PROFILE,
+  LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
+  updateTestVehicle,
+} from './helpers/vehicle-fixture.mjs';
 
 const DT = 1 / 60;
 const CAMERA_PROFILE = CURRENT_CAMERA_PROFILE;

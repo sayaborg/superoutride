@@ -1,21 +1,21 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { pseudoDepth } from '../dist/core/projection.js';
-import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
-import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { renderDriving } from '../dist/render/renderer.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { createFarBackground } from '../dist/visual/far-background.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
 import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { createDynamicVehicleCourseSprite } from '../dist/world/dynamic-vehicle-sprite.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 
@@ -37,7 +37,7 @@ test('M6.4 camera/renderer/rival presentation no longer import concrete car phys
   const paths = [
     '../src/camera/camera.ts',
     '../src/render/renderer.ts',
-    '../src/world/dynamic-vehicle-sprite.ts',
+    '../src/render/dynamic-vehicle-sprite.ts',
     '../src/gameplay/rival-driver.ts',
   ];
   for (const path of paths) {

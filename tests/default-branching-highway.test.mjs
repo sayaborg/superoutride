@@ -5,6 +5,7 @@ import test from 'node:test';
 import { guidePathToWorld, sampleGuidePath } from '../dist/core/guide-curve.js';
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
+  createM72DefaultBranchingParent,
   M7_2_DEFAULT_BRANCHING_FORK,
   M7_2_DEFAULT_BRANCHING_JUNCTION,
   M7_2_FORK_WIDEN_START_S,
@@ -14,15 +15,14 @@ import {
   M7_2_RIVAL_RECOVERY_PROFILE,
   M7_2_RIVAL_START_L,
   M7_2_ROUTE_GATE_S,
-  createM72DefaultBranchingParent,
 } from '../dist/dev/m7-2-default-branching-highway.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 const near = (actual, expected, tolerance = 1e-6) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);

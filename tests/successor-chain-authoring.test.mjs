@@ -1,7 +1,7 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
@@ -96,6 +96,27 @@ test('M6.31 compiles a two-step successor chain with derived stage kinds, transi
       ['TO_GOAL', 'MID', 'GOAL'],
     ],
   );
+  for (const stage of chain.stages) {
+    assert.throws(() => {
+      stage.kind = 'TERMINAL';
+    }, TypeError);
+  }
+  for (const transition of chain.transitions) {
+    assert.throws(() => {
+      transition.toStageId = 'OTHER';
+    }, TypeError);
+    for (const geometry of [transition.gate, transition.handoff]) {
+      assert.throws(() => {
+        geometry.halfWidth = 1000;
+      }, TypeError);
+      assert.throws(() => {
+        geometry.center.x += 1000;
+      }, TypeError);
+    }
+  }
+  assert.throws(() => {
+    chain.finish.gate.center.x += 1000;
+  }, TypeError);
   assert.equal(chain.finish.stageId, 'GOAL');
   assert.equal(chain.finish.gate.id, 'FINISH_CHAIN');
   assert.equal(chain.structurals.length, 3);

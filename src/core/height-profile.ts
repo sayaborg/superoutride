@@ -1,6 +1,5 @@
-import { openProfileChainage } from '../core/open-profile-chainage.js';
-import { compileOpenProfile, profileIndexAt } from '../core/open-profile.js';
-import { finite } from '../core/validation.js';
+import { compileOpenProfile, openProfileChainage, profileIndexAt } from './open-profile.js';
+import { finite } from './validation.js';
 
 export interface HeightNode {
   readonly s: number;

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { advanceVehicleWithRecovery, createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { refreshGuideObservation, VehicleOutsideModelError } from '../dist/physics/vehicle-dynamics.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createTerrainProbe } from '../tools/torque-protection-terrain-probe.mjs';
-import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { VehicleOutsideModelError, refreshGuideObservation } from '../dist/physics/vehicle-dynamics.js';
-import { advanceVehicleWithRecovery, createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
 
 const neutral = { steering: 0, throttle: 0, brake: 0 };
 for (const entry of VEHICLE_CATALOG.filter((e) => /TESTAROSSA|R80/.test(e.profile.id))) {

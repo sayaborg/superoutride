@@ -1,35 +1,36 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
   guideCoordinateToWorld,
   locateWorldOnGuideCoordinateGlobal,
 } from '../dist/core/guide-coordinate-frame.js';
-import { validateSurfaceGuideEnvelope } from '../dist/compiler/surface-guide-envelope.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
+import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
   createM72DefaultBranchingParent,
   M7_2_DEFAULT_BRANCHING_FORK,
 } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { createM96FiscoRuntime } from '../dist/dev/m9-6-fisco-circuit.js';
+import { validateSurfaceGuideEnvelope } from '../dist/physics/surface-guide-envelope.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { compileCircuitRuntimeWindow } from '../dist/runtime/circuit-runtime-window.js';
 import {
   compileAuthoredStageRuntimePackage,
   compileStageEnvironment,
 } from '../dist/runtime/stage-authoring-compiler.js';
 import { compileStageRuntimeContentRegistry } from '../dist/runtime/stage-runtime-content.js';
-import { compileCircuitRuntimeWindow } from '../dist/runtime/circuit-runtime-window.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 const environment = {
+  terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
   heightNodes: [{ s: 0, y: 0 }],
   visualSections: [
     { sStart: 0, name: 'fixture', groundBaseLeft: { kind: 'transparent' }, groundBaseRight: { kind: 'transparent' } },
@@ -63,9 +64,13 @@ test('live authored and registry compilation reject equality, overflow and missi
     assert.throws(() => compileAuthoredStageRuntimePackage({ ...source, surfaceMap: bad }, environment), /envelope/);
     assert.throws(() => compileStageRuntimeContentRegistry(manifest, [{ ...valid, surfaceMap: bad }]), /envelope/);
   }
-  for (const dMax of [100, 200]) compileStageEnvironment(guide, { ...environment, terrain: { dMax } });
+  for (const dMax of [100, 200])
+    compileStageEnvironment(guide, { ...environment, terrain: { ...environment.terrain, dMax } });
   for (const dMax of [0, -1, NaN, Infinity, 1]) {
-    assert.throws(() => compileStageEnvironment(guide, { ...environment, terrain: { dMax } }), /draw distance/);
+    assert.throws(
+      () => compileStageEnvironment(guide, { ...environment, terrain: { ...environment.terrain, dMax } }),
+      /draw distance/,
+    );
   }
 });
 

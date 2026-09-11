@@ -1,19 +1,19 @@
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
+import { SIM_DT } from './browser/frame-loop.js';
 import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
-import { SIM_DT } from './core/constants.js';
 import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
 import { createM638DeclarativeForkGrowthRuntime } from './dev/m6-38-declarative-fork-growth-plan.js';
 import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
 import {
+  createM72DefaultBranchingParent,
   M7_2_DEFAULT_BRANCHING_FORK,
   M7_2_PLAYER_RECOVERY_PROFILE,
   M7_2_PLAYER_START_L,
   M7_2_RIVAL_RECOVERY_PROFILE,
   M7_2_RIVAL_START_L,
-  createM72DefaultBranchingParent,
 } from './dev/m7-2-default-branching-highway.js';
 import { M8_3_BRANCHING_COURSE_MODE, M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
 import { createTunnelPresentation, createTunnelWorldSprites, selectTunnelBackground } from './dev/tunnel.js';
@@ -30,6 +30,7 @@ import { createSharedRouteChoiceState, getSharedRouteChoiceLock } from './gamepl
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
+import { createDynamicVehicleCourseSprite } from './render/dynamic-vehicle-sprite.js';
 import { renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import {
@@ -49,7 +50,6 @@ import { stageVehicleWorld, type StageRuntimeContentPackage } from './runtime/st
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehicle/vehicle-catalog.js';
 import { createFarBackground } from './visual/far-background.js';
 import { createSpriteAssets } from './visual/sprite-assets.js';
-import { createDynamicVehicleCourseSprite } from './world/dynamic-vehicle-sprite.js';
 
 const parentCourse = createM72DefaultBranchingParent();
 const { guide, heightProfile, surfaceMap, groundProfile, terrainProfile } = parentCourse;

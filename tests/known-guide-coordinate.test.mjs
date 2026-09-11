@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SIM_DT } from '../dist/core/constants.js';
-import { compileRasterPath } from '../dist/core/course.js';
-import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
+import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { HeightProfile } from '../dist/core/height-profile.js';
+import { compileRasterPath } from '../dist/core/raster-path.js';
 import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
 import { createM96FiscoRuntime } from '../dist/dev/m9-6-fisco-circuit.js';
-import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
-import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../dist/gameplay/recovery.js';
 import {
   createCircuitRaceProgressState,
-  updateCircuitRaceProgress,
   resyncCircuitRaceProgress,
+  updateCircuitRaceProgress,
 } from '../dist/gameplay/circuit-race-progress.js';
+import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../dist/gameplay/recovery.js';
+import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { initializeGuideObservation } from '../dist/physics/vehicle-dynamics.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { HeightProfile } from '../dist/visual/height-profile.js';
+import { initializeGuideObservation } from '../dist/physics/vehicle-dynamics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 for (const [name, createRuntime] of [

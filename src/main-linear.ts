@@ -1,11 +1,11 @@
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
+import { SIM_DT } from './browser/frame-loop.js';
 import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
-import { SIM_DT } from './core/constants.js';
 import {
+  createM83LinearHighwayRuntime,
   M8_3_LINEAR_PLAYER_START_L,
   M8_3_LINEAR_RECOVERY_PROFILE,
-  createM83LinearHighwayRuntime,
 } from './dev/m8-3-linear-highway.js';
 import { advanceVehicleWithRecovery, recoverVehicle } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';

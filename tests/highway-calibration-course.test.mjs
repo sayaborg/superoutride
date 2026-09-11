@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { SIM_DT } from '../dist/core/constants.js';
+import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import {
+  createM71HighwayCalibrationLapRaster,
+  createM71HighwayCalibrationRuntime,
+  createM71HighwayGroundProfile,
+  createM71HighwaySurfaceMap,
   M7_1_AIRBORNE_PROBE_START_S,
   M7_1_EDGE_MARKING_WIDTH_METERS,
   M7_1_HIGHWAY_RECOVERY_PROFILE,
@@ -17,16 +21,12 @@ import {
   M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS,
   M8_4_LOW_SPEED_COMPLEX_COUNT,
   M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS,
-  createM71HighwayCalibrationLapRaster,
-  createM71HighwayCalibrationRuntime,
-  createM71HighwayGroundProfile,
-  createM71HighwaySurfaceMap,
 } from '../dist/dev/m7-1-highway-calibration-course.js';
 import { M7_2_HANDOFF_SEAM_S } from '../dist/dev/m7-2-default-branching-highway.js';
-import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
+import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
 
 test('M7.1 calibration lap retains high-speed references and two post-handoff low-speed complexes', () => {
   const raster = createM71HighwayCalibrationLapRaster();

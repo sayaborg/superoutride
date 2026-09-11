@@ -1,26 +1,26 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { rasterPathToWorld } from '../dist/core/course.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { pseudoProject } from '../dist/core/projection.js';
+import { rasterPathToWorld } from '../dist/core/raster-path.js';
 import {
   classifyStageRoadLocalL,
   stageRoadContainsLocalL,
   stageRoadSourceLateral,
   stageRoadToWorld,
 } from '../dist/course/stage-road-view.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+
 import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
 import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+
+import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
+import { sampleStageGroundMapRuntime } from '../dist/groundmap/stage-ground-map-view.js';
 import { applyStageRoadViewToTerrainLine } from '../dist/road/stage-terrain-view.js';
-import { GROUND_COLORS } from '../dist/visual/ground-map.js';
-import { sampleStageGroundMapRuntime } from '../dist/visual/stage-ground-map-view.js';
 
 const near = (actual, expected, tolerance = 1e-8) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -30,19 +30,8 @@ function setup() {
   const guide = createM2StadiumGuide();
   const charts = createM616ChildGuideCharts(guide);
   const views = createM618StageRoadViews(charts);
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const surface = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const ground = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    roadMarkings: CENTER_DASH_MARKINGS,
-    junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
+  const { surfaceMap: surface, groundProfile: ground } = parentShared(guide);
+
   return { guide, charts, views, surface, ground };
 }
 
@@ -176,7 +165,7 @@ test('M6.18 source adapters contain no camera, projection or route-DAG decision 
   const { readFile } = await import('node:fs/promises');
   for (const path of [
     '../src/course/stage-road-view.ts',
-    '../src/visual/stage-ground-map-view.ts',
+    '../src/groundmap/stage-ground-map-view.ts',
     '../src/physics/stage-surface-map-view.ts',
     '../src/dev/m6-18-stage-road-views.ts',
   ]) {

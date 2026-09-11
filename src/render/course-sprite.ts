@@ -1,8 +1,8 @@
-import { rasterPathToWorld } from '../core/course.js';
 import type { GuidePath } from '../core/guide-curve.js';
+import type { HeightProfileReader } from '../core/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
-import type { SpriteAsset } from '../render/sprite.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
+import { rasterPathToWorld } from '../core/raster-path.js';
+import type { SpriteAsset } from '../graphics/sprite.js';
 
 export interface CourseSpriteAuthoring {
   name: string;

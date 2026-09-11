@@ -1,9 +1,9 @@
-import { SOURCE_ENDPOINT_TOLERANCE_METERS, PIXEL_EDGE_TOLERANCE } from '../core/tolerances.js';
-import { profileIndexAt } from '../core/open-profile.js';
-import { rasterPathToWorld } from '../core/course.js';
 import type { GuidePath } from '../core/guide-curve.js';
+import type { HeightProfileReader } from '../core/height-profile.js';
+import { profileIndexAt } from '../core/open-profile.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
-import type { HeightProfileReader } from '../visual/height-profile.js';
+import { rasterPathToWorld } from '../core/raster-path.js';
+import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
 
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;

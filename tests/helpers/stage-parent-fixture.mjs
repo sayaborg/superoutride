@@ -1,11 +1,10 @@
 /** Fixed shared parent content for route regressions, independent of current browser defaults. */
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/m5-surface-authoring.js';
-import { compileSurfaceRegions } from '../../dist/compiler/surface-region-compiler.js';
-import { M6_13_JUNCTION } from '../../dist/dev/m6-13-junction.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../../dist/dev/m5-surface-authoring.js';
-import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createM3DebugHeightProfile } from '../../dist/dev/m3-debug-height-profile.js';
+import { CENTER_DASH_MARKINGS, createM5DebugSurfaceRegionAuthoring } from '../../dist/dev/m5-surface-authoring.js';
+import { M6_13_JUNCTION } from '../../dist/dev/m6-13-junction.js';
+import { SurfaceMap } from '../../dist/physics/surface-map.js';
+import { compileSurfaceRegions } from '../../dist/runtime/surface-region-compiler.js';
+import { createFarBackground } from '../../dist/visual/far-background.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 export function parentShared(guide) {
@@ -25,6 +24,8 @@ export function parentShared(guide) {
     logical: compiled.groundMap,
   };
   return {
+    compiled,
+    visualProfile,
     heightProfile,
     surfaceMap,
     groundProfile,

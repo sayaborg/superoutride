@@ -1,15 +1,14 @@
-import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
+  pointGeometry,
   type DeclarativeGateGeometry,
   type DeclarativeHandoffGeometry,
   type DeclarativeLiveRouteAuthoring,
   type DeclarativeLiveRouteStageAuthoring,
   type DeclarativeLiveRouteTransitionAuthoring,
-  type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
 import { composeDeclarativeLiveRouteAuthoring } from '../runtime/declarative-route-fragment.js';
 import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
@@ -24,6 +23,8 @@ import { M6_22_PARENT_FORK_GEOMETRY, type M622ParentForkGeometry } from './m6-22
 import { createM624ChildStageAuthoring } from './m6-24-stage-authoring.js';
 import { createM626LiveStageRuntimePackages } from './m6-26-live-runtime-content.js';
 import { createM626LiveContinuation, type M626LiveContinuation } from './m6-26-live-successor-stage.js';
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
+import { chartPackage } from './shared-runtime-content.js';
 
 const WORLD_FRAME_ID = 'DEV_ROUTE_WORLD_V1';
 const ROAD_HALF_WIDTH = 3.5;
@@ -159,6 +160,7 @@ export function createM630ThirdLiveSuccessorAuthoring(
         parentFork.routeGateS,
         parentFork.junction.separatedChildCenterL('LEFT'),
       ),
+      ROAD_HALF_WIDTH,
     ),
     handoff: parentHandoffGeometry(continuation, 'H_S1_LEFT', 'LEFT', parentFork),
   };
@@ -173,6 +175,7 @@ export function createM630ThirdLiveSuccessorAuthoring(
         parentFork.routeGateS,
         parentFork.junction.separatedChildCenterL('RIGHT'),
       ),
+      ROAD_HALF_WIDTH,
     ),
     handoff: parentHandoffGeometry(continuation, 'H_S1_RIGHT', 'RIGHT', parentFork),
   };
@@ -264,7 +267,7 @@ function sourceTransitionGeometry(
   sourceChart: GuideChart,
   id: string,
 ): DeclarativeGateGeometry {
-  return pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceTransitionS, 0));
+  return pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceTransitionS, 0), ROAD_HALF_WIDTH);
 }
 
 function sourceHandoffGeometry(
@@ -273,7 +276,7 @@ function sourceHandoffGeometry(
   id: string,
 ): DeclarativeHandoffGeometry {
   return {
-    ...pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceSeamS, 0)),
+    ...pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceSeamS, 0), ROAD_HALF_WIDTH),
     sourceSeamS: successor.link.sourceSeamS,
     targetSeamS: successor.link.targetSeamS,
     sourceLocalL: successor.link.sourceLocalL,
@@ -289,25 +292,14 @@ function parentHandoffGeometry(
 ): DeclarativeHandoffGeometry {
   const localL = parentFork.junction.separatedChildCenterL(side);
   return {
-    ...pointGeometry(id, guideChartToWorld(continuation.base.charts.parent, parentFork.handoffSeamS, localL)),
+    ...pointGeometry(
+      id,
+      guideChartToWorld(continuation.base.charts.parent, parentFork.handoffSeamS, localL),
+      ROAD_HALF_WIDTH,
+    ),
     sourceSeamS: parentFork.handoffSeamS,
     targetSeamS: continuation.base.handoffLocalS,
     sourceLocalL: localL,
     targetLocalL: 0,
   };
-}
-
-function pointGeometry(
-  id: string,
-  point: { readonly x: number; readonly z: number; readonly heading: number },
-): DeclarativeGateGeometry {
-  return { id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
-}
-
-function chartPackage(runtime: StageRuntimeContentPackage): GuideChartRuntimePackage {
-  const frame = runtime.coordinateFrame as Partial<GuideChart>;
-  if (typeof frame.id !== 'string' || frame.guide === undefined || typeof frame.lateralOrigin !== 'number') {
-    throw new RangeError(`live route runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
-  }
-  return runtime as GuideChartRuntimePackage;
 }

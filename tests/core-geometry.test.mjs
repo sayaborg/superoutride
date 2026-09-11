@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compileRasterPath, rasterPathToWorld } from '../dist/core/course.js';
-import { createM1DebugGuide } from '../dist/dev/debug-course.js';
 import {
   filletMetric,
   guidePathToWorld,
@@ -14,6 +12,8 @@ import {
 } from '../dist/core/guide-curve.js';
 import { normalFromHeading, tangentFromHeading, wrapSigned } from '../dist/core/math.js';
 import { pseudoProject, straightRoadScreenX } from '../dist/core/projection.js';
+import { compileRasterPath, rasterPathToWorld } from '../dist/core/raster-path.js';
+import { createM1DebugGuide } from '../dist/dev/debug-course.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-8) => {

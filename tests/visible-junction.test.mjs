@@ -1,14 +1,14 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from '../dist/dev/m6-13-junction.js';
 import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { M6_13_JUNCTION, sampleM613RightBranchTargetL } from '../dist/dev/m6-13-junction.js';
+import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { GROUND_COLORS, sampleGroundMap } from '../dist/visual/ground-map.js';
+import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 
 const guide = createM2StadiumGuide();
 const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));

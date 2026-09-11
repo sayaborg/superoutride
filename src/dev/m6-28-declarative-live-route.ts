@@ -1,14 +1,16 @@
-import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { guideChartToWorld, type GuideChart } from '../gameplay/guide-chart.js';
 import {
   compileDeclarativeLiveRoute,
+  pointGeometry,
   type DeclarativeGateGeometry,
   type DeclarativeHandoffGeometry,
   type GuideChartRuntimePackage,
 } from '../runtime/declarative-live-route.js';
 import type { LiveRouteRuntimeAssembly } from '../runtime/live-route-runtime.js';
-import type { StageRuntimeContentPackage } from '../runtime/stage-runtime-content.js';
+import type { SharedRuntimeContent } from './shared-runtime-content.js';
+import { chartPackage } from './shared-runtime-content.js';
+
 import type { SpriteAssets } from '../visual/sprite-assets.js';
 import { M6_13_JUNCTION } from './m6-13-junction.js';
 import { M6_15_ROUTE_GATE_S } from './m6-15-visible-route-gates.js';
@@ -94,7 +96,11 @@ function parentTransitionGeometry(
   side: 'LEFT' | 'RIGHT',
 ): DeclarativeGateGeometry {
   const localL = M6_13_JUNCTION.separatedChildCenterL(side);
-  return pointGeometry(id, guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, localL));
+  return pointGeometry(
+    id,
+    guideChartToWorld(continuation.base.charts.parent, M6_15_ROUTE_GATE_S, localL),
+    ROAD_HALF_WIDTH,
+  );
 }
 
 function parentHandoffGeometry(
@@ -104,7 +110,11 @@ function parentHandoffGeometry(
 ): DeclarativeHandoffGeometry {
   const localL = M6_13_JUNCTION.separatedChildCenterL(side);
   return {
-    ...pointGeometry(id, guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL)),
+    ...pointGeometry(
+      id,
+      guideChartToWorld(continuation.base.charts.parent, M6_17_HANDOFF_SEAM_S, localL),
+      ROAD_HALF_WIDTH,
+    ),
     sourceSeamS: M6_17_HANDOFF_SEAM_S,
     targetSeamS: continuation.base.handoffLocalS,
     sourceLocalL: localL,
@@ -113,12 +123,20 @@ function parentHandoffGeometry(
 }
 
 function successorTransitionGeometry(successor: M626SuccessorRuntimeSource, id: string): DeclarativeGateGeometry {
-  return pointGeometry(id, guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0));
+  return pointGeometry(
+    id,
+    guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceTransitionS, 0),
+    ROAD_HALF_WIDTH,
+  );
 }
 
 function successorHandoffGeometry(successor: M626SuccessorRuntimeSource, id: string): DeclarativeHandoffGeometry {
   return {
-    ...pointGeometry(id, guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0)),
+    ...pointGeometry(
+      id,
+      guideChartToWorld(successor.link.sourceFrame as GuideChart, successor.sourceSeamS, 0),
+      ROAD_HALF_WIDTH,
+    ),
     sourceSeamS: successor.link.sourceSeamS,
     targetSeamS: successor.link.targetSeamS,
     sourceLocalL: successor.link.sourceLocalL,
@@ -127,20 +145,5 @@ function successorHandoffGeometry(successor: M626SuccessorRuntimeSource, id: str
 }
 
 function successorFinishGeometry(successor: M626SuccessorRuntimeSource, id: string): DeclarativeGateGeometry {
-  return pointGeometry(id, guideChartToWorld(successor.chart, successor.finishS, 0));
-}
-
-function pointGeometry(
-  id: string,
-  point: { readonly x: number; readonly z: number; readonly heading: number },
-): DeclarativeGateGeometry {
-  return { id, center: { x: point.x, z: point.z }, heading: point.heading, halfWidth: ROAD_HALF_WIDTH };
-}
-
-function chartPackage(runtime: StageRuntimeContentPackage): GuideChartRuntimePackage {
-  const frame = runtime.coordinateFrame as Partial<GuideChart>;
-  if (typeof frame.id !== 'string' || frame.guide === undefined || typeof frame.lateralOrigin !== 'number') {
-    throw new RangeError(`M6.28 runtime package must use a GuideChart coordinate frame: ${runtime.packageId}`);
-  }
-  return runtime as GuideChartRuntimePackage;
+  return pointGeometry(id, guideChartToWorld(successor.chart, successor.finishS, 0), ROAD_HALF_WIDTH);
 }

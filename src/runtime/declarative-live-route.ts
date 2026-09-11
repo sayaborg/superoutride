@@ -159,3 +159,17 @@ function gateBase(source: DeclarativeGateGeometry): RouteBoundaryGateAuthoringBa
     halfWidth: source.halfWidth,
   };
 }
+
+/** Snapshot a physical point as immutable declarative gate geometry. */
+export function pointGeometry(
+  id: string,
+  point: { readonly x: number; readonly z: number; readonly heading: number },
+  halfWidth: number,
+): DeclarativeGateGeometry {
+  return Object.freeze({
+    id,
+    center: Object.freeze({ x: point.x, z: point.z }),
+    heading: point.heading,
+    halfWidth,
+  });
+}

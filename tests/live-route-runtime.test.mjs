@@ -1,36 +1,21 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+
 import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
+
 import { compileLiveRouteRuntimeAssembly } from '../dist/runtime/live-route-runtime.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { VisualProfile } from '../dist/visual/visual-profile.js';
 
 function setup() {
   const guide = createM2StadiumGuide();
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const heightProfile = createM3DebugHeightProfile(guide.length);
-  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
-  const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
-  const groundProfile = {
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    roadMarkings: CENTER_DASH_MARKINGS,
-    junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
-    logical: compiled.groundMap,
-  };
+  const { heightProfile, surfaceMap, visualProfile, groundProfile } = parentShared(guide);
+
   const terrainProfile = {
     screenHeight: 240,
     dMin: 2.5,

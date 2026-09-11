@@ -1,34 +1,34 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
 
-import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
-import { compileSurfaceRegions } from '../dist/compiler/surface-region-compiler.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createTestCar } from './helpers/vehicle-fixture.mjs';
-import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { renderDriving } from '../dist/render/renderer.js';
-import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/render/sprite.js';
-import { SoftwareSurface } from '../dist/render/software-surface.js';
-import { BakedGroundMapAsset } from '../dist/visual/baked-ground-map.js';
-import { createFarBackground } from '../dist/visual/far-background.js';
+import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
 import {
   createTunnelPresentation,
   createTunnelWorldSprites,
+  selectTunnelBackground,
   TUNNEL_ENTRY_S,
   TUNNEL_EXIT_S,
-  selectTunnelBackground,
 } from '../dist/dev/tunnel.js';
+import { SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/graphics/sprite.js';
+import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
+import { SurfaceMap } from '../dist/physics/surface-map.js';
+import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
+import { renderDriving } from '../dist/render/renderer.js';
+import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
+import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const deg = (value) => (value * Math.PI) / 180;
 const guide = createM2StadiumGuide();
