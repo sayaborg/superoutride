@@ -69,4 +69,4 @@ Next work can add visual assets, sound and game flow above these contracts. Read
 
 ## Concrete visual content
 
-The [tunnel fixture](../src/dev/courses/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.
+The [tunnel content](../src/dev/courses/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.

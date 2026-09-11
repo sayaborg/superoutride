@@ -91,7 +91,7 @@ w = sqrt(g/qStatic)
 
 The acceleration uses the same force/moment, wheel reaction and current angular motion as integration. Drive checks front support and brake checks rear support only when an opposite loaded station exists. It does not attach an airborne vehicle to a crest or VOID.
 
-Try requested torque; if infeasible, try zero. If zero is feasible, 12 bounded bisections retain a feasible sampled lower endpoint and an infeasible upper endpoint. The algorithm does not establish that unsampled torques between zero and the retained candidate are feasible, nor global monotonicity or optimality. This explicitly corrects the former “connected to release” claim without changing the delivered-torque algorithm. If even zero is infeasible, deliver zero pedal torque and report `supportFeasible=false`. Gravity/inertia/contact still act. This local-plane constraint is not a proof of stability over arbitrary changing terrain.
+Try requested torque; if infeasible, try zero. If zero is feasible, 12 bounded bisections retain a feasible sampled lower endpoint and an infeasible upper endpoint. The algorithm does not establish that unsampled torques between zero and the retained candidate are feasible, nor global monotonicity or optimality. If even zero is infeasible, deliver zero pedal torque and report `supportFeasible=false`. Gravity/inertia/contact still act. This local-plane constraint is not a proof of stability over arbitrary changing terrain.
 
 ## Input, automatic steering and limiter
 

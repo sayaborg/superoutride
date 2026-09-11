@@ -124,12 +124,16 @@ test('all maintained Markdown has valid UTF-8 and existing local link targets', 
   assert.deepEqual(missing, []);
 });
 
-test('every entry points directly to the sole current restart checkpoint', async () => {
-  for (const entry of ['AGENTS.md', 'README.md', 'docs/README.md']) {
+test('entry documents use the sole specification index and its current restart checkpoint', async () => {
+  const index = path.join(repositoryRoot, 'docs/README.md');
+  for (const entry of ['AGENTS.md', 'README.md']) {
     const source = await readFile(path.join(repositoryRoot, entry), 'utf8');
     const targets = documentReferences(source).map((ref) => path.resolve(repositoryRoot, path.dirname(entry), ref));
-    assert.ok(targets.includes(path.join(repositoryRoot, currentHandoff)), `${entry} lacks restart link`);
+    assert.ok(targets.includes(index), `${entry} lacks specification index`);
   }
+  const indexSource = await readFile(index, 'utf8');
+  const targets = documentReferences(indexSource).map((ref) => path.resolve(path.dirname(index), ref));
+  assert.ok(targets.includes(path.join(repositoryRoot, currentHandoff)), 'index lacks current checkpoint');
   const source = await readFile(path.join(repositoryRoot, currentHandoff), 'utf8');
   assert.match(source, /DEV_UNCALIBRATED/);
   assert.doesNotMatch(

@@ -1,6 +1,6 @@
 # Vehicle calibration
 
-Handling remains `DEV_UNCALIBRATED`. The common mechanics/control structure is frozen in [vehicle physics](vehicle-physics.md); the following values are a playtest starting point, not a real-vehicle claim or a completed stability certification.
+These values are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#remaining-limits) owns handling status and acceptance limits; the values are not a real-vehicle claim.
 
 ## Current player settings
 
