@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
 import { pseudoDepth } from '../dist/core/projection.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
@@ -33,7 +33,7 @@ function makePlainVehicle(guide, height, s = 90) {
   };
 }
 
-test('M6.4 camera/renderer/rival presentation no longer import concrete car physics', async () => {
+test('camera/renderer/rival presentation no longer import concrete car physics', async () => {
   const paths = [
     '../src/camera/camera.ts',
     '../src/render/renderer.ts',
@@ -48,9 +48,9 @@ test('M6.4 camera/renderer/rival presentation no longer import concrete car phys
 });
 
 test('plain world-state object can drive camera, rival input, dynamic sprite and renderer without M5CarState', () => {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const visual = createM3DebugVisualProfile(guide.length);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const visual = createCliffVisualProfile(guide.length);
   const vehicle = makePlainVehicle(guide, height);
   const before = structuredClone(vehicle);
 

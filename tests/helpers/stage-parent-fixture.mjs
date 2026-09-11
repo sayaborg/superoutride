@@ -1,17 +1,20 @@
 /** Fixed shared parent content for route regressions, independent of current browser defaults. */
-import { createM3DebugHeightProfile } from '../../dist/dev/m3-debug-height-profile.js';
-import { CENTER_DASH_MARKINGS, createM5DebugSurfaceRegionAuthoring } from '../../dist/dev/m5-surface-authoring.js';
-import { M6_13_JUNCTION } from '../../dist/dev/m6-13-junction.js';
+import { STADIUM_JUNCTION } from '../../dist/dev/courses/stadium-junction.js';
+import {
+  CENTER_DASH_MARKINGS,
+  createStadiumSurfaceRegionAuthoring,
+} from '../../dist/dev/courses/stadium-surface-authoring.js';
+import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { compileSurfaceRegions } from '../../dist/runtime/surface-region-compiler.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 export function parentShared(guide) {
-  const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
-  const heightProfile = createM3DebugHeightProfile(guide.length);
+  const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
+  const heightProfile = createHillDipHeightProfile(guide.length);
   const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
-  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, M6_13_JUNCTION);
+  const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, STADIUM_JUNCTION);
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
@@ -20,7 +23,7 @@ export function parentShared(guide) {
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
+    junction: STADIUM_JUNCTION,
     logical: compiled.groundMap,
   };
   return {

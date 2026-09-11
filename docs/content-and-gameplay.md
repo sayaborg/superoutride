@@ -14,7 +14,7 @@ The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine selectable pr
 
 [Stage authoring](../src/runtime/stage-authoring-compiler.ts) compiles open geometry, height, visuals, GroundMap, surfaces, sprites and background into a [runtime package](../src/runtime/stage-runtime-content.ts). A [road view](../src/course/stage-road-view.ts) describes stage-local lateral/longitudinal presentation. Physical and visual surface views share explicit coordinate transforms but retain independent semantics. Stage environment authoring must specify all four road/ground half-widths; the general compiler supplies no content dimensions. Screen height comes from the fixed logical display metric. Changes of material/visual sections do not split geometry unnecessarily.
 
-`src/dev` holds concrete authored course compositions, focused regression fixtures and read-only telemetry. Fixtures are executable input data, not a second set of engine implementations. Shared [Raster authoring](../src/course/raster-turtle.ts) owns straight/arc subdivision and preserves authored radius provenance; course files own shapes and explicit topology. Focused and multi-step fork fixtures consume the same [second-fork data](../src/dev/second-fork-authoring.ts). [DEV boundary](../src/dev/README.md) explains the allowed dependency direction.
+`src/dev/courses`, `src/dev/fixtures` and `src/dev/diagnostics` separate shipped course composition, focused regression inputs and read-only telemetry. Fixtures are executable input data, not a second set of engine implementations. Shared [Raster authoring](../src/course/raster-turtle.ts) owns straight/arc subdivision and preserves authored radius provenance; course files own shapes and explicit topology. Focused and multi-step fork fixtures consume the same [second-fork data](../src/dev/courses/second-fork-authoring.ts). [DEV boundary](../src/dev/README.md) explains the allowed dependency direction.
 
 General APIs use role-based names. Vehicle creation, updates and recovery consume `VehicleWorld`; camera updates consume its guide/height readers. Rendering consumes a target, scene and options. General runtime composition modules remain separate where they validate distinct contracts: source geometry, environment, continuation overlap, route graph and physical handoff. Module size alone is not a reason to merge those authorities.
 
@@ -45,7 +45,7 @@ Entering a terminal stage is not finishing. A validated physical FINISH is still
 
 [Session configuration](../src/gameplay/session-configuration.ts), [race session](../src/gameplay/race-session.ts) and [run objective](../src/gameplay/run-objective.ts) are the existing extension points for game rules. Avoid placing race-start, scoring, finish or route logic in rendering or vehicle integration.
 
-The current Tsukuba and FISCO authoring lives in [Tsukuba](../src/dev/m9-3-tsukuba-circuit.ts) and [FISCO](../src/dev/m9-6-fisco-circuit.ts). They are functional simplified courses, not survey-grade reconstructions. Source comments identify published dimensions versus simplified connectors. Course selection does not change the common solver.
+The current Tsukuba and FISCO authoring lives in [Tsukuba](../src/dev/courses/tsukuba-circuit.ts) and [FISCO](../src/dev/courses/fisco-circuit.ts). They are functional simplified courses, not survey-grade reconstructions. Source comments identify published dimensions versus simplified connectors. Course selection does not change the common solver.
 
 Circuit visual sections are unfolded into an ordinary `VisualProfile`. Both boundary lists and sampled section starts use window chainage; a second-lap sample must not report a first-lap start.
 
@@ -69,4 +69,4 @@ Next work can add visual assets, sound and game flow above these contracts. Read
 
 ## Concrete visual content
 
-The [tunnel fixture](../src/dev/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.
+The [tunnel fixture](../src/dev/courses/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.

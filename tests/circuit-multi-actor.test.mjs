@@ -1,10 +1,10 @@
-import { M6_54_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-54-circuit-multi-actor.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { SINGLE_RIVAL_CIRCUIT_SESSION } from '../dist/dev/fixtures/single-rival-circuit-mode.js';
 
-import { M6_54_DEV_COURSE_MODE } from '../dist/dev/m6-54-circuit-multi-actor.js';
-import { createM651CircuitLiveRuntime } from '../dist/dev/m6-51-circuit-live-runtime.js';
+import { SINGLE_RIVAL_CIRCUIT_MODE } from '../dist/dev/fixtures/single-rival-circuit-mode.js';
+import { createStadiumCircuitRuntime } from '../dist/dev/fixtures/stadium-circuit.js';
 import {
   createCircuitRaceProgressState,
   resyncCircuitRaceProgress,
@@ -43,16 +43,16 @@ function finishTime(actor) {
   return actor.progress.status === 'FINISHED' ? (actor.session.boundaryTimings.at(-1)?.elapsedSeconds ?? null) : null;
 }
 
-test('M6.54 current CIRCUIT mode compiles one ordinary rival roster entry', () => {
-  assert.equal(M6_54_DEV_COURSE_MODE.routeKind, 'CIRCUIT');
-  assert.equal(M6_54_DEV_COURSE_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
-  assert.equal(M6_54_DEV_COURSE_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
-  assert.equal(M6_54_DEV_SESSION_CONFIGURATION.rivalCount, 1);
-  assert.deepEqual(createRivalRoster(M6_54_DEV_SESSION_CONFIGURATION), [{ actorId: 'RIVAL_01', rivalIndex: 0 }]);
+test('current CIRCUIT mode compiles one ordinary rival roster entry', () => {
+  assert.equal(SINGLE_RIVAL_CIRCUIT_MODE.routeKind, 'CIRCUIT');
+  assert.equal(SINGLE_RIVAL_CIRCUIT_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
+  assert.equal(SINGLE_RIVAL_CIRCUIT_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
+  assert.equal(SINGLE_RIVAL_CIRCUIT_SESSION.rivalCount, 1);
+  assert.deepEqual(createRivalRoster(SINGLE_RIVAL_CIRCUIT_SESSION), [{ actorId: 'RIVAL_01', rivalIndex: 0 }]);
 });
 
-test('M6.54 two actors independently validate every circuit boundary and retain finish order', () => {
-  const live = createM651CircuitLiveRuntime();
+test('two actors independently validate every circuit boundary and retain finish order', () => {
+  const live = createStadiumCircuitRuntime();
   const { raceRules } = live;
   const player = createActor(raceRules, 'PLAYER', { x: 0, z: 0, sWindow: 45 });
   const rival = createActor(raceRules, 'RIVAL_01', { x: 0, z: 0, sWindow: 95 });
@@ -128,9 +128,9 @@ test('M6.54 two actors independently validate every circuit boundary and retain 
   );
 });
 
-test('M6.54 CIRCUIT browser preserves actor race progress and Painter under the current HUD', async () => {
+test('CIRCUIT browser preserves actor race progress and Painter under the current HUD', async () => {
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
-  const mode = await readFile(new URL('../src/dev/m6-54-circuit-multi-actor.ts', import.meta.url), 'utf8');
+  const mode = await readFile(new URL('../src/dev/fixtures/single-rival-circuit-mode.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
   assert.match(source, /createRivalRoster\(selectedCircuit\.session\)/);

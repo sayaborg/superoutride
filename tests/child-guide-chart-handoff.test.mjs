@@ -1,18 +1,18 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { guideChartToWorld, handoffGuideChart, locateWorldOnGuideChartGlobal } from '../dist/gameplay/guide-chart.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-test('M6.16 child charts put l=0 on the two separated visible road centers', () => {
-  const guide = createM2StadiumGuide();
-  const charts = createM616ChildGuideCharts(guide);
+test('child charts put l=0 on the two separated visible road centers', () => {
+  const guide = createStadiumGuide();
+  const charts = createChildGuideCharts(guide);
   assert.equal(charts.parent.lateralOrigin, 0);
   assert.equal(charts.left.lateralOrigin, -7.5);
   assert.equal(charts.right.lateralOrigin, 7.5);
@@ -31,8 +31,8 @@ test('M6.16 child charts put l=0 on the two separated visible road centers', () 
 });
 
 test('handoff changes road coordinates only: world pose and motion remain byte-for-byte untouched', () => {
-  const guide = createM2StadiumGuide();
-  const charts = createM616ChildGuideCharts(guide);
+  const guide = createStadiumGuide();
+  const charts = createChildGuideCharts(guide);
   const road = guidePathToWorld(guide, 570, -7.5);
   const vehicle = {
     x: road.x,
@@ -56,8 +56,8 @@ test('handoff changes road coordinates only: world pose and motion remain byte-f
 });
 
 test('child chart preserves signed lateral freedom around its own road center', () => {
-  const guide = createM2StadiumGuide();
-  const charts = createM616ChildGuideCharts(guide);
+  const guide = createStadiumGuide();
+  const charts = createChildGuideCharts(guide);
   for (const [chart, parentOrigin] of [
     [charts.left, -7.5],
     [charts.right, 7.5],
@@ -76,7 +76,7 @@ test('child chart preserves signed lateral freedom around its own road center', 
 
 test('Guide chart handoff remains gameplay/core coordinate logic with no renderer or vehicle-physics dependency', async () => {
   const { readFile } = await import('node:fs/promises');
-  for (const path of ['../src/gameplay/guide-chart.ts', '../src/dev/m6-16-child-guide-charts.ts']) {
+  for (const path of ['../src/gameplay/guide-chart.ts', '../src/dev/courses/child-guide-charts.ts']) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
     assert.equal(

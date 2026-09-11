@@ -1,14 +1,14 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-identity.js';
-import { createM624ChildStageAuthoring } from '../dist/dev/m6-24-stage-authoring.js';
-import { createM630ThirdLiveSuccessorAuthoring } from '../dist/dev/m6-30-third-live-successor.js';
+import { createChildVisualIdentity } from '../dist/dev/courses/child-backgrounds.js';
+import { createChildStageAuthoring } from '../dist/dev/courses/child-stage-authoring.js';
+import { createThirdLiveSuccessorAuthoring } from '../dist/dev/courses/third-successor-route.js';
 
 import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 
@@ -55,10 +55,10 @@ function branch(label, side, deformationDirection) {
 }
 
 function fixture() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const assets = createSpriteAssets();
-  const upstream = createM630ThirdLiveSuccessorAuthoring(guide, parentShared(guide), assets);
-  const authored = createM624ChildStageAuthoring(assets, createM621ChildVisualIdentity());
+  const upstream = createThirdLiveSuccessorAuthoring(guide, parentShared(guide), assets);
+  const authored = createChildStageAuthoring(assets, createChildVisualIdentity());
   const oldTerminal = upstream.stages.find((stage) => stage.id === 'GOAL_L');
   assert.ok(oldTerminal);
   const branches = [branch('A', 'LEFT', -1), branch('B', 'RIGHT', 1)];
@@ -99,7 +99,7 @@ function fixture() {
   return { guide, assets, upstream, source, branches, oldTerminal };
 }
 
-test('M6.36 generic compiler promotes one terminal and derives a two-child route fragment', () => {
+test('generic compiler promotes one terminal and derives a two-child route fragment', () => {
   const { source } = fixture();
   const compiled = compileRasterForkStageRoute(source);
   const ids = compiled.authoring.stages.map((stage) => stage.id);
@@ -128,7 +128,7 @@ test('M6.36 generic compiler promotes one terminal and derives a two-child route
   assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, 3);
 });
 
-test('M6.36 derives child centers and gate width from the stage-local junction authority', () => {
+test('derives child centers and gate width from the stage-local junction authority', () => {
   const { source } = fixture();
   const compiled = compileRasterForkStageRoute(source);
   assert.equal(compiled.junction.requiredGroundHalfWidth, 12);
@@ -150,7 +150,7 @@ test('M6.36 derives child centers and gate width from the stage-local junction a
   }
 });
 
-test('M6.36 fork links preserve source child-center coordinates and target local l=0 across D_cam overlap', () => {
+test('fork links preserve source child-center coordinates and target local l=0 across D_cam overlap', () => {
   const { source } = fixture();
   const compiled = compileRasterForkStageRoute(source);
   for (const entry of compiled.branches) {
@@ -164,7 +164,7 @@ test('M6.36 fork links preserve source child-center coordinates and target local
   }
 });
 
-test('M6.36 rejects invalid terminal promotion, duplicate branch side and pre-separation route gate', () => {
+test('rejects invalid terminal promotion, duplicate branch side and pre-separation route gate', () => {
   const { source } = fixture();
   const nonTerminal = {
     ...source,
@@ -192,7 +192,7 @@ test('M6.36 rejects invalid terminal promotion, duplicate branch side and pre-se
   assert.throws(() => compileRasterForkStageRoute({ ...source, routeGateS: 160 }), /fully separated/);
 });
 
-test('M6.36 rejects branch runtime package/chart ownership mismatches before route compilation', () => {
+test('rejects branch runtime package/chart ownership mismatches before route compilation', () => {
   const { source, oldTerminal } = fixture();
   assert.throws(
     () =>
@@ -216,10 +216,10 @@ test('M6.36 rejects branch runtime package/chart ownership mismatches before rou
   );
 });
 
-test('M6.36 keeps generic fork composition route/runtime-only and M6.35 delegates to it', async () => {
+test('keeps generic fork composition route/runtime-only and delegates to it', async () => {
   const [compiler, milestone, main, renderer] = await Promise.all([
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/left-second-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);

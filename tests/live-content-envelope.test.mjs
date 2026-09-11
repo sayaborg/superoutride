@@ -9,14 +9,14 @@ import {
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
-  createM72DefaultBranchingParent,
-  M7_2_DEFAULT_BRANCHING_FORK,
-} from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { createM96FiscoRuntime } from '../dist/dev/m9-6-fisco-circuit.js';
+  BRANCHING_DEFAULT_BRANCHING_FORK,
+  createDefaultBranchingParent,
+} from '../dist/dev/courses/branching-highway.js';
+import { createFiscoRuntime } from '../dist/dev/courses/fisco-circuit.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
+import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
+import { createTsukubaCourse2000Runtime } from '../dist/dev/courses/tsukuba-circuit.js';
 import { validateSurfaceGuideEnvelope } from '../dist/physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { compileCircuitRuntimeWindow } from '../dist/runtime/circuit-runtime-window.js';
@@ -84,15 +84,15 @@ test('shifted chart validation and explicit clamping use the underlying Guide la
 });
 
 test('all shipped courses and every branching successor have strict supported chart margins', () => {
-  const linear = createM83LinearHighwayRuntime();
+  const linear = createLinearHighwayRuntime();
   assert.equal(linear.guide.lMax, 13);
   validateSurfaceGuideEnvelope(linear.guide, linear.surfaceMap);
-  const parent = createM72DefaultBranchingParent();
-  const live = createM638DeclarativeForkGrowthRuntime(
+  const parent = createDefaultBranchingParent();
+  const live = createDeclarativeForkGrowthRuntime(
     parent.guide,
     { ...parent, selectFarBackground: () => createFarBackground(), worldSprites: [] },
     createSpriteAssets(),
-    M7_2_DEFAULT_BRANCHING_FORK,
+    BRANCHING_DEFAULT_BRANCHING_FORK,
   );
   let largest = 0;
   for (const content of live.registry.packages) {
@@ -103,8 +103,8 @@ test('all shipped courses and every branching successor have strict supported ch
   }
   assert.ok(largest > 19.5 && largest < 20, 'second-fork translated support must be included');
   for (const [create, limit] of [
-    [createM93TsukubaCourse2000Runtime, 13],
-    [createM96FiscoRuntime, 18],
+    [createTsukubaCourse2000Runtime, 13],
+    [createFiscoRuntime, 18],
   ]) {
     const { window: w } = create();
     assert.equal(w.guide.lMax, limit);

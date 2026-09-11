@@ -31,32 +31,8 @@ async function pathExists(target) {
   }
 }
 
-// These modules are retained executable regression inputs, not production validators.
-// Keep each exemption named: importing a new general module from a test never makes it live.
-const regressionOnlyModules = new Map([
-  ['src/dev/driving-input-trace.ts', 'Recorded input schedules for causal control regressions'],
-  ['src/dev/m3-debug-height-profile.ts', 'Fixed hill/dip source for renderer and route regressions'],
-  ['src/dev/m3-debug-visual.ts', 'Fixed transparent/cliff visual source'],
-  ['src/dev/m5-debug-surface-map.ts', 'Fixed material transitions for contact tests'],
-  ['src/dev/m6-18-stage-road-views.ts', 'Focused stage-local road projection fixture'],
-  ['src/dev/m6-19-stage-runtime-content.ts', 'Stage registry ownership fixture'],
-  ['src/dev/m6-20-live-runtime-content.ts', 'Focused single-fork registry fixture'],
-  ['src/dev/m6-20-live-point-to-point.ts', 'Focused single-fork route assembly'],
-  ['src/dev/m6-23-child-environment-content.ts', 'Child environment continuation fixture'],
-  ['src/dev/m6-23-live-runtime-content.ts', 'Child environment registry fixture'],
-  ['src/dev/m6-24-live-runtime-content.ts', 'Declarative environment registry fixture'],
-  ['src/dev/m6-28-declarative-live-route.ts', 'Minimal declarative route fixture'],
-  ['src/dev/m6-35-second-live-fork.ts', 'Focused left second-fork fixture'],
-  ['src/dev/m6-37-symmetric-right-second-live-fork.ts', 'Focused right second-fork fixture'],
-  ['src/dev/m6-43-course-mode.ts', 'Route-mode contract fixture'],
-  ['src/dev/m6-51-circuit-live-runtime.ts', 'Stadium finite circuit fixture'],
-  ['src/dev/m6-54-circuit-multi-actor.ts', 'Stadium multi-actor race fixture'],
-  ['src/dev/m6-debug-route-boundary-gates.ts', 'Minimal physical route-gate fixture'],
-  ['src/dev/m6-debug-route-dag.ts', 'Minimal route graph fixture'],
-  ['src/dev/m6-debug-route-stage-content.ts', 'Minimal stage manifest fixture'],
-  ['src/dev/m9-1-low-mid-speed-mountain-circuit.ts', 'Fixed mountain handling acceptance course'],
-  ['src/dev/vehicle-telemetry.ts', 'Read-only diagnostic telemetry, also used by offline probes'],
-]);
+// Regression/diagnostic modules may be outside production reachability, but must have a consumer.
+const isRegressionSource = (file) => /[\/]src[\/]dev[\/](?:fixtures|diagnostics)[\/]/.test(file);
 
 test('every source module is reachable from a composition/build/tool entry or an explicit regression fixture', async () => {
   const sourceFiles = await collectFiles(sourceRoot, ['.ts']);
@@ -100,16 +76,19 @@ test('every source module is reachable from a composition/build/tool entry or an
   for (const tool of toolFiles) visit(tool);
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
   assert.deepEqual(
-    unreachable.map((file) => path.relative(repositoryRoot, file)).filter((file) => !regressionOnlyModules.has(file)),
+    unreachable.filter((file) => !isRegressionSource(file)).map((file) => path.relative(repositoryRoot, file)),
     [],
     'unreachable source modules',
   );
-  // Regression exemptions must themselves still exist and have a test or diagnostic consumer.
+  // Test/build consumers must still exercise each fixture and diagnostic.
   for (const file of tests) visit(file);
-  for (const [file, reason] of regressionOnlyModules) {
-    assert.ok(await pathExists(path.join(repositoryRoot, file)), `stale fixture exemption: ${file}`);
-    assert.ok(reason.length > 0);
-    assert.ok(reached.has(path.join(repositoryRoot, file)), `unused exempt fixture: ${file}`);
+  for (const file of sourceFiles.filter(isRegressionSource)) {
+    assert.ok(reached.has(file), `unused regression source: ${path.relative(repositoryRoot, file)}`);
+  }
+  for (const file of sourceFiles.filter((file) => file.includes(`${path.sep}dev${path.sep}courses${path.sep}`))) {
+    for (const dependency of graph.get(file) ?? []) {
+      assert.ok(!isRegressionSource(dependency), `shipped content imports regression source: ${file}`);
+    }
   }
 });
 

@@ -3,33 +3,33 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
+import { BRANCHING_HANDOFF_SEAM_S } from '../dist/dev/courses/branching-highway.js';
 import {
-  createM71HighwayCalibrationLapRaster,
-  createM71HighwayCalibrationRuntime,
-  createM71HighwayGroundProfile,
-  createM71HighwaySurfaceMap,
-  M7_1_AIRBORNE_PROBE_START_S,
-  M7_1_EDGE_MARKING_WIDTH_METERS,
-  M7_1_HIGHWAY_RECOVERY_PROFILE,
-  M7_1_LANE_COUNT,
-  M7_1_LANE_MARKING_WIDTH_METERS,
-  M7_1_LANE_WIDTH_METERS,
-  M7_1_MARKING_DASH_LENGTH_METERS,
-  M7_1_MARKING_GAP_LENGTH_METERS,
-  M7_1_PLAYER_START_L,
-  M7_1_ROAD_HALF_WIDTH_METERS,
-  M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS,
-  M8_4_LOW_SPEED_COMPLEX_COUNT,
-  M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS,
-} from '../dist/dev/m7-1-highway-calibration-course.js';
-import { M7_2_HANDOFF_SEAM_S } from '../dist/dev/m7-2-default-branching-highway.js';
+  createHighwayCalibrationLapRaster,
+  createHighwayCalibrationRuntime,
+  createHighwayGroundProfile,
+  createHighwaySurfaceMap,
+  HIGHWAY_AIRBORNE_PROBE_START_S,
+  HIGHWAY_EDGE_MARKING_WIDTH_METERS,
+  HIGHWAY_HIGHWAY_RECOVERY_PROFILE,
+  HIGHWAY_LANE_COUNT,
+  HIGHWAY_LANE_MARKING_WIDTH_METERS,
+  HIGHWAY_LANE_WIDTH_METERS,
+  HIGHWAY_LOW_SPEED_COMPLEX_COUNT,
+  HIGHWAY_LOW_SPEED_COMPLEX_RADIUS_METERS,
+  HIGHWAY_LOW_SPEED_CONNECTOR_LENGTH_METERS,
+  HIGHWAY_MARKING_DASH_LENGTH_METERS,
+  HIGHWAY_MARKING_GAP_LENGTH_METERS,
+  HIGHWAY_PLAYER_START_L,
+  HIGHWAY_ROAD_HALF_WIDTH_METERS,
+} from '../dist/dev/courses/highway-calibration.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-test('M7.1 calibration lap retains high-speed references and two post-handoff low-speed complexes', () => {
-  const raster = createM71HighwayCalibrationLapRaster();
+test('calibration lap retains high-speed references and two post-handoff low-speed complexes', () => {
+  const raster = createHighwayCalibrationLapRaster();
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const finiteRadii = guide.corners.map((corner) => corner.radius).filter(Number.isFinite);
   const lowSpeedCorners = guide.corners.filter((corner) => corner.radius < 100);
@@ -44,15 +44,15 @@ test('M7.1 calibration lap retains high-speed references and two post-handoff lo
   }, []);
 
   assert.ok(raster.length > 10_000 && raster.length < 10_200, `expected approximately 10.1 km, got ${raster.length}`);
-  assert.equal(M8_0_LOW_SPEED_COMPLEX_RADIUS_METERS, 90);
-  assert.equal(M8_4_LOW_SPEED_COMPLEX_COUNT, 2);
-  assert.equal(M8_4_LOW_SPEED_CONNECTOR_LENGTH_METERS, 200);
+  assert.equal(HIGHWAY_LOW_SPEED_COMPLEX_RADIUS_METERS, 90);
+  assert.equal(HIGHWAY_LOW_SPEED_COMPLEX_COUNT, 2);
+  assert.equal(HIGHWAY_LOW_SPEED_CONNECTOR_LENGTH_METERS, 200);
   assert.ok(Math.min(...finiteRadii) > 89 && Math.min(...finiteRadii) < 91);
   assert.ok(finiteRadii.some((radius) => radius >= 460));
   assert.ok(finiteRadii.some((radius) => radius >= 710));
   assert.ok(lowSpeedCorners.length > 0);
-  assert.equal(lowSpeedSections.length, M8_4_LOW_SPEED_COMPLEX_COUNT);
-  assert.ok(lowSpeedCorners.every((corner) => corner.sVertex > M7_2_HANDOFF_SEAM_S));
+  assert.equal(lowSpeedSections.length, HIGHWAY_LOW_SPEED_COMPLEX_COUNT);
+  assert.ok(lowSpeedCorners.every((corner) => corner.sVertex > BRANCHING_HANDOFF_SEAM_S));
   assert.ok(Math.max(...raster.vertexTurns.map((turn) => Math.abs(turn))) <= (5.000001 * Math.PI) / 180);
   assert.ok(
     raster.vertexTurns.some((turn) => turn > 1e-9),
@@ -72,13 +72,13 @@ test('M7.1 calibration lap retains high-speed references and two post-handoff lo
     assert.ok(targetAt200 > targetAt80 && targetAt80 > targetAtCorner);
     assert.ok(
       Math.abs(impliedBrakingDeceleration - 4) < 0.05,
-      `expected the M9.7 braking envelope, got ${impliedBrakingDeceleration}`,
+      `expected the braking envelope, got ${impliedBrakingDeceleration}`,
     );
   }
 });
 
 test('ordinary rival physics brakes for and clears both low-speed complexes on asphalt', () => {
-  const live = createM71HighwayCalibrationRuntime();
+  const live = createHighwayCalibrationRuntime();
   const lapLength = live.window.topology.lapLength;
   const lowSpeedCorners = live.window.guide.corners.filter(
     (corner) => corner.sVertex < lapLength && corner.radius < 100,
@@ -114,28 +114,28 @@ test('ordinary rival physics brakes for and clears both low-speed complexes on a
   assert.ok(car.course.s >= exitTargetS, `rival stalled at s=${car.course.s}`);
   assert.ok(minimumSpeed < 26, `expected braking below 26 m/s, got ${minimumSpeed}`);
   assert.ok(car.longitudinalSpeed > 40, `expected exit acceleration, got ${car.longitudinalSpeed}`);
-  assert.ok(maximumAbsoluteL < M7_1_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
+  assert.ok(maximumAbsoluteL < HIGHWAY_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
   assert.equal(remainedSupported, true);
 });
 
-test('M7.1 four-lane cross-section owns 3.5 m lanes and matching physical support', () => {
-  assert.equal(M7_1_LANE_COUNT, 4);
-  assert.equal(M7_1_LANE_WIDTH_METERS, 3.5);
-  assert.equal(M7_1_ROAD_HALF_WIDTH_METERS, 7);
+test('four-lane cross-section owns 3.5 m lanes and matching physical support', () => {
+  assert.equal(HIGHWAY_LANE_COUNT, 4);
+  assert.equal(HIGHWAY_LANE_WIDTH_METERS, 3.5);
+  assert.equal(HIGHWAY_ROAD_HALF_WIDTH_METERS, 7);
 
-  const surface = createM71HighwaySurfaceMap(8_000);
+  const surface = createHighwaySurfaceMap(8_000);
   assert.equal(surface.sample(100, -6.99).type, 'ASPHALT');
   assert.equal(surface.sample(100, 6.99).type, 'ASPHALT');
   assert.equal(surface.sample(100, 7.5).type, 'SHOULDER');
   assert.equal(surface.sample(100, 9).type, 'GRASS');
 });
 
-test('M7.1 lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges', () => {
-  const profile = createM71HighwayGroundProfile();
-  assert.equal(M7_1_LANE_MARKING_WIDTH_METERS, 0.15);
-  assert.equal(M7_1_EDGE_MARKING_WIDTH_METERS, 0.2);
-  assert.equal(M7_1_MARKING_DASH_LENGTH_METERS, 8);
-  assert.equal(M7_1_MARKING_GAP_LENGTH_METERS, 12);
+test('lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges', () => {
+  const profile = createHighwayGroundProfile();
+  assert.equal(HIGHWAY_LANE_MARKING_WIDTH_METERS, 0.15);
+  assert.equal(HIGHWAY_EDGE_MARKING_WIDTH_METERS, 0.2);
+  assert.equal(HIGHWAY_MARKING_DASH_LENGTH_METERS, 8);
+  assert.equal(HIGHWAY_MARKING_GAP_LENGTH_METERS, 12);
 
   assert.equal(sampleGroundMap(4, -3.5, profile), GROUND_COLORS.marking);
   assert.notEqual(sampleGroundMap(10, -3.5, profile), GROUND_COLORS.marking);
@@ -145,14 +145,14 @@ test('M7.1 lane paint uses 0.15 m 8+12 dashed separators and 0.20 m solid edges'
   assert.equal(sampleGroundMap(10, 7, profile), GROUND_COLORS.marking);
 });
 
-test('M7.1 opening section stays within the bounded highway envelope at 216 km/h', () => {
-  const live = createM71HighwayCalibrationRuntime();
+test('opening section stays within the bounded highway envelope at 216 km/h', () => {
+  const live = createHighwayCalibrationRuntime();
   const car = createTestCar(
     live.window.guide,
     live.window.height,
     live.window.surface,
-    M7_1_AIRBORNE_PROBE_START_S,
-    M7_1_PLAYER_START_L,
+    HIGHWAY_AIRBORNE_PROBE_START_S,
+    HIGHWAY_PLAYER_START_L,
     60,
   );
 
@@ -185,19 +185,19 @@ test('M7.1 opening section stays within the bounded highway envelope at 216 km/h
   assert.ok(car.course.s > 450, `expected forward progress through opening section, s=${car.course.s}`);
 });
 
-test('M7.1 spawn and ordinary recovery target an authored lane center', () => {
-  const live = createM71HighwayCalibrationRuntime();
-  const car = createTestCar(live.window.guide, live.window.height, live.window.surface, 45, M7_1_PLAYER_START_L);
-  const bike = createTestBike(live.window.guide, live.window.height, live.window.surface, 45, M7_1_PLAYER_START_L);
-  assert.equal(car.course.l, M7_1_PLAYER_START_L);
-  assert.equal(bike.course.l, M7_1_PLAYER_START_L);
+test('spawn and ordinary recovery target an authored lane center', () => {
+  const live = createHighwayCalibrationRuntime();
+  const car = createTestCar(live.window.guide, live.window.height, live.window.surface, 45, HIGHWAY_PLAYER_START_L);
+  const bike = createTestBike(live.window.guide, live.window.height, live.window.surface, 45, HIGHWAY_PLAYER_START_L);
+  assert.equal(car.course.l, HIGHWAY_PLAYER_START_L);
+  assert.equal(bike.course.l, HIGHWAY_PLAYER_START_L);
 
   const recovery = createRecoveryState(car);
   recovery.lastSafeS = 100;
   recoverVehicle({ guide: live.window.guide, height: live.window.height, surfaces: live.window.surface }, car, {
     state: recovery,
     reason: 'manual',
-    profile: M7_1_HIGHWAY_RECOVERY_PROFILE,
+    profile: HIGHWAY_HIGHWAY_RECOVERY_PROFILE,
   });
-  assert.equal(car.course.l, M7_1_PLAYER_START_L);
+  assert.equal(car.course.l, HIGHWAY_PLAYER_START_L);
 });

@@ -12,7 +12,7 @@ import { deriveVehicleLeanRadians } from '../dist/render/vehicle-presentation.js
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();
@@ -27,7 +27,7 @@ test('sustained steering into VOID recovers before the player sprite can disappe
   const recovery = createRecoveryState(car);
   const rig = createCameraRig();
   const assets = createSpriteAssets();
-  const world = createM4DebugWorldSprites(guide, height, assets);
+  const world = createRoadsideSprites(guide, height, assets);
   const background = createFarBackground();
   const target = new SoftwareSurface(320, 240);
   let camera = updateCamera(rig, { guide, height }, car, cameraProfile, 1 / 60);

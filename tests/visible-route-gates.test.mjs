@@ -1,15 +1,15 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
 import {
-  createM615VisibleRouteBoundaryGateSet,
-  M6_15_FINISH_GATE_S,
-  M6_15_ROUTE_GATE_S,
-} from '../dist/dev/m6-15-visible-route-gates.js';
+  createStadiumRouteBoundaryGateSet,
+  STADIUM_FINISH_GATE_S,
+  STADIUM_ROUTE_GATE_S,
+} from '../dist/dev/courses/stadium-route-gates.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 
@@ -39,12 +39,12 @@ function finishForStage(gates, stageId) {
   return gates.gates.find((gate) => gate.kind === 'FINISH' && gate.stageId === stageId);
 }
 
-test('M6.15 visible route gates exactly cover the two separated asphalt child roads', () => {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
-  const gates = createM615VisibleRouteBoundaryGateSet(route, guide);
+test('visible route gates exactly cover the two separated asphalt child roads', () => {
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
+  const gates = createStadiumRouteBoundaryGateSet(route, guide);
 
-  assert.ok(M6_15_ROUTE_GATE_S > M6_13_JUNCTION.authoring.sSeparatedStart);
+  assert.ok(STADIUM_ROUTE_GATE_S > STADIUM_JUNCTION.authoring.sSeparatedStart);
   assert.equal(gates.gates.length, route.choices.length + 4);
 
   for (const [choiceId, side] of [
@@ -53,20 +53,20 @@ test('M6.15 visible route gates exactly cover the two separated asphalt child ro
   ]) {
     const gate = gateForChoice(gates, choiceId);
     assert.ok(gate);
-    const l = M6_13_JUNCTION.separatedChildCenterL(side);
-    const expected = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, l);
+    const l = STADIUM_JUNCTION.separatedChildCenterL(side);
+    const expected = guidePathToWorld(guide, STADIUM_ROUTE_GATE_S, l);
     near(gate.center.x, expected.x);
     near(gate.center.z, expected.z);
     near(gate.heading, expected.heading);
-    near(gate.halfWidth, M6_13_JUNCTION.authoring.childRoadWidth * 0.5);
+    near(gate.halfWidth, STADIUM_JUNCTION.authoring.childRoadWidth * 0.5);
   }
 });
 
 test('physical crossing of the visible left road selects S1_LEFT while the median selects nothing', () => {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
-  const gates = createM615VisibleRouteBoundaryGateSet(route, guide);
+  const gates = createStadiumRouteBoundaryGateSet(route, guide);
   const left = gateForChoice(gates, 'S1_LEFT');
   assert.ok(left);
 
@@ -77,7 +77,7 @@ test('physical crossing of the visible left road selects S1_LEFT while the media
   assert.equal(state.activeStageId, 'STAGE_2_L');
 
   const fresh = createRouteDagState(route);
-  const center = guidePathToWorld(guide, M6_15_ROUTE_GATE_S, 0);
+  const center = guidePathToWorld(guide, STADIUM_ROUTE_GATE_S, 0);
   const medianObserved = observeRouteBoundaryCrossing(
     route,
     fresh,
@@ -90,10 +90,10 @@ test('physical crossing of the visible left road selects S1_LEFT while the media
 });
 
 test('the same physical visible junction can validate the second DEV route stage on the next lap', () => {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
-  const gates = createM615VisibleRouteBoundaryGateSet(route, guide);
+  const gates = createStadiumRouteBoundaryGateSet(route, guide);
 
   const first = gateForChoice(gates, 'S1_LEFT');
   assert.ok(first);
@@ -121,10 +121,10 @@ test('the same physical visible junction can validate the second DEV route stage
 });
 
 test('terminal route completes only at the real single-road physical FINISH gate', () => {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
-  const gates = createM615VisibleRouteBoundaryGateSet(route, guide);
+  const gates = createStadiumRouteBoundaryGateSet(route, guide);
 
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S2L_RIGHT' });
@@ -132,10 +132,10 @@ test('terminal route completes only at the real single-road physical FINISH gate
 
   const finish = finishForStage(gates, 'GOAL_LR');
   assert.ok(finish);
-  const expected = guidePathToWorld(guide, M6_15_FINISH_GATE_S, 0);
+  const expected = guidePathToWorld(guide, STADIUM_FINISH_GATE_S, 0);
   near(finish.center.x, expected.x);
   near(finish.center.z, expected.z);
-  near(finish.halfWidth, M6_13_JUNCTION.authoring.parentRoadWidth * 0.5);
+  near(finish.halfWidth, STADIUM_JUNCTION.authoring.parentRoadWidth * 0.5);
 
   const segment = crossingSegment(finish);
   const observation = observeRouteBoundaryCrossing(route, state, gates, segment.previous, segment.current);
@@ -145,9 +145,9 @@ test('terminal route completes only at the real single-road physical FINISH gate
   assert.equal(state.status, 'FINISHED');
 });
 
-test('M6.15 route-gate authoring imports no renderer, input or vehicle-physics module', async () => {
+test('route-gate authoring imports no renderer, input or vehicle-physics module', async () => {
   const source = await import('node:fs/promises').then(({ readFile }) =>
-    readFile(new URL('../src/dev/m6-15-visible-route-gates.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/stadium-route-gates.ts', import.meta.url), 'utf8'),
   );
   const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
   assert.equal(

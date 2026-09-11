@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('M9.0 has one common solver and no retired vehicle solver import path', async () => {
+test('has one common solver and no retired vehicle solver import path', async () => {
   const common = await readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8');
   const sources = await Promise.all(
     ['src/main-linear.ts', 'src/main.ts', 'src/main-circuit.ts', 'src/gameplay/recovery.ts'].map((path) =>
@@ -59,7 +59,7 @@ test('retired BIKE mechanics and compatibility authority are absent from general
 
 test('BIKE lean is a read-only render adapter with no route contact tire or force authority', async () => {
   const presentation = await readFile(new URL('../src/render/vehicle-presentation.ts', import.meta.url), 'utf8');
-  // M9.28 document123 replaces coordinated-turn inference with observed lateral G.
+  // document123 replaces coordinated-turn inference with observed lateral G.
   assert.match(presentation, /lateralAcceleration/);
   assert.doesNotMatch(presentation, /yawRate|longitudinalSpeed/);
   assert.doesNotMatch(presentation, /contact|tire|force|route|surface|updateArcadeVehicle/i);

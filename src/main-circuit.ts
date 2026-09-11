@@ -9,23 +9,23 @@ import {
   LOGICAL_HEIGHT,
 } from './core/presentation-scale.js';
 import {
-  createM93TsukubaCourse2000Runtime,
-  createM93TsukubaGroundProfile,
-  M9_3_DEV_SESSION_CONFIGURATION,
-  M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
-  M9_3_TSUKUBA_PLAYER_START_L,
-  M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
-  M9_3_TSUKUBA_RIVAL_START_L,
-} from './dev/m9-3-tsukuba-circuit.js';
+  createFiscoGroundProfile,
+  createFiscoRuntime,
+  FISCO_DEV_SESSION_CONFIGURATION,
+  FISCO_PLAYER_RECOVERY_PROFILE,
+  FISCO_PLAYER_START_L,
+  FISCO_RIVAL_RECOVERY_PROFILE,
+  FISCO_RIVAL_START_L,
+} from './dev/courses/fisco-circuit.js';
 import {
-  createM96FiscoGroundProfile,
-  createM96FiscoRuntime,
-  M9_6_FISCO_DEV_SESSION_CONFIGURATION,
-  M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
-  M9_6_FISCO_PLAYER_START_L,
-  M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
-  M9_6_FISCO_RIVAL_START_L,
-} from './dev/m9-6-fisco-circuit.js';
+  createTsukubaCourse2000Runtime,
+  createTsukubaGroundProfile,
+  TSUKUBA_PLAYER_RECOVERY_PROFILE,
+  TSUKUBA_PLAYER_START_L,
+  TSUKUBA_RIVAL_RECOVERY_PROFILE,
+  TSUKUBA_RIVAL_START_L,
+  TSUKUBA_SESSION_CONFIGURATION,
+} from './dev/courses/tsukuba-circuit.js';
 import { createCircuitRaceProgressState, resyncCircuitRaceProgress } from './gameplay/circuit-race-progress.js';
 import { createRaceSessionState } from './gameplay/race-session.js';
 import { createRecoveryState, recoverVehicle } from './gameplay/recovery.js';
@@ -46,22 +46,22 @@ import { createSpriteAssets } from './visual/sprite-assets.js';
 const selectedCourseMode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode'));
 const circuitBuilders = {
   fisco: () => ({
-    session: M9_6_FISCO_DEV_SESSION_CONFIGURATION,
-    playerRecoveryProfile: M9_6_FISCO_PLAYER_RECOVERY_PROFILE,
-    playerStartL: M9_6_FISCO_PLAYER_START_L,
-    rivalRecoveryProfile: M9_6_FISCO_RIVAL_RECOVERY_PROFILE,
-    rivalStartL: M9_6_FISCO_RIVAL_START_L,
-    live: createM96FiscoRuntime(),
-    groundProfile: createM96FiscoGroundProfile(),
+    session: FISCO_DEV_SESSION_CONFIGURATION,
+    playerRecoveryProfile: FISCO_PLAYER_RECOVERY_PROFILE,
+    playerStartL: FISCO_PLAYER_START_L,
+    rivalRecoveryProfile: FISCO_RIVAL_RECOVERY_PROFILE,
+    rivalStartL: FISCO_RIVAL_START_L,
+    live: createFiscoRuntime(),
+    groundProfile: createFiscoGroundProfile(),
   }),
   circuit: () => ({
-    session: M9_3_DEV_SESSION_CONFIGURATION,
-    playerRecoveryProfile: M9_3_TSUKUBA_PLAYER_RECOVERY_PROFILE,
-    playerStartL: M9_3_TSUKUBA_PLAYER_START_L,
-    rivalRecoveryProfile: M9_3_TSUKUBA_RIVAL_RECOVERY_PROFILE,
-    rivalStartL: M9_3_TSUKUBA_RIVAL_START_L,
-    live: createM93TsukubaCourse2000Runtime(),
-    groundProfile: createM93TsukubaGroundProfile(),
+    session: TSUKUBA_SESSION_CONFIGURATION,
+    playerRecoveryProfile: TSUKUBA_PLAYER_RECOVERY_PROFILE,
+    playerStartL: TSUKUBA_PLAYER_START_L,
+    rivalRecoveryProfile: TSUKUBA_RIVAL_RECOVERY_PROFILE,
+    rivalStartL: TSUKUBA_RIVAL_START_L,
+    live: createTsukubaCourse2000Runtime(),
+    groundProfile: createTsukubaGroundProfile(),
   }),
 };
 const buildCircuit = Object.hasOwn(circuitBuilders, selectedCourseMode.query)

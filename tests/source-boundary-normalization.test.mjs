@@ -26,13 +26,13 @@ const retiredAuthorityPaths = [
 
 const currentAuthorityPaths = [
   'src/camera/camera.ts',
-  'src/dev/debug-course.ts',
-  'src/dev/m3-debug-height-profile.ts',
-  'src/dev/m3-debug-visual.ts',
-  'src/dev/m4-debug-world.ts',
-  'src/dev/m6-debug-route-boundary-gates.ts',
-  'src/dev/m6-debug-route-dag.ts',
-  'src/dev/m6-debug-route-stage-content.ts',
+  'src/dev/fixtures/raster-courses.ts',
+  'src/dev/fixtures/hill-dip-height.ts',
+  'src/dev/fixtures/cliff-visual.ts',
+  'src/dev/courses/roadside-scenery.ts',
+  'src/dev/fixtures/minimal-route-gates.ts',
+  'src/dev/fixtures/minimal-route-dag.ts',
+  'src/dev/fixtures/minimal-stage-manifest.ts',
 ];
 
 async function collectTypeScriptFiles(directory) {
@@ -102,16 +102,21 @@ test('source-boundary authority paths have no compatibility shims', async () => 
   }
 });
 
-test('milestone DEV fixture factories stay under src/dev', async () => {
-  const violations = [];
-  for (const sourceFile of await collectTypeScriptFiles(srcRoot)) {
-    if (sourceFile.startsWith(`${devRoot}${path.sep}`)) continue;
-    const source = await readFile(sourceFile, 'utf8');
-    if (/\bexport\s+function\s+createM\d+Debug\w*/.test(source)) {
-      violations.push(path.relative(repositoryRoot, sourceFile));
-    }
+test('DEV and test-helper file names describe content without milestone identifiers', async () => {
+  const files = [
+    ...(await collectTypeScriptFiles(devRoot)),
+    ...(await readdir(path.join(repositoryRoot, 'tests/helpers'))).map((file) =>
+      path.join(repositoryRoot, 'tests/helpers', file),
+    ),
+  ];
+  for (const file of files) {
+    assert.doesNotMatch(path.basename(file), /^m\d+(?:-\d+)?-/i);
+    if (!file.startsWith(devRoot)) continue;
+    const relative = path.relative(devRoot, file);
+    assert.match(relative, /^(?:courses|fixtures|diagnostics)[\/]/, relative);
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(source, /\bM[0-9]+(?:[._][0-9]+)?\b|\b(?:[a-z]+)?M[0-9]+[A-Z_]/, relative);
   }
-  assert.deepEqual(violations.sort(), []);
 });
 
 test('source modules do not revive retired authorities as pure re-export shims', async () => {

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import { SURFACE_MATERIALS } from '../dist/physics/surface-map.js';
 import { radialC1Magnitude, usefulLateralCapacity } from '../dist/physics/tire-wheel.js';
 import {
@@ -14,7 +14,7 @@ import {
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
 
-test('M8.0 SurfaceMap owns relative grip while tire profiles own reference friction', () => {
+test('SurfaceMap owns relative grip while tire profiles own reference friction', () => {
   assert.equal(SURFACE_MATERIALS.ASPHALT.gripFactor, 1.0);
   assert.equal(SURFACE_MATERIALS.SHOULDER.gripFactor, 0.78);
   assert.equal(SURFACE_MATERIALS.GRASS.gripFactor, 0.43);
@@ -30,7 +30,7 @@ test('M8.0 SurfaceMap owns relative grip while tire profiles own reference frict
   assert.equal('driveScale' in SURFACE_MATERIALS.ASPHALT, false);
 });
 
-test('M9.9 axle-neutral tire still keeps useful linear capacity inside the shared one-k radial knee', () => {
+test('axle-neutral tire still keeps useful linear capacity inside the shared one-k radial knee', () => {
   assert.equal(
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire.kY,
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.rearStation.tire.kY,
@@ -55,7 +55,7 @@ test('M9.9 axle-neutral tire still keeps useful linear capacity inside the share
   );
 });
 
-test('M9.9 common preset-1 tire keeps one broad symmetric transition shoulder', () => {
+test('common preset-1 tire keeps one broad symmetric transition shoulder', () => {
   const pureLateralAngles = (normalizedStiffness) => ({
     linearEnd:
       (Math.atan(
@@ -94,8 +94,8 @@ test('M9.9 common preset-1 tire keeps one broad symmetric transition shoulder', 
   assert.equal(radialC1Magnitude(20, FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire.rhoKnee), 1);
 });
 
-test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {
-  const parent = createM72DefaultBranchingParent();
+test('one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {
+  const parent = createDefaultBranchingParent();
   const flatHeight = new HeightProfile(parent.guide.length, [
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
@@ -124,7 +124,7 @@ test('M7.3 one 100 ms digital steering tap remains inside the first paved lane-c
 });
 
 test('shared compact HUD names speed RPM and selected gear', () => {
-  const parent = createM72DefaultBranchingParent();
+  const parent = createDefaultBranchingParent();
   const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, -1.75);
   car.powertrain.engineRpm = 4321;
   car.powertrain.gear = 4;

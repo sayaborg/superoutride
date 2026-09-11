@@ -5,8 +5,8 @@ import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinat
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { createM96FiscoRuntime } from '../dist/dev/m9-6-fisco-circuit.js';
+import { createFiscoRuntime } from '../dist/dev/courses/fisco-circuit.js';
+import { createTsukubaCourse2000Runtime } from '../dist/dev/courses/tsukuba-circuit.js';
 import {
   createCircuitRaceProgressState,
   resyncCircuitRaceProgress,
@@ -20,8 +20,8 @@ import { initializeGuideObservation } from '../dist/physics/vehicle-dynamics.js'
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 for (const [name, createRuntime] of [
-  ['Tsukuba', createM93TsukubaCourse2000Runtime],
-  ['FISCO', createM96FiscoRuntime],
+  ['Tsukuba', createTsukubaCourse2000Runtime],
+  ['FISCO', createFiscoRuntime],
 ]) {
   test(`${name}: physical second lap survives recovery and vehicle replacement`, () => {
     const { window: w, raceRules } = createRuntime();

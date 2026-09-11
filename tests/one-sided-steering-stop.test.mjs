@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { limitSteeringInput as limit } from '../dist/physics/steering-input-limiter.js';
+import test from 'node:test';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
+import { limitSteeringInput as limit } from '../dist/physics/steering-input-limiter.js';
+import { compileTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
 import { deriveContactObservation, reorientContactObservation } from '../dist/physics/vehicle-dynamics.js';
 import { createFlatProbe } from '../tools/drift-control-probe.mjs';
-import { compileTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
-// Fixed 8% geometry fixture; M9.29 browser onset is separately exercised by integration.
+// Fixed 8% geometry fixture; browser onset is separately exercised by integration.
 const rad = Math.PI / 180,
   p = createFlatProbe({ initialSpeed: 30 }),
   tire = compileTireCharacteristics({ gripX: 4, peakSlipX: 0.08, gripY: 2.5, peakSlipY: 0.08, knee: 0.74 });
@@ -51,7 +51,7 @@ function excess(body, c, angle) {
   );
 }
 
-test('M9.27 ordinary stop retains small input, approaches onset conservatively and passes flat standstill', () => {
+test('ordinary stop retains small input, approaches onset conservatively and passes flat standstill', () => {
   for (const speed of [0, 0.001, 1, 30])
     for (const sign of [-1, 1]) {
       const { body, c } = fixture(speed),
@@ -71,7 +71,7 @@ test('M9.27 ordinary stop retains small input, approaches onset conservatively a
   const slip = Math.abs(f.lateralVelocity) / Math.hypot(f.longitudinalVelocity, c.profile.tire.lowSpeedRegularization);
   assert.ok(slip > 0.079 && slip < 0.08);
 });
-test('M9.27 outside baseline stops farther input, passes partial correction, and stops before opposite excess', () => {
+test('outside baseline stops farther input, passes partial correction, and stops before opposite excess', () => {
   for (const sign of [-1, 1]) {
     const { body, c } = fixture(),
       b = sign * 6 * rad;
@@ -83,7 +83,7 @@ test('M9.27 outside baseline stops farther input, passes partial correction, and
     assert.ok(Math.abs(b + e) < Math.atan(0.08) + 1e-4);
   }
 });
-test('M9.27 former 0-to-20-degree tangent release is continuous and does not inflate onset', () => {
+test('former 0-to-20-degree tangent release is continuous and does not inflate onset', () => {
   const values = [];
   for (const beta of [-129.99, -129.9999, -130, -130.0001, -130.01]) {
     const { body, c } = fixture(30, beta * rad);
@@ -93,7 +93,7 @@ test('M9.27 former 0-to-20-degree tangent release is continuous and does not inf
   }
   assert.ok(Math.max(...values) - Math.min(...values) < 0.011 * rad);
 });
-test('M9.27 exact physical excess respects the quadratic certificate through signed tilted correction paths', () => {
+test('exact physical excess respects the quadratic certificate through signed tilted correction paths', () => {
   let seed = 20260910;
   const rng = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32;
   let inside = 0,
@@ -146,7 +146,7 @@ test('M9.27 exact physical excess respects the quadratic certificate through sig
   }
   assert.ok(inside > 10 && outside > 10 && noZero > 10);
 });
-test('M9.27 absent physical contact retains existing bypass, without a new surface or force observation', () => {
+test('absent physical contact retains existing bypass, without a new surface or force observation', () => {
   const { body, c } = fixture();
   for (const x of [
     { ...c, forceTransmitting: false },
@@ -156,7 +156,7 @@ test('M9.27 absent physical contact retains existing bypass, without a new surfa
   ])
     assert.equal(limit(0.1, 0.2, body, x, tire), 0.2);
 });
-test('M9.27 one fixed onset and one quadratic replace baseline inflation and angular root selection', async () => {
+test('one fixed onset and one quadratic replace baseline inflation and angular root selection', async () => {
   const src = await readFile(new URL('../src/physics/steering-input-limiter.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(
     src,
@@ -165,7 +165,7 @@ test('M9.27 one fixed onset and one quadratic replace baseline inflation and ang
   assert.match(src, /Math\.sqrt\(Math\.max\(0, center \* center - value \/ \(2 \* radius\)\)\)/);
 });
 
-test('M9.27 ordinary high-speed brake replay removes the old rate-independent 20-degree input release', async () => {
+test('ordinary high-speed brake replay removes the old rate-independent 20-degree input release', async () => {
   const { createTerrainProbe } = await import('../tools/torque-protection-terrain-probe.mjs');
   const { STEERING_STOP_CASES, runSteeringStopCase } = await import('../tools/steering-input-stop-probe.mjs');
   const { VEHICLE_CATALOG } = await import('../dist/vehicle/vehicle-catalog.js');
@@ -181,5 +181,5 @@ test('M9.27 ordinary high-speed brake replay removes the old rate-independent 20
     steps.push(result.maxInputStepDeg);
   }
   assert.ok(steps[1] < steps[0] * 0.6 && steps[2] < steps[1] * 0.6);
-  assert.ok(steps[2] < 1); // M9.26 retained20 degrees at every one of these three step rates.
+  assert.ok(steps[2] < 1); // retained20 degrees at every one of these three step rates.
 });

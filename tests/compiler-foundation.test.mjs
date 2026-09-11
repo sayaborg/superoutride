@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createSpriteAsset } from '../dist/graphics/sprite.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../dist/physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 
-const guide = createM2StadiumGuide();
-const authored = createM5DebugSurfaceRegionAuthoring(guide.length);
+const guide = createStadiumGuide();
+const authored = createStadiumSurfaceRegionAuthoring(guide.length);
 const compiled = compileSurfaceRegions(guide.length, authored);
 
 test('Surface Region authoring compiles and coalesces independent runtime profiles', () => {

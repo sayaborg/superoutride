@@ -1,8 +1,8 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-test('M6.20 validated point-to-point finish records result without freezing the live simulation loop', async () => {
+test('validated point-to-point finish records result without freezing the live simulation loop', async () => {
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 
   assert.match(source, /updateRunObjectiveFromValidatedFinish/);

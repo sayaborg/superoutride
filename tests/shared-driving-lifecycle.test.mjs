@@ -1,32 +1,32 @@
-import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parentShared } from './helpers/stage-parent-fixture.mjs';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
-import { createRecoveryState, RECOVERY_PROFILE } from '../dist/gameplay/recovery.js';
+import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
+import { guidePathToWorld } from '../dist/core/guide-curve.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
+import { createTsukubaCourse2000Runtime } from '../dist/dev/courses/tsukuba-circuit.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { createCircuitRaceProgressState, resyncCircuitRaceProgress } from '../dist/gameplay/circuit-race-progress.js';
 import {
   createFieldRouteProgressState,
   fieldRouteProgressTravelerView,
 } from '../dist/gameplay/field-route-progress.js';
-import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
-import { createCircuitRaceProgressState, resyncCircuitRaceProgress } from '../dist/gameplay/circuit-race-progress.js';
 import { createRaceSessionState } from '../dist/gameplay/race-session.js';
+import { createRecoveryState, RECOVERY_PROFILE } from '../dist/gameplay/recovery.js';
+import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
+import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { advanceCircuitDrivingActor } from '../dist/runtime/circuit-driving-tick.js';
 import { createLiveRouteTravelerState } from '../dist/runtime/live-route-traveler.js';
 import { advanceRouteDrivingTick } from '../dist/runtime/route-driving-tick.js';
-import { advanceCircuitDrivingActor } from '../dist/runtime/circuit-driving-tick.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
+import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
+import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 const neutral = { steering: 0, throttle: 0, brake: 0 };
 
 test('one route lifecycle treats arbitrary actor IDs equally and preserves validated progress through recovery', () => {
-  const guide = createM2StadiumGuide(),
+  const guide = createStadiumGuide(),
     parent = parentShared(guide);
-  const live = createM638DeclarativeForkGrowthRuntime(guide, parent, createSpriteAssets());
+  const live = createDeclarativeForkGrowthRuntime(guide, parent, createSpriteAssets());
   const world = { guide, height: parent.heightProfile, surfaces: parent.surfaceMap };
   const gate =
     live.gates.gates.find((g) => g.kind === 'TRANSITION' && g.fromStageId === live.route.startStageId) ??
@@ -97,7 +97,7 @@ test('one route lifecycle treats arbitrary actor IDs equally and preserves valid
 });
 
 test('common circuit actor recovery resyncs observations without awarding FINISH or restarting its session', () => {
-  const { window: w, raceRules: rules } = createM93TsukubaCourse2000Runtime();
+  const { window: w, raceRules: rules } = createTsukubaCourse2000Runtime();
   const world = { guide: w.guide, height: w.height, surfaces: w.surface };
   const vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, world, {
     s: rules.lapLength + 100,
@@ -121,9 +121,9 @@ test('common circuit actor recovery resyncs observations without awarding FINISH
 });
 
 test('wrong-branch recovery honors the actor profile without awarding route progress', () => {
-  const guide = createM2StadiumGuide(),
+  const guide = createStadiumGuide(),
     parent = parentShared(guide);
-  const live = createM638DeclarativeForkGrowthRuntime(guide, parent, createSpriteAssets());
+  const live = createDeclarativeForkGrowthRuntime(guide, parent, createSpriteAssets());
   const world = { guide, height: parent.heightProfile, surfaces: parent.surfaceMap };
   const gates = ['S1_LEFT', 'S1_RIGHT'].map((id) => live.gates.gates.find((g) => g.choiceId === id));
   const actors = gates.map((gate, index) => {

@@ -1,25 +1,25 @@
-import { M9_28_STEERING_REFERENCE } from './helpers/m9-28-steering-reference.mjs';
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import {
-  createFlatProbe,
-  forkProbe,
-  runProbe,
-  directInput,
-  cycleInput,
-  researchCycleInput,
-  summarizeWindow,
-  runThrottleSweep,
-} from '../tools/drift-control-probe.mjs';
+import test from 'node:test';
+import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
 } from '../dist/physics/tire-friction-calibration.js';
-import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
+import {
+  createFlatProbe,
+  cycleInput,
+  directInput,
+  forkProbe,
+  researchCycleInput,
+  runProbe,
+  runThrottleSweep,
+  summarizeWindow,
+} from '../tools/drift-control-probe.mjs';
+import { withEngineCurveScale } from './helpers/authored-engine.mjs';
+import { STEERING_REFERENCE } from './helpers/steering-reference.mjs';
 const c = (values) => createArcadeTireFrictionCalibration(compileTireCharacteristics(values));
 const research = c({ gripX: 0.75, peakSlipX: 0.02, gripY: 3, peakSlipY: 0.08, knee: 0.74 });
 function runReference(hz, direction, calibration = research) {
@@ -28,11 +28,11 @@ function runReference(hz, direction, calibration = research) {
     calibration,
     initialSpeed: 200 / 3.6,
   });
-  p.vehicle.steeringCalibration = structuredClone(M9_28_STEERING_REFERENCE);
+  p.vehicle.steeringCalibration = structuredClone(STEERING_REFERENCE);
   return runProbe(p, 44, (t) => researchCycleInput(t, direction), { hz });
 }
 for (const hz of [60, 120, 240])
-  test(`M9.20 no-TCS research reference at ${hz}Hz enters, traverses and exits in both directions`, () => {
+  test(`no-TCS research reference at ${hz}Hz enters, traverses and exits in both directions`, () => {
     for (const sign of [-1, 1]) {
       const t = runReference(hz, sign);
       assert.equal(t.brakeTicks, 0);
@@ -53,12 +53,12 @@ for (const hz of [60, 120, 240])
       assert.ok(t.rows.every((r) => r.deliveredDriveTorque === r.requestedDriveTorque));
     }
   });
-test('M9.20 research default-control comparison is not mistaken for a browser drift guarantee', () => {
+test('research default-control comparison is not mistaken for a browser drift guarantee', () => {
   const equal = c({ gripX: 3, peakSlipX: 0.08, gripY: 3, peakSlipY: 0.08, knee: 0.74 });
   const t = runReference(60, 1, equal);
   assert.ok(t.maxAbsBeta < 4);
 });
-test('M9.20 transient diagnostics are deterministic and preserve finite physical observations', () => {
+test('transient diagnostics are deterministic and preserve finite physical observations', () => {
   const a = runProbe(createFlatProbe(), 13, (t) => cycleInput(t));
   const b = runProbe(createFlatProbe(), 13, (t) => cycleInput(t));
   assert.deepEqual(a, b);
@@ -70,7 +70,7 @@ test('M9.20 transient diagnostics are deterministic and preserve finite physical
   assert.ok(a.rows.every((r) => r.slipPower >= -1e-8 && r.requestedDriveTorque === r.deliveredDriveTorque));
   assert.ok(a.rows.at(-1).speed === a.exitSpeed);
 });
-test('M9.20 up/down sweep retains history and per-window ranges rather than claiming equilibria', () => {
+test('up/down sweep retains history and per-window ranges rather than claiming equilibria', () => {
   const p = createFlatProbe({ initialSpeed: 30 });
   const s = runThrottleSweep(p, { levels: [0.1, 0.3, 0.5], dwell: 1 });
   assert.deepEqual(
@@ -84,7 +84,7 @@ test('M9.20 up/down sweep retains history and per-window ranges rather than clai
     assert.equal(x.metrics.brakeTicks, 0);
   }
 });
-test('M9.20 comparison forks copy normally reached state without mutable calibration sharing', () => {
+test('comparison forks copy normally reached state without mutable calibration sharing', () => {
   const p = createFlatProbe();
   runProbe(p, 1, () => directInput(0.2, 0.3));
   const q = forkProbe(p);
@@ -95,7 +95,7 @@ test('M9.20 comparison forks copy normally reached state without mutable calibra
   runProbe(q, 0.2, () => directInput(-0.4, 0.5));
   assert.equal(p.vehicle.velocityX, before);
 });
-test('M9.20 unprotected five-axis baseline remains finite for all nine profiles through input and recovery', () => {
+test('unprotected five-axis baseline remains finite for all nine profiles through input and recovery', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     const p = createFlatProbe({ profile, initialSpeed: 30 });
     const v = p.vehicle,
@@ -112,7 +112,7 @@ test('M9.20 unprotected five-axis baseline remains finite for all nine profiles 
     }
   }
 });
-test('M9.20 diagnostics add no feedback, state seeding, gear lock or browser dependency', async () => {
+test('diagnostics add no feedback, state seeding, gear lock or browser dependency', async () => {
   const src = await readFile(new URL('../tools/drift-control-probe.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(src, /\.gear\s*=|\.yaw\s*=|\.velocity[XYZ]\s*=|sCut|targetBeta/);
   assert.match(src, /curvature:/);

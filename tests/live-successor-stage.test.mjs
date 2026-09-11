@@ -1,18 +1,18 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import test from 'node:test';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
+import { createSuccessorStageRegistry } from '../dist/dev/courses/successor-stage-content.js';
 import {
-  createM626LiveContinuation,
-  createM626LiveGateSet,
-  createM626LiveHandoffManifest,
-  createM626LiveRouteDag,
-} from '../dist/dev/m6-26-live-successor-stage.js';
-import { createM626LiveStageRuntimeRegistry } from '../dist/dev/m6-26-live-runtime-content.js';
+  createLiveContinuation,
+  createLiveGateSet,
+  createLiveHandoffManifest,
+  createLiveRouteDag,
+} from '../dist/dev/courses/successor-stage-continuation.js';
 
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
@@ -37,18 +37,18 @@ function crossing(gate, distance = 2) {
 }
 
 function setup() {
-  const parent = createM2StadiumGuide();
-  const route = createM626LiveRouteDag();
-  const continuation = createM626LiveContinuation(parent);
-  const gates = createM626LiveGateSet(route, continuation);
-  const handoffs = createM626LiveHandoffManifest(route, continuation);
-  const content = createM6DebugRouteStageContentManifest(route);
+  const parent = createStadiumGuide();
+  const route = createLiveRouteDag();
+  const continuation = createLiveContinuation(parent);
+  const gates = createLiveGateSet(route, continuation);
+  const handoffs = createLiveHandoffManifest(route, continuation);
+  const content = createMinimalStageContentManifest(route);
   const assets = createSpriteAssets();
-  const registry = createM626LiveStageRuntimeRegistry(content, continuation, parentShared(parent), assets);
+  const registry = createSuccessorStageRegistry(content, continuation, parentShared(parent), assets);
   return { parent, route, continuation, gates, handoffs, content, registry };
 }
 
-test('M6.26 live route is one fork followed by one successor stage on each selected side', () => {
+test('live route is one fork followed by one successor stage on each selected side', () => {
   const { route } = setup();
   assert.deepEqual(
     route.stages.map((stage) => stage.id),
@@ -58,7 +58,7 @@ test('M6.26 live route is one fork followed by one successor stage on each selec
   assert.equal(route.stages.filter((stage) => stage.kind === 'TERMINAL').length, 2);
 });
 
-test('M6.26 successor Guides share a validated D_cam overlap then become independent courses', () => {
+test('successor Guides share a validated D_cam overlap then become independent courses', () => {
   const { continuation } = setup();
   for (const successor of [continuation.leftSuccessor, continuation.rightSuccessor]) {
     assert.equal(successor.link.overlapBehind, 5);
@@ -70,7 +70,7 @@ test('M6.26 successor Guides share a validated D_cam overlap then become indepen
   }
 });
 
-test('M6.26 gate/handoff manifests cover all four route choices and finish only on successor charts', () => {
+test('gate/handoff manifests cover all four route choices and finish only on successor charts', () => {
   const { route, continuation, gates, handoffs } = setup();
   assert.equal(handoffs.seams.length, route.choices.length);
   assert.equal(gates.gates.filter((gate) => gate.kind === 'TRANSITION').length, 4);
@@ -85,7 +85,7 @@ test('M6.26 gate/handoff manifests cover all four route choices and finish only 
   );
 });
 
-test('M6.26 runtime registry owns parent, intermediate children and independent successor packages', () => {
+test('runtime registry owns parent, intermediate children and independent successor packages', () => {
   const { continuation, registry } = setup();
   assert.equal(registry.packages.length, 5);
   const child = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_STAGE_2_L' });
@@ -97,7 +97,7 @@ test('M6.26 runtime registry owns parent, intermediate children and independent 
   assert.ok(goal.worldSprites.some((sprite) => sprite.name.startsWith('COAST_')));
 });
 
-test('M6.26 left path can commit parent->child, child->successor, then physically FINISH without world teleport', () => {
+test('left path can commit parent->child, child->successor, then physically FINISH without world teleport', () => {
   const { route, continuation, gates, handoffs, content } = setup();
   const state = createRouteDagState(route);
   const handoffState = createRouteStageHandoffState(route, content, continuation.base.charts.parent, { x: 0, z: -55 });
@@ -149,16 +149,16 @@ test('M6.26 left path can commit parent->child, child->successor, then physicall
   assert.equal(handoffState.commitCount, 2);
 });
 
-test('M6.26 browser/runtime additions stay outside renderer Core while M6.29 owns continuation construction', async () => {
+test('browser/runtime additions stay outside renderer Core while owns continuation construction', async () => {
   const { readFile } = await import('node:fs/promises');
   const [rendererSource, liveSource, successorFactorySource] = await Promise.all([
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-26-live-successor-stage.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/successor-stage-continuation.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(liveSource, /S2L_CONTINUE/);
   assert.match(liveSource, /createRasterStageSuccessor/);
   assert.match(successorFactorySource, /compileStageContinuationLink|StageContinuationLink/);
   assert.doesNotMatch(successorFactorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
-  assert.doesNotMatch(rendererSource, /M6_26|M6_29|STAGE_2_[LR]|S2[LR]_CONTINUE|SUCCESSOR/);
+  assert.doesNotMatch(rendererSource, /M[0-9]+(?:[._][0-9]+)?|STAGE_2_[LR]|S2[LR]_CONTINUE|SUCCESSOR/);
 });

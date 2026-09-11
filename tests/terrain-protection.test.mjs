@@ -1,9 +1,6 @@
-import { M9_28_STEERING_REFERENCE } from './helpers/m9-28-steering-reference.mjs';
-import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
-import { M9_21_TIRE_REFERENCE } from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import {
   createTerrainProbe as createCurrentTerrainProbe,
@@ -11,6 +8,9 @@ import {
   TERRAIN_CASES,
   terrainInput,
 } from '../tools/torque-protection-terrain-probe.mjs';
+import { withHighBikeCgEntry } from './helpers/bike-cg-reference.mjs';
+import { STEERING_REFERENCE } from './helpers/steering-reference.mjs';
+import { TIRE_REFERENCE } from './helpers/tire-reference.mjs';
 
 function assertBudgets(run) {
   const message = JSON.stringify(run);
@@ -43,7 +43,7 @@ const supportedCases = [
 ];
 for (const entry of VEHICLE_CATALOG)
   for (const name of supportedCases) {
-    test(`M9.21 ${entry.profile.id} ${name}: finite torque/force contract, not yaw certification`, () => {
+    test(`${entry.profile.id} ${name}: finite torque/force contract, not yaw certification`, () => {
       const run = runTerrainProbe(entry, { ...TERRAIN_CASES[name], hz: 120 });
       assertCompleted(run);
       assert.equal(run.infeasibleTime, 0, JSON.stringify(run));
@@ -64,7 +64,7 @@ for (const entry of VEHICLE_CATALOG)
 
 for (const hz of [60, 120, 240]) {
   for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
-    test(`M9.21 ${entry.profile.id} natural crest coast ${hz}Hz is identical with/without protection`, () => {
+    test(`${entry.profile.id} natural crest coast ${hz}Hz is identical with/without protection`, () => {
       const options = { terrain: 'crest', speed: 45, seconds: 5, kind: 'coast', hz, capture: true };
       const raw = runTerrainProbe(entry, { ...options, protectedRun: false });
       const protectedRun = runTerrainProbe(entry, { ...options, protectedRun: true });
@@ -78,7 +78,7 @@ for (const hz of [60, 120, 240]) {
       assert.deepEqual(a, b);
     });
   }
-  test(`M9.21 powered VFR crest ${hz}Hz exposes infeasibility without forcing support`, () => {
+  test(`powered VFR crest ${hz}Hz exposes infeasibility without forcing support`, () => {
     const run = runTerrainProbe(VEHICLE_CATALOG[5], {
       terrain: 'crest',
       speed: 45,
@@ -98,7 +98,7 @@ for (const hz of [60, 120, 240]) {
       assert.equal(row.frontDriveTorque + row.rearDriveTorque + row.frontBrakeTorque + row.rearBrakeTorque, 0);
     }
   });
-  test(`M9.21 crest stress ${hz}Hz reports qTravel/overturn instead of claiming completed protection`, () => {
+  test(`crest stress ${hz}Hz reports qTravel/overturn instead of claiming completed protection`, () => {
     // Reporting falsification controls, not desired product responses. A future physical fix must
     // explicitly supersede these observations, not conceal them through recovery or clamps.
     const car = runTerrainProbe(VEHICLE_CATALOG[0], { ...TERRAIN_CASES.crestCoast, hz });
@@ -115,7 +115,7 @@ for (const hz of [60, 120, 240]) {
   });
 }
 
-test('M9.21 terrain diagnostics retain moving-beta information and distinguish it from near-stop angle', () => {
+test('terrain diagnostics retain moving-beta information and distinguish it from near-stop angle', () => {
   const run = runTerrainProbe(VEHICLE_CATALOG[5], { ...TERRAIN_CASES.lowGripReversal });
   assertCompleted(run);
   assert.ok(run.speedAtMaxMovingBeta > 5);
@@ -123,7 +123,7 @@ test('M9.21 terrain diagnostics retain moving-beta information and distinguish i
   assert.ok(run.maxAbsBetaAbove15 <= run.maxAbsMovingBeta);
   assert.ok(run.maxAbsMovingBeta <= run.maxAbsBeta);
 });
-test('M9.21 terrain fixture preserves exact grade, material isolation and explicit policy', () => {
+test('terrain fixture preserves exact grade, material isolation and explicit policy', () => {
   const p = createTerrainProbe(VEHICLE_CATALOG[5], { grade: 0.1, grip: 0.25 });
   assert.equal(p.height.samplePhysicsDifferential(1050).dYdS, 0.1);
   assert.equal(p.height.samplePhysicsDifferential(1050).y, 5);
@@ -135,7 +135,7 @@ test('M9.21 terrain fixture preserves exact grade, material isolation and explic
   const stock = createTerrainProbe(VEHICLE_CATALOG[0], { calibration: 'stock' });
   assert.equal(stock.vehicle.tireFrictionCalibration.front.muX, VEHICLE_CATALOG[0].profile.frontStation.tire.muX);
 });
-test('M9.21 terrain probe rejects malformed domains and never imports recovery or overwrites motion', async () => {
+test('terrain probe rejects malformed domains and never imports recovery or overwrites motion', async () => {
   for (const options of [
     { hz: 90 },
     { seconds: 0 },
@@ -160,18 +160,18 @@ test('M9.21 terrain probe rejects malformed domains and never imports recovery o
   assert.match(source, /evaluateTireForce/);
 });
 
-// M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
+// changes player defaults; preserve 's exact causal fixture and assertions.
 function createTerrainProbe(entry, options = {}) {
-  return createCurrentTerrainProbe(withM927BikeCgEntry(entry), {
-    calibration: M9_21_TIRE_REFERENCE,
-    steeringCalibration: M9_28_STEERING_REFERENCE,
+  return createCurrentTerrainProbe(withHighBikeCgEntry(entry), {
+    calibration: TIRE_REFERENCE,
+    steeringCalibration: STEERING_REFERENCE,
     ...options,
   });
 }
 function runTerrainProbe(entry, options = {}) {
-  return runCurrentTerrainProbe(withM927BikeCgEntry(entry), {
-    calibration: M9_21_TIRE_REFERENCE,
-    steeringCalibration: M9_28_STEERING_REFERENCE,
+  return runCurrentTerrainProbe(withHighBikeCgEntry(entry), {
+    calibration: TIRE_REFERENCE,
+    steeringCalibration: STEERING_REFERENCE,
     ...options,
   });
 }

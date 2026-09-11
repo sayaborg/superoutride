@@ -6,14 +6,14 @@ import { browserCourseModeForKey } from '../dist/browser/course-mode-selection.j
 import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import {
-  createM96FiscoGroundProfile,
-  createM96FiscoLap,
-  createM96FiscoRuntime,
-  M9_6_FISCO_CORNER_COUNT,
-  M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS,
-  M9_6_FISCO_LENGTH_METERS,
-  M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
-} from '../dist/dev/m9-6-fisco-circuit.js';
+  createFiscoGroundProfile,
+  createFiscoLap,
+  createFiscoRuntime,
+  FISCO_CORNER_COUNT,
+  FISCO_HOME_STRAIGHT_LENGTH_METERS,
+  FISCO_LENGTH_METERS,
+  FISCO_ROAD_HALF_WIDTH_METERS,
+} from '../dist/dev/courses/fisco-circuit.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
@@ -33,18 +33,18 @@ function segmentsCross(a, b, c, d) {
   return orientation(a, b, c) * orientation(a, b, d) < -1e-8 && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
 }
 
-test('M9.6 authors current FISCO as one exact clockwise 4563 m closed lap', () => {
-  const { raster, landmarks } = createM96FiscoLap();
+test('authors current FISCO as one exact clockwise 4563 m closed lap', () => {
+  const { raster, landmarks } = createFiscoLap();
   const guide = compileGuidePath(raster, { lMax: 17, mMin: 0.25, dCam: 5 });
   const radiusFamilies = new Set(
     guide.corners.filter((corner) => Number.isFinite(corner.radius)).map((corner) => Math.round(corner.radius)),
   );
 
-  assert.ok(Math.abs(raster.length - M9_6_FISCO_LENGTH_METERS) < 1e-7);
-  assert.equal(M9_6_FISCO_LENGTH_METERS, 4_563);
-  assert.ok(Math.abs(landmarks.homeStraightEndS - M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS) < 1e-9);
-  assert.equal(M9_6_FISCO_HOME_STRAIGHT_LENGTH_METERS, 1_475);
-  assert.equal(M9_6_FISCO_CORNER_COUNT, 17);
+  assert.ok(Math.abs(raster.length - FISCO_LENGTH_METERS) < 1e-7);
+  assert.equal(FISCO_LENGTH_METERS, 4_563);
+  assert.ok(Math.abs(landmarks.homeStraightEndS - FISCO_HOME_STRAIGHT_LENGTH_METERS) < 1e-9);
+  assert.equal(FISCO_HOME_STRAIGHT_LENGTH_METERS, 1_475);
+  assert.equal(FISCO_CORNER_COUNT, 17);
   assert.deepEqual(raster.vertices[0], raster.vertices.at(-1));
   assert.ok(
     raster.vertexTurns.some((turn) => turn > 1e-9),
@@ -84,8 +84,8 @@ test('M9.6 authors current FISCO as one exact clockwise 4563 m closed lap', () =
   assert.ok(landmarks.dunlopComplexEndS < landmarks.panasonicCornerEndS);
 });
 
-test('M9.6 FISCO preserves the published elevation envelope and circuit cross-section', () => {
-  const live = createM96FiscoRuntime();
+test('FISCO preserves the published elevation envelope and circuit cross-section', () => {
+  const live = createFiscoRuntime();
   const lapLength = live.window.topology.lapLength;
   let minimumY = Number.POSITIVE_INFINITY;
   let maximumY = Number.NEGATIVE_INFINITY;
@@ -108,17 +108,17 @@ test('M9.6 FISCO preserves the published elevation envelope and circuit cross-se
   assert.equal(live.window.height.samplePhysics(0), 40);
   assert.ok(Math.abs(live.window.height.samplePhysics(lapLength) - 40) < 1e-9);
 
-  assert.equal(M9_6_FISCO_ROAD_HALF_WIDTH_METERS, 9);
+  assert.equal(FISCO_ROAD_HALF_WIDTH_METERS, 9);
   assert.equal(live.window.surface.sample(100, 0).type, 'ASPHALT');
   assert.equal(live.window.surface.sample(100, 10).type, 'SHOULDER');
   assert.equal(live.window.surface.sample(100, 13).type, 'GRASS');
-  const ground = createM96FiscoGroundProfile();
+  const ground = createFiscoGroundProfile();
   assert.notEqual(sampleGroundMap(100, 0, ground), GROUND_COLORS.marking, 'track must have no center line');
   assert.equal(sampleGroundMap(100, 8.85, ground), GROUND_COLORS.marking, 'right edge line missing');
 });
 
-test('M9.6 FISCO remains an ordinary finite open runtime for a three-lap race', () => {
-  const live = createM96FiscoRuntime();
+test('FISCO remains an ordinary finite open runtime for a three-lap race', () => {
+  const live = createFiscoRuntime();
   assert.ok(Math.abs(live.window.topology.lapLength - 4_563) < 1e-7);
   assert.equal(live.raceRules.lapCount, 3);
   assert.equal(live.window.repeatCount, 4);
@@ -138,7 +138,7 @@ for (const [profile, createVehicle] of [
   [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike],
 ]) {
   test(`ordinary ${profile.id} mechanics advance on the FISCO home straight with permitted wheel lift`, () => {
-    const live = createM96FiscoRuntime();
+    const live = createFiscoRuntime();
     const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 15);
     const recovery = createRecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
@@ -189,8 +189,8 @@ test('course 4 selects FISCO only at the browser CIRCUIT composition root', asyn
   assert.match(circuitSource, /const circuitBuilders = \{/);
   assert.match(circuitSource, /fisco: \(\) => \(\{/);
   assert.match(circuitSource, /const selectedCircuit = buildCircuit\(\)/);
-  assert.match(circuitSource, /createM96FiscoRuntime\(\)/);
-  assert.match(circuitSource, /createM93TsukubaCourse2000Runtime\(\)/);
+  assert.match(circuitSource, /createFiscoRuntime\(\)/);
+  assert.match(circuitSource, /createTsukubaCourse2000Runtime\(\)/);
   assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit|query === 'fisco'/);
   assert.doesNotMatch(linearSource, /m9-6-fisco-circuit|query === 'fisco'/);
 

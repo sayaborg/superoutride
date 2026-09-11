@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { createTerrainProbe } from '../tools/torque-protection-terrain-probe.mjs';
 import { mountBrowserSteeringCalibrationControls } from '../dist/browser/steering-calibration-controls.js';
 import { mountBrowserTireFrictionControls } from '../dist/browser/tire-friction-controls.js';
-import { readTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
-import { SelectorElement, selectorDocument } from './helpers/fake-selector-dom.mjs';
+import { readTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { createTerrainProbe } from '../tools/torque-protection-terrain-probe.mjs';
+import { selectorDocument, SelectorElement } from './helpers/fake-selector-dom.mjs';
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-12, `${a} != ${b}`);
 
-test('M9.29 all cars and bikes receive the same player baseline with controls above and below it', () => {
+test('all cars and bikes receive the same player baseline with controls above and below it', () => {
   for (const entry of VEHICLE_CATALOG) {
     const p = createTerrainProbe(entry),
       v = p.vehicle;

@@ -11,10 +11,10 @@ import {
   stageRoadSourceLateral,
   stageRoadToWorld,
 } from '../dist/course/stage-road-view.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStageRoadViews } from '../dist/dev/fixtures/stage-road-views.js';
 
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
 
@@ -27,15 +27,15 @@ const near = (actual, expected, tolerance = 1e-8) => {
 };
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  const charts = createM616ChildGuideCharts(guide);
-  const views = createM618StageRoadViews(charts);
+  const guide = createStadiumGuide();
+  const charts = createChildGuideCharts(guide);
+  const views = createStageRoadViews(charts);
   const { surfaceMap: surface, groundProfile: ground } = parentShared(guide);
 
   return { guide, charts, views, surface, ground };
 }
 
-test('M6.18 child stage view contains exactly one 7m road plus 1m shoulder on each side', () => {
+test('child stage view contains exactly one 7m road plus 1m shoulder on each side', () => {
   const { views } = setup();
   for (const child of [views.left, views.right]) {
     assert.equal(child.roadLeft, 3.5);
@@ -161,13 +161,13 @@ test('stage-local TerrainLine contains selected road while sibling road projects
   }
 });
 
-test('M6.18 source adapters contain no camera, projection or route-DAG decision logic', async () => {
+test('source adapters contain no camera, projection or route-DAG decision logic', async () => {
   const { readFile } = await import('node:fs/promises');
   for (const path of [
     '../src/course/stage-road-view.ts',
     '../src/groundmap/stage-ground-map-view.ts',
     '../src/physics/stage-surface-map-view.ts',
-    '../src/dev/m6-18-stage-road-views.ts',
+    '../src/dev/fixtures/stage-road-views.ts',
   ]) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);

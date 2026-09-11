@@ -7,7 +7,7 @@ import { createRunObjectiveState, updateRunObjectiveFromValidatedFinish } from '
 
 const DT = 1 / 60;
 
-test('M6.53 point-to-point timing needs no closed-course progress authority', () => {
+test('point-to-point timing needs no closed-course progress authority', () => {
   const session = createRaceSessionState();
   const objective = createRunObjectiveState();
   const fieldProgress = { validatedProgressFloor: 2400 };
@@ -37,7 +37,7 @@ test('M6.53 point-to-point timing needs no closed-course progress authority', ()
   assert.ok(Math.abs(objective.finishElapsedSeconds - 121 * DT) < 1e-12);
 });
 
-test('M6.53 BRANCHING composition has one route progress authority', () => {
+test('BRANCHING composition has one route progress authority', () => {
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(main, /gameplay\/race-progress/);

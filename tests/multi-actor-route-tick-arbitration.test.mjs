@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choice-authority.js';
 
@@ -22,10 +22,10 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function createLiveFixture() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const { heightProfile, visualProfile, surfaceMap, groundProfile } = parentShared(guide);
 
-  return createM638DeclarativeForkGrowthRuntime(
+  return createDeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -77,7 +77,7 @@ function actorResult(tick, actorId) {
   return result;
 }
 
-test('M6.42 INDEPENDENT multi-actor tick preserves simultaneous divergent M6.40 branch transactions', () => {
+test('INDEPENDENT multi-actor tick preserves simultaneous divergent branch transactions', () => {
   const live = createLiveFixture();
   const left = gate(live, 'S1_LEFT');
   const right = gate(live, 'S1_RIGHT');
@@ -97,7 +97,7 @@ test('M6.42 INDEPENDENT multi-actor tick preserves simultaneous divergent M6.40 
   assert.equal(shared.locks.length, 0);
 });
 
-test('M6.42 shared tick observes both actors before mutation and earliest physical crossing wins', () => {
+test('shared tick observes both actors before mutation and earliest physical crossing wins', () => {
   const live = createLiveFixture();
   const left = gate(live, 'S1_LEFT');
   const right = gate(live, 'S1_RIGHT');
@@ -119,7 +119,7 @@ test('M6.42 shared tick observes both actors before mutation and earliest physic
   assert.equal(rival.routeState.activeStageId, 'STAGE_2_R');
 });
 
-test('M6.42 same winning physical gate can advance multiple actors in one arbitration', () => {
+test('same winning physical gate can advance multiple actors in one arbitration', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const a = createLiveRouteTravelerState(live, pointAlong(right, -1));
@@ -137,7 +137,7 @@ test('M6.42 same winning physical gate can advance multiple actors in one arbitr
   assert.equal(b.routeState.activeStageId, 'STAGE_2_R');
 });
 
-test('M6.42 batching has no hidden one-rival assumption at 0 and 16 rival extremes', () => {
+test('batching has no hidden one-rival assumption at 0 and 16 rival extremes', () => {
   for (const rivalCount of [0, 16]) {
     const live = createLiveFixture();
     const right = gate(live, 'S1_RIGHT');
@@ -162,7 +162,7 @@ test('M6.42 batching has no hidden one-rival assumption at 0 and 16 rival extrem
   }
 });
 
-test('M6.42 accepted route transition becomes PENDING while committed package remains the old stage', () => {
+test('accepted route transition becomes PENDING while committed package remains the old stage', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const traveler = createLiveRouteTravelerState(live, pointAlong(right, -1));
@@ -179,7 +179,7 @@ test('M6.42 accepted route transition becomes PENDING while committed package re
   assert.equal(traveler.handoffState.pending?.choiceId, 'S1_RIGHT');
 });
 
-test('M6.42 seam COMMIT remains per-actor after arbitration and changes only chart/package authority', () => {
+test('seam COMMIT remains per-actor after arbitration and changes only chart/package authority', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const traveler = createLiveRouteTravelerState(live, pointAlong(right, -1));
@@ -207,7 +207,7 @@ test('M6.42 seam COMMIT remains per-actor after arbitration and changes only cha
   assert.equal(JSON.stringify(other), siblingSnapshot);
 });
 
-test('M6.42 recovery-suppressed actor cannot manufacture route progress while another actor still advances', () => {
+test('recovery-suppressed actor cannot manufacture route progress while another actor still advances', () => {
   const live = createLiveFixture();
   const left = gate(live, 'S1_LEFT');
   const right = gate(live, 'S1_RIGHT');
@@ -230,7 +230,7 @@ test('M6.42 recovery-suppressed actor cannot manufacture route progress while an
   assert.equal(actorResult(tick, 'MOVING').routeUpdate?.acceptedChoice?.id, 'S1_RIGHT');
 });
 
-test('M6.42 single-actor INDEPENDENT multi-actor path is state-equivalent to legacy advanceLiveRouteTraveler', () => {
+test('single-actor INDEPENDENT multi-actor path is state-equivalent to legacy advanceLiveRouteTraveler', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const start = pointAlong(right, -1);
@@ -248,7 +248,7 @@ test('M6.42 single-actor INDEPENDENT multi-actor path is state-equivalent to leg
   assert.deepEqual(batched, legacy);
 });
 
-test('M6.42 multi-actor tick orchestration owns no vehicle physics, camera or renderer dependency', () => {
+test('multi-actor tick orchestration owns no vehicle physics, camera or renderer dependency', () => {
   const source = fs.readFileSync(new URL('../src/runtime/live-route-multi-actor-tick.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /from\s+['"][^'"]*(?:physics|render|camera|input)[^'"]*['"]/i);
   assert.match(source, /observe every actor/);

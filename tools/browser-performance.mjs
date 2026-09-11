@@ -2,7 +2,7 @@ import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
-import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
+import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
@@ -12,7 +12,7 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.j
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
-const runtime = createM83LinearHighwayRuntime();
+const runtime = createLinearHighwayRuntime();
 const { guide, heightProfile: height, surfaceMap: surfaces } = runtime;
 const entry = DEFAULT_VEHICLE_CATALOG_ENTRY;
 const assets = createSpriteAssets();

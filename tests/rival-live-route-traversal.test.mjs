@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import { createM640RivalRouteChoicePlan, M6_40_RIVAL_ROUTE_CHOICE_IDS } from '../dist/dev/m6-40-rival-live-route.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
+import { createRivalRouteChoicePlan, RIVAL_ROUTE_CHOICE_IDS } from '../dist/dev/courses/rival-route-plan.js';
 
 import {
   advanceLiveRouteTraveler,
@@ -23,10 +23,10 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function createLiveFixture() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const { heightProfile, visualProfile, surfaceMap, groundProfile } = parentShared(guide);
 
-  return createM638DeclarativeForkGrowthRuntime(
+  return createDeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -87,13 +87,13 @@ function crossChoice(live, traveler, choiceId) {
   return seamUpdate;
 }
 
-test('M6.40 DEV rival plan is one validated RIGHT-B path ending at GOAL_RB', () => {
+test('DEV rival plan is one validated RIGHT-B path ending at GOAL_RB', () => {
   const live = createLiveFixture();
-  const plan = createM640RivalRouteChoicePlan(live);
+  const plan = createRivalRouteChoicePlan(live);
 
   assert.deepEqual(
     plan.steps.map((step) => step.choiceId),
-    [...M6_40_RIVAL_ROUTE_CHOICE_IDS],
+    [...RIVAL_ROUTE_CHOICE_IDS],
   );
   assert.deepEqual(
     plan.steps.map((step) => step.stageId),
@@ -105,9 +105,9 @@ test('M6.40 DEV rival plan is one validated RIGHT-B path ending at GOAL_RB', () 
   assert.throws(() => compileLiveRouteChoicePlan(live, ['S1_RIGHT']), /must end at a terminal stage/);
 });
 
-test('M6.40 route intent follows authored junction growth instead of steering directly to the final branch center', () => {
+test('route intent follows authored junction growth instead of steering directly to the final branch center', () => {
   const live = createLiveFixture();
-  const plan = createM640RivalRouteChoicePlan(live);
+  const plan = createRivalRouteChoicePlan(live);
   const gate = transitionGate(live, 'S1_RIGHT');
   const traveler = createLiveRouteTravelerState(live, pointAlongGate(gate, -1));
 
@@ -125,7 +125,7 @@ test('M6.40 route intent follows authored junction growth instead of steering di
   assert.ok(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 550) > 7.49);
 });
 
-test('M6.40 independent traveler can commit RIGHT child runtime without mutating another traveler', () => {
+test('independent traveler can commit RIGHT child runtime without mutating another traveler', () => {
   const live = createLiveFixture();
   const gate = transitionGate(live, 'S1_RIGHT');
   const start = pointAlongGate(gate, -1);
@@ -142,9 +142,9 @@ test('M6.40 independent traveler can commit RIGHT child runtime without mutating
   assert.equal(JSON.stringify(player), playerSnapshot);
 });
 
-test('M6.40 RIGHT-B traveler preserves stage-local target semantics through continuation and second fork', () => {
+test('RIGHT-B traveler preserves stage-local target semantics through continuation and second fork', () => {
   const live = createLiveFixture();
-  const plan = createM640RivalRouteChoicePlan(live);
+  const plan = createRivalRouteChoicePlan(live);
   const firstGate = transitionGate(live, 'S1_RIGHT');
   const traveler = createLiveRouteTravelerState(live, pointAlongGate(firstGate, -1));
 
@@ -170,7 +170,7 @@ test('M6.40 RIGHT-B traveler preserves stage-local target semantics through cont
   assert.equal(traveler.routeState.activeStageId, 'GOAL_RB');
 });
 
-test('M6.40 rival sprite compatibility is package identity, not raw world proximity or route intent', () => {
+test('rival sprite compatibility is package identity, not raw world proximity or route intent', () => {
   const live = createLiveFixture();
   const gate = transitionGate(live, 'S1_RIGHT');
   const a = createLiveRouteTravelerState(live, pointAlongGate(gate, -1));
@@ -203,7 +203,7 @@ test('M6.40 rival sprite compatibility is package identity, not raw world proxim
   );
 });
 
-test('M6.40 generic traveler stays renderer/physics independent while browser consumes it through M6.42 batching', () => {
+test('generic traveler stays renderer/physics independent while browser consumes it through batching', () => {
   const source = fs.readFileSync(new URL('../src/runtime/live-route-traveler.ts', import.meta.url), 'utf8');
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const renderer = fs.readFileSync(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
@@ -214,7 +214,7 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
   assert.match(source, /export function advanceLiveRouteTraveler/);
 
   for (const symbol of [
-    'createM640RivalRouteChoicePlan',
+    'createRivalRouteChoicePlan',
     'createLiveRouteTravelerState',
     'sampleLiveRouteChoicePlanTargetL',
     'resolveLiveRouteTravelerRuntime',
@@ -224,7 +224,7 @@ test('M6.40 generic traveler stays renderer/physics independent while browser co
     assert.match(main, new RegExp(symbol));
   }
   assert.doesNotMatch(main, /advanceLiveRouteTraveler\(/);
-  assert.doesNotMatch(main, /sampleM613RightBranchTargetL\(rival\.course\.s\)/);
+  assert.doesNotMatch(main, /sampleStadiumRightBranchTargetL\(rival\.course\.s\)/);
   assert.doesNotMatch(main, /updateTestVehicle\(guide, heightProfile, surfaceMap, rival/);
-  assert.doesNotMatch(renderer, /M6_40|M6\.40|M6_42|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
+  assert.doesNotMatch(renderer, /M[0-9]+(?:[._][0-9]+)?|GOAL_RB|S4R_FORK_B|RIVAL_ROUTE/);
 });

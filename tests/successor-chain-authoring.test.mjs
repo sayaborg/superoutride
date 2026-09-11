@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
+import { createLiveContinuation } from '../dist/dev/courses/successor-stage-continuation.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { compileRasterSuccessorChain, repackageGuideChartRuntime } from '../dist/runtime/raster-successor-chain.js';
 
 const successorAuthoring = (suffix, direction) => ({
@@ -47,11 +47,11 @@ function fakeRuntime(structural, packageId) {
 }
 
 function source() {
-  const continuation = createM626LiveContinuation(createM2StadiumGuide());
+  const continuation = createLiveContinuation(createStadiumGuide());
   return continuation.leftSuccessor;
 }
 
-test('M6.31 compiles a two-step successor chain with derived stage kinds, transitions and final FINISH', () => {
+test('compiles a two-step successor chain with derived stage kinds, transitions and final FINISH', () => {
   const initial = source();
   const sourceRuntime = fakeRuntime(initial, 'PKG_SOURCE');
   const chain = compileRasterSuccessorChain({
@@ -125,7 +125,7 @@ test('M6.31 compiles a two-step successor chain with derived stage kinds, transi
   assert.notEqual(chain.structurals[1].chart, chain.structurals[2].chart);
 });
 
-test('M6.31 derives each physical transition and handoff from the generated continuation source chart', () => {
+test('derives each physical transition and handoff from the generated continuation source chart', () => {
   const initial = source();
   const chain = compileRasterSuccessorChain({
     sourceStageId: 'SOURCE',
@@ -154,7 +154,7 @@ test('M6.31 derives each physical transition and handoff from the generated cont
   assert.equal(chain.stages[1].runtime.coordinateFrame, generated.chart);
 });
 
-test('M6.31 rejects empty chains, duplicate ids and runtime/chart mismatches before route compilation', () => {
+test('rejects empty chains, duplicate ids and runtime/chart mismatches before route compilation', () => {
   const initial = source();
   const base = {
     sourceStageId: 'SOURCE',
@@ -205,10 +205,10 @@ test('M6.31 rejects empty chains, duplicate ids and runtime/chart mismatches bef
   );
 });
 
-test('M6.31 runtime helper is renderer, route-DAG and vehicle-physics independent while M6.30 delegates deep LEFT construction', async () => {
+test('runtime helper is renderer, route-DAG and vehicle-physics independent while delegates deep LEFT construction', async () => {
   const [compiler, m630] = await Promise.all([
     readFile(new URL('../src/runtime/raster-successor-chain.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/third-successor-route.ts', import.meta.url), 'utf8'),
   ]);
   assert.doesNotMatch(compiler, /render\//);
   assert.doesNotMatch(compiler, /route-dag|route-boundary-gates/);
@@ -218,7 +218,7 @@ test('M6.31 runtime helper is renderer, route-DAG and vehicle-physics independen
   assert.doesNotMatch(m630, /createRasterStageSuccessor/);
 });
 
-test('M6.31 repackaging changes only opaque package identity', () => {
+test('repackaging changes only opaque package identity', () => {
   const initial = source();
   const runtime = fakeRuntime(initial, 'OLD');
   const repackaged = repackageGuideChartRuntime(runtime, 'NEW');

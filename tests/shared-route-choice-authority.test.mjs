@@ -1,11 +1,11 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteBoundaryGateSet } from '../dist/dev/m6-debug-route-boundary-gates.js';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
+import { createMinimalRouteBoundaryGateSet } from '../dist/dev/fixtures/minimal-route-gates.js';
 
-import { compileRouteDag, createRouteDagState } from '../dist/gameplay/route-dag.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
+import { compileRouteDag, createRouteDagState } from '../dist/gameplay/route-dag.js';
 import {
   arbitrateSharedRouteChoiceCandidates,
   createSharedRouteChoiceState,
@@ -23,10 +23,10 @@ function transition(actorId, activeStageId, choiceId, crossingFraction) {
   };
 }
 
-test('M6.41 physical gate observation exposes exact sub-tick crossing fraction for race arbitration', () => {
-  const route = createM6DebugRouteDag();
+test('physical gate observation exposes exact sub-tick crossing fraction for race arbitration', () => {
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
-  const gates = createM6DebugRouteBoundaryGateSet(route);
+  const gates = createMinimalRouteBoundaryGateSet(route);
 
   const observation = observeRouteBoundaryCrossing(route, state, gates, { x: -3, z: 8 }, { x: -3, z: 12 });
 
@@ -35,8 +35,8 @@ test('M6.41 physical gate observation exposes exact sub-tick crossing fraction f
   assert.equal(observation.crossingFraction, 0.5);
 });
 
-test('M6.41 INDEPENDENT policy preserves M6.40 divergent actor choices and records no race lock', () => {
-  const route = createM6DebugRouteDag();
+test('INDEPENDENT policy preserves divergent actor choices and records no race lock', () => {
+  const route = createMinimalRouteDag();
   const shared = createSharedRouteChoiceState('INDEPENDENT');
   const result = arbitrateSharedRouteChoiceCandidates(route, shared, [
     transition('PLAYER', 'STAGE_1', 'S1_LEFT', 0.6),
@@ -55,8 +55,8 @@ test('M6.41 INDEPENDENT policy preserves M6.40 divergent actor choices and recor
   assert.equal(shared.locks.length, 0);
 });
 
-test('M6.41 shared policy locks to the physically earliest crossing, not actor update order', () => {
-  const route = createM6DebugRouteDag();
+test('shared policy locks to the physically earliest crossing, not actor update order', () => {
+  const route = createMinimalRouteDag();
   const shared = createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS');
   const result = arbitrateSharedRouteChoiceCandidates(route, shared, [
     transition('PLAYER', 'STAGE_1', 'S1_LEFT', 0.75),
@@ -70,8 +70,8 @@ test('M6.41 shared policy locks to the physically earliest crossing, not actor u
   assert.equal(result.decisions.find((item) => item.actorId === 'PLAYER')?.accepted, false);
 });
 
-test('M6.41 exact same-fraction tie uses supplied race order only as deterministic final tie-break', () => {
-  const route = createM6DebugRouteDag();
+test('exact same-fraction tie uses supplied race order only as deterministic final tie-break', () => {
+  const route = createMinimalRouteDag();
   const shared = createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS');
   arbitrateSharedRouteChoiceCandidates(route, shared, [
     transition('LEADER_AT_TICK_START', 'STAGE_1', 'S1_LEFT', 0.5),
@@ -85,8 +85,8 @@ test('M6.41 exact same-fraction tie uses supplied race order only as determinist
   });
 });
 
-test('M6.41 all same-gate crossings in the winning tick are accepted while sibling choice is rejected', () => {
-  const route = createM6DebugRouteDag();
+test('all same-gate crossings in the winning tick are accepted while sibling choice is rejected', () => {
+  const route = createMinimalRouteDag();
   const shared = createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS');
   const result = arbitrateSharedRouteChoiceCandidates(route, shared, [
     transition('A', 'STAGE_1', 'S1_RIGHT', 0.2),
@@ -105,10 +105,10 @@ test('M6.41 all same-gate crossings in the winning tick are accepted while sibli
   );
 });
 
-test('M6.41 existing shared lock narrows later physical observation to the chosen authored gate only', () => {
-  const route = createM6DebugRouteDag();
+test('existing shared lock narrows later physical observation to the chosen authored gate only', () => {
+  const route = createMinimalRouteDag();
   const routeState = createRouteDagState(route);
-  const gates = createM6DebugRouteBoundaryGateSet(route);
+  const gates = createMinimalRouteBoundaryGateSet(route);
   const shared = createSharedRouteChoiceState('FIRST_PHYSICAL_CROSSING_LOCKS');
   arbitrateSharedRouteChoiceCandidates(route, shared, [transition('LEADER', 'STAGE_1', 'S1_RIGHT', 0.3)]);
 
@@ -136,7 +136,7 @@ test('M6.41 existing shared lock narrows later physical observation to the chose
   );
 });
 
-test('M6.41 deterministic single-successor stages remain per-actor transactions and do not consume shared locks', () => {
+test('deterministic single-successor stages remain per-actor transactions and do not consume shared locks', () => {
   const route = compileRouteDag(
     'START',
     [
@@ -163,7 +163,7 @@ test('M6.41 deterministic single-successor stages remain per-actor transactions 
   assert.equal(sharedRouteAllowedTransitionChoiceId(route, shared, 'START'), null);
 });
 
-test('M6.41 shared route authority stays gameplay-only with no renderer, camera, input or vehicle-physics dependency', async () => {
+test('shared route authority stays gameplay-only with no renderer, camera, input or vehicle-physics dependency', async () => {
   const source = await readFile(new URL('../src/gameplay/shared-route-choice-authority.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
   assert.deepEqual(importSpecifiers, ['../core/validation.js', './route-dag.js']);

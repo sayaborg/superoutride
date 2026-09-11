@@ -5,7 +5,7 @@ import test from 'node:test';
 import { COMMON_SELECTABLE_VEHICLE_TIRE } from '../dist/vehicle/production-vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
-test('M9.9 axle-neutral compiled reference remains common beneath later browser tire calibration', () => {
+test('axle-neutral compiled reference remains common beneath later browser tire calibration', () => {
   const reference = {
     gripX: 1.35,
     peakSlipX: (1.26 * 1.35) / 9.75,
@@ -27,7 +27,7 @@ test('M9.9 axle-neutral compiled reference remains common beneath later browser 
   }
 });
 
-test('M9.9 unit travel-direction foundation survives M9.11 without drift or gain authority', async () => {
+test('unit travel-direction foundation survives without drift or gain authority', async () => {
   const [solver, calibration, input] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),

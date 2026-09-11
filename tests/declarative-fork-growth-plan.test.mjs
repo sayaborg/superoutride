@@ -1,24 +1,24 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM630ThirdLiveSuccessorAuthoring } from '../dist/dev/m6-30-third-live-successor.js';
-import { createM637SymmetricSecondLiveForkRuntime } from '../dist/dev/m6-37-symmetric-right-second-live-fork.js';
 import {
-  createM638DeclarativeForkGrowthPlan,
-  createM638DeclarativeForkGrowthRuntime,
-} from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+  createDeclarativeForkGrowthPlan,
+  createDeclarativeForkGrowthRuntime,
+} from '../dist/dev/courses/fork-growth-plan.js';
+import { createThirdLiveSuccessorAuthoring } from '../dist/dev/courses/third-successor-route.js';
+import { createSymmetricSecondLiveForkRuntime } from '../dist/dev/fixtures/right-second-fork.js';
 
 import { compileRasterForkGrowthPlan } from '../dist/runtime/raster-fork-growth-plan.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const parent = parentShared(guide);
   const assets = createSpriteAssets();
   return { guide, parent, assets };
@@ -49,10 +49,10 @@ function seamRows(live) {
   }));
 }
 
-test('M6.38 two-step fork growth plan reproduces the complete M6.37 RouteDag exactly', () => {
+test('two-step fork growth plan reproduces the complete RouteDag exactly', () => {
   const { guide, parent, assets } = setup();
-  const legacy = createM637SymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createM638DeclarativeForkGrowthRuntime(guide, parent, assets);
+  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
+  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
 
   assert.deepEqual(
     planned.route.stages.map((stage) => [stage.id, stage.kind]),
@@ -64,10 +64,10 @@ test('M6.38 two-step fork growth plan reproduces the complete M6.37 RouteDag exa
   );
 });
 
-test('M6.38 preserves package bindings and generated Guide chart identities exactly', () => {
+test('preserves package bindings and generated Guide chart identities exactly', () => {
   const { guide, parent, assets } = setup();
-  const legacy = createM637SymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createM638DeclarativeForkGrowthRuntime(guide, parent, assets);
+  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
+  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
 
   assert.deepEqual(
     planned.content.bindings.map((entry) => [entry.stageId, entry.packageId]),
@@ -79,50 +79,50 @@ test('M6.38 preserves package bindings and generated Guide chart identities exac
   );
 });
 
-test('M6.38 preserves every physical transition/FINISH gate from M6.37 exactly', () => {
+test('preserves every physical transition/FINISH gate from exactly', () => {
   const { guide, parent, assets } = setup();
-  const legacy = createM637SymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createM638DeclarativeForkGrowthRuntime(guide, parent, assets);
+  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
+  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
   assert.deepEqual(gateRows(planned), gateRows(legacy));
 });
 
-test('M6.38 preserves every physical handoff seam from M6.37 exactly', () => {
+test('preserves every physical handoff seam from exactly', () => {
   const { guide, parent, assets } = setup();
-  const legacy = createM637SymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createM638DeclarativeForkGrowthRuntime(guide, parent, assets);
+  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
+  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
   assert.deepEqual(seamRows(planned), seamRows(legacy));
 });
 
-test('M6.38 plan is an ordered two-step fold and the generic zero-step plan is identity', () => {
+test('plan is an ordered two-step fold and the generic zero-step plan is identity', () => {
   const { guide, parent, assets } = setup();
-  const plan = createM638DeclarativeForkGrowthPlan(guide, parent, assets);
+  const plan = createDeclarativeForkGrowthPlan(guide, parent, assets);
   assert.equal(plan.steps.length, 2);
   assert.equal(plan.steps[0].forkStage.id, 'STAGE_4_L_FORK');
   assert.equal(plan.steps[1].forkStage.id, 'STAGE_4_R_FORK');
 
-  const base = createM630ThirdLiveSuccessorAuthoring(guide, parent, assets);
+  const base = createThirdLiveSuccessorAuthoring(guide, parent, assets);
   const identity = compileRasterForkGrowthPlan(base, []);
   assert.equal(identity.authoring, base);
   assert.deepEqual(identity.steps, []);
 });
 
-test('M6.38 removes milestone nesting from live construction while generic plan owns no geometry or renderer logic', async () => {
+test('removes milestone nesting from live construction while generic plan owns no geometry or renderer logic', async () => {
   const [planSource, liveSource, stableEntry, main, renderer] = await Promise.all([
     readFile(new URL('../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(planSource, /compileRasterForkStageRoute/);
   assert.doesNotMatch(
     planSource,
-    /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/|camera|car-physics|motorcycle-physics|m6-/i,
+    /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/M[0-9]+(?:[._][0-9]+)?|camera|car-physics|motorcycle-physics|m6-/i,
   );
-  assert.match(liveSource, /createM630ThirdLiveSuccessorAuthoring/);
+  assert.match(liveSource, /createThirdLiveSuccessorAuthoring/);
   assert.match(liveSource, /compileRasterForkGrowthPlan/);
   assert.doesNotMatch(liveSource, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
-  assert.match(stableEntry, /createM638DeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(main, /M6_38|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
-  assert.doesNotMatch(renderer, /M6_38|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
+  assert.match(stableEntry, /createDeclarativeForkGrowthRuntime/);
+  assert.doesNotMatch(main, /M[0-9]+(?:[._][0-9]+)?|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
+  assert.doesNotMatch(renderer, /M[0-9]+(?:[._][0-9]+)?|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
 });

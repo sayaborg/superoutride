@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { runHotPathProbe } from '../tools/hot-path-probe.mjs';
-import { solveWheelOmega, wheelRequiredNetTorque, evaluateTireForce } from '../dist/physics/tire-wheel.js';
+import test from 'node:test';
+import { guidePathToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
+import { createTsukubaCourse2000Runtime } from '../dist/dev/courses/tsukuba-circuit.js';
+import { evaluateTireForce, solveWheelOmega, wheelRequiredNetTorque } from '../dist/physics/tire-wheel.js';
 import { limitWheelTorques } from '../dist/physics/torque-protection.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
-import { guidePathToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../dist/core/guide-curve.js';
+import { runHotPathProbe } from '../tools/hot-path-probe.mjs';
 
 test('wheel, turning and pedal traces match the released reference across nine profiles and three rates', async () => {
   const result = await runHotPathProbe('dist');
@@ -59,7 +59,7 @@ test('negative rolling resistance cannot invalidate the bounded wheel equation',
 });
 
 test('range search preserves exact ascending-candidate tie handling on repeated geometry', () => {
-  const guide = createM93TsukubaCourse2000Runtime().window.guide;
+  const guide = createTsukubaCourse2000Runtime().window.guide;
   for (const s of [0, 100, 2045, 2145, guide.length]) {
     const world = guidePathToWorld(guide, s, 1);
     const candidates = guide.segments.map((segment) => locateWorldOnGuideLocal(guide, world, segment.index, 0));

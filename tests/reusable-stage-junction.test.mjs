@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import { createStageRoadView } from '../dist/course/stage-road-view.js';
 import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
@@ -57,7 +57,7 @@ function setup() {
   );
 }
 
-test('M6.34 compiler expands one stage corridor exactly enough for both child roads, median and shoulders', () => {
+test('compiler expands one stage corridor exactly enough for both child roads, median and shoulders', () => {
   const compiled = setup();
   assert.equal(compiled.requiredGroundHalfWidth, 9);
   assert.equal(compiled.roadView.groundLeft, 9);
@@ -70,7 +70,7 @@ test('M6.34 compiler expands one stage corridor exactly enough for both child ro
   assert.equal(compiled.groundProfile.stageJunction, compiled.junction);
 });
 
-test('M6.34 GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
+test('GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
   const compiled = setup();
   const sample = (l) => sampleStageGroundMapRuntime(120, l, 1, compiled.roadView, compiled.groundProfile).color;
 
@@ -81,7 +81,7 @@ test('M6.34 GroundMap junction is evaluated in stage-local l before source later
   assert.throws(() => sample(9.1), /outside the local ground envelope/);
 });
 
-test('M6.34 SurfaceMap consumes the same stage-local junction cross-section', () => {
+test('SurfaceMap consumes the same stage-local junction cross-section', () => {
   const compiled = setup();
   assert.equal(compiled.surfaceMap.sample(0, 0).type, 'ASPHALT');
   assert.equal(compiled.surfaceMap.sample(20, 0).type, 'ASPHALT');
@@ -98,7 +98,7 @@ test('M6.34 SurfaceMap consumes the same stage-local junction cross-section', ()
   assert.throws(() => compiled.surfaceMap.sample(401, 0), /outside \[0, courseLength\]/);
 });
 
-test('M6.34 rejects a junction whose incoming width does not match the active stage road', () => {
+test('rejects a junction whose incoming width does not match the active stage road', () => {
   assert.throws(
     () =>
       compileStageJunction(
@@ -125,7 +125,7 @@ test('M6.34 rejects a junction whose incoming width does not match the active st
   );
 });
 
-test('M6.34 reusable junction layer adds no RouteDag, renderer, camera or vehicle-physics dependency', async () => {
+test('reusable junction layer adds no RouteDag, renderer, camera or vehicle-physics dependency', async () => {
   const [compilerSource, surfaceSource, groundSource] = await Promise.all([
     readFile(new URL('../src/runtime/stage-junction-compiler.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/stage-junction-surface-map.ts', import.meta.url), 'utf8'),

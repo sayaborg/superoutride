@@ -18,7 +18,7 @@ Vehicle mechanics and control laws are frozen in [vehicle physics](vehicle-physi
 
 ## Next implementation areas
 
-Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). [Tunnel fixtures](../src/dev/tunnel.ts) own concrete placements and materials. Presentation consumes vehicle/course observations without adding another physical state or depth rule.
+Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). [Tunnel fixtures](../src/dev/courses/tunnel.ts) own concrete placements and materials. Presentation consumes vehicle/course observations without adding another physical state or depth rule.
 
 There is no sound engine yet. A presentation layer can consume existing RPM, pedals, tire observations and game events. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
 

@@ -4,13 +4,13 @@ import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
 } from '../dist/physics/tire-friction-calibration.js';
-import { withM927BikeCg } from './helpers/m9-27-bike-cg-reference.mjs';
+import { withHighBikeCg } from './helpers/bike-cg-reference.mjs';
 
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
-import { createM93TsukubaCourse2000Runtime } from '../dist/dev/m9-3-tsukuba-circuit.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
+import { createTsukubaCourse2000Runtime } from '../dist/dev/courses/tsukuba-circuit.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import {
@@ -63,7 +63,7 @@ function assertFinite(v) {
   }
 }
 
-test('M9.18 wheelie and stoppie single-contact poses retain ordinary forces without recovery', () => {
+test('wheelie and stoppie single-contact poses retain ordinary forces without recovery', () => {
   for (const degrees of [-80, -45, -15, 15, 45, 80]) {
     const v = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 800, l: 0, initialSpeed: 15 });
     v.pitch = degrees * DEG;
@@ -89,7 +89,7 @@ test('M9.18 wheelie and stoppie single-contact poses retain ordinary forces with
   }
 });
 
-test('M9.18 upside-down suspension cannot supply false wheel contact on either station', () => {
+test('upside-down suspension cannot supply false wheel contact on either station', () => {
   for (const station of [profile.frontStation, profile.rearStation]) {
     const v = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 800, l: 0, initialSpeed: 0 });
     v.pitch = Math.PI;
@@ -104,7 +104,7 @@ test('M9.18 upside-down suspension cannot supply false wheel contact on either s
   }
 });
 
-test('M9.18 overturned recovery precedes stale support and preserves calibration and explicit target', () => {
+test('overturned recovery precedes stale support and preserves calibration and explicit target', () => {
   for (const target of [null, { s: 750, l: 1 }]) {
     const v = createArcadeVehicle(
       profile,
@@ -149,7 +149,7 @@ test('M9.18 overturned recovery precedes stale support and preserves calibration
   }
 });
 
-test('M9.18 overturned criterion is relative to surface normal rather than a world-pitch clamp', () => {
+test('overturned criterion is relative to surface normal rather than a world-pitch clamp', () => {
   const slope = 0.2;
   const uphill = new HeightProfile(guide.length, [
     { s: 0, y: 0 },
@@ -168,7 +168,7 @@ test('M9.18 overturned criterion is relative to surface normal rather than a wor
   assert.equal(updateRecovery({ guide, height: uphill, surfaces }, v, { state, dt: 1 / 60 }), 'overturned');
 });
 
-test('M9.18 upright suspension travel guard is retained rather than clipped or disabled', () => {
+test('upright suspension travel guard is retained rather than clipped or disabled', () => {
   const v = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 800, l: 0, initialSpeed: 0 });
   v.y = profile.frontStation.freeReachDown - profile.frontStation.suspension.qTravel - 0.001;
   assert.throws(
@@ -177,20 +177,20 @@ test('M9.18 upright suspension travel guard is retained rather than clipped or d
   );
 });
 
-test('M9.18 VFR loop-out remains possible but ordinary recovery prevents inverted driving at refined steps', () => {
-  const historicalProfile = withM927BikeCg(profile);
-  const highway = createM72DefaultBranchingParent();
+test('VFR loop-out remains possible but ordinary recovery prevents inverted driving at refined steps', () => {
+  const historicalProfile = withHighBikeCg(profile);
+  const highway = createDefaultBranchingParent();
   const flat = new HeightProfile(highway.guide.length, [
     { s: 0, y: 0 },
     { s: highway.guide.length, y: 0 },
   ]);
   const wide = new SurfaceMap(highway.guide.length, [
-    { sStart: 0, name: 'M9.11 retained envelope', bands: [{ lMin: -1000, lMax: 1000, type: 'ASPHALT' }] },
+    { sStart: 0, name: 'retained envelope', bands: [{ lMin: -1000, lMax: 1000, type: 'ASPHALT' }] },
   ]);
   const rows = [];
   for (const dt of [1 / 60, 1 / 120, 1 / 240]) {
     for (const kind of ['reversal', 'tsukuba']) {
-      const live = kind === 'tsukuba' ? createM93TsukubaCourse2000Runtime().window : null;
+      const live = kind === 'tsukuba' ? createTsukubaCourse2000Runtime().window : null;
       const g = live?.guide ?? highway.guide,
         h = live?.height ?? flat,
         s = live?.surface ?? wide;
@@ -236,5 +236,5 @@ test('M9.18 VFR loop-out remains possible but ordinary recovery prevents inverte
       rows.push({ kind, dt, oneWheelTime, events, finalPitchDegrees: v.pitch / DEG });
     }
   }
-  console.log('M9.18 PERMITTED WHEEL LIFT', JSON.stringify(rows));
+  console.log('PERMITTED WHEEL LIFT', JSON.stringify(rows));
 });

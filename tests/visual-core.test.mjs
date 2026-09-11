@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
 import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
 import { pseudoProject } from '../dist/core/projection.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile, M3_BASE_COLORS } from '../dist/dev/m3-debug-visual.js';
+import { CLIFF_BASE_COLORS, createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { rgba, SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { renderDriving } from '../dist/render/renderer.js';
@@ -20,9 +20,9 @@ const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const visual = createCliffVisualProfile(guide.length);
 const cameraProfile = {
   dCam: 20,
   lCamMax: 12,
@@ -157,7 +157,7 @@ test('cliff GroundBase_L TRANSPARENT preserves Far Background below horizon whil
   assert.ok(line.xGroundR < 240);
 
   assert.equal(actual.getPixel(80, 100), expectedBackground.getPixel(80, 100));
-  assert.equal(actual.getPixel(240, 100), M3_BASE_COLORS.rock);
+  assert.equal(actual.getPixel(240, 100), CLIFF_BASE_COLORS.rock);
   assert.notEqual(actual.getPixel(240, 100), expectedBackground.getPixel(240, 100));
 });
 

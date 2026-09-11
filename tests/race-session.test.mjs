@@ -52,7 +52,7 @@ const finish = {
   s: 0,
 };
 
-test('M6.2 race session time advances only from deterministic simulation dt', () => {
+test('race session time advances only from deterministic simulation dt', () => {
   const session = createRaceSessionState();
   const p = progress();
   for (let i = 0; i < 120; i += 1) advanceRaceSession(session, p, null, 1 / 60);

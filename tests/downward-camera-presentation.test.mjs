@@ -21,7 +21,7 @@ function flatRoadYAtDepth(pitch, height, depth) {
   return 120 - 200 * Math.sin(pitch) + (200 * height * Math.cos(pitch)) / depth;
 }
 
-test('M8.5 owns one 12-degree profile that preserves the flat-road player anchor at Y=190', () => {
+test('owns one 12-degree profile that preserves the flat-road player anchor at Y=190', () => {
   near(CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS, (12 * Math.PI) / 180);
   near(CURRENT_CAMERA_HEIGHT_METERS, 2.8518788493639118);
   assert.equal(CURRENT_CAMERA_PLAYER_TARGET_Y, 190);

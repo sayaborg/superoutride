@@ -1,16 +1,16 @@
-import { M6_43_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-43-course-mode.js';
-import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import test from 'node:test';
+import { BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/courses/branching-mode.js';
+import { SINGLE_RIVAL_BRANCHING_SESSION } from '../dist/dev/fixtures/single-rival-branching-mode.js';
 
+import { BRANCHING_COURSE_MODE } from '../dist/dev/courses/branching-mode.js';
+import { SINGLE_RIVAL_BRANCHING_MODE } from '../dist/dev/fixtures/single-rival-branching-mode.js';
 import { compileCourseMode } from '../dist/gameplay/course-mode.js';
-import { MAX_RIVAL_COUNT, compileSessionConfiguration } from '../dist/gameplay/session-configuration.js';
-import { M6_43_DEV_COURSE_MODE } from '../dist/dev/m6-43-course-mode.js';
-import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
+import { compileSessionConfiguration, MAX_RIVAL_COUNT } from '../dist/gameplay/session-configuration.js';
 import { createRivalRoster } from '../dist/runtime/rival-roster.js';
 
-test('M6.43 course mode contract keeps linear branching and circuit as three distinct route shapes', () => {
+test('course mode contract keeps linear branching and circuit as three distinct route shapes', () => {
   const linear = compileCourseMode({ id: 'L', routeKind: 'LINEAR' });
   const branching = compileCourseMode({ id: 'B', routeKind: 'BRANCHING' });
   const circuit = compileCourseMode({ id: 'C', routeKind: 'CIRCUIT' });
@@ -23,7 +23,7 @@ test('M6.43 course mode contract keeps linear branching and circuit as three dis
   assert.equal(circuit.finishKind, 'LAPS');
 });
 
-test('M6.46 branching keeps first physical crossing lock and defines losing-sibling recovery', () => {
+test('branching keeps first physical crossing lock and defines losing-sibling recovery', () => {
   const mode = compileCourseMode({ id: 'OUTRUN', routeKind: 'BRANCHING' });
   assert.equal(mode.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
   assert.equal(mode.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
@@ -45,7 +45,7 @@ test('document 117 moves the unchanged 0..16 opponent envelope to session config
   }
 });
 
-test('M6.43 roster is a stable variable-length actor list with no null-rival special case', () => {
+test('roster is a stable variable-length actor list with no null-rival special case', () => {
   const zero = createRivalRoster(compileSessionConfiguration({ rivalCount: 0 }));
   const max = createRivalRoster(compileSessionConfiguration({ rivalCount: 16 }));
 
@@ -60,26 +60,26 @@ test('M6.43 roster is a stable variable-length actor list with no null-rival spe
   assert.equal(new Set(max.map((entry) => entry.actorId)).size, 16);
 });
 
-test('M6.46 one-rival fixture remains historical while M8.3 course debug gives branch choice to the player', () => {
-  assert.equal(M6_43_DEV_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M6_43_DEV_SESSION_CONFIGURATION.rivalCount, 1);
-  assert.equal(M6_43_DEV_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
-  assert.equal(M6_43_DEV_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.routeKind, 'BRANCHING');
-  assert.equal(M8_3_BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
+test('one-rival fixture remains historical while course debug gives branch choice to the player', () => {
+  assert.equal(SINGLE_RIVAL_BRANCHING_MODE.routeKind, 'BRANCHING');
+  assert.equal(SINGLE_RIVAL_BRANCHING_SESSION.rivalCount, 1);
+  assert.equal(SINGLE_RIVAL_BRANCHING_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
+  assert.equal(SINGLE_RIVAL_BRANCHING_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
+  assert.equal(BRANCHING_COURSE_MODE.routeKind, 'BRANCHING');
+  assert.equal(BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
+  assert.equal(BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
+  assert.equal(BRANCHING_COURSE_MODE.branchViolationPolicy, 'RECOVER_TO_LOCKED_BRANCH');
 
   const source = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(source, /createRivalRoster\(M8_3_BRANCHING_SESSION_CONFIGURATION\)/);
+  assert.match(source, /createRivalRoster\(BRANCHING_SESSION_CONFIGURATION\)/);
   assert.match(source, /const rivals = rivalRoster\.map/);
-  assert.match(source, /createSharedRouteChoiceState\(M8_3_BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
-  assert.match(source, /branchViolationPolicy: M8_3_BRANCHING_COURSE_MODE\.branchViolationPolicy/);
+  assert.match(source, /createSharedRouteChoiceState\(BRANCHING_COURSE_MODE\.sharedRouteChoiceMode\)/);
+  assert.match(source, /branchViolationPolicy: BRANCHING_COURSE_MODE\.branchViolationPolicy/);
   assert.doesNotMatch(source, /const rival = createTestCar/);
   assert.doesNotMatch(source, /const rivalTraveler =/);
 });
 
-test('M6.43 circuit extensibility does not weaken the acyclic RouteDag or enter renderer Core', () => {
+test('circuit extensibility does not weaken the acyclic RouteDag or enter renderer Core', () => {
   const modeSource = fs.readFileSync(new URL('../src/gameplay/course-mode.ts', import.meta.url), 'utf8');
   const rosterSource = fs.readFileSync(new URL('../src/runtime/rival-roster.ts', import.meta.url), 'utf8');
   const routeDagSource = fs.readFileSync(new URL('../src/gameplay/route-dag.ts', import.meta.url), 'utf8');
@@ -90,5 +90,8 @@ test('M6.43 circuit extensibility does not weaken the acyclic RouteDag or enter 
   assert.doesNotMatch(rosterSource, forbiddenImport);
   assert.match(routeDagSource, /assertAcyclicAndReachable\(/);
   assert.match(routeDagSource, /route graph must be acyclic/);
-  assert.doesNotMatch(rendererSource, /M6_43|CourseRouteKind|MAX_RIVAL_COUNT|FIRST_PHYSICAL_CROSSING_LOCKS/);
+  assert.doesNotMatch(
+    rendererSource,
+    /M[0-9]+(?:[._][0-9]+)?|CourseRouteKind|MAX_RIVAL_COUNT|FIRST_PHYSICAL_CROSSING_LOCKS/,
+  );
 });

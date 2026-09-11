@@ -5,14 +5,14 @@ import test from 'node:test';
 import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import {
-  createM93TsukubaCourse2000Lap,
-  createM93TsukubaCourse2000Runtime,
-  createM93TsukubaGroundProfile,
-  M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS,
-  M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS,
-  M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS,
-  M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-} from '../dist/dev/m9-3-tsukuba-circuit.js';
+  createTsukubaCourse2000Lap,
+  createTsukubaCourse2000Runtime,
+  createTsukubaGroundProfile,
+  TSUKUBA_BACK_STRAIGHT_LENGTH_METERS,
+  TSUKUBA_COURSE_2000_LENGTH_METERS,
+  TSUKUBA_HOME_STRAIGHT_LENGTH_METERS,
+  TSUKUBA_ROAD_HALF_WIDTH_METERS,
+} from '../dist/dev/courses/tsukuba-circuit.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
@@ -32,23 +32,22 @@ function segmentsCross(a, b, c, d) {
   return orientation(a, b, c) * orientation(a, b, d) < -1e-8 && orientation(c, d, a) * orientation(c, d, b) < -1e-8;
 }
 
-test('M9.3 authors the four-wheel Tsukuba Course 2000 sequence as one exact closed lap', () => {
-  const authored = createM93TsukubaCourse2000Lap();
+test('authors the four-wheel Tsukuba Course 2000 sequence as one exact closed lap', () => {
+  const authored = createTsukubaCourse2000Lap();
   const { raster, landmarks } = authored;
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const radiusFamilies = new Set(
     guide.corners.filter((corner) => Number.isFinite(corner.radius)).map((corner) => Math.round(corner.radius)),
   );
 
-  assert.equal(raster.length, M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS);
-  assert.equal(M9_3_TSUKUBA_COURSE_2000_LENGTH_METERS, 2_045);
-  assert.equal(landmarks.homeStraightEndS, M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS);
+  assert.equal(raster.length, TSUKUBA_COURSE_2000_LENGTH_METERS);
+  assert.equal(TSUKUBA_COURSE_2000_LENGTH_METERS, 2_045);
+  assert.equal(landmarks.homeStraightEndS, TSUKUBA_HOME_STRAIGHT_LENGTH_METERS);
   assert.ok(
-    Math.abs(landmarks.backStraightEndS - landmarks.backStraightStartS - M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS) <
-      1e-9,
+    Math.abs(landmarks.backStraightEndS - landmarks.backStraightStartS - TSUKUBA_BACK_STRAIGHT_LENGTH_METERS) < 1e-9,
   );
-  assert.equal(M9_3_TSUKUBA_HOME_STRAIGHT_LENGTH_METERS, 282);
-  assert.equal(M9_3_TSUKUBA_BACK_STRAIGHT_LENGTH_METERS, 437);
+  assert.equal(TSUKUBA_HOME_STRAIGHT_LENGTH_METERS, 282);
+  assert.equal(TSUKUBA_BACK_STRAIGHT_LENGTH_METERS, 437);
   assert.deepEqual(raster.vertices[0], raster.vertices.at(-1));
   assert.ok(
     raster.vertexTurns.some((turn) => turn > 1e-9),
@@ -88,8 +87,8 @@ test('M9.3 authors the four-wheel Tsukuba Course 2000 sequence as one exact clos
   assert.equal(landmarks.secondHairpinEndS, landmarks.backStraightStartS);
 });
 
-test('M9.3 Tsukuba keeps the official near-flat character and a circuit cross-section', () => {
-  const live = createM93TsukubaCourse2000Runtime();
+test('Tsukuba keeps the official near-flat character and a circuit cross-section', () => {
+  const live = createTsukubaCourse2000Runtime();
   const lapLength = live.window.topology.lapLength;
   let minimumY = Number.POSITIVE_INFINITY;
   let maximumY = Number.NEGATIVE_INFINITY;
@@ -106,17 +105,17 @@ test('M9.3 Tsukuba keeps the official near-flat character and a circuit cross-se
   assert.equal(live.window.height.samplePhysics(0), 0);
   assert.ok(Math.abs(live.window.height.samplePhysics(lapLength)) <= 1e-12);
 
-  assert.equal(M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS, 6);
+  assert.equal(TSUKUBA_ROAD_HALF_WIDTH_METERS, 6);
   assert.equal(live.window.surface.sample(100, 0).type, 'ASPHALT');
   assert.equal(live.window.surface.sample(100, 6.5).type, 'SHOULDER');
   assert.equal(live.window.surface.sample(100, 9).type, 'GRASS');
-  const ground = createM93TsukubaGroundProfile();
+  const ground = createTsukubaGroundProfile();
   assert.notEqual(sampleGroundMap(100, 0, ground), GROUND_COLORS.marking, 'track must have no center line');
   assert.equal(sampleGroundMap(100, 5.85, ground), GROUND_COLORS.marking, 'right edge line missing');
 });
 
-test('M9.3 Tsukuba remains an ordinary finite open runtime for a three-lap race', () => {
-  const live = createM93TsukubaCourse2000Runtime();
+test('Tsukuba remains an ordinary finite open runtime for a three-lap race', () => {
+  const live = createTsukubaCourse2000Runtime();
   assert.equal(live.window.topology.lapLength, 2_045);
   assert.equal(live.raceRules.lapCount, 3);
   assert.equal(live.window.repeatCount, 4);
@@ -137,7 +136,7 @@ for (const [profile, createVehicle] of [
   [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike],
 ]) {
   test(`ordinary ${profile.id} mechanics advance on the Tsukuba home straight with permitted wheel lift`, () => {
-    const live = createM93TsukubaCourse2000Runtime();
+    const live = createTsukubaCourse2000Runtime();
     const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 15);
     const recovery = createRecoveryState(vehicle);
     for (let tick = 0; tick < 180; tick += 1) {
@@ -146,7 +145,7 @@ for (const [profile, createVehicle] of [
       for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate]) {
         assert.ok(Number.isFinite(value), profile.id);
       }
-      // M9.18: same physics/recovery order as gameplay; single-wheel support is permitted.
+      // : same physics/recovery order as gameplay; single-wheel support is permitted.
       updateRecovery({ guide: live.window.guide, height: live.window.height, surfaces: live.window.surface }, vehicle, {
         state: recovery,
         dt: SIM_DT,
@@ -169,11 +168,11 @@ for (const [profile, createVehicle] of [
 test('course 3 retains Tsukuba while BRANCHING retains its existing parent', async () => {
   const [circuitSource, branchingSource] = await Promise.all([
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/branching-highway.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(circuitSource, /createM93TsukubaCourse2000Runtime/);
-  assert.doesNotMatch(circuitSource, /createM91LowMidSpeedMountainCircuitRuntime/);
-  assert.match(branchingSource, /createM71HighwayCalibrationLapRaster/);
+  assert.match(circuitSource, /createTsukubaCourse2000Runtime/);
+  assert.doesNotMatch(circuitSource, /createLowMidSpeedMountainCircuitRuntime/);
+  assert.match(branchingSource, /createHighwayCalibrationLapRaster/);
   assert.doesNotMatch(branchingSource, /m9-3-tsukuba-circuit/);
   assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit/);
 });

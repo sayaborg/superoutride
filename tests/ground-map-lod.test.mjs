@@ -28,7 +28,7 @@ const near = (actual, expected, tolerance = 1e-10) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-test('M5.4 current GroundMap base density is derived from d0=D_cam=5m', () => {
+test('current GroundMap base density is derived from d0=D_cam=5m', () => {
   near(current.qL, 0.025);
   near(current.qS, 0.04480995901583679);
   near(current.rhoL, 40);

@@ -1,17 +1,17 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
 import {
-  createM626LiveContinuation,
-  createM626LiveGateSet,
-  createM626LiveHandoffManifest,
-  createM626LiveRouteDag,
-} from '../dist/dev/m6-26-live-successor-stage.js';
-import { createM628DeclarativeLiveRouteRuntime } from '../dist/dev/m6-28-declarative-live-route.js';
+  createLiveContinuation,
+  createLiveGateSet,
+  createLiveHandoffManifest,
+  createLiveRouteDag,
+} from '../dist/dev/courses/successor-stage-continuation.js';
+import { createDeclarativeLiveRouteRuntime } from '../dist/dev/fixtures/declarative-route.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
@@ -20,13 +20,13 @@ const near = (actual, expected, tolerance = 1e-7) => {
 };
 
 function setup() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const assets = createSpriteAssets();
-  const live = createM628DeclarativeLiveRouteRuntime(guide, parentShared(guide), assets);
+  const live = createDeclarativeLiveRouteRuntime(guide, parentShared(guide), assets);
   return { guide, assets, live };
 }
 
-test('M6.28 declarative rows compile the same five-stage route with derived package bindings', () => {
+test('declarative rows compile the same five-stage route with derived package bindings', () => {
   const { live } = setup();
   assert.deepEqual(
     live.route.stages.map((stage) => [stage.id, stage.kind]),
@@ -54,12 +54,12 @@ test('M6.28 declarative rows compile the same five-stage route with derived pack
   );
 });
 
-test('M6.28 declarative compiler reproduces M6.26 physical gates and handoff seams exactly', () => {
+test('declarative compiler reproduces physical gates and handoff seams exactly', () => {
   const { guide, live } = setup();
-  const legacyRoute = createM626LiveRouteDag();
-  const legacyContinuation = createM626LiveContinuation(guide);
-  const legacyGates = createM626LiveGateSet(legacyRoute, legacyContinuation);
-  const legacyHandoffs = createM626LiveHandoffManifest(legacyRoute, legacyContinuation);
+  const legacyRoute = createLiveRouteDag();
+  const legacyContinuation = createLiveContinuation(guide);
+  const legacyGates = createLiveGateSet(legacyRoute, legacyContinuation);
+  const legacyHandoffs = createLiveHandoffManifest(legacyRoute, legacyContinuation);
 
   assert.deepEqual(
     live.gates.gates.map((gate) => gate.id),
@@ -89,10 +89,10 @@ test('M6.28 declarative compiler reproduces M6.26 physical gates and handoff sea
   }
 });
 
-test('M6.28 target chart ids are derived from target stage runtime rather than repeated in route rows', async () => {
+test('target chart ids are derived from target stage runtime rather than repeated in route rows', async () => {
   const { readFile } = await import('node:fs/promises');
   const compiler = await readFile(new URL('../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
-  const authoring = await readFile(new URL('../src/dev/m6-28-declarative-live-route.ts', import.meta.url), 'utf8');
+  const authoring = await readFile(new URL('../src/dev/fixtures/declarative-route.ts', import.meta.url), 'utf8');
 
   assert.match(compiler, /choiceId: transition\.id/);
   assert.match(compiler, /targetChartId: targetStage\.runtime\.coordinateFrame\.id/);
@@ -104,18 +104,18 @@ test('main assembles one declarative fork plan above general topology compilatio
   const { readFile } = await import('node:fs/promises');
   const [mainSource, m630Source, m638Source, growthSource, forkSource, fragmentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/third-successor-route.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(mainSource, /createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(
     mainSource,
-    /createM628DeclarativeLiveRouteRuntime|createM626LiveRouteDag|createM626LiveContinuation|createM630ThirdLiveSuccessorRuntime|createM635SecondLiveForkRuntime|createM637SymmetricSecondLiveForkRuntime/,
+    /createDeclarativeLiveRouteRuntime|createLiveRouteDag|createLiveContinuation|createThirdLiveSuccessorRuntime|createSecondLiveForkRuntime|createSymmetricSecondLiveForkRuntime/,
   );
-  assert.match(m638Source, /createM630ThirdLiveSuccessorAuthoring/);
+  assert.match(m638Source, /createThirdLiveSuccessorAuthoring/);
   assert.match(m638Source, /compileRasterForkGrowthPlan/);
   assert.doesNotMatch(m638Source, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
   assert.match(growthSource, /compileRasterForkStageRoute/);
@@ -124,14 +124,14 @@ test('main assembles one declarative fork plan above general topology compilatio
   assert.match(m630Source, /compileDeclarativeLiveRoute\s*\(/);
   assert.match(fragmentSource, /export function composeDeclarativeLiveRouteAuthoring/);
   assert.doesNotMatch(fragmentSource, /compileDeclarativeRouteFragments/);
-  assert.doesNotMatch(m638Source, /createM626LiveRouteDag|createM626LiveGateSet|createM626LiveHandoffManifest/);
+  assert.doesNotMatch(m638Source, /createLiveRouteDag|createLiveGateSet|createLiveHandoffManifest/);
 });
 
-test('M6.28 generic declarative compiler contains no renderer, camera, vehicle physics or milestone dependency', async () => {
+test('generic declarative compiler contains no renderer, camera, vehicle physics or milestone dependency', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /camera/);
   assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
-  assert.doesNotMatch(source, /M6_2[678]|m6-2[678]/);
+  assert.doesNotMatch(source, /[678]|m6-2[678]/);
 });

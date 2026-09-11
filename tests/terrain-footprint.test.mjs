@@ -7,9 +7,9 @@ import {
   CURRENT_CAMERA_HEIGHT_METERS,
 } from '../dist/camera/current-camera-profile.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
 import { summarizeTerrainFootprints } from '../dist/groundmap/terrain-footprint-analysis.js';
 import { computeTerrainRowDeltaS, generateTerrainLines } from '../dist/road/terrain-line.js';
@@ -19,9 +19,9 @@ const near = (actual, expected, tolerance = 1e-9) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const visual = createCliffVisualProfile(guide.length);
 const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const cameraProfile = {
   dCam: 5,
@@ -64,7 +64,7 @@ test('Core scanline Delta_s uses y pixel boundaries and visible-depth clipping',
   near(computeTerrainRowDeltaS(0, 0, 100, 2.5, 150), 50);
 });
 
-test('actual M3 TerrainLines carry finite Core source-footprint telemetry without changing Painter output', () => {
+test('actual TerrainLines carry finite Core source-footprint telemetry without changing Painter output', () => {
   const lines = linesAt(20);
   assert.ok(lines.length > 100);
   for (const line of lines) {
@@ -121,5 +121,5 @@ test('current debug-course sweep reports an observed footprint envelope from act
   assert.ok(summary.maxDeltaL > 0);
   assert.ok(Number.isInteger(summary.requiredChainageLevel) && summary.requiredChainageLevel >= 0);
   assert.ok(Number.isInteger(summary.maxDiagnosticLateralLevel) && summary.maxDiagnosticLateralLevel >= 0);
-  console.log('M5.5 OBSERVED DEBUG ENVELOPE', JSON.stringify(summary));
+  console.log('OBSERVED DEBUG ENVELOPE', JSON.stringify(summary));
 });

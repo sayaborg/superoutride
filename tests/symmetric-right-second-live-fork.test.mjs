@@ -1,16 +1,16 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM637SymmetricSecondLiveForkRuntime } from '../dist/dev/m6-37-symmetric-right-second-live-fork.js';
+import { createSymmetricSecondLiveForkRuntime } from '../dist/dev/fixtures/right-second-fork.js';
 
+import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -21,8 +21,8 @@ import {
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  return createM637SymmetricSecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
+  const guide = createStadiumGuide();
+  return createSymmetricSecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
 }
 
 function crossing(gate, distance = 2) {
@@ -34,7 +34,7 @@ function crossing(gate, distance = 2) {
   };
 }
 
-test('M6.37 live topology owns a real second fork on both LEFT and RIGHT paths', () => {
+test('live topology owns a real second fork on both LEFT and RIGHT paths', () => {
   const live = setup();
   assert.deepEqual(
     live.route.stages.map((stage) => [stage.id, stage.kind]),
@@ -58,7 +58,7 @@ test('M6.37 live topology owns a real second fork on both LEFT and RIGHT paths',
   );
 });
 
-test('M6.37 RIGHT fork package owns the same derived 12m stage-local junction envelope', () => {
+test('RIGHT fork package owns the same derived 12m stage-local junction envelope', () => {
   const live = setup();
   const fork = live.registry.packages.find((entry) => entry.packageId === 'CONTENT_STAGE_4_R_FORK');
   assert.ok(fork);
@@ -71,7 +71,7 @@ test('M6.37 RIGHT fork package owns the same derived 12m stage-local junction en
   assert.equal(fork.surfaceMap.sample(195, 0).type, 'GRASS');
 });
 
-test('M6.37 RIGHT second fork has two physical gates while its median selects nothing', () => {
+test('RIGHT second fork has two physical gates while its median selects nothing', () => {
   const live = setup();
   const routeState = createRouteDagState(live.route);
   for (const choiceId of ['S1_RIGHT', 'S2R_CONTINUE', 'S3R_CONTINUE']) {
@@ -104,7 +104,7 @@ test('M6.37 RIGHT second fork has two physical gates while its median selects no
   assert.equal(median.boundary, null);
 });
 
-test('M6.37 RIGHT fork handoff maps source child centers to target local l=0', () => {
+test('RIGHT fork handoff maps source child centers to target local l=0', () => {
   const live = setup();
   const forkRuntime = live.registry.packages.find((entry) => entry.packageId === 'CONTENT_STAGE_4_R_FORK');
   assert.ok(forkRuntime);
@@ -122,7 +122,7 @@ test('M6.37 RIGHT fork handoff maps source child centers to target local l=0', (
   }
 });
 
-test('M6.37 complete RIGHT-B route performs four PENDING/COMMIT handoffs then physical FINISH', () => {
+test('complete RIGHT-B route performs four PENDING/COMMIT handoffs then physical FINISH', () => {
   const live = setup();
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(live.route, live.content, live.initialChart, { x: 0, z: -55 });
@@ -171,18 +171,18 @@ test('M6.37 complete RIGHT-B route performs four PENDING/COMMIT handoffs then ph
   assert.equal(handoffState.commitCount, 4);
 });
 
-test('M6.37 remains a direct symmetric-fork fixture beneath the M6.38 live plan', async () => {
+test('remains a direct symmetric-fork fixture beneath the live plan', async () => {
   const [source, leftSource, stableEntry, main, renderer] = await Promise.all([
-    readFile(new URL('../src/dev/m6-37-symmetric-right-second-live-fork.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/right-second-fork.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/left-second-fork.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(source, /createM635SecondLiveForkAuthoring/);
+  assert.match(source, /createSecondLiveForkAuthoring/);
   assert.match(source, /compileRasterForkStageRoute/);
-  assert.match(leftSource, /createM635SecondLiveForkAuthoring/);
-  assert.match(stableEntry, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(leftSource, /createSecondLiveForkAuthoring/);
+  assert.match(stableEntry, /createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(main, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
   assert.doesNotMatch(renderer, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
 });

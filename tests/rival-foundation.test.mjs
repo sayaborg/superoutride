@@ -3,16 +3,16 @@ import test from 'node:test';
 
 import { compileGuidePath, guidePathToWorld } from '../dist/core/guide-curve.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
 import { deriveVehicleNormalizedBank, deriveVehicleSpriteFamily } from '../dist/render/vehicle-presentation.js';
 import { createSpriteAssets, selectVehicleSprite } from '../dist/visual/sprite-assets.js';
 
 test('rival presentation uses supplied metadata and the same presentation-only bank primitive', () => {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
   const assets = createSpriteAssets();
   const vehicle = { ...fakeCar(guide, 50), longitudinalSpeed: 30, yawRate: 0.2 };
   const before = structuredClone(vehicle);
@@ -42,8 +42,8 @@ function fakeCar(guide, s, l = 0, speed = 45) {
   };
 }
 
-test('M6.3 rival driver emits canonical deterministic DrivingInput without touching world state', () => {
-  const guide = createM2StadiumGuide();
+test('rival driver emits canonical deterministic DrivingInput without touching world state', () => {
+  const guide = createStadiumGuide();
   const car = fakeCar(guide, 100, 0, 45);
   const before = structuredClone(car);
   const a = sampleRivalDrivingInput(guide, car);
@@ -57,14 +57,14 @@ test('M6.3 rival driver emits canonical deterministic DrivingInput without touch
 });
 
 test('rival driver steers back toward Guide center from a right-side offset on a straight', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const car = fakeCar(guide, 100, 4, 50);
   const input = sampleRivalDrivingInput(guide, car);
   assert.ok(input.steering < 0);
 });
 
 test('rival speed control uses 200+ km/h straight target but brakes for physically tighter upcoming curvature', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const longStraight = compileGuidePath(
     compileRasterPath([
       { x: 0, z: 0 },
@@ -99,9 +99,9 @@ test('rival speed control uses 200+ km/h straight target but brakes for physical
 });
 
 test('dynamic rival render adapter preserves road-relative physical height in ordinary CourseSprite', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const assets = createSpriteAssets();
-  const height = createM3DebugHeightProfile(guide.length);
+  const height = createHillDipHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 2, 50);
   car.y = 1.25;
   const sprite = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car, height);
@@ -115,9 +115,9 @@ test('dynamic rival render adapter preserves road-relative physical height in or
 });
 
 test('dynamic rival orientation chooses a discrete existing yaw asset rather than runtime bitmap rotation', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const assets = createSpriteAssets();
-  const height = createM3DebugHeightProfile(guide.length);
+  const height = createHillDipHeightProfile(guide.length);
   const car = fakeCar(guide, 123, 0, 50);
   const rear = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw, assets.car, height);
   const side = createDynamicVehicleCourseSprite('RIVAL', car, car.yaw - Math.PI / 2, assets.car, height);

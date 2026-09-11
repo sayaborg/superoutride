@@ -13,7 +13,7 @@ import {
 import { normalFromHeading, tangentFromHeading, wrapSigned } from '../dist/core/math.js';
 import { pseudoProject, straightRoadScreenX } from '../dist/core/projection.js';
 import { compileRasterPath, rasterPathToWorld } from '../dist/core/raster-path.js';
-import { createM1DebugGuide } from '../dist/dev/debug-course.js';
+import { createCircularArcGuide } from '../dist/dev/fixtures/raster-courses.js';
 
 const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, tolerance = 1e-8) => {
@@ -45,7 +45,7 @@ test('Guide fallback math reproduces the Core 10-degree reference scale', () => 
 });
 
 test('circular-authoring metadata applies to interior Guide corners only', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   const corner = guide.corners[1];
   near(corner.radius, 100 * Math.cos(deg(5)), 1e-10);
   assert.ok(corner.radius > corner.rMin);
@@ -56,7 +56,7 @@ test('circular-authoring metadata applies to interior Guide corners only', () =>
 });
 
 test('Guide segments are G1 at every compiled interior boundary without a synthetic seam', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   for (let i = 0; i < guide.segments.length - 1; i += 1) {
     const a = guide.segments[i];
     const b = guide.segments[i + 1];
@@ -79,7 +79,7 @@ test('Guide segments are G1 at every compiled interior boundary without a synthe
 });
 
 test('world to Guide coordinate recovers signed lateral position', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   const world = guidePathToWorld(guide, 42, 6.5);
   const global = locateWorldOnGuideGlobal(guide, world);
   near(global.s - 42, 0, 1e-7);
@@ -91,7 +91,7 @@ test('world to Guide coordinate recovers signed lateral position', () => {
 });
 
 test('local Guide search requires explicit initialization instead of silently going global', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   assert.throws(
     () => locateWorldOnGuideLocal(guide, { x: 0, z: 0 }, -1),
     /previousSegmentIndex must identify a segment/,
@@ -99,7 +99,7 @@ test('local Guide search requires explicit initialization instead of silently go
 });
 
 test('pseudo projection keeps same-s same-height anchors at identical depth, scale and Y', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   const camPlan = guidePathToWorld(guide, 0, 0);
   const camera = {
     x: camPlan.x,
@@ -160,7 +160,7 @@ test('raster compiler rejects an interior turn sharper than the Core 10-degree h
 });
 
 test('raster fixed-l strip edges converge to the same miter point from both sides of every interior vertex', () => {
-  const course = createM1DebugGuide().raster;
+  const course = createCircularArcGuide().raster;
   const epsilonS = 1e-7;
   for (let i = 1; i < course.vertices.length - 1; i += 1) {
     const sVertex = course.vertexS[i];
@@ -175,7 +175,7 @@ test('raster fixed-l strip edges converge to the same miter point from both side
 });
 
 test('raster interior miter is exact while endpoint bases are adjacent-segment normals', () => {
-  const course = createM1DebugGuide().raster;
+  const course = createCircularArcGuide().raster;
   const maxMiterScale = 1 / Math.cos(deg(5));
   for (let i = 1; i < course.vertices.length - 1; i += 1) {
     const incoming = course.segments[i - 1].heading;
@@ -193,7 +193,7 @@ test('raster interior miter is exact while endpoint bases are adjacent-segment n
 });
 
 test('Guide world-coordinate round trip remains continuous across the whole open path', () => {
-  const guide = createM1DebugGuide();
+  const guide = createCircularArcGuide();
   const laterals = [-12, -6, 0, 6, 12];
   for (let s = 0; s < guide.length; s += 5) {
     for (const l of laterals) {

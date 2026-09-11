@@ -3,9 +3,9 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import { compileLiveRouteRuntimeAssembly } from '../dist/runtime/live-route-runtime.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
@@ -13,7 +13,7 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const { heightProfile, surfaceMap, visualProfile, groundProfile } = parentShared(guide);
 
   const terrainProfile = {
@@ -28,7 +28,7 @@ function setup() {
     visual: visualProfile,
     thinSpanScreenRows: 1,
   };
-  return createM638DeclarativeForkGrowthRuntime(
+  return createDeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -42,7 +42,7 @@ function setup() {
   );
 }
 
-test('M6.27 browser-facing bundle remains complete as later milestones deepen the live route', () => {
+test('browser-facing bundle remains complete as later milestones deepen the live route', () => {
   const live = setup();
   assert.ok(live.route.stages.length >= 5);
   assert.equal(live.route.choices.length, live.handoffs.seams.length);
@@ -53,7 +53,7 @@ test('M6.27 browser-facing bundle remains complete as later milestones deepen th
   assert.equal(live.gates.gates.filter((gate) => gate.kind === 'FINISH').length, terminalCount);
 });
 
-test('M6.27 every route target resolves through content/runtime to the exact handoff target chart', () => {
+test('every route target resolves through content/runtime to the exact handoff target chart', () => {
   const live = setup();
   for (const choice of live.route.choices) {
     const seam = live.handoffs.seams.find((candidate) => candidate.choiceId === choice.id);
@@ -68,7 +68,7 @@ test('M6.27 every route target resolves through content/runtime to the exact han
   }
 });
 
-test('M6.27 assembly compiler rejects a start package/chart mismatch before simulation', () => {
+test('assembly compiler rejects a start package/chart mismatch before simulation', () => {
   const live = setup();
   assert.throws(
     () => compileLiveRouteRuntimeAssembly({ ...live, initialChart: live.charts[1] }),
@@ -76,23 +76,23 @@ test('M6.27 assembly compiler rejects a start package/chart mismatch before simu
   );
 });
 
-test('M6.27 browser main consumes one assembly and no longer constructs route pieces', async () => {
+test('browser main consumes one assembly and no longer constructs route pieces', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(source, /createM638DeclarativeForkGrowthRuntime/);
-  assert.match(source, /const liveRoute = createM638DeclarativeForkGrowthRuntime/);
+  assert.match(source, /createDeclarativeForkGrowthRuntime/);
+  assert.match(source, /const liveRoute = createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(
     source,
-    /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveHandoffManifest|createM626LiveStageRuntimeRegistry/,
+    /createLiveRouteDag|createLiveContinuation|createLiveGateSet|createLiveHandoffManifest|createSuccessorStageRegistry/,
   );
-  assert.doesNotMatch(source, /createM630ThirdLiveSuccessorRuntime|STAGE_3_L|S3L_CONTINUE/);
+  assert.doesNotMatch(source, /createThirdLiveSuccessorRuntime|STAGE_3_L|S3L_CONTINUE/);
 });
 
-test('M6.27 generic assembly contains no renderer, camera or vehicle-physics dependency', async () => {
+test('generic assembly contains no renderer, camera or vehicle-physics dependency', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/live-route-runtime.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /camera\//);
   assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
-  assert.doesNotMatch(source, /M6_26|M626/);
+  assert.doesNotMatch(source, /M[0-9]+(?:[._][0-9]+)?/);
 });

@@ -5,17 +5,17 @@ import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const build = fileURLToPath(new URL('../dist', import.meta.url));
 const load = (p) => import(pathToFileURL(`${build}/${p}.js`).href);
-const { createM2StadiumGuide } = await load('dev/debug-course');
-const { createM3DebugHeightProfile } = await load('dev/m3-debug-height-profile');
-const { createM3DebugVisualProfile } = await load('dev/m3-debug-visual');
+const { createStadiumGuide } = await load('dev/fixtures/raster-courses');
+const { createHillDipHeightProfile } = await load('dev/fixtures/hill-dip-height');
+const { createCliffVisualProfile } = await load('dev/fixtures/cliff-visual');
 const { guidePathToWorld } = await load('core/guide-curve');
 const { createFarBackground } = await load('visual/far-background');
 const { createSpriteAssets } = await load('visual/sprite-assets');
 const { renderDriving } = await load('render/renderer');
 const { SoftwareSurface } = await load('graphics/software-surface');
-const guide = createM2StadiumGuide(),
-  height = createM3DebugHeightProfile(guide.length),
-  visual = createM3DebugVisualProfile(guide.length);
+const guide = createStadiumGuide(),
+  height = createHillDipHeightProfile(guide.length),
+  visual = createCliffVisualProfile(guide.length);
 const background = createFarBackground(),
   assets = createSpriteAssets();
 const ground = {

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { evaluateTireForce, rollingResistanceTorque, solveWheelOmega } from '../dist/physics/tire-wheel.js';
@@ -15,13 +15,13 @@ import {
   HONDA_VFR750R_VEHICLE_PROFILE,
 } from '../dist/vehicle/production-vehicle-profiles.js';
 
-const highway = createM72DefaultBranchingParent();
+const highway = createDefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },
 ]);
 
-test('M9 profiles compile to the same two-station contact and wheel contract', () => {
+test('profiles compile to the same two-station contact and wheel contract', () => {
   for (const [profile, authored] of [
     [FERRARI_TESTAROSSA_VEHICLE_PROFILE, FERRARI_TESTAROSSA_VEHICLE_AUTHORING],
     [HONDA_VFR750R_VEHICLE_PROFILE, HONDA_VFR750R_VEHICLE_AUTHORING],

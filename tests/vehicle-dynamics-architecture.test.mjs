@@ -4,8 +4,8 @@ import test from 'node:test';
 
 import { createVehicleDebugHudModel } from '../dist/browser/vehicle-debug-hud.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
+import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from '../dist/physics/automatic-powertrain.js';
 import { bodyFrameVelocity } from '../dist/physics/vehicle-dynamics.js';
 import {
@@ -15,12 +15,12 @@ import {
   updateTestVehicle,
 } from './helpers/vehicle-fixture.mjs';
 
-const guide = createM2StadiumGuide();
+const guide = createStadiumGuide();
 const height = new HeightProfile(guide.length, [
   { s: 0, y: 0 },
   { s: guide.length, y: 0 },
 ]);
-const surfaces = createM5DebugSurfaceMap(guide.length);
+const surfaces = createMaterialTransitionSurfaceMap(guide.length);
 
 function carBasis(car) {
   return {
@@ -29,7 +29,7 @@ function carBasis(car) {
   };
 }
 
-test('M8.0 world velocity is authoritative while body velocity is a derived observation', () => {
+test('world velocity is authoritative while body velocity is a derived observation', () => {
   const car = createTestCar(guide, height, surfaces, 90, 0, 0);
   const { forward, right } = carBasis(car);
   car.velocityX = forward.x * 31 + right.x * -4;
@@ -45,7 +45,7 @@ test('M8.0 world velocity is authoritative while body velocity is a derived obse
   assert.notDeepEqual(bodyFrameVelocity(car, rotated.forward, rotated.right), first);
 });
 
-test('M8.0 support geography does not manufacture contact below an airborne body', () => {
+test('support geography does not manufacture contact below an airborne body', () => {
   const car = createTestCar(guide, height, surfaces, 120, 0, 0);
   car.y += 3;
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: false, brake: false }, 1 / 60);
@@ -59,7 +59,7 @@ test('M8.0 support geography does not manufacture contact below an airborne body
   assert.equal('contacts' in car, false);
 });
 
-test('M9 car and motorcycle use the same reduced two-station state and differ only by profile', () => {
+test('car and motorcycle use the same reduced two-station state and differ only by profile', () => {
   const car = createTestCar(guide, height, surfaces, 90);
   const bike = createTestBike(guide, height, surfaces, 90);
   assert.deepEqual(
@@ -76,7 +76,7 @@ test('M9 car and motorcycle use the same reduced two-station state and differ on
   assert.equal('contacts' in bike, false);
 });
 
-test('M8.1 digital request produces continuous steering and neutral self-countersteer', () => {
+test('digital request produces continuous steering and neutral self-countersteer', () => {
   const car = createTestCar(guide, height, surfaces, 90);
   updateTestVehicle(guide, height, surfaces, car, { steering: 1, throttle: false, brake: false }, 1 / 60);
   const first = car.control.actualSteerAngle;
@@ -95,7 +95,7 @@ test('M8.1 digital request produces continuous steering and neutral self-counter
   assert.ok(car.control.actualSteerAngle < 0, 'neutral input must countersteer toward zero front slip');
 });
 
-// M9.22 replaces pedal actuator-only graphics with read-only delivered station torque.
+// replaces pedal actuator-only graphics with read-only delivered station torque.
 test('common HUD reads delivered pedal telemetry without adding hidden assists', () => {
   const car = createTestCar(guide, height, surfaces, 300, 8, 10);
   updateTestVehicle(guide, height, surfaces, car, { steering: 0, throttle: true, brake: false }, 1 / 60);
@@ -111,8 +111,8 @@ test('common HUD reads delivered pedal telemetry without adding hidden assists',
   assert.match(hud.instruments, /^SPD\s+\d+km\/h  RPM\s+\d+  GEAR \d+/);
 });
 
-// M9.17 supersedes only the historical clutch-time/drive-cut and lagged-RPM expectations.
-test('M9.17 automatic ratio selection delivers wheel torque without a shift interruption', () => {
+// supersedes only the historical clutch-time/drive-cut and lagged-RPM expectations.
+test('automatic ratio selection delivers wheel torque without a shift interruption', () => {
   const profile = {
     idleRpm: 10,
     redlineRpm: 12000,
@@ -144,7 +144,7 @@ test('M9.17 automatic ratio selection delivers wheel torque without a shift inte
   assert.ok(Math.abs(shift.engineRpm - (500 * 60) / (2 * Math.PI)) < 1e-9);
 });
 
-test('M8.0 common dynamics layer owns no concrete product camera renderer or route branch', async () => {
+test('common dynamics layer owns no concrete product camera renderer or route branch', async () => {
   const source = await readFile(new URL('../src/physics/vehicle-dynamics.ts', import.meta.url), 'utf8');
   const powertrain = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /car-physics|motorcycle-physics|gameplay|camera|render/);

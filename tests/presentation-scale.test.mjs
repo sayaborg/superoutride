@@ -15,7 +15,7 @@ import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { drawScaledSprite } from '../dist/graphics/sprite.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
-test('M5.2 canonical player presentation is exactly 2.0 m = 80 px', () => {
+test('canonical player presentation is exactly 2.0 m = 80 px', () => {
   assert.equal(CAR_WIDTH_METERS, 2);
   assert.equal(PLAYER_REFERENCE_WIDTH_PIXELS, 80);
   assert.equal(PLAYER_PIXELS_PER_METER, 40);

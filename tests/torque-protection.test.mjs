@@ -1,25 +1,25 @@
-import { callsTo } from './helpers/source-contract.mjs';
-import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
+import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { compileTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
+import { solveWheelOmega, wheelRequiredNetTorque } from '../dist/physics/tire-wheel.js';
 import {
   limitWheelTorques,
-  ROAD_TORQUE_POLICY,
-  TWO_WHEEL_TORQUE_POLICY,
   resolveTorqueProtectionPolicy,
+  ROAD_TORQUE_POLICY,
   supportCompressionMargin,
+  TWO_WHEEL_TORQUE_POLICY,
 } from '../dist/physics/torque-protection.js';
-import { solveWheelOmega, wheelRequiredNetTorque } from '../dist/physics/tire-wheel.js';
-import { compileTireCharacteristics } from '../dist/physics/tire-friction-calibration.js';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { createFlatProbe, forkProbe, runProbe, directInput } from '../tools/drift-control-probe.mjs';
-import { runProtectionProbe } from '../tools/torque-protection-probe.mjs';
-import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
-import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
-import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 import { evaluateVehicleWrench } from '../dist/physics/vehicle-wrench.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { createFlatProbe, directInput, forkProbe, runProbe } from '../tools/drift-control-probe.mjs';
+import { runProtectionProbe } from '../tools/torque-protection-probe.mjs';
+import { withEngineCurveScale } from './helpers/authored-engine.mjs';
+import { withHighBikeCgEntry } from './helpers/bike-cg-reference.mjs';
+import { callsTo } from './helpers/source-contract.mjs';
 const car = VEHICLE_CATALOG[0],
   bike = VEHICLE_CATALOG[5],
   R = car.profile.rearStation.rollingRadius;
@@ -48,7 +48,7 @@ const random = () => {
   return seed / 2 ** 32;
 };
 
-test('M9.21 policy is immutable composition data, with pitch protection only on the four bikes', () => {
+test('policy is immutable composition data, with pitch protection only on the four bikes', () => {
   for (const [i, e] of VEHICLE_CATALOG.entries()) {
     assert.equal(e.torqueProtection.wheelSlip, true);
     assert.equal(e.torqueProtection.supportReserve, i < 5 ? null : 0.08);
@@ -58,7 +58,7 @@ test('M9.21 policy is immutable composition data, with pitch protection only on 
   for (const supportReserve of [0, 1, -1, NaN, Infinity])
     assert.throws(() => resolveTorqueProtectionPolicy({ wheelSlip: true, supportReserve }));
 });
-test('M9.21 inverse torque equals the existing signed wheel equation and is strictly increasing', () => {
+test('inverse torque equals the existing signed wheel equation and is strictly increasing', () => {
   for (let n = 0; n < 500; n++) {
     const i = wheel({
       omegaPrevious: 300 * random() - 150,
@@ -77,7 +77,7 @@ test('M9.21 inverse torque equals the existing signed wheel equation and is stri
     close(wheelRequiredNetTorque(i, o.omega), i.driveTorque, 2e-7);
   }
 });
-test('M9.21 TCS and ABS project simultaneous requested torques into feasible local bounds', () => {
+test('TCS and ABS project simultaneous requested torques into feasible local bounds', () => {
   for (let n = 0; n < 2000; n++) {
     const vx = 5 + 65 * random(),
       m = 0.2 + random(),
@@ -107,7 +107,7 @@ test('M9.21 TCS and ABS project simultaneous requested torques into feasible loc
     }
   }
 });
-test('M9.21 independent AWD reduction changes actual split without reallocating removed torque', () => {
+test('independent AWD reduction changes actual split without reallocating removed torque', () => {
   const request = 5000,
     f = 0.47;
   const front = wheel({
@@ -123,7 +123,7 @@ test('M9.21 independent AWD reduction changes actual split without reallocating 
   assert.ok(a.driveTorque / (a.driveTorque + b.driveTorque) < f);
   assert.ok(a.driveTorque + b.driveTorque < request);
 });
-test('M9.21 independent ABS releases the overloaded station without reducing the other', () => {
+test('independent ABS releases the overloaded station without reducing the other', () => {
   const a = limitWheelTorques(
     wheel({ normalLoad: 500, brakeTorque: 2500, omegaPrevious: (30 - 0.08 * Math.hypot(30, 1)) / R }),
   );
@@ -132,7 +132,7 @@ test('M9.21 independent ABS releases the overloaded station without reducing the
   assert.equal(b.brakeTorque, 2500);
   assert.ok(solveWheelOmega(a).tire.sx >= -0.080000001);
 });
-test('M9.21 brake release handles reverse, while low-speed stopping and zero-contact wheels stay physical', () => {
+test('brake release handles reverse, while low-speed stopping and zero-contact wheels stay physical', () => {
   for (const vx of [-30, 30]) {
     const i = wheel({ omegaPrevious: vx / R, longitudinalVelocity: vx, brakeTorque: 50000 });
     const p = limitWheelTorques(i),
@@ -148,7 +148,7 @@ test('M9.21 brake release handles reverse, while low-speed stopping and zero-con
   close(solveWheelOmega(airborne).omega, airborne.omegaPrevious + (5000 * airborne.dt) / airborne.inertia, 1e-8);
   for (const bad of [NaN, Infinity]) assert.throws(() => limitWheelTorques(wheel({ normalLoad: bad })));
 });
-test('M9.21 already overspinning wheel is not snapped to the target or given an unrequested brake', () => {
+test('already overspinning wheel is not snapped to the target or given an unrequested brake', () => {
   const i = wheel({ omegaPrevious: 180 / R, driveTorque: 10000 });
   const p = limitWheelTorques(i),
     o = solveWheelOmega(p);
@@ -157,7 +157,7 @@ test('M9.21 already overspinning wheel is not snapped to the target or given an 
   assert.ok(o.tire.sx > 0.08);
   assert.ok(o.omega < i.omegaPrevious);
 });
-test('M9.21 actual per-station torque telemetry conserves requested budget, not fixed delivered AWD split', () => {
+test('actual per-station torque telemetry conserves requested budget, not fixed delivered AWD split', () => {
   const e = VEHICLE_CATALOG[4],
     p = createFlatProbe({
       profile: withEngineCurveScale(e.profile, 4),
@@ -184,10 +184,10 @@ test('M9.21 actual per-station torque telemetry conserves requested budget, not 
   assert.ok(changed);
 });
 for (const hz of [60, 120, 240])
-  test(`M9.21 all four bikes prevent repeated powered lift and braking overturn at ${hz} Hz`, () => {
+  test(`all four bikes prevent repeated powered lift and braking overturn at ${hz} Hz`, () => {
     for (const e of VEHICLE_CATALOG.slice(5))
       for (const kind of ['drive', 'brake']) {
-        const x = runProtectionProbe(withM927BikeCgEntry(e), { hz, kind, seconds: 6 });
+        const x = runProtectionProbe(withHighBikeCgEntry(e), { hz, kind, seconds: 6 });
         assert.equal(x.error, null, e.profile.id);
         assert.equal(x.overturned, false, e.profile.id);
         assert.equal(x.frontLiftTime, 0, JSON.stringify(x));
@@ -201,8 +201,8 @@ for (const hz of [60, 120, 240])
         }
       }
   });
-test('M9.21 the unprotected bike failure remains reproducible and slip-only protection is not pitch protection', () => {
-  const bike = withM927BikeCgEntry(VEHICLE_CATALOG[5]);
+test('the unprotected bike failure remains reproducible and slip-only protection is not pitch protection', () => {
+  const bike = withHighBikeCgEntry(VEHICLE_CATALOG[5]);
   const raw = runProtectionProbe(bike, { kind: 'brake', protectedRun: false });
   assert.equal(raw.overturned, true);
   const slipOnly = { ...bike, torqueProtection: ROAD_TORQUE_POLICY };
@@ -211,7 +211,7 @@ test('M9.21 the unprotected bike failure remains reproducible and slip-only prot
   const full = runProtectionProbe(bike, { kind: 'brake' });
   assert.equal(full.rearLiftTime, 0);
 });
-test('M9.21 all nine protected profiles launch, brake, switch pedals and recover without policy loss', () => {
+test('all nine protected profiles launch, brake, switch pedals and recover without policy loss', () => {
   for (const e of VEHICLE_CATALOG) {
     const p = createFlatProbe({ profile: e.profile, initialSpeed: 0, torqueProtection: policyFor(e) }),
       v = p.vehicle;
@@ -233,7 +233,7 @@ test('M9.21 all nine protected profiles launch, brake, switch pedals and recover
     assert.equal(v.control.supportTorqueScale, 1);
   }
 });
-test('M9.21 neutral coasting is byte-identical physics, and support control does not glue an airborne body', () => {
+test('neutral coasting is byte-identical physics, and support control does not glue an airborne body', () => {
   const p = createFlatProbe({ initialSpeed: 200 / 3.6 });
   const q = createFlatProbe({ initialSpeed: 200 / 3.6, torqueProtection: ROAD_TORQUE_POLICY });
   const a = runProbe(p, 2, () => directInput(0.65, 0)),
@@ -247,7 +247,7 @@ test('M9.21 neutral coasting is byte-identical physics, and support control does
   assert.equal(air.vehicle.frontNormalLoad, 0);
   assert.equal(air.vehicle.rearNormalLoad, 0);
 });
-test('M9.21 compression barrier uses fresh geometry, velocity and the retained wrench rather than telemetry', () => {
+test('compression barrier uses fresh geometry, velocity and the retained wrench rather than telemetry', () => {
   const p = createFlatProbe({ profile: bike.profile, initialSpeed: 15, torqueProtection: TWO_WHEEL_TORQUE_POLICY });
   runProbe(p, 0.5, () => directInput(0, 0));
   const q = forkProbe(p);
@@ -287,7 +287,7 @@ test('M9.21 compression barrier uses fresh geometry, velocity and the retained w
   };
   assert.ok(supportCompressionMargin(v.profile, body, rising, wrench, 0.08) < a);
 });
-test('M9.21 every browser actor and vehicle replacement explicitly receives catalog protection', async () => {
+test('every browser actor and vehicle replacement explicitly receives catalog protection', async () => {
   for (const name of ['main', 'main-linear', 'main-circuit']) {
     const s = await readFile(new URL(`../src/${name}.ts`, import.meta.url), 'utf8');
     assert.match(s, /createBrowserDrivingShell/);
@@ -301,7 +301,7 @@ test('M9.21 every browser actor and vehicle replacement explicitly receives cata
   assert.match(shell, /DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection/);
   assert.match(shell, /vehicleCatalogEntryForId\(profile.id\).torqueProtection/);
 });
-test('M9.21 protection adds no vehicle kind, target beta, body overwrite, or duplicated tire law', async () => {
+test('protection adds no vehicle kind, target beta, body overwrite, or duplicated tire law', async () => {
   const s = await readFile(new URL('../src/physics/torque-protection.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(s, /presentationFamily|\.id\s*===|targetBeta|\.yaw\s*=|\.pitch\s*=|\.velocity[XYZ]\s*=/);
   assert.match(s, /wheelRequiredNetTorque/);

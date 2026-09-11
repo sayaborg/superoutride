@@ -3,18 +3,18 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
-import { M7_1_ROAD_HALF_WIDTH_METERS } from '../dist/dev/m7-1-highway-calibration-course.js';
-import { createM91LowMidSpeedMountainCircuitRuntime } from '../dist/dev/m9-1-low-mid-speed-mountain-circuit.js';
 import {
-  createM93TsukubaCourse2000Runtime,
-  M9_3_TSUKUBA_RIVAL_START_L,
-  M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
-} from '../dist/dev/m9-3-tsukuba-circuit.js';
+  createFiscoRuntime,
+  FISCO_RIVAL_START_L,
+  FISCO_ROAD_HALF_WIDTH_METERS,
+} from '../dist/dev/courses/fisco-circuit.js';
+import { HIGHWAY_ROAD_HALF_WIDTH_METERS } from '../dist/dev/courses/highway-calibration.js';
 import {
-  createM96FiscoRuntime,
-  M9_6_FISCO_RIVAL_START_L,
-  M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
-} from '../dist/dev/m9-6-fisco-circuit.js';
+  createTsukubaCourse2000Runtime,
+  TSUKUBA_RIVAL_START_L,
+  TSUKUBA_ROAD_HALF_WIDTH_METERS,
+} from '../dist/dev/courses/tsukuba-circuit.js';
+import { createLowMidSpeedMountainCircuitRuntime } from '../dist/dev/fixtures/mountain-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
@@ -23,33 +23,33 @@ const profiles = [DEFAULT_VEHICLE_CATALOG_ENTRY.profile];
 const courses = [
   {
     name: 'mountain',
-    createRuntime: createM91LowMidSpeedMountainCircuitRuntime,
-    roadHalfWidth: M7_1_ROAD_HALF_WIDTH_METERS,
+    createRuntime: createLowMidSpeedMountainCircuitRuntime,
+    roadHalfWidth: HIGHWAY_ROAD_HALF_WIDTH_METERS,
     spawnS: 45,
     spawnL: 0,
     spawnSpeed: 0,
   },
   {
     name: 'Tsukuba',
-    createRuntime: createM93TsukubaCourse2000Runtime,
-    roadHalfWidth: M9_3_TSUKUBA_ROAD_HALF_WIDTH_METERS,
+    createRuntime: createTsukubaCourse2000Runtime,
+    roadHalfWidth: TSUKUBA_ROAD_HALF_WIDTH_METERS,
     spawnS: 95,
-    spawnL: M9_3_TSUKUBA_RIVAL_START_L,
+    spawnL: TSUKUBA_RIVAL_START_L,
     spawnSpeed: 45,
   },
   {
     name: 'FISCO',
-    createRuntime: createM96FiscoRuntime,
-    roadHalfWidth: M9_6_FISCO_ROAD_HALF_WIDTH_METERS,
+    createRuntime: createFiscoRuntime,
+    roadHalfWidth: FISCO_ROAD_HALF_WIDTH_METERS,
     spawnS: 95,
-    spawnL: M9_6_FISCO_RIVAL_START_L,
+    spawnL: FISCO_RIVAL_START_L,
     spawnSpeed: 45,
   },
 ];
 
 for (const course of courses) {
   for (const profile of profiles) {
-    test(`M9.21 protected product rival drives ${profile.id} around ${course.name} without recovery`, () => {
+    test(`protected product rival drives ${profile.id} around ${course.name} without recovery`, () => {
       const live = course.createRuntime();
       const lapLength = live.window.topology.lapLength;
       const vehicle = createArcadeVehicle(
@@ -104,7 +104,7 @@ for (const course of courses) {
   }
 }
 
-test('M9.7 rival remains one general canonical-input publisher', async () => {
+test('rival remains one general canonical-input publisher', async () => {
   const source = await readFile(new URL('../src/gameplay/rival-driver.ts', import.meta.url), 'utf8');
   assert.match(source, /MAX_STEERING_REQUEST = 0\.72/);
   assert.match(source, /Math\.hypot\(car\.longitudinalSpeed, car\.lateralSpeed\)/);

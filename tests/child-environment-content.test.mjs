@@ -1,28 +1,28 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import test from 'node:test';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
-import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM623ChildEnvironmentContent } from '../dist/dev/m6-23-child-environment-content.js';
-import { createM623LiveStageRuntimeRegistry } from '../dist/dev/m6-23-live-runtime-content.js';
+import { createChildStageContinuation } from '../dist/dev/courses/child-stage-continuation.js';
+import { createChildEnvironmentStageRegistry } from '../dist/dev/fixtures/child-environment-registry.js';
+import { createChildEnvironmentContent } from '../dist/dev/fixtures/child-environment.js';
+import { createSingleForkRouteDag } from '../dist/dev/fixtures/single-fork-route.js';
 
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
   const assets = createSpriteAssets();
-  const environment = createM623ChildEnvironmentContent(continuation, assets);
-  const route = createM620LivePointToPointRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
-  const registry = createM623LiveStageRuntimeRegistry(
+  const environment = createChildEnvironmentContent(continuation, assets);
+  const route = createSingleForkRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
+  const registry = createChildEnvironmentStageRegistry(
     manifest,
     continuation,
     parentShared(parent),
@@ -33,7 +33,7 @@ function setup() {
   return { parent, continuation, environment, registry };
 }
 
-test('M6.23 preserves the shared handoff height datum before child scenery begins', () => {
+test('preserves the shared handoff height datum before child scenery begins', () => {
   const { continuation, environment } = setup();
   const probes = [0, continuation.handoffLocalS - 5, continuation.handoffLocalS, continuation.handoffLocalS + 5, 60];
   for (const s of probes) {
@@ -42,7 +42,7 @@ test('M6.23 preserves the shared handoff height datum before child scenery begin
   }
 });
 
-test('M6.23 left coast and right mountain own materially different height profiles after overlap', () => {
+test('left coast and right mountain own materially different height profiles after overlap', () => {
   const { environment } = setup();
   assert.ok(environment.left.heightProfile.samplePhysics(105) < 0);
   assert.ok(environment.right.heightProfile.samplePhysics(105) > 0);
@@ -53,7 +53,7 @@ test('M6.23 left coast and right mountain own materially different height profil
   );
 });
 
-test('M6.23 child world sprites are compiled in their own child chainage domains', () => {
+test('child world sprites are compiled in their own child chainage domains', () => {
   const { continuation, environment } = setup();
   assert.ok(environment.left.worldSprites.length >= 5);
   assert.ok(environment.right.worldSprites.length >= 7);
@@ -71,7 +71,7 @@ test('M6.23 child world sprites are compiled in their own child chainage domains
   assert.ok(environment.right.worldSprites.some((sprite) => sprite.name.startsWith('MOUNTAIN_')));
 });
 
-test('M6.23 live packages atomically own child height terrain sprites and M6.21 backgrounds', () => {
+test('live packages atomically own child height terrain sprites and backgrounds', () => {
   const { environment, registry } = setup();
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
   const right = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_R' });
@@ -85,7 +85,7 @@ test('M6.23 live packages atomically own child height terrain sprites and M6.21 
   assert.notEqual(left.selectFarBackground(120), right.selectFarBackground(120));
 });
 
-test('M6.23 package sprites are not copied from parent chainage content', () => {
+test('package sprites are not copied from parent chainage content', () => {
   const { registry } = setup();
   const parent = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_STAGE_1' });
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
@@ -96,17 +96,17 @@ test('M6.23 package sprites are not copied from parent chainage content', () => 
   assert.ok(right.worldSprites.every((sprite) => sprite.name.startsWith('MOUNTAIN_')));
 });
 
-test('M6.23 keeps route-side environment choice outside renderer Core', async () => {
+test('keeps route-side environment choice outside renderer Core', async () => {
   const { readFile } = await import('node:fs/promises');
   const [rendererSource, environmentSource, liveSource] = await Promise.all([
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-23-child-environment-content.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-23-live-runtime-content.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/child-environment.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/child-environment-registry.ts', import.meta.url), 'utf8'),
   ]);
 
   assert.match(environmentSource, /COAST_/);
   assert.match(environmentSource, /MOUNTAIN_/);
   assert.match(liveSource, /CONTENT_GOAL_L/);
   assert.match(liveSource, /CONTENT_GOAL_R/);
-  assert.doesNotMatch(rendererSource, /M6_23|COAST_|MOUNTAIN_|CONTENT_GOAL_[LR]|GOAL_[LR]/);
+  assert.doesNotMatch(rendererSource, /M[0-9]+(?:[._][0-9]+)?|COAST_|MOUNTAIN_|CONTENT_GOAL_[LR]|GOAL_[LR]/);
 });

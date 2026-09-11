@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import {
@@ -11,7 +11,7 @@ import {
 } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DT = 1 / 60;
-const highway = createM72DefaultBranchingParent();
+const highway = createDefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },

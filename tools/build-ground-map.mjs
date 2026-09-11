@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import {
   CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
@@ -11,9 +11,9 @@ import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { compileBakedGroundMapAsset } from '../dist/groundmap/ground-map-asset-compiler.js';
 import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
 import { deriveGroundMapTargetEnvelope } from '../dist/groundmap/ground-map-target-envelope.js';
@@ -23,8 +23,8 @@ const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const pitch = CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS;
 const dMin = CURRENT_RENDER_NEAR_DEPTH_METERS;
 const dMax = CURRENT_RENDER_FAR_DEPTH_METERS;
-const guide = createM2StadiumGuide();
-const compiledSurfaces = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+const guide = createStadiumGuide();
+const compiledSurfaces = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -33,7 +33,7 @@ const groundProfile = {
   roadMarkings: CENTER_DASH_MARKINGS,
   junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
-  junction: M6_13_JUNCTION,
+  junction: STADIUM_JUNCTION,
   logical: compiledSurfaces.groundMap,
 };
 const density = deriveGroundMapDensity({
@@ -53,15 +53,15 @@ const asset = await compileBakedGroundMapAsset(guide.length, groundProfile, dens
 await mkdir(new URL('../dist/assets/', import.meta.url), { recursive: true });
 await Promise.all([
   writeFile(
-    new URL('../dist/assets/m5-ground-map.json', import.meta.url),
+    new URL('../dist/assets/stadium-ground-map.json', import.meta.url),
     `${JSON.stringify(asset.metadata, null, 2)}\n`,
   ),
-  writeFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url), asset.bytes),
+  writeFile(new URL('../dist/assets/stadium-ground-map.bin', import.meta.url), asset.bytes),
 ]);
 
 const chunkRefs = asset.metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);
 console.log(
-  'M6.13 BAKED GROUND MAP',
+  'BAKED GROUND MAP',
   JSON.stringify({
     courseLength: asset.metadata.courseLength,
     baseLateralTexels: asset.metadata.levels[0].lateralTexels,

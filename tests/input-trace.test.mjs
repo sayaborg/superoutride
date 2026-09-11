@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import {
   appendDrivingInput,
   createDrivingInputTrace,
@@ -10,14 +9,15 @@ import {
   parseDrivingInputTrace,
   serializeDrivingInputTrace,
   visitDrivingInputTrace,
-} from '../dist/dev/driving-input-trace.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
+} from '../dist/dev/diagnostics/driving-input-trace.js';
 import {
   createVehicleTelemetryRecorder,
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
-} from '../dist/dev/vehicle-telemetry.js';
+} from '../dist/dev/diagnostics/vehicle-telemetry.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 function makeProbeTrace() {
@@ -28,7 +28,7 @@ function makeProbeTrace() {
   return trace;
 }
 
-test('M6.6 trace uses deterministic run-length encoding for identical adjacent commands', () => {
+test('trace uses deterministic run-length encoding for identical adjacent commands', () => {
   const trace = createDrivingInputTrace(1 / 60);
   appendDrivingInput(trace, { steering: 0, throttle: true, brake: false }, 2);
   appendDrivingInput(trace, { steering: 0, throttle: true, brake: false }, 3);
@@ -64,9 +64,9 @@ test('trace rejects contradictory pedals because event order must be resolved be
 });
 
 function replayProbe(trace, profile = FERRARI_TESTAROSSA_VEHICLE_PROFILE) {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const surfaces = createM5DebugSurfaceMap(guide.length);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const surfaces = createMaterialTransitionSurfaceMap(guide.length);
   const car = createTestCar(guide, height, surfaces, 45, 0, 45, profile);
   const recorder = createVehicleTelemetryRecorder(trace.dt, guide.length, car);
 

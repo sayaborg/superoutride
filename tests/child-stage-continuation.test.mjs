@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
-import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
 import {
-  createM622ChildStageContinuation,
-  createM622LivePointToPointGateSet,
-  createM622RouteStageHandoffManifest,
-  M6_22_CHILD_FINISH_S,
-} from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM624LiveStageRuntimeRegistry } from '../dist/dev/m6-24-live-runtime-content.js';
+  CHILD_FINISH_S,
+  createChildStageContinuation,
+  createLivePointToPointGateSet,
+  createRouteStageHandoffManifest,
+} from '../dist/dev/courses/child-stage-continuation.js';
+import { STADIUM_HANDOFF_SEAM_S } from '../dist/dev/courses/stadium-handoff.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createAuthoredStageRegistry } from '../dist/dev/fixtures/authored-stage-registry.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { createSingleForkRouteDag } from '../dist/dev/fixtures/single-fork-route.js';
 
 import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -49,17 +49,17 @@ function crossing(gate, distance = 2) {
   };
 }
 
-test('M6.22 child charts share exact overlap geometry through D_cam around the handoff seam', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
+test('child charts share exact overlap geometry through D_cam around the handoff seam', () => {
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
 
   for (const [side, chart] of [
     ['LEFT', continuation.charts.left],
     ['RIGHT', continuation.charts.right],
   ]) {
-    const origin = M6_13_JUNCTION.separatedChildCenterL(side);
+    const origin = STADIUM_JUNCTION.separatedChildCenterL(side);
     for (const delta of [-5, 0, 20]) {
-      const parentWorld = guidePathToWorld(parent, M6_17_HANDOFF_SEAM_S + delta, origin);
+      const parentWorld = guidePathToWorld(parent, STADIUM_HANDOFF_SEAM_S + delta, origin);
       const childWorld = guideChartToWorld(chart, continuation.handoffLocalS + delta, 0);
       near(childWorld.x, parentWorld.x, 1e-5);
       near(childWorld.z, parentWorld.z, 1e-5);
@@ -68,9 +68,9 @@ test('M6.22 child charts share exact overlap geometry through D_cam around the h
   }
 });
 
-test('M6.22 child Guides are independent long courses and diverge after the shared prefix', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
+test('child Guides are independent long courses and diverge after the shared prefix', () => {
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
 
   assert.ok(continuation.left.guide.length > 300);
   assert.ok(continuation.right.guide.length > 300);
@@ -79,15 +79,15 @@ test('M6.22 child Guides are independent long courses and diverge after the shar
   assert.notEqual(continuation.left.guide.length, parent.length);
   assert.notEqual(continuation.right.guide.length, parent.length);
 
-  const leftFinish = guideChartToWorld(continuation.charts.left, M6_22_CHILD_FINISH_S, 0);
-  const rightFinish = guideChartToWorld(continuation.charts.right, M6_22_CHILD_FINISH_S, 0);
+  const leftFinish = guideChartToWorld(continuation.charts.left, CHILD_FINISH_S, 0);
+  const rightFinish = guideChartToWorld(continuation.charts.right, CHILD_FINISH_S, 0);
   assert.ok(Math.hypot(leftFinish.x - rightFinish.x, leftFinish.z - rightFinish.z) > 10);
 });
 
-test('M6.22 translated procedural GroundMap keeps child road centered and preserves seam phase', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const leftCenter = M6_13_JUNCTION.separatedChildCenterL('LEFT');
+test('translated procedural GroundMap keeps child road centered and preserves seam phase', () => {
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
+  const leftCenter = STADIUM_JUNCTION.separatedChildCenterL('LEFT');
   const childProfile = continuation.left.groundProfile;
 
   const onRoad = sampleGroundMap(8, leftCenter + 1, childProfile);
@@ -103,35 +103,30 @@ test('M6.22 translated procedural GroundMap keeps child road centered and preser
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
     shoulderWidth: 1,
-    junction: M6_13_JUNCTION,
+    junction: STADIUM_JUNCTION,
   };
-  const parentAtSeam = sampleGroundMap(M6_17_HANDOFF_SEAM_S, leftCenter, parentProfile);
+  const parentAtSeam = sampleGroundMap(STADIUM_HANDOFF_SEAM_S, leftCenter, parentProfile);
   const childAtSeam = sampleGroundMap(continuation.handoffLocalS, leftCenter, childProfile);
   assert.equal(childProfile.chainageOffsetS, continuation.parentSourceStartS);
   assert.equal(parentAtSeam, GROUND_COLORS.marking);
   assert.equal(childAtSeam, parentAtSeam);
 });
 
-test('M6.22 runtime packages retain independent child Guide/SurfaceMap and child-owned visuals', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const route = createM620LivePointToPointRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
-  const registry = createM624LiveStageRuntimeRegistry(
-    manifest,
-    continuation,
-    parentShared(parent),
-    createSpriteAssets(),
-  );
+test('runtime packages retain independent child Guide/SurfaceMap and child-owned visuals', () => {
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
+  const route = createSingleForkRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
+  const registry = createAuthoredStageRegistry(manifest, continuation, parentShared(parent), createSpriteAssets());
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
   const right = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_R' });
 
   assert.equal(left.coordinateFrame.guide, continuation.left.guide);
   assert.equal(right.coordinateFrame.guide, continuation.right.guide);
-  assert.equal(left.surfaceMap.sample(M6_22_CHILD_FINISH_S, 0).type, 'ASPHALT');
-  assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, 0).type, 'ASPHALT');
-  assert.equal(left.surfaceMap.sample(M6_22_CHILD_FINISH_S, 5).type, 'VOID');
-  assert.equal(right.surfaceMap.sample(M6_22_CHILD_FINISH_S, -5).type, 'VOID');
+  assert.equal(left.surfaceMap.sample(CHILD_FINISH_S, 0).type, 'ASPHALT');
+  assert.equal(right.surfaceMap.sample(CHILD_FINISH_S, 0).type, 'ASPHALT');
+  assert.equal(left.surfaceMap.sample(CHILD_FINISH_S, 5).type, 'VOID');
+  assert.equal(right.surfaceMap.sample(CHILD_FINISH_S, -5).type, 'VOID');
   assert.ok(left.worldSprites.length > 0);
   assert.ok(right.worldSprites.length > 0);
   assert.ok(left.worldSprites.every((sprite) => sprite.name.startsWith('COAST_')));
@@ -139,14 +134,14 @@ test('M6.22 runtime packages retain independent child Guide/SurfaceMap and child
   assert.notEqual(left.selectFarBackground(50), right.selectFarBackground(50));
 });
 
-test('M6.22 physical route choice commits an independent child chart and finishes on that child course', () => {
-  const parent = createM2StadiumGuide();
-  const continuation = createM622ChildStageContinuation(parent);
-  const route = createM620LivePointToPointRouteDag();
+test('physical route choice commits an independent child chart and finishes on that child course', () => {
+  const parent = createStadiumGuide();
+  const continuation = createChildStageContinuation(parent);
+  const route = createSingleForkRouteDag();
   const routeState = createRouteDagState(route);
-  const content = createM6DebugRouteStageContentManifest(route);
-  const gates = createM622LivePointToPointGateSet(route, parent, continuation);
-  const handoffs = createM622RouteStageHandoffManifest(route, parent, continuation);
+  const content = createMinimalStageContentManifest(route);
+  const gates = createLivePointToPointGateSet(route, parent, continuation);
+  const handoffs = createRouteStageHandoffManifest(route, parent, continuation);
   const charts = [continuation.charts.parent, continuation.charts.left, continuation.charts.right];
   const handoffState = createRouteStageHandoffState(route, content, continuation.charts.parent, { x: 0, z: -55 });
 
@@ -184,7 +179,7 @@ test('M6.22 physical route choice commits an independent child chart and finishe
 
   const finishGate = gates.gates.find((gate) => gate.kind === 'FINISH' && gate.stageId === 'GOAL_L');
   assert.ok(finishGate);
-  const expectedFinish = guideChartToWorld(continuation.charts.left, M6_22_CHILD_FINISH_S, 0);
+  const expectedFinish = guideChartToWorld(continuation.charts.left, CHILD_FINISH_S, 0);
   near(finishGate.center.x, expectedFinish.x, 1e-6);
   near(finishGate.center.z, expectedFinish.z, 1e-6);
   const finishMotion = crossing(finishGate);
@@ -200,23 +195,20 @@ test('M6.22 physical route choice commits an independent child chart and finishe
   assert.equal(routeState.status, 'FINISHED');
 });
 
-test('M6.22 fixture stays validated while browser live wiring consumes the M6.27 assembly through M6.42 batching', async () => {
+test('fixture stays validated while browser live wiring consumes the assembly through batching', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(mainSource, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(mainSource, /createDeclarativeForkGrowthRuntime/);
   assert.match(mainSource, /const playerTraveler = createLiveRouteTravelerState\(liveRoute/);
   assert.match(mainSource, /traveler: playerTraveler/);
   assert.match(mainSource, /advanceRouteDrivingTick/);
   assert.match(mainSource, /shell\.present\(/);
   assert.doesNotMatch(mainSource, /camera\.courseLength/);
-  assert.doesNotMatch(
-    mainSource,
-    /createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/,
-  );
-  assert.doesNotMatch(mainSource, /createM622LivePointToPointGateSet|createM622ChildStageContinuation/);
-  assert.doesNotMatch(rendererSource, /M6_22|M6_26|M6_27|M6_42|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
+  assert.doesNotMatch(mainSource, /createLiveContinuation|createLiveGateSet|createSuccessorStageRegistry/);
+  assert.doesNotMatch(mainSource, /createLivePointToPointGateSet|createChildStageContinuation/);
+  assert.doesNotMatch(rendererSource, /M[0-9]+(?:[._][0-9]+)?|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
 });

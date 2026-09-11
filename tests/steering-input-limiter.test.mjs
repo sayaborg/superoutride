@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deriveContactObservation, reorientContactObservation } from '../dist/physics/vehicle-dynamics.js';
-import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { createFlatProbe } from '../tools/drift-control-probe.mjs';
-import { setArcadeVehicleSteeringOffsetMax } from '../dist/physics/vehicle-calibration.js';
-import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createVehicleDebugHudModel, drawVehicleControlGraphics } from '../dist/browser/vehicle-debug-hud.js';
+import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { setArcadeVehicleSteeringOffsetMax } from '../dist/physics/vehicle-calibration.js';
+import { deriveContactObservation, reorientContactObservation } from '../dist/physics/vehicle-dynamics.js';
+import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+import { createFlatProbe } from '../tools/drift-control-probe.mjs';
 const DEG = Math.PI / 180,
   M = 60 * DEG;
 const p = createFlatProbe(),
@@ -32,7 +32,7 @@ function fixture(speed = 30, lateral = 0, pitch = 0) {
   return { body, contact: { ...contact, normalLoad: 4000, forceTransmitting: true } };
 }
 
-test('M9.26 frame reorientation exactly matches full contact observation without another surface sample', () => {
+test('frame reorientation exactly matches full contact observation without another surface sample', () => {
   const { body } = fixture(20, 5, 0.2);
   for (const d of [-M, -0.1, 0, 0.3, M]) {
     const before = deriveContactObservation(
@@ -50,7 +50,7 @@ test('M9.26 frame reorientation exactly matches full contact observation without
     );
   }
 });
-test('M9.26 all-nine actual substeps cut only input and retain automatic-plus-delivered target at three rates', () => {
+test('all-nine actual substeps cut only input and retain automatic-plus-delivered target at three rates', () => {
   for (const entry of VEHICLE_CATALOG)
     for (const hz of [60, 120, 240])
       for (const sign of [-1, 1])
@@ -81,7 +81,7 @@ test('M9.26 all-nine actual substeps cut only input and retain automatic-plus-de
           assert.equal(q.vehicle.control.deliveredSteerOffset, 0);
         }
 });
-test('M9.26 HUD distinguishes raw input, post-actuator reduction, automatic alignment and actual rack', () => {
+test('HUD distinguishes raw input, post-actuator reduction, automatic alignment and actual rack', () => {
   const q = createFlatProbe(),
     c = q.vehicle.control;
   c.requestedSteerOffset = 0.2;

@@ -3,13 +3,13 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE } from './helpers/vehicle-fixture.mjs';
 
 function fixture() {
-  const parent = createM72DefaultBranchingParent();
+  const parent = createDefaultBranchingParent();
   const height = new HeightProfile(parent.guide.length, [
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
@@ -17,7 +17,7 @@ function fixture() {
   return { parent, height, car: createTestCar(parent.guide, height, parent.surfaceMap, 800, -1.75) };
 }
 
-test('M8.0 tire force is an algebraic observation with no model-specific memory state', async () => {
+test('tire force is an algebraic observation with no model-specific memory state', async () => {
   const { car } = fixture();
   assert.equal('frontLateralForce' in car, false);
   assert.equal('rearLateralForce' in car, false);
@@ -29,7 +29,7 @@ test('M8.0 tire force is an algebraic observation with no model-specific memory 
   assert.doesNotMatch(common, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
 });
 
-test('M8.0 one-k tire response is immediate deterministic and releases with zero demand', () => {
+test('one-k tire response is immediate deterministic and releases with zero demand', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
   const repeated = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
@@ -40,7 +40,7 @@ test('M8.0 one-k tire response is immediate deterministic and releases with zero
   assert.equal(released.fy, 0);
 });
 
-test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
+test('zero normal load cannot retain or manufacture tire force', () => {
   const force = evaluateTireForce(
     200,
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius,
@@ -55,7 +55,7 @@ test('M8.0 zero normal load cannot retain or manufacture tire force', () => {
   assert.equal(force.capacityX, 0);
 });
 
-test('M8.0 recovery reconstructs authoritative state without clearing nonexistent tire memory', () => {
+test('recovery reconstructs authoritative state without clearing nonexistent tire memory', () => {
   const { parent, height, car } = fixture();
   const recovery = createRecoveryState(car);
   recovery.lastSafeS = car.course.s;

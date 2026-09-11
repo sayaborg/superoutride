@@ -7,9 +7,9 @@ import {
   CURRENT_CAMERA_HEIGHT_METERS,
 } from '../dist/camera/current-camera-profile.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
+import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
 import {
   deriveGroundMapTargetEnvelope,
@@ -23,9 +23,9 @@ import {
 } from '../dist/road/terrain-line.js';
 
 const deg = (value) => (value * Math.PI) / 180;
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const visual = createCliffVisualProfile(guide.length);
 const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
 const cameraProfile = {
   dCam: 5,
@@ -71,7 +71,7 @@ function sweepCurrentDebugEnvelope() {
   return summarizeTerrainFootprints(lines, density);
 }
 
-test('M5.6 thin-span rule is explicitly one destination row', () => {
+test('thin-span rule is explicitly one destination row', () => {
   assert.equal(DEFAULT_THIN_SPAN_SCREEN_ROWS, 1);
   assert.ok(projectedTerrainSpanRows(100, 20, 21) < 1);
   assert.ok(projectedTerrainSpanRows(100, 20, 40) > 1);
@@ -117,7 +117,7 @@ test('current debug Road Generator output requires k=7 after explicit thin-span 
   assert.equal(summary.requiredChainageLevel, 7);
   assert.equal(target.observedRequiredLevel, 7);
   assert.equal(target.necessityProven, true);
-  console.log('M5.6 TARGET KMAX', JSON.stringify({ summary, target }));
+  console.log('TARGET KMAX', JSON.stringify({ summary, target }));
 });
 
 test('compiled target rejects impossible telemetry above the depth-clip proof bound', () => {

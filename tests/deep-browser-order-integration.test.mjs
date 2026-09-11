@@ -9,9 +9,9 @@ import {
   locateWorldOnGuideCoordinateGlobal,
 } from '../dist/core/guide-coordinate-frame.js';
 import { wrapPositive } from '../dist/core/math.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
@@ -184,10 +184,10 @@ function stageBeforeGate(state, gate) {
 }
 
 function createDeepState() {
-  const parentGuide = createM2StadiumGuide();
+  const parentGuide = createStadiumGuide();
   const parent = createParentRuntime(parentGuide);
   const assets = createSpriteAssets();
-  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, assets);
+  const live = createDeclarativeForkGrowthRuntime(parentGuide, parent, assets);
   const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 320);
   car.velocityX = Math.sin(car.yaw) * PROBE_SPEED_MPS;
   car.velocityY = 0;
@@ -394,7 +394,7 @@ function runPath(path) {
 }
 
 for (const path of PATHS) {
-  test(`M6.39 browser-order ${path.name} keeps four physical PENDING/COMMIT transactions coherent across stage-local charts`, () => {
+  test(`browser-order ${path.name} keeps four physical PENDING/COMMIT transactions coherent across stage-local charts`, () => {
     const result = runPath(path);
     const diagnostic = `route=${result.routeState.activeStageId} status=${result.routeState.status} pkg=${result.handoffState.activePackageId} commits=${result.handoffState.commitCount} recoveries=${result.recovery.recoveries} choices=${result.acceptedChoices.join('>')} packages=${result.committedPackages.join('>')} s=${result.car.course.s.toFixed(2)} l=${result.car.course.l.toFixed(2)} speed=${result.car.speed.toFixed(2)} ticks=${result.simulationTicks}`;
 

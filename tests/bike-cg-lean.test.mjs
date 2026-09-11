@@ -14,10 +14,10 @@ import {
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createSpriteAssets, selectVehicleSprite } from '../dist/visual/sprite-assets.js';
 import { createTerrainProbe, runTerrainProbe } from '../tools/torque-protection-terrain-probe.mjs';
-import { withM927BikeCg, withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
+import { withHighBikeCg, withHighBikeCgEntry } from './helpers/bike-cg-reference.mjs';
 const bikes = VEHICLE_CATALOG.filter((e) => e.presentationFamily === 'BIKE');
 
-test('M9.28 four bikes lower only compiled CG/free reach to 30% wheelbase; five cars are exact M9.27', () => {
+test('four bikes lower only compiled CG/free reach to 30% wheelbase; five cars are exact ', () => {
   const carHashes = {
     TESTAROSSA: '31889234e93ddb6a844a797f1fb4c5700fdb363b17b73c37b4b88f248f9fbe70',
     '911_TURBO_3_3': '9e2f638f91c888d2545bf9b6f0ca77e034391488677c63648d989b7bc043e35b',
@@ -32,7 +32,7 @@ test('M9.28 four bikes lower only compiled CG/free reach to 30% wheelbase; five 
     if (p.id in carHashes) {
       assert.equal(createHash('sha256').update(JSON.stringify(p)).digest('hex'), carHashes[p.id]);
     } else {
-      const old = withM927BikeCg(p);
+      const old = withHighBikeCg(p);
       assert.ok(Math.abs(p.desiredCgHeight / (p.frontAxle + p.rearAxle) - 0.3) < 1e-14);
       assert.ok(p.desiredCgHeight < old.desiredCgHeight);
       assert.deepEqual(withoutCg(p), withoutCg(old));
@@ -49,11 +49,11 @@ test('M9.28 four bikes lower only compiled CG/free reach to 30% wheelbase; five 
 });
 
 for (const hz of [60, 120, 240])
-  test(`M9.28 lower CG reduces moving yaw excursion in all-four matched turn-brake cases at ${hz}Hz`, () => {
+  test(`lower CG reduces moving yaw excursion in all-four matched turn-brake cases at ${hz}Hz`, () => {
     for (const entry of bikes)
       for (const grip of [1, 0.25]) {
         const options = { hz, grip, kind: 'turnBrake', speed: 30, seconds: 6 };
-        const old = runTerrainProbe(withM927BikeCgEntry(entry), options),
+        const old = runTerrainProbe(withHighBikeCgEntry(entry), options),
           current = runTerrainProbe(entry, options);
         assert.equal(current.error, null);
         assert.equal(current.completed, true);
@@ -75,7 +75,7 @@ for (const hz of [60, 120, 240])
       }
   });
 
-test('M9.28 lateral G owns lean, including sliding sign, upright spin and sprite saturation', () => {
+test('lateral G owns lean, including sliding sign, upright spin and sprite saturation', () => {
   assert.equal(lean({}), 0);
   for (const value of [-2.5, -1, -0.5, 0, 0.5, 1, 2.5]) {
     const state = { lateralAcceleration: value * g, longitudinalSpeed: 30, yawRate: -Math.sign(value) };
@@ -87,7 +87,7 @@ test('M9.28 lateral G owns lean, including sliding sign, upright spin and sprite
   assert.ok(lean({ lateralAcceleration: 2.5 * g }) > Math.PI / 4, 'angle survives art saturation for line display');
 });
 
-test('M9.28 real sideslip acceleration and world sprite bank share the observed outer-step G', () => {
+test('real sideslip acceleration and world sprite bank share the observed outer-step G', () => {
   const p = createTerrainProbe(bikes[0], { speed: 30 }),
     v = p.vehicle,
     dt = 1 / 120;
@@ -119,7 +119,7 @@ test('M9.28 real sideslip acceleration and world sprite bank share the observed 
   assert.equal(sprite.asset, selectVehicleSprite(assets.bike, 0, bank(v)).asset);
 });
 
-test('M9.28 lean line starts at ground anchor and continuously follows signed G beyond bitmap banks', async () => {
+test('lean line starts at ground anchor and continuously follows signed G beyond bitmap banks', async () => {
   for (const value of [-2.5, -1, 0, 1, 2.5]) {
     const starts = [],
       ends = [],

@@ -325,7 +325,7 @@ async function main() {
       ? runThrottleSweep(probe, { hz, direction })
       : runProbe(probe, 13, (t) => cycleInput(t, { direction }), { hz });
   const report = {
-    milestone: 'M9.25',
+    milestone: '',
     mode,
     hz,
     direction,

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 import { createBrowserDrivingShell } from '../dist/browser/driving-shell.js';
-import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
+import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { recoverVehicle } from '../dist/gameplay/recovery.js';
 import { vehicleCatalogEntryForId } from '../dist/vehicle/vehicle-catalog.js';
 
@@ -10,7 +10,7 @@ import { installBrowserDom } from './helpers/browser-dom.mjs';
 
 test('shared shell routes real selector events to the replaced player and preserves calibration/policy', (t) => {
   const { elements, calls, win } = installBrowserDom(t);
-  const course = createM83LinearHighwayRuntime();
+  const course = createLinearHighwayRuntime();
   const runtime = { guide: course.guide, height: course.heightProfile, surfaces: course.surfaceMap };
   const shell = createBrowserDrivingShell(runtime, 0);
   const recover = () =>

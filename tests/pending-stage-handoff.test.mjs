@@ -1,13 +1,13 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM617RouteStageHandoffManifest, M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
-import { M6_15_ROUTE_GATE_S } from '../dist/dev/m6-15-visible-route-gates.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStadiumRouteStageHandoffManifest, STADIUM_HANDOFF_SEAM_S } from '../dist/dev/courses/stadium-handoff.js';
+import { STADIUM_ROUTE_GATE_S } from '../dist/dev/courses/stadium-route-gates.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
   commitRouteStageHandoff,
@@ -37,21 +37,21 @@ function crossingSegment(seam, direction = 'FORWARD') {
 }
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
   const routeState = createRouteDagState(route);
-  const content = createM6DebugRouteStageContentManifest(route);
-  const charts = createM616ChildGuideCharts(guide);
+  const content = createMinimalStageContentManifest(route);
+  const charts = createChildGuideCharts(guide);
   const chartList = [charts.parent, charts.left, charts.right];
-  const manifest = createM617RouteStageHandoffManifest(route, guide, charts);
+  const manifest = createStadiumRouteStageHandoffManifest(route, guide, charts);
   const spawn = guidePathToWorld(guide, 500, 0);
   const state = createRouteStageHandoffState(route, content, charts.parent, spawn);
   return { guide, route, routeState, content, charts, chartList, manifest, state };
 }
 
-test('M6.17 handoff seams are authored after route selection and cover the same separated child roads', () => {
+test('handoff seams are authored after route selection and cover the same separated child roads', () => {
   const { guide, manifest, charts } = setup();
-  assert.ok(M6_17_HANDOFF_SEAM_S > M6_15_ROUTE_GATE_S);
+  assert.ok(STADIUM_HANDOFF_SEAM_S > STADIUM_ROUTE_GATE_S);
   assert.equal(manifest.seams.length, 6);
 
   for (const [choiceId, chart] of [
@@ -60,7 +60,7 @@ test('M6.17 handoff seams are authored after route selection and cover the same 
   ]) {
     const seam = manifest.seams.find((candidate) => candidate.choiceId === choiceId);
     assert.ok(seam);
-    const expected = guidePathToWorld(guide, M6_17_HANDOFF_SEAM_S, chart.lateralOrigin);
+    const expected = guidePathToWorld(guide, STADIUM_HANDOFF_SEAM_S, chart.lateralOrigin);
     near(seam.center.x, expected.x);
     near(seam.center.z, expected.z);
     near(seam.halfWidth, 3.5);
@@ -187,12 +187,12 @@ test('two DEV junction passes can commit two independent child charts from one c
   near(state.coordinate.l, 0, 1e-5);
 });
 
-test('M6.17 handoff layer has no renderer, input or vehicle-physics dependency', async () => {
+test('handoff layer has no renderer, input or vehicle-physics dependency', async () => {
   const { readFile } = await import('node:fs/promises');
   for (const path of [
     '../src/gameplay/world-crossing-gate.ts',
     '../src/gameplay/route-stage-handoff.ts',
-    '../src/dev/m6-17-handoff-seams.ts',
+    '../src/dev/courses/stadium-handoff.ts',
   ]) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
     const imports = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);

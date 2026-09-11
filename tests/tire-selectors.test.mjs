@@ -1,29 +1,29 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { mountBrowserTireFrictionControls } from '../dist/browser/tire-friction-controls.js';
 import {
   BROWSER_TIRE_AXES as axes,
-  DEFAULT_BROWSER_TIRE_CHARACTERISTICS as seed,
-  DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION as initial,
   browserTireCalibrationForAxis,
-  stepBrowserTireCalibration,
   formatTireCalibrationSelector,
+  DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION as initial,
+  DEFAULT_BROWSER_TIRE_CHARACTERISTICS as seed,
+  stepBrowserTireCalibration,
 } from '../dist/browser/tire-friction-selection.js';
+import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
+import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import {
   compileTireCharacteristics as compile,
   createArcadeTireFrictionCalibration as pair,
   readTireCharacteristics as read,
   setArcadeVehicleTireFrictionCalibration as set,
 } from '../dist/physics/tire-friction-calibration.js';
-import { mountBrowserTireFrictionControls } from '../dist/browser/tire-friction-controls.js';
-import { createFlatProbe, runProbe, directInput } from '../tools/drift-control-probe.mjs';
-import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
-import { createRecoveryState, recoverVehicle } from '../dist/gameplay/recovery.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { SelectorElement, selectorDocument } from './helpers/fake-selector-dom.mjs';
+import { createFlatProbe, directInput, runProbe } from '../tools/drift-control-probe.mjs';
+import { selectorDocument, SelectorElement } from './helpers/fake-selector-dom.mjs';
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-11, `${a} ${b}`);
 
-test('M9.29 approved five-axis defaults and registry are explicit and unique', () => {
+test('approved five-axis defaults and registry are explicit and unique', () => {
   assert.deepEqual(seed, { gripX: 5, peakSlipX: 0.2, gripY: 2.5, peakSlipY: 0.1, knee: 0.74 });
   assert.deepEqual(
     axes.map((a) => [a.id, a.min, a.max, a.step, a.code]),
@@ -38,7 +38,7 @@ test('M9.29 approved five-axis defaults and registry are explicit and unique', (
   assert.equal(formatTireCalibrationSelector(initial), 'GX5.00 PX20% GY2.50 PY10% KN0.74');
 });
 for (const axis of axes)
-  test(`M9.20 ${axis.id} traverses its full grid in both directions preserving the other four values`, () => {
+  test(`${axis.id} traverses its full grid in both directions preserving the other four values`, () => {
     for (const dir of [-1, 1]) {
       let current = pair(compile({ ...seed, [axis.field]: axis.min / 100 }));
       const values = new Set();
@@ -56,7 +56,7 @@ for (const axis of axes)
     }
   });
 for (const axis of axes)
-  test(`M9.20 ${axis.id} direct off-grid and out-of-range browser requests reject`, () => {
+  test(`${axis.id} direct off-grid and out-of-range browser requests reject`, () => {
     for (const v of [
       (axis.min - axis.step) / 100,
       (axis.max + axis.step) / 100,
@@ -66,7 +66,7 @@ for (const axis of axes)
     ])
       assert.throws(() => browserTireCalibrationForAxis(axis.id, v, initial), RangeError);
   });
-test('M9.20 every endpoint combination is admissible, without old S<=G filtering', () => {
+test('every endpoint combination is admissible, without old S<=G filtering', () => {
   for (let mask = 0; mask < 32; mask++) {
     let c = initial;
     for (let i = 0; i < axes.length; i++) {
@@ -76,18 +76,18 @@ test('M9.20 every endpoint combination is admissible, without old S<=G filtering
     for (const a of axes) assert.ok(Number.isFinite(read(c.front)[a.field]));
   }
 });
-test('M9.20 changing knee preserves displayed Px/Py and Gx/Gy, not compiled k', () => {
+test('changing knee preserves displayed Px/Py and Gx/Gy, not compiled k', () => {
   const next = pair(compile(browserTireCalibrationForAxis('KNEE', 0.9, initial)));
   for (const f of ['gripX', 'gripY', 'peakSlipX', 'peakSlipY']) near(read(next.front)[f], seed[f]);
   assert.notEqual(next.front.kX, initial.front.kX);
   assert.notEqual(next.front.kY, initial.front.kY);
 });
-test('M9.20 off-grid profile P steps to nearest adjacent selectable value without accumulating error', () => {
+test('off-grid profile P steps to nearest adjacent selectable value without accumulating error', () => {
   const c = pair(compile({ ...seed, peakSlipX: 0.1745 }));
   near(stepBrowserTireCalibration('PX', 1, c).peakSlipX, 0.18);
   near(stepBrowserTireCalibration('PX', -1, c).peakSlipX, 0.17);
 });
-test('M9.20 explicit minus/plus and one-key forward cycle share the same five linked settings', () => {
+test('explicit minus/plus and one-key forward cycle share the same five linked settings', () => {
   let v = createFlatProbe().vehicle;
   const host = new SelectorElement();
   const ctl = mountBrowserTireFrictionControls(host, () => v, selectorDocument);
@@ -116,7 +116,7 @@ test('M9.20 explicit minus/plus and one-key forward cycle share the same five li
   near(previous.tireFrictionCalibration.front.muX, 5);
   assert.equal(ctl.handleKey('KeyK'), false);
 });
-test('M9.20 live selection changes only calibration and remains atomic on invalid request', () => {
+test('live selection changes only calibration and remains atomic on invalid request', () => {
   const p = createFlatProbe(),
     v = p.vehicle;
   runProbe(p, 0.2, () => directInput(0.1, 0.2));
@@ -130,7 +130,7 @@ test('M9.20 live selection changes only calibration and remains atomic on invali
   assert.throws(() => set(v, { ...seed, peakSlipY: 0 }));
   assert.equal(v.tireFrictionCalibration, c);
 });
-test('M9.20 recovery and all-nine vehicle replacement preserve selections without sharing mutable state', () => {
+test('recovery and all-nine vehicle replacement preserve selections without sharing mutable state', () => {
   const p = createFlatProbe(),
     v = p.vehicle;
   set(v, { ...seed, gripX: 0.75, gripY: 3, knee: 0.6 });
@@ -149,7 +149,7 @@ test('M9.20 recovery and all-nine vehicle replacement preserve selections withou
     assert.equal(v.tireFrictionCalibration, c);
   }
 });
-test('M9.20 all composition roots reuse the same forward-cycle adapter without tire-specific key branches', async () => {
+test('all composition roots reuse the same forward-cycle adapter without tire-specific key branches', async () => {
   for (const name of ['main.ts', 'main-linear.ts', 'main-circuit.ts']) {
     const src = await readFile(new URL(`../src/${name}`, import.meta.url), 'utf8');
     assert.match(src, /shell\.mountControls/);

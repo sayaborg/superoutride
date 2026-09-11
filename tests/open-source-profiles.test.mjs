@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
 import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
@@ -27,7 +27,7 @@ const logicalSections = [
   { sStart: 60, name: 'LATE', left: 'ROCK', right: 'GRASS' },
 ];
 
-test('M6.45 HeightProfile is open, explicit at both endpoints and never wraps', () => {
+test('HeightProfile is open, explicit at both endpoints and never wraps', () => {
   assert.throws(
     () =>
       new HeightProfile(100, [
@@ -48,7 +48,7 @@ test('M6.45 HeightProfile is open, explicit at both endpoints and never wraps', 
   assert.throws(() => profile.sampleRender(100.001), RangeError);
 });
 
-test('M6.45 VisualProfile owns an open interval', () => {
+test('VisualProfile owns an open interval', () => {
   const open = new VisualProfile(100, visualSections);
   assert.equal(open.sample(0).name, 'START');
   assert.equal(open.sample(100).name, 'LATE');
@@ -57,7 +57,7 @@ test('M6.45 VisualProfile owns an open interval', () => {
   assert.throws(() => open.sample(100.001), RangeError);
 });
 
-test('M6.45 logical GroundMap owns an open interval', () => {
+test('logical GroundMap owns an open interval', () => {
   const open = new GroundMapLogicalProfile(100, logicalSections);
   assert.equal(open.sample(0).name, 'START');
   assert.equal(open.sample(100).name, 'LATE');
@@ -65,8 +65,8 @@ test('M6.45 logical GroundMap owns an open interval', () => {
   assert.throws(() => open.sample(100.001), RangeError);
 });
 
-test('M6.45 stage compiler explicitly extends authored final height to the open Guide endpoint', () => {
-  const guide = createM2StadiumGuide();
+test('stage compiler explicitly extends authored final height to the open Guide endpoint', () => {
+  const guide = createStadiumGuide();
   const environment = compileStageEnvironment(guide, {
     terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
     heightNodes: [

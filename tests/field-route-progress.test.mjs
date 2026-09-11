@@ -6,9 +6,9 @@ import test from 'node:test';
 
 import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
 import { sampleGuidePath } from '../dist/core/guide-curve.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import {
   compileFieldRouteProgressRules,
@@ -30,10 +30,10 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function createLiveFixture() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const { heightProfile, visualProfile, surfaceMap, groundProfile } = parentShared(guide);
 
-  return createM638DeclarativeForkGrowthRuntime(
+  return createDeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -193,7 +193,7 @@ function crossAndCommitChoice(live, shared, actor, choiceId) {
   commitChoice(live, shared, actor, choiceId);
 }
 
-test('M6.52 compiler derives one finite progress ruler with invariant handoff rebases', () => {
+test('compiler derives one finite progress ruler with invariant handoff rebases', () => {
   const live = createLiveFixture();
 
   for (const choice of live.route.choices) {
@@ -225,7 +225,7 @@ test('M6.52 compiler derives one finite progress ruler with invariant handoff re
   }
 });
 
-test('M6.52 compiler rejects sibling gates that would create two ranking authorities at one fork', () => {
+test('compiler rejects sibling gates that would create two ranking authorities at one fork', () => {
   const live = createLiveFixture();
   const movedChoiceId = 'S1_LEFT';
   const moved = gate(live, movedChoiceId);
@@ -246,7 +246,7 @@ test('M6.52 compiler rejects sibling gates that would create two ranking authori
   );
 });
 
-test('M6.52 first and second fork rank the shared physical route across PENDING, COMMIT, and recovery', () => {
+test('first and second fork rank the shared physical route across PENDING, COMMIT, and recovery', () => {
   const live = createLiveFixture();
   const firstWinnerGate = gate(live, 'S1_RIGHT');
   const firstLosingGate = gate(live, 'S1_LEFT');
@@ -364,7 +364,7 @@ test('M6.52 first and second fork rank the shared physical route across PENDING,
   assert.equal(winner.progress.status, 'FINISHED');
 });
 
-test('M6.52 browser preserves field-route progress beneath the M9.1 HUD', () => {
+test('browser preserves field-route progress beneath the HUD', () => {
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const progress = fs.readFileSync(new URL('../src/gameplay/field-route-progress.ts', import.meta.url), 'utf8');
   assert.match(main, /advanceRouteDrivingTick/);

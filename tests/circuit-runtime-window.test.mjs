@@ -76,7 +76,7 @@ function compileWindow({ startWinding = -1, repeatCount = 3, ground } = {}) {
   return { topology, window };
 }
 
-test('M6.49 finite circuit window is an ordinary open Raster/Guide path across internal seams', () => {
+test('finite circuit window is an ordinary open Raster/Guide path across internal seams', () => {
   const { topology, window } = compileWindow();
   const L = topology.lapLength;
 
@@ -93,7 +93,7 @@ test('M6.49 finite circuit window is an ordinary open Raster/Guide path across i
   assert.ok(Math.abs(visible.dEnd - 30) < 1e-8, 'internal circuit seam must not clip renderer visibility');
 });
 
-test('M6.49 window/unwrapped conversion is exact and bounded without giving renderer modulo authority', () => {
+test('window/unwrapped conversion is exact and bounded without giving renderer modulo authority', () => {
   const { topology, window } = compileWindow({ startWinding: -2, repeatCount: 4 });
   const L = topology.lapLength;
 
@@ -104,7 +104,7 @@ test('M6.49 window/unwrapped conversion is exact and bounded without giving rend
   assert.throws(() => circuitWindowToUnwrappedChainage(window, 4 * L + 1), /outside \[0, courseLength\]/);
 });
 
-test('M6.49 source-chainage ownership is explicit: interior seam -> 0, final open endpoint -> L', () => {
+test('source-chainage ownership is explicit: interior seam -> 0, final open endpoint -> L', () => {
   const { topology, window } = compileWindow({ repeatCount: 3 });
   const L = topology.lapLength;
 
@@ -114,7 +114,7 @@ test('M6.49 source-chainage ownership is explicit: interior seam -> 0, final ope
   assert.equal(circuitWindowToLapSourceChainage(window, 3 * L), L);
 });
 
-test('M6.49 height and visual readers expose one finite open window and repeat source semantics only at topology seams', () => {
+test('height and visual readers expose one finite open window and repeat source semantics only at topology seams', () => {
   const { topology, window } = compileWindow({ repeatCount: 3 });
   const L = topology.lapLength;
 
@@ -144,7 +144,7 @@ test('circuit source conversion preserves offsets beyond the common domain toler
   }
 });
 
-test('M6.49 circuit height source must physically return to the same seam height', () => {
+test('circuit height source must physically return to the same seam height', () => {
   const topology = createGentleCircuit();
   const L = topology.lapLength;
   const sources = createSources(topology);
@@ -161,7 +161,7 @@ test('M6.49 circuit height source must physically return to the same seam height
   );
 });
 
-test('M6.49 SurfaceMap window resets at internal seam while preserving the final open endpoint', () => {
+test('SurfaceMap window resets at internal seam while preserving the final open endpoint', () => {
   const { topology, window } = compileWindow({ repeatCount: 2 });
   const L = topology.lapLength;
 
@@ -171,7 +171,7 @@ test('M6.49 SurfaceMap window resets at internal seam while preserving the final
   assert.throws(() => window.surface.sample(2 * L + 1, 0), /outside \[0, courseLength\]/);
 });
 
-test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating source payload identity', () => {
+test('virtual baked GroundMap repeats metadata rows without duplicating source payload identity', () => {
   const topology = createGentleCircuit();
   const L = topology.lapLength;
   const calls = [];
@@ -247,7 +247,7 @@ test('M6.49 virtual baked GroundMap repeats metadata rows without duplicating so
   assert.ok(Math.abs(calls[1][1] - L) < 1e-8);
 });
 
-test('M6.49 ordinary TerrainLine generation crosses a circuit seam with open window readers', () => {
+test('ordinary TerrainLine generation crosses a circuit seam with open window readers', () => {
   const { topology, window } = compileWindow({ repeatCount: 3 });
   const L = topology.lapLength;
   const sCamera = L - 20;
@@ -283,7 +283,7 @@ test('M6.49 ordinary TerrainLine generation crosses a circuit seam with open win
   );
 });
 
-test('M6.49 TerrainVisualProfile source contract is topology-neutral reader authority', async () => {
+test('TerrainVisualProfile source contract is topology-neutral reader authority', async () => {
   const source = await readFile(new URL('../src/road/terrain-line.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(source, /CyclicHeightProfile|CyclicVisualProfile/);
@@ -291,7 +291,7 @@ test('M6.49 TerrainVisualProfile source contract is topology-neutral reader auth
   assert.match(source, /VisualProfileReader/);
 });
 
-test('M6.49 circuit runtime integration stays outside renderer and RouteDag while renderer stays topology-blind', async () => {
+test('circuit runtime integration stays outside renderer and RouteDag while renderer stays topology-blind', async () => {
   const runtimeSource = await readFile(new URL('../src/runtime/circuit-runtime-window.ts', import.meta.url), 'utf8');
   const rendererSource = await readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8');
 

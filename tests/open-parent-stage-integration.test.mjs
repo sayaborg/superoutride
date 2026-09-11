@@ -3,19 +3,19 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { createTunnelPresentation, selectTunnelBackground } from '../dist/dev/tunnel.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createTunnelPresentation, selectTunnelBackground } from '../dist/dev/courses/tunnel.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
 
 const cameraProfile = {
   dCam: 5,
@@ -30,19 +30,19 @@ const cameraProfile = {
   deltaYMax: 4,
 };
 
-test('M6.47 live parent stage constructs open VisualProfile and SurfaceMap instead of cyclic adapters', async () => {
+test('live parent stage constructs open VisualProfile and SurfaceMap instead of cyclic adapters', async () => {
   const [mainSource, fixtureSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/branching-highway.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(mainSource, /createM72DefaultBranchingParent/);
+  assert.match(mainSource, /createDefaultBranchingParent/);
   assert.match(fixtureSource, /new VisualProfile\(guide\.length/);
   assert.match(fixtureSource, /new SurfaceMap\(/);
   assert.doesNotMatch(mainSource + fixtureSource, /CyclicVisualProfile/);
   assert.doesNotMatch(mainSource + fixtureSource, /CyclicSurfaceMap/);
 });
 
-test('M6.47 parent visual and surface sources own the real open [0,L] domain', () => {
+test('parent visual and surface sources own the real open [0,L] domain', () => {
   const visual = new VisualProfile(guide.length, compiled.visualSections);
   const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
 
@@ -57,7 +57,7 @@ test('M6.47 parent visual and surface sources own the real open [0,L] domain', (
   assert.throws(() => surfaces.sample(guide.length + 1e-6, 0), RangeError);
 });
 
-test('M6.47 M5.9 tunnel background is one ordinary open interval and never wraps endpoints', () => {
+test('tunnel background is one ordinary open interval and never wraps endpoints', () => {
   const outdoor = createFarBackground();
   const tunnel = createTunnelPresentation(guide.length, 5);
 
@@ -75,7 +75,7 @@ test('M6.47 M5.9 tunnel background is one ordinary open interval and never wraps
   assert.throws(() => selectTunnelBackground(guide.length + 1e-6, guide.length, outdoor, tunnel), RangeError);
 });
 
-test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reader directly', () => {
+test('ordinary car bike and camera consume the open HeightProfile reader directly', () => {
   const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
   const car = createTestCar(guide, height, surfaces, 45);
   const bike = createTestBike(guide, height, surfaces, 45);
@@ -87,14 +87,14 @@ test('M6.47 ordinary car bike and M5 camera consume the open HeightProfile reade
   assert.equal(Number.isFinite(camera.groundHeight), true);
 });
 
-test('M6.47 camera physics world and shared-runtime contracts no longer require cyclic height or surface types', async () => {
+test('camera physics world and shared-runtime contracts no longer require cyclic height or surface types', async () => {
   const heightReaderFiles = [
     '../src/camera/camera.ts',
     '../src/physics/vehicle-contract.ts',
-    '../src/dev/shared-runtime-content.ts',
+    '../src/dev/courses/shared-runtime-content.ts',
     '../src/physics/arcade-vehicle-physics.ts',
-    '../src/dev/m4-debug-world.ts',
-    '../src/dev/tunnel.ts',
+    '../src/dev/courses/roadside-scenery.ts',
+    '../src/dev/courses/tunnel.ts',
   ];
   for (const path of heightReaderFiles) {
     const source = await readFile(new URL(path, import.meta.url), 'utf8');
@@ -102,13 +102,16 @@ test('M6.47 camera physics world and shared-runtime contracts no longer require 
     assert.match(source, /HeightProfileReader|VehicleWorld/, path);
   }
 
-  const sharedRuntime = await readFile(new URL('../src/dev/shared-runtime-content.ts', import.meta.url), 'utf8');
+  const sharedRuntime = await readFile(
+    new URL('../src/dev/courses/shared-runtime-content.ts', import.meta.url),
+    'utf8',
+  );
   assert.doesNotMatch(sharedRuntime, /CyclicSurfaceMap/);
   assert.match(sharedRuntime, /surfaceMap: SurfaceMap/);
 });
 
-test('M6.47 tunnel presentation contains no implicit modulo or wrapPositive topology', async () => {
-  const source = await readFile(new URL('../src/dev/tunnel.ts', import.meta.url), 'utf8');
+test('tunnel presentation contains no implicit modulo or wrapPositive topology', async () => {
+  const source = await readFile(new URL('../src/dev/courses/tunnel.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /wrapPositive/);
   assert.doesNotMatch(source, /cyclicIntervalContains/);
   assert.match(source, /cameraS < 0 \|\| cameraS > courseLength/);

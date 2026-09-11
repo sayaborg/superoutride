@@ -96,7 +96,7 @@ function crossReverse(state, rules, gate, lateral = 0) {
   return updateCircuitRaceProgress(state, rules, offsetGate(gate, -1, lateral));
 }
 
-test('M6.50 circuit authoring expands into one finite strictly ordered physical gate sequence', () => {
+test('circuit authoring expands into one finite strictly ordered physical gate sequence', () => {
   const { topology, window, rules } = createFixture();
   const L = topology.lapLength;
 
@@ -127,7 +127,7 @@ test('M6.50 circuit authoring expands into one finite strictly ordered physical 
   assert.ok(rules.raceDistance < window.length, 'scored race must finish before the finite open endpoint');
 });
 
-test('M6.50 requires one unscored lookahead lap so final FINISH is an ordinary interior Guide seam', () => {
+test('requires one unscored lookahead lap so final FINISH is an ordinary interior Guide seam', () => {
   const topology = createGentleCircuit();
   const sources = createSources(topology);
   const tooShort = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, sources);
@@ -146,7 +146,7 @@ test('M6.50 requires one unscored lookahead lap so final FINISH is an ordinary i
   assert.ok(rules.raceDistance < window.guide.length);
 });
 
-test('M6.50 circuit race compiler rejects missing unordered and out-of-range lap checkpoints', () => {
+test('circuit race compiler rejects missing unordered and out-of-range lap checkpoints', () => {
   const topology = createGentleCircuit();
   const window = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, createSources(topology));
   const base = { id: 'BAD', lapCount: 2 };
@@ -166,7 +166,7 @@ test('M6.50 circuit race compiler rejects missing unordered and out-of-range lap
   );
 });
 
-test('M6.50 topological startWinding does not seed validated race laps or progress', () => {
+test('topological startWinding does not seed validated race laps or progress', () => {
   const { topology, window, rules } = createFixture({ startWinding: 137 });
   const start = atWindowGuide(window, 0);
   const state = createCircuitRaceProgressState(rules, start);
@@ -178,7 +178,7 @@ test('M6.50 topological startWinding does not seed validated race laps or progre
   assert.equal(state.sProgress, 0);
 });
 
-test('M6.50 raw s_window movement without world motion cannot validate or advance race progress', () => {
+test('raw s_window movement without world motion cannot validate or advance race progress', () => {
   const { window, rules } = createFixture();
   const start = atWindowGuide(window, 0);
   const state = createCircuitRaceProgressState(rules, start);
@@ -196,7 +196,7 @@ test('M6.50 raw s_window movement without world motion cannot validate or advanc
   assert.equal(getValidatedCircuitLapCount(state), 0);
 });
 
-test('M6.50 crossing the physical seam before required checkpoints is rejected and cannot award a lap', () => {
+test('crossing the physical seam before required checkpoints is rejected and cannot award a lap', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
   const firstFinish = rules.gates.find((gate) => gate.name === 'L1_FINISH');
@@ -210,7 +210,7 @@ test('M6.50 crossing the physical seam before required checkpoints is rejected a
   assert.equal(state.validatedProgressFloor, 0);
 });
 
-test('M6.50 one complete ordered physical lap increments validated lap count only at FINISH', () => {
+test('one complete ordered physical lap increments validated lap count only at FINISH', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
   const lap1 = rules.gates.slice(0, 4);
@@ -229,7 +229,7 @@ test('M6.50 one complete ordered physical lap increments validated lap count onl
   assert.equal(state.nextGateIndex, 4);
 });
 
-test('M6.50 repeated world gate geometry is disambiguated by finite window chainage without duplicate acceptance', () => {
+test('repeated world gate geometry is disambiguated by finite window chainage without duplicate acceptance', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
   const lap1Cp1 = rules.gates[0];
@@ -245,7 +245,7 @@ test('M6.50 repeated world gate geometry is disambiguated by finite window chain
   assert.equal(state.nextGateIndex, 1);
 });
 
-test('M6.50 every scored FINISH uses the same interior-seam physical plane geometry', () => {
+test('every scored FINISH uses the same interior-seam physical plane geometry', () => {
   const { rules } = createFixture();
   const finishes = rules.gates.filter((gate) => gate.kind === 'finish');
   assert.equal(finishes.length, 3);
@@ -260,7 +260,7 @@ test('M6.50 every scored FINISH uses the same interior-seam physical plane geome
   }
 });
 
-test('M6.50 reverse FINISH crossing is observed but never awards a circuit lap', () => {
+test('reverse FINISH crossing is observed but never awards a circuit lap', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
   const lap1 = rules.gates.slice(0, 4);
@@ -275,7 +275,7 @@ test('M6.50 reverse FINISH crossing is observed but never awards a circuit lap',
   assert.equal(state.reverseCrossingCount, 1);
 });
 
-test('M6.50 recovery resync cannot award erase or move validated circuit progress', () => {
+test('recovery resync cannot award erase or move validated circuit progress', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
   crossForward(state, rules, rules.gates[0]);
@@ -299,7 +299,7 @@ test('M6.50 recovery resync cannot award erase or move validated circuit progres
   );
 });
 
-test('M6.50 full three-lap ordered physical sequence finishes exactly at validated third FINISH', () => {
+test('full three-lap ordered physical sequence finishes exactly at validated third FINISH', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, atWindowGuide(window, 0));
 
@@ -322,7 +322,7 @@ test('M6.50 full three-lap ordered physical sequence finishes exactly at validat
   assert.equal(state.sProgress, rules.raceDistance);
 });
 
-test('M6.50 physical gate math is shared while finite ordered progress stays topology and renderer blind', async () => {
+test('physical gate math is shared while finite ordered progress stays topology and renderer blind', async () => {
   await assert.rejects(readFile(new URL('../src/gameplay/race-progress.ts', import.meta.url), 'utf8'), {
     code: 'ENOENT',
   });

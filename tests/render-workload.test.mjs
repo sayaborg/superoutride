@@ -4,16 +4,16 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { drawScaledSprite } from '../dist/graphics/sprite.js';
 import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
@@ -27,16 +27,16 @@ import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const deg = (value) => (value * Math.PI) / 180;
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
 const visual = new VisualProfile(guide.length, compiled.visualSections);
 const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
 const assets = createSpriteAssets();
-const world = createM4DebugWorldSprites(guide, height, assets);
+const world = createRoadsideSprites(guide, height, assets);
 const background = createFarBackground();
-const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
-const binary = await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url));
+const metadata = JSON.parse(await readFile(new URL('../dist/assets/stadium-ground-map.json', import.meta.url), 'utf8'));
+const binary = await readFile(new URL('../dist/assets/stadium-ground-map.bin', import.meta.url));
 const baked = new BakedGroundMapAsset(metadata, new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength));
 const groundProfile = {
   groundLeft: 12,
@@ -139,7 +139,7 @@ test('sprite scanline observer accounts exactly for the blitter work it observes
   );
 });
 
-test('M5 renderer workload telemetry is internally consistent and does not drop generated terrain', () => {
+test('renderer workload telemetry is internally consistent and does not drop generated terrain', () => {
   const stats = renderProbe(120, 0, 0);
   assert.ok(stats.terrainLineCount > 0);
   assert.ok(stats.workload.terrainLineCountPerScreenRowMax >= 1);

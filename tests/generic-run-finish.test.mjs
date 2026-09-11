@@ -1,20 +1,20 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteBoundaryGateSet } from '../dist/dev/m6-debug-route-boundary-gates.js';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
+import { createMinimalRouteBoundaryGateSet } from '../dist/dev/fixtures/minimal-route-gates.js';
 
+import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
+import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
   createRunObjectiveState,
   createValidatedRunFinishFromRoute,
   updateRunObjectiveFromValidatedFinish,
 } from '../dist/gameplay/run-objective.js';
-import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 
 test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgressUpdate or lap semantics', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const routeState = createRouteDagState(route);
-  const gates = createM6DebugRouteBoundaryGateSet(route);
+  const gates = createMinimalRouteBoundaryGateSet(route);
   const objective = createRunObjectiveState();
 
   const cross = (previous, current) => {
@@ -57,7 +57,7 @@ test('full physical route-gate chain can finish POINT_TO_POINT without RaceProgr
 });
 
 test('route entry into a terminal stage cannot be adapted into a run finish before physical FINISH', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
 
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });

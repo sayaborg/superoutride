@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { readFile, readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 import * as engine from '../dist/physics/automatic-powertrain.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const fields = ['engineRpm', 'engineTorqueNewtonMeters', 'gear', 'outputDriveTorque'].sort();
-test('M9.25 every engine directly samples its authored curve through throttle, ratios and limiter', () => {
+test('every engine directly samples its authored curve through throttle, ratios and limiter', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -31,7 +31,7 @@ test('M9.25 every engine directly samples its authored curve through throttle, r
         }
   }
 });
-test('M9.25 same-engine pinned direct-powertrain traces equal the former multiplier-one mechanics exactly', async () => {
+test('same-engine pinned direct-powertrain traces equal the former multiplier-one mechanics exactly', async () => {
   const path = process.env.HOT_PATH_BASELINE_BUILD;
   if (process.env.CI) assert.ok(path);
   const before = path ? await import(pathToFileURL(resolve(path, 'physics/automatic-powertrain.js')).href) : engine;
@@ -51,7 +51,7 @@ test('M9.25 same-engine pinned direct-powertrain traces equal the former multipl
     }
   }
 });
-test('M9.25 multiplier exports, source state, key and browser module are removed', async () => {
+test('multiplier exports, source state, key and browser module are removed', async () => {
   assert.equal('setEngineTorqueMultiplier' in engine, false);
   assert.equal('assertEngineTorqueMultiplier' in engine, false);
   async function scan(url) {
@@ -74,7 +74,7 @@ test('M9.25 multiplier exports, source state, key and browser module are removed
   assert.doesNotMatch(html, /\bENG\b|\bPWR\b/);
 });
 
-test('M9.25 new browser tires retain force/torque budgets across all-nine terrain maneuvers without certifying yaw or wheel lift', async () => {
+test('new browser tires retain force/torque budgets across all-nine terrain maneuvers without certifying yaw or wheel lift', async () => {
   const { runTerrainProbe, TERRAIN_CASES } = await import('../tools/torque-protection-terrain-probe.mjs');
   const summaries = [];
   for (const entry of VEHICLE_CATALOG)
@@ -105,5 +105,5 @@ test('M9.25 new browser tires retain force/torque budgets across all-nine terrai
         rearLift: r.rearLiftTime,
       });
     }
-  console.log('M9.25 NEW DEFAULT MANEUVERS', JSON.stringify(summaries));
+  console.log('NEW DEFAULT MANEUVERS', JSON.stringify(summaries));
 });

@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { BROWSER_CAMERA_YAW_TOGGLE_CODE, browserRequestsCameraYawToggle } from '../dist/browser/key-bindings.js';
 import {
-  DEFAULT_CAMERA_YAW_MODE,
   createCameraRig,
+  DEFAULT_CAMERA_YAW_MODE,
   movementYawInBodyPitchFrame,
   resetCameraRig,
   toggleCameraYawMode,
@@ -12,12 +13,11 @@ import {
 } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { wrapAngle } from '../dist/core/math.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import { createTestCar } from './helpers/vehicle-fixture.mjs';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createCameraYawDebugModel, createVehicleYawDebugModel } from '../dist/render/vehicle-yaw-debug.js';
-import { BROWSER_CAMERA_YAW_TOGGLE_CODE, browserRequestsCameraYawToggle } from '../dist/browser/key-bindings.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
+import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const deg = (value) => (value * Math.PI) / 180;
 const near = (actual, expected, epsilon = 1e-9) => {
@@ -55,9 +55,9 @@ test('camera yaw is full-quadrant movement yaw measured in the vehicle-pitch pla
 });
 
 test('camera pitch follows physical body pitch while player X remains exactly centered', () => {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const car = createTestCar(guide, height, createM5DebugSurfaceMap(guide.length), 100);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const car = createTestCar(guide, height, createMaterialTransitionSurfaceMap(guide.length), 100);
   car.yaw = deg(24);
   car.pitch = deg(-9);
   const velocity = worldVelocityInBodyPitchPlane(car.yaw, car.pitch, 28, -5);
@@ -76,9 +76,9 @@ test('camera pitch follows physical body pitch while player X remains exactly ce
 });
 
 test('camera holds the last valid movement yaw when speed has no stable direction', () => {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const car = createTestCar(guide, height, createM5DebugSurfaceMap(guide.length), 100);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const car = createTestCar(guide, height, createMaterialTransitionSurfaceMap(guide.length), 100);
   const rig = createCameraRig('MOVEMENT_FOLLOW');
   car.yaw = deg(15);
   let velocity = worldVelocityInBodyPitchPlane(car.yaw, car.pitch, 18, 8);
@@ -97,9 +97,9 @@ test('camera holds the last valid movement yaw when speed has no stable directio
 });
 
 test('body-fixed yaw is default exact and toggles to retained movement-follow yaw', () => {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const car = createTestCar(guide, height, createM5DebugSurfaceMap(guide.length), 100);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const car = createTestCar(guide, height, createMaterialTransitionSurfaceMap(guide.length), 100);
   car.yaw = deg(22);
   const velocity = worldVelocityInBodyPitchPlane(car.yaw, car.pitch, 24, 9);
   car.velocityX = velocity.x;

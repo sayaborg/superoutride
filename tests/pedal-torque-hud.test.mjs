@@ -109,7 +109,7 @@ function canvasRecorder() {
   return { ctx, rects, texts, boxes };
 }
 
-test('M9.22 input meters preserve exact analog requests, digital shorthand and exclusivity', () => {
+test('input meters preserve exact analog requests, digital shorthand and exclusivity', () => {
   const { vehicle: v } = fixture();
   assert.equal(hud(v, { ...neutral, throttle: 0.25 }).requestedThrottle, 0.25);
   assert.equal(hud(v, { ...neutral, brake: 0.37 }).requestedBrake, 0.37);
@@ -123,7 +123,7 @@ test('M9.22 input meters preserve exact analog requests, digital shorthand and e
     assert.throws(() => hud(v, { steering: 0, ...input }), RangeError);
 });
 
-test('M9.22 AWD 45:55 shares a full-throttle scale and does not renormalize delivered total', () => {
+test('AWD 45:55 shares a full-throttle scale and does not renormalize delivered total', () => {
   const entry = VEHICLE_CATALOG[4],
     profile = compileArcadeVehicleProfile({
       ...LANCIA_DELTA_HF_INTEGRALE_VEHICLE_AUTHORING,
@@ -151,7 +151,7 @@ test('M9.22 AWD 45:55 shares a full-throttle scale and does not renormalize deli
 });
 
 for (const index of [0, 3, 4, 5])
-  test(`M9.22 ${VEHICLE_CATALOG[index].profile.id} drive bars derive authored split without identity branches`, () => {
+  test(`${VEHICLE_CATALOG[index].profile.id} drive bars derive authored split without identity branches`, () => {
     const { vehicle: v } = fixture(VEHICLE_CATALOG[index]),
       f = v.profile.frontDriveTorqueFraction;
     drive(v, 0.4, 400, 400 * f, 400 * (1 - f));
@@ -161,7 +161,7 @@ for (const index of [0, 3, 4, 5])
     close(h.frontDrive.limit + h.rearDrive.limit, 1);
   });
 
-test('M9.22 brake percentages use fixed sum of front/rear torque capacity, including 70:30 cuts', () => {
+test('brake percentages use fixed sum of front/rear torque capacity, including 70:30 cuts', () => {
   const { vehicle: v } = fixture(VEHICLE_CATALOG[5]);
   assert.equal(v.profile.frontStation.maxBrakeTorque, 700);
   assert.equal(v.profile.rearStation.maxBrakeTorque, 300);
@@ -181,7 +181,7 @@ test('M9.22 brake percentages use fixed sum of front/rear torque capacity, inclu
   close(h.rearBrake.delivered, 0.15);
 });
 
-test('M9.22 lag and residual-pedal overlap are distinct from protection cuts', () => {
+test('lag and residual-pedal overlap are distinct from protection cuts', () => {
   const { vehicle: v } = fixture();
   drive(v, 0.2, 200, 0, 200);
   let h = hud(v, { ...neutral, throttle: 1 });
@@ -198,7 +198,7 @@ test('M9.22 lag and residual-pedal overlap are distinct from protection cuts', (
   assert.equal(c.rects.filter((r) => r.color === HUD_PROTECTION_CUT_COLOR && r.y > 90).length, 0);
 });
 
-test('M9.22 zero requests/full engine cut and zero brake capacity have finite empty bars', () => {
+test('zero requests/full engine cut and zero brake capacity have finite empty bars', () => {
   const { vehicle: v } = fixture();
   drive(v, 1, 0, 0, 0);
   const h = hud(v, { ...neutral, throttle: 1 });
@@ -215,7 +215,7 @@ test('M9.22 zero requests/full engine cut and zero brake capacity have finite em
   assert.deepEqual(z.rearBrake, z.frontBrake);
 });
 
-test('M9.22 normalization is from one torque sample, independent of post-sample gear/RPM and load caches', () => {
+test('normalization is from one torque sample, independent of post-sample gear/RPM and load caches', () => {
   const { vehicle: v } = fixture();
   drive(v, 0.6, 1200, 0, 600);
   brake(v, 0.2, 500, 100);
@@ -228,7 +228,7 @@ test('M9.22 normalization is from one torque sample, independent of post-sample 
   for (const key of ['frontDrive', 'rearDrive', 'frontBrake', 'rearBrake']) assert.deepEqual(a[key], b[key]);
 });
 
-test('M9.22 red paints exactly delivered-to-request interval and leaves unused capacity empty', () => {
+test('red paints exactly delivered-to-request interval and leaves unused capacity empty', () => {
   const { vehicle: v } = fixture(VEHICLE_CATALOG[5]);
   brake(v, 1, 500, 100);
   const c = canvasRecorder();
@@ -247,7 +247,7 @@ test('M9.22 red paints exactly delivered-to-request interval and leaves unused c
   assert.ok(c.texts.some((t) => t.text === 'RED=CUT'));
 });
 
-test('M9.22 input fill is proportional, not a positive-value ON/OFF indicator', () => {
+test('input fill is proportional, not a positive-value ON/OFF indicator', () => {
   const { vehicle: v } = fixture();
   for (const [axis, color] of [
     ['throttle', HUD_INPUT_ACCEL_COLOR],
@@ -261,7 +261,7 @@ test('M9.22 input fill is proportional, not a positive-value ON/OFF indicator', 
   }
 });
 
-test('M9.22 six pedal meters plus retained steering fit 320x240 without a background panel', () => {
+test('six pedal meters plus retained steering fit 320x240 without a background panel', () => {
   const { vehicle: v } = fixture(VEHICLE_CATALOG[5]);
   brake(v, 1, 500, 100);
   const c = canvasRecorder();
@@ -276,7 +276,7 @@ test('M9.22 six pedal meters plus retained steering fit 320x240 without a backgr
 });
 
 for (const entry of VEHICLE_CATALOG)
-  test(`M9.22 ${entry.profile.id} live protection telemetry remains read-only and budget-consistent`, () => {
+  test(`${entry.profile.id} live protection telemetry remains read-only and budget-consistent`, () => {
     const p = fixture(entry),
       v = p.vehicle;
     for (let tick = 0; tick < 180; tick++) {
@@ -310,7 +310,7 @@ for (const entry of VEHICLE_CATALOG)
     }
   });
 
-test('M9.22 HUD removes ambiguous actuator-only pedal fields and adds no physical control path', async () => {
+test('HUD removes ambiguous actuator-only pedal fields and adds no physical control path', async () => {
   const s = await readFile(new URL('../src/browser/vehicle-debug-hud.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(s, /actualThrottle|actualBrake|drawPedalIndicator|input\.throttle\s*\?\s*1/);
   assert.doesNotMatch(

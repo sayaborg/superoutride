@@ -82,7 +82,7 @@ function cross(state, rules, gate) {
   return updateCircuitRaceProgress(state, rules, after);
 }
 
-test('M6.50 generic race session records circuit checkpoint and physical lap-boundary timings without legacy race-progress dependency', () => {
+test('generic race session records circuit checkpoint and physical lap-boundary timings without legacy race-progress dependency', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, guideSample(window, 0));
   const session = createRaceSessionState();

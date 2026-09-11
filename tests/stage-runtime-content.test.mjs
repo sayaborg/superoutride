@@ -2,15 +2,15 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
 import { guideCoordinateToWorld, locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM617RouteStageHandoffManifest } from '../dist/dev/m6-17-handoff-seams.js';
-import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
-import { createM619DebugStageRuntimeRegistry } from '../dist/dev/m6-19-stage-runtime-content.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStadiumRouteStageHandoffManifest } from '../dist/dev/courses/stadium-handoff.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { createSharedSourceStageRegistry } from '../dist/dev/fixtures/shared-source-registry.js';
+import { createStageRoadViews } from '../dist/dev/fixtures/stage-road-views.js';
 
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
@@ -33,14 +33,14 @@ const near = (actual, expected, tolerance = 2e-6) => {
 };
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  const route = createM6DebugRouteDag();
+  const guide = createStadiumGuide();
+  const route = createMinimalRouteDag();
   const routeState = createRouteDagState(route);
-  const routeContent = createM6DebugRouteStageContentManifest(route);
-  const charts = createM616ChildGuideCharts(guide);
+  const routeContent = createMinimalStageContentManifest(route);
+  const charts = createChildGuideCharts(guide);
   const chartList = [charts.parent, charts.left, charts.right];
-  const roadViews = createM618StageRoadViews(charts);
-  const handoffManifest = createM617RouteStageHandoffManifest(route, guide, charts);
+  const roadViews = createStageRoadViews(charts);
+  const handoffManifest = createStadiumRouteStageHandoffManifest(route, guide, charts);
   const { surfaceMap, heightProfile, visualProfile, groundProfile } = parentShared(guide);
 
   const terrainProfile = {
@@ -56,7 +56,7 @@ function setup() {
     thinSpanScreenRows: 1,
   };
   const farBackground = createFarBackground();
-  const registry = createM619DebugStageRuntimeRegistry(routeContent, charts, roadViews, {
+  const registry = createSharedSourceStageRegistry(routeContent, charts, roadViews, {
     heightProfile,
     surfaceMap,
     terrainProfile,
@@ -98,7 +98,7 @@ function crossingSegment(seam) {
   };
 }
 
-test('M6.19 runtime registry covers every opaque route package exactly once', () => {
+test('runtime registry covers every opaque route package exactly once', () => {
   const { routeContent, registry } = setup();
   assert.equal(registry.worldFrameId, routeContent.worldFrameId);
   assert.equal(registry.packages.length, routeContent.packages.length);
@@ -161,7 +161,7 @@ test('validated seam atomically changes package, Guide coordinate frame and road
   assert.equal(runtime.surfaceMap.sample(local.s, local.l).type, 'ASPHALT');
 });
 
-test('ordinary M5 car physics consumes a committed child Guide frame and child SurfaceMap without snapping', () => {
+test('ordinary car physics consumes a committed child Guide frame and child SurfaceMap without snapping', () => {
   const { charts, roadViews, surfaceMap, heightProfile } = setup();
   const leftSurface = new StageSurfaceMapView(surfaceMap, roadViews.left);
   const car = createTestCar(charts.left, heightProfile, leftSurface, 600, 0, 0);
@@ -211,7 +211,7 @@ test('runtime registry rejects missing packages, mixed world frames and coordina
   );
 });
 
-test('M6.19 keeps route topology opaque and runtime selection free of RouteDag decision logic', async () => {
+test('keeps route topology opaque and runtime selection free of RouteDag decision logic', async () => {
   const { readFile } = await import('node:fs/promises');
   const routeContentSource = await readFile(new URL('../src/gameplay/route-stage-content.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(routeContentSource, /stage-runtime-content|StageRoadView|SurfaceMapReader|FarBackground/);

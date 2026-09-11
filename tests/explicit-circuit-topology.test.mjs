@@ -24,7 +24,7 @@ function createGentleClosedLap(segmentCount = 72, radius = 120) {
   return compileRasterPath(vertices);
 }
 
-test('M6.48 circuit topology identifies only an explicitly duplicated open-lap endpoint seam', () => {
+test('circuit topology identifies only an explicitly duplicated open-lap endpoint seam', () => {
   const lap = createGentleClosedLap();
   const topology = compileCircuitTopology('DEV_CIRCUIT', lap);
 
@@ -35,7 +35,7 @@ test('M6.48 circuit topology identifies only an explicitly duplicated open-lap e
   assert.ok(Math.abs(Math.abs(topology.seamTurn) - (5 * Math.PI) / 180) < 1e-10);
 });
 
-test('M6.48 circuit topology rejects an ordinary open path instead of inventing last-to-first geometry', () => {
+test('circuit topology rejects an ordinary open path instead of inventing last-to-first geometry', () => {
   const open = compileRasterPath([
     { x: 0, z: 0 },
     { x: 0, z: 100 },
@@ -45,7 +45,7 @@ test('M6.48 circuit topology rejects an ordinary open path instead of inventing 
   assert.throws(() => compileCircuitTopology('NOT_CLOSED', open), /explicitly repeat its first world vertex/);
 });
 
-test('M6.48 circuit seam has one unambiguous copy of endpoint authoring metadata', () => {
+test('circuit seam has one unambiguous copy of endpoint authoring metadata', () => {
   const vertices = [];
   const segmentCount = 72;
   const radius = 120;
@@ -60,7 +60,7 @@ test('M6.48 circuit seam has one unambiguous copy of endpoint authoring metadata
   assert.throws(() => compileCircuitTopology('CONFLICTING_SEAM', lap), /sourceRadius metadata must match exactly/);
 });
 
-test('M6.48 unfolding repeats lap geometry into one ordinary open RasterPath', () => {
+test('unfolding repeats lap geometry into one ordinary open RasterPath', () => {
   const lap = createGentleClosedLap();
   const topology = compileCircuitTopology('THREE_COPY_WINDOW', lap);
   const unfolded = unfoldCircuitRasterPath(topology, 3);
@@ -74,7 +74,7 @@ test('M6.48 unfolding repeats lap geometry into one ordinary open RasterPath', (
   assert.ok(Math.abs(unfolded.vertexTurns[seam2] - topology.seamTurn) < 1e-12);
 });
 
-test('M6.48 continuous circuit chainage decomposes cleanly across positive and negative windings', () => {
+test('continuous circuit chainage decomposes cleanly across positive and negative windings', () => {
   const topology = compileCircuitTopology('CHAINAGE', createGentleClosedLap());
   const L = topology.lapLength;
 
@@ -91,7 +91,7 @@ test('M6.48 continuous circuit chainage decomposes cleanly across positive and n
   assert.equal(wrapCircuitChainage(topology, L * 2), 0);
 });
 
-test('M6.48 local source chainage lifts through the seam without giving modulo authority to Core', () => {
+test('local source chainage lifts through the seam without giving modulo authority to Core', () => {
   const topology = compileCircuitTopology('LIFT', createGentleClosedLap());
   const L = topology.lapLength;
 
@@ -102,7 +102,7 @@ test('M6.48 local source chainage lifts through the seam without giving modulo a
   assert.throws(() => liftCircuitLocalChainageNear(topology, L + 0.001, L), /within the authored \[0,L\] lap domain/);
 });
 
-test('M6.48 circuit topology remains above Core and outside renderer and RouteDag authority', async () => {
+test('circuit topology remains above Core and outside renderer and RouteDag authority', async () => {
   const source = await readFile(new URL('../src/gameplay/circuit-topology.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(source, /render\//);

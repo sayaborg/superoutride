@@ -2,19 +2,19 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM617RouteStageHandoffManifest, M6_17_HANDOFF_SEAM_S } from '../dist/dev/m6-17-handoff-seams.js';
-import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStadiumRouteStageHandoffManifest, STADIUM_HANDOFF_SEAM_S } from '../dist/dev/courses/stadium-handoff.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { createSingleForkStageRegistry } from '../dist/dev/fixtures/single-fork-registry.js';
 import {
-  createM620LivePointToPointGateSet,
-  createM620LivePointToPointRouteDag,
-  M6_20_FINISH_GATE_S,
-} from '../dist/dev/m6-20-live-point-to-point.js';
-import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runtime-content.js';
+  createSingleForkGateSet,
+  createSingleForkRouteDag,
+  SINGLE_FORK_FINISH_GATE_S,
+} from '../dist/dev/fixtures/single-fork-route.js';
+import { createStageRoadViews } from '../dist/dev/fixtures/stage-road-views.js';
 
 import { createCameraRig } from '../dist/camera/camera.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -48,15 +48,15 @@ function crossing(gate, distance = 2) {
 }
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  const route = createM620LivePointToPointRouteDag();
+  const guide = createStadiumGuide();
+  const route = createSingleForkRouteDag();
   const routeState = createRouteDagState(route);
-  const gates = createM620LivePointToPointGateSet(route, guide);
-  const content = createM6DebugRouteStageContentManifest(route);
-  const charts = createM616ChildGuideCharts(guide);
+  const gates = createSingleForkGateSet(route, guide);
+  const content = createMinimalStageContentManifest(route);
+  const charts = createChildGuideCharts(guide);
   const chartList = [charts.parent, charts.left, charts.right];
-  const roadViews = createM618StageRoadViews(charts);
-  const handoffManifest = createM617RouteStageHandoffManifest(route, guide, charts);
+  const roadViews = createStageRoadViews(charts);
+  const handoffManifest = createStadiumRouteStageHandoffManifest(route, guide, charts);
   const { surfaceMap, heightProfile, visualProfile, groundProfile } = parentShared(guide);
 
   const terrainProfile = {
@@ -72,7 +72,7 @@ function setup() {
     thinSpanScreenRows: 1,
   };
   const background = createFarBackground();
-  const registry = createM620LiveStageRuntimeRegistry(content, charts, roadViews, {
+  const registry = createSingleForkStageRegistry(content, charts, roadViews, {
     heightProfile,
     surfaceMap,
     terrainProfile,
@@ -96,7 +96,7 @@ function setup() {
   };
 }
 
-test('M6.20 live DAG is one physical fork into two terminal child stages', () => {
+test('live DAG is one physical fork into two terminal child stages', () => {
   const { route } = setup();
   assert.equal(route.startStageId, 'STAGE_1');
   assert.deepEqual(
@@ -113,20 +113,20 @@ test('M6.20 live DAG is one physical fork into two terminal child stages', () =>
   );
 });
 
-test('M6.20 child FINISH lies after handoff and before the open Guide endpoint', () => {
+test('child FINISH lies after handoff and before the open Guide endpoint', () => {
   const { guide, gates } = setup();
-  assert.ok(M6_20_FINISH_GATE_S > M6_17_HANDOFF_SEAM_S);
-  assert.ok(M6_20_FINISH_GATE_S < guide.length);
+  assert.ok(SINGLE_FORK_FINISH_GATE_S > STADIUM_HANDOFF_SEAM_S);
+  assert.ok(SINGLE_FORK_FINISH_GATE_S < guide.length);
   const finishes = gates.gates.filter((gate) => gate.kind === 'FINISH');
   assert.equal(finishes.length, 2);
   assert.deepEqual(finishes.map((gate) => gate.stageId).sort(), ['GOAL_L', 'GOAL_R']);
   const dx = finishes[0].center.x - finishes[1].center.x;
   const dz = finishes[0].center.z - finishes[1].center.z;
-  assert.ok(Math.hypot(dx, dz) > M6_13_JUNCTION.authoring.finalMedianWidth);
+  assert.ok(Math.hypot(dx, dz) > STADIUM_JUNCTION.authoring.finalMedianWidth);
 });
 
 for (const side of ['LEFT', 'RIGHT']) {
-  test(`M6.20 ${side.toLowerCase()} path selects, commits child runtime and physically finishes without a second fork`, () => {
+  test(`${side.toLowerCase()} path selects, commits child runtime and physically finishes without a second fork`, () => {
     const { route, routeState, gates, content, chartList, handoffManifest, registry, handoffState } = setup();
     const choiceId = side === 'LEFT' ? 'S1_LEFT' : 'S1_RIGHT';
     const goalId = side === 'LEFT' ? 'GOAL_L' : 'GOAL_R';
@@ -164,7 +164,7 @@ for (const side of ['LEFT', 'RIGHT']) {
     const runtime = resolveActiveStageRuntimeContent(registry, handoffState);
     assert.equal(runtime.packageId, expectedPackage);
     assert.equal(runtime.roadView.id, side === 'LEFT' ? 'LEFT_CHILD_ROAD_VIEW' : 'RIGHT_CHILD_ROAD_VIEW');
-    assert.equal(runtime.surfaceMap.sample(M6_20_FINISH_GATE_S, 0).type, 'ASPHALT');
+    assert.equal(runtime.surfaceMap.sample(SINGLE_FORK_FINISH_GATE_S, 0).type, 'ASPHALT');
 
     const finishGate = gates.gates.find((gate) => gate.kind === 'FINISH' && gate.stageId === goalId);
     assert.ok(finishGate);
@@ -189,7 +189,7 @@ for (const side of ['LEFT', 'RIGHT']) {
   });
 }
 
-test('M6.20 camera rig carries no chart-local lateral authority through child handoff', () => {
+test('camera rig carries no chart-local lateral authority through child handoff', () => {
   assert.deepEqual(createCameraRig(), {
     yawMode: 'BODY_FIXED',
     yaw: 0,
@@ -199,7 +199,7 @@ test('M6.20 camera rig carries no chart-local lateral authority through child ha
   });
 });
 
-test('M6.20 live runtime has only parent plus two terminal child packages', () => {
+test('live runtime has only parent plus two terminal child packages', () => {
   const { registry } = setup();
   assert.deepEqual(
     registry.packages.map((entry) => entry.packageId),
@@ -207,22 +207,22 @@ test('M6.20 live runtime has only parent plus two terminal child packages', () =
   );
 });
 
-test('M6.20 fixture stays validated while browser live authority consumes the M6.27 route assembly', async () => {
+test('fixture stays validated while browser live authority consumes the route assembly', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /createM638DeclarativeForkGrowthRuntime/);
-  assert.match(source, /const liveRoute = createM638DeclarativeForkGrowthRuntime/);
+  assert.match(source, /createDeclarativeForkGrowthRuntime/);
+  assert.match(source, /const liveRoute = createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(
     source,
-    /createM626LiveRouteDag|createM626LiveContinuation|createM626LiveGateSet|createM626LiveStageRuntimeRegistry/,
+    /createLiveRouteDag|createLiveContinuation|createLiveGateSet|createSuccessorStageRegistry/,
   );
-  assert.doesNotMatch(source, /createM620LivePointToPointRouteDag/);
-  assert.doesNotMatch(source, /createM622ChildStageContinuation/);
+  assert.doesNotMatch(source, /createSingleForkRouteDag/);
+  assert.doesNotMatch(source, /createChildStageContinuation/);
   assert.match(source, /resolveLiveRouteTravelerRuntime/);
   assert.doesNotMatch(source, /POINT_TO_POINT_OBJECTIVE|REPEATABLE_DEV/);
-  assert.doesNotMatch(source, /createM6DebugRouteDag/);
-  assert.doesNotMatch(source, /createM615VisibleRouteBoundaryGateSet/);
+  assert.doesNotMatch(source, /createMinimalRouteDag/);
+  assert.doesNotMatch(source, /createStadiumRouteBoundaryGateSet/);
   assert.match(source, /stageVehicleWorld\(runtime\)/);
   assert.match(source, /advanceRouteDrivingTick/);
   assert.match(source, /runtime\.roadView \?\? undefined/);

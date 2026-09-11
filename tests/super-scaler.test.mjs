@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
 import { pseudoDepth } from '../dist/core/projection.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
+import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { mergeTerrainAndSprites } from '../dist/graphics/painter-merge.js';
 import { rgba, SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { countOpaqueSpriteColors, createSpriteAsset, drawScaledSprite } from '../dist/graphics/sprite.js';
@@ -26,9 +26,9 @@ const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const visual = createCliffVisualProfile(guide.length);
 const assets = createSpriteAssets();
 const background = createFarBackground();
 const cameraProfile = {
@@ -132,7 +132,7 @@ test('course-attached sprite compiler snaps ground anchor to Y_render and keeps 
 test('visible world sprites use shared chainage pseudo-depth and sort far-to-near', () => {
   const vehicle = renderPose(guide, 420);
   const camera = terrainCamera(guide, height, vehicle, cameraProfile);
-  const world = createM4DebugWorldSprites(guide, height, assets);
+  const world = createRoadsideSprites(guide, height, assets);
   const visible = collectVisibleCourseSprites(world, camera, 2.5, 150);
   assert.ok(visible.length > 0);
   for (let i = 1; i < visible.length; i += 1) assert.ok(visible[i].d <= visible[i - 1].d + 1e-9);
@@ -155,7 +155,7 @@ test('current renderer draws merged world sprites and a yaw-variant player into 
   const camera = terrainCamera(guide, height, vehicle, cameraProfile);
   vehicle.y = height.samplePhysics(vehicle.course.s);
   vehicle.yaw += deg(20);
-  const world = createM4DebugWorldSprites(guide, height, assets);
+  const world = createRoadsideSprites(guide, height, assets);
   const surface = new SoftwareSurface(320, 240);
   const stats = renderDriving(
     surface,

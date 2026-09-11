@@ -1,24 +1,26 @@
 import assert from 'node:assert/strict';
-import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 import {
   compileTireCharacteristics as compile,
-  readTireCharacteristics as read,
   createArcadeTireFrictionCalibration as pair,
+  readTireCharacteristics as read,
   setArcadeVehicleTireFrictionCalibration as set,
 } from '../dist/physics/tire-friction-calibration.js';
 import {
-  evaluateTireForce as force,
-  tireLinearDemand,
   deriveTireSlip,
+  evaluateTireForce as force,
   radialC1Magnitude as H,
-  solveWheelOmega,
   rollingResistanceTorque,
+  solveWheelOmega,
+  tireLinearDemand,
   usefulLateralCapacity,
 } from '../dist/physics/tire-wheel.js';
 import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
-import { FERRARI_TESTAROSSA_VEHICLE_PROFILE as car } from '../dist/vehicle/production-vehicle-profiles.js';
+import {
+  FERRARI_TESTAROSSA_VEHICLE_PROFILE as car,
+  FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
+} from '../dist/vehicle/production-vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const seed = { gripX: 2.5, peakSlipX: 0.08, gripY: 2.2, peakSlipY: 0.1, knee: 0.74 };
 const tire = car.rearStation.tire,
@@ -41,7 +43,7 @@ const random = () => {
   return n / 2 ** 32;
 };
 
-test('M9.20 five authoring axes compile into five resolved coefficients, with no duplicate P', () => {
+test('five authoring axes compile into five resolved coefficients, with no duplicate P', () => {
   const c = compile(seed);
   assert.deepEqual(Object.keys(c).sort(), ['kX', 'kY', 'muX', 'muY', 'rhoKnee']);
   near(c.kX, 39.375);
@@ -50,7 +52,7 @@ test('M9.20 five authoring axes compile into five resolved coefficients, with no
   for (const key of Object.keys(seed)) near(a[key], seed[key]);
   assert.ok(Object.isFrozen(c));
 });
-test('M9.20 equality of stiffness is a calibration choice, not a lower-law constraint', () => {
+test('equality of stiffness is a calibration choice, not a lower-law constraint', () => {
   const c = compile({ gripX: 0.75, gripY: 3, peakSlipX: 0.02, peakSlipY: 0.08, knee: 0.74 });
   near(c.kX, 47.25);
   near(c.kY, 47.25);
@@ -59,7 +61,7 @@ test('M9.20 equality of stiffness is a calibration choice, not a lower-law const
   near(d.kY, 47.25);
 });
 for (const field of Object.keys(seed))
-  test(`M9.20 ${field} rejects bad compilation atomically`, () => {
+  test(`${field} rejects bad compilation atomically`, () => {
     const owner = { tireFrictionCalibration: pair(compile(seed)) },
       before = owner.tireFrictionCalibration;
     const invalid = field === 'knee' ? [0, 1, -1, NaN, Infinity] : [0, -1, NaN, Infinity];
@@ -68,10 +70,10 @@ for (const field of Object.keys(seed))
       assert.equal(owner.tireFrictionCalibration, before);
     }
   });
-test('M9.20 derived coefficient overflow is rejected before calibration replacement', () => {
+test('derived coefficient overflow is rejected before calibration replacement', () => {
   assert.throws(() => compile({ ...seed, peakSlipX: Number.MIN_VALUE }), RangeError);
 });
-test('M9.20 linked editing has one immutable atomic pair, with independent owner lifecycle', () => {
+test('linked editing has one immutable atomic pair, with independent owner lifecycle', () => {
   const a = { tireFrictionCalibration: pair(compile(seed)) },
     b = { tireFrictionCalibration: pair(compile(seed)) };
   const old = a.tireFrictionCalibration;
@@ -84,7 +86,7 @@ test('M9.20 linked editing has one immutable atomic pair, with independent owner
     a.tireFrictionCalibration.front.kX = 1;
   }, TypeError);
 });
-test('M9.20 compiler supports differing station tires without vehicle or station branches', () => {
+test('compiler supports differing station tires without vehicle or station branches', () => {
   const p = compileArcadeVehicleProfile({
     ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
     frontTire: seed,
@@ -95,7 +97,7 @@ test('M9.20 compiler supports differing station tires without vehicle or station
   const c = pair(p.frontStation.tire, p.rearStation.tire);
   assert.notEqual(c.front, c.rear);
 });
-test('M9.20 all nine stock references retain old non-dropping capacities and initial response', () => {
+test('all nine stock references retain old non-dropping capacities and initial response', () => {
   for (const { profile: p } of VEHICLE_CATALOG)
     for (const t of [p.frontStation.tire, p.rearStation.tire]) {
       near(t.muX, 1.35);
@@ -119,7 +121,7 @@ test('M9.20 all nine stock references retain old non-dropping capacities and ini
     }
 });
 for (const a of [0.1, 0.5, 0.74, 0.9, 0.95])
-  test(`M9.20 H at knee ${a} equals the former Hermite shoulder`, () => {
+  test(`H at knee ${a} equals the former Hermite shoulder`, () => {
     let previous = 0;
     for (let i = 0; i <= 1000; i++) {
       const r = (i * 2) / 1000,
@@ -136,7 +138,7 @@ for (const a of [0.1, 0.5, 0.74, 0.9, 0.95])
     }
   });
 for (const axis of ['X', 'Y'])
-  test(`M9.20 pure ${axis} capacity onset is P at every positive load`, () => {
+  test(`pure ${axis} capacity onset is P at every positive load`, () => {
     for (const a of [0.1, 0.74, 0.95])
       for (const N of [1, 100, 10000])
         for (const m of [0.3, 1, 1.6]) {
@@ -151,7 +153,7 @@ for (const axis of ['X', 'Y'])
           assert.ok((axis === 'X' ? f.fx : f.fy) < m * G * N);
         }
   });
-test('M9.20 knee changes at fixed G/P alter initial slopes but not capacity onset', () => {
+test('knee changes at fixed G/P alter initial slopes but not capacity onset', () => {
   const cs = [0.1, 0.74, 0.95].map((knee) => compile({ ...seed, knee }));
   assert.ok(cs[0].kX > cs[1].kX && cs[1].kX > cs[2].kX);
   for (const c of cs) {
@@ -159,7 +161,7 @@ test('M9.20 knee changes at fixed G/P alter initial slopes but not capacity onse
     near(at(c, 0, 0.1).fy, 22000);
   }
 });
-test('M9.20 independent small-slip longitudinal and lateral demand scales with actual N', () => {
+test('independent small-slip longitudinal and lateral demand scales with actual N', () => {
   const c = compile(seed),
     f = at(c, 0.001, 0.001, 7000);
   near(f.fx, 7000 * c.kX * 0.001);
@@ -168,7 +170,7 @@ test('M9.20 independent small-slip longitudinal and lateral demand scales with a
   near(d.dx, 7000 * c.kX * d.sx);
   near(d.dy, 7000 * c.kY * d.sy);
 });
-test('M9.20 pure/combined forces remain bounded, dissipative, symmetric and load-homogeneous', () => {
+test('pure/combined forces remain bounded, dissipative, symmetric and load-homogeneous', () => {
   for (let i = 0; i < 20000; i++) {
     const c = compile({
       gripX: 0.5 + 3.5 * random(),
@@ -192,7 +194,7 @@ test('M9.20 pure/combined forces remain bounded, dissipative, symmetric and load
     near(mirror.fy, -f.fy);
   }
 });
-test('M9.20 fixed lateral slip has monotone Fx and combined-slip allocation without a second falloff', () => {
+test('fixed lateral slip has monotone Fx and combined-slip allocation without a second falloff', () => {
   for (const a of [0.1, 0.74, 0.95])
     for (const py of [0.01, 0.1, 0.6])
       for (const sy of [-1, -0.1, 0, 0.1, 1]) {
@@ -211,7 +213,7 @@ test('M9.20 fixed lateral slip has monotone Fx and combined-slip allocation with
         }
       }
 });
-test('M9.20 absent contact and zero-grip road release exact force without a friction/load floor', () => {
+test('absent contact and zero-grip road release exact force without a friction/load floor', () => {
   const c = compile(seed);
   for (const [N, m] of [
     [0, 1],
@@ -228,7 +230,7 @@ test('M9.20 absent contact and zero-grip road release exact force without a fric
   const f = at(c, 3, 2, 1e-100);
   assert.ok(f.fx > 0 && f.fx < 1e-99);
 });
-test('M9.20 invalid slip/load/material inputs reject instead of manufacturing finite force', () => {
+test('invalid slip/load/material inputs reject instead of manufacturing finite force', () => {
   for (const bad of [NaN, Infinity]) {
     assert.throws(() => at(compile(seed), 0.1, 0.2, bad));
     assert.throws(() => at(compile(seed), 0.1, 0.2, 100, bad));
@@ -236,21 +238,21 @@ test('M9.20 invalid slip/load/material inputs reject instead of manufacturing fi
     assert.throws(() => deriveTireSlip(1, 0, 30, 0, 1));
   }
 });
-test('M9.20 shared slip observation is finite at zero and signed forward/reverse velocity', () => {
+test('shared slip observation is finite at zero and signed forward/reverse velocity', () => {
   for (const vx of [-30, 0, 30]) {
     const s = deriveTireSlip(10, R, vx, -2, 1);
     near(s.sx, (R * 10 - vx) / Math.hypot(vx, 1));
     near(s.sy, 2 / Math.hypot(vx, 1));
   }
 });
-test('M9.20 useful lateral reserve uses both elliptical capacities', () => {
+test('useful lateral reserve uses both elliptical capacities', () => {
   const c = compile(seed),
     N = 7000,
     x = 0.25 * c.muX * N;
   near(usefulLateralCapacity(x, N, 1, tire, c), c.muY * N * Math.sqrt(c.rhoKnee ** 2 - 0.25 ** 2));
   assert.equal(usefulLateralCapacity(c.muX * N, N, 1, tire, c), 0);
 });
-test('M9.20 signed wheel roots balance actual delivered torque and the elliptical tire force', () => {
+test('signed wheel roots balance actual delivered torque and the elliptical tire force', () => {
   for (const vx of [-30, 0, 30])
     for (const N of [0, 100, 10000])
       for (const drive of [-15000, 0, 15000])
@@ -280,7 +282,7 @@ test('M9.20 signed wheel roots balance actual delivered torque and the elliptica
           assert.deepEqual(out, snapshot, 'later solves must not reuse an earlier result object');
         }
 });
-test('M9.20 Coulomb brake atom and free airborne wheel rotation remain ordinary wheel mechanics', () => {
+test('Coulomb brake atom and free airborne wheel rotation remain ordinary wheel mechanics', () => {
   const i = {
     omegaPrevious: 0,
     inertia: 3.4,
@@ -303,7 +305,7 @@ test('M9.20 Coulomb brake atom and free airborne wheel rotation remain ordinary 
   near(free.omega, (100 * 0.01) / 3.4);
   assert.equal(free.tire.fx, 0);
 });
-test('M9.20 tire authority remains per-station while M9.21 owns delivered torque separately', async () => {
+test('tire authority remains per-station while owns delivered torque separately', async () => {
   const src = await readFile(new URL('../src/physics/tire-wheel.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(
     src,

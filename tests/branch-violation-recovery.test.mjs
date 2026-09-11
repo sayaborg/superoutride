@@ -5,9 +5,9 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import { locateWorldOnGuideCoordinateGlobal } from '../dist/core/guide-coordinate-frame.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import { lockedBranchRecoveryApproach } from '../dist/gameplay/branch-violation.js';
 import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../dist/gameplay/recovery.js';
@@ -27,10 +27,10 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function createLiveFixture() {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const { heightProfile, visualProfile, surfaceMap, groundProfile } = parentShared(guide);
 
-  const live = createM638DeclarativeForkGrowthRuntime(
+  const live = createDeclarativeForkGrowthRuntime(
     guide,
     {
       heightProfile,
@@ -97,7 +97,7 @@ function crossAndCommitChoice(live, traveler, choiceId) {
   assert.equal(traveler.handoffState.pending, null);
 }
 
-test('M6.46 ordinary recovery backtracks to the real open start instead of wrapping to the path end', () => {
+test('ordinary recovery backtracks to the real open start instead of wrapping to the path end', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
   const car = createTestCar(guide, heightProfile, surfaceMap, 4);
   const recovery = createRecoveryState(car);
@@ -118,7 +118,7 @@ test('M6.46 ordinary recovery backtracks to the real open start instead of wrapp
   assert.match(source, /VehicleWorld/);
 });
 
-test('M6.46 explicit supported Guide recovery target is reusable for wrong-course response', () => {
+test('explicit supported Guide recovery target is reusable for wrong-course response', () => {
   const { guide, heightProfile, surfaceMap } = createLiveFixture();
   const car = createTestCar(guide, heightProfile, surfaceMap, 45);
   const recovery = createRecoveryState(car);
@@ -137,7 +137,7 @@ test('M6.46 explicit supported Guide recovery target is reusable for wrong-cours
   assert.equal(recovery.recoveries, 1);
 });
 
-test('M6.46 later same-tick sibling crossing becomes an explicit branch violation', () => {
+test('later same-tick sibling crossing becomes an explicit branch violation', () => {
   const { live } = createLiveFixture();
   const left = gate(live, 'S1_LEFT');
   const right = gate(live, 'S1_RIGHT');
@@ -163,7 +163,7 @@ test('M6.46 later same-tick sibling crossing becomes an explicit branch violatio
   assert.equal(laterLeft.routeState.activeStageId, 'STAGE_1');
 });
 
-test('M6.46 an already-locked sibling remains illegal for route progress but its physical crossing is still surfaced', () => {
+test('an already-locked sibling remains illegal for route progress but its physical crossing is still surfaced', () => {
   const { live } = createLiveFixture();
   const left = gate(live, 'S1_LEFT');
   const right = gate(live, 'S1_RIGHT');
@@ -187,7 +187,7 @@ test('M6.46 an already-locked sibling remains illegal for route progress but its
   assert.equal(loser.handoffState.pending, null);
 });
 
-test('M6.46 locked-branch recovery approach derives from the legal physical gate and lands on supported stage content', () => {
+test('locked-branch recovery approach derives from the legal physical gate and lands on supported stage content', () => {
   const { live } = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const approach = lockedBranchRecoveryApproach(live.gates, 'S1_RIGHT', 8);
@@ -264,7 +264,7 @@ test('second-fork losing sibling recovers to the locked physical gate without ma
   assert.equal(loser.handoffState.activePackageId, 'CONTENT_GOAL_RB');
 });
 
-test('M6.46 explicit locked choice can replace AI plan intent without becoming route authority', () => {
+test('explicit locked choice can replace AI plan intent without becoming route authority', () => {
   const { live } = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
   const traveler = createLiveRouteTravelerState(live, pointAlong(right, -20));
@@ -286,7 +286,7 @@ test('M6.46 explicit locked choice can replace AI plan intent without becoming r
   );
 });
 
-test('M6.46 branch violation geometry remains gameplay-only and does not depend on physics/render/camera', () => {
+test('branch violation geometry remains gameplay-only and does not depend on physics/render/camera', () => {
   const source = fs.readFileSync(new URL('../src/gameplay/branch-violation.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /from\s+['"][^'"]*(?:physics|render|camera|input)[^'"]*['"]/i);
   assert.match(source, /gate\.center\.x - gate\.tangent\.x \* backtrackDistance/);

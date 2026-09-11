@@ -13,7 +13,7 @@ import { deriveVehicleLeanRadians, deriveVehicleNormalizedBank } from '../dist/r
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 const deg = (v) => (v * Math.PI) / 180;
@@ -79,7 +79,7 @@ test('car remains world-authoritative and can traverse laterally across the road
     maxAbsLateralSpeed = Math.max(maxAbsLateralSpeed, Math.abs(car.lateralSpeed));
   }
   assert.ok(Math.abs(car.course.l - startL) > 2);
-  // M9.18: free lateral motion is a trace property, not residual slip at an arbitrary final time.
+  // : free lateral motion is a trace property, not residual slip at an arbitrary final time.
   assert.ok(maxAbsLateralSpeed > 0.1);
   assert.ok(Number.isFinite(car.lateralSpeed));
   assert.ok(maxAbsYawRate > 0.01);
@@ -106,7 +106,7 @@ test('lower-friction sand limits turning response versus asphalt in the same ste
   let asphaltPeakYawRate = 0;
   let sandPeakYawRate = 0;
   for (let i = 0; i < 30; i += 1) {
-    // M9.7's smaller reserved driver offset requires full request to exercise the friction limit;
+    // 's smaller reserved driver offset requires full request to exercise the friction limit;
     // a partial request can remain below asphalt capacity while sand over-rotates in saturation.
     const input = { steering: -1, throttle: false, brake: false };
     updateTestVehicle(guide, height, surfaces, asphalt, input, 1 / 60);
@@ -129,7 +129,7 @@ test('VOID means no support: planar momentum continues while vertical state fall
   assert.ok(car.speed > 0);
 });
 
-test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical framing', () => {
+test('camera retains exact chainage D_cam and bounded horizontal/vertical framing', () => {
   const car = createTestCar(guide, height, surfaces, 125);
   placeCar(car, 125, 0, 35);
   const rig = createCameraRig();
@@ -142,9 +142,9 @@ test('M5 camera retains exact chainage D_cam and bounded horizontal/vertical fra
   assert.ok(Math.abs(camera.playerFrameError) < 2.0);
 });
 
-test('M5 renderer projects player from physical Y and keeps player depth/scale chainage-only', () => {
+test('renderer projects player from physical Y and keeps player depth/scale chainage-only', () => {
   const assets = createSpriteAssets();
-  const world = createM4DebugWorldSprites(guide, height, assets);
+  const world = createRoadsideSprites(guide, height, assets);
   const background = createFarBackground();
   const car = createTestCar(guide, height, surfaces, 520);
   placeCar(car, 520, -8, 20);
@@ -204,7 +204,7 @@ test('BIKE profile surface response changes through the common physical material
 
 test('BIKE derived presentation lean selects a non-center yaw x bank sprite variant', () => {
   const bike = createTestBike(guide, height, surfaces, 100);
-  bike.lateralAcceleration = 4; // M9.28: bank follows observed G, not yaw alone.
+  bike.lateralAcceleration = 4; // : bank follows observed G, not yaw alone.
   const assets = createSpriteAssets();
   const normalizedBank = deriveVehicleNormalizedBank(bike);
   const bankCount = assets.bike.bankVariants;

@@ -1,15 +1,15 @@
-import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
 
 import { BROWSER_VEHICLE_PROFILES, browserVehicleProfileForKey } from '../dist/browser/vehicle-profile-selection.js';
 import * as profilesModule from '../dist/physics/vehicle-profiles.js';
 import { deriveVehicleSpriteFamily } from '../dist/render/vehicle-presentation.js';
 import {
   DEFAULT_VEHICLE_CATALOG_ENTRY,
-  VEHICLE_CATALOG,
   formatVehicleCatalogLine,
+  VEHICLE_CATALOG,
 } from '../dist/vehicle/vehicle-catalog.js';
 
 const expected = [
@@ -24,7 +24,7 @@ const expected = [
   ['Vespa', 'PX 200 E Arcobaleno', 'VSX1T', ['200 cc full-power'], '1983–1997', 'KeyV'],
 ];
 
-test('M9.8 catalog preserves model identifier specification and period as separate fields', () => {
+test('catalog preserves model identifier specification and period as separate fields', () => {
   assert.equal(VEHICLE_CATALOG.length, 9);
   assert.deepEqual(
     VEHICLE_CATALOG.map((entry) => [
@@ -95,6 +95,6 @@ test('legacy six-profile and launch-coupling authorities are fully retired', asy
     assert.equal(retired in profilesModule, false, retired);
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /torqueConverterSlipRpm/);
-  // M9.17 (doc 111, sections 1-3) removes the replacement launch-slip concept as well.
+  // (doc 111, sections 1-3) removes the replacement launch-slip concept as well.
   assert.doesNotMatch(source, /launchCouplingSlipRpm/);
 });

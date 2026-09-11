@@ -1,13 +1,13 @@
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
-import { createM622ChildStageContinuation } from '../dist/dev/m6-22-child-stage-continuation.js';
-import { createM626LiveContinuation } from '../dist/dev/m6-26-live-successor-stage.js';
-import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
+import { createChildStageContinuation } from '../dist/dev/courses/child-stage-continuation.js';
+import { createLiveContinuation } from '../dist/dev/courses/successor-stage-continuation.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
+import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
 
 const near = (actual, expected, tolerance = 1e-7) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
@@ -38,11 +38,11 @@ function authoring(side) {
   };
 }
 
-test('M6.29 generic factory reproduces the M6.26 LEFT successor geometry and seam chainages', () => {
-  const parent = createM2StadiumGuide();
-  const base = createM622ChildStageContinuation(parent);
+test('generic factory reproduces the LEFT successor geometry and seam chainages', () => {
+  const parent = createStadiumGuide();
+  const base = createChildStageContinuation(parent);
   const direct = createRasterStageSuccessor(base.left, authoring('LEFT'));
-  const live = createM626LiveContinuation(parent).leftSuccessor;
+  const live = createLiveContinuation(parent).leftSuccessor;
 
   near(direct.guide.length, live.guide.length);
   near(direct.sourceTransitionS, live.sourceTransitionS);
@@ -58,9 +58,9 @@ test('M6.29 generic factory reproduces the M6.26 LEFT successor geometry and sea
   }
 });
 
-test('M6.29 generic factory preserves exact D_cam overlap around the successor seam', () => {
-  const parent = createM2StadiumGuide();
-  const base = createM622ChildStageContinuation(parent);
+test('generic factory preserves exact D_cam overlap around the successor seam', () => {
+  const parent = createStadiumGuide();
+  const base = createChildStageContinuation(parent);
   const successor = createRasterStageSuccessor(base.right, authoring('RIGHT'));
 
   for (const delta of [-5, -2.5, 0, 2.5, 5]) {
@@ -73,8 +73,8 @@ test('M6.29 generic factory preserves exact D_cam overlap around the successor s
 });
 
 test('extending far depth adds only straight open runout and preserves authored pre-tail geometry', () => {
-  const parent = createM2StadiumGuide();
-  const base = createM622ChildStageContinuation(parent);
+  const parent = createStadiumGuide();
+  const base = createChildStageContinuation(parent);
   const short = createRasterStageSuccessor(base.left, {
     ...authoring('LEFT'),
     id: 'SHORT',
@@ -98,9 +98,9 @@ test('extending far depth adds only straight open runout and preserves authored 
   }
 });
 
-test('M6.29 opposite deformation directions create independent successors without changing source chart', () => {
-  const parent = createM2StadiumGuide();
-  const base = createM622ChildStageContinuation(parent);
+test('opposite deformation directions create independent successors without changing source chart', () => {
+  const parent = createStadiumGuide();
+  const base = createChildStageContinuation(parent);
   const negative = createRasterStageSuccessor(base.left, {
     ...authoring('LEFT'),
     chartId: 'NEG',
@@ -123,25 +123,25 @@ test('M6.29 opposite deformation directions create independent successors withou
   assert.ok(a.some((vertex, index) => Math.hypot(vertex.x - b[index].x, vertex.z - b[index].z) > 1));
 });
 
-test('M6.29 factory refuses a gentle-turn threshold at or above the frozen 10-degree Raster limit', () => {
-  const parent = createM2StadiumGuide();
-  const base = createM622ChildStageContinuation(parent);
+test('factory refuses a gentle-turn threshold at or above the frozen 10-degree Raster limit', () => {
+  const parent = createStadiumGuide();
+  const base = createChildStageContinuation(parent);
   assert.throws(
     () => createRasterStageSuccessor(base.left, { ...authoring('LEFT'), gentleTurnLimitDegrees: 10 }),
     /below the Core 10-degree limit/,
   );
 });
 
-test('M6.29 successor factory is route/renderer/vehicle independent and M6.26 delegates Raster construction to it', async () => {
+test('successor factory is route/renderer/vehicle independent and delegates Raster construction to it', async () => {
   const { readFile } = await import('node:fs/promises');
   const [factorySource, legacySource] = await Promise.all([
     readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-26-live-successor-stage.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/successor-stage-continuation.ts', import.meta.url), 'utf8'),
   ]);
 
   assert.doesNotMatch(factorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
   assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|camera/);
-  assert.doesNotMatch(factorySource, /M6_2[0-9]|m6-2[0-9]/);
+  assert.doesNotMatch(factorySource, /M[0-9]+|dev\//);
   assert.match(legacySource, /createRasterStageSuccessor/);
   assert.doesNotMatch(legacySource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);
 });

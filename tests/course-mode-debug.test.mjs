@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
-import { M8_3_BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/m8-3-course-debug-mode.js';
-import { M8_3_LINEAR_SESSION_CONFIGURATION } from '../dist/dev/m8-3-linear-highway.js';
+import { BRANCHING_SESSION_CONFIGURATION } from '../dist/dev/courses/branching-mode.js';
+import { LINEAR_SESSION_CONFIGURATION } from '../dist/dev/courses/linear-highway.js';
 
 import {
   BROWSER_COURSE_MODES,
@@ -27,17 +27,17 @@ import {
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
-  createM72DefaultBranchingParent,
-  M7_2_DEFAULT_BRANCHING_FORK,
-} from '../dist/dev/m7-2-default-branching-highway.js';
-import { M8_3_BRANCHING_COURSE_MODE } from '../dist/dev/m8-3-course-debug-mode.js';
+  BRANCHING_DEFAULT_BRANCHING_FORK,
+  createDefaultBranchingParent,
+} from '../dist/dev/courses/branching-highway.js';
+import { BRANCHING_COURSE_MODE } from '../dist/dev/courses/branching-mode.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 import {
-  createM83LinearHighwayRuntime,
-  M8_3_LINEAR_COURSE_MODE,
-  M8_3_LINEAR_LENGTH_METERS,
-} from '../dist/dev/m8-3-linear-highway.js';
+  createLinearHighwayRuntime,
+  LINEAR_COURSE_MODE,
+  LINEAR_LENGTH_METERS,
+} from '../dist/dev/courses/linear-highway.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { pendingRouteStageRecoveryTarget } from '../dist/gameplay/route-stage-handoff.js';
@@ -91,8 +91,8 @@ test('browser course selector maps 1/2/3/4 and URL modes from one authority', ()
   assert.equal(browserCourseModeForKey('KeyV'), null);
   assert.equal(selectBrowserCourseMode(null).routeKind, 'BRANCHING');
   assert.equal(selectBrowserCourseMode('unknown').routeKind, 'BRANCHING');
-  assert.equal(M8_3_BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
+  assert.equal(BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
+  assert.equal(BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
 });
 
 test('browser vehicle selector derives all nine exact keys and profiles from browser bindings and the product catalog', () => {
@@ -125,7 +125,7 @@ test('all nine profiles share one two-station mechanics contract', () => {
   }
 });
 
-test('catalog profiles share only the M9.8 normalized tire law and retain distinct mechanics', () => {
+test('catalog profiles share only the normalized tire law and retain distinct mechanics', () => {
   const profiles = VEHICLE_CATALOG.map(({ profile }) => profile);
   const tireTuple = (profile) => [
     profile.frontStation.tire.muY,
@@ -146,10 +146,10 @@ test('catalog profiles share only the M9.8 normalized tire law and retain distin
 });
 
 test('LINEAR debug course is one finite ordinary open 8 km highway and renders normally', () => {
-  const runtime = createM83LinearHighwayRuntime();
-  assert.equal(M8_3_LINEAR_COURSE_MODE.routeKind, 'LINEAR');
-  assert.equal(M8_3_LINEAR_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(runtime.guide.length, M8_3_LINEAR_LENGTH_METERS);
+  const runtime = createLinearHighwayRuntime();
+  assert.equal(LINEAR_COURSE_MODE.routeKind, 'LINEAR');
+  assert.equal(LINEAR_SESSION_CONFIGURATION.rivalCount, 0);
+  assert.equal(runtime.guide.length, LINEAR_LENGTH_METERS);
   assert.equal(runtime.guide.segments.length, 1);
   const car = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   const camera = updateCamera(
@@ -179,7 +179,7 @@ test('LINEAR debug course is one finite ordinary open 8 km highway and renders n
 });
 
 test('all nine vehicle profiles integrate on the finite LINEAR course with permitted wheel lift and recovery', () => {
-  const runtime = createM83LinearHighwayRuntime();
+  const runtime = createLinearHighwayRuntime();
   for (const { profile, presentationFamily } of VEHICLE_CATALOG) {
     const vehicle =
       presentationFamily === 'BIKE'
@@ -216,9 +216,9 @@ test('all nine vehicle profiles integrate on the finite LINEAR course with permi
   }
 });
 
-// M9.22 supersedes only pedal actuator-only fields, ON/OFF rounding and the old label count.
+// supersedes only pedal actuator-only fields, ON/OFF rounding and the old label count.
 test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handwheel observations', () => {
-  const runtime = createM83LinearHighwayRuntime();
+  const runtime = createLinearHighwayRuntime();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   vehicle.control.actualSteerAngle = (-12.5 * Math.PI) / 180;
   vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
@@ -254,7 +254,7 @@ test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handw
 });
 
 test('shared HUD leaves the driving view transparent behind outlined text and control graphics', () => {
-  const runtime = createM83LinearHighwayRuntime(),
+  const runtime = createLinearHighwayRuntime(),
     vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   const rectangles = [],
     outlinedText = [];
@@ -368,10 +368,10 @@ for (const [profile, createVehicle, presentationKind] of [
   [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike, 'bike'],
 ]) {
   for (const side of ['LEFT', 'RIGHT']) {
-    test(`${profile.id} commits the current M7.2 ${side} fork and keeps physics/rendering alive`, () => {
-      const parent = createM72DefaultBranchingParent(),
+    test(`${profile.id} commits the current ${side} fork and keeps physics/rendering alive`, () => {
+      const parent = createDefaultBranchingParent(),
         assets = createSpriteAssets();
-      const live = createM638DeclarativeForkGrowthRuntime(
+      const live = createDeclarativeForkGrowthRuntime(
         parent.guide,
         {
           heightProfile: parent.heightProfile,
@@ -382,13 +382,13 @@ for (const [profile, createVehicle, presentationKind] of [
           worldSprites: [],
         },
         assets,
-        M7_2_DEFAULT_BRANCHING_FORK,
+        BRANCHING_DEFAULT_BRANCHING_FORK,
       );
       const car = createVehicle(
         parent.guide,
         parent.heightProfile,
         parent.surfaceMap,
-        M7_2_DEFAULT_BRANCHING_FORK.junction.authoring.sWidenStart - 120,
+        BRANCHING_DEFAULT_BRANCHING_FORK.junction.authoring.sWidenStart - 120,
       );
       const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z }),
         recovery = createRecoveryState(car),

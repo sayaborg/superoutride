@@ -3,19 +3,19 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import { guidePathToWorld, sampleGuidePath } from '../dist/core/guide-curve.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
 import {
-  createM72DefaultBranchingParent,
-  M7_2_DEFAULT_BRANCHING_FORK,
-  M7_2_DEFAULT_BRANCHING_JUNCTION,
-  M7_2_FORK_WIDEN_START_S,
-  M7_2_HANDOFF_SEAM_S,
-  M7_2_PLAYER_RECOVERY_PROFILE,
-  M7_2_PLAYER_START_L,
-  M7_2_RIVAL_RECOVERY_PROFILE,
-  M7_2_RIVAL_START_L,
-  M7_2_ROUTE_GATE_S,
-} from '../dist/dev/m7-2-default-branching-highway.js';
+  BRANCHING_DEFAULT_BRANCHING_FORK,
+  BRANCHING_DEFAULT_BRANCHING_JUNCTION,
+  BRANCHING_FORK_WIDEN_START_S,
+  BRANCHING_HANDOFF_SEAM_S,
+  BRANCHING_PLAYER_RECOVERY_PROFILE,
+  BRANCHING_PLAYER_START_L,
+  BRANCHING_RIVAL_RECOVERY_PROFILE,
+  BRANCHING_RIVAL_START_L,
+  BRANCHING_ROUTE_GATE_S,
+  createDefaultBranchingParent,
+} from '../dist/dev/courses/branching-highway.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
@@ -28,8 +28,8 @@ const near = (actual, expected, tolerance = 1e-6) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
 };
 
-test('M7.2 default BRANCHING parent is the long four-lane highway rather than the M6 stadium', () => {
-  const parent = createM72DefaultBranchingParent();
+test('default BRANCHING parent is the long four-lane highway rather than the stadium', () => {
+  const parent = createDefaultBranchingParent();
   assert.ok(parent.guide.length > 7_000);
   assert.equal(parent.groundProfile.roadLeft, 7);
   assert.equal(parent.groundProfile.roadRight, 7);
@@ -43,23 +43,23 @@ test('M7.2 default BRANCHING parent is the long four-lane highway rather than th
   assert.equal(sampleGroundMap(10, 7, parent.groundProfile), GROUND_COLORS.marking);
 });
 
-test('M7.2 first fork occupies one straight flat authored interval after the calibration section', () => {
-  const parent = createM72DefaultBranchingParent();
-  assert.equal(M7_2_DEFAULT_BRANCHING_JUNCTION.sample(M7_2_FORK_WIDEN_START_S - 1).phase, 'SINGLE');
-  assert.equal(M7_2_DEFAULT_BRANCHING_JUNCTION.sample(M7_2_ROUTE_GATE_S).phase, 'SEPARATED');
-  assert.equal(M7_2_DEFAULT_BRANCHING_JUNCTION.sample(M7_2_HANDOFF_SEAM_S).phase, 'SEPARATED');
-  near(parent.heightProfile.samplePhysics(M7_2_FORK_WIDEN_START_S), 0);
-  near(parent.heightProfile.samplePhysics(M7_2_HANDOFF_SEAM_S), 0);
+test('first fork occupies one straight flat authored interval after the calibration section', () => {
+  const parent = createDefaultBranchingParent();
+  assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_FORK_WIDEN_START_S - 1).phase, 'SINGLE');
+  assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_ROUTE_GATE_S).phase, 'SEPARATED');
+  assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_HANDOFF_SEAM_S).phase, 'SEPARATED');
+  near(parent.heightProfile.samplePhysics(BRANCHING_FORK_WIDEN_START_S), 0);
+  near(parent.heightProfile.samplePhysics(BRANCHING_HANDOFF_SEAM_S), 0);
   near(
-    sampleGuidePath(parent.guide, M7_2_FORK_WIDEN_START_S).heading,
-    sampleGuidePath(parent.guide, M7_2_HANDOFF_SEAM_S).heading,
+    sampleGuidePath(parent.guide, BRANCHING_FORK_WIDEN_START_S).heading,
+    sampleGuidePath(parent.guide, BRANCHING_HANDOFF_SEAM_S).heading,
     1e-9,
   );
 });
 
-test('M7.2 runtime moves first physical gates and handoff seams with the selected parent authoring', () => {
-  const parent = createM72DefaultBranchingParent();
-  const live = createM638DeclarativeForkGrowthRuntime(
+test('runtime moves first physical gates and handoff seams with the selected parent authoring', () => {
+  const parent = createDefaultBranchingParent();
+  const live = createDeclarativeForkGrowthRuntime(
     parent.guide,
     {
       heightProfile: parent.heightProfile,
@@ -70,7 +70,7 @@ test('M7.2 runtime moves first physical gates and handoff seams with the selecte
       worldSprites: [],
     },
     createSpriteAssets(),
-    M7_2_DEFAULT_BRANCHING_FORK,
+    BRANCHING_DEFAULT_BRANCHING_FORK,
   );
 
   for (const side of ['LEFT', 'RIGHT']) {
@@ -79,37 +79,37 @@ test('M7.2 runtime moves first physical gates and handoff seams with the selecte
     const seam = live.handoffs.seams.find((entry) => entry.choiceId === choiceId);
     assert.ok(gate);
     assert.ok(seam);
-    const localL = M7_2_DEFAULT_BRANCHING_JUNCTION.separatedChildCenterL(side);
-    const expectedGate = guidePathToWorld(parent.guide, M7_2_ROUTE_GATE_S, localL);
-    const expectedSeam = guidePathToWorld(parent.guide, M7_2_HANDOFF_SEAM_S, localL);
+    const localL = BRANCHING_DEFAULT_BRANCHING_JUNCTION.separatedChildCenterL(side);
+    const expectedGate = guidePathToWorld(parent.guide, BRANCHING_ROUTE_GATE_S, localL);
+    const expectedSeam = guidePathToWorld(parent.guide, BRANCHING_HANDOFF_SEAM_S, localL);
     near(gate.center.x, expectedGate.x);
     near(gate.center.z, expectedGate.z);
     near(seam.center.x, expectedSeam.x);
     near(seam.center.z, expectedSeam.z);
-    assert.equal(seam.sourceSeamS, M7_2_HANDOFF_SEAM_S);
+    assert.equal(seam.sourceSeamS, BRANCHING_HANDOFF_SEAM_S);
   }
 
   assert.equal(live.initialChart.guide, parent.guide);
   assert.equal(live.route.startStageId, 'STAGE_1');
 });
 
-test('M7.2 default composition owns lane-center spawn and recovery without changing BRANCHING topology', () => {
-  assert.equal(M7_2_PLAYER_START_L, -1.75);
-  assert.equal(M7_2_RIVAL_START_L, 1.75);
-  assert.equal(M7_2_PLAYER_RECOVERY_PROFILE.targetL, M7_2_PLAYER_START_L);
-  assert.equal(M7_2_RIVAL_RECOVERY_PROFILE.targetL, M7_2_RIVAL_START_L);
+test('default composition owns lane-center spawn and recovery without changing BRANCHING topology', () => {
+  assert.equal(BRANCHING_PLAYER_START_L, -1.75);
+  assert.equal(BRANCHING_RIVAL_START_L, 1.75);
+  assert.equal(BRANCHING_PLAYER_RECOVERY_PROFILE.targetL, BRANCHING_PLAYER_START_L);
+  assert.equal(BRANCHING_RIVAL_RECOVERY_PROFILE.targetL, BRANCHING_RIVAL_START_L);
 
   const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  assert.match(main, /createM72DefaultBranchingParent/);
-  assert.match(main, /M7_2_DEFAULT_BRANCHING_FORK/);
-  assert.match(main, /M7_2_PLAYER_START_L/);
-  assert.match(main, /M7_2_PLAYER_RECOVERY_PROFILE/);
-  assert.doesNotMatch(main, /createM71HighwayCalibrationRuntime|compileCircuitLiveRuntime/);
+  assert.match(main, /createDefaultBranchingParent/);
+  assert.match(main, /BRANCHING_DEFAULT_BRANCHING_FORK/);
+  assert.match(main, /BRANCHING_PLAYER_START_L/);
+  assert.match(main, /BRANCHING_PLAYER_RECOVERY_PROFILE/);
+  assert.doesNotMatch(main, /createHighwayCalibrationRuntime|compileCircuitLiveRuntime/);
 });
 
 test('opening section remains bounded at continuous throttle without recovery', () => {
-  const parent = createM72DefaultBranchingParent();
-  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, M7_2_PLAYER_START_L);
+  const parent = createDefaultBranchingParent();
+  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, BRANCHING_PLAYER_START_L);
   const recovery = createRecoveryState(car);
   let maximumS = car.course.s;
   let maximumRoadRelativePresentationHeight = Number.NEGATIVE_INFINITY;
@@ -126,7 +126,7 @@ test('opening section remains bounded at continuous throttle without recovery', 
     updateRecovery({ guide: parent.guide, height: parent.heightProfile, surfaces: parent.surfaceMap }, car, {
       state: recovery,
       dt: 1 / 60,
-      profile: M7_2_PLAYER_RECOVERY_PROFILE,
+      profile: BRANCHING_PLAYER_RECOVERY_PROFILE,
     });
     maximumS = Math.max(maximumS, car.course.s);
     if (car.course.s >= 250 && car.course.s <= 700) {
@@ -153,8 +153,8 @@ test('opening section remains bounded at continuous throttle without recovery', 
 });
 
 test('opening section keeps the live rival inside its suspension model', () => {
-  const parent = createM72DefaultBranchingParent();
-  const rival = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 95, M7_2_RIVAL_START_L);
+  const parent = createDefaultBranchingParent();
+  const rival = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 95, BRANCHING_RIVAL_START_L);
   const recovery = createRecoveryState(rival);
 
   for (let tick = 0; tick < 1_200 && rival.course.s <= 900; tick += 1) {
@@ -169,7 +169,7 @@ test('opening section keeps the live rival inside its suspension model', () => {
     updateRecovery({ guide: parent.guide, height: parent.heightProfile, surfaces: parent.surfaceMap }, rival, {
       state: recovery,
       dt: 1 / 60,
-      profile: M7_2_RIVAL_RECOVERY_PROFILE,
+      profile: BRANCHING_RIVAL_RECOVERY_PROFILE,
     });
   }
 
@@ -178,8 +178,8 @@ test('opening section keeps the live rival inside its suspension model', () => {
 });
 
 test('airborne recontact recovers before the vehicle can continue below authored terrain', () => {
-  const parent = createM72DefaultBranchingParent();
-  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, M7_2_PLAYER_START_L);
+  const parent = createDefaultBranchingParent();
+  const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, BRANCHING_PLAYER_START_L);
   const recovery = createRecoveryState(car);
   let minimumSurfaceDistance = Number.POSITIVE_INFINITY;
   const reasons = [];
@@ -207,7 +207,7 @@ test('airborne recontact recovers before the vehicle can continue below authored
     const reason = updateRecovery(
       { guide: parent.guide, height: parent.heightProfile, surfaces: parent.surfaceMap },
       car,
-      { state: recovery, dt: 1 / 60, profile: M7_2_PLAYER_RECOVERY_PROFILE },
+      { state: recovery, dt: 1 / 60, profile: BRANCHING_PLAYER_RECOVERY_PROFILE },
     );
     if (reason !== null) reasons.push(reason);
   }

@@ -4,16 +4,16 @@ import test from 'node:test';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
-import { M7_1_ROAD_HALF_WIDTH_METERS } from '../dist/dev/m7-1-highway-calibration-course.js';
+import { HIGHWAY_ROAD_HALF_WIDTH_METERS } from '../dist/dev/courses/highway-calibration.js';
 import {
-  createM91LowMidSpeedMountainCircuitLap,
-  createM91LowMidSpeedMountainCircuitRuntime,
-} from '../dist/dev/m9-1-low-mid-speed-mountain-circuit.js';
+  createLowMidSpeedMountainCircuitLap,
+  createLowMidSpeedMountainCircuitRuntime,
+} from '../dist/dev/fixtures/mountain-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-test('M9.1 circuit is predominantly low/mid-speed corners on one explicit closed lap', () => {
-  const authored = createM91LowMidSpeedMountainCircuitLap();
+test('circuit is predominantly low/mid-speed corners on one explicit closed lap', () => {
+  const authored = createLowMidSpeedMountainCircuitLap();
   const raster = authored.raster;
   const guide = compileGuidePath(raster, { lMax: 12, mMin: 0.25, dCam: 5 });
   const finiteCorners = guide.corners.filter((corner) => Number.isFinite(corner.radius));
@@ -50,8 +50,8 @@ test('M9.1 circuit is predominantly low/mid-speed corners on one explicit closed
   assert.ok(Math.max(...raster.vertexTurns.map(Math.abs)) <= (5.000001 * Math.PI) / 180);
 });
 
-test('M9.1 mountain height owns stronger repeated smooth elevation changes', () => {
-  const live = createM91LowMidSpeedMountainCircuitRuntime();
+test('mountain height owns stronger repeated smooth elevation changes', () => {
+  const live = createLowMidSpeedMountainCircuitRuntime();
   const height = live.window.height;
   const lapLength = live.window.topology.lapLength;
   let minimumY = Number.POSITIVE_INFINITY;
@@ -80,7 +80,7 @@ test('M9.1 mountain height owns stronger repeated smooth elevation changes', () 
 
 for (const [profile, createVehicle] of [[FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar]]) {
   test(`ordinary rival-controlled ${profile.id} completes the low/mid-speed mountain lap`, () => {
-    const live = createM91LowMidSpeedMountainCircuitRuntime();
+    const live = createLowMidSpeedMountainCircuitRuntime();
     const lapLength = live.window.topology.lapLength;
     const vehicle = createVehicle(live.window.guide, live.window.height, live.window.surface, 45, 0, 0);
     let ticks = 0;
@@ -99,19 +99,19 @@ for (const [profile, createVehicle] of [[FERRARI_TESTAROSSA_VEHICLE_PROFILE, cre
 
     assert.ok(vehicle.course.s >= lapLength + 25, `${profile.id} stalled at s=${vehicle.course.s}`);
     assert.equal(vehicle.supported, true, `${profile.id} must finish supported`);
-    assert.ok(maximumAbsoluteL < M7_1_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
+    assert.ok(maximumAbsoluteL < HIGHWAY_ROAD_HALF_WIDTH_METERS, `max |l|=${maximumAbsoluteL}`);
     assert.ok(minimumCornerSpeed < 31, `minimum corner speed=${minimumCornerSpeed}`);
   });
 }
 
-test('M9.1 mountain remains a historical fixture while current compositions do not select it', async () => {
+test('mountain remains a historical fixture while current compositions do not select it', async () => {
   const [circuitSource, branchingSource] = await Promise.all([
     readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m7-2-default-branching-highway.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/branching-highway.ts', import.meta.url), 'utf8'),
   ]);
-  assert.doesNotMatch(circuitSource, /createM91LowMidSpeedMountainCircuitRuntime/);
-  assert.match(circuitSource, /createM93TsukubaCourse2000Runtime/);
+  assert.doesNotMatch(circuitSource, /createLowMidSpeedMountainCircuitRuntime/);
+  assert.match(circuitSource, /createTsukubaCourse2000Runtime/);
   assert.doesNotMatch(circuitSource, /createM87VariedElevationCircuitRuntime/);
-  assert.match(branchingSource, /createM71HighwayCalibrationLapRaster/);
+  assert.match(branchingSource, /createHighwayCalibrationLapRaster/);
   assert.doesNotMatch(branchingSource, /m9-1-low-mid-speed-mountain-circuit/);
 });

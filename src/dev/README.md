@@ -1,9 +1,9 @@
-# DEV composition and regression fixtures
+# Concrete content, fixtures and diagnostics
 
-This directory assembles concrete authored courses, focused integration fixtures and read-only diagnostics from ordinary engine primitives. Current browser compositions include LINEAR, BRANCHING, Tsukuba and FISCO. M-numbered fixture names are stable test identifiers; they do not grant authority to superseded implementations.
+- `courses/` owns the browser's authored courses, scenery and shared content composition.
+- `fixtures/` owns focused regression inputs, including the stadium asset-baking source.
+- `diagnostics/` owns input recording and vehicle telemetry; it observes engine state.
 
-Only `src/main-linear.ts`, `src/main.ts` and `src/main-circuit.ts` may import these fixtures from outside DEV. General physics, camera, renderer, gameplay and runtime must not depend on DEV. [Boundary regression](../../tests/source-boundary-normalization.test.mjs) enforces this across all TypeScript source.
+Only `src/main-linear.ts`, `src/main.ts` and `src/main-circuit.ts` assemble shipped DEV courses from outside this directory. General engines never import DEV, and shipped courses never import fixtures or diagnostics. [Repository hygiene](../../tests/repository-hygiene.test.mjs) enforces dependency direction, descriptive naming and a test/tool consumer for every regression source. Fixture availability alone never makes an unreachable general module live.
 
-Retain a fixture when it supplies distinct causal coverage (gate ordering, overlapping charts, terrain footprints, physical recovery). Remove unused or duplicate implementations instead of archiving old engine variants here. Static renderer poses belong under tests; diagnostics must observe existing state and never become physical or gameplay authority.
-
-See [current architecture](../../docs/architecture.md), [content and gameplay](../../docs/content-and-gameplay.md) and [restart checkpoint](../../docs/NEXT.md).
+Retain distinct causal scenarios (gate ordering, overlapping charts, terrain footprints and physical recovery). Fixed calibration inputs are independent of browser defaults. Remove duplicate or unused implementations; Git retains past designs. [The specification index](../../docs/README.md) identifies the authority for each concept.

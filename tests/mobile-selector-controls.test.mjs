@@ -160,7 +160,7 @@ test('mobile camera buttons expose body-fixed default and movement-follow altern
   ]);
 });
 
-test('mobile M D and symmetric-response buttons expose the current M9.29 choices', () => {
+test('mobile M D and symmetric-response buttons expose the current choices', () => {
   const offsets = createMobileSteeringOffsetSelectorModel(12 * DEG);
   assert.deepEqual(
     offsets.map(({ label, active }) => ({ label, active })),

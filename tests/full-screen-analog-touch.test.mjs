@@ -4,8 +4,8 @@ import test from 'node:test';
 
 import { normalizedPedalRequest } from '../dist/input/driving-input.js';
 import {
-  TouchInput,
   touchAnalogFullScaleDistance,
+  TouchInput,
   touchPedalRequests,
   touchSteeringRequest,
 } from '../dist/input/touch-input.js';
@@ -100,7 +100,7 @@ function createTouchFixture() {
   return { lifecycle, document, touch };
 }
 
-test('M9.14 full-scale slide distance is fixed at compact 64 CSS px across viewport sizes', () => {
+test('full-scale slide distance is fixed at compact 64 CSS px across viewport sizes', () => {
   assert.equal(touchAnalogFullScaleDistance(400, 800), 64);
   assert.equal(touchAnalogFullScaleDistance(800, 400), 64);
   assert.equal(touchAnalogFullScaleDistance(200, 900), 64);
@@ -108,7 +108,7 @@ test('M9.14 full-scale slide distance is fixed at compact 64 CSS px across viewp
   assert.throws(() => touchAnalogFullScaleDistance(0, 800), RangeError);
 });
 
-test('M9.13 relative displacement maps steering and exclusive pedal requests continuously', () => {
+test('relative displacement maps steering and exclusive pedal requests continuously', () => {
   assert.equal(touchSteeringRequest(100, 150, 100), 0.5);
   assert.equal(touchSteeringRequest(100, 0, 100), -1);
   assert.equal(touchSteeringRequest(100, 350, 100), 1);
@@ -117,7 +117,7 @@ test('M9.13 relative displacement maps steering and exclusive pedal requests con
   assert.deepEqual(touchPedalRequests(400, 400, 100), { throttle: 0, brake: 0 });
 });
 
-test('M9.13 left and right touch halves publish simultaneous direct analog steering and pedal input', () => {
+test('left and right touch halves publish simultaneous direct analog steering and pedal input', () => {
   const { lifecycle, touch } = createTouchFixture();
 
   lifecycle.dispatch('pointerdown', pointer(1, 100, 300));
@@ -140,7 +140,7 @@ test('M9.13 left and right touch halves publish simultaneous direct analog steer
   assert.equal(sample.pedalApplyMode, 'DIRECT');
 });
 
-test('M9.13 pedal touch origin is active direct neutral and does not require displacement', () => {
+test('pedal touch origin is active direct neutral and does not require displacement', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(7, 300, 400));
   const sample = touch.sample();
@@ -149,7 +149,7 @@ test('M9.13 pedal touch origin is active direct neutral and does not require dis
   assert.equal(sample.pedalApplyMode, 'DIRECT');
 });
 
-test('M9.13 touch role is fixed by the half where the pointer starts', () => {
+test('touch role is fixed by the half where the pointer starts', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(3, 100, 300));
   lifecycle.dispatch('pointermove', pointer(3, 350, 100));
@@ -160,7 +160,7 @@ test('M9.13 touch role is fixed by the half where the pointer starts', () => {
   assert.equal(sample.steeringApplyMode, 'DIRECT');
 });
 
-test('M9.13 held displacement is immediate while release uses existing actuator release rates', () => {
+test('held displacement is immediate while release uses existing actuator release rates', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(4, 300, 400));
   lifecycle.dispatch('pointermove', pointer(4, 300, 368));
@@ -186,7 +186,7 @@ test('M9.13 held displacement is immediate while release uses existing actuator 
   assert.equal(state.throttle, 0.25);
 });
 
-test('M9.13 steering displacement is immediate while release returns through selected ACT rate', () => {
+test('steering displacement is immediate while release returns through selected ACT rate', () => {
   const { lifecycle, touch } = createTouchFixture();
   lifecycle.dispatch('pointerdown', pointer(8, 100, 300));
   lifecycle.dispatch('pointermove', pointer(8, 132, 300));
@@ -207,7 +207,7 @@ test('M9.13 steering displacement is immediate while release returns through sel
   assert.ok(Math.abs(state.steering - 0.3) < 1e-12);
 });
 
-test('M9.13 creates steering-wheel and pedal origin indicators and updates the vector readout', () => {
+test('creates steering-wheel and pedal origin indicators and updates the vector readout', () => {
   const { lifecycle, document } = createTouchFixture();
   assert.equal(document.body.children.length, 2);
   const [steeringIndicator, pedalIndicator] = document.body.children;
@@ -232,7 +232,7 @@ test('M9.13 creates steering-wheel and pedal origin indicators and updates the v
   assert.equal(pedalIndicator.classList.contains('active'), false);
 });
 
-test('M9.13 touch layout hides legacy fixed driving panels while keeping full-screen overlay styling', async () => {
+test('touch layout hides legacy fixed driving panels while keeping full-screen overlay styling', async () => {
   const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
   assert.match(css, /\.touch-capable \.control-zone\s*\{\s*display:\s*none;/s);
   assert.match(css, /\.touch-analog-indicator/);

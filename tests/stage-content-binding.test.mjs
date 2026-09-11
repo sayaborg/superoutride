@@ -1,8 +1,8 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
 import {
@@ -10,9 +10,9 @@ import {
   resolveActiveRouteStageContent,
 } from '../dist/gameplay/route-stage-content.js';
 
-test('M6.11 every route node resolves exactly one opaque content package', () => {
-  const route = createM6DebugRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
+test('every route node resolves exactly one opaque content package', () => {
+  const route = createMinimalRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
   const state = createRouteDagState(route);
 
   assert.equal(manifest.bindings.length, route.stages.length);
@@ -25,8 +25,8 @@ test('M6.11 every route node resolves exactly one opaque content package', () =>
 });
 
 test('validated DAG transition changes only the selected content reference, not world state or renderer state', () => {
-  const route = createM6DebugRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
+  const route = createMinimalRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
   const state = createRouteDagState(route);
   const physicalWorldPose = Object.freeze({ x: 12.5, z: 30.25, yaw: 0.3 });
 
@@ -40,8 +40,8 @@ test('validated DAG transition changes only the selected content reference, not 
 });
 
 test('different validated route histories deterministically resolve different terminal content packages', () => {
-  const route = createM6DebugRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
+  const route = createMinimalRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
 
   const resolvePath = (firstChoice, secondChoice) => {
     const state = createRouteDagState(route);
@@ -57,7 +57,7 @@ test('different validated route histories deterministically resolve different te
 });
 
 test('content compiler rejects missing/duplicate stage bindings and unknown packages', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const packages = route.stages.map((stage) => ({ packageId: `P_${stage.id}`, worldFrameId: 'WORLD' }));
   const bindings = route.stages.map((stage) => ({ stageId: stage.id, packageId: `P_${stage.id}` }));
 
@@ -80,8 +80,8 @@ test('content compiler rejects missing/duplicate stage bindings and unknown pack
   );
 });
 
-test('M6.11 rejects mixed world frames because stage selection must not silently transform physics', () => {
-  const route = createM6DebugRouteDag();
+test('rejects mixed world frames because stage selection must not silently transform physics', () => {
+  const route = createMinimalRouteDag();
   const packages = route.stages.map((stage, index) => ({
     packageId: `P_${stage.id}`,
     worldFrameId: index === 0 ? 'WORLD_A' : 'WORLD_B',

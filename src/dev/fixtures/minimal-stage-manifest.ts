@@ -1,0 +1,21 @@
+import type { RouteDag } from '../../gameplay/route-dag.js';
+import {
+  compileRouteStageContentManifest,
+  type RouteStageContentManifest,
+} from '../../gameplay/route-stage-content.js';
+
+/** Detached content manifest for the DEV DAG. Package ids remain opaque. */
+export function createMinimalStageContentManifest(route: RouteDag): RouteStageContentManifest {
+  const frame = 'DEV_ROUTE_WORLD_V1';
+  return compileRouteStageContentManifest(
+    route,
+    route.stages.map((stage) => ({
+      packageId: `CONTENT_${stage.id}`,
+      worldFrameId: frame,
+    })),
+    route.stages.map((stage) => ({
+      stageId: stage.id,
+      packageId: `CONTENT_${stage.id}`,
+    })),
+  );
+}

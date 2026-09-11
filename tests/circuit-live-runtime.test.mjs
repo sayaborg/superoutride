@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
-import { M6_51_DEV_SESSION_CONFIGURATION } from '../dist/dev/m6-51-circuit-live-runtime.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { STADIUM_CIRCUIT_SESSION } from '../dist/dev/fixtures/stadium-circuit.js';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../dist/core/presentation-scale.js';
-import { createM651CircuitLiveRuntime, M6_51_DEV_COURSE_MODE } from '../dist/dev/m6-51-circuit-live-runtime.js';
+import { createStadiumCircuitRuntime, STADIUM_CIRCUIT_MODE } from '../dist/dev/fixtures/stadium-circuit.js';
 import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { renderDriving } from '../dist/render/renderer.js';
@@ -45,8 +45,8 @@ function driveAcrossFirstSeam(live) {
   return { car, ticks, L };
 }
 
-test('M6.51 live compiler derives exactly one unscored runtime copy beyond authored race laps', () => {
-  const live = createM651CircuitLiveRuntime();
+test('live compiler derives exactly one unscored runtime copy beyond authored race laps', () => {
+  const live = createStadiumCircuitRuntime();
   const L = live.window.topology.lapLength;
 
   assert.equal(live.raceRules.lapCount, 3);
@@ -56,17 +56,17 @@ test('M6.51 live compiler derives exactly one unscored runtime copy beyond autho
   assert.ok(live.raceRules.raceDistance < live.window.length);
 });
 
-test('M6.51 selectable DEV mode is a real CIRCUIT authority with no branch policy or shared lock', () => {
-  assert.equal(M6_51_DEV_COURSE_MODE.routeKind, 'CIRCUIT');
-  assert.equal(M6_51_DEV_COURSE_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
-  assert.equal(M6_51_DEV_COURSE_MODE.finishKind, 'LAPS');
-  assert.equal(M6_51_DEV_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(M6_51_DEV_COURSE_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
-  assert.equal(M6_51_DEV_COURSE_MODE.branchViolationPolicy, null);
+test('selectable DEV mode is a real CIRCUIT authority with no branch policy or shared lock', () => {
+  assert.equal(STADIUM_CIRCUIT_MODE.routeKind, 'CIRCUIT');
+  assert.equal(STADIUM_CIRCUIT_MODE.routeAuthorityKind, 'CIRCUIT_LOOP');
+  assert.equal(STADIUM_CIRCUIT_MODE.finishKind, 'LAPS');
+  assert.equal(STADIUM_CIRCUIT_SESSION.rivalCount, 0);
+  assert.equal(STADIUM_CIRCUIT_MODE.sharedRouteChoiceMode, 'INDEPENDENT');
+  assert.equal(STADIUM_CIRCUIT_MODE.branchViolationPolicy, null);
 });
 
-test('M6.51 DEV lap closes only by one explicit duplicate endpoint and unfolds into ordinary open runtime', () => {
-  const live = createM651CircuitLiveRuntime();
+test('DEV lap closes only by one explicit duplicate endpoint and unfolds into ordinary open runtime', () => {
+  const live = createStadiumCircuitRuntime();
   const lap = live.window.topology.lapPath;
   const first = lap.vertices[0];
   const last = lap.vertices.at(-1);
@@ -76,8 +76,8 @@ test('M6.51 DEV lap closes only by one explicit duplicate endpoint and unfolds i
   assert.ok(Math.abs(live.window.guide.length - live.window.length) < 1e-8);
 });
 
-test('M6.51 ordinary M5 car physics carries finite window chainage across an internal circuit seam', () => {
-  const live = createM651CircuitLiveRuntime();
+test('ordinary car physics carries finite window chainage across an internal circuit seam', () => {
+  const live = createStadiumCircuitRuntime();
   const { car, ticks, L } = driveAcrossFirstSeam(live);
 
   assert.ok(ticks < 120, 'ordinary physics should physically reach the next unfolded copy');
@@ -87,8 +87,8 @@ test('M6.51 ordinary M5 car physics carries finite window chainage across an int
   assert.ok(Math.abs(car.course.l) < 12);
 });
 
-test('M6.51 existing open camera follows the same finite window ruler after the seam without wrap logic', () => {
-  const live = createM651CircuitLiveRuntime();
+test('existing open camera follows the same finite window ruler after the seam without wrap logic', () => {
+  const live = createStadiumCircuitRuntime();
   const { car, L } = driveAcrossFirstSeam(live);
   const camera = updateCamera(
     createCameraRig(),
@@ -102,8 +102,8 @@ test('M6.51 existing open camera follows the same finite window ruler after the 
   assert.ok(Math.abs(car.course.s - camera.s - CURRENT_CAMERA_DISTANCE_METERS) < 1e-8);
 });
 
-test('M6.51 unchanged M5 renderer draws a normal frame after the live physics seam crossing', () => {
-  const live = createM651CircuitLiveRuntime();
+test('unchanged renderer draws a normal frame after the live physics seam crossing', () => {
+  const live = createStadiumCircuitRuntime();
   const { car, L } = driveAcrossFirstSeam(live);
   const camera = updateCamera(
     createCameraRig(),
@@ -151,10 +151,10 @@ test('M6.51 unchanged M5 renderer draws a normal frame after the live physics se
 
   assert.ok(car.course.s > L);
   assert.ok(stats.terrainLineCount > 0);
-  assert.equal(stats.activeSection, 'M6.51 CIRCUIT STADIUM');
+  assert.equal(stats.activeSection, 'CIRCUIT STADIUM');
 });
 
-test('M6.51 generic live compiler remains topology integration only and owns no browser/renderer/vehicle/RouteDag dependency', async () => {
+test('generic live compiler remains topology integration only and owns no browser/renderer/vehicle/RouteDag dependency', async () => {
   const source = await readFile(new URL('../src/runtime/circuit-live-runtime.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
@@ -178,7 +178,7 @@ test('M6.51 generic live compiler remains topology integration only and owns no 
   assert.match(source, /raceAuthoring\.lapCount \+ 1/);
 });
 
-test('M6.51 circuit browser composition uses existing open engine paths and contains no point-to-point route authority', async () => {
+test('circuit browser composition uses existing open engine paths and contains no point-to-point route authority', async () => {
   const source = await readFile(new URL('../src/main-circuit.ts', import.meta.url), 'utf8');
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 

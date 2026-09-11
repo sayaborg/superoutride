@@ -1,23 +1,23 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
 import {
   createTunnelPresentation,
   createTunnelWorldSprites,
   selectTunnelBackground,
   TUNNEL_ENTRY_S,
   TUNNEL_EXIT_S,
-} from '../dist/dev/tunnel.js';
+} from '../dist/dev/courses/tunnel.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { countOpaqueSpriteColors, SPRITE_TRANSPARENT } from '../dist/graphics/sprite.js';
 import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
@@ -31,18 +31,18 @@ import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const deg = (value) => (value * Math.PI) / 180;
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const compiled = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
 const visual = new VisualProfile(guide.length, compiled.visualSections);
 const surfaces = new SurfaceMap(guide.length, compiled.surfaceSections);
 const outdoor = createFarBackground();
 const tunnel = createTunnelPresentation(guide.length, 5);
 const assets = createSpriteAssets();
 const tunnelWorld = createTunnelWorldSprites(guide, height, tunnel);
-const world = [...createM4DebugWorldSprites(guide, height, assets), ...tunnelWorld];
-const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
-const binary = await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url));
+const world = [...createRoadsideSprites(guide, height, assets), ...tunnelWorld];
+const metadata = JSON.parse(await readFile(new URL('../dist/assets/stadium-ground-map.json', import.meta.url), 'utf8'));
+const binary = await readFile(new URL('../dist/assets/stadium-ground-map.bin', import.meta.url));
 const baked = new BakedGroundMapAsset(metadata, new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength));
 const groundProfile = {
   groundLeft: 12,
@@ -119,7 +119,7 @@ function tunnelStressSweep() {
   return summarizeRenderWorkloads(samples);
 }
 
-test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-sized', () => {
+test('portal uses 0/1 transparent aperture and sprite palette remains Core-sized', () => {
   assert.equal(tunnel.portalAsset.worldWidthMeters, 12);
   const portal = tunnel.portalAsset;
   const apertureX = Math.floor(portal.width * 0.5);
@@ -134,7 +134,7 @@ test('M5.9 portal uses 0/1 transparent aperture and sprite palette remains Core-
   );
 });
 
-test('M5.9 Far Background transition is aligned to player portal crossing by D_cam', () => {
+test('Far Background transition is aligned to player portal crossing by D_cam', () => {
   assert.equal(tunnel.cameraTransitionStartS, TUNNEL_ENTRY_S - 5);
   assert.equal(tunnel.cameraTransitionEndS, TUNNEL_EXIT_S - 5);
   assert.equal(
@@ -149,7 +149,7 @@ test('M5.9 Far Background transition is aligned to player portal crossing by D_c
   assert.equal(selectTunnelBackground(tunnel.cameraTransitionEndS, guide.length, outdoor, tunnel).kind, 'OUTDOOR');
 });
 
-test('M5.9 tunnel world keeps only two portals and two near ribs in the existing world-sprite path', () => {
+test('tunnel world keeps only two portals and two near ribs in the existing world-sprite path', () => {
   assert.deepEqual(
     tunnelWorld.map((sprite) => sprite.sRender),
     [130, 142, 168, 180],
@@ -177,7 +177,7 @@ test('close portal/interior sweep counts clipped blitter work and writes', () =>
   assert.ok(observed.maxSpriteWrittenPixelsPerScanline <= observed.maxSpriteOutputSamplesPerScanline);
 });
 
-test('background actually changes through the tunnel while renderer still uses the same M5 Painter function', () => {
+test('background actually changes through the tunnel while renderer still uses the same Painter function', () => {
   const before = renderProbe(120);
   const inside = renderProbe(150);
   const after = renderProbe(185);

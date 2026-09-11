@@ -3,10 +3,10 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
-import { createM640RivalRouteChoicePlan } from '../dist/dev/m6-40-rival-live-route.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
+import { createRivalRouteChoicePlan } from '../dist/dev/courses/rival-route-plan.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
 import {
   createFieldRouteProgressState,
@@ -46,7 +46,7 @@ function createParentRuntime(guide) {
 }
 
 test('open Guide rival lookahead never samples beyond the endpoint', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const parent = createParentRuntime(guide);
   const car = createTestCar(guide, parent.heightProfile, parent.surfaceMap, guide.length - 0.25);
 
@@ -56,9 +56,9 @@ test('open Guide rival lookahead never samples beyond the endpoint', () => {
 });
 
 test('actual Pages rival physically takes RIGHT first fork, commits child runtime and keeps driving', () => {
-  const parentGuide = createM2StadiumGuide();
+  const parentGuide = createStadiumGuide();
   const parent = createParentRuntime(parentGuide);
-  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, createSpriteAssets());
+  const live = createDeclarativeForkGrowthRuntime(parentGuide, parent, createSpriteAssets());
   const car = createTestCar(parentGuide, parent.heightProfile, parent.surfaceMap, 95);
   const recovery = createRecoveryState(car);
   const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z });
@@ -66,7 +66,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
     live.progress,
     fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
   );
-  const plan = createM640RivalRouteChoicePlan(live);
+  const plan = createRivalRouteChoicePlan(live);
   let firstChoiceL = null;
   let committedRightChild = false;
   let continuedOnChild = false;
@@ -135,9 +135,9 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
   assert.ok(fieldProgress.sProgress > fieldProgress.validatedProgressFloor);
   assert.ok(maxCommitProgressDelta < 2, `chart COMMIT must not jump field progress: ${maxCommitProgressDelta}`);
   assert.notEqual(firstChoiceL, null);
-  const rightCenterL = M6_13_JUNCTION.separatedChildCenterL('RIGHT');
+  const rightCenterL = STADIUM_JUNCTION.separatedChildCenterL('RIGHT');
   assert.ok(
-    Math.abs(firstChoiceL - rightCenterL) <= M6_13_JUNCTION.authoring.childRoadWidth * 0.5,
+    Math.abs(firstChoiceL - rightCenterL) <= STADIUM_JUNCTION.authoring.childRoadWidth * 0.5,
     `first physical branch choice must occur inside the RIGHT child road: l=${firstChoiceL}`,
   );
 });

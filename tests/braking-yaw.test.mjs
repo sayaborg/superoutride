@@ -1,26 +1,26 @@
-import { M9_28_STEERING_REFERENCE } from './helpers/m9-28-steering-reference.mjs';
-import { withM927BikeCgEntry } from './helpers/m9-27-bike-cg-reference.mjs';
-import { M9_21_TIRE_REFERENCE } from './helpers/m9-21-tire-reference.mjs';
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { arcadeBodyKinematics, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import { contactForceWorld, deriveContactObservation, momentAboutCg } from '../dist/physics/vehicle-dynamics.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
-import { deriveContactObservation, contactForceWorld, momentAboutCg } from '../dist/physics/vehicle-dynamics.js';
+import {
+  BRAKING_ACTIONS,
+  brakingInput,
+  brakingStateFingerprint,
+  decomposeContactYawChange,
+  observeBrakingState,
+  runBrakingComparison as runCurrentBrakingComparison,
+} from '../tools/braking-yaw-probe.mjs';
+import { forkProbe } from '../tools/drift-control-probe.mjs';
 import {
   createTerrainProbe as createCurrentTerrainProbe,
   runTerrainProbe as runCurrentTerrainProbe,
   TERRAIN_CASES,
 } from '../tools/torque-protection-terrain-probe.mjs';
-import { forkProbe } from '../tools/drift-control-probe.mjs';
-import {
-  BRAKING_ACTIONS,
-  brakingInput,
-  brakingStateFingerprint,
-  observeBrakingState,
-  decomposeContactYawChange,
-  runBrakingComparison as runCurrentBrakingComparison,
-} from '../tools/braking-yaw-probe.mjs';
+import { withHighBikeCgEntry } from './helpers/bike-cg-reference.mjs';
+import { STEERING_REFERENCE } from './helpers/steering-reference.mjs';
+import { TIRE_REFERENCE } from './helpers/tire-reference.mjs';
 const car = VEHICLE_CATALOG[0],
   bike = VEHICLE_CATALOG[5];
 const close = (a, b, tolerance = 1e-8) => assert.ok(Math.abs(a - b) < tolerance, `${a} != ${b}`);
@@ -35,7 +35,7 @@ function mechanical(result) {
   assert.equal(result.infeasibleTime, 0);
 }
 
-test('M9.21 replay fork preserves non-flat world readers and independent normally-reached state', () => {
+test('replay fork preserves non-flat world readers and independent normally-reached state', () => {
   const p = createTerrainProbe(bike, { grip: 0.25, grade: 0.1 });
   const input = { steering: 0.1, throttle: false, brake: false };
   for (let i = 0; i < 30; i++)
@@ -52,7 +52,7 @@ test('M9.21 replay fork preserves non-flat world readers and independent normall
   updateArcadeVehicle({ guide: p.guide, height: p.height, surfaces: p.surface }, p.vehicle, input, 1 / 120);
   assert.equal(brakingStateFingerprint(q.vehicle), brakingStateFingerprint(p.vehicle));
 });
-test('M9.21 read-only contact yaw attribution sums existing contact moment without feedback', () => {
+test('read-only contact yaw attribution sums existing contact moment without feedback', () => {
   const p = createTerrainProbe(bike),
     v = p.vehicle;
   for (let n = 0; n < 180; n++)
@@ -82,7 +82,7 @@ test('M9.21 read-only contact yaw attribution sums existing contact moment witho
 });
 for (const hz of [60, 120, 240])
   for (const entry of [car, bike]) {
-    test(`M9.21 ${entry.profile.id} matched braking forks preserve causal comparison at ${hz}Hz`, () => {
+    test(`${entry.profile.id} matched braking forks preserve causal comparison at ${hz}Hz`, () => {
       const options = { hz, actions: ['holdCoast', 'holdBrake100', 'releaseBrake'] };
       const right = runBrakingComparison(entry, options),
         left = runBrakingComparison(entry, { ...options, direction: -1 });
@@ -105,7 +105,7 @@ for (const hz of [60, 120, 240])
       assert.ok(results.holdBrake100.maxAbsBetaAbove15 > 15);
     });
   }
-test('M9.21 VFR initial braking yaw growth precedes rack saturation and wheel lock', () => {
+test('VFR initial braking yaw growth precedes rack saturation and wheel lock', () => {
   const report = runBrakingComparison(bike, { actions: ['holdBrake100'] });
   const run = report.results[0],
     early = run.samples.find((row) => row.t === 0.2);
@@ -122,7 +122,7 @@ test('M9.21 VFR initial braking yaw growth precedes rack saturation and wheel lo
   assert.ok(d.loadContribution > d.delta && d.responseAndGeometryContribution < 0);
   assert.equal(decomposeContactYawChange(report.initial, { ...early, rear: { ...early.rear, load: 0 } }), null);
 });
-test('M9.26 all-nine low-grip forks retain budgets and neutral release reduces peak beta', () => {
+test('all-nine low-grip forks retain budgets and neutral release reduces peak beta', () => {
   for (const entry of VEHICLE_CATALOG) {
     const report = runBrakingComparison(entry, {
       grip: 0.25,
@@ -131,12 +131,12 @@ test('M9.26 all-nine low-grip forks retain budgets and neutral release reduces p
     for (const result of report.results) mechanical(result);
     const r = byAction(report);
     assert.ok(r.releaseBrake.maxAbsBetaAbove15 < r.holdBrake100.maxAbsBetaAbove15);
-    // M9.26 input limiting couples subsequent steering to state, so equal whole-run beta
+    // input limiting couples subsequent steering to state, so equal whole-run beta
     // is no longer a retained authority. Both actual protected trajectories remain checked.
     assert.ok(Number.isFinite(r.holdBrake25.maxAbsBetaAbove15));
   }
 });
-test('M9.21 matched full-brake branch reproduces the earlier unforked terrain probe', () => {
+test('matched full-brake branch reproduces the earlier unforked terrain probe', () => {
   for (const entry of [car, bike]) {
     const earlier = runTerrainProbe(entry, TERRAIN_CASES.turnBrake);
     const later = runBrakingComparison(entry, { actions: ['holdBrake100'] }).results[0];
@@ -144,7 +144,7 @@ test('M9.21 matched full-brake branch reproduces the earlier unforked terrain pr
     close(earlier.maxAbsBetaAbove15, later.maxAbsBetaAbove15);
   }
 });
-test('M9.21 braking comparison is deterministic and action order does not mutate the parent', () => {
+test('braking comparison is deterministic and action order does not mutate the parent', () => {
   const options = { seconds: 0.5, actions: ['holdBrake100', 'releaseBrake'], capture: true };
   const a = runBrakingComparison(car, options),
     b = runBrakingComparison(car, options);
@@ -155,7 +155,7 @@ test('M9.21 braking comparison is deterministic and action order does not mutate
   assert.equal(slow.maxAbsBetaAbove15, null);
   assert.equal(slow.peakAbove15, null);
 });
-test('M9.21 input schedules and validation add no recovery, pose correction or closed-loop controller', async () => {
+test('input schedules and validation add no recovery, pose correction or closed-loop controller', async () => {
   assert.equal(new Set(BRAKING_ACTIONS).size, BRAKING_ACTIONS.length);
   assert.equal(brakingInput(0.1, 'delayedReleaseBrake').steering, 0.35);
   assert.equal(brakingInput(0.3, 'delayedReleaseBrake').steering, 0);
@@ -185,25 +185,25 @@ test('M9.21 input schedules and validation add no recovery, pose correction or c
   assert.match(source, /momentAboutCg/);
 });
 
-// M9.25 changes player defaults; preserve M9.21's exact causal fixture and assertions.
+// changes player defaults; preserve 's exact causal fixture and assertions.
 function createTerrainProbe(entry, options = {}) {
-  return createCurrentTerrainProbe(withM927BikeCgEntry(entry), {
-    calibration: M9_21_TIRE_REFERENCE,
-    steeringCalibration: M9_28_STEERING_REFERENCE,
+  return createCurrentTerrainProbe(withHighBikeCgEntry(entry), {
+    calibration: TIRE_REFERENCE,
+    steeringCalibration: STEERING_REFERENCE,
     ...options,
   });
 }
 function runTerrainProbe(entry, options = {}) {
-  return runCurrentTerrainProbe(withM927BikeCgEntry(entry), {
-    calibration: M9_21_TIRE_REFERENCE,
-    steeringCalibration: M9_28_STEERING_REFERENCE,
+  return runCurrentTerrainProbe(withHighBikeCgEntry(entry), {
+    calibration: TIRE_REFERENCE,
+    steeringCalibration: STEERING_REFERENCE,
     ...options,
   });
 }
 function runBrakingComparison(entry, options = {}) {
-  return runCurrentBrakingComparison(withM927BikeCgEntry(entry), {
-    calibration: M9_21_TIRE_REFERENCE,
-    steeringCalibration: M9_28_STEERING_REFERENCE,
+  return runCurrentBrakingComparison(withHighBikeCgEntry(entry), {
+    calibration: TIRE_REFERENCE,
+    steeringCalibration: STEERING_REFERENCE,
     ...options,
   });
 }

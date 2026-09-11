@@ -43,7 +43,7 @@ function createSurfaceSections() {
   ];
 }
 
-test('M6.44 RasterPath does not create a last-to-first segment', () => {
+test('RasterPath does not create a last-to-first segment', () => {
   const { raster } = createOpenFixture();
   assert.equal(raster.vertices.length, 4);
   assert.equal(raster.segments.length, 3);
@@ -58,7 +58,7 @@ test('M6.44 RasterPath does not create a last-to-first segment', () => {
   near(raster.vertexS.at(-1), raster.length);
 });
 
-test('M6.44 RasterPath endpoints have no synthetic closure turn or miter', () => {
+test('RasterPath endpoints have no synthetic closure turn or miter', () => {
   const { raster } = createOpenFixture();
   assert.equal(raster.vertexTurns[0], 0);
   assert.equal(raster.vertexTurns.at(-1), 0);
@@ -69,7 +69,7 @@ test('M6.44 RasterPath endpoints have no synthetic closure turn or miter', () =>
   assert.notDeepEqual({ x: start.x, z: start.z }, { x: end.x, z: end.z });
 });
 
-test('M6.44 open RasterPath sampling never wraps out-of-range chainage', () => {
+test('open RasterPath sampling never wraps out-of-range chainage', () => {
   const { raster } = createOpenFixture();
   near(sampleRasterPath(raster, 0).s, 0);
   near(sampleRasterPath(raster, raster.length).s, raster.length);
@@ -77,7 +77,7 @@ test('M6.44 open RasterPath sampling never wraps out-of-range chainage', () => {
   assert.throws(() => sampleRasterPath(raster, raster.length + 1), /outside/);
 });
 
-test('M6.44 GuidePath has no endpoint wrap fillet and does not sample cyclically', () => {
+test('GuidePath has no endpoint wrap fillet and does not sample cyclically', () => {
   const { guide } = createOpenFixture();
   assert.equal(guide.corners[0].trim, 0);
   assert.equal(guide.corners.at(-1).trim, 0);
@@ -87,19 +87,19 @@ test('M6.44 GuidePath has no endpoint wrap fillet and does not sample cyclically
   assert.throws(() => sampleGuidePath(guide, guide.length + 1), /outside/);
 });
 
-test('M6.44 local world-to-Guide search clips indices instead of wrapping endpoints', () => {
+test('local world-to-Guide search clips indices instead of wrapping endpoints', () => {
   const { guide } = createOpenFixture();
   const target = guidePathToWorld(guide, guide.length - 2, 0);
   const fromStartWindow = locateWorldOnGuideLocal(guide, target, 0, 1);
   assert.ok(fromStartWindow.segmentIndex <= 1, 'start-local search must not wrap to final Guide segments');
 });
 
-test('M6.44 renderer pseudo-depth is render-chainage difference only', () => {
+test('renderer pseudo-depth is render-chainage difference only', () => {
   assert.equal(pseudoDepth(25, 10), 15);
   assert.equal(pseudoDepth(2, 9), -7);
 });
 
-test('M6.44 pseudo projection preserves same-depth scale without topology input', () => {
+test('pseudo projection preserves same-depth scale without topology input', () => {
   const camera = {
     x: 0,
     y: 2,
@@ -118,7 +118,7 @@ test('M6.44 pseudo projection preserves same-depth scale without topology input'
   assert.equal(a.scale, b.scale);
 });
 
-test('M6.44 forward terrain interval clips at the open path endpoint instead of wrapping', () => {
+test('forward terrain interval clips at the open path endpoint instead of wrapping', () => {
   const { guide } = createOpenFixture();
   const cameraS = guide.length - 20;
   const interval = computeForwardVisibleInterval(guide, sampleGuidePath(guide, cameraS).heading, cameraS, 2.5, 150);
@@ -127,7 +127,7 @@ test('M6.44 forward terrain interval clips at the open path endpoint instead of 
   near(interval.dEnd, 20, 1e-7);
 });
 
-test('M6.44 general SurfaceMap owns an open chainage domain', () => {
+test('general SurfaceMap owns an open chainage domain', () => {
   const surface = new SurfaceMap(100, createSurfaceSections());
   assert.equal(surface.sample(0, 0).sectionName, 'START');
   assert.equal(surface.sample(100, 0).sectionName, 'END');

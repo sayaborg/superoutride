@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('M9.13 debug selectors remain device-independent while legacy touch driving panels stay hidden', async () => {
+test('debug selectors remain device-independent while legacy touch driving panels stay hidden', async () => {
   const [index, styles] = await Promise.all([
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
     readFile(new URL('../styles.css', import.meta.url), 'utf8'),
@@ -32,7 +32,7 @@ test('M9.13 debug selectors remain device-independent while legacy touch driving
   );
 });
 
-test('reference touch viewports have enough selector width for every direct M9.11 choice', () => {
+test('reference touch viewports have enough selector width for every direct choice', () => {
   const gridWidth = (width, columns, gap) => (width - gap * (columns - 1)) / columns;
   const requiredButtonsWidth = (columns, minWidth, gap) => columns * minWidth + gap * (columns - 1);
 

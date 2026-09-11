@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { SIM_DT } from '../dist/browser/frame-loop.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
 import {
   createVehicleTelemetryRecorder,
   recordVehicleTelemetryTick,
   summarizeVehicleTelemetry,
-} from '../dist/dev/vehicle-telemetry.js';
+} from '../dist/dev/diagnostics/vehicle-telemetry.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { VEHICLE_PHYSICS_CALIBRATION_STATUS } from '../dist/physics/vehicle-calibration.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
@@ -25,7 +25,7 @@ function plainVehicle() {
   };
 }
 
-test('M6.5 explicitly marks current vehicle physics as DEV_UNCALIBRATED', () => {
+test('explicitly marks current vehicle physics as DEV_UNCALIBRATED', () => {
   assert.equal(VEHICLE_PHYSICS_CALIBRATION_STATUS, 'DEV_UNCALIBRATED');
 });
 
@@ -67,9 +67,9 @@ test('telemetry summary is seam-safe in chainage and wrap-safe in yaw rate', () 
 });
 
 function runCurrentDevProbe() {
-  const guide = createM2StadiumGuide();
-  const height = createM3DebugHeightProfile(guide.length);
-  const surfaces = createM5DebugSurfaceMap(guide.length);
+  const guide = createStadiumGuide();
+  const height = createHillDipHeightProfile(guide.length);
+  const surfaces = createMaterialTransitionSurfaceMap(guide.length);
   const car = createTestCar(guide, height, surfaces, 45);
   const recorder = createVehicleTelemetryRecorder(SIM_DT, guide.length, car);
 
@@ -93,5 +93,5 @@ test('current DEV physics can be measured deterministically without freezing han
   assert.ok(a.planarDistanceMeters > 0);
   assert.ok(a.maxSpeedMetersPerSecond > 0);
 
-  console.log('M6.5 DEV_UNCALIBRATED PHYSICS PROBE', JSON.stringify(a));
+  console.log('DEV_UNCALIBRATED PHYSICS PROBE', JSON.stringify(a));
 });

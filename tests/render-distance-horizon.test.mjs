@@ -30,7 +30,7 @@ const flatCamera = Object.freeze({
   centerY: CURRENT_CAMERA_PROFILE.centerY,
 });
 
-test('M8.6 current forward render interval is 200 m camera-relative and 195 m player-relative', () => {
+test('current forward render interval is 200 m camera-relative and 195 m player-relative', () => {
   assert.equal(CURRENT_RENDER_NEAR_DEPTH_METERS, 2.5);
   assert.equal(CURRENT_RENDER_FAR_DEPTH_METERS, 200);
   assert.equal(CURRENT_RENDER_FAR_DEPTH_METERS - CURRENT_CAMERA_DISTANCE_METERS, 195);
@@ -84,8 +84,8 @@ test('Far Background source horizon follows the geometric horizon to raster roun
 test('all current renderer compositions use the shared 200 m far-depth authority', async () => {
   const paths = [
     '../src/main-circuit.ts',
-    '../src/dev/m8-3-linear-highway.ts',
-    '../src/dev/m7-2-default-branching-highway.ts',
+    '../src/dev/courses/linear-highway.ts',
+    '../src/dev/courses/branching-highway.ts',
     '../src/runtime/stage-authoring-compiler.ts',
   ];
   const sources = await Promise.all(paths.map((path) => readFile(new URL(path, import.meta.url), 'utf8')));

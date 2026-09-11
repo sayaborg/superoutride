@@ -4,7 +4,7 @@ import test from 'node:test';
 import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import {
   createArcadeVehicle,
   stepTravelDirectionSteering,
@@ -22,7 +22,7 @@ import {
 } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DT = 1 / 60;
-const highway = createM72DefaultBranchingParent();
+const highway = createDefaultBranchingParent();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },
@@ -30,7 +30,7 @@ const flatHeight = new HeightProfile(highway.guide.length, [
 const wideSurface = new SurfaceMap(highway.guide.length, [
   {
     sStart: 0,
-    name: 'M9 WIDE STEERING PROBE',
+    name: 'WIDE STEERING PROBE',
     bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
   },
 ]);
@@ -173,7 +173,7 @@ test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics'
   assert.equal(standard.control.handwheelAngle, presentationVariant.control.handwheelAngle * 18);
 });
 
-test('M9.11 common solver contains pure travel-direction geometry and no yaw steering assist', async () => {
+test('common solver contains pure travel-direction geometry and no yaw steering assist', async () => {
   const [solver, calibration, linear, branching, circuit] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),

@@ -4,19 +4,19 @@ import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.
 import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
-import { createM4DebugWorldSprites } from './dev/m4-debug-world.js';
-import { createM638DeclarativeForkGrowthRuntime } from './dev/m6-38-declarative-fork-growth-plan.js';
-import { createM640RivalRouteChoicePlan } from './dev/m6-40-rival-live-route.js';
 import {
-  createM72DefaultBranchingParent,
-  M7_2_DEFAULT_BRANCHING_FORK,
-  M7_2_PLAYER_RECOVERY_PROFILE,
-  M7_2_PLAYER_START_L,
-  M7_2_RIVAL_RECOVERY_PROFILE,
-  M7_2_RIVAL_START_L,
-} from './dev/m7-2-default-branching-highway.js';
-import { M8_3_BRANCHING_COURSE_MODE, M8_3_BRANCHING_SESSION_CONFIGURATION } from './dev/m8-3-course-debug-mode.js';
-import { createTunnelPresentation, createTunnelWorldSprites, selectTunnelBackground } from './dev/tunnel.js';
+  BRANCHING_DEFAULT_BRANCHING_FORK,
+  BRANCHING_PLAYER_RECOVERY_PROFILE,
+  BRANCHING_PLAYER_START_L,
+  BRANCHING_RIVAL_RECOVERY_PROFILE,
+  BRANCHING_RIVAL_START_L,
+  createDefaultBranchingParent,
+} from './dev/courses/branching-highway.js';
+import { BRANCHING_COURSE_MODE, BRANCHING_SESSION_CONFIGURATION } from './dev/courses/branching-mode.js';
+import { createDeclarativeForkGrowthRuntime } from './dev/courses/fork-growth-plan.js';
+import { createRivalRouteChoicePlan } from './dev/courses/rival-route-plan.js';
+import { createRoadsideSprites } from './dev/courses/roadside-scenery.js';
+import { createTunnelPresentation, createTunnelWorldSprites, selectTunnelBackground } from './dev/courses/tunnel.js';
 import { createFieldRouteProgressState, fieldRouteProgressTravelerView } from './gameplay/field-route-progress.js';
 import { advanceRaceSession, createRaceSessionState } from './gameplay/race-session.js';
 import { createRecoveryState, recoverVehicle } from './gameplay/recovery.js';
@@ -51,21 +51,24 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehic
 import { createFarBackground } from './visual/far-background.js';
 import { createSpriteAssets } from './visual/sprite-assets.js';
 
-const parentCourse = createM72DefaultBranchingParent();
+const parentCourse = createDefaultBranchingParent();
 const { guide, heightProfile, surfaceMap, groundProfile, terrainProfile } = parentCourse;
 const outdoorFarBackground = createFarBackground();
 const tunnelPresentation = createTunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
 const spriteAssets = createSpriteAssets();
 const staticWorldSprites = [
-  ...createM4DebugWorldSprites(guide, heightProfile, spriteAssets),
+  ...createRoadsideSprites(guide, heightProfile, spriteAssets),
   ...createTunnelWorldSprites(guide, heightProfile, tunnelPresentation),
 ];
 
-const shell = createBrowserDrivingShell({ guide, height: heightProfile, surfaces: surfaceMap }, M7_2_PLAYER_START_L);
+const shell = createBrowserDrivingShell(
+  { guide, height: heightProfile, surfaces: surfaceMap },
+  BRANCHING_PLAYER_START_L,
+);
 const { framebuffer, inputManager, cameraRig } = shell;
 const raceSession = createRaceSessionState();
 
-const liveRoute = createM638DeclarativeForkGrowthRuntime(
+const liveRoute = createDeclarativeForkGrowthRuntime(
   guide,
   {
     heightProfile,
@@ -77,7 +80,7 @@ const liveRoute = createM638DeclarativeForkGrowthRuntime(
     worldSprites: staticWorldSprites,
   },
   spriteAssets,
-  M7_2_DEFAULT_BRANCHING_FORK,
+  BRANCHING_DEFAULT_BRANCHING_FORK,
 );
 const playerTraveler = createLiveRouteTravelerState(liveRoute, { x: shell.vehicle.x, z: shell.vehicle.z });
 const playerFieldProgress = createFieldRouteProgressState(
@@ -86,15 +89,15 @@ const playerFieldProgress = createFieldRouteProgressState(
 );
 const routeState = playerTraveler.routeState;
 const runObjective = createRunObjectiveState();
-const rivalRoster = createRivalRoster(M8_3_BRANCHING_SESSION_CONFIGURATION);
-const rivalRoutePlan = createM640RivalRouteChoicePlan(liveRoute);
+const rivalRoster = createRivalRoster(BRANCHING_SESSION_CONFIGURATION);
+const rivalRoutePlan = createRivalRouteChoicePlan(liveRoute);
 const rivals = rivalRoster.map((entry): RouteDrivingActor => {
   const rivalVehicle = createArcadeVehicle(
     DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
     { guide, height: heightProfile, surfaces: surfaceMap },
     {
       s: 95 + entry.rivalIndex * 6,
-      l: M7_2_RIVAL_START_L,
+      l: BRANCHING_RIVAL_START_L,
       torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
     },
   );
@@ -108,7 +111,7 @@ const rivals = rivalRoster.map((entry): RouteDrivingActor => {
       liveRoute.progress,
       fieldRouteProgressTravelerView(traveler.routeState, traveler.handoffState),
     ),
-    recoveryProfile: M7_2_RIVAL_RECOVERY_PROFILE,
+    recoveryProfile: BRANCHING_RIVAL_RECOVERY_PROFILE,
     sampleInput(runtime) {
       const lock = getSharedRouteChoiceLock(sharedRouteChoices, traveler.handoffState.activeStageId);
       const targetL =
@@ -119,7 +122,7 @@ const rivals = rivalRoster.map((entry): RouteDrivingActor => {
     },
   };
 });
-const sharedRouteChoices = createSharedRouteChoiceState(M8_3_BRANCHING_COURSE_MODE.sharedRouteChoiceMode);
+const sharedRouteChoices = createSharedRouteChoiceState(BRANCHING_COURSE_MODE.sharedRouteChoiceMode);
 
 const cameraProfile = CURRENT_CAMERA_PROFILE;
 
@@ -134,7 +137,7 @@ const playerActor: RouteDrivingActor = {
   },
   traveler: playerTraveler,
   fieldProgress: playerFieldProgress,
-  recoveryProfile: M7_2_PLAYER_RECOVERY_PROFILE,
+  recoveryProfile: BRANCHING_PLAYER_RECOVERY_PROFILE,
   sampleInput: () => input,
 };
 const drivingActors = [playerActor, ...rivals];
@@ -143,7 +146,7 @@ shell.mountControls(switchVehicleAtSafeSpawn, () => {
   recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
     state: shell.recovery,
     reason: 'manual',
-    profile: M7_2_PLAYER_RECOVERY_PROFILE,
+    profile: BRANCHING_PLAYER_RECOVERY_PROFILE,
   });
   resetCameraRig(cameraRig);
   resyncRouteDrivingActor(liveRoute, playerActor);
@@ -170,7 +173,7 @@ function tick(dt: number): void {
 
   const result = advanceRouteDrivingTick(liveRoute, sharedRouteChoices, drivingActors, {
     dt,
-    branchViolationPolicy: M8_3_BRANCHING_COURSE_MODE.branchViolationPolicy,
+    branchViolationPolicy: BRANCHING_COURSE_MODE.branchViolationPolicy,
   }).PLAYER!;
   if (result.recovered !== null) resetCameraRig(cameraRig);
   const routeUpdate = result.route.routeUpdate;
@@ -231,7 +234,7 @@ function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile
   recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
     state: shell.recovery,
     reason: 'manual',
-    profile: M7_2_PLAYER_RECOVERY_PROFILE,
+    profile: BRANCHING_PLAYER_RECOVERY_PROFILE,
   });
   shell.replacePlayer(profile, stageVehicleWorld(runtime));
   resyncRouteDrivingActor(liveRoute, playerActor);

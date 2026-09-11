@@ -1,10 +1,10 @@
-import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
 import { guidePathToWorld, locateWorldOnGuideLocal, sampleGuidePath } from '../dist/core/guide-curve.js';
 import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import {
   computeForwardVisibleInterval,
   generateFlatTerrainLines,
@@ -39,12 +39,12 @@ const roadProfile = {
 };
 
 test('open stadium debug source is long enough for the configured draw-distance envelope', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   assert.ok(guide.length > 2 * roadProfile.dMax);
 });
 
 test('free world motion on the long straight produces simultaneous s and l change', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const start = guidePathToWorld(guide, 60, 0);
   const yaw = start.heading + deg(20);
   const travel = 10;
@@ -60,7 +60,7 @@ test('free world motion on the long straight produces simultaneous s and l chang
 });
 
 test('camera chainage keeps player pseudo-depth exactly D_cam even with lateral offset and yaw', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const vehicle = renderPose(guide, 80);
   vehicle.course.l = 7;
   vehicle.yaw += deg(25);
@@ -70,7 +70,7 @@ test('camera chainage keeps player pseudo-depth exactly D_cam even with lateral 
 });
 
 test('flat TerrainLineGeometry generator emits far-to-near horizontal rows and valid affine spans', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const vehicle = renderPose(guide, 80);
   const camera = terrainCamera(guide, null, vehicle, cameraProfile);
   const lines = generateFlatTerrainLines(guide, camera, roadProfile);
@@ -103,7 +103,7 @@ test('horizontal mapping is exactly affine and invertible on a non-degenerate Te
 });
 
 test('forward-only visibility becomes empty when camera faces more than 90 degrees away', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const sCamera = 40;
   const road = sampleGuidePath(guide, sCamera + roadProfile.dMin);
   const visible = computeForwardVisibleInterval(
@@ -117,7 +117,7 @@ test('forward-only visibility becomes empty when camera faces more than 90 degre
 });
 
 test('player projection scale depends on chainage depth, not Euclidean camera distance', () => {
-  const guide = createM2StadiumGuide();
+  const guide = createStadiumGuide();
   const vehicle = renderPose(guide, 80);
   vehicle.course.l = 10;
   const roadAtCar = sampleGuidePath(guide, vehicle.course.s);

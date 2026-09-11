@@ -2,25 +2,25 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createM6DebugRouteStageContentManifest } from '../dist/dev/m6-debug-route-stage-content.js';
+import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM616ChildGuideCharts } from '../dist/dev/m6-16-child-guide-charts.js';
-import { createM618StageRoadViews } from '../dist/dev/m6-18-stage-road-views.js';
+import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
+import { createStageRoadViews } from '../dist/dev/fixtures/stage-road-views.js';
 
-import { createM620LivePointToPointRouteDag } from '../dist/dev/m6-20-live-point-to-point.js';
-import { createM620LiveStageRuntimeRegistry } from '../dist/dev/m6-20-live-runtime-content.js';
-import { createM621ChildVisualIdentity } from '../dist/dev/m6-21-child-visual-identity.js';
+import { createChildVisualIdentity } from '../dist/dev/courses/child-backgrounds.js';
+import { createSingleForkStageRegistry } from '../dist/dev/fixtures/single-fork-registry.js';
+import { createSingleForkRouteDag } from '../dist/dev/fixtures/single-fork-route.js';
 
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 
 function setupRegistry() {
-  const guide = createM2StadiumGuide();
-  const route = createM620LivePointToPointRouteDag();
-  const manifest = createM6DebugRouteStageContentManifest(route);
-  const charts = createM616ChildGuideCharts(guide);
-  const roadViews = createM618StageRoadViews(charts);
+  const guide = createStadiumGuide();
+  const route = createSingleForkRouteDag();
+  const manifest = createMinimalStageContentManifest(route);
+  const charts = createChildGuideCharts(guide);
+  const roadViews = createStageRoadViews(charts);
   const { surfaceMap, heightProfile, visualProfile, groundProfile } = parentShared(guide);
 
   const terrainProfile = {
@@ -36,8 +36,8 @@ function setupRegistry() {
     thinSpanScreenRows: 1,
   };
   const parentFarBackground = createFarBackground();
-  const identity = createM621ChildVisualIdentity();
-  const registry = createM620LiveStageRuntimeRegistry(
+  const identity = createChildVisualIdentity();
+  const registry = createSingleForkStageRegistry(
     manifest,
     charts,
     roadViews,
@@ -54,8 +54,8 @@ function setupRegistry() {
   return { registry, parentFarBackground, identity };
 }
 
-test('M6.21 child visual identity supplies two distinct full Far Background bitmaps', () => {
-  const identity = createM621ChildVisualIdentity();
+test('child visual identity supplies two distinct full Far Background bitmaps', () => {
+  const identity = createChildVisualIdentity();
   const left = identity.leftFarBackground;
   const right = identity.rightFarBackground;
 
@@ -69,7 +69,7 @@ test('M6.21 child visual identity supplies two distinct full Far Background bitm
   assert.notEqual(left.surface.getPixel(320, 90), right.surface.getPixel(320, 90));
 });
 
-test('M6.21 active child package owns Far Background selection while parent content is unchanged', () => {
+test('active child package owns Far Background selection while parent content is unchanged', () => {
   const { registry, parentFarBackground, identity } = setupRegistry();
   const parent = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_STAGE_1' });
   const left = resolveActiveStageRuntimeContent(registry, { activePackageId: 'CONTENT_GOAL_L' });
@@ -83,12 +83,12 @@ test('M6.21 active child package owns Far Background selection while parent cont
   assert.equal(right.roadView.id, 'RIGHT_CHILD_ROAD_VIEW');
 });
 
-test('M6.21 keeps LEFT/RIGHT visual choice outside renderer Core', async () => {
+test('keeps LEFT/RIGHT visual choice outside renderer Core', async () => {
   const { readFile } = await import('node:fs/promises');
   const [mainSource, rendererSource, contentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-20-live-runtime-content.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/single-fork-registry.ts', import.meta.url), 'utf8'),
   ]);
 
   assert.match(mainSource, /runtime\.selectFarBackground\(camera\.s\)/);

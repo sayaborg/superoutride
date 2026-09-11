@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
+import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { readFile, readdir } from 'node:fs/promises';
-import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
-import * as compiler from '../dist/physics/vehicle-profiles.js';
-import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
-import { createM83LinearHighwayRuntime } from '../dist/dev/m8-3-linear-highway.js';
+import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+import * as compiler from '../dist/physics/vehicle-profiles.js';
+import { compileArcadeVehicleProfile } from '../dist/physics/vehicle-profiles.js';
+import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../dist/vehicle/production-vehicle-profiles.js';
 
 test('compiled actuators and powertrain own their validated nested data', () => {
   const authoring = structuredClone(FERRARI_TESTAROSSA_VEHICLE_AUTHORING);
@@ -41,7 +41,7 @@ test('missing actuator channels fail during compilation', () => {
 
 test('an additional opaque content identity compiles and drives without catalog membership', () => {
   const profile = compileArcadeVehicleProfile({ ...FERRARI_TESTAROSSA_VEHICLE_AUTHORING, id: 'audit-synthetic-10' });
-  const { guide, heightProfile: height, surfaceMap: surfaces } = createM83LinearHighwayRuntime();
+  const { guide, heightProfile: height, surfaceMap: surfaces } = createLinearHighwayRuntime();
   const vehicle = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 45, l: 0, initialSpeed: 15 });
   for (let tick = 0; tick < 60; tick++) {
     updateArcadeVehicle({ guide, height, surfaces }, vehicle, { steering: 0, throttle: 1, brake: 0 }, 1 / 60);
@@ -102,7 +102,7 @@ test('compiled profiles expose one resolved station authority, not authored whee
   assert.deepEqual([profile.frontStation.rollingRadius, profile.rearStation.rollingRadius], [0.37, 0.41]);
   assert.deepEqual([profile.frontStation.wheelInertia, profile.rearStation.wheelInertia], [3, 4]);
   assert.deepEqual([profile.frontStation.maxBrakeTorque, profile.rearStation.maxBrakeTorque], [111, 222]);
-  const { guide, heightProfile: height, surfaceMap: surfaces } = createM83LinearHighwayRuntime();
+  const { guide, heightProfile: height, surfaceMap: surfaces } = createLinearHighwayRuntime();
   const vehicle = createArcadeVehicle(profile, { guide, height, surfaces }, { s: 45, l: 0, initialSpeed: 15 });
   assert.equal(vehicle.frontWheelOmega, 15 / 0.37);
   assert.equal(vehicle.rearWheelOmega, 15 / 0.41);

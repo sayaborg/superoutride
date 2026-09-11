@@ -1,16 +1,16 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM635SecondLiveForkRuntime } from '../dist/dev/m6-35-second-live-fork.js';
+import { createSecondLiveForkRuntime } from '../dist/dev/fixtures/left-second-fork.js';
 
+import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
 import {
   commitRouteStageHandoff,
   createRouteStageHandoffState,
@@ -21,8 +21,8 @@ import {
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
-  const guide = createM2StadiumGuide();
-  return createM635SecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
+  const guide = createStadiumGuide();
+  return createSecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
 }
 
 function crossing(gate, distance = 2) {
@@ -34,7 +34,7 @@ function crossing(gate, distance = 2) {
   };
 }
 
-test('M6.35 promotes the old LEFT terminal into a second physical fork with two terminal outcomes', () => {
+test('promotes the old LEFT terminal into a second physical fork with two terminal outcomes', () => {
   const live = setup();
   assert.deepEqual(
     live.route.stages.map((stage) => [stage.id, stage.kind]),
@@ -60,7 +60,7 @@ test('M6.35 promotes the old LEFT terminal into a second physical fork with two 
   );
 });
 
-test('M6.35 fork package owns a visible/physical local junction with a derived 12m half-envelope', () => {
+test('fork package owns a visible/physical local junction with a derived 12m half-envelope', () => {
   const live = setup();
   const fork = live.registry.packages.find((entry) => entry.packageId === 'CONTENT_STAGE_4_L_FORK');
   assert.ok(fork);
@@ -75,7 +75,7 @@ test('M6.35 fork package owns a visible/physical local junction with a derived 1
   assert.equal(fork.surfaceMap.sample(195, 0).type, 'GRASS');
 });
 
-test('M6.35 second fork has two non-overlapping physical gates and the median selects nothing', () => {
+test('second fork has two non-overlapping physical gates and the median selects nothing', () => {
   const live = setup();
   const routeState = createRouteDagState(live.route);
 
@@ -113,7 +113,7 @@ test('M6.35 second fork has two non-overlapping physical gates and the median se
   assert.equal(observedMedian.boundary, null);
 });
 
-test('M6.35 fork handoff seams map source child centers to target local l=0', () => {
+test('fork handoff seams map source child centers to target local l=0', () => {
   const live = setup();
   const forkRuntime = live.registry.packages.find((entry) => entry.packageId === 'CONTENT_STAGE_4_L_FORK');
   assert.ok(forkRuntime);
@@ -133,7 +133,7 @@ test('M6.35 fork handoff seams map source child centers to target local l=0', ()
   }
 });
 
-test('M6.35 complete LEFT-A route performs four PENDING/COMMIT handoffs then physically FINISHes', () => {
+test('complete LEFT-A route performs four PENDING/COMMIT handoffs then physically FINISHes', () => {
   const live = setup();
   const routeState = createRouteDagState(live.route);
   const handoffState = createRouteStageHandoffState(live.route, live.content, live.initialChart, { x: 0, z: -55 });
@@ -191,16 +191,16 @@ test('M6.35 complete LEFT-A route performs four PENDING/COMMIT handoffs then phy
   assert.equal(handoffState.commitCount, 4);
 });
 
-test('M6.35 fixture stays validated below the M6.38 live plan and delegates fork assembly to M6.36', async () => {
+test('fixture stays validated below the live plan and delegates fork assembly to ', async () => {
   const [source, compiler, stableEntry, main, renderer] = await Promise.all([
-    readFile(new URL('../src/dev/m6-35-second-live-fork.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/fixtures/left-second-fork.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-38-declarative-fork-growth-plan.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(source, /compileRasterForkStageRoute/);
-  assert.match(source, /createM635SecondLiveForkAuthoring/);
+  assert.match(source, /createSecondLiveForkAuthoring/);
   assert.doesNotMatch(
     source,
     /compileStageJunction|createRasterForkStageSuccessor|baseStages|baseTransitions|forkTransition|pointGeometry/,
@@ -208,7 +208,7 @@ test('M6.35 fixture stays validated below the M6.38 live plan and delegates fork
   assert.match(compiler, /compileStageJunction/);
   assert.match(compiler, /createRasterForkStageSuccessor/);
   assert.match(compiler, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(stableEntry, /createM638DeclarativeForkGrowthRuntime/);
+  assert.match(stableEntry, /createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(main, /STAGE_4_L_FORK|GOAL_LA|GOAL_LB|S4L_FORK/);
   assert.doesNotMatch(renderer, /STAGE_4_L_FORK|GOAL_LA|GOAL_LB|S4L_FORK/);
 });

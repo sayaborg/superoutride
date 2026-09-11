@@ -17,7 +17,7 @@ import {
   formatSteeringResponseSelector,
 } from '../dist/browser/steering-calibration-selection.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
-import { createM72DefaultBranchingParent } from '../dist/dev/m7-2-default-branching-highway.js';
+import { createDefaultBranchingParent } from '../dist/dev/courses/branching-highway.js';
 import { createRecoveryState, recoverVehicle, updateRecovery } from '../dist/gameplay/recovery.js';
 import {
   createArcadeVehicle,
@@ -36,7 +36,7 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const DEG = Math.PI / 180;
 const DT = 1 / 60;
-const highway = createM72DefaultBranchingParent();
+const highway = createDefaultBranchingParent();
 const height = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },
@@ -44,12 +44,12 @@ const height = new HeightProfile(highway.guide.length, [
 const surface = new SurfaceMap(highway.guide.length, [
   {
     sStart: 0,
-    name: 'M9.11 STEERING CALIBRATION TEST',
+    name: 'STEERING CALIBRATION TEST',
     bands: [{ lMin: -1_000, lMax: 1_000, type: 'ASPHALT' }],
   },
 ]);
 
-test('browser authority exposes M9.29 common D / M / ACT baseline and surrounding selectors', () => {
+test('browser authority exposes common D / M / ACT baseline and surrounding selectors', () => {
   assert.deepEqual(
     BROWSER_STEERING_OFFSETS.map(({ degrees }) => degrees),
     Array.from({ length: 21 }, (_, i) => 10 + i),
@@ -218,7 +218,7 @@ test('all nine profiles stay finite at the extreme selector corner with permitte
       ])
         assert.ok(Number.isFinite(value), profile.id);
       assert.ok(Math.abs(vehicle.frontSteerAngle) <= 50 * DEG + 1e-12, profile.id);
-      // M9.18 permits wheel lift, not inverted driving; use the actual browser tick boundary.
+      // permits wheel lift, not inverted driving; use the actual browser tick boundary.
       const reason = updateRecovery({ guide: highway.guide, height, surfaces: surface }, vehicle, {
         state: recovery,
         dt: DT,
@@ -262,7 +262,7 @@ test('all nine profiles can return from a 43 degree deep-beta seed under explici
   }
 });
 
-test('M9.11 contains no yaw washout state or hidden drift steering authority', async () => {
+test('contains no yaw washout state or hidden drift steering authority', async () => {
   const [solver, calibration, selection] = await Promise.all([
     readFile(new URL('../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),

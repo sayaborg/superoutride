@@ -22,7 +22,7 @@ function width(interval) {
   return interval.max - interval.min;
 }
 
-test('M6.12 junction begins as the existing single 9m road', () => {
+test('junction begins as the existing single 9m road', () => {
   const section = profile().sample(90);
   assert.equal(section.phase, 'SINGLE');
   assert.equal(section.outerHalfWidth, 4.5);

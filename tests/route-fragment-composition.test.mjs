@@ -1,12 +1,12 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createM630ThirdLiveSuccessorRuntime } from '../dist/dev/m6-30-third-live-successor.js';
+import { createThirdLiveSuccessorRuntime } from '../dist/dev/courses/third-successor-route.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
@@ -22,7 +22,7 @@ const transition = (id, fromStageId, toStageId, gateId = `G_${id}`, handoffId = 
   handoff: geometry(handoffId),
 });
 
-test('M6.32 composes fragments by canonicalizing an identical shared stage exactly once', () => {
+test('composes fragments by canonicalizing an identical shared stage exactly once', () => {
   const sharedRuntime = runtime('PKG_SHARED');
   const shared = { id: 'SHARED', kind: 'STAGE', runtime: sharedRuntime };
   const goal = { id: 'GOAL', kind: 'TERMINAL', runtime: runtime('PKG_GOAL') };
@@ -50,7 +50,7 @@ test('M6.32 composes fragments by canonicalizing an identical shared stage exact
   );
 });
 
-test('M6.32 rejects conflicting definitions of a shared stage instead of silently choosing one fragment', () => {
+test('rejects conflicting definitions of a shared stage instead of silently choosing one fragment', () => {
   const first = { id: 'SHARED', kind: 'STAGE', runtime: runtime('A') };
   const differentRuntime = { id: 'SHARED', kind: 'STAGE', runtime: runtime('B') };
   const differentKind = { id: 'SHARED', kind: 'TERMINAL', runtime: first.runtime };
@@ -73,7 +73,7 @@ test('M6.32 rejects conflicting definitions of a shared stage instead of silentl
   );
 });
 
-test('M6.32 rejects cross-fragment transition and physical geometry identity collisions before RouteDag compilation', () => {
+test('rejects cross-fragment transition and physical geometry identity collisions before RouteDag compilation', () => {
   const start = { id: 'START', kind: 'STAGE', runtime: runtime('START') };
   const a = { id: 'A', kind: 'TERMINAL', runtime: runtime('A') };
   const b = { id: 'B', kind: 'TERMINAL', runtime: runtime('B') };
@@ -103,7 +103,7 @@ test('M6.32 rejects cross-fragment transition and physical geometry identity col
   );
 });
 
-test('M6.32 rejects duplicate terminal FINISH ownership and a missing composed start stage', () => {
+test('rejects duplicate terminal FINISH ownership and a missing composed start stage', () => {
   const goal = { id: 'GOAL', kind: 'TERMINAL', runtime: runtime('GOAL') };
   assert.throws(
     () =>
@@ -126,9 +126,9 @@ test('M6.32 rejects duplicate terminal FINISH ownership and a missing composed s
   );
 });
 
-test('M6.32 fragment composition remains the live authority as later milestones add another RIGHT fragment', async () => {
-  const guide = createM2StadiumGuide();
-  const live = createM630ThirdLiveSuccessorRuntime(guide, parentShared(guide), createSpriteAssets());
+test('fragment composition remains the live authority as later milestones add another RIGHT fragment', async () => {
+  const guide = createStadiumGuide();
+  const live = createThirdLiveSuccessorRuntime(guide, parentShared(guide), createSpriteAssets());
   assert.deepEqual(
     live.route.stages.map((stage) => stage.id),
     ['STAGE_1', 'STAGE_2_L', 'STAGE_2_R', 'STAGE_3_L', 'GOAL_L', 'STAGE_3_R', 'GOAL_R'],
@@ -140,7 +140,7 @@ test('M6.32 fragment composition remains the live authority as later milestones 
 
   const [composerSource, liveSource, rendererSource, mainSource] = await Promise.all([
     readFile(new URL('../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/m6-30-third-live-successor.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/dev/courses/third-successor-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
   ]);

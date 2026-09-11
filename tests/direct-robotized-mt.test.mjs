@@ -38,7 +38,7 @@ const height = new HeightProfile(guide.length, [
   { s: guide.length, y: 0 },
 ]);
 const surface = new SurfaceMap(guide.length, [
-  { sStart: 0, name: 'M9.17 FLAT DRIVE PROBE', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
+  { sStart: 0, name: 'FLAT DRIVE PROBE', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
 ]);
 const tire = createArcadeTireFrictionCalibration(
   compileTireCharacteristics({ gripX: 2, gripY: 2, peakSlipX: 0.24, peakSlipY: 0.24, knee: 0.74 }),
@@ -55,7 +55,7 @@ const makeVehicle = (profile = car, speed = 10) =>
     { s: 10000, l: 0, initialSpeed: speed, steeringCalibration: steering, tireFrictionCalibration: tire },
   );
 
-test('M9.17 all nine profiles retain separate ratio-safe thresholds and remove artificial coupling fields', () => {
+test('all nine profiles retain separate ratio-safe thresholds and remove artificial coupling fields', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -71,7 +71,7 @@ test('M9.17 all nine profiles retain separate ratio-safe thresholds and remove a
   }
 });
 
-test('M9.17 RPM is direct wheel-ratio algebra and stale observation caches are never authority', () => {
+test('RPM is direct wheel-ratio algebra and stale observation caches are never authority', () => {
   const p = car.powertrain;
   const omega = omegaAt(p, 4000, 2);
   const a = createAutomaticPowertrainState(p, omega);
@@ -87,7 +87,7 @@ test('M9.17 RPM is direct wheel-ratio algebra and stale observation caches are n
   near(c.outputDriveTorque, a.outputDriveTorque * 4);
 });
 
-test('M9.17 zero-speed launch has zero derived RPM, finite idle-floor torque and no zero-throttle creep', () => {
+test('zero-speed launch has zero derived RPM, finite idle-floor torque and no zero-throttle creep', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -104,7 +104,7 @@ test('M9.17 zero-speed launch has zero derived RPM, finite idle-floor torque and
   }
 });
 
-test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately without inverse hunting', () => {
+test('every adjacent threshold shift delivers new-ratio torque immediately without inverse hunting', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -130,7 +130,7 @@ test('M9.17 every adjacent threshold shift delivers new-ratio torque immediately
   }
 });
 
-test('M9.17 invalid ratio gaps and nonpositive engine curves fail compilation', () => {
+test('invalid ratio gaps and nonpositive engine curves fail compilation', () => {
   const p = car.powertrain;
   for (const bad of [
     { ...p, gearRatios: [1, 2] },
@@ -158,7 +158,7 @@ test('M9.17 invalid ratio gaps and nonpositive engine curves fail compilation', 
   }
 });
 
-test('M9.17 all positive engine samples survive and the curve itself does not collapse at redline', () => {
+test('all positive engine samples survive and the curve itself does not collapse at redline', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -172,7 +172,7 @@ test('M9.17 all positive engine samples survive and the curve itself does not co
   near(sampleEngineTorque(car.powertrain, 6800), 420);
 });
 
-test('M9.17 one averaged rev limiter is monotone, bounded and C1 at both endpoints', () => {
+test('one averaged rev limiter is monotone, bounded and C1 at both endpoints', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -194,7 +194,7 @@ test('M9.17 one averaged rev limiter is monotone, bounded and C1 at both endpoin
   }
 });
 
-test('M9.17 rev limiting cuts only drive, permits observed overrun and recovers without a timer', () => {
+test('rev limiting cuts only drive, permits observed overrun and recovers without a timer', () => {
   for (const {
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
@@ -210,7 +210,7 @@ test('M9.17 rev limiting cuts only drive, permits observed overrun and recovers 
   }
 });
 
-test('M9.17 all nine stock profiles launch through ordinary wheel/contact dynamics and reconstruct unscaled powertrain in recovery', () => {
+test('all nine stock profiles launch through ordinary wheel/contact dynamics and reconstruct unscaled powertrain in recovery', () => {
   for (const { profile } of VEHICLE_CATALOG) {
     const v = makeVehicle(profile, 0);
     for (let tick = 0; tick < 120; tick++)
@@ -254,20 +254,20 @@ function huntingProbe() {
   };
 }
 
-test('M9.17 authored threefold-torque low-speed hunting case keeps drive through a full 20 seconds without forced state', () => {
+test('authored threefold-torque low-speed hunting case keeps drive through a full 20 seconds without forced state', () => {
   const result = huntingProbe();
   assert.ok(result.changes > 0, 'exercise actual ratio changes, not a locked gear');
   assert.equal(result.downshifts, 0);
   assert.equal(result.tailChanges, 0);
   assert.equal(result.tailZeros, 0);
-  console.log('M9.17 NO-CUT HUNTING PROBE', JSON.stringify(result));
+  console.log('NO-CUT HUNTING PROBE', JSON.stringify(result));
 });
 
-test('M9.17 complete 20-second drive trace remains deterministic', () => {
+test('complete 20-second drive trace remains deterministic', () => {
   assert.deepEqual(huntingProbe(), huntingProbe());
 });
 
-test('M9.17 removes coupling, RPM lag and shift-cut state without introducing a vehicle-specific force path', async () => {
+test('removes coupling, RPM lag and shift-cut state without introducing a vehicle-specific force path', async () => {
   const source = await readFile(new URL('../src/physics/automatic-powertrain.ts', import.meta.url), 'utf8');
   const profiles = await readFile(new URL('../src/vehicle/production-vehicle-profiles.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(

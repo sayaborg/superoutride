@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { guideCoordinateCurve } from '../dist/core/guide-coordinate-frame.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
-import { createM638DeclarativeForkGrowthRuntime } from '../dist/dev/m6-38-declarative-fork-growth-plan.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { createRecoveryState, updateRecovery } from '../dist/gameplay/recovery.js';
@@ -45,10 +45,10 @@ const CAMERA_PROFILE = {
 };
 
 test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps rendering', () => {
-  const parentGuide = createM2StadiumGuide();
+  const parentGuide = createStadiumGuide();
   const parent = parentShared(parentGuide);
   const assets = createSpriteAssets();
-  const live = createM638DeclarativeForkGrowthRuntime(parentGuide, parent, assets);
+  const live = createDeclarativeForkGrowthRuntime(parentGuide, parent, assets);
   const car = createTestCar(
     parentGuide,
     parent.heightProfile,
@@ -84,7 +84,7 @@ test('live browser-order 60 Hz drive crosses LEFT fork, commits child and keeps 
 
   for (let tick = 0; tick < 900; tick += 1) {
     const runtimeBefore = resolveActiveStageRuntimeContent(live.registry, handoffState);
-    const targetL = runtimeBefore.packageId === 'CONTENT_STAGE_1' ? M6_13_JUNCTION.separatedChildCenterL('LEFT') : 0;
+    const targetL = runtimeBefore.packageId === 'CONTENT_STAGE_1' ? STADIUM_JUNCTION.separatedChildCenterL('LEFT') : 0;
     const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, targetL);
     updateTestVehicle(
       runtimeBefore.coordinateFrame,

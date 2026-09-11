@@ -1,6 +1,6 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createM6DebugRouteDag } from '../dist/dev/m6-debug-route-dag.js';
+import test from 'node:test';
+import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
 
 import {
   compileRouteDag,
@@ -9,8 +9,8 @@ import {
   updateRouteDag,
 } from '../dist/gameplay/route-dag.js';
 
-test('M6.8 debug route DAG exposes a two-way split followed by four terminal outcomes', () => {
-  const route = createM6DebugRouteDag();
+test('debug route DAG exposes a two-way split followed by four terminal outcomes', () => {
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
 
   assert.equal(route.startStageId, 'STAGE_1');
@@ -60,7 +60,7 @@ test('route DAG compiler rejects unreachable authored stages', () => {
 });
 
 test('validated route transition must leave the current active stage and cannot skip across the DAG', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
 
   const invalid = updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S2R_RIGHT' });
@@ -78,7 +78,7 @@ test('validated route transition must leave the current active stage and cannot 
 });
 
 test('entering a terminal route stage is not enough: explicit validated FINISH is still required', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const state = createRouteDagState(route);
 
   updateRouteDag(state, route, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
@@ -102,7 +102,7 @@ test('entering a terminal route stage is not enough: explicit validated FINISH i
 });
 
 test('same validated boundary sequence deterministically produces the same route history', () => {
-  const route = createM6DebugRouteDag();
+  const route = createMinimalRouteDag();
   const events = [
     { kind: 'TRANSITION', choiceId: 'S1_RIGHT' },
     { kind: 'TRANSITION', choiceId: 'S2R_LEFT' },

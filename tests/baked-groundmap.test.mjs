@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/m5-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createM2StadiumGuide } from '../dist/dev/debug-course.js';
-import { createM3DebugHeightProfile } from '../dist/dev/m3-debug-height-profile.js';
-import { createM3DebugVisualProfile } from '../dist/dev/m3-debug-visual.js';
-import { createM4DebugWorldSprites } from '../dist/dev/m4-debug-world.js';
-import { createM5DebugSurfaceMap } from '../dist/dev/m5-debug-surface-map.js';
-import { createM5DebugSurfaceRegionAuthoring } from '../dist/dev/m5-surface-authoring.js';
-import { M6_13_JUNCTION } from '../dist/dev/m6-13-junction.js';
+import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
+import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
+import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
+import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
+import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
 import { sampleGroundMap } from '../dist/groundmap/ground-map.js';
@@ -22,13 +22,13 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
-const metadata = JSON.parse(await readFile(new URL('../dist/assets/m5-ground-map.json', import.meta.url), 'utf8'));
-const binary = new Uint8Array(await readFile(new URL('../dist/assets/m5-ground-map.bin', import.meta.url)));
+const metadata = JSON.parse(await readFile(new URL('../dist/assets/stadium-ground-map.json', import.meta.url), 'utf8'));
+const binary = new Uint8Array(await readFile(new URL('../dist/assets/stadium-ground-map.bin', import.meta.url)));
 const baked = new BakedGroundMapAsset(metadata, binary);
-const guide = createM2StadiumGuide();
-const height = createM3DebugHeightProfile(guide.length);
-const visual = createM3DebugVisualProfile(guide.length);
-const compiledSurfaces = compileSurfaceRegions(guide.length, createM5DebugSurfaceRegionAuthoring(guide.length));
+const guide = createStadiumGuide();
+const height = createHillDipHeightProfile(guide.length);
+const visual = createCliffVisualProfile(guide.length);
+const compiledSurfaces = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -37,7 +37,7 @@ const groundProfile = {
   roadMarkings: CENTER_DASH_MARKINGS,
   junctionMarkings: CENTER_DASH_MARKINGS,
   shoulderWidth: 1,
-  junction: M6_13_JUNCTION,
+  junction: STADIUM_JUNCTION,
   logical: compiledSurfaces.groundMap,
   baked,
 };
@@ -75,7 +75,7 @@ test('runtime GroundMap level selection is chainage-only and reaches level 7 for
   assert.ok(Number.isInteger(sample.color));
 });
 
-test('M6.45 baked GroundMap general asset owns an open chainage domain', () => {
+test('baked GroundMap general asset owns an open chainage domain', () => {
   for (let k = 0; k <= baked.kMax; k += 1) {
     assert.doesNotThrow(() => baked.sampleAtLevel(0, 2.25, k));
     assert.doesNotThrow(() => baked.sampleAtLevel(guide.length, 2.25, k));
@@ -94,8 +94,8 @@ test('chunked palette/RGB555 binary stays substantially below raw RGBA pyramid s
   for (let k = 1; k <= 7; k += 1) assert.equal(metadata.levels[k].format, 'rgb555le');
 });
 
-test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap', () => {
-  const surfaces = createM5DebugSurfaceMap(guide.length);
+test('renderer consumes baked per-TerrainLine LOD rather than procedural GroundMap', () => {
+  const surfaces = createMaterialTransitionSurfaceMap(guide.length);
   const car = createTestCar(guide, height, surfaces, 45);
   const camera = updateCamera(createCameraRig(), { guide, height }, car, CURRENT_CAMERA_PROFILE, 1 / 60);
   const terrainProfile = {
@@ -110,7 +110,7 @@ test('M5 renderer consumes baked per-TerrainLine LOD rather than procedural Grou
     visual,
   };
   const assets = createSpriteAssets();
-  const world = createM4DebugWorldSprites(guide, height, assets);
+  const world = createRoadsideSprites(guide, height, assets);
   const stats = renderDriving(
     new SoftwareSurface(320, 240),
     {

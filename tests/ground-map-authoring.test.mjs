@@ -88,16 +88,16 @@ test('current browser course and successor paint matches the immutable reference
     : 'visual';
   const reference = await load(`${folder}/ground-map.js`);
   const referenceStage = await load(`${folder}/stage-ground-map-view.js`);
-  const { createM72DefaultBranchingParent, M7_2_DEFAULT_BRANCHING_FORK } =
-    await import('../dist/dev/m7-2-default-branching-highway.js');
-  const { createM638DeclarativeForkGrowthRuntime } = await import('../dist/dev/m6-38-declarative-fork-growth-plan.js');
+  const { createDefaultBranchingParent, BRANCHING_DEFAULT_BRANCHING_FORK } =
+    await import('../dist/dev/courses/branching-highway.js');
+  const { createDeclarativeForkGrowthRuntime } = await import('../dist/dev/courses/fork-growth-plan.js');
   const { createSpriteAssets } = await import('../dist/visual/sprite-assets.js');
   const { createFarBackground } = await import('../dist/visual/far-background.js');
-  const { createM71HighwayGroundProfile } = await import('../dist/dev/m7-1-highway-calibration-course.js');
-  const { createM93TsukubaGroundProfile } = await import('../dist/dev/m9-3-tsukuba-circuit.js');
-  const { createM96FiscoGroundProfile } = await import('../dist/dev/m9-6-fisco-circuit.js');
-  const parent = createM72DefaultBranchingParent();
-  const route = createM638DeclarativeForkGrowthRuntime(
+  const { createHighwayGroundProfile } = await import('../dist/dev/courses/highway-calibration.js');
+  const { createTsukubaGroundProfile } = await import('../dist/dev/courses/tsukuba-circuit.js');
+  const { createFiscoGroundProfile } = await import('../dist/dev/courses/fisco-circuit.js');
+  const parent = createDefaultBranchingParent();
+  const route = createDeclarativeForkGrowthRuntime(
     parent.guide,
     {
       ...parent,
@@ -105,11 +105,11 @@ test('current browser course and successor paint matches the immutable reference
       worldSprites: [],
     },
     createSpriteAssets(),
-    M7_2_DEFAULT_BRANCHING_FORK,
+    BRANCHING_DEFAULT_BRANCHING_FORK,
   );
   const sources = [
     ...route.registry.packages,
-    ...[createM71HighwayGroundProfile(), createM93TsukubaGroundProfile(), createM96FiscoGroundProfile()].map(
+    ...[createHighwayGroundProfile(), createTsukubaGroundProfile(), createFiscoGroundProfile()].map(
       (groundProfile) => ({ groundProfile, roadView: null }),
     ),
   ];
