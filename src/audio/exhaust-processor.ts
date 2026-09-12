@@ -1,5 +1,5 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
-import type { DEFAULT_REFLECTION_TUNING } from './exhaust-acoustics.js';
+import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import { compileVehicleAudioProfile } from './vehicle-audio-profile.js';
 declare const sampleRate: number;
@@ -19,7 +19,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     processorOptions?: {
       profile: VehicleAudioProfile;
       coupled?: boolean;
-      tuning?: Partial<typeof DEFAULT_REFLECTION_TUNING>;
+      tuning?: Partial<typeof DEFAULT_EXHAUST_TUNING>;
     };
   }) {
     super();

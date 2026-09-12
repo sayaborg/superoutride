@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAudioLifecycle } from '../dist/browser/audio-lifecycle.js';
-import { DEFAULT_REFLECTION_TUNING } from '../dist/audio/exhaust-acoustics.js';
+import { DEFAULT_EXHAUST_TUNING } from '../dist/audio/exhaust-acoustics.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
 import { createTireVoice } from '../dist/dev/diagnostics/tire-voice.js';
 import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
@@ -183,7 +183,7 @@ test('selected coupling and tuning survive voice profile replacement without nod
     assert.equal(worklet.messages.length, 2);
     for (const message of worklet.messages) {
       assert.equal(message.coupled, coupled);
-      assert.deepEqual(message.tuning, { ...DEFAULT_REFLECTION_TUNING, outletReflection: -0.8 });
+      assert.deepEqual(message.tuning, { ...DEFAULT_EXHAUST_TUNING, outletReflection: -0.8 });
     }
     assert.equal(context.nodes.length, count);
     voice.dispose();
@@ -291,16 +291,19 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const lifecycle = createAudioLifecycle();
   t.after(() => lifecycle.dispose());
   const host = dom.elements.get('sound-tuning');
-  const inputs = host.children.slice(0, 4).map((row) => row.children[1]);
-  const [reflection, cutoff] = inputs;
+  const inputs = host.children.slice(0, 5).map((row) => row.children[1]);
+  const [reflection, cutoff, , , finalCutoff] = inputs;
   assert.deepEqual(
     inputs.map((input) => Number(input.value)),
-    [-1, 3100, 0.03, 0.22],
+    [-1, 3100, 0.03, 0.22, 7300],
   );
   reflection.value = '0';
   reflection.emit('input');
   assert.match(host.children[0].children[2].textContent, /反射なし/);
   reflection.emit('change'); // before gesture initialization finishes
+  finalCutoff.value = '1000';
+  finalCutoff.emit('input');
+  finalCutoff.emit('change');
   await settle();
   const runtime = createLinearHighwayRuntime();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
@@ -311,6 +314,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
   const nodeCount = context.nodes.length;
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
+  assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
   cutoff.value = '500';
   cutoff.emit('input'); // preview must not rebuild while dragging
   context.currentTime = 1;
@@ -332,12 +336,13 @@ test('committed sliders survive mute, method and profile changes without mutatin
   context.currentTime = 1.2;
   lifecycle.update(replacement, []);
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
+  assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
   assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
   host.children.at(-1).click();
   lifecycle.update(replacement, []);
   context.currentTime = 1.3;
   lifecycle.update(replacement, []);
-  assert.deepEqual(worklets[0].messages.at(-1).tuning, DEFAULT_REFLECTION_TUNING);
+  assert.deepEqual(worklets[0].messages.at(-1).tuning, DEFAULT_EXHAUST_TUNING);
   assert.equal(context.nodes.length, nodeCount);
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
@@ -362,17 +367,21 @@ test('tuning updates reuse both engine slots and own their coefficient snapshots
     engine.updateRival(state, VEHICLE_CATALOG[1].sound, 0.5, 0);
   };
   update();
-  const tuning = { ...DEFAULT_REFLECTION_TUNING, attenuationPerMeter: 0.1 };
+  const tuning = { ...DEFAULT_EXHAUST_TUNING, attenuationPerMeter: 0.1, outputCutoffHz: 100 };
   engine.setTuning(tuning);
   tuning.attenuationPerMeter = 0.2;
+  tuning.outputCutoffHz = 12000;
   update();
   context.currentTime = 0.1;
   update();
   const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
-  for (const worklet of worklets) assert.equal(worklet.messages.at(-1).tuning.attenuationPerMeter, 0.1);
-  engine.setTuning(DEFAULT_REFLECTION_TUNING);
+  for (const worklet of worklets) {
+    assert.equal(worklet.messages.at(-1).tuning.attenuationPerMeter, 0.1);
+    assert.equal(worklet.messages.at(-1).tuning.outputCutoffHz, 100);
+  }
+  engine.setTuning(DEFAULT_EXHAUST_TUNING);
   update();
-  engine.setTuning({ ...DEFAULT_REFLECTION_TUNING, attenuationPerMeter: 0.1 });
+  engine.setTuning({ ...DEFAULT_EXHAUST_TUNING, attenuationPerMeter: 0.1, outputCutoffHz: 100 });
   context.currentTime = 1;
   update();
   for (const worklet of worklets) assert.equal(worklet.messages.length, 2);

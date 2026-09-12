@@ -50,6 +50,11 @@ test('acoustic tuning rejects unstable or nonfinite values and cannot override o
     { returnCutoffHz: Infinity },
     { closedExcitation: 0 },
     { closedExcitation: 2 },
+    { outputCutoffHz: 0 },
+    { outputCutoffHz: -1 },
+    { outputCutoffHz: 12001 },
+    { outputCutoffHz: NaN },
+    { outputCutoffHz: Infinity },
   ])
     assert.throws(() => new ExhaustWaveguide(sound, 96000, false, tuning), RangeError);
   const normal = new ExhaustWaveguide(sound, 96000, false);

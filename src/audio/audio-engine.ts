@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import type { DEFAULT_REFLECTION_TUNING } from './exhaust-acoustics.js';
+import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -37,7 +37,7 @@ export async function createAudioEngine(context: AudioContext) {
       player.setCoupled(value);
       rival.setCoupled(value);
     },
-    setTuning(value: typeof DEFAULT_REFLECTION_TUNING): void {
+    setTuning(value: typeof DEFAULT_EXHAUST_TUNING): void {
       player.setTuning(value);
       rival.setTuning(value);
     },

@@ -113,7 +113,13 @@
     <button id="run" type="button">選択した方式・設定を全車種で検証</button>
     <pre id="result">Ready</pre>
     <script type="module">
-      import { REFLECTION_REFERENCE, ACOUSTICS, CONTROL_SECONDS, OUTPUT } from '../dist/audio/exhaust-acoustics.js';
+      import {
+        REFLECTION_REFERENCE,
+        ACOUSTICS,
+        CONTROL_SECONDS,
+        DEFAULT_EXHAUST_TUNING,
+        OUTPUT,
+      } from '../dist/audio/exhaust-acoustics.js';
       import { mountAudioTuningControls } from '../dist/browser/audio-tuning-controls.js';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -132,7 +138,7 @@
       document.getElementById('boundary-conditions').textContent =
         `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。簡易反射は閉端側を固定で使い、ウェーブガイドは気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
       document.getElementById('output-conditions').textContent =
-        `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF ${OUTPUT.cutoffHz} Hz（一次）。排気の物理量とは区別します。`;
+        `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、スライダーで調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
       const tuningControls = mountAudioTuningControls(document.getElementById('tuning-sliders'), () => {});
       const readTuning = tuningControls.read;
       function showVehicleData() {

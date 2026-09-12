@@ -1,4 +1,4 @@
-import { DEFAULT_REFLECTION_TUNING } from '../audio/exhaust-acoustics.js';
+import { DEFAULT_EXHAUST_TUNING } from '../audio/exhaust-acoustics.js';
 
 // Shared audition/game presentation; the DSP remains the owner of coefficient defaults and validation.
 const CONTROLS = [
@@ -38,14 +38,23 @@ const CONTROLS = [
     '',
     '全閉時に残す励振の割合。パルスの強さと立ち上がりを変える音作りの設定で、実測の燃焼圧力ではありません。',
   ],
+  [
+    'outputCutoffHz',
+    '最終LPF（マフラー相当）',
+    100,
+    12000,
+    100,
+    'Hz',
+    'ソフトクリップ後の一次LPF、約−6 dB/oct。反射波用とは独立した音色調整です。実車マフラーの測定特性ではありません。',
+  ],
 ] as const;
 
 export function mountAudioTuningControls(
   container: HTMLElement,
-  onChange: (tuning: typeof DEFAULT_REFLECTION_TUNING) => void,
+  onChange: (tuning: typeof DEFAULT_EXHAUST_TUNING) => void,
   documentRef: Document = document,
 ) {
-  const tuning = { ...DEFAULT_REFLECTION_TUNING };
+  const tuning = { ...DEFAULT_EXHAUST_TUNING };
   const inputs = new Map<keyof typeof tuning, HTMLInputElement>();
   const listeners: (() => void)[] = [];
   const previews: (() => void)[] = [];
@@ -90,7 +99,7 @@ export function mountAudioTuningControls(
   reset.className = 'selector-button audio-tuning-reset';
   reset.textContent = 'デフォルトに戻す';
   listen(reset, 'click', () => {
-    Object.assign(tuning, DEFAULT_REFLECTION_TUNING);
+    Object.assign(tuning, DEFAULT_EXHAUST_TUNING);
     for (const [key, input] of inputs) {
       input.value = String(tuning[key]);
     }

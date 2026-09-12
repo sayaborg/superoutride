@@ -1,6 +1,6 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
-import { ACOUSTICS, CONTROL_SECONDS, DEFAULT_REFLECTION_TUNING, OUTPUT } from './exhaust-acoustics.js';
+import { ACOUSTICS, CONTROL_SECONDS, DEFAULT_EXHAUST_TUNING, OUTPUT } from './exhaust-acoustics.js';
 
 /** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
 class Delay {
@@ -41,7 +41,7 @@ export class ExhaustWaveguide {
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
   private readonly loss: number;
-  private readonly tuning: typeof DEFAULT_REFLECTION_TUNING;
+  private readonly tuning: typeof DEFAULT_EXHAUST_TUNING;
   private phase = 0;
   private rpm = 1000;
   private load = 0;
@@ -53,13 +53,14 @@ export class ExhaustWaveguide {
     private readonly rate: number,
     // Temporary comparison switch. Adopt one branch and delete the other; see docs/audio.md.
     private readonly coupled = true,
-    tuning: Partial<typeof DEFAULT_REFLECTION_TUNING> = {},
+    tuning: Partial<typeof DEFAULT_EXHAUST_TUNING> = {},
   ) {
     const {
-      attenuationPerMeter = DEFAULT_REFLECTION_TUNING.attenuationPerMeter,
-      returnCutoffHz = DEFAULT_REFLECTION_TUNING.returnCutoffHz,
-      outletReflection = DEFAULT_REFLECTION_TUNING.outletReflection,
-      closedExcitation = DEFAULT_REFLECTION_TUNING.closedExcitation,
+      attenuationPerMeter = DEFAULT_EXHAUST_TUNING.attenuationPerMeter,
+      returnCutoffHz = DEFAULT_EXHAUST_TUNING.returnCutoffHz,
+      outletReflection = DEFAULT_EXHAUST_TUNING.outletReflection,
+      closedExcitation = DEFAULT_EXHAUST_TUNING.closedExcitation,
+      outputCutoffHz = DEFAULT_EXHAUST_TUNING.outputCutoffHz,
     } = tuning;
     if (
       !Number.isFinite(attenuationPerMeter) ||
@@ -73,7 +74,10 @@ export class ExhaustWaveguide {
       outletReflection > 0 ||
       !Number.isFinite(closedExcitation) ||
       closedExcitation <= 0 ||
-      closedExcitation > 1
+      closedExcitation > 1 ||
+      !Number.isFinite(outputCutoffHz) ||
+      outputCutoffHz < 100 ||
+      outputCutoffHz > 12000
     )
       throw new RangeError('invalid acoustic tuning');
     this.tuning = Object.freeze({
@@ -81,6 +85,7 @@ export class ExhaustWaveguide {
       returnCutoffHz,
       outletReflection,
       closedExcitation,
+      outputCutoffHz,
     });
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
@@ -104,7 +109,7 @@ export class ExhaustWaveguide {
     this.smoothing = 1 - Math.exp(-1 / (CONTROL_SECONDS * rate));
     this.decay = Math.exp(-1 / (profile.pulse.decaySeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
-    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.cutoffHz) / rate);
+    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.tuning.outputCutoffHz) / rate);
     this.loss = 1 - Math.exp((-2 * Math.PI * this.tuning.returnCutoffHz) / rate);
   }
 

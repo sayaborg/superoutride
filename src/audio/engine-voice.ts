@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import { DEFAULT_REFLECTION_TUNING } from './exhaust-acoustics.js';
+import { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -15,10 +15,10 @@ export function createEngineVoice(
   }: {
     coupled?: boolean;
     profile?: VehicleAudioProfile;
-    tuning?: Partial<typeof DEFAULT_REFLECTION_TUNING>;
+    tuning?: Partial<typeof DEFAULT_EXHAUST_TUNING>;
   } = {},
 ) {
-  let acousticTuning = { ...DEFAULT_REFLECTION_TUNING, ...tuning };
+  let acousticTuning = { ...DEFAULT_EXHAUST_TUNING, ...tuning };
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
@@ -56,11 +56,9 @@ export function createEngineVoice(
     setCoupled(value: boolean): void {
       coupled = value;
     },
-    setTuning(value: typeof DEFAULT_REFLECTION_TUNING): void {
+    setTuning(value: typeof DEFAULT_EXHAUST_TUNING): void {
       const same = (candidate: typeof acousticTuning) =>
-        (Object.keys(DEFAULT_REFLECTION_TUNING) as (keyof typeof value)[]).every(
-          (key) => candidate[key] === value[key],
-        );
+        (Object.keys(DEFAULT_EXHAUST_TUNING) as (keyof typeof value)[]).every((key) => candidate[key] === value[key]);
       if (same(acousticTuning)) return;
       acousticTuning = active && same(active.tuning) ? active.tuning : { ...value };
     },

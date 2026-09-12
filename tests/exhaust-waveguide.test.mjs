@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ExhaustWaveguide } from '../dist/audio/exhaust-waveguide.js';
-import { OUTPUT } from '../dist/audio/exhaust-acoustics.js';
+import { DEFAULT_EXHAUST_TUNING, OUTPUT } from '../dist/audio/exhaust-acoustics.js';
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const profiles = VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust);
@@ -25,7 +25,7 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
   for (const rate of [88200, 96000])
     for (const coupled of [false, true]) {
       const synth = new ExhaustWaveguide(profile, rate, coupled, { outletReflection: 0 });
-      const coefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.cutoffHz) / rate);
+      const coefficient = 1 - Math.exp((-2 * Math.PI * DEFAULT_EXHAUST_TUNING.outputCutoffHz) / rate);
       let previous = 0,
         peak = 0;
       for (let i = 0; i < rate / 2; i++) {
@@ -37,6 +37,30 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
         previous = value;
       }
       assert.ok(peak > OUTPUT.ceiling / 2, 'the fixture must exercise substantial saturation');
+    }
+});
+
+test('output cutoff changes only the final filter, preserving the clipped exhaust signal', () => {
+  const sound = VEHICLE_CATALOG[2].sound;
+  for (const rate of [88200, 96000])
+    for (const coupled of [false, true]) {
+      const cutoffs = [100, 1000, DEFAULT_EXHAUST_TUNING.outputCutoffHz, 12000];
+      const voices = cutoffs.map((outputCutoffHz) => new ExhaustWaveguide(sound, rate, coupled, { outputCutoffHz }));
+      const coefficients = cutoffs.map((hz) => 1 - Math.exp((-2 * Math.PI * hz) / rate));
+      const previous = voices.map(() => 0);
+      let difference = 0;
+      for (let i = 0; i < rate / 4; i++) {
+        const outputs = voices.map((voice) => voice.sample(6000, 1));
+        const inputs = outputs.map((value, j) => (value - (1 - coefficients[j]) * previous[j]) / coefficients[j]);
+        for (let j = 0; j < voices.length; j++) {
+          assert.ok(Number.isFinite(outputs[j]) && Math.abs(outputs[j]) < OUTPUT.ceiling);
+          // Different final filters must receive the same pre-filter signal, including all reflections.
+          assert.ok(Math.abs(inputs[j] - inputs[2]) < 1e-10);
+          previous[j] = outputs[j];
+        }
+        difference += (outputs[0] - outputs[3]) ** 2;
+      }
+      assert.ok(difference > 0.01, 'cutoff must audibly affect the generated waveform');
     }
 });
 
@@ -117,7 +141,13 @@ test('worklet renders identical streams across block partitions, ignores invalid
     ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
     assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
     for (const coupled of [false, true]) {
-      const tuning = { outletReflection: -0.8, returnCutoffHz: 1800, attenuationPerMeter: 0.12, closedExcitation: 0.1 };
+      const tuning = {
+        outletReflection: -0.8,
+        returnCutoffHz: 1800,
+        attenuationPerMeter: 0.12,
+        closedExcitation: 0.1,
+        outputCutoffHz: 800,
+      };
       const direct = new ExhaustWaveguide(profiles[0].sound, 96000, coupled, tuning);
       const configured = new Processor({ processorOptions: { profile: profiles[0].sound, coupled, tuning } });
       const messaged = new Processor();
