@@ -150,7 +150,7 @@ not a browser scheduling, end-to-end graph or mobile performance certification.
 
 The audition UI exposes four combinable sliders for outlet reflection, boundary cutoff,
 propagation attenuation and closed-excitation floor. Displayed values and reset come directly
-from the DSP's shared defaults (-0.68, 4500 Hz, 0.04 Np/m and 0.22). Outlet reflection includes
+from the DSP's shared defaults (-1, 3100 Hz, 0.03 Np/m and 0.22). Outlet reflection includes
 zero at the right endpoint and a dedicated zero button; the readout explicitly labels no outlet
 reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
 Slider changes take effect on the next playback, not during an already rendered clip.
@@ -164,3 +164,33 @@ count, idle/redline, firing phases and intervals, collector membership, primary/
 lengths, and pulse settings. Rows identify firing events, not manufacturer cylinder numbers.
 Collector labels do not assert physical left/right bank names. Lengths and topology include
 acoustic sketches and are explicitly not presented as measured manufacturer pipework.
+
+## Reference conditions for default coefficients
+
+The defaults use an explicit **assumed reference**, not measured vehicle pipework: a 50 mm
+internal-diameter unflanged circular pipe, 573.15 K (300 C) air at 101325 Pa, gamma 1.4,
+R = 287 J/(kg K), Pr = 0.71, and 500 Hz for the constant propagation-loss surrogate.
+These are not universal exhaust conditions; composition, temperature gradients, mean flow,
+large-amplitude waves, mufflers and true pipe radii remain outside this model.
+
+- [NASA's ideal-gas sound-speed relation](https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/sound.html)
+  gives c = sqrt(gamma R T), rounded to 480 m/s (the existing propagation speed).
+- [Silva et al., Eq. 10](https://arxiv.org/abs/0811.3625) gives the unflanged low-frequency
+  magnitude |R| = 1 - (ka)^2/2 + higher terms; the open-end pressure sign is negative.
+  Set the DC reflection to -1, then the existing one-pole boundary filter rolls off its magnitude.
+  Matching the analog one-pole magnitude expansion gives fc = c/(2 pi a), rounded to 3100 Hz.
+  The discrete filter approximates that analog response. This does NOT match the full radiation
+  impedance or its end-correction phase (0.6133a in the low-frequency unflanged case).
+- [The circular-duct attenuation relation](https://doi.org/10.1186/s13362-018-0057-0)
+  gives alpha = sqrt(pi f nu)/(a c) * (1 + (gamma-1)/sqrt(Pr)).
+  Air viscosity uses [Sutherland coefficients](https://doc.comsol.com/6.4/doc/com.comsol.help.cfd/cfd_ug_fluidflow_high_mach.08.46.html)
+  mu0 = 1.716e-5 Pa s, T0 = 273 K, S = 111 K; density is p/(R T), and nu = mu/rho.
+  This gives approximately 0.034 Np/m at 500 Hz, rounded to 0.03 Np/m for the slider.
+  Actual boundary-layer loss varies with frequency; the production delay retains constant alpha.
+- Closed excitation 0.22 and the source reflection envelope remain authored sound controls.
+  Pipe acoustics cannot determine fuel delivery, engine load or valve impedance. They are not
+  described as measured or physically derived defaults.
+
+Allowing -1 does not remove the rest of the network's losses: propagation, boundary filtering
+and the fixed source termination still dissipate energy. Positive pressure reflection is not
+introduced; it would represent a different termination. The UI now reaches -1 exactly.

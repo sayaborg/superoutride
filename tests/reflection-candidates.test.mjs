@@ -41,7 +41,7 @@ test('empty tuning is identical and each candidate changes the simple-reflection
 test('acoustic tuning rejects unstable or nonfinite values and cannot override other constants', () => {
   const sound = VEHICLE_CATALOG[0].sound;
   for (const tuning of [
-    { outletReflection: -1 },
+    { outletReflection: -1.01 },
     { outletReflection: 0.1 },
     { outletReflection: NaN },
     { attenuationPerMeter: -1 },

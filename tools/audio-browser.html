@@ -61,6 +61,7 @@
     <fieldset>
       <legend>簡易反射の調整</legend>
       <p>配管・発火・パルス設定は共通です。スライダーは組み合わせて調整できます。変更は次の再生に反映されます。</p>
+      <p id="reference-conditions"></p>
       <div id="tuning-sliders"></div>
       <button id="tuning-reset" type="button">デフォルトに戻す</button>
       <button id="candidate-play" type="button">調整した音を聴く</button>
@@ -94,7 +95,7 @@
     <button id="run" type="button">Verify engine voices</button>
     <pre id="result">Ready</pre>
     <script type="module">
-      import { DEFAULT_REFLECTION_TUNING } from '../dist/audio/exhaust-waveguide.js';
+      import { DEFAULT_REFLECTION_TUNING, REFLECTION_REFERENCE } from '../dist/audio/exhaust-waveguide.js';
       import { createReflectionVoice } from './reflection-voice.mjs';
       import { createReferenceVoice } from './reference-voice.mjs';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
@@ -108,11 +109,13 @@
         option.textContent = entry.profile.id;
         vehicle.append(option);
       }
+      document.getElementById('reference-conditions').textContent =
+        `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。全閉時の励振は音作りの設定です。`;
       const controls = [
         [
           'outletReflection',
           '出口の反射係数',
-          -0.95,
+          -1,
           0,
           0.01,
           '',
