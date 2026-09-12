@@ -1,13 +1,17 @@
 import { follow } from '../dist/audio/audio-parameter.js';
 
 // Audition-only composition; defaults and the game's worklet path are unchanged.
-export async function createReflectionVoice(context, destination, profile, tuning) {
-  await context.audioWorklet.addModule(new URL('./reflection-processor.mjs', import.meta.url));
-  const node = new AudioWorkletNode(context, 'reflection-candidate', {
+export async function createReflectionVoice(context, destination, profile, tuning, bank) {
+  await context.audioWorklet.addModule(
+    bank
+      ? new URL('./wavetable-processor.mjs', import.meta.url)
+      : new URL('./reflection-processor.mjs', import.meta.url),
+  );
+  const node = new AudioWorkletNode(context, bank ? 'exhaust-wavetable' : 'reflection-candidate', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: { profile, tuning },
+    processorOptions: bank ? { bank } : { profile, tuning },
   });
   const gain = context.createGain();
   gain.gain.value = 0;

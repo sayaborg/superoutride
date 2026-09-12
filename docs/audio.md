@@ -219,3 +219,30 @@ For exact sample comparison with a supplied pre-change compiled module, run
 `node tools/exhaust-equivalence.mjs /absolute/path/to/exhaust-waveguide.mjs` after building.
 The diagnostic covers both modes, all catalog profiles, both internal rates, coefficient overrides,
 RPM/load transitions and stopping. It compares raw samples without tolerances or output normalization.
+
+## Generated-waveform audition
+
+The comparison page can bake the selected simple-reflection settings into a single cached bank
+of 17 RPM points (idle through redline) by five excitation levels (0 through 1). Each table holds
+4096 Float32 values over one complete firing cycle: 85 tables, 1.328125 MiB per cached bank.
+The worklet receives its own copy while playing. Changing vehicle or tuning replaces the cache
+on the next generated-waveform request; these are synthesized waves, not recordings or game assets.
+
+The [baker/player](../tools/exhaust-wavetable.mjs) uses the existing DSP at 96 kHz, warms each
+point for two seconds, and captures a phase-aligned cycle using a read-only acoustic phase getter.
+Capture yields between tables and can be cancelled by Stop or another audition. Phase alignment
+keeps different RPM/load tables on the same firing reference. Capture duration, grid density and
+table length are approximation budgets, not physical constants or convergence guarantees.
+
+Playback advances one common phase, interpolates within each cycle and blends the four adjacent
+RPM/load tables. It keeps 25 ms control smoothing and two internal samples per output sample,
+but runs no pipe network. The captured output already includes DC removal, tone shaping and
+saturation. Interpolation of those finished waves is deliberately NOT equivalent to interpolating
+physical pressures before nonlinear processing. Resonance positions between RPM grid points,
+rapid control transients, lingering pipe energy, residual capture transients and spectral aliasing
+are approximation limits. No claim of exact waveform equivalence or complete antialiasing is made.
+The game keeps its procedural voices while this tools-only alternative is auditioned.
+
+Run `node tools/exhaust-table-performance.mjs GOLF_GTI_16V` for generation time, table bytes and
+alternating seven-run warmed medians of simple-reflection versus table playback on the same host.
+This is a kernel timing diagnostic, not target-device performance certification.

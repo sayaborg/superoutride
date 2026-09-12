@@ -65,6 +65,11 @@
       <div id="tuning-sliders"></div>
       <button id="tuning-reset" type="button">デフォルトに戻す</button>
       <button id="candidate-play" type="button">調整した音を聴く</button>
+      <button id="wavetable-play" type="button">事前生成した音を聴く</button>
+      <p>
+        事前生成は現在の調整値の簡易反射から作ります。RPM・開度間の音色と過渡応答は近似です。最初の生成には数秒かかります。
+      </p>
+      <p id="wavetable-status"></p>
       <button id="candidate-check" type="button">この設定を全車種で検証</button>
     </fieldset>
     <fieldset>
@@ -96,6 +101,7 @@
     <pre id="result">Ready</pre>
     <script type="module">
       import { DEFAULT_REFLECTION_TUNING, REFLECTION_REFERENCE } from '../dist/audio/exhaust-waveguide.js';
+      import { bakeExhaustTables } from './exhaust-wavetable.mjs';
       import { createReflectionVoice } from './reflection-voice.mjs';
       import { createReferenceVoice } from './reference-voice.mjs';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
@@ -218,6 +224,7 @@
       vehicle.onchange = showVehicleData;
       vehicle.value = '1';
       showVehicleData();
+      let tableCache;
       let playback,
         playing,
         request = 0;
@@ -247,10 +254,40 @@
             throttle: Number(document.getElementById('load').value),
             drive: Number(document.getElementById('load').value),
           });
+          let bank;
+          if (mode === 'wavetable') {
+            const key = JSON.stringify([entry.sound, selected.tuning, state.idleRpm, state.redlineRpm]);
+            const status = document.getElementById('wavetable-status');
+            if (tableCache?.key !== key) {
+              const started = performance.now();
+              bank = await bakeExhaustTables(
+                entry.sound,
+                selected.tuning,
+                state.idleRpm,
+                state.redlineRpm,
+                (done, total) => {
+                  if (current !== request) throw new Error('生成を中止しました');
+                  status.textContent = `波形を生成中 ${done}/${total}`;
+                },
+              );
+              const seconds = ((performance.now() - started) / 1000).toFixed(2);
+              const megabytes = (bank.tables.reduce((bytes, table) => bytes + table.byteLength, 0) / 1048576).toFixed(
+                2,
+              );
+              tableCache = {
+                key,
+                bank,
+                description: `${bank.tables.length}波形 ／ ${megabytes} MiB ／ 生成 ${seconds}秒`,
+              };
+            }
+            bank = tableCache.bank;
+            status.textContent = tableCache.description;
+            if (current !== request) return;
+          }
           await context.audioWorklet.addModule(new URL('../dist/audio/noise-processor.js', import.meta.url));
           const voice =
-            mode === 'candidate'
-              ? await createReflectionVoice(context, context.destination, entry.sound, selected.tuning)
+            mode === 'candidate' || mode === 'wavetable'
+              ? await createReflectionVoice(context, context.destination, entry.sound, selected.tuning, bank)
               : mode === 'reference'
                 ? await createReferenceVoice(context, context.destination, entry.sound)
                 : createEngineVoice(context, context.destination, mode === 'waveguide', entry.sound);
@@ -301,9 +338,10 @@
           playing.start();
           listening.textContent = `${mode === 'candidate' ? selected.label : mode}・${entry.profile.id}`;
         } catch (error) {
-          listening.textContent = String(error);
+          if (current === request) listening.textContent = String(error);
         }
       }
+      document.getElementById('wavetable-play').onclick = () => audition('wavetable');
       document.getElementById('candidate-play').onclick = () => audition('candidate');
       document.getElementById('before').onclick = () => audition('reference');
       document.getElementById('reflection').onclick = () => audition('reflection');

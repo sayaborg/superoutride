@@ -141,6 +141,11 @@ export class ExhaustWaveguide {
     this.loss = 1 - Math.exp((-2 * Math.PI * this.tuning.returnCutoffHz) / rate);
   }
 
+  /** Read-only acoustic phase for phase-aligned offline cycle capture. */
+  get cyclePhase(): number {
+    return this.phase;
+  }
+
   /** One sample, without allocation. Reflection mode uses a fixed source termination without cylinder return coupling. */
   sample(targetRpm: number, targetLoad: number): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
