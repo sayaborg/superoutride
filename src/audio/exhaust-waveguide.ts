@@ -1,15 +1,18 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
-// Shared acoustic approximations, not measured gas/valve properties.
-const ACOUSTICS = Object.freeze({
-  waveSpeed: 480, // effective m/s; fixed temperature approximation
+// Shared defaults for the DSP and its audition controls; not measured exhaust properties.
+export const DEFAULT_REFLECTION_TUNING = Object.freeze({
   attenuationPerMeter: 0.04, // amplitude nepers/m, frequency-independent propagation loss
   returnCutoffHz: 4500, // lumped boundary filtering
   outletReflection: -0.68,
+  closedExcitation: 0.22, // keeps closed-throttle excitation; no fuel-cut simulation
+});
+const ACOUSTICS = Object.freeze({
+  ...DEFAULT_REFLECTION_TUNING,
+  waveSpeed: 480, // effective m/s; fixed temperature approximation
   sourceClosedReflection: 0.94,
   sourceOpenReflection: -0.3,
   sourceWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
-  closedExcitation: 0.22, // keeps closed-throttle excitation; no fuel-cut simulation
 });
 const CONTROL_SECONDS = 0.025;
 const OUTPUT = Object.freeze({ dcHz: 18, cutoffHz: 7300, ceiling: 0.65 });

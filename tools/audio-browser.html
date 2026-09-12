@@ -42,24 +42,19 @@
     <button id="after" type="button">整理後のウェーブガイドを聴く</button>
     <button id="reflection" type="button">簡易反射を聴く</button>
     <fieldset>
-      <legend>簡易反射の調整比較</legend>
-      <p>
-        発火・配管・パルスは同じまま、共通の近似値を1項目ずつ変更します。配管の実測・実車準拠を保証するものではありません。
-      </p>
-      <label
-        >候補
-        <select id="candidate"></select
-      ></label>
-      <p id="candidate-description"></p>
-      <button id="candidate-play" type="button">選んだ候補を聴く</button>
-      <button id="candidate-check" type="button">全候補を検証</button>
+      <legend>簡易反射の調整</legend>
+      <p>配管・発火・パルス設定は共通です。スライダーは組み合わせて調整できます。変更は次の再生に反映されます。</p>
+      <div id="tuning-sliders"></div>
+      <button id="tuning-reset" type="button">デフォルトに戻す</button>
+      <button id="candidate-play" type="button">調整した音を聴く</button>
+      <button id="candidate-check" type="button">この設定を全車種で検証</button>
     </fieldset>
     <button id="stop" type="button">停止</button>
     <p id="listening">未再生</p>
     <button id="run" type="button">Verify engine voices</button>
     <pre id="result">Ready</pre>
     <script type="module">
-      import { REFLECTION_CANDIDATES } from './reflection-candidates.mjs';
+      import { DEFAULT_REFLECTION_TUNING } from '../dist/audio/exhaust-waveguide.js';
       import { createReflectionVoice } from './reflection-voice.mjs';
       import { createReferenceVoice } from './reference-voice.mjs';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
@@ -73,15 +68,61 @@
         option.textContent = entry.profile.id;
         vehicle.append(option);
       }
-      const candidate = document.getElementById('candidate');
-      for (const [index, item] of REFLECTION_CANDIDATES.entries()) {
-        candidate.add(new Option(item.label, String(index)));
+      const controls = [
+        ['outletReflection', '出口の反射係数', -0.95, 0, 0.01, '', '0に近いほど反射が弱く、−1に近いほど強くなります。'],
+        [
+          'returnCutoffHz',
+          '反射波の高域上限',
+          500,
+          10000,
+          100,
+          'Hz',
+          '低くすると高域が減衰します。出口の音色にも効きます。',
+        ],
+        ['attenuationPerMeter', '距離あたりの減衰', 0, 0.3, 0.01, 'Np/m', '大きいほど管を通るたびに音が減衰します。'],
+        [
+          'closedExcitation',
+          '全閉時の励振',
+          0.01,
+          1,
+          0.01,
+          '',
+          '小さいほど低開度で弱く柔らかくなります。全開では差がなくなります。',
+        ],
+      ];
+      const sliders = new Map();
+      for (const [key, title, min, max, step, unit, explanation] of controls) {
+        const row = document.createElement('p');
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        const output = document.createElement('output');
+        const hint = document.createElement('small');
+        input.type = 'range';
+        input.id = key;
+        input.min = min;
+        input.max = max;
+        input.step = step;
+        input.value = DEFAULT_REFLECTION_TUNING[key];
+        input.style.width = 'min(360px, 60vw)';
+        label.htmlFor = key;
+        label.textContent = title + ' ';
+        output.htmlFor = key;
+        input.oninput = () => {
+          output.textContent = ` ${input.value} ${unit}`;
+        };
+        input.oninput();
+        hint.textContent = explanation;
+        row.append(label, document.createElement('br'), input, output, document.createElement('br'), hint);
+        document.getElementById('tuning-sliders').append(row);
+        sliders.set(key, input);
       }
-      candidate.onchange = () => {
-        document.getElementById('candidate-description').textContent =
-          REFLECTION_CANDIDATES[Number(candidate.value)].description;
+      const readTuning = () => Object.fromEntries([...sliders].map(([key, input]) => [key, Number(input.value)]));
+      document.getElementById('tuning-reset').onclick = () => {
+        for (const [key, input] of sliders) {
+          input.value = DEFAULT_REFLECTION_TUNING[key];
+          input.oninput();
+        }
       };
-      candidate.onchange();
       vehicle.value = '1';
       let playback,
         playing,
@@ -101,7 +142,7 @@
         try {
           playback ??= new AudioContext();
           await playback.resume();
-          const selected = REFLECTION_CANDIDATES[Number(candidate.value)];
+          const selected = { label: '調整値', tuning: readTuning() };
           const entry = VEHICLE_CATALOG[Number(vehicle.value)];
           const context = new OfflineAudioContext(1, 4 * 48000, 48000);
           const state = createVehicleAudioObservation();
@@ -257,7 +298,7 @@
         }
       }
       document.getElementById('run').onclick = () => verify([null]);
-      document.getElementById('candidate-check').onclick = () => verify(REFLECTION_CANDIDATES);
+      document.getElementById('candidate-check').onclick = () => verify([{ label: '調整値', tuning: readTuning() }]);
     </script>
   </body>
 </html>

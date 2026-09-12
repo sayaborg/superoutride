@@ -158,3 +158,10 @@ firing, pipe geometry and pulse profile. Geometry remains an authored approximat
 verified factory pipework. No noise is added. Fixed gain preserves excitation differences;
 RMS matching is available for timbre comparison. The candidate browser check covers six
 settings, nine vehicles, two output rates, three RPM settings and open/closed excitation.
+
+The audition UI exposes four combinable sliders for outlet reflection, boundary cutoff,
+propagation attenuation and closed-excitation floor. Displayed values and reset come directly
+from the DSP's shared defaults (-0.68, 4500 Hz, 0.04 Np/m and 0.22). Slider changes take effect
+on the next playback, not during an already rendered three-second clip. The selected setting
+can be checked across all nine vehicles and both output rates. The earlier single-factor
+candidate data remains a regression fixture; sliders replace the candidate selector.
