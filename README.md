@@ -16,6 +16,11 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. See the documentation index for the complete development workflow.
 
+For engine tuning while driving, open `http://localhost:8000/?mode=circuit` and use ENGINE TUNING
+above the game. `http://localhost:8000/tools/audio-browser.html` is the separate audition page;
+serve both over HTTP, rather than opening HTML files directly. See the [audio specification](docs/audio.md)
+for the signal path, parameters and approximation limits.
+
 ## Controls
 
 Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels of displacement produces full input. Keyboard and touch share input arbitration.

@@ -6,6 +6,13 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
+For engine comparison, open `http://localhost:8000/?mode=circuit` to adjust the five ENGINE
+TUNING sliders while driving. The separate audition/verification page is
+`http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
+checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
+delivery path. Rebuild after TypeScript edits, then reload the target page. Reload resets
+session-local tuning. See [audio](audio.md) for signal order and parameter ownership.
+
 ## Validation contracts
 
 Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. Source exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. Dynamic whole-module enumeration alone does not justify a named public API.
@@ -16,7 +23,13 @@ Some tests use explicitly fixed calibration fixtures so a failure can be reprodu
 
 The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Diagnostic input adapters accept the pinned constructor and update signatures; the renderer comparison similarly adapts the old module/function name and call shape. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only; they are not historical equivalence evidence. The immutable reference pins the accepted vehicle force/control law and renderer output before structural cleanup. It is a regression oracle, not a release archive. Keep its SHA in one workflow variable; advance it only with an explicitly reviewed mechanics/rendering contract revision and independent causal tests for the revision. Refactors, API cleanup and tuning must not silently reset this oracle or normalize away differences.
 
-Audio verification uses `node --test tests/audio*.test.mjs` after the build and the [browser audio probe](../tools/audio-browser.html) served over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
+Focused audio verification after building uses:
+
+```sh
+node --test tests/audio*.test.mjs tests/exhaust-waveguide.test.mjs tests/reflection-candidates.test.mjs
+```
+
+This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
 
 For a paired host timing comparison, run `node tools/hot-path-probe.mjs REFERENCE_BUILD dist`. It warms both builds, alternates five pairs and rejects different traces before reporting medians. It includes serialization overhead and does not certify a browser or device frame budget.
 
