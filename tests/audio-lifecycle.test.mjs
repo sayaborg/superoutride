@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAudioLifecycle } from '../dist/browser/audio-lifecycle.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
-import { createPeriodicEngineVoice } from '../dist/audio/periodic-engine-voice.js';
 import { createEngineVoice } from '../dist/audio/engine-voice.js';
 import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -118,7 +117,7 @@ test('engine graph has bounded nodes across thousands of updates and nine profil
     engine.updateRival(state, sound, 0.3, 0.5);
   }
   assert.equal(context.nodes.length, count);
-  assert.equal(context.nodes.filter((n) => n.started).length, 5);
+  assert.equal(context.nodes.filter((n) => n.started).length, 1);
   engine.setVolume(0.3);
   engine.silenceRival();
   engine.dispose();
@@ -127,28 +126,11 @@ test('engine graph has bounded nodes across thousands of updates and nine profil
   assert.ok(context.nodes.filter((n) => n.started).every((n) => n.stopped));
 });
 
-test('periodic profile replacement fades the existing wave before changing its shape', (t) => {
-  install(t);
-  const context = new FakeAudioContext(),
-    voice = createPeriodicEngineVoice(context, context.destination);
-  const state = createVehicleAudioObservation();
-  voice.update(state, VEHICLE_CATALOG[0].sound);
-  const oscillator = context.nodes.find((n) => n.started),
-    first = oscillator.wave;
-  voice.update(state, VEHICLE_CATALOG[1].sound);
-  assert.equal(oscillator.wave, first);
-  context.currentTime = 0.1;
-  voice.update(state, VEHICLE_CATALOG[1].sound);
-  assert.notEqual(oscillator.wave, first);
-  voice.dispose();
-});
-
-test('exhaust topology changes fade before replacement and leaving waveguide releases its DSP state', (t) => {
+test('exhaust topology changes fade before replacement and disposal releases its DSP state', (t) => {
   install(t);
   const context = new FakeAudioContext(),
     voice = createEngineVoice(context, context.destination);
   const state = createVehicleAudioObservation();
-  const periodicOnly = { ...VEHICLE_CATALOG[0].sound, exhaust: undefined };
   const worklet = context.nodes.find((n) => n instanceof FakeAudioWorkletNode);
   voice.update(state, VEHICLE_CATALOG[3].sound);
   assert.equal(worklet.messages.length, 1);
@@ -157,10 +139,24 @@ test('exhaust topology changes fade before replacement and leaving waveguide rel
   context.currentTime = 0.1;
   voice.update(state, VEHICLE_CATALOG[2].sound);
   assert.equal(worklet.messages.at(-1).profile, VEHICLE_CATALOG[2].sound);
-  voice.update(state, periodicOnly);
-  context.currentTime = 0.2;
-  voice.update(state, periodicOnly);
-  assert.equal(worklet.messages.at(-1), null);
   voice.dispose();
   assert.equal(worklet.messages.at(-1), 'stop');
+});
+
+test('engine voice reads one excitation proxy, clamps RPM and never modifies observations', (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createEngineVoice(context, context.destination);
+  const state = { ...createVehicleAudioObservation(), rpm: 0, drive: 0.4, throttle: 1 };
+  const before = structuredClone(state);
+  voice.update(state, VEHICLE_CATALOG[0].sound);
+  assert.deepEqual(state, before);
+  const worklet = context.nodes.find((n) => n instanceof FakeAudioWorkletNode);
+  assert.equal(worklet.parameters.get('rpm').value, state.idleRpm);
+  assert.equal(worklet.parameters.get('load').value, state.drive);
+  voice.update({ ...state, rpm: state.redlineRpm * 2, throttle: 1, drive: 0 }, VEHICLE_CATALOG[0].sound);
+  assert.equal(worklet.parameters.get('rpm').value, state.redlineRpm);
+  assert.equal(worklet.parameters.get('load').value, 0);
+  assert.equal(context.nodes.filter((n) => n.started).length, 0);
+  voice.dispose();
 });

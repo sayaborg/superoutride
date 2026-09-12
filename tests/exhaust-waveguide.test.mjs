@@ -151,3 +151,56 @@ test('every catalog engine has waveguide authoring and Porsche banks fire evenly
     }
   }
 });
+
+test('pulse rise and decay affect waveform shape, beyond a volume multiplier', () => {
+  const sound = VEHICLE_CATALOG[3].sound;
+  const normal = render(sound, 1, true, 96000);
+  for (const pulse of [
+    { ...sound.pulse, riseSeconds: sound.pulse.riseSeconds * 4 },
+    { ...sound.pulse, decaySeconds: sound.pulse.decaySeconds * 0.5 },
+  ]) {
+    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, true, 96000);
+    const ratio = Math.sqrt(energy(normal) / energy(changed));
+    assert.ok(
+      difference(
+        normal,
+        changed.map((x) => x * ratio),
+      ) >
+        energy(normal) * 0.001,
+    );
+  }
+  const closed = render(sound, 0, true, 96000);
+  const ratio = Math.sqrt(energy(normal) / energy(closed));
+  assert.ok(
+    difference(
+      normal,
+      closed.map((x) => x * ratio),
+    ) >
+      energy(normal) * 0.001,
+  );
+});
+
+test('stopping excitation leaves decaying acoustic energy rather than a self-sustaining output', () => {
+  for (const { sound } of profiles) {
+    const synth = new ExhaustWaveguide(sound, 96000);
+    for (let i = 0; i < 96000; i++) synth.sample(3000, 1);
+    for (let i = 0; i < 96000 * 3; i++) synth.sample(0, 0);
+    let peak = 0;
+    for (let i = 0; i < 96000; i++) peak = Math.max(peak, Math.abs(synth.sample(0, 0)));
+    assert.ok(peak < 1e-8, `residual energy: ${peak}`);
+  }
+});
+
+test('RPM changes the settled repetition period while excitation preserves it', () => {
+  const sound = VEHICLE_CATALOG[3].sound,
+    rate = 96000;
+  for (const rpm of [1500, 3000, 6000]) {
+    const synth = new ExhaustWaveguide(sound, rate);
+    for (let i = 0; i < rate * 2; i++) synth.sample(rpm, 0.5);
+    const lag = (rate * 60 * sound.cycleRevolutions) / rpm;
+    const samples = Float64Array.from({ length: lag * 3 }, () => synth.sample(rpm, 0.5));
+    assert.ok(difference(samples.subarray(lag), samples.subarray(0, -lag)) < energy(samples) * 0.001);
+    const wrong = Math.round(lag * 0.9);
+    assert.ok(difference(samples.subarray(wrong), samples.subarray(0, -wrong)) > energy(samples) * 0.01);
+  }
+});

@@ -11,6 +11,7 @@ export interface VehicleAudioObservation {
   readonly idleRpm: number;
   readonly redlineRpm: number;
   readonly throttle: number;
+  /** Delivered-drive fraction times throttle: an acoustic excitation proxy, not cylinder load. */
   readonly drive: number;
   readonly speed: number;
   readonly front: TireAudioObservation;

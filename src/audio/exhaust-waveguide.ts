@@ -1,17 +1,34 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
-/** A lossy travelling wave. Storage and all coefficients are prepared outside render(). */
+// Shared acoustic approximations, not measured gas/valve properties.
+const ACOUSTICS = Object.freeze({
+  waveSpeed: 480, // effective m/s; fixed temperature approximation
+  attenuationPerMeter: 0.04, // amplitude nepers/m, frequency-independent propagation loss
+  returnCutoffHz: 4500, // lumped boundary filtering
+  outletReflection: -0.68,
+  sourceClosedReflection: 0.94,
+  sourceOpenReflection: -0.3,
+  sourceWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
+  closedExcitation: 0.22, // keeps closed-throttle excitation; no fuel-cut simulation
+});
+const CONTROL_SECONDS = 0.025;
+const OUTPUT = Object.freeze({ dcHz: 18, cutoffHz: 7300, ceiling: 0.65 });
+
+/** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
 class Delay {
   private readonly data: Float32Array;
   private position = 0;
-  constructor(length: number) {
+  constructor(
+    length: number,
+    private readonly transmission: number,
+  ) {
     this.data = new Float32Array(Math.max(1, Math.round(length)));
   }
   read(): number {
     return this.data[this.position]!;
   }
   write(value: number): void {
-    this.data[this.position] = value;
+    this.data[this.position] = value * this.transmission;
     this.position = (this.position + 1) % this.data.length;
   }
 }
@@ -32,7 +49,9 @@ export class ExhaustWaveguide {
   private readonly outlet: Float64Array;
   private readonly offsets: Float64Array;
   private readonly smoothing: number;
-  private readonly attack: number;
+  private readonly decay: number;
+  private readonly dcCoefficient: number;
+  private readonly toneCoefficient: number;
   private readonly loss: number;
   private phase = 0;
   private rpm = 1000;
@@ -47,14 +66,14 @@ export class ExhaustWaveguide {
   ) {
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
-    this.banks = exhaust?.banks ?? Array(n).fill(0);
+    this.banks = exhaust.banks;
     const groups = Math.max(...this.banks) + 1;
-    // Effective hot-gas wave speed is an acoustic authoring approximation, in m/s.
-    const distance = (meters: number) => (meters * rate) / 480;
-    this.forward = Array.from({ length: n }, (_, i) => new Delay(distance(exhaust?.lengths[i] ?? 0.55)));
-    this.backward = Array.from({ length: n }, (_, i) => new Delay(distance(exhaust?.lengths[i] ?? 0.55)));
-    this.tails = Array.from({ length: groups }, () => new Delay(distance(exhaust?.outlet ?? 1)));
-    this.returns = Array.from({ length: groups }, () => new Delay(distance(exhaust?.outlet ?? 1)));
+    const pipe = (meters: number) =>
+      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-ACOUSTICS.attenuationPerMeter * meters));
+    this.forward = exhaust.lengths.map(pipe);
+    this.backward = coupled ? exhaust.lengths.map(pipe) : [];
+    this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
+    this.returns = Array.from({ length: groups }, () => pipe(exhaust.outlet));
     this.counts = new Float64Array(groups);
     this.sums = new Float64Array(groups);
     this.junctions = new Float64Array(groups);
@@ -62,32 +81,34 @@ export class ExhaustWaveguide {
     this.pulse = new Float64Array(n);
     this.rise = new Float64Array(n);
     this.wall = new Float64Array(n);
-    // Exhaust blowdown occurs after combustion, with the same authored firing intervals.
-    this.offsets = Float64Array.from(profile.firingPhases, (phase) => (phase + 0.2) % 1);
+    // Phase zero denotes acoustic excitation; no invented combustion-to-valve delay.
+    this.offsets = Float64Array.from(profile.firingPhases);
     for (const bank of this.banks) this.counts[bank]!++;
-    this.smoothing = 1 - Math.exp(-1 / (0.025 * rate));
-    this.attack = 1 - Math.exp(-1 / (0.00018 * rate));
-    this.loss = 1 - Math.exp((-2 * Math.PI * 4500) / rate);
+    this.smoothing = 1 - Math.exp(-1 / (CONTROL_SECONDS * rate));
+    this.decay = Math.exp(-1 / (profile.pulse.decaySeconds * rate));
+    this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
+    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.cutoffHz) / rate);
+    this.loss = 1 - Math.exp((-2 * Math.PI * ACOUSTICS.returnCutoffHz) / rate);
   }
 
-  /** One sample, without allocation. Reflection mode removes valve/junction return coupling. */
+  /** One sample, without allocation. Reflection mode uses a fixed source termination without cylinder return coupling. */
   sample(targetRpm: number, targetLoad: number): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
     const step = this.rpm / (60 * this.profile.cycleRevolutions * this.rate);
     const previous = this.phase;
     this.phase = (this.phase + step) % 1;
-    const decay = Math.exp(-1 / (this.rate * (0.002 + 0.004 * this.load)));
+    // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
+    const excitation = ACOUSTICS.closedExcitation + (1 - ACOUSTICS.closedExcitation) * this.load;
+    const attack = 1 - Math.exp(-excitation / (this.profile.pulse.riseSeconds * this.rate));
     this.sums.fill(0);
-    let combustion = 0;
     for (let i = 0; i < this.forward.length; i++) {
       const offset = this.offsets[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
-      if (crossed) this.pulse[i] = 0.22 + 0.78 * this.load;
-      this.pulse[i]! *= decay;
-      this.rise[i]! += this.attack * (this.pulse[i]! - this.rise[i]!);
-      combustion += this.rise[i]!;
+      if (crossed) this.pulse[i] = this.profile.pulse.strength * excitation;
+      this.pulse[i]! *= this.decay;
+      this.rise[i]! += attack * (this.pulse[i]! - this.rise[i]!);
       this.sums[this.banks[i]!]! += this.forward[i]!.read();
     }
     let exhaust = 0;
@@ -98,27 +119,34 @@ export class ExhaustWaveguide {
       this.junctions[bank] = pressure;
       const out = this.tails[bank]!.read();
       this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(-0.68 * this.outlet[bank]!);
+      this.returns[bank]!.write(ACOUSTICS.outletReflection * this.outlet[bank]!);
       this.tails[bank]!.write(
-        this.coupled ? 0.96 * (pressure - returning) : this.sums[bank]! / this.counts[bank]! + 0.3 * returning,
+        this.coupled
+          ? pressure - returning
+          : this.sums[bank]! / this.counts[bank]! + ACOUSTICS.sourceClosedReflection * returning,
       );
       exhaust += out + this.outlet[bank]!;
     }
     for (let i = 0; i < this.forward.length; i++) {
+      if (!this.coupled) {
+        this.forward[i]!.write(this.rise[i]!);
+        continue;
+      }
       const age = (this.phase - this.offsets[i]! + 1) % 1;
-      const valve = age < 0.23 ? Math.sin((Math.PI * age) / 0.23) : 0;
+      const opening = age < ACOUSTICS.sourceWindowCycles ? Math.sin((Math.PI * age) / ACOUSTICS.sourceWindowCycles) : 0;
       this.wall[i]! += this.loss * (this.backward[i]!.read() - this.wall[i]!);
-      const reflection = 0.94 - 1.24 * valve;
+      const reflection =
+        ACOUSTICS.sourceClosedReflection +
+        (ACOUSTICS.sourceOpenReflection - ACOUSTICS.sourceClosedReflection) * opening;
       const incoming = this.forward[i]!.read();
-      this.forward[i]!.write(this.rise[i]! + (this.coupled ? reflection * this.wall[i]! : 0));
-      this.backward[i]!.write(0.96 * (this.junctions[this.banks[i]!]! - incoming));
+      this.forward[i]!.write(this.rise[i]! + reflection * this.wall[i]!);
+      this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);
     }
-    const raw = exhaust / Math.sqrt(this.tails.length) + combustion * 0.025;
-    this.dc += (1 - Math.exp((-2 * Math.PI * 18) / this.rate)) * (raw - this.dc);
-    const cutoff = 1800 + 5500 * this.load;
-    this.tone += (1 - Math.exp((-2 * Math.PI * cutoff) / this.rate)) * (raw - this.dc - this.tone);
+    const raw = exhaust / Math.sqrt(this.tails.length);
+    this.dc += this.dcCoefficient * (raw - this.dc);
+    this.tone += this.toneCoefficient * (raw - this.dc - this.tone);
     // Smooth, bounded saturation; no table clipping or unconstrained feedback gain.
-    const x = this.tone * (0.9 + 0.5 * this.load);
-    return (0.65 * x) / (1 + Math.abs(x));
+    const x = this.tone;
+    return (OUTPUT.ceiling * x) / (1 + Math.abs(x));
   }
 }

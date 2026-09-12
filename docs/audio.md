@@ -19,57 +19,67 @@ surfaces or repeat contact/tire solves.
 ## Synthesis
 
 There are no recordings, audio assets or PCM loops. The [engine voice](../src/audio/engine-voice.ts)
-selects synthesis from authored exhaust topology, never vehicle IDs. All nine catalog engines have experimental topology; the previous
-[periodic body/crack voice](../src/audio/periodic-engine-voice.ts) remains a listening
-reference and fallback for profiles without topology. These are listening candidates,
-not calibrated replicas. Authored primary/outlet lengths
-and effective hot-gas wave speed are acoustic approximations, not measured dimensions.
+uses one waveguide path for every vehicle, with no inactive legacy oscillators or vehicle-ID branches.
+The [profile](../src/audio/vehicle-audio-profile.ts) has three concepts:
 
-The Porsche six uses alternating banks, with 120-degree global firing intervals and
-240-degree intervals within each bank. Its 1-6-2-4-3-5 firing order is also illustrated
-in [Porsche’s engine model article](https://newsroom.porsche.com/christophorus/en/2017/383/model-kit-refinement-boxer-911.html).
-Separate banks do not by themselves produce uneven firing. The current independent
-outlets omit downstream bank merging and turbo behavior; the RC30 and BMW collector
-groupings are also acoustic sketches. The Vespa retains its 360-degree firing cycle,
-but uses the common excitation/reflection model, not a tuned expansion-chamber model.
+- Firing: cycle revolutions (1 or 2) and ordered firing phases; the phase count is the cylinder count.
+- Pipes: collector membership, primary lengths and a common outlet length for each collector.
+- Pulse: relative strength, full-excitation rise time and decay time in seconds.
 
-The [exhaust model](../src/audio/exhaust-waveguide.ts) owns one forward and backward delay
-per cylinder and one outlet/return pair per exhaust bank. Equal-admittance scattering
-at the collector sends returning pressure toward other ports. Valve opening changes
-cylinder-end reflection; outlet reflection is negative and filtered. Loss at boundaries
-keeps the feedback network dissipative. This is an acoustic network, not gas-flow or
-thermodynamic simulation. The optional simple-reflection comparison removes the
-valve/junction return coupling while preserving excitation and pipe delay.
+Firing intervals represent engine configuration. Pipe lengths, grouping details and pulse values
+are acoustic sketches, not manufacturer measurements. Pulse amplitude is dimensionless, not Pa;
+there is no calculated cylinder pressure, gas mass flow, torque or temperature.
+The compiler validates resource bounds and freezes private copies of all authored arrays/objects.
+Legacy periodic-body/crack parameters and synthesis have been removed from the production contract.
 
-Authored firing intervals drive exhaust blowdown with a common 0.2-cycle offset.
-Each firing excites a smoothed decaying pulse with load-dependent amplitude and decay.
-A small direct combustion pulse is mixed with the reflected exhaust. This pulse-only
-evaluation removes flow/intake noise and random firing-strength variation; there is no full intake waveguide, muffler chamber
-network, turbo, fuel-cut or backfire model. DC removal, low-pass filtering and bounded
-soft saturation follow the pipe output. Two acoustic steps per output sample reduce
-firing quantization; averaging is a simple decimator, not a complete antialiasing solution.
+The [exhaust model](../src/audio/exhaust-waveguide.ts) uses bidirectional primary and outlet delays.
+Propagation delay is rounded to the nearest internal sample using a fixed effective wave speed.
+Each traversal applies amplitude transmission `exp(-alpha * length)`. The shared alpha is a
+phenomenological frequency-independent loss per meter, not a measured thermoviscous coefficient.
+This replaces arbitrary loss per junction: subdivision preserves the analytic transmission law.
+Collector scattering uses `p = 2 * sum(incoming) / portCount`, then `outgoing = p - incoming`.
+This is the [lossless equal-admittance junction](https://www.dsprelated.com/freebooks/pasp/Lossless_Scattering.html),
+assuming identical characteristic admittance for all ports; no actual pipe diameters are modeled.
 
-The [processor](../src/audio/exhaust-processor.ts) is registered by the existing noise
-module's static import. Its audio-rate loop allocates no objects. Profile messages
-prepare delay storage; every block reads RPM/load AudioParams. Invalid profiles silence
-the processor, stop releases its model, and inactive slots render zero. Switching topology
-fades down before resetting acoustic state. The periodic fallback keeps its own tested
-waveform fade. No allocations are made per firing and no source nodes are created per tick.
+The source boundary has a periodic, bounded reflection envelope. Its window and endpoint
+coefficients are explicitly shared approximations, NOT measured valve timing, valve lift or
+impedance. Phase zero denotes acoustic excitation; the old arbitrary combustion-to-exhaust phase
+shift has been removed. The negative, filtered outlet reflection is also an approximation.
+These boundary filters and coefficients remain named common constants, not per-vehicle knobs.
+The sum of outgoing and low-passed outgoing waves is a fixed listening pickup, not a physical
+microphone position or computed far-field radiation. Bank normalization is an output mixing choice.
 
-Physics remains authoritative for RPM. Idle/redline bounds affect sound only. Load is
-still a presentation proxy combining actuator throttle and delivered/requested torque,
-not cylinder pressure. Audio smooths these inputs without writing to physics. No separate
-crank acceleration, gearing or torque simulation is introduced.
+One smoothed excitation proxy controls only pulse amplitude and rise time: closed excitation
+retains a shared nonzero floor, and increasing excitation makes the pulse stronger and faster.
+Decay time is authored and fixed. No extra load-dependent output filter or saturation drive is
+applied, and no direct combustion bypass or stochastic noise is mixed into the engine output.
+The gameplay adapter supplies delivered-drive fraction times actuator throttle (`drive`); this is
+an acoustic control proxy, not `engineTorque / maxTorque(RPM)` or measured cylinder load.
+Audio observes RPM and clamps to idle/redline without writing to physics. DC removal, fixed output
+low-pass filtering and bounded soft saturation are output conditioning, not engine thermodynamics.
+Constant filter/decay coefficients and pipe transmission are prepared once per profile.
+Two acoustic steps per output sample remain; averaging is a simple decimator, not complete antialiasing.
 
-The prior [combustion compiler](../src/audio/combustion-pulse.ts) remains in use by the
-periodic fallback and listening reference. It prepares bounded, DC-free Fourier pulse
-coefficients; Web Audio owns band-limited playback. That model's exact periodicity
-requirement applies only to the periodic voice. The pulse-only exhaust also has
-causal topology, load, determinism and bounded-feedback tests. Firing phases are unchanged.
+The Porsche six alternates banks, with 120-degree global and 240-degree per-bank intervals;
+see [Porsche's firing-order illustration](https://newsroom.porsche.com/christophorus/en/2017/383/model-kit-refinement-boxer-911.html).
+Separate banks do not imply uneven firing. Downstream bank merging and turbo behavior are absent.
+RC30/BMW collector groupings are sketches. The Vespa uses a 360-degree firing cycle but shares the
+empirical boundary model; there is no tuned expansion chamber or port-flow simulation.
+Intake waveguides, full muffler chambers, fuel cut and backfire are not implemented.
 
-The design is informed by [Baldan et al.](https://doi.org/10.1109/SIVE.2015.7361287)
-and the openly inspectable [enginesound implementation](https://github.com/DasEtwas/enginesound).
-The compact implementation here uses no imported audio assets or third-party source code.
+The [processor](../src/audio/exhaust-processor.ts) is registered through the existing noise module's
+static import. It allocates no objects in the render loop. Profile messages prepare delay storage;
+invalid profiles silence the processor, inactive slots output zero, and stop releases the model.
+Voice replacement fades before acoustic state reset. Simple-reflection audition uses a fixed
+source reflection at each outlet and omits primary return buffers and their per-cylinder work;
+it is a comparison model, not an equivalent version of the coupled waveguide.
+
+The accepted earlier waveguide is retained only as an executable [listening reference](../tools/waveguide-reference.mjs),
+loaded by a diagnostic worklet from the comparison page. It preserves the earlier DSP equations
+and output gain convention, using the selected current pipe/firing configuration. The game never
+imports it. Prior Fourier/body-crack tests are superseded with waveguide pulse/RPM/load,
+periodicity, stability and observation-boundary regressions; their implementation-specific
+harmonic and fallback-switch requirements no longer apply to the single-path production voice.
 
 The [tire voice](../src/audio/tire-voice.ts) aggregates front/rear observations into
 rolling noise, friction noise and a weak resonant squeal tone. Rolling sound depends on
@@ -86,8 +96,8 @@ is low-pass noise with squared speed-dependent gain; it remains audible in fligh
 ## Mixing and lifetime
 
 The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots,
-one aggregate tire voice and wind. This means five fallback/tire oscillators, two exhaust worklets and one noise worklet,
-regardless of the number of game actors. Inactive fallback oscillators remain allocated;
+one aggregate tire voice and wind. This means one tire oscillator, two exhaust worklets and one noise worklet,
+regardless of the number of game actors;
 unused exhaust processors render zero. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.
@@ -112,7 +122,7 @@ browser composes audio and physical observations. Physics never imports audio.
 
 ## Verification and limits
 
-[Audio tests](../tests/audio.test.mjs) cover firing spectra, authoring validation,
+[Audio tests](../tests/audio.test.mjs) cover authoring validation,
 RPM/load causality, stationary/airborne/loose-surface tire behavior, actual wheel-solve
 observation and recovery, nearest-rival selection and continuous worklet output.
 [Lifecycle tests](../tests/audio-lifecycle.test.mjs) cover single-flight gesture startup,
@@ -122,8 +132,8 @@ load, deterministic rendering and sustained feedback stability.
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
 response at open and closed throttle. It also offers a three-second
-comparison of the prior body/crack graph, simple pipe reflection and coupled waveguides
-at the same selected RPM/throttle, plus an acceleration/coast sequence. Exact-period tests apply only to the periodic fallback.
+comparison of the accepted earlier waveguide, simple pipe reflection and the revised coupled waveguide
+at the same selected RPM/throttle, plus an acceleration/coast sequence. Settled-cycle regressions cover every vehicle and five excitation levels.
 Fixed gain is the default for load evaluation; optional RMS matching compares timbre
 between methods. Quarter-throttle settings allow intermediate load evaluation.
 The comparison is diagnostic only; its PCM buffers are test output, never game sound assets.

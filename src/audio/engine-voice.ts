@@ -1,6 +1,5 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
-import { createPeriodicEngineVoice } from './periodic-engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -14,16 +13,13 @@ export function createEngineVoice(
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
-  const periodic = createPeriodicEngineVoice(context, output);
   const exhaust = new AudioWorkletNode(context, 'exhaust-waveguide', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialProfile?.exhaust ? { profile: initialProfile, coupled } : undefined,
+    processorOptions: initialProfile ? { profile: initialProfile, coupled } : undefined,
   });
-  const level = context.createGain();
-  level.gain.value = 0;
-  exhaust.connect(level).connect(output);
+  exhaust.connect(output);
   let active: VehicleAudioProfile | null = initialProfile ?? null;
   let pending: VehicleAudioProfile | null = null;
   let switchAt = 0;
@@ -39,29 +35,20 @@ export function createEngineVoice(
         if (now < switchAt) return;
       } else pending = null;
       if (active !== profile) {
-        exhaust.port.postMessage(profile.exhaust ? { profile, coupled } : null);
+        exhaust.port.postMessage({ profile, coupled });
         active = profile;
       }
-      if (profile.exhaust) {
-        periodic.silence();
-        follow(exhaust.parameters.get('rpm')!, clamp(state.rpm, state.idleRpm, state.redlineRpm), now);
-        follow(exhaust.parameters.get('load')!, clamp(0.7 * state.throttle + 0.3 * state.drive, 0, 1), now);
-        follow(level.gain, profile.gain / 0.32, now);
-      } else {
-        follow(level.gain, 0, now);
-        periodic.update(state, profile);
-      }
+      follow(exhaust.parameters.get('rpm')!, clamp(state.rpm, state.idleRpm, state.redlineRpm), now);
+      follow(exhaust.parameters.get('load')!, clamp(state.drive, 0, 1), now);
       follow(output.gain, clamp(gain, 0, 1), now);
     },
     silence(): void {
       follow(output.gain, 0, context.currentTime, 0.015);
     },
     dispose(): void {
-      periodic.dispose();
       exhaust.port.postMessage('stop');
       exhaust.port.close();
       exhaust.disconnect();
-      level.disconnect();
       output.disconnect();
     },
   };
