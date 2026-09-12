@@ -289,7 +289,7 @@
             throttle: Number(document.getElementById('load').value),
             drive: Number(document.getElementById('load').value),
           });
-          await context.audioWorklet.addModule(new URL('../dist/audio/noise-processor.js', import.meta.url));
+          await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
           const voice = createEngineVoice(context, context.destination, {
             profile: entry.sound,
             coupled: selected.coupled,
@@ -368,7 +368,7 @@
                 [rpm, 1],
               ])) {
                 const context = new OfflineAudioContext(1, sampleRate / 2, sampleRate);
-                await context.audioWorklet.addModule(new URL('../dist/audio/noise-processor.js', import.meta.url));
+                await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
                 const voice = createEngineVoice(context, context.destination, {
                   profile: entry.sound,
                   coupled: selected.coupled,

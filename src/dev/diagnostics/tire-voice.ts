@@ -1,6 +1,6 @@
-import { clamp } from '../core/math.js';
-import { follow } from './audio-parameter.js';
-import type { TireAudioObservation, VehicleAudioObservation } from './vehicle-audio-observation.js';
+import { clamp } from '../../core/math.js';
+import { follow } from '../../audio/audio-parameter.js';
+import type { TireAudioObservation, VehicleAudioObservation } from '../../audio/vehicle-audio-observation.js';
 
 const MATERIAL = {
   ASPHALT: { rolling: 0.35, squeal: 1, cutoff: 900 },

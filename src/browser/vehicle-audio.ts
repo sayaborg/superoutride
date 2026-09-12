@@ -18,9 +18,8 @@ export function createVehicleAudioObservation(): Observation {
   return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, throttle: 0, drive: 0, speed: 0, front: tire(), rear: tire() };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
-export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
+export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation): void {
   const { control, powertrain, profile } = vehicle;
-  const tires = observeVehicleTires(vehicle);
   result.rpm = powertrain.engineRpm;
   result.idleRpm = profile.powertrain.idleRpm;
   result.redlineRpm = profile.powertrain.redlineRpm;
@@ -30,6 +29,13 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
       ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) * result.throttle
       : 0;
   result.speed = vehicle.speed;
+}
+
+/** Optional tire prototype consumer; the engine-only game does not subscribe to tire telemetry. */
+export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
+  readEngineAudio(vehicle, result);
+  const tires = observeVehicleTires(vehicle);
+  const { control } = vehicle;
   result.front.load = vehicle.frontNormalLoad;
   result.front.rollingSpeed = tires.front.rollingSpeed;
   result.front.slipSpeed = tires.front.slipSpeed;

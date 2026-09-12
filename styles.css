@@ -503,6 +503,7 @@ body {
 }
 
 .selector-group-sound {
+  flex-wrap: wrap;
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
@@ -519,4 +520,10 @@ body {
   width: 110px;
   min-width: 0;
   accent-color: #78e1c7;
+}
+
+#sound-method {
+  min-width: 120px;
+  min-height: 32px;
+  padding: 2px 6px;
 }

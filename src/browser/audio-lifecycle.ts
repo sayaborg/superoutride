@@ -1,11 +1,12 @@
 import { createAudioEngine } from '../audio/audio-engine.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
-import { createVehicleAudioObservation, readVehicleAudio, nearestAudibleRival } from './vehicle-audio.js';
+import { createVehicleAudioObservation, readEngineAudio, nearestAudibleRival } from './vehicle-audio.js';
 
 /** DOM and permission lifecycle. Construction never creates an AudioContext. */
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
+  const methodControl = document.getElementById('sound-method') as HTMLSelectElement | null;
   const volumeControl = document.getElementById('sound-volume') as HTMLInputElement | null;
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
@@ -33,6 +34,7 @@ export function createAudioLifecycle() {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
     if (!context || !engine) return;
+    engine.setCoupled(methodControl?.value !== 'reflection');
     engine.setVolume(audible() ? volume : 0);
     if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
     else if (!enabled)
@@ -91,6 +93,14 @@ export function createAudioLifecycle() {
     if (enabled) unlock();
     sync();
   }
+  function changeMethod(): void {
+    unlock();
+    sync();
+  }
+  function methodKey(event: Event): void {
+    // Let the native select use arrow keys without steering/accelerating the vehicle.
+    event.stopPropagation();
+  }
   function changeVolume(): void {
     const value = Number(volumeControl?.value);
     if (Number.isFinite(value)) volume = Math.max(0, Math.min(1, value / 100));
@@ -126,6 +136,8 @@ export function createAudioLifecycle() {
     document.removeEventListener('visibilitychange', visibility);
     button?.removeEventListener('click', toggle);
     volumeControl?.removeEventListener('input', changeVolume);
+    methodControl?.removeEventListener('change', changeMethod);
+    methodControl?.removeEventListener('keydown', methodKey);
     engine?.dispose();
     engine = null;
     if (context && !loading) void context.close().catch(() => {});
@@ -137,10 +149,12 @@ export function createAudioLifecycle() {
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
   volumeControl?.addEventListener('input', changeVolume);
+  methodControl?.addEventListener('change', changeMethod);
+  methodControl?.addEventListener('keydown', methodKey);
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
-      readVehicleAudio(player, playerState);
+      readEngineAudio(player, playerState);
       engine.update(playerState, vehicleCatalogEntryForId(player.profile.id).sound);
       const nearest = nearestAudibleRival(player, actors);
       if (nearest !== nextRival) {
@@ -154,7 +168,7 @@ export function createAudioLifecycle() {
         engine.silenceRival();
         return;
       }
-      readVehicleAudio(rival, rivalState);
+      readEngineAudio(rival, rivalState);
       const dx = rival.x - player.x,
         dy = rival.y - player.y,
         dz = rival.z - player.z;

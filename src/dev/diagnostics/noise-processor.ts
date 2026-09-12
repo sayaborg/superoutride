@@ -1,4 +1,3 @@
-import './exhaust-processor.js';
 // AudioWorklet global declarations are not included in TypeScript's DOM library.
 declare const AudioWorkletProcessor: {
   new (): { readonly port: MessagePort };

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { observeVehicleTires } from '../dist/physics/vehicle-tire-observation.js';
-import { tireParameters } from '../dist/audio/tire-voice.js';
+import { tireParameters } from '../dist/dev/diagnostics/tire-voice.js';
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createVehicleAudioObservation, readVehicleAudio, nearestAudibleRival } from '../dist/browser/vehicle-audio.js';
@@ -112,7 +112,7 @@ test('noise worklet generates continuous independent streams at arbitrary block 
     Processor = value;
   };
   try {
-    await import('../dist/audio/noise-processor.js');
+    await import('../dist/dev/diagnostics/noise-processor.js');
     const noise = new Processor();
     const a = Array.from({ length: 3 }, () => [new Float32Array(128)]);
     const b = Array.from({ length: 3 }, () => [new Float32Array(256)]);

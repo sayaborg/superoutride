@@ -7,8 +7,9 @@ contact load and tire utilization. Audio owns oscillator phase, envelopes and fi
 never vehicle motion, gearing, race progress or a second engine simulation.
 
 The [consumer contract](../src/audio/vehicle-audio-observation.ts) contains only acoustic
-inputs. The [browser adapter](../src/browser/vehicle-audio.ts) copies the latest completed
-observations into two reusable slots once per presented frame, not once per catch-up tick.
+inputs. The [browser adapter](../src/browser/vehicle-audio.ts) copies engine observations into two reusable
+slots once per presented frame, not once per catch-up tick. `readEngineAudio` does not subscribe to
+tire telemetry; `readVehicleAudio` remains the separate consumer for the deferred tire prototype.
 Physics publishes final wheel-solve rolling speed, slip speed and surface through an
 [optional read-only observation channel](../src/physics/vehicle-tire-observation.ts).
 The first reader subscribes; the next completed tick supplies data. A WeakMap owns these
@@ -67,31 +68,29 @@ RC30/BMW collector groupings are sketches. The Vespa uses a 360-degree firing cy
 empirical boundary model; there is no tuned expansion chamber or port-flow simulation.
 Intake waveguides, full muffler chambers, fuel cut and backfire are not implemented.
 
-The [processor](../src/audio/exhaust-processor.ts) is registered through the existing noise module's
-static import. It allocates no objects in the render loop. Profile messages prepare delay storage;
+The [processor](../src/audio/exhaust-processor.ts) is registered directly by the audio engine and audition page. It allocates no objects in the render loop. Profile messages prepare delay storage;
 invalid profiles silence the processor, inactive slots output zero, and stop releases the model.
 Voice replacement fades before acoustic state reset. Simple-reflection audition uses a fixed
 source reflection at each outlet and omits primary return buffers, source-boundary filter state,
 collector-pressure state/calculation and the second cylinder pass;
 it is a comparison model, not an equivalent version of the coupled waveguide.
 
-The [tire voice](../src/audio/tire-voice.ts) aggregates front/rear observations into
+The deferred tire/noise prototypes live under `src/dev/diagnostics` with regression consumers;
+production audio does not import them. The [tire voice](../src/dev/diagnostics/tire-voice.ts), disconnected from the current game, aggregates front/rear observations into
 rolling noise, friction noise and a weak resonant squeal tone. Rolling sound depends on
 load, rolling speed and physical surface. Friction/squeal additionally require actual
 slip speed and tire utilization. Unsupported stations and stationary, nonslipping tires
 are silent. Loose surfaces reduce tonal squeal and increase rolling noise. These are
 presentation mappings, not another friction law or a new interpretation of grip.
 
-One [noise worklet](../src/audio/noise-processor.ts) continuously generates three
-independent deterministic pseudorandom streams for rolling, friction and wind. Its
-render loop allocates no objects and accepts the browser's actual block length. Wind
-is low-pass noise with squared speed-dependent gain; it remains audible in flight.
+The deferred [noise worklet](../src/dev/diagnostics/noise-processor.ts) generates three independent
+deterministic pseudorandom streams. It remains independently tested but is not registered or
+instantiated by the game. Tire, squeal and wind output are postponed; no silent noise graph runs.
 
 ## Mixing and lifetime
 
-The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots,
-one aggregate tire voice and wind. This means one tire oscillator, two exhaust worklets and one noise worklet,
-regardless of the number of game actors;
+The [audio engine](../src/audio/audio-engine.ts) has only fixed player and rival engine slots:
+two exhaust worklets and no oscillators or noise worklets, regardless of the number of game actors;
 unused exhaust processors render zero. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.
@@ -106,7 +105,12 @@ The [browser lifecycle](../src/browser/audio-lifecycle.ts) constructs AudioConte
 on a user gesture. The SOUND button mutes/unmutes and VOL controls master volume.
 Hidden tabs and stopped shells suspend audio; mute fades before suspension. Resume,
 module-loading failure, late initialization, page cache restoration and disposal are
-handled without preventing gameplay. Browsers without AudioWorklet remain playable
+handled without preventing gameplay. The game's ENGINE A/B selector uses the same `coupled` choice
+as the audition. It changes both engine slots, preserves node counts and passes through the existing
+90 ms fade before resetting acoustic state. Profile and topology changes share one pending target;
+rapid superseding choices cannot apply a stale target. Selection made while loading, muted or
+suspended applies when rendering resumes. Native selector keys do not reach driving-key handlers.
+No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
 
 The worklet is resolved relative to import.meta.url, preserving complete commit-versioned
@@ -142,10 +146,11 @@ not a browser scheduling, end-to-end graph or mobile performance certification.
 
 ## Temporary method selection and shared tuning
 
-The audition selector offers exactly `reflection` and `waveguide`. Both are temporary candidates;
+The game and audition selectors offer exactly `reflection` and `waveguide`. Both are temporary candidates;
 only one will be adopted. The selector maps to the core's `coupled` topology choice at voice
-construction, not inside the per-sample loop. Switching stops the current audition; Play creates
-one selected voice. The game retains its present default until adoption.
+construction or a faded replacement, not inside the per-sample loop. Switching stops the current
+audition; Play creates one selected voice. The game starts with waveguide and switches its two
+existing slots without reconstruction of the audio graph. No permanent method is adopted yet.
 
 Both choices use the same production voice/worklet, observations, authoring and validated tuning.
 There is no separate audition DSP wrapper, old-waveguide reference or generated-waveform bank.
@@ -258,7 +263,7 @@ do not maintain two copies or add a permanent method/plugin framework.
 - Adopt reflection: remove primary returns, source filter, collector pressure and the second
   cylinder pass; keep the single-pass primary write and fixed-return collector branch. Remove
   source-open/window coefficients, which are then unused.
-- In either case, remove `coupled` options and the audition selector/description, specialize the
+- In either case, remove `coupled` options/setters and both selectors/descriptions, specialize the
   remaining kernel, and remove only rejected-method comparison assertions. Retain remaining
   geometry, RPM/load, tuning, stability and lifecycle coverage. No physics or vehicle authoring
   migration is needed. Revalidate the chosen waveform before adoption.

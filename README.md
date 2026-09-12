@@ -22,7 +22,7 @@ Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens,
 
 Use the selectors for vehicle, course and calibration. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. All engine, tire and wind sounds are synthesized without recordings; only the nearest rival engine is audible.
+Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. ENGINE A/B selects REFLECTION or WAVEGUIDE while driving. This is a temporary comparison; only one method will be retained. Only player and nearest-rival engines are currently audible, synthesized without recordings. Tire/squeal and wind prototypes are disconnected until their next implementation step.
 
 See [current calibration values and meanings](docs/calibration.md).
 
