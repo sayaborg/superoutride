@@ -17,7 +17,13 @@ const attenuation =
     (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-export const DEFAULT_REFLECTION_TUNING = Object.freeze({
+interface ReflectionTuning {
+  readonly attenuationPerMeter: number;
+  readonly returnCutoffHz: number;
+  readonly outletReflection: number;
+  readonly closedExcitation: number;
+}
+export const DEFAULT_REFLECTION_TUNING: ReflectionTuning = Object.freeze({
   // Rounded to slider resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
   attenuationPerMeter: Math.round(attenuation * 100) / 100,
   // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.

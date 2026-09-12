@@ -20,9 +20,9 @@ Open `http://localhost:8000/`. See the documentation index for the complete deve
 
 Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels of displacement produces full input. Keyboard and touch share input arbitration.
 
-Use the selectors for vehicle, course and calibration. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
+Use the selectors for vehicle, course and calibration. D, M and ACT use minus/value/plus controls; each step wraps at its range limit. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. ENGINE A/B selects REFLECTION or WAVEGUIDE while driving. This is a temporary comparison; only one method will be retained. Only player and nearest-rival engines are currently audible, synthesized without recordings. Tire/squeal and wind prototypes are disconnected until their next implementation step.
+Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. ENGINE A/B selects REFLECTION or WAVEGUIDE while driving. ENGINE TUNING exposes the same four provisional coefficients as the audition page; releasing a slider applies it after a short fade. Reset restores shared defaults. This is a temporary comparison; only one method will be retained. Only player and nearest-rival engines are currently audible, synthesized without recordings. Tire/squeal and wind prototypes are disconnected until their next implementation step.
 
 See [current calibration values and meanings](docs/calibration.md).
 

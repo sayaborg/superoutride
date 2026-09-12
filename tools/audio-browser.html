@@ -18,6 +18,16 @@
         margin-block: 1em;
         overflow-x: auto;
       }
+      .audio-tuning-row {
+        display: grid;
+        grid-template-columns: 10em minmax(120px, 360px) 10em;
+        gap: 8px;
+        align-items: center;
+        margin-block: 12px;
+      }
+      .audio-tuning-row input {
+        width: 100%;
+      }
     </style>
     <title>Procedural audio verification</title>
   </head>
@@ -74,7 +84,6 @@
       </p>
       <p id="reference-conditions"></p>
       <div id="tuning-sliders"></div>
-      <button id="tuning-reset" type="button">デフォルトに戻す</button>
       <p id="boundary-conditions"></p>
       <p id="output-conditions"></p>
     </fieldset>
@@ -104,13 +113,8 @@
     <button id="run" type="button">選択した方式・設定を全車種で検証</button>
     <pre id="result">Ready</pre>
     <script type="module">
-      import {
-        DEFAULT_REFLECTION_TUNING,
-        REFLECTION_REFERENCE,
-        ACOUSTICS,
-        CONTROL_SECONDS,
-        OUTPUT,
-      } from '../dist/audio/exhaust-acoustics.js';
+      import { REFLECTION_REFERENCE, ACOUSTICS, CONTROL_SECONDS, OUTPUT } from '../dist/audio/exhaust-acoustics.js';
+      import { mountAudioTuningControls } from '../dist/browser/audio-tuning-controls.js';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
       import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
@@ -129,87 +133,8 @@
         `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。簡易反射は閉端側を固定で使い、ウェーブガイドは気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
       document.getElementById('output-conditions').textContent =
         `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms、DC除去 ${OUTPUT.dcHz} Hz、出力帯域 ${OUTPUT.cutoffHz} Hz、振幅上限 ${OUTPUT.ceiling}。排気の物理量とは区別します。`;
-      const controls = [
-        [
-          'outletReflection',
-          '出口の反射係数',
-          -1,
-          0,
-          0.01,
-          '',
-          '低周波の圧力反射係数。開放端の極限は−1（反転して反射）、0は出口反射なしです。',
-        ],
-        [
-          'returnCutoffHz',
-          '反射波の高域上限',
-          500,
-          10000,
-          100,
-          'Hz',
-          '一次ローパス、約−6 dB/oct。開放端の低周波特性に合わせた近似です。気筒側の反射フィルターにも共用します。',
-        ],
-        [
-          'attenuationPerMeter',
-          '距離あたりの減衰',
-          0,
-          0.3,
-          0.01,
-          'Np/m',
-          '振幅は距離Lに対し exp(−αL) で減衰します。実際の周波数依存損失を定数で近似しています。',
-        ],
-        [
-          'closedExcitation',
-          '全閉時の励振',
-          0.01,
-          1,
-          0.01,
-          '',
-          '全閉時に残す励振の割合。パルスの強さと立ち上がりを変える音作りの設定で、実測の燃焼圧力ではありません。',
-        ],
-      ];
-      const sliders = new Map();
-      for (const [key, title, min, max, step, unit, explanation] of controls) {
-        const row = document.createElement('p');
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        const output = document.createElement('output');
-        const hint = document.createElement('small');
-        input.type = 'range';
-        input.id = key;
-        input.min = min;
-        input.max = max;
-        input.step = step;
-        input.value = DEFAULT_REFLECTION_TUNING[key];
-        input.style.width = 'min(360px, 60vw)';
-        label.htmlFor = key;
-        label.textContent = title + ' ';
-        output.htmlFor = key;
-        input.oninput = () => {
-          output.textContent = ` ${input.value} ${unit}${key === 'outletReflection' && Number(input.value) === 0 ? '（出口反射なし）' : ''}`;
-        };
-        input.oninput();
-        hint.textContent = explanation;
-        row.append(label, document.createElement('br'), input, output, document.createElement('br'), hint);
-        if (key === 'outletReflection') {
-          const zero = document.createElement('button');
-          zero.type = 'button';
-          zero.textContent = '反射なし（0）';
-          zero.onclick = () => {
-            input.value = '0';
-            input.oninput();
-          };
-          row.append(document.createTextNode(' '), zero);
-        }
-        document.getElementById('tuning-sliders').append(row);
-        sliders.set(key, input);
-      }
-      const readTuning = () => Object.fromEntries([...sliders].map(([key, input]) => [key, Number(input.value)]));
-      document.getElementById('tuning-reset').onclick = () => {
-        for (const [key, input] of sliders) {
-          input.value = DEFAULT_REFLECTION_TUNING[key];
-          input.oninput();
-        }
-      };
+      const tuningControls = mountAudioTuningControls(document.getElementById('tuning-sliders'), () => {});
+      const readTuning = tuningControls.read;
       function showVehicleData() {
         const { sound, profile } = VEHICLE_CATALOG[Number(vehicle.value)];
         const cycleDegrees = sound.cycleRevolutions * 360;

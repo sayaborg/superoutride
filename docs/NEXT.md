@@ -11,7 +11,8 @@
 Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). [Tunnel content](../src/dev/courses/tunnel.ts) owns concrete placements and materials. Presentation consumes vehicle/course observations without adding another physical state or depth rule.
 
 The [procedural audio layer](audio.md) currently connects player and nearest-rival engines only. Tire/squeal and wind prototypes are disconnected; their refinement/reconnection is the next sound task. No sampled audio is used. Game and audition selectors temporarily compare optimized simple reflection
-and waveguide with provisional shared coefficients; adopt only one and remove the other using
+and waveguide with provisional shared coefficients. Both expose the same four tuning sliders;
+the game commits changes on release. D/M/ACT use compact minus/value/plus controls with unchanged ranges. Adopt only one and remove the other using
 the procedure in [audio](audio.md). Speaker listening, acoustic tuning and Safari/iOS/target-phone performance acceptance remain open. Game-event sounds and music are not implemented. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
 
 ## Remaining limits

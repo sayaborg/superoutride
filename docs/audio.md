@@ -107,9 +107,9 @@ Hidden tabs and stopped shells suspend audio; mute fades before suspension. Resu
 module-loading failure, late initialization, page cache restoration and disposal are
 handled without preventing gameplay. The game's ENGINE A/B selector uses the same `coupled` choice
 as the audition. It changes both engine slots, preserves node counts and passes through the existing
-90 ms fade before resetting acoustic state. Profile and topology changes share one pending target;
+90 ms fade before resetting acoustic state. Profile, topology and committed coefficient changes share one pending target;
 rapid superseding choices cannot apply a stale target. Selection made while loading, muted or
-suspended applies when rendering resumes. Native selector keys do not reach driving-key handlers.
+suspended applies when rendering resumes. Native selector and tuning-slider keys do not reach driving-key handlers.
 No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
 
@@ -157,12 +157,16 @@ There is no separate audition DSP wrapper, old-waveguide reference or generated-
 Those retired experiments and their experiment-only tests remain retrievable in Git; the live
 DSP's causal/periodic/stability tests remain in force.
 
-The audition UI exposes four combinable sliders for outlet reflection, boundary cutoff,
+Game and audition use one [tuning control](../src/browser/audio-tuning-controls.ts) for four combinable sliders for outlet reflection, boundary cutoff,
 propagation attenuation and closed-excitation floor. Displayed values and reset come directly
 from the DSP's shared defaults (-1, 3100 Hz, 0.03 Np/m and 0.22). Outlet reflection includes
-zero at the right endpoint and a dedicated zero button; the readout explicitly labels no outlet
-reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
-Slider changes take effect on the next playback, not during an already rendered clip.
+zero at the right endpoint; the readout explicitly labels no outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
+Input updates the readout; release (or a keyboard step) commits a coefficient snapshot. In the
+game it uses the same 90 ms fade as method/profile replacement and affects both fixed engine
+slots. No acoustic buffers are rebuilt while dragging. A selection made before initialization
+or while muted is retained. Method and vehicle changes preserve tuning, and reset restores
+the shared defaults. The audition uses the committed values on its next playback, not during
+an already rendered clip. Settings are session-local; a page/course reload restores defaults.
 The selected setting can be checked across all nine vehicles and both output rates.
 [Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
 The production worklet accepts validated optional coefficient overrides in initial options and

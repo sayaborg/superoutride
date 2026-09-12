@@ -210,7 +210,7 @@ test('mobile M D and symmetric-response buttons expose the current choices', () 
   );
 });
 
-test('mobile selector taps publish canonical selections and expose exactly one active button', () => {
+test('mobile selectors publish canonical choices and numeric steppers display the active value', () => {
   const fakeDocument = selectorDocument;
   const courseContainer = new SelectorElement();
   let selectedCourse = null;
@@ -252,10 +252,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     },
     fakeDocument,
   );
-  offsetContainer.children[10].click();
-  assert.ok(Math.abs(selectedOffset - 20 * DEG) < 1e-12);
+  offsetContainer.children[0].children[2].click();
+  assert.ok(Math.abs(selectedOffset - 13 * DEG) < 1e-12);
   offsetController.setActive(selectedOffset);
-  assert.equal(offsetContainer.children[10].attributes.get('aria-pressed'), 'true');
+  assert.equal(offsetContainer.children[0].children[1].textContent, '13°');
 
   const maxContainer = new SelectorElement();
   let selectedMax = null;
@@ -267,10 +267,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     },
     fakeDocument,
   );
-  maxContainer.children[4].click();
-  assert.ok(Math.abs(selectedMax - 70 * DEG) < 1e-12);
+  maxContainer.children[0].children[2].click();
+  assert.ok(Math.abs(selectedMax - 65 * DEG) < 1e-12);
   maxController.setActive(selectedMax);
-  assert.equal(maxContainer.children[4].attributes.get('aria-pressed'), 'true');
+  assert.equal(maxContainer.children[0].children[1].textContent, '65°');
 
   const responseContainer = new SelectorElement();
   let selectedResponseRate = null;
@@ -282,10 +282,10 @@ test('mobile selector taps publish canonical selections and expose exactly one a
     },
     fakeDocument,
   );
-  responseContainer.children[4].click();
-  assert.equal(selectedResponseRate, 1 / 0.3);
+  responseContainer.children[0].children[2].click();
+  assert.equal(selectedResponseRate, 1 / 0.275);
   responseController.setActive(selectedResponseRate);
-  assert.equal(responseContainer.children[4].attributes.get('aria-pressed'), 'true');
+  assert.equal(responseContainer.children[0].children[1].textContent, '0.275 s');
 
   const cameraContainer = new SelectorElement();
   let selectedCameraMode = null;
@@ -340,11 +340,11 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
       steeringActuatorResponse: vehicle.steeringCalibration.steeringActuatorResponse,
     },
   };
-  containers.steeringOffset.children[0].click();
-  containers.maxRoadWheelSteer.children[0].click();
-  containers.steeringResponse.children[4].click();
-  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 10 * DEG) < 1e-12);
-  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 50 * DEG) < 1e-12);
+  containers.steeringOffset.children[0].children[0].click();
+  containers.maxRoadWheelSteer.children[0].children[0].click();
+  containers.steeringResponse.children[0].children[0].click();
+  assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 20 * DEG) < 1e-12);
+  assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 65 * DEG) < 1e-12);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 });
 });
 

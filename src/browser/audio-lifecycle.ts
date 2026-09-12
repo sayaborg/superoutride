@@ -1,3 +1,4 @@
+import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -26,6 +27,13 @@ export function createAudioLifecycle() {
     button.setAttribute('aria-pressed', String(enabled && supported));
     if (!supported) button.setAttribute('disabled', '');
   }
+  const tuningContainer = document.getElementById('sound-tuning');
+  const tuningControls = tuningContainer
+    ? mountAudioTuningControls(tuningContainer, () => {
+        unlock();
+        sync();
+      })
+    : null;
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -35,6 +43,7 @@ export function createAudioLifecycle() {
     suspendTimer = null;
     if (!context || !engine) return;
     engine.setCoupled(methodControl?.value !== 'reflection');
+    if (tuningControls) engine.setTuning(tuningControls.read());
     engine.setVolume(audible() ? volume : 0);
     if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
     else if (!enabled)
@@ -138,6 +147,7 @@ export function createAudioLifecycle() {
     volumeControl?.removeEventListener('input', changeVolume);
     methodControl?.removeEventListener('change', changeMethod);
     methodControl?.removeEventListener('keydown', methodKey);
+    tuningControls?.dispose();
     engine?.dispose();
     engine = null;
     if (context && !loading) void context.close().catch(() => {});

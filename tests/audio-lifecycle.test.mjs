@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAudioLifecycle } from '../dist/browser/audio-lifecycle.js';
+import { DEFAULT_REFLECTION_TUNING } from '../dist/audio/exhaust-acoustics.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
 import { createTireVoice } from '../dist/dev/diagnostics/tire-voice.js';
 import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
@@ -182,7 +183,7 @@ test('selected coupling and tuning survive voice profile replacement without nod
     assert.equal(worklet.messages.length, 2);
     for (const message of worklet.messages) {
       assert.equal(message.coupled, coupled);
-      assert.deepEqual(message.tuning, { outletReflection: -0.8 });
+      assert.deepEqual(message.tuning, { ...DEFAULT_REFLECTION_TUNING, outletReflection: -0.8 });
     }
     assert.equal(context.nodes.length, count);
     voice.dispose();
@@ -283,4 +284,97 @@ test('deferred tire prototype owns and releases its own nodes independently', ()
   voice.dispose();
   assert.equal(tone.stopped, true);
   assert.ok(context.nodes.filter((node) => node !== noise).every((node) => node.disconnected));
+});
+
+test('committed sliders survive mute, method and profile changes without mutating physics or adding nodes', async (t) => {
+  const dom = install(t);
+  const lifecycle = createAudioLifecycle();
+  t.after(() => lifecycle.dispose());
+  const host = dom.elements.get('sound-tuning');
+  const inputs = host.children.slice(0, 4).map((row) => row.children[1]);
+  const [reflection, cutoff] = inputs;
+  assert.deepEqual(
+    inputs.map((input) => Number(input.value)),
+    [-1, 3100, 0.03, 0.22],
+  );
+  reflection.value = '0';
+  reflection.emit('input');
+  assert.match(host.children[0].children[2].textContent, /反射なし/);
+  reflection.emit('change'); // before gesture initialization finishes
+  await settle();
+  const runtime = createLinearHighwayRuntime();
+  const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
+  const player = createArcadeVehicle(VEHICLE_CATALOG[0].profile, world);
+  const before = JSON.stringify(player);
+  const context = FakeAudioContext.instances[0];
+  lifecycle.update(player, [{ vehicle: player }]);
+  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  const nodeCount = context.nodes.length;
+  assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
+  cutoff.value = '500';
+  cutoff.emit('input'); // preview must not rebuild while dragging
+  context.currentTime = 1;
+  lifecycle.update(player, []);
+  assert.equal(worklets[0].messages.length, 1);
+  dom.elements.get('sound-toggle').click();
+  cutoff.emit('change');
+  dom.elements.get('sound-method').value = 'reflection';
+  dom.elements.get('sound-method').emit('change');
+  dom.elements.get('sound-toggle').click();
+  await settle();
+  lifecycle.update(player, []);
+  context.currentTime = 1.1;
+  lifecycle.update(player, []);
+  assert.equal(worklets[0].messages.at(-1).coupled, false);
+  assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
+  const replacement = createArcadeVehicle(VEHICLE_CATALOG[3].profile, world);
+  lifecycle.update(replacement, []);
+  context.currentTime = 1.2;
+  lifecycle.update(replacement, []);
+  assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
+  assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
+  host.children.at(-1).click();
+  lifecycle.update(replacement, []);
+  context.currentTime = 1.3;
+  lifecycle.update(replacement, []);
+  assert.deepEqual(worklets[0].messages.at(-1).tuning, DEFAULT_REFLECTION_TUNING);
+  assert.equal(context.nodes.length, nodeCount);
+  assert.equal(JSON.stringify(player), before);
+  let stopped = false;
+  reflection.emit('keydown', {
+    stopPropagation() {
+      stopped = true;
+    },
+  });
+  assert.equal(stopped, true);
+  lifecycle.dispose();
+  assert.equal(reflection.listeners.get('change').length, 0);
+  assert.equal(host.children.length, 0);
+});
+
+test('tuning updates reuse both engine slots and own their coefficient snapshots', async (t) => {
+  install(t);
+  const context = new FakeAudioContext();
+  const engine = await createAudioEngine(context);
+  const state = createVehicleAudioObservation();
+  const update = () => {
+    engine.update(state, VEHICLE_CATALOG[0].sound);
+    engine.updateRival(state, VEHICLE_CATALOG[1].sound, 0.5, 0);
+  };
+  update();
+  const tuning = { ...DEFAULT_REFLECTION_TUNING, attenuationPerMeter: 0.1 };
+  engine.setTuning(tuning);
+  tuning.attenuationPerMeter = 0.2;
+  update();
+  context.currentTime = 0.1;
+  update();
+  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  for (const worklet of worklets) assert.equal(worklet.messages.at(-1).tuning.attenuationPerMeter, 0.1);
+  engine.setTuning(DEFAULT_REFLECTION_TUNING);
+  update();
+  engine.setTuning({ ...DEFAULT_REFLECTION_TUNING, attenuationPerMeter: 0.1 });
+  context.currentTime = 1;
+  update();
+  for (const worklet of worklets) assert.equal(worklet.messages.length, 2);
+  engine.dispose();
 });
