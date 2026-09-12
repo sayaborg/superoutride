@@ -145,3 +145,16 @@ listening, Safari/iOS acceptance and target-device CPU profiling remain calibrat
 [Host timing probe](../tools/exhaust-performance.mjs) warms the DSP and measures five
 runs for one and two voices, including 2x acoustic stepping. It is a CPU kernel diagnostic,
 not a browser scheduling, end-to-end graph or mobile performance certification.
+
+## Reflection audition candidates
+
+The browser probe adds five single-factor candidates beside unchanged simple reflection:
+weaker/stronger outlet reflection, a lower boundary cutoff, higher propagation loss,
+and lower closed-excitation floor. Candidate labels display the old/new values.
+[Candidate data](../tools/reflection-candidates.mjs) and its diagnostic worklet are tools-only;
+they reuse the production DSP with validated optional coefficient overrides. Default DSP
+coefficients and game composition are unchanged. All candidates share the selected vehicle's
+firing, pipe geometry and pulse profile. Geometry remains an authored approximation, not newly
+verified factory pipework. No noise is added. Fixed gain preserves excitation differences;
+RMS matching is available for timbre comparison. The candidate browser check covers six
+settings, nine vehicles, two output rates, three RPM settings and open/closed excitation.

@@ -53,6 +53,7 @@ export class ExhaustWaveguide {
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
   private readonly loss: number;
+  private readonly acoustics: typeof ACOUSTICS;
   private phase = 0;
   private rpm = 1000;
   private load = 0;
@@ -63,13 +64,44 @@ export class ExhaustWaveguide {
     private readonly profile: VehicleAudioProfile,
     private readonly rate: number,
     private readonly coupled = true,
+    tuning: Partial<
+      Pick<typeof ACOUSTICS, 'attenuationPerMeter' | 'returnCutoffHz' | 'outletReflection' | 'closedExcitation'>
+    > = {},
   ) {
+    const {
+      attenuationPerMeter = ACOUSTICS.attenuationPerMeter,
+      returnCutoffHz = ACOUSTICS.returnCutoffHz,
+      outletReflection = ACOUSTICS.outletReflection,
+      closedExcitation = ACOUSTICS.closedExcitation,
+    } = tuning;
+    if (
+      !Number.isFinite(attenuationPerMeter) ||
+      attenuationPerMeter < 0 ||
+      attenuationPerMeter > 1 ||
+      !Number.isFinite(returnCutoffHz) ||
+      returnCutoffHz < 100 ||
+      returnCutoffHz > 10000 ||
+      !Number.isFinite(outletReflection) ||
+      outletReflection <= -1 ||
+      outletReflection > 0 ||
+      !Number.isFinite(closedExcitation) ||
+      closedExcitation <= 0 ||
+      closedExcitation > 1
+    )
+      throw new RangeError('invalid acoustic tuning');
+    this.acoustics = Object.freeze({
+      ...ACOUSTICS,
+      attenuationPerMeter,
+      returnCutoffHz,
+      outletReflection,
+      closedExcitation,
+    });
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
     this.banks = exhaust.banks;
     const groups = Math.max(...this.banks) + 1;
     const pipe = (meters: number) =>
-      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-ACOUSTICS.attenuationPerMeter * meters));
+      new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-this.acoustics.attenuationPerMeter * meters));
     this.forward = exhaust.lengths.map(pipe);
     this.backward = coupled ? exhaust.lengths.map(pipe) : [];
     this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
@@ -88,7 +120,7 @@ export class ExhaustWaveguide {
     this.decay = Math.exp(-1 / (profile.pulse.decaySeconds * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.cutoffHz) / rate);
-    this.loss = 1 - Math.exp((-2 * Math.PI * ACOUSTICS.returnCutoffHz) / rate);
+    this.loss = 1 - Math.exp((-2 * Math.PI * this.acoustics.returnCutoffHz) / rate);
   }
 
   /** One sample, without allocation. Reflection mode uses a fixed source termination without cylinder return coupling. */
@@ -99,7 +131,7 @@ export class ExhaustWaveguide {
     const previous = this.phase;
     this.phase = (this.phase + step) % 1;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
-    const excitation = ACOUSTICS.closedExcitation + (1 - ACOUSTICS.closedExcitation) * this.load;
+    const excitation = this.acoustics.closedExcitation + (1 - this.acoustics.closedExcitation) * this.load;
     const attack = 1 - Math.exp(-excitation / (this.profile.pulse.riseSeconds * this.rate));
     this.sums.fill(0);
     for (let i = 0; i < this.forward.length; i++) {
@@ -119,7 +151,7 @@ export class ExhaustWaveguide {
       this.junctions[bank] = pressure;
       const out = this.tails[bank]!.read();
       this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(ACOUSTICS.outletReflection * this.outlet[bank]!);
+      this.returns[bank]!.write(this.acoustics.outletReflection * this.outlet[bank]!);
       this.tails[bank]!.write(
         this.coupled
           ? pressure - returning
