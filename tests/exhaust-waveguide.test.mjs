@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ExhaustWaveguide } from '../dist/audio/exhaust-waveguide.js';
+import { OUTPUT } from '../dist/audio/exhaust-acoustics.js';
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const profiles = VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust);
@@ -12,6 +13,32 @@ function render(profile, load, coupled = true, rate = 48000) {
 }
 const energy = (a) => a.reduce((sum, x) => sum + x * x, 0) / a.length;
 const difference = (a, b) => a.reduce((sum, x, i) => sum + (x - b[i]) ** 2, 0) / a.length;
+
+test('the final low-pass limits clipped pulse transients in both exhaust methods', () => {
+  // A sharp, strong single-cylinder pulse exposes clipping after filtering.
+  const profile = compileVehicleAudioProfile({
+    cycleRevolutions: 2,
+    firingPhases: [0],
+    exhaust: { banks: [0], lengths: [0.5], outlet: 1 },
+    pulse: { strength: 4, riseSeconds: 0.00001, decaySeconds: 0.006 },
+  });
+  for (const rate of [88200, 96000])
+    for (const coupled of [false, true]) {
+      const synth = new ExhaustWaveguide(profile, rate, coupled, { outletReflection: 0 });
+      const coefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.cutoffHz) / rate);
+      let previous = 0,
+        peak = 0;
+      for (let i = 0; i < rate / 2; i++) {
+        const value = synth.sample(3000, 1);
+        // Undo only the final linear filter: its input must respect the clipper's bound.
+        const input = (value - (1 - coefficient) * previous) / coefficient;
+        assert.ok(Number.isFinite(input) && Math.abs(input) <= OUTPUT.ceiling + 1e-12);
+        peak = Math.max(peak, Math.abs(value));
+        previous = value;
+      }
+      assert.ok(peak > OUTPUT.ceiling / 2, 'the fixture must exercise substantial saturation');
+    }
+});
 
 test('waveguide exhaust remains bounded under load and geometry changes at both output rates', () => {
   for (const { sound } of profiles)
