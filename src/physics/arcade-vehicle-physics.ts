@@ -1,3 +1,4 @@
+import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
 import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
@@ -323,19 +324,7 @@ export function updateArcadeVehicle(
       vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
       vehicle.control.supportTorqueScale = resolved.supportScale;
       vehicle.control.supportFeasible = resolved.supportFeasible;
-      vehicle.control.frontRollingSpeed = Math.abs(front.longitudinalVelocity);
-      vehicle.control.rearRollingSpeed = Math.abs(rear.longitudinalVelocity);
-      vehicle.control.frontSlipSpeed =
-        front.forceTransmitting && front.tireFrameValid
-          ? Math.hypot(frontWheel.tire.sx, frontWheel.tire.sy) * frontWheel.tire.referenceSpeed
-          : 0;
-      vehicle.control.rearSlipSpeed =
-        rear.forceTransmitting && rear.tireFrameValid
-          ? Math.hypot(rearWheel.tire.sx, rearWheel.tire.sy) * rearWheel.tire.referenceSpeed
-          : 0;
-      vehicle.control.frontSurface =
-        front.forceTransmitting && front.tireFrameValid ? front.surface.surfaceType : 'VOID';
-      vehicle.control.rearSurface = rear.forceTransmitting && rear.tireFrameValid ? rear.surface.surfaceType : 'VOID';
+      publishVehicleTireObservation(vehicle, front, frontWheel, rear, rearWheel);
       vehicle.control.frontWheelLocked = frontWheel.locked;
       vehicle.control.rearWheelLocked = rearWheel.locked;
       vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;

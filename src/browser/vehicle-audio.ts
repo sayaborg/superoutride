@@ -1,3 +1,4 @@
+import { observeVehicleTires } from '../physics/vehicle-tire-observation.js';
 import type { TireAudioObservation, VehicleAudioObservation } from '../audio/vehicle-audio-observation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 
@@ -19,6 +20,7 @@ export function createVehicleAudioObservation(): Observation {
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
 export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
   const { control, powertrain, profile } = vehicle;
+  const tires = observeVehicleTires(vehicle);
   result.rpm = powertrain.engineRpm;
   result.idleRpm = profile.powertrain.idleRpm;
   result.redlineRpm = profile.powertrain.redlineRpm;
@@ -29,15 +31,15 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
       : 0;
   result.speed = vehicle.speed;
   result.front.load = vehicle.frontNormalLoad;
-  result.front.rollingSpeed = control.frontRollingSpeed;
-  result.front.slipSpeed = control.frontSlipSpeed;
+  result.front.rollingSpeed = tires.front.rollingSpeed;
+  result.front.slipSpeed = tires.front.slipSpeed;
   result.front.utilization = control.frontUtilization;
-  result.front.surface = control.frontSurface;
+  result.front.surface = tires.front.surface;
   result.rear.load = vehicle.rearNormalLoad;
-  result.rear.rollingSpeed = control.rearRollingSpeed;
-  result.rear.slipSpeed = control.rearSlipSpeed;
+  result.rear.rollingSpeed = tires.rear.rollingSpeed;
+  result.rear.slipSpeed = tires.rear.slipSpeed;
   result.rear.utilization = control.rearUtilization;
-  result.rear.surface = control.rearSurface;
+  result.rear.surface = tires.rear.surface;
 }
 
 interface Actor {

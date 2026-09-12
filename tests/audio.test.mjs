@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { observeVehicleTires } from '../dist/physics/vehicle-tire-observation.js';
 import { combustionCoefficients } from '../dist/audio/combustion-pulse.js';
 import { engineParameters } from '../dist/audio/engine-voice.js';
 import { tireParameters } from '../dist/audio/tire-voice.js';
@@ -89,12 +90,16 @@ test('completed wheel slip observations drive sound and recovery clears stale ti
   const runtime = createLinearHighwayRuntime();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
   const vehicle = createArcadeVehicle(base.profile, world, { s: 45, initialSpeed: 25 });
+  const tires = observeVehicleTires(vehicle);
+  const keys = Object.keys(vehicle.control);
   vehicle.frontWheelOmega = 0;
   vehicle.rearWheelOmega = 0;
   updateArcadeVehicle(world, vehicle, { steering: 0, throttle: false, brake: true }, 1 / 60);
   const before = structuredClone(vehicle.control),
     state = createVehicleAudioObservation();
   readVehicleAudio(vehicle, state);
+  assert.equal(observeVehicleTires(vehicle), tires);
+  assert.deepEqual(Object.keys(vehicle.control), keys);
   assert.ok(state.front.slipSpeed > 1);
   assert.ok(tireParameters(state).squeal > 0);
   assert.deepEqual(vehicle.control, before);
@@ -106,6 +111,7 @@ test('completed wheel slip observations drive sound and recovery clears stale ti
   readVehicleAudio(vehicle, state);
   assert.equal(tireParameters(state).squeal, 0);
   assert.equal(state.front.surface, 'VOID');
+  assert.equal(tires.front.slipSpeed, 0);
 });
 
 test('rival selection uses 3D world distance, bounds range, ignores local chainage and self', () => {
@@ -144,5 +150,21 @@ test('noise worklet generates continuous independent streams at arbitrary block 
     else globalThis.AudioWorkletProcessor = originalBase;
     if (originalRegister === undefined) delete globalThis.registerProcessor;
     else globalThis.registerProcessor = originalRegister;
+  }
+});
+
+test('subscribing tire presentation preserves the complete physical snapshot across all nine vehicles', () => {
+  const runtime = createLinearHighwayRuntime();
+  const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
+  for (const { profile } of VEHICLE_CATALOG) {
+    const observed = createArcadeVehicle(profile, world, { s: 45, initialSpeed: 20 });
+    const silent = createArcadeVehicle(profile, world, { s: 45, initialSpeed: 20 });
+    observeVehicleTires(observed);
+    for (let tick = 0; tick < 20; tick++) {
+      const input = { steering: 0.3, throttle: tick < 10, brake: tick >= 10 };
+      updateArcadeVehicle(world, observed, input, 1 / 60);
+      updateArcadeVehicle(world, silent, input, 1 / 60);
+      assert.deepEqual(observed, silent);
+    }
   }
 });

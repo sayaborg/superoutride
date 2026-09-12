@@ -9,8 +9,11 @@ never vehicle motion, gearing, race progress or a second engine simulation.
 The [consumer contract](../src/audio/vehicle-audio-observation.ts) contains only acoustic
 inputs. The [browser adapter](../src/browser/vehicle-audio.ts) copies the latest completed
 observations into two reusable slots once per presented frame, not once per catch-up tick.
-Physics publishes final wheel-solve rolling speed, slip speed and surface alongside its
-existing control observations. Recovery clears those caches. Audio does not sample course
+Physics publishes final wheel-solve rolling speed, slip speed and surface through an
+[optional read-only observation channel](../src/physics/vehicle-tire-observation.ts).
+The first reader subscribes; the next completed tick supplies data. A WeakMap owns these
+output caches outside the unchanged vehicle/control snapshot. Recovery clears them.
+Unobserved vehicles skip the additional telemetry calculations. Audio does not sample course
 surfaces or repeat contact/tire solves.
 
 ## Synthesis

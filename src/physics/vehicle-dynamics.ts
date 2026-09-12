@@ -1,3 +1,4 @@
+import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
@@ -60,13 +61,6 @@ export interface VehicleControlState {
   rearBrakeTorque: number;
   frontWheelLocked: boolean;
   rearWheelLocked: boolean;
-  /** Final wheel-solve observations in m/s; never consumed by mechanics. */
-  frontRollingSpeed: number;
-  rearRollingSpeed: number;
-  frontSlipSpeed: number;
-  rearSlipSpeed: number;
-  frontSurface: SurfaceType;
-  rearSurface: SurfaceType;
   frontUtilization: number;
   rearUtilization: number;
 }
@@ -200,12 +194,6 @@ export function createVehicleControlState(): VehicleControlState {
     rearBrakeTorque: 0,
     frontWheelLocked: false,
     rearWheelLocked: false,
-    frontRollingSpeed: 0,
-    rearRollingSpeed: 0,
-    frontSlipSpeed: 0,
-    rearSlipSpeed: 0,
-    frontSurface: 'VOID',
-    rearSurface: 'VOID',
     frontUtilization: 0,
     rearUtilization: 0,
   };
@@ -213,6 +201,7 @@ export function createVehicleControlState(): VehicleControlState {
 
 export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
   Object.assign(vehicle.control, createVehicleControlState());
+  resetVehicleTireObservation(vehicle);
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
