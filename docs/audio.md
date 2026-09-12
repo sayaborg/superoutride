@@ -18,35 +18,50 @@ surfaces or repeat contact/tire solves.
 
 ## Synthesis
 
-There are no recordings, audio assets or PCM loops. The
-[combustion compiler](../src/audio/combustion-pulse.ts) constructs 192 Fourier harmonics
-of a periodic bi-exponential pressure pulse train from ordered firing phases. Pulse
-width is the decay time as a fraction of the engine cycle; rise time is 12% of decay.
-DC is removed and the sum of harmonic magnitudes is normalized to one. This supersedes
-the symmetric exponential harmonic envelope. Web Audio owns band-limited playback;
-there is no per-firing allocation or JavaScript audio-rate firing scheduler.
+There are no recordings, audio assets or PCM loops. The [engine voice](../src/audio/engine-voice.ts)
+selects synthesis from authored exhaust topology, never vehicle IDs. Golf, Corvette and
+FXRT have experimental topology; the remaining profiles retain the previous
+[periodic body/crack voice](../src/audio/periodic-engine-voice.ts). These three are the
+initial listening candidates, not calibrated replicas. Authored primary/outlet lengths
+and effective hot-gas wave speed are acoustic approximations, not measured dimensions.
 
-The [engine voice](../src/audio/engine-voice.ts) uses two phase-aligned oscillators:
-a broad body pulse through a peaking resonator and a pulse with 12% of the body width
-through a broad crack band-pass. Their weighted sum feeds variable drive, a shared
-static tanh transfer table with 2x oversampling, DC removal, a low-pass and output gain.
-The table is a nonlinear transfer function, not recorded or looped audio. Waves are
-prepared on profile selection and cached for the life of each voice. The two oscillators
-start together and receive identical frequency automation, preserving firing alignment.
+The [exhaust model](../src/audio/exhaust-waveguide.ts) owns one forward and backward delay
+per cylinder and one outlet/return pair per exhaust bank. Equal-admittance scattering
+at the collector sends returning pressure toward other ports. Valve opening changes
+cylinder-end reflection; outlet reflection is negative and filtered. Loss at boundaries
+keeps the feedback network dissipative. This is an acoustic network, not gas-flow or
+thermodynamic simulation. The optional simple-reflection comparison removes the
+valve/junction return coupling while preserving excitation and pipe delay.
 
-Cycle frequency is RPM / (60 * cycle revolutions). The idle floor and redline ceiling
-affect acoustic pitch only: physical RPM can be zero. Effort mixes actuator throttle
-and the delivered/requested drive-torque fraction multiplied by throttle; it is a
-presentation proxy, not measured combustion load or manifold pressure. Effort increases
-body level, crack/body ratio, saturation drive and brightness. Closed throttle retains
-body and a small crack component. Intake machinery, fuel cut and backfire are absent.
-No shift timer or artificial torque interruption is added. Profile changes fade down
-before replacing both waveforms; continuous values use short AudioParam smoothing.
+Authored firing intervals drive exhaust blowdown with a common 0.2-cycle offset.
+Each firing excites a smoothed decaying pulse with bounded deterministic strength variation.
+Flow noise follows valve opening and load. A small direct pulse and filtered-noise path
+approximates mechanical/intake texture; there is no full intake waveguide, muffler chamber
+network, turbo, fuel-cut or backfire model. DC removal, low-pass filtering and bounded
+soft saturation follow the pipe output. Two acoustic steps per output sample reduce
+firing quantization; averaging is a simple decimator, not a complete antialiasing solution.
 
-The [nine authored profiles](../src/vehicle/sound-profiles.ts) are acoustic sketches,
-not calibrated replicas of real exhaust systems. The vehicle catalog binds profiles;
-the audio engine contains no vehicle IDs or car/bike branches. A single combined pulse
-train does not simulate separate exhaust banks, turbo machinery or irregular combustion.
+The [processor](../src/audio/exhaust-processor.ts) is registered by the existing noise
+module's static import. Its audio-rate loop allocates no objects. Profile messages
+prepare delay storage; every block reads RPM/load AudioParams. Invalid profiles silence
+the processor, stop releases its model, and inactive slots render zero. Switching topology
+fades down before resetting acoustic state. The periodic fallback keeps its own tested
+waveform fade. No allocations are made per firing and no source nodes are created per tick.
+
+Physics remains authoritative for RPM. Idle/redline bounds affect sound only. Load is
+still a presentation proxy combining actuator throttle and delivered/requested torque,
+not cylinder pressure. Audio smooths these inputs without writing to physics. No separate
+crank acceleration, gearing or torque simulation is introduced.
+
+The prior [combustion compiler](../src/audio/combustion-pulse.ts) remains in use by the
+periodic fallback and listening reference. It prepares bounded, DC-free Fourier pulse
+coefficients; Web Audio owns band-limited playback. That model's exact periodicity
+requirement applies only to the periodic voice. The new stochastic exhaust instead has
+causal topology, load, determinism and bounded-feedback tests. Firing phases are unchanged.
+
+The design is informed by [Baldan et al.](https://doi.org/10.1109/SIVE.2015.7361287)
+and the openly inspectable [enginesound implementation](https://github.com/DasEtwas/enginesound).
+The compact implementation here uses no imported audio assets or third-party source code.
 
 The [tire voice](../src/audio/tire-voice.ts) aggregates front/rear observations into
 rolling noise, friction noise and a weak resonant squeal tone. Rolling sound depends on
@@ -63,8 +78,9 @@ is low-pass noise with squared speed-dependent gain; it remains audible in fligh
 ## Mixing and lifetime
 
 The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots,
-one aggregate tire voice and wind. This means five oscillators and one noise worklet,
-regardless of the number of game actors. Voices feed one master gain and a protective
+one aggregate tire voice and wind. This means five fallback/tire oscillators, two exhaust worklets and one noise worklet,
+regardless of the number of game actors. Inactive fallback oscillators remain allocated;
+unused exhaust processors render zero. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.
 
@@ -93,12 +109,19 @@ RPM/load causality, stationary/airborne/loose-surface tire behavior, actual whee
 observation and recovery, nearest-rival selection and continuous worklet output.
 [Lifecycle tests](../tests/audio-lifecycle.test.mjs) cover single-flight gesture startup,
 late loading, failure cleanup/retry, hidden/muted states, disposal and bounded node count.
+[Exhaust regressions](../tests/exhaust-waveguide.test.mjs) cover geometry/bank causality,
+load, deterministic rendering and sustained feedback stability.
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
 response at open and closed throttle. It also offers a three-second, RMS-matched
-comparison against the original single-wave graph at the same selected RPM/throttle.
+comparison of the prior body/crack graph, simple pipe reflection and coupled waveguides
+at the same selected RPM/throttle, plus an acceleration/coast sequence. Exact-period tests apply only to the periodic fallback.
 The comparison is diagnostic only; its PCM buffers are test output, never game sound assets.
 
 Chrome integration checks can verify all four course modes, sound controls and vehicle
 switching. Desktop rendering is not phone performance certification. Actual speaker
 listening, Safari/iOS acceptance and target-device CPU profiling remain calibration work.
+
+[Host timing probe](../tools/exhaust-performance.mjs) warms the DSP and measures five
+runs for one and two voices, including 2x acoustic stepping. It is a CPU kernel diagnostic,
+not a browser scheduling, end-to-end graph or mobile performance certification.

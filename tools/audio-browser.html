@@ -6,7 +6,9 @@
   </head>
   <body>
     <h1>エンジン音の比較</h1>
-    <p>同じ回転数・同じ実効音量で音色を比較します。試聴は3秒で止まります。</p>
+    <p>
+      同じ回転数・同じ実効音量で音色を比較します。試聴は3秒で止まります。新方式はGolf・Corvette・Harleyの3台に対応しています。
+    </p>
     <label
       >車種
       <select id="vehicle"></select
@@ -19,13 +21,22 @@
         <option value="0">全閉</option>
       </select></label
     >
-    <button id="before" type="button">旧方式を聴く</button>
-    <button id="after" type="button">新方式を聴く</button>
+    <label
+      >試聴内容
+      <select id="scenario">
+        <option value="steady">一定回転</option>
+        <option value="rev">加速 → アクセルOFF</option>
+      </select></label
+    >
+    <button id="before" type="button">前回の方式を聴く</button>
+    <button id="after" type="button">ウェーブガイドを聴く</button>
+    <button id="reflection" type="button">簡易反射を聴く</button>
     <button id="stop" type="button">停止</button>
     <p id="listening">未再生</p>
     <button id="run" type="button">Verify engine voices</button>
     <pre id="result">Ready</pre>
     <script type="module">
+      import { createPeriodicEngineVoice } from '../dist/audio/periodic-engine-voice.js';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
       import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
@@ -34,43 +45,10 @@
       for (const entry of VEHICLE_CATALOG) {
         const option = document.createElement('option');
         option.value = String(vehicle.options.length);
-        option.textContent = entry.profile.id;
+        option.textContent = entry.profile.id + (entry.sound.exhaust ? '（新方式対応）' : '（従来方式）');
         vehicle.append(option);
       }
-      // The original single-wave graph is retained only as an audible regression reference.
-      function beforeVoice(context, state, profile) {
-        const real = new Float32Array(97),
-          imag = new Float32Array(97);
-        let bound = 0;
-        for (let h = 1; h < 97; h++) {
-          for (const phase of profile.firingPhases) {
-            real[h] += Math.cos(2 * Math.PI * h * phase) * Math.exp(-h * profile.pulseWidth);
-            imag[h] += Math.sin(2 * Math.PI * h * phase) * Math.exp(-h * profile.pulseWidth);
-          }
-          bound += Math.hypot(real[h], imag[h]);
-        }
-        for (let h = 1; h < 97; h++) {
-          real[h] /= bound;
-          imag[h] /= bound;
-        }
-        const source = context.createOscillator();
-        source.setPeriodicWave(context.createPeriodicWave(real, imag, { disableNormalization: true }));
-        const rpm = Math.max(state.idleRpm, Math.min(state.rpm, state.redlineRpm));
-        source.frequency.value = rpm / (60 * profile.cycleRevolutions);
-        const resonance = context.createBiquadFilter();
-        resonance.type = 'peaking';
-        resonance.frequency.value = profile.resonanceHz;
-        resonance.Q.value = profile.resonanceQ;
-        resonance.gain.value = 5;
-        const tone = context.createBiquadFilter();
-        tone.type = 'lowpass';
-        tone.Q.value = 0.5;
-        tone.frequency.value = 450 + 3600 * state.throttle + (1800 * rpm) / state.redlineRpm;
-        const level = context.createGain();
-        level.gain.value = profile.gain * (0.3 + 0.7 * state.throttle);
-        source.connect(resonance).connect(tone).connect(level).connect(context.destination);
-        source.start();
-      }
+      vehicle.value = '3';
       let playback,
         playing,
         request = 0;
@@ -83,7 +61,7 @@
         listening.textContent = '停止';
       }
       document.getElementById('stop').onclick = stop;
-      async function audition(before) {
+      async function audition(mode) {
         stop();
         const current = request;
         try {
@@ -99,11 +77,28 @@
             throttle: Number(document.getElementById('load').value),
             drive: Number(document.getElementById('load').value),
           });
-          let voice;
-          if (before) beforeVoice(context, state, entry.sound);
-          else {
-            voice = createEngineVoice(context, context.destination);
+          await context.audioWorklet.addModule(new URL('../dist/audio/noise-processor.js', import.meta.url));
+          const voice =
+            mode === 'periodic'
+              ? createPeriodicEngineVoice(context, context.destination)
+              : createEngineVoice(context, context.destination, mode === 'waveguide', entry.sound);
+          voice.update(state, entry.sound);
+          if (document.getElementById('scenario').value === 'rev') {
+            const target = Math.max(state.idleRpm, Math.min(state.rpm, state.redlineRpm));
+            state.rpm = state.idleRpm;
+            state.throttle = state.drive = 0;
             voice.update(state, entry.sound);
+            for (let tick = 20; tick < 80; tick++) {
+              const time = tick / 20;
+              void context.suspend(time).then(() => {
+                const accelerating = time < 2.5;
+                state.throttle = state.drive = accelerating ? 1 : 0;
+                const fraction = accelerating ? (time - 1) / 1.5 : 1 - (time - 2.5) / 1.5;
+                state.rpm = state.idleRpm + (target - state.idleRpm) * fraction;
+                voice.update(state, entry.sound);
+                return context.resume();
+              });
+            }
           }
           const rendered = await context.startRendering();
           voice?.dispose();
@@ -129,13 +124,14 @@
             if (current === request) listening.textContent = '再生終了';
           };
           playing.start();
-          listening.textContent = `${before ? '旧方式' : '新方式'}・${entry.profile.id}・${state.rpm} RPM`;
+          listening.textContent = `${mode}・${entry.profile.id}`;
         } catch (error) {
           listening.textContent = String(error);
         }
       }
-      document.getElementById('before').onclick = () => audition(true);
-      document.getElementById('after').onclick = () => audition(false);
+      document.getElementById('before').onclick = () => audition('periodic');
+      document.getElementById('reflection').onclick = () => audition('reflection');
+      document.getElementById('after').onclick = () => audition('waveguide');
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) stop();
       });
@@ -156,7 +152,8 @@
                 [rpm, 1],
               ])) {
                 const context = new OfflineAudioContext(1, sampleRate / 2, sampleRate);
-                const voice = createEngineVoice(context, context.destination);
+                await context.audioWorklet.addModule(new URL('../dist/audio/noise-processor.js', import.meta.url));
+                const voice = createEngineVoice(context, context.destination, true, entry.sound);
                 const observation = createVehicleAudioObservation();
                 Object.assign(observation, {
                   rpm,
@@ -199,7 +196,7 @@
                 }
                 const error = periodicError(lag),
                   displaced = periodicError(lag * 0.9);
-                if (!(error < 0.02 && displaced > error * 5)) {
+                if (!entry.sound.exhaust && !(error < 0.02 && displaced > error * 5)) {
                   throw new Error(`invalid periodicity: ${entry.profile.id} ${rpm}: ${error}, ${displaced}`);
                 }
                 amplitudes.push({ rpm, throttle, peak, rms, crossings, periodicError: error });

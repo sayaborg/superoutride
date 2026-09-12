@@ -86,9 +86,15 @@ export class FakeAudioContext {
   }
 }
 export class FakeAudioWorkletNode extends Node {
+  parameters = new Map([
+    ['rpm', new FakeAudioParam()],
+    ['load', new FakeAudioParam()],
+  ]);
+  messages = [];
   port = {
-    postMessage: () => {
-      this.finished = true;
+    postMessage: (data) => {
+      this.messages.push(data);
+      this.finished = data === 'stop';
     },
     close: () => {},
   };

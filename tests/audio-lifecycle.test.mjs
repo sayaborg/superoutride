@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAudioLifecycle } from '../dist/browser/audio-lifecycle.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
+import { createPeriodicEngineVoice } from '../dist/audio/periodic-engine-voice.js';
 import { createEngineVoice } from '../dist/audio/engine-voice.js';
 import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -126,10 +127,10 @@ test('engine graph has bounded nodes across thousands of updates and nine profil
   assert.ok(context.nodes.filter((n) => n.started).every((n) => n.stopped));
 });
 
-test('profile replacement fades the existing wave before changing its shape', (t) => {
+test('periodic profile replacement fades the existing wave before changing its shape', (t) => {
   install(t);
   const context = new FakeAudioContext(),
-    voice = createEngineVoice(context, context.destination);
+    voice = createPeriodicEngineVoice(context, context.destination);
   const state = createVehicleAudioObservation();
   voice.update(state, VEHICLE_CATALOG[0].sound);
   const oscillator = context.nodes.find((n) => n.started),
@@ -140,4 +141,25 @@ test('profile replacement fades the existing wave before changing its shape', (t
   voice.update(state, VEHICLE_CATALOG[1].sound);
   assert.notEqual(oscillator.wave, first);
   voice.dispose();
+});
+
+test('exhaust topology changes fade before replacement and leaving waveguide releases its DSP state', (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createEngineVoice(context, context.destination);
+  const state = createVehicleAudioObservation();
+  const worklet = context.nodes.find((n) => n instanceof FakeAudioWorkletNode);
+  voice.update(state, VEHICLE_CATALOG[3].sound);
+  assert.equal(worklet.messages.length, 1);
+  voice.update(state, VEHICLE_CATALOG[2].sound);
+  assert.equal(worklet.messages.length, 1);
+  context.currentTime = 0.1;
+  voice.update(state, VEHICLE_CATALOG[2].sound);
+  assert.equal(worklet.messages.at(-1).profile, VEHICLE_CATALOG[2].sound);
+  voice.update(state, VEHICLE_CATALOG[0].sound);
+  context.currentTime = 0.2;
+  voice.update(state, VEHICLE_CATALOG[0].sound);
+  assert.equal(worklet.messages.at(-1), null);
+  voice.dispose();
+  assert.equal(worklet.messages.at(-1), 'stop');
 });

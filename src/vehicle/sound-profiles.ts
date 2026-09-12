@@ -26,6 +26,8 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.3,
   }),
   CORVETTE_C4: compileVehicleAudioProfile({
+    // Firing order 1-8-4-3-6-5-7-2; odd/even cylinders use separate banks.
+    exhaust: { banks: [0, 1, 1, 0, 1, 0, 0, 1], lengths: [0.62, 0.8, 0.54, 0.7, 0.72, 0.52, 0.84, 0.6], outlet: 1.65 },
     cycleRevolutions: 2,
     firingPhases: even(8),
     pulseWidth: 0.024,
@@ -37,6 +39,7 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.34,
   }),
   GOLF_GTI_16V: compileVehicleAudioProfile({
+    exhaust: { banks: [0, 0, 0, 0], lengths: [0.55, 0.42, 0.48, 0.6], outlet: 1.25 },
     cycleRevolutions: 2,
     firingPhases: even(4),
     pulseWidth: 0.035,
@@ -81,6 +84,7 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.32,
   }),
   FXRT_SPORT_GLIDE: compileVehicleAudioProfile({
+    exhaust: { banks: [0, 1], lengths: [0.72, 1.04], outlet: 0.65 },
     cycleRevolutions: 2,
     firingPhases: [0, 0.4375],
     pulseWidth: 0.055,

@@ -9,6 +9,11 @@ export interface VehicleAudioProfile {
   readonly crackGain: number;
   readonly saturation: number;
   readonly gain: number;
+  readonly exhaust?: {
+    readonly banks: readonly number[];
+    readonly lengths: readonly number[];
+    readonly outlet: number;
+  };
 }
 
 export function compileVehicleAudioProfile(profile: VehicleAudioProfile): VehicleAudioProfile {
@@ -43,5 +48,30 @@ export function compileVehicleAudioProfile(profile: VehicleAudioProfile): Vehicl
   ) {
     throw new RangeError('invalid acoustic profile');
   }
-  return Object.freeze({ ...profile, firingPhases: Object.freeze([...firingPhases]) });
+  const exhaust = profile.exhaust;
+  if (
+    exhaust &&
+    (exhaust.banks.length !== firingPhases.length ||
+      exhaust.lengths.length !== firingPhases.length ||
+      exhaust.banks.some((bank) => !Number.isInteger(bank) || bank < 0 || bank > 1) ||
+      !exhaust.banks.includes(0) ||
+      exhaust.lengths.some((length) => !Number.isFinite(length) || length < 0.1 || length > 3) ||
+      !Number.isFinite(exhaust.outlet) ||
+      exhaust.outlet < 0.1 ||
+      exhaust.outlet > 4)
+  )
+    throw new RangeError('invalid exhaust topology');
+  return Object.freeze({
+    ...profile,
+    firingPhases: Object.freeze([...firingPhases]),
+    ...(exhaust
+      ? {
+          exhaust: Object.freeze({
+            ...exhaust,
+            banks: Object.freeze([...exhaust.banks]),
+            lengths: Object.freeze([...exhaust.lengths]),
+          }),
+        }
+      : {}),
+  });
 }

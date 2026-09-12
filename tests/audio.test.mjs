@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { observeVehicleTires } from '../dist/physics/vehicle-tire-observation.js';
 import { combustionCoefficients } from '../dist/audio/combustion-pulse.js';
-import { engineParameters } from '../dist/audio/engine-voice.js';
+import { engineParameters } from '../dist/audio/periodic-engine-voice.js';
 import { tireParameters } from '../dist/audio/tire-voice.js';
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
