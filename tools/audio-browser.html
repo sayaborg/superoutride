@@ -7,7 +7,7 @@
   <body>
     <h1>エンジン音の比較</h1>
     <p>
-      燃焼・排気パルスのみを比較します。固定音量では開度による音量差を保ちます。試聴は3秒で止まります。新方式はGolf・Corvette・Harleyの3台に対応しています。
+      燃焼・排気パルスのみを比較します。固定音量では開度による音量差を保ちます。試聴は3秒で止まります。全9車種がノイズなしのウェーブガイドに対応しています。配管は試聴用の仮設定です。
     </p>
     <label
       >車種
@@ -58,7 +58,7 @@
         option.textContent = entry.profile.id + (entry.sound.exhaust ? '（新方式対応）' : '（従来方式）');
         vehicle.append(option);
       }
-      vehicle.value = '3';
+      vehicle.value = '1';
       let playback,
         playing,
         request = 0;

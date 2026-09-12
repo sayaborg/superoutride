@@ -138,3 +138,16 @@ test('settled pulse-only exhaust repeats without a stochastic noise floor at eve
       assert.ok(error / power < 0.001, `unexpected aperiodic energy: ${error / power}`);
     }
 });
+
+test('every catalog engine has waveguide authoring and Porsche banks fire evenly', () => {
+  assert.equal(profiles.length, VEHICLE_CATALOG.length);
+  const sound = profiles.find((entry) => entry.profile.id === '911_TURBO_3_3').sound;
+  for (const bank of [0, 1]) {
+    const phases = sound.firingPhases.filter((_, i) => sound.exhaust.banks[i] === bank);
+    assert.equal(phases.length, 3);
+    for (let i = 0; i < phases.length; i++) {
+      const interval = (phases[(i + 1) % phases.length] - phases[i] + 1) % 1;
+      assert.ok(Math.abs(interval * sound.cycleRevolutions * 360 - 240) < 1e-9);
+    }
+  }
+});

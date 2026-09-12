@@ -19,11 +19,19 @@ surfaces or repeat contact/tire solves.
 ## Synthesis
 
 There are no recordings, audio assets or PCM loops. The [engine voice](../src/audio/engine-voice.ts)
-selects synthesis from authored exhaust topology, never vehicle IDs. Golf, Corvette and
-FXRT have experimental topology; the remaining profiles retain the previous
-[periodic body/crack voice](../src/audio/periodic-engine-voice.ts). These three are the
-initial listening candidates, not calibrated replicas. Authored primary/outlet lengths
+selects synthesis from authored exhaust topology, never vehicle IDs. All nine catalog engines have experimental topology; the previous
+[periodic body/crack voice](../src/audio/periodic-engine-voice.ts) remains a listening
+reference and fallback for profiles without topology. These are listening candidates,
+not calibrated replicas. Authored primary/outlet lengths
 and effective hot-gas wave speed are acoustic approximations, not measured dimensions.
+
+The Porsche six uses alternating banks, with 120-degree global firing intervals and
+240-degree intervals within each bank. Its 1-6-2-4-3-5 firing order is also illustrated
+in [Porsche’s engine model article](https://newsroom.porsche.com/christophorus/en/2017/383/model-kit-refinement-boxer-911.html).
+Separate banks do not by themselves produce uneven firing. The current independent
+outlets omit downstream bank merging and turbo behavior; the RC30 and BMW collector
+groupings are also acoustic sketches. The Vespa retains its 360-degree firing cycle,
+but uses the common excitation/reflection model, not a tuned expansion-chamber model.
 
 The [exhaust model](../src/audio/exhaust-waveguide.ts) owns one forward and backward delay
 per cylinder and one outlet/return pair per exhaust bank. Equal-admittance scattering

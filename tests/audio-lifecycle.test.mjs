@@ -148,6 +148,7 @@ test('exhaust topology changes fade before replacement and leaving waveguide rel
   const context = new FakeAudioContext(),
     voice = createEngineVoice(context, context.destination);
   const state = createVehicleAudioObservation();
+  const periodicOnly = { ...VEHICLE_CATALOG[0].sound, exhaust: undefined };
   const worklet = context.nodes.find((n) => n instanceof FakeAudioWorkletNode);
   voice.update(state, VEHICLE_CATALOG[3].sound);
   assert.equal(worklet.messages.length, 1);
@@ -156,9 +157,9 @@ test('exhaust topology changes fade before replacement and leaving waveguide rel
   context.currentTime = 0.1;
   voice.update(state, VEHICLE_CATALOG[2].sound);
   assert.equal(worklet.messages.at(-1).profile, VEHICLE_CATALOG[2].sound);
-  voice.update(state, VEHICLE_CATALOG[0].sound);
+  voice.update(state, periodicOnly);
   context.currentTime = 0.2;
-  voice.update(state, VEHICLE_CATALOG[0].sound);
+  voice.update(state, periodicOnly);
   assert.equal(worklet.messages.at(-1), null);
   voice.dispose();
   assert.equal(worklet.messages.at(-1), 'stop');

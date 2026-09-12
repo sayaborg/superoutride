@@ -56,7 +56,7 @@ test('short crack pulses retain more high harmonics than body pulses for every v
 
 test('acoustic authoring rejects invalid parameters and copies phase arrays', () => {
   const phases = [0, 0.5];
-  const profile = compileVehicleAudioProfile({ ...base.sound, firingPhases: phases });
+  const profile = compileVehicleAudioProfile({ ...base.sound, exhaust: undefined, firingPhases: phases });
   phases[1] = 0;
   assert.deepEqual(profile.firingPhases, [0, 0.5]);
   for (const changes of [

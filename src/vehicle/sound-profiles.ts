@@ -4,6 +4,11 @@ const even = (count: number) => Array.from({ length: count }, (_, index) => inde
 /** Acoustic sketches, not certified recordings or manufacturer exhaust models. */
 export const VEHICLE_SOUND_PROFILES = Object.freeze({
   TESTAROSSA: compileVehicleAudioProfile({
+    exhaust: {
+      banks: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      lengths: [0.5, 0.54, 0.46, 0.5, 0.58, 0.62, 0.54, 0.58, 0.42, 0.46, 0.62, 0.66],
+      outlet: 0.85,
+    },
     cycleRevolutions: 2,
     firingPhases: even(12),
     pulseWidth: 0.014,
@@ -15,6 +20,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.32,
   }),
   '911_TURBO_3_3': compileVehicleAudioProfile({
+    // Order 1-6-2-4-3-5 alternates banks: each collector receives a pulse every 240 degrees.
+    // Independent outlets approximate the banks; the downstream turbo/merge is not modeled.
+    exhaust: { banks: [0, 1, 0, 1, 0, 1], lengths: [0.62, 0.78, 0.46, 0.58, 0.54, 0.68], outlet: 0.95 },
     cycleRevolutions: 2,
     firingPhases: even(6),
     pulseWidth: 0.025,
@@ -51,6 +59,7 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.28,
   }),
   DELTA_HF_INTEGRALE: compileVehicleAudioProfile({
+    exhaust: { banks: [0, 0, 0, 0], lengths: [0.3, 0.24, 0.27, 0.34], outlet: 1.65 },
     cycleRevolutions: 2,
     firingPhases: even(4),
     pulseWidth: 0.045,
@@ -62,6 +71,8 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.3,
   }),
   VFR750R: compileVehicleAudioProfile({
+    // Collector grouping and lengths are listening sketches, not a factory header reconstruction.
+    exhaust: { banks: [0, 1, 0, 1], lengths: [0.7, 0.92, 0.76, 0.86], outlet: 0.55 },
     cycleRevolutions: 2,
     firingPhases: [0, 0.125, 0.5, 0.625],
     pulseWidth: 0.022,
@@ -73,6 +84,7 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.28,
   }),
   R80_GS_PARIS_DAKAR: compileVehicleAudioProfile({
+    exhaust: { banks: [0, 1], lengths: [0.82, 0.9], outlet: 0.85 },
     cycleRevolutions: 2,
     firingPhases: even(2),
     pulseWidth: 0.06,
@@ -96,6 +108,7 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     gain: 0.34,
   }),
   PX200E_ARCOBALENO: compileVehicleAudioProfile({
+    exhaust: { banks: [0], lengths: [0.28], outlet: 0.48 },
     cycleRevolutions: 1,
     firingPhases: [0],
     pulseWidth: 0.055,
