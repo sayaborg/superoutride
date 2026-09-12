@@ -31,6 +31,29 @@ test('authored pulse trains are finite, DC-free, bounded and preserve firing per
   assert.ok(Math.hypot(real[12], imag[12]) > 0.1);
 });
 
+test('short crack pulses retain more high harmonics than body pulses for every vehicle', () => {
+  const centroid = ({ real, imag }) => {
+    let power = 0,
+      weighted = 0;
+    for (let i = 1; i < real.length; i++) {
+      const p = real[i] ** 2 + imag[i] ** 2;
+      power += p;
+      weighted += i * p;
+    }
+    return weighted / power;
+  };
+  for (const { sound } of VEHICLE_CATALOG) {
+    const body = centroid(combustionCoefficients(sound));
+    const crack = centroid(combustionCoefficients(sound, sound.pulseWidth * 0.12));
+    assert.ok(crack > body * 1.5);
+    const closed = engineParameters({ ...observation(), throttle: 0, drive: 0 }, sound);
+    const open = engineParameters({ ...observation(), throttle: 1, drive: 1 }, sound);
+    assert.equal(closed.frequency, open.frequency);
+    assert.ok(closed.body > 0 && closed.gain > 0);
+    assert.ok(open.crack / open.body > (10 * closed.crack) / closed.body);
+  }
+});
+
 test('acoustic authoring rejects invalid parameters and copies phase arrays', () => {
   const phases = [0, 0.5];
   const profile = compileVehicleAudioProfile({ ...base.sound, firingPhases: phases });
@@ -42,6 +65,9 @@ test('acoustic authoring rejects invalid parameters and copies phase arrays', ()
     { resonanceHz: Infinity },
     { resonanceQ: 9 },
     { gain: 2 },
+    { crackHz: Infinity },
+    { crackGain: -1 },
+    { saturation: 9 },
     { firingPhases: [] },
     { firingPhases: [0, 0] },
     { firingPhases: [1] },
@@ -58,6 +84,8 @@ test('RPM and load control pitch and timbre independently without changing obser
   assert.equal(faster.frequency, first.frequency * 2);
   const loaded = engineParameters({ ...state, throttle: 1, drive: 1 }, base.sound);
   assert.equal(loaded.frequency, first.frequency);
+  assert.ok(loaded.crack / loaded.body > first.crack / first.body);
+  assert.ok(loaded.drive > first.drive);
   assert.ok(loaded.gain > first.gain && loaded.cutoff > first.cutoff);
   assert.ok(engineParameters({ ...state, rpm: 0 }, base.sound).frequency > 0);
   assert.deepEqual(state, before);

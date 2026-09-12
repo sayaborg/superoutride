@@ -65,6 +65,9 @@ export class FakeAudioContext {
   createStereoPanner() {
     return new Node(this);
   }
+  createWaveShaper() {
+    return new Node(this);
+  }
   createOscillator() {
     return new Node(this);
   }

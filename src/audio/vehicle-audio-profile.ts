@@ -5,13 +5,19 @@ export interface VehicleAudioProfile {
   readonly pulseWidth: number;
   readonly resonanceHz: number;
   readonly resonanceQ: number;
+  readonly crackHz: number;
+  readonly crackGain: number;
+  readonly saturation: number;
   readonly gain: number;
 }
 
 export function compileVehicleAudioProfile(profile: VehicleAudioProfile): VehicleAudioProfile {
-  const { cycleRevolutions, firingPhases, pulseWidth, resonanceHz, resonanceQ, gain } = profile;
+  const { cycleRevolutions, firingPhases, pulseWidth, resonanceHz, resonanceQ, crackHz, crackGain, saturation, gain } =
+    profile;
   if (
-    ![cycleRevolutions, pulseWidth, resonanceHz, resonanceQ, gain].every(Number.isFinite) ||
+    ![cycleRevolutions, pulseWidth, resonanceHz, resonanceQ, crackHz, crackGain, saturation, gain].every(
+      Number.isFinite,
+    ) ||
     !(
       cycleRevolutions > 0 &&
       pulseWidth > 0 &&
@@ -20,6 +26,12 @@ export function compileVehicleAudioProfile(profile: VehicleAudioProfile): Vehicl
       resonanceHz <= 10000 &&
       resonanceQ > 0 &&
       resonanceQ <= 8 &&
+      crackHz > 0 &&
+      crackHz <= 10000 &&
+      crackGain >= 0 &&
+      crackGain <= 2 &&
+      saturation >= 1 &&
+      saturation <= 8 &&
       gain > 0 &&
       gain <= 1
     ) ||

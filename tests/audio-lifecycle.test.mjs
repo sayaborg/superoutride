@@ -117,7 +117,7 @@ test('engine graph has bounded nodes across thousands of updates and nine profil
     engine.updateRival(state, sound, 0.3, 0.5);
   }
   assert.equal(context.nodes.length, count);
-  assert.equal(context.nodes.filter((n) => n.started).length, 3);
+  assert.equal(context.nodes.filter((n) => n.started).length, 5);
   engine.setVolume(0.3);
   engine.silenceRival();
   engine.dispose();

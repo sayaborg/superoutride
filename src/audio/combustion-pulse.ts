@@ -1,17 +1,23 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
-/** Fourier sum of finite-width pulses. No recording, PCM loop or per-firing node. */
-export function combustionCoefficients(profile: VehicleAudioProfile) {
-  const real = new Float32Array(97);
-  const imag = new Float32Array(97);
+/** Band-limited periodic sum of causal bi-exponential pulses; width is a cycle fraction. */
+export function combustionCoefficients(profile: VehicleAudioProfile, width = profile.pulseWidth) {
+  const real = new Float32Array(193);
+  const imag = new Float32Array(193);
   let bound = 0;
   for (let harmonic = 1; harmonic < real.length; harmonic += 1) {
-    const envelope = Math.exp(-harmonic * profile.pulseWidth);
+    // Transform of exp(-t/decay) - exp(-t/rise), apart from a normalized constant.
+    const decay = 2 * Math.PI * harmonic * width;
+    const rise = decay * 0.12;
+    const denominator = (1 + decay * decay) * (1 + rise * rise);
+    const a = (1 - decay * rise) / denominator;
+    const b = -(decay + rise) / denominator;
     let re = 0,
       im = 0;
     for (const phase of profile.firingPhases) {
-      re += Math.cos(2 * Math.PI * harmonic * phase) * envelope;
-      im += Math.sin(2 * Math.PI * harmonic * phase) * envelope;
+      const angle = 2 * Math.PI * harmonic * phase;
+      re += a * Math.cos(angle) + b * Math.sin(angle);
+      im += a * Math.sin(angle) - b * Math.cos(angle);
     }
     real[harmonic] = re;
     imag[harmonic] = im;

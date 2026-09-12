@@ -19,18 +19,29 @@ surfaces or repeat contact/tire solves.
 ## Synthesis
 
 There are no recordings, audio assets or PCM loops. The
-[combustion compiler](../src/audio/combustion-pulse.ts) constructs 96 Fourier harmonics
-from a cycle length in crank revolutions, ordered firing phases and finite pulse width.
-The DC coefficient is zero and the sum of harmonic magnitudes is normalized to one.
-Web Audio PeriodicWave/OscillatorNode owns band-limited periodic playback. Coefficients
-and waves are prepared on profile selection and cached for the life of each voice.
+[combustion compiler](../src/audio/combustion-pulse.ts) constructs 192 Fourier harmonics
+of a periodic bi-exponential pressure pulse train from ordered firing phases. Pulse
+width is the decay time as a fraction of the engine cycle; rise time is 12% of decay.
+DC is removed and the sum of harmonic magnitudes is normalized to one. This supersedes
+the symmetric exponential harmonic envelope. Web Audio owns band-limited playback;
+there is no per-firing allocation or JavaScript audio-rate firing scheduler.
 
-The [engine voice](../src/audio/engine-voice.ts) uses one oscillator, a peaking resonator,
-a low-pass filter and a gain. Cycle frequency is RPM / (60 * cycle revolutions).
-The idle floor and redline ceiling affect acoustic pitch only: physical RPM can be zero.
-Throttle and delivered/requested drive-torque fraction control gain and brightness.
+The [engine voice](../src/audio/engine-voice.ts) uses two phase-aligned oscillators:
+a broad body pulse through a peaking resonator and a pulse with 12% of the body width
+through a broad crack band-pass. Their weighted sum feeds variable drive, a shared
+static tanh transfer table with 2x oversampling, DC removal, a low-pass and output gain.
+The table is a nonlinear transfer function, not recorded or looped audio. Waves are
+prepared on profile selection and cached for the life of each voice. The two oscillators
+start together and receive identical frequency automation, preserving firing alignment.
+
+Cycle frequency is RPM / (60 * cycle revolutions). The idle floor and redline ceiling
+affect acoustic pitch only: physical RPM can be zero. Effort mixes actuator throttle
+and the delivered/requested drive-torque fraction multiplied by throttle; it is a
+presentation proxy, not measured combustion load or manifold pressure. Effort increases
+body level, crack/body ratio, saturation drive and brightness. Closed throttle retains
+body and a small crack component. Intake machinery, fuel cut and backfire are absent.
 No shift timer or artificial torque interruption is added. Profile changes fade down
-before replacing the waveform; continuous values use short AudioParam smoothing.
+before replacing both waveforms; continuous values use short AudioParam smoothing.
 
 The [nine authored profiles](../src/vehicle/sound-profiles.ts) are acoustic sketches,
 not calibrated replicas of real exhaust systems. The vehicle catalog binds profiles;
@@ -52,7 +63,7 @@ is low-pass noise with squared speed-dependent gain; it remains audible in fligh
 ## Mixing and lifetime
 
 The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots,
-one aggregate tire voice and wind. This means three oscillators and one noise worklet,
+one aggregate tire voice and wind. This means five oscillators and one noise worklet,
 regardless of the number of game actors. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.
@@ -84,7 +95,9 @@ observation and recovery, nearest-rival selection and continuous worklet output.
 late loading, failure cleanup/retry, hidden/muted states, disposal and bounded node count.
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
-response. Its PCM buffers are test output, never game sound assets.
+response at open and closed throttle. It also offers a three-second, RMS-matched
+comparison against the original single-wave graph at the same selected RPM/throttle.
+The comparison is diagnostic only; its PCM buffers are test output, never game sound assets.
 
 Chrome integration checks can verify all four course modes, sound controls and vehicle
 switching. Desktop rendering is not phone performance certification. Actual speaker

@@ -5,6 +5,24 @@
     <title>Procedural audio verification</title>
   </head>
   <body>
+    <h1>エンジン音の比較</h1>
+    <p>同じ回転数・同じ実効音量で音色を比較します。試聴は3秒で止まります。</p>
+    <label
+      >車種
+      <select id="vehicle"></select
+    ></label>
+    <label>回転数 <input id="rpm" type="number" min="1000" max="12000" value="3000" step="500" /></label>
+    <label
+      >アクセル
+      <select id="load">
+        <option value="1">全開</option>
+        <option value="0">全閉</option>
+      </select></label
+    >
+    <button id="before" type="button">旧方式を聴く</button>
+    <button id="after" type="button">新方式を聴く</button>
+    <button id="stop" type="button">停止</button>
+    <p id="listening">未再生</p>
     <button id="run" type="button">Verify engine voices</button>
     <pre id="result">Ready</pre>
     <script type="module">
@@ -12,6 +30,120 @@
       import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
       import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
       const result = document.getElementById('result');
+      const vehicle = document.getElementById('vehicle');
+      for (const entry of VEHICLE_CATALOG) {
+        const option = document.createElement('option');
+        option.value = String(vehicle.options.length);
+        option.textContent = entry.profile.id;
+        vehicle.append(option);
+      }
+      // The original single-wave graph is retained only as an audible regression reference.
+      function beforeVoice(context, state, profile) {
+        const real = new Float32Array(97),
+          imag = new Float32Array(97);
+        let bound = 0;
+        for (let h = 1; h < 97; h++) {
+          for (const phase of profile.firingPhases) {
+            real[h] += Math.cos(2 * Math.PI * h * phase) * Math.exp(-h * profile.pulseWidth);
+            imag[h] += Math.sin(2 * Math.PI * h * phase) * Math.exp(-h * profile.pulseWidth);
+          }
+          bound += Math.hypot(real[h], imag[h]);
+        }
+        for (let h = 1; h < 97; h++) {
+          real[h] /= bound;
+          imag[h] /= bound;
+        }
+        const source = context.createOscillator();
+        source.setPeriodicWave(context.createPeriodicWave(real, imag, { disableNormalization: true }));
+        const rpm = Math.max(state.idleRpm, Math.min(state.rpm, state.redlineRpm));
+        source.frequency.value = rpm / (60 * profile.cycleRevolutions);
+        const resonance = context.createBiquadFilter();
+        resonance.type = 'peaking';
+        resonance.frequency.value = profile.resonanceHz;
+        resonance.Q.value = profile.resonanceQ;
+        resonance.gain.value = 5;
+        const tone = context.createBiquadFilter();
+        tone.type = 'lowpass';
+        tone.Q.value = 0.5;
+        tone.frequency.value = 450 + 3600 * state.throttle + (1800 * rpm) / state.redlineRpm;
+        const level = context.createGain();
+        level.gain.value = profile.gain * (0.3 + 0.7 * state.throttle);
+        source.connect(resonance).connect(tone).connect(level).connect(context.destination);
+        source.start();
+      }
+      let playback,
+        playing,
+        request = 0;
+      const listening = document.getElementById('listening');
+      function stop() {
+        request++;
+        playing?.stop();
+        playing?.disconnect();
+        playing = null;
+        listening.textContent = '停止';
+      }
+      document.getElementById('stop').onclick = stop;
+      async function audition(before) {
+        stop();
+        const current = request;
+        try {
+          playback ??= new AudioContext();
+          await playback.resume();
+          const entry = VEHICLE_CATALOG[Number(vehicle.value)];
+          const context = new OfflineAudioContext(1, 4 * 48000, 48000);
+          const state = createVehicleAudioObservation();
+          Object.assign(state, {
+            rpm: Number(document.getElementById('rpm').value) || 3000,
+            idleRpm: entry.profile.powertrain.idleRpm,
+            redlineRpm: entry.profile.powertrain.redlineRpm,
+            throttle: Number(document.getElementById('load').value),
+            drive: Number(document.getElementById('load').value),
+          });
+          let voice;
+          if (before) beforeVoice(context, state, entry.sound);
+          else {
+            voice = createEngineVoice(context, context.destination);
+            voice.update(state, entry.sound);
+          }
+          const rendered = await context.startRendering();
+          voice?.dispose();
+          if (current !== request) return;
+          const samples = rendered.getChannelData(0).subarray(48000);
+          let power = 0,
+            peak = 0;
+          for (const value of samples) {
+            power += value * value;
+            peak = Math.max(peak, Math.abs(value));
+          }
+          const scale = Math.min(0.12 / Math.sqrt(power / samples.length), 0.85 / peak);
+          const buffer = playback.createBuffer(1, samples.length, 48000);
+          const output = buffer.getChannelData(0);
+          for (let i = 0; i < output.length; i++) {
+            const fade = Math.min(1, i / 960, (output.length - 1 - i) / 960);
+            output[i] = samples[i] * scale * fade;
+          }
+          playing = playback.createBufferSource();
+          playing.buffer = buffer;
+          playing.connect(playback.destination);
+          playing.onended = () => {
+            if (current === request) listening.textContent = '再生終了';
+          };
+          playing.start();
+          listening.textContent = `${before ? '旧方式' : '新方式'}・${entry.profile.id}・${state.rpm} RPM`;
+        } catch (error) {
+          listening.textContent = String(error);
+        }
+      }
+      document.getElementById('before').onclick = () => audition(true);
+      document.getElementById('after').onclick = () => audition(false);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stop();
+      });
+      window.addEventListener('pagehide', () => {
+        stop();
+        void playback?.close();
+      });
+
       document.getElementById('run').onclick = async () => {
         result.textContent = 'Running';
         try {
@@ -19,14 +151,17 @@
           for (const sampleRate of [44100, 48000]) {
             for (const entry of VEHICLE_CATALOG) {
               const amplitudes = [];
-              for (const rpm of [0, 3000, 6000]) {
+              for (const [rpm, throttle] of [0, 3000, 6000].flatMap((rpm) => [
+                [rpm, 0],
+                [rpm, 1],
+              ])) {
                 const context = new OfflineAudioContext(1, sampleRate / 2, sampleRate);
                 const voice = createEngineVoice(context, context.destination);
                 const observation = createVehicleAudioObservation();
                 Object.assign(observation, {
                   rpm,
-                  throttle: 1,
-                  drive: 1,
+                  throttle,
+                  drive: throttle,
                   idleRpm: entry.profile.powertrain.idleRpm,
                   redlineRpm: entry.profile.powertrain.redlineRpm,
                 });
@@ -67,7 +202,7 @@
                 if (!(error < 0.02 && displaced > error * 5)) {
                   throw new Error(`invalid periodicity: ${entry.profile.id} ${rpm}: ${error}, ${displaced}`);
                 }
-                amplitudes.push({ rpm, peak, rms, crossings, periodicError: error });
+                amplitudes.push({ rpm, throttle, peak, rms, crossings, periodicError: error });
                 voice.dispose();
               }
               rows.push({ vehicle: entry.profile.id, sampleRate, amplitudes });

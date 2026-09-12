@@ -9,6 +9,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.014,
     resonanceHz: 720,
     resonanceQ: 1.1,
+    crackHz: 1800,
+    crackGain: 0.7,
+    saturation: 2.8,
     gain: 0.32,
   }),
   '911_TURBO_3_3': compileVehicleAudioProfile({
@@ -17,6 +20,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.025,
     resonanceHz: 430,
     resonanceQ: 1.4,
+    crackHz: 1300,
+    crackGain: 0.55,
+    saturation: 3.2,
     gain: 0.3,
   }),
   CORVETTE_C4: compileVehicleAudioProfile({
@@ -25,6 +31,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.024,
     resonanceHz: 260,
     resonanceQ: 1.7,
+    crackHz: 1050,
+    crackGain: 0.6,
+    saturation: 4,
     gain: 0.34,
   }),
   GOLF_GTI_16V: compileVehicleAudioProfile({
@@ -33,6 +42,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.035,
     resonanceHz: 680,
     resonanceQ: 1.0,
+    crackHz: 2000,
+    crackGain: 0.85,
+    saturation: 2.6,
     gain: 0.28,
   }),
   DELTA_HF_INTEGRALE: compileVehicleAudioProfile({
@@ -41,6 +53,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.045,
     resonanceHz: 420,
     resonanceQ: 1.3,
+    crackHz: 1400,
+    crackGain: 0.6,
+    saturation: 3.2,
     gain: 0.3,
   }),
   VFR750R: compileVehicleAudioProfile({
@@ -49,6 +64,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.022,
     resonanceHz: 950,
     resonanceQ: 1.0,
+    crackHz: 2600,
+    crackGain: 0.95,
+    saturation: 2.5,
     gain: 0.28,
   }),
   R80_GS_PARIS_DAKAR: compileVehicleAudioProfile({
@@ -57,6 +75,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.06,
     resonanceHz: 350,
     resonanceQ: 1.2,
+    crackHz: 1500,
+    crackGain: 0.5,
+    saturation: 3,
     gain: 0.32,
   }),
   FXRT_SPORT_GLIDE: compileVehicleAudioProfile({
@@ -65,6 +86,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.055,
     resonanceHz: 220,
     resonanceQ: 1.5,
+    crackHz: 950,
+    crackGain: 0.65,
+    saturation: 4,
     gain: 0.34,
   }),
   PX200E_ARCOBALENO: compileVehicleAudioProfile({
@@ -73,6 +97,9 @@ export const VEHICLE_SOUND_PROFILES = Object.freeze({
     pulseWidth: 0.055,
     resonanceHz: 1150,
     resonanceQ: 1.4,
+    crackHz: 3200,
+    crackGain: 1.1,
+    saturation: 3.5,
     gain: 0.26,
   }),
 });
