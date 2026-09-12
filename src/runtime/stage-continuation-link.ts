@@ -5,7 +5,7 @@ import {
 } from '../core/guide-coordinate-frame.js';
 import { wrapAngle } from '../core/math.js';
 
-export interface StageContinuationLinkAuthoring {
+interface StageContinuationLinkAuthoring {
   readonly id: string;
   readonly sourceFrame: GuideCoordinateSource;
   readonly targetFrame: GuideCoordinateSource;

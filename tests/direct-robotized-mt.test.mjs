@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -23,7 +24,7 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { withEngineCurveScale } from './helpers/authored-engine.mjs';
 
 const dt = 1 / 60;
-const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(b)), `${a} != ${b}`);
+
 const omegaAt = (p, rpm, gear) => (rpm * 2 * Math.PI) / (60 * p.finalDriveRatio * p.gearRatios[gear - 1]);
 const rpmAt = (p, omega, gear) => (Math.abs(omega) * p.gearRatios[gear - 1] * p.finalDriveRatio * 60) / (2 * Math.PI);
 const guide = compileGuidePath(
@@ -80,11 +81,11 @@ test('RPM is direct wheel-ratio algebra and stale observation caches are never a
   updateAutomaticPowertrain(a, p, omega, 0.25, dt);
   updateAutomaticPowertrain(b, p, omega, 0.25, dt);
   assert.deepEqual(b, a);
-  near(a.engineRpm, 4000);
+  near(a.engineRpm, 4000, 1e-9, { relative: true, exclusive: true });
   const c = { ...a };
   updateAutomaticPowertrain(c, p, omega, 1, dt / 12);
   assert.equal(c.engineRpm, a.engineRpm);
-  near(c.outputDriveTorque, a.outputDriveTorque * 4);
+  near(c.outputDriveTorque, a.outputDriveTorque * 4, 1e-9, { relative: true, exclusive: true });
 });
 
 test('zero-speed launch has zero derived RPM, finite idle-floor torque and no zero-throttle creep', () => {
@@ -96,11 +97,11 @@ test('zero-speed launch has zero derived RPM, finite idle-floor torque and no ze
     assert.equal(updateAutomaticPowertrain(s, p, 0, 0, dt), 0);
     assert.ok(updateAutomaticPowertrain(s, p, 0, 1, dt) > 0);
     assert.equal(s.engineRpm, 0);
-    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm));
+    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm), 1e-9, { relative: true, exclusive: true });
     const omega = omegaAt(p, p.idleRpm / 2, 1);
     updateAutomaticPowertrain(s, p, -omega, 1, dt);
-    near(s.engineRpm, p.idleRpm / 2);
-    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm));
+    near(s.engineRpm, p.idleRpm / 2, 1e-9, { relative: true, exclusive: true });
+    near(s.engineTorqueNewtonMeters, sampleEngineTorque(p, p.idleRpm), 1e-9, { relative: true, exclusive: true });
   }
 });
 
@@ -119,10 +120,12 @@ test('every adjacent threshold shift delivers new-ratio torque immediately witho
           const output = updateAutomaticPowertrain(s, p, omega, 1, dt);
           assert.equal(s.gear, expected);
           assert.ok(output > 0);
-          near(s.engineRpm, rpmAt(p, omega, expected));
+          near(s.engineRpm, rpmAt(p, omega, expected), 1e-9, { relative: true, exclusive: true });
           near(
             output,
             sampleEngineTorque(p, s.engineRpm) * p.gearRatios[expected - 1] * p.finalDriveRatio * p.efficiency,
+            1e-9,
+            { relative: true, exclusive: true },
           );
         }
       }
@@ -164,12 +167,15 @@ test('all positive engine samples survive and the curve itself does not collapse
   } of VEHICLE_CATALOG) {
     for (const point of p.torqueCurve) {
       assert.ok(point.torqueNewtonMeters > 0);
-      near(sampleEngineTorque(p, point.rpm), point.torqueNewtonMeters);
+      near(sampleEngineTorque(p, point.rpm), point.torqueNewtonMeters, 1e-9, { relative: true, exclusive: true });
     }
-    near(sampleEngineTorque(p, p.redlineRpm), p.torqueCurve.at(-1).torqueNewtonMeters);
+    near(sampleEngineTorque(p, p.redlineRpm), p.torqueCurve.at(-1).torqueNewtonMeters, 1e-9, {
+      relative: true,
+      exclusive: true,
+    });
   }
-  near(sampleEngineTorque(car.powertrain, 4500), 470);
-  near(sampleEngineTorque(car.powertrain, 6800), 420);
+  near(sampleEngineTorque(car.powertrain, 4500), 470, 1e-9, { relative: true, exclusive: true });
+  near(sampleEngineTorque(car.powertrain, 6800), 420, 1e-9, { relative: true, exclusive: true });
 });
 
 test('one averaged rev limiter is monotone, bounded and C1 at both endpoints', () => {
@@ -177,11 +183,11 @@ test('one averaged rev limiter is monotone, bounded and C1 at both endpoints', (
     profile: { powertrain: p },
   } of VEHICLE_CATALOG) {
     const span = p.redlineRpm - p.upshiftRpm;
-    near(engineRevLimiterScale(p, 0), 1);
-    near(engineRevLimiterScale(p, p.upshiftRpm), 1);
-    near(engineRevLimiterScale(p, (p.upshiftRpm + p.redlineRpm) / 2), 0.5);
-    near(engineRevLimiterScale(p, p.redlineRpm), 0);
-    near(engineRevLimiterScale(p, p.redlineRpm * 2), 0);
+    near(engineRevLimiterScale(p, 0), 1, 1e-9, { relative: true, exclusive: true });
+    near(engineRevLimiterScale(p, p.upshiftRpm), 1, 1e-9, { relative: true, exclusive: true });
+    near(engineRevLimiterScale(p, (p.upshiftRpm + p.redlineRpm) / 2), 0.5, 1e-9, { relative: true, exclusive: true });
+    near(engineRevLimiterScale(p, p.redlineRpm), 0, 1e-9, { relative: true, exclusive: true });
+    near(engineRevLimiterScale(p, p.redlineRpm * 2), 0, 1e-9, { relative: true, exclusive: true });
     let previous = 1;
     for (let i = 0; i <= 100; i++) {
       const value = engineRevLimiterScale(p, p.upshiftRpm + (span * i) / 100);
@@ -202,7 +208,7 @@ test('rev limiting cuts only drive, permits observed overrun and recovers withou
     const omega = omegaAt(p, p.redlineRpm * 1.2, top);
     const s = createAutomaticPowertrainState(p, omega);
     assert.equal(updateAutomaticPowertrain(s, p, omega, 1, dt), 0);
-    near(s.engineRpm, p.redlineRpm * 1.2);
+    near(s.engineRpm, p.redlineRpm * 1.2, 1e-9, { relative: true, exclusive: true });
     assert.ok(s.engineTorqueNewtonMeters > 0);
     const output = updateAutomaticPowertrain(s, p, omegaAt(p, p.upshiftRpm - 1, top), 1, dt);
     assert.ok(output > 0);

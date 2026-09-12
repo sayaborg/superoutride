@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -24,10 +25,6 @@ import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-const near = (actual, expected, tolerance = 1e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
-
 test('default BRANCHING parent is the long four-lane highway rather than the stadium', () => {
   const parent = createDefaultBranchingParent();
   assert.ok(parent.guide.length > 7_000);
@@ -48,8 +45,8 @@ test('first fork occupies one straight flat authored interval after the calibrat
   assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_FORK_WIDEN_START_S - 1).phase, 'SINGLE');
   assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_ROUTE_GATE_S).phase, 'SEPARATED');
   assert.equal(BRANCHING_DEFAULT_BRANCHING_JUNCTION.sample(BRANCHING_HANDOFF_SEAM_S).phase, 'SEPARATED');
-  near(parent.heightProfile.samplePhysics(BRANCHING_FORK_WIDEN_START_S), 0);
-  near(parent.heightProfile.samplePhysics(BRANCHING_HANDOFF_SEAM_S), 0);
+  near(parent.heightProfile.samplePhysics(BRANCHING_FORK_WIDEN_START_S), 0, 1e-6);
+  near(parent.heightProfile.samplePhysics(BRANCHING_HANDOFF_SEAM_S), 0, 1e-6);
   near(
     sampleGuidePath(parent.guide, BRANCHING_FORK_WIDEN_START_S).heading,
     sampleGuidePath(parent.guide, BRANCHING_HANDOFF_SEAM_S).heading,
@@ -82,10 +79,10 @@ test('runtime moves first physical gates and handoff seams with the selected par
     const localL = BRANCHING_DEFAULT_BRANCHING_JUNCTION.separatedChildCenterL(side);
     const expectedGate = guidePathToWorld(parent.guide, BRANCHING_ROUTE_GATE_S, localL);
     const expectedSeam = guidePathToWorld(parent.guide, BRANCHING_HANDOFF_SEAM_S, localL);
-    near(gate.center.x, expectedGate.x);
-    near(gate.center.z, expectedGate.z);
-    near(seam.center.x, expectedSeam.x);
-    near(seam.center.z, expectedSeam.z);
+    near(gate.center.x, expectedGate.x, 1e-6);
+    near(gate.center.z, expectedGate.z, 1e-6);
+    near(seam.center.x, expectedSeam.x, 1e-6);
+    near(seam.center.z, expectedSeam.z, 1e-6);
     assert.equal(seam.sourceSeamS, BRANCHING_HANDOFF_SEAM_S);
   }
 

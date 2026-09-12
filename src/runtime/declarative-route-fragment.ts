@@ -13,13 +13,13 @@ import {
  * that repeated row must be byte-semantic identity: same id, same kind and the exact same runtime
  * object. Edges and physical geometry ids are never mergeable.
  */
-export interface DeclarativeRouteFragment {
+interface DeclarativeRouteFragment {
   readonly stages?: readonly DeclarativeLiveRouteStageAuthoring[];
   readonly transitions?: readonly DeclarativeLiveRouteTransitionAuthoring[];
   readonly finishes?: readonly DeclarativeLiveRouteFinishAuthoring[];
 }
 
-export interface DeclarativeRouteFragmentComposition {
+interface DeclarativeRouteFragmentComposition {
   readonly startStageId: string;
   readonly fragments: readonly DeclarativeRouteFragment[];
 }

@@ -2,7 +2,7 @@ import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from '../c
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 
 /** Stage-local lateral region. Both visual and physical adapters consume this authority. */
-export type StageRoadLocalClass = 'ROAD' | 'SHOULDER' | 'TERRAIN' | 'OUTSIDE';
+type StageRoadLocalClass = 'ROAD' | 'SHOULDER' | 'TERRAIN' | 'OUTSIDE';
 
 /**
  * One stage-local lateral chart for the raster road strip.

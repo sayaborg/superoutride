@@ -10,7 +10,7 @@ import { BROWSER_CALIBRATION_KEYS } from './key-bindings.js';
 const SELECTOR_GRID_TOLERANCE = 1e-9;
 
 export type BrowserTireCalibrationAxis = 'GX' | 'PX' | 'GY' | 'PY' | 'KNEE';
-export interface BrowserTireAxis {
+interface BrowserTireAxis {
   readonly id: BrowserTireCalibrationAxis;
   readonly field: keyof TireCharacteristics;
   readonly code: string;

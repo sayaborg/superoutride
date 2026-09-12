@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -21,10 +22,6 @@ import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
 import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
 import { sampleStageGroundMapRuntime } from '../dist/groundmap/stage-ground-map-view.js';
 import { applyStageRoadViewToTerrainLine } from '../dist/road/stage-terrain-view.js';
-
-const near = (actual, expected, tolerance = 1e-8) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function setup() {
   const guide = createStadiumGuide();
@@ -58,9 +55,9 @@ test('child local l=0 maps to the selected parent-authored road center in raster
   for (const child of [views.left, views.right]) {
     const actual = stageRoadToWorld(guide.raster, child, 600, 0);
     const expected = rasterPathToWorld(guide.raster, 600, child.sourceLateralOrigin);
-    near(actual.x, expected.x);
-    near(actual.z, expected.z);
-    near(actual.l, 0);
+    near(actual.x, expected.x, 1e-8);
+    near(actual.z, expected.z, 1e-8);
+    near(actual.l, 0, 1e-8);
   }
 });
 
@@ -101,8 +98,8 @@ test('SurfaceMap child-local view uses the same road/shoulder corridor and makes
     assert.equal(local.sample(600, 4.0).type, 'SHOULDER');
     assert.equal(local.sample(600, -4.6).type, 'VOID');
     assert.equal(local.sample(600, 4.6).type, 'VOID');
-    near(stageRoadSourceLateral(child, 0), child.sourceLateralOrigin);
-    near(stageRoadSourceLateral(child, 4), child.sourceLateralOrigin + 4);
+    near(stageRoadSourceLateral(child, 0), child.sourceLateralOrigin, 1e-8);
+    near(stageRoadSourceLateral(child, 4), child.sourceLateralOrigin + 4, 1e-8);
   }
 });
 
@@ -156,8 +153,8 @@ test('stage-local TerrainLine contains selected road while sibling road projects
 
     assert.ok(selectedProjection.x >= line.xRoadL && selectedProjection.x <= line.xRoadR);
     assert.ok(siblingProjection.x < line.xGroundL || siblingProjection.x > line.xGroundR);
-    near(line.sourceFootprint.deltaS, baseLine.sourceFootprint.deltaS);
-    near(line.sourceFootprint.deltaSEffective, baseLine.sourceFootprint.deltaSEffective);
+    near(line.sourceFootprint.deltaS, baseLine.sourceFootprint.deltaS, 1e-8);
+    near(line.sourceFootprint.deltaSEffective, baseLine.sourceFootprint.deltaSEffective, 1e-8);
   }
 });
 

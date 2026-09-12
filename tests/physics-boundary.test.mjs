@@ -1,3 +1,4 @@
+import { deg } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -16,8 +17,6 @@ import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle
 import { renderDriving } from '../dist/render/renderer.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-
-const deg = (value) => (value * Math.PI) / 180;
 
 function makePlainVehicle(guide, height, s = 90) {
   const p = guidePathToWorld(guide, s, 0);

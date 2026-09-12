@@ -1,7 +1,7 @@
 import type { Vec2 } from '../core/math.js';
 import type { RouteBoundaryGateSet, RouteTransitionGate } from './route-boundary-gates.js';
 
-export interface LockedBranchRecoveryApproach {
+interface LockedBranchRecoveryApproach {
   readonly choiceId: string;
   readonly worldPoint: Vec2;
 }

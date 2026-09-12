@@ -13,7 +13,7 @@ import {
 } from './ordered-race-progress.js';
 
 /** Finite unfolded circuit observations required to compile ordered race gates. */
-export interface CircuitRaceWindowRead {
+interface CircuitRaceWindowRead {
   readonly topology: { readonly id: string; readonly lapLength: number };
   readonly repeatCount: number;
   readonly length: number;
@@ -47,13 +47,13 @@ export interface CircuitRaceRules extends OrderedRaceCourseRules {
   readonly windowLength: number;
 }
 
-export interface CircuitRaceProgressSample extends Vec2 {
+interface CircuitRaceProgressSample extends Vec2 {
   /** Finite monotonically increasing unfolded runtime-window chainage. */
   readonly sWindow: number;
 }
 
 export type CircuitRaceProgressState = OrderedRaceProgressState;
-export type CircuitRaceProgressUpdate = OrderedRaceProgressUpdate;
+type CircuitRaceProgressUpdate = OrderedRaceProgressUpdate;
 
 /**
  * Expand one-lap circuit checkpoint authoring into a finite physical gate sequence.

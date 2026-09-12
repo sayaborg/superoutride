@@ -23,7 +23,7 @@ import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
 const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
 
-export type PlayerVisualKind = 'car' | 'bike';
+type PlayerVisualKind = 'car' | 'bike';
 
 export interface RenderResult {
   terrainLineCount: number;
@@ -46,7 +46,7 @@ export interface RenderResult {
   workload?: RenderWorkload;
 }
 
-export interface RenderWorkload {
+interface RenderWorkload {
   overdrawRows: number;
   terrainLineCountPerScreenRowMax: number;
   terrainOutputPixelsPerScreenRowMax: number;
@@ -55,7 +55,7 @@ export interface RenderWorkload {
   groundMapLevelHistogram: readonly number[];
 }
 
-export interface RenderScene {
+interface RenderScene {
   readonly background: FarBackground;
   readonly guide: GuidePath;
   readonly camera: PseudoCamera;
@@ -67,7 +67,7 @@ export interface RenderScene {
   readonly playerKind: PlayerVisualKind;
 }
 
-export interface RenderOptions {
+interface RenderOptions {
   readonly roadView?: StageRoadView;
   readonly observeWorkload?: boolean;
 }

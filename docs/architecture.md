@@ -4,6 +4,8 @@ This is the current normative coordinate/rendering specification. [Vehicle physi
 
 ## Coordinates and open geometry
 
+Core owns shared 2D/3D vector arithmetic. Vec2 and Vec3 are readonly value contracts; authoring replaces values instead of mutating coordinate observations.
+
 World X/Y/Z is authoritative. +Y is up, yaw 0 faces +Z; positive yaw rotates toward +X. Positive lateral `l` is right. For heading ψ:
 
 ```

@@ -1,11 +1,7 @@
+import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { compileGuidePath, type GuidePath } from '../../core/guide-curve.js';
 import { HeightProfile } from '../../core/height-profile.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-  LOGICAL_HEIGHT,
-} from '../../core/presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { compileRasterPath } from '../../core/raster-path.js';
 import { compileCourseMode, type CourseModeProfile } from '../../gameplay/course-mode.js';
 import type { RecoveryProfile } from '../../gameplay/recovery.js';
@@ -31,7 +27,7 @@ export const LINEAR_COURSE_MODE: CourseModeProfile = compileCourseMode({
 });
 export const LINEAR_SESSION_CONFIGURATION = compileSessionConfiguration({ rivalCount: 0 });
 
-export interface LinearHighwayRuntime {
+interface LinearHighwayRuntime {
   readonly guide: GuidePath;
   readonly heightProfile: HeightProfile;
   readonly visualProfile: VisualProfile;
@@ -74,18 +70,7 @@ export function createLinearHighwayRuntime(): LinearHighwayRuntime {
   const surfaceMap = createHighwaySurfaceMap(guide.length);
   validateSurfaceGuideEnvelope(guide, surfaceMap);
   const groundProfile = createHighwayGroundProfile();
-  const terrainProfile: TerrainVisualProfile = {
-    screenHeight: LOGICAL_HEIGHT,
-    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
-    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-    groundLeft: groundProfile.groundLeft,
-    groundRight: groundProfile.groundRight,
-    roadLeft: groundProfile.roadLeft,
-    roadRight: groundProfile.roadRight,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
+  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
 
   return Object.freeze({
     guide,
@@ -93,6 +78,6 @@ export function createLinearHighwayRuntime(): LinearHighwayRuntime {
     visualProfile,
     surfaceMap,
     groundProfile: Object.freeze(groundProfile),
-    terrainProfile: Object.freeze(terrainProfile),
+    terrainProfile,
   });
 }

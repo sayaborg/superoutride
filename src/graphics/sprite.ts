@@ -14,7 +14,7 @@ export interface SpriteAsset {
   pixels: Uint32Array;
 }
 
-export interface SpriteDrawStats {
+interface SpriteDrawStats {
   outputSamples: number;
   writtenPixels: number;
   clipped: boolean;

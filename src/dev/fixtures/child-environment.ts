@@ -1,9 +1,5 @@
+import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { HeightProfile } from '../../core/height-profile.js';
-import {
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-  LOGICAL_HEIGHT,
-} from '../../core/presentation-scale.js';
 import { rgba } from '../../graphics/software-surface.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../../render/course-sprite.js';
 import type { TerrainVisualProfile } from '../../road/terrain-line.js';
@@ -11,10 +7,6 @@ import type { SpriteAssets } from '../../visual/sprite-assets.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
 import type { ChildStageContinuation, ChildStageRuntimeSource } from '../courses/child-stage-continuation.js';
 
-const TERRAIN_D_MIN = CURRENT_RENDER_NEAR_DEPTH_METERS;
-const TERRAIN_D_MAX = CURRENT_RENDER_FAR_DEPTH_METERS;
-const GROUND_HALF_WIDTH = 12;
-const ROAD_HALF_WIDTH = 3.5;
 const SHARED_FLAT_END_S = 60;
 
 export interface ChildEnvironment {
@@ -65,7 +57,7 @@ function createCoastEnvironment(source: ChildStageRuntimeSource, assets: SpriteA
       groundBaseRight: { kind: 'color', color: rgba(72, 126, 69) },
     },
   ]);
-  const terrainProfile = terrain(heightProfile, visual);
+  const terrainProfile = createTerrainVisualProfile(source.groundProfile, heightProfile, visual);
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
     { name: 'COAST_SIGN_1', s: 82, l: origin + 5.2, asset: assets.sign },
@@ -100,7 +92,7 @@ function createMountainEnvironment(source: ChildStageRuntimeSource, assets: Spri
       groundBaseRight: { kind: 'color', color: rgba(58, 82, 52) },
     },
   ]);
-  const terrainProfile = terrain(heightProfile, visual);
+  const terrainProfile = createTerrainVisualProfile(source.groundProfile, heightProfile, visual);
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
     { name: 'MOUNTAIN_TREE_1', s: 78, l: origin - 5.3, asset: assets.tree },
@@ -116,19 +108,4 @@ function createMountainEnvironment(source: ChildStageRuntimeSource, assets: Spri
     terrainProfile,
     worldSprites: Object.freeze(authoring.map((entry) => compileCourseSprite(source.guide, heightProfile, entry))),
   });
-}
-
-function terrain(height: HeightProfile, visual: VisualProfile): TerrainVisualProfile {
-  return {
-    screenHeight: LOGICAL_HEIGHT,
-    dMin: TERRAIN_D_MIN,
-    dMax: TERRAIN_D_MAX,
-    groundLeft: GROUND_HALF_WIDTH,
-    groundRight: GROUND_HALF_WIDTH,
-    roadLeft: ROAD_HALF_WIDTH,
-    roadRight: ROAD_HALF_WIDTH,
-    height,
-    visual,
-    thinSpanScreenRows: 1,
-  };
 }

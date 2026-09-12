@@ -1,6 +1,6 @@
 import type { RenderResult } from './renderer.js';
 
-export interface RenderWorkloadEnvelope {
+interface RenderWorkloadEnvelope {
   readonly frameCount: number;
   readonly maxTerrainLineCount: number;
   readonly maxTerrainLineCountPerScreenRow: number;

@@ -7,14 +7,14 @@ import {
   type PedalRequest,
 } from '../../input/driving-input.js';
 
-export const DRIVING_INPUT_TRACE_FORMAT = 'SUPER_OUTRIDE_INPUT_TRACE_V1' as const;
+const DRIVING_INPUT_TRACE_FORMAT = 'SUPER_OUTRIDE_INPUT_TRACE_V1' as const;
 
-export interface DrivingInputRun {
+interface DrivingInputRun {
   readonly ticks: number;
   readonly input: Readonly<DrivingInput>;
 }
 
-export interface DrivingInputTrace {
+interface DrivingInputTrace {
   readonly format: typeof DRIVING_INPUT_TRACE_FORMAT;
   readonly dt: number;
   readonly runs: DrivingInputRun[];

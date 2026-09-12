@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -27,10 +28,6 @@ import {
   resolveActiveStageRuntimeContent,
 } from '../dist/runtime/stage-runtime-content.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
-
-const near = (actual, expected, tolerance = 2e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function setup() {
   const guide = createStadiumGuide();
@@ -164,9 +161,9 @@ test('ordinary car physics consumes a committed child Guide frame and child Surf
     1 / 60,
   );
 
-  near(car.x, before.x);
-  near(car.z, before.z);
-  near(car.yaw, before.yaw);
+  near(car.x, before.x, 2e-6);
+  near(car.z, before.z, 2e-6);
+  near(car.yaw, before.yaw, 2e-6);
   near(car.course.l, 0, 1e-5);
   assert.equal(car.supported, true);
   assert.equal(car.surfaceType, 'ASPHALT');

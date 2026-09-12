@@ -183,7 +183,7 @@ test('circuit browser composition uses existing open engine paths and contains n
   const importSpecifiers = [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 
   assert.match(source, /advanceCircuitDrivingActor\(vehicleWorld, playerActor/);
-  assert.match(source, /updateCamera\(cameraRig, \{ guide, height \}/);
+  assert.match(source, /world: \(\) => vehicleWorld/);
   assert.match(source, /renderDriving\(/);
   assert.match(source, /advanceCircuitDrivingActor/);
   assert.equal(

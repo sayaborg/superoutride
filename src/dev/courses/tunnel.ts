@@ -8,9 +8,9 @@ import { FAR_BACKGROUND_SOURCE } from '../../visual/far-background.js';
 
 export const TUNNEL_ENTRY_S = 130;
 export const TUNNEL_EXIT_S = 180;
-export const TUNNEL_RIB_S = [142, 168] as const;
+const TUNNEL_RIB_S = [142, 168] as const;
 
-export interface TunnelPresentation {
+interface TunnelPresentation {
   readonly entryS: number;
   readonly exitS: number;
   readonly cameraTransitionStartS: number;
@@ -20,7 +20,7 @@ export interface TunnelPresentation {
   readonly interiorBackground: FarBackground;
 }
 
-export interface SelectedFarBackground {
+interface SelectedFarBackground {
   readonly kind: 'OUTDOOR' | 'TUNNEL';
   readonly background: FarBackground;
 }

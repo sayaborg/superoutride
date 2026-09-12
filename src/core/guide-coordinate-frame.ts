@@ -14,7 +14,7 @@ import type { Vec2 } from './math.js';
  * Gameplay GuideChart structurally satisfies this contract but Core does not depend on gameplay.
  * `lateralOrigin` changes only which parallel road center is called local l=0.
  */
-export interface GuideCoordinateFrame {
+interface GuideCoordinateFrame {
   readonly guide: GuidePath;
   readonly lateralOrigin: number;
 }

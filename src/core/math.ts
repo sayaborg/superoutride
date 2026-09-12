@@ -1,8 +1,8 @@
-export const TAU = Math.PI * 2;
+const TAU = Math.PI * 2;
 
 export interface Vec2 {
-  x: number;
-  z: number;
+  readonly x: number;
+  readonly z: number;
 }
 
 export function clamp(value: number, min: number, max: number): number {
@@ -48,10 +48,6 @@ export function distanceSquared(a: Vec2, b: Vec2): number {
   const dx = a.x - b.x;
   const dz = a.z - b.z;
   return dx * dx + dz * dz;
-}
-
-export function add(a: Vec2, b: Vec2): Vec2 {
-  return { x: a.x + b.x, z: a.z + b.z };
 }
 
 export function subtract(a: Vec2, b: Vec2): Vec2 {

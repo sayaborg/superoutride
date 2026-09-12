@@ -20,7 +20,7 @@ import {
 import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
 import type { LiveRouteTravelerState } from './live-route-traveler.js';
 
-export interface LiveRouteActorTickSample {
+interface LiveRouteActorTickSample {
   readonly actorId: string;
   readonly state: LiveRouteTravelerState;
   readonly currentWorldPoint: Vec2;
@@ -29,7 +29,7 @@ export interface LiveRouteActorTickSample {
 }
 
 /** Physical attempt to cross a sibling branch that shared route authority has made illegal. */
-export interface LiveRouteBranchViolation {
+interface LiveRouteBranchViolation {
   readonly actorId: string;
   readonly stageId: string;
   readonly attemptedChoiceId: string;
@@ -47,7 +47,7 @@ export interface LiveRouteActorTickResult {
   readonly committed: boolean;
 }
 
-export interface LiveRouteMultiActorTickResult {
+interface LiveRouteMultiActorTickResult {
   readonly actors: Readonly<Record<string, LiveRouteActorTickResult>>;
   readonly arbitration: SharedRouteChoiceArbitration;
 }

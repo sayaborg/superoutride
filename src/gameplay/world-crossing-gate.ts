@@ -15,7 +15,7 @@ export interface WorldCrossingGate extends WorldCrossingGateAuthoring {
   readonly normal: Vec2;
 }
 
-export interface WorldGateCrossing {
+interface WorldGateCrossing {
   readonly direction: 'FORWARD' | 'REVERSE';
   readonly u: number;
   readonly lateral: number;

@@ -13,7 +13,7 @@ import { createChildStageContinuation } from '../dist/dev/courses/child-stage-co
 import { createAuthoredStageRegistry } from '../dist/dev/fixtures/authored-stage-registry.js';
 import { createSingleForkRouteDag } from '../dist/dev/fixtures/single-fork-route.js';
 
-import { compileStageEnvironment } from '../dist/runtime/stage-authoring-compiler.js';
+import { compileStageEnvironment, createTerrainVisualProfile } from '../dist/runtime/stage-authoring-compiler.js';
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
@@ -108,4 +108,33 @@ test('stage environment requires authored terrain widths and snapshots their val
       /terrain/,
     );
   }
+});
+
+test('terrain compilation takes asymmetric widths only from its authored source and freezes the snapshot', () => {
+  const { continuation } = setup();
+  const source = continuation.left;
+  const widths = { ...source.groundProfile, groundLeft: 13, groundRight: 17, roadLeft: 3.25, roadRight: 4.75 };
+  const terrain = createTerrainVisualProfile(widths, source.heightProfile, source.terrainProfile.visual, {
+    dMax: 175,
+    roadLeft: 999,
+  });
+  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight']) {
+    assert.equal(terrain[key], widths[key]);
+    widths[key] += 1;
+    assert.notEqual(terrain[key], widths[key]);
+    assert.throws(() => {
+      terrain[key] = widths[key];
+    }, TypeError);
+    for (const value of [0, -1, NaN, Infinity]) {
+      assert.throws(
+        () =>
+          createTerrainVisualProfile({ ...widths, [key]: value }, source.heightProfile, source.terrainProfile.visual),
+        /terrain/,
+      );
+    }
+  }
+  assert.equal(terrain.screenHeight, 240);
+  assert.equal(terrain.dMax, 175);
+  assert.equal(terrain.height, source.heightProfile);
+  assert.equal(terrain.visual, source.terrainProfile.visual);
 });

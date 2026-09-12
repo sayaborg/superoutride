@@ -1,7 +1,7 @@
 const LEVEL_ROUNDING_TOLERANCE = 1e-12;
 
 import { positiveFinite } from '../core/validation.js';
-export interface GroundMapDensityInput {
+interface GroundMapDensityInput {
   readonly d0: number;
   readonly focalLength: number;
   readonly cameraHeight: number;
@@ -15,7 +15,7 @@ export interface GroundMapDensityProfile extends GroundMapDensityInput {
   readonly rhoS: number;
 }
 
-export interface GroundMapLevelFootprint {
+interface GroundMapLevelFootprint {
   readonly level: number;
   readonly qL: number;
   readonly qS: number;

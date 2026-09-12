@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
@@ -8,10 +9,6 @@ import { createLiveContinuation } from '../dist/dev/courses/successor-stage-cont
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { guideChartToWorld } from '../dist/gameplay/guide-chart.js';
 import { createRasterStageSuccessor } from '../dist/runtime/raster-stage-successor.js';
-
-const near = (actual, expected, tolerance = 1e-7) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function authoring(side) {
   return {
@@ -44,17 +41,17 @@ test('generic factory reproduces the LEFT successor geometry and seam chainages'
   const direct = createRasterStageSuccessor(base.left, authoring('LEFT'));
   const live = createLiveContinuation(parent).leftSuccessor;
 
-  near(direct.guide.length, live.guide.length);
-  near(direct.sourceTransitionS, live.sourceTransitionS);
-  near(direct.sourceSeamS, live.sourceSeamS);
-  near(direct.targetSeamS, live.targetSeamS);
-  near(direct.finishS, live.finishS);
+  near(direct.guide.length, live.guide.length, 1e-7);
+  near(direct.sourceTransitionS, live.sourceTransitionS, 1e-7);
+  near(direct.sourceSeamS, live.sourceSeamS, 1e-7);
+  near(direct.targetSeamS, live.targetSeamS, 1e-7);
+  near(direct.finishS, live.finishS, 1e-7);
   assert.equal(direct.groundProfile.groundLeft, 12);
   assert.equal(direct.groundProfile.groundRight, 12);
   assert.equal(direct.guide.raster.vertices.length, live.guide.raster.vertices.length);
   for (let i = 0; i < direct.guide.raster.vertices.length; i += 1) {
-    near(direct.guide.raster.vertices[i].x, live.guide.raster.vertices[i].x);
-    near(direct.guide.raster.vertices[i].z, live.guide.raster.vertices[i].z);
+    near(direct.guide.raster.vertices[i].x, live.guide.raster.vertices[i].x, 1e-7);
+    near(direct.guide.raster.vertices[i].z, live.guide.raster.vertices[i].z, 1e-7);
   }
 });
 
@@ -90,11 +87,11 @@ test('extending far depth adds only straight open runout and preserves authored 
     dMax: 200,
   });
 
-  near(short.finishS, extended.finishS);
+  near(short.finishS, extended.finishS, 1e-7);
   assert.ok(extended.guide.raster.vertices.length > short.guide.raster.vertices.length);
   for (let i = 0; i < short.guide.raster.vertices.length; i += 1) {
-    near(short.guide.raster.vertices[i].x, extended.guide.raster.vertices[i].x);
-    near(short.guide.raster.vertices[i].z, extended.guide.raster.vertices[i].z);
+    near(short.guide.raster.vertices[i].x, extended.guide.raster.vertices[i].x, 1e-7);
+    near(short.guide.raster.vertices[i].z, extended.guide.raster.vertices[i].z, 1e-7);
   }
 });
 

@@ -21,9 +21,7 @@ export interface CameraProfile {
   readonly deltaYMax: number;
 }
 
-export const CAMERA_YAW_MODES = Object.freeze(['BODY_FIXED', 'MOVEMENT_FOLLOW'] as const);
-
-export type CameraYawMode = (typeof CAMERA_YAW_MODES)[number];
+export type CameraYawMode = 'BODY_FIXED' | 'MOVEMENT_FOLLOW';
 
 export const DEFAULT_CAMERA_YAW_MODE: CameraYawMode = 'BODY_FIXED';
 
@@ -49,7 +47,7 @@ export interface CameraState extends PseudoCamera {
   readonly playerScreenX: number;
 }
 
-export interface BodyPitchMovementYaw {
+interface BodyPitchMovementYaw {
   readonly yaw: number;
   readonly yawDelta: number;
   readonly forwardSpeed: number;

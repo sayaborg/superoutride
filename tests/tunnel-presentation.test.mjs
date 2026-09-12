@@ -1,3 +1,4 @@
+import { deg } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -30,7 +31,6 @@ import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
-const deg = (value) => (value * Math.PI) / 180;
 const guide = createStadiumGuide();
 const height = createHillDipHeightProfile(guide.length);
 const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));

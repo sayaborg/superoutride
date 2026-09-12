@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -5,10 +6,6 @@ import { guidePathToWorld } from '../dist/core/guide-curve.js';
 import { createChildGuideCharts } from '../dist/dev/courses/child-guide-charts.js';
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { guideChartToWorld, handoffGuideChart, locateWorldOnGuideChartGlobal } from '../dist/gameplay/guide-chart.js';
-
-const near = (actual, expected, tolerance = 1e-7) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 test('child charts put l=0 on the two separated visible road centers', () => {
   const guide = createStadiumGuide();
@@ -23,10 +20,10 @@ test('child charts put l=0 on the two separated visible road centers', () => {
   ]) {
     const childCenter = guideChartToWorld(chart, 570, 0);
     const parentPoint = guidePathToWorld(guide, 570, parentL);
-    near(childCenter.x, parentPoint.x);
-    near(childCenter.z, parentPoint.z);
-    near(childCenter.s, parentPoint.s);
-    near(childCenter.l, 0);
+    near(childCenter.x, parentPoint.x, 1e-7);
+    near(childCenter.z, parentPoint.z, 1e-7);
+    near(childCenter.s, parentPoint.s, 1e-7);
+    near(childCenter.l, 0, 1e-7);
   }
 });
 
@@ -65,8 +62,8 @@ test('child chart preserves signed lateral freedom around its own road center', 
     for (const localL of [-3, -1, 0, 1, 3]) {
       const world = guideChartToWorld(chart, 560, localL);
       const parent = guidePathToWorld(guide, 560, parentOrigin + localL);
-      near(world.x, parent.x);
-      near(world.z, parent.z);
+      near(world.x, parent.x, 1e-7);
+      near(world.z, parent.z, 1e-7);
       const recovered = locateWorldOnGuideChartGlobal(chart, world);
       near(recovered.s, 560, 2e-6);
       near(recovered.l, localL, 2e-6);

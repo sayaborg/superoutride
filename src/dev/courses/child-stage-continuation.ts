@@ -1,12 +1,8 @@
+import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { compileGuidePath, guidePathToWorld, type GuidePath } from '../../core/guide-curve.js';
 import { HeightProfile } from '../../core/height-profile.js';
 import { tangentFromHeading, type Vec2 } from '../../core/math.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-  LOGICAL_HEIGHT,
-} from '../../core/presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { compileRasterPath, type RasterVertex } from '../../core/raster-path.js';
 import type { JunctionCrossSectionProfile } from '../../course/junction-cross-section.js';
 import { createStageRoadView, type StageRoadView } from '../../course/stage-road-view.js';
@@ -42,7 +38,7 @@ const CHILD_GROUND_HALF_WIDTH = 4.5;
 const CHILD_ROAD_HALF_WIDTH = 3.5;
 const CHILD_SHOULDER_WIDTH = 1;
 
-export interface StageGuideCharts {
+interface StageGuideCharts {
   readonly parent: GuideChart;
   readonly left: GuideChart;
   readonly right: GuideChart;
@@ -246,18 +242,7 @@ function createChildRuntimeSource(
     roadCenterL: sourceLateralOrigin,
     chainageOffsetS,
   };
-  const terrainProfile: TerrainVisualProfile = {
-    screenHeight: LOGICAL_HEIGHT,
-    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
-    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-    groundLeft: 12,
-    groundRight: 12,
-    roadLeft: CHILD_ROAD_HALF_WIDTH,
-    roadRight: CHILD_ROAD_HALF_WIDTH,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
+  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
 
   return Object.freeze({
     guide,

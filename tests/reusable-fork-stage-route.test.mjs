@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -17,10 +18,6 @@ import { compileRasterForkStageRoute } from '../dist/runtime/raster-fork-stage-r
 import { compileAuthoredStageRuntimePackage } from '../dist/runtime/stage-authoring-compiler.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-
-const near = (actual, expected, tolerance = 1e-7) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function branch(label, side, deformationDirection) {
   return {
@@ -144,9 +141,9 @@ test('derives child centers and gate width from the stage-local junction authori
     assert.equal(entry.structural.roadView.roadLeft, 3.5);
     assert.equal(entry.structural.roadView.roadRight, 3.5);
     const expected = guideChartToWorld(compiled.forkRuntime.coordinateFrame, 195, entry.sourceLocalL);
-    near(entry.transition.gate.center.x, expected.x);
-    near(entry.transition.gate.center.z, expected.z);
-    near(entry.transition.gate.heading, expected.heading);
+    near(entry.transition.gate.center.x, expected.x, 1e-7);
+    near(entry.transition.gate.center.z, expected.z, 1e-7);
+    near(entry.transition.gate.heading, expected.heading, 1e-7);
   }
 });
 

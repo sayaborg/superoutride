@@ -20,7 +20,7 @@ export interface GuideChart {
   readonly lateralOrigin: number;
 }
 
-export interface GuideChartSample extends GuideSample {
+interface GuideChartSample extends GuideSample {
   readonly l: number;
 }
 

@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -25,7 +26,7 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const seed = { gripX: 2.5, peakSlipX: 0.08, gripY: 2.2, peakSlipY: 0.1, knee: 0.74 };
 const tire = car.rearStation.tire,
   R = car.rearStation.rollingRadius;
-const near = (x, y, e = 1e-10) => assert.ok(Math.abs(x - y) <= e * Math.max(1, Math.abs(y)), `${x} != ${y}`);
+
 function at(c, sx, sy, N = 10000, m = 1, vx = 30) {
   const ref = Math.hypot(vx, tire.lowSpeedRegularization);
   return force((vx + sx * ref) / R, R, vx, -sy * ref, N, m, tire, c);
@@ -46,19 +47,19 @@ const random = () => {
 test('five authoring axes compile into five resolved coefficients, with no duplicate P', () => {
   const c = compile(seed);
   assert.deepEqual(Object.keys(c).sort(), ['kX', 'kY', 'muX', 'muY', 'rhoKnee']);
-  near(c.kX, 39.375);
-  near(c.kY, 27.72);
+  near(c.kX, 39.375, 1e-10, { relative: true });
+  near(c.kY, 27.72, 1e-10, { relative: true });
   const a = read(c);
-  for (const key of Object.keys(seed)) near(a[key], seed[key]);
+  for (const key of Object.keys(seed)) near(a[key], seed[key], 1e-10, { relative: true });
   assert.ok(Object.isFrozen(c));
 });
 test('equality of stiffness is a calibration choice, not a lower-law constraint', () => {
   const c = compile({ gripX: 0.75, gripY: 3, peakSlipX: 0.02, peakSlipY: 0.08, knee: 0.74 });
-  near(c.kX, 47.25);
-  near(c.kY, 47.25);
+  near(c.kX, 47.25, 1e-10, { relative: true });
+  near(c.kY, 47.25, 1e-10, { relative: true });
   const d = compile({ ...seed, gripX: 0.75, gripY: 3, peakSlipX: 0.08, peakSlipY: 0.08 });
-  near(d.kX, 11.8125);
-  near(d.kY, 47.25);
+  near(d.kX, 11.8125, 1e-10, { relative: true });
+  near(d.kY, 47.25, 1e-10, { relative: true });
 });
 for (const field of Object.keys(seed))
   test(`${field} rejects bad compilation atomically`, () => {
@@ -92,19 +93,19 @@ test('compiler supports differing station tires without vehicle or station branc
     frontTire: seed,
     rearTire: { ...seed, gripX: 0.75 },
   });
-  near(p.frontStation.tire.muX, 2.5);
-  near(p.rearStation.tire.muX, 0.75);
+  near(p.frontStation.tire.muX, 2.5, 1e-10, { relative: true });
+  near(p.rearStation.tire.muX, 0.75, 1e-10, { relative: true });
   const c = pair(p.frontStation.tire, p.rearStation.tire);
   assert.notEqual(c.front, c.rear);
 });
 test('all nine stock references retain old non-dropping capacities and initial response', () => {
   for (const { profile: p } of VEHICLE_CATALOG)
     for (const t of [p.frontStation.tire, p.rearStation.tire]) {
-      near(t.muX, 1.35);
-      near(t.muY, 1.35);
-      near(t.kX, 9.75);
-      near(t.kY, 9.75);
-      near(t.rhoKnee, 0.74);
+      near(t.muX, 1.35, 1e-10, { relative: true });
+      near(t.muY, 1.35, 1e-10, { relative: true });
+      near(t.kX, 9.75, 1e-10, { relative: true });
+      near(t.kY, 9.75, 1e-10, { relative: true });
+      near(t.rhoKnee, 0.74, 1e-10, { relative: true });
       for (const [sx, sy] of [
         [0.01, 0.02],
         [0.2, 0.3],
@@ -115,8 +116,8 @@ test('all nine stock references retain old non-dropping capacities and initial r
           f = force((30 + sx * ref) / R, R, 30, -sy * ref, N, 1, t);
         const d = Math.hypot(sx, sy),
           gain = (N * 1.35 * legacyH((9.75 * d) / 1.35, 0.74)) / d;
-        near(f.fx, sx * gain);
-        near(f.fy, sy * gain);
+        near(f.fx, sx * gain, 1e-10, { relative: true });
+        near(f.fy, sy * gain, 1e-10, { relative: true });
       }
     }
 });
@@ -126,7 +127,7 @@ for (const a of [0.1, 0.5, 0.74, 0.9, 0.95])
     for (let i = 0; i <= 1000; i++) {
       const r = (i * 2) / 1000,
         h = H(r, a);
-      near(h, legacyH(r, a), 1e-14);
+      near(h, legacyH(r, a), 1e-14, { relative: true });
       assert.ok(h >= previous - 1e-14 && h <= 1 && h <= r + 1e-14);
       previous = h;
     }
@@ -134,7 +135,7 @@ for (const a of [0.1, 0.5, 0.74, 0.9, 0.95])
       const d = 1e-6,
         left = (H(r, a) - H(r - d, a)) / d,
         right = (H(r + d, a) - H(r, a)) / d;
-      near(left, right, 6e-6);
+      near(left, right, 6e-6, { relative: true });
     }
   });
 for (const axis of ['X', 'Y'])
@@ -147,7 +148,7 @@ for (const axis of ['X', 'Y'])
             G = seed[axis === 'X' ? 'gripX' : 'gripY'];
           for (const multiple of [1, 1.2, 4]) {
             const f = at(c, axis === 'X' ? m * P * multiple : 0, axis === 'Y' ? m * P * multiple : 0, N, m);
-            near(axis === 'X' ? f.fx : f.fy, m * G * N);
+            near(axis === 'X' ? f.fx : f.fy, m * G * N, 1e-10, { relative: true });
           }
           const f = at(c, axis === 'X' ? m * P * 0.9 : 0, axis === 'Y' ? m * P * 0.9 : 0, N, m);
           assert.ok((axis === 'X' ? f.fx : f.fy) < m * G * N);
@@ -157,18 +158,18 @@ test('knee changes at fixed G/P alter initial slopes but not capacity onset', ()
   const cs = [0.1, 0.74, 0.95].map((knee) => compile({ ...seed, knee }));
   assert.ok(cs[0].kX > cs[1].kX && cs[1].kX > cs[2].kX);
   for (const c of cs) {
-    near(at(c, 0.08, 0).fx, 25000);
-    near(at(c, 0, 0.1).fy, 22000);
+    near(at(c, 0.08, 0).fx, 25000, 1e-10, { relative: true });
+    near(at(c, 0, 0.1).fy, 22000, 1e-10, { relative: true });
   }
 });
 test('independent small-slip longitudinal and lateral demand scales with actual N', () => {
   const c = compile(seed),
     f = at(c, 0.001, 0.001, 7000);
-  near(f.fx, 7000 * c.kX * 0.001);
-  near(f.fy, 7000 * c.kY * 0.001);
+  near(f.fx, 7000 * c.kX * 0.001, 1e-10, { relative: true });
+  near(f.fy, 7000 * c.kY * 0.001, 1e-10, { relative: true });
   const d = tireLinearDemand(110, R, 30, -5, 7000, tire, c);
-  near(d.dx, 7000 * c.kX * d.sx);
-  near(d.dy, 7000 * c.kY * d.sy);
+  near(d.dx, 7000 * c.kX * d.sx, 1e-10, { relative: true });
+  near(d.dy, 7000 * c.kY * d.sy, 1e-10, { relative: true });
 });
 test('pure/combined forces remain bounded, dissipative, symmetric and load-homogeneous', () => {
   for (let i = 0; i < 20000; i++) {
@@ -188,10 +189,10 @@ test('pure/combined forces remain bounded, dissipative, symmetric and load-homog
       mirror = at(c, -sx, -sy, N, m);
     assert.ok((f.fx / f.capacityX) ** 2 + (f.fy / f.capacityY) ** 2 <= 1 + 2e-14);
     assert.ok(f.fx * sx + f.fy * sy >= -1e-9);
-    near(f2.fx, 2 * f.fx);
-    near(f2.fy, 2 * f.fy);
-    near(mirror.fx, -f.fx);
-    near(mirror.fy, -f.fy);
+    near(f2.fx, 2 * f.fx, 1e-10, { relative: true });
+    near(f2.fy, 2 * f.fy, 1e-10, { relative: true });
+    near(mirror.fx, -f.fx, 1e-10, { relative: true });
+    near(mirror.fy, -f.fy, 1e-10, { relative: true });
   }
 });
 test('fixed lateral slip has monotone Fx and combined-slip allocation without a second falloff', () => {
@@ -241,15 +242,17 @@ test('invalid slip/load/material inputs reject instead of manufacturing finite f
 test('shared slip observation is finite at zero and signed forward/reverse velocity', () => {
   for (const vx of [-30, 0, 30]) {
     const s = deriveTireSlip(10, R, vx, -2, 1);
-    near(s.sx, (R * 10 - vx) / Math.hypot(vx, 1));
-    near(s.sy, 2 / Math.hypot(vx, 1));
+    near(s.sx, (R * 10 - vx) / Math.hypot(vx, 1), 1e-10, { relative: true });
+    near(s.sy, 2 / Math.hypot(vx, 1), 1e-10, { relative: true });
   }
 });
 test('useful lateral reserve uses both elliptical capacities', () => {
   const c = compile(seed),
     N = 7000,
     x = 0.25 * c.muX * N;
-  near(usefulLateralCapacity(x, N, 1, tire, c), c.muY * N * Math.sqrt(c.rhoKnee ** 2 - 0.25 ** 2));
+  near(usefulLateralCapacity(x, N, 1, tire, c), c.muY * N * Math.sqrt(c.rhoKnee ** 2 - 0.25 ** 2), 1e-10, {
+    relative: true,
+  });
   assert.equal(usefulLateralCapacity(c.muX * N, N, 1, tire, c), 0);
 });
 test('signed wheel roots balance actual delivered torque and the elliptical tire force', () => {
@@ -275,7 +278,7 @@ test('signed wheel roots balance actual delivered torque and the elliptical tire
           const out = solveWheelOmega(i),
             res =
               i.inertia * out.omegaDot - drive + R * out.tire.fx + rollingResistanceTorque(out.omega, R, N, 0.015, 1);
-          near(res, 0, 2e-7);
+          near(res, 0, 2e-7, { relative: true });
           const snapshot = structuredClone(out);
           assert.deepEqual(out, solveWheelOmega(i));
           solveWheelOmega({ ...i, driveTorque: drive + 3000, normalLoad: N + 100 });
@@ -302,7 +305,7 @@ test('Coulomb brake atom and free airborne wheel rotation remain ordinary wheel 
   assert.equal(locked.omega, 0);
   assert.equal(locked.locked, true);
   const free = solveWheelOmega({ ...i, brakeTorque: 0 });
-  near(free.omega, (100 * 0.01) / 3.4);
+  near(free.omega, (100 * 0.01) / 3.4, 1e-10, { relative: true });
   assert.equal(free.tire.fx, 0);
 });
 test('tire authority remains per-station while owns delivered torque separately', async () => {

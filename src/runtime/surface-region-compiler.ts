@@ -6,20 +6,20 @@ import type { AuthoredGroundBase, AuthoredSurfaceBand, SurfaceRegionAuthoring } 
 import { compileGroundBase } from '../course/surface-region.js';
 import { compileSurfaceBands } from '../physics/surface-map.js';
 
-export interface CompiledVisualSection {
+interface CompiledVisualSection {
   readonly sStart: number;
   readonly name: string;
   readonly groundBaseLeft: AuthoredGroundBase;
   readonly groundBaseRight: AuthoredGroundBase;
 }
 
-export interface CompiledSurfaceSection {
+interface CompiledSurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly bands: readonly AuthoredSurfaceBand[];
 }
 
-export interface CompiledSurfaceRegions {
+interface CompiledSurfaceRegions {
   readonly groundMap: GroundMapLogicalProfile;
   readonly visualSections: readonly CompiledVisualSection[];
   readonly surfaceSections: readonly CompiledSurfaceSection[];

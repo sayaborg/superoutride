@@ -21,13 +21,13 @@ import {
   nextBrowserSteeringResponseRate,
 } from './steering-calibration-selection.js';
 
-export interface BrowserSteeringCalibrationContainers {
+interface BrowserSteeringCalibrationContainers {
   readonly steeringOffset: HTMLElement;
   readonly maxRoadWheelSteer: HTMLElement;
   readonly steeringResponse: HTMLElement;
 }
 
-export interface BrowserSteeringCalibrationControls {
+interface BrowserSteeringCalibrationControls {
   handleKey(code: string): boolean;
 }
 

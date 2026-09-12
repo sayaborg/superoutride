@@ -1,3 +1,4 @@
+import { deg, near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -19,11 +20,6 @@ import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createCameraYawDebugModel, createVehicleYawDebugModel } from '../dist/render/vehicle-yaw-debug.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
-const deg = (value) => (value * Math.PI) / 180;
-const near = (actual, expected, epsilon = 1e-9) => {
-  assert.ok(Math.abs(actual - expected) <= epsilon, `${actual} != ${expected} +/- ${epsilon}`);
-};
-
 const profile = CURRENT_CAMERA_PROFILE;
 
 function worldVelocityInBodyPitchPlane(yaw, pitch, forwardSpeed, lateralSpeed) {
@@ -44,14 +40,14 @@ test('camera yaw is full-quadrant movement yaw measured in the vehicle-pitch pla
   const velocity = worldVelocityInBodyPitchPlane(yaw, pitch, 30, 7);
   const movement = movementYawInBodyPitchFrame(yaw, pitch, velocity.x, velocity.y, velocity.z);
 
-  near(movement.forwardSpeed, 30);
-  near(movement.lateralSpeed, 7);
-  near(movement.yawDelta, Math.atan2(7, 30));
-  near(movement.yaw, wrapAngle(yaw + Math.atan2(7, 30)));
+  near(movement.forwardSpeed, 30, 1e-9);
+  near(movement.lateralSpeed, 7, 1e-9);
+  near(movement.yawDelta, Math.atan2(7, 30), 1e-9);
+  near(movement.yaw, wrapAngle(yaw + Math.atan2(7, 30)), 1e-9);
 
   const reverse = worldVelocityInBodyPitchPlane(yaw, pitch, -20, 0);
   const reverseMovement = movementYawInBodyPitchFrame(yaw, pitch, reverse.x, reverse.y, reverse.z);
-  near(Math.abs(reverseMovement.yawDelta), Math.PI);
+  near(Math.abs(reverseMovement.yawDelta), Math.PI, 1e-9);
 });
 
 test('camera pitch follows physical body pitch while player X remains exactly centered', () => {
@@ -67,12 +63,12 @@ test('camera pitch follows physical body pitch while player X remains exactly ce
 
   const camera = updateCamera(createCameraRig('MOVEMENT_FOLLOW'), { guide, height }, car, profile, 1 / 60);
   const expectedMovementDelta = Math.atan2(-5, 28);
-  near(camera.yaw, wrapAngle(car.yaw + expectedMovementDelta));
-  near(camera.pitch, profile.baseDownPitch - car.pitch);
-  near(camera.bodyPitch, car.pitch);
+  near(camera.yaw, wrapAngle(car.yaw + expectedMovementDelta), 1e-9);
+  near(camera.pitch, profile.baseDownPitch - car.pitch, 1e-9);
+  near(camera.bodyPitch, car.pitch, 1e-9);
   near(camera.playerScreenX, 160, 1e-12);
-  near(Math.hypot(car.x - camera.x, car.z - camera.z), profile.dCam);
-  near(car.course.s - camera.s, profile.dCam);
+  near(Math.hypot(car.x - camera.x, car.z - camera.z), profile.dCam, 1e-9);
+  near(car.course.s - camera.s, profile.dCam, 1e-9);
 });
 
 test('camera holds the last valid movement yaw when speed has no stable direction', () => {
@@ -93,7 +89,7 @@ test('camera holds the last valid movement yaw when speed has no stable directio
   car.velocityY = velocity.y;
   car.velocityZ = velocity.z;
   const stoppedCamera = updateCamera(rig, { guide, height }, car, profile, 1 / 60);
-  near(stoppedCamera.yaw, movingCamera.yaw);
+  near(stoppedCamera.yaw, movingCamera.yaw, 1e-9);
 });
 
 test('body-fixed yaw is default exact and toggles to retained movement-follow yaw', () => {
@@ -111,13 +107,13 @@ test('body-fixed yaw is default exact and toggles to retained movement-follow ya
   const fixed = updateCamera(rig, { guide, height }, car, profile, 1 / 60);
   assert.equal(fixed.yawMode, 'BODY_FIXED');
   assert.equal(fixed.yaw, car.yaw);
-  near(fixed.movementYaw, wrapAngle(car.yaw + Math.atan2(9, 24)));
+  near(fixed.movementYaw, wrapAngle(car.yaw + Math.atan2(9, 24)), 1e-9);
   near(fixed.playerScreenX, profile.centerX, 1e-12);
 
   assert.equal(toggleCameraYawMode(rig), 'MOVEMENT_FOLLOW');
   const movement = updateCamera(rig, { guide, height }, car, profile, 1 / 60);
   assert.equal(movement.yawMode, 'MOVEMENT_FOLLOW');
-  near(movement.yaw, fixed.movementYaw);
+  near(movement.yaw, fixed.movementYaw, 1e-9);
 
   resetCameraRig(rig);
   assert.equal(rig.yawMode, 'MOVEMENT_FOLLOW');
@@ -126,32 +122,32 @@ test('body-fixed yaw is default exact and toggles to retained movement-follow ya
 
 test('debug yaw arrow expresses only body yaw relative to movement-facing camera', () => {
   const aligned = createVehicleYawDebugModel(0, 0);
-  near(aligned.directionX, 0);
-  near(aligned.directionY, -1);
+  near(aligned.directionX, 0, 1e-9);
+  near(aligned.directionY, -1, 1e-9);
 
   const right = createVehicleYawDebugModel(Math.PI / 2, 0);
-  near(right.directionX, 1);
-  near(right.directionY, 0);
+  near(right.directionX, 1, 1e-9);
+  near(right.directionY, 0, 1e-9);
 
   const left = createVehicleYawDebugModel(-Math.PI / 2, 0);
-  near(left.directionX, -1);
-  near(left.directionY, 0);
+  near(left.directionX, -1, 1e-9);
+  near(left.directionY, 0, 1e-9);
 
   const reversed = createVehicleYawDebugModel(Math.PI, 0);
-  near(reversed.directionX, 0);
-  near(reversed.directionY, 1);
+  near(reversed.directionX, 0, 1e-9);
+  near(reversed.directionY, 1, 1e-9);
 });
 
 test('body-fixed camera overlay points along actual travel while movement camera overlay points along body', () => {
   const fixed = createCameraYawDebugModel(0, Math.PI / 2, 0, 'BODY_FIXED');
   assert.equal(fixed.subject, 'TRAVEL');
-  near(fixed.directionX, 1);
-  near(fixed.directionY, 0);
+  near(fixed.directionX, 1, 1e-9);
+  near(fixed.directionY, 0, 1e-9);
 
   const movement = createCameraYawDebugModel(Math.PI / 2, 0, 0, 'MOVEMENT_FOLLOW');
   assert.equal(movement.subject, 'BODY');
-  near(movement.directionX, 1);
-  near(movement.directionY, 0);
+  near(movement.directionX, 1, 1e-9);
+  near(movement.directionY, 0, 1e-9);
 });
 
 test('P is the sole browser camera-yaw toggle key', () => {

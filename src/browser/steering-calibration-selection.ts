@@ -3,14 +3,14 @@ import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 const OFFSET_DEGREES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] as const;
 const MAX_STEER_DEGREES = [50, 55, 60, 65, 70, 75, 80] as const;
 const TRAVERSAL_SECONDS = [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4] as const;
-export type BrowserSteeringTraversalSeconds = (typeof TRAVERSAL_SECONDS)[number];
+type BrowserSteeringTraversalSeconds = (typeof TRAVERSAL_SECONDS)[number];
 
-export interface BrowserSteeringAngleSelection<Degrees extends number = number> {
+interface BrowserSteeringAngleSelection<Degrees extends number = number> {
   readonly degrees: Degrees;
   readonly radians: number;
 }
 
-export interface BrowserSteeringResponseSelection {
+interface BrowserSteeringResponseSelection {
   readonly traversalSeconds: BrowserSteeringTraversalSeconds;
   readonly rate: number;
 }

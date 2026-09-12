@@ -1,9 +1,9 @@
 import type { CameraYawMode } from '../camera/camera.js';
 import { wrapAngle } from '../core/math.js';
 
-export type VehicleYawDebugSubject = 'BODY' | 'TRAVEL';
+type VehicleYawDebugSubject = 'BODY' | 'TRAVEL';
 
-export interface VehicleYawDebugModel {
+interface VehicleYawDebugModel {
   readonly subject: VehicleYawDebugSubject;
   readonly relativeYaw: number;
   readonly relativeYawDegrees: number;

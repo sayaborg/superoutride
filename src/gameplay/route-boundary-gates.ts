@@ -16,36 +16,36 @@ import {
   type WorldCrossingGateAuthoring,
 } from './world-crossing-gate.js';
 
-export type RouteBoundaryObservationEvent =
+type RouteBoundaryObservationEvent =
   'NONE' | 'VALIDATED_TRANSITION' | 'VALIDATED_FINISH' | 'REVERSE_CROSSING' | 'AMBIGUOUS_FORWARD_CROSSING';
 
 export type RouteBoundaryGateAuthoringBase = WorldCrossingGateAuthoring;
 
-export interface RouteTransitionGateAuthoring extends RouteBoundaryGateAuthoringBase {
+interface RouteTransitionGateAuthoring extends RouteBoundaryGateAuthoringBase {
   readonly kind: 'TRANSITION';
   readonly choiceId: string;
 }
 
-export interface RouteFinishGateAuthoring extends RouteBoundaryGateAuthoringBase {
+interface RouteFinishGateAuthoring extends RouteBoundaryGateAuthoringBase {
   readonly kind: 'FINISH';
   readonly stageId: string;
 }
 
 export type RouteBoundaryGateAuthoring = RouteTransitionGateAuthoring | RouteFinishGateAuthoring;
 
-export type RouteBoundaryGateBase = WorldCrossingGate;
+type RouteBoundaryGateBase = WorldCrossingGate;
 
 export interface RouteTransitionGate extends RouteBoundaryGateBase {
   readonly kind: 'TRANSITION';
   readonly choiceId: string;
 }
 
-export interface RouteFinishGate extends RouteBoundaryGateBase {
+interface RouteFinishGate extends RouteBoundaryGateBase {
   readonly kind: 'FINISH';
   readonly stageId: string;
 }
 
-export type RouteBoundaryGate = RouteTransitionGate | RouteFinishGate;
+type RouteBoundaryGate = RouteTransitionGate | RouteFinishGate;
 
 export interface RouteBoundaryGateSet {
   readonly gates: readonly RouteBoundaryGate[];

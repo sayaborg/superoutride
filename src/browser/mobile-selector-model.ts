@@ -21,7 +21,7 @@ export interface MobileSelectorButtonModel<Value extends string | number> {
   readonly active: boolean;
 }
 
-export interface MobileTireCalibrationButtonModel {
+interface MobileTireCalibrationButtonModel {
   readonly axis: BrowserTireCalibrationAxis;
   readonly label: string;
   readonly ariaLabel: string;

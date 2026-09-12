@@ -96,7 +96,7 @@ export const FERRARI_TESTAROSSA_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile
 export const FERRARI_TESTAROSSA_VEHICLE_PROFILE = compileArcadeVehicleProfile(FERRARI_TESTAROSSA_VEHICLE_AUTHORING);
 
 /** 1989 European Porsche 911 Turbo 3.3 with the one-year G50/50 five-speed. */
-export const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const PORSCHE_911_TURBO_3_3_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: '911_TURBO_3_3',
   mass: 1410,
   yawInertia: 2400,
@@ -148,7 +148,7 @@ export const PORSCHE_911_TURBO_3_3_VEHICLE_PROFILE = compileArcadeVehicleProfile
 );
 
 /** 1989 US Chevrolet Corvette L98 with ZF six-speed and base pre-facelift chassis. */
-export const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const CHEVROLET_CORVETTE_C4_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'CORVETTE_C4',
   mass: 1565,
   yawInertia: 3000,
@@ -199,7 +199,7 @@ export const CHEVROLET_CORVETTE_C4_VEHICLE_PROFILE = compileArcadeVehicleProfile
 );
 
 /** 1988 European non-catalyst three-door Volkswagen Golf GTI 16V with small bumpers. */
-export const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
+const VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_AUTHORING: Readonly<ArcadeVehicleProfile> = Object.freeze({
   id: 'GOLF_GTI_16V',
   mass: 1080,
   yawInertia: 1680,

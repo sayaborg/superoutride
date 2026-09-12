@@ -6,7 +6,7 @@ export interface RasterVertex extends Vec2 {
   sourceRadius?: number;
 }
 
-export interface RasterSegment {
+interface RasterSegment {
   index: number;
   startVertexIndex: number;
   endVertexIndex: number;
@@ -36,7 +36,7 @@ export interface RasterPath {
   readonly length: number;
 }
 
-export interface RasterSample extends Vec2 {
+interface RasterSample extends Vec2 {
   s: number;
   segmentIndex: number;
   heading: number;

@@ -18,7 +18,7 @@ import {
 
 export type VehiclePresentationFamily = 'CAR' | 'BIKE';
 
-export interface VehicleIdentifier {
+interface VehicleIdentifier {
   readonly officialLabel: string;
   readonly shortLabel: string;
 }

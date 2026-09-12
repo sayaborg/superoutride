@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
@@ -31,10 +32,6 @@ import {
 import { resolveActiveStageRuntimeContent } from '../dist/runtime/stage-runtime-content.js';
 
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
-
-const near = (actual, expected, tolerance = 2e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function crossing(gate, distance = 2) {
   return {

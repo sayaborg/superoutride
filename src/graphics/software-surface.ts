@@ -1,5 +1,5 @@
 const endianProbe = new Uint32Array([0x0a0b0c0d]);
-export const LITTLE_ENDIAN = new Uint8Array(endianProbe.buffer)[0] === 0x0d;
+const LITTLE_ENDIAN = new Uint8Array(endianProbe.buffer)[0] === 0x0d;
 
 export function rgba(r: number, g: number, b: number, a = 255): number {
   const rr = clampByte(r);

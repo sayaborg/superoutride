@@ -1,3 +1,4 @@
+import { deg } from './assert.mjs';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../../dist/core/presentation-scale.js';
 import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/stadium-surface-authoring.js';
 import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.js';
@@ -7,7 +8,6 @@ import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
 
 /** Fixed driving/recovery environment, independent of authored route-parent content. */
 export function drivingEnvironment() {
-  const deg = (v) => (v * Math.PI) / 180;
   const guide = createStadiumGuide();
   const height = createHillDipHeightProfile(guide.length);
   const visual = createCliffVisualProfile(guide.length);

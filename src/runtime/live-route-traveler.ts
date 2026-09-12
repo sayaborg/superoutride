@@ -30,13 +30,13 @@ export interface LiveRouteTravelerState {
   previousWorldPoint: Vec2;
 }
 
-export interface LiveRouteTravelerUpdate {
+interface LiveRouteTravelerUpdate {
   readonly routeUpdate: RouteDagUpdate | null;
   readonly handoffEvent: RouteStageHandoffEvent;
   readonly committed: boolean;
 }
 
-export interface LiveRouteChoicePlanStep {
+interface LiveRouteChoicePlanStep {
   readonly stageId: string;
   readonly choiceId: string;
 }

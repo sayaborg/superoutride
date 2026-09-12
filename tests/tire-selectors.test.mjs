@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -21,7 +22,6 @@ import {
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createFlatProbe, directInput, runProbe } from '../tools/drift-control-probe.mjs';
 import { selectorDocument, SelectorElement } from './helpers/fake-selector-dom.mjs';
-const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-11, `${a} ${b}`);
 
 test('approved five-axis defaults and registry are explicit and unique', () => {
   assert.deepEqual(seed, { gripX: 5, peakSlipX: 0.2, gripY: 2.5, peakSlipY: 0.1, knee: 0.74 });
@@ -47,12 +47,13 @@ for (const axis of axes)
         const old = read(current.front),
           next = stepBrowserTireCalibration(axis.id, dir, current);
         values.add(Math.round(100 * next[axis.field]));
-        for (const field of Object.keys(seed)) if (field !== axis.field) near(old[field], next[field]);
+        for (const field of Object.keys(seed))
+          if (field !== axis.field) near(old[field], next[field], 1e-11, { exclusive: true });
         current = pair(compile(next));
         assert.equal(current.front, current.rear);
       }
       assert.equal(values.size, count);
-      near(read(current.front)[axis.field], axis.min / 100);
+      near(read(current.front)[axis.field], axis.min / 100, 1e-11, { exclusive: true });
     }
   });
 for (const axis of axes)
@@ -78,14 +79,15 @@ test('every endpoint combination is admissible, without old S<=G filtering', () 
 });
 test('changing knee preserves displayed Px/Py and Gx/Gy, not compiled k', () => {
   const next = pair(compile(browserTireCalibrationForAxis('KNEE', 0.9, initial)));
-  for (const f of ['gripX', 'gripY', 'peakSlipX', 'peakSlipY']) near(read(next.front)[f], seed[f]);
+  for (const f of ['gripX', 'gripY', 'peakSlipX', 'peakSlipY'])
+    near(read(next.front)[f], seed[f], 1e-11, { exclusive: true });
   assert.notEqual(next.front.kX, initial.front.kX);
   assert.notEqual(next.front.kY, initial.front.kY);
 });
 test('off-grid profile P steps to nearest adjacent selectable value without accumulating error', () => {
   const c = pair(compile({ ...seed, peakSlipX: 0.1745 }));
-  near(stepBrowserTireCalibration('PX', 1, c).peakSlipX, 0.18);
-  near(stepBrowserTireCalibration('PX', -1, c).peakSlipX, 0.17);
+  near(stepBrowserTireCalibration('PX', 1, c).peakSlipX, 0.18, 1e-11, { exclusive: true });
+  near(stepBrowserTireCalibration('PX', -1, c).peakSlipX, 0.17, 1e-11, { exclusive: true });
 });
 test('explicit minus/plus and one-key forward cycle share the same five linked settings', () => {
   let v = createFlatProbe().vehicle;
@@ -99,21 +101,21 @@ test('explicit minus/plus and one-key forward cycle share the same five linked s
     assert.equal(group.children.length, 3);
     assert.match(group.children[0].getAttribute('aria-label'), /Decrease/);
     group.children[2].click();
-    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field] + a.step / 100);
+    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field] + a.step / 100, 1e-11, { exclusive: true });
     group.children[0].click();
-    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field]);
+    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field], 1e-11, { exclusive: true });
     assert.equal(ctl.handleKey(a.code), true);
-    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field] + a.step / 100);
+    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field] + a.step / 100, 1e-11, { exclusive: true });
     group.children[0].click();
-    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field]);
+    near(read(v.tireFrictionCalibration.front)[a.field], old[a.field], 1e-11, { exclusive: true });
     assert.ok(group.children[1].textContent.length > 0);
     assert.ok(group.children[1].getAttribute('title'));
   }
   const previous = v;
   v = createFlatProbe().vehicle;
   ctl.handleKey('KeyH');
-  near(v.tireFrictionCalibration.front.muX, 5.05);
-  near(previous.tireFrictionCalibration.front.muX, 5);
+  near(v.tireFrictionCalibration.front.muX, 5.05, 1e-11, { exclusive: true });
+  near(previous.tireFrictionCalibration.front.muX, 5, 1e-11, { exclusive: true });
   assert.equal(ctl.handleKey('KeyK'), false);
 });
 test('live selection changes only calibration and remains atomic on invalid request', () => {
@@ -153,7 +155,7 @@ test('all composition roots reuse the same forward-cycle adapter without tire-sp
   for (const name of ['main.ts', 'main-linear.ts', 'main-circuit.ts']) {
     const src = await readFile(new URL(`../src/${name}`, import.meta.url), 'utf8');
     assert.match(src, /shell\.mountControls/);
-    assert.match(src, /shell\.replacePlayer/);
+    assert.match(src, /lifecycle\.update/);
   }
   const src = await readFile(new URL('../src/browser/driving-shell.ts', import.meta.url), 'utf8');
   {

@@ -1,7 +1,7 @@
 import { clamp } from '../core/math.js';
 import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
-import { cross3, dot3, scale3, sub3 } from './vehicle-math3.js';
+import { cross3, dot3, scale3, sub3 } from '../core/vector3.js';
 
 const MIN_STEERING_PLANE_DETERMINANT = 1e-8;
 

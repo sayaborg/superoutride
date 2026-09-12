@@ -34,8 +34,8 @@ export interface OrderedRaceCourseRules {
   readonly gates: readonly PhysicalRaceGate[];
 }
 
-export type OrderedRaceProgressStatus = 'RUNNING' | 'FINISHED';
-export type OrderedRaceProgressEvent =
+type OrderedRaceProgressStatus = 'RUNNING' | 'FINISHED';
+type OrderedRaceProgressEvent =
   | 'NONE'
   | 'CHECKPOINT'
   | 'BOUNDARY'
@@ -45,12 +45,12 @@ export type OrderedRaceProgressEvent =
   | 'RESYNC'
   | 'IGNORED_AFTER_FINISH';
 
-export interface OrderedRaceProgressSample extends Vec2 {
+interface OrderedRaceProgressSample extends Vec2 {
   /** Finite open chainage in [0, rules.courseLength]. Never wrapped. */
   readonly s: number;
 }
 
-export interface OrderedRaceProgressWindow {
+interface OrderedRaceProgressWindow {
   readonly floor: number;
   readonly ceiling: number;
 }

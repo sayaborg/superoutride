@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.js';
 
-export interface EngineTorquePoint {
+interface EngineTorquePoint {
   readonly rpm: number;
   readonly torqueNewtonMeters: number;
 }

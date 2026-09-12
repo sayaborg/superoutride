@@ -31,7 +31,7 @@ export interface SurfaceBand {
   readonly type: Exclude<SurfaceType, 'VOID'>;
 }
 
-export interface SurfaceSection {
+interface SurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly bands: readonly SurfaceBand[];

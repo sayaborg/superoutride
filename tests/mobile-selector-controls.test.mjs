@@ -5,6 +5,7 @@ import {
   BROWSER_COURSE_MODES,
   browserCourseModeForKey,
   compileBrowserCourseModes,
+  composeBrowserCourseContent,
   selectBrowserCourseMode,
 } from '../dist/browser/course-mode-selection.js';
 import { BROWSER_VEHICLE_KEYS } from '../dist/browser/key-bindings.js';
@@ -379,5 +380,30 @@ test('browser compositions mount shared M D T selectors without duplicating choi
     assert.match(source, /steeringOffset: mustGet\('steering-offset-selector-buttons'\)/);
     assert.match(source, /maxRoadWheelSteer: mustGet\('max-steer-selector-buttons'\)/);
     assert.doesNotMatch(source, /yawTransient|yawWashout/);
+  }
+});
+
+test('one course dispatcher enforces catalog membership for every browser root', () => {
+  for (const mode of BROWSER_COURSE_MODES) {
+    const calls = [];
+    const builders = Object.fromEntries(
+      BROWSER_COURSE_MODES.filter((entry) => entry.routeKind === mode.routeKind).map((entry) => [
+        entry.query,
+        () => {
+          calls.push(entry.query);
+          return entry.label;
+        },
+      ]),
+    );
+    const selected = composeBrowserCourseContent(mode.routeKind, builders, mode.query);
+    assert.equal(selected.mode, mode);
+    assert.equal(selected.content, mode.label);
+    assert.deepEqual(calls, [mode.query]);
+    delete builders[mode.query];
+    assert.throws(() => composeBrowserCourseContent(mode.routeKind, builders, mode.query), /missing course builder/);
+    assert.throws(
+      () => composeBrowserCourseContent(mode.routeKind === 'LINEAR' ? 'CIRCUIT' : 'LINEAR', builders, mode.query),
+      /cannot compose/,
+    );
   }
 });

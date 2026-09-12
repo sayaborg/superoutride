@@ -1,66 +1,18 @@
+import { createFootprintScene } from './helpers/stadium-scene.mjs';
+import { deg } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
 
-import {
-  CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
-  CURRENT_CAMERA_HEIGHT_METERS,
-} from '../dist/camera/current-camera-profile.js';
-import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
-import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
-import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
-import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
-import { deriveGroundMapDensity } from '../dist/groundmap/ground-map-lod.js';
 import {
   deriveGroundMapTargetEnvelope,
   validateTerrainFootprintsAgainstTarget,
 } from '../dist/groundmap/ground-map-target-envelope.js';
 import { summarizeTerrainFootprints } from '../dist/groundmap/terrain-footprint-analysis.js';
-import {
-  DEFAULT_THIN_SPAN_SCREEN_ROWS,
-  generateTerrainLines,
-  projectedTerrainSpanRows,
-} from '../dist/road/terrain-line.js';
+import { DEFAULT_THIN_SPAN_SCREEN_ROWS, projectedTerrainSpanRows } from '../dist/road/terrain-line.js';
 
-const deg = (value) => (value * Math.PI) / 180;
-const guide = createStadiumGuide();
-const height = createHillDipHeightProfile(guide.length);
-const visual = createCliffVisualProfile(guide.length);
-const cameraHeight = CURRENT_CAMERA_HEIGHT_METERS;
-const cameraProfile = {
-  dCam: 5,
-  lCamMax: 12,
-  height: cameraHeight,
-  pitch: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
-  focalLength: 200,
-  centerX: 160,
-  centerY: 120,
-};
-const terrainProfile = {
-  screenHeight: 240,
-  dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
-  dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-  groundLeft: 12,
-  groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  height,
-  visual,
+const { guide, terrainProfile, density, linesAt } = createFootprintScene({
   thinSpanScreenRows: DEFAULT_THIN_SPAN_SCREEN_ROWS,
-};
-const density = deriveGroundMapDensity({
-  d0: 5,
-  focalLength: 200,
-  cameraHeight,
-  pitchRadians: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
 });
-
-function linesAt(s, yawOffset = 0) {
-  const vehicle = renderPose(guide, s);
-  vehicle.yaw += yawOffset;
-  const camera = terrainCamera(guide, height, vehicle, cameraProfile);
-  return generateTerrainLines(guide, camera, terrainProfile);
-}
 
 function sweepCurrentDebugEnvelope() {
   const lines = [];

@@ -20,7 +20,7 @@ import {
 } from '../dist/physics/arcade-vehicle-physics.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { deriveContactObservation, sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
-import { dot3 } from '../dist/physics/vehicle-math3.js';
+import { dot3 } from '../dist/core/vector3.js';
 import { HONDA_VFR750R_VEHICLE_PROFILE as profile } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DEG = Math.PI / 180;

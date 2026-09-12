@@ -22,7 +22,7 @@ export interface GuideCompileOptions {
   tolerance?: number;
 }
 
-export interface GuideCorner {
+interface GuideCorner {
   vertexIndex: number;
   sVertex: number;
   turn: number;
@@ -35,7 +35,7 @@ export interface GuideCorner {
   outgoingHeading: number;
 }
 
-export interface GuideStraightSegment {
+interface GuideStraightSegment {
   kind: 'straight';
   index: number;
   sStart: number;
@@ -43,7 +43,7 @@ export interface GuideStraightSegment {
   rasterSegmentIndex: number;
 }
 
-export interface GuideArcSegment {
+interface GuideArcSegment {
   kind: 'arc';
   index: number;
   sStart: number;
@@ -53,7 +53,7 @@ export interface GuideArcSegment {
   qEnd: number;
 }
 
-export type GuideSegment = GuideStraightSegment | GuideArcSegment;
+type GuideSegment = GuideStraightSegment | GuideArcSegment;
 type GuideSegmentDraft = Omit<GuideStraightSegment, 'index'> | Omit<GuideArcSegment, 'index'>;
 
 /**

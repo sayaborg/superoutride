@@ -17,7 +17,7 @@ import {
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
 } from '../physics/vehicle-dynamics.js';
-import { add3, dot3, scale3 } from '../physics/vehicle-math3.js';
+import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
 
 export type RecoveryReason =
@@ -61,7 +61,7 @@ export interface RecoveryState {
   lastReason: RecoveryReason | null;
 }
 
-export interface RecoveryTarget {
+interface RecoveryTarget {
   readonly s: number;
   readonly l: number;
 }
@@ -75,7 +75,7 @@ export function createRecoveryState(vehicle: ArcadeVehicleState): RecoveryState 
   };
 }
 
-export interface RecoveryOptions {
+interface RecoveryOptions {
   readonly state: RecoveryState;
   readonly profile?: RecoveryProfile;
 }

@@ -1,4 +1,4 @@
-export interface DepthItem {
+interface DepthItem {
   d: number;
 }
 

@@ -99,7 +99,7 @@ test('invalid coordinate seeds and unrelated reader failures remain errors, not 
 });
 
 test('invalid geometry cannot become a fabricated unit axis or a NaN Guide observation', async () => {
-  const { normalize3, rotateAroundAxis } = await import('../dist/physics/vehicle-math3.js');
+  const { normalize3, rotateAroundAxis } = await import('../dist/core/vector3.js');
   const { locateWorldOnGuideGlobal, locateWorldOnGuideLocal } = await import('../dist/core/guide-curve.js');
   for (const v of [
     { x: 0, y: 0, z: 0 },

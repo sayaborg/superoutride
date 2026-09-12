@@ -14,7 +14,7 @@ export const FISCO_LENGTH_METERS = 4_563;
 export const FISCO_HOME_STRAIGHT_LENGTH_METERS = 1_475;
 export const FISCO_CORNER_COUNT = 17;
 export const FISCO_ROAD_HALF_WIDTH_METERS = 9;
-export const FISCO_GROUND_HALF_WIDTH_METERS = 17;
+const FISCO_GROUND_HALF_WIDTH_METERS = 17;
 export const FISCO_PLAYER_START_L = -2;
 export const FISCO_RIVAL_START_L = 2;
 
@@ -38,7 +38,7 @@ export const FISCO_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.fr
   targetL: FISCO_RIVAL_START_L,
 });
 
-export interface FiscoLandmarks {
+interface FiscoLandmarks {
   readonly homeStraightEndS: number;
   readonly tgrCornerEndS: number;
   readonly secondCornerEndS: number;
@@ -53,7 +53,7 @@ export interface FiscoLandmarks {
   readonly panasonicCornerEndS: number;
 }
 
-export interface FiscoLap {
+interface FiscoLap {
   readonly raster: RasterPath;
   readonly landmarks: FiscoLandmarks;
 }
@@ -141,10 +141,7 @@ export function createFiscoLap(): FiscoLap {
     throw new Error(`FISCO must author ${FISCO_CORNER_COUNT} corners`);
   }
 
-  const last = vertices[vertices.length - 1]!;
-  last.x = 0;
-  last.z = 0;
-  last.sourceRadius = vertices[0]!.sourceRadius;
+  vertices[vertices.length - 1] = { ...vertices.at(-1)!, x: 0, z: 0, sourceRadius: vertices[0]!.sourceRadius };
   const raster = compileRasterPath(vertices);
   if (Math.abs(raster.length - FISCO_LENGTH_METERS) > 1e-7) {
     throw new Error(`FISCO Raster length ${raster.length} must equal 4563 m`);

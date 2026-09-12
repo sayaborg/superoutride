@@ -8,7 +8,7 @@ import {
 } from './raster-stage-successor.js';
 import { compileStageContinuationLink } from './stage-continuation-link.js';
 
-export interface RasterForkSuccessorAuthoring {
+interface RasterForkSuccessorAuthoring {
   /** Active source-stage local center of the separated child road. */
   readonly sourceLocalL: number;
   readonly successor: RasterSuccessorAuthoring;

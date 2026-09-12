@@ -14,7 +14,7 @@ const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
 const BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS = 1e-12;
 export const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
 
-export interface FlatRoadProfile {
+interface FlatRoadProfile {
   screenHeight: number;
   dMin: number;
   dMax: number;
@@ -25,7 +25,7 @@ export interface FlatRoadProfile {
   roadRight: number;
 }
 
-export interface TerrainLineGeometry {
+interface TerrainLineGeometry {
   d: number;
   s: number;
   y: number;
@@ -35,7 +35,7 @@ export interface TerrainLineGeometry {
   xRoadR: number;
 }
 
-export interface ForwardVisibleInterval {
+interface ForwardVisibleInterval {
   dStart: number;
   dEnd: number;
 }
@@ -176,7 +176,7 @@ export interface TerrainVisualProfile {
   thinSpanScreenRows?: number;
 }
 
-export interface TerrainLineSourceFootprint {
+interface TerrainLineSourceFootprint {
   /** Core §25 ordinary vertical source footprint for one output scanline. */
   deltaS: number;
   /** Core §64 clipped chainage interval represented by a collapsed row. */

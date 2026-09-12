@@ -18,9 +18,9 @@ import {
   type StageJunctionAuthoring,
 } from './stage-junction-compiler.js';
 
-export type RasterForkBranchSide = 'LEFT' | 'RIGHT';
+type RasterForkBranchSide = 'LEFT' | 'RIGHT';
 
-export type RasterForkBranchSuccessorAuthoring = Omit<RasterSuccessorAuthoring, 'roadHalfWidth'>;
+type RasterForkBranchSuccessorAuthoring = Omit<RasterSuccessorAuthoring, 'roadHalfWidth'>;
 
 export interface RasterForkStageBranchAuthoring {
   readonly side: RasterForkBranchSide;
@@ -52,7 +52,7 @@ export interface RasterForkStageRouteAuthoring {
   ) => GuideChartRuntimePackage;
 }
 
-export interface CompiledRasterForkStageBranch {
+interface CompiledRasterForkStageBranch {
   readonly side: RasterForkBranchSide;
   readonly sourceLocalL: number;
   readonly structural: RasterSuccessorRuntimeSource;

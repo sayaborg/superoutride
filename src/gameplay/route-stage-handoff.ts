@@ -31,7 +31,7 @@ export interface RouteStageHandoffSeamAuthoring extends WorldCrossingGateAuthori
   readonly targetLocalL: number;
 }
 
-export interface RouteStageHandoffSeam extends WorldCrossingGate {
+interface RouteStageHandoffSeam extends WorldCrossingGate {
   readonly choiceId: string;
   readonly targetChartId: string;
   readonly sourceSeamS: number;
@@ -44,7 +44,7 @@ export interface RouteStageHandoffManifest {
   readonly seams: readonly RouteStageHandoffSeam[];
 }
 
-export interface PendingRouteStageHandoff {
+interface PendingRouteStageHandoff {
   readonly choiceId: string;
   readonly targetStageId: string;
   readonly targetChartId: string;
@@ -55,7 +55,7 @@ export interface PendingRouteStageHandoff {
   readonly targetLocalL: number;
 }
 
-export interface ValidatedRouteStageHandoffSeam {
+interface ValidatedRouteStageHandoffSeam {
   readonly choiceId: string;
   readonly seamId: string;
 }
@@ -70,12 +70,12 @@ export interface RouteStageHandoffState {
   lastEvent: RouteStageHandoffEvent;
 }
 
-export interface RouteStageHandoffObservation {
+interface RouteStageHandoffObservation {
   readonly event: 'NONE' | 'SEAM_REVERSE' | 'SEAM_VALIDATED';
   readonly seam: ValidatedRouteStageHandoffSeam | null;
 }
 
-export interface PendingRouteStageRecoveryTarget {
+interface PendingRouteStageRecoveryTarget {
   readonly s: number;
   readonly l: number;
 }

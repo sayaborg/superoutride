@@ -5,7 +5,7 @@ import type { TerrainFootprintSummary } from './terrain-footprint-analysis.js';
 const LEVEL_CAPACITY_TOLERANCE_METERS = 1e-12;
 const OBSERVED_FOOTPRINT_TOLERANCE_METERS = 1e-9;
 
-export interface GroundMapTargetEnvelopeInput {
+interface GroundMapTargetEnvelopeInput {
   readonly dMin: number;
   readonly dMax: number;
   readonly qS: number;
@@ -15,7 +15,7 @@ export interface GroundMapTargetEnvelopeInput {
   readonly observedMaxDeltaSEffective?: number;
 }
 
-export interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeInput {
+interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeInput {
   /** Absolute source-chainage bound for any ordinary or collapsed TerrainLine inside the depth clip. */
   readonly maxDeltaSEffectiveUpperBound: number;
   /** Smallest shared-pyramid maximum level that covers the absolute bound. */

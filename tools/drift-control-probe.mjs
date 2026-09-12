@@ -1,21 +1,12 @@
+import { observeProbeContacts, runProbeCli, createProbeVehicle } from './helpers/probe-harness.mjs';
 /** Read-only mechanics diagnostic. All motion uses the production solver; constants are test inputs. */
 import { writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import {
-  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-  DEFAULT_BROWSER_STEERING_OFFSET,
-  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
-} from '../dist/browser/steering-calibration-selection.js';
+
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import {
-  arcadeBodyKinematics,
-  createArcadeVehicle,
-  updateArcadeVehicle,
-} from '../dist/physics/arcade-vehicle-physics.js';
+import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   compileTireCharacteristics,
@@ -23,7 +14,7 @@ import {
   readTireCharacteristics,
 } from '../dist/physics/tire-friction-calibration.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
+
 import { FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../dist/vehicle/production-vehicle-profiles.js';
 
 const DEG = Math.PI / 180;
@@ -47,19 +38,13 @@ export function createFlatProbe({
   const surface = new SurfaceMap(guide.length, [
     { sStart: 0, name: 'Flat handling diagnostic', bands: [{ lMin: -5000, lMax: 5000, type: 'ASPHALT' }] },
   ]);
-  const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
-  const vehicle = createArcadeVehicle(
+  const vehicle = createProbeVehicle(
     profile,
     { guide, height, surfaces: surface },
     {
       s: 10000,
       l: 0,
       initialSpeed,
-      steeringCalibration: {
-        maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-        steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
-        steeringActuatorResponse: { applyRate: rate, releaseRate: rate },
-      },
       tireFrictionCalibration: calibration,
       torqueProtection,
     },
@@ -122,11 +107,10 @@ export function researchCycleInput(t, direction = 1) {
 }
 
 export function observeProbe(probe, t) {
-  const { vehicle: v, guide, height, surface } = probe,
+  const { vehicle: v } = probe,
     p = v.profile;
-  const body = arcadeBodyKinematics(v);
-  const wheel = (station, steer, omega, characteristics) => {
-    const c = deriveContactObservation(guide, height, surface, body, station, steer, v.course.segmentIndex);
+  const { front, rear } = observeProbeContacts(probe);
+  const wheel = (c, station, omega, characteristics) => {
     return evaluateTireForce(
       omega,
       c.effectiveRollingRadius,
@@ -138,8 +122,8 @@ export function observeProbe(probe, t) {
       characteristics,
     );
   };
-  const f = wheel(p.frontStation, v.frontSteerAngle, v.frontWheelOmega, v.tireFrictionCalibration.front);
-  const r = wheel(p.rearStation, 0, v.rearWheelOmega, v.tireFrictionCalibration.rear);
+  const f = wheel(front, p.frontStation, v.frontWheelOmega, v.tireFrictionCalibration.front);
+  const r = wheel(rear, p.rearStation, v.rearWheelOmega, v.tireFrictionCalibration.rear);
   return {
     t,
     beta: Math.atan2(v.lateralSpeed, v.longitudinalSpeed) / DEG,
@@ -349,9 +333,4 @@ async function main() {
   );
   if (out) await writeFile(out, JSON.stringify(report, null, 2) + '\n');
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
-}
+runProbeCli(import.meta.url, main);

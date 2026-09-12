@@ -131,10 +131,7 @@ export function createHighwayCalibrationLapRaster(): RasterPath {
   if (Math.hypot(turtle.x, turtle.z) > 1e-7) {
     throw new Error('calibration lap authoring failed to close');
   }
-  const last = vertices[vertices.length - 1]!;
-  last.x = 0;
-  last.z = 0;
-  last.sourceRadius = vertices[0]!.sourceRadius;
+  vertices[vertices.length - 1] = { ...vertices.at(-1)!, x: 0, z: 0, sourceRadius: vertices[0]!.sourceRadius };
   return compileRasterPath(vertices);
 }
 

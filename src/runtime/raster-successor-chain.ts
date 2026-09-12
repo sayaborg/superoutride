@@ -15,7 +15,7 @@ import {
   type RasterSuccessorRuntimeSource,
 } from './raster-stage-successor.js';
 
-export interface RasterSuccessorChainStepAuthoring {
+interface RasterSuccessorChainStepAuthoring {
   readonly stageId: string;
   readonly packageId: string;
   readonly choiceId: string;
@@ -24,7 +24,7 @@ export interface RasterSuccessorChainStepAuthoring {
   readonly successor: RasterSuccessorAuthoring;
 }
 
-export interface RasterSuccessorChainAuthoring {
+interface RasterSuccessorChainAuthoring {
   readonly sourceStageId: string;
   readonly sourceRuntime: GuideChartRuntimePackage;
   readonly sourceStructural: RasterSuccessorRuntimeSource;
@@ -43,7 +43,7 @@ export interface RasterSuccessorChainAuthoring {
   ) => GuideChartRuntimePackage;
 }
 
-export interface CompiledRasterSuccessorChain {
+interface CompiledRasterSuccessorChain {
   readonly stages: readonly DeclarativeLiveRouteStageAuthoring[];
   readonly transitions: readonly DeclarativeLiveRouteTransitionAuthoring[];
   readonly finish: DeclarativeLiveRouteFinishAuthoring;

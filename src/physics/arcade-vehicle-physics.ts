@@ -34,7 +34,7 @@ import {
   type VehicleControlState,
   type VehicleDynamicsState,
 } from './vehicle-dynamics.js';
-import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from './vehicle-math3.js';
+import { WORLD_UP, add3, cross3, dot3, normalize3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega, type CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 
 import {
@@ -79,7 +79,7 @@ export interface ArcadeVehicleState extends VehicleDynamicsState {
   readonly presentationY: number;
 }
 
-export interface VehicleSpawnOptions {
+interface VehicleSpawnOptions {
   readonly s?: number;
   readonly l?: number;
   readonly initialSpeed?: number;

@@ -1,11 +1,6 @@
+import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../camera/camera.js';
-import {
-  createCameraRig,
-  resetCameraRig,
-  setCameraYawMode,
-  toggleCameraYawMode,
-  type CameraState,
-} from '../camera/camera.js';
+import { createCameraRig, setCameraYawMode, toggleCameraYawMode, type CameraState } from '../camera/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../core/presentation-scale.js';
 import type { RecoveryState } from '../gameplay/recovery.js';
 import { createRecoveryState } from '../gameplay/recovery.js';
@@ -32,7 +27,7 @@ import { browserUsesTouchInterface } from './touch-interface.js';
 import { drawVehicleDebugHud } from './vehicle-debug-hud.js';
 import { browserVehicleProfileForKey } from './vehicle-profile-selection.js';
 
-export interface BrowserDrivingShell {
+interface BrowserDrivingShell {
   readonly vehicle: ArcadeVehicleState;
   readonly presentation: VehicleCatalogEntry;
   readonly recovery: RecoveryState;
@@ -40,7 +35,7 @@ export interface BrowserDrivingShell {
   readonly inputManager: InputManager;
   readonly cameraRig: CameraRig;
   replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, active: VehicleWorld): void;
-  mountControls(onReplace: (profile: Readonly<CompiledArcadeVehicleProfile>) => void, onRecover: () => void): void;
+  mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
   present(query: BrowserCourseModeQuery, input: DrivingInput, camera: CameraState, playerScreenY: number): void;
   start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
@@ -95,7 +90,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     framebuffer,
     inputManager,
     cameraRig,
-    /** Called after root-owned safe recovery; no chart or progress decision is made here. */
+    /** Called by the shared lifecycle after safe recovery; no chart or progress decision is made here. */
     replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, active: VehicleWorld): void {
       const steeringCalibration = vehicle.steeringCalibration;
       const tireFrictionCalibration = vehicle.tireFrictionCalibration;
@@ -108,12 +103,12 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
         torqueProtection: vehicleCatalogEntryForId(profile.id).torqueProtection,
       });
       recovery = createRecoveryState(vehicle);
-      resetCameraRig(cameraRig);
     },
-    mountControls(onReplace: (profile: Readonly<CompiledArcadeVehicleProfile>) => void, onRecover: () => void): void {
+    mountControls(options: DrivingLifecycleOptions) {
+      const lifecycle = createDrivingLifecycle(this, options);
       const selectVehicleProfile = (profile: Readonly<CompiledArcadeVehicleProfile>) => {
         if (profile.id === vehicle.profile.id) return;
-        onReplace(profile);
+        lifecycle.replace(profile);
         vehicleSelector.setActive(vehicle.profile.id);
       };
       const vehicleSelector = mountMobileVehicleSelector(
@@ -152,9 +147,10 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
           selectVehicleProfile(selectedProfile);
         } else if (event.code === BROWSER_RECOVERY_CODE) {
           event.preventDefault();
-          onRecover();
+          lifecycle.recover();
         }
       });
+      return lifecycle;
     },
     present(query: BrowserCourseModeQuery, input: DrivingInput, camera: CameraState, playerScreenY: number): void {
       ctx.putImageData(imageData, 0, 0);

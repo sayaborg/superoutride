@@ -1,7 +1,7 @@
 import { nonEmptyId } from '../core/validation.js';
 export type RouteStageKind = 'STAGE' | 'TERMINAL';
 export type RouteDagStatus = 'RUNNING' | 'FINISHED';
-export type RouteDagEvent =
+type RouteDagEvent =
   | 'NONE'
   | 'TRANSITION_ACCEPTED'
   | 'FINISHED'
@@ -9,18 +9,18 @@ export type RouteDagEvent =
   | 'REJECTED_INVALID_FINISH'
   | 'IGNORED_AFTER_FINISH';
 
-export interface RouteStageAuthoring {
+interface RouteStageAuthoring {
   readonly id: string;
   readonly kind: RouteStageKind;
 }
 
-export interface RouteChoiceAuthoring {
+interface RouteChoiceAuthoring {
   readonly id: string;
   readonly fromStageId: string;
   readonly toStageId: string;
 }
 
-export interface RouteStage extends RouteStageAuthoring {
+interface RouteStage extends RouteStageAuthoring {
   readonly outgoingChoiceIds: readonly string[];
 }
 

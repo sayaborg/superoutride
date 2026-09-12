@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -11,10 +12,6 @@ import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
 import { compileRasterPath, rasterPathToWorld, sampleRasterPath } from '../dist/core/raster-path.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import { computeForwardVisibleInterval } from '../dist/road/terrain-line.js';
-
-const near = (actual, expected, tolerance = 1e-8) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function createOpenFixture() {
   const five = (5 * Math.PI) / 180;
@@ -55,7 +52,7 @@ test('RasterPath does not create a last-to-first segment', () => {
       [2, 3],
     ],
   );
-  near(raster.vertexS.at(-1), raster.length);
+  near(raster.vertexS.at(-1), raster.length, 1e-8);
 });
 
 test('RasterPath endpoints have no synthetic closure turn or miter', () => {
@@ -71,8 +68,8 @@ test('RasterPath endpoints have no synthetic closure turn or miter', () => {
 
 test('open RasterPath sampling never wraps out-of-range chainage', () => {
   const { raster } = createOpenFixture();
-  near(sampleRasterPath(raster, 0).s, 0);
-  near(sampleRasterPath(raster, raster.length).s, raster.length);
+  near(sampleRasterPath(raster, 0).s, 0, 1e-8);
+  near(sampleRasterPath(raster, raster.length).s, raster.length, 1e-8);
   assert.throws(() => sampleRasterPath(raster, -1), /outside/);
   assert.throws(() => sampleRasterPath(raster, raster.length + 1), /outside/);
 });
@@ -81,8 +78,8 @@ test('GuidePath has no endpoint wrap fillet and does not sample cyclically', () 
   const { guide } = createOpenFixture();
   assert.equal(guide.corners[0].trim, 0);
   assert.equal(guide.corners.at(-1).trim, 0);
-  near(sampleGuidePath(guide, 0).s, 0);
-  near(sampleGuidePath(guide, guide.length).s, guide.length);
+  near(sampleGuidePath(guide, 0).s, 0, 1e-8);
+  near(sampleGuidePath(guide, guide.length).s, guide.length, 1e-8);
   assert.throws(() => sampleGuidePath(guide, -1), /outside/);
   assert.throws(() => sampleGuidePath(guide, guide.length + 1), /outside/);
 });
@@ -123,7 +120,7 @@ test('forward terrain interval clips at the open path endpoint instead of wrappi
   const cameraS = guide.length - 20;
   const interval = computeForwardVisibleInterval(guide, sampleGuidePath(guide, cameraS).heading, cameraS, 2.5, 150);
   assert.ok(interval);
-  near(interval.dStart, 2.5);
+  near(interval.dStart, 2.5, 1e-8);
   near(interval.dEnd, 20, 1e-7);
 });
 

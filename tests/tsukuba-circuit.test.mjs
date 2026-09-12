@@ -18,7 +18,7 @@ import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
-import { dot3 } from '../dist/physics/vehicle-math3.js';
+import { dot3 } from '../dist/core/vector3.js';
 import {
   createTestBike,
   createTestCar,

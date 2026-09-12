@@ -1,11 +1,11 @@
+import { observeProbeContacts, runProbeCli } from './helpers/probe-harness.mjs';
 /** Production solver, explicit input-only protection comparison. No state correction or recovery. */
 import { writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+
 import { createFlatProbe } from './drift-control-probe.mjs';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import { updateArcadeVehicle, arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
-import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
+import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
+
 import { deriveTireSlip } from '../dist/physics/tire-wheel.js';
 
 export function runProtectionProbe(
@@ -61,25 +61,7 @@ export function runProtectionProbe(
       out.error = String(e);
       break;
     }
-    const body = arcadeBodyKinematics(v);
-    const f = deriveContactObservation(
-      p.guide,
-      p.height,
-      p.surface,
-      body,
-      v.profile.frontStation,
-      v.frontSteerAngle,
-      v.course.segmentIndex,
-    );
-    const r = deriveContactObservation(
-      p.guide,
-      p.height,
-      p.surface,
-      body,
-      v.profile.rearStation,
-      0,
-      v.course.segmentIndex,
-    );
+    const { body, front: f, rear: r } = observeProbeContacts(p);
     const fs = deriveTireSlip(
       v.frontWheelOmega,
       f.effectiveRollingRadius,
@@ -154,8 +136,4 @@ async function main() {
       }
   if (out) await writeFile(out, JSON.stringify({ node: process.version, rows }, null, 2) + '\n');
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href)
-  main().catch((e) => {
-    console.error(e);
-    process.exitCode = 1;
-  });
+runProbeCli(import.meta.url, main);

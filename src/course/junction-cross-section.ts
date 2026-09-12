@@ -1,8 +1,8 @@
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
-export type JunctionPhase = 'SINGLE' | 'WIDENING' | 'MEDIAN_GROWTH' | 'SEPARATED';
+type JunctionPhase = 'SINGLE' | 'WIDENING' | 'MEDIAN_GROWTH' | 'SEPARATED';
 export type JunctionSide = 'LEFT' | 'RIGHT';
 
-export interface LateralInterval {
+interface LateralInterval {
   readonly min: number;
   readonly max: number;
 }
@@ -24,7 +24,7 @@ export interface JunctionCrossSectionAuthoring {
   readonly shoulderWidth: number;
 }
 
-export interface JunctionCrossSection {
+interface JunctionCrossSection {
   readonly s: number;
   readonly phase: JunctionPhase;
   readonly outerHalfWidth: number;
@@ -36,8 +36,7 @@ export interface JunctionCrossSection {
   readonly childCenterL: Readonly<Record<JunctionSide, number>> | null;
 }
 
-export type JunctionLateralClass =
-  'ASPHALT_SINGLE' | 'ASPHALT_LEFT' | 'ASPHALT_RIGHT' | 'MEDIAN' | 'SHOULDER' | 'OUTSIDE';
+type JunctionLateralClass = 'ASPHALT_SINGLE' | 'ASPHALT_LEFT' | 'ASPHALT_RIGHT' | 'MEDIAN' | 'SHOULDER' | 'OUTSIDE';
 
 interface JunctionScalarSection {
   readonly phase: JunctionPhase;

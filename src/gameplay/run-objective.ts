@@ -1,8 +1,8 @@
 import type { RouteDagState, RouteDagUpdate } from './route-dag.js';
 
-export type RunObjectiveStatus = 'RUNNING' | 'FINISHED';
-export type RunObjectiveEvent = 'NONE' | 'FINISHED' | 'IGNORED_AFTER_FINISH';
-export type ValidatedRunFinishSource = 'ROUTE_DAG';
+type RunObjectiveStatus = 'RUNNING' | 'FINISHED';
+type RunObjectiveEvent = 'NONE' | 'FINISHED' | 'IGNORED_AFTER_FINISH';
+type ValidatedRunFinishSource = 'ROUTE_DAG';
 
 /**
  * Generic already-validated finish signal consumed by the run objective.
@@ -11,13 +11,13 @@ export type ValidatedRunFinishSource = 'ROUTE_DAG';
  * world position, raw chainage, screen coordinate or steering/input state that could be used
  * to manufacture completion inside the objective layer.
  */
-export interface ValidatedRunFinish {
+interface ValidatedRunFinish {
   readonly source: ValidatedRunFinishSource;
   readonly id: string;
   readonly validatedProgress: number | null;
 }
 
-export interface RunObjectiveState {
+interface RunObjectiveState {
   status: RunObjectiveStatus;
   acceptedFinishCount: number;
   finishElapsedSeconds: number | null;
@@ -27,7 +27,7 @@ export interface RunObjectiveState {
   lastEvent: RunObjectiveEvent;
 }
 
-export interface RunObjectiveUpdate {
+interface RunObjectiveUpdate {
   readonly event: RunObjectiveEvent;
   readonly status: RunObjectiveStatus;
   readonly justFinished: boolean;

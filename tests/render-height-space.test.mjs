@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -12,10 +13,6 @@ import { renderDriving } from '../dist/render/renderer.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
-
-const near = (actual, expected, tolerance = 1e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 const cameraProfile = {
   dCam: CURRENT_CAMERA_DISTANCE_METERS,
@@ -38,9 +35,9 @@ test('render height adapter removes the public-course 3.37 m physics/render spli
   const renderRoadY = height.sampleRender(s).y;
 
   assert.ok(Math.abs(physicalRoadY - renderRoadY) > 3.36);
-  near(mapPhysicalHeightToRender(height, s, physicalRoadY), renderRoadY);
-  near(mapPhysicalHeightToRender(height, s, physicalRoadY + 2.5), renderRoadY + 2.5);
-  near(mapPhysicalHeightToRender(height, s, physicalRoadY - 0.064), renderRoadY - 0.064);
+  near(mapPhysicalHeightToRender(height, s, physicalRoadY), renderRoadY, 1e-6);
+  near(mapPhysicalHeightToRender(height, s, physicalRoadY + 2.5), renderRoadY + 2.5, 1e-6);
+  near(mapPhysicalHeightToRender(height, s, physicalRoadY - 0.064), renderRoadY - 0.064, 1e-6);
 });
 
 test('player and camera share render height space while suspension displacement remains visible', () => {
@@ -91,5 +88,5 @@ test('dynamic rival adapter maps physical anchors into the same render road spac
     parent.heightProfile.sampleRender(car.course.s).y +
     car.presentationY -
     parent.heightProfile.samplePhysics(car.course.s);
-  near(sprite.y, expected);
+  near(sprite.y, expected, 1e-6);
 });

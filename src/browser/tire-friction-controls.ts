@@ -7,7 +7,7 @@ import {
   type BrowserTireCalibrationAxis,
 } from './tire-friction-selection.js';
 
-export interface BrowserTireFrictionControls {
+interface BrowserTireFrictionControls {
   handleKey(code: string): boolean;
 }
 

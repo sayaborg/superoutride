@@ -18,9 +18,9 @@ export interface BrowserCourseModeSelection {
   readonly entryName: (typeof COURSE_RUNNERS)[CourseRouteKind];
 }
 
-export function compileBrowserCourseModes(
-  entries: readonly Omit<BrowserCourseModeSelection, 'entryName'>[],
-): readonly BrowserCourseModeSelection[] {
+export function compileBrowserCourseModes<const Entry extends Omit<BrowserCourseModeSelection, 'entryName'>>(
+  entries: readonly Entry[],
+): readonly (Entry & Pick<BrowserCourseModeSelection, 'entryName'>)[] {
   const queries = new Set<string>();
   const keys = new Set<string>();
   return Object.freeze(
@@ -85,7 +85,7 @@ export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery)
 
 export function selectBrowserCourseMode(
   query: string | null,
-  selections = BROWSER_COURSE_MODES,
+  selections: readonly BrowserCourseModeSelection[] = BROWSER_COURSE_MODES,
 ): BrowserCourseModeSelection {
   const selected =
     selections.find((mode) => mode.query === query) ?? selections.find((mode) => mode.query === 'branching');
@@ -95,7 +95,21 @@ export function selectBrowserCourseMode(
 
 export function browserCourseModeForKey(
   code: string,
-  selections = BROWSER_COURSE_MODES,
+  selections: readonly BrowserCourseModeSelection[] = BROWSER_COURSE_MODES,
 ): BrowserCourseModeSelection | null {
   return selections.find((mode) => mode.digitCode === code || mode.numpadCode === code) ?? null;
+}
+
+/** The catalog owns root membership; composition supplies only the builders for that membership. */
+export function composeBrowserCourseContent<Kind extends CourseRouteKind, Content>(
+  kind: Kind,
+  builders: Readonly<Record<string, () => Content>> &
+    Record<Extract<(typeof BROWSER_COURSE_MODES)[number], { routeKind: NoInfer<Kind> }>['query'], () => Content>,
+  query: string | null,
+): { mode: BrowserCourseModeSelection; content: Content } {
+  const mode = selectBrowserCourseMode(query);
+  if (mode.routeKind !== kind) throw new RangeError(`${kind} cannot compose ${mode.query}`);
+  const build = Object.hasOwn(builders, mode.query) ? builders[mode.query] : undefined;
+  if (build === undefined) throw new RangeError(`missing course builder: ${mode.query}`);
+  return { mode, content: build() };
 }

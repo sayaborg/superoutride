@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -24,15 +25,11 @@ const current = deriveGroundMapDensity({
   pitchRadians: CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS,
 });
 
-const near = (actual, expected, tolerance = 1e-10) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
-
 test('current GroundMap base density is derived from d0=D_cam=5m', () => {
-  near(current.qL, 0.025);
-  near(current.qS, 0.04480995901583679);
-  near(current.rhoL, 40);
-  near(current.rhoS, 22.316467632710374);
+  near(current.qL, 0.025, 1e-10);
+  near(current.qS, 0.04480995901583679, 1e-10);
+  near(current.rhoL, 40, 1e-10);
+  near(current.rhoS, 22.316467632710374, 1e-10);
 });
 
 test('current camera height raises the 24m x 3000m unique base estimate above the old h=2m example', () => {
@@ -44,8 +41,8 @@ test('current camera height raises the 24m x 3000m unique base estimate above th
 test('anisotropic pyramid footprint grows x2 laterally and x4 in chainage per level', () => {
   const level0 = groundMapFootprintAtLevel(current, 0);
   const level3 = groundMapFootprintAtLevel(current, 3);
-  near(level3.qL / level0.qL, 8);
-  near(level3.qS / level0.qS, 64);
+  near(level3.qL / level0.qL, 8, 1e-10);
+  near(level3.qS / level0.qS, 64, 1e-10);
 });
 
 test('runtime level authority is chainage footprint while lateral level remains diagnostic only', () => {

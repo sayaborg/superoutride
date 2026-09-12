@@ -1,16 +1,16 @@
 import { nonEmptyId } from '../core/validation.js';
 export type CourseRouteKind = 'LINEAR' | 'BRANCHING' | 'CIRCUIT';
 
-export type CourseRouteAuthorityKind = 'POINT_TO_POINT_GRAPH' | 'CIRCUIT_LOOP';
+type CourseRouteAuthorityKind = 'POINT_TO_POINT_GRAPH' | 'CIRCUIT_LOOP';
 
-export type CourseFinishKind = 'POINT_TO_POINT' | 'LAPS';
+type CourseFinishKind = 'POINT_TO_POINT' | 'LAPS';
 
-export type CourseSharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
+type CourseSharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
 
 /** Physical response after shared branch authority has made one sibling route illegal. */
 export type BranchViolationPolicy = 'RECOVER_TO_LOCKED_BRANCH';
 
-export interface CourseModeAuthoring {
+interface CourseModeAuthoring {
   readonly id: string;
   readonly routeKind: CourseRouteKind;
 }

@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
@@ -12,10 +13,6 @@ import {
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-
-const near = (actual, expected, tolerance = 1e-8) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function crossingSegment(gate, direction = 'FORWARD') {
   const sign = direction === 'FORWARD' ? 1 : -1;
@@ -55,10 +52,10 @@ test('visible route gates exactly cover the two separated asphalt child roads', 
     assert.ok(gate);
     const l = STADIUM_JUNCTION.separatedChildCenterL(side);
     const expected = guidePathToWorld(guide, STADIUM_ROUTE_GATE_S, l);
-    near(gate.center.x, expected.x);
-    near(gate.center.z, expected.z);
-    near(gate.heading, expected.heading);
-    near(gate.halfWidth, STADIUM_JUNCTION.authoring.childRoadWidth * 0.5);
+    near(gate.center.x, expected.x, 1e-8);
+    near(gate.center.z, expected.z, 1e-8);
+    near(gate.heading, expected.heading, 1e-8);
+    near(gate.halfWidth, STADIUM_JUNCTION.authoring.childRoadWidth * 0.5, 1e-8);
   }
 });
 
@@ -133,9 +130,9 @@ test('terminal route completes only at the real single-road physical FINISH gate
   const finish = finishForStage(gates, 'GOAL_LR');
   assert.ok(finish);
   const expected = guidePathToWorld(guide, STADIUM_FINISH_GATE_S, 0);
-  near(finish.center.x, expected.x);
-  near(finish.center.z, expected.z);
-  near(finish.halfWidth, STADIUM_JUNCTION.authoring.parentRoadWidth * 0.5);
+  near(finish.center.x, expected.x, 1e-8);
+  near(finish.center.z, expected.z, 1e-8);
+  near(finish.halfWidth, STADIUM_JUNCTION.authoring.parentRoadWidth * 0.5, 1e-8);
 
   const segment = crossingSegment(finish);
   const observation = observeRouteBoundaryCrossing(route, state, gates, segment.previous, segment.current);

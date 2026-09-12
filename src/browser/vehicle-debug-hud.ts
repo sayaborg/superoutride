@@ -21,13 +21,13 @@ export const HUD_PROTECTION_CUT_COLOR = '#ff535d';
 /** Common 0..1 torque-equivalent scale; request = delivered + protection reduction.
  * The limit tick is authored capacity/share, not a tire-force or available-grip estimate.
  */
-export interface TorqueControlMeter {
+interface TorqueControlMeter {
   readonly requested: number;
   readonly delivered: number;
   readonly limit: number;
 }
 
-export interface VehicleDebugHudModel {
+interface VehicleDebugHudModel {
   readonly courseSelector: string;
   readonly vehicleSelector: string;
   readonly steeringOffsetSelector: string;

@@ -6,7 +6,7 @@ import {
   type BodyKinematics,
   type ContactObservation,
 } from './vehicle-dynamics.js';
-import { add3, scale3, type Vec3 } from './vehicle-math3.js';
+import { add3, scale3, type Vec3 } from '../core/vector3.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 
 export interface VehicleWrench {

@@ -14,7 +14,7 @@ import { sampleGroundMap, type GroundMapProfile } from './ground-map.js';
 
 const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
 
-export interface CompiledBakedGroundMapAsset {
+interface CompiledBakedGroundMapAsset {
   readonly metadata: BakedGroundMapMetadata;
   readonly bytes: Uint8Array;
 }

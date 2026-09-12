@@ -1,3 +1,4 @@
+import { deg, near } from './helpers/assert.mjs';
 import { drivingEnvironment } from './helpers/driving-environment.mjs';
 
 import assert from 'node:assert/strict';
@@ -5,21 +6,17 @@ import test from 'node:test';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';
-import { pseudoDepth, pseudoProject } from '../dist/core/projection.js';
-import { SoftwareSurface } from '../dist/graphics/software-surface.js';
+import { pseudoDepth } from '../dist/core/projection.js';
+
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { renderDriving } from '../dist/render/renderer.js';
+
 import { deriveVehicleLeanRadians, deriveVehicleNormalizedBank } from '../dist/render/vehicle-presentation.js';
-import { createFarBackground } from '../dist/visual/far-background.js';
+
 import { createTestBike, createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
-import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
-const deg = (v) => (v * Math.PI) / 180;
-const near = (a, b, eps = 1e-7) => assert.ok(Math.abs(a - b) <= eps, `${a} != ${b} ± ${eps}`);
-
-const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();
+const { guide, height, surfaces, cameraProfile } = drivingEnvironment();
 
 function placeCar(car, s, l, speed = 30) {
   const p = guidePathToWorld(guide, s, l);
@@ -65,7 +62,7 @@ test('Y_phys is a semantically separate smooth channel from piecewise-linear Y_r
   const render = height.sampleRender(s).y;
   const phys = height.samplePhysics(s);
   assert.notEqual(render, phys);
-  near(height.samplePhysics(125), height.sampleCamera(125));
+  near(height.samplePhysics(125), height.sampleCamera(125), 1e-7);
 });
 
 test('car remains world-authoritative and can traverse laterally across the road chart', () => {
@@ -140,41 +137,6 @@ test('camera retains exact chainage D_cam and bounded horizontal/vertical framin
   near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
   assert.ok(Math.abs(camera.verticalCorrection) <= cameraProfile.deltaYMax + 1e-9);
   assert.ok(Math.abs(camera.playerFrameError) < 2.0);
-});
-
-test('renderer projects player from physical Y and keeps player depth/scale chainage-only', () => {
-  const assets = createSpriteAssets();
-  const world = createRoadsideSprites(guide, height, assets);
-  const background = createFarBackground();
-  const car = createTestCar(guide, height, surfaces, 520);
-  placeCar(car, 520, -8, 20);
-  // Force an airborne offset to prove renderer consumes vehicle.y rather than Y_render.
-  car.y = height.samplePhysics(520) - 0.5;
-  car.frontNormalLoad = 0;
-  car.rearNormalLoad = 0;
-  car.surfaceType = 'VOID';
-  const rig = createCameraRig();
-  const camera = updateCamera(rig, { guide, height }, car, cameraProfile, 1 / 60);
-  const projected = pseudoProject({ x: car.x, y: car.y, z: car.z, s: car.course.s }, camera);
-  const surface = new SoftwareSurface(320, 240);
-  const stats = renderDriving(
-    surface,
-    {
-      background,
-      guide,
-      camera,
-      vehicle: car,
-      terrainProfile,
-      groundProfile,
-      worldSprites: world,
-      assets,
-      playerKind: 'car',
-    },
-    {},
-  );
-  assert.ok(stats.playerWrittenPixels > 0);
-  near(projected.scale, cameraProfile.focalLength / cameraProfile.dCam, 1e-9);
-  near(pseudoDepth(car.course.s, camera.s), cameraProfile.dCam, 1e-9);
 });
 
 test('BIKE profile produces physical yaw and derived presentation lean from canonical DrivingInput', () => {

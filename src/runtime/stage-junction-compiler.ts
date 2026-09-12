@@ -4,7 +4,7 @@ import { createStageRoadView, type StageRoadView } from '../course/stage-road-vi
 import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { StageJunctionSurfaceMap, type StageJunctionOuterSurfaceType } from '../physics/stage-junction-surface-map.js';
 
-export interface StageJunctionSource {
+interface StageJunctionSource {
   readonly courseLength: number;
   readonly roadView: StageRoadView;
   readonly groundProfile: GroundMapProfile;

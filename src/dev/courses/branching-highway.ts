@@ -1,11 +1,7 @@
+import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { compileGuidePath, type GuidePath } from '../../core/guide-curve.js';
 import { HeightProfile } from '../../core/height-profile.js';
-import {
-  CURRENT_CAMERA_DISTANCE_METERS,
-  CURRENT_RENDER_FAR_DEPTH_METERS,
-  CURRENT_RENDER_NEAR_DEPTH_METERS,
-  LOGICAL_HEIGHT,
-} from '../../core/presentation-scale.js';
+import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { JunctionCrossSectionProfile } from '../../course/junction-cross-section.js';
 import type { RecoveryProfile } from '../../gameplay/recovery.js';
 import { GROUND_COLORS, type GroundMapProfile } from '../../groundmap/ground-map.js';
@@ -51,7 +47,7 @@ export const BRANCHING_RIVAL_START_L = HIGHWAY_RIVAL_START_L;
 export const BRANCHING_PLAYER_RECOVERY_PROFILE: Readonly<RecoveryProfile> = HIGHWAY_HIGHWAY_RECOVERY_PROFILE;
 export const BRANCHING_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = HIGHWAY_HIGHWAY_RIVAL_RECOVERY_PROFILE;
 
-export interface DefaultBranchingParent {
+interface DefaultBranchingParent {
   readonly guide: GuidePath;
   readonly heightProfile: HeightProfile;
   readonly visualProfile: VisualProfile;
@@ -91,18 +87,7 @@ export function createDefaultBranchingParent(): DefaultBranchingParent {
     junction: BRANCHING_DEFAULT_BRANCHING_JUNCTION,
     junctionMarkings: CENTER_DASH_MARKINGS,
   };
-  const terrainProfile: TerrainVisualProfile = {
-    screenHeight: LOGICAL_HEIGHT,
-    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
-    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-    groundLeft: groundProfile.groundLeft,
-    groundRight: groundProfile.groundRight,
-    roadLeft: groundProfile.roadLeft,
-    roadRight: groundProfile.roadRight,
-    height: heightProfile,
-    visual: visualProfile,
-    thinSpanScreenRows: 1,
-  };
+  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
 
   return Object.freeze({
     guide,
@@ -110,7 +95,7 @@ export function createDefaultBranchingParent(): DefaultBranchingParent {
     visualProfile,
     surfaceMap,
     groundProfile: Object.freeze(groundProfile),
-    terrainProfile: Object.freeze(terrainProfile),
+    terrainProfile,
   });
 }
 

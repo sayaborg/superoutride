@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createBrowserDrivingShell } from '../dist/browser/driving-shell.js';
-import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
-import { recoverVehicle } from '../dist/gameplay/recovery.js';
+import { createLinearHighwayRuntime, LINEAR_RECOVERY_PROFILE } from '../dist/dev/courses/linear-highway.js';
+import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { vehicleCatalogEntryForId } from '../dist/vehicle/vehicle-catalog.js';
 
 import { installBrowserDom } from './helpers/browser-dom.mjs';
@@ -13,24 +14,21 @@ test('shared shell routes real selector events to the replaced player and preser
   const course = createLinearHighwayRuntime();
   const runtime = { guide: course.guide, height: course.heightProfile, surfaces: course.surfaceMap };
   const shell = createBrowserDrivingShell(runtime, 0);
-  const recover = () =>
-    recoverVehicle({ guide: runtime.guide, height: runtime.height, surfaces: runtime.surfaces }, shell.vehicle, {
-      state: shell.recovery,
-      reason: 'manual',
-    });
-  let replacements = 0,
-    manualRecoveries = 0;
-  shell.mountControls(
-    (profile) => {
-      recover();
-      shell.replacePlayer(profile, runtime);
-      replacements++;
+  let resyncs = 0;
+  const order = [];
+  const lifecycle = shell.mountControls({
+    world: () => {
+      order.push('world');
+      return runtime;
     },
-    () => {
-      manualRecoveries++;
-      recover();
+    recoveryProfile: LINEAR_RECOVERY_PROFILE,
+    resync: () => {
+      assert.equal(shell.cameraRig.initialized, false, 'camera reset precedes observer resync');
+      order.push('resync');
+      resyncs++;
     },
-  );
+  });
+  order.length = 0;
   const key = (code, repeat = false) => win.emit('keydown', { code, repeat, preventDefault() {} });
   key('KeyH');
   key('KeyY');
@@ -45,7 +43,12 @@ test('shared shell routes real selector events to the replaced player and preser
     .get('vehicle-selector-buttons')
     .children.find((x) => x.textContent === 'RC30')
     .emit('click');
-  assert.equal(replacements, 1);
+  assert.equal(resyncs, 1);
+  assert.deepEqual(order, ['world', 'resync', 'world']);
+  assert.deepEqual(
+    lifecycle.camera,
+    updateCamera(createCameraRig(), runtime, shell.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
+  );
   assert.notEqual(shell.vehicle, previous);
   assert.equal(shell.vehicle.profile.id, 'VFR750R');
   assert.deepEqual(shell.vehicle.torqueProtection, vehicleCatalogEntryForId('VFR750R').torqueProtection);
@@ -60,7 +63,7 @@ test('shared shell routes real selector events to the replaced player and preser
   assert.notDeepEqual(shell.vehicle.tireFrictionCalibration, tire);
   assert.deepEqual(previous.tireFrictionCalibration, tire);
   key('KeyS');
-  assert.equal(replacements, 1, 'selecting the current identity is a no-op');
+  assert.equal(resyncs, 1, 'selecting the current identity is a no-op');
   key('KeyP');
   assert.equal(shell.cameraRig.yawMode, 'MOVEMENT_FOLLOW');
   key('ArrowUp');
@@ -69,7 +72,11 @@ test('shared shell routes real selector events to the replaced player and preser
   assert.equal(shell.inputManager.sample().throttle, false);
   assert.equal(shell.inputManager.sample().brake, true);
   key('Backspace');
-  assert.equal(manualRecoveries, 1);
+  assert.equal(resyncs, 2);
+  assert.deepEqual(
+    lifecycle.camera,
+    updateCamera(createCameraRig(shell.cameraRig.yawMode), runtime, shell.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
+  );
   shell.present(
     'linear',
     shell.inputManager.sample(),
@@ -93,7 +100,8 @@ test('all topology roots use one player shell without moving topology/DEV author
     const source = await readFile(new URL(`../src/${file}`, import.meta.url), 'utf8');
     assert.match(source, /createBrowserDrivingShell\(/);
     assert.match(source, /shell\.mountControls\(/);
-    assert.match(source, /shell\.replacePlayer\(/);
+    assert.match(source, /lifecycle\.update\(/);
+    assert.doesNotMatch(source, /recoverVehicle\(|updateCamera\(|resetCameraRig\(|shell\.replacePlayer\(/);
     assert.match(source, /shell\.present\(/);
     assert.doesNotMatch(source, /new InputManager|mountBrowserTireFrictionControls|let vehicle:/);
   }

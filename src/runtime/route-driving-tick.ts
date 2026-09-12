@@ -39,7 +39,7 @@ export interface RouteDrivingActor {
   readonly sampleInput: (runtime: StageRuntimeContentPackage) => DrivingInput;
 }
 
-export interface RouteDrivingResult {
+interface RouteDrivingResult {
   readonly route: LiveRouteActorTickResult;
   readonly recovered: RecoveryReason | null;
 }

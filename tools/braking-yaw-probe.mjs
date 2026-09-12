@@ -1,20 +1,16 @@
+import { observeProbeContacts, runProbeCli } from './helpers/probe-harness.mjs';
 /** Same-reached-state input forks. Read-only force attribution, NOT a yaw controller. */
 import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+
 import { createTerrainProbe, terrainInput } from './torque-protection-terrain-probe.mjs';
 import { forkProbe } from './drift-control-probe.mjs';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-import {
-  updateArcadeVehicle,
-  arcadeBodyKinematics,
-  vehicleBodyTravelDirection,
-} from '../dist/physics/arcade-vehicle-physics.js';
-import { deriveContactObservation, momentAboutCg } from '../dist/physics/vehicle-dynamics.js';
+import { updateArcadeVehicle, vehicleBodyTravelDirection } from '../dist/physics/arcade-vehicle-physics.js';
+import { momentAboutCg } from '../dist/physics/vehicle-dynamics.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
 import { steeringAutomaticMax } from '../dist/physics/vehicle-calibration.js';
-import { scale3 } from '../dist/physics/vehicle-math3.js';
+import { scale3 } from '../dist/core/vector3.js';
 
 const DEG = 180 / Math.PI;
 export const BRAKING_ACTIONS = Object.freeze([
@@ -71,10 +67,11 @@ export function brakingStateFingerprint(vehicle) {
 
 /** Fresh post-update observations. Contact moments are NOT the previous integrated substep wrench. */
 export function observeBrakingState(probe, t) {
-  const { vehicle: v, guide, height, surface } = probe,
-    body = arcadeBodyKinematics(v);
-  const station = (side, profile, steer, omega) => {
-    const c = deriveContactObservation(guide, height, surface, body, profile, steer, v.course.segmentIndex);
+  const { vehicle: v } = probe;
+  const contacts = observeProbeContacts(probe),
+    body = contacts.body;
+  const station = (side, profile, omega) => {
+    const c = contacts[side];
     const f = evaluateTireForce(
       omega,
       c.effectiveRollingRadius,
@@ -114,8 +111,8 @@ export function observeBrakingState(probe, t) {
       upright: body.up.x * c.surface.normal.x + body.up.y * c.surface.normal.y + body.up.z * c.surface.normal.z > 0,
     };
   };
-  const front = station('front', v.profile.frontStation, v.frontSteerAngle, v.frontWheelOmega);
-  const rear = station('rear', v.profile.rearStation, 0, v.rearWheelOmega);
+  const front = station('front', v.profile.frontStation, v.frontWheelOmega);
+  const rear = station('rear', v.profile.rearStation, v.rearWheelOmega);
   return {
     t,
     speed: v.speed,
@@ -377,8 +374,4 @@ async function main() {
       ) + '\n',
     );
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href)
-  main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+runProbeCli(import.meta.url, main);

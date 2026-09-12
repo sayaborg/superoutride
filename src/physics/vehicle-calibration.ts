@@ -24,7 +24,7 @@ export interface ArcadeSteeringCalibrationState {
   steeringActuatorResponse: Readonly<NormalizedActuatorRateProfile>;
 }
 
-export interface ArcadeSteeringCalibrationOwner {
+interface ArcadeSteeringCalibrationOwner {
   readonly steeringCalibration: ArcadeSteeringCalibrationState;
 }
 

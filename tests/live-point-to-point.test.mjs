@@ -211,7 +211,7 @@ test('fixture stays validated while browser live authority consumes the route as
   assert.doesNotMatch(source, /POINT_TO_POINT_OBJECTIVE|REPEATABLE_DEV/);
   assert.doesNotMatch(source, /createMinimalRouteDag/);
   assert.doesNotMatch(source, /createStadiumRouteBoundaryGateSet/);
-  assert.match(source, /stageVehicleWorld\(runtime\)/);
+  assert.match(source, /world: \(\) => stageVehicleWorld\(activeRuntime\(\)\)/);
   assert.match(source, /advanceRouteDrivingTick/);
   assert.match(source, /runtime\.roadView \?\? undefined/);
 });

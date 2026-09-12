@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -14,10 +15,6 @@ import {
 import { createDeclarativeLiveRouteRuntime } from '../dist/dev/fixtures/declarative-route.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
-
-const near = (actual, expected, tolerance = 1e-7) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function setup() {
   const guide = createStadiumGuide();
@@ -68,10 +65,10 @@ test('declarative compiler reproduces physical gates and handoff seams exactly',
   for (const gate of live.gates.gates) {
     const legacy = legacyGates.gates.find((candidate) => candidate.id === gate.id);
     assert.ok(legacy);
-    near(gate.center.x, legacy.center.x);
-    near(gate.center.z, legacy.center.z);
-    near(gate.heading, legacy.heading);
-    near(gate.halfWidth, legacy.halfWidth);
+    near(gate.center.x, legacy.center.x, 1e-7);
+    near(gate.center.z, legacy.center.z, 1e-7);
+    near(gate.heading, legacy.heading, 1e-7);
+    near(gate.halfWidth, legacy.halfWidth, 1e-7);
   }
 
   assert.deepEqual(
@@ -83,9 +80,9 @@ test('declarative compiler reproduces physical gates and handoff seams exactly',
     assert.ok(legacy);
     assert.equal(seam.choiceId, legacy.choiceId);
     assert.equal(seam.targetChartId, legacy.targetChartId);
-    near(seam.center.x, legacy.center.x);
-    near(seam.center.z, legacy.center.z);
-    near(seam.heading, legacy.heading);
+    near(seam.center.x, legacy.center.x, 1e-7);
+    near(seam.center.z, legacy.center.z, 1e-7);
+    near(seam.heading, legacy.heading, 1e-7);
   }
 });
 

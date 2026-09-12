@@ -16,7 +16,7 @@ export interface CircuitTopology {
   readonly seamTurn: number;
 }
 
-export interface CircuitChainagePosition {
+interface CircuitChainagePosition {
   /** Topological winding only. This is not validated race-lap authority. */
   readonly winding: number;
   /** Canonical local chainage in [0, lapLength). */

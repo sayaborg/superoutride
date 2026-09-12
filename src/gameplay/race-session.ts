@@ -4,7 +4,7 @@ const RANK_PROGRESS_TOLERANCE_METERS = 1e-9;
 const RACE_TIME_TOLERANCE_SECONDS = 1e-9;
 const TIMER_ROUNDING_TOLERANCE_MILLISECONDS = 1e-7;
 
-export interface ValidatedGateTiming {
+interface ValidatedGateTiming {
   readonly gateName: string;
   readonly gateKind: 'checkpoint' | 'finish';
   readonly elapsedSeconds: number;
@@ -12,7 +12,7 @@ export interface ValidatedGateTiming {
 }
 
 /** One physically validated FINISH boundary timing. */
-export interface CourseBoundaryTiming {
+interface CourseBoundaryTiming {
   readonly index: number;
   readonly elapsedSeconds: number;
   readonly intervalSeconds: number;
@@ -27,16 +27,16 @@ export interface RaceSessionState {
 }
 
 /** Minimal validated-progress contract needed by timing. */
-export interface RaceSessionProgressView {
+interface RaceSessionProgressView {
   readonly validatedProgressFloor: number;
 }
 
 /** Minimal already-validated gate contract needed by timing. */
-export interface RaceSessionUpdateView {
+interface RaceSessionUpdateView {
   readonly acceptedGate: PhysicalRaceGate | null;
 }
 
-export interface RaceRankingInput {
+interface RaceRankingInput {
   readonly competitorId: string;
   readonly sProgress: number;
   readonly validatedProgressFloor: number;
@@ -44,7 +44,7 @@ export interface RaceRankingInput {
   readonly finishElapsedSeconds?: number | null;
 }
 
-export interface RaceStanding extends RaceRankingInput {
+interface RaceStanding extends RaceRankingInput {
   readonly rank: number;
 }
 

@@ -1,3 +1,4 @@
+import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMinimalRouteDag } from '../dist/dev/fixtures/minimal-route-dag.js';
@@ -17,10 +18,6 @@ import {
   queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
 } from '../dist/gameplay/route-stage-handoff.js';
-
-const near = (actual, expected, tolerance = 2e-6) => {
-  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected} ± ${tolerance}`);
-};
 
 function crossingSegment(seam, direction = 'FORWARD') {
   const sign = direction === 'FORWARD' ? 1 : -1;
@@ -61,9 +58,9 @@ test('handoff seams are authored after route selection and cover the same separa
     const seam = manifest.seams.find((candidate) => candidate.choiceId === choiceId);
     assert.ok(seam);
     const expected = guidePathToWorld(guide, STADIUM_HANDOFF_SEAM_S, chart.lateralOrigin);
-    near(seam.center.x, expected.x);
-    near(seam.center.z, expected.z);
-    near(seam.halfWidth, 3.5);
+    near(seam.center.x, expected.x, 2e-6);
+    near(seam.center.z, expected.z, 2e-6);
+    near(seam.halfWidth, 3.5, 2e-6);
   }
 });
 

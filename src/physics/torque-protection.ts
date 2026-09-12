@@ -9,7 +9,7 @@ import {
   type WheelSolveResult,
 } from './tire-wheel.js';
 import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
-import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from './vehicle-math3.js';
+import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../core/vector3.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
 import { evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
@@ -89,7 +89,7 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
     : { ...input, driveTorque: drive, brakeTorque: brake };
 }
 
-export interface ProtectedWheelPair {
+interface ProtectedWheelPair {
   readonly frontInput: WheelSolveInput;
   readonly rearInput: WheelSolveInput;
   readonly frontWheel: WheelSolveResult;

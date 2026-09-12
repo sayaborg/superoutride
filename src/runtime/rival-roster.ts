@@ -1,6 +1,6 @@
 import type { SessionConfiguration } from '../gameplay/session-configuration.js';
 
-export interface RivalRosterEntry {
+interface RivalRosterEntry {
   readonly actorId: string;
   readonly rivalIndex: number;
 }

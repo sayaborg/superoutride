@@ -19,7 +19,7 @@ import { sampleRivalDrivingInput } from '../dist/gameplay/rival-driver.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { arcadeBodyKinematics } from '../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynamics.js';
-import { dot3 } from '../dist/physics/vehicle-math3.js';
+import { dot3 } from '../dist/core/vector3.js';
 import {
   createTestBike,
   createTestCar,
@@ -186,9 +186,9 @@ test('course 4 selects FISCO only at the browser CIRCUIT composition root', asyn
     ]);
   assert.equal(browserCourseModeForKey('Digit4').query, 'fisco');
   assert.equal(browserCourseModeForKey('Digit4').routeKind, 'CIRCUIT');
-  assert.match(circuitSource, /const circuitBuilders = \{/);
+  assert.match(circuitSource, /composeBrowserCourseContent\(\s*\x27CIRCUIT\x27/);
   assert.match(circuitSource, /fisco: \(\) => \(\{/);
-  assert.match(circuitSource, /const selectedCircuit = buildCircuit\(\)/);
+  assert.match(circuitSource, /content: selectedCircuit/);
   assert.match(circuitSource, /createFiscoRuntime\(\)/);
   assert.match(circuitSource, /createTsukubaCourse2000Runtime\(\)/);
   assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit|query === 'fisco'/);

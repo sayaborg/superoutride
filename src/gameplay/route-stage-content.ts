@@ -12,17 +12,17 @@ import type { RouteDag, RouteDagState } from './route-dag.js';
  * world coordinate frame. The content contract supports only one shared world frame; no teleport/transform is
  * invented here.
  */
-export interface RouteStageContentPackageRef {
+interface RouteStageContentPackageRef {
   readonly packageId: string;
   readonly worldFrameId: string;
 }
 
-export interface RouteStageContentBindingAuthoring {
+interface RouteStageContentBindingAuthoring {
   readonly stageId: string;
   readonly packageId: string;
 }
 
-export interface RouteStageContentBinding extends RouteStageContentBindingAuthoring {}
+interface RouteStageContentBinding extends RouteStageContentBindingAuthoring {}
 
 export interface RouteStageContentManifest {
   readonly worldFrameId: string;
@@ -30,7 +30,7 @@ export interface RouteStageContentManifest {
   readonly bindings: readonly RouteStageContentBinding[];
 }
 
-export interface ActiveRouteStageContent {
+interface ActiveRouteStageContent {
   readonly stageId: string;
   readonly package: RouteStageContentPackageRef;
 }

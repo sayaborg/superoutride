@@ -21,14 +21,14 @@ import {
   sub3,
   WORLD_UP,
   type Vec3,
-} from './vehicle-math3.js';
+} from '../core/vector3.js';
 
 const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
 
 export const VEHICLE_GRAVITY = 9.80665;
 export const VEHICLE_SUBSTEPS = 12;
 
-export type VehicleContactId = 'FRONT' | 'REAR';
+type VehicleContactId = 'FRONT' | 'REAR';
 
 /** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
@@ -80,13 +80,13 @@ export interface VehicleDynamicsState {
   readonly powertrain: AutomaticPowertrainState;
 }
 
-export interface BodyFrameVelocity {
+interface BodyFrameVelocity {
   readonly longitudinal: number;
   readonly lateral: number;
   readonly vertical: number;
 }
 
-export interface SuspensionStationProfile {
+interface SuspensionStationProfile {
   readonly springRate: number;
   readonly damping: number;
   readonly qStatic: number;
@@ -116,7 +116,7 @@ export interface BodyKinematics {
   readonly omegaWorld: Vec3;
 }
 
-export interface SurfaceGeometryObservation {
+interface SurfaceGeometryObservation {
   readonly coordinate: CourseCoordinate;
   readonly point: Vec3;
   readonly horizontalTangent: Vec3;

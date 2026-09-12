@@ -16,7 +16,7 @@ export interface PseudoCamera {
   centerY: number;
 }
 
-export interface PseudoAnchor {
+interface PseudoAnchor {
   x: number;
   y: number;
   z: number;

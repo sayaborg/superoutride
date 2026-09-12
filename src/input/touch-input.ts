@@ -14,13 +14,13 @@ interface AnalogPointer {
   readonly fullScaleDistance: number;
 }
 
-export interface TouchPedalRequests {
+interface TouchPedalRequests {
   readonly throttle: number;
   readonly brake: number;
 }
 
 /** Compact touch calibration. CSS px is independent of backing-store/device pixel ratio. */
-export const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
+const TOUCH_ANALOG_FULL_SCALE_DISTANCE_PX = 64;
 
 export function touchAnalogFullScaleDistance(viewportWidth: number, viewportHeight: number): number {
   if (

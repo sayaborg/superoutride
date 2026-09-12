@@ -1,28 +1,19 @@
+import { observeProbeContacts, runProbeCli, createProbeVehicle } from './helpers/probe-harness.mjs';
 /** Input-only finite terrain probes of the production solver. No recovery or state correction. */
 import { writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import {
-  DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-  DEFAULT_BROWSER_STEERING_OFFSET,
-  DEFAULT_BROWSER_STEERING_RESPONSE_RATE,
-} from '../dist/browser/steering-calibration-selection.js';
+
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../dist/browser/tire-friction-selection.js';
 import { compileGuidePath } from '../dist/core/guide-curve.js';
 import { HeightProfile } from '../dist/core/height-profile.js';
 import { compileRasterPath } from '../dist/core/raster-path.js';
-import {
-  arcadeBodyKinematics,
-  createArcadeVehicle,
-  updateArcadeVehicle,
-} from '../dist/physics/arcade-vehicle-physics.js';
+import { updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
 import {
   compileTireCharacteristics,
   createArcadeTireFrictionCalibration,
 } from '../dist/physics/tire-friction-calibration.js';
 import { evaluateTireForce } from '../dist/physics/tire-wheel.js';
-import { deriveContactObservation } from '../dist/physics/vehicle-dynamics.js';
+
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const DEG = 180 / Math.PI,
@@ -112,19 +103,14 @@ export function createTerrainProbe(entry, options = {}) {
       };
     },
   });
-  const rate = DEFAULT_BROWSER_STEERING_RESPONSE_RATE;
-  const vehicle = createArcadeVehicle(
+  const vehicle = createProbeVehicle(
     entry.profile,
     { guide, height, surfaces: surface },
     {
       s: START,
       l: 0,
       initialSpeed: speed,
-      steeringCalibration: steeringCalibration ?? {
-        maxRoadWheelSteer: DEFAULT_BROWSER_MAX_ROAD_WHEEL_STEER,
-        steeringOffsetMax: DEFAULT_BROWSER_STEERING_OFFSET,
-        steeringActuatorResponse: { applyRate: rate, releaseRate: rate },
-      },
+      steeringCalibration,
       tireFrictionCalibration:
         calibration === 'browser'
           ? DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION
@@ -209,25 +195,7 @@ export function runTerrainProbe(entry, options = {}) {
         terrainInput(tick / hz, kind, direction),
         1 / hz,
       );
-      const body = arcadeBodyKinematics(v);
-      const f = deriveContactObservation(
-        p.guide,
-        p.height,
-        p.surface,
-        body,
-        v.profile.frontStation,
-        v.frontSteerAngle,
-        v.course.segmentIndex,
-      );
-      const r = deriveContactObservation(
-        p.guide,
-        p.height,
-        p.surface,
-        body,
-        v.profile.rearStation,
-        0,
-        v.course.segmentIndex,
-      );
+      const { body, front: f, rear: r } = observeProbeContacts(p);
       if (
         ![
           v.x,
@@ -389,8 +357,4 @@ async function main() {
       ) + '\n',
     );
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href)
-  main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+runProbeCli(import.meta.url, main);

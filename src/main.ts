@@ -1,7 +1,5 @@
+import { composeBrowserCourseContent } from './browser/course-mode-selection.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
-import { SIM_DT } from './browser/frame-loop.js';
-import { resetCameraRig, updateCamera, type CameraState } from './camera/camera.js';
-import { CURRENT_CAMERA_PROFILE } from './camera/current-camera-profile.js';
 import { guideCoordinateCurve } from './core/guide-coordinate-frame.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from './core/presentation-scale.js';
 import {
@@ -19,7 +17,7 @@ import { createRoadsideSprites } from './dev/courses/roadside-scenery.js';
 import { createTunnelPresentation, createTunnelWorldSprites, selectTunnelBackground } from './dev/courses/tunnel.js';
 import { createFieldRouteProgressState, fieldRouteProgressTravelerView } from './gameplay/field-route-progress.js';
 import { advanceRaceSession, createRaceSessionState } from './gameplay/race-session.js';
-import { createRecoveryState, recoverVehicle } from './gameplay/recovery.js';
+import { createRecoveryState } from './gameplay/recovery.js';
 import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import {
   createRunObjectiveState,
@@ -29,7 +27,6 @@ import {
 import { createSharedRouteChoiceState, getSharedRouteChoiceLock } from './gameplay/shared-route-choice-authority.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
-import type { CompiledArcadeVehicleProfile } from './physics/vehicle-profiles.js';
 import { createDynamicVehicleCourseSprite } from './render/dynamic-vehicle-sprite.js';
 import { renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
@@ -51,7 +48,11 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY, vehicleCatalogEntryForId } from './vehic
 import { createFarBackground } from './visual/far-background.js';
 import { createSpriteAssets } from './visual/sprite-assets.js';
 
-const parentCourse = createDefaultBranchingParent();
+const { mode: selectedCourseMode, content: parentCourse } = composeBrowserCourseContent(
+  'BRANCHING',
+  { branching: createDefaultBranchingParent },
+  new URLSearchParams(location.search).get('mode'),
+);
 const { guide, heightProfile, surfaceMap, groundProfile, terrainProfile } = parentCourse;
 const outdoorFarBackground = createFarBackground();
 const tunnelPresentation = createTunnelPresentation(guide.length, CURRENT_CAMERA_DISTANCE_METERS);
@@ -65,7 +66,7 @@ const shell = createBrowserDrivingShell(
   { guide, height: heightProfile, surfaces: surfaceMap },
   BRANCHING_PLAYER_START_L,
 );
-const { framebuffer, inputManager, cameraRig } = shell;
+const { framebuffer, inputManager } = shell;
 const raceSession = createRaceSessionState();
 
 const liveRoute = createDeclarativeForkGrowthRuntime(
@@ -124,8 +125,6 @@ const rivals = rivalRoster.map((entry): RouteDrivingActor => {
 });
 const sharedRouteChoices = createSharedRouteChoiceState(BRANCHING_COURSE_MODE.sharedRouteChoiceMode);
 
-const cameraProfile = CURRENT_CAMERA_PROFILE;
-
 let input: DrivingInput = { steering: 0, throttle: false, brake: false };
 const playerActor: RouteDrivingActor = {
   actorId: 'PLAYER',
@@ -141,32 +140,11 @@ const playerActor: RouteDrivingActor = {
   sampleInput: () => input,
 };
 const drivingActors = [playerActor, ...rivals];
-shell.mountControls(switchVehicleAtSafeSpawn, () => {
-  const runtime = activeRuntime();
-  recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
-    state: shell.recovery,
-    reason: 'manual',
-    profile: BRANCHING_PLAYER_RECOVERY_PROFILE,
-  });
-  resetCameraRig(cameraRig);
-  resyncRouteDrivingActor(liveRoute, playerActor);
-  camera = updateCamera(
-    cameraRig,
-    { guide: runtime.coordinateFrame, height: runtime.heightProfile },
-    shell.vehicle,
-    cameraProfile,
-    SIM_DT,
-  );
+const lifecycle = shell.mountControls({
+  world: () => stageVehicleWorld(activeRuntime()),
+  recoveryProfile: BRANCHING_PLAYER_RECOVERY_PROFILE,
+  resync: () => resyncRouteDrivingActor(liveRoute, playerActor),
 });
-
-const initialRuntime = activeRuntime();
-let camera: CameraState = updateCamera(
-  cameraRig,
-  { guide: initialRuntime.coordinateFrame, height: initialRuntime.heightProfile },
-  shell.vehicle,
-  cameraProfile,
-  SIM_DT,
-);
 
 function tick(dt: number): void {
   input = inputManager.sample();
@@ -175,24 +153,17 @@ function tick(dt: number): void {
     dt,
     branchViolationPolicy: BRANCHING_COURSE_MODE.branchViolationPolicy,
   }).PLAYER!;
-  if (result.recovered !== null) resetCameraRig(cameraRig);
   const routeUpdate = result.route.routeUpdate;
 
   advanceRaceSession(raceSession, playerFieldProgress, null, dt);
   const finish = createValidatedRunFinishFromRoute(routeState, routeUpdate, playerFieldProgress);
   updateRunObjectiveFromValidatedFinish(runObjective, finish, raceSession.elapsedSeconds);
 
-  const runtimeAfterTick = activeRuntime();
-  camera = updateCamera(
-    cameraRig,
-    { guide: runtimeAfterTick.coordinateFrame, height: runtimeAfterTick.heightProfile },
-    shell.vehicle,
-    cameraProfile,
-    dt,
-  );
+  lifecycle.update(dt, result.recovered !== null);
 }
 
 function render(): void {
+  const { camera } = lifecycle;
   const runtime = activeRuntime();
   const spriteFamily = deriveVehicleSpriteFamily(shell.presentation);
   const selectedBackground = runtime.selectFarBackground(camera.s);
@@ -225,26 +196,7 @@ function render(): void {
     },
     { roadView: runtime.roadView ?? undefined },
   );
-  shell.present('branching', input, camera, stats.playerScreenY);
-}
-
-/** DEV selection is an explicit safe-spawn reconstruction, never a running-state conversion. */
-function switchVehicleAtSafeSpawn(profile: Readonly<CompiledArcadeVehicleProfile>): void {
-  const runtime = activeRuntime();
-  recoverVehicle(stageVehicleWorld(runtime), shell.vehicle, {
-    state: shell.recovery,
-    reason: 'manual',
-    profile: BRANCHING_PLAYER_RECOVERY_PROFILE,
-  });
-  shell.replacePlayer(profile, stageVehicleWorld(runtime));
-  resyncRouteDrivingActor(liveRoute, playerActor);
-  camera = updateCamera(
-    cameraRig,
-    { guide: runtime.coordinateFrame, height: runtime.heightProfile },
-    shell.vehicle,
-    cameraProfile,
-    SIM_DT,
-  );
+  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
 }
 
 function activeRuntime(): StageRuntimeContentPackage {

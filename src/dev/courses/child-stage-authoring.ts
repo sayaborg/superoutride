@@ -6,7 +6,7 @@ import type { ChildVisualIdentity } from './child-backgrounds.js';
 const SHARED_FLAT_END_S = 60;
 const CHILD_TERRAIN = Object.freeze({ groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 });
 
-export interface ChildStageAuthoring {
+interface ChildStageAuthoring {
   readonly left: StageEnvironmentAuthoring;
   readonly right: StageEnvironmentAuthoring;
 }

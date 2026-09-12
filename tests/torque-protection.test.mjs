@@ -291,7 +291,7 @@ test('every browser actor and vehicle replacement explicitly receives catalog pr
   for (const name of ['main', 'main-linear', 'main-circuit']) {
     const s = await readFile(new URL(`../src/${name}.ts`, import.meta.url), 'utf8');
     assert.match(s, /createBrowserDrivingShell/);
-    assert.match(s, /shell\.replacePlayer/);
+    assert.match(s, /shell\.mountControls/);
     const calls = callsTo(s, 'createArcadeVehicle');
     assert.equal(calls.length, name === 'main-linear' ? 0 : 1);
     for (const args of calls)

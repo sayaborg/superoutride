@@ -13,12 +13,12 @@ import type { RouteStageHandoffManifest, RouteStageHandoffState } from './route-
 
 const ROUTE_PROGRESS_TOLERANCE_METERS = 1e-6;
 
-export interface FieldRouteProgressStageSource {
+interface FieldRouteProgressStageSource {
   readonly stageId: string;
   readonly coordinateFrame: GuideCoordinateSource;
 }
 
-export interface FieldRouteProgressChoiceRule {
+interface FieldRouteProgressChoiceRule {
   readonly choiceId: string;
   readonly fromStageId: string;
   readonly toStageId: string;
@@ -26,7 +26,7 @@ export interface FieldRouteProgressChoiceRule {
   readonly handoffProgress: number;
 }
 
-export interface FieldRouteProgressStageRule {
+interface FieldRouteProgressStageRule {
   readonly stageId: string;
   /** Translation from the stage chart's open local s into the selected route ruler. */
   readonly progressOffset: number;
@@ -41,7 +41,7 @@ export interface FieldRouteProgressRules {
   readonly choices: readonly FieldRouteProgressChoiceRule[];
 }
 
-export interface FieldRouteProgressTravelerView {
+interface FieldRouteProgressTravelerView {
   /** RouteDag authority. This may already be the target stage while handoff is PENDING. */
   readonly routeStageId: string;
   readonly routeStatus: RouteDagStatus;
@@ -50,10 +50,10 @@ export interface FieldRouteProgressTravelerView {
   readonly committedS: number;
 }
 
-export type FieldRouteProgressValidatedBoundary =
+type FieldRouteProgressValidatedBoundary =
   { readonly kind: 'TRANSITION'; readonly choiceId: string } | { readonly kind: 'FINISH'; readonly stageId: string };
 
-export type FieldRouteProgressEvent = 'NONE' | 'TRANSITION' | 'FINISH' | 'RESYNC';
+type FieldRouteProgressEvent = 'NONE' | 'TRANSITION' | 'FINISH' | 'RESYNC';
 
 export interface FieldRouteProgressState {
   /** Last physically validated route gate or FINISH. Recovery never decreases this value. */
@@ -66,7 +66,7 @@ export interface FieldRouteProgressState {
   previousGeometricProgress: number;
 }
 
-export interface FieldRouteProgressWindow {
+interface FieldRouteProgressWindow {
   readonly floor: number;
   readonly ceiling: number;
 }

@@ -3,9 +3,9 @@ import { getRouteChoice, getRouteStage, type RouteDag, type ValidatedRouteBounda
 
 const CROSSING_FRACTION_TIE_TOLERANCE = 1e-9;
 
-export type SharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
+type SharedRouteChoiceMode = 'INDEPENDENT' | 'FIRST_PHYSICAL_CROSSING_LOCKS';
 
-export interface SharedRouteChoiceLock {
+interface SharedRouteChoiceLock {
   readonly stageId: string;
   readonly choiceId: string;
   readonly lockedByActorId: string;
@@ -24,7 +24,7 @@ export interface SharedRouteChoiceCandidate {
   readonly crossingFraction: number;
 }
 
-export type SharedRouteChoiceDecisionReason =
+type SharedRouteChoiceDecisionReason =
   'INDEPENDENT' | 'UNBRANCHED_STAGE' | 'LOCK_CREATED' | 'MATCHES_EXISTING_LOCK' | 'CONFLICTS_WITH_LOCK';
 
 export interface SharedRouteChoiceDecision {

@@ -22,11 +22,11 @@ import {
 import { type BrowserTireCalibrationAxis } from './tire-friction-selection.js';
 import { BROWSER_VEHICLE_PROFILES, type BrowserVehicleProfileSelection } from './vehicle-profile-selection.js';
 
-export interface MobileSelectorController<Value extends string | number> {
+interface MobileSelectorController<Value extends string | number> {
   setActive(value: Value): void;
 }
 
-export interface MobileTireCalibrationController {
+interface MobileTireCalibrationController {
   setCalibration(calibration: Readonly<ArcadeTireFrictionCalibrationState>): void;
 }
 

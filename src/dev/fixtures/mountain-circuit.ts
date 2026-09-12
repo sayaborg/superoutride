@@ -14,7 +14,7 @@ const LOW_MEDIUM_RADIUS_METERS = 135;
 const MEDIUM_RADIUS_METERS = 180;
 const FLOWING_MEDIUM_RADIUS_METERS = 240;
 
-export interface LowMidSpeedMountainCircuitLap {
+interface LowMidSpeedMountainCircuitLap {
   readonly raster: RasterPath;
 }
 
@@ -59,10 +59,7 @@ export function createLowMidSpeedMountainCircuitLap(): LowMidSpeedMountainCircui
   if (Math.hypot(turtle.x, turtle.z) > 1e-7) {
     throw new Error('low/mid-speed mountain circuit authoring failed to close');
   }
-  const last = vertices[vertices.length - 1]!;
-  last.x = 0;
-  last.z = 0;
-  last.sourceRadius = vertices[0]!.sourceRadius;
+  vertices[vertices.length - 1] = { ...vertices.at(-1)!, x: 0, z: 0, sourceRadius: vertices[0]!.sourceRadius };
 
   const raster = compileRasterPath(vertices);
   return Object.freeze({ raster });

@@ -6,7 +6,7 @@ const MOTION_DIRECTION_TOLERANCE_METERS = 1e-7;
 
 export type RaceMotionDirection = 'FORWARD' | 'REVERSE' | 'STATIONARY';
 export type PhysicalRaceGateKind = 'checkpoint' | 'finish';
-export type PhysicalRaceGateCrossingDirection = 'FORWARD' | 'REVERSE';
+type PhysicalRaceGateCrossingDirection = 'FORWARD' | 'REVERSE';
 
 /**
  * One physically authored transverse race boundary on an ordinary Guide chainage ruler.

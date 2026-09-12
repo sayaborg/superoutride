@@ -2,7 +2,7 @@ import { wrapAngle, wrapSigned } from '../../core/math.js';
 import type { DrivingInput } from '../../input/driving-input.js';
 import type { VehicleCameraReadState } from '../../physics/vehicle-contract.js';
 
-export interface VehicleTelemetrySample {
+interface VehicleTelemetrySample {
   readonly tick: number;
   readonly input: Readonly<DrivingInput>;
   readonly x: number;
@@ -15,7 +15,7 @@ export interface VehicleTelemetrySample {
   readonly lateralSpeed: number;
 }
 
-export interface VehicleTelemetrySummary {
+interface VehicleTelemetrySummary {
   readonly tickCount: number;
   readonly durationSeconds: number;
   readonly planarDistanceMeters: number;
@@ -26,7 +26,7 @@ export interface VehicleTelemetrySummary {
   readonly maxAbsYawRateDegreesPerSecond: number;
 }
 
-export interface VehicleTelemetryRecorder {
+interface VehicleTelemetryRecorder {
   readonly dt: number;
   readonly courseLength: number;
   readonly origin: VehicleTelemetrySample;

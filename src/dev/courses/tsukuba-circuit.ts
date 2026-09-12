@@ -14,7 +14,7 @@ export const TSUKUBA_COURSE_2000_LENGTH_METERS = 2_045;
 export const TSUKUBA_HOME_STRAIGHT_LENGTH_METERS = 282;
 export const TSUKUBA_BACK_STRAIGHT_LENGTH_METERS = 437;
 export const TSUKUBA_ROAD_HALF_WIDTH_METERS = 6;
-export const TSUKUBA_GROUND_HALF_WIDTH_METERS = 12;
+const TSUKUBA_GROUND_HALF_WIDTH_METERS = 12;
 export const TSUKUBA_PLAYER_START_L = -1.5;
 export const TSUKUBA_RIVAL_START_L = 1.5;
 
@@ -42,7 +42,7 @@ export const TSUKUBA_RIVAL_RECOVERY_PROFILE: Readonly<RecoveryProfile> = Object.
   targetL: TSUKUBA_RIVAL_START_L,
 });
 
-export interface TsukubaCourse2000Landmarks {
+interface TsukubaCourse2000Landmarks {
   readonly homeStraightEndS: number;
   readonly turnOneEndS: number;
   readonly sCurveEndS: number;
@@ -54,7 +54,7 @@ export interface TsukubaCourse2000Landmarks {
   readonly backStraightEndS: number;
 }
 
-export interface TsukubaCourse2000Lap {
+interface TsukubaCourse2000Lap {
   readonly raster: RasterPath;
   readonly landmarks: TsukubaCourse2000Landmarks;
 }
@@ -128,10 +128,7 @@ export function createTsukubaCourse2000Lap(): TsukubaCourse2000Lap {
     throw new Error(`Tsukuba authored length ${turtle.chainage} must equal 2045 m`);
   }
 
-  const last = vertices[vertices.length - 1]!;
-  last.x = 0;
-  last.z = 0;
-  last.sourceRadius = vertices[0]!.sourceRadius;
+  vertices[vertices.length - 1] = { ...vertices.at(-1)!, x: 0, z: 0, sourceRadius: vertices[0]!.sourceRadius };
   const raster = compileRasterPath(vertices);
   if (Math.abs(raster.length - TSUKUBA_COURSE_2000_LENGTH_METERS) > 1e-7) {
     throw new Error(`Tsukuba Raster length ${raster.length} must equal 2045 m`);

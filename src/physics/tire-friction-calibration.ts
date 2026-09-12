@@ -63,7 +63,7 @@ export interface ArcadeTireFrictionCalibrationState {
   readonly front: Readonly<CompiledTireCharacteristics>;
   readonly rear: Readonly<CompiledTireCharacteristics>;
 }
-export interface ArcadeTireFrictionCalibrationOwner {
+interface ArcadeTireFrictionCalibrationOwner {
   tireFrictionCalibration: Readonly<ArcadeTireFrictionCalibrationState>;
 }
 

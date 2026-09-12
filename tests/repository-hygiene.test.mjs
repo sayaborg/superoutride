@@ -213,3 +213,70 @@ test('engine ownership follows an acyclic dependency direction, including type i
   }
   for (const layer of graph.keys()) visit(layer);
 });
+
+// Resolve JavaScript consumers against source symbols rather than an old dist build or matching name strings.
+test('every source export has a named consumer outside its defining module', async () => {
+  const sourceFiles = await collectFiles(sourceRoot, ['.ts']);
+  const consumerFiles = [
+    ...(await collectFiles(path.join(repositoryRoot, 'tests'), ['.mjs'])),
+    ...(await collectFiles(path.join(repositoryRoot, 'tools'), ['.mjs'])),
+  ];
+  const virtual = new Map();
+  for (const file of [
+    path.join(repositoryRoot, 'index.html'),
+    ...(await collectFiles(path.join(repositoryRoot, 'tools'), ['.html'])),
+  ]) {
+    const text = await readFile(file, 'utf8');
+    for (const [index, match] of [...text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].entries()) {
+      virtual.set(`${file}.${index}.mjs`, match[1]);
+    }
+  }
+  const options = {
+    allowJs: true,
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+  };
+  const host = ts.createCompilerHost(options);
+  const read = host.readFile,
+    exists = host.fileExists;
+  host.readFile = (file) => virtual.get(file) ?? read(file);
+  host.fileExists = (file) => virtual.has(file) || exists(file);
+  host.resolveModuleNames = (names, containingFile) =>
+    names.map((name) => {
+      const source = path
+        .resolve(path.dirname(containingFile), name)
+        .replace(`${path.sep}dist${path.sep}`, `${path.sep}src${path.sep}`)
+        .replace(/\.js$/, '.ts');
+      return name.startsWith('.') && host.fileExists(source)
+        ? { resolvedFileName: source, extension: ts.Extension.Ts }
+        : ts.resolveModuleName(name, containingFile, options, host).resolvedModule;
+    });
+  const files = [...sourceFiles, ...consumerFiles, ...virtual.keys()];
+  const program = ts.createProgram(files, options, host);
+  const checker = program.getTypeChecker();
+  const consumers = new Set();
+  const unalias = (symbol) =>
+    symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+  for (const file of files) {
+    const syntax = program.getSourceFile(file);
+    function visit(node) {
+      if (ts.isIdentifier(node)) {
+        const symbol = unalias(checker.getSymbolAtLocation(node));
+        if (symbol?.declarations?.some((declaration) => declaration.getSourceFile().fileName !== file))
+          consumers.add(symbol);
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(syntax);
+  }
+  const unused = [];
+  for (const file of sourceFiles) {
+    const module = checker.getSymbolAtLocation(program.getSourceFile(file));
+    if (!module) continue;
+    for (const symbol of checker.getExportsOfModule(module)) {
+      if (!consumers.has(unalias(symbol))) unused.push(`${path.relative(repositoryRoot, file)}: ${symbol.name}`);
+    }
+  }
+  assert.deepEqual(unused, [], 'keep unconsumed declarations module-local; remove unused implementations');
+});

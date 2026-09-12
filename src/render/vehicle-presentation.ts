@@ -6,11 +6,11 @@ export interface VehicleTurnPresentationRead {
   readonly lateralAcceleration?: number;
 }
 
-export interface VehicleIdentityPresentationRead {
+interface VehicleIdentityPresentationRead {
   readonly presentationFamily: VehiclePresentationFamily;
 }
 
-export type VehicleSpriteFamily = 'car' | 'bike';
+type VehicleSpriteFamily = 'car' | 'bike';
 
 export function deriveVehicleSpriteFamily(vehicle: VehicleIdentityPresentationRead): VehicleSpriteFamily {
   return vehicle.presentationFamily === 'BIKE' ? 'bike' : 'car';

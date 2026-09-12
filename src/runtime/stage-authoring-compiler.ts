@@ -3,7 +3,7 @@ import {
   guideCoordinateLateralOrigin,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import { HeightProfile, type HeightNode } from '../core/height-profile.js';
+import { HeightProfile, type HeightNode, type HeightProfileReader } from '../core/height-profile.js';
 import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -16,12 +16,12 @@ import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../render/course-sprite.js';
-import type { TerrainVisualProfile } from '../road/terrain-line.js';
+import { DEFAULT_THIN_SPAN_SCREEN_ROWS, type TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
-import { VisualProfile, type VisualSection } from '../visual/visual-profile.js';
+import { VisualProfile, type VisualSection, type VisualProfileReader } from '../visual/visual-profile.js';
 import type { StageRuntimeContentPackage } from './stage-runtime-content.js';
 
-export interface StageLocalSpriteAuthoring extends Omit<CourseSpriteAuthoring, 'l'> {
+interface StageLocalSpriteAuthoring extends Omit<CourseSpriteAuthoring, 'l'> {
   /** Lateral position in the active stage chart, not the underlying raster source frame. */
   readonly l: number;
 }
@@ -42,7 +42,7 @@ export interface StageEnvironmentAuthoring {
   }>;
 }
 
-export interface StageRuntimeSource {
+interface StageRuntimeSource {
   readonly packageId: string;
   readonly worldFrameId: string;
   readonly coordinateFrame: GuideCoordinateSource;
@@ -51,7 +51,7 @@ export interface StageRuntimeSource {
   readonly groundProfile: GroundMapProfile;
 }
 
-export interface CompiledStageEnvironment {
+interface CompiledStageEnvironment {
   readonly heightProfile: HeightProfile;
   readonly terrainProfile: TerrainVisualProfile;
   readonly worldSprites: readonly CourseSprite[];
@@ -60,8 +60,37 @@ export interface CompiledStageEnvironment {
 const DEFAULT_TERRAIN = Object.freeze({
   dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
   dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
-  thinSpanScreenRows: 1,
+  thinSpanScreenRows: DEFAULT_THIN_SPAN_SCREEN_ROWS,
 });
+
+/** Compile one immutable terrain reader from authored widths and source profiles. */
+export function createTerrainVisualProfile(
+  widths: Pick<GroundMapProfile, 'groundLeft' | 'groundRight' | 'roadLeft' | 'roadRight'>,
+  height: HeightProfileReader,
+  visual: VisualProfileReader,
+  options: Pick<StageEnvironmentAuthoring['terrain'], 'dMin' | 'dMax' | 'thinSpanScreenRows'> = {},
+): TerrainVisualProfile {
+  if (!widths) throw new RangeError('stage terrain widths must be authored');
+  const terrain = { ...DEFAULT_TERRAIN, ...options };
+  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight'] as const) {
+    positiveFinite(widths[key], `terrain ${key}`);
+  }
+  positiveFinite(terrain.dMin, 'near draw distance');
+  positiveFinite(terrain.dMax, 'far draw distance');
+  if (terrain.dMax <= terrain.dMin) throw new RangeError('far draw distance must exceed near draw distance');
+  return Object.freeze({
+    screenHeight: LOGICAL_HEIGHT,
+    dMin: terrain.dMin,
+    dMax: terrain.dMax,
+    groundLeft: widths.groundLeft,
+    groundRight: widths.groundRight,
+    roadLeft: widths.roadLeft,
+    roadRight: widths.roadRight,
+    height,
+    visual,
+    thinSpanScreenRows: terrain.thinSpanScreenRows,
+  });
+}
 
 /**
  * Compile declarative stage-local environment authoring against one active Guide coordinate frame.
@@ -81,26 +110,7 @@ export function compileStageEnvironment(
   const lateralOrigin = guideCoordinateLateralOrigin(coordinateFrame);
   const heightProfile = new HeightProfile(guide.length, compileOpenHeightNodes(guide.length, authoring.heightNodes));
   const visual = new VisualProfile(guide.length, authoring.visualSections);
-  if (!authoring.terrain) throw new RangeError('stage terrain widths must be authored');
-  const terrain = { ...DEFAULT_TERRAIN, ...authoring.terrain };
-  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight'] as const) {
-    positiveFinite(terrain[key], `terrain ${key}`);
-  }
-  positiveFinite(terrain.dMin, 'near draw distance');
-  positiveFinite(terrain.dMax, 'far draw distance');
-  if (terrain.dMax <= terrain.dMin) throw new RangeError('far draw distance must exceed near draw distance');
-  const terrainProfile: TerrainVisualProfile = {
-    screenHeight: LOGICAL_HEIGHT,
-    dMin: terrain.dMin,
-    dMax: terrain.dMax,
-    groundLeft: terrain.groundLeft,
-    groundRight: terrain.groundRight,
-    roadLeft: terrain.roadLeft,
-    roadRight: terrain.roadRight,
-    height: heightProfile,
-    visual,
-    thinSpanScreenRows: terrain.thinSpanScreenRows,
-  };
+  const terrainProfile = createTerrainVisualProfile(authoring.terrain, heightProfile, visual, authoring.terrain);
   const worldSprites = Object.freeze(
     (authoring.sprites ?? []).map((sprite) =>
       compileCourseSprite(guide, heightProfile, { ...sprite, l: sprite.l + lateralOrigin }),
