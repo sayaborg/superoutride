@@ -118,3 +118,23 @@ test('worklet renders identical streams across block partitions, ignores invalid
     }
   }
 });
+
+test('settled pulse-only exhaust repeats without a stochastic noise floor at every load', () => {
+  const rate = 96000;
+  for (const { sound } of profiles)
+    for (const load of [0, 0.25, 0.5, 0.75, 1]) {
+      const synth = new ExhaustWaveguide(sound, rate);
+      const lag = (rate * 60 * sound.cycleRevolutions) / 3000;
+      const samples = new Float64Array(lag * 3);
+      for (let i = 0; i < rate * 2; i++) synth.sample(3000, load);
+      for (let i = 0; i < samples.length; i++) samples[i] = synth.sample(3000, load);
+      let error = 0,
+        power = 0;
+      for (let i = lag; i < samples.length; i++) {
+        error += (samples[i] - samples[i - lag]) ** 2;
+        power += samples[i] ** 2;
+      }
+      assert.ok(power > 0);
+      assert.ok(error / power < 0.001, `unexpected aperiodic energy: ${error / power}`);
+    }
+});

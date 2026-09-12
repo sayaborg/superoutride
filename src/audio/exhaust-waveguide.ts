@@ -37,8 +37,6 @@ export class ExhaustWaveguide {
   private phase = 0;
   private rpm = 1000;
   private load = 0;
-  private noiseState = 0x12345678;
-  private intake = 0;
   private dc = 0;
   private tone = 0;
 
@@ -72,15 +70,6 @@ export class ExhaustWaveguide {
     this.loss = 1 - Math.exp((-2 * Math.PI * 4500) / rate);
   }
 
-  private noise(): number {
-    let x = this.noiseState;
-    x ^= x << 13;
-    x ^= x >>> 17;
-    x ^= x << 5;
-    this.noiseState = x;
-    return x / 2147483648;
-  }
-
   /** One sample, without allocation. Reflection mode removes valve/junction return coupling. */
   sample(targetRpm: number, targetLoad: number): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
@@ -90,15 +79,15 @@ export class ExhaustWaveguide {
     this.phase = (this.phase + step) % 1;
     const decay = Math.exp(-1 / (this.rate * (0.002 + 0.004 * this.load)));
     this.sums.fill(0);
-    let mechanical = 0;
+    let combustion = 0;
     for (let i = 0; i < this.forward.length; i++) {
       const offset = this.offsets[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
-      if (crossed) this.pulse[i] = (0.22 + 0.78 * this.load) * (1 + 0.1 * this.noise());
+      if (crossed) this.pulse[i] = 0.22 + 0.78 * this.load;
       this.pulse[i]! *= decay;
       this.rise[i]! += this.attack * (this.pulse[i]! - this.rise[i]!);
-      mechanical += this.rise[i]!;
+      combustion += this.rise[i]!;
       this.sums[this.banks[i]!]! += this.forward[i]!.read();
     }
     let exhaust = 0;
@@ -120,13 +109,11 @@ export class ExhaustWaveguide {
       const valve = age < 0.23 ? Math.sin((Math.PI * age) / 0.23) : 0;
       this.wall[i]! += this.loss * (this.backward[i]!.read() - this.wall[i]!);
       const reflection = 0.94 - 1.24 * valve;
-      const turbulence = this.noise() * valve * (0.008 + 0.065 * this.load);
       const incoming = this.forward[i]!.read();
-      this.forward[i]!.write(this.rise[i]! + turbulence + (this.coupled ? reflection * this.wall[i]! : 0));
+      this.forward[i]!.write(this.rise[i]! + (this.coupled ? reflection * this.wall[i]! : 0));
       this.backward[i]!.write(0.96 * (this.junctions[this.banks[i]!]! - incoming));
     }
-    this.intake += 0.08 * (this.noise() - this.intake);
-    const raw = exhaust / Math.sqrt(this.tails.length) + mechanical * (0.025 + this.intake * 0.08 * this.load);
+    const raw = exhaust / Math.sqrt(this.tails.length) + combustion * 0.025;
     this.dc += (1 - Math.exp((-2 * Math.PI * 18) / this.rate)) * (raw - this.dc);
     const cutoff = 1800 + 5500 * this.load;
     this.tone += (1 - Math.exp((-2 * Math.PI * cutoff) / this.rate)) * (raw - this.dc - this.tone);

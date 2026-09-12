@@ -34,9 +34,9 @@ thermodynamic simulation. The optional simple-reflection comparison removes the
 valve/junction return coupling while preserving excitation and pipe delay.
 
 Authored firing intervals drive exhaust blowdown with a common 0.2-cycle offset.
-Each firing excites a smoothed decaying pulse with bounded deterministic strength variation.
-Flow noise follows valve opening and load. A small direct pulse and filtered-noise path
-approximates mechanical/intake texture; there is no full intake waveguide, muffler chamber
+Each firing excites a smoothed decaying pulse with load-dependent amplitude and decay.
+A small direct combustion pulse is mixed with the reflected exhaust. This pulse-only
+evaluation removes flow/intake noise and random firing-strength variation; there is no full intake waveguide, muffler chamber
 network, turbo, fuel-cut or backfire model. DC removal, low-pass filtering and bounded
 soft saturation follow the pipe output. Two acoustic steps per output sample reduce
 firing quantization; averaging is a simple decimator, not a complete antialiasing solution.
@@ -56,7 +56,7 @@ crank acceleration, gearing or torque simulation is introduced.
 The prior [combustion compiler](../src/audio/combustion-pulse.ts) remains in use by the
 periodic fallback and listening reference. It prepares bounded, DC-free Fourier pulse
 coefficients; Web Audio owns band-limited playback. That model's exact periodicity
-requirement applies only to the periodic voice. The new stochastic exhaust instead has
+requirement applies only to the periodic voice. The pulse-only exhaust also has
 causal topology, load, determinism and bounded-feedback tests. Firing phases are unchanged.
 
 The design is informed by [Baldan et al.](https://doi.org/10.1109/SIVE.2015.7361287)
@@ -113,9 +113,11 @@ late loading, failure cleanup/retry, hidden/muted states, disposal and bounded n
 load, deterministic rendering and sustained feedback stability.
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
-response at open and closed throttle. It also offers a three-second, RMS-matched
+response at open and closed throttle. It also offers a three-second
 comparison of the prior body/crack graph, simple pipe reflection and coupled waveguides
 at the same selected RPM/throttle, plus an acceleration/coast sequence. Exact-period tests apply only to the periodic fallback.
+Fixed gain is the default for load evaluation; optional RMS matching compares timbre
+between methods. Quarter-throttle settings allow intermediate load evaluation.
 The comparison is diagnostic only; its PCM buffers are test output, never game sound assets.
 
 Chrome integration checks can verify all four course modes, sound controls and vehicle
