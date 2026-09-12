@@ -160,3 +160,27 @@ test('engine voice reads one excitation proxy, clamps RPM and never modifies obs
   assert.equal(context.nodes.filter((n) => n.started).length, 0);
   voice.dispose();
 });
+
+test('selected coupling and tuning survive voice profile replacement without node duplication', (t) => {
+  install(t);
+  for (const coupled of [false, true]) {
+    const context = new FakeAudioContext();
+    const tuning = { outletReflection: -0.8 };
+    const voice = createEngineVoice(context, context.destination, { coupled, tuning });
+    const count = context.nodes.length;
+    tuning.outletReflection = 0;
+    const worklet = context.nodes.find((node) => node instanceof FakeAudioWorkletNode);
+    const state = createVehicleAudioObservation();
+    voice.update(state, VEHICLE_CATALOG[0].sound);
+    voice.update(state, VEHICLE_CATALOG[1].sound);
+    context.currentTime = 0.1;
+    voice.update(state, VEHICLE_CATALOG[1].sound);
+    assert.equal(worklet.messages.length, 2);
+    for (const message of worklet.messages) {
+      assert.equal(message.coupled, coupled);
+      assert.deepEqual(message.tuning, { outletReflection: -0.8 });
+    }
+    assert.equal(context.nodes.length, count);
+    voice.dispose();
+  }
+});

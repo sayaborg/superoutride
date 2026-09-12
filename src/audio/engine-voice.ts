@@ -1,5 +1,6 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
+import type { DEFAULT_REFLECTION_TUNING } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -7,9 +8,17 @@ import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
-  coupled = true,
-  initialProfile?: VehicleAudioProfile,
+  {
+    coupled = true,
+    profile: initialProfile,
+    tuning = {},
+  }: {
+    coupled?: boolean;
+    profile?: VehicleAudioProfile;
+    tuning?: Partial<typeof DEFAULT_REFLECTION_TUNING>;
+  } = {},
 ) {
+  const acousticTuning = { ...tuning };
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
@@ -17,7 +26,7 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialProfile ? { profile: initialProfile, coupled } : undefined,
+    processorOptions: initialProfile ? { profile: initialProfile, coupled, tuning: acousticTuning } : undefined,
   });
   exhaust.connect(output);
   let active: VehicleAudioProfile | null = initialProfile ?? null;
@@ -35,7 +44,7 @@ export function createEngineVoice(
         if (now < switchAt) return;
       } else pending = null;
       if (active !== profile) {
-        exhaust.port.postMessage({ profile, coupled });
+        exhaust.port.postMessage({ profile, coupled, tuning: acousticTuning });
         active = profile;
       }
       follow(exhaust.parameters.get('rpm')!, clamp(state.rpm, state.idleRpm, state.redlineRpm), now);

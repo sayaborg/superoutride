@@ -1,4 +1,5 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
+import type { DEFAULT_REFLECTION_TUNING } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import { compileVehicleAudioProfile } from './vehicle-audio-profile.js';
 declare const sampleRate: number;
@@ -14,11 +15,22 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       { name: 'load', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
     ];
   }
-  constructor(options?: { processorOptions?: { profile: VehicleAudioProfile; coupled: boolean } }) {
+  constructor(options?: {
+    processorOptions?: {
+      profile: VehicleAudioProfile;
+      coupled?: boolean;
+      tuning?: Partial<typeof DEFAULT_REFLECTION_TUNING>;
+    };
+  }) {
     super();
     const initial = options?.processorOptions;
     if (initial)
-      this.engine = new ExhaustWaveguide(compileVehicleAudioProfile(initial.profile), sampleRate * 2, initial.coupled);
+      this.engine = new ExhaustWaveguide(
+        compileVehicleAudioProfile(initial.profile),
+        sampleRate * 2,
+        initial.coupled,
+        initial.tuning,
+      );
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') {
         this.running = false;
@@ -30,6 +42,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
             compileVehicleAudioProfile(data.profile),
             sampleRate * 2,
             data.coupled !== false,
+            data.tuning,
           );
         } catch {
           this.engine = null;

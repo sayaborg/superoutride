@@ -75,13 +75,6 @@ source reflection at each outlet and omits primary return buffers, source-bounda
 collector-pressure state/calculation and the second cylinder pass;
 it is a comparison model, not an equivalent version of the coupled waveguide.
 
-The accepted earlier waveguide is retained only as an executable [listening reference](../tools/waveguide-reference.mjs),
-loaded by a diagnostic worklet from the comparison page. It preserves the earlier DSP equations
-and output gain convention, using the selected current pipe/firing configuration. The game never
-imports it. Prior Fourier/body-crack tests are superseded with waveguide pulse/RPM/load,
-periodicity, stability and observation-boundary regressions; their implementation-specific
-harmonic and fallback-switch requirements no longer apply to the single-path production voice.
-
 The [tire voice](../src/audio/tire-voice.ts) aggregates front/rear observations into
 rolling noise, friction noise and a weak resonant squeal tone. Rolling sound depends on
 load, rolling speed and physical surface. Friction/squeal additionally require actual
@@ -133,7 +126,7 @@ load, deterministic rendering and sustained feedback stability.
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
 response at open and closed throttle. It also offers a three-second
-comparison of the accepted earlier waveguide, simple pipe reflection and the revised coupled waveguide
+comparison of optimized simple reflection and the optimized coupled waveguide
 at the same selected RPM/throttle, plus an acceleration/coast sequence. Settled-cycle regressions cover every vehicle and five excitation levels.
 Fixed gain is the default for load evaluation; optional RMS matching compares timbre
 between methods. Quarter-throttle settings allow intermediate load evaluation.
@@ -147,7 +140,17 @@ listening, Safari/iOS acceptance and target-device CPU profiling remain calibrat
 runs for one and two voices, including 2x acoustic stepping. It is a CPU kernel diagnostic,
 not a browser scheduling, end-to-end graph or mobile performance certification.
 
-## Reflection audition controls
+## Temporary method selection and shared tuning
+
+The audition selector offers exactly `reflection` and `waveguide`. Both are temporary candidates;
+only one will be adopted. The selector maps to the core's `coupled` topology choice at voice
+construction, not inside the per-sample loop. Switching stops the current audition; Play creates
+one selected voice. The game retains its present default until adoption.
+
+Both choices use the same production voice/worklet, observations, authoring and validated tuning.
+There is no separate audition DSP wrapper, old-waveguide reference or generated-waveform bank.
+Those retired experiments and their experiment-only tests remain retrievable in Git; the live
+DSP's causal/periodic/stability tests remain in force.
 
 The audition UI exposes four combinable sliders for outlet reflection, boundary cutoff,
 propagation attenuation and closed-excitation floor. Displayed values and reset come directly
@@ -157,8 +160,9 @@ reflection. This changes the coefficient, not the DSP algorithm or allocation st
 Slider changes take effect on the next playback, not during an already rendered clip.
 The selected setting can be checked across all nine vehicles and both output rates.
 [Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
-The diagnostic worklet reuses the production DSP with validated optional coefficient overrides;
-production defaults and vehicle geometry are unchanged. No noise is added.
+The production worklet accepts validated optional coefficient overrides in initial options and
+profile-replacement messages. Both paths preserve the chosen topology and tuning. Production
+defaults and vehicle geometry are unchanged. No noise is added.
 
 Read-only vehicle data is generated directly from the selected catalog profile: cycle, cylinder
 count, idle/redline, firing phases and intervals, collector membership, primary/outlet/total path
@@ -168,6 +172,8 @@ acoustic sketches and are explicitly not presented as measured manufacturer pipe
 
 ## Reference conditions for default coefficients
 
+The [acoustic settings](../src/audio/exhaust-acoustics.ts) own all shared provisional coefficients,
+reference conditions and output conditioning separately from the sample kernel.
 The defaults use an explicit **assumed reference**, not measured vehicle pipework: a 50 mm
 internal-diameter unflanged circular pipe, 573.15 K (300 C) air at 101325 Pa, gamma 1.4,
 R = 287 J/(kg K), Pr = 0.71, and 500 Hz for the constant propagation-loss surrogate.
@@ -220,29 +226,39 @@ For exact sample comparison with a supplied pre-change compiled module, run
 The diagnostic covers both modes, all catalog profiles, both internal rates, coefficient overrides,
 RPM/load transitions and stopping. It compares raw samples without tolerances or output normalization.
 
-## Generated-waveform audition
+## Provisional boundary and output interpretation
 
-The comparison page can bake the selected simple-reflection settings into a single cached bank
-of 17 RPM points (idle through redline) by five excitation levels (0 through 1). Each table holds
-4096 Float32 values over one complete firing cycle: 85 tables, 1.328125 MiB per cached bank.
-The worklet receives its own copy while playing. Changing vehicle or tuning replaces the cache
-on the next generated-waveform request; these are synthesized waves, not recordings or game assets.
+For linear pressure waves at a termination,
+[the impedance relation](https://www.dsprelated.com/freebooks/pasp/Reflectance_Impedance.html)
+is R = (Z - Z0)/(Z + Z0). The shared source endpoint
+coefficients +0.94 and -0.3 therefore correspond to positive, real effective impedance ratios
+Z/Z0 of about 32.3 and 0.538. This motivates nearly rigid and pressure-release-like endpoints;
+these numbers are not measured valve impedances. The sinusoidal transition over 0.23 firing
+cycles is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
+Simple reflection uses +0.94 as a fixed effective upstream termination; it omits primary
+return interaction. The waveguide uses the periodic envelope on each primary return.
+The same boundary low-pass is reused at the outlet and source for economy, not because their
+real frequency responses are identical. These are explicitly provisional approximations.
 
-The [baker/player](../tools/exhaust-wavetable.mjs) uses the existing DSP at 96 kHz, warms each
-point for two seconds, and captures a phase-aligned cycle using a read-only acoustic phase getter.
-Capture yields between tables and can be cancelled by Stop or another audition. Phase alignment
-keeps different RPM/load tables on the same firing reference. Capture duration, grid density and
-table length are approximation budgets, not physical constants or convergence guarantees.
+The 25 ms control response, 18 Hz DC removal, 7300 Hz output low-pass, 0.65 saturation ceiling
+and square-root bank mixing normalization are presentation/output conventions. Pulse strength
+is relative; rise/decay values are time constants of the excitation envelope. None is presented
+as combustion pressure, engine inertia or a measured exhaust property. Read-only UI text separates
+these controls from reference-derived propagation and outlet coefficients. Pipe lengths may
+remain sketches during comparison.
 
-Playback advances one common phase, interpolates within each cycle and blends the four adjacent
-RPM/load tables. It keeps 25 ms control smoothing and two internal samples per output sample,
-but runs no pipe network. The captured output already includes DC removal, tone shaping and
-saturation. Interpolation of those finished waves is deliberately NOT equivalent to interpolating
-physical pressures before nonlinear processing. Resonance positions between RPM grid points,
-rapid control transients, lingering pipe energy, residual capture transients and spectral aliasing
-are approximation limits. No claim of exact waveform equivalence or complete antialiasing is made.
-The game keeps its procedural voices while this tools-only alternative is auditioned.
+## Removing the rejected method
 
-Run `node tools/exhaust-table-performance.mjs GOLF_GTI_16V` for generation time, table bytes and
-alternating seven-run warmed medians of simple-reflection versus table playback on the same host.
-This is a kernel timing diagnostic, not target-device performance certification.
+The temporary branch is confined to `coupled` in the exhaust constructor/sample kernel and
+its voice/worklet options. Keep the shared delay, pulse, outlet, tuning and output implementation;
+do not maintain two copies or add a permanent method/plugin framework.
+
+- Adopt waveguide: remove the simple primary write and fixed-return collector branch; allocate
+  primary returns, source filter and collector pressure unconditionally.
+- Adopt reflection: remove primary returns, source filter, collector pressure and the second
+  cylinder pass; keep the single-pass primary write and fixed-return collector branch. Remove
+  source-open/window coefficients, which are then unused.
+- In either case, remove `coupled` options and the audition selector/description, specialize the
+  remaining kernel, and remove only rejected-method comparison assertions. Retain remaining
+  geometry, RPM/load, tuning, stability and lifecycle coverage. No physics or vehicle authoring
+  migration is needed. Revalidate the chosen waveform before adoption.

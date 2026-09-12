@@ -89,6 +89,24 @@ test('worklet renders identical streams across block partitions, ignores invalid
     const startup = [[new Float32Array(48000)]];
     ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
     assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
+    for (const coupled of [false, true]) {
+      const tuning = { outletReflection: -0.8, returnCutoffHz: 1800, attenuationPerMeter: 0.12, closedExcitation: 0.1 };
+      const direct = new ExhaustWaveguide(profiles[0].sound, 96000, coupled, tuning);
+      const configured = new Processor({ processorOptions: { profile: profiles[0].sound, coupled, tuning } });
+      const messaged = new Processor();
+      messaged.port.onmessage({ data: { profile: profiles[0].sound, coupled, tuning } });
+      const params = { rpm: new Float32Array([3000]), load: new Float32Array([0.25]) };
+      const actual = [[new Float32Array(4096)]],
+        replaced = [[new Float32Array(4096)]];
+      configured.process([], actual, params);
+      messaged.process([], replaced, params);
+      for (const value of actual[0][0])
+        assert.equal(value, Math.fround((direct.sample(3000, 0.25) + direct.sample(3000, 0.25)) * 0.5));
+      assert.deepEqual(actual, replaced);
+      messaged.port.onmessage({ data: { profile: profiles[0].sound, coupled, tuning: { outletReflection: 2 } } });
+      messaged.process([], replaced, params);
+      assert.ok(replaced[0][0].every((x) => x === 0));
+    }
     const a = new Processor(),
       b = new Processor();
     for (const p of [a, b]) p.port.onmessage({ data: { profile: profiles[0].sound } });

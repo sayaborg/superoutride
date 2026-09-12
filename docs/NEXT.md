@@ -10,7 +10,9 @@
 
 Visual work belongs in [rendering](../src/render/renderer.ts), [sprite assets](../src/visual/sprite-assets.ts), [camera](../src/camera/camera.ts) and [browser presentation](../src/browser/driving-shell.ts). [Tunnel content](../src/dev/courses/tunnel.ts) owns concrete placements and materials. Presentation consumes vehicle/course observations without adding another physical state or depth rule.
 
-The [procedural audio layer](audio.md) implements player engine, aggregate tire noise/squeal, wind and the nearest rival engine. No sampled audio is used. Speaker listening, acoustic tuning and Safari/iOS/target-phone performance acceptance remain open. Game-event sounds and music are not implemented. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
+The [procedural audio layer](audio.md) implements player engine, aggregate tire noise/squeal, wind and the nearest rival engine. No sampled audio is used. The audition selector temporarily compares optimized simple reflection
+and waveguide with provisional shared coefficients; adopt only one and remove the other using
+the procedure in [audio](audio.md). Speaker listening, acoustic tuning and Safari/iOS/target-phone performance acceptance remain open. Game-event sounds and music are not implemented. Start/end/scoring rules belong in [sessions](../src/gameplay/race-session.ts), [objectives](../src/gameplay/run-objective.ts) and their composition.
 
 ## Remaining limits
 
