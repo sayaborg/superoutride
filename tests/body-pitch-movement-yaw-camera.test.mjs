@@ -165,7 +165,7 @@ test('browser compositions overlay the yaw diagnostic at the renderer player anc
   ]);
 
   for (const source of [linear, branching, circuit]) {
-    assert.match(source, /shell\.present\([^;]*stats\.playerScreenY\)/);
+    assert.match(source, /shell\.present\([^;]*stats\.playerScreenY(?:,\s*rivals)?\)/);
     assert.match(source, /shell\.mountControls/);
   }
   const shell = await readFile(new URL('../src/browser/driving-shell.ts', import.meta.url), 'utf8');

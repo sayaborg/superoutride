@@ -8,6 +8,7 @@ This directory describes the current system. It is not a chronological milestone
 | [architecture](architecture.md)                 | Frozen coordinates, raster rendering, metric scale, open geometry and layer boundaries |
 | [vehicle physics](vehicle-physics.md)           | Frozen common mechanics, steering and torque constraints; parameters remain tunable    |
 | [content and gameplay](content-and-gameplay.md) | Authoring, route/race transactions and recovery composition                            |
+| [audio](audio.md)                               | Procedural sound, acoustic observation, fixed voices and browser lifetime              |
 | [calibration](calibration.md)                   | Parameter ownership, present defaults and tuning guidance                              |
 | [development](development.md)                   | Build, tests, diagnostics and browser delivery                                         |
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |

@@ -132,6 +132,6 @@ Finally clamp `automatic+deliveredOffset` to ±M and approach it with the profil
 
 HUD reads raw request, actuator, automatic steering, requested/delivered offset, target/actual rack and requested/delivered pedal torques. The 18:1 handwheel conversion is display-only. No HUD value feeds control.
 
-Bike lean is presentation: `atan2(lateralAcceleration,g)`, with discrete bank variants using the normalized angle and a ground-anchored debug line. Bike CG is currently 30% of wheelbase. There is no physical roll, rider shift or tire-camber thrust. New graphics/sound should read observations rather than add a second physics authority.
+Bike lean is presentation: `atan2(lateralAcceleration,g)`, with discrete bank variants using the normalized angle and a ground-anchored debug line. Bike CG is currently 30% of wheelbase. There is no physical roll, rider shift or tire-camber thrust. Graphics/sound read observations rather than add a second physics authority. Final wheel-solve rolling speed, slip speed and per-station surface are output-only control caches for [audio](audio.md); recovery resets them, and no mechanical solve consumes them.
 
 [Calibration](calibration.md) lists current settings; [NEXT](NEXT.md#remaining-limits) owns open acceptance work. [Recovery](content-and-gameplay.md) defines the explicit gameplay reset boundary.

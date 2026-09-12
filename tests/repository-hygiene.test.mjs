@@ -50,6 +50,17 @@ test('every source module is reachable from a composition/build/tool entry or an
           : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
             ? node.arguments[0]
             : undefined;
+      if (
+        ts.isNewExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === 'URL' &&
+        node.arguments?.length === 2 &&
+        node.arguments[1].getText(syntax) === 'import.meta.url' &&
+        ts.isStringLiteral(node.arguments[0]) &&
+        node.arguments[0].text.endsWith('.js')
+      ) {
+        dependencies.push(path.resolve(path.dirname(file), node.arguments[0].text).replace(/\.js$/, '.ts'));
+      }
       if (reference && ts.isStringLiteral(reference) && reference.text.startsWith('.')) {
         dependencies.push(
           path
@@ -165,7 +176,8 @@ const layerDependencies = {
   course: ['core'],
   input: ['core'],
   physics: ['core', 'course', 'input'],
-  vehicle: ['physics'],
+  audio: ['core'],
+  vehicle: ['physics', 'audio'],
   camera: ['core', 'physics'],
   gameplay: ['core', 'input', 'physics'],
   visual: ['core', 'course', 'graphics'],
@@ -173,7 +185,7 @@ const layerDependencies = {
   groundmap: ['core', 'course', 'graphics', 'road'],
   render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'road', 'vehicle', 'visual'],
   runtime: ['core', 'course', 'gameplay', 'groundmap', 'input', 'physics', 'render', 'road', 'visual'],
-  browser: ['camera', 'core', 'gameplay', 'graphics', 'input', 'physics', 'render', 'vehicle'],
+  browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'input', 'physics', 'render', 'vehicle'],
 };
 
 test('engine ownership follows an acyclic dependency direction, including type imports', async () => {

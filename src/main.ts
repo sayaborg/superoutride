@@ -196,7 +196,7 @@ function render(): void {
     },
     { roadView: runtime.roadView ?? undefined },
   );
-  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
+  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
 }
 
 function activeRuntime(): StageRuntimeContentPackage {

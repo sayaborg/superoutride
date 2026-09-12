@@ -30,7 +30,7 @@ export const VEHICLE_SUBSTEPS = 12;
 
 type VehicleContactId = 'FRONT' | 'REAR';
 
-/** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
+/** Output cache for presentation/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
   /** Canonical input observation. */
   steeringRequest: number;
@@ -60,6 +60,13 @@ export interface VehicleControlState {
   rearBrakeTorque: number;
   frontWheelLocked: boolean;
   rearWheelLocked: boolean;
+  /** Final wheel-solve observations in m/s; never consumed by mechanics. */
+  frontRollingSpeed: number;
+  rearRollingSpeed: number;
+  frontSlipSpeed: number;
+  rearSlipSpeed: number;
+  frontSurface: SurfaceType;
+  rearSurface: SurfaceType;
   frontUtilization: number;
   rearUtilization: number;
 }
@@ -193,6 +200,12 @@ export function createVehicleControlState(): VehicleControlState {
     rearBrakeTorque: 0,
     frontWheelLocked: false,
     rearWheelLocked: false,
+    frontRollingSpeed: 0,
+    rearRollingSpeed: 0,
+    frontSlipSpeed: 0,
+    rearSlipSpeed: 0,
+    frontSurface: 'VOID',
+    rearSurface: 'VOID',
     frontUtilization: 0,
     rearUtilization: 0,
   };

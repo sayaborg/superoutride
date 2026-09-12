@@ -53,7 +53,7 @@ test('retired BIKE mechanics and compatibility authority are absent from general
     /Quaternion|quaternion|crownRadius|riderKphi|riderKd|phiControlMax|omegaBody|rollInertia/,
   );
   assert.doesNotMatch(combined, /compat|legacy.*(?:car|bike)|re-export/i);
-  assert.doesNotMatch(combined, /\bABS\b|\bTCS\b|tractionControl|antiLock/i);
+  assert.doesNotMatch(combined.replace(/\bMath\.abs\b/g, 'absoluteValue'), /\bABS\b|\bTCS\b|tractionControl|antiLock/i);
   assert.doesNotMatch(combined, /sprungRoll|bankAngle|deriveVehicleLean|sprite/i);
 });
 

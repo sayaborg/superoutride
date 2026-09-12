@@ -22,6 +22,8 @@ Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens,
 
 Use the selectors for vehicle, course and calibration. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
+Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. All engine, tire and wind sounds are synthesized without recordings; only the nearest rival engine is audible.
+
 See [current calibration values and meanings](docs/calibration.md).
 
 ## Structure
@@ -33,6 +35,7 @@ See [current calibration values and meanings](docs/calibration.md).
 | `src/input`     | Keyboard/touch input and arbitration                                             |
 | `src/physics`   | Common vehicle mechanics, surfaces and control                                   |
 | `src/vehicle`   | Production identities and compiled profiles                                      |
+| `src/audio`     | Procedural audio voices and read-only acoustic contracts                         |
 | `src/camera`    | Camera observation and follow policy                                             |
 | `src/gameplay`  | Physical route gates, laps, sessions, rivals and recovery                        |
 | `src/graphics`  | Framebuffer, color codec, sprite blitting and Painter primitives                 |

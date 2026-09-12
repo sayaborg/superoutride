@@ -3,6 +3,8 @@ export function installBrowserDom(t, search = '') {
   const frames = [];
   const ids = [
     'game',
+    'sound-toggle',
+    'sound-volume',
     'steer-left-button',
     'steer-right-button',
     'throttle-button',
