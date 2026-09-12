@@ -146,22 +146,21 @@ listening, Safari/iOS acceptance and target-device CPU profiling remain calibrat
 runs for one and two voices, including 2x acoustic stepping. It is a CPU kernel diagnostic,
 not a browser scheduling, end-to-end graph or mobile performance certification.
 
-## Reflection audition candidates
-
-The browser probe adds five single-factor candidates beside unchanged simple reflection:
-weaker/stronger outlet reflection, a lower boundary cutoff, higher propagation loss,
-and lower closed-excitation floor. Candidate labels display the old/new values.
-[Candidate data](../tools/reflection-candidates.mjs) and its diagnostic worklet are tools-only;
-they reuse the production DSP with validated optional coefficient overrides. Default DSP
-coefficients and game composition are unchanged. All candidates share the selected vehicle's
-firing, pipe geometry and pulse profile. Geometry remains an authored approximation, not newly
-verified factory pipework. No noise is added. Fixed gain preserves excitation differences;
-RMS matching is available for timbre comparison. The candidate browser check covers six
-settings, nine vehicles, two output rates, three RPM settings and open/closed excitation.
+## Reflection audition controls
 
 The audition UI exposes four combinable sliders for outlet reflection, boundary cutoff,
 propagation attenuation and closed-excitation floor. Displayed values and reset come directly
-from the DSP's shared defaults (-0.68, 4500 Hz, 0.04 Np/m and 0.22). Slider changes take effect
-on the next playback, not during an already rendered three-second clip. The selected setting
-can be checked across all nine vehicles and both output rates. The earlier single-factor
-candidate data remains a regression fixture; sliders replace the candidate selector.
+from the DSP's shared defaults (-0.68, 4500 Hz, 0.04 Np/m and 0.22). Outlet reflection includes
+zero at the right endpoint and a dedicated zero button; the readout explicitly labels no outlet
+reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
+Slider changes take effect on the next playback, not during an already rendered clip.
+The selected setting can be checked across all nine vehicles and both output rates.
+[Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
+The diagnostic worklet reuses the production DSP with validated optional coefficient overrides;
+production defaults and vehicle geometry are unchanged. No noise is added.
+
+Read-only vehicle data is generated directly from the selected catalog profile: cycle, cylinder
+count, idle/redline, firing phases and intervals, collector membership, primary/outlet/total path
+lengths, and pulse settings. Rows identify firing events, not manufacturer cylinder numbers.
+Collector labels do not assert physical left/right bank names. Lengths and topology include
+acoustic sketches and are explicitly not presented as measured manufacturer pipework.

@@ -2,6 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <style>
+      th,
+      td {
+        padding: 0.35em 0.65em;
+        text-align: right;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      th {
+        border-bottom: 1px solid #888;
+      }
+      fieldset {
+        margin-block: 1em;
+        overflow-x: auto;
+      }
+    </style>
     <title>Procedural audio verification</title>
   </head>
   <body>
@@ -49,6 +66,29 @@
       <button id="candidate-play" type="button">調整した音を聴く</button>
       <button id="candidate-check" type="button">この設定を全車種で検証</button>
     </fieldset>
+    <fieldset>
+      <legend>選択車種の音源データ（読み取り専用）</legend>
+      <p id="vehicle-summary"></p>
+      <p>
+        以下は音源が使用している設定です。管長・集合先は音響用の仮設定を含み、実測済みの実車配管データではありません。
+      </p>
+      <p>行は発火イベント順です。実車の気筒番号や左右バンクの名称を示すものではありません。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>発火順</th>
+            <th>位相</th>
+            <th>次の発火まで</th>
+            <th>集合先</th>
+            <th>枝管長</th>
+            <th>集合部→出口</th>
+            <th>経路の合計</th>
+          </tr>
+        </thead>
+        <tbody id="vehicle-pipes"></tbody>
+      </table>
+      <p id="vehicle-pulse"></p>
+    </fieldset>
     <button id="stop" type="button">停止</button>
     <p id="listening">未再生</p>
     <button id="run" type="button">Verify engine voices</button>
@@ -69,7 +109,15 @@
         vehicle.append(option);
       }
       const controls = [
-        ['outletReflection', '出口の反射係数', -0.95, 0, 0.01, '', '0に近いほど反射が弱く、−1に近いほど強くなります。'],
+        [
+          'outletReflection',
+          '出口の反射係数',
+          -0.95,
+          0,
+          0.01,
+          '',
+          '右端の0は出口反射なしです。−1に近いほど反射が強くなります。',
+        ],
         [
           'returnCutoffHz',
           '反射波の高域上限',
@@ -108,11 +156,21 @@
         label.textContent = title + ' ';
         output.htmlFor = key;
         input.oninput = () => {
-          output.textContent = ` ${input.value} ${unit}`;
+          output.textContent = ` ${input.value} ${unit}${key === 'outletReflection' && Number(input.value) === 0 ? '（出口反射なし）' : ''}`;
         };
         input.oninput();
         hint.textContent = explanation;
         row.append(label, document.createElement('br'), input, output, document.createElement('br'), hint);
+        if (key === 'outletReflection') {
+          const zero = document.createElement('button');
+          zero.type = 'button';
+          zero.textContent = '反射なし（0）';
+          zero.onclick = () => {
+            input.value = '0';
+            input.oninput();
+          };
+          row.append(document.createTextNode(' '), zero);
+        }
         document.getElementById('tuning-sliders').append(row);
         sliders.set(key, input);
       }
@@ -123,7 +181,40 @@
           input.oninput();
         }
       };
+      function showVehicleData() {
+        const { sound, profile } = VEHICLE_CATALOG[Number(vehicle.value)];
+        const cycleDegrees = sound.cycleRevolutions * 360;
+        document.getElementById('vehicle-summary').textContent =
+          `${profile.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${profile.powertrain.idleRpm} RPM ／ 上限 ${profile.powertrain.redlineRpm} RPM`;
+        const body = document.getElementById('vehicle-pipes');
+        body.replaceChildren();
+        const degrees = (value) => `${Number(value.toFixed(2))}°`;
+        const meters = (value) => `${value.toFixed(2)} m`;
+        sound.firingPhases.forEach((phase, i, phases) => {
+          const next = i + 1 < phases.length ? phases[i + 1] : phases[0] + 1;
+          const length = sound.exhaust.lengths[i];
+          const row = document.createElement('tr');
+          for (const value of [
+            i + 1,
+            degrees(phase * cycleDegrees),
+            degrees((next - phase) * cycleDegrees),
+            String.fromCharCode(65 + sound.exhaust.banks[i]),
+            meters(length),
+            meters(sound.exhaust.outlet),
+            meters(length + sound.exhaust.outlet),
+          ]) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.append(cell);
+          }
+          body.append(row);
+        });
+        document.getElementById('vehicle-pulse').textContent =
+          `パルスの設定：強さ ${sound.pulse.strength} ／ 立ち上がり時定数 ${(sound.pulse.riseSeconds * 1000).toFixed(2)} ms ／ 減衰時定数 ${(sound.pulse.decaySeconds * 1000).toFixed(2)} ms`;
+      }
+      vehicle.onchange = showVehicleData;
       vehicle.value = '1';
+      showVehicleData();
       let playback,
         playing,
         request = 0;
