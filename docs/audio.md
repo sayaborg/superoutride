@@ -71,7 +71,8 @@ The [processor](../src/audio/exhaust-processor.ts) is registered through the exi
 static import. It allocates no objects in the render loop. Profile messages prepare delay storage;
 invalid profiles silence the processor, inactive slots output zero, and stop releases the model.
 Voice replacement fades before acoustic state reset. Simple-reflection audition uses a fixed
-source reflection at each outlet and omits primary return buffers and their per-cylinder work;
+source reflection at each outlet and omits primary return buffers, source-boundary filter state,
+collector-pressure state/calculation and the second cylinder pass;
 it is a comparison model, not an equivalent version of the coupled waveguide.
 
 The accepted earlier waveguide is retained only as an executable [listening reference](../tools/waveguide-reference.mjs),
@@ -194,3 +195,27 @@ large-amplitude waves, mufflers and true pipe radii remain outside this model.
 Allowing -1 does not remove the rest of the network's losses: propagation, boundary filtering
 and the fixed source termination still dissipate energy. Positive pressure reflection is not
 introduced; it would represent a different termination. The UI now reaches -1 exactly.
+
+## Minimal implementation boundary
+
+Keep one sample kernel and one fixed-delay primitive. Pulse generation and outlet filtering are
+shared; only the collector/source-return coupling differs between the two audition models.
+Simple reflection writes each primary immediately after reading it, in the pulse pass. Coupled
+primaries wait for collector scattering before writing. Read/write order preserves each delay's
+sample latency. No mode strategies, graph framework or per-vehicle branches are needed.
+
+Validated tuning contains only the four adjustable coefficients; fixed source constants are not
+copied into each instance. Compiled immutable firing phases are read directly. Bank normalization
+is prepared once. Each remaining mutable buffer represents a pulse envelope, filter memory,
+traveling wave or current collector sum/pressure; coupled-only memory is absent in simple mode.
+
+The provisional coefficients and approximation limits above remain unchanged. Removing the
+second pulse state changes pulse shape; collapsing the two outlet delays changes filter/propagation
+ordering; dropping source coupling makes a different acoustic model. These are sound-design changes,
+not behavior-preserving simplifications. Further abstraction would add indirection without removing
+an independent acoustic responsibility.
+
+For exact sample comparison with a supplied pre-change compiled module, run
+`node tools/exhaust-equivalence.mjs /absolute/path/to/exhaust-waveguide.mjs` after building.
+The diagnostic covers both modes, all catalog profiles, both internal rates, coefficient overrides,
+RPM/load transitions and stopping. It compares raw samples without tolerances or output normalization.
