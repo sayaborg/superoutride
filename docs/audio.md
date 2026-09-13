@@ -21,10 +21,10 @@ surfaces or repeat contact/tire solves.
 
 | Responsibility                                                          | Owner                                                                                                                                     |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared sample kernel, delays and both exhaust topologies                | [exhaust-waveguide](../src/audio/exhaust-waveguide.ts)                                                                                    |
+| Shared waveguide kernel and delays                                      | [exhaust-waveguide](../src/audio/exhaust-waveguide.ts)                                                                                    |
 | Shared tuning defaults, reference conditions and fixed output constants | [exhaust-acoustics](../src/audio/exhaust-acoustics.ts)                                                                                    |
 | Firing, pipe and pulse contract/validation                              | [vehicle-audio-profile](../src/audio/vehicle-audio-profile.ts); authored bindings in [vehicle catalog](../src/vehicle/vehicle-catalog.ts) |
-| Worklet transport and two acoustic steps per output sample              | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
+| Worklet transport and 1x/2x acoustic stepping                           | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
 | Reusable voice and faded profile/method/tuning replacement              | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
 | Two engine slots, one player tire worklet and master output graph       | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
 | Observation adaptation and browser lifetime                             | [vehicle-audio](../src/browser/vehicle-audio.ts), [audio-lifecycle](../src/browser/audio-lifecycle.ts)                                    |
@@ -105,31 +105,35 @@ The [processor](../src/audio/exhaust-processor.ts) is registered directly by the
 invalid profiles silence the processor, inactive slots output zero, and stop releases the model.
 Voice replacement fades before acoustic state reset.
 
-### Lightweight filtered-loop comparison
+### Native-rate WAVEGUIDE LITE comparison
 
-WAVEGUIDE remains the adopted reference with provisional coefficients. LOOP replaces the rejected
-simple-reflection comparison; it shares the firing scheduler, per-event variation, pulse envelopes,
-controls and output conditioning with WAVEGUIDE in one kernel. Its source sums pulses directly per
-bank, with no primary propagation, cylinder return, time-varying source opening or collector scattering.
-One delay per bank represents a round-trip path `2 * (meanPrimaryLength + outletLength) * loopLengthScale`.
-This is a listening approximation, not equivalent wave propagation. Banks retain their firing grouping.
+WAVEGUIDE remains the adopted reference with provisional coefficients. The rejected LOOP topology
+and its path-length scale are removed. WAVEGUIDE LITE runs the exact same acoustic kernel at the
+browser output sample rate, once per output sample. Reference WAVEGUIDE retains its original two
+steps at twice the output rate and their arithmetic mean. At 48 kHz output these are 48 and 96 kHz;
+at 44.1 kHz output they are 44.1 and 88.2 kHz. This is not a forced hardware sample-rate setting.
 
-For each bank, read delayed `out`, update the existing return low-pass, then write
-`meanPulse + 0.94 * outletReflection * filteredOut` through propagation attenuation into the delay.
-The fixed source reflection keeps feedback magnitude below one even at zero propagation loss.
-Output pickup remains `out + filteredOut`. Internal stepping remains 2x for both methods so the first
-comparison isolates topology rather than sample-rate changes. LOOP allocates one delay per bank;
-WAVEGUIDE retains two delays per cylinder plus two per bank. Sample loops allocate no objects.
+Every cylinder retains both primary delays, its firing events, pulse envelopes, return low-pass and
+phase-dependent source reflection. Collector scattering and both outlet delays are retained.
+Filters, envelopes and propagation delay lengths are calculated from the actual internal rate.
+LITE halves acoustic step count and approximately halves delay-buffer storage; it does not merge
+cylinders, remove feedback or decimate control updates. One kernel has no method branches; the worklet
+owns rate selection and output averaging, with one shared configuration path for startup and replacement.
 
-`loopLengthScale` defaults to 1, ranges from 0.5 to 2 in 0.05 steps, and is ignored by WAVEGUIDE.
-Longer loops lower the spacing of resonances; return cutoff damps their high-frequency content,
-reflection and propagation loss control persistence. These controls interact and are not measured
-exhaust properties. The shared six settings retain their current provisional defaults. The loop-only
-slider is disabled under WAVEGUIDE, but its value survives switching. All commits use the existing fade.
+Both methods share the same six tuning values, including ±20% absolute pulse variation by default.
+Values survive switching; replacement uses the existing fade and does not add nodes. Parameters
+remain provisional. There are no LITE-only tuning controls.
 
-The former simple-reflection comparisons are superseded by LOOP source/output, bounded-feedback,
-path-length causality and bank-storage regressions. The WAVEGUIDE reference is checked sample-exactly
-against a saved pre-change module; its mechanics and acoustic coefficients are unchanged.
+The sound is intentionally not sample-equivalent across rates: firing and pipe delays are quantized
+more coarsely, discrete filters differ, and removing oversampling can increase nonlinear aliasing.
+The final LPF remains after saturation but cannot undo already aliased components. Do not claim
+perceptual equivalence or Android acceptance from finite-output tests. Use matched-level audition at
+idle, acceleration, redline and coast before adopting LITE. WAVEGUIDE remains the default.
+
+Former LOOP path-length and single-delay tests are superseded by native-rate pipe preservation,
+44.1/48 kHz worklet/kernel agreement, block partitioning and rate-changing replacement coverage.
+Full-rate reference samples are compared exactly against a saved pre-change module. Physics and
+rendering remain under the unchanged historical equivalence checks.
 
 ## Output conditioning
 
@@ -276,7 +280,7 @@ and independence of final-cutoff changes from the underlying reflected/clipped s
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
 response at open and closed throttle. It also offers a three-second
-comparison of lightweight LOOP and the reference WAVEGUIDE
+comparison of native-rate WAVEGUIDE LITE and reference WAVEGUIDE
 at the same selected RPM/throttle, plus an acceleration/coast sequence. Settled-cycle regressions cover every vehicle and five excitation levels.
 Fixed gain is the default for load evaluation; optional RMS matching compares timbre
 between methods. Quarter-throttle settings allow intermediate load evaluation.
@@ -286,15 +290,15 @@ Chrome integration checks can verify all four course modes, sound controls and v
 switching. Desktop rendering is not phone performance certification. Actual speaker
 listening, Safari/iOS acceptance and target-device CPU profiling remain calibration work.
 
-[Host timing probe](../tools/exhaust-performance.mjs) warms WAVEGUIDE and LOOP and measures five
-runs for one and two voices, including 2x acoustic stepping, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
+[Host timing probe](../tools/exhaust-performance.mjs) warms WAVEGUIDE and WAVEGUIDE LITE and measures five
+runs for one and two voices, including their respective 2x/1x acoustic stepping, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
 not a paired method benchmark or browser scheduling, end-to-end graph or mobile performance certification.
 
 ## Temporary method selection and shared tuning
 
-The game and audition selectors offer exactly `waveguide` and `loop`. WAVEGUIDE is the adopted
-reference; LOOP is a lightweight approximation under evaluation. Both keep provisional parameters.
-The named method is validated at construction and stays fixed for each kernel lifetime. Switching
+The game and audition selectors offer exactly `waveguide` and `waveguide-lite`. WAVEGUIDE is the adopted
+reference; WAVEGUIDE LITE is its native-rate comparison. Both keep provisional parameters.
+The named method is validated by the worklet and selects the rate for each kernel lifetime. Switching
 uses the existing faded replacement without adding nodes. The game and audition default to WAVEGUIDE.
 
 Both choices use the same production voice/worklet, observations, authoring and validated tuning.
@@ -302,7 +306,7 @@ There is no separate audition DSP wrapper, old-waveguide reference or generated-
 Those retired experiments and their experiment-only tests remain retrievable in Git; the live
 DSP's causal/stability tests remain in force; strict periodicity belongs to the zero-variation reference.
 
-Game and audition use one tuning control for seven controls (six shared and one LOOP-only). The values below describe
+Game and audition use one tuning control for six shared controls. The values below describe
 `DEFAULT_EXHAUST_TUNING` in the acoustic settings; code owns the defaults and validation, and
 the shared control owns UI ranges/steps. Reset reads those defaults directly.
 
@@ -314,7 +318,6 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 | Closed-throttle excitation floor      | `closedExcitation`    | 0.22      | 0.01–1       | 0.01      |
 | Final LPF (muffler approximation)     | `outputCutoffHz`      | 7300 Hz   | 100–12000 Hz | 100 Hz    |
 | Firing pulse strength variation       | `pulseVariation`      | ±20%      | ±0–40%       | 1%        |
-| LOOP round-trip path scale            | `loopLengthScale`     | 1         | 0.5–2        | 0.05      |
 
 Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
@@ -370,15 +373,14 @@ introduced; it would represent a different termination. The UI now reaches -1 ex
 
 ## Minimal implementation boundary
 
-Keep one sample kernel and one fixed-delay primitive. Source generation, envelopes, output filters
-and validation are shared; only exhaust topology differs. LOOP has no primary/backward/return delay
-storage or source-wall/junction state. WAVEGUIDE preserves its original read/write ordering exactly.
-No strategy framework, vehicle-specific branches, samples or alternate authoring authority is added.
+Keep one waveguide kernel and one fixed-delay primitive. The acoustic kernel receives only profile,
+internal sample rate and tuning. Rate selection belongs to worklet composition, never vehicle physics.
+There are no alternate pipe topologies, method flags inside the kernel, sample assets or vehicle branches.
 
 For reference verification, run `node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
-after building. It adapts the previous boolean constructor selector to the named WAVEGUIDE method,
-compares all vehicles and both internal rates sample-exactly, and excludes the intentionally replaced
-simple-reflection branch. `--zero-variation` also supports the older pre-variation reference.
+after building. It adapts the prior named-method constructor to the rate-only kernel, checks WAVEGUIDE
+at both full internal rates across all vehicles and coefficient overrides, and excludes the rejected
+LOOP topology. The optional `--zero-variation` setting checks deterministic zero-variation excitation.
 
 ## Provisional boundary and output interpretation
 
@@ -389,8 +391,7 @@ coefficients +0.94 and -0.3 therefore correspond to positive, real effective imp
 Z/Z0 of about 32.3 and 0.538. This motivates nearly rigid and pressure-release-like endpoints;
 these numbers are not measured valve impedances. The sinusoidal transition over 0.23 firing
 cycles is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
-LOOP uses +0.94 as a fixed effective upstream termination; it omits primary
-return interaction. The waveguide uses the periodic envelope on each primary return.
+Both rate choices use the periodic envelope on each primary return.
 The same boundary low-pass is reused at the outlet and source for economy, not because their
 real frequency responses are identical. These are explicitly provisional approximations.
 
@@ -403,7 +404,6 @@ remain sketches during comparison.
 
 ## Comparison boundary
 
-The previous REFLECTION branch and boolean transport selector are removed. Keep WAVEGUIDE intact
-while assessing LOOP similarity and device performance. The selector is a listening comparison,
-not automatic device detection. Host timings do not certify Android audio deadlines, thermal behavior
-or concurrent game rendering. Parameter tuning remains provisional for both methods.
+REFLECTION and LOOP are rejected and removed. WAVEGUIDE remains the reference; WAVEGUIDE LITE changes
+only internal sample rate and output stepping. The selector does not automatically detect device speed.
+Host timings do not certify Android deadlines, thermal behavior or concurrent game rendering.

@@ -2,12 +2,13 @@ import { performance } from 'node:perf_hooks';
 import { TireSynthesis, tireParameters } from '../dist/audio/tire-synthesis.js';
 import { ExhaustWaveguide } from '../dist/audio/exhaust-waveguide.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
-const rate = 96000;
+
 const rows = [];
 for (const { profile, sound } of VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust)) {
-  for (const method of ['waveguide', 'loop'])
+  for (const method of ['waveguide', 'waveguide-lite'])
     for (const voices of [1, 2]) {
-      const engines = Array.from({ length: voices }, () => new ExhaustWaveguide(sound, rate, method));
+      const rate = method === 'waveguide-lite' ? 48000 : 96000;
+      const engines = Array.from({ length: voices }, () => new ExhaustWaveguide(sound, rate));
       let peak = 0;
       for (let i = 0; i < rate; i++) for (const engine of engines) engine.sample(3000, 1);
       const timings = [];
@@ -43,7 +44,7 @@ tireTimings.sort((a, b) => a - b);
 console.log(
   JSON.stringify(
     {
-      note: 'Warmed host DSP timings, not browser or phone CPU certification; 2x acoustic stepping included.',
+      note: 'Warmed host DSP timings, not browser or phone CPU certification; Reference 2x and lite 1x acoustic stepping included.',
       rows,
       tires: { axles: 2, millisecondsPerAudioSecond: tireTimings[2], peak: tirePeak },
     },

@@ -65,11 +65,11 @@
         <option value="matched">音量を揃える（方式の比較）</option>
       </select></label
     >
-    <p>採用済みのWAVEGUIDEと軽量LOOPの比較です。パラメータは調整中です。</p>
+    <p>採用済みのWAVEGUIDEと簡略WAVEGUIDEの比較です。パラメータは調整中です。</p>
     <label
       >方式
       <select id="method">
-        <option value="loop">LOOP（軽量）</option>
+        <option value="waveguide-lite">WAVEGUIDE LITE</option>
         <option value="waveguide" selected>ウェーブガイド（最適化版）</option>
       </select>
     </label>
@@ -136,7 +136,7 @@
       document.getElementById('reference-conditions').textContent =
         `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。全閉時の励振は音作りの設定です。`;
       document.getElementById('boundary-conditions').textContent =
-        `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。簡易反射は閉端側を固定で使い、ウェーブガイドは気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
+        `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。両方式とも気筒への戻り波に同じ周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
       document.getElementById('output-conditions').textContent =
         `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、スライダーで調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
       const tuningControls = mountAudioTuningControls(document.getElementById('tuning-sliders'), () => {});
@@ -190,11 +190,10 @@
       document.getElementById('stop').onclick = stop;
       method.onchange = () => {
         stop();
-        tuningControls.setMethod(method.value);
         document.getElementById('method-description').textContent =
           method.value === 'waveguide'
             ? '気筒側へ戻る波と集合部の相互作用を計算します。'
-            : '発火パルスをまとめ、排気系ごとに1本の反射ループで響かせます。ループ長で共鳴の高さを調整できます。';
+            : '配管・戻り波・反射LPFを保ち、内部の計算回数を半分にします。高回転時の音の違いも比較してください。';
       };
       method.onchange();
       const readSelection = () => ({

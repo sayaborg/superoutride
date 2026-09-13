@@ -10,6 +10,7 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 class ExhaustProcessor extends AudioWorkletProcessor {
   private engine: ExhaustWaveguide | null = null;
   private running = true;
+  private steps = 2;
   static get parameterDescriptors() {
     return [
       { name: 'rpm', defaultValue: 1000, minValue: 0, maxValue: 24000, automationRate: 'k-rate' },
@@ -25,13 +26,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   }) {
     super();
     const initial = options?.processorOptions;
-    if (initial)
-      this.engine = new ExhaustWaveguide(
-        compileVehicleAudioProfile(initial.profile),
-        sampleRate * 2,
-        initial.method,
-        initial.tuning,
-      );
+    if (initial) this.configure(initial.profile, initial.method, initial.tuning);
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') {
         this.running = false;
@@ -39,17 +34,23 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       } else if (data === null) this.engine = null;
       else {
         try {
-          this.engine = new ExhaustWaveguide(
-            compileVehicleAudioProfile(data.profile),
-            sampleRate * 2,
-            data.method ?? 'waveguide',
-            data.tuning,
-          );
+          this.configure(data.profile, data.method, data.tuning);
         } catch {
           this.engine = null;
         }
       }
     };
+  }
+  private configure(
+    profile: VehicleAudioProfile,
+    method: EngineMethod = 'waveguide',
+    tuning: Partial<typeof DEFAULT_EXHAUST_TUNING> = {},
+  ): void {
+    if (method !== 'waveguide' && method !== 'waveguide-lite') throw new RangeError('invalid engine method');
+    const steps = method === 'waveguide-lite' ? 1 : 2;
+    const engine = new ExhaustWaveguide(compileVehicleAudioProfile(profile), sampleRate * steps, tuning);
+    this.steps = steps;
+    this.engine = engine;
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
     if (!this.running) return false;
@@ -61,9 +62,12 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     }
     const rpm = parameters.rpm![0]!,
       load = parameters.load![0]!;
-    for (let i = 0; i < output.length; i++) {
-      // Two acoustic steps per output sample reduce event quantization and nonlinear aliasing.
-      output[i] = (this.engine.sample(rpm, load) + this.engine.sample(rpm, load)) * 0.5;
+    if (this.steps === 1) {
+      for (let i = 0; i < output.length; i++) output[i] = this.engine.sample(rpm, load);
+    } else {
+      // Reference keeps its original two acoustic steps and output averaging exactly.
+      for (let i = 0; i < output.length; i++)
+        output[i] = (this.engine.sample(rpm, load) + this.engine.sample(rpm, load)) * 0.5;
     }
     return true;
   }

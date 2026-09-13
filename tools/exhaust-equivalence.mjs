@@ -11,30 +11,29 @@ let samples = 0;
 let cases = 0;
 for (const { sound, profile } of VEHICLE_CATALOG)
   for (const rate of [88200, 96000])
-    for (const method of ['waveguide'])
-      for (const tuning of [
-        {},
-        { outletReflection: 0 },
-        { outletReflection: -0.95, returnCutoffHz: 800, attenuationPerMeter: 0, closedExcitation: 0.08 },
-      ]) {
-        const settings = zeroVariation ? { ...tuning, pulseVariation: 0 } : tuning;
-        const before = new Reference(sound, rate, true, settings);
-        const after = new ExhaustWaveguide(sound, rate, method, settings);
-        const label = `${profile.id}/${rate}/${method}/${JSON.stringify(tuning)}`;
-        for (const [rpm, load] of [
-          [900, 0],
-          [3000, 0.25],
-          [6000, 1],
-          [3000, 0],
-          [0, 0],
-        ])
-          for (let i = 0; i < rate / 5; i++) {
-            const expected = before.sample(rpm, load);
-            const actual = after.sample(rpm, load);
-            assert.ok(Number.isFinite(actual), label);
-            assert.equal(actual, expected, `${label}/${rpm}/${load}/${i}`);
-            samples++;
-          }
-        cases++;
-      }
+    for (const tuning of [
+      {},
+      { outletReflection: 0 },
+      { outletReflection: -0.95, returnCutoffHz: 800, attenuationPerMeter: 0, closedExcitation: 0.08 },
+    ]) {
+      const settings = zeroVariation ? { ...tuning, pulseVariation: 0 } : tuning;
+      const before = new Reference(sound, rate, 'waveguide', settings);
+      const after = new ExhaustWaveguide(sound, rate, settings);
+      const label = `${profile.id}/${rate}/${JSON.stringify(tuning)}`;
+      for (const [rpm, load] of [
+        [900, 0],
+        [3000, 0.25],
+        [6000, 1],
+        [3000, 0],
+        [0, 0],
+      ])
+        for (let i = 0; i < rate / 5; i++) {
+          const expected = before.sample(rpm, load);
+          const actual = after.sample(rpm, load);
+          assert.ok(Number.isFinite(actual), label);
+          assert.equal(actual, expected, `${label}/${rpm}/${load}/${i}`);
+          samples++;
+        }
+      cases++;
+    }
 console.log(JSON.stringify({ status: 'PASS', zeroVariation, cases, samples }));

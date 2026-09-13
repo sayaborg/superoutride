@@ -9,8 +9,9 @@
 ## Engine sound continuation
 
 WAVEGUIDE is adopted as the reference sound, with all coefficients provisional. The selector now
-compares WAVEGUIDE with lightweight LOOP; the rejected REFLECTION branch is removed. Six common
-controls plus a LOOP-only path-length scale share one tuning snapshot and reset. Preserve the
+compares WAVEGUIDE with native-rate WAVEGUIDE LITE; rejected REFLECTION and LOOP are removed.
+Six shared controls retain one tuning snapshot and reset. LITE preserves every pipe and boundary;
+only acoustic stepping changes from 2x to 1x. Preserve the
 reference waveform while comparing similarity and CPU cost. The [audio specification](audio.md)
 owns the reduction, its limits and tuning. Android gameplay/audio acceptance remains open.
 

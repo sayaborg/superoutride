@@ -5,8 +5,8 @@ import { DEFAULT_EXHAUST_TUNING, OUTPUT } from '../dist/audio/exhaust-acoustics.
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const profiles = VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust);
-function render(profile, load, method = 'waveguide', rate = 48000) {
-  const engine = new ExhaustWaveguide(profile, rate, method);
+function render(profile, load, rate = 48000) {
+  const engine = new ExhaustWaveguide(profile, rate);
   const samples = new Float32Array(rate);
   for (let i = 0; i < samples.length; i++) samples[i] = engine.sample(3000, load);
   return samples.subarray(rate / 2);
@@ -22,63 +22,54 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
     exhaust: { banks: [0], lengths: [0.5], outlet: 1 },
     pulse: { strength: 4, riseSeconds: 0.00001, decaySeconds: 0.006 },
   });
-  for (const rate of [88200, 96000])
-    for (const method of ['loop', 'waveguide']) {
-      const synth = new ExhaustWaveguide(profile, rate, method, { outletReflection: 0 });
-      const coefficient = 1 - Math.exp((-2 * Math.PI * DEFAULT_EXHAUST_TUNING.outputCutoffHz) / rate);
-      let previous = 0,
-        peak = 0;
-      for (let i = 0; i < rate / 2; i++) {
-        const value = synth.sample(3000, 1);
-        // Undo only the final linear filter: its input must respect the clipper's bound.
-        const input = (value - (1 - coefficient) * previous) / coefficient;
-        assert.ok(Number.isFinite(input) && Math.abs(input) <= OUTPUT.ceiling + 1e-12);
-        peak = Math.max(peak, Math.abs(value));
-        previous = value;
-      }
-      assert.ok(peak > OUTPUT.ceiling / 2, 'the fixture must exercise substantial saturation');
+  for (const rate of [44100, 48000, 88200, 96000]) {
+    const synth = new ExhaustWaveguide(profile, rate, { outletReflection: 0 });
+    const coefficient = 1 - Math.exp((-2 * Math.PI * DEFAULT_EXHAUST_TUNING.outputCutoffHz) / rate);
+    let previous = 0,
+      peak = 0;
+    for (let i = 0; i < rate / 2; i++) {
+      const value = synth.sample(3000, 1);
+      // Undo only the final linear filter: its input must respect the clipper's bound.
+      const input = (value - (1 - coefficient) * previous) / coefficient;
+      assert.ok(Number.isFinite(input) && Math.abs(input) <= OUTPUT.ceiling + 1e-12);
+      peak = Math.max(peak, Math.abs(value));
+      previous = value;
     }
+    assert.ok(peak > OUTPUT.ceiling / 2, 'the fixture must exercise substantial saturation');
+  }
 });
 
 test('output cutoff changes only the final filter, preserving the clipped exhaust signal', () => {
   const sound = VEHICLE_CATALOG[2].sound;
-  for (const rate of [88200, 96000])
-    for (const method of ['loop', 'waveguide']) {
-      const cutoffs = [100, 1000, DEFAULT_EXHAUST_TUNING.outputCutoffHz, 12000];
-      const voices = cutoffs.map((outputCutoffHz) => new ExhaustWaveguide(sound, rate, method, { outputCutoffHz }));
-      const coefficients = cutoffs.map((hz) => 1 - Math.exp((-2 * Math.PI * hz) / rate));
-      const previous = voices.map(() => 0);
-      let difference = 0;
-      for (let i = 0; i < rate / 4; i++) {
-        const outputs = voices.map((voice) => voice.sample(6000, 1));
-        const inputs = outputs.map((value, j) => (value - (1 - coefficients[j]) * previous[j]) / coefficients[j]);
-        for (let j = 0; j < voices.length; j++) {
-          assert.ok(Number.isFinite(outputs[j]) && Math.abs(outputs[j]) < OUTPUT.ceiling);
-          // Different final filters must receive the same pre-filter signal, including all reflections.
-          assert.ok(Math.abs(inputs[j] - inputs[2]) < 1e-10);
-          previous[j] = outputs[j];
-        }
-        difference += (outputs[0] - outputs[3]) ** 2;
+  for (const rate of [44100, 48000, 88200, 96000]) {
+    const cutoffs = [100, 1000, DEFAULT_EXHAUST_TUNING.outputCutoffHz, 12000];
+    const voices = cutoffs.map((outputCutoffHz) => new ExhaustWaveguide(sound, rate, { outputCutoffHz }));
+    const coefficients = cutoffs.map((hz) => 1 - Math.exp((-2 * Math.PI * hz) / rate));
+    const previous = voices.map(() => 0);
+    let difference = 0;
+    for (let i = 0; i < rate / 4; i++) {
+      const outputs = voices.map((voice) => voice.sample(6000, 1));
+      const inputs = outputs.map((value, j) => (value - (1 - coefficients[j]) * previous[j]) / coefficients[j]);
+      for (let j = 0; j < voices.length; j++) {
+        assert.ok(Number.isFinite(outputs[j]) && Math.abs(outputs[j]) < OUTPUT.ceiling);
+        // Different final filters must receive the same pre-filter signal, including all reflections.
+        assert.ok(Math.abs(inputs[j] - inputs[2]) < 1e-10);
+        previous[j] = outputs[j];
       }
-      assert.ok(difference > 0.01, 'cutoff must audibly affect the generated waveform');
+      difference += (outputs[0] - outputs[3]) ** 2;
     }
+    assert.ok(difference > 0.01, 'cutoff must audibly affect the generated waveform');
+  }
 });
 
 test('waveguide exhaust remains bounded under load and geometry changes at both output rates', () => {
   for (const { sound } of profiles)
     for (const rate of [88200, 96000]) {
-      const closed = render(sound, 0, 'waveguide', rate),
-        open = render(sound, 1, 'waveguide', rate);
+      const closed = render(sound, 0, rate),
+        open = render(sound, 1, rate);
       assert.ok([...closed, ...open].every((x) => Number.isFinite(x) && Math.abs(x) < 0.65));
       assert.ok(energy(open) > energy(closed) * 1.2);
-      const reference = render(sound, 1, 'loop', rate);
-      assert.ok(difference(open, reference) > 0.01 * energy(open));
-      const altered = render(
-        { ...sound, exhaust: { ...sound.exhaust, outlet: sound.exhaust.outlet * 1.3 } },
-        1,
-        'waveguide',
-        rate,
-      );
+      const altered = render({ ...sound, exhaust: { ...sound.exhaust, outlet: sound.exhaust.outlet * 1.3 } }, 1, rate);
       assert.ok(difference(open, altered) > 0.01 * energy(open));
     }
 });
@@ -136,52 +127,79 @@ test('worklet renders identical streams across block partitions, ignores invalid
   globalThis.sampleRate = 48000;
   try {
     await import('../dist/audio/exhaust-processor.js');
-    const ready = new Processor({ processorOptions: { profile: profiles[0].sound, method: 'waveguide' } });
-    const startup = [[new Float32Array(48000)]];
-    ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
-    assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
-    for (const method of ['loop', 'waveguide']) {
-      const tuning = {
-        outletReflection: -0.8,
-        returnCutoffHz: 1800,
-        attenuationPerMeter: 0.12,
-        closedExcitation: 0.1,
-        outputCutoffHz: 800,
-      };
-      const direct = new ExhaustWaveguide(profiles[0].sound, 96000, method, tuning);
-      const configured = new Processor({ processorOptions: { profile: profiles[0].sound, method, tuning } });
-      const messaged = new Processor();
-      messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning } });
-      const params = { rpm: new Float32Array([3000]), load: new Float32Array([0.25]) };
-      const actual = [[new Float32Array(4096)]],
-        replaced = [[new Float32Array(4096)]];
-      configured.process([], actual, params);
-      messaged.process([], replaced, params);
-      for (const value of actual[0][0])
-        assert.equal(value, Math.fround((direct.sample(3000, 0.25) + direct.sample(3000, 0.25)) * 0.5));
-      assert.deepEqual(actual, replaced);
-      messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning: { outletReflection: 2 } } });
-      messaged.process([], replaced, params);
-      assert.ok(replaced[0][0].every((x) => x === 0));
+    for (const outputRate of [44100, 48000]) {
+      globalThis.sampleRate = outputRate;
+      const ready = new Processor({ processorOptions: { profile: profiles[0].sound, method: 'waveguide' } });
+      const startup = [[new Float32Array(48000)]];
+      ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
+      assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
+      for (const method of ['waveguide-lite', 'waveguide']) {
+        const tuning = {
+          outletReflection: -0.8,
+          returnCutoffHz: 1800,
+          attenuationPerMeter: 0.12,
+          closedExcitation: 0.1,
+          outputCutoffHz: 800,
+        };
+        const direct = new ExhaustWaveguide(
+          profiles[0].sound,
+          outputRate * (method === 'waveguide-lite' ? 1 : 2),
+          tuning,
+        );
+        const configured = new Processor({ processorOptions: { profile: profiles[0].sound, method, tuning } });
+        const messaged = new Processor();
+        messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning } });
+        const params = { rpm: new Float32Array([3000]), load: new Float32Array([0.25]) };
+        const actual = [[new Float32Array(4096)]],
+          replaced = [[new Float32Array(4096)]];
+        configured.process([], actual, params);
+        messaged.process([], replaced, params);
+        for (const value of actual[0][0])
+          assert.equal(
+            value,
+            Math.fround(
+              method === 'waveguide-lite'
+                ? direct.sample(3000, 0.25)
+                : (direct.sample(3000, 0.25) + direct.sample(3000, 0.25)) * 0.5,
+            ),
+          );
+        assert.deepEqual(actual, replaced);
+        messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning: { outletReflection: 2 } } });
+        messaged.process([], replaced, params);
+        assert.ok(replaced[0][0].every((x) => x === 0));
+      }
+      const a = new Processor(),
+        b = new Processor();
+      for (const p of [a, b]) p.port.onmessage({ data: { profile: profiles[0].sound, method: 'waveguide-lite' } });
+      const params = { rpm: new Float32Array([3000]), load: new Float32Array([1]) };
+      const whole = [[new Float32Array(2048)]];
+      a.process([], whole, params);
+      const collected = [];
+      for (const length of [128, 256, 512, 1152]) {
+        const output = [[new Float32Array(length)]];
+        b.process([], output, params);
+        collected.push(...output[0][0]);
+      }
+      assert.deepEqual([...whole[0][0]], collected);
+      // The same live worklet must change its internal rate on replacement, in both directions.
+      for (const method of ['waveguide', 'waveguide-lite']) {
+        const fresh = new Processor({ processorOptions: { profile: profiles[0].sound, method } });
+        b.port.onmessage({ data: { profile: profiles[0].sound, method } });
+        const expected = [[new Float32Array(4096)]],
+          actual = [[new Float32Array(4096)]];
+        fresh.process([], expected, params);
+        b.process([], actual, params);
+        assert.deepEqual(actual, expected);
+      }
+      b.port.onmessage({ data: { profile: profiles[0].sound, method: 'loop' } });
+      b.process([], whole, params);
+      assert.ok(whole[0][0].every((x) => x === 0));
+      b.port.onmessage({ data: { profile: {} } });
+      b.process([], whole, params);
+      assert.ok(whole[0][0].every((x) => x === 0));
+      b.port.onmessage({ data: 'stop' });
+      assert.equal(b.process([], whole, params), false);
     }
-    const a = new Processor(),
-      b = new Processor();
-    for (const p of [a, b]) p.port.onmessage({ data: { profile: profiles[0].sound } });
-    const params = { rpm: new Float32Array([3000]), load: new Float32Array([1]) };
-    const whole = [[new Float32Array(2048)]];
-    a.process([], whole, params);
-    const collected = [];
-    for (const length of [128, 256, 512, 1152]) {
-      const output = [[new Float32Array(length)]];
-      b.process([], output, params);
-      collected.push(...output[0][0]);
-    }
-    assert.deepEqual([...whole[0][0]], collected);
-    b.port.onmessage({ data: { profile: {} } });
-    b.process([], whole, params);
-    assert.ok(whole[0][0].every((x) => x === 0));
-    b.port.onmessage({ data: 'stop' });
-    assert.equal(b.process([], whole, params), false);
   } finally {
     for (const [key, value] of [
       ['AudioWorkletProcessor', old.base],
@@ -198,7 +216,7 @@ test('zero-variation reference repeats without a stochastic noise floor at every
   const rate = 96000;
   for (const { sound } of profiles)
     for (const load of [0, 0.25, 0.5, 0.75, 1]) {
-      const synth = new ExhaustWaveguide(sound, rate, 'waveguide', { pulseVariation: 0 });
+      const synth = new ExhaustWaveguide(sound, rate, { pulseVariation: 0 });
       const lag = (rate * 60 * sound.cycleRevolutions) / 3000;
       const samples = new Float64Array(lag * 3);
       for (let i = 0; i < rate * 2; i++) synth.sample(3000, load);
@@ -229,12 +247,12 @@ test('every catalog engine has waveguide authoring and Porsche banks fire evenly
 
 test('pulse rise and decay affect waveform shape, beyond a volume multiplier', () => {
   const sound = VEHICLE_CATALOG[3].sound;
-  const normal = render(sound, 1, 'waveguide', 96000);
+  const normal = render(sound, 1, 96000);
   for (const pulse of [
     { ...sound.pulse, riseSeconds: sound.pulse.riseSeconds * 4 },
     { ...sound.pulse, decaySeconds: sound.pulse.decaySeconds * 0.5 },
   ]) {
-    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, 'waveguide', 96000);
+    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, 96000);
     const ratio = Math.sqrt(energy(normal) / energy(changed));
     assert.ok(
       difference(
@@ -244,7 +262,7 @@ test('pulse rise and decay affect waveform shape, beyond a volume multiplier', (
         energy(normal) * 0.001,
     );
   }
-  const closed = render(sound, 0, 'waveguide', 96000);
+  const closed = render(sound, 0, 96000);
   const ratio = Math.sqrt(energy(normal) / energy(closed));
   assert.ok(
     difference(
@@ -270,7 +288,7 @@ test('RPM changes the settled repetition period while excitation preserves it', 
   const sound = VEHICLE_CATALOG[3].sound,
     rate = 96000;
   for (const rpm of [1500, 3000, 6000]) {
-    const synth = new ExhaustWaveguide(sound, rate, 'waveguide', { pulseVariation: 0 });
+    const synth = new ExhaustWaveguide(sound, rate, { pulseVariation: 0 });
     for (let i = 0; i < rate * 2; i++) synth.sample(rpm, 0.5);
     const lag = (rate * 60 * sound.cycleRevolutions) / rpm;
     const samples = Float64Array.from({ length: lag * 3 }, () => synth.sample(rpm, 0.5));
@@ -282,63 +300,61 @@ test('RPM changes the settled repetition period while excitation preserves it', 
 
 test('pulse variation changes strength within bounds while preserving firing timing and mean excitation', () => {
   const sound = profiles.find((entry) => entry.profile.id === 'CORVETTE_C4').sound;
-  for (const rate of [88200, 96000])
-    for (const method of ['loop', 'waveguide']) {
-      const reference = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0 });
-      const varied = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
-      const replay = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
-      let sum = 0,
-        square = 0,
-        events = 0,
-        outputDifference = 0;
-      for (let i = 0; i < rate * 2; i++) {
-        const previous = reference.phase;
-        const rpm = i < rate ? 3000 : 6000;
-        const load = i < rate ? 0.25 : 1;
-        const a = reference.sample(rpm, load),
-          b = varied.sample(rpm, load);
-        assert.equal(b, replay.sample(rpm, load));
-        assert.ok(Number.isFinite(b) && Math.abs(b) < OUTPUT.ceiling);
-        assert.equal(varied.phase, reference.phase);
-        assert.equal(varied.rpm, reference.rpm);
-        outputDifference += (a - b) ** 2;
-        for (let cylinder = 0; cylinder < sound.firingPhases.length; cylinder++) {
-          const offset = sound.firingPhases[cylinder],
-            phase = reference.phase;
-          const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
-          if (!fired) continue;
-          // Observe the actual excitation, independently of pipe filtering and clipping.
-          const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / (sound.pulse.strength * varied.decay);
-          assert.ok(delta >= -0.4 - 1e-12 && delta <= 0.4 + 1e-12);
-          assert.ok(varied.pulse[cylinder] >= 0);
-          sum += delta;
-          square += delta ** 2;
-          events++;
-        }
+  for (const rate of [44100, 48000, 88200, 96000]) {
+    const reference = new ExhaustWaveguide(sound, rate, { pulseVariation: 0 });
+    const varied = new ExhaustWaveguide(sound, rate, { pulseVariation: 0.4 });
+    const replay = new ExhaustWaveguide(sound, rate, { pulseVariation: 0.4 });
+    let sum = 0,
+      square = 0,
+      events = 0,
+      outputDifference = 0;
+    for (let i = 0; i < rate * 2; i++) {
+      const previous = reference.phase;
+      const rpm = i < rate ? 3000 : 6000;
+      const load = i < rate ? 0.25 : 1;
+      const a = reference.sample(rpm, load),
+        b = varied.sample(rpm, load);
+      assert.equal(b, replay.sample(rpm, load));
+      assert.ok(Number.isFinite(b) && Math.abs(b) < OUTPUT.ceiling);
+      assert.equal(varied.phase, reference.phase);
+      assert.equal(varied.rpm, reference.rpm);
+      outputDifference += (a - b) ** 2;
+      for (let cylinder = 0; cylinder < sound.firingPhases.length; cylinder++) {
+        const offset = sound.firingPhases[cylinder],
+          phase = reference.phase;
+        const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
+        if (!fired) continue;
+        // Observe the actual excitation, independently of pipe filtering and clipping.
+        const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / (sound.pulse.strength * varied.decay);
+        assert.ok(delta >= -0.4 - 1e-12 && delta <= 0.4 + 1e-12);
+        assert.ok(varied.pulse[cylinder] >= 0);
+        sum += delta;
+        square += delta ** 2;
+        events++;
       }
-      assert.ok(events > 500);
-      assert.ok(Math.abs(sum / events) < 0.025);
-      assert.ok(square / events > 0.02);
-      assert.ok(outputDifference > 0.01);
     }
+    assert.ok(events > 500);
+    assert.ok(Math.abs(sum / events) < 0.025);
+    assert.ok(square / events > 0.02);
+    assert.ok(outputDifference > 0.01);
+  }
 });
 
 test('variation retains finite headroom for every engine at the maximum control setting', () => {
   for (const { sound, profile } of profiles)
-    for (const rate of [88200, 96000])
-      for (const method of ['loop', 'waveguide']) {
-        const synth = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
-        for (let i = 0; i < rate; i++) {
-          const x = synth.sample(profile.powertrain.redlineRpm, i < rate / 2 ? 1 : 0);
-          assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
-        }
+    for (const rate of [44100, 48000, 88200, 96000]) {
+      const synth = new ExhaustWaveguide(sound, rate, { pulseVariation: 0.4 });
+      for (let i = 0; i < rate; i++) {
+        const x = synth.sample(profile.powertrain.redlineRpm, i < rate / 2 ? 1 : 0);
+        assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
       }
+    }
 });
 
 test('closed throttle retains the same absolute pulse variation as open throttle', () => {
   const sound = profiles[0].sound;
-  const coast = new ExhaustWaveguide(sound, 96000, 'waveguide', { pulseVariation: 0.2 });
-  const open = new ExhaustWaveguide(sound, 96000, 'waveguide', { pulseVariation: 0.2 });
+  const coast = new ExhaustWaveguide(sound, 96000, { pulseVariation: 0.2 });
+  const open = new ExhaustWaveguide(sound, 96000, { pulseVariation: 0.2 });
   for (let i = 0; i < 96000; i++) {
     const previous = coast.phase;
     coast.sample(3000, 0);
@@ -355,37 +371,32 @@ test('closed throttle retains the same absolute pulse variation as open throttle
   }
 });
 
-test('LOOP uses one round-trip delay per bank and length tuning leaves WAVEGUIDE unchanged', () => {
-  for (const { sound } of profiles) {
-    const base = new ExhaustWaveguide(sound, 96000, 'loop');
-    const longer = new ExhaustWaveguide(sound, 96000, 'loop', { loopLengthScale: 1.5 });
-    const wave = new ExhaustWaveguide(sound, 96000, 'waveguide');
-    const same = new ExhaustWaveguide(sound, 96000, 'waveguide', { loopLengthScale: 1.5 });
-    assert.equal(base.tails.length, Math.max(...sound.exhaust.banks) + 1);
-    assert.equal(base.forward.length + base.backward.length + base.returns.length, 0);
-    let difference = 0;
-    for (let i = 0; i < 24000; i++) {
-      difference += (base.sample(3000, 1) - longer.sample(3000, 1)) ** 2;
-      assert.equal(wave.sample(3000, 1), same.sample(3000, 1));
+test('native-rate waveguide preserves all pipes with delay-time error bounded by half a sample', () => {
+  for (const { sound } of profiles)
+    for (const rate of [44100, 48000]) {
+      const engine = new ExhaustWaveguide(sound, rate);
+      assert.equal(engine.forward.length, sound.firingPhases.length);
+      assert.equal(engine.backward.length, sound.firingPhases.length);
+      assert.equal(engine.tails.length, Math.max(...sound.exhaust.banks) + 1);
+      assert.equal(engine.returns.length, engine.tails.length);
+      for (let i = 0; i < sound.exhaust.lengths.length; i++) {
+        assert.ok(
+          Math.abs(engine.forward[i].data.length / rate - sound.exhaust.lengths[i] / 480) <= 0.5 / rate + 1e-12,
+        );
+      }
     }
-    assert.ok(difference > 0.01);
-  }
 });
 
-test('LOOP feedback stays finite without propagation loss at both length extremes', () => {
-  const sound = profiles[0].sound;
-  for (const loopLengthScale of [0.5, 2])
-    for (const rate of [88200, 96000]) {
-      const synth = new ExhaustWaveguide(sound, rate, 'loop', {
-        loopLengthScale,
-        attenuationPerMeter: 0,
-        outletReflection: -1,
-        pulseVariation: 0.4,
-      });
-      for (let i = 0; i < rate * 3; i++) {
-        const x = synth.sample(i < rate ? 1000 : 18000, i < rate * 2 ? 1 : 0);
-        assert.ok(Number.isFinite(x) && Math.abs(x) < 0.65);
-        assert.ok([...synth.outlet].every(Number.isFinite));
+test('native-rate waveguide withstands lossless-path redline and closes into silence', () => {
+  for (const { sound, profile } of profiles)
+    for (const rate of [44100, 48000]) {
+      const engine = new ExhaustWaveguide(sound, rate, { attenuationPerMeter: 0, pulseVariation: 0.4 });
+      for (let i = 0; i < rate * 2; i++) {
+        const x = engine.sample(profile.powertrain.redlineRpm, i < rate ? 1 : 0);
+        assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
+        assert.ok(engine.outlet.every(Number.isFinite));
       }
+      for (let i = 0; i < rate * 4; i++) engine.sample(0, 0);
+      assert.ok(Math.abs(engine.sample(0, 0)) < 1e-6);
     }
 });

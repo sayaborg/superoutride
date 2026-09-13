@@ -39,7 +39,6 @@ export function createAudioLifecycle() {
         sync();
       })
     : null;
-  tuningControls?.setMethod(methodControl?.value === 'loop' ? 'loop' : 'waveguide');
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -47,8 +46,7 @@ export function createAudioLifecycle() {
   function sync(): void {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
-    const method = methodControl?.value === 'loop' ? 'loop' : 'waveguide';
-    tuningControls?.setMethod(method);
+    const method = methodControl?.value === 'waveguide-lite' ? 'waveguide-lite' : 'waveguide';
     if (!context || !engine) return;
     engine.setMethod(method);
     if (tuningControls) engine.setTuning(tuningControls.read());
