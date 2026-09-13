@@ -12,7 +12,7 @@ test('candidate table changes one coefficient and leaves all vehicle authoring u
     const before = structuredClone(sound);
     for (const { tuning } of REFLECTION_CANDIDATES) {
       for (const rate of [88200, 96000]) {
-        const synth = new ExhaustWaveguide(sound, rate, false, tuning);
+        const synth = new ExhaustWaveguide(sound, rate, 'loop', tuning);
         for (let i = 0; i < rate / 2; i++) {
           const output = synth.sample(i < rate / 4 ? 1000 : 10000, i < rate / 4 ? 0 : 1);
           assert.ok(Number.isFinite(output) && Math.abs(output) < 0.65);
@@ -23,10 +23,10 @@ test('candidate table changes one coefficient and leaves all vehicle authoring u
   }
 });
 
-test('empty tuning is identical and each candidate changes the simple-reflection waveform', () => {
+test('empty tuning is identical and each candidate changes the filtered-loop waveform', () => {
   const sound = VEHICLE_CATALOG[3].sound;
-  const baseline = new ExhaustWaveguide(sound, 96000, false);
-  const engines = REFLECTION_CANDIDATES.map(({ tuning }) => new ExhaustWaveguide(sound, 96000, false, tuning));
+  const baseline = new ExhaustWaveguide(sound, 96000, 'loop');
+  const engines = REFLECTION_CANDIDATES.map(({ tuning }) => new ExhaustWaveguide(sound, 96000, 'loop', tuning));
   const differences = engines.map(() => 0);
   for (let i = 0; i < 96000; i++) {
     const reference = baseline.sample(3000, 0.25);
@@ -41,6 +41,9 @@ test('empty tuning is identical and each candidate changes the simple-reflection
 test('acoustic tuning rejects unstable or nonfinite values and cannot override other constants', () => {
   const sound = VEHICLE_CATALOG[0].sound;
   for (const tuning of [
+    { loopLengthScale: NaN },
+    { loopLengthScale: 0.49 },
+    { loopLengthScale: 2.01 },
     { pulseVariation: NaN },
     { pulseVariation: Infinity },
     { pulseVariation: -0.01 },
@@ -60,8 +63,8 @@ test('acoustic tuning rejects unstable or nonfinite values and cannot override o
     { outputCutoffHz: NaN },
     { outputCutoffHz: Infinity },
   ])
-    assert.throws(() => new ExhaustWaveguide(sound, 96000, false, tuning), RangeError);
-  const normal = new ExhaustWaveguide(sound, 96000, false);
-  const extra = new ExhaustWaveguide(sound, 96000, false, { waveSpeed: NaN, sourceClosedReflection: 2 });
+    assert.throws(() => new ExhaustWaveguide(sound, 96000, 'loop', tuning), RangeError);
+  const normal = new ExhaustWaveguide(sound, 96000, 'loop');
+  const extra = new ExhaustWaveguide(sound, 96000, 'loop', { waveSpeed: NaN, sourceClosedReflection: 2 });
   for (let i = 0; i < 9600; i++) assert.equal(normal.sample(3000, 1), extra.sample(3000, 1));
 });

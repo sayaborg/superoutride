@@ -8,7 +8,11 @@
 
 ## Engine sound continuation
 
-Keep the current in-game REFLECTION/WAVEGUIDE selector, six tuning sliders and reset intact while comparison continues. Neither method has been adopted. Both use one sample kernel and the same profiles and controls; the [audio specification](audio.md) owns their source map, parameters, physical limits and eventual removal procedure. Simplicity, explicit approximation limits and unchanged physics take priority over extra acoustic machinery.
+WAVEGUIDE is adopted as the reference sound, with all coefficients provisional. The selector now
+compares WAVEGUIDE with lightweight LOOP; the rejected REFLECTION branch is removed. Six common
+controls plus a LOOP-only path-length scale share one tuning snapshot and reset. Preserve the
+reference waveform while comparing similarity and CPU cost. The [audio specification](audio.md)
+owns the reduction, its limits and tuning. Android gameplay/audio acceptance remains open.
 
 - Build and serve the repository over HTTP using [development](development.md). Use `/?mode=circuit` for tuning while driving; `/tools/audio-browser.html` is the separate audition/verification page. A file URL or public main deployment does not establish that the feature branch is running.
 - Game sliders commit on release through the existing fade. The final LPF follows soft clipping and is independent of the reflection-wave LPF. Method and vehicle changes preserve tuning; page/course reload resets it. Browser trial values are not saved repository defaults.

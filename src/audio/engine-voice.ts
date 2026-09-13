@@ -1,3 +1,4 @@
+import type { EngineMethod } from './exhaust-acoustics.js';
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
@@ -9,11 +10,11 @@ export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
   {
-    coupled = true,
+    method = 'waveguide',
     profile: initialProfile,
     tuning = {},
   }: {
-    coupled?: boolean;
+    method?: EngineMethod;
     profile?: VehicleAudioProfile;
     tuning?: Partial<typeof DEFAULT_EXHAUST_TUNING>;
   } = {},
@@ -26,35 +27,39 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialProfile ? { profile: initialProfile, coupled, tuning: acousticTuning } : undefined,
+    processorOptions: initialProfile ? { profile: initialProfile, method, tuning: acousticTuning } : undefined,
   });
   exhaust.connect(output);
-  let active = initialProfile ? { profile: initialProfile, coupled, tuning: acousticTuning } : null;
-  let pending: { profile: VehicleAudioProfile; coupled: boolean; tuning: typeof acousticTuning; at: number } | null =
-    null;
+  let active = initialProfile ? { profile: initialProfile, method, tuning: acousticTuning } : null;
+  let pending: {
+    profile: VehicleAudioProfile;
+    method: EngineMethod;
+    tuning: typeof acousticTuning;
+    at: number;
+  } | null = null;
   return {
     update(state: VehicleAudioObservation, profile: VehicleAudioProfile, gain = 1): void {
       const now = context.currentTime;
-      const changed = active?.profile !== profile || active?.coupled !== coupled || active?.tuning !== acousticTuning;
+      const changed = active?.profile !== profile || active?.method !== method || active?.tuning !== acousticTuning;
       if (active && changed) {
-        if (pending?.profile !== profile || pending.coupled !== coupled || pending.tuning !== acousticTuning) {
-          pending = { profile, coupled, tuning: acousticTuning, at: now + 0.09 };
+        if (pending?.profile !== profile || pending.method !== method || pending.tuning !== acousticTuning) {
+          pending = { profile, method, tuning: acousticTuning, at: now + 0.09 };
           follow(output.gain, 0, now, 0.01);
         }
         if (now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        exhaust.port.postMessage({ profile, coupled, tuning: acousticTuning });
-        active = { profile, coupled, tuning: acousticTuning };
+        exhaust.port.postMessage({ profile, method, tuning: acousticTuning });
+        active = { profile, method, tuning: acousticTuning };
       }
       follow(exhaust.parameters.get('rpm')!, clamp(state.rpm, state.idleRpm, state.redlineRpm), now);
       follow(exhaust.parameters.get('load')!, clamp(state.drive, 0, 1), now);
       follow(output.gain, clamp(gain, 0, 1), now);
     },
     /** Temporary comparison choice; applied through the next ordinary update, including after suspension. */
-    setCoupled(value: boolean): void {
-      coupled = value;
+    setMethod(value: EngineMethod): void {
+      method = value;
     },
     setTuning(value: typeof DEFAULT_EXHAUST_TUNING): void {
       const same = (candidate: typeof acousticTuning) =>

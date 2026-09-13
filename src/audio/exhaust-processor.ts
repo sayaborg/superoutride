@@ -1,3 +1,4 @@
+import type { EngineMethod } from './exhaust-acoustics.js';
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
 import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
@@ -18,7 +19,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   constructor(options?: {
     processorOptions?: {
       profile: VehicleAudioProfile;
-      coupled?: boolean;
+      method?: EngineMethod;
       tuning?: Partial<typeof DEFAULT_EXHAUST_TUNING>;
     };
   }) {
@@ -28,7 +29,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       this.engine = new ExhaustWaveguide(
         compileVehicleAudioProfile(initial.profile),
         sampleRate * 2,
-        initial.coupled,
+        initial.method,
         initial.tuning,
       );
     this.port.onmessage = ({ data }) => {
@@ -41,7 +42,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
           this.engine = new ExhaustWaveguide(
             compileVehicleAudioProfile(data.profile),
             sampleRate * 2,
-            data.coupled !== false,
+            data.method ?? 'waveguide',
             data.tuning,
           );
         } catch {

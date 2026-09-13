@@ -168,10 +168,10 @@ test('engine voice reads one excitation proxy, clamps RPM and never modifies obs
 
 test('selected coupling and tuning survive voice profile replacement without node duplication', (t) => {
   install(t);
-  for (const coupled of [false, true]) {
+  for (const method of ['loop', 'waveguide']) {
     const context = new FakeAudioContext();
     const tuning = { outletReflection: -0.8 };
-    const voice = createEngineVoice(context, context.destination, { coupled, tuning });
+    const voice = createEngineVoice(context, context.destination, { method, tuning });
     const count = context.nodes.length;
     tuning.outletReflection = 0;
     const worklet = context.nodes.find(
@@ -184,7 +184,7 @@ test('selected coupling and tuning survive voice profile replacement without nod
     voice.update(state, VEHICLE_CATALOG[1].sound);
     assert.equal(worklet.messages.length, 2);
     for (const message of worklet.messages) {
-      assert.equal(message.coupled, coupled);
+      assert.equal(message.method, method);
       assert.deepEqual(message.tuning, { ...DEFAULT_EXHAUST_TUNING, outletReflection: -0.8 });
     }
     assert.equal(context.nodes.length, count);
@@ -207,15 +207,15 @@ test('method changes fade both fixed engine slots and a superseded choice cannot
   const worklets = context.nodes.filter(
     (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
   );
-  engine.setCoupled(false);
+  engine.setMethod('loop');
   update();
   assert.ok(worklets.every((node) => node.messages.length === 1));
   context.currentTime = 0.1;
   update();
-  assert.ok(worklets.every((node) => node.messages.length === 2 && node.messages.at(-1).coupled === false));
-  engine.setCoupled(true);
+  assert.ok(worklets.every((node) => node.messages.length === 2 && node.messages.at(-1).method === 'loop'));
+  engine.setMethod('waveguide');
   update();
-  engine.setCoupled(false);
+  engine.setMethod('loop');
   update();
   context.currentTime = 1;
   update();
@@ -227,7 +227,7 @@ test('method changes fade both fixed engine slots and a superseded choice cannot
 test('game selector honors late loading and muted changes while preserving vehicle state and cleanup', async (t) => {
   const dom = install(t);
   const method = dom.elements.get('sound-method');
-  method.value = 'reflection';
+  method.value = 'loop';
   let finish;
   FakeAudioContext.load = () =>
     new Promise((resolve) => {
@@ -253,10 +253,10 @@ test('game selector honors late loading and muted changes while preserving vehic
     (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
   );
   assert.equal(worklets.length, 2);
-  assert.equal(worklets[0].messages.at(-1).coupled, true);
+  assert.equal(worklets[0].messages.at(-1).method, 'waveguide');
   const count = context.nodes.length;
   dom.elements.get('sound-toggle').click();
-  method.value = 'reflection';
+  method.value = 'loop';
   method.emit('change');
   lifecycle.update(player, []);
   assert.equal(worklets[0].messages.length, 1);
@@ -265,7 +265,7 @@ test('game selector honors late loading and muted changes while preserving vehic
   lifecycle.update(player, []);
   context.currentTime = 0.1;
   lifecycle.update(player, []);
-  assert.equal(worklets[0].messages.at(-1).coupled, false);
+  assert.equal(worklets[0].messages.at(-1).method, 'loop');
   assert.equal(context.nodes.length, count);
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
@@ -313,11 +313,17 @@ test('committed sliders survive mute, method and profile changes without mutatin
   t.after(() => lifecycle.dispose());
   const host = dom.elements.get('sound-tuning');
   const inputs = host.children.slice(0, -1).map((row) => row.children[1]);
-  const [reflection, cutoff, , , finalCutoff, variation] = inputs;
+  const [reflection, cutoff, , , finalCutoff, variation, loopLength] = inputs;
   assert.deepEqual(
     inputs.map((input) => Number(input.value)),
-    [-1, 3100, 0.03, 0.22, 7300, 0.2],
+    [-1, 3100, 0.03, 0.22, 7300, 0.2, 1],
   );
+  assert.equal(loopLength.disabled, true);
+  dom.elements.get('sound-method').value = 'loop';
+  dom.elements.get('sound-method').emit('change');
+  assert.equal(loopLength.disabled, false);
+  loopLength.value = '1.5';
+  loopLength.emit('change');
   variation.value = '0.12';
   variation.emit('input');
   assert.equal(host.children[5].children[2].textContent, '±12%');
@@ -343,6 +349,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
   assert.equal(worklets[0].messages.at(-1).tuning.pulseVariation, 0.12);
+  assert.equal(worklets[0].messages.at(-1).tuning.loopLengthScale, 1.5);
   cutoff.value = '500';
   cutoff.emit('input'); // preview must not rebuild while dragging
   context.currentTime = 1;
@@ -350,14 +357,14 @@ test('committed sliders survive mute, method and profile changes without mutatin
   assert.equal(worklets[0].messages.length, 1);
   dom.elements.get('sound-toggle').click();
   cutoff.emit('change');
-  dom.elements.get('sound-method').value = 'reflection';
+  dom.elements.get('sound-method').value = 'loop';
   dom.elements.get('sound-method').emit('change');
   dom.elements.get('sound-toggle').click();
   await settle();
   lifecycle.update(player, []);
   context.currentTime = 1.1;
   lifecycle.update(player, []);
-  assert.equal(worklets[0].messages.at(-1).coupled, false);
+  assert.equal(worklets[0].messages.at(-1).method, 'loop');
   assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
   const replacement = createArcadeVehicle(VEHICLE_CATALOG[3].profile, world);
   lifecycle.update(replacement, []);
@@ -366,6 +373,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
   assert.equal(worklets[0].messages.at(-1).tuning.pulseVariation, 0.12);
+  assert.equal(worklets[0].messages.at(-1).tuning.loopLengthScale, 1.5);
   assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
   host.children.at(-1).click();
   lifecycle.update(replacement, []);

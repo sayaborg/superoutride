@@ -5,8 +5,8 @@ import { DEFAULT_EXHAUST_TUNING, OUTPUT } from '../dist/audio/exhaust-acoustics.
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const profiles = VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust);
-function render(profile, load, coupled = true, rate = 48000) {
-  const engine = new ExhaustWaveguide(profile, rate, coupled);
+function render(profile, load, method = 'waveguide', rate = 48000) {
+  const engine = new ExhaustWaveguide(profile, rate, method);
   const samples = new Float32Array(rate);
   for (let i = 0; i < samples.length; i++) samples[i] = engine.sample(3000, load);
   return samples.subarray(rate / 2);
@@ -23,8 +23,8 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
     pulse: { strength: 4, riseSeconds: 0.00001, decaySeconds: 0.006 },
   });
   for (const rate of [88200, 96000])
-    for (const coupled of [false, true]) {
-      const synth = new ExhaustWaveguide(profile, rate, coupled, { outletReflection: 0 });
+    for (const method of ['loop', 'waveguide']) {
+      const synth = new ExhaustWaveguide(profile, rate, method, { outletReflection: 0 });
       const coefficient = 1 - Math.exp((-2 * Math.PI * DEFAULT_EXHAUST_TUNING.outputCutoffHz) / rate);
       let previous = 0,
         peak = 0;
@@ -43,9 +43,9 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
 test('output cutoff changes only the final filter, preserving the clipped exhaust signal', () => {
   const sound = VEHICLE_CATALOG[2].sound;
   for (const rate of [88200, 96000])
-    for (const coupled of [false, true]) {
+    for (const method of ['loop', 'waveguide']) {
       const cutoffs = [100, 1000, DEFAULT_EXHAUST_TUNING.outputCutoffHz, 12000];
-      const voices = cutoffs.map((outputCutoffHz) => new ExhaustWaveguide(sound, rate, coupled, { outputCutoffHz }));
+      const voices = cutoffs.map((outputCutoffHz) => new ExhaustWaveguide(sound, rate, method, { outputCutoffHz }));
       const coefficients = cutoffs.map((hz) => 1 - Math.exp((-2 * Math.PI * hz) / rate));
       const previous = voices.map(() => 0);
       let difference = 0;
@@ -67,16 +67,16 @@ test('output cutoff changes only the final filter, preserving the clipped exhaus
 test('waveguide exhaust remains bounded under load and geometry changes at both output rates', () => {
   for (const { sound } of profiles)
     for (const rate of [88200, 96000]) {
-      const closed = render(sound, 0, true, rate),
-        open = render(sound, 1, true, rate);
+      const closed = render(sound, 0, 'waveguide', rate),
+        open = render(sound, 1, 'waveguide', rate);
       assert.ok([...closed, ...open].every((x) => Number.isFinite(x) && Math.abs(x) < 0.65));
       assert.ok(energy(open) > energy(closed) * 1.2);
-      const reference = render(sound, 1, false, rate);
+      const reference = render(sound, 1, 'loop', rate);
       assert.ok(difference(open, reference) > 0.01 * energy(open));
       const altered = render(
         { ...sound, exhaust: { ...sound.exhaust, outlet: sound.exhaust.outlet * 1.3 } },
         1,
-        true,
+        'waveguide',
         rate,
       );
       assert.ok(difference(open, altered) > 0.01 * energy(open));
@@ -136,11 +136,11 @@ test('worklet renders identical streams across block partitions, ignores invalid
   globalThis.sampleRate = 48000;
   try {
     await import('../dist/audio/exhaust-processor.js');
-    const ready = new Processor({ processorOptions: { profile: profiles[0].sound, coupled: true } });
+    const ready = new Processor({ processorOptions: { profile: profiles[0].sound, method: 'waveguide' } });
     const startup = [[new Float32Array(48000)]];
     ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
     assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
-    for (const coupled of [false, true]) {
+    for (const method of ['loop', 'waveguide']) {
       const tuning = {
         outletReflection: -0.8,
         returnCutoffHz: 1800,
@@ -148,10 +148,10 @@ test('worklet renders identical streams across block partitions, ignores invalid
         closedExcitation: 0.1,
         outputCutoffHz: 800,
       };
-      const direct = new ExhaustWaveguide(profiles[0].sound, 96000, coupled, tuning);
-      const configured = new Processor({ processorOptions: { profile: profiles[0].sound, coupled, tuning } });
+      const direct = new ExhaustWaveguide(profiles[0].sound, 96000, method, tuning);
+      const configured = new Processor({ processorOptions: { profile: profiles[0].sound, method, tuning } });
       const messaged = new Processor();
-      messaged.port.onmessage({ data: { profile: profiles[0].sound, coupled, tuning } });
+      messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning } });
       const params = { rpm: new Float32Array([3000]), load: new Float32Array([0.25]) };
       const actual = [[new Float32Array(4096)]],
         replaced = [[new Float32Array(4096)]];
@@ -160,7 +160,7 @@ test('worklet renders identical streams across block partitions, ignores invalid
       for (const value of actual[0][0])
         assert.equal(value, Math.fround((direct.sample(3000, 0.25) + direct.sample(3000, 0.25)) * 0.5));
       assert.deepEqual(actual, replaced);
-      messaged.port.onmessage({ data: { profile: profiles[0].sound, coupled, tuning: { outletReflection: 2 } } });
+      messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning: { outletReflection: 2 } } });
       messaged.process([], replaced, params);
       assert.ok(replaced[0][0].every((x) => x === 0));
     }
@@ -198,7 +198,7 @@ test('zero-variation reference repeats without a stochastic noise floor at every
   const rate = 96000;
   for (const { sound } of profiles)
     for (const load of [0, 0.25, 0.5, 0.75, 1]) {
-      const synth = new ExhaustWaveguide(sound, rate, true, { pulseVariation: 0 });
+      const synth = new ExhaustWaveguide(sound, rate, 'waveguide', { pulseVariation: 0 });
       const lag = (rate * 60 * sound.cycleRevolutions) / 3000;
       const samples = new Float64Array(lag * 3);
       for (let i = 0; i < rate * 2; i++) synth.sample(3000, load);
@@ -229,12 +229,12 @@ test('every catalog engine has waveguide authoring and Porsche banks fire evenly
 
 test('pulse rise and decay affect waveform shape, beyond a volume multiplier', () => {
   const sound = VEHICLE_CATALOG[3].sound;
-  const normal = render(sound, 1, true, 96000);
+  const normal = render(sound, 1, 'waveguide', 96000);
   for (const pulse of [
     { ...sound.pulse, riseSeconds: sound.pulse.riseSeconds * 4 },
     { ...sound.pulse, decaySeconds: sound.pulse.decaySeconds * 0.5 },
   ]) {
-    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, true, 96000);
+    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, 'waveguide', 96000);
     const ratio = Math.sqrt(energy(normal) / energy(changed));
     assert.ok(
       difference(
@@ -244,7 +244,7 @@ test('pulse rise and decay affect waveform shape, beyond a volume multiplier', (
         energy(normal) * 0.001,
     );
   }
-  const closed = render(sound, 0, true, 96000);
+  const closed = render(sound, 0, 'waveguide', 96000);
   const ratio = Math.sqrt(energy(normal) / energy(closed));
   assert.ok(
     difference(
@@ -270,7 +270,7 @@ test('RPM changes the settled repetition period while excitation preserves it', 
   const sound = VEHICLE_CATALOG[3].sound,
     rate = 96000;
   for (const rpm of [1500, 3000, 6000]) {
-    const synth = new ExhaustWaveguide(sound, rate, true, { pulseVariation: 0 });
+    const synth = new ExhaustWaveguide(sound, rate, 'waveguide', { pulseVariation: 0 });
     for (let i = 0; i < rate * 2; i++) synth.sample(rpm, 0.5);
     const lag = (rate * 60 * sound.cycleRevolutions) / rpm;
     const samples = Float64Array.from({ length: lag * 3 }, () => synth.sample(rpm, 0.5));
@@ -283,10 +283,10 @@ test('RPM changes the settled repetition period while excitation preserves it', 
 test('pulse variation changes strength within bounds while preserving firing timing and mean excitation', () => {
   const sound = profiles.find((entry) => entry.profile.id === 'CORVETTE_C4').sound;
   for (const rate of [88200, 96000])
-    for (const coupled of [false, true]) {
-      const reference = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0 });
-      const varied = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
-      const replay = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
+    for (const method of ['loop', 'waveguide']) {
+      const reference = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0 });
+      const varied = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
+      const replay = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
       let sum = 0,
         square = 0,
         events = 0,
@@ -326,8 +326,8 @@ test('pulse variation changes strength within bounds while preserving firing tim
 test('variation retains finite headroom for every engine at the maximum control setting', () => {
   for (const { sound, profile } of profiles)
     for (const rate of [88200, 96000])
-      for (const coupled of [false, true]) {
-        const synth = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
+      for (const method of ['loop', 'waveguide']) {
+        const synth = new ExhaustWaveguide(sound, rate, method, { pulseVariation: 0.4 });
         for (let i = 0; i < rate; i++) {
           const x = synth.sample(profile.powertrain.redlineRpm, i < rate / 2 ? 1 : 0);
           assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
@@ -337,8 +337,8 @@ test('variation retains finite headroom for every engine at the maximum control 
 
 test('closed throttle retains the same absolute pulse variation as open throttle', () => {
   const sound = profiles[0].sound;
-  const coast = new ExhaustWaveguide(sound, 96000, true, { pulseVariation: 0.2 });
-  const open = new ExhaustWaveguide(sound, 96000, true, { pulseVariation: 0.2 });
+  const coast = new ExhaustWaveguide(sound, 96000, 'waveguide', { pulseVariation: 0.2 });
+  const open = new ExhaustWaveguide(sound, 96000, 'waveguide', { pulseVariation: 0.2 });
   for (let i = 0; i < 96000; i++) {
     const previous = coast.phase;
     coast.sample(3000, 0);
@@ -353,4 +353,39 @@ test('closed throttle retains the same absolute pulse variation as open throttle
       assert.ok(Math.abs(deviation(coast) - deviation(open)) < 1e-12);
     }
   }
+});
+
+test('LOOP uses one round-trip delay per bank and length tuning leaves WAVEGUIDE unchanged', () => {
+  for (const { sound } of profiles) {
+    const base = new ExhaustWaveguide(sound, 96000, 'loop');
+    const longer = new ExhaustWaveguide(sound, 96000, 'loop', { loopLengthScale: 1.5 });
+    const wave = new ExhaustWaveguide(sound, 96000, 'waveguide');
+    const same = new ExhaustWaveguide(sound, 96000, 'waveguide', { loopLengthScale: 1.5 });
+    assert.equal(base.tails.length, Math.max(...sound.exhaust.banks) + 1);
+    assert.equal(base.forward.length + base.backward.length + base.returns.length, 0);
+    let difference = 0;
+    for (let i = 0; i < 24000; i++) {
+      difference += (base.sample(3000, 1) - longer.sample(3000, 1)) ** 2;
+      assert.equal(wave.sample(3000, 1), same.sample(3000, 1));
+    }
+    assert.ok(difference > 0.01);
+  }
+});
+
+test('LOOP feedback stays finite without propagation loss at both length extremes', () => {
+  const sound = profiles[0].sound;
+  for (const loopLengthScale of [0.5, 2])
+    for (const rate of [88200, 96000]) {
+      const synth = new ExhaustWaveguide(sound, rate, 'loop', {
+        loopLengthScale,
+        attenuationPerMeter: 0,
+        outletReflection: -1,
+        pulseVariation: 0.4,
+      });
+      for (let i = 0; i < rate * 3; i++) {
+        const x = synth.sample(i < rate ? 1000 : 18000, i < rate * 2 ? 1 : 0);
+        assert.ok(Number.isFinite(x) && Math.abs(x) < 0.65);
+        assert.ok([...synth.outlet].every(Number.isFinite));
+      }
+    }
 });

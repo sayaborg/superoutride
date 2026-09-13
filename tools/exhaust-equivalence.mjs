@@ -11,16 +11,16 @@ let samples = 0;
 let cases = 0;
 for (const { sound, profile } of VEHICLE_CATALOG)
   for (const rate of [88200, 96000])
-    for (const coupled of [false, true])
+    for (const method of ['waveguide'])
       for (const tuning of [
         {},
         { outletReflection: 0 },
         { outletReflection: -0.95, returnCutoffHz: 800, attenuationPerMeter: 0, closedExcitation: 0.08 },
       ]) {
         const settings = zeroVariation ? { ...tuning, pulseVariation: 0 } : tuning;
-        const before = new Reference(sound, rate, coupled, settings);
-        const after = new ExhaustWaveguide(sound, rate, coupled, settings);
-        const label = `${profile.id}/${rate}/${coupled}/${JSON.stringify(tuning)}`;
+        const before = new Reference(sound, rate, true, settings);
+        const after = new ExhaustWaveguide(sound, rate, method, settings);
+        const label = `${profile.id}/${rate}/${method}/${JSON.stringify(tuning)}`;
         for (const [rpm, load] of [
           [900, 0],
           [3000, 0.25],

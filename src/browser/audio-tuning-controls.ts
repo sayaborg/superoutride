@@ -1,3 +1,4 @@
+import type { EngineMethod } from '../audio/exhaust-acoustics.js';
 import { DEFAULT_EXHAUST_TUNING } from '../audio/exhaust-acoustics.js';
 
 // Shared audition/game presentation; the DSP remains the owner of coefficient defaults and validation.
@@ -55,6 +56,15 @@ const CONTROLS = [
     0.01,
     '',
     '全開時の強度を基準に、各点火へ±この割合の揺らぎを加えます。標準は±20%。アクセルオフでも同じ幅を保ち、強度の下限は0です。点火時刻とRPMは変えません。',
+  ],
+  [
+    'loopLengthScale',
+    'ループ長（LOOP専用）',
+    0.5,
+    2,
+    0.05,
+    '倍',
+    'LOOPの往復経路長。長くすると共鳴が低くなります。WAVEGUIDEには影響しません。',
   ],
 ] as const;
 
@@ -120,6 +130,9 @@ export function mountAudioTuningControls(
   container.replaceChildren(...rows, reset);
   return {
     read: () => ({ ...tuning }),
+    setMethod(method: EngineMethod): void {
+      inputs.get('loopLengthScale')!.disabled = method !== 'loop';
+    },
     dispose() {
       for (const remove of listeners) remove();
       container.replaceChildren();

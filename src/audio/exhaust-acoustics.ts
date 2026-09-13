@@ -1,3 +1,5 @@
+export type EngineMethod = 'waveguide' | 'loop';
+
 // Reference conditions, not measured vehicle data. Sources and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
@@ -24,6 +26,7 @@ interface ExhaustTuning {
   readonly closedExcitation: number;
   readonly outputCutoffHz: number;
   readonly pulseVariation: number;
+  readonly loopLengthScale: number;
 }
 export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
   // Rounded to slider resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
@@ -32,6 +35,7 @@ export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
   returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
   outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
   closedExcitation: 0.22, // retained authored control; cannot be inferred from pipe acoustics
+  loopLengthScale: 1, // LOOP only: scales its authored round-trip path
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
 });

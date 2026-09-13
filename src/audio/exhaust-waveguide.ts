@@ -1,5 +1,6 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
+import type { EngineMethod } from './exhaust-acoustics.js';
 import { ACOUSTICS, CONTROL_SECONDS, DEFAULT_EXHAUST_TUNING, OUTPUT } from './exhaust-acoustics.js';
 
 /** Fixed delay with amplitude loss exp(-attenuation * distance) on each traversal. */
@@ -52,8 +53,8 @@ export class ExhaustWaveguide {
   constructor(
     private readonly profile: VehicleAudioProfile,
     private readonly rate: number,
-    // Temporary comparison switch. Adopt one branch and delete the other; see docs/audio.md.
-    private readonly coupled = true,
+    // WAVEGUIDE reference or reduced filtered-loop topology; source/output are shared.
+    private readonly method: EngineMethod = 'waveguide',
     tuning: Partial<typeof DEFAULT_EXHAUST_TUNING> = {},
   ) {
     const {
@@ -63,8 +64,13 @@ export class ExhaustWaveguide {
       closedExcitation = DEFAULT_EXHAUST_TUNING.closedExcitation,
       outputCutoffHz = DEFAULT_EXHAUST_TUNING.outputCutoffHz,
       pulseVariation = DEFAULT_EXHAUST_TUNING.pulseVariation,
+      loopLengthScale = DEFAULT_EXHAUST_TUNING.loopLengthScale,
     } = tuning;
     if (
+      (method !== 'waveguide' && method !== 'loop') ||
+      !Number.isFinite(loopLengthScale) ||
+      loopLengthScale < 0.5 ||
+      loopLengthScale > 2 ||
       !Number.isFinite(attenuationPerMeter) ||
       attenuationPerMeter < 0 ||
       attenuationPerMeter > 1 ||
@@ -92,6 +98,7 @@ export class ExhaustWaveguide {
       closedExcitation,
       outputCutoffHz,
       pulseVariation,
+      loopLengthScale,
     });
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
@@ -99,10 +106,16 @@ export class ExhaustWaveguide {
     const groups = Math.max(...this.banks) + 1;
     const pipe = (meters: number) =>
       new Delay((meters * rate) / ACOUSTICS.waveSpeed, Math.exp(-this.tuning.attenuationPerMeter * meters));
-    this.forward = exhaust.lengths.map(pipe);
+    const coupled = method === 'waveguide';
+    this.forward = coupled ? exhaust.lengths.map(pipe) : [];
     this.backward = coupled ? exhaust.lengths.map(pipe) : [];
-    this.tails = Array.from({ length: groups }, () => pipe(exhaust.outlet));
-    this.returns = Array.from({ length: groups }, () => pipe(exhaust.outlet));
+    this.tails = Array.from({ length: groups }, (_, bank) => {
+      if (coupled) return pipe(exhaust.outlet);
+      const lengths = exhaust.lengths.filter((_, i) => this.banks[i] === bank);
+      const mean = lengths.reduce((sum, length) => sum + length, 0) / lengths.length;
+      return pipe(2 * (mean + exhaust.outlet) * loopLengthScale);
+    });
+    this.returns = coupled ? Array.from({ length: groups }, () => pipe(exhaust.outlet)) : [];
     this.counts = new Float64Array(groups);
     this.sums = new Float64Array(groups);
     this.junctions = new Float64Array(coupled ? groups : 0);
@@ -119,7 +132,7 @@ export class ExhaustWaveguide {
     this.loss = 1 - Math.exp((-2 * Math.PI * this.tuning.returnCutoffHz) / rate);
   }
 
-  /** One sample, without allocation. Reflection mode uses a fixed source termination without cylinder return coupling. */
+  /** One sample, without allocation. LOOP merges pulses before a filtered round-trip delay per bank. */
   sample(targetRpm: number, targetLoad: number): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
@@ -130,7 +143,7 @@ export class ExhaustWaveguide {
     const excitation = this.tuning.closedExcitation + (1 - this.tuning.closedExcitation) * this.load;
     const attack = 1 - Math.exp(-excitation / (this.profile.pulse.riseSeconds * this.rate));
     this.sums.fill(0);
-    for (let i = 0; i < this.forward.length; i++) {
+    for (let i = 0; i < this.pulse.length; i++) {
       const offset = this.profile.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
@@ -149,22 +162,25 @@ export class ExhaustWaveguide {
       }
       this.pulse[i]! *= this.decay;
       this.rise[i]! += attack * (this.pulse[i]! - this.rise[i]!);
-      this.sums[this.banks[i]!]! += this.forward[i]!.read();
-      if (!this.coupled) this.forward[i]!.write(this.rise[i]!);
+      this.sums[this.banks[i]!]! += this.method === 'waveguide' ? this.forward[i]!.read() : this.rise[i]!;
     }
     let exhaust = 0;
     for (let bank = 0; bank < this.tails.length; bank++) {
-      const returning = this.returns[bank]!.read();
+      const returning = this.method === 'waveguide' ? this.returns[bank]!.read() : 0;
       const out = this.tails[bank]!.read();
       this.outlet[bank]! += this.loss * (out - this.outlet[bank]!);
-      this.returns[bank]!.write(this.tuning.outletReflection * this.outlet[bank]!);
-      if (this.coupled) {
+      if (this.method === 'waveguide') {
+        this.returns[bank]!.write(this.tuning.outletReflection * this.outlet[bank]!);
         // Equal-admittance scattering: p = 2 sum(incoming) / number of ports.
         const pressure = (2 * (this.sums[bank]! + returning)) / (this.counts[bank]! + 1);
         this.junctions[bank] = pressure;
         this.tails[bank]!.write(pressure - returning);
       } else {
-        this.tails[bank]!.write(this.sums[bank]! / this.counts[bank]! + ACOUSTICS.sourceClosedReflection * returning);
+        // Passive fixed source termination; outlet loss/filter remain inside the feedback loop.
+        this.tails[bank]!.write(
+          this.sums[bank]! / this.counts[bank]! +
+            ACOUSTICS.sourceClosedReflection * this.tuning.outletReflection * this.outlet[bank]!,
+        );
       }
       exhaust += out + this.outlet[bank]!;
     }

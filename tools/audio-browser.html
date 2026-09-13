@@ -65,12 +65,12 @@
         <option value="matched">音量を揃える（方式の比較）</option>
       </select></label
     >
-    <p>採用判断のための一時的な比較です。将来は1方式だけを採用し、不採用側を削除します。</p>
+    <p>採用済みのWAVEGUIDEと軽量LOOPの比較です。パラメータは調整中です。</p>
     <label
       >方式
       <select id="method">
-        <option value="reflection">簡易反射（最適化版）</option>
-        <option value="waveguide">ウェーブガイド（最適化版）</option>
+        <option value="loop">LOOP（軽量）</option>
+        <option value="waveguide" selected>ウェーブガイド（最適化版）</option>
       </select>
     </label>
     <p id="method-description"></p>
@@ -190,15 +190,16 @@
       document.getElementById('stop').onclick = stop;
       method.onchange = () => {
         stop();
+        tuningControls.setMethod(method.value);
         document.getElementById('method-description').textContent =
           method.value === 'waveguide'
             ? '気筒側へ戻る波と集合部の相互作用を計算します。'
-            : '枝管からのパルスをまとめ、出口との往復反射を計算します。気筒への戻り波は省略します。';
+            : '発火パルスをまとめ、排気系ごとに1本の反射ループで響かせます。ループ長で共鳴の高さを調整できます。';
       };
       method.onchange();
       const readSelection = () => ({
         label: method.selectedOptions[0].textContent,
-        coupled: method.value === 'waveguide',
+        method: method.value,
         tuning: readTuning(),
       });
       async function audition() {
@@ -223,7 +224,7 @@
           await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
           const voice = createEngineVoice(context, context.destination, {
             profile: entry.sound,
-            coupled: selected.coupled,
+            method: selected.method,
             tuning: selected.tuning,
           });
           voice.update(state, entry.sound);
@@ -302,7 +303,7 @@
                 await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
                 const voice = createEngineVoice(context, context.destination, {
                   profile: entry.sound,
-                  coupled: selected.coupled,
+                  method: selected.method,
                   tuning: selected.tuning,
                 });
                 const observation = createVehicleAudioObservation();
