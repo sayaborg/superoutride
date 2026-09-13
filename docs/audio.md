@@ -180,8 +180,10 @@ noise modulation, independently of render-block boundaries. Fixed seed-derived d
 
 Fundamental, second and third harmonics share the oscillator phase. The polynomial pickup
 `y + 0.32 (2xy) + 0.12 y (3x² - y²)` makes higher harmonics grow with amplitude. Independent
-fixed-seed noise supplies rolling/scrub sound, seeds onset and adds weak roughness. Scrub retains
-the 5500 Hz one-pole low-pass and rolling-band subtraction. Gains/excitation use 25 ms attack
+fixed-seed noise supplies rolling/scrub sound, seeds onset and adds weak roughness. Scrub now cascades the surface-dependent rolling low-pass with a 2000 Hz one-pole low-pass,
+removing the former rolling-band subtraction that emphasized broadband hiss. Its intensity gain
+is 0.045 instead of 0.16 (about 11 dB lower before filtering); this is a listening adjustment,
+not a measured material coefficient. The oscillator and its excitation are unchanged by this noise adjustment. Gains/excitation use 25 ms attack
 and 65 ms release; the oscillator also has its own physical-inspired growth/decay. A stopped,
 nonslipping or unsupported axle settles to silence. Loose surfaces suppress tonal growth.
 

@@ -38,7 +38,7 @@ export function tireParameters(tire: TireAudioObservation): TireParameters {
         Math.sqrt(clamp(tire.rollingSpeed / 60, 0, 1)) *
         material.rolling
       : 0,
-    friction: 0.16 * intensity * (1 - 0.3 * lateral),
+    friction: 0.045 * intensity * (1 - 0.3 * lateral),
     squeal: squeal * (0.85 + 0.15 * lateral),
     pitch: 650 + (350 * tire.slipSpeed) / (tire.slipSpeed + 6) + 220 * (1 - lateral),
     cutoff: material.cutoff,
@@ -80,7 +80,7 @@ export class TireSynthesis {
     this.attack = 1 - Math.exp(-1 / (0.025 * rate));
     this.release = 1 - Math.exp(-1 / (0.065 * rate));
     this.roughCoefficient = 1 - Math.exp((-2 * Math.PI * 35) / rate);
-    this.scrubCoefficient = 1 - Math.exp((-2 * Math.PI * 5500) / rate);
+    this.scrubCoefficient = 1 - Math.exp((-2 * Math.PI * 2000) / rate);
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * 80) / rate);
     this.roadCoefficient = this.targetRoadCoefficient = 1 - Math.exp((-2 * Math.PI * 900) / rate);
   }
@@ -103,8 +103,8 @@ export class TireSynthesis {
     const scrub = noise - this.dc;
     this.roadCoefficient += this.attack * (this.targetRoadCoefficient - this.roadCoefficient);
     this.road += this.roadCoefficient * (scrub - this.road);
-    // Broadband friction remains separate from tonal self-excitation.
-    this.scrub += this.scrubCoefficient * (scrub - this.scrub);
+    // Cascaded low-passes give friction a darker texture without the old high-passed white hiss.
+    this.scrub += this.scrubCoefficient * (this.road - this.scrub);
     this.pitch += this.attack * (this.target.pitch - this.pitch);
     if (this.rotationCountdown-- === 0) {
       // Coefficient cadence belongs to this stream, independent of host render-block partitioning.
@@ -127,7 +127,7 @@ export class TireSynthesis {
     // Phase-locked harmonics grow with oscillation amplitude; no unrelated second whistle.
     const ringing = this.y + 0.32 * (2 * this.x * this.y) + 0.12 * this.y * (3 * this.x * this.x - this.y * this.y);
     const modulation = 1 + 1.5 * this.rough;
-    const mixed = this.rolling * this.road + modulation * (this.friction * (this.scrub - this.road) + 0.32 * ringing);
+    const mixed = this.rolling * this.road + modulation * (this.friction * this.scrub + 0.32 * ringing);
     return (0.35 * mixed) / (1 + Math.abs(mixed));
   }
 }

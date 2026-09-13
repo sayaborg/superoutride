@@ -186,3 +186,28 @@ test('tire worklet preserves both axle signals across block partitions and handl
   b.port.onmessage({ data: 'stop' });
   assert.equal(b.process([], blank), false);
 });
+
+test('friction alone suppresses high-frequency hiss while retaining low-mid texture', () => {
+  for (const rate of [44100, 48000]) {
+    const synth = new TireSynthesis(rate, 123456789);
+    synth.update({ rolling: 0, friction: 0.1, squeal: 0, cutoff: 900, pitch: 900 });
+    const samples = Float64Array.from({ length: rate }, () => synth.sample()).subarray(rate / 2);
+    const band = (from, to) => {
+      let power = 0;
+      for (let hz = from; hz <= to; hz += 100) {
+        let real = 0,
+          imaginary = 0;
+        for (let i = 0; i < samples.length; i++) {
+          const window = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (samples.length - 1));
+          const phase = (2 * Math.PI * hz * i) / rate;
+          real += samples[i] * window * Math.cos(phase);
+          imaginary += samples[i] * window * Math.sin(phase);
+        }
+        power += real * real + imaginary * imaginary;
+      }
+      return power;
+    };
+    assert.ok(energy(samples) > 1e-6, 'slip still has an audible friction texture without squeal');
+    assert.ok(band(6500, 7000) < band(300, 800) * 0.01, 'upper hiss must sit well below the low-mid friction band');
+  }
+});
