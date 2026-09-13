@@ -2,24 +2,28 @@
 
 ## Restart
 
-1. Continue the existing `superoutride` checkout on `codex/procedural-audio`. The ChatGPT project
-   directory is its parent; `sources/` there is read-only synced reference material, not the repository.
-   Inspect `git status`, `git worktree list`, local history and remote refs before choosing a checkout.
-2. Fetch main and inspect [PR #168](https://github.com/sayaborg/superoutride/pull/168). At this checkpoint,
-   the accepted sound improvements are committed locally and the PR is behind the local branch.
-   A fresh main/remote-PR checkout does not contain all this work. Preserve local commits; do not reset
-   to the remote head. Resolve actual Git/CI state again on restart rather than relying on this note.
+1. Use the [superoutride repository](https://github.com/sayaborg/superoutride), locally or in the cloud.
+   Inspect `git status`, local history and remote refs, then fetch main and inspect
+   [PR #168](https://github.com/sayaborg/superoutride/pull/168) to identify the integrated sound baseline.
+2. Once that PR is integrated, start new work on a `codex/` branch from the latest fetched main.
+   During integration, continue `codex/procedural-audio` instead. Preserve any local commits and
+   changes when selecting a checkout. Do not implement directly on main or depend on temporary files
+   from the previous machine. In the desktop ChatGPT project mirror, `sources/` is read-only reference
+   material and the actual Git checkout is the `superoutride` subdirectory.
 3. Read [AGENTS](../AGENTS.md), the [specification index](README.md), [architecture](architecture.md)
    and [audio](audio.md). The audio specification owns exact signal paths, controls and approximation
    limits. This file owns accepted decisions and next work; no prior chat or temporary output is required.
 4. Use Node.js 24 and the [development workflow](development.md). Run `npm install` and `npm test`.
-   The existing `.audit-baseline` worktree is the immutable physics/render oracle used by CI, not a
-   disposable experiment. When its build is available, run
+   `.audit-baseline`, when present, is the immutable physics/render oracle used by CI, not a
+   disposable experiment. A fresh cloud checkout can build the reference pinned in the workflow.
+   When its build is available, run
    `HOT_PATH_BASELINE_BUILD=.audit-baseline/dist npm test` for historical equivalence as well.
 5. Reuse the local HTTP server if running; otherwise serve this repository with
    `python3 -m http.server 8000 --bind 127.0.0.1`. Use `http://127.0.0.1:8000/?mode=circuit`.
-   Rebuild after source changes and reload. Local source/build/listening, PR CI and public deployment
-   are separate evidence; publication/integration of local progress remains pending.
+   Rebuild after source changes and reload. For device testing, use the
+   [published circuit](https://sayaborg.github.io/superoutride/?mode=circuit) after confirming Pages
+   deployment. Local source/build/listening, PR CI and public deployment are separate evidence;
+   verify Git refs, workflow results and the deployed version rather than assuming a release succeeded.
 
 ## Accepted engine baseline
 
