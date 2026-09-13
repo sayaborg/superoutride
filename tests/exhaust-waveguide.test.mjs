@@ -129,11 +129,11 @@ test('worklet renders identical streams across block partitions, ignores invalid
     await import('../dist/audio/exhaust-processor.js');
     for (const outputRate of [44100, 48000]) {
       globalThis.sampleRate = outputRate;
-      const ready = new Processor({ processorOptions: { profile: profiles[0].sound, method: 'waveguide' } });
+      const ready = new Processor({ processorOptions: { profile: profiles[0].sound } });
       const startup = [[new Float32Array(48000)]];
       ready.process([], startup, { rpm: new Float32Array([3000]), load: new Float32Array([1]) });
       assert.ok(startup[0][0].some((x) => Math.abs(x) > 0.001));
-      for (const method of ['waveguide-lite', 'waveguide']) {
+      {
         const tuning = {
           outletReflection: -0.8,
           returnCutoffHz: 1800,
@@ -141,36 +141,24 @@ test('worklet renders identical streams across block partitions, ignores invalid
           closedExcitation: 0.1,
           outputCutoffHz: 800,
         };
-        const direct = new ExhaustWaveguide(
-          profiles[0].sound,
-          outputRate * (method === 'waveguide-lite' ? 1 : 2),
-          tuning,
-        );
-        const configured = new Processor({ processorOptions: { profile: profiles[0].sound, method, tuning } });
+        const direct = new ExhaustWaveguide(profiles[0].sound, outputRate, tuning);
+        const configured = new Processor({ processorOptions: { profile: profiles[0].sound, tuning } });
         const messaged = new Processor();
-        messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning } });
+        messaged.port.onmessage({ data: { profile: profiles[0].sound, tuning } });
         const params = { rpm: new Float32Array([3000]), load: new Float32Array([0.25]) };
         const actual = [[new Float32Array(4096)]],
           replaced = [[new Float32Array(4096)]];
         configured.process([], actual, params);
         messaged.process([], replaced, params);
-        for (const value of actual[0][0])
-          assert.equal(
-            value,
-            Math.fround(
-              method === 'waveguide-lite'
-                ? direct.sample(3000, 0.25)
-                : (direct.sample(3000, 0.25) + direct.sample(3000, 0.25)) * 0.5,
-            ),
-          );
+        for (const value of actual[0][0]) assert.equal(value, Math.fround(direct.sample(3000, 0.25)));
         assert.deepEqual(actual, replaced);
-        messaged.port.onmessage({ data: { profile: profiles[0].sound, method, tuning: { outletReflection: 2 } } });
+        messaged.port.onmessage({ data: { profile: profiles[0].sound, tuning: { outletReflection: 2 } } });
         messaged.process([], replaced, params);
         assert.ok(replaced[0][0].every((x) => x === 0));
       }
       const a = new Processor(),
         b = new Processor();
-      for (const p of [a, b]) p.port.onmessage({ data: { profile: profiles[0].sound, method: 'waveguide-lite' } });
+      for (const p of [a, b]) p.port.onmessage({ data: { profile: profiles[0].sound } });
       const params = { rpm: new Float32Array([3000]), load: new Float32Array([1]) };
       const whole = [[new Float32Array(2048)]];
       a.process([], whole, params);
@@ -181,19 +169,14 @@ test('worklet renders identical streams across block partitions, ignores invalid
         collected.push(...output[0][0]);
       }
       assert.deepEqual([...whole[0][0]], collected);
-      // The same live worklet must change its internal rate on replacement, in both directions.
-      for (const method of ['waveguide', 'waveguide-lite']) {
-        const fresh = new Processor({ processorOptions: { profile: profiles[0].sound, method } });
-        b.port.onmessage({ data: { profile: profiles[0].sound, method } });
-        const expected = [[new Float32Array(4096)]],
-          actual = [[new Float32Array(4096)]];
-        fresh.process([], expected, params);
-        b.process([], actual, params);
-        assert.deepEqual(actual, expected);
-      }
-      b.port.onmessage({ data: { profile: profiles[0].sound, method: 'loop' } });
-      b.process([], whole, params);
-      assert.ok(whole[0][0].every((x) => x === 0));
+      // Profile replacement must reset the same native-rate kernel, without adding a graph.
+      const fresh = new Processor({ processorOptions: { profile: profiles[1].sound } });
+      b.port.onmessage({ data: { profile: profiles[1].sound } });
+      const expected = [[new Float32Array(4096)]],
+        actual = [[new Float32Array(4096)]];
+      fresh.process([], expected, params);
+      b.process([], actual, params);
+      assert.deepEqual(actual, expected);
       b.port.onmessage({ data: { profile: {} } });
       b.process([], whole, params);
       assert.ok(whole[0][0].every((x) => x === 0));

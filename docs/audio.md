@@ -24,8 +24,8 @@ surfaces or repeat contact/tire solves.
 | Shared waveguide kernel and delays                                      | [exhaust-waveguide](../src/audio/exhaust-waveguide.ts)                                                                                    |
 | Shared tuning defaults, reference conditions and fixed output constants | [exhaust-acoustics](../src/audio/exhaust-acoustics.ts)                                                                                    |
 | Firing, pipe and pulse contract/validation                              | [vehicle-audio-profile](../src/audio/vehicle-audio-profile.ts); authored bindings in [vehicle catalog](../src/vehicle/vehicle-catalog.ts) |
-| Worklet transport and 1x/2x acoustic stepping                           | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
-| Reusable voice and faded profile/method/tuning replacement              | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
+| Worklet transport and native-rate acoustic stepping                     | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
+| Reusable voice and faded profile/tuning replacement                     | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
 | Two engine slots, one player tire worklet and master output graph       | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
 | Observation adaptation and browser lifetime                             | [vehicle-audio](../src/browser/vehicle-audio.ts), [audio-lifecycle](../src/browser/audio-lifecycle.ts)                                    |
 | Shared game/audition sliders, labels, ranges and reset                  | [audio-tuning-controls](../src/browser/audio-tuning-controls.ts)                                                                          |
@@ -36,7 +36,7 @@ past experiments and validation run results remain in Git and PR/CI evidence.
 ## Synthesis
 
 There are no recordings, audio assets or PCM loops. The [engine voice](../src/audio/engine-voice.ts)
-uses the same exhaust kernel for both methods and every vehicle, with no inactive legacy oscillators or vehicle-ID branches.
+uses the same exhaust kernel for every vehicle, with no inactive legacy oscillators or vehicle-ID branches.
 The [profile](../src/audio/vehicle-audio-profile.ts) has three concepts:
 
 - Firing: cycle revolutions (1 or 2) and ordered firing phases; the phase count is the cylinder count.
@@ -105,39 +105,32 @@ The [processor](../src/audio/exhaust-processor.ts) is registered directly by the
 invalid profiles silence the processor, inactive slots output zero, and stop releases the model.
 Voice replacement fades before acoustic state reset.
 
-### Native-rate WAVEGUIDE LITE comparison
+### Adopted native-rate waveguide
 
-WAVEGUIDE remains the adopted reference with provisional coefficients. The rejected LOOP topology
-and its path-length scale are removed. WAVEGUIDE LITE runs the exact same acoustic kernel at the
-browser output sample rate, once per output sample. Reference WAVEGUIDE retains its original two
-steps at twice the output rate and their arithmetic mean. At 48 kHz output these are 48 and 96 kHz;
-at 44.1 kHz output they are 44.1 and 88.2 kHz. This is not a forced hardware sample-rate setting.
+The native-rate waveguide (formerly LITE) is the sole production method. Each output sample receives
+one acoustic step at the browser sample rate: normally 44.1 or 48 kHz. The 2x reference path, selector,
+method type and transport state are removed. No forced hardware rate, automatic quality detector,
+per-device branch or alternate acoustic kernel remains.
 
-Every cylinder retains both primary delays, its firing events, pulse envelopes, return low-pass and
+Every cylinder retains both primary delays, firing events, pulse envelopes, return low-pass and
 phase-dependent source reflection. Collector scattering and both outlet delays are retained.
-Filters, envelopes and propagation delay lengths are calculated from the actual internal rate.
-LITE halves acoustic step count and approximately halves delay-buffer storage; it does not merge
-cylinders, remove feedback or decimate control updates. One kernel has no method branches; the worklet
-owns rate selection and output averaging, with one shared configuration path for startup and replacement.
+All filters and delays use the actual sample rate. Six tuning values, including ±20% absolute pulse
+variation by default, remain provisional; profile/tuning changes retain the existing fade and node count.
 
-Both methods share the same six tuning values, including ±20% absolute pulse variation by default.
-Values survive switching; replacement uses the existing fade and does not add nodes. Parameters
-remain provisional. There are no LITE-only tuning controls.
+The earlier 2x path and rejected LOOP are available in Git, not shipped as runtime alternatives.
+Native-rate audio has coarser event/delay quantization and can have more nonlinear aliasing than 2x.
+The final low-pass cannot undo already aliased components. Listening acceptance does not certify
+Android deadlines, thermal behavior or simultaneous game rendering.
 
-The sound is intentionally not sample-equivalent across rates: firing and pipe delays are quantized
-more coarsely, discrete filters differ, and removing oversampling can increase nonlinear aliasing.
-The final LPF remains after saturation but cannot undo already aliased components. Do not claim
-perceptual equivalence or Android acceptance from finite-output tests. Use matched-level audition at
-idle, acceleration, redline and coast before adopting LITE. WAVEGUIDE remains the default.
-
-Former LOOP path-length and single-delay tests are superseded by native-rate pipe preservation,
-44.1/48 kHz worklet/kernel agreement, block partitioning and rate-changing replacement coverage.
-Full-rate reference samples are compared exactly against a saved pre-change module. Physics and
-rendering remain under the unchanged historical equivalence checks.
+Per-sample attack-coefficient calculation is retained. A 32-sample update cadence adds state and
+changes transients without a compelling host improvement; do not reintroduce it as an assumed win.
+The consolidation preserves the accepted native-rate samples exactly. Regressions retain initial
+configuration, profile/tuning replacement, superseded changes, mute/loading behavior and native-rate
+worklet/kernel agreement; obsolete method-selection assertions are replaced by tuning transactions.
 
 ## Output conditioning
 
-Both methods use this order per voice, before voice/master gain and the master compressor:
+The engine uses this order per voice, before voice/master gain and the master compressor:
 
 ```text
 Bank mixing → 18 Hz DC removal → soft clipping → adjustable final one-pole LPF
@@ -254,11 +247,10 @@ The [browser lifecycle](../src/browser/audio-lifecycle.ts) constructs AudioConte
 on a user gesture. The SOUND button mutes/unmutes and VOL controls master volume.
 Hidden tabs and stopped shells suspend audio; mute fades before suspension. Resume,
 module-loading failure, late initialization, page cache restoration and disposal are
-handled without preventing gameplay. The game's ENGINE A/B selector uses the same `method` choice
-as the audition. It changes both engine slots, preserves node counts and passes through the existing
-90 ms fade before resetting acoustic state. Profile, topology and committed coefficient changes share one pending target;
-rapid superseding choices cannot apply a stale target. Selection made while loading, muted or
-suspended applies when rendering resumes. Native selector and tuning-slider keys do not reach driving-key handlers.
+handled without preventing gameplay. Profile and tuning changes share the existing
+90 ms fade before resetting acoustic state. Rapid superseding targets cannot apply stale parameters.
+Changes made while loading, muted or suspended apply when rendering resumes. Native tuning-slider
+keys do not reach driving-key handlers.
 No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
 
@@ -280,32 +272,23 @@ and independence of final-cutoff changes from the underlying reflected/clipped s
 The [browser probe](../tools/audio-browser.html) renders all nine engine profiles at
 44.1/48 kHz using the real Web Audio graph and reports finite output/headroom and RPM
 response at open and closed throttle. It also offers a three-second
-comparison of native-rate WAVEGUIDE LITE and reference WAVEGUIDE
-at the same selected RPM/throttle, plus an acceleration/coast sequence. Settled-cycle regressions cover every vehicle and five excitation levels.
+audition at selected RPM/throttle, plus an acceleration/coast sequence. Settled-cycle regressions cover every vehicle and five excitation levels.
 Fixed gain is the default for load evaluation; optional RMS matching compares timbre
-between methods. Quarter-throttle settings allow intermediate load evaluation.
+between parameter settings. Quarter-throttle settings allow intermediate load evaluation.
 The comparison is diagnostic only; its PCM buffers are test output, never game sound assets.
 
 Chrome integration checks can verify all four course modes, sound controls and vehicle
 switching. Desktop rendering is not phone performance certification. Actual speaker
 listening, Safari/iOS acceptance and target-device CPU profiling remain calibration work.
 
-[Host timing probe](../tools/exhaust-performance.mjs) warms WAVEGUIDE and WAVEGUIDE LITE and measures five
-runs for one and two voices, including their respective 2x/1x acoustic stepping, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
+[Host timing probe](../tools/exhaust-performance.mjs) warms the adopted native-rate waveguide and measures five
+runs for one and two voices, at the native sample rate, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
 not a paired method benchmark or browser scheduling, end-to-end graph or mobile performance certification.
 
-## Temporary method selection and shared tuning
+## Shared tuning
 
-The game and audition selectors offer exactly `waveguide` and `waveguide-lite`. WAVEGUIDE is the adopted
-reference; WAVEGUIDE LITE is its native-rate comparison. Both keep provisional parameters.
-The named method is validated by the worklet and selects the rate for each kernel lifetime. Switching
-uses the existing faded replacement without adding nodes. The game and audition default to WAVEGUIDE.
-
-Both choices use the same production voice/worklet, observations, authoring and validated tuning.
-There is no separate audition DSP wrapper, old-waveguide reference or generated-waveform bank.
-Those retired experiments and their experiment-only tests remain retrievable in Git; the live
-DSP's causal/stability tests remain in force; strict periodicity belongs to the zero-variation reference.
-
+The game and audition use the same native-rate voice/worklet, observations, authoring and tuning.
+There is no method selector or method state. Profile/tuning replacement retains the shared fade.
 Game and audition use one tuning control for six shared controls. The values below describe
 `DEFAULT_EXHAUST_TUNING` in the acoustic settings; code owns the defaults and validation, and
 the shared control owns UI ranges/steps. Reset reads those defaults directly.
@@ -322,15 +305,15 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
 Input updates the readout; release (or a keyboard step) commits a coefficient snapshot. In the
-game it uses the same 90 ms fade as method/profile replacement and affects both fixed engine
+game it uses the same 90 ms fade as profile replacement and affects both fixed engine
 slots. No acoustic buffers are rebuilt while dragging. A selection made before initialization
-or while muted is retained. Method and vehicle changes preserve tuning, and reset restores
+or while muted is retained. Vehicle changes preserve tuning, and reset restores
 the shared defaults. The audition uses the committed values on its next playback, not during
 an already rendered clip. Settings are session-local; a page/course reload restores defaults.
 The selected setting can be checked across all nine vehicles and both output rates.
 [Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
 The production worklet accepts validated optional coefficient overrides in initial options and
-profile-replacement messages. Both paths preserve the chosen topology and tuning. Tuning does not
+profile-replacement messages. Both paths preserve tuning. Tuning does not
 change vehicle geometry or add a continuous noise source. Pulse variation modifies event strength only.
 
 Read-only vehicle data is generated directly from the selected catalog profile: cycle, cylinder
@@ -377,10 +360,10 @@ Keep one waveguide kernel and one fixed-delay primitive. The acoustic kernel rec
 internal sample rate and tuning. Rate selection belongs to worklet composition, never vehicle physics.
 There are no alternate pipe topologies, method flags inside the kernel, sample assets or vehicle branches.
 
-For reference verification, run `node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
-after building. It adapts the prior named-method constructor to the rate-only kernel, checks WAVEGUIDE
-at both full internal rates across all vehicles and coefficient overrides, and excludes the rejected
-LOOP topology. The optional `--zero-variation` setting checks deterministic zero-variation excitation.
+For exact native-rate reference verification, run
+`node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js` after building.
+Both kernels use the same rate-only constructor at 44.1/48 kHz across all vehicles, coefficient overrides
+and RPM/load transitions. `--zero-variation` checks deterministic zero-variation excitation.
 
 ## Provisional boundary and output interpretation
 
@@ -391,7 +374,7 @@ coefficients +0.94 and -0.3 therefore correspond to positive, real effective imp
 Z/Z0 of about 32.3 and 0.538. This motivates nearly rigid and pressure-release-like endpoints;
 these numbers are not measured valve impedances. The sinusoidal transition over 0.23 firing
 cycles is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
-Both rate choices use the periodic envelope on each primary return.
+The waveguide uses the periodic envelope on each primary return.
 The same boundary low-pass is reused at the outlet and source for economy, not because their
 real frequency responses are identical. These are explicitly provisional approximations.
 
@@ -400,10 +383,9 @@ The 25 ms control response, square-root bank mixing normalization and
 is relative; rise/decay values are time constants of the excitation envelope. None is presented
 as combustion pressure, engine inertia or a measured exhaust property. Read-only UI text separates
 these controls from reference-derived propagation and outlet coefficients. Pipe lengths may
-remain sketches during comparison.
+remain provisional acoustic sketches.
 
-## Comparison boundary
+## Runtime boundary
 
-REFLECTION and LOOP are rejected and removed. WAVEGUIDE remains the reference; WAVEGUIDE LITE changes
-only internal sample rate and output stepping. The selector does not automatically detect device speed.
-Host timings do not certify Android deadlines, thermal behavior or concurrent game rendering.
+REFLECTION, LOOP and 2x comparison modes are removed. Keep one native-rate pipe model and the six
+provisional sound controls. Host measurements do not replace Android gameplay/audio acceptance.

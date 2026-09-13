@@ -1,5 +1,3 @@
-export type EngineMethod = 'waveguide' | 'waveguide-lite';
-
 // Reference conditions, not measured vehicle data. Sources and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition

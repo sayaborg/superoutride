@@ -5,22 +5,21 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
 const rows = [];
 for (const { profile, sound } of VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust)) {
-  for (const method of ['waveguide', 'waveguide-lite'])
-    for (const voices of [1, 2]) {
-      const rate = method === 'waveguide-lite' ? 48000 : 96000;
-      const engines = Array.from({ length: voices }, () => new ExhaustWaveguide(sound, rate));
-      let peak = 0;
-      for (let i = 0; i < rate; i++) for (const engine of engines) engine.sample(3000, 1);
-      const timings = [];
-      for (let run = 0; run < 5; run++) {
-        const start = performance.now();
-        for (let i = 0; i < rate; i++)
-          for (const engine of engines) peak = Math.max(peak, Math.abs(engine.sample(3000, 1)));
-        timings.push(performance.now() - start);
-      }
-      timings.sort((a, b) => a - b);
-      rows.push({ vehicle: profile.id, method, voices, millisecondsPerAudioSecond: timings[2], peak });
+  for (const voices of [1, 2]) {
+    const rate = 48000;
+    const engines = Array.from({ length: voices }, () => new ExhaustWaveguide(sound, rate));
+    let peak = 0;
+    for (let i = 0; i < rate; i++) for (const engine of engines) engine.sample(3000, 1);
+    const timings = [];
+    for (let run = 0; run < 5; run++) {
+      const start = performance.now();
+      for (let i = 0; i < rate; i++)
+        for (const engine of engines) peak = Math.max(peak, Math.abs(engine.sample(3000, 1)));
+      timings.push(performance.now() - start);
     }
+    timings.sort((a, b) => a - b);
+    rows.push({ vehicle: profile.id, voices, millisecondsPerAudioSecond: timings[2], peak });
+  }
 }
 const tires = [new TireSynthesis(48000, 123456789), new TireSynthesis(48000, 362436069)];
 const tireState = {
@@ -44,7 +43,7 @@ tireTimings.sort((a, b) => a - b);
 console.log(
   JSON.stringify(
     {
-      note: 'Warmed host DSP timings, not browser or phone CPU certification; Reference 2x and lite 1x acoustic stepping included.',
+      note: 'Warmed host DSP timings, not browser or phone CPU certification; Native-rate acoustic stepping.',
       rows,
       tires: { axles: 2, millisecondsPerAudioSecond: tireTimings[2], peak: tirePeak },
     },

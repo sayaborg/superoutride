@@ -166,33 +166,30 @@ test('engine voice reads one excitation proxy, clamps RPM and never modifies obs
   voice.dispose();
 });
 
-test('selected coupling and tuning survive voice profile replacement without node duplication', (t) => {
+test('tuning survive voice profile replacement without node duplication', (t) => {
   install(t);
-  for (const method of ['waveguide-lite', 'waveguide']) {
-    const context = new FakeAudioContext();
-    const tuning = { outletReflection: -0.8 };
-    const voice = createEngineVoice(context, context.destination, { method, tuning });
-    const count = context.nodes.length;
-    tuning.outletReflection = 0;
-    const worklet = context.nodes.find(
-      (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
-    );
-    const state = createVehicleAudioObservation();
-    voice.update(state, VEHICLE_CATALOG[0].sound);
-    voice.update(state, VEHICLE_CATALOG[1].sound);
-    context.currentTime = 0.1;
-    voice.update(state, VEHICLE_CATALOG[1].sound);
-    assert.equal(worklet.messages.length, 2);
-    for (const message of worklet.messages) {
-      assert.equal(message.method, method);
-      assert.deepEqual(message.tuning, { ...DEFAULT_EXHAUST_TUNING, outletReflection: -0.8 });
-    }
-    assert.equal(context.nodes.length, count);
-    voice.dispose();
+  const context = new FakeAudioContext();
+  const tuning = { outletReflection: -0.8 };
+  const voice = createEngineVoice(context, context.destination, { tuning });
+  const count = context.nodes.length;
+  tuning.outletReflection = 0;
+  const worklet = context.nodes.find(
+    (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+  );
+  const state = createVehicleAudioObservation();
+  voice.update(state, VEHICLE_CATALOG[0].sound);
+  voice.update(state, VEHICLE_CATALOG[1].sound);
+  context.currentTime = 0.1;
+  voice.update(state, VEHICLE_CATALOG[1].sound);
+  assert.equal(worklet.messages.length, 2);
+  for (const message of worklet.messages) {
+    assert.deepEqual(message.tuning, { ...DEFAULT_EXHAUST_TUNING, outletReflection: -0.8 });
   }
+  assert.equal(context.nodes.length, count);
+  voice.dispose();
 });
 
-test('method changes fade both fixed engine slots and a superseded choice cannot replace the current one', async (t) => {
+test('tuning changes fade both fixed engine slots and a superseded choice cannot replace the current one', async (t) => {
   install(t);
   const context = new FakeAudioContext();
   const engine = await createAudioEngine(context);
@@ -207,15 +204,17 @@ test('method changes fade both fixed engine slots and a superseded choice cannot
   const worklets = context.nodes.filter(
     (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
   );
-  engine.setMethod('waveguide-lite');
+  engine.setTuning({ ...DEFAULT_EXHAUST_TUNING, outputCutoffHz: 1000 });
   update();
   assert.ok(worklets.every((node) => node.messages.length === 1));
   context.currentTime = 0.1;
   update();
-  assert.ok(worklets.every((node) => node.messages.length === 2 && node.messages.at(-1).method === 'waveguide-lite'));
-  engine.setMethod('waveguide');
+  assert.ok(
+    worklets.every((node) => node.messages.length === 2 && node.messages.at(-1).tuning.outputCutoffHz === 1000),
+  );
+  engine.setTuning({ ...DEFAULT_EXHAUST_TUNING, outputCutoffHz: 2000 });
   update();
-  engine.setMethod('waveguide-lite');
+  engine.setTuning({ ...DEFAULT_EXHAUST_TUNING, outputCutoffHz: 1000 });
   update();
   context.currentTime = 1;
   update();
@@ -224,10 +223,8 @@ test('method changes fade both fixed engine slots and a superseded choice cannot
   engine.dispose();
 });
 
-test('game selector honors late loading and muted changes while preserving vehicle state and cleanup', async (t) => {
+test('game tuning honors late loading and muted changes while preserving vehicle state and cleanup', async (t) => {
   const dom = install(t);
-  const method = dom.elements.get('sound-method');
-  method.value = 'waveguide-lite';
   let finish;
   FakeAudioContext.load = () =>
     new Promise((resolve) => {
@@ -235,9 +232,10 @@ test('game selector honors late loading and muted changes while preserving vehic
     });
   const lifecycle = createAudioLifecycle();
   t.after(() => lifecycle.dispose());
+  const control = dom.elements.get('sound-tuning').children[4].children[1];
   dom.win.emit('pointerdown');
-  method.value = 'waveguide';
-  method.emit('change');
+  control.value = '2000';
+  control.emit('change');
   finish();
   await settle();
   const runtime = createLinearHighwayRuntime();
@@ -253,11 +251,11 @@ test('game selector honors late loading and muted changes while preserving vehic
     (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
   );
   assert.equal(worklets.length, 2);
-  assert.equal(worklets[0].messages.at(-1).method, 'waveguide');
+  assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 2000);
   const count = context.nodes.length;
   dom.elements.get('sound-toggle').click();
-  method.value = 'waveguide-lite';
-  method.emit('change');
+  control.value = '1000';
+  control.emit('change');
   lifecycle.update(player, []);
   assert.equal(worklets[0].messages.length, 1);
   dom.elements.get('sound-toggle').click();
@@ -265,19 +263,19 @@ test('game selector honors late loading and muted changes while preserving vehic
   lifecycle.update(player, []);
   context.currentTime = 0.1;
   lifecycle.update(player, []);
-  assert.equal(worklets[0].messages.at(-1).method, 'waveguide-lite');
+  assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
   assert.equal(context.nodes.length, count);
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
-  method.emit('keydown', {
+  control.emit('keydown', {
     stopPropagation() {
       stopped = true;
     },
   });
   assert.equal(stopped, true);
   lifecycle.dispose();
-  assert.equal(method.listeners.get('change').length, 0);
-  assert.equal(method.listeners.get('keydown').length, 0);
+  assert.equal(control.listeners.get('change').length, 0);
+  assert.equal(control.listeners.get('keydown').length, 0);
 });
 
 test('player tire voice transmits front and rear independently and releases its worklet', (t) => {
@@ -307,7 +305,7 @@ test('player tire voice transmits front and rear independently and releases its 
   assert.ok(context.nodes.every((node) => node.disconnected));
 });
 
-test('committed sliders survive mute, method and profile changes without mutating physics or adding nodes', async (t) => {
+test('committed sliders survive mute and profile changes without mutating physics or adding nodes', async (t) => {
   const dom = install(t);
   const lifecycle = createAudioLifecycle();
   t.after(() => lifecycle.dispose());
@@ -318,8 +316,6 @@ test('committed sliders survive mute, method and profile changes without mutatin
     inputs.map((input) => Number(input.value)),
     [-1, 3100, 0.03, 0.22, 7300, 0.2],
   );
-  dom.elements.get('sound-method').value = 'waveguide-lite';
-  dom.elements.get('sound-method').emit('change');
   variation.value = '0.12';
   variation.emit('input');
   assert.equal(host.children[5].children[2].textContent, '±12%');
@@ -352,14 +348,11 @@ test('committed sliders survive mute, method and profile changes without mutatin
   assert.equal(worklets[0].messages.length, 1);
   dom.elements.get('sound-toggle').click();
   cutoff.emit('change');
-  dom.elements.get('sound-method').value = 'waveguide-lite';
-  dom.elements.get('sound-method').emit('change');
   dom.elements.get('sound-toggle').click();
   await settle();
   lifecycle.update(player, []);
   context.currentTime = 1.1;
   lifecycle.update(player, []);
-  assert.equal(worklets[0].messages.at(-1).method, 'waveguide-lite');
   assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
   const replacement = createArcadeVehicle(VEHICLE_CATALOG[3].profile, world);
   lifecycle.update(replacement, []);

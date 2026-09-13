@@ -8,15 +8,14 @@
 
 ## Engine sound continuation
 
-WAVEGUIDE is adopted as the reference sound, with all coefficients provisional. The selector now
-compares WAVEGUIDE with native-rate WAVEGUIDE LITE; rejected REFLECTION and LOOP are removed.
-Six shared controls retain one tuning snapshot and reset. LITE preserves every pipe and boundary;
-only acoustic stepping changes from 2x to 1x. Preserve the
-reference waveform while comparing similarity and CPU cost. The [audio specification](audio.md)
-owns the reduction, its limits and tuning. Android gameplay/audio acceptance remains open.
+The native-rate waveguide (formerly LITE) is adopted. The 2x reference path and method selector,
+transport flags and comparison-only controls are removed. Six tuning controls remain provisional.
+Every pipe, return filter, source boundary and per-sample control update is retained. A 32-sample
+attack-coefficient cadence was evaluated but not adopted; prefer the simpler exact native-rate sound.
+The [audio specification](audio.md) owns current behavior. Android gameplay/audio acceptance remains open.
 
 - Build and serve the repository over HTTP using [development](development.md). Use `/?mode=circuit` for tuning while driving; `/tools/audio-browser.html` is the separate audition/verification page. A file URL or public main deployment does not establish that the feature branch is running.
-- Game sliders commit on release through the existing fade. The final LPF follows soft clipping and is independent of the reflection-wave LPF. Method and vehicle changes preserve tuning; page/course reload resets it. Browser trial values are not saved repository defaults.
+- Game sliders commit on release through the existing fade. The final LPF follows soft clipping and is independent of the reflection-wave LPF. Vehicle changes preserve tuning; page/course reload resets it. Browser trial values are not saved repository defaults.
 - Player and nearest-rival engines and independent front/rear player tires are connected. Recordings, generated-waveform playback and engine noise are absent. Wind remains disconnected. D/M/ACT retain their minus/value/plus controls.
 - Pulse variation defaults to ±20% of full-excitation strength, adjustable from 0 to 40%. The absolute offset remains at closed throttle and clips at zero strength. Zero restores the exact pre-variation reference; firing phases and RPM remain unchanged.
 - Tire squeal uses directional friction work and one bounded self-excited acoustic oscillator per axle in a single worklet. Use `/tools/tire-browser.html` to audition each axle and both together. Catalog engine pulse shapes are differentiated as provisional acoustic sketches. The [physical evidence note](tire-squeal-research.md) motivates the new self-excitation mechanism and separates its authored pitch/onset controls from material physics. The fixed noise-band squeal has been replaced; rolling and scrub noise are removed. Continue in-game listening and target-device calibration before adding wind. Do not reconnect the deferred prototypes as part of engine cleanup. Speaker calibration, Safari/iOS and target-phone performance acceptance remain open.

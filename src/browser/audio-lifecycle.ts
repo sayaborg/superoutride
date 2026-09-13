@@ -12,7 +12,6 @@ import {
 /** DOM and permission lifecycle. Construction never creates an AudioContext. */
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
-  const methodControl = document.getElementById('sound-method') as HTMLSelectElement | null;
   const volumeControl = document.getElementById('sound-volume') as HTMLInputElement | null;
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
@@ -46,9 +45,7 @@ export function createAudioLifecycle() {
   function sync(): void {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
-    const method = methodControl?.value === 'waveguide-lite' ? 'waveguide-lite' : 'waveguide';
     if (!context || !engine) return;
-    engine.setMethod(method);
     if (tuningControls) engine.setTuning(tuningControls.read());
     engine.setVolume(audible() ? volume : 0);
     if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
@@ -108,14 +105,6 @@ export function createAudioLifecycle() {
     if (enabled) unlock();
     sync();
   }
-  function changeMethod(): void {
-    unlock();
-    sync();
-  }
-  function methodKey(event: Event): void {
-    // Let the native select use arrow keys without steering/accelerating the vehicle.
-    event.stopPropagation();
-  }
   function changeVolume(): void {
     const value = Number(volumeControl?.value);
     if (Number.isFinite(value)) volume = Math.max(0, Math.min(1, value / 100));
@@ -151,8 +140,6 @@ export function createAudioLifecycle() {
     document.removeEventListener('visibilitychange', visibility);
     button?.removeEventListener('click', toggle);
     volumeControl?.removeEventListener('input', changeVolume);
-    methodControl?.removeEventListener('change', changeMethod);
-    methodControl?.removeEventListener('keydown', methodKey);
     tuningControls?.dispose();
     engine?.dispose();
     engine = null;
@@ -165,8 +152,6 @@ export function createAudioLifecycle() {
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
   volumeControl?.addEventListener('input', changeVolume);
-  methodControl?.addEventListener('change', changeMethod);
-  methodControl?.addEventListener('keydown', methodKey);
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;

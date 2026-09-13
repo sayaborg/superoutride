@@ -1,4 +1,3 @@
-import type { EngineMethod } from './exhaust-acoustics.js';
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
@@ -36,10 +35,6 @@ export async function createAudioEngine(context: AudioContext) {
     },
     silenceRival(): void {
       rival.silence();
-    },
-    setMethod(value: EngineMethod): void {
-      player.setMethod(value);
-      rival.setMethod(value);
     },
     setTuning(value: typeof DEFAULT_EXHAUST_TUNING): void {
       player.setTuning(value);

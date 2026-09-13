@@ -10,14 +10,14 @@ const zeroVariation = process.argv.includes('--zero-variation');
 let samples = 0;
 let cases = 0;
 for (const { sound, profile } of VEHICLE_CATALOG)
-  for (const rate of [88200, 96000])
+  for (const rate of [44100, 48000])
     for (const tuning of [
       {},
       { outletReflection: 0 },
       { outletReflection: -0.95, returnCutoffHz: 800, attenuationPerMeter: 0, closedExcitation: 0.08 },
     ]) {
       const settings = zeroVariation ? { ...tuning, pulseVariation: 0 } : tuning;
-      const before = new Reference(sound, rate, 'waveguide', settings);
+      const before = new Reference(sound, rate, settings);
       const after = new ExhaustWaveguide(sound, rate, settings);
       const label = `${profile.id}/${rate}/${JSON.stringify(tuning)}`;
       for (const [rpm, load] of [
