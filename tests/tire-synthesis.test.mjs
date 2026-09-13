@@ -5,7 +5,6 @@ import { publishVehicleTireObservation, observeVehicleTires } from '../dist/phys
 
 const rolling = {
   load: 4000,
-  rollingSpeed: 25,
   slipSpeed: 0,
   longitudinalPower: 0,
   lateralPower: 0,
@@ -54,13 +53,7 @@ test('two independent axle streams are reproducible, bounded and fade through co
     assert.notDeepEqual(a, render(sliding, rate, 362436069));
     assert.ok(energy(a) > energy(render(rolling, rate)) * 4);
     const synth = new TireSynthesis(rate, 123456789);
-    for (const state of [
-      sliding,
-      { ...sliding, surface: 'DIRT' },
-      { ...sliding, load: 0 },
-      rolling,
-      { ...rolling, rollingSpeed: 0 },
-    ]) {
+    for (const state of [sliding, { ...sliding, surface: 'DIRT' }, { ...sliding, load: 0 }, rolling]) {
       synth.update(tireParameters(state));
       let previous = synth.sample();
       const tail = new Float32Array(rate);
@@ -71,7 +64,7 @@ test('two independent axle streams are reproducible, bounded and fade through co
         tail[i] = value;
         previous = value;
       }
-      if (state.load === 0 || state.rollingSpeed === 0) assert.ok(energy(tail.subarray(rate * 0.9)) < 1e-12);
+      if (state.load === 0 || state.slipSpeed === 0) assert.ok(energy(tail.subarray(rate * 0.9)) < 1e-12);
     }
   }
 });

@@ -80,20 +80,20 @@ is the only possible friction-induced instability.
 
 ## Consequences for SUPER OUTRIDE
 
-Our design inference is to retain independent front/rear observations and rolling/scrub noise,
-and use a bounded self-excited acoustic oscillator per axle for the tonal component.
-A small amount of noise can seed or roughen that oscillator; a weak harmonic can follow its
-fundamental. Onset/growth, saturation and decay should be explicit, with no permanent tone when
-contact or slip energy disappears. This is an acoustic surrogate, not another tire solver.
+The current design inference is to retain independent front/rear observations and use a bounded
+self-excited acoustic oscillator per axle for the tonal component. The user has rejected audible
+broadband hiss: rolling/scrub output is silent. Small random excitation currently seeds or roughens
+the oscillator without being mixed directly into its output. Tire timbre is **not accepted or finished**;
+these choices establish a starting point for further listening, not a calibrated tire model.
 
-The rejected 1050/1630 Hz fixed noise bands and the current onset/pitch constants are listening choices.
-The sources do not validate those constants. The existing directional slip power remains a
-useful energy input, but cannot alone determine tone frequency, onset or sound pressure.
-The game has no local rubber stiffness, loss factor, tread temperature or contact-pressure field;
-its vehicle-scale tire coefficients must not be relabeled as those quantities.
+The sources do not validate the current onset, pitch, harmonic or roughness constants. Directional
+slip power remains a useful energy input, but cannot alone determine tone frequency, onset or sound
+pressure. The game has no local rubber stiffness, loss factor, tread temperature or contact-pressure
+field; its vehicle-scale tire coefficients must not be relabeled as those quantities.
 
-Compare the saved prior noise-band reference with the current bounded
-oscillator on lateral slide, wheel lock, spin, loose surface and recovery sequences. Check
-44.1/48 kHz stability, fading and CPU cost. Choose any pitch and onset controls explicitly as
-sound-design approximations. Do not infer a universal threshold from one rig, make lateral
-sliding a prerequisite, or add thermal/contact physics solely to justify an audio parameter.
+Use the current tire audition on lateral slide, wheel lock, spin, loose surface and recovery
+sequences, with front/rear tested separately and together. Check 44.1/48 kHz stability, fading and
+CPU cost. Choose pitch and onset controls explicitly as sound-design approximations. Do not infer
+a universal threshold from one rig, make lateral sliding a prerequisite, or add thermal/contact
+physics solely to justify an audio parameter. Earlier noise-band experiments are available in Git
+if specifically needed; restarting does not require saved audio files or temporary reference modules.

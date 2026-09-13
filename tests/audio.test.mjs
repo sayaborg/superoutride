@@ -10,7 +10,7 @@ import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.j
 import { createRecoveryState, recoverVehicleToGuideCoordinate } from '../dist/gameplay/recovery.js';
 
 const base = VEHICLE_CATALOG[0];
-const observation = () => ({ ...createVehicleAudioObservation(), rpm: 3000, throttle: 0.5, drive: 0.5 });
+const observation = () => ({ ...createVehicleAudioObservation(), rpm: 3000, drive: 0.5 });
 
 test('acoustic authoring copies and freezes firing and pipe data', () => {
   const input = structuredClone(base.sound);
@@ -34,7 +34,6 @@ test('tire rolling, slip and support produce distinct acoustic responses', () =>
   const state = observation();
   state.front = {
     load: 4000,
-    rollingSpeed: 25,
     slipSpeed: 0,
     longitudinalPower: 0,
     lateralPower: 0,
@@ -56,7 +55,6 @@ test('tire rolling, slip and support produce distinct acoustic responses', () =>
   assert.equal(airborne.squeal, 0);
   state.front.load = 4000;
   state.front.slipSpeed = 0;
-  state.front.rollingSpeed = 0;
   const stopped = tireParameters(state.front);
   assert.equal(stopped.squeal, 0);
 });
@@ -99,36 +97,6 @@ test('rival selection uses 3D world distance, bounds range, ignores local chaina
   assert.equal(nearestAudibleRival(player, [{ vehicle: player }, { vehicle: far }, { vehicle: near }]), near);
   assert.equal(nearestAudibleRival(player, [{ vehicle: { x: 0, y: 101, z: 0 } }]), null);
   assert.equal(nearestAudibleRival(player, []), null);
-});
-
-test('noise worklet generates continuous independent streams at arbitrary block lengths and stops', async () => {
-  const originalBase = globalThis.AudioWorkletProcessor,
-    originalRegister = globalThis.registerProcessor;
-  let Processor;
-  globalThis.AudioWorkletProcessor = class {
-    port = {};
-  };
-  globalThis.registerProcessor = (_, value) => {
-    Processor = value;
-  };
-  try {
-    await import('../dist/dev/diagnostics/noise-processor.js');
-    const noise = new Processor();
-    const a = Array.from({ length: 3 }, () => [new Float32Array(128)]);
-    const b = Array.from({ length: 3 }, () => [new Float32Array(256)]);
-    assert.equal(noise.process([], a), true);
-    assert.equal(noise.process([], b), true);
-    assert.notDeepEqual(a[0], a[1]);
-    assert.notDeepEqual(a[0][0], b[0][0].slice(0, 128));
-    assert.ok(b.flatMap(([channel]) => [...channel]).every((x) => Number.isFinite(x) && Math.abs(x) <= 1));
-    noise.port.onmessage();
-    assert.equal(noise.process([], b), false);
-  } finally {
-    if (originalBase === undefined) delete globalThis.AudioWorkletProcessor;
-    else globalThis.AudioWorkletProcessor = originalBase;
-    if (originalRegister === undefined) delete globalThis.registerProcessor;
-    else globalThis.registerProcessor = originalRegister;
-  }
 });
 
 test('subscribing tire presentation preserves the complete physical snapshot across all nine vehicles', () => {

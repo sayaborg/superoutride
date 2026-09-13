@@ -41,7 +41,6 @@ for (const { profile, sound } of VEHICLE_CATALOG.filter((entry) => entry.sound.e
 const tires = [new TireSynthesis(48000, 123456789), new TireSynthesis(48000, 362436069)];
 const tireState = {
   load: 4000,
-  rollingSpeed: 25,
   slipSpeed: 10,
   longitudinalPower: 20000,
   lateralPower: 20000,

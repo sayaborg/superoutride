@@ -10,14 +10,13 @@ type Observation = Mutable<Omit<VehicleAudioObservation, 'front' | 'rear'>> & {
 export function createVehicleAudioObservation(): Observation {
   const tire = (): Mutable<TireAudioObservation> => ({
     load: 0,
-    rollingSpeed: 0,
     slipSpeed: 0,
     longitudinalPower: 0,
     lateralPower: 0,
     utilization: 0,
     surface: 'VOID',
   });
-  return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, throttle: 0, drive: 0, speed: 0, front: tire(), rear: tire() };
+  return { rpm: 0, idleRpm: 1000, redlineRpm: 7000, drive: 0, front: tire(), rear: tire() };
 }
 /** Copy completed observations into two reusable slots; do not run contact or tire solvers here. */
 export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation): void {
@@ -25,12 +24,11 @@ export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation
   result.rpm = powertrain.engineRpm;
   result.idleRpm = profile.powertrain.idleRpm;
   result.redlineRpm = profile.powertrain.redlineRpm;
-  result.throttle = vehicle.actuator.throttle;
   result.drive =
     powertrain.outputDriveTorque > 0
-      ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) * result.throttle
+      ? Math.max(0, Math.min(1, control.deliveredDriveTorque / powertrain.outputDriveTorque)) *
+        vehicle.actuator.throttle
       : 0;
-  result.speed = vehicle.speed;
 }
 
 /** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */
@@ -39,14 +37,12 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
   const tires = observeVehicleTires(vehicle);
   const { control } = vehicle;
   result.front.load = vehicle.frontNormalLoad;
-  result.front.rollingSpeed = tires.front.rollingSpeed;
   result.front.slipSpeed = tires.front.slipSpeed;
   result.front.longitudinalPower = tires.front.longitudinalPower;
   result.front.lateralPower = tires.front.lateralPower;
   result.front.utilization = control.frontUtilization;
   result.front.surface = tires.front.surface;
   result.rear.load = vehicle.rearNormalLoad;
-  result.rear.rollingSpeed = tires.rear.rollingSpeed;
   result.rear.slipSpeed = tires.rear.slipSpeed;
   result.rear.longitudinalPower = tires.rear.longitudinalPower;
   result.rear.lateralPower = tires.rear.lateralPower;

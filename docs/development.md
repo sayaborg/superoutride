@@ -6,7 +6,7 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
-For engine comparison, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
+For engine tuning, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
 TUNING sliders while driving. The separate audition/verification page is
 `http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
 checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
@@ -26,7 +26,7 @@ The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable releas
 Focused audio verification after building uses:
 
 ```sh
-node --test tests/audio*.test.mjs tests/tire-synthesis.test.mjs tests/exhaust-waveguide.test.mjs tests/reflection-candidates.test.mjs
+node --test tests/audio*.test.mjs tests/tire-synthesis.test.mjs tests/exhaust-*.test.mjs
 ```
 
 This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.

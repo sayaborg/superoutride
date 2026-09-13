@@ -3,7 +3,6 @@ export const TIRE_AUDITION_SECONDS = 9;
 export const TIRE_AUDITION_PHASES = [
   {
     load: 4000,
-    rollingSpeed: 25,
     slipSpeed: 0,
     utilization: 0.2,
     longitudinalPower: 0,
@@ -15,5 +14,5 @@ export const TIRE_AUDITION_PHASES = [
   { slipSpeed: 0, utilization: 0.2, lateralPower: 0 },
   { slipSpeed: 25, utilization: 1.2, longitudinalPower: 45000 },
   { surface: 'DIRT' },
-  { load: 0, rollingSpeed: 0, slipSpeed: 0, longitudinalPower: 0, lateralPower: 0 },
+  { load: 0, slipSpeed: 0, longitudinalPower: 0, lateralPower: 0 },
 ];

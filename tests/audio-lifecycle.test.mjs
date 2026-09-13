@@ -152,14 +152,14 @@ test('engine voice reads one excitation proxy, clamps RPM and never modifies obs
   install(t);
   const context = new FakeAudioContext(),
     voice = createEngineVoice(context, context.destination);
-  const state = { ...createVehicleAudioObservation(), rpm: 0, drive: 0.4, throttle: 1 };
+  const state = { ...createVehicleAudioObservation(), rpm: 0, drive: 0.4 };
   const before = structuredClone(state);
   voice.update(state, VEHICLE_CATALOG[0].sound);
   assert.deepEqual(state, before);
   const worklet = context.nodes.find((n) => n instanceof FakeAudioWorkletNode);
   assert.equal(worklet.parameters.get('rpm').value, state.idleRpm);
   assert.equal(worklet.parameters.get('load').value, state.drive);
-  voice.update({ ...state, rpm: state.redlineRpm * 2, throttle: 1, drive: 0 }, VEHICLE_CATALOG[0].sound);
+  voice.update({ ...state, rpm: state.redlineRpm * 2, drive: 0 }, VEHICLE_CATALOG[0].sound);
   assert.equal(worklet.parameters.get('rpm').value, state.redlineRpm);
   assert.equal(worklet.parameters.get('load').value, 0);
   assert.equal(context.nodes.filter((n) => n.started).length, 0);
@@ -285,7 +285,6 @@ test('player tire voice transmits front and rear independently and releases its 
   const state = createVehicleAudioObservation();
   Object.assign(state.front, {
     load: 4000,
-    rollingSpeed: 20,
     slipSpeed: 8,
     longitudinalPower: 15000,
     utilization: 1.2,

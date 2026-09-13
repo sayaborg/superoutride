@@ -2,6 +2,10 @@
 
 ## Authority and scope
 
+The engine is the accepted listening baseline. Tire sound is an unfinished acoustic prototype
+and is the next sound-design task; passing its tests does not establish realistic tire timbre.
+Keep the system simple, sample-free and suitable for Android. Actual phone acceptance remains open.
+
 Audio is a read-only presentation layer. Physics owns RPM, wheel motion, actuator output,
 contact load and tire utilization. Audio owns oscillator phase, envelopes and filter state,
 never vehicle motion, gearing, race progress or a second engine simulation.
@@ -59,7 +63,6 @@ This is authored sound design, not measured combustion variance. At excitation b
 amount, zero clipping prevents negative pulses and raises mean excitation; the default closed
 excitation 0.22 exceeds the default variation 0.20, so default coast pulses do not clip.
 
-This explicitly supersedes the former invariant of equal pulse strengths at fixed excitation.
 Determinism now means reproducibility from the same reset seed and input history, not strict
 periodicity. Zero variation retains settled-cycle regressions with the current common pulse values. Nonzero tests check strength bounds, unchanged firing phase/RPM, replay equality,
 mean excitation, sustained output bounds and arbitrary worklet block partitions. Each kernel
@@ -70,7 +73,7 @@ The coupled [exhaust model](../src/audio/exhaust-waveguide.ts) uses bidirectiona
 Propagation delay is rounded to the nearest internal sample using a fixed effective wave speed.
 Each traversal applies amplitude transmission `exp(-alpha * length)`. The shared alpha is a
 phenomenological frequency-independent loss per meter, not a measured thermoviscous coefficient.
-This replaces arbitrary loss per junction: subdivision preserves the analytic transmission law.
+Subdivision preserves the analytic transmission law.
 Collector scattering uses `p = 2 * sum(incoming) / portCount`, then `outgoing = p - incoming`.
 This is the [lossless equal-admittance junction](https://www.dsprelated.com/freebooks/pasp/Lossless_Scattering.html),
 assuming identical characteristic admittance for all ports; no actual pipe diameters are modeled.
@@ -91,14 +94,6 @@ no ordering constraint is necessary for the cascaded envelopes. Lower excitation
 rise time; decay remains load-independent. Strength 1 is the unmodulated full-excitation reference,
 not a clamp on varied events or final output amplitude.
 
-This revision intentionally supersedes the earlier per-vehicle strength/rise/decay sketches. Profile
-validation no longer owns pulse controls; shared tuning validation and unit-strength/shape regressions
-do. The former strength-4 transient fixture now uses unit strength while retaining its post-clip filter
-bound check. Default waveforms intentionally change and must not be claimed equivalent to the old
-per-vehicle settings. No extra load-dependent output filter, direct source bypass or continuous noise
-is introduced.
-Randomness affects firing-event strength only.
-
 The pulse envelope solves `p' = -p / decayTime` and `r' = (p - r) / riseTime`, with the
 load-dependent rise time held constant within each native sample. A firing resets `p` to its
 event strength while preserving continuous `r`. Exponential propagation resolves both parts
@@ -108,10 +103,8 @@ Full-sample coefficients are shared across cylinders; two additional exponential
 on a firing. Near equal rise/decay rates, a short Taylor limit avoids cancellation/division by zero.
 One preallocated emission array holds the averages until the source-boundary write.
 
-This explicitly supersedes sample-rounded firing and the discrete cascaded envelope. The same
-time controls, unit base strength, phase schedule and absolute random offsets remain authoritative;
-state at the end of the firing sample has decayed only since the actual event. Strength tests
-therefore undo that fractional decay, not a whole sample. This changes waveforms intentionally.
+State at the end of a firing sample has decayed only since the event; strength tests undo that
+fractional decay. Unit strength, shared time controls and absolute event variation are independent.
 Sample averaging attenuates high frequencies before native sampling but is not brick-wall
 bandlimiting: very short pulses and nonlinear stages can still alias.
 
@@ -135,26 +128,15 @@ Voice replacement fades before acoustic state reset.
 
 ### Adopted native-rate waveguide
 
-The native-rate waveguide (formerly LITE) is the sole production method. Each output sample receives
-one acoustic step at the browser sample rate: normally 44.1 or 48 kHz. The 2x reference path, selector,
-method type and transport state are removed. No forced hardware rate, automatic quality detector,
-per-device branch or alternate acoustic kernel remains.
+The native-rate waveguide (formerly LITE) is the sole production method: one acoustic step per
+output sample at the browser rate, normally 44.1 or 48 kHz. Every cylinder retains both primary
+delays, pulse envelopes, return low-pass and phase-dependent source reflection. Each collector
+retains both outlet delays. There is no rate/method selector, forced device rate, alternate
+pipe topology or runtime quality detection. Shared pulse coefficients and controls update every sample.
 
-Every cylinder retains both primary delays, firing events, pulse envelopes, return low-pass and
-phase-dependent source reflection. Collector scattering and both outlet delays are retained.
-All filters and delays use the actual sample rate. Eight tuning values, including ±20% absolute pulse
-variation by default, remain provisional; profile/tuning changes retain the existing fade and node count.
-
-The earlier 2x path and rejected LOOP are available in Git, not shipped as runtime alternatives.
-Native-rate audio retains integer delay quantization and can have more nonlinear aliasing than 2x.
-The final low-pass cannot undo already aliased components. Listening acceptance does not certify
-Android deadlines, thermal behavior or simultaneous game rendering.
-
-Per-sample attack-coefficient calculation is retained. A 32-sample update cadence adds state and
-changes transients without a compelling host improvement; do not reintroduce it as an assumed win.
-The subsequent fractional, averaged pulse revision intentionally changes the consolidated native-rate samples. Regressions retain initial
-configuration, profile/tuning replacement, superseded changes, mute/loading behavior and native-rate
-worklet/kernel agreement; obsolete method-selection assertions are replaced by tuning transactions.
+Integer delay quantization and residual aliasing remain approximations. The final low-pass cannot
+undo already aliased components. Listening acceptance does not certify Android deadlines, thermal
+behavior or simultaneous game rendering. Previous algorithms and experiments are retained in Git.
 
 ## Output conditioning
 
@@ -188,10 +170,6 @@ The [physical evidence note](tire-squeal-research.md) distinguishes self-excited
 from a passively driven noise filter. The present oscillator is an explicit acoustic approximation
 of onset, growth and saturation, not a reproduction of local rubber contact dynamics.
 
-Production tire audio replaces the deferred single-sine prototype. The former aggregated
-prototype assertions are superseded by independent front/rear mapping, spectral, transport,
-continuity and lifecycle tests; physical observation/recovery/invariance coverage remains.
-
 [Physics telemetry](../src/physics/vehicle-tire-observation.ts) publishes longitudinal and lateral
 slip power from the accepted wheel solve: `Px = max(0, fx * sx * referenceSpeed)` and
 `Py = max(0, fy * sy * referenceSpeed)`, in watts. The solver's slip signs follow the force direction,
@@ -199,10 +177,9 @@ so both products are dissipative. Unsupported contacts publish zero. This observ
 it does not rerun the tire law, change snapshots or approximate force from utilization.
 
 The [mapping and sample kernel](../src/audio/tire-synthesis.ts) own all acoustic conventions.
-This revision replaces the rejected 1050/1630 Hz fixed noise bands with one self-excited acoustic
-oscillator per axle. The former fixed-band spectral assertion is superseded by onset/growth,
-phase-locked harmonic, below-onset decay and pre-clip state-bound tests. Observation, independent
-axle transport, silence, deterministic streams and physical-invariance coverage remain.
+Each axle currently uses one self-excited acoustic oscillator. Its pitch, onset, roughness, harmonics,
+level and release are provisional listening controls. Future tire work may revise this surrogate;
+retain independent axle observations, sample-free synthesis and the read-only physics boundary.
 
 - Rolling and broadband scrub audio are removed by listening preference; ordinary rolling is silent.
 - Squeal intensity uses `sqrt(P / (P + 12000 W))`; this remains an intensity proxy, not acoustic watts.
@@ -233,9 +210,8 @@ noise modulation, independently of render-block boundaries. Fixed seed-derived d
 Fundamental, second and third harmonics share the oscillator phase. The polynomial pickup
 `y + 0.32 (2xy) + 0.12 y (3x² - y²)` makes higher harmonics grow with amplitude. Independent
 fixed-seed perturbations seed onset and add weak oscillator roughness only. No random signal is
-mixed directly into the output. Rolling/scrub gains, filters and worklet parameters are removed.
-The previous friction-noise spectral requirement is superseded by exact silence during ordinary
-rolling on every surface; tonal growth, harmonic, stability and release coverage remain.
+mixed directly into the output. Ordinary rolling is silent on every surface. Tonal growth,
+phase-locked harmonics, stable states, independent streams and silent release are tested.
 
 Each axle retains the bounded ±0.35 soft output, mixed mono at the player. These controls do not
 claim measured material properties, front/rear localization, a universal squeal law or local
@@ -247,8 +223,7 @@ sample loop, fades invalid controls to silence and stops on disposal. Engine and
 are registered through one [module entry](../src/audio/vehicle-processor.ts), so module loading
 remains one lifecycle transaction. Engine topology/profile fades do not rebuild tire nodes.
 
-The independent [noise prototype](../src/dev/diagnostics/noise-processor.ts) and wind prototype
-remain deferred and disconnected. No wind graph runs.
+Wind is unimplemented. No spare noise processor or disconnected sound prototype is kept in source.
 
 The [tire audition](../tools/tire-browser.html) exercises front, rear and both axles through
 rolling, lateral slide, wheel lock, loose surface and release using the production worklet.
@@ -355,7 +330,6 @@ or while muted is retained. Vehicle changes preserve tuning, and reset restores
 the shared defaults. The audition uses the committed values on its next playback, not during
 an already rendered clip. Settings are session-local; a page/course reload restores defaults.
 The selected setting can be checked across all nine vehicles and both output rates.
-[Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
 The production worklet accepts validated optional coefficient overrides in initial options and
 profile-replacement messages. Both paths preserve tuning. Tuning does not
 change vehicle geometry or add a continuous noise source. Pulse variation modifies event strength only.
@@ -401,12 +375,12 @@ introduced; it would represent a different termination. The UI now reaches -1 ex
 ## Minimal implementation boundary
 
 Keep one waveguide kernel and one fixed-delay primitive. The acoustic kernel receives only profile,
-internal sample rate and tuning. Rate selection belongs to worklet composition, never vehicle physics.
+sample rate and tuning. Rate selection belongs to worklet composition, never vehicle physics.
 There are no alternate pipe topologies, method flags inside the kernel, sample assets or vehicle branches.
 
-For exact native-rate reference verification, run
+For a sound-preserving cleanup, verify exact native-rate output against the pre-edit module with
 `node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js` after building.
-Both kernels use the same rate-only constructor at 44.1/48 kHz across all vehicles, coefficient overrides
+The supplied module must use the same profile contract and pulse model. This check covers 44.1/48 kHz across all vehicles, coefficient overrides
 and RPM/load transitions. `--zero-variation` checks deterministic zero-variation excitation.
 
 ## Provisional boundary and output interpretation
@@ -418,9 +392,8 @@ coefficients +0.94 and -0.3 therefore correspond to positive, real effective imp
 Z/Z0 of about 32.3 and 0.538. This motivates nearly rigid and pressure-release-like endpoints;
 these numbers are not measured valve impedances. Over 0.23 firing cycles the aperture is
 `16 u² (1-u)²`, where u runs from 0 to 1; outside that interval it is zero. Its value and slope
-are continuous at both ends, with peak 1 at the center. This replaces the half-sine envelope,
-removing its slope corners and per-cylinder trigonometric evaluation. Endpoint reflections,
-duration and peak are retained; the mean aperture intentionally changes (8/15 versus 2/pi).
+are continuous at both ends, with peak 1 at the center and mean 8/15 over the window.
+Evaluation uses only arithmetic, without per-cylinder trigonometry.
 This is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
 The waveguide uses the periodic envelope on each primary return.
 The same boundary low-pass is reused at the outlet and source for economy, not because their
@@ -432,8 +405,3 @@ is relative; rise/decay values are time constants of the excitation envelope. No
 as combustion pressure, engine inertia or a measured exhaust property. Read-only UI text separates
 these controls from reference-derived propagation and outlet coefficients. Pipe lengths may
 remain provisional acoustic sketches.
-
-## Runtime boundary
-
-REFLECTION, LOOP and 2x comparison modes are removed. Keep one native-rate pipe model and the eight
-provisional sound controls. Host measurements do not replace Android gameplay/audio acceptance.

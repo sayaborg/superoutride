@@ -1,17 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ExhaustWaveguide } from '../dist/audio/exhaust-waveguide.js';
-import { REFLECTION_CANDIDATES } from '../tools/reflection-candidates.mjs';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
-test('candidate table changes one coefficient and leaves all vehicle authoring untouched', () => {
-  for (const [i, candidate] of REFLECTION_CANDIDATES.entries()) {
-    assert.equal(Object.keys(candidate.tuning).length, i === 0 ? 0 : 1);
-  }
+// Fixed single-parameter regression inputs, independent of slider defaults.
+const TUNING_CASES = [
+  {},
+  { outletReflection: -0.35 },
+  { outletReflection: -0.9 },
+  { returnCutoffHz: 1800 },
+  { attenuationPerMeter: 0.16 },
+  { closedExcitation: 0.08 },
+];
+
+test('shared acoustic tuning preserves vehicle authoring and finite output across sample rates', () => {
   for (const { sound } of VEHICLE_CATALOG) {
     const before = structuredClone(sound);
-    for (const { tuning } of REFLECTION_CANDIDATES) {
-      for (const rate of [88200, 96000]) {
+    for (const tuning of TUNING_CASES) {
+      for (const rate of [44100, 48000, 88200, 96000]) {
         const synth = new ExhaustWaveguide(sound, rate, tuning);
         for (let i = 0; i < rate / 2; i++) {
           const output = synth.sample(i < rate / 4 ? 1000 : 10000, i < rate / 4 ? 0 : 1);
@@ -23,10 +29,10 @@ test('candidate table changes one coefficient and leaves all vehicle authoring u
   }
 });
 
-test('empty tuning is identical and each candidate changes the waveguide waveform', () => {
+test('empty tuning is identical and each acoustic control changes the waveguide waveform', () => {
   const sound = VEHICLE_CATALOG[3].sound;
   const baseline = new ExhaustWaveguide(sound, 96000);
-  const engines = REFLECTION_CANDIDATES.map(({ tuning }) => new ExhaustWaveguide(sound, 96000, tuning));
+  const engines = TUNING_CASES.map((tuning) => new ExhaustWaveguide(sound, 96000, tuning));
   const differences = engines.map(() => 0);
   for (let i = 0; i < 96000; i++) {
     const reference = baseline.sample(3000, 0.25);
