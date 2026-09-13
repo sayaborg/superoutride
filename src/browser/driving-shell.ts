@@ -1,3 +1,4 @@
+import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../camera/camera.js';
 import { createCameraRig, setCameraYawMode, toggleCameraYawMode, type CameraState } from '../camera/camera.js';
@@ -36,9 +37,16 @@ interface BrowserDrivingShell {
   readonly cameraRig: CameraRig;
   replacePlayer(profile: Readonly<CompiledArcadeVehicleProfile>, active: VehicleWorld): void;
   mountControls(options: DrivingLifecycleOptions): ReturnType<typeof createDrivingLifecycle>;
-  present(query: BrowserCourseModeQuery, input: DrivingInput, camera: CameraState, playerScreenY: number): void;
+  present(
+    query: BrowserCourseModeQuery,
+    input: DrivingInput,
+    camera: CameraState,
+    playerScreenY: number,
+    rivals?: readonly { readonly vehicle: ArcadeVehicleState }[],
+  ): void;
   start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
+  dispose(): void;
 }
 
 /** Shared browser/player wiring only. Route ticks, recovery geography and race state stay in roots. */
@@ -68,15 +76,22 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
   let recovery = createRecoveryState(vehicle);
   const cameraRig = createCameraRig();
 
+  const audio = createAudioLifecycle();
   let loop: FrameLoop | null = null;
   return {
     start(tick, render): void {
       loop?.stop();
       loop = createFrameLoop(tick, render);
       loop.start();
+      audio.setActive(true);
     },
     stop(): void {
       loop?.stop();
+      audio.setActive(false);
+    },
+    dispose(): void {
+      loop?.stop();
+      audio.dispose();
     },
     get vehicle() {
       return vehicle;
@@ -152,7 +167,14 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
       });
       return lifecycle;
     },
-    present(query: BrowserCourseModeQuery, input: DrivingInput, camera: CameraState, playerScreenY: number): void {
+    present(
+      query: BrowserCourseModeQuery,
+      input: DrivingInput,
+      camera: CameraState,
+      playerScreenY: number,
+      rivals: readonly { readonly vehicle: ArcadeVehicleState }[] = [],
+    ): void {
+      audio.update(vehicle, rivals);
       ctx.putImageData(imageData, 0, 0);
       drawVehicleDebugHud(ctx, query, input, vehicle);
       if (vehicleCatalogEntryForId(vehicle.profile.id).presentationFamily === 'BIKE') {

@@ -1,3 +1,5 @@
+import type { VehicleAudioProfile } from '../audio/vehicle-audio-profile.js';
+import { VEHICLE_SOUND_PROFILES } from './sound-profiles.js';
 import {
   ROAD_TORQUE_POLICY,
   TWO_WHEEL_TORQUE_POLICY,
@@ -24,6 +26,7 @@ interface VehicleIdentifier {
 }
 
 export interface VehicleCatalogEntry {
+  readonly sound: VehicleAudioProfile;
   readonly manufacturer: string;
   readonly model: string;
   readonly identifier: VehicleIdentifier | null;
@@ -62,6 +65,7 @@ export function compileVehicleCatalog(
 /** Product catalog. Metadata roles remain separate from compiled mechanical profiles. */
 export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compileVehicleCatalog([
   {
+    sound: VEHICLE_SOUND_PROFILES['TESTAROSSA'],
     manufacturer: 'Ferrari',
     model: 'Testarossa',
     identifier: { officialLabel: 'Tipo F110', shortLabel: 'F110' },
@@ -74,6 +78,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'F110',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['911_TURBO_3_3'],
     manufacturer: 'Porsche',
     model: '911 Turbo 3.3',
     identifier: { officialLabel: 'Type 930', shortLabel: '930' },
@@ -86,6 +91,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: '930',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['CORVETTE_C4'],
     manufacturer: 'Chevrolet',
     model: 'Corvette',
     identifier: { officialLabel: 'C4', shortLabel: 'C4' },
@@ -98,6 +104,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'C4',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['GOLF_GTI_16V'],
     manufacturer: 'Volkswagen',
     model: 'Golf GTI 16V',
     identifier: { officialLabel: 'Mk2', shortLabel: 'Mk2' },
@@ -110,6 +117,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'GTI',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['DELTA_HF_INTEGRALE'],
     manufacturer: 'Lancia',
     model: 'Delta HF Integrale',
     identifier: null,
@@ -122,6 +130,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'DELTA',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['VFR750R'],
     manufacturer: 'Honda',
     model: 'VFR750R',
     identifier: { officialLabel: 'RC30', shortLabel: 'RC30' },
@@ -134,6 +143,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'RC30',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['R80_GS_PARIS_DAKAR'],
     manufacturer: 'BMW',
     model: 'R 80 G/S Paris-Dakar',
     identifier: null,
@@ -146,6 +156,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'R80',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['FXRT_SPORT_GLIDE'],
     manufacturer: 'Harley-Davidson',
     model: 'FXRT Sport Glide',
     identifier: { officialLabel: 'FXRT', shortLabel: 'FXRT' },
@@ -158,6 +169,7 @@ export const VEHICLE_CATALOG: readonly Readonly<VehicleCatalogEntry>[] = compile
     mobileLabel: 'FXRT',
   },
   {
+    sound: VEHICLE_SOUND_PROFILES['PX200E_ARCOBALENO'],
     manufacturer: 'Vespa',
     model: 'PX 200 E Arcobaleno',
     identifier: { officialLabel: 'VSX1T', shortLabel: 'VSX1T' },

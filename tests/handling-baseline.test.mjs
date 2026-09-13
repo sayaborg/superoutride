@@ -27,9 +27,18 @@ test('all cars and bikes receive the same player baseline with controls above an
     near(v.steeringCalibration.steeringOffsetMax, (20 * Math.PI) / 180, 1e-12, { exclusive: true });
     near(v.steeringCalibration.maxRoadWheelSteer, (65 * Math.PI) / 180, 1e-12, { exclusive: true });
     near(v.steeringCalibration.steeringActuatorResponse.applyRate, 1 / 0.3, 1e-12, { exclusive: true });
-    for (const host of Object.values(containers)) {
-      const i = host.children.findIndex((b) => b.getAttribute('aria-pressed') === 'true');
-      assert.ok(i > 0 && i < host.children.length - 1, entry.profile.id);
+    for (const [host, initial, below] of [
+      [containers.steeringOffset, '20°', '19°'],
+      [containers.maxRoadWheelSteer, '65°', '60°'],
+      [containers.steeringResponse, '0.30 s', '0.275 s'],
+    ]) {
+      assert.equal(host.children.length, 1);
+      const [minus, value, plus] = host.children[0].children;
+      assert.equal(value.textContent, initial);
+      minus.click();
+      assert.equal(value.textContent, below);
+      plus.click();
+      assert.equal(value.textContent, initial);
     }
     const px = tireHost.children[1];
     px.children[2].click();
@@ -37,14 +46,19 @@ test('all cars and bikes receive the same player baseline with controls above an
     px.children[0].click();
     px.children[0].click();
     near(readTireCharacteristics(v.tireFrictionCalibration.front).peakSlipX, 0.19, 1e-12, { exclusive: true });
-    for (const [key, host] of [
-      ['KeyY', containers.steeringOffset],
-      ['KeyU', containers.maxRoadWheelSteer],
-      ['KeyT', containers.steeringResponse],
+    for (const [key, host, first, last, count] of [
+      ['KeyY', containers.steeringOffset, '10°', '30°', 21],
+      ['KeyU', containers.maxRoadWheelSteer, '50°', '80°', 7],
+      ['KeyT', containers.steeringResponse, '0.20 s', '0.40 s', 9],
     ]) {
-      host.children.at(-1).click();
+      const [minus, value, plus] = host.children[0].children;
+      // Visit the full grid, then prove both wrap directions and keyboard synchronization.
+      for (let i = 0; value.textContent !== last && i < count; i++) plus.click();
+      assert.equal(value.textContent, last);
       assert.equal(ctl.handleKey(key), true);
-      assert.equal(host.children[0].getAttribute('aria-pressed'), 'true');
+      assert.equal(value.textContent, first);
+      minus.click();
+      assert.equal(value.textContent, last);
     }
     const steering = structuredClone(v.steeringCalibration),
       tires = v.tireFrictionCalibration;

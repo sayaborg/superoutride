@@ -10,7 +10,7 @@ import {
   createMobileVehicleSelectorModel,
   type MobileSelectorButtonModel,
 } from './mobile-selector-model.js';
-import { sameSelectorValue } from './selector-values.js';
+import { cycleSelectorChoice, sameSelectorValue } from './selector-values.js';
 
 import type { CompiledArcadeVehicleProfile, VehicleProfileId } from '../physics/vehicle-profiles.js';
 import {
@@ -79,7 +79,14 @@ export function mountMobileSteeringOffsetSelector(
   onSelect: (radians: number) => void,
   documentRef: Document = document,
 ): MobileSelectorController<number> {
-  return mountMobileSelector(container, createMobileSteeringOffsetSelectorModel(activeRadians), onSelect, documentRef);
+  return mountNumericStepper(
+    container,
+    createMobileSteeringOffsetSelectorModel(activeRadians),
+    'D',
+    '°',
+    onSelect,
+    documentRef,
+  );
 }
 
 export function mountMobileMaxRoadWheelSteerSelector(
@@ -88,9 +95,11 @@ export function mountMobileMaxRoadWheelSteerSelector(
   onSelect: (radians: number) => void,
   documentRef: Document = document,
 ): MobileSelectorController<number> {
-  return mountMobileSelector(
+  return mountNumericStepper(
     container,
     createMobileMaxRoadWheelSteerSelectorModel(activeRadians),
+    'M',
+    '°',
     onSelect,
     documentRef,
   );
@@ -102,7 +111,14 @@ export function mountMobileSteeringResponseSelector(
   onSelect: (rate: number) => void,
   documentRef: Document = document,
 ): MobileSelectorController<number> {
-  return mountMobileSelector(container, createMobileSteeringResponseSelectorModel(activeRate), onSelect, documentRef);
+  return mountNumericStepper(
+    container,
+    createMobileSteeringResponseSelectorModel(activeRate),
+    'ACT',
+    ' s',
+    onSelect,
+    documentRef,
+  );
 }
 
 export function mountMobileTireCalibrationSelector(
@@ -113,23 +129,8 @@ export function mountMobileTireCalibrationSelector(
 ): MobileTireCalibrationController {
   const outputs = new Map<BrowserTireCalibrationAxis, HTMLElement>();
   const groups = createMobileTireCalibrationSelectorModel(calibration).map((item) => {
-    const group = documentRef.createElement('div');
-    group.className = 'tire-control';
-    group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', `${item.axis} tire calibration`);
-    const value = documentRef.createElement('span');
-    value.className = 'tire-value';
+    const { group, value } = createStepper(item.axis, (direction) => onStep(item.axis, direction), documentRef);
     outputs.set(item.axis, value);
-    const button = (direction: -1 | 1) => {
-      const element = documentRef.createElement('button');
-      element.type = 'button';
-      element.className = 'selector-button tire-step';
-      element.textContent = direction < 0 ? '−' : '+';
-      element.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} ${item.axis} (wrap at limit)`);
-      element.addEventListener('click', () => onStep(item.axis, direction));
-      return element;
-    };
-    group.replaceChildren(button(-1), value, button(1));
     return group;
   });
   container.replaceChildren(...groups);
@@ -144,6 +145,57 @@ export function mountMobileTireCalibrationSelector(
     },
   };
   controller.setCalibration(calibration);
+  return controller;
+}
+
+/** A numeric choice list and tire axes share the same compact two-button presentation. */
+function createStepper(label: string, onStep: (direction: -1 | 1) => void, documentRef: Document) {
+  const group = documentRef.createElement('div');
+  group.className = 'calibration-control';
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', `${label} calibration`);
+  const value = documentRef.createElement('span');
+  value.className = 'calibration-value';
+  const button = (direction: -1 | 1) => {
+    const element = documentRef.createElement('button');
+    element.type = 'button';
+    element.className = 'selector-button calibration-step';
+    element.textContent = direction < 0 ? '−' : '+';
+    element.setAttribute('aria-label', `${direction < 0 ? 'Decrease' : 'Increase'} ${label} (wrap at limit)`);
+    element.addEventListener('click', () => onStep(direction));
+    return element;
+  };
+  group.replaceChildren(button(-1), value, button(1));
+  return { group, value };
+}
+
+function mountNumericStepper(
+  container: HTMLElement,
+  choices: readonly MobileSelectorButtonModel<number>[],
+  label: string,
+  unit: string,
+  onSelect: (value: number) => void,
+  documentRef: Document,
+): MobileSelectorController<number> {
+  let active = choices.find((item) => item.active)!.value;
+  const { group, value } = createStepper(
+    label,
+    (direction) => {
+      onSelect(cycleSelectorChoice(choices, active, (item) => item.value, direction).value);
+    },
+    documentRef,
+  );
+  container.replaceChildren(group);
+  const controller = {
+    setActive(next: number) {
+      active = next;
+      const item = choices.find((item) => sameSelectorValue(item.value, next));
+      value.textContent = `${item?.label ?? next}${unit}`;
+      value.setAttribute('aria-label', item?.ariaLabel ?? label);
+      value.setAttribute('title', item?.ariaLabel ?? label);
+    },
+  };
+  controller.setActive(active);
   return controller;
 }
 

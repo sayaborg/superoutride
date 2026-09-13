@@ -38,6 +38,12 @@ export class SelectorElement {
     listeners.push(fn);
     this.listeners.set(name, listeners);
   }
+  removeEventListener(name, fn) {
+    this.listeners.set(
+      name,
+      (this.listeners.get(name) ?? []).filter((listener) => listener !== fn),
+    );
+  }
   replaceChildren(...children) {
     this.children = children;
   }

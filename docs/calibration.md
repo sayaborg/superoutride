@@ -17,6 +17,11 @@ Cars and bikes start with the same browser baseline. Player replacement carries 
 | M        | Mechanical road-wheel rack bound        | 65°     | 50–80° / 5°           |
 | ACT      | Symmetric normalized steering traversal | 0.30 s  | 0.20–0.40 s / 0.025 s |
 
+D, M, ACT and the tire axes share a compact minus/value/plus control. Both directions wrap
+at the existing range endpoints; ACT steps traversal time (seconds), not rate. Keyboard
+Y/U/T still step D/M/ACT forward through the same canonical choice lists. This replaces the
+full numeric button grids without changing defaults, ranges, units or vehicle-owned setters.
+
 [Tire selector](../src/browser/tire-friction-selection.ts), [steering selector](../src/browser/steering-calibration-selection.ts) and [driving shell](../src/browser/driving-shell.ts) own browser initialization. Raw vehicle construction and rivals use compiled profile defaults unless composition explicitly supplies calibration. Do not silently replace profile seeds with browser debug settings.
 
 PX is longitudinal, PY lateral. At fixed friction and KN, a larger P lowers initial stiffness while keeping force capacity. The present baseline has GX/PX=GY/PY=25, hence kX=kY=31.5. Easier handling with larger PX can follow from gentler wheel longitudinal force build-up and changed combined-slip/load-transfer response; it is not explained by wheelbase alone and does not establish universal dynamic stability.

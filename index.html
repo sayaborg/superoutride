@@ -41,6 +41,26 @@
           <span id="tire-friction-selector-label" class="selector-label">TIRE F/R · − / + · H J G L N</span>
           <div id="tire-friction-selector-buttons" class="selector-buttons tire-friction-selector-buttons"></div>
         </section>
+        <section class="selector-group selector-group-sound" aria-label="Sound controls">
+          <button id="sound-toggle" class="selector-button" type="button" aria-pressed="true">SOUND ON</button>
+          <label for="sound-volume">VOL</label>
+          <input id="sound-volume" type="range" min="0" max="100" value="35" aria-label="Sound volume" />
+          <label for="sound-method">ENGINE A/B</label>
+          <select
+            id="sound-method"
+            class="selector-button"
+            aria-label="Engine sound method"
+            title="Temporary comparison: one method will be retained."
+          >
+            <option value="reflection">REFLECTION</option>
+            <option value="waveguide" selected>WAVEGUIDE</option>
+          </select>
+          <span>ENGINE ONLY · COMPARISON</span>
+        </section>
+        <section class="selector-group selector-group-audio-tuning" aria-label="Engine tuning">
+          <span class="selector-label">ENGINE TUNING · 仮設定 · スライダーを離すと反映</span>
+          <div id="sound-tuning"></div>
+        </section>
       </nav>
 
       <section class="control-zone steering-zone" aria-label="Steering controls">

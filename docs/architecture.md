@@ -122,6 +122,8 @@ Order is optional clear -> full Far Background -> single far-to-near Terrain + W
 
 Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations. Graphics owns framebuffer, color codec, sprite blitting and Painter primitives; visual owns background/sprite assets and visual sections; render assembles the drawing pipeline and projected course/dynamic sprites. GroundMap owns logical/baked readers, baking, filtering and footprint contracts. Cross-domain surface-region compilation belongs to runtime; physical surface/Guide containment belongs to physics. Circuit race compilation consumes a gameplay-owned window reader. Vehicle presentation-family metadata belongs to the vehicle catalog.
 
+Audio owns procedural sound and consumer read contracts; vehicle binds authored acoustic profiles and browser adapts physical observations. Audio imports only Core; physics never imports audio. See [audio](audio.md).
+
 All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone does not justify merging it.
 
 General engine modules never import `src/dev`; only the three browser composition roots assemble concrete DEV content. Route/mode choices happen there. Runtime content provides ordinary reader contracts to physics, camera and renderer. Compilers own topology expansion, validation, static geometry and asset preparation; avoid per-pixel geometry, trigonometry or per-object alternative depth rules.

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      th,
+      td {
+        padding: 0.35em 0.65em;
+        text-align: right;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      th {
+        border-bottom: 1px solid #888;
+      }
+      fieldset {
+        margin-block: 1em;
+        overflow-x: auto;
+      }
+      .audio-tuning-row {
+        display: grid;
+        grid-template-columns: 10em minmax(120px, 360px) 10em;
+        gap: 8px;
+        align-items: center;
+        margin-block: 12px;
+      }
+      .audio-tuning-row input {
+        width: 100%;
+      }
+    </style>
+    <title>Procedural audio verification</title>
+  </head>
+  <body>
+    <h1>エンジン音の比較</h1>
+    <p>
+      燃焼・排気パルスのみを比較します。固定音量では開度による音量差を保ちます。試聴は3秒で止まります。全9車種で2方式を比較できます。係数・管長は仮設定です。
+    </p>
+    <label
+      >車種
+      <select id="vehicle"></select
+    ></label>
+    <label>回転数 <input id="rpm" type="number" min="1000" max="12000" value="3000" step="500" /></label>
+    <label
+      >アクセル
+      <select id="load">
+        <option value="1">全開</option>
+        <option value="0.75">75%</option>
+        <option value="0.5">50%</option>
+        <option value="0.25">25%</option>
+        <option value="0">全閉</option>
+      </select></label
+    >
+    <label
+      >試聴内容
+      <select id="scenario">
+        <option value="steady">一定回転</option>
+        <option value="rev">加速 → アクセルOFF</option>
+      </select></label
+    >
+    <label
+      >音量比較
+      <select id="level">
+        <option value="fixed">固定音量（開度の比較）</option>
+        <option value="matched">音量を揃える（方式の比較）</option>
+      </select></label
+    >
+    <p>採用判断のための一時的な比較です。将来は1方式だけを採用し、不採用側を削除します。</p>
+    <label
+      >方式
+      <select id="method">
+        <option value="reflection">簡易反射（最適化版）</option>
+        <option value="waveguide">ウェーブガイド（最適化版）</option>
+      </select>
+    </label>
+    <p id="method-description"></p>
+    <button id="play" type="button">選択した方式を聴く</button>
+    <button id="stop" type="button">停止</button>
+    <p id="listening">未再生</p>
+    <fieldset>
+      <legend>共通の調整値（仮）</legend>
+      <p>
+        配管・発火・パルス設定は共通です。スライダーは組み合わせて調整できます。両方式に同じ値を渡します。変更は次の再生に反映されます。
+      </p>
+      <p id="reference-conditions"></p>
+      <div id="tuning-sliders"></div>
+      <p id="boundary-conditions"></p>
+      <p id="output-conditions"></p>
+    </fieldset>
+    <fieldset>
+      <legend>選択車種の音源データ（読み取り専用）</legend>
+      <p id="vehicle-summary"></p>
+      <p>
+        以下は音源が使用している設定です。管長・集合先は音響用の仮設定を含み、実測済みの実車配管データではありません。
+      </p>
+      <p>行は発火イベント順です。実車の気筒番号や左右バンクの名称を示すものではありません。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>発火順</th>
+            <th>位相</th>
+            <th>次の発火まで</th>
+            <th>集合先</th>
+            <th>枝管長</th>
+            <th>集合部→出口</th>
+            <th>経路の合計</th>
+          </tr>
+        </thead>
+        <tbody id="vehicle-pipes"></tbody>
+      </table>
+      <p id="vehicle-pulse"></p>
+    </fieldset>
+    <button id="run" type="button">選択した方式・設定を全車種で検証</button>
+    <pre id="result">Ready</pre>
+    <script type="module">
+      import {
+        REFLECTION_REFERENCE,
+        ACOUSTICS,
+        CONTROL_SECONDS,
+        DEFAULT_EXHAUST_TUNING,
+        OUTPUT,
+      } from '../dist/audio/exhaust-acoustics.js';
+      import { mountAudioTuningControls } from '../dist/browser/audio-tuning-controls.js';
+      import { createEngineVoice } from '../dist/audio/engine-voice.js';
+      import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
+      import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
+      const result = document.getElementById('result');
+      const vehicle = document.getElementById('vehicle');
+      const method = document.getElementById('method');
+      for (const entry of VEHICLE_CATALOG) {
+        const option = document.createElement('option');
+        option.value = String(vehicle.options.length);
+        option.textContent = entry.profile.id;
+        vehicle.append(option);
+      }
+      document.getElementById('reference-conditions').textContent =
+        `基準条件（仮定）：内径 ${REFLECTION_REFERENCE.radiusMeters * 2000} mm、温度 ${(REFLECTION_REFERENCE.temperatureK - 273.15).toFixed(0)} ℃の空気、開放管端。管内損失は ${REFLECTION_REFERENCE.frequencyHz} Hzで近似。実車の測定値ではありません。全閉時の励振は音作りの設定です。`;
+      document.getElementById('boundary-conditions').textContent =
+        `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。簡易反射は閉端側を固定で使い、ウェーブガイドは気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
+      document.getElementById('output-conditions').textContent =
+        `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、スライダーで調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
+      const tuningControls = mountAudioTuningControls(document.getElementById('tuning-sliders'), () => {});
+      const readTuning = tuningControls.read;
+      function showVehicleData() {
+        const { sound, profile } = VEHICLE_CATALOG[Number(vehicle.value)];
+        const cycleDegrees = sound.cycleRevolutions * 360;
+        document.getElementById('vehicle-summary').textContent =
+          `${profile.id} ／ ${sound.firingPhases.length}気筒 ／ ${sound.cycleRevolutions * 2}ストローク ／ 1周期 ${cycleDegrees}° ／ アイドル ${profile.powertrain.idleRpm} RPM ／ 上限 ${profile.powertrain.redlineRpm} RPM`;
+        const body = document.getElementById('vehicle-pipes');
+        body.replaceChildren();
+        const degrees = (value) => `${Number(value.toFixed(2))}°`;
+        const meters = (value) => `${value.toFixed(2)} m`;
+        sound.firingPhases.forEach((phase, i, phases) => {
+          const next = i + 1 < phases.length ? phases[i + 1] : phases[0] + 1;
+          const length = sound.exhaust.lengths[i];
+          const row = document.createElement('tr');
+          for (const value of [
+            i + 1,
+            degrees(phase * cycleDegrees),
+            degrees((next - phase) * cycleDegrees),
+            String.fromCharCode(65 + sound.exhaust.banks[i]),
+            meters(length),
+            meters(sound.exhaust.outlet),
+            meters(length + sound.exhaust.outlet),
+          ]) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.append(cell);
+          }
+          body.append(row);
+        });
+        document.getElementById('vehicle-pulse').textContent =
+          `パルスの設定：強さ ${sound.pulse.strength} ／ 立ち上がり時定数 ${(sound.pulse.riseSeconds * 1000).toFixed(2)} ms ／ 減衰時定数 ${(sound.pulse.decaySeconds * 1000).toFixed(2)} ms`;
+      }
+      vehicle.onchange = showVehicleData;
+      vehicle.value = '1';
+      showVehicleData();
+      let playback,
+        playing,
+        request = 0;
+      const listening = document.getElementById('listening');
+      function stop() {
+        request++;
+        if (result.textContent === '検証中') result.textContent = '検証中止';
+        playing?.stop();
+        playing?.disconnect();
+        playing = null;
+        listening.textContent = '停止';
+      }
+      document.getElementById('stop').onclick = stop;
+      method.onchange = () => {
+        stop();
+        document.getElementById('method-description').textContent =
+          method.value === 'waveguide'
+            ? '気筒側へ戻る波と集合部の相互作用を計算します。'
+            : '枝管からのパルスをまとめ、出口との往復反射を計算します。気筒への戻り波は省略します。';
+      };
+      method.onchange();
+      const readSelection = () => ({
+        label: method.selectedOptions[0].textContent,
+        coupled: method.value === 'waveguide',
+        tuning: readTuning(),
+      });
+      async function audition() {
+        stop();
+        const current = request;
+        try {
+          playback ??= new AudioContext();
+          await playback.resume();
+          const selected = readSelection();
+          const scenario = document.getElementById('scenario').value;
+          const level = document.getElementById('level').value;
+          const entry = VEHICLE_CATALOG[Number(vehicle.value)];
+          const context = new OfflineAudioContext(1, 4 * 48000, 48000);
+          const state = createVehicleAudioObservation();
+          Object.assign(state, {
+            rpm: Number(document.getElementById('rpm').value) || 3000,
+            idleRpm: entry.profile.powertrain.idleRpm,
+            redlineRpm: entry.profile.powertrain.redlineRpm,
+            throttle: Number(document.getElementById('load').value),
+            drive: Number(document.getElementById('load').value),
+          });
+          await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
+          const voice = createEngineVoice(context, context.destination, {
+            profile: entry.sound,
+            coupled: selected.coupled,
+            tuning: selected.tuning,
+          });
+          voice.update(state, entry.sound);
+          if (scenario === 'rev') {
+            const target = Math.max(state.idleRpm, Math.min(state.rpm, state.redlineRpm));
+            state.rpm = state.idleRpm;
+            state.throttle = state.drive = 0;
+            voice.update(state, entry.sound);
+            for (let tick = 20; tick < 80; tick++) {
+              const time = tick / 20;
+              void context.suspend(time).then(() => {
+                const accelerating = time < 2.5;
+                state.throttle = state.drive = accelerating ? 1 : 0;
+                const fraction = accelerating ? (time - 1) / 1.5 : 1 - (time - 2.5) / 1.5;
+                state.rpm = state.idleRpm + (target - state.idleRpm) * fraction;
+                voice.update(state, entry.sound);
+                return context.resume();
+              });
+            }
+          }
+          const rendered = await context.startRendering();
+          voice?.dispose();
+          if (current !== request) return;
+          const samples = rendered.getChannelData(0).subarray(48000);
+          let power = 0,
+            peak = 0;
+          for (const value of samples) {
+            power += value * value;
+            peak = Math.max(peak, Math.abs(value));
+          }
+          const scale = level === 'matched' ? Math.min(0.12 / Math.sqrt(power / samples.length), 0.85 / peak) : 0.6;
+          const buffer = playback.createBuffer(1, samples.length, 48000);
+          const output = buffer.getChannelData(0);
+          for (let i = 0; i < output.length; i++) {
+            const fade = Math.min(1, i / 960, (output.length - 1 - i) / 960);
+            output[i] = samples[i] * scale * fade;
+          }
+          playing = playback.createBufferSource();
+          playing.buffer = buffer;
+          playing.connect(playback.destination);
+          playing.onended = () => {
+            if (current === request) listening.textContent = '再生終了';
+          };
+          playing.start();
+          listening.textContent = `${selected.label}・${entry.profile.id}`;
+        } catch (error) {
+          if (current === request) listening.textContent = String(error);
+        }
+      }
+      document.getElementById('play').onclick = audition;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stop();
+      });
+      window.addEventListener('pagehide', () => {
+        stop();
+        void playback?.close();
+      });
+
+      async function verify() {
+        stop();
+        const current = request;
+        const selected = readSelection();
+        const button = document.getElementById('run');
+        button.disabled = true;
+        result.textContent = '検証中';
+        try {
+          const rows = [];
+          for (const sampleRate of [44100, 48000]) {
+            for (const entry of VEHICLE_CATALOG) {
+              const amplitudes = [];
+              for (const [rpm, throttle] of [0, 3000, 6000].flatMap((rpm) => [
+                [rpm, 0],
+                [rpm, 1],
+              ])) {
+                const context = new OfflineAudioContext(1, sampleRate / 2, sampleRate);
+                await context.audioWorklet.addModule(new URL('../dist/audio/exhaust-processor.js', import.meta.url));
+                const voice = createEngineVoice(context, context.destination, {
+                  profile: entry.sound,
+                  coupled: selected.coupled,
+                  tuning: selected.tuning,
+                });
+                const observation = createVehicleAudioObservation();
+                Object.assign(observation, {
+                  rpm,
+                  throttle,
+                  drive: throttle,
+                  idleRpm: entry.profile.powertrain.idleRpm,
+                  redlineRpm: entry.profile.powertrain.redlineRpm,
+                });
+                voice.update(observation, entry.sound);
+                const rendered = await context.startRendering();
+                const samples = rendered.getChannelData(0);
+                let peak = 0,
+                  power = 0,
+                  crossings = 0;
+                for (let i = (sampleRate / 4) | 0; i < samples.length; i++) {
+                  const value = samples[i];
+                  if (!Number.isFinite(value)) throw new Error('nonfinite sample');
+                  peak = Math.max(peak, Math.abs(value));
+                  power += value * value;
+                  if (samples[i - 1] <= 0 && value > 0) crossings++;
+                }
+                const rms = Math.sqrt(power / (samples.length - ((sampleRate / 4) | 0)));
+                if (!(rms > 0.0001 && peak < 1)) throw new Error(`invalid output: ${entry.profile.id} ${rpm}`);
+                const frequency =
+                  Math.max(observation.idleRpm, Math.min(rpm, observation.redlineRpm)) /
+                  (60 * entry.sound.cycleRevolutions);
+                const lag = sampleRate / frequency;
+                function periodicError(offset) {
+                  let difference = 0,
+                    reference = 0;
+                  for (let i = (sampleRate / 4) | 0; i + offset + 1 < samples.length; i++) {
+                    const shifted = i + offset,
+                      index = Math.floor(shifted),
+                      fraction = shifted - index;
+                    const value = samples[index] * (1 - fraction) + samples[index + 1] * fraction;
+                    difference += (samples[i] - value) ** 2;
+                    reference += samples[i] ** 2;
+                  }
+                  return difference / reference;
+                }
+                const error = periodicError(lag);
+                amplitudes.push({ rpm, throttle, peak, rms, crossings, periodicError: error });
+                voice.dispose();
+                if (current !== request) return;
+              }
+              rows.push({
+                method: selected.label,
+                vehicle: entry.profile.id,
+                sampleRate,
+                amplitudes,
+              });
+            }
+          }
+          result.textContent = JSON.stringify({ status: 'PASS', tuning: selected.tuning, rows }, null, 2);
+        } catch (error) {
+          if (current === request) result.textContent = JSON.stringify({ status: 'FAIL', error: String(error) });
+        } finally {
+          button.disabled = false;
+        }
+      }
+      document.getElementById('run').onclick = verify;
+    </script>
+  </body>
+</html>

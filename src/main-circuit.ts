@@ -164,7 +164,7 @@ function render(): void {
     },
     {},
   );
-  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
+  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {

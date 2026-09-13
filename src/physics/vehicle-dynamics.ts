@@ -1,3 +1,4 @@
+import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
@@ -30,7 +31,7 @@ export const VEHICLE_SUBSTEPS = 12;
 
 type VehicleContactId = 'FRONT' | 'REAR';
 
-/** Output cache for HUD/DEV only. Physics never consumes this object as an authority. */
+/** Output cache for presentation/DEV only. Physics never consumes this object as an authority. */
 export interface VehicleControlState {
   /** Canonical input observation. */
   steeringRequest: number;
@@ -200,6 +201,7 @@ export function createVehicleControlState(): VehicleControlState {
 
 export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
   Object.assign(vehicle.control, createVehicleControlState());
+  resetVehicleTireObservation(vehicle);
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
