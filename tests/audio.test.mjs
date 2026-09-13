@@ -53,24 +53,23 @@ test('tire rolling, slip and support produce distinct acoustic responses', () =>
     surface: 'ASPHALT',
   };
   const rolling = tireParameters(state.front);
-  assert.ok(rolling.rolling > 0);
   assert.equal(rolling.squeal, 0);
   state.front.slipSpeed = 10;
   state.front.longitudinalPower = 20000;
   state.front.utilization = 1.1;
   const skid = tireParameters(state.front);
-  assert.ok(skid.squeal > 0 && skid.friction > 0);
+  assert.ok(skid.squeal > 0);
   state.front.surface = 'DIRT';
   const dirt = tireParameters(state.front);
-  assert.ok(dirt.squeal < skid.squeal && dirt.rolling > skid.rolling);
+  assert.ok(dirt.squeal < skid.squeal);
   state.front.load = 0;
   const airborne = tireParameters(state.front);
-  assert.equal(airborne.rolling + airborne.squeal + airborne.friction, 0);
+  assert.equal(airborne.squeal, 0);
   state.front.load = 4000;
   state.front.slipSpeed = 0;
   state.front.rollingSpeed = 0;
   const stopped = tireParameters(state.front);
-  assert.equal(stopped.rolling + stopped.squeal + stopped.friction, 0);
+  assert.equal(stopped.squeal, 0);
 });
 
 test('completed wheel slip observations drive sound and recovery clears stale tire sound', () => {

@@ -2,20 +2,17 @@ import { clamp } from '../core/math.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 const MATERIAL = {
-  ASPHALT: { rolling: 0.35, squeal: 1, cutoff: 900 },
-  SHOULDER: { rolling: 0.7, squeal: 0.45, cutoff: 1600 },
-  GRASS: { rolling: 0.6, squeal: 0.05, cutoff: 700 },
-  DIRT: { rolling: 0.8, squeal: 0.15, cutoff: 1800 },
-  SAND: { rolling: 1, squeal: 0.03, cutoff: 1200 },
-  VOID: { rolling: 0, squeal: 0, cutoff: 900 },
+  ASPHALT: { squeal: 1 },
+  SHOULDER: { squeal: 0.45 },
+  GRASS: { squeal: 0.05 },
+  DIRT: { squeal: 0.15 },
+  SAND: { squeal: 0.03 },
+  VOID: { squeal: 0 },
 } as const;
 
 interface TireParameters {
-  readonly rolling: number;
-  readonly friction: number;
   /** Dimensionless acoustic excitation; crossing the oscillator threshold permits growth. */
   readonly squeal: number;
-  readonly cutoff: number;
   readonly pitch: number;
 }
 
@@ -32,16 +29,8 @@ export function tireParameters(tire: TireAudioObservation): TireParameters {
   const slidingWindow = (slip * slip * (3 - 2 * slip)) / (1 + (tire.slipSpeed / 45) ** 2);
   const squeal = intensity * onset * onset * (3 - 2 * onset) * slidingWindow * material.squeal;
   return {
-    rolling: supported
-      ? 0.16 *
-        Math.sqrt(tire.load / (tire.load + 3000)) *
-        Math.sqrt(clamp(tire.rollingSpeed / 60, 0, 1)) *
-        material.rolling
-      : 0,
-    friction: 0.045 * intensity * (1 - 0.3 * lateral),
     squeal: squeal * (0.85 + 0.15 * lateral),
     pitch: 650 + (350 * tire.slipSpeed) / (tire.slipSpeed + 6) + 220 * (1 - lateral),
-    cutoff: material.cutoff,
   };
 }
 
@@ -58,20 +47,11 @@ export class TireSynthesis {
   private readonly attack: number;
   private readonly release: number;
   private readonly roughCoefficient: number;
-  private readonly dcCoefficient: number;
-  private readonly scrubCoefficient: number;
-  private roadCoefficient: number;
-  private targetRoadCoefficient: number;
-  private target: TireParameters = { rolling: 0, friction: 0, squeal: 0, cutoff: 900, pitch: 900 };
-  private rolling = 0;
-  private friction = 0;
+  private target: TireParameters = { squeal: 0, pitch: 900 };
   private squeal = 0;
-  private road = 0;
-  private scrub = 0;
-  private dc = 0;
   private rough = 0;
   constructor(
-    private readonly rate: number,
+    rate: number,
     private seed: number,
   ) {
     this.oscillatorStep = 1 / rate;
@@ -80,31 +60,17 @@ export class TireSynthesis {
     this.attack = 1 - Math.exp(-1 / (0.025 * rate));
     this.release = 1 - Math.exp(-1 / (0.065 * rate));
     this.roughCoefficient = 1 - Math.exp((-2 * Math.PI * 35) / rate);
-    this.scrubCoefficient = 1 - Math.exp((-2 * Math.PI * 2000) / rate);
-    this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * 80) / rate);
-    this.roadCoefficient = this.targetRoadCoefficient = 1 - Math.exp((-2 * Math.PI * 900) / rate);
   }
   update(value: TireParameters): void {
     this.target = value;
-    this.targetRoadCoefficient = 1 - Math.exp((-2 * Math.PI * value.cutoff) / this.rate);
   }
   sample(): number {
-    this.rolling +=
-      (this.target.rolling > this.rolling ? this.attack : this.release) * (this.target.rolling - this.rolling);
-    this.friction +=
-      (this.target.friction > this.friction ? this.attack : this.release) * (this.target.friction - this.friction);
     this.squeal += (this.target.squeal > this.squeal ? this.attack : this.release) * (this.target.squeal - this.squeal);
     this.seed ^= this.seed << 13;
     this.seed ^= this.seed >>> 17;
     this.seed ^= this.seed << 5;
     const noise = this.seed / 2147483648;
     this.rough += this.roughCoefficient * (noise - this.rough);
-    this.dc += this.dcCoefficient * (noise - this.dc);
-    const scrub = noise - this.dc;
-    this.roadCoefficient += this.attack * (this.targetRoadCoefficient - this.roadCoefficient);
-    this.road += this.roadCoefficient * (scrub - this.road);
-    // Cascaded low-passes give friction a darker texture without the old high-passed white hiss.
-    this.scrub += this.scrubCoefficient * (this.road - this.scrub);
     this.pitch += this.attack * (this.target.pitch - this.pitch);
     if (this.rotationCountdown-- === 0) {
       // Coefficient cadence belongs to this stream, independent of host render-block partitioning.
@@ -127,7 +93,7 @@ export class TireSynthesis {
     // Phase-locked harmonics grow with oscillation amplitude; no unrelated second whistle.
     const ringing = this.y + 0.32 * (2 * this.x * this.y) + 0.12 * this.y * (3 * this.x * this.x - this.y * this.y);
     const modulation = 1 + 1.5 * this.rough;
-    const mixed = this.rolling * this.road + modulation * (this.friction * this.scrub + 0.32 * ringing);
+    const mixed = modulation * 0.32 * ringing;
     return (0.35 * mixed) / (1 + Math.abs(mixed));
   }
 }

@@ -44,7 +44,7 @@ test('acoustic tuning rejects unstable or nonfinite values and cannot override o
     { pulseVariation: NaN },
     { pulseVariation: Infinity },
     { pulseVariation: -0.01 },
-    { pulseVariation: 0.31 },
+    { pulseVariation: 0.41 },
     { outletReflection: -1.01 },
     { outletReflection: 0.1 },
     { outletReflection: NaN },

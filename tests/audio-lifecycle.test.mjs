@@ -316,7 +316,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const [reflection, cutoff, , , finalCutoff, variation] = inputs;
   assert.deepEqual(
     inputs.map((input) => Number(input.value)),
-    [-1, 3100, 0.03, 0.22, 7300, 0.06],
+    [-1, 3100, 0.03, 0.22, 7300, 0.2],
   );
   variation.value = '0.12';
   variation.emit('input');

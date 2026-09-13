@@ -285,8 +285,8 @@ test('pulse variation changes strength within bounds while preserving firing tim
   for (const rate of [88200, 96000])
     for (const coupled of [false, true]) {
       const reference = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0 });
-      const varied = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
-      const replay = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
+      const varied = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
+      const replay = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
       let sum = 0,
         square = 0,
         events = 0,
@@ -308,15 +308,16 @@ test('pulse variation changes strength within bounds while preserving firing tim
           const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
           if (!fired) continue;
           // Observe the actual excitation, independently of pipe filtering and clipping.
-          const ratio = varied.pulse[cylinder] / reference.pulse[cylinder];
-          assert.ok(ratio >= 0.7 - 1e-12 && ratio <= 1.3 + 1e-12);
-          sum += ratio;
-          square += (ratio - 1) ** 2;
+          const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / (sound.pulse.strength * varied.decay);
+          assert.ok(delta >= -0.4 - 1e-12 && delta <= 0.4 + 1e-12);
+          assert.ok(varied.pulse[cylinder] >= 0);
+          sum += delta;
+          square += delta ** 2;
           events++;
         }
       }
       assert.ok(events > 500);
-      assert.ok(Math.abs(sum / events - 1) < 0.025);
+      assert.ok(Math.abs(sum / events) < 0.025);
       assert.ok(square / events > 0.02);
       assert.ok(outputDifference > 0.01);
     }
@@ -326,10 +327,30 @@ test('variation retains finite headroom for every engine at the maximum control 
   for (const { sound, profile } of profiles)
     for (const rate of [88200, 96000])
       for (const coupled of [false, true]) {
-        const synth = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
+        const synth = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.4 });
         for (let i = 0; i < rate; i++) {
           const x = synth.sample(profile.powertrain.redlineRpm, i < rate / 2 ? 1 : 0);
           assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
         }
       }
+});
+
+test('closed throttle retains the same absolute pulse variation as open throttle', () => {
+  const sound = profiles[0].sound;
+  const coast = new ExhaustWaveguide(sound, 96000, true, { pulseVariation: 0.2 });
+  const open = new ExhaustWaveguide(sound, 96000, true, { pulseVariation: 0.2 });
+  for (let i = 0; i < 96000; i++) {
+    const previous = coast.phase;
+    coast.sample(3000, 0);
+    open.sample(3000, 1);
+    for (let j = 0; j < sound.firingPhases.length; j++) {
+      const offset = sound.firingPhases[j],
+        phase = coast.phase;
+      if (!(phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase)) continue;
+      const deviation = (synth) =>
+        synth.pulse[j] / (sound.pulse.strength * synth.decay) -
+        (synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load);
+      assert.ok(Math.abs(deviation(coast) - deviation(open)) < 1e-12);
+    }
+  }
 });

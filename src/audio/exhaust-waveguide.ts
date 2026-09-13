@@ -82,7 +82,7 @@ export class ExhaustWaveguide {
       outputCutoffHz > 12000 ||
       !Number.isFinite(pulseVariation) ||
       pulseVariation < 0 ||
-      pulseVariation > 0.3
+      pulseVariation > 0.4
     )
       throw new RangeError('invalid acoustic tuning');
     this.tuning = Object.freeze({
@@ -141,7 +141,9 @@ export class ExhaustWaveguide {
           this.pulseSeed ^= this.pulseSeed << 13;
           this.pulseSeed ^= this.pulseSeed >>> 17;
           this.pulseSeed ^= this.pulseSeed << 5;
-          strength *= 1 + this.tuning.pulseVariation * (this.pulseSeed / 2147483648);
+          strength =
+            this.profile.pulse.strength *
+            Math.max(0, excitation + this.tuning.pulseVariation * (this.pulseSeed / 2147483648));
         }
         this.pulse[i] = strength;
       }

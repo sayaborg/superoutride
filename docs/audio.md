@@ -48,11 +48,13 @@ are acoustic sketches, not manufacturer measurements. Pulse amplitude is dimensi
 there is no calculated cylinder pressure, gas mass flow, torque or temperature.
 The compiler validates resource bounds and freezes private copies of all authored arrays/objects.
 Firing phases remain exact and never receive timing jitter. Each firing samples one bounded,
-fixed-seed pseudorandom multiplier `1 + pulseVariation * r`, with `r` in [-1, 1).
-The initial pulse strength is multiplied by this value; rise time, decay, RPM and pipe geometry
-are unchanged. The default variation is 0.06 (±6%); the control range is 0–0.30.
-This is an authored acoustic variation, not measured cylinder-pressure variance or misfire physics.
-The symmetric distribution has unit expected gain; individual cycles are not renormalized.
+fixed-seed pseudorandom offset: `strength = profileStrength * max(0, excitation + pulseVariation * r)`,
+with `r` in [-1, 1). The reference is full-excitation strength, so closed throttle retains the same
+absolute variation. Rise time, decay, RPM and pipe geometry are unchanged. Default variation is
+0.20 (±20%); the control range is 0–0.40. Zero preserves the previous reference exactly.
+This is authored sound design, not measured combustion variance. At excitation below the variation
+amount, zero clipping prevents negative pulses and raises mean excitation; the default closed
+excitation 0.22 exceeds the default variation 0.20, so default coast pulses do not clip.
 
 This explicitly supersedes the former invariant of equal pulse strengths at fixed excitation.
 Determinism now means reproducibility from the same reset seed and input history, not strict
@@ -152,12 +154,12 @@ oscillator per axle. The former fixed-band spectral assertion is superseded by o
 phase-locked harmonic, below-onset decay and pre-clip state-bound tests. Observation, independent
 axle transport, silence, deterministic streams and physical-invariance coverage remain.
 
-- Rolling uses load, rolling speed and the existing physical-surface coefficient.
-- Friction uses `sqrt(P / (P + 12000 W))`; this remains an intensity proxy, not acoustic watts.
+- Rolling and broadband scrub audio are removed by listening preference; ordinary rolling is silent.
+- Squeal intensity uses `sqrt(P / (P + 12000 W))`; this remains an intensity proxy, not acoustic watts.
 - Tonal excitation combines that intensity with smooth utilization and slip-speed onsets, surface
   susceptibility and a high-slip roll-off. The 0.5–2 m/s onset window and 45 m/s roll-off scale
   are axle-level listening choices, not thresholds measured in a local rubber experiment.
-- Lateral work moderately favors tonal excitation; longitudinal work favors scrub but still squeals.
+- Lateral work moderately favors tonal excitation; longitudinal work also drives squeal.
 - Target pitch is `650 + 350 vSlip / (vSlip + 6) + 220 (1 - lateralWorkFraction)` Hz.
   This is an authored 650–1220 Hz acoustic map. It is not a tire stiffness estimate, wheel rotation
   frequency or thermal calculation; lateral-dominant sliding has a lower pitch than locking at equal slip.
@@ -180,12 +182,10 @@ noise modulation, independently of render-block boundaries. Fixed seed-derived d
 
 Fundamental, second and third harmonics share the oscillator phase. The polynomial pickup
 `y + 0.32 (2xy) + 0.12 y (3x² - y²)` makes higher harmonics grow with amplitude. Independent
-fixed-seed noise supplies rolling/scrub sound, seeds onset and adds weak roughness. Scrub now cascades the surface-dependent rolling low-pass with a 2000 Hz one-pole low-pass,
-removing the former rolling-band subtraction that emphasized broadband hiss. Its intensity gain
-is 0.045 instead of 0.16 (about 11 dB lower before filtering); this is a listening adjustment,
-not a measured material coefficient. The oscillator and its excitation are unchanged by this noise adjustment. Gains/excitation use 25 ms attack
-and 65 ms release; the oscillator also has its own physical-inspired growth/decay. A stopped,
-nonslipping or unsupported axle settles to silence. Loose surfaces suppress tonal growth.
+fixed-seed perturbations seed onset and add weak oscillator roughness only. No random signal is
+mixed directly into the output. Rolling/scrub gains, filters and worklet parameters are removed.
+The previous friction-noise spectral requirement is superseded by exact silence during ordinary
+rolling on every surface; tonal growth, harmonic, stability and release coverage remain.
 
 Each axle retains the bounded ±0.35 soft output, mixed mono at the player. These controls do not
 claim measured material properties, front/rear localization, a universal squeal law or local
@@ -292,7 +292,7 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 | Propagation amplitude loss            | `attenuationPerMeter` | 0.03 Np/m | 0–0.30 Np/m  | 0.01 Np/m |
 | Closed-throttle excitation floor      | `closedExcitation`    | 0.22      | 0.01–1       | 0.01      |
 | Final LPF (muffler approximation)     | `outputCutoffHz`      | 7300 Hz   | 100–12000 Hz | 100 Hz    |
-| Firing pulse strength variation       | `pulseVariation`      | ±6%       | ±0–30%       | 1%        |
+| Firing pulse strength variation       | `pulseVariation`      | ±20%      | ±0–40%       | 1%        |
 
 Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.

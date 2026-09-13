@@ -37,14 +37,13 @@ test('accepted force/slip products publish watts, retaining directional work and
   assert.equal(result.rear.surface, 'VOID');
 });
 
-test('power controls loudness, direction blends timbre and rolling remains independent', () => {
+test('power controls squeal excitation and direction changes timbre', () => {
   const low = tireParameters({ ...sliding, longitudinalPower: 1000 });
   const high = tireParameters(sliding);
-  assert.ok(high.friction > low.friction && high.squeal > low.squeal);
+  assert.ok(high.squeal > low.squeal);
   const lateral = tireParameters({ ...sliding, longitudinalPower: 0, lateralPower: 24000 });
-  assert.ok(lateral.squeal > high.squeal && lateral.friction < high.friction);
+  assert.ok(lateral.squeal > high.squeal);
   assert.ok(high.squeal > 0, 'locked or spinning wheels also squeal');
-  assert.equal(high.rolling, low.rolling);
   assert.equal(tireParameters({ ...sliding, utilization: 0.4 }).squeal, 0);
 });
 
@@ -80,7 +79,7 @@ test('two independent axle streams are reproducible, bounded and fade through co
 test('self-excited tone grows above onset, forms harmonics, and dies below onset', () => {
   for (const rate of [44100, 48000]) {
     const synth = new TireSynthesis(rate, 123456789);
-    const tone = { rolling: 0, friction: 0, squeal: 0.7, cutoff: 900, pitch: 850 };
+    const tone = { squeal: 0.7, pitch: 850 };
     synth.update(tone);
     const signal = Float64Array.from({ length: rate }, () => synth.sample());
     const first = signal.subarray(0, Math.floor(rate * 0.02));
@@ -129,10 +128,7 @@ test('oscillator remains stable through sustained maximum excitation and abrupt 
     const synth = new TireSynthesis(rate, 362436069);
     for (let second = 0; second < 8; second++) {
       synth.update({
-        rolling: 1,
-        friction: 1,
         squeal: 1,
-        cutoff: second % 2 ? 100 : 10000,
         pitch: second % 2 ? 400 : 2400,
       });
       for (let i = 0; i < rate; i++) {
@@ -187,27 +183,8 @@ test('tire worklet preserves both axle signals across block partitions and handl
   assert.equal(b.process([], blank), false);
 });
 
-test('friction alone suppresses high-frequency hiss while retaining low-mid texture', () => {
-  for (const rate of [44100, 48000]) {
-    const synth = new TireSynthesis(rate, 123456789);
-    synth.update({ rolling: 0, friction: 0.1, squeal: 0, cutoff: 900, pitch: 900 });
-    const samples = Float64Array.from({ length: rate }, () => synth.sample()).subarray(rate / 2);
-    const band = (from, to) => {
-      let power = 0;
-      for (let hz = from; hz <= to; hz += 100) {
-        let real = 0,
-          imaginary = 0;
-        for (let i = 0; i < samples.length; i++) {
-          const window = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (samples.length - 1));
-          const phase = (2 * Math.PI * hz * i) / rate;
-          real += samples[i] * window * Math.cos(phase);
-          imaginary += samples[i] * window * Math.sin(phase);
-        }
-        power += real * real + imaginary * imaginary;
-      }
-      return power;
-    };
-    assert.ok(energy(samples) > 1e-6, 'slip still has an audible friction texture without squeal');
-    assert.ok(band(6500, 7000) < band(300, 800) * 0.01, 'upper hiss must sit well below the low-mid friction band');
+test('ordinary rolling has no audible noise on any supported surface', () => {
+  for (const surface of ['ASPHALT', 'SHOULDER', 'GRASS', 'DIRT', 'SAND', 'VOID']) {
+    assert.ok(render({ ...rolling, surface }).every((value) => value === 0));
   }
 });
