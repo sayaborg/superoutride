@@ -4,6 +4,7 @@ export class SelectorElement {
   listeners = new Map();
   attributes = new Map();
   textContent = '';
+  disabled = false;
   className = '';
   classList = {
     values: new Set(),
@@ -55,7 +56,7 @@ export class SelectorElement {
     for (const listener of this.listeners.get(name) ?? []) listener(event);
   }
   click() {
-    this.emit('click');
+    if (!this.disabled) this.emit('click');
   }
 }
 export const selectorDocument = { createElement: (tag) => new SelectorElement(tag) };

@@ -27,7 +27,7 @@ export function installBrowserDom(t, search = '') {
   elements.get('game').getContext = () => context;
   const doc = new Element();
   doc.getElementById = (id) => elements.get(id) ?? null;
-  doc.createElement = () => new Element();
+  doc.createElement = (tag) => new Element(tag);
   doc.documentElement = new Element();
   const win = new Element();
   win.innerWidth = 1200;

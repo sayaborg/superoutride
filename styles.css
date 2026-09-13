@@ -466,7 +466,8 @@ body {
 .tire-friction-selector-buttons {
   grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
 }
-.calibration-control {
+.calibration-control,
+.number-stepper {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr) 26px;
   align-items: center;
@@ -504,15 +505,8 @@ body {
 }
 
 #sound-volume {
-  width: 110px;
+  width: 156px;
   min-width: 0;
-  accent-color: #78e1c7;
-}
-
-#sound-method {
-  min-width: 120px;
-  min-height: 32px;
-  padding: 2px 6px;
 }
 
 .selector-group-audio-tuning {
@@ -520,30 +514,34 @@ body {
 }
 #sound-tuning {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: 6px 16px;
 }
 .audio-tuning-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 2px 8px;
+  gap: 3px;
   color: #9eb8c5;
   font-size: 10px;
 }
-.audio-tuning-row input {
-  grid-column: 1;
-  grid-row: 2;
-  width: 100%;
-  min-width: 0;
-  accent-color: #78e1c7;
+.number-stepper {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
 }
-.audio-tuning-row output {
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 62px;
-  text-align: right;
+.number-stepper .number-step {
+  min-width: 0;
+  min-height: 36px;
+  border: 0;
+  font-size: 18px;
+}
+.number-stepper .number-step:disabled {
+  opacity: 0.3;
+  transform: none;
+}
+.number-stepper output {
+  min-width: 0;
+  text-align: center;
   color: #d7f3ff;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 .audio-tuning-reset {
   justify-self: start;

@@ -31,6 +31,9 @@ function install(t) {
   return dom;
 }
 const settle = () => new Promise((resolve) => setImmediate(resolve));
+const step = (control, count) => {
+  for (let i = 0; i < Math.abs(count); i++) control.children[count < 0 ? 0 : 2].click();
+};
 
 test('gesture initialization is single-flight and hidden/muted state wins over delayed worklet loading', async (t) => {
   let lifecycle;
@@ -234,8 +237,7 @@ test('game tuning honors late loading and muted changes while preserving vehicle
   t.after(() => lifecycle.dispose());
   const control = dom.elements.get('sound-tuning').children[4].children[1];
   dom.win.emit('pointerdown');
-  control.value = '2000';
-  control.emit('change');
+  step(control, -53);
   finish();
   await settle();
   const runtime = createLinearHighwayRuntime();
@@ -254,8 +256,7 @@ test('game tuning honors late loading and muted changes while preserving vehicle
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 2000);
   const count = context.nodes.length;
   dom.elements.get('sound-toggle').click();
-  control.value = '1000';
-  control.emit('change');
+  step(control, -10);
   lifecycle.update(player, []);
   assert.equal(worklets[0].messages.length, 1);
   dom.elements.get('sound-toggle').click();
@@ -267,15 +268,15 @@ test('game tuning honors late loading and muted changes while preserving vehicle
   assert.equal(context.nodes.length, count);
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
-  control.emit('keydown', {
+  control.children[0].emit('keydown', {
     stopPropagation() {
       stopped = true;
     },
   });
   assert.equal(stopped, true);
   lifecycle.dispose();
-  assert.equal(control.listeners.get('change').length, 0);
-  assert.equal(control.listeners.get('keydown').length, 0);
+  assert.equal(control.children[0].listeners.get('click').length, 0);
+  assert.equal(control.children[0].listeners.get('keydown').length, 0);
 });
 
 test('player tire voice transmits front and rear independently and releases its worklet', (t) => {
@@ -304,32 +305,25 @@ test('player tire voice transmits front and rear independently and releases its 
   assert.ok(context.nodes.every((node) => node.disconnected));
 });
 
-test('committed sliders survive mute and profile changes without mutating physics or adding nodes', async (t) => {
+test('stepped tuning survives mute and profile changes without mutating physics or adding nodes', async (t) => {
   const dom = install(t);
   const lifecycle = createAudioLifecycle();
   t.after(() => lifecycle.dispose());
   const host = dom.elements.get('sound-tuning');
-  const inputs = host.children.slice(0, -1).map((row) => row.children[1]);
-  const [reflection, cutoff, , , finalCutoff, variation, rise, decay] = inputs;
+  const controls = host.children.slice(0, -1).map((row) => row.children[1]);
+  const [reflection, cutoff, , , finalCutoff, variation, rise, decay] = controls;
   assert.deepEqual(
-    inputs.map((input) => Number(input.value)),
-    [-1, 3100, 0.03, 0.22, 7300, 0.2, 0.2, 5],
+    controls.map((control) => control.children[1].textContent),
+    ['-1', '3100 Hz', '0.03 Np/m', '0.22', '7300 Hz', '±20%', '0.2 ms', '5 ms'],
   );
-  rise.value = '0.4';
-  rise.emit('change');
-  decay.value = '8';
-  decay.emit('change');
-  variation.value = '0.12';
-  variation.emit('input');
-  assert.equal(host.children[5].children[2].textContent, '±12%');
-  variation.emit('change');
-  reflection.value = '0';
-  reflection.emit('input');
-  assert.match(host.children[0].children[2].textContent, /反射なし/);
-  reflection.emit('change'); // before gesture initialization finishes
-  finalCutoff.value = '1000';
-  finalCutoff.emit('input');
-  finalCutoff.emit('change');
+  step(rise, 20);
+  step(decay, 30);
+  step(variation, -8);
+  assert.equal(variation.children[1].textContent, '±12%');
+  step(reflection, 100); // before gesture initialization finishes
+  assert.match(reflection.children[1].textContent, /反射なし/);
+  assert.equal(reflection.children[2].disabled, true);
+  step(finalCutoff, -63);
   await settle();
   const runtime = createLinearHighwayRuntime();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
@@ -346,13 +340,11 @@ test('committed sliders survive mute and profile changes without mutating physic
   assert.equal(worklets[0].messages.at(-1).tuning.pulseVariation, 0.12);
   assert.equal(worklets[0].messages.at(-1).tuning.pulseRiseMs, 0.4);
   assert.equal(worklets[0].messages.at(-1).tuning.pulseDecayMs, 8);
-  cutoff.value = '500';
-  cutoff.emit('input'); // preview must not rebuild while dragging
+  dom.elements.get('sound-toggle').click();
+  step(cutoff, -26);
   context.currentTime = 1;
   lifecycle.update(player, []);
   assert.equal(worklets[0].messages.length, 1);
-  dom.elements.get('sound-toggle').click();
-  cutoff.emit('change');
   dom.elements.get('sound-toggle').click();
   await settle();
   lifecycle.update(player, []);
@@ -377,14 +369,14 @@ test('committed sliders survive mute and profile changes without mutating physic
   assert.equal(context.nodes.length, nodeCount);
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
-  reflection.emit('keydown', {
+  reflection.children[0].emit('keydown', {
     stopPropagation() {
       stopped = true;
     },
   });
   assert.equal(stopped, true);
   lifecycle.dispose();
-  assert.equal(reflection.listeners.get('change').length, 0);
+  assert.equal(reflection.children[0].listeners.get('click').length, 0);
   assert.equal(host.children.length, 0);
 });
 
@@ -419,4 +411,40 @@ test('tuning updates reuse both engine slots and own their coefficient snapshots
   update();
   for (const worklet of worklets) assert.equal(worklet.messages.length, 2);
   engine.dispose();
+});
+
+test('volume steps unlock once, clamp at both limits and retain muted changes', async (t) => {
+  const dom = install(t);
+  const lifecycle = createAudioLifecycle();
+  t.after(() => lifecycle.dispose());
+  const host = dom.elements.get('sound-volume');
+  const control = host.children[0];
+  assert.equal(control.children[1].textContent, '35%');
+  assert.equal(FakeAudioContext.instances.length, 0);
+  step(control, 1);
+  await settle();
+  const context = FakeAudioContext.instances[0];
+  const master = context.nodes[0];
+  assert.equal(master.gain.value, 0.36);
+  step(control, 100);
+  assert.equal(control.children[1].textContent, '100%');
+  assert.equal(control.children[2].disabled, true);
+  assert.equal(master.gain.value, 1);
+  step(control, -110);
+  assert.equal(control.children[1].textContent, '0%');
+  assert.equal(control.children[0].disabled, true);
+  assert.equal(master.gain.value, 0);
+  dom.elements.get('sound-toggle').click();
+  step(control, 42);
+  assert.equal(master.gain.value, 0);
+  dom.elements.get('sound-toggle').click();
+  await settle();
+  assert.equal(master.gain.value, 0.42);
+  assert.equal(FakeAudioContext.instances.length, 1);
+  lifecycle.dispose();
+  assert.equal(host.children.length, 0);
+  for (const button of [control.children[0], control.children[2]]) {
+    assert.equal(button.listeners.get('click').length, 0);
+    assert.equal(button.listeners.get('keydown').length, 0);
+  }
 });

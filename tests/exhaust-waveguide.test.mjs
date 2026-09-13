@@ -405,7 +405,7 @@ test('every vehicle uses unit base pulse strength and the same shared time const
   }
 });
 
-test('shared pulse slider corners remain finite through load changes at native rates', () => {
+test('shared pulse tuning corners remain finite through load changes at native rates', () => {
   for (const { sound } of profiles)
     for (const pulseRiseMs of [0.01, 2])
       for (const pulseDecayMs of [0.1, 30]) {

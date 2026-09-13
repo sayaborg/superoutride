@@ -1,4 +1,5 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
+import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -12,7 +13,7 @@ import {
 /** DOM and permission lifecycle. Construction never creates an AudioContext. */
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
-  const volumeControl = document.getElementById('sound-volume') as HTMLInputElement | null;
+  const volumeContainer = document.getElementById('sound-volume');
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
   let loading: Promise<void> | null = null;
@@ -38,6 +39,22 @@ export function createAudioLifecycle() {
         sync();
       })
     : null;
+  const volumeControl = volumeContainer
+    ? createNumberStepper({
+        label: '音量',
+        min: 0,
+        max: 100,
+        step: 1,
+        value: volume * 100,
+        format: (value) => `${value}%`,
+        onChange(value) {
+          volume = value / 100;
+          unlock();
+          sync();
+        },
+      })
+    : null;
+  if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -105,12 +122,6 @@ export function createAudioLifecycle() {
     if (enabled) unlock();
     sync();
   }
-  function changeVolume(): void {
-    const value = Number(volumeControl?.value);
-    if (Number.isFinite(value)) volume = Math.max(0, Math.min(1, value / 100));
-    unlock();
-    sync();
-  }
   function visibility(): void {
     sync();
     if (audible() && context)
@@ -139,7 +150,8 @@ export function createAudioLifecycle() {
     window.removeEventListener('pageshow', show);
     document.removeEventListener('visibilitychange', visibility);
     button?.removeEventListener('click', toggle);
-    volumeControl?.removeEventListener('input', changeVolume);
+    volumeControl?.dispose();
+    volumeContainer?.replaceChildren();
     tuningControls?.dispose();
     engine?.dispose();
     engine = null;
@@ -151,7 +163,6 @@ export function createAudioLifecycle() {
   window.addEventListener('pageshow', show);
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
-  volumeControl?.addEventListener('input', changeVolume);
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;

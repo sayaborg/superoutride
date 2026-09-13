@@ -3,7 +3,7 @@ import test from 'node:test';
 import { ExhaustWaveguide } from '../dist/audio/exhaust-waveguide.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 
-// Fixed single-parameter regression inputs, independent of slider defaults.
+// Fixed single-parameter regression inputs, independent of control defaults.
 const TUNING_CASES = [
   {},
   { outletReflection: -0.35 },

@@ -28,7 +28,7 @@ interface ExhaustTuning {
   readonly pulseDecayMs: number;
 }
 export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
-  // Rounded to slider resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
+  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
   attenuationPerMeter: Math.round(attenuation * 100) / 100,
   // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
   returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,

@@ -7,7 +7,7 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
 For engine tuning, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
-TUNING sliders while driving. The separate audition/verification page is
+TUNING minus/plus controls while driving. VOL also uses minus/plus buttons. The separate audition/verification page is
 `http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
 checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
 delivery path. Rebuild after TypeScript edits, then reload the target page. Reload resets

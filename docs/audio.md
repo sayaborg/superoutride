@@ -32,7 +32,7 @@ surfaces or repeat contact/tire solves.
 | Reusable voice and faded profile/tuning replacement                     | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
 | Two engine slots, one player tire worklet and master output graph       | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
 | Observation adaptation and browser lifetime                             | [vehicle-audio](../src/browser/vehicle-audio.ts), [audio-lifecycle](../src/browser/audio-lifecycle.ts)                                    |
-| Shared game/audition sliders, labels, ranges and reset                  | [audio-tuning-controls](../src/browser/audio-tuning-controls.ts)                                                                          |
+| Shared game/audition controls, labels, ranges and reset                 | [audio-tuning-controls](../src/browser/audio-tuning-controls.ts)                                                                          |
 
 The [restart checkpoint](NEXT.md) owns continuation priorities. This document owns current behavior;
 past experiments and validation run results remain in Git and PR/CI evidence.
@@ -88,7 +88,7 @@ microphone position or computed far-field radiation. Bank normalization is an ou
 One smoothed excitation proxy controls only pulse amplitude and rise time: closed excitation
 retains a shared nonzero floor, and increasing excitation makes the pulse stronger and faster.
 Rise defaults to 0.20 ms at full excitation and decay to 5.0 ms, both provisional common listening
-values rather than measured durations. Sliders cover 0.01–2.00 ms rise (0.01 ms steps) and 0.1–30.0 ms
+values rather than measured durations. Controls cover 0.01–2.00 ms rise (0.01 ms steps) and 0.1–30.0 ms
 decay (0.1 ms steps). These are independent positive time constants, not pulse start/end timestamps;
 no ordering constraint is necessary for the cascaded envelopes. Lower excitation increases effective
 rise time; decay remains load-independent. Strength 1 is the unmodulated full-excitation reference,
@@ -162,7 +162,7 @@ filters reflected waves and also participates in the fixed listening pickup.
 
 The soft-clip amplitude scale/ceiling and final LPF are provisional output conventions,
 not derived cylinder pressure, muffler transmission loss or nonlinear gas dynamics.
-"Muffler" in the slider label describes its listening purpose; no muffler chamber is modeled.
+"Muffler" in the control label describes its listening purpose; no muffler chamber is modeled.
 
 ## Player tire synthesis
 
@@ -254,8 +254,8 @@ Hidden tabs and stopped shells suspend audio; mute fades before suspension. Resu
 module-loading failure, late initialization, page cache restoration and disposal are
 handled without preventing gameplay. Profile and tuning changes share the existing
 90 ms fade before resetting acoustic state. Rapid superseding targets cannot apply stale parameters.
-Changes made while loading, muted or suspended apply when rendering resumes. Native tuning-slider
-keys do not reach driving-key handlers.
+Changes made while loading, muted or suspended apply when rendering resumes. Native tuning and volume buttons retain keyboard activation without forwarding keydown
+to driving-key handlers.
 No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
 
@@ -306,11 +306,11 @@ and spectral bounds. A previous kernel path renders the same scenarios for befor
 
 The game and audition use the same native-rate voice/worklet, observations, authoring and tuning.
 There is no method selector or method state. Profile/tuning replacement retains the shared fade.
-Game and audition use one tuning control for eight shared controls. The values below describe
+Game and audition share one component for the eight tuning controls. The values below describe
 `DEFAULT_EXHAUST_TUNING` in the acoustic settings; code owns the defaults and validation, and
 the shared control owns UI ranges/steps. Reset reads those defaults directly.
 
-| Slider                                | Key                   | Default   | UI range     | Step      |
+| Control                               | Key                   | Default   | UI range     | Step      |
 | ------------------------------------- | --------------------- | --------- | ------------ | --------- |
 | Outlet pressure reflection            | `outletReflection`    | -1        | -1–0         | 0.01      |
 | Reflection-wave high-frequency cutoff | `returnCutoffHz`      | 3100 Hz   | 500–10000 Hz | 100 Hz    |
@@ -321,15 +321,19 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 | Common pulse rise time                | `pulseRiseMs`         | 0.20 ms   | 0.01–2.00 ms | 0.01 ms   |
 | Common pulse decay time               | `pulseDecayMs`        | 5.0 ms    | 0.1–30.0 ms  | 0.1 ms    |
 
-Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
+Outlet reflection includes zero at its upper limit; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
-Input updates the readout; release (or a keyboard step) commits a coefficient snapshot. In the
-game it uses the same 90 ms fade as profile replacement and affects both fixed engine
-slots. No acoustic buffers are rebuilt while dragging. A selection made before initialization
-or while muted is retained. Vehicle changes preserve tuning, and reset restores
+Each minus/plus activation commits one step and updates the readout. Integer step indices avoid
+accumulated decimal drift; the two buttons disable at their respective limits and never wrap.
+The game uses the same 90 ms fade as profile replacement and affects both fixed engine slots.
+Rapid steps supersede pending targets through that existing fade. A selection made before
+initialization or while muted is retained. Vehicle changes preserve tuning, and reset restores
 the shared defaults. The audition uses the committed values on its next playback, not during
 an already rendered clip. Settings are session-local; a page/course reload restores defaults.
 The selected setting can be checked across all nine vehicles and both output rates.
+Game VOL uses the same bounded [number stepper](../src/browser/number-stepper.ts), from 0–100%
+in 1% steps, initially 35%. Volume gestures share the existing audio unlock and gain smoothing.
+Controls have no animation loop or press-repeat timer; their listeners are released on disposal.
 The production worklet accepts validated optional coefficient overrides in initial options and
 profile-replacement messages. Both paths preserve tuning. Tuning does not
 change vehicle geometry or add a continuous noise source. Pulse variation modifies event strength only.
@@ -362,7 +366,7 @@ large-amplitude waves, mufflers and true pipe radii remain outside this model.
   gives alpha = sqrt(pi f nu)/(a c) * (1 + (gamma-1)/sqrt(Pr)).
   Air viscosity uses [Sutherland coefficients](https://doc.comsol.com/6.4/doc/com.comsol.help.cfd/cfd_ug_fluidflow_high_mach.08.46.html)
   mu0 = 1.716e-5 Pa s, T0 = 273 K, S = 111 K; density is p/(R T), and nu = mu/rho.
-  This gives approximately 0.034 Np/m at 500 Hz, rounded to 0.03 Np/m for the slider.
+  This gives approximately 0.034 Np/m at 500 Hz, rounded to 0.03 Np/m for the control.
   Actual boundary-layer loss varies with frequency; the production delay retains constant alpha.
 - Closed excitation 0.22 and the source reflection envelope remain authored sound controls.
   Pipe acoustics cannot determine fuel delivery, engine load or valve impedance. They are not

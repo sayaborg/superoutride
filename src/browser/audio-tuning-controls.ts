@@ -1,4 +1,5 @@
 import { DEFAULT_EXHAUST_TUNING } from '../audio/exhaust-acoustics.js';
+import { createNumberStepper } from './number-stepper.js';
 
 // Shared audition/game presentation; the DSP remains the owner of coefficient defaults and validation.
 const CONTROLS = [
@@ -74,45 +75,38 @@ export function mountAudioTuningControls(
   documentRef: Document = document,
 ) {
   const tuning = { ...DEFAULT_EXHAUST_TUNING };
-  const inputs = new Map<keyof typeof tuning, HTMLInputElement>();
+  const steppers = new Map<keyof typeof tuning, ReturnType<typeof createNumberStepper>>();
   const listeners: (() => void)[] = [];
-  const previews: (() => void)[] = [];
   const listen = (element: HTMLElement, type: string, handler: (event: Event) => void) => {
     element.addEventListener(type, handler);
     listeners.push(() => element.removeEventListener(type, handler));
   };
   const rows = CONTROLS.map(([key, title, min, max, step, unit, explanation]) => {
-    const row = documentRef.createElement('label');
+    const row = documentRef.createElement('div');
     row.className = 'audio-tuning-row';
     row.setAttribute('title', explanation);
     const caption = documentRef.createElement('span');
     caption.textContent = title;
-    const input = documentRef.createElement('input');
-    input.type = 'range';
-    input.min = String(min);
-    input.max = String(max);
-    input.step = String(step);
-    input.value = String(tuning[key]);
-    input.setAttribute('aria-label', title);
-    const output = documentRef.createElement('output');
-    const preview = () => {
-      output.textContent =
-        key === 'pulseVariation'
-          ? `±${Math.round(Number(input.value) * 100)}%${Number(input.value) === 0 ? '（揺らぎなし）' : ''}`
-          : `${input.value} ${unit}${key === 'outletReflection' && Number(input.value) === 0 ? '（反射なし）' : ''}`.trim();
-    };
-    listen(input, 'input', preview);
-    listen(input, 'change', () => {
-      tuning[key] = Number(input.value);
-      preview();
-      onChange({ ...tuning });
-    });
-    // Native range navigation must not also become a driving/calibration key.
-    listen(input, 'keydown', (event) => event.stopPropagation());
-    preview();
-    previews.push(preview);
-    inputs.set(key, input);
-    row.replaceChildren(caption, input, output);
+    const control = createNumberStepper(
+      {
+        label: title,
+        min,
+        max,
+        step,
+        value: tuning[key],
+        format: (value) =>
+          key === 'pulseVariation'
+            ? `±${Math.round(value * 100)}%${value === 0 ? '（揺らぎなし）' : ''}`
+            : `${value} ${unit}${key === 'outletReflection' && value === 0 ? '（反射なし）' : ''}`.trim(),
+        onChange(value) {
+          tuning[key] = value;
+          onChange({ ...tuning });
+        },
+      },
+      documentRef,
+    );
+    steppers.set(key, control);
+    row.replaceChildren(caption, control.group);
     return row;
   });
   const reset = documentRef.createElement('button');
@@ -121,17 +115,16 @@ export function mountAudioTuningControls(
   reset.textContent = 'デフォルトに戻す';
   listen(reset, 'click', () => {
     Object.assign(tuning, DEFAULT_EXHAUST_TUNING);
-    for (const [key, input] of inputs) {
-      input.value = String(tuning[key]);
-    }
-    for (const preview of previews) preview();
+    for (const [key, control] of steppers) control.setValue(tuning[key]);
     onChange({ ...tuning });
   });
+  listen(reset, 'keydown', (event) => event.stopPropagation());
   container.replaceChildren(...rows, reset);
   return {
     read: () => ({ ...tuning }),
     dispose() {
       for (const remove of listeners) remove();
+      for (const control of steppers.values()) control.dispose();
       container.replaceChildren();
     },
   };

@@ -34,13 +34,13 @@ revision. Preserve this as the listening baseline when starting tire work.
   Full pipe topology remains; LOOP and the 2x comparison are retired.
 - Fractional firing timing, exact exponential pulse evolution and sample-average excitation reduce
   source aliasing. A smooth quartic source aperture avoids slope corners and per-cylinder trigonometry.
-- Base pulse strength is 1 for all nine vehicles. Rise/decay are shared slider controls, not vehicle
+- Base pulse strength is 1 for all nine vehicles. Rise/decay are shared minus/plus controls, not vehicle
   multipliers. All eight tuning defaults/ranges remain provisional and are listed in [audio](audio.md#shared-tuning).
 - Event strength variation defaults to ±20% of full excitation, adjustable 0–40%. Closed throttle
   retains that absolute offset, clamped at zero strength. It does not perturb firing time or RPM.
 - Reflection-wave LPFs are inside the return paths. After bank mixing: DC removal → soft clipping →
   final LPF. Additional clip antialiasing is not active. Do not attribute every harsh sound to clipping.
-- Engine settings are session-local; slider release applies through the common fade. Vehicle switches
+- Engine settings are session-local; each minus/plus step applies through the common fade. Vehicle switches
   preserve tuning; reset restores defaults and page/course reload resets the session.
 - Target Android playability with simple, light processing. The user's M4 MacBook Air listening and
   kernel timing do not certify Android, Safari/iOS, speaker response or the complete gameplay budget.
