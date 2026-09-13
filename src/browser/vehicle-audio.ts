@@ -12,6 +12,8 @@ export function createVehicleAudioObservation(): Observation {
     load: 0,
     rollingSpeed: 0,
     slipSpeed: 0,
+    longitudinalPower: 0,
+    lateralPower: 0,
     utilization: 0,
     surface: 'VOID',
   });
@@ -31,7 +33,7 @@ export function readEngineAudio(vehicle: ArcadeVehicleState, result: Observation
   result.speed = vehicle.speed;
 }
 
-/** Optional tire prototype consumer; the engine-only game does not subscribe to tire telemetry. */
+/** Player consumer subscribes to completed tire telemetry; rival engines use readEngineAudio. */
 export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observation): void {
   readEngineAudio(vehicle, result);
   const tires = observeVehicleTires(vehicle);
@@ -39,11 +41,15 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
   result.front.load = vehicle.frontNormalLoad;
   result.front.rollingSpeed = tires.front.rollingSpeed;
   result.front.slipSpeed = tires.front.slipSpeed;
+  result.front.longitudinalPower = tires.front.longitudinalPower;
+  result.front.lateralPower = tires.front.lateralPower;
   result.front.utilization = control.frontUtilization;
   result.front.surface = tires.front.surface;
   result.rear.load = vehicle.rearNormalLoad;
   result.rear.rollingSpeed = tires.rear.rollingSpeed;
   result.rear.slipSpeed = tires.rear.slipSpeed;
+  result.rear.longitudinalPower = tires.rear.longitudinalPower;
+  result.rear.lateralPower = tires.rear.lateralPower;
   result.rear.utilization = control.rearUtilization;
   result.rear.surface = tires.rear.surface;
 }

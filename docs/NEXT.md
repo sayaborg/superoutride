@@ -12,9 +12,9 @@ Keep the current in-game REFLECTION/WAVEGUIDE selector, five tuning sliders and 
 
 - Build and serve the repository over HTTP using [development](development.md). Use `/?mode=circuit` for tuning while driving; `/tools/audio-browser.html` is the separate audition/verification page. A file URL or public main deployment does not establish that the feature branch is running.
 - Game sliders commit on release through the existing fade. The final LPF follows soft clipping and is independent of the reflection-wave LPF. Method and vehicle changes preserve tuning; page/course reload resets it. Browser trial values are not saved repository defaults.
-- Player and nearest-rival engines are connected. Recordings, generated-waveform playback and engine noise are absent. Tire/squeal and wind prototypes remain disconnected. D/M/ACT retain their minus/value/plus controls.
+- Player and nearest-rival engines and independent front/rear player tires are connected. Recordings, generated-waveform playback and engine noise are absent. Wind remains disconnected. D/M/ACT retain their minus/value/plus controls.
 - Continue listening and coefficient evaluation before selecting a method. Small event-to-event combustion-pulse variation is an open question, not an implemented or calibrated feature. Distinguish pulse-strength variation from timing jitter; strength variation can preserve firing phases and RPM. No variation amount has been selected. Any experiment should preserve a reproducible zero-variation reference and identify its sound-design assumptions.
-- Tire rolling/squeal is the next separate sound implementation, followed by wind. Do not reconnect the deferred prototypes as part of engine cleanup. Speaker calibration, Safari/iOS and target-phone performance acceptance remain open.
+- Tire rolling/squeal now uses directional friction work and filtered noise in one two-axle worklet. Use `/tools/tire-browser.html` to audition each axle and both together. Catalog engine pulse shapes are differentiated as provisional acoustic sketches. Continue in-game listening and target-device calibration before adding wind. Do not reconnect the deferred prototypes as part of engine cleanup. Speaker calibration, Safari/iOS and target-phone performance acceptance remain open.
 
 ## Other implementation areas
 

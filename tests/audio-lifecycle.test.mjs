@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createAudioLifecycle } from '../dist/browser/audio-lifecycle.js';
 import { DEFAULT_EXHAUST_TUNING } from '../dist/audio/exhaust-acoustics.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
-import { createTireVoice } from '../dist/dev/diagnostics/tire-voice.js';
+import { createTireVoice } from '../dist/audio/tire-voice.js';
 import { createArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createEngineVoice } from '../dist/audio/engine-voice.js';
@@ -66,7 +66,7 @@ test('gesture initialization is single-flight and hidden/muted state wins over d
   lifecycle.setActive(true);
   await settle();
   assert.equal(context.state, 'running');
-  assert.ok(context.moduleUrl.endsWith('/audio/exhaust-processor.js'));
+  assert.ok(context.moduleUrl.endsWith('/audio/vehicle-processor.js'));
 });
 
 test('dispose during module loading closes late nodes and removes gesture listeners', async (t) => {
@@ -122,7 +122,7 @@ test('engine graph has bounded nodes across thousands of updates and nine profil
   }
   assert.equal(context.nodes.length, count);
   assert.equal(context.nodes.filter((n) => n.started).length, 0);
-  assert.equal(context.nodes.filter((n) => n instanceof FakeAudioWorkletNode).length, 2);
+  assert.equal(context.nodes.filter((n) => n instanceof FakeAudioWorkletNode).length, 3);
   engine.setVolume(0.3);
   engine.silenceRival();
   engine.dispose();
@@ -174,7 +174,9 @@ test('selected coupling and tuning survive voice profile replacement without nod
     const voice = createEngineVoice(context, context.destination, { coupled, tuning });
     const count = context.nodes.length;
     tuning.outletReflection = 0;
-    const worklet = context.nodes.find((node) => node instanceof FakeAudioWorkletNode);
+    const worklet = context.nodes.find(
+      (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+    );
     const state = createVehicleAudioObservation();
     voice.update(state, VEHICLE_CATALOG[0].sound);
     voice.update(state, VEHICLE_CATALOG[1].sound);
@@ -202,7 +204,9 @@ test('method changes fade both fixed engine slots and a superseded choice cannot
   };
   const nodes = context.nodes.length;
   update();
-  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  const worklets = context.nodes.filter(
+    (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+  );
   engine.setCoupled(false);
   update();
   assert.ok(worklets.every((node) => node.messages.length === 1));
@@ -245,7 +249,9 @@ test('game selector honors late loading and muted changes while preserving vehic
   const before = JSON.stringify(player);
   const context = FakeAudioContext.instances[0];
   lifecycle.update(player, []);
-  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  const worklets = context.nodes.filter(
+    (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+  );
   assert.equal(worklets.length, 2);
   assert.equal(worklets[0].messages.at(-1).coupled, true);
   const count = context.nodes.length;
@@ -274,16 +280,31 @@ test('game selector honors late loading and muted changes while preserving vehic
   assert.equal(method.listeners.get('keydown').length, 0);
 });
 
-test('deferred tire prototype owns and releases its own nodes independently', () => {
+test('player tire voice transmits front and rear independently and releases its worklet', (t) => {
+  install(t);
   const context = new FakeAudioContext();
-  const noise = context.createGain();
-  const voice = createTireVoice(context, noise, context.destination);
-  voice.update(createVehicleAudioObservation());
-  const tone = context.nodes.find((node) => node.started);
-  assert.ok(tone);
+  const voice = createTireVoice(context, context.destination);
+  const state = createVehicleAudioObservation();
+  Object.assign(state.front, {
+    load: 4000,
+    rollingSpeed: 20,
+    slipSpeed: 8,
+    longitudinalPower: 15000,
+    utilization: 1.2,
+    surface: 'ASPHALT',
+  });
+  voice.update(state);
+  const node = context.nodes[0];
+  assert.equal(node.name, 'vehicle-tires');
+  assert.ok(node.messages[0].front.squeal > 0);
+  assert.equal(node.messages[0].rear.squeal, 0);
+  [state.front, state.rear] = [state.rear, state.front];
+  voice.update(state);
+  assert.equal(node.messages[1].front.squeal, 0);
+  assert.ok(node.messages[1].rear.squeal > 0);
   voice.dispose();
-  assert.equal(tone.stopped, true);
-  assert.ok(context.nodes.filter((node) => node !== noise).every((node) => node.disconnected));
+  assert.equal(node.finished, true);
+  assert.ok(context.nodes.every((node) => node.disconnected));
 });
 
 test('committed sliders survive mute, method and profile changes without mutating physics or adding nodes', async (t) => {
@@ -311,7 +332,9 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const before = JSON.stringify(player);
   const context = FakeAudioContext.instances[0];
   lifecycle.update(player, [{ vehicle: player }]);
-  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  const worklets = context.nodes.filter(
+    (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+  );
   const nodeCount = context.nodes.length;
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
@@ -374,7 +397,9 @@ test('tuning updates reuse both engine slots and own their coefficient snapshots
   update();
   context.currentTime = 0.1;
   update();
-  const worklets = context.nodes.filter((node) => node instanceof FakeAudioWorkletNode);
+  const worklets = context.nodes.filter(
+    (node) => node instanceof FakeAudioWorkletNode && node.name === 'exhaust-waveguide',
+  );
   for (const worklet of worklets) {
     assert.equal(worklet.messages.at(-1).tuning.attenuationPerMeter, 0.1);
     assert.equal(worklet.messages.at(-1).tuning.outputCutoffHz, 100);

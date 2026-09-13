@@ -5,6 +5,9 @@ import type { ContactObservation } from './vehicle-dynamics.js';
 interface TireObservation {
   readonly rollingSpeed: number;
   readonly slipSpeed: number;
+  /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
+  readonly longitudinalPower: number;
+  readonly lateralPower: number;
   readonly surface: SurfaceType;
 }
 type MutableTire = { -readonly [Key in keyof TireObservation]: TireObservation[Key] };
@@ -20,7 +23,13 @@ const observations = new WeakMap<object, { front: MutableTire; rear: MutableTire
 export function observeVehicleTires(vehicle: object): VehicleTires {
   let result = observations.get(vehicle);
   if (!result) {
-    const tire = (): MutableTire => ({ rollingSpeed: 0, slipSpeed: 0, surface: 'VOID' });
+    const tire = (): MutableTire => ({
+      rollingSpeed: 0,
+      slipSpeed: 0,
+      longitudinalPower: 0,
+      lateralPower: 0,
+      surface: 'VOID',
+    });
     result = { front: tire(), rear: tire() };
     observations.set(vehicle, result);
   }
@@ -33,6 +42,8 @@ export function resetVehicleTireObservation(vehicle: object): void {
   for (const tire of [result.front, result.rear]) {
     tire.rollingSpeed = 0;
     tire.slipSpeed = 0;
+    tire.longitudinalPower = 0;
+    tire.lateralPower = 0;
     tire.surface = 'VOID';
   }
 }
@@ -55,5 +66,8 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   const loaded = contact.forceTransmitting && contact.tireFrameValid;
   result.rollingSpeed = loaded ? Math.abs(contact.longitudinalVelocity) : 0;
   result.slipSpeed = loaded ? Math.hypot(wheel.tire.sx, wheel.tire.sy) * wheel.tire.referenceSpeed : 0;
+  // sx/sy use the force direction convention, so these products are nonnegative.
+  result.longitudinalPower = loaded ? Math.max(0, wheel.tire.fx * wheel.tire.sx * wheel.tire.referenceSpeed) : 0;
+  result.lateralPower = loaded ? Math.max(0, wheel.tire.fy * wheel.tire.sy * wheel.tire.referenceSpeed) : 0;
   result.surface = loaded ? contact.surface.surfaceType : 'VOID';
 }

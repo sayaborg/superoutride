@@ -7,10 +7,10 @@ contact load and tire utilization. Audio owns oscillator phase, envelopes and fi
 never vehicle motion, gearing, race progress or a second engine simulation.
 
 The [consumer contract](../src/audio/vehicle-audio-observation.ts) contains only acoustic
-inputs. The [browser adapter](../src/browser/vehicle-audio.ts) copies engine observations into two reusable
-slots once per presented frame, not once per catch-up tick. `readEngineAudio` does not subscribe to
-tire telemetry; `readVehicleAudio` remains the separate consumer for the deferred tire prototype.
-Physics publishes final wheel-solve rolling speed, slip speed and surface through an
+inputs. The [browser adapter](../src/browser/vehicle-audio.ts) copies observations into two reusable
+slots once per presented frame, not once per catch-up tick. The player uses `readVehicleAudio`;
+rivals use `readEngineAudio` without subscribing to tire telemetry.
+Physics publishes final wheel-solve rolling speed, slip speed, directional slip power and surface through an
 [optional read-only observation channel](../src/physics/vehicle-tire-observation.ts).
 The first reader subscribes; the next completed tick supplies data. A WeakMap owns these
 output caches outside the unchanged vehicle/control snapshot. Recovery clears them.
@@ -26,7 +26,7 @@ surfaces or repeat contact/tire solves.
 | Firing, pipe and pulse contract/validation                              | [vehicle-audio-profile](../src/audio/vehicle-audio-profile.ts); authored bindings in [vehicle catalog](../src/vehicle/vehicle-catalog.ts) |
 | Worklet transport and two acoustic steps per output sample              | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
 | Reusable voice and faded profile/method/tuning replacement              | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
-| Two fixed engine slots and master output graph                          | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
+| Two engine slots, one player tire worklet and master output graph       | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
 | Observation adaptation and browser lifetime                             | [vehicle-audio](../src/browser/vehicle-audio.ts), [audio-lifecycle](../src/browser/audio-lifecycle.ts)                                    |
 | Shared game/audition sliders, labels, ranges and reset                  | [audio-tuning-controls](../src/browser/audio-tuning-controls.ts)                                                                          |
 
@@ -68,7 +68,9 @@ microphone position or computed far-field radiation. Bank normalization is an ou
 
 One smoothed excitation proxy controls only pulse amplitude and rise time: closed excitation
 retains a shared nonzero floor, and increasing excitation makes the pulse stronger and faster.
-Decay time is authored and fixed. No extra load-dependent output filter or saturation drive is
+Decay time is authored and fixed. Catalog pulse rise/decay now differ between vehicles: sharper, shorter
+pulses for the high-revving multi-cylinder and two-stroke sketches; longer envelopes for the
+large twins and V8. These are provisional listening choices, not measured combustion durations. No extra load-dependent output filter or saturation drive is
 applied, and no direct combustion bypass or stochastic noise is mixed into the engine output.
 The gameplay adapter supplies delivered-drive fraction times actuator throttle (`drive`); this is
 an acoustic control proxy, not `engineTorque / maxTorque(RPM)` or measured cylinder load.
@@ -115,24 +117,54 @@ The soft-clip amplitude scale/ceiling and final LPF are provisional output conve
 not derived cylinder pressure, muffler transmission loss or nonlinear gas dynamics.
 "Muffler" in the slider label describes its listening purpose; no muffler chamber is modeled.
 
-## Deferred tire and wind sound
+## Player tire synthesis
 
-The deferred tire/noise prototypes live under `src/dev/diagnostics` with regression consumers;
-production audio does not import them. The [tire voice](../src/dev/diagnostics/tire-voice.ts), disconnected from the current game, aggregates front/rear observations into
-rolling noise, friction noise and a weak resonant squeal tone. Rolling sound depends on
-load, rolling speed and physical surface. Friction/squeal additionally require actual
-slip speed and tire utilization. Unsupported stations and stationary, nonslipping tires
-are silent. Loose surfaces reduce tonal squeal and increase rolling noise. These are
-presentation mappings, not another friction law or a new interpretation of grip.
+Production tire audio replaces the deferred single-sine prototype. The former aggregated
+prototype assertions are superseded by independent front/rear mapping, spectral, transport,
+continuity and lifecycle tests; physical observation/recovery/invariance coverage remains.
 
-The deferred [noise worklet](../src/dev/diagnostics/noise-processor.ts) generates three independent
-deterministic pseudorandom streams. It remains independently tested but is not registered or
-instantiated by the game. Tire, squeal and wind output are postponed; no silent noise graph runs.
+[Physics telemetry](../src/physics/vehicle-tire-observation.ts) publishes longitudinal and lateral
+slip power from the accepted wheel solve: `Px = max(0, fx * sx * referenceSpeed)` and
+`Py = max(0, fy * sy * referenceSpeed)`, in watts. The solver's slip signs follow the force direction,
+so both products are dissipative. Unsupported contacts publish zero. This observes final forces;
+it does not rerun the tire law, change snapshots or approximate force from utilization.
+
+The [mapping and sample kernel](../src/audio/tire-synthesis.ts) own all acoustic conventions.
+Each axle independently combines rolling noise, broad scrub and two fixed narrow bandpass modes
+at 1050/1630 Hz with Q 18/24. No sinusoidal oscillator, PCM asset or delay loop is used.
+Increasing the narrow-band mix raises perceived tonality without sweeping filter poles.
+The fixed compensation gains are listening choices, not an exact equal-loudness model.
+
+- Rolling uses load, rolling speed and a physical-surface coefficient.
+- Friction uses `sqrt(P / (P + 12000 W))`; this is a bounded acoustic intensity proxy, not acoustic watts.
+- Squeal also uses a smooth utilization onset from 0.5 to 1.15 and surface susceptibility.
+- Lateral work moderately favors squeal; longitudinal work favors scrub but still squeals.
+- Loose surfaces favor rolling/scrub and reduce squeal. A stopped nonslipping or unsupported axle is silent after its short release.
+
+Independent fixed-seed random streams excite each axle. Scrub is band-limited with a 5500 Hz
+one-pole low-pass and the rolling-band subtraction to reduce brittle high-frequency hiss. A low-passed noise envelope adds slight
+roughness. Gains use 25 ms attack and 65 ms release; the rolling cutoff is smoothed. Each axle
+has a bounded soft output at ±0.35, mixed mono at the player. This does not claim front/rear
+spatial localization, material measurements, stick-slip mechanics or a tire vibration simulation.
+
+The [voice](../src/audio/tire-voice.ts) sends two small parameter records per presented frame.
+The [processor](../src/audio/tire-processor.ts) owns two axle kernels, allocates nothing in its
+sample loop, fades invalid controls to silence and stops on disposal. Engine and tire processors
+are registered through one [module entry](../src/audio/vehicle-processor.ts), so module loading
+remains one lifecycle transaction. Engine topology/profile fades do not rebuild tire nodes.
+
+The independent [noise prototype](../src/dev/diagnostics/noise-processor.ts) and wind prototype
+remain deferred and disconnected. No wind graph runs.
+
+The [tire audition](../tools/tire-browser.html) exercises front, rear and both axles through
+rolling, lateral slide, wheel lock, loose surface and release using the production worklet.
+These are authored acoustic test inputs, not a second driving simulation. It also renders
+both output rates and checks finite output and silent release. Listen in the game for calibration.
 
 ## Mixing and lifetime
 
-The [audio engine](../src/audio/audio-engine.ts) has only fixed player and rival engine slots:
-two exhaust worklets and no oscillators or noise worklets, regardless of the number of game actors;
+The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots plus one player tire worklet:
+three worklets and no oscillators, regardless of the number of game actors;
 unused exhaust processors render zero. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.
@@ -155,7 +187,7 @@ suspended applies when rendering resumes. Native selector and tuning-slider keys
 No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
 
-The worklet is resolved relative to import.meta.url, preserving complete commit-versioned
+The worklet module entry is resolved relative to import.meta.url, preserving complete commit-versioned
 ESM delivery. Static worker URLs are production reachability edges in the repository
 hygiene check. Audio imports only Core; vehicle may bind audio profile types/data;
 browser composes audio and physical observations. Physics never imports audio.
@@ -184,7 +216,7 @@ switching. Desktop rendering is not phone performance certification. Actual spea
 listening, Safari/iOS acceptance and target-device CPU profiling remain calibration work.
 
 [Host timing probe](../tools/exhaust-performance.mjs) warms the coupled waveguide and measures five
-runs for one and two voices, including 2x acoustic stepping. It is a CPU kernel diagnostic,
+runs for one and two voices, including 2x acoustic stepping, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
 not a paired method benchmark or browser scheduling, end-to-end graph or mobile performance certification.
 
 ## Temporary method selection and shared tuning

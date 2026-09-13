@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { observeVehicleTires } from '../dist/physics/vehicle-tire-observation.js';
-import { tireParameters } from '../dist/dev/diagnostics/tire-voice.js';
+import { tireParameters } from '../dist/audio/tire-synthesis.js';
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 import { createVehicleAudioObservation, readVehicleAudio, nearestAudibleRival } from '../dist/browser/vehicle-audio.js';
@@ -43,24 +43,33 @@ test('acoustic authoring copies and freezes firing, pipe and pulse data', () => 
 
 test('tire rolling, slip and support produce distinct acoustic responses', () => {
   const state = observation();
-  state.front = { load: 4000, rollingSpeed: 25, slipSpeed: 0, utilization: 0.2, surface: 'ASPHALT' };
-  const rolling = tireParameters(state);
+  state.front = {
+    load: 4000,
+    rollingSpeed: 25,
+    slipSpeed: 0,
+    longitudinalPower: 0,
+    lateralPower: 0,
+    utilization: 0.2,
+    surface: 'ASPHALT',
+  };
+  const rolling = tireParameters(state.front);
   assert.ok(rolling.rolling > 0);
   assert.equal(rolling.squeal, 0);
   state.front.slipSpeed = 10;
+  state.front.longitudinalPower = 20000;
   state.front.utilization = 1.1;
-  const skid = tireParameters(state);
+  const skid = tireParameters(state.front);
   assert.ok(skid.squeal > 0 && skid.friction > 0);
   state.front.surface = 'DIRT';
-  const dirt = tireParameters(state);
+  const dirt = tireParameters(state.front);
   assert.ok(dirt.squeal < skid.squeal && dirt.rolling > skid.rolling);
   state.front.load = 0;
-  const airborne = tireParameters(state);
+  const airborne = tireParameters(state.front);
   assert.equal(airborne.rolling + airborne.squeal + airborne.friction, 0);
   state.front.load = 4000;
   state.front.slipSpeed = 0;
   state.front.rollingSpeed = 0;
-  const stopped = tireParameters(state);
+  const stopped = tireParameters(state.front);
   assert.equal(stopped.rolling + stopped.squeal + stopped.friction, 0);
 });
 
@@ -79,7 +88,9 @@ test('completed wheel slip observations drive sound and recovery clears stale ti
   assert.equal(observeVehicleTires(vehicle), tires);
   assert.deepEqual(Object.keys(vehicle.control), keys);
   assert.ok(state.front.slipSpeed > 1);
-  assert.ok(tireParameters(state).squeal > 0);
+  assert.ok(state.front.longitudinalPower > 0);
+  assert.equal(state.front.lateralPower, 0);
+  assert.ok(tireParameters(state.front).squeal > 0);
   assert.deepEqual(vehicle.control, before);
   recoverVehicleToGuideCoordinate(world, vehicle, {
     state: createRecoveryState(vehicle),
@@ -87,9 +98,10 @@ test('completed wheel slip observations drive sound and recovery clears stale ti
     reason: 'manual',
   });
   readVehicleAudio(vehicle, state);
-  assert.equal(tireParameters(state).squeal, 0);
+  assert.equal(tireParameters(state.front).squeal, 0);
   assert.equal(state.front.surface, 'VOID');
   assert.equal(tires.front.slipSpeed, 0);
+  assert.equal(tires.front.longitudinalPower + tires.front.lateralPower, 0);
 });
 
 test('rival selection uses 3D world distance, bounds range, ignores local chainage and self', () => {

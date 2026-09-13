@@ -1,13 +1,14 @@
 import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
+import { createTireVoice } from './tire-voice.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
-/** Engine comparison only: one player and one rival slot. No tire/wind nodes are constructed. */
+/** Fixed player/rival engines and one player tire worklet containing independent front/rear sources. */
 export async function createAudioEngine(context: AudioContext) {
-  await context.audioWorklet.addModule(new URL('./exhaust-processor.js', import.meta.url));
+  await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
   const master = context.createGain();
   master.gain.value = 0;
   const safety = context.createDynamicsCompressor();
@@ -21,10 +22,12 @@ export async function createAudioEngine(context: AudioContext) {
   const rivalPan = context.createStereoPanner();
   rivalPan.connect(master);
   const rival = createEngineVoice(context, rivalPan);
+  const tires = createTireVoice(context, master);
   let disposed = false;
   return {
     update(state: VehicleAudioObservation, profile: VehicleAudioProfile): void {
       player.update(state, profile);
+      tires.update(state);
     },
     updateRival(state: VehicleAudioObservation, profile: VehicleAudioProfile, gain: number, pan: number): void {
       rival.update(state, profile, gain);
@@ -49,6 +52,7 @@ export async function createAudioEngine(context: AudioContext) {
       disposed = true;
       player.dispose();
       rival.dispose();
+      tires.dispose();
       for (const node of [rivalPan, master, safety]) node.disconnect();
     },
   };

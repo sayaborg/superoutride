@@ -3,6 +3,9 @@ export interface TireAudioObservation {
   readonly load: number;
   readonly rollingSpeed: number;
   readonly slipSpeed: number;
+  /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
+  readonly longitudinalPower: number;
+  readonly lateralPower: number;
   readonly utilization: number;
   readonly surface: 'ASPHALT' | 'SHOULDER' | 'GRASS' | 'DIRT' | 'SAND' | 'VOID';
 }

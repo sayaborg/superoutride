@@ -27,7 +27,7 @@ Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens,
 
 Use the selectors for vehicle, course and calibration. D, M and ACT use minus/value/plus controls; each step wraps at its range limit. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. ENGINE A/B selects REFLECTION or WAVEGUIDE while driving. ENGINE TUNING exposes the same five provisional coefficients as the audition page; releasing a slider applies it after a short fade. Reset restores shared defaults. This is a temporary comparison; only one method will be retained. Only player and nearest-rival engines are currently audible, synthesized without recordings. Tire/squeal and wind prototypes are disconnected until their next implementation step.
+Sound starts on the first interaction. SOUND toggles mute and VOL adjusts volume. ENGINE A/B selects REFLECTION or WAVEGUIDE while driving. ENGINE TUNING exposes the same five provisional coefficients as the audition page; releasing a slider applies it after a short fade. Reset restores shared defaults. This is a temporary comparison; only one method will be retained. Player and nearest-rival engines plus independent front/rear player tire sounds are synthesized without recordings. Wind remains deferred. The tire audition is at `http://localhost:8000/tools/tire-browser.html`.
 
 See [current calibration values and meanings](docs/calibration.md).
 

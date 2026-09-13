@@ -86,6 +86,10 @@ export class FakeAudioContext {
   }
 }
 export class FakeAudioWorkletNode extends Node {
+  constructor(context, name) {
+    super(context);
+    this.name = name;
+  }
   parameters = new Map([
     ['rpm', new FakeAudioParam()],
     ['load', new FakeAudioParam()],

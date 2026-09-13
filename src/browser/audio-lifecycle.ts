@@ -2,7 +2,12 @@ import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
-import { createVehicleAudioObservation, readEngineAudio, nearestAudibleRival } from './vehicle-audio.js';
+import {
+  createVehicleAudioObservation,
+  readEngineAudio,
+  readVehicleAudio,
+  nearestAudibleRival,
+} from './vehicle-audio.js';
 
 /** DOM and permission lifecycle. Construction never creates an AudioContext. */
 export function createAudioLifecycle() {
@@ -164,7 +169,7 @@ export function createAudioLifecycle() {
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
-      readEngineAudio(player, playerState);
+      readVehicleAudio(player, playerState);
       engine.update(playerState, vehicleCatalogEntryForId(player.profile.id).sound);
       const nearest = nearestAudibleRival(player, actors);
       if (nearest !== nextRival) {
