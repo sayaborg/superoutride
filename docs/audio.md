@@ -49,7 +49,8 @@ Firing intervals represent engine configuration. Pipe lengths, grouping details 
 are acoustic sketches, not manufacturer measurements. Pulse amplitude is dimensionless, not Pa;
 there is no calculated cylinder pressure, gas mass flow, torque or temperature.
 The compiler validates resource bounds and freezes private copies of all authored arrays/objects.
-Firing phases remain exact and never receive timing jitter. Each firing samples one bounded,
+Firing phases never receive timing jitter. The phase crossing resolves how much of the sample
+remains after each firing, including cycle wrap. Each firing samples one bounded,
 fixed-seed pseudorandom offset: `strength = max(0, excitation + pulseVariation * r)`,
 with `r` in [-1, 1). The reference is full-excitation strength, so closed throttle retains the same
 absolute variation. Rise time, decay, RPM and pipe geometry are unchanged. Default variation is
@@ -97,12 +98,29 @@ bound check. Default waveforms intentionally change and must not be claimed equi
 per-vehicle settings. No extra load-dependent output filter, direct source bypass or continuous noise
 is introduced.
 Randomness affects firing-event strength only.
+
+The pulse envelope solves `p' = -p / decayTime` and `r' = (p - r) / riseTime`, with the
+load-dependent rise time held constant within each native sample. A firing resets `p` to its
+event strength while preserving continuous `r`. Exponential propagation resolves both parts
+of the sample surrounding the reset. The pipe receives the **average of r over the sample**,
+calculated from the integrated equations, rather than a point sample of a rounded event.
+Full-sample coefficients are shared across cylinders; two additional exponentials occur only
+on a firing. Near equal rise/decay rates, a short Taylor limit avoids cancellation/division by zero.
+One preallocated emission array holds the averages until the source-boundary write.
+
+This explicitly supersedes sample-rounded firing and the discrete cascaded envelope. The same
+time controls, unit base strength, phase schedule and absolute random offsets remain authoritative;
+state at the end of the firing sample has decayed only since the actual event. Strength tests
+therefore undo that fractional decay, not a whole sample. This changes waveforms intentionally.
+Sample averaging attenuates high frequencies before native sampling but is not brick-wall
+bandlimiting: very short pulses and nonlinear stages can still alias.
+
 The gameplay adapter supplies delivered-drive fraction times actuator throttle (`drive`); this is
 an acoustic control proxy, not `engineTorque / maxTorque(RPM)` or measured cylinder load.
 Audio observes RPM and clamps to idle/redline without writing to physics. Each voice uses
 the [shared output conditioning](#output-conditioning) after bank mixing.
 Constant filter/decay coefficients and pipe transmission are prepared once per profile.
-Two acoustic steps per output sample remain; averaging is a simple decimator, not complete antialiasing.
+One acoustic step runs per output sample; the pulse average does not run the pipe at a higher rate.
 
 The Porsche six alternates banks, with 120-degree global and 240-degree per-bank intervals;
 see [Porsche's firing-order illustration](https://newsroom.porsche.com/christophorus/en/2017/383/model-kit-refinement-boxer-911.html).
@@ -128,13 +146,13 @@ All filters and delays use the actual sample rate. Eight tuning values, includin
 variation by default, remain provisional; profile/tuning changes retain the existing fade and node count.
 
 The earlier 2x path and rejected LOOP are available in Git, not shipped as runtime alternatives.
-Native-rate audio has coarser event/delay quantization and can have more nonlinear aliasing than 2x.
+Native-rate audio retains integer delay quantization and can have more nonlinear aliasing than 2x.
 The final low-pass cannot undo already aliased components. Listening acceptance does not certify
 Android deadlines, thermal behavior or simultaneous game rendering.
 
 Per-sample attack-coefficient calculation is retained. A 32-sample update cadence adds state and
 changes transients without a compelling host improvement; do not reintroduce it as an assumed win.
-The consolidation preserves the accepted native-rate samples exactly. Regressions retain initial
+The subsequent fractional, averaged pulse revision intentionally changes the consolidated native-rate samples. Regressions retain initial
 configuration, profile/tuning replacement, superseded changes, mute/loading behavior and native-rate
 worklet/kernel agreement; obsolete method-selection assertions are replaced by tuning transactions.
 
@@ -150,7 +168,9 @@ After DC removal, the kernel applies `y = 0.65 * x / (1 + abs(x))` independently
 sample. It approaches the bounds ±0.65, with small-signal gain 0.65 and progressively
 stronger compression at larger amplitudes. The denominator's 1 sets the input amplitude
 scale; it is not a hard clipping threshold. There is no attack/release envelope or separate
-load-dependent drive in this stage. Its generated harmonics are filtered by the final LPF.
+load-dependent drive in this stage. Its generated high frequencies are attenuated by the final LPF,
+which cannot remove components already folded into the audible band. The clipper remains unchanged
+after source-stage refinement; antiderivative antialiasing and local oversampling are not active.
 The master compressor is a separate stage with its own attack/release.
 
 The final filter is `tone += a * (y - tone)`, where
@@ -292,8 +312,20 @@ switching. Desktop rendering is not phone performance certification. Actual spea
 listening, Safari/iOS acceptance and target-device CPU profiling remain calibration work.
 
 [Host timing probe](../tools/exhaust-performance.mjs) warms the adopted native-rate waveguide and measures five
-runs for one and two voices, at the native sample rate, plus the two-axle tire kernel at the native output rate. It is a CPU kernel diagnostic,
-not a paired method benchmark or browser scheduling, end-to-end graph or mobile performance certification.
+runs for one and two voices, plus the two-axle tire kernel. An optional previous kernel module path
+enables alternating paired timings with the same inputs. Waveforms need not be identical for an
+intentional DSP revision. This does not certify browser scheduling, the complete graph or mobile performance.
+
+[Spectral diagnostic](../tools/exhaust-quality.mjs) measures the actual source emission, DC-removed
+clip input and final output across all nine profiles, both native rates, open/closed throttle and
+default/minimum pulse times. Controls are settled with variation zero; an odd integer number of
+cycles in a power-of-two FFT gives coherent harmonics while exercising fractional event positions.
+It reports energy outside those harmonic bins below 20 kHz, relative to the measured stage energy.
+These are detectable inharmonic aliases, not a total aliasing estimate: folded components coincident
+with genuine harmonics are excluded. Stage ratios alone do not isolate a nonlinear stage's contribution.
+It does not measure changing-load noise or the intentional firing variance. Regressions validate the
+FFT against known harmonic/folded tones, independent numerical pulse integration, boundary smoothness
+and spectral bounds. A previous kernel path renders the same scenarios for before/after comparison.
 
 ## Shared tuning
 
@@ -384,8 +416,12 @@ For linear pressure waves at a termination,
 is R = (Z - Z0)/(Z + Z0). The shared source endpoint
 coefficients +0.94 and -0.3 therefore correspond to positive, real effective impedance ratios
 Z/Z0 of about 32.3 and 0.538. This motivates nearly rigid and pressure-release-like endpoints;
-these numbers are not measured valve impedances. The sinusoidal transition over 0.23 firing
-cycles is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
+these numbers are not measured valve impedances. Over 0.23 firing cycles the aperture is
+`16 u² (1-u)²`, where u runs from 0 to 1; outside that interval it is zero. Its value and slope
+are continuous at both ends, with peak 1 at the center. This replaces the half-sine envelope,
+removing its slope corners and per-cylinder trigonometric evaluation. Endpoint reflections,
+duration and peak are retained; the mean aperture intentionally changes (8/15 versus 2/pi).
+This is an empirical aperture envelope, not valve timing, area or a gas-flow solution.
 The waveguide uses the periodic envelope on each primary return.
 The same boundary low-pass is reused at the outlet and source for economy, not because their
 real frequency responses are identical. These are explicitly provisional approximations.

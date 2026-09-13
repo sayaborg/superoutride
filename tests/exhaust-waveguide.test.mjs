@@ -14,7 +14,13 @@ function render(profile, load, rate = 48000, tuning = {}) {
 const energy = (a) => a.reduce((sum, x) => sum + x * x, 0) / a.length;
 const difference = (a, b) => a.reduce((sum, x, i) => sum + (x - b[i]) ** 2, 0) / a.length;
 
-test('the final low-pass limits clipped pulse transients in both exhaust methods', () => {
+function eventStrength(synth, cylinder) {
+  const phase = synth.phase - synth.profile.firingPhases[cylinder];
+  const elapsedSeconds = ((phase < 0 ? phase + 1 : phase) * 60 * synth.profile.cycleRevolutions) / synth.rpm;
+  return synth.pulse[cylinder] * Math.exp(elapsedSeconds / (synth.tuning.pulseDecayMs / 1000));
+}
+
+test('the final low-pass limits clipped pulse transients at native and diagnostic rates', () => {
   // A sharp, strong single-cylinder pulse exposes clipping after filtering.
   const profile = compileVehicleAudioProfile({
     cycleRevolutions: 2,
@@ -304,7 +310,7 @@ test('pulse variation changes strength within bounds while preserving firing tim
         const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
         if (!fired) continue;
         // Observe the actual excitation, independently of pipe filtering and clipping.
-        const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / varied.decay;
+        const delta = eventStrength(varied, cylinder) - eventStrength(reference, cylinder);
         assert.ok(delta >= -0.4 - 1e-12 && delta <= 0.4 + 1e-12);
         assert.ok(varied.pulse[cylinder] >= 0);
         sum += delta;
@@ -343,8 +349,7 @@ test('closed throttle retains the same absolute pulse variation as open throttle
         phase = coast.phase;
       if (!(phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase)) continue;
       const deviation = (synth) =>
-        synth.pulse[j] / synth.decay -
-        (synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load);
+        eventStrength(synth, j) - (synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load);
       assert.ok(Math.abs(deviation(coast) - deviation(open)) < 1e-12);
     }
   }
@@ -393,7 +398,7 @@ test('every vehicle uses unit base pulse strength and the same shared time const
         if (!(phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase))
           continue;
         const excitation = synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load;
-        assert.ok(Math.abs(synth.pulse[j] / synth.decay - excitation) < 1e-12);
+        assert.ok(Math.abs(eventStrength(synth, j) - excitation) < 1e-12);
       }
     }
     assert.equal(synth.decay, Math.exp(-1 / (0.008 * 48000)));
