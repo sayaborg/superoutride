@@ -47,6 +47,15 @@ const CONTROLS = [
     'Hz',
     'ソフトクリップ後の一次LPF、約−6 dB/oct。反射波用とは独立した音色調整です。実車マフラーの測定特性ではありません。',
   ],
+  [
+    'pulseVariation',
+    'パルスの揺らぎ',
+    0,
+    0.3,
+    0.01,
+    '',
+    '各点火のパルス強度を±この割合で変化させます。0.06は±6%、0は揺らぎなし。点火時刻とRPMは変えません。',
+  ],
 ] as const;
 
 export function mountAudioTuningControls(
@@ -78,7 +87,9 @@ export function mountAudioTuningControls(
     const output = documentRef.createElement('output');
     const preview = () => {
       output.textContent =
-        `${input.value} ${unit}${key === 'outletReflection' && Number(input.value) === 0 ? '（反射なし）' : ''}`.trim();
+        key === 'pulseVariation'
+          ? `±${Math.round(Number(input.value) * 100)}%${Number(input.value) === 0 ? '（揺らぎなし）' : ''}`
+          : `${input.value} ${unit}${key === 'outletReflection' && Number(input.value) === 0 ? '（反射なし）' : ''}`.trim();
     };
     listen(input, 'input', preview);
     listen(input, 'change', () => {

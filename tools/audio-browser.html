@@ -358,7 +358,7 @@
               });
             }
           }
-          result.textContent = JSON.stringify({ status: 'PASS', rows }, null, 2);
+          result.textContent = JSON.stringify({ status: 'PASS', tuning: selected.tuning, rows }, null, 2);
         } catch (error) {
           if (current === request) result.textContent = JSON.stringify({ status: 'FAIL', error: String(error) });
         } finally {

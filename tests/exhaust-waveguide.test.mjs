@@ -194,11 +194,11 @@ test('worklet renders identical streams across block partitions, ignores invalid
   }
 });
 
-test('settled pulse-only exhaust repeats without a stochastic noise floor at every load', () => {
+test('zero-variation reference repeats without a stochastic noise floor at every load', () => {
   const rate = 96000;
   for (const { sound } of profiles)
     for (const load of [0, 0.25, 0.5, 0.75, 1]) {
-      const synth = new ExhaustWaveguide(sound, rate);
+      const synth = new ExhaustWaveguide(sound, rate, true, { pulseVariation: 0 });
       const lag = (rate * 60 * sound.cycleRevolutions) / 3000;
       const samples = new Float64Array(lag * 3);
       for (let i = 0; i < rate * 2; i++) synth.sample(3000, load);
@@ -270,7 +270,7 @@ test('RPM changes the settled repetition period while excitation preserves it', 
   const sound = VEHICLE_CATALOG[3].sound,
     rate = 96000;
   for (const rpm of [1500, 3000, 6000]) {
-    const synth = new ExhaustWaveguide(sound, rate);
+    const synth = new ExhaustWaveguide(sound, rate, true, { pulseVariation: 0 });
     for (let i = 0; i < rate * 2; i++) synth.sample(rpm, 0.5);
     const lag = (rate * 60 * sound.cycleRevolutions) / rpm;
     const samples = Float64Array.from({ length: lag * 3 }, () => synth.sample(rpm, 0.5));
@@ -278,4 +278,58 @@ test('RPM changes the settled repetition period while excitation preserves it', 
     const wrong = Math.round(lag * 0.9);
     assert.ok(difference(samples.subarray(wrong), samples.subarray(0, -wrong)) > energy(samples) * 0.01);
   }
+});
+
+test('pulse variation changes strength within bounds while preserving firing timing and mean excitation', () => {
+  const sound = profiles.find((entry) => entry.profile.id === 'CORVETTE_C4').sound;
+  for (const rate of [88200, 96000])
+    for (const coupled of [false, true]) {
+      const reference = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0 });
+      const varied = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
+      const replay = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
+      let sum = 0,
+        square = 0,
+        events = 0,
+        outputDifference = 0;
+      for (let i = 0; i < rate * 2; i++) {
+        const previous = reference.phase;
+        const rpm = i < rate ? 3000 : 6000;
+        const load = i < rate ? 0.25 : 1;
+        const a = reference.sample(rpm, load),
+          b = varied.sample(rpm, load);
+        assert.equal(b, replay.sample(rpm, load));
+        assert.ok(Number.isFinite(b) && Math.abs(b) < OUTPUT.ceiling);
+        assert.equal(varied.phase, reference.phase);
+        assert.equal(varied.rpm, reference.rpm);
+        outputDifference += (a - b) ** 2;
+        for (let cylinder = 0; cylinder < sound.firingPhases.length; cylinder++) {
+          const offset = sound.firingPhases[cylinder],
+            phase = reference.phase;
+          const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
+          if (!fired) continue;
+          // Observe the actual excitation, independently of pipe filtering and clipping.
+          const ratio = varied.pulse[cylinder] / reference.pulse[cylinder];
+          assert.ok(ratio >= 0.7 - 1e-12 && ratio <= 1.3 + 1e-12);
+          sum += ratio;
+          square += (ratio - 1) ** 2;
+          events++;
+        }
+      }
+      assert.ok(events > 500);
+      assert.ok(Math.abs(sum / events - 1) < 0.025);
+      assert.ok(square / events > 0.02);
+      assert.ok(outputDifference > 0.01);
+    }
+});
+
+test('variation retains finite headroom for every engine at the maximum control setting', () => {
+  for (const { sound, profile } of profiles)
+    for (const rate of [88200, 96000])
+      for (const coupled of [false, true]) {
+        const synth = new ExhaustWaveguide(sound, rate, coupled, { pulseVariation: 0.3 });
+        for (let i = 0; i < rate; i++) {
+          const x = synth.sample(profile.powertrain.redlineRpm, i < rate / 2 ? 1 : 0);
+          assert.ok(Number.isFinite(x) && Math.abs(x) < OUTPUT.ceiling);
+        }
+      }
 });

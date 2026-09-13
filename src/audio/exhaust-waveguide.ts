@@ -43,6 +43,7 @@ export class ExhaustWaveguide {
   private readonly loss: number;
   private readonly tuning: typeof DEFAULT_EXHAUST_TUNING;
   private phase = 0;
+  private pulseSeed = 123456789;
   private rpm = 1000;
   private load = 0;
   private dc = 0;
@@ -61,6 +62,7 @@ export class ExhaustWaveguide {
       outletReflection = DEFAULT_EXHAUST_TUNING.outletReflection,
       closedExcitation = DEFAULT_EXHAUST_TUNING.closedExcitation,
       outputCutoffHz = DEFAULT_EXHAUST_TUNING.outputCutoffHz,
+      pulseVariation = DEFAULT_EXHAUST_TUNING.pulseVariation,
     } = tuning;
     if (
       !Number.isFinite(attenuationPerMeter) ||
@@ -77,7 +79,10 @@ export class ExhaustWaveguide {
       closedExcitation > 1 ||
       !Number.isFinite(outputCutoffHz) ||
       outputCutoffHz < 100 ||
-      outputCutoffHz > 12000
+      outputCutoffHz > 12000 ||
+      !Number.isFinite(pulseVariation) ||
+      pulseVariation < 0 ||
+      pulseVariation > 0.3
     )
       throw new RangeError('invalid acoustic tuning');
     this.tuning = Object.freeze({
@@ -86,6 +91,7 @@ export class ExhaustWaveguide {
       outletReflection,
       closedExcitation,
       outputCutoffHz,
+      pulseVariation,
     });
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
@@ -128,7 +134,17 @@ export class ExhaustWaveguide {
       const offset = this.profile.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
-      if (crossed) this.pulse[i] = this.profile.pulse.strength * excitation;
+      if (crossed) {
+        let strength = this.profile.pulse.strength * excitation;
+        if (this.tuning.pulseVariation > 0) {
+          // One random draw per firing, never a continuous noise source or a timing perturbation.
+          this.pulseSeed ^= this.pulseSeed << 13;
+          this.pulseSeed ^= this.pulseSeed >>> 17;
+          this.pulseSeed ^= this.pulseSeed << 5;
+          strength *= 1 + this.tuning.pulseVariation * (this.pulseSeed / 2147483648);
+        }
+        this.pulse[i] = strength;
+      }
       this.pulse[i]! *= this.decay;
       this.rise[i]! += attack * (this.pulse[i]! - this.rise[i]!);
       this.sums[this.banks[i]!]! += this.forward[i]!.read();

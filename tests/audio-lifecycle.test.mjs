@@ -312,12 +312,16 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const lifecycle = createAudioLifecycle();
   t.after(() => lifecycle.dispose());
   const host = dom.elements.get('sound-tuning');
-  const inputs = host.children.slice(0, 5).map((row) => row.children[1]);
-  const [reflection, cutoff, , , finalCutoff] = inputs;
+  const inputs = host.children.slice(0, -1).map((row) => row.children[1]);
+  const [reflection, cutoff, , , finalCutoff, variation] = inputs;
   assert.deepEqual(
     inputs.map((input) => Number(input.value)),
-    [-1, 3100, 0.03, 0.22, 7300],
+    [-1, 3100, 0.03, 0.22, 7300, 0.06],
   );
+  variation.value = '0.12';
+  variation.emit('input');
+  assert.equal(host.children[5].children[2].textContent, '±12%');
+  variation.emit('change');
   reflection.value = '0';
   reflection.emit('input');
   assert.match(host.children[0].children[2].textContent, /反射なし/);
@@ -338,6 +342,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   const nodeCount = context.nodes.length;
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
+  assert.equal(worklets[0].messages.at(-1).tuning.pulseVariation, 0.12);
   cutoff.value = '500';
   cutoff.emit('input'); // preview must not rebuild while dragging
   context.currentTime = 1;
@@ -360,6 +365,7 @@ test('committed sliders survive mute, method and profile changes without mutatin
   lifecycle.update(replacement, []);
   assert.equal(worklets[0].messages.at(-1).tuning.outletReflection, 0);
   assert.equal(worklets[0].messages.at(-1).tuning.outputCutoffHz, 1000);
+  assert.equal(worklets[0].messages.at(-1).tuning.pulseVariation, 0.12);
   assert.equal(worklets[0].messages.at(-1).tuning.returnCutoffHz, 500);
   host.children.at(-1).click();
   lifecycle.update(replacement, []);

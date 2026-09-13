@@ -47,8 +47,20 @@ Firing intervals represent engine configuration. Pipe lengths, grouping details 
 are acoustic sketches, not manufacturer measurements. Pulse amplitude is dimensionless, not Pa;
 there is no calculated cylinder pressure, gas mass flow, torque or temperature.
 The compiler validates resource bounds and freezes private copies of all authored arrays/objects.
-At fixed RPM and excitation, firing and pulse generation are deterministic; there is no
-event-to-event strength variation or timing jitter.
+Firing phases remain exact and never receive timing jitter. Each firing samples one bounded,
+fixed-seed pseudorandom multiplier `1 + pulseVariation * r`, with `r` in [-1, 1).
+The initial pulse strength is multiplied by this value; rise time, decay, RPM and pipe geometry
+are unchanged. The default variation is 0.06 (±6%); the control range is 0–0.30.
+This is an authored acoustic variation, not measured cylinder-pressure variance or misfire physics.
+The symmetric distribution has unit expected gain; individual cycles are not renormalized.
+
+This explicitly supersedes the former invariant of equal pulse strengths at fixed excitation.
+Determinism now means reproducibility from the same reset seed and input history, not strict
+periodicity. Zero variation preserves the former samples exactly and retains the settled-cycle
+regressions. Nonzero tests check strength bounds, unchanged firing phase/RPM, replay equality,
+mean excitation, sustained output bounds and arbitrary worklet block partitions. Each kernel
+owns one integer seed, reset alongside its acoustic state during the existing faded replacement.
+There is no new audio node, per-cylinder random array or random draw outside firing events.
 
 The coupled [exhaust model](../src/audio/exhaust-waveguide.ts) uses bidirectional primary and outlet delays.
 Propagation delay is rounded to the nearest internal sample using a fixed effective wave speed.
@@ -71,7 +83,8 @@ retains a shared nonzero floor, and increasing excitation makes the pulse strong
 Decay time is authored and fixed. Catalog pulse rise/decay now differ between vehicles: sharper, shorter
 pulses for the high-revving multi-cylinder and two-stroke sketches; longer envelopes for the
 large twins and V8. These are provisional listening choices, not measured combustion durations. No extra load-dependent output filter or saturation drive is
-applied, and no direct combustion bypass or stochastic noise is mixed into the engine output.
+applied, and no direct combustion bypass or continuous random-noise source is mixed into the engine output.
+Randomness affects firing-event strength only.
 The gameplay adapter supplies delivered-drive fraction times actuator throttle (`drive`); this is
 an acoustic control proxy, not `engineTorque / maxTorque(RPM)` or measured cylinder load.
 Audio observes RPM and clamps to idle/redline without writing to physics. Each voice uses
@@ -118,6 +131,9 @@ not derived cylinder pressure, muffler transmission loss or nonlinear gas dynami
 "Muffler" in the slider label describes its listening purpose; no muffler chamber is modeled.
 
 ## Player tire synthesis
+
+The [physical evidence note](tire-squeal-research.md) distinguishes self-excited tread vibration
+from this provisional filtered-noise implementation. Research does not silently change the tire law or sound kernel.
 
 Production tire audio replaces the deferred single-sine prototype. The former aggregated
 prototype assertions are superseded by independent front/rear mapping, spectral, transport,
@@ -231,9 +247,9 @@ existing slots without reconstruction of the audio graph. No permanent method is
 Both choices use the same production voice/worklet, observations, authoring and validated tuning.
 There is no separate audition DSP wrapper, old-waveguide reference or generated-waveform bank.
 Those retired experiments and their experiment-only tests remain retrievable in Git; the live
-DSP's causal/periodic/stability tests remain in force.
+DSP's causal/stability tests remain in force; strict periodicity belongs to the zero-variation reference.
 
-Game and audition use one tuning control for five combinable sliders. The values below describe
+Game and audition use one tuning control for six combinable sliders. The values below describe
 `DEFAULT_EXHAUST_TUNING` in the acoustic settings; code owns the defaults and validation, and
 the shared control owns UI ranges/steps. Reset reads those defaults directly.
 
@@ -244,6 +260,7 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 | Propagation amplitude loss            | `attenuationPerMeter` | 0.03 Np/m | 0–0.30 Np/m  | 0.01 Np/m |
 | Closed-throttle excitation floor      | `closedExcitation`    | 0.22      | 0.01–1       | 0.01      |
 | Final LPF (muffler approximation)     | `outputCutoffHz`      | 7300 Hz   | 100–12000 Hz | 100 Hz    |
+| Firing pulse strength variation       | `pulseVariation`      | ±6%       | ±0–30%       | 1%        |
 
 Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
@@ -257,7 +274,7 @@ The selected setting can be checked across all nine vehicles and both output rat
 [Single-factor candidate data](../tools/reflection-candidates.mjs) remains a regression fixture.
 The production worklet accepts validated optional coefficient overrides in initial options and
 profile-replacement messages. Both paths preserve the chosen topology and tuning. Tuning does not
-change vehicle geometry or add noise.
+change vehicle geometry or add a continuous noise source. Pulse variation modifies event strength only.
 
 Read-only vehicle data is generated directly from the selected catalog profile: cycle, cylinder
 count, idle/redline, firing phases and intervals, collector membership, primary/outlet/total path
@@ -305,7 +322,7 @@ Simple reflection writes each primary immediately after reading it, in the pulse
 primaries wait for collector scattering before writing. Read/write order preserves each delay's
 sample latency. No mode strategies, graph framework or per-vehicle branches are needed.
 
-Validated tuning contains only the five adjustable coefficients; fixed source constants are not
+Validated tuning contains only the six adjustable coefficients; fixed source constants are not
 copied into each instance. Compiled immutable firing phases are read directly. Bank normalization
 is prepared once. Each remaining mutable buffer represents a pulse envelope, filter memory,
 traveling wave or current collector sum/pressure; coupled-only memory is absent in simple mode.
@@ -320,7 +337,8 @@ For exact sample comparison with a supplied pre-change compiled module, run
 `node tools/exhaust-equivalence.mjs /absolute/path/to/exhaust-waveguide.mjs` after building.
 The diagnostic covers both modes, all catalog profiles, both internal rates, coefficient overrides,
 RPM/load transitions and stopping. It compares raw samples without tolerances or output normalization.
-Use it for waveform-preserving refactors; an intentional output-order change is not expected
+Append `--zero-variation` when comparing with a pre-variation kernel; this explicitly selects
+the zero-variation reference in both kernels. Use the default invocation for waveform-preserving refactors; an intentional output-order change is not expected
 to match a reference with a different order.
 
 ## Provisional boundary and output interpretation

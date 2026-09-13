@@ -6,7 +6,7 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
-For engine comparison, open `http://localhost:8000/?mode=circuit` to adjust the five ENGINE
+For engine comparison, open `http://localhost:8000/?mode=circuit` to adjust the six ENGINE
 TUNING sliders while driving. The separate audition/verification page is
 `http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
 checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
