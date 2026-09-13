@@ -133,7 +133,8 @@ not derived cylinder pressure, muffler transmission loss or nonlinear gas dynami
 ## Player tire synthesis
 
 The [physical evidence note](tire-squeal-research.md) distinguishes self-excited tread vibration
-from this provisional filtered-noise implementation. Research does not silently change the tire law or sound kernel.
+from a passively driven noise filter. The present oscillator is an explicit acoustic approximation
+of onset, growth and saturation, not a reproduction of local rubber contact dynamics.
 
 Production tire audio replaces the deferred single-sine prototype. The former aggregated
 prototype assertions are superseded by independent front/rear mapping, spectral, transport,
@@ -146,22 +147,47 @@ so both products are dissipative. Unsupported contacts publish zero. This observ
 it does not rerun the tire law, change snapshots or approximate force from utilization.
 
 The [mapping and sample kernel](../src/audio/tire-synthesis.ts) own all acoustic conventions.
-Each axle independently combines rolling noise, broad scrub and two fixed narrow bandpass modes
-at 1050/1630 Hz with Q 18/24. No sinusoidal oscillator, PCM asset or delay loop is used.
-Increasing the narrow-band mix raises perceived tonality without sweeping filter poles.
-The fixed compensation gains are listening choices, not an exact equal-loudness model.
+This revision replaces the rejected 1050/1630 Hz fixed noise bands with one self-excited acoustic
+oscillator per axle. The former fixed-band spectral assertion is superseded by onset/growth,
+phase-locked harmonic, below-onset decay and pre-clip state-bound tests. Observation, independent
+axle transport, silence, deterministic streams and physical-invariance coverage remain.
 
-- Rolling uses load, rolling speed and a physical-surface coefficient.
-- Friction uses `sqrt(P / (P + 12000 W))`; this is a bounded acoustic intensity proxy, not acoustic watts.
-- Squeal also uses a smooth utilization onset from 0.5 to 1.15 and surface susceptibility.
-- Lateral work moderately favors squeal; longitudinal work favors scrub but still squeals.
-- Loose surfaces favor rolling/scrub and reduce squeal. A stopped nonslipping or unsupported axle is silent after its short release.
+- Rolling uses load, rolling speed and the existing physical-surface coefficient.
+- Friction uses `sqrt(P / (P + 12000 W))`; this remains an intensity proxy, not acoustic watts.
+- Tonal excitation combines that intensity with smooth utilization and slip-speed onsets, surface
+  susceptibility and a high-slip roll-off. The 0.5–2 m/s onset window and 45 m/s roll-off scale
+  are axle-level listening choices, not thresholds measured in a local rubber experiment.
+- Lateral work moderately favors tonal excitation; longitudinal work favors scrub but still squeals.
+- Target pitch is `650 + 350 vSlip / (vSlip + 6) + 220 (1 - lateralWorkFraction)` Hz.
+  This is an authored 650–1220 Hz acoustic map. It is not a tire stiffness estimate, wheel rotation
+  frequency or thermal calculation; lateral-dominant sliding has a lower pitch than locking at equal slip.
 
-Independent fixed-seed random streams excite each axle. Scrub is band-limited with a 5500 Hz
-one-pole low-pass and the rolling-band subtraction to reduce brittle high-frequency hiss. A low-passed noise envelope adds slight
-roughness. Gains use 25 ms attack and 65 ms release; the rolling cutoff is smoothed. Each axle
-has a bounded soft output at ±0.35, mixed mono at the player. This does not claim front/rear
-spatial localization, material measurements, stick-slip mechanics or a tire vibration simulation.
+The tonal state is a complex acoustic amplitude `z = x + i y`, using a Hopf normal-form surrogate:
+
+```text
+z' = (sigma - beta |z|² + i omega) z + small random excitation
+sigma = 140 (smoothedExcitation - 0.12) / s
+beta = 150 / s
+```
+
+Above the acoustic onset, a small seeded perturbation grows into a bounded oscillation. Below
+onset, damping wins. A rational radial step `(1 + sigma dt) / (1 + beta |z|² dt)` and a rotation
+advance the two real states. This first-order radial approximation avoids explicit cubic-step
+runaway; it is not a solution of rubber stick/slip forces. Oscillator stability is checked before
+output clipping. Rotation coefficients refresh every 32 samples using smoothed pitch and weak
+noise modulation, independently of render-block boundaries. Fixed seed-derived detuning within
+±0.6% keeps the two axle sources from locking coherently; it does not encode spatial location.
+
+Fundamental, second and third harmonics share the oscillator phase. The polynomial pickup
+`y + 0.32 (2xy) + 0.12 y (3x² - y²)` makes higher harmonics grow with amplitude. Independent
+fixed-seed noise supplies rolling/scrub sound, seeds onset and adds weak roughness. Scrub retains
+the 5500 Hz one-pole low-pass and rolling-band subtraction. Gains/excitation use 25 ms attack
+and 65 ms release; the oscillator also has its own physical-inspired growth/decay. A stopped,
+nonslipping or unsupported axle settles to silence. Loose surfaces suppress tonal growth.
+
+Each axle retains the bounded ±0.35 soft output, mixed mono at the player. These controls do not
+claim measured material properties, front/rear localization, a universal squeal law or local
+contact/temperature physics. No sample assets, AudioNode oscillators or additional worklets are used.
 
 The [voice](../src/audio/tire-voice.ts) sends two small parameter records per presented frame.
 The [processor](../src/audio/tire-processor.ts) owns two axle kernels, allocates nothing in its
@@ -174,13 +200,17 @@ remain deferred and disconnected. No wind graph runs.
 
 The [tire audition](../tools/tire-browser.html) exercises front, rear and both axles through
 rolling, lateral slide, wheel lock, loose surface and release using the production worklet.
-These are authored acoustic test inputs, not a second driving simulation. It also renders
-both output rates and checks finite output and silent release. Listen in the game for calibration.
+The [shared audition sequence](../tools/tire-scenarios.mjs) contains authored acoustic test inputs,
+not a second driving simulation. The browser renders both output rates and checks finite output
+and silent release. The [offline renderer](../tools/tire-render.mjs) writes a fixed-gain synthesized
+preview with `node tools/tire-render.mjs /absolute/output.wav`. An optional reference module path
+runs the same observations through a saved prior kernel for comparison. Generated WAV files are
+review artifacts, never production assets. Listen in the game for final mix calibration.
 
 ## Mixing and lifetime
 
 The [audio engine](../src/audio/audio-engine.ts) has fixed player and rival engine slots plus one player tire worklet:
-three worklets and no oscillators, regardless of the number of game actors;
+three worklets and no AudioNode oscillators, regardless of the number of game actors;
 unused exhaust processors render zero. Voices feed one master gain and a protective
 compressor. The compressor is not a guaranteed hard peak limiter; gains retain headroom.
 No spatial reflection, occlusion, Doppler, event sounds or music is implemented.

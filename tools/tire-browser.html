@@ -58,6 +58,7 @@
     <script type="module">
       import { createTireVoice } from '../dist/audio/tire-voice.js';
       import { createVehicleAudioObservation } from '../dist/browser/vehicle-audio.js';
+      import { TIRE_AUDITION_PHASES as phases, TIRE_AUDITION_SECONDS as seconds } from './tire-scenarios.mjs';
       const result = document.getElementById('result');
       let playback,
         playing,
@@ -69,27 +70,11 @@
         playing = null;
       }
       async function render(rate, axles) {
-        const context = new OfflineAudioContext(1, rate * 9, rate);
+        const context = new OfflineAudioContext(1, rate * seconds, rate);
         await context.audioWorklet.addModule(new URL('../dist/audio/tire-processor.js', import.meta.url));
         const voice = createTireVoice(context, context.destination);
         const state = createVehicleAudioObservation();
-        const phases = [
-          {
-            load: 4000,
-            rollingSpeed: 25,
-            slipSpeed: 0,
-            utilization: 0.2,
-            longitudinalPower: 0,
-            lateralPower: 0,
-            surface: 'ASPHALT',
-          },
-          { slipSpeed: 5, utilization: 0.85, lateralPower: 8000 },
-          { slipSpeed: 10, utilization: 1.2, lateralPower: 30000 },
-          { slipSpeed: 0, utilization: 0.2, lateralPower: 0 },
-          { slipSpeed: 25, utilization: 1.2, longitudinalPower: 45000 },
-          { surface: 'DIRT' },
-          { load: 0, rollingSpeed: 0, slipSpeed: 0, longitudinalPower: 0, lateralPower: 0 },
-        ];
+
         function apply(phase) {
           for (const axle of ['front', 'rear'])
             if (axles === 'both' || axles === axle) Object.assign(state[axle], phase);
@@ -150,7 +135,7 @@
                 if (!Number.isFinite(x)) throw Error('nonfinite output');
                 peak = Math.max(peak, Math.abs(x));
                 energy += x * x;
-                if (i > rate * 8) tail += x * x;
+                if (i > rate * (seconds - 1)) tail += x * x;
               }
               if (!(peak > 0.01 && peak < 0.7 && tail < 1e-12)) throw Error(`invalid output ${rate} ${axle}`);
               lines.push(

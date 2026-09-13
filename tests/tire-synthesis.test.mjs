@@ -77,27 +77,71 @@ test('two independent axle streams are reproducible, bounded and fade through co
   }
 });
 
-test('resonant component concentrates noise around the authored squeal modes', () => {
-  const rate = 48000;
-  const synth = new TireSynthesis(rate, 123456789);
-  synth.update({ rolling: 0, friction: 0, squeal: 0.18, cutoff: 900 });
-  const signal = Float64Array.from({ length: rate }, () => synth.sample());
-  const band = (center) => {
-    let sum = 0;
-    for (let hz = center - 40; hz <= center + 40; hz += 5) {
-      let re = 0,
-        im = 0;
-      for (let i = rate / 2; i < rate; i++) {
-        const w = (2 * Math.PI * hz * i) / rate;
-        re += signal[i] * Math.cos(w);
-        im += signal[i] * Math.sin(w);
+test('self-excited tone grows above onset, forms harmonics, and dies below onset', () => {
+  for (const rate of [44100, 48000]) {
+    const synth = new TireSynthesis(rate, 123456789);
+    const tone = { rolling: 0, friction: 0, squeal: 0.7, cutoff: 900, pitch: 850 };
+    synth.update(tone);
+    const signal = Float64Array.from({ length: rate }, () => synth.sample());
+    const first = signal.subarray(0, Math.floor(rate * 0.02));
+    const settled = signal.subarray(rate / 2);
+    assert.ok(energy(settled) > 0.001, 'a developed tonal oscillation must be audible');
+    assert.ok(energy(settled) > energy(first) * 100, 'tone must grow, not start as a full-volume oscillator');
+    const band = (center) => {
+      let sum = 0;
+      for (let hz = center - 20; hz <= center + 20; hz += 4) {
+        let re = 0,
+          im = 0;
+        for (let i = 0; i < settled.length; i++) {
+          const w = (2 * Math.PI * hz * i) / rate;
+          const window = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (settled.length - 1));
+          re += settled[i] * window * Math.cos(w);
+          im += settled[i] * window * Math.sin(w);
+        }
+        sum += re * re + im * im;
       }
-      sum += re * re + im * im;
+      return sum;
+    };
+    assert.ok(band(850) > band(1200) * 100);
+    assert.ok(band(1700) > band(1450) * 20, 'second harmonic must follow the fundamental');
+    synth.update({ ...tone, squeal: 0.04 });
+    const below = Float64Array.from({ length: rate }, () => synth.sample());
+    assert.ok(
+      energy(below.subarray(rate * 0.9)) < energy(settled) * 1e-5,
+      'damping must defeat subthreshold excitation',
+    );
+    synth.update({ ...tone, squeal: 0 });
+    const stopped = Float64Array.from({ length: rate }, () => synth.sample());
+    assert.ok(energy(stopped.subarray(rate * 0.9)) < 1e-12);
+  }
+});
+
+test('pitch follows slip/direction while excessive slip can weaken tonal excitation', () => {
+  const lateral = { ...sliding, longitudinalPower: 0, lateralPower: 24000 };
+  assert.ok(tireParameters(sliding).pitch > tireParameters(lateral).pitch);
+  assert.ok(tireParameters({ ...sliding, slipSpeed: 25 }).pitch > tireParameters(sliding).pitch);
+  assert.ok(tireParameters({ ...sliding, slipSpeed: 150 }).squeal < tireParameters(sliding).squeal);
+  assert.equal(tireParameters({ ...sliding, slipSpeed: 0.1 }).squeal, 0);
+});
+
+test('oscillator remains stable through sustained maximum excitation and abrupt pitch changes', () => {
+  for (const rate of [44100, 48000, 96000]) {
+    const synth = new TireSynthesis(rate, 362436069);
+    for (let second = 0; second < 8; second++) {
+      synth.update({
+        rolling: 1,
+        friction: 1,
+        squeal: 1,
+        cutoff: second % 2 ? 100 : 10000,
+        pitch: second % 2 ? 400 : 2400,
+      });
+      for (let i = 0; i < rate; i++) {
+        const value = synth.sample();
+        assert.ok(Number.isFinite(value) && Math.abs(value) < 0.35);
+        assert.ok(synth.x * synth.x + synth.y * synth.y < 2, 'radial state must remain bounded before output clipping');
+      }
     }
-    return sum;
-  };
-  assert.ok(band(1050) > band(700) * 8);
-  assert.ok(band(1630) > band(2100) * 4);
+  }
 });
 
 test('tire worklet preserves both axle signals across block partitions and handles silence/stop', async (t) => {

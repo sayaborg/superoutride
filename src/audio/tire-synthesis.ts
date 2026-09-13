@@ -10,15 +10,27 @@ const MATERIAL = {
   VOID: { rolling: 0, squeal: 0, cutoff: 900 },
 } as const;
 
+interface TireParameters {
+  readonly rolling: number;
+  readonly friction: number;
+  /** Dimensionless acoustic excitation; crossing the oscillator threshold permits growth. */
+  readonly squeal: number;
+  readonly cutoff: number;
+  readonly pitch: number;
+}
+
 /** Acoustic mappings, not a second friction law. Power references are listening conventions. */
-export function tireParameters(tire: TireAudioObservation) {
+export function tireParameters(tire: TireAudioObservation): TireParameters {
   const material = MATERIAL[tire.surface];
   const supported = tire.load > 0 && tire.surface !== 'VOID';
   const power = supported && tire.slipSpeed > 0 ? Math.max(0, tire.longitudinalPower + tire.lateralPower) : 0;
   const intensity = Math.sqrt(power / (power + 12000));
   const lateral = power > 0 ? tire.lateralPower / power : 0;
   const onset = clamp((tire.utilization - 0.5) / 0.65, 0, 1);
-  const squeal = intensity * onset * onset * (3 - 2 * onset) * material.squeal;
+  const slip = clamp((tire.slipSpeed - 0.5) / 1.5, 0, 1);
+  // Axle-scale listening controls, not measured local tread friction or a universal onset speed.
+  const slidingWindow = (slip * slip * (3 - 2 * slip)) / (1 + (tire.slipSpeed / 45) ** 2);
+  const squeal = intensity * onset * onset * (3 - 2 * onset) * slidingWindow * material.squeal;
   return {
     rolling: supported
       ? 0.16 *
@@ -27,43 +39,22 @@ export function tireParameters(tire: TireAudioObservation) {
         material.rolling
       : 0,
     friction: 0.16 * intensity * (1 - 0.3 * lateral),
-    squeal: 0.18 * squeal * (0.75 + 0.25 * lateral),
+    squeal: squeal * (0.85 + 0.15 * lateral),
+    pitch: 650 + (350 * tire.slipSpeed) / (tire.slipSpeed + 6) + 220 * (1 - lateral),
     cutoff: material.cutoff,
   };
 }
 
-type TireParameters = ReturnType<typeof tireParameters>;
-
-/** Constant-peak bandpass; fixed coefficients keep narrow resonances stable during control changes. */
-class Bandpass {
-  private x1 = 0;
-  private x2 = 0;
-  private y1 = 0;
-  private y2 = 0;
-  private readonly b: number;
-  private readonly a1: number;
-  private readonly a2: number;
-  constructor(rate: number, hz: number, q: number) {
-    const w = (2 * Math.PI * hz) / rate;
-    const alpha = Math.sin(w) / (2 * q);
-    this.b = alpha / (1 + alpha);
-    this.a1 = (-2 * Math.cos(w)) / (1 + alpha);
-    this.a2 = (1 - alpha) / (1 + alpha);
-  }
-  sample(x: number): number {
-    const y = this.b * (x - this.x2) - this.a1 * this.y1 - this.a2 * this.y2;
-    this.x2 = this.x1;
-    this.x1 = x;
-    this.y2 = this.y1;
-    this.y1 = y;
-    return y;
-  }
-}
-
 /** One axle, independent random/filter/envelope state. No allocation in sample(). */
 export class TireSynthesis {
-  private readonly low: Bandpass;
-  private readonly high: Bandpass;
+  private readonly oscillatorStep: number;
+  private readonly detune: number;
+  private rotationX = 1;
+  private rotationY = 0;
+  private rotationCountdown = 0;
+  private x = 0;
+  private y = 0;
+  private pitch = 900;
   private readonly attack: number;
   private readonly release: number;
   private readonly roughCoefficient: number;
@@ -71,7 +62,7 @@ export class TireSynthesis {
   private readonly scrubCoefficient: number;
   private roadCoefficient: number;
   private targetRoadCoefficient: number;
-  private target: TireParameters = { rolling: 0, friction: 0, squeal: 0, cutoff: 900 };
+  private target: TireParameters = { rolling: 0, friction: 0, squeal: 0, cutoff: 900, pitch: 900 };
   private rolling = 0;
   private friction = 0;
   private squeal = 0;
@@ -83,8 +74,9 @@ export class TireSynthesis {
     private readonly rate: number,
     private seed: number,
   ) {
-    this.low = new Bandpass(rate, 1050, 18);
-    this.high = new Bandpass(rate, 1630, 24);
+    this.oscillatorStep = 1 / rate;
+    // Tiny reproducible per-source detuning avoids coherent front/rear tones, not stereo localization.
+    this.detune = 1 + 0.006 * (((seed >>> 8) & 255) / 127.5 - 1);
     this.attack = 1 - Math.exp(-1 / (0.025 * rate));
     this.release = 1 - Math.exp(-1 / (0.065 * rate));
     this.roughCoefficient = 1 - Math.exp((-2 * Math.PI * 35) / rate);
@@ -111,12 +103,31 @@ export class TireSynthesis {
     const scrub = noise - this.dc;
     this.roadCoefficient += this.attack * (this.targetRoadCoefficient - this.roadCoefficient);
     this.road += this.roadCoefficient * (scrub - this.road);
-    // Fixed noise-band gain compensation; narrow-band mixing increases perceived tonality.
+    // Broadband friction remains separate from tonal self-excitation.
     this.scrub += this.scrubCoefficient * (scrub - this.scrub);
-    const ringing = 5 * this.low.sample(scrub) + 2.5 * this.high.sample(scrub);
+    this.pitch += this.attack * (this.target.pitch - this.pitch);
+    if (this.rotationCountdown-- === 0) {
+      // Coefficient cadence belongs to this stream, independent of host render-block partitioning.
+      const angle = 2 * Math.PI * this.pitch * this.detune * (1 + 0.025 * this.rough) * this.oscillatorStep;
+      this.rotationX = Math.cos(angle);
+      this.rotationY = Math.sin(angle);
+      this.rotationCountdown = 31;
+    }
+    // Acoustic Hopf normal form: z' = (sigma - beta |z|² + i omega) z + seed noise.
+    // Positive growth above onset, nonlinear radial damping, exact phase rotation.
+    // This rational radial step avoids the runaway of explicit cubic damping at large amplitudes.
+    const excitation = clamp(this.squeal, 0, 1);
+    this.x += 8 * excitation * noise * this.oscillatorStep;
+    const radiusSquared = this.x * this.x + this.y * this.y;
+    const gain =
+      (1 + 140 * (excitation - 0.12) * this.oscillatorStep) / (1 + 150 * radiusSquared * this.oscillatorStep);
+    const x = gain * (this.rotationX * this.x - this.rotationY * this.y);
+    this.y = gain * (this.rotationY * this.x + this.rotationX * this.y);
+    this.x = x;
+    // Phase-locked harmonics grow with oscillation amplitude; no unrelated second whistle.
+    const ringing = this.y + 0.32 * (2 * this.x * this.y) + 0.12 * this.y * (3 * this.x * this.x - this.y * this.y);
     const modulation = 1 + 1.5 * this.rough;
-    const x =
-      this.rolling * this.road + modulation * (this.friction * (this.scrub - this.road) + this.squeal * ringing);
-    return (0.35 * x) / (1 + Math.abs(x));
+    const mixed = this.rolling * this.road + modulation * (this.friction * (this.scrub - this.road) + 0.32 * ringing);
+    return (0.35 * mixed) / (1 + Math.abs(mixed));
   }
 }

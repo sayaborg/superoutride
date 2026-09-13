@@ -1,7 +1,7 @@
 # Tire squeal: physical evidence and synthesis implications
 
-This is a research note for the next sound-design decision. [Audio](audio.md) owns current
-runtime behavior. No tire DSP or physical force law is changed by this investigation.
+This note records the physical evidence behind the current acoustic surrogate. [Audio](audio.md) owns current
+runtime behavior. The implementation uses a bounded normal-form oscillator; the physical force law remains unchanged.
 
 ## Mechanism supported by the sources
 
@@ -81,18 +81,18 @@ is the only possible friction-induced instability.
 ## Consequences for SUPER OUTRIDE
 
 Our design inference is to retain independent front/rear observations and rolling/scrub noise,
-but evaluate a bounded self-excited acoustic oscillator per axle for the tonal component.
+and use a bounded self-excited acoustic oscillator per axle for the tonal component.
 A small amount of noise can seed or roughen that oscillator; a weak harmonic can follow its
 fundamental. Onset/growth, saturation and decay should be explicit, with no permanent tone when
-contact or slip energy disappears. This would be an acoustic surrogate, not another tire solver.
+contact or slip energy disappears. This is an acoustic surrogate, not another tire solver.
 
-Current 1050/1630 Hz fixed noise bands and the utilization onset curve are listening choices.
+The rejected 1050/1630 Hz fixed noise bands and the current onset/pitch constants are listening choices.
 The sources do not validate those constants. The existing directional slip power remains a
 useful energy input, but cannot alone determine tone frequency, onset or sound pressure.
 The game has no local rubber stiffness, loss factor, tread temperature or contact-pressure field;
 its vehicle-scale tire coefficients must not be relabeled as those quantities.
 
-Before changing the tire sound, compare the current noise-band reference with one bounded
+Compare the saved prior noise-band reference with the current bounded
 oscillator on lateral slide, wheel lock, spin, loose surface and recovery sequences. Check
 44.1/48 kHz stability, fading and CPU cost. Choose any pitch and onset controls explicitly as
 sound-design approximations. Do not infer a universal threshold from one rig, make lateral

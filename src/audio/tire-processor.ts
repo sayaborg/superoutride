@@ -16,7 +16,7 @@ class TireProcessor extends AudioWorkletProcessor {
         [data.front, data.rear].every(
           (value) =>
             value &&
-            ['rolling', 'friction', 'squeal', 'cutoff'].every((key) => Number.isFinite(value[key])) &&
+            ['rolling', 'friction', 'squeal', 'cutoff', 'pitch'].every((key) => Number.isFinite(value[key])) &&
             value.rolling >= 0 &&
             value.rolling <= 1 &&
             value.friction >= 0 &&
@@ -24,13 +24,15 @@ class TireProcessor extends AudioWorkletProcessor {
             value.squeal >= 0 &&
             value.squeal <= 1 &&
             value.cutoff >= 100 &&
-            value.cutoff <= 10000,
+            value.cutoff <= 10000 &&
+            value.pitch >= 400 &&
+            value.pitch <= 2400,
         )
       ) {
         this.front.update(data.front);
         this.rear.update(data.rear);
       } else {
-        const silent = { rolling: 0, friction: 0, squeal: 0, cutoff: 900 as const };
+        const silent = { rolling: 0, friction: 0, squeal: 0, cutoff: 900, pitch: 900 };
         this.front.update(silent);
         this.rear.update(silent);
       }
