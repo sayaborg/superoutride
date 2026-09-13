@@ -9,7 +9,7 @@
 ## Engine sound continuation
 
 The native-rate waveguide (formerly LITE) is adopted. The 2x reference path and method selector,
-transport flags and comparison-only controls are removed. Six tuning controls remain provisional.
+transport flags and comparison-only controls are removed. Eight tuning controls remain provisional.
 Every pipe, return filter, source boundary and per-sample control update is retained. A 32-sample
 attack-coefficient cadence was evaluated but not adopted; prefer the simpler exact native-rate sound.
 The [audio specification](audio.md) owns current behavior. Android gameplay/audio acceptance remains open.
@@ -18,7 +18,7 @@ The [audio specification](audio.md) owns current behavior. Android gameplay/audi
 - Game sliders commit on release through the existing fade. The final LPF follows soft clipping and is independent of the reflection-wave LPF. Vehicle changes preserve tuning; page/course reload resets it. Browser trial values are not saved repository defaults.
 - Player and nearest-rival engines and independent front/rear player tires are connected. Recordings, generated-waveform playback and engine noise are absent. Wind remains disconnected. D/M/ACT retain their minus/value/plus controls.
 - Pulse variation defaults to ±20% of full-excitation strength, adjustable from 0 to 40%. The absolute offset remains at closed throttle and clips at zero strength. Zero restores the exact pre-variation reference; firing phases and RPM remain unchanged.
-- Tire squeal uses directional friction work and one bounded self-excited acoustic oscillator per axle in a single worklet. Use `/tools/tire-browser.html` to audition each axle and both together. Catalog engine pulse shapes are differentiated as provisional acoustic sketches. The [physical evidence note](tire-squeal-research.md) motivates the new self-excitation mechanism and separates its authored pitch/onset controls from material physics. The fixed noise-band squeal has been replaced; rolling and scrub noise are removed. Continue in-game listening and target-device calibration before adding wind. Do not reconnect the deferred prototypes as part of engine cleanup. Speaker calibration, Safari/iOS and target-phone performance acceptance remain open.
+- Tire squeal uses directional friction work and one bounded self-excited acoustic oscillator per axle in a single worklet. Use `/tools/tire-browser.html` to audition each axle and both together. Pulse strength is fixed at 1 for every vehicle; rise and decay use the shared sliders (0.20 ms and 5.0 ms provisional defaults). The [physical evidence note](tire-squeal-research.md) motivates the new self-excitation mechanism and separates its authored pitch/onset controls from material physics. The fixed noise-band squeal has been replaced; rolling and scrub noise are removed. Continue in-game listening and target-device calibration before adding wind. Do not reconnect the deferred prototypes as part of engine cleanup. Speaker calibration, Safari/iOS and target-phone performance acceptance remain open.
 
 ## Other implementation areas
 

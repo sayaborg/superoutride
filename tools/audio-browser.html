@@ -161,7 +161,7 @@
           body.append(row);
         });
         document.getElementById('vehicle-pulse').textContent =
-          `パルスの設定：強さ ${sound.pulse.strength} ／ 立ち上がり時定数 ${(sound.pulse.riseSeconds * 1000).toFixed(2)} ms ／ 減衰時定数 ${(sound.pulse.decaySeconds * 1000).toFixed(2)} ms`;
+          'パルスは全車種共通：基準強度1。立ち上がり・減衰は上のスライダーで調整します。';
       }
       vehicle.onchange = showVehicleData;
       vehicle.value = '1';

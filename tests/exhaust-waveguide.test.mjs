@@ -5,8 +5,8 @@ import { DEFAULT_EXHAUST_TUNING, OUTPUT } from '../dist/audio/exhaust-acoustics.
 import { compileVehicleAudioProfile } from '../dist/audio/vehicle-audio-profile.js';
 import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 const profiles = VEHICLE_CATALOG.filter((entry) => entry.sound.exhaust);
-function render(profile, load, rate = 48000) {
-  const engine = new ExhaustWaveguide(profile, rate);
+function render(profile, load, rate = 48000, tuning = {}) {
+  const engine = new ExhaustWaveguide(profile, rate, tuning);
   const samples = new Float32Array(rate);
   for (let i = 0; i < samples.length; i++) samples[i] = engine.sample(3000, load);
   return samples.subarray(rate / 2);
@@ -20,10 +20,9 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
     cycleRevolutions: 2,
     firingPhases: [0],
     exhaust: { banks: [0], lengths: [0.5], outlet: 1 },
-    pulse: { strength: 4, riseSeconds: 0.00001, decaySeconds: 0.006 },
   });
   for (const rate of [44100, 48000, 88200, 96000]) {
-    const synth = new ExhaustWaveguide(profile, rate, { outletReflection: 0 });
+    const synth = new ExhaustWaveguide(profile, rate, { outletReflection: 0, pulseRiseMs: 0.01, pulseDecayMs: 6 });
     const coefficient = 1 - Math.exp((-2 * Math.PI * DEFAULT_EXHAUST_TUNING.outputCutoffHz) / rate);
     let previous = 0,
       peak = 0;
@@ -35,7 +34,7 @@ test('the final low-pass limits clipped pulse transients in both exhaust methods
       peak = Math.max(peak, Math.abs(value));
       previous = value;
     }
-    assert.ok(peak > OUTPUT.ceiling / 2, 'the fixture must exercise substantial saturation');
+    assert.ok(peak > 0.1, 'the fixture must exercise nonzero clipped output at the fixed unit source strength');
   }
 });
 
@@ -231,11 +230,8 @@ test('every catalog engine has waveguide authoring and Porsche banks fire evenly
 test('pulse rise and decay affect waveform shape, beyond a volume multiplier', () => {
   const sound = VEHICLE_CATALOG[3].sound;
   const normal = render(sound, 1, 96000);
-  for (const pulse of [
-    { ...sound.pulse, riseSeconds: sound.pulse.riseSeconds * 4 },
-    { ...sound.pulse, decaySeconds: sound.pulse.decaySeconds * 0.5 },
-  ]) {
-    const changed = render(compileVehicleAudioProfile({ ...sound, pulse }), 1, 96000);
+  for (const tuning of [{ pulseRiseMs: 0.8 }, { pulseDecayMs: 2.5 }]) {
+    const changed = render(sound, 1, 96000, tuning);
     const ratio = Math.sqrt(energy(normal) / energy(changed));
     assert.ok(
       difference(
@@ -308,7 +304,7 @@ test('pulse variation changes strength within bounds while preserving firing tim
         const fired = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
         if (!fired) continue;
         // Observe the actual excitation, independently of pipe filtering and clipping.
-        const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / (sound.pulse.strength * varied.decay);
+        const delta = (varied.pulse[cylinder] - reference.pulse[cylinder]) / varied.decay;
         assert.ok(delta >= -0.4 - 1e-12 && delta <= 0.4 + 1e-12);
         assert.ok(varied.pulse[cylinder] >= 0);
         sum += delta;
@@ -347,7 +343,7 @@ test('closed throttle retains the same absolute pulse variation as open throttle
         phase = coast.phase;
       if (!(phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase)) continue;
       const deviation = (synth) =>
-        synth.pulse[j] / (sound.pulse.strength * synth.decay) -
+        synth.pulse[j] / synth.decay -
         (synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load);
       assert.ok(Math.abs(deviation(coast) - deviation(open)) < 1e-12);
     }
@@ -382,4 +378,36 @@ test('native-rate waveguide withstands lossless-path redline and closes into sil
       for (let i = 0; i < rate * 4; i++) engine.sample(0, 0);
       assert.ok(Math.abs(engine.sample(0, 0)) < 1e-6);
     }
+});
+
+test('every vehicle uses unit base pulse strength and the same shared time constants', () => {
+  for (const { sound } of profiles) {
+    assert.equal('pulse' in sound, false);
+    const synth = new ExhaustWaveguide(sound, 48000, { pulseVariation: 0, pulseRiseMs: 0.4, pulseDecayMs: 8 });
+    for (let i = 0; i < 48000; i++) {
+      const previous = synth.phase;
+      synth.sample(3000, 1);
+      for (let j = 0; j < sound.firingPhases.length; j++) {
+        const phase = synth.phase,
+          offset = sound.firingPhases[j];
+        if (!(phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase))
+          continue;
+        const excitation = synth.tuning.closedExcitation + (1 - synth.tuning.closedExcitation) * synth.load;
+        assert.ok(Math.abs(synth.pulse[j] / synth.decay - excitation) < 1e-12);
+      }
+    }
+    assert.equal(synth.decay, Math.exp(-1 / (0.008 * 48000)));
+  }
+});
+
+test('shared pulse slider corners remain finite through load changes at native rates', () => {
+  for (const { sound } of profiles)
+    for (const pulseRiseMs of [0.01, 2])
+      for (const pulseDecayMs of [0.1, 30]) {
+        const synth = new ExhaustWaveguide(sound, 48000, { pulseRiseMs, pulseDecayMs, pulseVariation: 0.4 });
+        for (let i = 0; i < 48000; i++) {
+          const value = synth.sample(10000, i < 24000 ? 1 : 0);
+          assert.ok(Number.isFinite(value) && Math.abs(value) < OUTPUT.ceiling);
+        }
+      }
 });

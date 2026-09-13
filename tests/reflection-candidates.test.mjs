@@ -41,6 +41,8 @@ test('empty tuning is identical and each candidate changes the waveguide wavefor
 test('acoustic tuning rejects unstable or nonfinite values and cannot override other constants', () => {
   const sound = VEHICLE_CATALOG[0].sound;
   for (const tuning of [
+    ...['pulseRiseMs', 'pulseDecayMs'].flatMap((key) => [NaN, Infinity, 0, -1, 31].map((value) => ({ [key]: value }))),
+    { pulseRiseMs: 2.01 },
     { pulseVariation: NaN },
     { pulseVariation: Infinity },
     { pulseVariation: -0.01 },

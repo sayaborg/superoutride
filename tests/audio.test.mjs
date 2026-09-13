@@ -12,14 +12,13 @@ import { createRecoveryState, recoverVehicleToGuideCoordinate } from '../dist/ga
 const base = VEHICLE_CATALOG[0];
 const observation = () => ({ ...createVehicleAudioObservation(), rpm: 3000, throttle: 0.5, drive: 0.5 });
 
-test('acoustic authoring copies and freezes firing, pipe and pulse data', () => {
+test('acoustic authoring copies and freezes firing and pipe data', () => {
   const input = structuredClone(base.sound);
   const compiled = compileVehicleAudioProfile(input);
   input.firingPhases[1] = 0;
-  input.pulse.strength = 3;
   input.exhaust.lengths[0] = 2;
   assert.deepEqual(compiled, base.sound);
-  assert.ok(Object.isFrozen(compiled.pulse));
+  assert.ok(Object.isFrozen(compiled.exhaust));
   for (const change of [
     { cycleRevolutions: 3 },
     { firingPhases: [] },
@@ -27,16 +26,6 @@ test('acoustic authoring copies and freezes firing, pipe and pulse data', () => 
     { firingPhases: [NaN] },
     { firingPhases: [1] },
     { exhaust: undefined },
-    { pulse: undefined },
-    ...[
-      { strength: NaN },
-      { strength: 0 },
-      { strength: Infinity },
-      { riseSeconds: 0 },
-      { riseSeconds: 0.01 },
-      { decaySeconds: Infinity },
-      { decaySeconds: -1 },
-    ].map((pulse) => ({ pulse: { ...base.sound.pulse, ...pulse } })),
   ])
     assert.throws(() => compileVehicleAudioProfile({ ...base.sound, ...change }), RangeError);
 });

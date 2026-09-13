@@ -23,7 +23,7 @@ surfaces or repeat contact/tire solves.
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Shared waveguide kernel and delays                                      | [exhaust-waveguide](../src/audio/exhaust-waveguide.ts)                                                                                    |
 | Shared tuning defaults, reference conditions and fixed output constants | [exhaust-acoustics](../src/audio/exhaust-acoustics.ts)                                                                                    |
-| Firing, pipe and pulse contract/validation                              | [vehicle-audio-profile](../src/audio/vehicle-audio-profile.ts); authored bindings in [vehicle catalog](../src/vehicle/vehicle-catalog.ts) |
+| Firing and pipe contract/validation                                     | [vehicle-audio-profile](../src/audio/vehicle-audio-profile.ts); authored bindings in [vehicle catalog](../src/vehicle/vehicle-catalog.ts) |
 | Worklet transport and native-rate acoustic stepping                     | [exhaust-processor](../src/audio/exhaust-processor.ts)                                                                                    |
 | Reusable voice and faded profile/tuning replacement                     | [engine-voice](../src/audio/engine-voice.ts)                                                                                              |
 | Two engine slots, one player tire worklet and master output graph       | [audio-engine](../src/audio/audio-engine.ts)                                                                                              |
@@ -37,29 +37,30 @@ past experiments and validation run results remain in Git and PR/CI evidence.
 
 There are no recordings, audio assets or PCM loops. The [engine voice](../src/audio/engine-voice.ts)
 uses the same exhaust kernel for every vehicle, with no inactive legacy oscillators or vehicle-ID branches.
-The [profile](../src/audio/vehicle-audio-profile.ts) has three concepts:
+The [profile](../src/audio/vehicle-audio-profile.ts) has two concepts:
 
 - Firing: cycle revolutions (1 or 2) and ordered firing phases; the phase count is the cylinder count.
 - Pipes: collector membership, primary lengths and a common outlet length for each collector.
-- Pulse: relative strength, full-excitation rise time and decay time in seconds.
 
-Firing intervals represent engine configuration. Pipe lengths, grouping details and pulse values
+Pulse strength is fixed at 1 for every vehicle. Common `pulseRiseMs` and `pulseDecayMs` tuning
+controls own the time constants; there is no vehicle pulse field or per-vehicle multiplier.
+
+Firing intervals represent engine configuration. Pipe lengths, grouping details and common pulse values
 are acoustic sketches, not manufacturer measurements. Pulse amplitude is dimensionless, not Pa;
 there is no calculated cylinder pressure, gas mass flow, torque or temperature.
 The compiler validates resource bounds and freezes private copies of all authored arrays/objects.
 Firing phases remain exact and never receive timing jitter. Each firing samples one bounded,
-fixed-seed pseudorandom offset: `strength = profileStrength * max(0, excitation + pulseVariation * r)`,
+fixed-seed pseudorandom offset: `strength = max(0, excitation + pulseVariation * r)`,
 with `r` in [-1, 1). The reference is full-excitation strength, so closed throttle retains the same
 absolute variation. Rise time, decay, RPM and pipe geometry are unchanged. Default variation is
-0.20 (±20%); the control range is 0–0.40. Zero preserves the previous reference exactly.
+0.20 (±20%); the control range is 0–0.40. Zero disables event variation.
 This is authored sound design, not measured combustion variance. At excitation below the variation
 amount, zero clipping prevents negative pulses and raises mean excitation; the default closed
 excitation 0.22 exceeds the default variation 0.20, so default coast pulses do not clip.
 
 This explicitly supersedes the former invariant of equal pulse strengths at fixed excitation.
 Determinism now means reproducibility from the same reset seed and input history, not strict
-periodicity. Zero variation preserves the former samples exactly and retains the settled-cycle
-regressions. Nonzero tests check strength bounds, unchanged firing phase/RPM, replay equality,
+periodicity. Zero variation retains settled-cycle regressions with the current common pulse values. Nonzero tests check strength bounds, unchanged firing phase/RPM, replay equality,
 mean excitation, sustained output bounds and arbitrary worklet block partitions. Each kernel
 owns one integer seed, reset alongside its acoustic state during the existing faded replacement.
 There is no new audio node, per-cylinder random array or random draw outside firing events.
@@ -82,10 +83,19 @@ microphone position or computed far-field radiation. Bank normalization is an ou
 
 One smoothed excitation proxy controls only pulse amplitude and rise time: closed excitation
 retains a shared nonzero floor, and increasing excitation makes the pulse stronger and faster.
-Decay time is authored and fixed. Catalog pulse rise/decay now differ between vehicles: sharper, shorter
-pulses for the high-revving multi-cylinder and two-stroke sketches; longer envelopes for the
-large twins and V8. These are provisional listening choices, not measured combustion durations. No extra load-dependent output filter or saturation drive is
-applied, and no direct combustion bypass or continuous random-noise source is mixed into the engine output.
+Rise defaults to 0.20 ms at full excitation and decay to 5.0 ms, both provisional common listening
+values rather than measured durations. Sliders cover 0.01–2.00 ms rise (0.01 ms steps) and 0.1–30.0 ms
+decay (0.1 ms steps). These are independent positive time constants, not pulse start/end timestamps;
+no ordering constraint is necessary for the cascaded envelopes. Lower excitation increases effective
+rise time; decay remains load-independent. Strength 1 is the unmodulated full-excitation reference,
+not a clamp on varied events or final output amplitude.
+
+This revision intentionally supersedes the earlier per-vehicle strength/rise/decay sketches. Profile
+validation no longer owns pulse controls; shared tuning validation and unit-strength/shape regressions
+do. The former strength-4 transient fixture now uses unit strength while retaining its post-clip filter
+bound check. Default waveforms intentionally change and must not be claimed equivalent to the old
+per-vehicle settings. No extra load-dependent output filter, direct source bypass or continuous noise
+is introduced.
 Randomness affects firing-event strength only.
 The gameplay adapter supplies delivered-drive fraction times actuator throttle (`drive`); this is
 an acoustic control proxy, not `engineTorque / maxTorque(RPM)` or measured cylinder load.
@@ -114,7 +124,7 @@ per-device branch or alternate acoustic kernel remains.
 
 Every cylinder retains both primary delays, firing events, pulse envelopes, return low-pass and
 phase-dependent source reflection. Collector scattering and both outlet delays are retained.
-All filters and delays use the actual sample rate. Six tuning values, including ±20% absolute pulse
+All filters and delays use the actual sample rate. Eight tuning values, including ±20% absolute pulse
 variation by default, remain provisional; profile/tuning changes retain the existing fade and node count.
 
 The earlier 2x path and rejected LOOP are available in Git, not shipped as runtime alternatives.
@@ -289,7 +299,7 @@ not a paired method benchmark or browser scheduling, end-to-end graph or mobile 
 
 The game and audition use the same native-rate voice/worklet, observations, authoring and tuning.
 There is no method selector or method state. Profile/tuning replacement retains the shared fade.
-Game and audition use one tuning control for six shared controls. The values below describe
+Game and audition use one tuning control for eight shared controls. The values below describe
 `DEFAULT_EXHAUST_TUNING` in the acoustic settings; code owns the defaults and validation, and
 the shared control owns UI ranges/steps. Reset reads those defaults directly.
 
@@ -301,6 +311,8 @@ the shared control owns UI ranges/steps. Reset reads those defaults directly.
 | Closed-throttle excitation floor      | `closedExcitation`    | 0.22      | 0.01–1       | 0.01      |
 | Final LPF (muffler approximation)     | `outputCutoffHz`      | 7300 Hz   | 100–12000 Hz | 100 Hz    |
 | Firing pulse strength variation       | `pulseVariation`      | ±20%      | ±0–40%       | 1%        |
+| Common pulse rise time                | `pulseRiseMs`         | 0.20 ms   | 0.01–2.00 ms | 0.01 ms   |
+| Common pulse decay time               | `pulseDecayMs`        | 5.0 ms    | 0.1–30.0 ms  | 0.1 ms    |
 
 Outlet reflection includes zero at the right endpoint; the readout explicitly labels no
 outlet reflection. This changes the coefficient, not the DSP algorithm or allocation strategy.
@@ -318,7 +330,7 @@ change vehicle geometry or add a continuous noise source. Pulse variation modifi
 
 Read-only vehicle data is generated directly from the selected catalog profile: cycle, cylinder
 count, idle/redline, firing phases and intervals, collector membership, primary/outlet/total path
-lengths, and pulse settings. Rows identify firing events, not manufacturer cylinder numbers.
+lengths. Pulse controls are common and displayed separately. Rows identify firing events, not manufacturer cylinder numbers.
 Collector labels do not assert physical left/right bank names. Lengths and topology include
 acoustic sketches and are explicitly not presented as measured manufacturer pipework.
 
@@ -387,5 +399,5 @@ remain provisional acoustic sketches.
 
 ## Runtime boundary
 
-REFLECTION, LOOP and 2x comparison modes are removed. Keep one native-rate pipe model and the six
+REFLECTION, LOOP and 2x comparison modes are removed. Keep one native-rate pipe model and the eight
 provisional sound controls. Host measurements do not replace Android gameplay/audio acceptance.

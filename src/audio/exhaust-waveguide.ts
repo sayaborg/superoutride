@@ -61,8 +61,16 @@ export class ExhaustWaveguide {
       closedExcitation = DEFAULT_EXHAUST_TUNING.closedExcitation,
       outputCutoffHz = DEFAULT_EXHAUST_TUNING.outputCutoffHz,
       pulseVariation = DEFAULT_EXHAUST_TUNING.pulseVariation,
+      pulseRiseMs = DEFAULT_EXHAUST_TUNING.pulseRiseMs,
+      pulseDecayMs = DEFAULT_EXHAUST_TUNING.pulseDecayMs,
     } = tuning;
     if (
+      !Number.isFinite(pulseRiseMs) ||
+      pulseRiseMs < 0.01 ||
+      pulseRiseMs > 2 ||
+      !Number.isFinite(pulseDecayMs) ||
+      pulseDecayMs < 0.1 ||
+      pulseDecayMs > 30 ||
       !Number.isFinite(attenuationPerMeter) ||
       attenuationPerMeter < 0 ||
       attenuationPerMeter > 1 ||
@@ -90,6 +98,8 @@ export class ExhaustWaveguide {
       closedExcitation,
       outputCutoffHz,
       pulseVariation,
+      pulseRiseMs,
+      pulseDecayMs,
     });
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
@@ -111,7 +121,7 @@ export class ExhaustWaveguide {
     this.bankNormalization = Math.sqrt(groups);
     for (const bank of this.banks) this.counts[bank]!++;
     this.smoothing = 1 - Math.exp(-1 / (CONTROL_SECONDS * rate));
-    this.decay = Math.exp(-1 / (profile.pulse.decaySeconds * rate));
+    this.decay = Math.exp(-1 / ((pulseDecayMs / 1000) * rate));
     this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * OUTPUT.dcHz) / rate);
     this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.tuning.outputCutoffHz) / rate);
     this.loss = 1 - Math.exp((-2 * Math.PI * this.tuning.returnCutoffHz) / rate);
@@ -126,22 +136,20 @@ export class ExhaustWaveguide {
     this.phase = (this.phase + step) % 1;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
     const excitation = this.tuning.closedExcitation + (1 - this.tuning.closedExcitation) * this.load;
-    const attack = 1 - Math.exp(-excitation / (this.profile.pulse.riseSeconds * this.rate));
+    const attack = 1 - Math.exp(-excitation / ((this.tuning.pulseRiseMs / 1000) * this.rate));
     this.sums.fill(0);
     for (let i = 0; i < this.pulse.length; i++) {
       const offset = this.profile.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
       if (crossed) {
-        let strength = this.profile.pulse.strength * excitation;
+        let strength = excitation;
         if (this.tuning.pulseVariation > 0) {
           // One random draw per firing, never a continuous noise source or a timing perturbation.
           this.pulseSeed ^= this.pulseSeed << 13;
           this.pulseSeed ^= this.pulseSeed >>> 17;
           this.pulseSeed ^= this.pulseSeed << 5;
-          strength =
-            this.profile.pulse.strength *
-            Math.max(0, excitation + this.tuning.pulseVariation * (this.pulseSeed / 2147483648));
+          strength = Math.max(0, excitation + this.tuning.pulseVariation * (this.pulseSeed / 2147483648));
         }
         this.pulse[i] = strength;
       }

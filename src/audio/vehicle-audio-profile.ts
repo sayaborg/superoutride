@@ -7,15 +7,10 @@ export interface VehicleAudioProfile {
     readonly lengths: readonly number[];
     readonly outlet: number;
   };
-  readonly pulse: {
-    readonly strength: number;
-    readonly riseSeconds: number;
-    readonly decaySeconds: number;
-  };
 }
 
 export function compileVehicleAudioProfile(profile: VehicleAudioProfile): VehicleAudioProfile {
-  const { cycleRevolutions, firingPhases, exhaust, pulse } = profile;
+  const { cycleRevolutions, firingPhases, exhaust } = profile;
   if (
     (cycleRevolutions !== 1 && cycleRevolutions !== 2) ||
     !Array.isArray(firingPhases) ||
@@ -23,18 +18,9 @@ export function compileVehicleAudioProfile(profile: VehicleAudioProfile): Vehicl
     firingPhases.length > 16 ||
     firingPhases.some(
       (phase, i) => !Number.isFinite(phase) || phase < 0 || phase >= 1 || (i > 0 && phase <= firingPhases[i - 1]!),
-    ) ||
-    !pulse ||
-    !Number.isFinite(pulse.strength) ||
-    pulse.strength <= 0 ||
-    pulse.strength > 4 ||
-    !Number.isFinite(pulse.riseSeconds) ||
-    pulse.riseSeconds < 0.00001 ||
-    !Number.isFinite(pulse.decaySeconds) ||
-    pulse.decaySeconds > 0.1 ||
-    pulse.riseSeconds >= pulse.decaySeconds
+    )
   )
-    throw new RangeError('invalid firing or pulse profile');
+    throw new RangeError('invalid firing profile');
   // Resource limits bound delay storage; these are not claims about real exhaust geometry.
   if (
     !exhaust ||
@@ -53,7 +39,6 @@ export function compileVehicleAudioProfile(profile: VehicleAudioProfile): Vehicl
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),
-    pulse: Object.freeze({ ...pulse }),
     exhaust: Object.freeze({
       ...exhaust,
       banks: Object.freeze([...exhaust.banks]),
