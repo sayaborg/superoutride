@@ -3,10 +3,9 @@
 ## Restart
 
 1. Use the [superoutride repository](https://github.com/sayaborg/superoutride), locally or in the cloud.
-   Inspect `git status`, local history and remote refs, then fetch main and inspect
-   [PR #168](https://github.com/sayaborg/superoutride/pull/168) to identify the integrated sound baseline.
-2. Once that PR is integrated, start new work on a `codex/` branch from the latest fetched main.
-   During integration, continue `codex/procedural-audio` instead. Preserve any local commits and
+   Inspect the working tree, fetch main, and inspect current PR/CI and Pages state. The accepted
+   engine and minus/plus sound controls are integrated; no earlier task or feature branch is needed.
+2. Start new work on a `codex/` branch from the latest fetched main. Preserve local commits and
    changes when selecting a checkout. Do not implement directly on main or depend on temporary files
    from the previous machine. In the desktop ChatGPT project mirror, `sources/` is read-only reference
    material and the actual Git checkout is the `superoutride` subdirectory.
@@ -42,6 +41,10 @@ revision. Preserve this as the listening baseline when starting tire work.
   final LPF. Additional clip antialiasing is not active. Do not attribute every harsh sound to clipping.
 - Engine settings are session-local; each minus/plus step applies through the common fade. Vehicle switches
   preserve tuning; reset restores defaults and page/course reload resets the session.
+- SOUND START begins/resumes audio, then SOUND ON/OFF controls mute. Touch release is an activation
+  path, and disposal closes audio even if the browser is still waiting for playback permission.
+- The user confirmed sound on iOS Chrome after disabling the iPhone's silent mode. Preserve the
+  normal platform audio-session behavior; this report does not validate every iOS version or device.
 - Target Android playability with simple, light processing. The user's M4 MacBook Air listening and
   kernel timing do not certify Android, Safari/iOS, speaker response or the complete gameplay budget.
 

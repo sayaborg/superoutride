@@ -249,15 +249,26 @@ slot before reusing it. Other actors have no active sound nodes, and rivals have
 tire or wind voices.
 
 The [browser lifecycle](../src/browser/audio-lifecycle.ts) constructs AudioContext only
-on a user gesture. The SOUND button mutes/unmutes and VOL controls master volume.
+on user activation: mouse press, touch/pen release, touchend or a keyboard gesture. Touch
+pointerdown alone is not treated as playback permission; see [WebKit's activation rules](https://webkit.org/blog/13862/the-user-activation-api/).
+SOUND START starts or resumes audio with one click; once running, SOUND ON/OFF mutes/unmutes.
+The label follows context state, including an interruption, and VOL controls master volume.
 Hidden tabs and stopped shells suspend audio; mute fades before suspension. Resume,
 module-loading failure, late initialization, page cache restoration and disposal are
-handled without preventing gameplay. Profile and tuning changes share the existing
+handled without preventing gameplay. Graph construction and browser resume may complete independently;
+disposal closes the context immediately and releases a late graph even when resume remains pending.
+Profile and tuning changes share the existing
 90 ms fade before resetting acoustic state. Rapid superseding targets cannot apply stale parameters.
 Changes made while loading, muted or suspended apply when rendering resumes. Native tuning and volume buttons retain keyboard activation without forwarding keydown
 to driving-key handlers.
 No vehicle state, route progress or recovery transaction is changed. Browsers without AudioWorklet remain playable
 with SOUND UNAVAILABLE. No fallback sample player is installed.
+
+The default platform audio session is retained. On iPhone, Web Audio can be muted by silent mode
+while the context reports running; SOUND ON is not proof of speaker output. The user confirmed
+that disabling silent mode restored sound in iOS Chrome. For device checks, disable silent mode,
+raise media volume and tap SOUND START. Do not override the session type or add silent media
+assets to bypass the device setting. This behavior is documented by [WebKit](https://bugs.webkit.org/show_bug.cgi?id=237322).
 
 The worklet module entry is resolved relative to import.meta.url, preserving complete commit-versioned
 ESM delivery. Static worker URLs are production reachability edges in the repository

@@ -5,7 +5,6 @@ export function installBrowserDom(t, search = '') {
     'game',
     'sound-toggle',
     'sound-volume',
-    'sound-method',
     'sound-tuning',
     'steer-left-button',
     'steer-right-button',

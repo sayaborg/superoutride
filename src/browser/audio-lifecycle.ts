@@ -10,6 +10,9 @@ import {
   nearestAudibleRival,
 } from './vehicle-audio.js';
 
+// Touch activation arrives on release; pointerdown activates only a mouse.
+const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
+
 /** DOM and permission lifecycle. Construction never creates an AudioContext. */
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
@@ -28,8 +31,7 @@ export function createAudioLifecycle() {
   let switchAt = 0;
   const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
   if (button) {
-    button.textContent = supported ? 'SOUND ON' : 'SOUND UNAVAILABLE';
-    button.setAttribute('aria-pressed', String(enabled && supported));
+    showSoundState();
     if (!supported) button.setAttribute('disabled', '');
   }
   const tuningContainer = document.getElementById('sound-tuning');
@@ -55,6 +57,21 @@ export function createAudioLifecycle() {
       })
     : null;
   if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
+  function showSoundState(): void {
+    if (!button || disposed) return;
+    button.textContent = !supported
+      ? 'SOUND UNAVAILABLE'
+      : failed
+        ? 'SOUND RETRY'
+        : !enabled
+          ? 'SOUND OFF'
+          : context?.state !== 'running'
+            ? 'SOUND START'
+            : engine
+              ? 'SOUND ON'
+              : 'SOUND…';
+    button.setAttribute('aria-pressed', String(enabled && supported));
+  }
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -62,6 +79,7 @@ export function createAudioLifecycle() {
   function sync(): void {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
+    showSoundState();
     if (!context || !engine) return;
     if (tuningControls) engine.setTuning(tuningControls.read());
     engine.setVolume(audible() ? volume : 0);
@@ -79,28 +97,33 @@ export function createAudioLifecycle() {
       failed = false;
       created = new AudioContext();
       context = created;
-      // Attach both rejection handlers immediately, and await both before cleanup.
-      const [resume, build] = await Promise.allSettled([created.resume(), createAudioEngine(created)]);
-      if (build.status === 'fulfilled') built = build.value;
-      if (resume.status === 'rejected' || build.status === 'rejected') throw new Error('audio initialization failed');
+      created.onstatechange = showSoundState;
+      // Resume may wait indefinitely for permission. Own the graph as soon as it arrives,
+      // so disposal can release it without waiting for the browser's pending resume promise.
+      const resumed = created.resume().then(
+        () => true,
+        () => false,
+      );
+      built = await createAudioEngine(created);
       if (disposed) {
-        built?.dispose();
-        await created.close();
+        built.dispose();
         return;
       }
       engine = built;
-      if (button) button.textContent = enabled ? 'SOUND ON' : 'SOUND OFF';
+      if (!(await resumed)) throw new Error('audio resume failed');
       sync();
     } catch {
       built?.dispose();
       engine = null;
       if (context === created) context = null;
+      if (created) created.onstatechange = null;
       await created?.close().catch(() => {});
       failed = true;
-      if (button && !disposed) button.textContent = 'SOUND RETRY';
+      showSoundState();
     }
   }
   function unlock(event?: Event): void {
+    if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
     if (event?.target === button || !supported || !audible()) return;
     if (!context && !loading) {
       loading = initialize().finally(() => {
@@ -114,11 +137,8 @@ export function createAudioLifecycle() {
     }
   }
   function toggle(): void {
-    enabled = failed ? true : !enabled;
-    if (button) {
-      button.textContent = enabled ? 'SOUND ON' : 'SOUND OFF';
-      button.setAttribute('aria-pressed', String(enabled));
-    }
+    // A first tap or interrupted context needs a start/resume, not a mute toggle.
+    enabled = failed || !context || (audible() && context.state !== 'running') ? true : !enabled;
     if (enabled) unlock();
     sync();
   }
@@ -144,8 +164,7 @@ export function createAudioLifecycle() {
     if (disposed) return;
     disposed = true;
     if (suspendTimer !== null) clearTimeout(suspendTimer);
-    window.removeEventListener('pointerdown', unlock);
-    window.removeEventListener('keydown', unlock);
+    for (const type of GESTURE_EVENTS) window.removeEventListener(type, unlock);
     window.removeEventListener('pagehide', hide);
     window.removeEventListener('pageshow', show);
     document.removeEventListener('visibilitychange', visibility);
@@ -155,10 +174,10 @@ export function createAudioLifecycle() {
     tuningControls?.dispose();
     engine?.dispose();
     engine = null;
-    if (context && !loading) void context.close().catch(() => {});
+    if (context) context.onstatechange = null;
+    if (context) void context.close().catch(() => {});
   }
-  window.addEventListener('pointerdown', unlock);
-  window.addEventListener('keydown', unlock);
+  for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
   window.addEventListener('pageshow', show);
   document.addEventListener('visibilitychange', visibility);

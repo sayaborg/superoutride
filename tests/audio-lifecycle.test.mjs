@@ -448,3 +448,80 @@ test('volume steps unlock once, clamp at both limits and retain muted changes', 
     assert.equal(button.listeners.get('keydown').length, 0);
   }
 });
+
+for (const type of ['pointerup', 'touchend']) {
+  test(`touch audio starts on ${type}, not on an unactivated touch pointerdown`, async (t) => {
+    const dom = install(t);
+    const lifecycle = createAudioLifecycle();
+    t.after(() => lifecycle.dispose());
+    dom.win.emit('pointerdown', { type: 'pointerdown', pointerType: 'touch' });
+    assert.equal(FakeAudioContext.instances.length, 0);
+    assert.equal(dom.elements.get('sound-toggle').textContent, 'SOUND START');
+    dom.win.emit(type, { type, pointerType: 'touch' });
+    await settle();
+    assert.equal(FakeAudioContext.instances.length, 1);
+    assert.equal(FakeAudioContext.instances[0].state, 'running');
+    assert.equal(dom.elements.get('sound-toggle').textContent, 'SOUND ON');
+    dom.win.emit('pointerup', { type: 'pointerup', pointerType: 'touch' });
+    dom.win.emit('touchend', { type: 'touchend' });
+    assert.equal(FakeAudioContext.instances.length, 1);
+    lifecycle.dispose();
+    for (const event of ['pointerdown', 'pointerup', 'touchend', 'keydown'])
+      assert.equal(dom.win.listeners.get(event).length, 0);
+  });
+}
+
+test('SOUND starts on its first click and resumes an interruption before acting as a mute toggle', async (t) => {
+  const dom = install(t);
+  const lifecycle = createAudioLifecycle();
+  t.after(() => lifecycle.dispose());
+  const button = dom.elements.get('sound-toggle');
+  dom.win.emit('pointerup', { type: 'pointerup', pointerType: 'touch', target: button });
+  assert.equal(FakeAudioContext.instances.length, 0);
+  button.click();
+  await settle();
+  const context = FakeAudioContext.instances[0];
+  assert.equal(context.state, 'running');
+  assert.equal(button.textContent, 'SOUND ON');
+  context.state = 'interrupted';
+  context.onstatechange();
+  assert.equal(button.textContent, 'SOUND START');
+  button.click();
+  await settle();
+  assert.equal(context.state, 'running');
+  assert.equal(button.textContent, 'SOUND ON');
+  assert.equal(context.nodes[0].gain.value, 0.35);
+  button.click();
+  assert.equal(button.textContent, 'SOUND OFF');
+  assert.equal(context.nodes[0].gain.value, 0);
+  lifecycle.dispose();
+  assert.equal(context.onstatechange, null);
+});
+
+for (const lateGraph of [false, true]) {
+  test(`dispose closes a permission-blocked context without waiting for ${lateGraph ? 'late' : 'ready'} graph/resume`, async (t) => {
+    const dom = install(t);
+    let finishResume, finishGraph;
+    t.mock.method(FakeAudioContext.prototype, 'resume', () => new Promise((resolve) => (finishResume = resolve)));
+    if (lateGraph) FakeAudioContext.load = () => new Promise((resolve) => (finishGraph = resolve));
+    const lifecycle = createAudioLifecycle();
+    t.after(() => lifecycle.dispose());
+    dom.elements.get('sound-toggle').click();
+    await settle();
+    const context = FakeAudioContext.instances[0];
+    if (!lateGraph) assert.ok(context.nodes.length > 0);
+    lifecycle.dispose();
+    assert.equal(context.state, 'closed');
+    assert.equal(context.onstatechange, null);
+    if (lateGraph) {
+      finishGraph();
+      await settle();
+    }
+    assert.ok(context.nodes.length > 0);
+    assert.ok(context.nodes.every((node) => node.disconnected));
+    finishResume();
+    await settle();
+    assert.equal(context.state, 'closed');
+    assert.equal(FakeAudioContext.instances.length, 1);
+  });
+}
