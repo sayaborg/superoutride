@@ -47,6 +47,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prepare isolated audit tooling
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p /tmp/engine-audio-review
+          git archive HEAD | tar -x -C /tmp/engine-audio-review
+          cp -R node_modules /tmp/engine-audio-review/
+          cp "$(command -v node)" /tmp/engine-audio-review/node24
+          tar -czf /tmp/engine-audio-review.tgz -C /tmp/engine-audio-review .
+
+      - name: Export isolated audit tooling
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-audio-review-tooling
+          path: /tmp/engine-audio-review.tgz
+          retention-days: 1
+
       - name: Checkout immutable hot-path reference
         uses: actions/checkout@v5
         with:
