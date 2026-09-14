@@ -116,10 +116,10 @@
       import {
         REFLECTION_REFERENCE,
         ACOUSTICS,
-        CONTROL_SECONDS,
         DEFAULT_EXHAUST_TUNING,
         OUTPUT,
       } from '../dist/audio/exhaust-acoustics.js';
+      import { AUDIO_TIMING } from '../dist/audio/audio-presentation.js';
       import { mountAudioTuningControls } from '../dist/browser/audio-tuning-controls.js';
       import { createEngineVoice } from '../dist/audio/engine-voice.js';
       import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
@@ -137,7 +137,7 @@
       document.getElementById('boundary-conditions').textContent =
         `境界の仮設定：閉端側の圧力反射 ${ACOUSTICS.sourceClosedReflection}、開口側 ${ACOUSTICS.sourceOpenReflection}、開口変化の幅は発火周期の ${ACOUSTICS.sourceWindowCycles}。気筒への戻り波に周期的な境界変化を与えます。実測のバルブタイミングや流量ではありません。`;
       document.getElementById('output-conditions').textContent =
-        `音作り・出力の設定：追従 ${(CONTROL_SECONDS * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
+        `音作り・出力の設定：追従 ${(AUDIO_TIMING.controlSeconds * 1000).toFixed(0)} ms。出力順：DC除去 ${OUTPUT.dcHz} Hz → ソフトクリップ（上限 ${OUTPUT.ceiling}）→ 最終LPF（一次、− / +で調整・初期値 ${DEFAULT_EXHAUST_TUNING.outputCutoffHz} Hz）。排気の物理量とは区別します。`;
       const tuningControls = mountAudioTuningControls(document.getElementById('tuning-controls'), () => {});
       const readTuning = tuningControls.read;
       function showVehicleData() {

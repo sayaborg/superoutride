@@ -48,6 +48,13 @@ revision. Preserve this as the listening baseline when starting tire work.
 - Target Android playability with simple, light processing. The user's M4 MacBook Air listening and
   kernel timing do not certify Android, Safari/iOS, speaker response or the complete gameplay budget.
 
+Engine control domains now have one acoustic-settings owner, including deliberately narrower UI limits.
+The lifecycle retires failed audio without stopping presentation and supports later gesture retry;
+current-time AudioParam following has a non-native hold fallback. These are waveform-preserving changes.
+Use `node tools/exhaust-levels.mjs [build-directory]` to compare fixed-gain kernel RMS/peak across profiles
+and RPM/load before final mix calibration. Vehicle level differences remain; do not silently normalize
+the approved engine or mistake kernel RMS for perceived loudness.
+
 Use `/tools/audio-browser.html` for engine audition. The spectral and paired timing tools documented
 in [audio](audio.md#verification-and-limits) remain useful regressions, not runtime dependencies. A sound-preserving
 cleanup can use `tools/exhaust-equivalence.mjs` against a pre-edit build. It is not an equivalence claim
@@ -65,6 +72,11 @@ worklet. It observes longitudinal/lateral friction work, slip speed, support, ut
 Ordinary rolling and broadband scrub are silent by user preference; no direct white-noise output should
 be reintroduced as a default. Small random perturbations only seed/roughen the current squeal oscillator.
 Rival tire sounds, wind, game-event sounds and music are unimplemented.
+
+Before changing tire timbre, consolidate its acoustic coefficients and align front/rear control transport
+with the engine AudioParam pattern. Then evaluate onset/level separation, attack/release, loose-surface
+contrast and the final engine/tire mix. Preserve the engine waveform unless making an explicit listening
+revision; coefficient ownership and transport cleanup alone must not claim improved tire timbre.
 
 Start with these owners:
 

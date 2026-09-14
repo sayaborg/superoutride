@@ -1,6 +1,7 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
+import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
 import {
@@ -13,7 +14,7 @@ import {
 // Touch activation arrives on release; pointerdown activates only a mouse.
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
 
-/** DOM and permission lifecycle. Construction never creates an AudioContext. */
+/** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
@@ -76,19 +77,55 @@ export function createAudioLifecycle() {
     return enabled && active && !document.hidden && !disposed;
   }
   let suspendTimer: ReturnType<typeof setTimeout> | null = null;
+  function closeGraph(retired: typeof engine, closing: AudioContext | null): void {
+    try {
+      retired?.dispose();
+    } catch {
+      // A node/port fault must not prevent closing the rest of the graph.
+    }
+    if (closing) {
+      try {
+        closing.onstatechange = null;
+        void closing.close().catch(() => {});
+      } catch {
+        // A synchronous browser close failure also stays inside the audio boundary.
+      }
+    }
+  }
+  function releaseAudio(): void {
+    const retired = engine,
+      closing = context;
+    engine = null;
+    context = null;
+    loading = null;
+    nextRival = null;
+    switchAt = 0;
+    if (suspendTimer !== null) clearTimeout(suspendTimer);
+    suspendTimer = null;
+    closeGraph(retired, closing);
+  }
+  function fail(): void {
+    releaseAudio();
+    failed = true;
+    showSoundState();
+  }
   function sync(): void {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
     showSoundState();
     if (!context || !engine) return;
-    if (tuningControls) engine.setTuning(tuningControls.read());
-    engine.setVolume(audible() ? volume : 0);
-    if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
-    else if (!enabled)
-      suspendTimer = setTimeout(() => {
-        suspendTimer = null;
-        if (!audible()) void context?.suspend().catch(() => {});
-      }, 90);
+    try {
+      if (tuningControls) engine.setTuning(tuningControls.read());
+      engine.setVolume(audible() ? volume : 0);
+      if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
+      else if (!enabled)
+        suspendTimer = setTimeout(() => {
+          suspendTimer = null;
+          if (!audible()) void context?.suspend().catch(() => {});
+        }, AUDIO_TIMING.transitionSeconds * 1000);
+    } catch {
+      fail();
+    }
   }
   async function initialize(): Promise<void> {
     let created: AudioContext | null = null;
@@ -98,36 +135,33 @@ export function createAudioLifecycle() {
       created = new AudioContext();
       context = created;
       created.onstatechange = showSoundState;
-      // Resume may wait indefinitely for permission. Own the graph as soon as it arrives,
-      // so disposal can release it without waiting for the browser's pending resume promise.
+      // Resume may remain pending for permission; own the graph independently of that promise.
       const resumed = created.resume().then(
         () => true,
         () => false,
       );
       built = await createAudioEngine(created);
-      if (disposed) {
-        built.dispose();
+      if (disposed || context !== created) {
+        closeGraph(built, created);
         return;
       }
       engine = built;
       if (!(await resumed)) throw new Error('audio resume failed');
-      sync();
+      if (context === created) sync();
     } catch {
-      built?.dispose();
-      engine = null;
-      if (context === created) context = null;
-      if (created) created.onstatechange = null;
-      await created?.close().catch(() => {});
-      failed = true;
-      showSoundState();
+      // A retired initialization must never close or clear a newer retry's graph.
+      if (context === created) fail();
+      else closeGraph(built, created);
     }
   }
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
     if (event?.target === button || !supported || !audible()) return;
     if (!context && !loading) {
-      loading = initialize().finally(() => {
-        loading = null;
+      const pending = initialize();
+      loading = pending;
+      void pending.finally(() => {
+        if (loading === pending) loading = null;
       });
     } else if (context && context.state !== 'running') {
       void context
@@ -163,7 +197,6 @@ export function createAudioLifecycle() {
   function dispose(): void {
     if (disposed) return;
     disposed = true;
-    if (suspendTimer !== null) clearTimeout(suspendTimer);
     for (const type of GESTURE_EVENTS) window.removeEventListener(type, unlock);
     window.removeEventListener('pagehide', hide);
     window.removeEventListener('pageshow', show);
@@ -172,10 +205,7 @@ export function createAudioLifecycle() {
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
     tuningControls?.dispose();
-    engine?.dispose();
-    engine = null;
-    if (context) context.onstatechange = null;
-    if (context) void context.close().catch(() => {});
+    releaseAudio();
   }
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);
   window.addEventListener('pagehide', hide);
@@ -185,28 +215,36 @@ export function createAudioLifecycle() {
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
-      readVehicleAudio(player, playerState);
-      engine.update(playerState, vehicleCatalogEntryForId(player.profile.id).sound);
-      const nearest = nearestAudibleRival(player, actors);
-      if (nearest !== nextRival) {
-        nextRival = nearest;
-        switchAt = context.currentTime + 0.09;
-        engine.silenceRival();
+      try {
+        readVehicleAudio(player, playerState);
+        engine.update(playerState, vehicleCatalogEntryForId(player.profile.id).sound);
+        const nearest = nearestAudibleRival(player, actors);
+        if (nearest !== nextRival) {
+          nextRival = nearest;
+          switchAt = context.currentTime + AUDIO_TIMING.transitionSeconds;
+          engine.silenceRival();
+        }
+        if (context.currentTime < switchAt) return;
+        const rival = nextRival;
+        if (!rival) {
+          engine.silenceRival();
+          return;
+        }
+        readEngineAudio(rival, rivalState);
+        const dx = rival.x - player.x,
+          dy = rival.y - player.y,
+          dz = rival.z - player.z;
+        const distance = Math.hypot(dx, dy, dz);
+        const lateral = dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw);
+        engine.updateRival(
+          rivalState,
+          vehicleCatalogEntryForId(rival.profile.id).sound,
+          rivalAudioGain(distance),
+          rivalAudioPan(lateral, distance),
+        );
+      } catch {
+        fail();
       }
-      if (context.currentTime < switchAt) return;
-      const rival = nextRival;
-      if (!rival) {
-        engine.silenceRival();
-        return;
-      }
-      readEngineAudio(rival, rivalState);
-      const dx = rival.x - player.x,
-        dy = rival.y - player.y,
-        dz = rival.z - player.z;
-      const distance = Math.hypot(dx, dy, dz);
-      const pan = (dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / Math.max(3, distance);
-      const gain = (0.6 / (1 + (distance / 12) ** 2)) * Math.max(0, 1 - distance / 100);
-      engine.updateRival(rivalState, vehicleCatalogEntryForId(rival.profile.id).sound, gain, pan);
     },
     setActive(value: boolean): void {
       active = value;

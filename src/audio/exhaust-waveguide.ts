@@ -1,6 +1,8 @@
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 
-import { ACOUSTICS, CONTROL_SECONDS, DEFAULT_EXHAUST_TUNING, OUTPUT } from './exhaust-acoustics.js';
+import { ACOUSTICS, resolveExhaustTuning, OUTPUT } from './exhaust-acoustics.js';
+import type { ExhaustTuning } from './exhaust-acoustics.js';
+import { AUDIO_TIMING } from './audio-presentation.js';
 
 /** Exact coupling of an exponential decay into a one-pole rise, including equal time constants. */
 function pulseCoupling(riseRate: number, decayRate: number, decay: number, retain: number, duration = 1): number {
@@ -52,7 +54,7 @@ export class ExhaustWaveguide {
   private readonly dcCoefficient: number;
   private readonly toneCoefficient: number;
   private readonly loss: number;
-  private readonly tuning: typeof DEFAULT_EXHAUST_TUNING;
+  private readonly tuning: ExhaustTuning;
   private phase = 0;
   private pulseSeed = 123456789;
   private rpm = 1000;
@@ -63,55 +65,10 @@ export class ExhaustWaveguide {
   constructor(
     private readonly profile: VehicleAudioProfile,
     private readonly rate: number,
-    tuning: Partial<typeof DEFAULT_EXHAUST_TUNING> = {},
+    tuning: Partial<ExhaustTuning> = {},
   ) {
-    const {
-      attenuationPerMeter = DEFAULT_EXHAUST_TUNING.attenuationPerMeter,
-      returnCutoffHz = DEFAULT_EXHAUST_TUNING.returnCutoffHz,
-      outletReflection = DEFAULT_EXHAUST_TUNING.outletReflection,
-      closedExcitation = DEFAULT_EXHAUST_TUNING.closedExcitation,
-      outputCutoffHz = DEFAULT_EXHAUST_TUNING.outputCutoffHz,
-      pulseVariation = DEFAULT_EXHAUST_TUNING.pulseVariation,
-      pulseRiseMs = DEFAULT_EXHAUST_TUNING.pulseRiseMs,
-      pulseDecayMs = DEFAULT_EXHAUST_TUNING.pulseDecayMs,
-    } = tuning;
-    if (
-      !Number.isFinite(pulseRiseMs) ||
-      pulseRiseMs < 0.01 ||
-      pulseRiseMs > 2 ||
-      !Number.isFinite(pulseDecayMs) ||
-      pulseDecayMs < 0.1 ||
-      pulseDecayMs > 30 ||
-      !Number.isFinite(attenuationPerMeter) ||
-      attenuationPerMeter < 0 ||
-      attenuationPerMeter > 1 ||
-      !Number.isFinite(returnCutoffHz) ||
-      returnCutoffHz < 100 ||
-      returnCutoffHz > 10000 ||
-      !Number.isFinite(outletReflection) ||
-      outletReflection < -1 ||
-      outletReflection > 0 ||
-      !Number.isFinite(closedExcitation) ||
-      closedExcitation <= 0 ||
-      closedExcitation > 1 ||
-      !Number.isFinite(outputCutoffHz) ||
-      outputCutoffHz < 100 ||
-      outputCutoffHz > 12000 ||
-      !Number.isFinite(pulseVariation) ||
-      pulseVariation < 0 ||
-      pulseVariation > 0.4
-    )
-      throw new RangeError('invalid acoustic tuning');
-    this.tuning = Object.freeze({
-      attenuationPerMeter,
-      returnCutoffHz,
-      outletReflection,
-      closedExcitation,
-      outputCutoffHz,
-      pulseVariation,
-      pulseRiseMs,
-      pulseDecayMs,
-    });
+    this.tuning = resolveExhaustTuning(tuning);
+    const { pulseDecayMs } = this.tuning;
     const n = profile.firingPhases.length;
     const exhaust = profile.exhaust;
     this.banks = exhaust.banks;
@@ -132,7 +89,7 @@ export class ExhaustWaveguide {
     this.wall = new Float64Array(n);
     this.bankNormalization = Math.sqrt(groups);
     for (const bank of this.banks) this.counts[bank]!++;
-    this.smoothing = 1 - Math.exp(-1 / (CONTROL_SECONDS * rate));
+    this.smoothing = 1 - Math.exp(-1 / (AUDIO_TIMING.controlSeconds * rate));
     this.decayRate = 1 / ((pulseDecayMs / 1000) * rate);
     this.decay = Math.exp(-this.decayRate);
     this.decayIntegral = -Math.expm1(-this.decayRate) / this.decayRate;

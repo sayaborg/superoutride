@@ -1,32 +1,34 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mountAudioTuningControls } from '../dist/browser/audio-tuning-controls.js';
-import { DEFAULT_EXHAUST_TUNING } from '../dist/audio/exhaust-acoustics.js';
+import {
+  DEFAULT_EXHAUST_TUNING,
+  EXHAUST_TUNING_RANGES,
+  resolveExhaustTuning,
+} from '../dist/audio/exhaust-acoustics.js';
 import { SelectorElement, selectorDocument } from './helpers/fake-selector-dom.mjs';
 
-test('shared sound controls step exact decimals, stop at limits and reset every readout', () => {
+test('shared sound controls step exact decimals, stay in the kernel domain and reset every readout', () => {
   const host = new SelectorElement();
   const changes = [];
   const controls = mountAudioTuningControls(host, (tuning) => changes.push(tuning), selectorDocument);
-  const bounds = [
-    ['outletReflection', -1, 0, 0.01],
-    ['returnCutoffHz', 500, 10000, 100],
-    ['attenuationPerMeter', 0, 0.3, 0.01],
-    ['closedExcitation', 0.01, 1, 0.01],
-    ['outputCutoffHz', 100, 12000, 100],
-    ['pulseVariation', 0, 0.4, 0.01],
-    ['pulseRiseMs', 0.01, 2, 0.01],
-    ['pulseDecayMs', 0.1, 30, 0.1],
-  ];
-  const groups = host.children.slice(0, -1).map((row) => row.children[1]);
+  const rows = host.children.slice(0, -1);
+  const groups = rows.map((row) => row.children[1]);
+  const keys = rows.map((row) => row.getAttribute('data-tuning-key'));
+  assert.deepEqual([...keys].sort(), Object.keys(DEFAULT_EXHAUST_TUNING).sort());
   const initial = groups.map((group) => group.children[1].textContent);
-  for (const [i, [key, min, max, step]] of bounds.entries()) {
+  for (const [i, key] of keys.entries()) {
+    const range = EXHAUST_TUNING_RANGES[key];
+    const min = range.uiMin ?? range.min,
+      max = range.uiMax ?? range.max,
+      step = range.step;
     const [minus, output, plus] = groups[i].children;
     assert.equal(minus.tagName, 'BUTTON');
     assert.equal(plus.tagName, 'BUTTON');
     assert.ok(plus.getAttribute('aria-label'));
     for (let j = 0; j < 400; j++) minus.click();
     assert.equal(controls.read()[key], min);
+    assert.doesNotThrow(() => resolveExhaustTuning(controls.read()));
     assert.equal(minus.disabled, true);
     let count = changes.length;
     minus.click();
@@ -34,6 +36,7 @@ test('shared sound controls step exact decimals, stop at limits and reset every 
     for (let j = 1; j <= Math.round((max - min) / step); j++) {
       plus.click();
       assert.equal(controls.read()[key], Number((min + j * step).toFixed(2)));
+      assert.doesNotThrow(() => resolveExhaustTuning(controls.read()));
     }
     assert.equal(controls.read()[key], max);
     assert.equal(plus.disabled, true);

@@ -1,4 +1,5 @@
 import { observeVehicleTires } from '../physics/vehicle-tire-observation.js';
+import { RIVAL_AUDIBLE_METERS } from '../audio/audio-presentation.js';
 import type { TireAudioObservation, VehicleAudioObservation } from '../audio/vehicle-audio-observation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 
@@ -56,7 +57,7 @@ interface Actor {
 /** Physical world distance, independent of raster depth and local stage chainage. */
 export function nearestAudibleRival(player: ArcadeVehicleState, actors: readonly Actor[]): ArcadeVehicleState | null {
   let nearest: ArcadeVehicleState | null = null;
-  let distanceSquared = 100 * 100;
+  let distanceSquared = RIVAL_AUDIBLE_METERS ** 2;
   for (const { vehicle } of actors) {
     if (vehicle === player) continue;
     const d2 = (vehicle.x - player.x) ** 2 + (vehicle.y - player.y) ** 2 + (vehicle.z - player.z) ** 2;

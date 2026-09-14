@@ -17,7 +17,7 @@ const attenuation =
     (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
   (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-interface ExhaustTuning {
+export interface ExhaustTuning {
   readonly attenuationPerMeter: number;
   readonly returnCutoffHz: number;
   readonly outletReflection: number;
@@ -39,13 +39,49 @@ export const DEFAULT_EXHAUST_TUNING: ExhaustTuning = Object.freeze({
   pulseVariation: 0.2, // absolute full-excitation fraction; acoustic sketch, not measured combustion variance
   outputCutoffHz: 7300, // post-clip listening filter; not measured muffler transmission loss
 });
+
+interface TuningRange {
+  readonly min: number;
+  readonly max: number;
+  readonly step: number;
+  readonly uiMin?: number;
+  readonly uiMax?: number;
+  readonly exclusiveMin?: boolean;
+}
+// One numeric authority. Optional UI limits deliberately narrow the kernel's accepted domain.
+export const EXHAUST_TUNING_RANGES: Readonly<Record<keyof ExhaustTuning, TuningRange>> = Object.freeze({
+  outletReflection: Object.freeze({ min: -1, max: 0, step: 0.01 }),
+  returnCutoffHz: Object.freeze({ min: 100, max: 10000, step: 100, uiMin: 500 }),
+  attenuationPerMeter: Object.freeze({ min: 0, max: 1, step: 0.01, uiMax: 0.3 }),
+  closedExcitation: Object.freeze({ min: 0, max: 1, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
+  outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
+  pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
+  pulseRiseMs: Object.freeze({ min: 0.01, max: 2, step: 0.01 }),
+  pulseDecayMs: Object.freeze({ min: 0.1, max: 30, step: 0.1 }),
+});
+
+export function resolveExhaustTuning(overrides: Partial<ExhaustTuning> = {}): ExhaustTuning {
+  const tuning = { ...DEFAULT_EXHAUST_TUNING };
+  for (const key of Object.keys(EXHAUST_TUNING_RANGES) as (keyof ExhaustTuning)[]) {
+    const value = overrides[key] === undefined ? tuning[key] : overrides[key];
+    const range = EXHAUST_TUNING_RANGES[key];
+    if (
+      !Number.isFinite(value) ||
+      value < range.min ||
+      value > range.max ||
+      (range.exclusiveMin && value === range.min)
+    )
+      throw new RangeError(`invalid acoustic tuning: ${key}`);
+    tuning[key] = value;
+  }
+  return Object.freeze(tuning);
+}
+
 export const ACOUSTICS = Object.freeze({
   waveSpeed, // fixed air-surrogate reference; not measured temperature
   sourceClosedReflection: 0.94, // nearly rigid effective termination; magnitude < 1 absorbs energy
   sourceOpenReflection: -0.3, // pressure-release-like endpoint; positive impedance, not valve-flow physics
   sourceWindowCycles: 0.23, // empirical periodic boundary; NOT valve timing
 });
-// Presentation response time, not mechanical inertia.
-export const CONTROL_SECONDS = 0.025;
 // Listening-output conditioning: DC removal and bounded amplitude; not exhaust properties.
 export const OUTPUT = Object.freeze({ dcHz: 18, ceiling: 0.65 });

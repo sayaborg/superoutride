@@ -1,5 +1,5 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
-import type { DEFAULT_EXHAUST_TUNING } from './exhaust-acoustics.js';
+import type { ExhaustTuning } from './exhaust-acoustics.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
 import { compileVehicleAudioProfile } from './vehicle-audio-profile.js';
 declare const sampleRate: number;
@@ -18,7 +18,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   constructor(options?: {
     processorOptions?: {
       profile: VehicleAudioProfile;
-      tuning?: Partial<typeof DEFAULT_EXHAUST_TUNING>;
+      tuning?: Partial<ExhaustTuning>;
     };
   }) {
     super();
@@ -38,7 +38,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       }
     };
   }
-  private configure(profile: VehicleAudioProfile, tuning: Partial<typeof DEFAULT_EXHAUST_TUNING> = {}): void {
+  private configure(profile: VehicleAudioProfile, tuning: Partial<ExhaustTuning> = {}): void {
     this.engine = new ExhaustWaveguide(compileVehicleAudioProfile(profile), sampleRate, tuning);
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
