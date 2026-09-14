@@ -35,7 +35,7 @@ for (const scene of CONTACT_SCENARIOS) {
     channels[3][i] = rear.frictionOutput;
   }
   const elapsedMs = performance.now() - started;
-  const mixes = { mix: [0, 1, 2, 3], road: [0, 2], friction: [1, 3] };
+  const mixes = { mix: [0, 1, 2, 3], road: [0, 2], friction: [1, 3], front: [0, 1], rear: [2, 3] };
   const row = {
     id: scene.id,
     seconds: scene.seconds,

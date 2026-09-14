@@ -75,12 +75,23 @@ contact units; do not feed axle newtons or game slip directly into this experime
 comparisons with `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]`; current source contains
 all required scenarios and tests, with no dependency on a previous conversation attachment.
 
-First assess the nearly fixed 800 Hz friction tone and natural release in the rolling, slip sweep,
-front-only slide, no-travel rear slip and loose-ground examples. Stability and correct onset mechanisms
-are not listening acceptance. Do not fix pitch limitations by silently adding a maneuver-specific pitch
-map. If useful timbre demands many local modes/contact states, consider a reduced self-excited model
-or precomputation instead. Physical observation mapping, whole-domain spectral checks, engine/tire mix
-and actual Android/iOS performance/listening must precede adoption. No automatic engine normalization.
+The user found the trial rolling rumble convincing and could distinguish the two texture sketches.
+Preserve those road taps as the accepted contact-sound baseline; friction timbre is not yet approved.
+The trial still uses one passive mode and one tangential mode per axle. Before adding coupled modes,
+a lower tangential mechanical impedance was sufficient to produce pitch variation and harmonics in
+that same equation. Only friction settings and its fixed velocity pickup changed. No extra oscillator,
+phase reset, pitch map or axle-specific detuning was introduced. See audio.md for coefficient ownership.
+
+Assess the new front-only and mixed slip-sweep WAVs at fixed listening gain. The earlier 6-7 second
+near-null is a specific regression, not proof that all front/rear interference is resolved. Use
+`node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` for pitch/harmonics and all window metrics;
+keep diagnostic reports outside source. Revisit roughness/contact coupling or a small mode expansion
+only if listening or broader-domain tests identify a remaining need.
+
+The model remains local-contact diagnostics, not the gameplay replacement. Physical observation mapping,
+whole-domain spectral checks, engine/tire mix and actual Android/iOS performance/listening must precede
+adoption. No automatic engine normalization. If useful timbre demands many local modes/contact states,
+consider a reduced model or precomputation instead.
 
 ## Other implementation areas
 

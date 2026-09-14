@@ -147,6 +147,12 @@ this explicitly audible rolling/rubbing experiment. No production import selects
 [trial settings](../src/dev/diagnostics/tire-contact-settings.ts) own all coefficients and input limits;
 the [kernel](../src/dev/diagnostics/tire-contact-model.ts) is a diagnostic, not another vehicle force law.
 
+The user accepted the rolling rumble and the contrast between the two texture sketches as a listening
+baseline. Preserve the road tap and its gain; this does not approve friction timbre or full gameplay
+adoption. Both sounds already share the same force-driven vibration primitive: external roughness
+excites the passive mode, while friction can supply energy to the tangential mode. They are distinct
+excitation mechanisms, not one identical physical process.
+
 Each axle has one passive road mode and one nonlinear tangential mode, with independent roughness
 histories but identical coefficients. Effective contact load (0–8 N) and local slip (0–4 m/s) are
 **representative inputs, not axle load or a validated macro-to-local conversion**. Road travel is
@@ -157,7 +163,11 @@ Both modes use `m*x'' + c*x' + k*x = F(V-x',N) + e`, with `k=m*(2*pi*f0)^2` and
 `c=2*zeta*m*2*pi*f0`. Passive road stepping sets friction load to zero. The trial friction is
 `F(u,N)=N*(muD+drop/(1+(u/vc)^2))*u/sqrt(u^2+ve^2)`: bounded, odd and dissipative
 (`F*u>=0`), with velocity weakening but no exact sticking. The friction sketch uses 800 Hz,
-4 g and damping ratio 0.03; it retains a nearly fixed pitch, not realistic tire frequency tracking.
+0.5 g and damping ratio 0.03. Mass sets the mechanical impedance: stiffness and damping are
+derived from the unchanged free frequency and damping ratio. Stronger friction relative to that
+impedance produces slip-dependent cycles and harmonics in the same equation, not a pitch map. The
+free-mode frequency is not the frequency of the nonlinear sliding cycle. These are uncalibrated
+representative properties, not a measured tread mass or a whole-tire model.
 Removing weakening suppresses sustained squeal in tested steady conditions without removing roughness.
 The [research note](tire-squeal-research.md) supplies physical motivation, not calibration for this law.
 
@@ -180,7 +190,9 @@ and at most one cell crossing per sample in the declared domain. Seeds advance a
 not on an audio-rate clock. Rough forces vanish at rest and are bounded by representative load times
 texture coefficients; no raw noise is mixed into the output. Input following is 10 ms, but zero support
 immediately removes forcing and leaves free decay. Setting a speed to zero stops that roughness drive.
-Road/friction velocity pickups pass separate 6 kHz one-pole filters and fixed gains. There is no clipper,
+Road/friction velocity pickups pass separate 6 kHz one-pole filters and fixed gains. The road pickup
+stays 0.5; the friction pickup is 0.16 to retain headroom for larger mechanical velocities. This is a
+fixed velocity-to-output scale, not RMS matching or a change to the friction force. There is no clipper,
 RMS matching, separate squeal gate or imposed output envelope. Sample averaging and final filtering do
 not constitute complete nonlinear antialiasing; residual aliasing and device cost remain unqualified.
 
@@ -193,10 +205,19 @@ require stop/start. No trial assets, method selector or nodes are added to gamep
 Run `node --test tests/tire-contact-trial.test.mjs` after building. Tests cover energy/passivity,
 weakening ablation, convergence, roughness integration, independent histories, finite domain corners,
 transport partitions and release. `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]` writes
-fixed-gain mix/road/friction WAVs and measurements using [shared scenarios](../tools/tire-contact-scenarios.mjs).
+fixed-gain mix/road/friction/front/rear WAVs and measurements using [shared scenarios](../tools/tire-contact-scenarios.mjs).
 Generated sound is review output, never a production PCM asset. Listen before adopting this model;
-fixed pitch, short natural release, full aliasing checks, physical observation mapping and final mix
-are open decision gates. The trial does not authorize changing the accepted engine waveform.
+short natural release, full aliasing checks, physical observation mapping and final mix remain open.
+Independent equal-coefficient axles can still interfere: richer harmonics reduce near-total cancellation
+in the published replay, but do not guarantee incoherence or a lower bound on mixed loudness. Do not
+add fixed front/rear detuning, phase resets, stereo separation or automatic gain to conceal cancellation.
+Run `node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` on current and reference builds for
+steady pitch/harmonic measurements and every one-second interference window. It uses identical
+scenarios; neither a single cancellation window nor a fundamental-frequency match certifies the whole
+domain. [Calibration regressions](../tests/tire-contact-calibration.test.mjs) pin the accepted road taps
+and exercise the nonlinear response. The damping ablation retains the original 4 g fixture; at the new
+mass, sufficient damping is derived from the friction slope bound rather than reusing a ratio that no
+longer overcomes that bound. The trial does not authorize changing the accepted engine waveform.
 
 ## Mixing and lifetime
 

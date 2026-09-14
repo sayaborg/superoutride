@@ -30,14 +30,22 @@ test('contact midpoint has dissipative friction and a discrete energy balance wi
   }
 });
 
-test('velocity weakening sustains a tone; removing weakening or support kills it', () => {
-  const normal = new ContactMode(48000, CONTACT_TRIAL.frictionMode);
-  const damped = new ContactMode(48000, { ...CONTACT_TRIAL.frictionMode, dampingRatio: 0.25 });
-  const constant = new ContactMode(48000, CONTACT_TRIAL.frictionMode, { ...CONTACT_TRIAL.friction, drop: 0 });
-  assert.ok(rms(settled(normal, 48000, 0.5, 5)) > 0.1);
-  assert.ok(rms(settled(damped, 48000, 0.5, 5)) < 1e-8);
-  assert.ok(rms(settled(constant, 48000, 0.5, 5)) < 1e-8);
-  assert.ok(rms(settled(normal, 48000, 0, 0)) < 1e-8);
+test('velocity weakening sustains a tone; sufficient damping, no weakening or no support kills it', () => {
+  // Retain the original 4 g causal fixture as well as the current trial. A damping RATIO of .25
+  // is not the same physical damping after changing mass. Use the proven slope bound for the new case.
+  for (const massKg of [0.004, CONTACT_TRIAL.frictionMode.massKg]) {
+    const mode = { ...CONTACT_TRIAL.frictionMode, massKg };
+    const f = CONTACT_TRIAL.friction;
+    const slopeBound = (5 * 9 * f.drop) / (8 * Math.sqrt(3) * f.weakeningSpeed);
+    const enoughDamping = slopeBound / (2 * massKg * 2 * Math.PI * mode.frequencyHz) + 0.1;
+    const normal = new ContactMode(48000, mode);
+    const damped = new ContactMode(48000, { ...mode, dampingRatio: massKg === 0.004 ? 0.25 : enoughDamping });
+    const constant = new ContactMode(48000, mode, { ...f, drop: 0 });
+    assert.ok(rms(settled(normal, 48000, 0.5, 5)) > 0.1);
+    assert.ok(rms(settled(damped, 48000, 0.5, 5)) < 1e-8);
+    assert.ok(rms(settled(constant, 48000, 0.5, 5)) < 1e-8);
+    assert.ok(rms(settled(normal, 48000, 0, 0)) < 1e-8);
+  }
 });
 
 test('the two native sample rates converge toward a finer midpoint reference', () => {

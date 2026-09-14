@@ -19,7 +19,9 @@ export const CONTACT_TRIAL = Object.freeze({
   minRate: 44100,
   maxRate: 192000,
   roadMode: Object.freeze({ massKg: 0.004, frequencyHz: 350, dampingRatio: 0.25 }),
-  frictionMode: Object.freeze({ massKg: 0.004, frequencyHz: 800, dampingRatio: 0.03 }),
+  // Lower mechanical impedance lets the SAME friction law enter a strongly nonlinear cycle.
+  // f0/zeta stay fixed; k and c follow mass. This 0.5 g is representative, not measured tread mass.
+  frictionMode: Object.freeze({ massKg: 0.0005, frequencyHz: 800, dampingRatio: 0.03 }),
   friction: Object.freeze({ dynamic: 0.65, drop: 0.6, weakeningSpeed: 0.5, regularizationSpeed: 0.08 }),
   roadCellMeters: 0.02,
   slipCellMeters: 0.0005,
@@ -30,7 +32,7 @@ export const CONTACT_TRIAL = Object.freeze({
   outputCutoffHz: 6000,
   // Velocity pickups only. No clipping, RMS normalization or post-hoc squeal envelope.
   roadGain: 0.5,
-  frictionGain: 0.22,
+  frictionGain: 0.16, // fixed headroom for larger vibration velocities, never an automatic normalizer
   listeningGain: 0.5,
   maxSolveIterations: 24,
   relativeForceTolerance: 1e-11,
