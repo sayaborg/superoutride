@@ -62,35 +62,25 @@ between deliberately different synthesis models. Current tests cover waveform qu
 output, tuning, lifetime and unchanged physics/rendering; inspect the latest run rather than freezing
 historical test counts here.
 
-## Next work: tire sound is unfinished
+## Next work: assess the contact-model tire trial
 
-**Tire timbre still needs substantial work.** Its present oscillator and parameters are not an accepted
-final sound. The engine approval does not apply to tires, and stability tests are not listening acceptance.
+The user explicitly restarted tire design and selected a minimal passive-contact plus nonlinear-friction
+prototype. The [audio specification](audio.md#contact-model-listening-trial-not-gameplay) owns its model,
+input interpretation, coefficients and limits. Existing gameplay tires and the accepted engine are
+unchanged: the new source is an isolated diagnostic, not an alternate production method.
 
-The current implementation has one independent acoustic oscillator for each player axle in a single
-worklet. It observes longitudinal/lateral friction work, slip speed, support, utilization and surface.
-Ordinary rolling and broadband scrub are silent by user preference; no direct white-noise output should
-be reintroduced as a default. Small random perturbations only seed/roughen the current squeal oscillator.
-Rival tire sounds, wind, game-event sounds and music are unimplemented.
+Build and serve [the contact trial page](../tools/tire-contact-browser.html). Test front/rear separately
+and together; solo rolling and friction taps at unchanged listening gain. All controls use representative
+contact units; do not feed axle newtons or game slip directly into this experiment. Generate offline
+comparisons with `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]`; current source contains
+all required scenarios and tests, with no dependency on a previous conversation attachment.
 
-Before changing tire timbre, consolidate its acoustic coefficients and align front/rear control transport
-with the engine AudioParam pattern. Then evaluate onset/level separation, attack/release, loose-surface
-contrast and the final engine/tire mix. Preserve the engine waveform unless making an explicit listening
-revision; coefficient ownership and transport cleanup alone must not claim improved tire timbre.
-
-Start with these owners:
-
-- [Physical evidence](tire-squeal-research.md): rubber/tire experiments, their limits and design inferences.
-- [Mapping and oscillator](../src/audio/tire-synthesis.ts): onset, pitch, harmonics, roughness, level and release.
-- [Axle transport](../src/audio/tire-processor.ts) and [voice](../src/audio/tire-voice.ts).
-- [Read-only adapter](../src/browser/vehicle-audio.ts) and [physics telemetry](../src/physics/vehicle-tire-observation.ts).
-- [Tire audition](../tools/tire-browser.html), shared scenarios and offline renderer, linked from [audio](audio.md#player-tire-synthesis).
-
-Audition front/rear separately and together; compare cornering, wheel spin/lock, grip recovery and
-loose surfaces at a fixed listening gain. Refine the acoustic model/parameters as needed, preserving
-sample-free synthesis, the read-only physics boundary and a small fixed voice count. Check rate/block
-independence, finite states, silence/release and the final engine/tire balance. Tire calibration and
-actual Android performance/listening remain open; do not expand vehicle physics to justify audio knobs.
+First assess the nearly fixed 800 Hz friction tone and natural release in the rolling, slip sweep,
+front-only slide, no-travel rear slip and loose-ground examples. Stability and correct onset mechanisms
+are not listening acceptance. Do not fix pitch limitations by silently adding a maneuver-specific pitch
+map. If useful timbre demands many local modes/contact states, consider a reduced self-excited model
+or precomputation instead. Physical observation mapping, whole-domain spectral checks, engine/tire mix
+and actual Android/iOS performance/listening must precede adoption. No automatic engine normalization.
 
 ## Other implementation areas
 

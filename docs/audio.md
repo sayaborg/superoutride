@@ -139,6 +139,65 @@ The [shared module entry](../src/audio/vehicle-processor.ts) loads both processo
 Tire coefficient ownership and parameter transport are pending the tire stage, not silently changed by
 engine cleanup. Rival tires, wind, events and music remain unimplemented.
 
+### Contact-model listening trial (not gameplay)
+
+The user restarted tire design and selected a minimal contact-vibration plus friction-vibration trial.
+The released Hopf sound above is unchanged; its silence preference and tuning are not constraints on
+this explicitly audible rolling/rubbing experiment. No production import selects the trial. The
+[trial settings](../src/dev/diagnostics/tire-contact-settings.ts) own all coefficients and input limits;
+the [kernel](../src/dev/diagnostics/tire-contact-model.ts) is a diagnostic, not another vehicle force law.
+
+Each axle has one passive road mode and one nonlinear tangential mode, with independent roughness
+histories but identical coefficients. Effective contact load (0–8 N) and local slip (0–4 m/s) are
+**representative inputs, not axle load or a validated macro-to-local conversion**. Road travel is
+separate, 0–100 m/s. The two texture sketches are not a complete SurfaceType mapping. No temperature,
+contact patch discretization, tread passing, wheel RPM model or physical axle adapter is implemented.
+
+Both modes use `m*x'' + c*x' + k*x = F(V-x',N) + e`, with `k=m*(2*pi*f0)^2` and
+`c=2*zeta*m*2*pi*f0`. Passive road stepping sets friction load to zero. The trial friction is
+`F(u,N)=N*(muD+drop/(1+(u/vc)^2))*u/sqrt(u^2+ve^2)`: bounded, odd and dissipative
+(`F*u>=0`), with velocity weakening but no exact sticking. The friction sketch uses 800 Hz,
+4 g and damping ratio 0.03; it retains a nearly fixed pitch, not realistic tire frequency tracking.
+Removing weakening suppresses sustained squeal in tested steady conditions without removing roughness.
+The [research note](tire-squeal-research.md) supplies physical motivation, not calibration for this law.
+
+For each native sample `h`, solve midpoint velocity `w`:
+
+```text
+A = 2m/h + c + kh/2
+A*w - F(V-w,N) = 2m*v_old/h - k*x_old + e
+x_new = x_old + h*w; v_new = 2*w - v_old
+```
+
+The constructor checks `A > Nmax*9*drop/(8*sqrt(3)*vc)`, a sufficient unique-root condition.
+The force bound supplies the bracket; safeguarded Newton has a fixed iteration ceiling and explicit
+failure, not a state clamp. The discrete energy identity is
+`E_new-E_old = h*((F+e)*w - c*w^2)` up to solve/roundoff error. This is local acoustic bookkeeping,
+not acoustic watts or energy-conserving coupling to the game's tire forces.
+
+Road/slip distances independently advance smooth quintic random fields, with analytic interval means
+and at most one cell crossing per sample in the declared domain. Seeds advance at spatial cell crossings,
+not on an audio-rate clock. Rough forces vanish at rest and are bounded by representative load times
+texture coefficients; no raw noise is mixed into the output. Input following is 10 ms, but zero support
+immediately removes forcing and leaves free decay. Setting a speed to zero stops that roughness drive.
+Road/friction velocity pickups pass separate 6 kHz one-pole filters and fixed gains. There is no clipper,
+RMS matching, separate squeal gate or imposed output envelope. Sample averaging and final filtering do
+not constitute complete nonlinear antialiasing; residual aliasing and device cost remain unqualified.
+
+The [trial worklet](../src/dev/diagnostics/tire-contact-processor.ts) has six k-rate AudioParams and
+four mono taps (front road/friction, rear road/friction). Its port accepts stop only. The
+[interactive page](../tools/tire-contact-browser.html), served over HTTP after building, mixes these
+taps at fixed gain and can solo either axle or component without changing the model. Texture changes
+require stop/start. No trial assets, method selector or nodes are added to gameplay or its worklet entry.
+
+Run `node --test tests/tire-contact-trial.test.mjs` after building. Tests cover energy/passivity,
+weakening ablation, convergence, roughness integration, independent histories, finite domain corners,
+transport partitions and release. `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]` writes
+fixed-gain mix/road/friction WAVs and measurements using [shared scenarios](../tools/tire-contact-scenarios.mjs).
+Generated sound is review output, never a production PCM asset. Listen before adopting this model;
+fixed pitch, short natural release, full aliasing checks, physical observation mapping and final mix
+are open decision gates. The trial does not authorize changing the accepted engine waveform.
+
 ## Mixing and lifetime
 
 The graph has fixed player/rival engine slots and one player tire worklet: three worklets and no

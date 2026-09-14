@@ -1,7 +1,8 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This note records the physical evidence behind the current acoustic surrogate. [Audio](audio.md) owns current
-runtime behavior. The implementation uses a bounded normal-form oscillator; the physical force law remains unchanged.
+runtime behavior. The released implementation uses a bounded normal-form oscillator; an isolated contact-model trial is now available.
+Neither changes the vehicle force law.
 
 ## Mechanism supported by the sources
 
@@ -80,11 +81,12 @@ is the only possible friction-induced instability.
 
 ## Consequences for SUPER OUTRIDE
 
-The current design inference is to retain independent front/rear observations and use a bounded
-self-excited acoustic oscillator per axle for the tonal component. The user has rejected audible
-broadband hiss: rolling/scrub output is silent. Small random excitation currently seeds or roughens
-the oscillator without being mixed directly into its output. Tire timbre is **not accepted or finished**;
-these choices establish a starting point for further listening, not a calibrated tire model.
+The released game still uses a bounded self-excited acoustic oscillator per axle and mutes broadband
+rolling/scrub output. The user has now restarted tire design and selected an isolated passive-contact
+plus nonlinear-friction trial, with audible rolling/rubbing for comparison. The prior mute preference
+is not a restriction on that explicit trial. [Audio](audio.md#contact-model-listening-trial-not-gameplay)
+owns the trial equations, representative units and adoption gates. This evidence note does not establish
+its friction curve, coefficients, frequency tracking or acoustic realism.
 
 The sources do not validate the current onset, pitch, harmonic or roughness constants. Directional
 slip power remains a useful energy input, but cannot alone determine tone frequency, onset or sound
