@@ -1,6 +1,8 @@
 /** Consumer-owned read contract. No physics, catalog or DOM dependency. Units: SI and RPM. */
 export interface TireAudioObservation {
   readonly load: number;
+  readonly referenceLoad: number;
+  readonly travelSpeed: number;
   readonly slipSpeed: number;
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;

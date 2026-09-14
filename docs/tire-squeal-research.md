@@ -81,12 +81,12 @@ is the only possible friction-induced instability.
 
 ## Consequences for SUPER OUTRIDE
 
-The released game still uses a bounded self-excited acoustic oscillator per axle and mutes broadband
-rolling/scrub output. The user has now restarted tire design and selected an isolated passive-contact
-plus nonlinear-friction trial, with audible rolling/rubbing for comparison. The prior mute preference
-is not a restriction on that explicit trial. [Audio](audio.md#contact-model-listening-trial-not-gameplay)
-owns the trial equations, representative units and adoption gates. This evidence note does not establish
-its friction curve, coefficients, frequency tracking or acoustic realism.
+The game now offers CURRENT and CONTACT for user-requested A/B comparison. CURRENT retains the
+bounded self-excited oscillator without rolling noise; CONTACT reuses the accepted rolling rumble and
+nonlinear friction-vibration kernel. The earlier broadband-mute preference does not restrict CONTACT.
+[Audio](audio.md#contact-model-and-game-comparison) owns the equations, representative units, provisional
+axle mapping and comparison limits. This evidence note does not validate the authored conversion or
+establish realistic sound merely because a mechanical oscillator is used.
 
 The sources do not validate the current onset, pitch, harmonic or roughness constants. Directional
 slip power remains a useful energy input, but cannot alone determine tone frequency, onset or sound

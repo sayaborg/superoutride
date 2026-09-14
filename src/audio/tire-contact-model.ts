@@ -1,10 +1,10 @@
 import {
   CONTACT_INPUTS,
   CONTACT_TEXTURES,
-  CONTACT_TRIAL,
+  CONTACT_ACOUSTICS,
   type ContactFrictionParameters,
   type ContactModeParameters,
-} from './tire-contact-settings.js';
+} from './tire-contact-acoustics.js';
 
 /** One acoustic mode, never a vehicle contact/tire solver. State is displacement and velocity. */
 export class ContactMode {
@@ -22,8 +22,12 @@ export class ContactMode {
   lastMidpointVelocity = 0;
   lastIterations = 0;
   lastResidual = 0;
-  constructor(rate: number, mode: ContactModeParameters, friction: ContactFrictionParameters = CONTACT_TRIAL.friction) {
-    if (!Number.isFinite(rate) || rate < CONTACT_TRIAL.minRate || rate > CONTACT_TRIAL.maxRate)
+  constructor(
+    rate: number,
+    mode: ContactModeParameters,
+    friction: ContactFrictionParameters = CONTACT_ACOUSTICS.friction,
+  ) {
+    if (!Number.isFinite(rate) || rate < CONTACT_ACOUSTICS.minRate || rate > CONTACT_ACOUSTICS.maxRate)
       throw new RangeError('unsupported contact-audio rate');
     for (const value of [mode.massKg, mode.frequencyHz, mode.dampingRatio])
       if (!Number.isFinite(value) || value <= 0) throw new RangeError('invalid contact mode');
@@ -54,18 +58,21 @@ export class ContactMode {
   }
 
   /** Implicit midpoint with a bounded friction bracket and safeguarded Newton iteration. No allocation. */
-  step(slip: number, load: number, roughForce = 0): number {
+  step(slip: number, load: number, roughForce = 0, drop = this.friction.drop): number {
     if (
       !Number.isFinite(slip) ||
       !Number.isFinite(load) ||
       load < 0 ||
       load > CONTACT_INPUTS.load.max ||
-      !Number.isFinite(roughForce)
+      !Number.isFinite(roughForce) ||
+      !Number.isFinite(drop) ||
+      drop < 0 ||
+      drop > this.friction.drop
     )
       throw new RangeError('invalid representative contact input');
     const rhs = this.inertia * this.v - this.stiffness * this.x + roughForce;
     const f = this.friction;
-    const bound = load * (f.dynamic + f.drop);
+    const bound = load * (f.dynamic + drop);
     let lo = (rhs - bound) / this.denominator;
     let hi = (rhs + bound) / this.denominator;
     let w = Math.max(lo, Math.min(hi, this.v));
@@ -74,13 +81,13 @@ export class ContactMode {
     let iterations = 0;
     if (bound === 0) w = rhs / this.denominator;
     else {
-      const tolerance = CONTACT_TRIAL.relativeForceTolerance * (1 + Math.abs(rhs) + bound);
-      for (; iterations < CONTACT_TRIAL.maxSolveIterations; iterations++) {
+      const tolerance = CONTACT_ACOUSTICS.relativeForceTolerance * (1 + Math.abs(rhs) + bound);
+      for (; iterations < CONTACT_ACOUSTICS.maxSolveIterations; iterations++) {
         const u = slip - w;
         const q = u / f.weakeningSpeed;
         const q2 = 1 + q * q;
         const norm = Math.sqrt(u * u + f.regularizationSpeed ** 2);
-        const mu = f.dynamic + f.drop / q2;
+        const mu = f.dynamic + drop / q2;
         force = load * mu * (u / norm);
         residual = this.denominator * w - force - rhs;
         if (Math.abs(residual) <= tolerance) break;
@@ -89,11 +96,11 @@ export class ContactMode {
         const derivative =
           load *
           ((mu * f.regularizationSpeed ** 2) / norm ** 3 -
-            ((u / norm) * 2 * f.drop * u) / (f.weakeningSpeed ** 2 * q2 ** 2));
+            ((u / norm) * 2 * drop * u) / (f.weakeningSpeed ** 2 * q2 ** 2));
         const next = w - residual / (this.denominator + derivative);
         w = next > lo && next < hi ? next : (lo + hi) / 2;
       }
-      if (iterations === CONTACT_TRIAL.maxSolveIterations) throw new Error('contact midpoint failed to converge');
+      if (iterations === CONTACT_ACOUSTICS.maxSolveIterations) throw new Error('contact midpoint failed to converge');
     }
     const nextX = this.x + this.dt * w;
     const nextV = 2 * w - this.v;
@@ -156,14 +163,15 @@ export class DistanceRoughness {
 }
 
 /** Identical front/rear model: two modes, independent histories, no tire-ID or maneuver branches. */
-export class TireContactTrial {
+export class TireContactSynthesis {
   private readonly road: ContactMode;
   private readonly friction: ContactMode;
   private readonly roadTexture: DistanceRoughness;
   private readonly slipTexture: DistanceRoughness;
   private readonly smoothing: number;
   private readonly tone: number;
-  private readonly texture: (typeof CONTACT_TEXTURES)[keyof typeof CONTACT_TEXTURES];
+  private textureMix: number;
+  private targetTextureMix: number;
   private travel = 0;
   private slip = 0;
   private load = 0;
@@ -179,18 +187,15 @@ export class TireContactTrial {
     texture: keyof typeof CONTACT_TEXTURES = 'paved',
   ) {
     if (!Object.hasOwn(CONTACT_TEXTURES, texture)) throw new RangeError('unknown contact texture');
-    this.texture = CONTACT_TEXTURES[texture];
-    this.road = new ContactMode(rate, CONTACT_TRIAL.roadMode);
-    this.friction = new ContactMode(rate, CONTACT_TRIAL.frictionMode, {
-      ...CONTACT_TRIAL.friction,
-      drop: this.texture.frictionDrop,
-    });
-    this.roadTexture = new DistanceRoughness(CONTACT_TRIAL.roadCellMeters, seed);
-    this.slipTexture = new DistanceRoughness(CONTACT_TRIAL.slipCellMeters, seed ^ 0x13579bdf);
-    this.smoothing = 1 - Math.exp(-1 / (CONTACT_TRIAL.controlSeconds * rate));
-    this.tone = 1 - Math.exp((-2 * Math.PI * CONTACT_TRIAL.outputCutoffHz) / rate);
+    this.textureMix = this.targetTextureMix = texture === 'loose' ? 1 : 0;
+    this.road = new ContactMode(rate, CONTACT_ACOUSTICS.roadMode);
+    this.friction = new ContactMode(rate, CONTACT_ACOUSTICS.frictionMode);
+    this.roadTexture = new DistanceRoughness(CONTACT_ACOUSTICS.roadCellMeters, seed);
+    this.slipTexture = new DistanceRoughness(CONTACT_ACOUSTICS.slipCellMeters, seed ^ 0x13579bdf);
+    this.smoothing = 1 - Math.exp(-1 / (CONTACT_ACOUSTICS.controlSeconds * rate));
+    this.tone = 1 - Math.exp((-2 * Math.PI * CONTACT_ACOUSTICS.outputCutoffHz) / rate);
   }
-  update(travel: number, slip: number, load: number): void {
+  update(travel: number, slip: number, load: number, textureMix = this.targetTextureMix): void {
     if (
       !Number.isFinite(travel) ||
       travel < 0 ||
@@ -200,12 +205,16 @@ export class TireContactTrial {
       slip > CONTACT_INPUTS.slipSpeed.max ||
       !Number.isFinite(load) ||
       load < 0 ||
-      load > CONTACT_INPUTS.load.max
+      load > CONTACT_INPUTS.load.max ||
+      !Number.isFinite(textureMix) ||
+      textureMix < 0 ||
+      textureMix > 1
     )
-      throw new RangeError('contact audition input outside domain');
+      throw new RangeError('contact audio input outside domain');
     this.targetTravel = travel;
     this.targetSlip = slip;
     this.targetLoad = load;
+    this.targetTextureMix = textureMix;
   }
   sample(): number {
     this.travel += this.smoothing * (this.targetTravel - this.travel);
@@ -216,12 +225,17 @@ export class TireContactTrial {
     const slip = this.targetSlip === 0 ? 0 : this.slip;
     const roadNoise = this.roadTexture.sample(this.load > 0 ? travel / this.rate : 0);
     const slipNoise = this.slipTexture.sample(this.load > 0 ? slip / this.rate : 0);
+    this.textureMix += this.smoothing * (this.targetTextureMix - this.textureMix);
+    const { paved, loose } = CONTACT_TEXTURES;
+    const roadRoughness = paved.roadRoughness + this.textureMix * (loose.roadRoughness - paved.roadRoughness);
+    const slipRoughness = paved.slipRoughness + this.textureMix * (loose.slipRoughness - paved.slipRoughness);
+    const drop = paved.frictionDrop + this.textureMix * (loose.frictionDrop - paved.frictionDrop);
     const roadForce =
-      (this.load * this.texture.roadRoughness * roadNoise * travel) / Math.hypot(travel, CONTACT_TRIAL.roadForceSpeed);
+      (this.load * roadRoughness * roadNoise * travel) / Math.hypot(travel, CONTACT_ACOUSTICS.roadForceSpeed);
     const slipForce =
-      (this.load * this.texture.slipRoughness * slipNoise * slip) / Math.hypot(slip, CONTACT_TRIAL.slipForceSpeed);
-    const road = this.road.step(0, 0, roadForce) * CONTACT_TRIAL.roadGain;
-    const friction = this.friction.step(slip, this.load, slipForce) * CONTACT_TRIAL.frictionGain;
+      (this.load * slipRoughness * slipNoise * slip) / Math.hypot(slip, CONTACT_ACOUSTICS.slipForceSpeed);
+    const road = this.road.step(0, 0, roadForce) * CONTACT_ACOUSTICS.roadGain;
+    const friction = this.friction.step(slip, this.load, slipForce, drop) * CONTACT_ACOUSTICS.frictionGain;
     this.maxIterations = Math.max(this.maxIterations, this.friction.lastIterations);
     this.roadOutput += this.tone * (road - this.roadOutput);
     this.frictionOutput += this.tone * (friction - this.frictionOutput);

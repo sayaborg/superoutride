@@ -4,9 +4,9 @@ import { CONTACT_SCENARIOS } from './tire-contact-scenarios.mjs';
 
 // Paired use: run this SAME script on each build. Kernel quantities are not sound pressure.
 const build = resolve(process.argv[2] ?? 'dist');
-const load = (name) => import(pathToFileURL(join(build, 'dev/diagnostics', name)).href);
-const { ContactMode, TireContactTrial } = await load('tire-contact-model.js');
-const { CONTACT_TRIAL: settings } = await load('tire-contact-settings.js');
+const load = (name) => import(pathToFileURL(join(build, 'audio', name)).href);
+const { ContactMode, TireContactSynthesis } = await load('tire-contact-model.js');
+const { CONTACT_ACOUSTICS: settings } = await load('tire-contact-acoustics.js');
 const report = { build, settings, steady: [], interference: [] };
 for (const rate of [44100, 48000, 96000]) {
   for (const slip of [0.1, 0.25, 0.5, 0.8, 1.2, 3]) {
@@ -42,8 +42,8 @@ for (const rate of [44100, 48000, 96000]) {
     });
   }
   const scene = CONTACT_SCENARIOS.find((value) => value.id === 'slip-sweep');
-  const front = new TireContactTrial(rate, settings.frontSeed);
-  const rear = new TireContactTrial(rate, settings.rearSeed);
+  const front = new TireContactSynthesis(rate, settings.frontSeed);
+  const rear = new TireContactSynthesis(rate, settings.rearSeed);
   let step = 0;
   const windows = Array.from({ length: scene.seconds }, () => ({ ff: 0, rr: 0, fr: 0 }));
   for (let i = 0; i < rate * scene.seconds; i++) {

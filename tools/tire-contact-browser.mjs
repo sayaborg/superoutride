@@ -1,4 +1,4 @@
-import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TRIAL } from '../dist/dev/diagnostics/tire-contact-settings.js';
+import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_ACOUSTICS } from '../dist/audio/tire-contact-acoustics.js';
 import { follow } from '../dist/audio/audio-parameter.js';
 
 const get = (id) => document.getElementById(id);
@@ -135,7 +135,7 @@ async function start() {
       processorOptions: { texture: get('texture').value },
     });
     state.master = context.createGain();
-    state.master.gain.value = CONTACT_TRIAL.listeningGain;
+    state.master.gain.value = CONTACT_ACOUSTICS.listeningGain;
     state.master.connect(context.destination);
     state.taps = Array.from({ length: 4 }, (_, i) => {
       const node = context.createGain();

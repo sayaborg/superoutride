@@ -62,36 +62,30 @@ between deliberately different synthesis models. Current tests cover waveform qu
 output, tuning, lifetime and unchanged physics/rendering; inspect the latest run rather than freezing
 historical test counts here.
 
-## Next work: assess the contact-model tire trial
+## Next work: assess tires in the game
 
-The user explicitly restarted tire design and selected a minimal passive-contact plus nonlinear-friction
-prototype. The [audio specification](audio.md#contact-model-listening-trial-not-gameplay) owns its model,
-input interpretation, coefficients and limits. Existing gameplay tires and the accepted engine are
-unchanged: the new source is an isolated diagnostic, not an alternate production method.
+The user approved the rolling rumble/texture contrast and found the revised friction tone acceptable,
+with a possible preference for a somewhat higher pitch. They requested comparison with the existing
+sound while driving. Every course now has TIRES: CURRENT / TIRES: CONTACT beside SOUND/VOL.
+CURRENT remains the reload default; CONTACT is an opt-in gameplay trial, not final adoption.
 
-Build and serve [the contact trial page](../tools/tire-contact-browser.html). Test front/rear separately
-and together; solo rolling and friction taps at unchanged listening gain. All controls use representative
-contact units; do not feed axle newtons or game slip directly into this experiment. Generate offline
-comparisons with `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]`; current source contains
-all required scenarios and tests, with no dependency on a previous conversation attachment.
+[Audio](audio.md#contact-model-and-game-comparison) owns both models, the shared kernel/settings,
+provisional axle-to-representative mapping, surface interpolation and fade/transport contract.
+No physics/control law, accepted engine sound, pitch setting or road pickup was changed for integration.
+The former DEV kernel/settings were moved into audio and are reused by game and audition, not duplicated.
+Only one tire worklet/model runs at a time; switching fades tires alone and keeps both engines alive.
 
-The user found the trial rolling rumble convincing and could distinguish the two texture sketches.
-Preserve those road taps as the accepted contact-sound baseline; friction timbre is not yet approved.
-The trial still uses one passive mode and one tangential mode per axle. Before adding coupled modes,
-a lower tangential mechanical impedance was sufficient to produce pitch variation and harmonics in
-that same equation. Only friction settings and its fixed velocity pickup changed. No extra oscillator,
-phase reset, pitch map or axle-specific detuning was introduced. See audio.md for coefficient ownership.
+Compare ordinary rolling, cornering, wheel lock/spin, rough shoulders/loose ground, lift/recontact,
+vehicle replacement and mute/resume. Front/rear stay independent under one model. The local four-tap
+[audition](../tools/tire-contact-browser.html) and `tools/tire-contact-render.mjs` retain component solo
+and fixed-gain scenarios; their representative controls must not be mistaken for axle newtons/slip.
+Use `tools/tire-contact-characterize.mjs` for nonlinear pitch/harmonics and interference windows.
 
-Assess the new front-only and mixed slip-sweep WAVs at fixed listening gain. The earlier 6-7 second
-near-null is a specific regression, not proof that all front/rear interference is resolved. Use
-`node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` for pitch/harmonics and all window metrics;
-keep diagnostic reports outside source. Revisit roughness/contact coupling or a small mode expansion
-only if listening or broader-domain tests identify a remaining need.
-
-The model remains local-contact diagnostics, not the gameplay replacement. Physical observation mapping,
-whole-domain spectral checks, engine/tire mix and actual Android/iOS performance/listening must precede
-adoption. No automatic engine normalization. If useful timbre demands many local modes/contact states,
-consider a reduced model or precomputation instead.
+The game map is an authored acoustic convention, not validated local tread physics. Review it before
+adjusting the kernel to compensate for incorrect input mapping. Loose materials currently share one
+sketch. More treble, final engine/tire balance, short natural release, broad interference/aliasing and
+actual phone performance remain listening/device work. Do not add automatic gain, axle detuning or
+phase resets to conceal cancellation. Preserve the accepted road waveform and engine baseline.
 
 ## Other implementation areas
 

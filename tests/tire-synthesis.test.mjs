@@ -26,6 +26,7 @@ test('accepted force/slip products publish watts, retaining directional work and
     forceTransmitting: true,
     tireFrameValid: true,
     longitudinalVelocity: 20,
+    lateralVelocity: 0,
     surface: { surfaceType: 'ASPHALT' },
   };
   const wheel = { tire: { fx: -2000, fy: 1000, sx: -0.5, sy: 0.25, referenceSpeed: 20 } };
@@ -154,26 +155,30 @@ test('tire worklet preserves both axle signals across block partitions and handl
   const a = new Processor(),
     b = new Processor();
   const blank = [[new Float32Array(128)]];
-  a.process([], blank);
+  const params = Object.fromEntries(
+    Processor.parameterDescriptors.map((d) => [d.name, new Float32Array([d.defaultValue])]),
+  );
+  a.process([], blank, params);
   assert.ok(blank[0][0].every((x) => x === 0));
   // Match the silent elapsed time: noise phase advances independently of audibility.
-  b.process([], blank);
-  for (const p of [a, b]) p.port.onmessage({ data });
+  b.process([], blank, params);
+  for (const axle of ['front', 'rear'])
+    for (const key of ['squeal', 'pitch']) params[`${axle}_${key}`][0] = data[axle][key];
   const whole = [[new Float32Array(4096)]];
-  a.process([], whole);
+  a.process([], whole, params);
   const parts = [];
   for (const length of [1, 127, 256, 3712]) {
     const block = [[new Float32Array(length)]];
-    b.process([], block);
+    b.process([], block, params);
     parts.push(...block[0][0]);
   }
   assert.deepEqual(parts, [...whole[0][0]]);
-  b.port.onmessage({ data: { front: { squeal: NaN } } });
+  params.front_squeal[0] = params.rear_squeal[0] = NaN;
   const decay = [[new Float32Array(48000)]];
-  b.process([], decay);
+  b.process([], decay, params);
   assert.ok(energy(decay[0][0].subarray(44000)) < 1e-12);
   b.port.onmessage({ data: 'stop' });
-  assert.equal(b.process([], blank), false);
+  assert.equal(b.process([], blank, params), false);
 });
 
 test('ordinary rolling has no audible noise on any supported surface', () => {

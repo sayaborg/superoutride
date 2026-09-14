@@ -1,12 +1,12 @@
-import { TireContactTrial } from './tire-contact-model.js';
-import { CONTACT_INPUTS, CONTACT_TRIAL, type CONTACT_TEXTURES } from './tire-contact-settings.js';
+import { TireContactSynthesis } from '../../audio/tire-contact-model.js';
+import { CONTACT_INPUTS, CONTACT_ACOUSTICS, type CONTACT_TEXTURES } from '../../audio/tire-contact-acoustics.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
 class TireContactProcessor extends AudioWorkletProcessor {
-  private readonly front: TireContactTrial;
-  private readonly rear: TireContactTrial;
+  private readonly front: TireContactSynthesis;
+  private readonly rear: TireContactSynthesis;
   private running = true;
   static get parameterDescriptors() {
     return ['front', 'rear'].flatMap((axle) =>
@@ -22,8 +22,8 @@ class TireContactProcessor extends AudioWorkletProcessor {
   constructor(options?: { processorOptions?: { texture?: keyof typeof CONTACT_TEXTURES } }) {
     super();
     const texture = options?.processorOptions?.texture ?? 'paved';
-    this.front = new TireContactTrial(sampleRate, CONTACT_TRIAL.frontSeed, texture);
-    this.rear = new TireContactTrial(sampleRate, CONTACT_TRIAL.rearSeed, texture);
+    this.front = new TireContactSynthesis(sampleRate, CONTACT_ACOUSTICS.frontSeed, texture);
+    this.rear = new TireContactSynthesis(sampleRate, CONTACT_ACOUSTICS.rearSeed, texture);
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') this.running = false;
     };

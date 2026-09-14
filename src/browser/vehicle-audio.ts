@@ -11,6 +11,8 @@ type Observation = Mutable<Omit<VehicleAudioObservation, 'front' | 'rear'>> & {
 export function createVehicleAudioObservation(): Observation {
   const tire = (): Mutable<TireAudioObservation> => ({
     load: 0,
+    referenceLoad: 1,
+    travelSpeed: 0,
     slipSpeed: 0,
     longitudinalPower: 0,
     lateralPower: 0,
@@ -38,12 +40,18 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
   const tires = observeVehicleTires(vehicle);
   const { control } = vehicle;
   result.front.load = vehicle.frontNormalLoad;
+  const frontSuspension = vehicle.profile.frontStation.suspension;
+  result.front.referenceLoad = frontSuspension.springRate * frontSuspension.qStatic;
+  result.front.travelSpeed = tires.front.travelSpeed;
   result.front.slipSpeed = tires.front.slipSpeed;
   result.front.longitudinalPower = tires.front.longitudinalPower;
   result.front.lateralPower = tires.front.lateralPower;
   result.front.utilization = control.frontUtilization;
   result.front.surface = tires.front.surface;
   result.rear.load = vehicle.rearNormalLoad;
+  const rearSuspension = vehicle.profile.rearStation.suspension;
+  result.rear.referenceLoad = rearSuspension.springRate * rearSuspension.qStatic;
+  result.rear.travelSpeed = tires.rear.travelSpeed;
   result.rear.slipSpeed = tires.rear.slipSpeed;
   result.rear.longitudinalPower = tires.rear.longitudinalPower;
   result.rear.lateralPower = tires.rear.lateralPower;

@@ -1,4 +1,4 @@
-/** Trial coefficients, NOT measured tire data. Runtime sound remains owned by docs/audio.md. */
+/** Representative acoustic coefficients, NOT measured tire data. Authority: docs/audio.md. */
 export interface ContactModeParameters {
   readonly massKg: number;
   readonly frequencyHz: number;
@@ -15,7 +15,7 @@ export const CONTACT_INPUTS = Object.freeze({
   slipSpeed: Object.freeze({ min: 0, max: 4, step: 0.01, label: 'Representative slip (m/s)' }),
   load: Object.freeze({ min: 0, max: 8, step: 0.1, label: 'Representative load (N, NOT axle load)' }),
 });
-export const CONTACT_TRIAL = Object.freeze({
+export const CONTACT_ACOUSTICS = Object.freeze({
   minRate: 44100,
   maxRate: 192000,
   roadMode: Object.freeze({ massKg: 0.004, frequencyHz: 350, dampingRatio: 0.25 }),
@@ -39,7 +39,7 @@ export const CONTACT_TRIAL = Object.freeze({
   frontSeed: 123456789,
   rearSeed: 362436069,
 });
-// Two comparative sketches, deliberately NOT mapped to the game's SurfaceType enumeration.
+// Comparative sketches. The separate game adapter owns its provisional SurfaceType mapping.
 export const CONTACT_TEXTURES = Object.freeze({
   paved: Object.freeze({ label: 'Paved sketch', roadRoughness: 0.04, slipRoughness: 0.03, frictionDrop: 0.6 }),
   loose: Object.freeze({ label: 'Loose-ground sketch', roadRoughness: 0.15, slipRoughness: 0.06, frictionDrop: 0 }),

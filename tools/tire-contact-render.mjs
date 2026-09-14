@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { TireContactTrial } from '../dist/dev/diagnostics/tire-contact-model.js';
-import { CONTACT_TRIAL } from '../dist/dev/diagnostics/tire-contact-settings.js';
+import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
+import { CONTACT_ACOUSTICS } from '../dist/audio/tire-contact-acoustics.js';
 import { CONTACT_SCENARIOS } from './tire-contact-scenarios.mjs';
 
 // Fixed gain and separate taps. No peak/RMS normalization; out-of-range output is a failure.
@@ -10,13 +10,13 @@ const rate = Number(process.argv[3] ?? 48000);
 await mkdir(directory, { recursive: true });
 const report = {
   rate,
-  listeningGain: CONTACT_TRIAL.listeningGain,
+  listeningGain: CONTACT_ACOUSTICS.listeningGain,
   note: 'Experimental local-contact controls, no game telemetry conversion or listening acceptance.',
   scenes: [],
 };
 for (const scene of CONTACT_SCENARIOS) {
-  const front = new TireContactTrial(rate, CONTACT_TRIAL.frontSeed, scene.texture);
-  const rear = new TireContactTrial(rate, CONTACT_TRIAL.rearSeed, scene.texture);
+  const front = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed, scene.texture);
+  const rear = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed, scene.texture);
   const length = Math.round(scene.seconds * rate);
   const channels = Array.from({ length: 4 }, () => new Float64Array(length));
   let step = 0;
@@ -62,7 +62,7 @@ for (const scene of CONTACT_SCENARIOS) {
       sum2 = 0;
     const windows = [];
     for (let i = 0; i < length; i++) {
-      const value = indices.reduce((sum, c) => sum + channels[c][i], 0) * CONTACT_TRIAL.listeningGain;
+      const value = indices.reduce((sum, c) => sum + channels[c][i], 0) * CONTACT_ACOUSTICS.listeningGain;
       if (!Number.isFinite(value) || Math.abs(value) >= 1) throw new Error(`invalid unclipped output: ${scene.id}`);
       peak = Math.max(peak, Math.abs(value));
       sum2 += value * value;

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
-import { ContactMode, TireContactTrial } from '../dist/dev/diagnostics/tire-contact-model.js';
-import { CONTACT_TRIAL } from '../dist/dev/diagnostics/tire-contact-settings.js';
+import { ContactMode, TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
+import { CONTACT_ACOUSTICS } from '../dist/audio/tire-contact-acoustics.js';
 import { CONTACT_SCENARIOS } from '../tools/tire-contact-scenarios.mjs';
 
 // Pre-edit road tap from the user-approved a295b0b trial, not a newly tuned oracle.
@@ -21,8 +21,8 @@ test('friction calibration preserves the accepted front/rear paved/loose road ta
   let index = 0;
   for (const rate of [44100, 48000])
     for (const texture of ['paved', 'loose'])
-      for (const seed of [CONTACT_TRIAL.frontSeed, CONTACT_TRIAL.rearSeed]) {
-        const voice = new TireContactTrial(rate, seed, texture);
+      for (const seed of [CONTACT_ACOUSTICS.frontSeed, CONTACT_ACOUSTICS.rearSeed]) {
+        const voice = new TireContactSynthesis(rate, seed, texture);
         const hash = createHash('sha256'),
           value = Buffer.alloc(8);
         for (const inputs of [
@@ -47,7 +47,7 @@ test('one fixed mechanical resonance yields slip-dependent pitch and harmonics w
   for (const rate of [44100, 48000, 96000]) {
     const frequencies = [];
     for (const slip of [0.25, 0.5, 0.8]) {
-      const mode = new ContactMode(rate, CONTACT_TRIAL.frictionMode);
+      const mode = new ContactMode(rate, CONTACT_ACOUSTICS.frictionMode);
       for (let i = 0; i < rate; i++) mode.step(slip, 5);
       const samples = Float64Array.from({ length: rate }, () => mode.step(slip, 5));
       const crossings = [];
@@ -57,7 +57,7 @@ test('one fixed mechanical resonance yields slip-dependent pitch and harmonics w
       assert.ok(crossings.length > 100);
       const hz = (crossings.length - 1) / (crossings.at(-1) - crossings[0]);
       frequencies.push(hz);
-      assert.ok(hz < CONTACT_TRIAL.frictionMode.frequencyHz);
+      assert.ok(hz < CONTACT_ACOUSTICS.frictionMode.frequencyHz);
       if (slip === 0.5) {
         const magnitude = (order) => {
           let real = 0,
@@ -81,8 +81,8 @@ test('one fixed mechanical resonance yields slip-dependent pitch and harmonics w
 test('the published 6-7 second two-axle cancellation case no longer nearly nulls', () => {
   const scene = CONTACT_SCENARIOS.find((value) => value.id === 'slip-sweep');
   for (const rate of [44100, 48000, 96000]) {
-    const front = new TireContactTrial(rate, CONTACT_TRIAL.frontSeed);
-    const rear = new TireContactTrial(rate, CONTACT_TRIAL.rearSeed);
+    const front = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
+    const rear = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed);
     let step = 0,
       ff = 0,
       rr = 0,
@@ -109,8 +109,8 @@ test('the published 6-7 second two-axle cancellation case no longer nearly nulls
 
 test('fixed pickup retains headroom for strong sliding, release phases and seeded input transitions', () => {
   for (const rate of [44100, 48000, 96000]) {
-    const front = new TireContactTrial(rate, CONTACT_TRIAL.frontSeed);
-    const rear = new TireContactTrial(rate, CONTACT_TRIAL.rearSeed);
+    const front = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
+    const rear = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed);
     let seed = 34761;
     const random = () => {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -123,7 +123,7 @@ test('fixed pickup retains headroom for strong sliding, release phases and seede
         rear.update(0, 0, 0);
       }
       for (let i = 0; i < rate / 4; i++) {
-        const value = CONTACT_TRIAL.listeningGain * (front.sample() + rear.sample());
+        const value = CONTACT_ACOUSTICS.listeningGain * (front.sample() + rear.sample());
         assert.ok(Number.isFinite(value) && Math.abs(value) < 1);
       }
     }

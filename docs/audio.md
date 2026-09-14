@@ -8,7 +8,8 @@ acoustic profiles, and browser composition adapts completed physical observation
 motion, gearing, recovery or race progress, and never repeats contact or tire solves.
 
 The engine is the accepted listening baseline. Tire timbre and final engine/tire mix calibration remain
-unfinished. Preserve sample-free synthesis and a small fixed voice count; actual Android performance
+unfinished. The user approved in-game A/B comparison, not final replacement; CURRENT remains the default.
+Preserve sample-free synthesis and a small fixed voice count; actual Android performance
 and device listening remain open. A structural cleanup must preserve the accepted engine waveform.
 
 **Interpretation rule:** reference-derived coefficients use the explicit assumptions below; authored
@@ -26,6 +27,9 @@ applies to every profile, coefficient and UI readout unless a measurement is exp
 - [Engine voice](../src/audio/engine-voice.ts) and [processor](../src/audio/exhaust-processor.ts): faded
   replacement, k-rate RPM/load transport and native-rate rendering. Changes use explicit tuning-value
   equality; returning to the active values cancels a pending replacement without resetting the kernel.
+- [Tire controls/mapping](../src/audio/tire-sound-controls.ts): model identity, transport domains and
+  the provisional macro-to-representative contact adapter. [Contact acoustics](../src/audio/tire-contact-acoustics.ts)
+  and [kernel](../src/audio/tire-contact-model.ts) are shared by game and audition, never copied from DEV.
 - [Presentation policy](../src/audio/audio-presentation.ts): shared timing, audible radius and rival mix.
   [Audio engine](../src/audio/audio-engine.ts): fixed voices and master graph.
 - [Browser adapter](../src/browser/vehicle-audio.ts), [lifecycle](../src/browser/audio-lifecycle.ts) and
@@ -132,32 +136,58 @@ perturbations seed/roughen the oscillator but are never mixed directly into the 
 and broadband scrub stay silent by user preference. Low-susceptibility surfaces may not reach the present
 onset; onset dynamics, material contrast, release, gain and engine masking remain tire-design work.
 
-The [voice](../src/audio/tire-voice.ts) sends front/rear records per presented frame. One
-[processor](../src/audio/tire-processor.ts) holds both kernels, allocates nothing in its sample loop,
-fades invalid controls to silence and stops on disposal. Engine replacements do not rebuild tire nodes.
+The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame.
+The [processor](../src/audio/tire-processor.ts) runs only the selected model, with one independent kernel
+per axle. CURRENT retains the existing mapping and oscillator; its continuous transport now uses
+AudioParams rather than frame messages. Its safety pitch domain remains 400–2400 Hz, wider than the
+mapping above. Invalid controls release the affected axle into silence.
+
+TIRES: CURRENT / TIRES: CONTACT is a session-local comparison button in every game mode, usable by
+mouse, touch and native keyboard activation. CURRENT is the reload default. The choice survives engine
+tuning/reset, vehicle changes, mute, delayed startup and sound retry. It changes no physical calibration.
+Before replacing the two tire kernels, only their common output fades down for the shared 90 ms
+transition (10 ms decay constant), then fades up at the common control rate. Rapid changes supersede
+pending choices; returning to the active model cancels replacement. There is still one tire worklet
+and only one active model; inactive models perform no sample processing. The port carries model
+replacement and stop only. No switch changes either engine slot, master level or context lifetime.
+A worklet processor error is surfaced on the next presentation update to the existing SOUND RETRY boundary.
+
 The [shared module entry](../src/audio/vehicle-processor.ts) loads both processors in one transaction.
-Tire coefficient ownership and parameter transport are pending the tire stage, not silently changed by
-engine cleanup. Rival tires, wind, events and music remain unimplemented.
+Rival tires, wind, events and music remain unimplemented. Comparison is not final mix/device acceptance.
 
-### Contact-model listening trial (not gameplay)
+### Contact model and game comparison
 
-The user restarted tire design and selected a minimal contact-vibration plus friction-vibration trial.
-The released Hopf sound above is unchanged; its silence preference and tuning are not constraints on
-this explicitly audible rolling/rubbing experiment. No production import selects the trial. The
-[trial settings](../src/dev/diagnostics/tire-contact-settings.ts) own all coefficients and input limits;
-the [kernel](../src/dev/diagnostics/tire-contact-model.ts) is a diagnostic, not another vehicle force law.
+The user restarted tire design and selected a minimal contact-vibration plus friction-vibration model.
+The rolling rumble and smooth/rough contrast are the accepted listening baseline. Friction was judged
+usable for game comparison; a somewhat higher pitch remains a possible future preference, not a change
+in this integration. Preserve all listening coefficients, including the 800 Hz free resonance, road tap
+and pickup gains. The prior broadband-mute choice applies to CURRENT only, not CONTACT.
 
-The user accepted the rolling rumble and the contrast between the two texture sketches as a listening
-baseline. Preserve the road tap and its gain; this does not approve friction timbre or full gameplay
-adoption. Both sounds already share the same force-driven vibration primitive: external roughness
-excites the passive mode, while friction can supply energy to the tangential mode. They are distinct
-excitation mechanisms, not one identical physical process.
+Both sounds share a force-driven vibration primitive: roughness excites the passive mode while friction
+can supply energy to the tangential mode. These are different excitation mechanisms. Each axle has one
+passive and one nonlinear mode, separate spatial histories and identical coefficients. The reusable
+kernel and acoustic settings belong to audio; DEV contains only the independent four-tap audition worklet.
 
-Each axle has one passive road mode and one nonlinear tangential mode, with independent roughness
-histories but identical coefficients. Effective contact load (0–8 N) and local slip (0–4 m/s) are
-**representative inputs, not axle load or a validated macro-to-local conversion**. Road travel is
-separate, 0–100 m/s. The two texture sketches are not a complete SurfaceType mapping. No temperature,
-contact patch discretization, tread passing, wheel RPM model or physical axle adapter is implemented.
+The kernel accepts representative load 0–8 N, representative slip 0–4 m/s and road travel 0–100 m/s.
+Game input is explicitly mapped, never mistaken for local contact pressure or a measured tread speed:
+
+- Road travel is the magnitude of the completed contact's longitudinal/lateral velocities, capped at
+  the supported acoustic domain. It is not wheel speed: locked or sideways-moving tires retain travel.
+- Representative load is `min(8, 5 * axleLoad / staticAxleLoad)`. The static reference is the compiled
+  suspension's `springRate * qStatic`; it is not another stored physical weight calculation. This
+  normalizes the representative element, not output RMS. Zero load or VOID stops new excitation.
+- Representative slip is `4 * axleSlip / (axleSlip + 20)`, a monotone authored map, not a local-contact
+  derivation. At 5 m/s axle slip it supplies 0.8 m/s to the kernel. Its nonmonotone squeal response still
+  comes from the friction equation. There is no utilization gate or maneuver-specific pitch rule.
+- The continuous texture mix is 0 on ASPHALT, 0.5 on SHOULDER and 1 on GRASS/DIRT/SAND. Those three loose
+  surfaces deliberately share one sketch; no distinct sand/grass acoustics is claimed. It interpolates
+  roughness and friction weakening through the kernel's control response without resetting states.
+
+[tire-sound-controls](../src/audio/tire-sound-controls.ts) owns this provisional mapping and its numbers.
+Both axles use it, without front/rear constants or vehicle-ID branches. Existing directional slip-power
+observations continue to drive CURRENT; CONTACT does not reinterpret them as acoustic watts.
+No thermal state, contact patch, tread-passing or wheel-RPM simulation is added. These mapped controls
+make a bounded gameplay comparison possible, not a calibrated full-tire model.
 
 Both modes use `m*x'' + c*x' + k*x = F(V-x',N) + e`, with `k=m*(2*pi*f0)^2` and
 `c=2*zeta*m*2*pi*f0`. Passive road stepping sets friction load to zero. The trial friction is
@@ -180,6 +210,7 @@ x_new = x_old + h*w; v_new = 2*w - v_old
 ```
 
 The constructor checks `A > Nmax*9*drop/(8*sqrt(3)*vc)`, a sufficient unique-root condition.
+Runtime weakening stays between zero and that configured maximum, preserving the same bound on every surface.
 The force bound supplies the bracket; safeguarded Newton has a fixed iteration ceiling and explicit
 failure, not a state clamp. The discrete energy identity is
 `E_new-E_old = h*((F+e)*w - c*w^2)` up to solve/roundoff error. This is local acoustic bookkeeping,
@@ -199,19 +230,19 @@ not constitute complete nonlinear antialiasing; residual aliasing and device cos
 The [trial worklet](../src/dev/diagnostics/tire-contact-processor.ts) has six k-rate AudioParams and
 four mono taps (front road/friction, rear road/friction). Its port accepts stop only. The
 [interactive page](../tools/tire-contact-browser.html), served over HTTP after building, mixes these
-taps at fixed gain and can solo either axle or component without changing the model. Texture changes
-require stop/start. No trial assets, method selector or nodes are added to gameplay or its worklet entry.
+taps at fixed gain and can solo either axle or component without changing the model. The standalone audition uses fixed texture presets; gameplay interpolates the same two sketches.
+There are no PCM assets or diagnostic worklet imports in gameplay.
 
 Run `node --test tests/tire-contact-trial.test.mjs` after building. Tests cover energy/passivity,
 weakening ablation, convergence, roughness integration, independent histories, finite domain corners,
 transport partitions and release. `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]` writes
 fixed-gain mix/road/friction/front/rear WAVs and measurements using [shared scenarios](../tools/tire-contact-scenarios.mjs).
-Generated sound is review output, never a production PCM asset. Listen before adopting this model;
-short natural release, full aliasing checks, physical observation mapping and final mix remain open.
+Generated sound is review output, never a production PCM asset. Game comparison is now available;
+short natural release, full aliasing checks, mapping calibration and final mix remain open.
 Independent equal-coefficient axles can still interfere: richer harmonics reduce near-total cancellation
 in the published replay, but do not guarantee incoherence or a lower bound on mixed loudness. Do not
 add fixed front/rear detuning, phase resets, stereo separation or automatic gain to conceal cancellation.
-Run `node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` on current and reference builds for
+Run `node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` on builds with the current module layout for
 steady pitch/harmonic measurements and every one-second interference window. It uses identical
 scenarios; neither a single cancellation window nor a fundamental-frequency match certifies the whole
 domain. [Calibration regressions](../tests/tire-contact-calibration.test.mjs) pin the accepted road taps
@@ -221,7 +252,7 @@ longer overcomes that bound. The trial does not authorize changing the accepted 
 
 ## Mixing and lifetime
 
-The graph has fixed player/rival engine slots and one player tire worklet: three worklets and no
+The graph has fixed player/rival engine slots and one player tire worklet: three worklets (including just one switchable tire worklet) and no
 AudioNode oscillators regardless of actor count. Only the nearest rival inside 100 physical world meters
 is selected. Gain uses 3D distance and pan uses lateral displacement in the player's yaw frame; raster
 depth and local stage chainage never enter the policy. Rival changes fade before slot reuse. Other actors
@@ -342,7 +373,8 @@ gameplay CPU budget remain separate checks.
 
 ## Minimal implementation boundary
 
-Keep one waveguide and one delay primitive, with no method flags, alternative models or vehicle branches.
+Keep one exhaust waveguide and one delay primitive, with no exhaust method flags or vehicle branches.
+The explicitly requested tire A/B selector belongs to voice/worklet composition, not either sample kernel.
 For a sound-preserving change, run `node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
 after building, also with `--zero-variation`. The reference must share the profile/pulse contract;
 [exact comparison](../tools/exhaust-equivalence.mjs) covers rates, vehicles, overrides and RPM/load transitions.

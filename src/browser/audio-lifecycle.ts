@@ -1,6 +1,7 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
+import { DEFAULT_TIRE_SOUND_MODEL, type TireSoundModel } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -18,6 +19,8 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 export function createAudioLifecycle() {
   const button = document.getElementById('sound-toggle');
   const volumeContainer = document.getElementById('sound-volume');
+  const tireButton = document.getElementById('tire-sound-toggle');
+  let tireModel: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
   let loading: Promise<void> | null = null;
@@ -73,6 +76,22 @@ export function createAudioLifecycle() {
               : 'SOUND…';
     button.setAttribute('aria-pressed', String(enabled && supported));
   }
+  function showTireModel(): void {
+    if (!tireButton) return;
+    tireButton.textContent = tireModel === 'current' ? 'TIRES: CURRENT' : 'TIRES: CONTACT';
+    tireButton.setAttribute('aria-pressed', String(tireModel === 'contact'));
+    if (!supported) tireButton.setAttribute('disabled', '');
+  }
+  function toggleTires(): void {
+    tireModel = tireModel === 'current' ? 'contact' : 'current';
+    showTireModel();
+    unlock();
+    sync();
+  }
+  function tireKey(event: Event): void {
+    event.stopPropagation();
+  }
+  showTireModel();
   function audible(): boolean {
     return enabled && active && !document.hidden && !disposed;
   }
@@ -116,6 +135,7 @@ export function createAudioLifecycle() {
     if (!context || !engine) return;
     try {
       if (tuningControls) engine.setTuning(tuningControls.read());
+      engine.setTireModel(tireModel);
       engine.setVolume(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
@@ -202,6 +222,8 @@ export function createAudioLifecycle() {
     window.removeEventListener('pageshow', show);
     document.removeEventListener('visibilitychange', visibility);
     button?.removeEventListener('click', toggle);
+    tireButton?.removeEventListener('click', toggleTires);
+    tireButton?.removeEventListener('keydown', tireKey);
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
     tuningControls?.dispose();
@@ -212,6 +234,8 @@ export function createAudioLifecycle() {
   window.addEventListener('pageshow', show);
   document.addEventListener('visibilitychange', visibility);
   button?.addEventListener('click', toggle);
+  tireButton?.addEventListener('click', toggleTires);
+  tireButton?.addEventListener('keydown', tireKey);
   return {
     update(player: ArcadeVehicleState, actors: readonly { readonly vehicle: ArcadeVehicleState }[]): void {
       if (!engine || !context || context.state !== 'running' || !audible()) return;
