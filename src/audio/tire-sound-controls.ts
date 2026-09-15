@@ -1,4 +1,4 @@
-import { CONTACT_INPUTS } from './tire-contact-acoustics.js';
+import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TEXTURE_KEYS } from './tire-contact-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 export type TireSoundModel = 'current' | 'contact';
@@ -11,37 +11,31 @@ export const TIRE_CONTROL_RANGES = Object.freeze({
   travelSpeed: Object.freeze({ minValue: 0, maxValue: CONTACT_INPUTS.travelSpeed.max, defaultValue: 0 }),
   slipSpeed: Object.freeze({ minValue: 0, maxValue: CONTACT_INPUTS.slipSpeed.max, defaultValue: 0 }),
   load: Object.freeze({ minValue: 0, maxValue: CONTACT_INPUTS.load.max, defaultValue: 0 }),
-  textureMix: Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 0 }),
+  surfaceIndex: Object.freeze({ minValue: 0, maxValue: CONTACT_TEXTURE_KEYS.length - 1, defaultValue: 0 }),
 });
 
 // Authored macro-to-representative mapping, NOT a measurement of local tread motion/pressure.
 // At normal support, every axle has the same representative 5 N reference, regardless of vehicle mass.
 export const TIRE_CONTACT_MAPPING = Object.freeze({ referenceLoad: 5, slipHalfSpeed: 20 });
-const TEXTURE_MIX: Readonly<Record<TireAudioObservation['surface'], number>> = Object.freeze({
-  ASPHALT: 0,
-  SHOULDER: 0.5,
-  GRASS: 1,
-  DIRT: 1,
-  SAND: 1,
-  VOID: 0,
-});
+const surfaceIndices = new Map(CONTACT_TEXTURE_KEYS.map((key, index) => [CONTACT_TEXTURES[key].surface, index]));
 
 /** One read-only mapping for both axles; source names never select a maneuver or vehicle. */
 export function contactTireParameters(tire: TireAudioObservation) {
   if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid tire contact load');
-  if (tire.load === 0 || tire.surface === 'VOID') return { travelSpeed: 0, slipSpeed: 0, load: 0, textureMix: 0 };
+  if (tire.load === 0 || tire.surface === 'VOID') return { travelSpeed: 0, slipSpeed: 0, load: 0, surfaceIndex: 0 };
+  const surfaceIndex = surfaceIndices.get(tire.surface);
   if (
     ![tire.load, tire.referenceLoad, tire.travelSpeed, tire.slipSpeed].every(Number.isFinite) ||
     tire.referenceLoad <= 0 ||
     tire.travelSpeed < 0 ||
     tire.slipSpeed < 0 ||
-    !Object.hasOwn(TEXTURE_MIX, tire.surface)
+    surfaceIndex === undefined
   )
     throw new RangeError('invalid tire contact observation');
   return {
     travelSpeed: Math.min(CONTACT_INPUTS.travelSpeed.max, tire.travelSpeed),
     slipSpeed: CONTACT_INPUTS.slipSpeed.max * (tire.slipSpeed / (tire.slipSpeed + TIRE_CONTACT_MAPPING.slipHalfSpeed)),
     load: Math.min(CONTACT_INPUTS.load.max, TIRE_CONTACT_MAPPING.referenceLoad * (tire.load / tire.referenceLoad)),
-    textureMix: TEXTURE_MIX[tire.surface],
+    surfaceIndex,
   };
 }

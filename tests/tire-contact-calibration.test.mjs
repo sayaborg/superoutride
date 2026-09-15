@@ -17,10 +17,10 @@ const ROAD_REFERENCE = [
   '7b4a999040396975ee57055ebe570e680f21d0c7e7731689228fab278ffe470e',
 ];
 
-test('friction calibration preserves the accepted front/rear paved/loose road taps exactly', () => {
+test('friction calibration preserves the accepted front/rear paved/dirt road taps exactly', () => {
   let index = 0;
   for (const rate of [44100, 48000])
-    for (const texture of ['paved', 'loose'])
+    for (const texture of ['paved', 'dirt'])
       for (const seed of [CONTACT_ACOUSTICS.frontSeed, CONTACT_ACOUSTICS.rearSeed]) {
         const voice = new TireContactSynthesis(rate, seed, texture);
         const hash = createHash('sha256'),

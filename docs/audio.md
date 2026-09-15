@@ -159,9 +159,9 @@ Rival tires, wind, events and music remain unimplemented. Comparison is not fina
 
 The user restarted tire design and selected a minimal contact-vibration plus friction-vibration model.
 The rolling rumble and smooth/rough contrast are the accepted listening baseline. Friction was judged
-usable for game comparison; a somewhat higher pitch remains a possible future preference, not a change
-in this integration. Preserve all listening coefficients, including the 800 Hz free resonance, road tap
-and pickup gains. The prior broadband-mute choice applies to CURRENT only, not CONTACT.
+usable in the game; the user then requested higher-pitched squeal and distinct loose surfaces.
+This explicitly revises the friction time scale and the former shared loose-surface map. Preserve the
+accepted paved and dirt rolling taps and all pickup gains; CURRENT remains the unchanged comparison. The prior broadband-mute choice applies to CURRENT only, not CONTACT.
 
 Both sounds share a force-driven vibration primitive: roughness excites the passive mode while friction
 can supply energy to the tangential mode. These are different excitation mechanisms. Each axle has one
@@ -179,9 +179,19 @@ Game input is explicitly mapped, never mistaken for local contact pressure or a 
 - Representative slip is `4 * axleSlip / (axleSlip + 20)`, a monotone authored map, not a local-contact
   derivation. At 5 m/s axle slip it supplies 0.8 m/s to the kernel. Its nonmonotone squeal response still
   comes from the friction equation. There is no utilization gate or maneuver-specific pitch rule.
-- The continuous texture mix is 0 on ASPHALT, 0.5 on SHOULDER and 1 on GRASS/DIRT/SAND. Those three loose
-  surfaces deliberately share one sketch; no distinct sand/grass acoustics is claimed. It interpolates
-  roughness and friction weakening through the kernel's control response without resetting states.
+- A discrete surface index selects one entry in the acoustic texture catalog. ASPHALT, SHOULDER,
+  GRASS, DIRT and SAND have distinct forcing settings. Scalar k-rate transport carries that identity;
+  the kernel smooths the resolved coefficients, never the index. Fractional/nonfinite identities
+  release forcing rather than visiting arbitrary intermediate materials. State is not reset.
+
+[tire-contact-acoustics](../src/audio/tire-contact-acoustics.ts) owns the sole surface catalog,
+including labels, identities, roughness strengths, spatial rates and friction weakening. These are
+**authored sound-design sketches, not measured material properties**. Paved is the accepted smooth
+baseline; dirt retains the earlier accepted rough road tap. Sand uses finer spatial forcing and more
+scrub, while grass is softer/coarser and the shoulder lies between paved and loose in tonal drive.
+Grass/dirt/sand have zero velocity weakening, but retain rolling and rubbing vibration: no squeal
+must not mean no sound. At a transition only forces and spatial traversal rates change, not mass,
+stiffness or stored oscillator state; no artificial spring-energy jump or waveform crossfade is added.
 
 [tire-sound-controls](../src/audio/tire-sound-controls.ts) owns this provisional mapping and its numbers.
 Both axles use it, without front/rear constants or vehicle-ID branches. Existing directional slip-power
@@ -192,10 +202,13 @@ make a bounded gameplay comparison possible, not a calibrated full-tire model.
 Both modes use `m*x'' + c*x' + k*x = F(V-x',N) + e`, with `k=m*(2*pi*f0)^2` and
 `c=2*zeta*m*2*pi*f0`. Passive road stepping sets friction load to zero. The trial friction is
 `F(u,N)=N*(muD+drop/(1+(u/vc)^2))*u/sqrt(u^2+ve^2)`: bounded, odd and dissipative
-(`F*u>=0`), with velocity weakening but no exact sticking. The friction sketch uses 800 Hz,
-0.5 g and damping ratio 0.03. Mass sets the mechanical impedance: stiffness and damping are
-derived from the unchanged free frequency and damping ratio. Stronger friction relative to that
-impedance produces slip-dependent cycles and harmonics in the same equation, not a pitch map. The
+(`F*u>=0`), with velocity weakening but no exact sticking. The friction sketch uses a 1200 Hz free
+resonance, representative mass 1/3 g and damping ratio 0.03. This time-scales the previous accepted
+800 Hz / 0.5 g mode by a=1.5: m'=m/a, k'=a*k and c'=c. For steady controls without roughness,
+x_new(t)=x(a*t)/a and v_new(t)=v(a*t) solve the continuous system with the same force law. The nonlinear
+frequency therefore rises without retuning the velocity-weakening law or imposing a pitch map;
+velocity-cycle shape and damping/forcing balance are retained in that ideal limit. Discretization,
+input smoothing, spatial forcing and output filters prevent a claim of exact time-scaled game PCM. The
 free-mode frequency is not the frequency of the nonlinear sliding cycle. These are uncalibrated
 representative properties, not a measured tread mass or a whole-tire model.
 Removing weakening suppresses sustained squeal in tested steady conditions without removing roughness.
@@ -217,7 +230,8 @@ failure, not a state clamp. The discrete energy identity is
 not acoustic watts or energy-conserving coupling to the game's tire forces.
 
 Road/slip distances independently advance smooth quintic random fields, with analytic interval means
-and at most one cell crossing per sample in the declared domain. Seeds advance at spatial cell crossings,
+and at most one cell crossing per sample in the declared domain, including the fastest material
+spatial rate. Catalog-bound regressions enforce that limit at the minimum output rate. Seeds advance at spatial cell crossings,
 not on an audio-rate clock. Rough forces vanish at rest and are bounded by representative load times
 texture coefficients; no raw noise is mixed into the output. Input following is 10 ms, but zero support
 immediately removes forcing and leaves free decay. Setting a speed to zero stops that roughness drive.
@@ -230,7 +244,8 @@ not constitute complete nonlinear antialiasing; residual aliasing and device cos
 The [trial worklet](../src/dev/diagnostics/tire-contact-processor.ts) has six k-rate AudioParams and
 four mono taps (front road/friction, rear road/friction). Its port accepts stop only. The
 [interactive page](../tools/tire-contact-browser.html), served over HTTP after building, mixes these
-taps at fixed gain and can solo either axle or component without changing the model. The standalone audition uses fixed texture presets; gameplay interpolates the same two sketches.
+taps at fixed gain and can solo either axle or component without changing the model. The standalone audition uses the same catalog presets as gameplay; gameplay follows resolved surface
+coefficients continuously.
 There are no PCM assets or diagnostic worklet imports in gameplay.
 
 Run `node --test tests/tire-contact-trial.test.mjs` after building. Tests cover energy/passivity,

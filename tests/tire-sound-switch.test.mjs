@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { contactTireParameters, TIRE_CONTACT_MAPPING, TIRE_CONTROL_RANGES } from '../dist/audio/tire-sound-controls.js';
 import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
-import { CONTACT_ACOUSTICS, CONTACT_INPUTS } from '../dist/audio/tire-contact-acoustics.js';
+import { CONTACT_ACOUSTICS, CONTACT_INPUTS, CONTACT_TEXTURE_KEYS } from '../dist/audio/tire-contact-acoustics.js';
 import { TireSynthesis } from '../dist/audio/tire-synthesis.js';
 import { createTireVoice } from '../dist/audio/tire-voice.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
@@ -337,8 +337,8 @@ test('surface transitions preserve contact state, remain bounded and cannot reta
     const roughness = synth.roadTexture,
       oscillator = synth.friction;
     let peak = 0;
-    for (const mix of [0, 1, 0.5, 0, 1]) {
-      synth.update(50, 0.5, 8, mix);
+    for (const surfaceIndex of [0, 3, 1, 4, 2, 0, 3]) {
+      synth.update(50, 0.5, 8, surfaceIndex);
       for (let i = 0; i < rate / 4; i++) peak = Math.max(peak, Math.abs(synth.sample()));
       assert.equal(synth.roadTexture, roughness);
       assert.equal(synth.friction, oscillator);
@@ -347,7 +347,58 @@ test('surface transitions preserve contact state, remain bounded and cannot reta
     synth.update(100, 4, 0);
     for (let i = 0; i < rate / 2; i++) synth.sample();
     assert.ok(Math.abs(synth.sample()) < 1e-8);
-    for (const mix of [NaN, -1, 2]) assert.throws(() => synth.update(10, 0.5, 5, mix), RangeError);
+    for (const invalid of [NaN, -1, 0.5, CONTACT_TEXTURE_KEYS.length])
+      assert.throws(() => synth.update(10, 0.5, 5, invalid), RangeError);
     assert.throws(() => oscillator.step(0.5, 5, 0, CONTACT_ACOUSTICS.friction.drop + 0.1), RangeError);
   }
+});
+
+test('material identities travel independently through the real voice and processor without frame messages', async (t) => {
+  install(t);
+  const context = new FakeAudioContext();
+  const voice = createTireVoice(context, context.destination);
+  t.after(() => voice.dispose());
+  const input = state();
+  input.front.surface = 'SAND';
+  input.rear.surface = 'GRASS';
+  voice.setModel('contact');
+  voice.update(input);
+  const worklet = context.nodes.find((node) => node.name === 'vehicle-tires');
+  const p = params();
+  for (const [key, param] of worklet.parameters) if (key in p) p[key][0] = param.value;
+  assert.equal(p.front_surfaceIndex[0], CONTACT_TEXTURE_KEYS.indexOf('sand'));
+  assert.equal(p.rear_surfaceIndex[0], CONTACT_TEXTURE_KEYS.indexOf('grass'));
+  const Processor = await processor(t);
+  const node = new Processor();
+  node.port.onmessage({ data: { model: 'contact' } });
+  const output = [[new Float32Array(4096)]];
+  node.process([], output, p);
+  const front = new TireContactSynthesis(48000, CONTACT_ACOUSTICS.frontSeed);
+  const rear = new TireContactSynthesis(48000, CONTACT_ACOUSTICS.rearSeed);
+  for (const [axle, kernel] of [
+    ['front', front],
+    ['rear', rear],
+  ])
+    kernel.update(
+      p[`${axle}_travelSpeed`][0],
+      p[`${axle}_slipSpeed`][0],
+      p[`${axle}_load`][0],
+      p[`${axle}_surfaceIndex`][0],
+    );
+  assert.deepEqual(
+    output[0][0],
+    Float32Array.from({ length: 4096 }, () => (front.sample() + rear.sample()) * CONTACT_ACOUSTICS.listeningGain),
+  );
+  const messageCount = worklet.messages.length;
+  for (const surface of ['DIRT', 'ASPHALT', 'SHOULDER']) {
+    input.front.surface = surface;
+    voice.update(input);
+  }
+  assert.equal(worklet.messages.length, messageCount);
+  // A fractional or nonfinite identity is invalid, not a blend of unrelated surface indices.
+  p.front_surfaceIndex[0] = 1.5;
+  p.rear_surfaceIndex[0] = NaN;
+  const silence = [[new Float32Array(24000)]];
+  assert.doesNotThrow(() => node.process([], silence, p));
+  assert.ok(silence[0][0].slice(-128).every((v) => Math.abs(v) < 1e-8));
 });

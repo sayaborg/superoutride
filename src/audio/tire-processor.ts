@@ -74,8 +74,9 @@ class TireProcessor extends AudioWorkletProcessor {
     const travel = this.read(p, axle, 'travelSpeed'),
       slip = this.read(p, axle, 'slipSpeed');
     const load = this.read(p, axle, 'load'),
-      texture = this.read(p, axle, 'textureMix');
-    if (this.valid && Number.isFinite(travel + slip + load + texture)) kernel.update(travel, slip, load, texture);
+      texture = this.read(p, axle, 'surfaceIndex');
+    if (this.valid && Number.isFinite(travel + slip + load) && Number.isInteger(texture))
+      kernel.update(travel, slip, load, texture);
     else kernel.update(0, 0, 0);
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], p: Record<string, Float32Array>): boolean {

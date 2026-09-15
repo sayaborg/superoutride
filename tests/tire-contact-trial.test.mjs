@@ -34,7 +34,11 @@ test('velocity weakening sustains a tone; sufficient damping, no weakening or no
   // Retain the original 4 g causal fixture as well as the current trial. A damping RATIO of .25
   // is not the same physical damping after changing mass. Use the proven slope bound for the new case.
   for (const massKg of [0.004, CONTACT_ACOUSTICS.frictionMode.massKg]) {
-    const mode = { ...CONTACT_ACOUSTICS.frictionMode, massKg };
+    // Keep the original 4 g / 800 Hz ablation fixture intact when the product pitch changes.
+    const mode =
+      massKg === 0.004
+        ? { massKg, frequencyHz: 800, dampingRatio: 0.03 }
+        : { ...CONTACT_ACOUSTICS.frictionMode, massKg };
     const f = CONTACT_ACOUSTICS.friction;
     const slopeBound = (5 * 9 * f.drop) / (8 * Math.sqrt(3) * f.weakeningSpeed);
     const enoughDamping = slopeBound / (2 * massKg * 2 * Math.PI * mode.frequencyHz) + 0.1;
@@ -146,7 +150,7 @@ test('front and rear use one model but do not share mutable oscillator or roughn
   assert.ok(different);
 });
 
-test('both textures retain finite unclipped output and decay after abrupt transitions at input corners', () => {
+test('all surface textures retain finite unclipped output and decay after abrupt transitions at input corners', () => {
   for (const rate of [44100, 48000, 96000])
     for (const texture of Object.keys(CONTACT_TEXTURES)) {
       const voice = new TireContactSynthesis(rate, 42, texture);

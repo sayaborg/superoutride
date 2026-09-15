@@ -1,6 +1,8 @@
 import {
   CONTACT_INPUTS,
   CONTACT_TEXTURES,
+  CONTACT_TEXTURE_KEYS,
+  type ContactTextureParameters,
   CONTACT_ACOUSTICS,
   type ContactFrictionParameters,
   type ContactModeParameters,
@@ -170,8 +172,8 @@ export class TireContactSynthesis {
   private readonly slipTexture: DistanceRoughness;
   private readonly smoothing: number;
   private readonly tone: number;
-  private textureMix: number;
-  private targetTextureMix: number;
+  private readonly texture: { -readonly [K in keyof ContactTextureParameters]: number };
+  private targetTexture: ContactTextureParameters;
   private travel = 0;
   private slip = 0;
   private load = 0;
@@ -187,7 +189,8 @@ export class TireContactSynthesis {
     texture: keyof typeof CONTACT_TEXTURES = 'paved',
   ) {
     if (!Object.hasOwn(CONTACT_TEXTURES, texture)) throw new RangeError('unknown contact texture');
-    this.textureMix = this.targetTextureMix = texture === 'loose' ? 1 : 0;
+    this.targetTexture = CONTACT_TEXTURES[texture];
+    this.texture = { ...this.targetTexture };
     this.road = new ContactMode(rate, CONTACT_ACOUSTICS.roadMode);
     this.friction = new ContactMode(rate, CONTACT_ACOUSTICS.frictionMode);
     this.roadTexture = new DistanceRoughness(CONTACT_ACOUSTICS.roadCellMeters, seed);
@@ -195,7 +198,7 @@ export class TireContactSynthesis {
     this.smoothing = 1 - Math.exp(-1 / (CONTACT_ACOUSTICS.controlSeconds * rate));
     this.tone = 1 - Math.exp((-2 * Math.PI * CONTACT_ACOUSTICS.outputCutoffHz) / rate);
   }
-  update(travel: number, slip: number, load: number, textureMix = this.targetTextureMix): void {
+  update(travel: number, slip: number, load: number, surfaceIndex?: number): void {
     if (
       !Number.isFinite(travel) ||
       travel < 0 ||
@@ -206,15 +209,14 @@ export class TireContactSynthesis {
       !Number.isFinite(load) ||
       load < 0 ||
       load > CONTACT_INPUTS.load.max ||
-      !Number.isFinite(textureMix) ||
-      textureMix < 0 ||
-      textureMix > 1
+      (surfaceIndex !== undefined &&
+        (!Number.isInteger(surfaceIndex) || surfaceIndex < 0 || surfaceIndex >= CONTACT_TEXTURE_KEYS.length))
     )
       throw new RangeError('contact audio input outside domain');
     this.targetTravel = travel;
     this.targetSlip = slip;
     this.targetLoad = load;
-    this.targetTextureMix = textureMix;
+    if (surfaceIndex !== undefined) this.targetTexture = CONTACT_TEXTURES[CONTACT_TEXTURE_KEYS[surfaceIndex]!];
   }
   sample(): number {
     this.travel += this.smoothing * (this.targetTravel - this.travel);
@@ -223,13 +225,17 @@ export class TireContactSynthesis {
     this.load = this.targetLoad === 0 ? 0 : this.load + this.smoothing * (this.targetLoad - this.load);
     const travel = this.targetTravel === 0 ? 0 : this.travel;
     const slip = this.targetSlip === 0 ? 0 : this.slip;
-    const roadNoise = this.roadTexture.sample(this.load > 0 ? travel / this.rate : 0);
-    const slipNoise = this.slipTexture.sample(this.load > 0 ? slip / this.rate : 0);
-    this.textureMix += this.smoothing * (this.targetTextureMix - this.textureMix);
-    const { paved, loose } = CONTACT_TEXTURES;
-    const roadRoughness = paved.roadRoughness + this.textureMix * (loose.roadRoughness - paved.roadRoughness);
-    const slipRoughness = paved.slipRoughness + this.textureMix * (loose.slipRoughness - paved.slipRoughness);
-    const drop = paved.frictionDrop + this.textureMix * (loose.frictionDrop - paved.frictionDrop);
+    const texture = this.texture,
+      target = this.targetTexture;
+    texture.roadRoughness += this.smoothing * (target.roadRoughness - texture.roadRoughness);
+    texture.slipRoughness += this.smoothing * (target.slipRoughness - texture.slipRoughness);
+    texture.frictionDrop += this.smoothing * (target.frictionDrop - texture.frictionDrop);
+    texture.roadRate += this.smoothing * (target.roadRate - texture.roadRate);
+    texture.slipRate += this.smoothing * (target.slipRate - texture.slipRate);
+    // Retain the same spatial phase and random stream across surfaces, including rapid changes.
+    const roadNoise = this.roadTexture.sample(this.load > 0 ? (travel / this.rate) * texture.roadRate : 0);
+    const slipNoise = this.slipTexture.sample(this.load > 0 ? (slip / this.rate) * texture.slipRate : 0);
+    const { roadRoughness, slipRoughness, frictionDrop: drop } = texture;
     const roadForce =
       (this.load * roadRoughness * roadNoise * travel) / Math.hypot(travel, CONTACT_ACOUSTICS.roadForceSpeed);
     const slipForce =

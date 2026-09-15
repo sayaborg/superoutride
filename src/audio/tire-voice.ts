@@ -43,7 +43,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
           node.parameters.get(`${axle}_travelSpeed`)!.value = controls.travelSpeed;
           node.parameters.get(`${axle}_slipSpeed`)!.value = controls.slipSpeed;
           node.parameters.get(`${axle}_load`)!.value = controls.load;
-          node.parameters.get(`${axle}_textureMix`)!.value = controls.textureMix;
+          node.parameters.get(`${axle}_surfaceIndex`)!.value = controls.surfaceIndex;
         }
       }
       if (active !== null && desired !== active) {

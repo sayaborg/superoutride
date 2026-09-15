@@ -65,13 +65,12 @@ historical test counts here.
 ## Next work: assess tires in the game
 
 The user approved the rolling rumble/texture contrast and found the revised friction tone acceptable,
-with a possible preference for a somewhat higher pitch. They requested comparison with the existing
-sound while driving. Every course now has TIRES: CURRENT / TIRES: CONTACT beside SOUND/VOL.
+then requested a higher pitch and clearer dirt/sand/grass differences after the in-game comparison. Every course now has TIRES: CURRENT / TIRES: CONTACT beside SOUND/VOL.
 CURRENT remains the reload default; CONTACT is an opt-in gameplay trial, not final adoption.
 
 [Audio](audio.md#contact-model-and-game-comparison) owns both models, the shared kernel/settings,
 provisional axle-to-representative mapping, surface interpolation and fade/transport contract.
-No physics/control law, accepted engine sound, pitch setting or road pickup was changed for integration.
+Physics/control laws, accepted engine sound, CURRENT synthesis and paved/dirt road pickups remain unchanged.
 The former DEV kernel/settings were moved into audio and are reused by game and audition, not duplicated.
 Only one tire worklet/model runs at a time; switching fades tires alone and keeps both engines alive.
 
@@ -82,9 +81,11 @@ and fixed-gain scenarios; their representative controls must not be mistaken for
 Use `tools/tire-contact-characterize.mjs` for nonlinear pitch/harmonics and interference windows.
 
 The game map is an authored acoustic convention, not validated local tread physics. Review it before
-adjusting the kernel to compensate for incorrect input mapping. Loose materials currently share one
-sketch. More treble, final engine/tire balance, short natural release, broad interference/aliasing and
-actual phone performance remain listening/device work. Do not add automatic gain, axle detuning or
+adjusting the kernel to compensate for incorrect input mapping. The surface catalog now separates pavement, rough shoulder, grass, dirt and sand by forcing strength,
+spatial scale and velocity weakening. Friction is time-scaled 1.5x with unchanged mechanical damping
+and the same force law, rather than adding an output pitch effect or oscillator. All surface values
+remain authored sketches. Final engine/tire balance, short natural release, broad interference/aliasing
+and actual phone performance remain listening/device work. Do not add automatic gain, axle detuning or
 phase resets to conceal cancellation. Preserve the accepted road waveform and engine baseline.
 
 ## Other implementation areas

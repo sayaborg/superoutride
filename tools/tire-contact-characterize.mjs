@@ -6,8 +6,8 @@ import { CONTACT_SCENARIOS } from './tire-contact-scenarios.mjs';
 const build = resolve(process.argv[2] ?? 'dist');
 const load = (name) => import(pathToFileURL(join(build, 'audio', name)).href);
 const { ContactMode, TireContactSynthesis } = await load('tire-contact-model.js');
-const { CONTACT_ACOUSTICS: settings } = await load('tire-contact-acoustics.js');
-const report = { build, settings, steady: [], interference: [] };
+const { CONTACT_ACOUSTICS: settings, CONTACT_TEXTURES: textures } = await load('tire-contact-acoustics.js');
+const report = { build, settings, steady: [], interference: [], materials: [] };
 for (const rate of [44100, 48000, 96000]) {
   for (const slip of [0.1, 0.25, 0.5, 0.8, 1.2, 3]) {
     const mode = new ContactMode(rate, settings.frictionMode);
@@ -72,4 +72,31 @@ for (const rate of [44100, 48000, 96000]) {
     })),
   });
 }
+// Matched steady road/slip inputs at a fixed pickup gain; no loudness normalization.
+for (const texture of Object.keys(textures))
+  for (const slip of [0, 0.5]) {
+    const rate = 48000;
+    const voice = new TireContactSynthesis(rate, settings.frontSeed, texture);
+    voice.update(30, slip, 5);
+    for (let i = 0; i < rate; i++) voice.sample();
+    let road = 0,
+      friction = 0,
+      peak = 0;
+    for (let i = 0; i < rate; i++) {
+      const value = voice.sample();
+      road += voice.roadOutput ** 2;
+      friction += voice.frictionOutput ** 2;
+      peak = Math.max(peak, Math.abs(value));
+    }
+    report.materials.push({
+      texture,
+      travel: 30,
+      slip,
+      load: 5,
+      rate,
+      roadRms: Math.sqrt(road / rate),
+      frictionRms: Math.sqrt(friction / rate),
+      peak,
+    });
+  }
 console.log(JSON.stringify(report, null, 2));

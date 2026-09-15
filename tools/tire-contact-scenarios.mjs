@@ -1,5 +1,7 @@
+import { CONTACT_TEXTURE_KEYS } from '../dist/audio/tire-contact-acoustics.js';
+
 // Diagnostic inputs in representative-contact units, NOT a conversion from game axle telemetry.
-// Each row: start seconds, front [road travel, local slip, local N], rear [road travel, local slip, local N].
+// Each row: seconds, front/rear [travel, representative slip, representative N, optional surface index].
 export const CONTACT_SCENARIOS = [
   {
     id: 'rolling',
@@ -53,15 +55,41 @@ export const CONTACT_SCENARIOS = [
     ],
   },
   {
-    id: 'loose',
-    label: 'Loose sketch: rolling and rubbing, no velocity weakening',
-    texture: 'loose',
+    id: 'dirt',
+    label: 'Dirt: rolling and rubbing, no velocity weakening',
+    texture: 'dirt',
     seconds: 5,
     steps: [
       [0, [30, 0, 5], [30, 0, 5]],
       [1, [30, 0.5, 5], [30, 0.5, 5]],
       [3, [30, 0, 5], [30, 0, 5]],
       [4, [0, 0, 0], [0, 0, 0]],
+    ],
+  },
+  ...['shoulder', 'grass', 'sand'].map((texture) => ({
+    id: texture,
+    label: `${texture}: matched rolling and sliding`,
+    texture,
+    seconds: 5,
+    steps: [
+      [0, [30, 0, 5], [30, 0, 5]],
+      [1, [30, 0.5, 5], [30, 0.5, 5]],
+      [3, [30, 0, 5], [30, 0, 5]],
+      [4, [0, 0, 0], [0, 0, 0]],
+    ],
+  })),
+  {
+    id: 'surface-tour',
+    label: 'Asphalt / shoulder / dirt / sand / grass / asphalt, same motion and gain',
+    texture: 'paved',
+    seconds: 13,
+    steps: [
+      ...['paved', 'shoulder', 'dirt', 'sand', 'grass', 'paved'].map((key, i) => [
+        i * 2,
+        [30, 0.5, 5, CONTACT_TEXTURE_KEYS.indexOf(key)],
+        [30, 0.5, 5, CONTACT_TEXTURE_KEYS.indexOf(key)],
+      ]),
+      [12, [0, 0, 0], [0, 0, 0]],
     ],
   },
   {
