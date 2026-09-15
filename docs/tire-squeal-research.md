@@ -1,8 +1,10 @@
 # Tire squeal: physical evidence and synthesis implications
 
-This note records the physical evidence behind the current acoustic surrogate. [Audio](audio.md) owns current
-runtime behavior. The released implementation uses a bounded normal-form oscillator; an isolated contact-model trial is now available.
-Neither changes the vehicle force law.
+This is supporting research, not a runtime specification or a selected third algorithm.
+[Audio](audio.md#player-tire-synthesis) owns the retained in-game CURRENT/CONTACT implementations;
+[NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns the user's request to reconsider the method.
+The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
+not the numerical coefficients or realism of either existing sound engine.
 
 ## Mechanism supported by the sources
 
@@ -79,23 +81,25 @@ This explains why increasing the Q of a passively driven noise filter is not its
 self-excitation mechanism. It is an illustrative mechanism, not a claim that velocity weakening
 is the only possible friction-induced instability.
 
-## Consequences for SUPER OUTRIDE
+## Limits for method selection
 
-The game now offers CURRENT and CONTACT for user-requested A/B comparison. CURRENT retains the
-bounded self-excited oscillator without rolling noise; CONTACT reuses the accepted rolling rumble and
-nonlinear friction-vibration kernel. The earlier broadband-mute preference does not restrict CONTACT.
-[Audio](audio.md#contact-model-and-game-comparison) owns the equations, representative units, provisional
-axle mapping and comparison limits. This evidence note does not validate the authored conversion or
-establish realistic sound merely because a mechanical oscillator is used.
+The sources support friction-fed vibration as one possible mechanism; they do not select the current
+Hopf oscillator, CONTACT's one-element law or any third approach. A mechanically consistent surrogate
+can still omit the structure and statistics responsible for a convincing complete tire sound.
+Passive road excitation and friction-fed vibration may share a vibration primitive without being the
+same excitation mechanism. A successor may separate or combine their audible components explicitly.
 
-The sources do not validate the current onset, pitch, harmonic or roughness constants. Directional
-slip power remains a useful energy input, but cannot alone determine tone frequency, onset or sound
-pressure. The game has no local rubber stiffness, loss factor, tread temperature or contact-pressure
-field; its vehicle-scale tire coefficients must not be relabeled as those quantities.
+The sources do not validate current onset, pitch, harmonic, roughness or output-gain constants.
+Directional slip power is an available-energy cue, not acoustic power or a complete predictor of
+frequency, onset or loudness. The game has no local rubber stiffness, loss factor, tread temperature
+or contact-pressure field; vehicle-scale coefficients must not be relabeled as those quantities.
 
-Use the current tire audition on lateral slide, wheel lock, spin, loose surface and recovery
-sequences, with front/rear tested separately and together. Check 44.1/48 kHz stability, fading and
-CPU cost. Choose pitch and onset controls explicitly as sound-design approximations. Do not infer
-a universal threshold from one rig, make lateral sliding a prerequisite, or add thermal/contact
-physics solely to justify an audio parameter. Earlier noise-band experiments are available in Git
-if specifically needed; restarting does not require saved audio files or temporary reference modules.
+Do not turn one experiment's speed into a universal axle threshold, require lateral slip for every
+squeal, or add thermal/contact physics solely to justify an audio parameter. Distinguish harmonic
+partials, other tonal components and broadband sound when evaluating the user's request for a richer,
+less single-tone result; added oscillators are not themselves evidence of greater realism.
+
+Prepared/precomputed sound is eligible for the new tire investigation; the engine contract is separate.
+No candidate has been selected. Use the single checkpoint for feedback and decision criteria rather
+than creating another proposal/handoff archive. Existing audition tools regenerate both reference
+models; prior chat audio files are unnecessary.

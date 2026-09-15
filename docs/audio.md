@@ -5,12 +5,15 @@
 Audio is a read-only presentation layer. Physics owns RPM, actuators, wheel motion, load and tire
 utilization; audio owns oscillator, envelope and filter state. Audio imports only Core. Vehicle binds
 acoustic profiles, and browser composition adapts completed physical observations. Audio never writes
-motion, gearing, recovery or race progress, and never repeats contact or tire solves.
+motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
-The engine is the accepted listening baseline. Tire timbre and final engine/tire mix calibration remain
-unfinished. The user approved in-game A/B comparison, not final replacement; CURRENT remains the default.
-Preserve sample-free synthesis and a small fixed voice count; actual Android performance
-and device listening remain open. A structural cleanup must preserve the accepted engine waveform.
+The engine is the accepted sample-free listening baseline. CURRENT and CONTACT remain tire comparison
+references, not calibrated real-tire models or final adoption. CURRENT is the reload default.
+[The checkpoint](NEXT.md#next-decision-a-third-tire-sound-method) owns the requested third-method
+investigation; this specification describes the retained runtime, not the future method selection.
+Both current tire implementations generate sound without recordings. That fact does not prohibit a
+prepared-sound or hybrid tire candidate. Keep the engine waveform and fixed voice/lifecycle boundaries
+unchanged; actual Android performance, tire timbre and final mix acceptance remain open.
 
 **Interpretation rule:** reference-derived coefficients use the explicit assumptions below; authored
 coefficients, pipe geometry and acoustic output are listening conventions. Neither category represents
@@ -112,109 +115,100 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 
 ## Player tire synthesis
 
-The [physical evidence note](tire-squeal-research.md) distinguishes self-excited tread vibration from
-passively filtered noise. The current [mapping/kernel](../src/audio/tire-synthesis.ts) is an unfinished
-Hopf surrogate, not local rubber/contact dynamics. Engine approval does not approve tire timbre.
+Two comparison models are implemented; no third model exists. The
+[evidence note](tire-squeal-research.md) motivates mechanisms without calibrating either implementation.
+[Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
+tangential travel speed, slip-speed magnitude, directional dissipated slip power, utilization and
+surface identity. These are not local rubber properties. Audio state never feeds vehicle mechanics.
 
-Telemetry observes accepted final wheel forces: `Px = max(0, fx*sx*referenceSpeed)` and
-`Py = max(0, fy*sy*referenceSpeed)` in watts, with slip signs following force direction. Unsupported
-contacts supply zero. The map combines `sqrt(P/(P+12000))`, utilization/slip onset, surface susceptibility,
-lateral-work preference and high-slip roll-off. Slip onset spans 0.5–2 m/s and roll-off scale is 45 m/s.
-Pitch is `650 + 350*vSlip/(vSlip+6) + 220*(1-lateralWorkFraction)` Hz, spanning 650–1220 Hz.
+### CURRENT baseline
 
-Each axle has independent complex state `z = x + iy`:
+The [CURRENT mapping/kernel](../src/audio/tire-synthesis.ts) uses a Hopf surrogate, not local contact
+dynamics. Final accepted wheel forces give `Px=max(0,fx*sx*referenceSpeed)` and
+`Py=max(0,fy*sy*referenceSpeed)` in watts; unsupported contacts supply zero. Mapping combines
+`sqrt(P/(P+12000))`, utilization/slip onset, surface susceptibility, lateral-work preference and
+high-slip roll-off. Slip onset spans 0.5–2 m/s; roll-off scale is 45 m/s. Pitch is
+`650+350*vSlip/(vSlip+6)+220*(1-lateralWorkFraction)` Hz, spanning 650–1220 Hz.
+
+Each axle owns independent complex state `z=x+iy`:
 
 ```text
 z' = (sigma - beta*|z|² + i*omega)*z + small random excitation
 sigma = 140*(smoothedExcitation - 0.12) / s; beta = 150 / s
 ```
 
-A rational radial step `(1 + sigma*dt)/(1 + beta*|z|²*dt)` and rotation advance the states. Rotation
-refreshes every 32 samples independently of render-block boundaries. Seed-derived detuning is within
-±0.6%. Pickup is `y + 0.32*(2xy) + 0.12*y*(3x²-y²)`; each axle has bounded ±0.35 output. Random
-perturbations seed/roughen the oscillator but are never mixed directly into the output. Ordinary rolling
-and broadband scrub stay silent by user preference. Low-susceptibility surfaces may not reach the present
-onset; onset dynamics, material contrast, release, gain and engine masking remain tire-design work.
+A rational radial step and phase rotation advance the state. Rotation coefficients refresh every
+32 samples, independently of host blocks. Seed-derived detuning stays within ±0.6%; the pickup adds
+phase-locked harmonics and soft compression, bounded by ±0.35 per axle. Noise seeds/roughens vibration
+but is not mixed directly into output. Rolling/broadband scrub remains silent in this retained version;
+that earlier preference is not a restriction on CONTACT or the next method. Low-susceptibility surfaces
+may never reach its onset. Material contrast, dynamics and masking are limitations, not desired behavior
+for a successor.
 
-The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame.
-The [processor](../src/audio/tire-processor.ts) runs only the selected model, with one independent kernel
-per axle. CURRENT retains the existing mapping and oscillator; its continuous transport now uses
-AudioParams rather than frame messages. Its safety pitch domain remains 400–2400 Hz, wider than the
-mapping above. Invalid controls release the affected axle into silence.
+### Shared comparison and transport
 
-TIRES: CURRENT / TIRES: CONTACT is a session-local comparison button in every game mode, usable by
-mouse, touch and native keyboard activation. CURRENT is the reload default. The choice survives engine
-tuning/reset, vehicle changes, mute, delayed startup and sound retry. It changes no physical calibration.
-Before replacing the two tire kernels, only their common output fades down for the shared 90 ms
-transition (10 ms decay constant), then fades up at the common control rate. Rapid changes supersede
-pending choices; returning to the active model cancels replacement. There is still one tire worklet
-and only one active model; inactive models perform no sample processing. The port carries model
-replacement and stop only. No switch changes either engine slot, master level or context lifetime.
-A worklet processor error is surfaced on the next presentation update to the existing SOUND RETRY boundary.
+The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame;
+[controls](../src/audio/tire-sound-controls.ts) own transport domains and model identity. CURRENT's
+400–2400 Hz safety pitch domain is wider than its generated range. Invalid controls release forcing.
+The [processor](../src/audio/tire-processor.ts) computes only the selected pair of axle kernels.
 
-The [shared module entry](../src/audio/vehicle-processor.ts) loads both processors in one transaction.
-Rival tires, wind, events and music remain unimplemented. Comparison is not final mix/device acceptance.
+TIRES: CURRENT / TIRES: CONTACT is available in every course via mouse, touch and native keyboard
+activation. CURRENT is the reload default. Choice survives mute, delayed startup, vehicle replacement,
+engine tuning/reset and sound retry. Only tire output fades down for the shared 90 ms transition
+(10 ms decay constant) before replacement, then rises at the shared control rate. Rapid choices
+supersede pending ones; returning to the active choice cancels replacement. One tire worklet remains;
+inactive models do no sample processing. The port carries model replacement and stop only. Engine
+slots, master gain, physical calibration and context lifetime are unaffected. Processor errors reach
+the existing SOUND RETRY boundary on presentation update. The
+[shared module entry](../src/audio/vehicle-processor.ts) loads engine and tire processors together.
+Rival tires, wind, events and music remain unimplemented.
 
 ### Contact model and game comparison
 
-The user restarted tire design and selected a minimal contact-vibration plus friction-vibration model.
-The rolling rumble and smooth/rough contrast are the accepted listening baseline. Friction was judged
-usable in the game; the user then requested higher-pitched squeal and distinct loose surfaces.
-This explicitly revises the friction time scale and the former shared loose-surface map. Preserve the
-accepted paved and dirt rolling taps and all pickup gains; CURRENT remains the unchanged comparison. The prior broadband-mute choice applies to CURRENT only, not CONTACT.
+CONTACT retains the auditioned rolling rumble and nonlinear friction experiment. Road and friction use
+the same force-driven vibration primitive, but different excitation: roughness drives the passive mode;
+friction can sustain the tangential mode. Each axle has one of each, identical coefficients and separate
+oscillator/spatial histories. The [kernel](../src/audio/tire-contact-model.ts) and
+[settings](../src/audio/tire-contact-acoustics.ts) belong to audio and are shared by game and audition.
 
-Both sounds share a force-driven vibration primitive: roughness excites the passive mode while friction
-can supply energy to the tangential mode. These are different excitation mechanisms. Each axle has one
-passive and one nonlinear mode, separate spatial histories and identical coefficients. The reusable
-kernel and acoustic settings belong to audio; DEV contains only the independent four-tap audition worklet.
+The [game adapter](../src/audio/tire-sound-controls.ts) maps observations into the kernel's representative
+domain. This is an authored listening convention, not a derivation of microscopic contact:
 
-The kernel accepts representative load 0–8 N, representative slip 0–4 m/s and road travel 0–100 m/s.
-Game input is explicitly mapped, never mistaken for local contact pressure or a measured tread speed:
+| Input               | Current mapping                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| Road travel         | Magnitude of completed longitudinal/lateral contact velocity, capped at 100 m/s; not wheel speed |
+| Representative load | `min(8,5*axleLoad/staticAxleLoad)` N; static reference is compiled `springRate*qStatic`          |
+| Representative slip | `4*axleSlip/(axleSlip+20)` m/s, within 0–4 m/s                                                   |
+| Surface             | Discrete catalog identity; fractional/nonfinite identities release forcing                       |
 
-- Road travel is the magnitude of the completed contact's longitudinal/lateral velocities, capped at
-  the supported acoustic domain. It is not wheel speed: locked or sideways-moving tires retain travel.
-- Representative load is `min(8, 5 * axleLoad / staticAxleLoad)`. The static reference is the compiled
-  suspension's `springRate * qStatic`; it is not another stored physical weight calculation. This
-  normalizes the representative element, not output RMS. Zero load or VOID stops new excitation.
-- Representative slip is `4 * axleSlip / (axleSlip + 20)`, a monotone authored map, not a local-contact
-  derivation. At 5 m/s axle slip it supplies 0.8 m/s to the kernel. Its nonmonotone squeal response still
-  comes from the friction equation. There is no utilization gate or maneuver-specific pitch rule.
-- A discrete surface index selects one entry in the acoustic texture catalog. ASPHALT, SHOULDER,
-  GRASS, DIRT and SAND have distinct forcing settings. Scalar k-rate transport carries that identity;
-  the kernel smooths the resolved coefficients, never the index. Fractional/nonfinite identities
-  release forcing rather than visiting arbitrary intermediate materials. State is not reset.
+Both axles use this map without vehicle/maneuver branches. Zero load or VOID stops new forcing;
+existing vibration decays. Directional slip power still drives CURRENT, but CONTACT does not treat
+it as acoustic watts. No contact patch, exact sticking, thermal field or tread-passing model is present.
 
-[tire-contact-acoustics](../src/audio/tire-contact-acoustics.ts) owns the sole surface catalog,
-including labels, identities, roughness strengths, spatial rates and friction weakening. These are
-**authored sound-design sketches, not measured material properties**. Paved is the accepted smooth
-baseline; dirt retains the earlier accepted rough road tap. Sand uses finer spatial forcing and more
-scrub, while grass is softer/coarser and the shoulder lies between paved and loose in tonal drive.
-Grass/dirt/sand have zero velocity weakening, but retain rolling and rubbing vibration: no squeal
-must not mean no sound. At a transition only forces and spatial traversal rates change, not mass,
-stiffness or stored oscillator state; no artificial spring-energy jump or waveform crossfade is added.
+Contact acoustics owns one authored surface catalog: asphalt, rough shoulder, grass, dirt and sand.
+The accepted paved/dirt rolling taps are retained. Sand has finer spatial forcing and more scrub;
+grass is softer/coarser; shoulder is intermediate in tonal drive. Grass/dirt/sand have zero weakening
+but retain rolling/rubbing vibration. On surface changes, resolved roughness strengths, spatial rates
+and weakening are smoothed; the index, stored states, mass, stiffness and output gains are not blended
+or reset. These textures are not measured material data.
 
-[tire-sound-controls](../src/audio/tire-sound-controls.ts) owns this provisional mapping and its numbers.
-Both axles use it, without front/rear constants or vehicle-ID branches. Existing directional slip-power
-observations continue to drive CURRENT; CONTACT does not reinterpret them as acoustic watts.
-No thermal state, contact patch, tread-passing or wheel-RPM simulation is added. These mapped controls
-make a bounded gameplay comparison possible, not a calibrated full-tire model.
+The common mode and friction law are:
 
-Both modes use `m*x'' + c*x' + k*x = F(V-x',N) + e`, with `k=m*(2*pi*f0)^2` and
-`c=2*zeta*m*2*pi*f0`. Passive road stepping sets friction load to zero. The trial friction is
-`F(u,N)=N*(muD+drop/(1+(u/vc)^2))*u/sqrt(u^2+ve^2)`: bounded, odd and dissipative
-(`F*u>=0`), with velocity weakening but no exact sticking. The friction sketch uses a 1200 Hz free
-resonance, representative mass 1/3 g and damping ratio 0.03. This time-scales the previous accepted
-800 Hz / 0.5 g mode by a=1.5: m'=m/a, k'=a*k and c'=c. For steady controls without roughness,
-x_new(t)=x(a*t)/a and v_new(t)=v(a*t) solve the continuous system with the same force law. The nonlinear
-frequency therefore rises without retuning the velocity-weakening law or imposing a pitch map;
-velocity-cycle shape and damping/forcing balance are retained in that ideal limit. Discretization,
-input smoothing, spatial forcing and output filters prevent a claim of exact time-scaled game PCM. The
-free-mode frequency is not the frequency of the nonlinear sliding cycle. These are uncalibrated
-representative properties, not a measured tread mass or a whole-tire model.
-Removing weakening suppresses sustained squeal in tested steady conditions without removing roughness.
-The [research note](tire-squeal-research.md) supplies physical motivation, not calibration for this law.
+```text
+m*x'' + c*x' + k*x = F(V-x',N) + e
+k = m*(2*pi*f0)^2; c = 2*zeta*m*2*pi*f0
+F(u,N) = N*(muD + drop/(1+(u/vc)^2))*u/sqrt(u^2+ve^2)
+```
 
-For each native sample `h`, solve midpoint velocity `w`:
+Passive road stepping sets friction load to zero. The friction is bounded, odd and dissipative
+(`F*u>=0`), with smooth velocity weakening rather than exact sticking. Its free resonance is 1200 Hz,
+effective mass 1/3 g and damping ratio 0.03; these are representative acoustic coefficients.
+The higher pitch follows the time scaling `m'=m/a, k'=a*k, c'=c`, with `a=1.5` and unchanged force law.
+For steady controls without roughness, `x_new(t)=x(a*t)/a` preserves the continuous velocity-cycle shape.
+Discrete stepping, input following, roughness and filters prevent exact time-scaled game PCM. Free
+resonance is not the nonlinear sliding frequency. Numerical consistency does not establish real-tire fidelity.
+
+For native sample interval `h`, the kernel solves midpoint velocity `w`:
 
 ```text
 A = 2m/h + c + kh/2
@@ -222,48 +216,52 @@ A*w - F(V-w,N) = 2m*v_old/h - k*x_old + e
 x_new = x_old + h*w; v_new = 2*w - v_old
 ```
 
-The constructor checks `A > Nmax*9*drop/(8*sqrt(3)*vc)`, a sufficient unique-root condition.
-Runtime weakening stays between zero and that configured maximum, preserving the same bound on every surface.
-The force bound supplies the bracket; safeguarded Newton has a fixed iteration ceiling and explicit
-failure, not a state clamp. The discrete energy identity is
-`E_new-E_old = h*((F+e)*w - c*w^2)` up to solve/roundoff error. This is local acoustic bookkeeping,
-not acoustic watts or energy-conserving coupling to the game's tire forces.
+Construction checks `A > Nmax*9*drop/(8*sqrt(3)*vc)`, a sufficient unique-root bound. Runtime weakening
+stays within that maximum. A friction-force bracket and safeguarded Newton solve the root with a
+finite iteration ceiling and explicit failure, not state clipping. The local energy identity is
+`E_new-E_old = h*((F+e)*w-c*w^2)` up to solve/roundoff error. It describes the acoustic surrogate,
+not acoustic watts or energy-conserving coupling to the vehicle solver.
 
-Road/slip distances independently advance smooth quintic random fields, with analytic interval means
-and at most one cell crossing per sample in the declared domain, including the fastest material
-spatial rate. Catalog-bound regressions enforce that limit at the minimum output rate. Seeds advance at spatial cell crossings,
-not on an audio-rate clock. Rough forces vanish at rest and are bounded by representative load times
-texture coefficients; no raw noise is mixed into the output. Input following is 10 ms, but zero support
-immediately removes forcing and leaves free decay. Setting a speed to zero stops that roughness drive.
-Road/friction velocity pickups pass separate 6 kHz one-pole filters and fixed gains. The road pickup
-stays 0.5; the friction pickup is 0.16 to retain headroom for larger mechanical velocities. This is a
-fixed velocity-to-output scale, not RMS matching or a change to the friction force. There is no clipper,
-RMS matching, separate squeal gate or imposed output envelope. Sample averaging and final filtering do
-not constitute complete nonlinear antialiasing; residual aliasing and device cost remain unqualified.
+Travel/slip distances advance separate quintic random fields using analytic interval means, with
+at most one cell crossing per sample throughout the declared surface/input domain. Seeds advance at
+cell crossings, not every audio-clock tick. Rough forces vanish at rest and are bounded by load and
+texture. Input following is 10 ms; zero support removes forcing immediately, and zero speed stops
+that roughness drive. Road/friction velocity pickups use separate 6 kHz one-pole filters, gains
+0.5/0.16 and common listening gain 0.5. No raw-noise feedthrough, clipper, AGC, RMS matching, imposed
+pitch map, separate squeal gate or post-hoc envelope is added.
 
-The [trial worklet](../src/dev/diagnostics/tire-contact-processor.ts) has six k-rate AudioParams and
-four mono taps (front road/friction, rear road/friction). Its port accepts stop only. The
-[interactive page](../tools/tire-contact-browser.html), served over HTTP after building, mixes these
-taps at fixed gain and can solo either axle or component without changing the model. The standalone audition uses the same catalog presets as gameplay; gameplay follows resolved surface
-coefficients continuously.
-There are no PCM assets or diagnostic worklet imports in gameplay.
+The [diagnostic worklet](../src/dev/diagnostics/tire-contact-processor.ts) exposes six k-rate controls,
+four mono road/friction/front/rear taps and stop-only messaging. It reuses this kernel; gameplay does
+not import it. [Development](development.md#tire-comparison-tools) lists audition/render/characterization
+commands. Generated WAVs are review outputs, not runtime dependencies. Existing tests retain road
+reference hashes, energy/weakening/convergence checks, finite transitions, transport and independent
+histories. An intentional future replacement must revise model-specific expectations explicitly,
+not weaken the still-valid observation, lifetime or physical/rendering contracts.
 
-Run `node --test tests/tire-contact-trial.test.mjs` after building. Tests cover energy/passivity,
-weakening ablation, convergence, roughness integration, independent histories, finite domain corners,
-transport partitions and release. `node tools/tire-contact-render.mjs OUTPUT_DIRECTORY [RATE]` writes
-fixed-gain mix/road/friction/front/rear WAVs and measurements using [shared scenarios](../tools/tire-contact-scenarios.mjs).
-Generated sound is review output, never a production PCM asset. Game comparison is now available;
-short natural release, full aliasing checks, mapping calibration and final mix remain open.
-Independent equal-coefficient axles can still interfere: richer harmonics reduce near-total cancellation
-in the published replay, but do not guarantee incoherence or a lower bound on mixed loudness. Do not
-add fixed front/rear detuning, phase resets, stereo separation or automatic gain to conceal cancellation.
-Run `node tools/tire-contact-characterize.mjs [BUILD_DIRECTORY]` on builds with the current module layout for
-steady pitch/harmonic measurements and every one-second interference window. It uses identical
-scenarios; neither a single cancellation window nor a fundamental-frequency match certifies the whole
-domain. [Calibration regressions](../tests/tire-contact-calibration.test.mjs) pin the accepted road taps
-and exercise the nonlinear response. The damping ablation retains the original 4 g fixture; at the new
-mass, sufficient damping is derived from the friction slope bound rather than reusing a ratio that no
-longer overcomes that bound. The trial does not authorize changing the accepted engine waveform.
+### Interpretation and cost limits
+
+Neither CURRENT nor CONTACT is a validated whole-tire acoustic approximation. CONTACT's effective
+mass, friction law, macro-to-local conversion, velocity pickup and surface data are authored surrogates.
+Similar listening impressions from the two methods do not validate those assumptions. A richer tone
+in one replay does not establish the correct harmonic/inharmonic structure. Short release, broad
+front/rear interference, nonlinear aliasing and final mix remain unresolved. Independent axle states
+do not guarantee incoherence. Preserve these references without adding corrective gains, fixed axle
+detuning or phase resets to conceal their limitations.
+
+Source-level work is known, but comparative device cost is not: at 48 kHz, two CONTACT axles call the
+friction step 96,000 times per second, with **up to** 24 iterations per nonzero-bound solve, not 24 on
+every sample. Zero friction bound has a direct linear path. The initial guess already uses previous
+endpoint velocity clipped to the new bracket. Road vibration, spatial fields, input/texture following
+and filters also run per sample. CURRENT uses a direct oscillator update instead of a root search;
+the A/B selector does not run both models simultaneously.
+
+No warmed paired CONTACT/CURRENT benchmark or complete phone audio/game budget is established here.
+Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average iterations, pure kernel
+cost or target-device certification. Do not infer a measured speed ratio from operation counts.
+Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
+root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
+Current construction accepts 44.1–192 kHz. The [next decision](NEXT.md#next-decision-a-third-tire-sound-method)
+is method selection, not presumed adoption of those optimization proposals.
 
 ## Mixing and lifetime
 

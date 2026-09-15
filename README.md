@@ -27,7 +27,19 @@ Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens,
 
 Use the selectors for vehicle, course and calibration. D, M and ACT use minus/value/plus controls; each step wraps at its range limit. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
 
-Sound starts on the first supported interaction. SOUND START begins or resumes audio; SOUND ON/OFF toggles mute, and VOL adjusts volume. On iPhone, disable silent mode and raise media volume if sound is inaudible. ENGINE TUNING exposes the same eight provisional controls as the audition page; minus/plus buttons apply each step after a short fade. Sound controls stop at their limits; VOL uses the same buttons. Reset restores shared defaults. The adopted waveguide runs at the output sample rate (formerly LITE). Player and nearest-rival engines plus independent front/rear player tire sounds are synthesized without recordings. Wind remains deferred. TIRES: CURRENT / TIRES: CONTACT switches player tire sound while driving; CURRENT is the reload default. CONTACT adds the auditioned rolling rumble and friction vibration using a provisional observation mapping, with higher-pitched friction and distinct pavement/shoulder/grass/dirt/sand textures. Only tires fade during switching; engine tuning and vehicle physics are unchanged. Tire timbre and mix calibration remain unfinished. The tire audition is at `http://localhost:8000/tools/tire-browser.html`.
+Sound starts on the first supported interaction. SOUND START begins or resumes audio; SOUND ON/OFF
+toggles mute, and VOL adjusts volume. On iPhone, disable silent mode and raise media volume if needed.
+ENGINE TUNING shares eight provisional minus/plus controls with the audition page. Changes fade;
+reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
+Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
+
+TIRES: CURRENT / TIRES: CONTACT switches player tire sound while driving, with independent front/rear
+state and only tire output fading. CURRENT is the reload default. CONTACT adds rolling rumble,
+higher-pitched friction vibration and separate pavement/shoulder/grass/dirt/sand sketches; its mapping
+is provisional, not calibrated local tire physics. Both are retained comparison references. The next
+task is to choose a third method, not assume CONTACT is the final model or merely optimize it; start
+from the [specification index and checkpoint](docs/README.md). The
+[development guide](docs/development.md#tire-comparison-tools) distinguishes both audition tools.
 
 See [current calibration values and meanings](docs/calibration.md).
 

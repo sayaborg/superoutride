@@ -28,7 +28,7 @@ The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable releas
 Focused audio verification after building uses:
 
 ```sh
-node --test tests/audio*.test.mjs tests/tire-synthesis.test.mjs tests/exhaust-*.test.mjs
+node --test tests/audio*.test.mjs tests/exhaust-*.test.mjs tests/tire-synthesis.test.mjs tests/tire-contact*.test.mjs tests/tire-sound-switch.test.mjs
 ```
 
 This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
@@ -50,6 +50,31 @@ node tools/steering-input-stop-benchmark.mjs /path/to/reference/dist /tmp/steeri
 The [torque protection probe](../tools/torque-protection-probe.mjs) compares protected and unprotected drive/brake behavior. The [steering limiter benchmark](../tools/steering-input-stop-benchmark.mjs) measures identical input groups against a supplied build. Retain these reproducible tools rather than copying generated reports into documentation.
 
 [Browser performance page](../tools/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. [Workload reduction](../src/render/render-workload.ts) reports current observations; no copied milestone maxima or arbitrary headroom multiplier establishes a device budget. Enforce actual clipping/accounting invariants and compare reference pixels, then measure on the target device. If device traces show allocation pressure, inspect TerrainLine/source-footprint construction and the per-line sampler closure before choosing a measured optimization; these are candidates, not demonstrated bottlenecks. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
+
+## Tire comparison tools
+
+Retain both reference toolchains; they exercise different models rather than duplicate implementations.
+Build first and serve the repository over HTTP. These tools are local diagnostics, not published Pages
+HTML or required saved audio assets. [Audio](audio.md#player-tire-synthesis) owns model/input semantics;
+[NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns the next design decision.
+
+| Reference                | Interactive page                                                | Reproducible output                                                 |
+| ------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------- |
+| CURRENT                  | [tire-browser.html](../tools/tire-browser.html)                 | `node tools/tire-render.mjs /absolute/current.wav`                  |
+| CONTACT                  | [tire-contact-browser.html](../tools/tire-contact-browser.html) | `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
+| CONTACT characterization | Same kernel, no alternate synthesis                             | `node tools/tire-contact-characterize.mjs dist`                     |
+
+Repeat CONTACT rendering at 44100 for native-rate comparison. Its four-tap page solos either axle or
+road/friction component. CONTACT scenarios use representative local-model controls; CURRENT scenarios
+use their own observation mapping. Identical slider numbers or unrelated scenario files are not a
+matched physical-input A/B test. For listening, the game's selector compares each model with live
+observations; a future automated comparison should replay one common observation trace into each
+model's adapter, without changing the vehicle trajectory.
+
+Offline rendering reports elapsed time and a maximum iteration count, but is not a warmed paired tire
+benchmark. Keep throughput, iteration distributions, spectra, listening and simultaneous device gameplay
+separate. See [cost limits](audio.md#interpretation-and-cost-limits); do not report estimated speedups as
+measurements. Generated files stay outside tracked source.
 
 ## Exact-commit release
 
