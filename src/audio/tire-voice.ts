@@ -7,6 +7,8 @@ import {
   spectralTireParameters,
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_SOUND_MODELS,
+  TIRE_COMPONENTS,
+  type TireComponents,
   type TireSoundModel,
 } from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -33,6 +35,12 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
     setModel(model: TireSoundModel): void {
       if (!TIRE_SOUND_MODELS.includes(model)) throw new RangeError('unknown tire sound model');
       desired = model;
+    },
+    setComponents(value: TireComponents): void {
+      if (disposed) return;
+      for (const { key } of TIRE_COMPONENTS)
+        if (typeof value[key] !== 'boolean') throw new RangeError('invalid tire component state');
+      for (const { key } of TIRE_COMPONENTS) node.parameters.get(`mix_${key}`)!.value = value[key] ? 1 : 0;
     },
     update(state: VehicleAudioObservation): void {
       if (disposed) return;

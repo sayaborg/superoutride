@@ -1,7 +1,12 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
-import { DEFAULT_TIRE_SOUND_MODEL, TIRE_SOUND_MODELS, type TireSoundModel } from '../audio/tire-sound-controls.js';
+import {
+  DEFAULT_TIRE_SOUND_MODEL,
+  TIRE_SOUND_MODELS,
+  TIRE_COMPONENTS,
+  type TireSoundModel,
+} from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -21,6 +26,26 @@ export function createAudioLifecycle() {
   const volumeContainer = document.getElementById('sound-volume');
   const tireButton = document.getElementById('tire-sound-toggle');
   let tireModel: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
+  const componentState = { road: true, scrub: true, squeal: true };
+  const componentHost = document.getElementById('tire-component-controls');
+  const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'selector-button';
+    button.id = `tire-component-${key}`;
+    button.title = `${label}: ${description}. SPECTRAL only; both axles. Other components are not normalized.`;
+    const toggle = (): void => {
+      if (disposed || !supported || tireModel !== 'spectral') return;
+      componentState[key] = !componentState[key];
+      showComponents();
+      unlock();
+      sync();
+    };
+    button.addEventListener('click', toggle);
+    button.addEventListener('keydown', tireKey);
+    componentHost?.appendChild(button);
+    return { key, label, description, button, toggle };
+  });
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
   let loading: Promise<void> | null = null;
@@ -76,7 +101,18 @@ export function createAudioLifecycle() {
               : 'SOUND…';
     button.setAttribute('aria-pressed', String(enabled && supported));
   }
+  function showComponents(): void {
+    for (const { key, label, description, button } of componentButtons) {
+      const on = componentState[key];
+      button.textContent = `${label}: ${on ? 'ON' : 'OFF'}`;
+      button.setAttribute('aria-pressed', String(on));
+      button.setAttribute('aria-label', `${description}: ${on ? 'on' : 'off'}. SPECTRAL only.`);
+      if (!supported || tireModel !== 'spectral') button.setAttribute('disabled', '');
+      else button.removeAttribute('disabled');
+    }
+  }
   function showTireModel(): void {
+    showComponents();
     if (!tireButton) return;
     tireButton.textContent = `TIRES: ${tireModel.toUpperCase()}`;
     tireButton.removeAttribute('aria-pressed'); // Also retire the boolean state on an older cached index.
@@ -137,6 +173,7 @@ export function createAudioLifecycle() {
     try {
       if (tuningControls) engine.setTuning(tuningControls.read());
       engine.setTireModel(tireModel);
+      engine.setTireComponents(componentState);
       engine.setVolume(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
       else if (!enabled)
@@ -225,6 +262,11 @@ export function createAudioLifecycle() {
     button?.removeEventListener('click', toggle);
     tireButton?.removeEventListener('click', toggleTires);
     tireButton?.removeEventListener('keydown', tireKey);
+    for (const { button, toggle } of componentButtons) {
+      button.removeEventListener('click', toggle);
+      button.removeEventListener('keydown', tireKey);
+    }
+    componentHost?.replaceChildren();
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
     tuningControls?.dispose();

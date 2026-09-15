@@ -1,4 +1,4 @@
-import { TIRE_CONTROL_RANGES } from '../../dist/audio/tire-sound-controls.js';
+import { TIRE_CONTROL_RANGES, TIRE_COMPONENTS, TIRE_COMPONENT_RANGE } from '../../dist/audio/tire-sound-controls.js';
 
 /** Scheduling/ownership fake; real waveform rendering is checked by the browser audio probe. */
 export class FakeAudioParam {
@@ -92,15 +92,20 @@ export class FakeAudioWorkletNode extends Node {
     super(context);
     this.name = name;
     if (name === 'vehicle-tires')
-      this.parameters = new Map(
-        ['front', 'rear'].flatMap((axle) =>
+      this.parameters = new Map([
+        ...TIRE_COMPONENTS.map(({ key }) => {
+          const p = new FakeAudioParam();
+          p.value = TIRE_COMPONENT_RANGE.defaultValue;
+          return [`mix_${key}`, p];
+        }),
+        ...['front', 'rear'].flatMap((axle) =>
           Object.entries(TIRE_CONTROL_RANGES).map(([key, range]) => {
             const p = new FakeAudioParam();
             p.value = range.defaultValue;
             return [`${axle}_${key}`, p];
           }),
         ),
-      );
+      ]);
   }
   parameters = new Map([
     ['rpm', new FakeAudioParam()],

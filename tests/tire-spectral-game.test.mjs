@@ -24,6 +24,7 @@ const input = (values = {}) => ({
   longitudinalVelocity: 25,
   lateralVelocity: 4,
   wheelSpeed: 25,
+  wheelAngularSpeed: (values.wheelSpeed ?? 25) / 0.3,
   load: 4000,
   longitudinalPower: 0,
   lateralPower: 12000,
@@ -43,27 +44,26 @@ function taps(kernel, count) {
 }
 
 // Captured from the approved isolated implementation at 32310e18, not generated from the new kernel.
-// Road is intentionally additional; the existing asphalt S/Q taps must remain bit-identical.
-test('approved asphalt scrub/squeal replays retain their exact PCM after promotion and road addition', () => {
+// The user-requested dynamic Q supersedes its old PCM contract. Unchanged S stays pinned alone.
+test('asphalt scrub replays retain their prior PCM independently of revised rolling and squeal', () => {
   const expected = {
-    44100: '9714b65d8a2ced441bc6c7ef3b92e3275e231761ec52894d01080342225b621c',
-    48000: 'c12ce5aa559ddb64883dc8c3b1e2dfe8c8c900ca6002feebfffbb59215146021',
+    44100: '90ce8640df5c0e799174a31f74e6e473b04644155cd081f52ae05541721de283',
+    48000: '817071543e8dd8a232759f31d0c3048189f32f5190758804ee83f7215ca91994',
   };
   for (const rate of [44100, 48000]) {
     const hash = createHash('sha256');
     for (const scene of SPECTRAL_SCENARIOS) {
       const kernel = new TireSpectralSynthesis(rate);
-      const pcm = new Float32Array(Math.round(scene.seconds * rate) * 2);
+      const pcm = new Float32Array(Math.round(scene.seconds * rate));
       let frame = -1;
-      for (let i = 0; i < pcm.length / 2; i++) {
+      for (let i = 0; i < pcm.length; i++) {
         const next = Math.floor((i * 60) / rate);
         if (next !== frame) {
           frame = next;
           kernel.update(spectralScenarioAt(scene, frame / 60));
         }
         kernel.sample();
-        pcm[2 * i] = kernel.scrubOutput;
-        pcm[2 * i + 1] = kernel.squealOutput;
+        pcm[i] = kernel.scrubOutput;
       }
       hash.update(Buffer.from(pcm.buffer));
     }
@@ -71,7 +71,7 @@ test('approved asphalt scrub/squeal replays retain their exact PCM after promoti
   }
 });
 
-test('rolling sound distinguishes translation and wheel rotation without treating either as the other', () => {
+test('rotation-driven R stops at locked/sideways translation and remains during supported stationary spin', () => {
   for (const [vx, vy, wheel] of [
     [25, 0, 25],
     [20, 0, 0],
@@ -91,11 +91,12 @@ test('rolling sound distinguishes translation and wheel rotation without treatin
     );
     taps(kernel, 4800);
     const [, road, scrub, squeal] = taps(kernel, 4800);
-    assert.ok(rms(road) > 0.001);
+    if (wheel === 0) assert.ok(road.every((v) => v === 0));
+    else assert.ok(rms(road) > 0.001);
     assert.ok(scrub.every((v) => v === 0));
     assert.ok(squeal.every((v) => v === 0));
     if (wheel === 0) assert.equal(kernel.bands[7].squaredNorm, 0);
-    if (vx === 0 && vy === 0) assert.equal(kernel.bands[6].squaredNorm, 0);
+    if (wheel === 0) assert.equal(kernel.bands[6].squaredNorm, 0);
   }
   const rest = new TireSpectralSynthesis(48000);
   rest.update(
@@ -147,12 +148,15 @@ test('signed acoustic telemetry uses accepted effective radius and wheel result,
   assert.equal(observed.front.longitudinalVelocity, -20);
   assert.equal(observed.front.lateralVelocity, 7);
   assert.equal(observed.front.wheelSpeed, -21.6);
+  assert.equal(observed.front.wheelAngularSpeed, -80);
   assert.equal(observed.front.longitudinalPower, 200);
-  for (const key of ['longitudinalVelocity', 'lateralVelocity', 'wheelSpeed']) assert.equal(observed.rear[key], 0);
+  for (const key of ['longitudinalVelocity', 'lateralVelocity', 'wheelSpeed', 'wheelAngularSpeed'])
+    assert.equal(observed.rear[key], 0);
   resetVehicleTireObservation(vehicle);
   for (const tire of [observed.front, observed.rear]) {
     assert.equal(tire.surface, 'VOID');
-    for (const key of ['longitudinalVelocity', 'lateralVelocity', 'wheelSpeed']) assert.equal(tire[key], 0);
+    for (const key of ['longitudinalVelocity', 'lateralVelocity', 'wheelSpeed', 'wheelAngularSpeed'])
+      assert.equal(tire[key], 0);
   }
   assert.deepEqual(vehicle, {}, 'observations never add authoritative state');
 });
@@ -206,6 +210,7 @@ test('spectral observation and mapping leave complete nine-vehicle mechanics unc
               1e-10,
           );
           assert.ok(Math.abs(Math.hypot(tire.longitudinalVelocity, tire.lateralVelocity) - tire.travelSpeed) < 1e-10);
+          assert.equal(tire.wheelAngularSpeed, a[`${axle}WheelOmega`]);
         }
       }
       assert.deepEqual(a, b);

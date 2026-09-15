@@ -78,9 +78,10 @@ export function spectralScenarioAt(scene, seconds) {
   while (i + 1 < scene.steps.length && scene.steps[i + 1][0] <= seconds) i++;
   const [start, a] = scene.steps[i];
   const next = scene.steps[i + 1];
-  if (!next || next[2] === 'step') return { ...a };
+  if (!next || next[2] === 'step') return { ...a, wheelAngularSpeed: a.wheelSpeed / 0.3 };
   const t = Math.max(0, Math.min(1, (seconds - start) / (next[0] - start)));
-  return Object.fromEntries(Object.keys(a).map((key) => [key, a[key] + t * (next[1][key] - a[key])]));
+  const v = Object.fromEntries(Object.keys(a).map((key) => [key, a[key] + t * (next[1][key] - a[key])]));
+  return { ...v, wheelAngularSpeed: v.wheelSpeed / 0.3 }; // Authored audition radius, not inferred real telemetry.
 }
 
 export function spectralReferenceObservation(v) {

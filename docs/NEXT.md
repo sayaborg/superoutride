@@ -20,52 +20,41 @@
 
 ## Next decision: a third tire-sound method
 
-The user listened to the SPECTRAL WAVs, judged them good, and authorized implementation in the game.
-The [SPECTRAL contract](audio.md#spectral-game-synthesis) now owns eight shared audio bands per axle:
-the retained asphalt scrub/squeal plus rolling texture and authored loose-surface differences.
-The kernel/settings moved from DEV into audio rather than being copied. DEV keeps only the separate
-S/Q audition worklet. Signed contact velocities and effective wheel peripheral speed are optional
-completed-solve observations, never another physical state or tire solve.
+The user judged SPECTRAL's squeal realistic, but found CURRENT more expressive through handling changes
+and recovery. Asphalt rolling sounded like white noise and not sufficiently tied to rotation; the S
+component was hard to identify. The user authorized improvements and independent R/S/Q buttons.
 
-CURRENT, CONTACT and SPECTRAL are available through the existing tire-only faded selector in every
-course. CURRENT remains the reload default. Engine tuning/reset, vehicle replacement, mute/resume and
-sound retry preserve the session's tire choice. Existing CURRENT/CONTACT synthesis and engine behavior
-are unchanged. Approved S/Q waveforms have exact 44.1/48 kHz replay regressions; added rolling and the
-new front/rear game mix are not covered by the earlier subjective approval.
+[Audio](audio.md#spectral-game-synthesis) owns the revised implementation: accepted wheel angular telemetry
+now drives lower rolling bands/texture, while Q's harmonic balance depends on its existing smoothed
+excitation. S is retained as an independent reference. This deliberately supersedes joint S/Q waveform
+identity for weak/transient Q; the strong palette, band mechanism and engine baseline are retained.
+No artificial front/rear timbres or labeled understeer/oversteer effects were introduced.
 
-### User feedback to carry forward
+### Next action: component listening in the game
 
-The previous rolling rumble and smooth/rough contrast were useful listening references, not a mandate
-to retain CONTACT's implementation. The user wants a high, rich friction sound and recognizable loose
-surfaces. SPECTRAL's asphalt S/Q WAVs were judged good; this is not whole-game, speaker or phone acceptance.
-Fidelity to essential audible behavior, simplicity and phone suitability remain joint priorities.
+Select SPECTRAL with two TIRES presses from CURRENT. R/S/Q buttons initially read ON, apply to both axles,
+and fade only their own output without resetting synthesis. They are disabled in the other models;
+choices persist for the session without altering the CURRENT reload default.
 
-### Next action: assess the integrated game
+Listen to R alone through acceleration, deceleration, wheel lock and supported wheelspin. It should be
+lower and respond to rotation; locked sliding belongs to S/Q, not R. Compare S alone, Q alone and S+Q
+through growing slip and grip recovery. Q should change harmonic balance rather than only loudness,
+while its strong squeal remains recognizable. Then restore all three and check engine masking,
+pavement/loose transitions, front/rear combination, mute/retry and actual phone play.
 
-Select TIRES: SPECTRAL (two presses from CURRENT). Compare ordinary rolling, progressive cornering,
-locked slide, moving/stationary wheelspin, sideways/reverse travel, shoulders and loose ground,
-loss of support/recontact, rapid model changes and mute/resume. Front and rear retain independent
-observations/state with identical synthesis/settings. SPECTRAL's road low band responds to contact
-travel and the high band to effective wheel peripheral speed; do not relabel either as the other.
-
-The separate S/Q audition still isolates the approved asphalt core. Use the
-[development tools](development.md#tire-comparison-tools) for fixed-gain replay and the actual-mechanics
-host probe. Do not infer an Android budget from host throughput, full-suite time or source operation
-counts. Workflow/artifact evidence is not native-browser listening. Keep performance, timbre, spectrum,
-transients and actual device execution as separate evidence.
+This is a candidate improvement, not listening acceptance or a measured whole-tire acoustic model.
+Same local observations need not have different sounds just because the car is called understeering
+or oversteering. Keep the observations, dynamics, timbre and output mix diagnoses separate. The low-cost
+mapping does not reproduce CURRENT's entire Hopf dynamics; do not silently transplant its old thresholds
+or add arbitrary recovery chirps to force recognition.
 
 ### Decision gate
 
-This release makes the selected candidate usable, not permanently adopted. Do not remove CURRENT or
-CONTACT, change the default, normalize the engine or add corrective gains/detuning to conceal a failed
-mix. If the core fails in gameplay, distinguish incorrect observations/mapping from timbre; reject the
-hypothesis and move to method four/five rather than accumulating corrective oscillators. Prepared,
-precomputed, procedural and hybrid tire successors remain eligible; the engine contract is unchanged.
-
-Demand rho is not grip remaining; accepted slip work is not acoustic watts. Local tread pressure,
-temperature and stiffness are not inferred. Preserve valid observation/lifecycle/physics/rendering
-coverage and the immutable mechanics/render oracle. Model-specific waveform revisions need an explicit
-listening/design decision; a genuinely different future method need not reproduce the old PCM.
+Retain CURRENT/CONTACT and the default, accepted engine, read-only mechanics and immutable physics/render
+oracle. Use unchanged S, stationary strong Q and dynamic spectral-response regressions instead of
+freezing an obsolete transient PCM requirement. Do not grow a parallel legacy SPECTRAL mode or a new
+history directory. Run complete validation on every candidate; target-device playback and user listening
+remain distinct from synthetic replays, host metrics, CI and deployment evidence.
 
 ## Accepted engine baseline
 

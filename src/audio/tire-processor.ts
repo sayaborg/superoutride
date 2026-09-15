@@ -7,6 +7,9 @@ import {
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_CONTROL_RANGES,
   TIRE_SOUND_MODELS,
+  TIRE_COMPONENTS,
+  TIRE_COMPONENT_RANGE,
+  TIRE_COMPONENT_FADE_SECONDS,
   type TireSoundModel,
 } from './tire-sound-controls.js';
 declare const sampleRate: number;
@@ -24,19 +27,26 @@ class TireProcessor extends AudioWorkletProcessor {
     -readonly [K in keyof SpectralObservation]: number;
   };
   private readonly rearSpectralControl = { ...this.frontSpectralControl };
+  private readonly componentFollow = 1 - Math.exp(-1 / (sampleRate * TIRE_COMPONENT_FADE_SECONDS));
+  private roadMix = 1;
+  private scrubMix = 1;
+  private squealMix = 1;
   private model: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
   private valid = true;
   private running = true;
   private readonly frontControl = { squeal: 0, pitch: 900 };
   private readonly rearControl = { squeal: 0, pitch: 900 };
   static get parameterDescriptors() {
-    return ['front', 'rear'].flatMap((axle) =>
-      Object.entries(TIRE_CONTROL_RANGES).map(([key, range]) => ({
-        name: `${axle}_${key}`,
-        ...range,
-        automationRate: 'k-rate',
-      })),
-    );
+    return [
+      ...TIRE_COMPONENTS.map(({ key }) => ({ name: `mix_${key}`, ...TIRE_COMPONENT_RANGE, automationRate: 'k-rate' })),
+      ...['front', 'rear'].flatMap((axle) =>
+        Object.entries(TIRE_CONTROL_RANGES).map(([key, range]) => ({
+          name: `${axle}_${key}`,
+          ...range,
+          automationRate: 'k-rate',
+        })),
+      ),
+    ];
   }
   constructor() {
     super();
@@ -113,6 +123,15 @@ class TireProcessor extends AudioWorkletProcessor {
       kernel.update(control); // Release only this axle; retain finite tails and permit later recovery.
     }
   }
+  private readMix(p: Record<string, Float32Array>, key: string): number {
+    const value = p[key]?.[0];
+    return value !== undefined &&
+      Number.isFinite(value) &&
+      value >= TIRE_COMPONENT_RANGE.minValue &&
+      value <= TIRE_COMPONENT_RANGE.maxValue
+      ? value
+      : 0;
+  }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], p: Record<string, Float32Array>): boolean {
     const output = outputs[0]?.[0];
     if (!this.running) {
@@ -132,7 +151,23 @@ class TireProcessor extends AudioWorkletProcessor {
     } else {
       this.updateSpectral(p, 'front', this.frontSpectralControl, this.frontSpectral!);
       this.updateSpectral(p, 'rear', this.rearSpectralControl, this.rearSpectral!);
-      for (let i = 0; i < output.length; i++) output[i] = this.frontSpectral!.sample() + this.rearSpectral!.sample();
+      const road = this.readMix(p, 'mix_road'),
+        scrub = this.readMix(p, 'mix_scrub'),
+        squeal = this.readMix(p, 'mix_squeal');
+      const front = this.frontSpectral!,
+        rear = this.rearSpectral!;
+      for (let i = 0; i < output.length; i++) {
+        this.roadMix += this.componentFollow * (road - this.roadMix);
+        this.scrubMix += this.componentFollow * (scrub - this.scrubMix);
+        this.squealMix += this.componentFollow * (squeal - this.squealMix);
+        front.sample();
+        rear.sample();
+        output[i] =
+          front.scrubOutput * this.scrubMix +
+          front.squealOutput * this.squealMix +
+          front.roadOutput * this.roadMix +
+          (rear.scrubOutput * this.scrubMix + rear.squealOutput * this.squealMix + rear.roadOutput * this.roadMix);
+      }
     }
     return true;
   }

@@ -7,6 +7,8 @@ interface TireObservation {
   readonly lateralVelocity: number;
   /** Effective contact rolling radius times the accepted signed wheel angular velocity. */
   readonly wheelSpeed: number;
+  /** Accepted signed wheel angular velocity (rad/s), output only. */
+  readonly wheelAngularSpeed: number;
   readonly rollingSpeed: number;
   /** Full tangential contact travel, also nonzero during sideways motion. */
   readonly travelSpeed: number;
@@ -33,6 +35,7 @@ export function observeVehicleTires(vehicle: object): VehicleTires {
       longitudinalVelocity: 0,
       lateralVelocity: 0,
       wheelSpeed: 0,
+      wheelAngularSpeed: 0,
       rollingSpeed: 0,
       travelSpeed: 0,
       slipSpeed: 0,
@@ -53,6 +56,7 @@ export function resetVehicleTireObservation(vehicle: object): void {
     tire.longitudinalVelocity = 0;
     tire.lateralVelocity = 0;
     tire.wheelSpeed = 0;
+    tire.wheelAngularSpeed = 0;
     tire.rollingSpeed = 0;
     tire.travelSpeed = 0;
     tire.slipSpeed = 0;
@@ -81,6 +85,7 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   result.longitudinalVelocity = loaded ? contact.longitudinalVelocity : 0;
   result.lateralVelocity = loaded ? contact.lateralVelocity : 0;
   result.wheelSpeed = loaded ? contact.effectiveRollingRadius * wheel.omega : 0;
+  result.wheelAngularSpeed = loaded ? wheel.omega : 0;
   result.rollingSpeed = loaded ? Math.abs(contact.longitudinalVelocity) : 0;
   result.travelSpeed = loaded ? Math.hypot(contact.longitudinalVelocity, contact.lateralVelocity) : 0;
   result.slipSpeed = loaded ? Math.hypot(wheel.tire.sx, wheel.tire.sy) * wheel.tire.referenceSpeed : 0;

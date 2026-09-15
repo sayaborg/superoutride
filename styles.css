@@ -504,6 +504,11 @@ body {
   min-width: 100px;
 }
 
+#tire-component-controls {
+  display: flex;
+  gap: 4px;
+}
+
 #sound-volume {
   width: 156px;
   min-width: 0;

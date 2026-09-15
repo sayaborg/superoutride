@@ -95,6 +95,7 @@ const silentObservation = () => ({
   longitudinalVelocity: 0,
   lateralVelocity: 0,
   wheelSpeed: 0,
+  wheelAngularSpeed: 0,
   load: 0,
   longitudinalPower: 0,
   lateralPower: 0,
@@ -109,12 +110,9 @@ export class TireSpectralSynthesis {
   private readonly roadTexture: SmoothRandom;
   private readonly material = { ...SPECTRAL_TEXTURES[0]! };
   private targetMaterial = SPECTRAL_TEXTURES[0]!;
-  private roadLow = 0;
-  private roadHigh = 0;
-  private targetRoadLow = 0;
-  private targetRoadHigh = 0;
-  private travel = 0;
-  private rotation = 0;
+  private rollingLevel = 0;
+  private targetRollingLevel = 0;
+  private wheelFrequency = 0;
   private roadModulation = 1;
   roadOutput = 0;
   private readonly attack: number;
@@ -122,6 +120,8 @@ export class TireSpectralSynthesis {
   private readonly tone: number;
   private readonly dcPole: number;
   private readonly outputFollow: number;
+  private readonly roadFollow: number;
+  private roadFiltered = 0;
   private readonly previous = new Float64Array(3);
   private readonly highpass = new Float64Array(3);
   private readonly lowpass = new Float64Array(3);
@@ -155,7 +155,7 @@ export class TireSpectralSynthesis {
     this.bands = Array.from({ length: 6 }, () => new SpectralBand(rate, nextSeed()));
     this.wander = new SmoothRandom(nextSeed());
     this.texture = new SmoothRandom(nextSeed());
-    // Append new streams AFTER the six approved S/Q bands and modulators. Their PCM stays unchanged.
+    // Keep the established S/Q random streams independent of rolling and output solo controls.
     this.bands.push(new SpectralBand(rate, nextSeed()), new SpectralBand(rate, nextSeed()));
     this.roadTexture = new SmoothRandom(nextSeed());
     this.attack = 1 - Math.exp(-1 / (rate * SPECTRAL_SETTINGS.attackSeconds));
@@ -163,6 +163,7 @@ export class TireSpectralSynthesis {
     this.tone = 1 - Math.exp(-1 / (SPECTRAL_SETTINGS.controlHz * SPECTRAL_SETTINGS.toneSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.outputHz) / rate);
+    this.roadFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.roadOutputHz) / rate);
     this.clock = rate; // First sample configures; subsequent ticks use this stream's rational clock.
   }
   update(value: SpectralObservation, surfaceIndex = 0): void {
@@ -182,10 +183,11 @@ export class TireSpectralSynthesis {
     this.targetMaterial = SPECTRAL_TEXTURES[surfaceIndex]!;
     this.supported = value.load > 0;
     const level = Math.sqrt(saturate(value.load, SPECTRAL_SETTINGS.loadScaleNewtons));
-    this.targetRoadLow =
-      level *
-      saturate(Math.hypot(value.longitudinalVelocity, value.lateralVelocity), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5;
-    this.targetRoadHigh = level * saturate(Math.abs(value.wheelSpeed), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5;
+    // R is rotation-driven. A locked translating tire has S (sliding), not rolling excitation.
+    const rotating = value.wheelAngularSpeed !== 0;
+    this.targetRollingLevel = rotating
+      ? level * saturate(Math.abs(value.wheelSpeed), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5
+      : 0;
     const s = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
     const power = s > 0 ? value.longitudinalPower + value.lateralPower : 0;
     this.targetWorkLevel = Math.sqrt(saturate(power, SPECTRAL_SETTINGS.powerScaleWatts));
@@ -194,7 +196,7 @@ export class TireSpectralSynthesis {
   }
   private cutExcitation(): void {
     this.supported = false;
-    this.workLevel = this.squeal = this.roadLow = this.roadHigh = 0; // Preserve resonator/filter tails.
+    this.workLevel = this.squeal = this.rollingLevel = 0; // Preserve resonator/filter tails.
   }
   private control(): void {
     if (!this.supported) return; // Freeze pitch/width on release; do not turn a tail into a down-chirp.
@@ -219,13 +221,18 @@ export class TireSpectralSynthesis {
     material.depth += this.tone * (target.depth - material.depth);
     const textureHz = (160 * this.slip) / (this.slip + 160 * material.scaleMeters);
     this.modulation = 1 + material.depth * this.texture.step(textureHz / SPECTRAL_SETTINGS.controlHz);
-    this.travel += this.tone * (Math.hypot(v.longitudinalVelocity, v.lateralVelocity) - this.travel);
-    this.rotation += this.tone * (Math.abs(v.wheelSpeed) - this.rotation);
-    const roadSpeed = (this.travel + this.rotation) / 2;
-    const roadHz = (160 * roadSpeed) / (roadSpeed + 160 * material.scaleMeters);
-    this.roadModulation = 1 + material.depth * this.roadTexture.step(roadHz / SPECTRAL_SETTINGS.controlHz);
-    this.bands[6]!.configure(220 + 350 * saturate(this.travel, 20), 500);
-    this.bands[7]!.configure(1500 + 1200 * saturate(this.rotation, 25), 1800);
+    this.wheelFrequency += this.tone * (Math.abs(v.wheelAngularSpeed) / (2 * Math.PI) - this.wheelFrequency);
+    // Random amplitude texture traverses wheel angle, not an independent time/vehicle-speed clock.
+    const roadHz = (SPECTRAL_SETTINGS.roadTextureOrders * this.wheelFrequency) / material.scaleMeters;
+    this.roadModulation =
+      1 +
+      Math.max(material.depth, SPECTRAL_SETTINGS.roadTextureDepth) *
+        this.roadTexture.step(v.wheelAngularSpeed === 0 ? 0 : roadHz / SPECTRAL_SETTINGS.controlHz);
+    for (let i = 0; i < 2; i++) {
+      const order = i === 0 ? SPECTRAL_SETTINGS.roadLowOrder : SPECTRAL_SETTINGS.roadHighOrder;
+      const frequency = Math.max(SPECTRAL_SETTINGS.roadMinimumHz, order * this.wheelFrequency);
+      this.bands[i + 6]!.configure(frequency, Math.max(50, frequency * SPECTRAL_SETTINGS.roadBandwidthRatio));
+    }
     this.bands[0]!.configure(700 + 300 * saturate(this.slip, 6), 900);
     this.bands[1]!.configure(2600 + 1000 * saturate(this.slip, 10), 2000);
     for (let h = 1; h <= 4; h++)
@@ -235,7 +242,8 @@ export class TireSpectralSynthesis {
     const hp = value - this.previous[tap]! + this.dcPole * this.highpass[tap]!;
     this.previous[tap] = value;
     this.highpass[tap] = hp;
-    this.lowpass[tap] = this.lowpass[tap]! + this.outputFollow * (hp - this.lowpass[tap]!);
+    const follow = tap === 2 ? this.roadFollow : this.outputFollow;
+    this.lowpass[tap] = this.lowpass[tap]! + follow * (hp - this.lowpass[tap]!);
     return this.lowpass[tap]!;
   }
   sample(): number {
@@ -248,10 +256,9 @@ export class TireSpectralSynthesis {
       this.workLevel +=
         (this.targetWorkLevel > this.workLevel ? this.attack : this.release) * (this.targetWorkLevel - this.workLevel);
       this.squeal += (this.targetSqueal > this.squeal ? this.attack : this.release) * (this.targetSqueal - this.squeal);
-      this.roadLow +=
-        (this.targetRoadLow > this.roadLow ? this.attack : this.release) * (this.targetRoadLow - this.roadLow);
-      this.roadHigh +=
-        (this.targetRoadHigh > this.roadHigh ? this.attack : this.release) * (this.targetRoadHigh - this.roadHigh);
+      this.rollingLevel +=
+        (this.targetRollingLevel > this.rollingLevel ? this.attack : this.release) *
+        (this.targetRollingLevel - this.rollingLevel);
     }
     let scrub = 0,
       squeal = 0;
@@ -262,20 +269,33 @@ export class TireSpectralSynthesis {
           (i === 0 ? this.material.scrubLow : this.material.scrubHigh) *
           this.modulation,
       );
-    for (let i = 0; i < 4; i++)
+    // Like amplitude-dependent harmonics, without replacing finite-width bands by a periodic tone.
+    // At strong sustained excitation the accepted palette is unchanged. Recovery loses upper bands
+    // faster than the fundamental, rather than turning down a fixed-spectrum recording.
+    const shape = Math.min(1, (this.workLevel * this.squeal) / SPECTRAL_SETTINGS.harmonicShapeReference);
+    let harmonicShape = 1;
+    for (let i = 0; i < 4; i++) {
       squeal += this.bands[i + 2]!.sample(
         this.workLevel *
           this.squeal *
           SPECTRAL_SETTINGS.squealGain *
           SPECTRAL_SETTINGS.harmonicWeights[i]! *
-          this.material.squeal,
+          this.material.squeal *
+          harmonicShape,
       );
+      harmonicShape *= shape;
+    }
     this.scrubOutput = this.condition(scrub, 0);
     this.squealOutput = this.condition(squeal, 1);
     const road =
-      this.bands[6]!.sample(this.roadLow * SPECTRAL_SETTINGS.roadGain * this.material.roadLow * this.roadModulation) +
-      this.bands[7]!.sample(this.roadHigh * SPECTRAL_SETTINGS.roadGain * this.material.roadHigh * this.roadModulation);
-    this.roadOutput = this.condition(road, 2);
+      this.bands[6]!.sample(
+        this.rollingLevel * SPECTRAL_SETTINGS.roadGain * this.material.roadLow * this.roadModulation,
+      ) +
+      this.bands[7]!.sample(
+        this.rollingLevel * SPECTRAL_SETTINGS.roadGain * this.material.roadHigh * this.roadModulation,
+      );
+    this.roadFiltered += this.roadFollow * (this.condition(road, 2) - this.roadFiltered);
+    this.roadOutput = this.roadFiltered;
     return this.scrubOutput + this.squealOutput + this.roadOutput;
   }
 }

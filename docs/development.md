@@ -53,6 +53,18 @@ The [torque protection probe](../tools/torque-protection-probe.mjs) compares pro
 
 ## Tire comparison tools
 
+`node tools/tire-response-render.mjs /absolute/output [BASELINE_BUILD] [48000]` writes fixed-gain R/S/Q/mix
+WAVs for an angular-speed sweep and grip recovery. An optional older build receives exactly the same
+synthetic observation trace. No recorded-driving or loudness-equivalence claim is made. At 44100/96000,
+supply that rate as the third argument after the baseline build. Generated outputs stay outside source.
+
+In the game, select SPECTRAL and use R (rolling), S (scrub) and Q (squeal) ON/OFF buttons to isolate
+components. These switches preserve synthesis state and do not normalize the remaining output.
+Wheel angular speed is live accepted telemetry; the standalone synthetic S/Q scenarios use an explicit
+0.3 m audition radius, not a production fallback. The dynamic Q revision intentionally replaces its old
+whole-replay PCM expectation; unchanged S remains pinned independently. See the
+[rolling and response contract](audio.md#spectral-game-synthesis).
+
 Retain both reference toolchains; they exercise different models rather than duplicate implementations.
 Build first and serve the repository over HTTP. These tools are local diagnostics, not published Pages
 HTML or required saved audio assets. [Audio](audio.md#player-tire-synthesis) owns model/input semantics;

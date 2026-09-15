@@ -3,6 +3,8 @@ export interface TireAudioObservation {
   readonly longitudinalVelocity: number;
   readonly lateralVelocity: number;
   readonly wheelSpeed: number;
+  /** Accepted wheel angular velocity, rad/s; not vehicle speed. */
+  readonly wheelAngularSpeed: number;
   readonly load: number;
   readonly referenceLoad: number;
   readonly travelSpeed: number;

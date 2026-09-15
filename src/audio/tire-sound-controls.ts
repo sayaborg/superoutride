@@ -6,6 +6,16 @@ export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral'
 export type TireSoundModel = (typeof TIRE_SOUND_MODELS)[number];
 export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'current';
 
+export const TIRE_COMPONENTS = Object.freeze([
+  Object.freeze({ key: 'road', label: 'R', description: 'Rolling' }),
+  Object.freeze({ key: 'scrub', label: 'S', description: 'Scrub' }),
+  Object.freeze({ key: 'squeal', label: 'Q', description: 'Squeal' }),
+] as const);
+type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
+export type TireComponents = Readonly<Record<TireComponent, boolean>>;
+export const TIRE_COMPONENT_FADE_SECONDS = 0.005;
+export const TIRE_COMPONENT_RANGE = Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 1 });
+
 const spectralRanges = Object.fromEntries(
   Object.entries(SPECTRAL_INPUTS).map(([key, range]) => [
     `spectral_${key}`,
@@ -63,6 +73,7 @@ export function spectralTireParameters(tire: TireAudioObservation) {
     longitudinalVelocity: 0,
     lateralVelocity: 0,
     wheelSpeed: 0,
+    wheelAngularSpeed: 0,
     load: 0,
     longitudinalPower: 0,
     lateralPower: 0,
@@ -76,6 +87,7 @@ export function spectralTireParameters(tire: TireAudioObservation) {
     longitudinalVelocity: tire.longitudinalVelocity,
     lateralVelocity: tire.lateralVelocity,
     wheelSpeed: tire.wheelSpeed,
+    wheelAngularSpeed: tire.wheelAngularSpeed,
     load: tire.load,
     longitudinalPower: tire.longitudinalPower,
     lateralPower: tire.lateralPower,

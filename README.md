@@ -35,11 +35,12 @@ Player and nearest-rival engines use the accepted native-rate sample-free wavegu
 
 TIRES: CURRENT / TIRES: CONTACT / TIRES: SPECTRAL cycles player tire sound while driving.
 CURRENT remains the reload default; only tire output fades, and engines/physics remain unchanged.
-SPECTRAL retains the WAV-auditioned asphalt scrub/squeal and adds independent front/rear rolling sound
-plus pavement/shoulder/grass/dirt/sand textures. Rolling and wheel rotation are separate observations;
-loose surfaces keep rolling/scrub without pavement squeal. The new game mix and surface sketches still
-need listening/device assessment; this is not final real-tire calibration. See the
-[specification index and checkpoint](docs/README.md) and
+SPECTRAL uses a rotation-linked low rolling texture and finite-width squeal bands whose harmonic balance
+responds to excitation and recovery. For SPECTRAL, R / S / Q buttons independently toggle rolling,
+friction scrub and squeal for both axles. They fade only the selected output; the underlying sound keeps
+running and no remaining layer is boosted. All start ON and survive session changes; reload resets them.
+CURRENT/CONTACT and the engine remain unchanged. The new R/Q response still needs listening and device
+assessment. See the [specification index](docs/README.md) and
 [development guide](docs/development.md#tire-comparison-tools) for reproducible diagnostics.
 
 See [current calibration values and meanings](docs/calibration.md).

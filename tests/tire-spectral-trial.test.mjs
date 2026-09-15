@@ -12,6 +12,7 @@ const input = (values = {}) => ({
   longitudinalVelocity: 25,
   lateralVelocity: 4,
   wheelSpeed: 25,
+  wheelAngularSpeed: (values.wheelSpeed ?? 25) / 0.3,
   load: 4000,
   longitudinalPower: 0,
   lateralPower: 12000,

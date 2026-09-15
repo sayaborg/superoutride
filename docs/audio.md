@@ -120,7 +120,7 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 Three comparison models are available in the game; CURRENT remains the reload default. The
 [evidence note](tire-squeal-research.md) motivates mechanisms without calibrating either implementation.
 [Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
-signed contact longitudinal/lateral velocity and effective wheel peripheral speed, tangential travel,
+signed contact longitudinal/lateral velocity, effective wheel peripheral and angular speed, tangential travel,
 slip magnitude, directional dissipated slip power, demand rho and surface identity. These are not local rubber properties. Audio state never feeds vehicle mechanics.
 
 ### CURRENT baseline
@@ -249,68 +249,87 @@ has eight fixed noise-driven two-state bands: two rolling, two scrub and four fi
 bands. No recorded/generated PCM playback, microscopic contact solve or model/vehicle branch exists
 inside this kernel. The [checkpoint](NEXT.md#next-decision-a-third-tire-sound-method) owns acceptance.
 
-`SPECTRAL_INPUTS` owns seven SI controls: signed longitudinal/lateral contact velocity, signed effective
-wheel peripheral speed, normal load, accepted longitudinal/lateral slip work and demand rho. Physics
-publishes `effectiveRollingRadius * acceptedWheelOmega` alongside signed velocities only when contact
-transmits force with a valid tire frame. The browser copies these completed observations; audio never
-re-solves contact or reconstructs them from unsigned magnitudes. Unsupported contacts/reset clear the
-new observations. The complete physical/control snapshot is unchanged.
+`SPECTRAL_INPUTS` owns eight SI controls: signed longitudinal/lateral contact velocity, signed effective
+wheel peripheral speed, accepted wheel angular speed (rad/s), normal load, accepted longitudinal/lateral
+slip work and demand rho. Physics publishes accepted `omega` and `effectiveRollingRadius * omega` only
+when contact transmits force with a valid tire frame. The browser copies them; audio never infers wheel
+rotation from car speed, substitutes a guessed radius, or re-solves mechanics. Unsupported/reset
+observations clear these output-only values. The physical/control snapshot is unchanged.
 
-[Spectral mapping](../src/audio/tire-sound-controls.ts) bounds only acoustic transport to the declared
-finite domains. Negative work/load/demand and nonfinite inputs are invalid; finite over-range signed
-velocities, load/work/demand are saturated for audio only. Zero load or VOID releases all excitation.
-Raw SI controls use separate `spectral_*` parameters, never CONTACT's representative 0–8 N/0–4 m/s
-controls. SPECTRAL surface identity has its own catalog lookup and transport range; the index is never
-interpolated. Invalid worklet controls release the affected axle and permit recovery on later valid input.
+[Spectral mapping](../src/audio/tire-sound-controls.ts) validates nonfinite/negative load, work and demand;
+finite over-range observations are bounded for acoustic transport only. Separate `spectral_*` AudioParams
+never reuse CONTACT's representative units. Zero load/VOID or invalid controls release the affected axle,
+retain finite tails and permit later recovery. Surface identities are discrete, not interpolated.
 
-With slip `s=hypot(wheelSpeed-vx,vy)` and accepted work `P=Px+Py`, S/Q work level is
-`sqrt(P/(P+8000))`, zero for zero slip. Squeal additionally follows `rho^2/(1+rho^2)` and the surface
-coefficient. Work already contains tire force; it is not multiplied by load again. These are authored
-acoustic mappings, not sound power or grip remaining. Core frequencies, bandwidths, gains, seeds,
-pitch wander and asphalt scrub modulation retain the auditioned values and arithmetic. Exact replay
-regressions preserve its 44.1/48 kHz S/Q PCM. Adding road never changes those seed streams.
+The user subsequently accepted Q's realistic timbre but found its response to driving/recovery weaker
+than CURRENT, and found asphalt R too hiss-like and insufficiently linked to wheel rotation. This is an
+explicit revision of the prior **joint S/Q PCM preservation** and travel-driven R requirement. Keep S's
+exact baseline replay independently. Replace Q's obsolete whole-replay hash with causal harmonic-response,
+strong-palette, release and transport regressions; do not change the immutable mechanics/render oracle.
+The new R/Q sound still requires user listening. No understeer/oversteer labels select different effects.
 
-Each band updates two states as `z_next=r*R(theta)*z+A*sqrt(1-r^2)*xi`, with
-`r=exp(-pi*B/rate)`, `theta=2*pi*f/rate` and independent unit-variance components. Bounded uniform
-random draws are scaled analytically, not through output AGC. Seed splitting permutes the parent
-stream to avoid short-lag shared excitation. Constant coefficients give state variance A^2 in the
-ideal white-input model. B is nominal pole bandwidth, not exact broad-band FWHM. Positive B contracts
-unforced state; frequency changes rotate rather than reset that state. Four harmonic bands have
-independent histories and bounded shared pitch wander, not a phase-locked periodic waveform.
+#### Band primitive and Q response
 
-Rolling low-band amplitude follows `sqrt(N/(N+2000)) * [travel/(travel+15)]^1.5`; high-band amplitude
-uses `abs(wheelSpeed)` in place of travel. Both have the shared 0.04 gain and catalog weights. Travel is
-`hypot(vx,vy)`: locked/sideways sliding retains low texture while wheel rotation controls high texture.
-Road centers are `220+350*travel/(travel+20)` and `1500+1200*w/(w+25)` Hz, nominal widths 500/1800 Hz.
-This is an acoustic decomposition, not a tread-passing or air-pumping derivation. Road and scrub have
-independent smooth amplitude variation with catalog depth/scale. No universal tire power-speed law,
-local pressure, temperature or tread stiffness is inferred.
+Each of eight fixed bands updates two states as `z_next=r*R(theta)*z+A*sqrt(1-r^2)*xi`, with
+`r=exp(-pi*B/rate)` and independent unit-variance excitation components. Bounded uniform draws are scaled
+analytically, never by measured-output AGC. Seed splitting prevents short-lag shared excitation. Nominal
+positive pole bandwidth contracts unforced state; parameter changes do not reset stored waveforms.
+Four independently excited harmonic bands retain the established frequency, bandwidth and pitch-wander
+mapping. Two broad S bands retain their earlier mapping, random streams and PCM.
 
-`SPECTRAL_TEXTURES` is the sole authored spectral catalog: asphalt, shoulder, grass, dirt and sand.
-Road/scrub low/high weights, squeal strength and modulation scale/depth distinguish the materials.
-Grass/dirt/sand have zero steady squeal but retain rolling/scrub. Resolved coefficients follow at the
-common tone rate; states, phases and gains are not reset on transitions. These are listening sketches,
-not measured material constants. The two new road streams are appended after the preserved S/Q streams.
+With `s=hypot(wheelSpeed-vx,vy)` and `P=Px+Py`, work level follows `sqrt(P/(P+8000))` (zero for zero slip),
+and squeal demand follows `rho^2/(1+rho^2)`. Work already includes force, so S/Q do not multiply by load
+again. Let `e=smoothedWork*smoothedDemand`, `c=min(1,e/harmonicShapeReference)`. Q band h has excitation
+`e * squealGain * harmonicWeights[h-1] * surfaceSqueal * c^(h-1)`. The settings owner defines the reference
+and full palette. Above the reference the accepted strong palette is unchanged; below it higher bands
+weaken progressively, so onset/recovery changes spectral balance, not only common volume. No extra
+oscillator, recovery event sound, phase reset, fixed axle detuning, velocity correction or extra
+hysteresis state is added. This is an authored perceptual mapping, not measured tire physics.
 
-Eight bands per axle run at native rate, supported integer 44.1–192 kHz. A rational internal 1 kHz
-coefficient clock is independent of host blocks. Work/demand/rolling follow 15/10 ms rise/fall; tone
-and material coefficients follow 20 ms. Loss of support removes excitation immediately and freezes
-frequency/width, retaining existing tails. The 50 Hz minimum pole bandwidth implies about 44 ms to
--60 dB of state amplitude, not a guarantee for the complete output. Separate 18 Hz DC removal and
-8 kHz one-pole filters retain R/S/Q taps. Their fixed-gain sum is added across independent front/rear
-kernels without axle detuning, waveform resets, clipping, measured-output normalization or AGC.
+#### Rotation-driven R
 
-The game uses the existing single tire worklet and only its selected pair of kernels. The three-way
-button is a cycling button, not a boolean ARIA toggle. Same tire-only transition/lifetime behavior
-applies to all three choices. The [separate two-tap worklet](../src/dev/diagnostics/tire-spectral-processor.ts)
-still auditions asphalt S/Q from this shared kernel; it intentionally omits road in its output mix.
-Offline trial WAVs remain the same S/Q comparison, with CONTACT friction-only and no RMS matching.
-[Development](development.md#tire-comparison-tools) also lists the two-axle actual-mechanics host probe.
+R is now the **rolling** component, not a proxy for every kind of road contact. Its excitation follows
+`sqrt(N/(N+2000)) * [abs(wheelSpeed)/(abs(wheelSpeed)+15)]^1.5`, provided accepted angular speed is nonzero.
+A translating locked tire therefore stops R excitation but retains S/Q from accepted slip work. A
+stationary supported spinning wheel can emit R and friction sound; an airborne wheel cannot.
 
-Tests preserve the approved S/Q output and cover road kinematics, catalog transitions, free release,
-independent axles, finite domain corners, exact worklet/kernel transport and unchanged nine-profile
-mechanics. Host timings, native browser execution, phone budget and perceptual acceptance are distinct.
-New rolling, loose surfaces, front/rear mix and full-game balance remain listening/device work.
+R's two broad center frequencies are wheel orders times `abs(omega)/(2*pi)`, with a positive low-frequency
+floor. Bandwidth scales with center frequency, with the primitive's positive minimum. The settings owner
+provides orders/floors/width ratio; these are an authored coarse spectral envelope, not literal tread
+counts, a physical cavity model or discrete impact events. R's independent random amplitude texture
+advances with wheel rotation and material scale, not vehicle translation. At zero angular speed its
+texture stops. The maximum domain/finest material must remain within one interpolation cell per control
+step. Pavement weights emphasize the low band. Two road-only 900 Hz low-pass stages reduce hiss without
+filtering S/Q. Road center frequency and amplitude are separate controls, not a universal speed law.
+
+`SPECTRAL_TEXTURES` is the sole authored material catalog: pavement, shoulder, grass, dirt and sand.
+Resolved weights/texture scales follow continuously without resetting state. Grass/dirt/sand have zero
+steady Q but retain rolling and friction textures. No pressure/temperature/stiffness is inferred.
+
+Eight bands per axle run at native rate, supported integer 44.1–192 kHz. The rational 1 kHz coefficient
+clock is independent of host blocks. Existing 15/10 ms excitation rise/fall and 20 ms tone following
+remain. Loss of support immediately cuts excitation and freezes tone, preserving a short free tail.
+S/Q retain separate 18 Hz DC removal and 8 kHz output filtering; R has its own state and lower filtering.
+Output gains are fixed. Numerical tests and host timings do not establish phone performance or realism.
+
+#### R/S/Q output controls
+
+The game exposes `R: ON/OFF`, `S: ON/OFF`, `Q: ON/OFF` for SPECTRAL, initially all on. R is rolling,
+S broad friction scrub, Q tonal squeal. Buttons apply to both independent axles, are disabled for
+CURRENT/CONTACT and unsupported audio, have descriptive labels/ARIA pressed state, and stop keyboard
+propagation to driving controls. Choice survives model changes, loading/retry, engine tuning/reset,
+vehicle replacement and mute; page reload resets it. The browser lifecycle owns session choices.
+
+The voice transports three separate k-rate `mix_*` values to the existing tire worklet. Output gains
+follow a shared 5 ms constant, independently of host block partitions. OFF suppresses only that tap;
+all band/random/filter state continues, so solo comparison does not restart the sound. There is no
+level compensation when a component is disabled. Switching models still fades tires alone; the port
+continues to carry model replacement and stop only. Engine nodes and master lifetime do not change.
+
+The separate two-tap audition still isolates S/Q; its synthetic replays use an explicitly authored
+0.3 m radius solely to supply angular speed. Live gameplay reads the true accepted angular observation.
+Use the in-game buttons for all three components and [development](development.md#tire-comparison-tools)
+for reproducible render/probe commands. CURRENT and CONTACT remain unmodified audible references.
 
 ### Interpretation and cost limits
 

@@ -13,6 +13,7 @@ export function createVehicleAudioObservation(): Observation {
     longitudinalVelocity: 0,
     lateralVelocity: 0,
     wheelSpeed: 0,
+    wheelAngularSpeed: 0,
     load: 0,
     referenceLoad: 1,
     travelSpeed: 0,
@@ -48,6 +49,7 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;
   result.front.wheelSpeed = tires.front.wheelSpeed;
+  result.front.wheelAngularSpeed = tires.front.wheelAngularSpeed;
   result.front.travelSpeed = tires.front.travelSpeed;
   result.front.slipSpeed = tires.front.slipSpeed;
   result.front.longitudinalPower = tires.front.longitudinalPower;
@@ -60,6 +62,7 @@ export function readVehicleAudio(vehicle: ArcadeVehicleState, result: Observatio
   result.rear.longitudinalVelocity = tires.rear.longitudinalVelocity;
   result.rear.lateralVelocity = tires.rear.lateralVelocity;
   result.rear.wheelSpeed = tires.rear.wheelSpeed;
+  result.rear.wheelAngularSpeed = tires.rear.wheelAngularSpeed;
   result.rear.travelSpeed = tires.rear.travelSpeed;
   result.rear.slipSpeed = tires.rear.slipSpeed;
   result.rear.longitudinalPower = tires.rear.longitudinalPower;
