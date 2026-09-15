@@ -1,7 +1,7 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
-import { DEFAULT_TIRE_SOUND_MODEL, type TireSoundModel } from '../audio/tire-sound-controls.js';
+import { DEFAULT_TIRE_SOUND_MODEL, TIRE_SOUND_MODELS, type TireSoundModel } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { vehicleCatalogEntryForId } from '../vehicle/vehicle-catalog.js';
@@ -78,12 +78,13 @@ export function createAudioLifecycle() {
   }
   function showTireModel(): void {
     if (!tireButton) return;
-    tireButton.textContent = tireModel === 'current' ? 'TIRES: CURRENT' : 'TIRES: CONTACT';
-    tireButton.setAttribute('aria-pressed', String(tireModel === 'contact'));
+    tireButton.textContent = `TIRES: ${tireModel.toUpperCase()}`;
+    tireButton.removeAttribute('aria-pressed'); // Also retire the boolean state on an older cached index.
+    tireButton.setAttribute('aria-label', `Tire sound model: ${tireModel.toUpperCase()}. Activate to cycle models.`);
     if (!supported) tireButton.setAttribute('disabled', '');
   }
   function toggleTires(): void {
-    tireModel = tireModel === 'current' ? 'contact' : 'current';
+    tireModel = TIRE_SOUND_MODELS[(TIRE_SOUND_MODELS.indexOf(tireModel) + 1) % TIRE_SOUND_MODELS.length]!;
     showTireModel();
     unlock();
     sync();

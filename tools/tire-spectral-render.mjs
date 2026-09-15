@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { TireSpectralSynthesis, SPECTRAL_SETTINGS } from '../dist/dev/diagnostics/tire-spectral-model.js';
+import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
+import { SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import { TireSynthesis, tireParameters } from '../dist/audio/tire-synthesis.js';
 import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
 import { contactTireParameters } from '../dist/audio/tire-sound-controls.js';
@@ -76,7 +77,8 @@ for (const scene of SPECTRAL_SCENARIOS) {
       const p = contactTireParameters(reference);
       contact.update(p.travelSpeed, p.slipSpeed, p.load, p.surfaceIndex);
     }
-    outputs['spectral-mix'][i] = spectral.sample();
+    spectral.sample();
+    outputs['spectral-mix'][i] = spectral.scrubOutput + spectral.squealOutput;
     outputs['spectral-scrub'][i] = spectral.scrubOutput;
     outputs['spectral-squeal'][i] = spectral.squealOutput;
     outputs.current[i] = current.sample();

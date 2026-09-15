@@ -1,7 +1,14 @@
+import { SPECTRAL_INPUT_KEYS } from './tire-spectral-acoustics.js';
 import { tireParameters } from './tire-synthesis.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_TIMING } from './audio-presentation.js';
-import { contactTireParameters, DEFAULT_TIRE_SOUND_MODEL, type TireSoundModel } from './tire-sound-controls.js';
+import {
+  contactTireParameters,
+  spectralTireParameters,
+  DEFAULT_TIRE_SOUND_MODEL,
+  TIRE_SOUND_MODELS,
+  type TireSoundModel,
+} from './tire-sound-controls.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** One reusable worklet. Only tires fade/switch; engines, context and driving continue. */
@@ -24,7 +31,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   };
   return {
     setModel(model: TireSoundModel): void {
-      if (model !== 'current' && model !== 'contact') throw new RangeError('unknown tire sound model');
+      if (!TIRE_SOUND_MODELS.includes(model)) throw new RangeError('unknown tire sound model');
       desired = model;
     },
     update(state: VehicleAudioObservation): void {
@@ -37,6 +44,11 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
           const controls = tireParameters(state[axle]);
           node.parameters.get(`${axle}_squeal`)!.value = controls.squeal;
           node.parameters.get(`${axle}_pitch`)!.value = controls.pitch;
+        }
+        if (desired === 'spectral' || active === 'spectral') {
+          const controls = spectralTireParameters(state[axle]);
+          for (const key of SPECTRAL_INPUT_KEYS) node.parameters.get(`${axle}_spectral_${key}`)!.value = controls[key];
+          node.parameters.get(`${axle}_spectral_surfaceIndex`)!.value = controls.surfaceIndex;
         }
         if (desired === 'contact' || active === 'contact') {
           const controls = contactTireParameters(state[axle]);

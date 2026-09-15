@@ -33,13 +33,14 @@ ENGINE TUNING shares eight provisional minus/plus controls with the audition pag
 reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
-TIRES: CURRENT / TIRES: CONTACT switches player tire sound while driving, with independent front/rear
-state and only tire output fading. CURRENT is the reload default. CONTACT adds rolling rumble,
-higher-pitched friction vibration and separate pavement/shoulder/grass/dirt/sand sketches; its mapping
-is provisional, not calibrated local tire physics. Both are retained comparison references. SPECTRAL is
-now an isolated one-contact asphalt scrub/squeal trial, not a third gameplay option; start
-from the [specification index and checkpoint](docs/README.md). The
-[development guide](docs/development.md#tire-comparison-tools) distinguishes both audition tools.
+TIRES: CURRENT / TIRES: CONTACT / TIRES: SPECTRAL cycles player tire sound while driving.
+CURRENT remains the reload default; only tire output fades, and engines/physics remain unchanged.
+SPECTRAL retains the WAV-auditioned asphalt scrub/squeal and adds independent front/rear rolling sound
+plus pavement/shoulder/grass/dirt/sand textures. Rolling and wheel rotation are separate observations;
+loose surfaces keep rolling/scrub without pavement squeal. The new game mix and surface sketches still
+need listening/device assessment; this is not final real-tire calibration. See the
+[specification index and checkpoint](docs/README.md) and
+[development guide](docs/development.md#tire-comparison-tools) for reproducible diagnostics.
 
 See [current calibration values and meanings](docs/calibration.md).
 

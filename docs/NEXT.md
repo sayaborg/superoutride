@@ -12,7 +12,7 @@
    CI builds the immutable physics/render reference pinned in the existing workflow. A local run
    without that reference checks determinism, not historical equivalence. Do not change the oracle.
 4. Serve the built checkout over HTTP, for example `python3 -m http.server 8000`.
-   Use `http://localhost:8000/?mode=circuit` for in-game CURRENT/CONTACT comparison. Audition and
+   Use `http://localhost:8000/?mode=circuit` for in-game CURRENT/CONTACT/SPECTRAL comparison. Audition and
    regeneration commands are in [development](development.md#tire-comparison-tools).
    Prior chat attachments, generated WAVs and former machine paths are not required.
 5. Verify any release through exact Git/PR refs, CI and the Pages artifact/version. Local listening,
@@ -20,55 +20,52 @@
 
 ## Next decision: a third tire-sound method
 
-The user selected **SPECTRAL** for the third-method experiment and asked to begin. Its first stage
-is an isolated, one-contact asphalt audition: scrub plus finite-width harmonic squeal. The
-[implemented trial contract](audio.md#spectral-isolated-asphalt-trial) owns the kernel and its limits;
-[development](development.md#tire-comparison-tools) owns listening and regeneration commands.
+The user listened to the SPECTRAL WAVs, judged them good, and authorized implementation in the game.
+The [SPECTRAL contract](audio.md#spectral-game-synthesis) now owns eight shared audio bands per axle:
+the retained asphalt scrub/squeal plus rolling texture and authored loose-surface differences.
+The kernel/settings moved from DEV into audio rather than being copied. DEV keeps only the separate
+S/Q audition worklet. Signed contact velocities and effective wheel peripheral speed are optional
+completed-solve observations, never another physical state or tire solve.
 
-Keep CURRENT and CONTACT, their A/B switch, reload default and tests unchanged. SPECTRAL is not in
-the game selector, does not expand physics telemetry, and is not adopted as the final tire model.
-There is no rolling layer, loose-surface catalog or two-axle trial graph yet. Do not implement those
-stages merely because the full conceptual design mentioned them.
+CURRENT, CONTACT and SPECTRAL are available through the existing tire-only faded selector in every
+course. CURRENT remains the reload default. Engine tuning/reset, vehicle replacement, mute/resume and
+sound retry preserve the session's tire choice. Existing CURRENT/CONTACT synthesis and engine behavior
+are unchanged. Approved S/Q waveforms have exact 44.1/48 kHz replay regressions; added rolling and the
+new front/rear game mix are not covered by the earlier subjective approval.
 
 ### User feedback to carry forward
 
-- The rolling rumble sounded convincing, and smooth/rough differences were clearly audible.
-  Preserve that as a listening reference, not a requirement to retain its algorithm in the third method.
-- The revised friction tone was usable; CURRENT and CONTACT produced surprisingly similar impressions.
-  This is subjective feedback, not proof of waveform, mechanism or physical equivalence.
-- The user wants a higher, richer squeal rather than a single-tone impression, and recognizable loose
-  surfaces. The published CONTACT already includes the requested treble and separate surface sketches;
-  that implementation is not a general realism or final mix approval.
-- Fidelity to the essential audible behavior, simplicity and phone suitability matter together.
-  Expensive microscopic-looking equations do not by themselves establish a good approximation.
+The previous rolling rumble and smooth/rough contrast were useful listening references, not a mandate
+to retain CONTACT's implementation. The user wants a high, rich friction sound and recognizable loose
+surfaces. SPECTRAL's asphalt S/Q WAVs were judged good; this is not whole-game, speaker or phone acceptance.
+Fidelity to essential audible behavior, simplicity and phone suitability remain joint priorities.
 
-### Next action: listen before extending
+### Next action: assess the integrated game
 
-Use the separate SPECTRAL audition and its S-only, Q-only and S+Q taps. Listen for whether finite-width
-harmonic bands sound like friction rather than a whistle, wind or resonant noise, and whether scrub
-plus squeal improves grip/slide/recovery. Numerical stability, spectral statistics and CI do not answer
-that perceptual question. The first render uses a common synthetic macro-observation trace through
-SPECTRAL, CURRENT and CONTACT adapters, not captured gameplay telemetry or calibrated acoustics.
-CONTACT comparison output is explicitly friction-only because this SPECTRAL stage has no rolling layer.
+Select TIRES: SPECTRAL (two presses from CURRENT). Compare ordinary rolling, progressive cornering,
+locked slide, moving/stationary wheelspin, sideways/reverse travel, shoulders and loose ground,
+loss of support/recontact, rapid model changes and mute/resume. Front and rear retain independent
+observations/state with identical synthesis/settings. SPECTRAL's road low band responds to contact
+travel and the high band to effective wheel peripheral speed; do not relabel either as the other.
 
-If this core timbre is useful, assess rolling, loose ground and independent front/rear combination next;
-only then consider a third gameplay choice and the read-only telemetry extension. If narrow bands sound
-like a whistle and wider bands merely like noise without a useful intermediate region, reject the core
-hypothesis and move to method four/five rather than accumulating corrective oscillators or gain tricks.
-Prepared/precomputed, procedural and hybrid approaches remain eligible for future tire work; the
-accepted engine's sample-free contract remains separate and unchanged.
-
-Keep physics observations distinct from authored acoustic mappings. Do not invent local tread pressure,
-temperature or stiffness. Demand rho is not grip remaining, and friction work is not acoustic watts.
-Compare fixed-gain outputs without automatic normalization. Keep listening, measured spectrum,
-transients, deterministic block handling, host throughput and phone gameplay budget as separate evidence.
+The separate S/Q audition still isolates the approved asphalt core. Use the
+[development tools](development.md#tire-comparison-tools) for fixed-gain replay and the actual-mechanics
+host probe. Do not infer an Android budget from host throughput, full-suite time or source operation
+counts. Workflow/artifact evidence is not native-browser listening. Keep performance, timbre, spectrum,
+transients and actual device execution as separate evidence.
 
 ### Decision gate
 
-The current authorization covers the minimal experiment, not final adoption or the complete design.
-Preserve valid observation, lifetime, physics and rendering coverage. Later intentional model changes
-may supersede model-specific waveform expectations explicitly, but must not weaken the immutable
-mechanics/render oracle or require a new synthesis model to reproduce an old model's PCM.
+This release makes the selected candidate usable, not permanently adopted. Do not remove CURRENT or
+CONTACT, change the default, normalize the engine or add corrective gains/detuning to conceal a failed
+mix. If the core fails in gameplay, distinguish incorrect observations/mapping from timbre; reject the
+hypothesis and move to method four/five rather than accumulating corrective oscillators. Prepared,
+precomputed, procedural and hybrid tire successors remain eligible; the engine contract is unchanged.
+
+Demand rho is not grip remaining; accepted slip work is not acoustic watts. Local tread pressure,
+temperature and stiffness are not inferred. Preserve valid observation/lifecycle/physics/rendering
+coverage and the immutable mechanics/render oracle. Model-specific waveform revisions need an explicit
+listening/design decision; a genuinely different future method need not reproduce the old PCM.
 
 ## Accepted engine baseline
 

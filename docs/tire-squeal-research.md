@@ -1,7 +1,7 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This is supporting research, not a runtime specification or a selected third algorithm.
-[Audio](audio.md#player-tire-synthesis) owns the retained in-game CURRENT/CONTACT implementations;
+[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL implementations;
 [NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns the user's request to reconsider the method.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of either existing sound engine.
@@ -100,6 +100,6 @@ partials, other tonal components and broadband sound when evaluating the user's 
 less single-tone result; added oscillators are not themselves evidence of greater realism.
 
 Prepared/precomputed sound is eligible for the new tire investigation; the engine contract is separate.
-SPECTRAL is selected for isolated audition, not validated by these sources. Use the checkpoint rather
+SPECTRAL has progressed from audition to game comparison, not been validated by these sources. Use the checkpoint rather
 than creating another proposal/handoff archive. Existing audition tools regenerate both reference
 models; prior chat audio files are unnecessary.

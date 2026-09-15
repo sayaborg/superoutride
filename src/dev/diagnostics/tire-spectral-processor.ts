@@ -1,4 +1,5 @@
-import { SPECTRAL_INPUTS, TireSpectralSynthesis, type SpectralObservation } from './tire-spectral-model.js';
+import { TireSpectralSynthesis } from '../../audio/tire-spectral-model.js';
+import { SPECTRAL_INPUTS, type SpectralObservation } from '../../audio/tire-spectral-acoustics.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;

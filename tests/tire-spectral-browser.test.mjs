@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 import test from 'node:test';
-import { SPECTRAL_INPUTS } from '../dist/dev/diagnostics/tire-spectral-model.js';
+import { SPECTRAL_INPUTS } from '../dist/audio/tire-spectral-acoustics.js';
 import { SPECTRAL_SCENARIOS, spectralScenarioAt } from '../tools/tire-spectral-scenarios.mjs';
 import { SelectorElement } from './helpers/fake-selector-dom.mjs';
 import { FakeAudioContext, FakeAudioParam, FakeAudioWorkletNode } from './helpers/audio-context.mjs';

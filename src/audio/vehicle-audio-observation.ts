@@ -1,5 +1,8 @@
 /** Consumer-owned read contract. No physics, catalog or DOM dependency. Units: SI and RPM. */
 export interface TireAudioObservation {
+  readonly longitudinalVelocity: number;
+  readonly lateralVelocity: number;
+  readonly wheelSpeed: number;
   readonly load: number;
   readonly referenceLoad: number;
   readonly travelSpeed: number;

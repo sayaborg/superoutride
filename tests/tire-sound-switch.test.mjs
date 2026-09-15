@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contactTireParameters, TIRE_CONTACT_MAPPING, TIRE_CONTROL_RANGES } from '../dist/audio/tire-sound-controls.js';
+import {
+  contactTireParameters,
+  spectralTireParameters,
+  TIRE_CONTACT_MAPPING,
+  TIRE_CONTROL_RANGES,
+  TIRE_SOUND_MODELS,
+} from '../dist/audio/tire-sound-controls.js';
+import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
+import { SPECTRAL_INPUT_KEYS, SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
 import { CONTACT_ACOUSTICS, CONTACT_INPUTS, CONTACT_TEXTURE_KEYS } from '../dist/audio/tire-contact-acoustics.js';
 import { TireSynthesis } from '../dist/audio/tire-synthesis.js';
@@ -202,7 +210,7 @@ test('mode changes affect neither engine slot, exhaust settings nor worklet coun
   const before = exhausts.map((n) => structuredClone(n.messages));
   const count = context.nodes.length;
   for (let i = 0; i < 60; i++) {
-    engine.setTireModel(i % 2 ? 'current' : 'contact');
+    engine.setTireModel(TIRE_SOUND_MODELS[i % TIRE_SOUND_MODELS.length]);
     engine.update(input, sound);
     context.currentTime += 0.1;
     engine.update(input, sound);
@@ -218,6 +226,7 @@ test('mode changes affect neither engine slot, exhaust settings nor worklet coun
 
 test('UI choice survives loading, mute, vehicle changes and retry; keyboard/listeners remain isolated', async (t) => {
   const dom = install(t);
+  dom.elements.get('tire-sound-toggle').setAttribute('aria-pressed', 'false'); // Older cached HTML.
   let finish;
   FakeAudioContext.load = () =>
     new Promise((resolve) => {
@@ -229,7 +238,8 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   assert.equal(button.textContent, 'TIRES: CURRENT');
   button.click();
   assert.equal(button.textContent, 'TIRES: CONTACT');
-  assert.equal(button.getAttribute('aria-pressed'), 'true');
+  assert.match(button.getAttribute('aria-label'), /CONTACT/);
+  assert.equal(button.getAttribute('aria-pressed'), null, 'three-way cycle is not a boolean toggle');
   finish();
   await settle();
   const w = world();
@@ -250,7 +260,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   life.update(player, []);
   context.currentTime += 0.1;
   life.update(player, []);
-  assert.equal(node.messages.at(-1).model, 'current');
+  assert.equal(node.messages.at(-1).model, 'spectral');
   node.onprocessorerror();
   assert.doesNotThrow(() => life.update(player, []));
   assert.equal(dom.elements.get('sound-toggle').textContent, 'SOUND RETRY');
@@ -260,7 +270,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   await settle();
   life.update(player, []);
   node = FakeAudioContext.instances[1].nodes.find((n) => n.name === 'vehicle-tires');
-  assert.equal(node.messages.at(-1).model, 'contact');
+  assert.equal(node.messages.at(-1).model, 'current');
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
   button.emit('keydown', {
@@ -401,4 +411,97 @@ test('material identities travel independently through the real voice and proces
   const silence = [[new Float32Array(24000)]];
   assert.doesNotThrow(() => node.process([], silence, p));
   assert.ok(silence[0][0].slice(-128).every((v) => Math.abs(v) < 1e-8));
+});
+
+test('spectral choice cancels/supersedes pending fades without resetting engines or the current default', (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createTireVoice(context, context.destination);
+  t.after(() => voice.dispose());
+  const observation = state();
+  Object.assign(observation.front, {
+    longitudinalVelocity: 25,
+    lateralVelocity: 4,
+    wheelSpeed: 25,
+    lateralPower: 12000,
+  });
+  Object.assign(observation.rear, { ...observation.front, wheelSpeed: 40, surface: 'DIRT' });
+  voice.update(observation);
+  const node = context.nodes.find((n) => n.name === 'vehicle-tires');
+  voice.setModel('contact');
+  voice.update(observation);
+  voice.setModel('spectral');
+  voice.update(observation);
+  voice.setModel('current');
+  voice.update(observation);
+  assert.deepEqual(node.messages, [{ model: 'current' }]);
+  voice.setModel('spectral');
+  voice.update(observation);
+  assert.equal(node.messages.length, 1);
+  context.currentTime += AUDIO_TIMING.transitionSeconds + 0.001;
+  voice.update(observation);
+  assert.equal(node.messages.at(-1).model, 'spectral');
+  assert.equal(node.parameters.get('front_spectral_load').value, 4000);
+  assert.equal(node.parameters.get('rear_spectral_wheelSpeed').value, 40);
+  assert.equal(node.parameters.get('rear_spectral_surfaceIndex').value, 3);
+  assert.throws(() => voice.setModel('unknown'), RangeError);
+});
+
+test('real spectral voice transport and worklet match two independent shared kernels and release invalid axles', async (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createTireVoice(context, context.destination);
+  t.after(() => voice.dispose());
+  const observation = state();
+  Object.assign(observation.front, {
+    longitudinalVelocity: 25,
+    lateralVelocity: 4,
+    wheelSpeed: 25,
+    lateralPower: 12000,
+  });
+  Object.assign(observation.rear, { ...observation.front, wheelSpeed: 40, surface: 'DIRT' });
+  voice.setModel('spectral');
+  voice.update(observation);
+  const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
+    p = params();
+  for (const [key, param] of worklet.parameters) p[key][0] = param.value;
+  const Processor = await processor(t);
+  const render = (chunks) => {
+    const node = new Processor();
+    node.port.onmessage({ data: { model: 'spectral' } });
+    const actual = [];
+    for (const size of chunks) {
+      const out = [[new Float32Array(size)]];
+      node.process([], out, p);
+      actual.push(...out[0][0]);
+    }
+    assert.equal(node.front, null);
+    assert.equal(node.frontContact, null, 'inactive models do not process samples');
+    return { node, actual };
+  };
+  const { node, actual } = render([4096]);
+  assert.deepEqual(actual, render([1, 127, 1024, 33, 2911]).actual);
+  const kernels = [new TireSpectralSynthesis(48000), new TireSpectralSynthesis(48000, SPECTRAL_SETTINGS.rearSeed)];
+  for (const [i, axle] of ['front', 'rear'].entries()) {
+    const value = spectralTireParameters(observation[axle]);
+    for (const key of SPECTRAL_INPUT_KEYS) value[key] = p[`${axle}_spectral_${key}`][0];
+    kernels[i].update(value, value.surfaceIndex);
+  }
+  assert.deepEqual(actual, [...Float32Array.from({ length: 4096 }, () => kernels[0].sample() + kernels[1].sample())]);
+  p.front_spectral_surfaceIndex[0] = 0.5;
+  p.rear_spectral_load[0] = NaN;
+  const tail = [[new Float32Array(24000)]];
+  assert.doesNotThrow(() => node.process([], tail, p));
+  assert.ok(tail[0][0].slice(-128).every((v) => Math.abs(v) < 1e-8));
+  p.front_spectral_surfaceIndex[0] = 0;
+  p.rear_spectral_load[0] = 4000;
+  const resumed = [[new Float32Array(4096)]];
+  node.process([], resumed, p);
+  assert.ok(resumed[0][0].some((v) => Math.abs(v) > 0.01));
+  node.port.onmessage({ data: 'stop' });
+  node.port.onmessage({ data: { model: 'current' } });
+  assert.equal(node.frontSpectral, null);
+  assert.equal(node.rearSpectral, null);
+  assert.equal(node.process([], resumed, p), false);
+  assert.ok(resumed[0][0].every((v) => v === 0));
 });

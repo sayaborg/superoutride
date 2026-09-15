@@ -14,8 +14,8 @@ This directory describes the current system. It is not a chronological milestone
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
 
 The [tire sound evidence note](tire-squeal-research.md) is supporting research and records source limits,
-not a runtime contract or a selected algorithm. [Audio](audio.md) owns the retained CURRENT/CONTACT
-behavior; [NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns the staged SPECTRAL listening decision and
+not a runtime contract or a selected algorithm. [Audio](audio.md) owns CURRENT/CONTACT/SPECTRAL
+behavior; [NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns SPECTRAL game assessment and the listening decision and
 restart. Do not duplicate that brief in another handoff file.
 
 This is the sole specification index. On restart, read the development contract, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.

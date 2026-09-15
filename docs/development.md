@@ -7,8 +7,8 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
 For engine tuning, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
-TUNING minus/plus controls while driving. VOL also uses minus/plus buttons. TIRES: CURRENT / CONTACT
-compares the two tire models in all courses; the session choice survives mute and vehicle replacement.
+TUNING minus/plus controls while driving. VOL also uses minus/plus buttons. TIRES: CURRENT / CONTACT / SPECTRAL
+compares the three tire models in all courses; the session choice survives mute and vehicle replacement.
 CONTACT is experimental and its axle-to-representative mapping remains uncalibrated. The separate audition/verification page is
 `http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
 checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
@@ -64,10 +64,9 @@ HTML or required saved audio assets. [Audio](audio.md#player-tire-synthesis) own
 | CONTACT                  | [tire-contact-browser.html](../tools/tire-contact-browser.html) | `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
 | CONTACT characterization | Same kernel, no alternate synthesis                             | `node tools/tire-contact-characterize.mjs dist`                     |
 
-The isolated [SPECTRAL page](../tools/tire-spectral-browser.html) is the current one-contact asphalt
-S/Q experiment. It offers manual observations, S-only/Q-only/mix listening and shared diagnostic replays.
-Use `http://localhost:8000/tools/tire-spectral-browser.html` after building. This does not add SPECTRAL
-to the game or publish the diagnostic HTML to Pages.
+The separate [SPECTRAL page](../tools/tire-spectral-browser.html) retains the one-contact asphalt
+S/Q listening reference, while gameplay uses both axles and the full road/surface model. It offers manual observations, S-only/Q-only/mix listening and shared diagnostic replays.
+Use `http://localhost:8000/tools/tire-spectral-browser.html` after building. The game now also offers SPECTRAL; this separate diagnostic HTML is not published to Pages.
 
 ```sh
 node --test tests/tire-spectral*.test.mjs
@@ -78,7 +77,8 @@ node tools/tire-spectral-render.mjs /absolute/spectral-output-44100 44100
 The [shared SPECTRAL scenarios](../tools/tire-spectral-scenarios.mjs) feed one synthetic macro trace
 into each model's adapter. Outputs include SPECTRAL mix/scrub/squeal, unchanged CURRENT and CONTACT
 friction-only (existing 0.5 listening gain), plus unclipped peak/RMS and per-second measurements.
-There is no automatic gain matching, recorded vehicle trace, new road layer or listening approval.
+These particular WAVs omit road and use synthetic observations; they retain the approved S/Q reference
+without automatic gain matching. The new game mix/road/surface stage requires separate listening.
 Browser automation is k-rate and can quantize scheduled events to native render blocks; saved native
 kernel replays and actual browser/device playback remain distinct verification claims.
 
@@ -86,8 +86,8 @@ Repeat CONTACT rendering at 44100 for native-rate comparison. Its four-tap page 
 road/friction component. CONTACT scenarios use representative local-model controls; CURRENT scenarios
 use their own observation mapping. Identical slider numbers or unrelated scenario files are not a
 matched physical-input A/B test. For listening, the game's selector compares each model with live
-observations; a future automated comparison should replay one common observation trace into each
-model's adapter, without changing the vehicle trajectory.
+observations; the integrated probe below replays one completed observation trace through each adapter without
+changing the vehicle trajectory.
 
 Offline rendering reports elapsed time and a maximum iteration count, but is not a warmed paired tire
 benchmark. Keep throughput, iteration distributions, spectra, listening and simultaneous device gameplay
@@ -105,3 +105,11 @@ GitHub Actions checkout logs/artifacts and Git/PR refs are release evidence. Kee
 Pages stages complete ESM builds under `build/<commit>/` and publishes version.txt. Index loads that versioned boot path; all relative imports remain within the same build. The dist path is an explicit fallback for cached index/fetch failure. Each deployment contains only its current SHA under build/, plus the same build under dist/; versioned paths isolate caches and are not a retained rollback history. Preserve this coherent-build design. Do not strip modules based only on direct boot imports: course roots are dynamically selected and assets/diagnostics have separate consumers.
 
 For a reported failure, distinguish source logic, emitted build, deployed artifact and browser/cache state. Do not blame cache without evidence, and do not claim public endpoint verification from local tests alone.
+
+## Integrated tire replay probe
+
+`node tools/tire-game-audio-probe.mjs 48000` captures one completed five-second mechanics trace and
+replays it through CURRENT, CONTACT and SPECTRAL with both axles. It warms each, alternates order over
+five runs and reports fixed-gain peak/RMS and median host time. It includes audio updates and measurement
+bookkeeping, excludes capture/engine/browser/render cost, and is not a phone budget. Use 44100 or 96000
+for other supported diagnostic rates. This complements, never replaces, full tests and real device play.

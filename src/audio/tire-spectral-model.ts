@@ -1,36 +1,10 @@
-/** Isolated SPECTRAL trial: one asphalt contact, scrub + squeal only. Authority: docs/audio.md. */
-export const SPECTRAL_INPUTS = Object.freeze({
-  longitudinalVelocity: Object.freeze({ min: -100, max: 100, step: 1, value: 25, label: 'Contact longitudinal (m/s)' }),
-  lateralVelocity: Object.freeze({ min: -100, max: 100, step: 0.1, value: 4, label: 'Contact lateral (m/s)' }),
-  wheelSpeed: Object.freeze({ min: -200, max: 200, step: 1, value: 25, label: 'Wheel peripheral speed (m/s)' }),
-  load: Object.freeze({ min: 0, max: 30000, step: 100, value: 4000, label: 'Accepted normal load (N)' }),
-  longitudinalPower: Object.freeze({ min: 0, max: 1000000, step: 100, value: 0, label: 'Longitudinal slip work (W)' }),
-  lateralPower: Object.freeze({ min: 0, max: 1000000, step: 100, value: 12000, label: 'Lateral slip work (W)' }),
-  demand: Object.freeze({ min: 0, max: 50, step: 0.05, value: 1.5, label: 'Demand rho (not grip remaining)' }),
-});
-export type SpectralObservation = { readonly [K in keyof typeof SPECTRAL_INPUTS]: number };
-const inputKeys = Object.keys(SPECTRAL_INPUTS) as (keyof SpectralObservation)[];
-export const SPECTRAL_SETTINGS = Object.freeze({
-  minRate: 44100,
-  maxRate: 192000,
-  controlHz: 1000,
-  seed: 0x3547ab91,
-  attackSeconds: 0.015,
-  releaseSeconds: 0.01,
-  toneSeconds: 0.02,
-  wanderSeconds: 0.15,
-  wanderDepth: 0.015,
-  scrubDepth: 0.08,
-  scrubScaleMeters: 0.3,
-  powerScaleWatts: 8000,
-  directionScaleWatts: 100,
-  scrubGain: 0.04,
-  squealGain: 0.06,
-  scrubWeights: Object.freeze([0.35, 0.65]),
-  harmonicWeights: Object.freeze([0.65, 1, 0.6, 0.28]),
-  dcHz: 18,
-  outputHz: 8000,
-});
+import {
+  SPECTRAL_INPUTS,
+  SPECTRAL_INPUT_KEYS,
+  SPECTRAL_SETTINGS,
+  SPECTRAL_TEXTURES,
+  type SpectralObservation,
+} from './tire-spectral-acoustics.js';
 
 /** Bounded, reproducible stream. Separate seed/state per band and modulation source. */
 class RandomStream {
@@ -127,19 +101,30 @@ const silentObservation = () => ({
   demand: 0,
 });
 
-/** Six fixed bands, one contact. No road layer, surface catalog, physical solve or game registration. */
+/** Eight fixed bands per contact. Read-only observations; no physical solve or model/vehicle branches. */
 export class TireSpectralSynthesis {
   private readonly bands: SpectralBand[];
   private readonly wander: SmoothRandom;
   private readonly texture: SmoothRandom;
+  private readonly roadTexture: SmoothRandom;
+  private readonly material = { ...SPECTRAL_TEXTURES[0]! };
+  private targetMaterial = SPECTRAL_TEXTURES[0]!;
+  private roadLow = 0;
+  private roadHigh = 0;
+  private targetRoadLow = 0;
+  private targetRoadHigh = 0;
+  private travel = 0;
+  private rotation = 0;
+  private roadModulation = 1;
+  roadOutput = 0;
   private readonly attack: number;
   private readonly release: number;
   private readonly tone: number;
   private readonly dcPole: number;
   private readonly outputFollow: number;
-  private readonly previous = new Float64Array(2);
-  private readonly highpass = new Float64Array(2);
-  private readonly lowpass = new Float64Array(2);
+  private readonly previous = new Float64Array(3);
+  private readonly highpass = new Float64Array(3);
+  private readonly lowpass = new Float64Array(3);
   private observation = silentObservation();
   private supported = false;
   private clock: number;
@@ -170,6 +155,9 @@ export class TireSpectralSynthesis {
     this.bands = Array.from({ length: 6 }, () => new SpectralBand(rate, nextSeed()));
     this.wander = new SmoothRandom(nextSeed());
     this.texture = new SmoothRandom(nextSeed());
+    // Append new streams AFTER the six approved S/Q bands and modulators. Their PCM stays unchanged.
+    this.bands.push(new SpectralBand(rate, nextSeed()), new SpectralBand(rate, nextSeed()));
+    this.roadTexture = new SmoothRandom(nextSeed());
     this.attack = 1 - Math.exp(-1 / (rate * SPECTRAL_SETTINGS.attackSeconds));
     this.release = 1 - Math.exp(-1 / (rate * SPECTRAL_SETTINGS.releaseSeconds));
     this.tone = 1 - Math.exp(-1 / (SPECTRAL_SETTINGS.controlHz * SPECTRAL_SETTINGS.toneSeconds));
@@ -177,23 +165,36 @@ export class TireSpectralSynthesis {
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.outputHz) / rate);
     this.clock = rate; // First sample configures; subsequent ticks use this stream's rational clock.
   }
-  update(value: SpectralObservation): void {
-    for (const key of inputKeys) {
+  update(value: SpectralObservation, surfaceIndex = 0): void {
+    if (!Number.isInteger(surfaceIndex) || surfaceIndex < 0 || surfaceIndex >= SPECTRAL_TEXTURES.length) {
+      this.cutExcitation();
+      throw new RangeError('invalid spectral surface');
+    }
+    for (const key of SPECTRAL_INPUT_KEYS) {
       const range = SPECTRAL_INPUTS[key];
       const number = value[key];
       if (!Number.isFinite(number) || number < range.min || number > range.max) {
-        this.supported = false;
-        this.workLevel = this.squeal = 0;
+        this.cutExcitation();
         throw new RangeError(`invalid spectral observation: ${key}`);
       }
     }
-    for (const key of inputKeys) this.observation[key] = value[key]; // Copy values, never retain the caller.
+    for (const key of SPECTRAL_INPUT_KEYS) this.observation[key] = value[key]; // Copy values, never retain the caller.
+    this.targetMaterial = SPECTRAL_TEXTURES[surfaceIndex]!;
     this.supported = value.load > 0;
+    const level = Math.sqrt(saturate(value.load, SPECTRAL_SETTINGS.loadScaleNewtons));
+    this.targetRoadLow =
+      level *
+      saturate(Math.hypot(value.longitudinalVelocity, value.lateralVelocity), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5;
+    this.targetRoadHigh = level * saturate(Math.abs(value.wheelSpeed), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5;
     const s = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
     const power = s > 0 ? value.longitudinalPower + value.lateralPower : 0;
     this.targetWorkLevel = Math.sqrt(saturate(power, SPECTRAL_SETTINGS.powerScaleWatts));
     this.targetSqueal = value.demand ** 2 / (1 + value.demand ** 2);
-    if (!this.supported) this.workLevel = this.squeal = 0; // Cut excitation, never reset resonator state.
+    if (!this.supported) this.cutExcitation();
+  }
+  private cutExcitation(): void {
+    this.supported = false;
+    this.workLevel = this.squeal = this.roadLow = this.roadHigh = 0; // Preserve resonator/filter tails.
   }
   private control(): void {
     if (!this.supported) return; // Freeze pitch/width on release; do not turn a tail into a down-chirp.
@@ -207,8 +208,24 @@ export class TireSpectralSynthesis {
     this.width += this.tone * (targetWidth - this.width);
     this.slip += this.tone * (slip - this.slip);
     const wander = this.wander.step(1 / (SPECTRAL_SETTINGS.controlHz * SPECTRAL_SETTINGS.wanderSeconds));
-    const textureHz = (160 * this.slip) / (this.slip + 160 * SPECTRAL_SETTINGS.scrubScaleMeters);
-    this.modulation = 1 + SPECTRAL_SETTINGS.scrubDepth * this.texture.step(textureHz / SPECTRAL_SETTINGS.controlHz);
+    const material = this.material,
+      target = this.targetMaterial;
+    material.roadLow += this.tone * (target.roadLow - material.roadLow);
+    material.roadHigh += this.tone * (target.roadHigh - material.roadHigh);
+    material.scrubLow += this.tone * (target.scrubLow - material.scrubLow);
+    material.scrubHigh += this.tone * (target.scrubHigh - material.scrubHigh);
+    material.squeal += this.tone * (target.squeal - material.squeal);
+    material.scaleMeters += this.tone * (target.scaleMeters - material.scaleMeters);
+    material.depth += this.tone * (target.depth - material.depth);
+    const textureHz = (160 * this.slip) / (this.slip + 160 * material.scaleMeters);
+    this.modulation = 1 + material.depth * this.texture.step(textureHz / SPECTRAL_SETTINGS.controlHz);
+    this.travel += this.tone * (Math.hypot(v.longitudinalVelocity, v.lateralVelocity) - this.travel);
+    this.rotation += this.tone * (Math.abs(v.wheelSpeed) - this.rotation);
+    const roadSpeed = (this.travel + this.rotation) / 2;
+    const roadHz = (160 * roadSpeed) / (roadSpeed + 160 * material.scaleMeters);
+    this.roadModulation = 1 + material.depth * this.roadTexture.step(roadHz / SPECTRAL_SETTINGS.controlHz);
+    this.bands[6]!.configure(220 + 350 * saturate(this.travel, 20), 500);
+    this.bands[7]!.configure(1500 + 1200 * saturate(this.rotation, 25), 1800);
     this.bands[0]!.configure(700 + 300 * saturate(this.slip, 6), 900);
     this.bands[1]!.configure(2600 + 1000 * saturate(this.slip, 10), 2000);
     for (let h = 1; h <= 4; h++)
@@ -231,19 +248,34 @@ export class TireSpectralSynthesis {
       this.workLevel +=
         (this.targetWorkLevel > this.workLevel ? this.attack : this.release) * (this.targetWorkLevel - this.workLevel);
       this.squeal += (this.targetSqueal > this.squeal ? this.attack : this.release) * (this.targetSqueal - this.squeal);
+      this.roadLow +=
+        (this.targetRoadLow > this.roadLow ? this.attack : this.release) * (this.targetRoadLow - this.roadLow);
+      this.roadHigh +=
+        (this.targetRoadHigh > this.roadHigh ? this.attack : this.release) * (this.targetRoadHigh - this.roadHigh);
     }
     let scrub = 0,
       squeal = 0;
     for (let i = 0; i < 2; i++)
       scrub += this.bands[i]!.sample(
-        this.workLevel * SPECTRAL_SETTINGS.scrubGain * SPECTRAL_SETTINGS.scrubWeights[i]! * this.modulation,
+        this.workLevel *
+          SPECTRAL_SETTINGS.scrubGain *
+          (i === 0 ? this.material.scrubLow : this.material.scrubHigh) *
+          this.modulation,
       );
     for (let i = 0; i < 4; i++)
       squeal += this.bands[i + 2]!.sample(
-        this.workLevel * this.squeal * SPECTRAL_SETTINGS.squealGain * SPECTRAL_SETTINGS.harmonicWeights[i]!,
+        this.workLevel *
+          this.squeal *
+          SPECTRAL_SETTINGS.squealGain *
+          SPECTRAL_SETTINGS.harmonicWeights[i]! *
+          this.material.squeal,
       );
     this.scrubOutput = this.condition(scrub, 0);
     this.squealOutput = this.condition(squeal, 1);
-    return this.scrubOutput + this.squealOutput;
+    const road =
+      this.bands[6]!.sample(this.roadLow * SPECTRAL_SETTINGS.roadGain * this.material.roadLow * this.roadModulation) +
+      this.bands[7]!.sample(this.roadHigh * SPECTRAL_SETTINGS.roadGain * this.material.roadHigh * this.roadModulation);
+    this.roadOutput = this.condition(road, 2);
+    return this.scrubOutput + this.squealOutput + this.roadOutput;
   }
 }

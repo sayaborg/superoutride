@@ -31,6 +31,9 @@ export class SelectorElement {
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
   }
+  removeAttribute(name) {
+    this.attributes.delete(name);
+  }
   getAttribute(name) {
     return this.attributes.get(name) ?? null;
   }

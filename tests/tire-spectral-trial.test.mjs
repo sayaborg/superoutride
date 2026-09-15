@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  SpectralBand,
-  TireSpectralSynthesis,
-  SPECTRAL_INPUTS,
-  SPECTRAL_SETTINGS,
-} from '../dist/dev/diagnostics/tire-spectral-model.js';
+import { SpectralBand, TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
+import { SPECTRAL_INPUTS, SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import {
   SPECTRAL_SCENARIOS,
   spectralScenarioAt,
@@ -24,7 +20,10 @@ const input = (values = {}) => ({
 });
 function render(kernel, count) {
   const result = new Float64Array(count);
-  for (let i = 0; i < count; i++) result[i] = kernel.sample();
+  for (let i = 0; i < count; i++) {
+    kernel.sample();
+    result[i] = kernel.scrubOutput + kernel.squealOutput;
+  }
   return result;
 }
 const rms = (values) => Math.sqrt(values.reduce((sum, value) => sum + value * value, 0) / values.length);
@@ -103,7 +102,7 @@ test('band and kernel reject unsupported domains without poisoning later finite 
   assert.ok(rms(render(kernel, 4800)) > 0.01);
 });
 
-test('initial rest and loaded zero slip are silent; stationary wheelspin remains audible', () => {
+test('retained S/Q taps are silent at zero slip; stationary wheelspin remains audible', () => {
   const kernel = new TireSpectralSynthesis(48000);
   assert.ok(render(kernel, 1000).every((v) => v === 0));
   kernel.update(input({ lateralVelocity: 0, lateralPower: 0, demand: 0 }));

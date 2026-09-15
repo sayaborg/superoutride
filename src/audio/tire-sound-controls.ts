@@ -1,11 +1,28 @@
+import { SPECTRAL_INPUTS, SPECTRAL_TEXTURES, type SpectralObservation } from './tire-spectral-acoustics.js';
 import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TEXTURE_KEYS } from './tire-contact-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
-export type TireSoundModel = 'current' | 'contact';
+export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral'] as const);
+export type TireSoundModel = (typeof TIRE_SOUND_MODELS)[number];
 export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'current';
+
+const spectralRanges = Object.fromEntries(
+  Object.entries(SPECTRAL_INPUTS).map(([key, range]) => [
+    `spectral_${key}`,
+    Object.freeze({ minValue: range.min, maxValue: range.max, defaultValue: 0 }),
+  ]),
+) as {
+  readonly [K in keyof SpectralObservation as `spectral_${K}`]: Readonly<{
+    minValue: number;
+    maxValue: number;
+    defaultValue: number;
+  }>;
+};
 
 // Transport domains, shared by the voice, worklet and diagnostics. Kernels own smoothing.
 export const TIRE_CONTROL_RANGES = Object.freeze({
+  ...spectralRanges,
+  spectral_surfaceIndex: Object.freeze({ minValue: 0, maxValue: SPECTRAL_TEXTURES.length - 1, defaultValue: 0 }),
   squeal: Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 0 }),
   pitch: Object.freeze({ minValue: 400, maxValue: 2400, defaultValue: 900 }),
   travelSpeed: Object.freeze({ minValue: 0, maxValue: CONTACT_INPUTS.travelSpeed.max, defaultValue: 0 }),
@@ -38,4 +55,39 @@ export function contactTireParameters(tire: TireAudioObservation) {
     load: Math.min(CONTACT_INPUTS.load.max, TIRE_CONTACT_MAPPING.referenceLoad * (tire.load / tire.referenceLoad)),
     surfaceIndex,
   };
+}
+
+/** Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. */
+export function spectralTireParameters(tire: TireAudioObservation) {
+  const silent = {
+    longitudinalVelocity: 0,
+    lateralVelocity: 0,
+    wheelSpeed: 0,
+    load: 0,
+    longitudinalPower: 0,
+    lateralPower: 0,
+    demand: 0,
+    surfaceIndex: 0,
+  };
+  if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid spectral load');
+  if (tire.load === 0 || tire.surface === 'VOID') return silent;
+  const surfaceIndex = SPECTRAL_TEXTURES.findIndex((texture) => texture.surface === tire.surface);
+  const values = {
+    longitudinalVelocity: tire.longitudinalVelocity,
+    lateralVelocity: tire.lateralVelocity,
+    wheelSpeed: tire.wheelSpeed,
+    load: tire.load,
+    longitudinalPower: tire.longitudinalPower,
+    lateralPower: tire.lateralPower,
+    demand: tire.utilization,
+  };
+  if (surfaceIndex < 0) throw new RangeError('unknown spectral surface');
+  for (const key of Object.keys(values) as (keyof SpectralObservation)[]) {
+    const range = SPECTRAL_INPUTS[key],
+      value = values[key];
+    if (!Number.isFinite(value) || (range.min === 0 && value < 0))
+      throw new RangeError(`invalid spectral observation: ${key}`);
+    values[key] = Math.max(range.min, Math.min(range.max, value));
+  }
+  return { ...values, surfaceIndex };
 }
