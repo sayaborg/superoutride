@@ -1,0 +1,31 @@
+name: Temporary spectral validation workspace
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Export source and supported validation tools without credentials
+        run: |
+          ! git config --local --get-regexp 'http\..*extraheader'
+          mkdir -p /tmp/spectral-validation
+          cp -a "$GITHUB_WORKSPACE" /tmp/spectral-validation/repo
+          cp -a "$(dirname "$(dirname "$(command -v node)")")" /tmp/spectral-validation/node
+          tar -czf /tmp/spectral-validation-workspace.tar.gz -C /tmp/spectral-validation repo node
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spectral-validation-workspace
+          path: /tmp/spectral-validation-workspace.tar.gz
+          retention-days: 1
