@@ -1,0 +1,22 @@
+name: Temporary tire review source
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source:
+    if: github.head_ref == 'codex/tire-response-components'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - run: tar -czf /tmp/tire-source.tar.gz .
+      - uses: actions/upload-artifact@v5
+        with:
+          name: tire-response-source
+          path: /tmp/tire-source.tar.gz
+          retention-days: 1
