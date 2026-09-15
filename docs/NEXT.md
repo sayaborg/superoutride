@@ -88,10 +88,12 @@ checkpoint does not restate their coefficients. Engine sound is approved as a li
 not a universal device or absolute-loudness calibration. Vehicle-level differences and final tire/engine
 balance remain open; do not silently normalize the engine while changing tires.
 
-## Other implementation areas and limits
+## Other implementation areas
 
 Rendering, camera, sprites, tunnel content and race/session rules retain their existing owners in the
 [specification index](README.md). Do not reopen them as part of tire method selection.
+
+## Remaining limits
 
 General nonadjacent road-band intersection classification is not implemented. Vertex, fillet and
 supported-envelope checks do not certify complete band geometry; preserve the
