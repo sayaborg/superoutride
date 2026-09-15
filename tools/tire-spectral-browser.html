@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SUPER OUTRIDE — SPECTRAL tire audition</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 0 auto;
+        padding: 24px 18px 48px;
+        max-width: 850px;
+        background: #111820;
+        color: #ecf2f6;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+      }
+      h2 {
+        font-size: 1.1rem;
+      }
+      p {
+        line-height: 1.6;
+      }
+      .note {
+        color: #aebdc8;
+      }
+      section {
+        border-top: 1px solid #33424e;
+        margin-top: 24px;
+        padding-top: 14px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin: 12px 0;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+        padding: 9px;
+        border-radius: 4px;
+        border: 1px solid #617480;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+      #scene {
+        flex: 1 1 230px;
+        min-width: 0;
+        max-width: 100%;
+      }
+      #controls {
+        display: grid;
+        grid-template-columns: 1fr minmax(100px, 170px);
+        gap: 12px;
+        align-items: center;
+      }
+      #controls input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      #status {
+        padding: 12px;
+        background: #1d2b37;
+        overflow-wrap: anywhere;
+      }
+      code {
+        font-size: 0.92em;
+      }
+      a {
+        color: #a3d9fa;
+      }
+      @media (max-width: 440px) {
+        #controls {
+          grid-template-columns: 1fr 110px;
+        }
+        body {
+          padding: 16px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p class="note">SUPER OUTRIDE · ISOLATED AUDIO EXPERIMENT</p>
+    <h1>SPECTRAL / asphalt</h1>
+    <p>
+      One contact. Scrub + finite-width harmonic squeal. No rolling layer, recordings, loose surfaces or game
+      integration.
+    </p>
+    <p class="note">
+      Start at low volume. These are authored acoustic controls, not measured tire properties. Silence on iPhone may
+      require disabling silent mode.
+    </p>
+    <div class="row">
+      <button id="start">START / RESUME</button><button id="stop">STOP</button>
+      <label
+        >Listen
+        <select id="tap">
+          <option value="mix">S + Q</option>
+          <option value="scrub">S: scrub only</option>
+          <option value="squeal">Q: squeal only</option>
+        </select></label
+      >
+      <label>Volume <input id="volume" type="range" min="0" max="1" step="0.01" value="0.35" /></label>
+    </div>
+    <p id="status" role="status" aria-live="polite">Loading controls…</p>
+    <section>
+      <h2>Shared diagnostic replays</h2>
+      <div class="row">
+        <select id="scene" aria-label="Scenario"></select
+        ><button id="replay">RUN REPLAY</button><button id="reset">STEADY CORNER</button>
+      </div>
+      <p class="note">
+        Replays use authored observations at 60 Hz, not a vehicle simulation. RUN starts a fresh seeded stream. Manual
+        edits cancel scheduled replay controls. Offline WAVs compare the same trace through all three model adapters.
+      </p>
+    </section>
+    <section>
+      <h2>Manual observations</h2>
+      <div id="controls"></div>
+      <p class="note">
+        Work and demand are independent test inputs, not inferred from sliders. Load acts as support here: friction work
+        already includes force. Wheel speed is signed <code>RΩ</code>, not vehicle speed.
+      </p>
+    </section>
+    <section>
+      <h2>What to judge</h2>
+      <p>
+        Does Q sound like friction, or just a resonant whistle / air noise? Does S + Q improve the weak-to-strong
+        sliding transition? Listen to release separately. Passing numerical checks is not listening acceptance.
+      </p>
+      <p class="note">
+        Build first and serve over HTTP. This diagnostic HTML is not included in the game's Pages deployment.
+        <a href="./tire-browser.html">CURRENT</a> · <a href="./tire-contact-browser.html">CONTACT</a>
+      </p>
+    </section>
+    <script type="module">
+      import { SPECTRAL_INPUTS } from '../dist/dev/diagnostics/tire-spectral-model.js';
+      import { SPECTRAL_SCENARIOS, spectralScenarioAt } from './tire-spectral-scenarios.mjs';
+      const byId = (id) => document.getElementById(id);
+      const status = byId('status'),
+        inputs = new Map();
+      let graph = null,
+        generation = 0,
+        retiring = null;
+      for (const [key, range] of Object.entries(SPECTRAL_INPUTS)) {
+        const label = document.createElement('label');
+        label.htmlFor = key;
+        label.textContent = range.label;
+        const field = document.createElement('input');
+        field.id = key;
+        field.type = 'number';
+        field.min = range.min;
+        field.max = range.max;
+        field.step = range.step;
+        field.value = range.value;
+        byId('controls').append(label, field);
+        inputs.set(key, field);
+        field.addEventListener('change', () => {
+          try {
+            applyManual();
+          } catch (error) {
+            fail(error);
+          }
+        });
+      }
+      for (const scene of SPECTRAL_SCENARIOS) {
+        const option = document.createElement('option');
+        option.value = scene.id;
+        option.textContent = scene.label;
+        byId('scene').append(option);
+      }
+      function read() {
+        const value = {};
+        for (const [key, field] of inputs) {
+          const number = field.valueAsNumber,
+            range = SPECTRAL_INPUTS[key];
+          if (!Number.isFinite(number) || number < range.min || number > range.max)
+            throw new RangeError(`Invalid ${range.label}`);
+          value[key] = number;
+        }
+        return value;
+      }
+      function setInputs(g, value, when, cancel = false) {
+        for (const [key, number] of Object.entries(value)) {
+          const p = g.node.parameters.get(key);
+          if (cancel) p.cancelScheduledValues(when);
+          p.setValueAtTime(number, when);
+        }
+      }
+      function applyManual() {
+        const value = read();
+        if (graph?.node) {
+          setInputs(graph, value, graph.context.currentTime, true);
+          status.textContent = `Manual · ${graph.context.sampleRate} Hz · one contact`;
+        }
+      }
+      function mix() {
+        if (!graph?.node) return;
+        const now = graph.context.currentTime,
+          selected = byId('tap').value;
+        for (const [name, gain] of graph.taps) {
+          const p = gain.gain;
+          p.cancelScheduledValues(now);
+          p.setValueAtTime(p.value, now);
+          p.setTargetAtTime(selected === 'mix' || selected === name ? 1 : 0, now, 0.01);
+        }
+        const p = graph.master.gain;
+        p.cancelScheduledValues(now);
+        p.setValueAtTime(p.value, now);
+        p.setTargetAtTime(Number(byId('volume').value), now, 0.01);
+      }
+      function close(g) {
+        if (!g || g.closed) return;
+        g.closed = true;
+        clearTimeout(g.timer);
+        g.node?.port.postMessage('stop');
+        g.node?.disconnect();
+        void g.context.close().catch(() => {});
+      }
+      function stop(immediate = false) {
+        generation++;
+        close(retiring);
+        retiring = null;
+        const old = graph;
+        graph = null;
+        if (old?.node && !immediate && old.context.state === 'running') {
+          const now = old.context.currentTime;
+          for (const p of old.node.parameters.values()) p.cancelScheduledValues(now);
+          old.node.parameters.get('load').setValueAtTime(0, now);
+          retiring = old;
+          old.timer = setTimeout(() => {
+            close(old);
+            if (retiring === old) retiring = null;
+          }, 140);
+        } else close(old);
+        byId('start').disabled = false;
+        status.textContent = 'Stopped. START creates a fresh seeded stream.';
+      }
+      function fail(error) {
+        stop(true);
+        status.textContent = `Audio unavailable / retry: ${error.message}`;
+      }
+      async function start(value = read()) {
+        close(retiring);
+        retiring = null;
+        if (graph) {
+          const active = graph;
+          try {
+            await active.context.resume();
+          } catch (error) {
+            if (graph === active) throw error;
+            return null;
+          }
+          return graph === active ? active : null;
+        }
+        const Context = window.AudioContext || window.webkitAudioContext;
+        if (!Context || !window.AudioWorkletNode) throw new Error('AudioWorklet is required');
+        const token = ++generation,
+          context = new Context();
+        const g = { context, node: null, closed: false, taps: new Map() };
+        graph = g;
+        byId('start').disabled = true;
+        status.textContent = 'Starting audio…';
+        const resumed = context.resume();
+        try {
+          if (!context.audioWorklet) throw new Error('Serve over localhost HTTP or HTTPS');
+          await Promise.all([
+            resumed,
+            context.audioWorklet.addModule(
+              new URL('../dist/dev/diagnostics/tire-spectral-processor.js', import.meta.url),
+            ),
+          ]);
+          if (token !== generation || graph !== g) {
+            close(g);
+            return null;
+          }
+          g.node = new AudioWorkletNode(context, 'tire-spectral-trial', {
+            numberOfInputs: 0,
+            numberOfOutputs: 2,
+            outputChannelCount: [1, 1],
+          });
+          g.node.onprocessorerror = () => {
+            if (graph === g) fail(new Error('Spectral processor failed'));
+          };
+          g.master = context.createGain();
+          g.master.gain.value = 0;
+          g.master.connect(context.destination);
+          for (const [index, name] of ['scrub', 'squeal'].entries()) {
+            const gain = context.createGain();
+            gain.gain.value = 0;
+            g.node.connect(gain, index);
+            gain.connect(g.master);
+            g.taps.set(name, gain);
+          }
+          setInputs(g, value, context.currentTime);
+          mix();
+          byId('start').disabled = false;
+          status.textContent = `Manual · ${context.sampleRate} Hz · S + Q, one asphalt contact`;
+          return g;
+        } catch (error) {
+          close(g);
+          if (graph === g) {
+            graph = null;
+            throw error;
+          }
+          return null;
+        }
+      }
+      byId('start').addEventListener('click', () => {
+        void start().catch(fail);
+      });
+      byId('stop').addEventListener('click', () => stop());
+      byId('tap').addEventListener('change', mix);
+      byId('volume').addEventListener('input', mix);
+      byId('reset').addEventListener('click', () => {
+        for (const [key, field] of inputs) field.value = SPECTRAL_INPUTS[key].value;
+        applyManual();
+      });
+      byId('replay').addEventListener('click', () => {
+        stop(true);
+        const scene = SPECTRAL_SCENARIOS.find((item) => item.id === byId('scene').value);
+        void start(spectralScenarioAt(scene, 0))
+          .then((g) => {
+            if (!g || graph !== g) return;
+            const begin = g.context.currentTime + 0.05;
+            for (let frame = 0; frame <= scene.seconds * 60; frame++)
+              setInputs(g, spectralScenarioAt(scene, frame / 60), begin + frame / 60);
+            g.node.parameters.get('load').setValueAtTime(0, begin + scene.seconds + 1 / 60);
+            status.textContent = `Replay · ${scene.label} · ${scene.seconds} s · fixed kernel gains`;
+          })
+          .catch(fail);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stop(true);
+      });
+      window.addEventListener('pagehide', () => stop(true));
+      status.textContent = 'Ready. Tap START, then compare S + Q, S only and Q only.';
+    </script>
+  </body>
+</html>

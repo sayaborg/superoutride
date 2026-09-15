@@ -100,6 +100,6 @@ partials, other tonal components and broadband sound when evaluating the user's 
 less single-tone result; added oscillators are not themselves evidence of greater realism.
 
 Prepared/precomputed sound is eligible for the new tire investigation; the engine contract is separate.
-No candidate has been selected. Use the single checkpoint for feedback and decision criteria rather
+SPECTRAL is selected for isolated audition, not validated by these sources. Use the checkpoint rather
 than creating another proposal/handoff archive. Existing audition tools regenerate both reference
 models; prior chat audio files are unnecessary.

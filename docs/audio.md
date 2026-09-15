@@ -115,7 +115,7 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 
 ## Player tire synthesis
 
-Two comparison models are implemented; no third model exists. The
+Two comparison models remain in the game. The isolated SPECTRAL trial below is not in that graph. The
 [evidence note](tire-squeal-research.md) motivates mechanisms without calibrating either implementation.
 [Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
 tangential travel speed, slip-speed magnitude, directional dissipated slip power, utilization and
@@ -237,6 +237,60 @@ commands. Generated WAVs are review outputs, not runtime dependencies. Existing 
 reference hashes, energy/weakening/convergence checks, finite transitions, transport and independent
 histories. An intentional future replacement must revise model-specific expectations explicitly,
 not weaken the still-valid observation, lifetime or physical/rendering contracts.
+
+### SPECTRAL isolated asphalt trial
+
+The user authorized the first third-method experiment, not gameplay adoption. The
+[DEV kernel/settings](../src/dev/diagnostics/tire-spectral-model.ts) and
+[two-tap worklet](../src/dev/diagnostics/tire-spectral-processor.ts) synthesize one asphalt contact:
+two broad scrub bands plus four finite-width harmonic bands. No rolling layer, loose-surface catalog,
+recordings, tire selector entry, physical telemetry expansion or production import is added.
+The [checkpoint](NEXT.md#next-decision-a-third-tire-sound-method) owns the listening decision.
+
+`SPECTRAL_INPUTS` owns seven scalar controls: signed longitudinal/lateral contact velocity, signed
+wheel peripheral speed, normal load, accepted longitudinal/lateral slip work and demand rho. Domains,
+defaults and units are shared by UI, processor and validation. Controls are independent synthetic
+observations in this audition, not a reconstructed tire solve. The game currently lacks the signed
+velocity/peripheral-speed consumer fields; adding them is deferred until gameplay integration.
+Zero load cuts excitation even with nonzero work. Zero slip also has zero new excitation. Otherwise,
+work level is `sqrt(P/(P+8000))`, without multiplying load twice; squeal additionally uses
+`rho^2/(1+rho^2)`. These are authored acoustic controls, not sound power or remaining physical grip.
+
+Every band updates two real states as `z_next = r*R(theta)*z + A*sqrt(1-r^2)*xi`, where
+`r=exp(-pi*B/rate)`, `theta=2*pi*f/rate`, and xi has independent unit-variance components.
+Seeded bounded uniform draws are scaled analytically. Seed splitting permutes the parent stream
+before constructing bands; adjacent xorshift states must not create short-lag shared excitation. Constant coefficients give variance A^2 in
+each state in the ideal white-input model. This is source normalization, not measured-output AGC.
+B is a nominal pole bandwidth, not an exact broad-band FWHM. B stays positive; changing frequency
+rotates stored state rather than resetting phase or generating additional spring energy.
+
+Four bands are centered on multiples of a shared authored fundamental, with independent states and
+random streams. Nominal bandwidth grows with harmonic order. Shared C1 pitch wander has bounded
+1.5% depth; independent scrub modulation has 8% depth. The kernel settings and mapping own all numeric
+values. The trial tests the finite-coherence hypothesis; it does not assert that real tread modes are
+independent or that more partials are intrinsically realistic.
+
+An internal rational 1 kHz control clock updates band coefficients independently of host block splits;
+all six bands run at the native output rate. Supported rates are integer 44.1–192 kHz. Work and demand
+follow separate 15/10 ms rise/fall constants; tone follows 20 ms. Loss of support immediately zeros
+excitation and freezes frequency/bandwidth, but retains the decaying band/filter state. The 50 Hz
+minimum pole bandwidth gives about 44 ms to -60 dB in state amplitude; that is not a guarantee for the
+complete filtered output. Separate 18 Hz DC removal and 8 kHz one-pole LPFs preserve S/Q solo taps.
+Output is their fixed-gain sum, with no clipping, waveform reset, output RMS matching or axle detuning.
+
+The worklet has two mono outputs, seven k-rate AudioParams and stop-only messaging. Invalid inputs cut
+excitation without poisoning the state; a valid later frame can resume it. START/retry is gesture-driven;
+STOP, hidden pages and stale asynchronous initialization close the diagnostic context. Solo/volume
+change only output gain. The standalone page and offline renderer reuse this kernel, never copied DSP.
+[Development](development.md#tire-comparison-tools) lists their commands.
+
+Tests cover analytic decay/variance, finite-domain corners, independent streams, deterministic block
+partitions, caller immutability, stationary spin, lock/spin contrast, support release/recontact and
+worklet-processor equivalence under a host stub. Generated WAVs replay common authored observations at 60 Hz through the
+three adapters; CONTACT is friction-only with its existing listening gain, CURRENT uses its existing
+kernel output. No level matching is applied. This is not a full-tire comparison or real gameplay capture.
+The renderer's combined elapsed time is not a paired kernel benchmark. Speaker quality, smartphone
+performance, broad aliasing qualification and perceptual acceptance remain open.
 
 ### Interpretation and cost limits
 

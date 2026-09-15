@@ -20,15 +20,15 @@
 
 ## Next decision: a third tire-sound method
 
-The user judges the current model an insufficient approximation of real tire sound and wants a
-**third approach**, discussed in a new thread. This supersedes continuing CONTACT tuning or
-optimizing its nonlinear solver as the default next task. No third algorithm, name or implementation
-has been selected. "Third" does not preselect a previously discussed option or a renamed CURRENT.
+The user selected **SPECTRAL** for the third-method experiment and asked to begin. Its first stage
+is an isolated, one-contact asphalt audition: scrub plus finite-width harmonic squeal. The
+[implemented trial contract](audio.md#spectral-isolated-asphalt-trial) owns the kernel and its limits;
+[development](development.md#tire-comparison-tools) owns listening and regeneration commands.
 
-Keep CURRENT and CONTACT, their A/B switch and their tests unchanged as audible references for now.
-Do not remove either model, change the reload default, add a placeholder mode or refactor gameplay
-in preparation for an unknown design. CONTACT is a useful experiment, not the physical truth that a
-successor must reproduce sample-for-sample.
+Keep CURRENT and CONTACT, their A/B switch, reload default and tests unchanged. SPECTRAL is not in
+the game selector, does not expand physics telemetry, and is not adopted as the final tire model.
+There is no rolling layer, loose-surface catalog or two-axle trial graph yet. Do not implement those
+stages merely because the full conceptual design mentioned them.
 
 ### User feedback to carry forward
 
@@ -42,43 +42,33 @@ successor must reproduce sample-for-sample.
 - Fidelity to the essential audible behavior, simplicity and phone suitability matter together.
   Expensive microscopic-looking equations do not by themselves establish a good approximation.
 
-### Design brief for the next thread
+### Next action: listen before extending
 
-First propose and compare a few genuinely distinct approaches before implementation. Use the same
-sound engine for front and rear, with independent observations and internal state. Consider rolling
-texture, irregular rubbing and tonal squeal separately where useful; their earlier three-way grouping
-and CONTACT's two-mode decomposition are candidates, not frozen architecture.
+Use the separate SPECTRAL audition and its S-only, Q-only and S+Q taps. Listen for whether finite-width
+harmonic bands sound like friction rather than a whistle, wind or resonant noise, and whether scrub
+plus squeal improves grip/slide/recovery. Numerical stability, spectral statistics and CI do not answer
+that perceptual question. The first render uses a common synthetic macro-observation trace through
+SPECTRAL, CURRENT and CONTACT adapters, not captured gameplay telemetry or calibrated acoustics.
+CONTACT comparison output is explicitly friction-only because this SPECTRAL stage has no rolling layer.
 
-Prepared sound with controlled playback, generated/precomputed sound, procedural synthesis and hybrids
-are eligible for tire work. The user explicitly allowed prepared sound, while preferring an essential,
-simple model. The accepted engine's sample-free contract is unchanged. Do not add recordings or assets
-until their role and provenance are settled.
+If this core timbre is useful, assess rolling, loose ground and independent front/rear combination next;
+only then consider a third gameplay choice and the read-only telemetry extension. If narrow bands sound
+like a whistle and wider bands merely like noise without a useful intermediate region, reject the core
+hypothesis and move to method four/five rather than accumulating corrective oscillators or gain tricks.
+Prepared/precomputed, procedural and hybrid approaches remain eligible for future tire work; the
+accepted engine's sample-free contract remains separate and unchanged.
 
-For each candidate, state the mechanism retained, what is approximated, the smallest input/state set,
-expected behavior through grip/slide/recovery and loose surfaces, and how to test sound and cost.
-Do not invent local tread pressure, temperature or stiffness from vehicle-scale tire coefficients.
-Do not assume a universal slip threshold or prescribe extra oscillators just to produce complexity.
-Use the [current observation and model contracts](audio.md#player-tire-synthesis) to distinguish raw
-physics observations from method-specific acoustic mappings; a third method need not inherit CONTACT's
-representative load/slip conversion.
-
-Performance is a selection criterion, not a measured conclusion: the [cost limits](audio.md#interpretation-and-cost-limits)
-distinguish source-level work from host/device timings. No CONTACT/CURRENT speed ratio or smartphone
-budget has been established. Reduced internal rates and fixed Newton counts are unvalidated suggestions,
-not accepted optimizations. Avoid starting this thread by implementing them.
+Keep physics observations distinct from authored acoustic mappings. Do not invent local tread pressure,
+temperature or stiffness. Demand rho is not grip remaining, and friction work is not acoustic watts.
+Compare fixed-gain outputs without automatic normalization. Keep listening, measured spectrum,
+transients, deterministic block handling, host throughput and phone gameplay budget as separate evidence.
 
 ### Decision gate
 
-Agree on a candidate and its minimal experiment before wiring a third game mode. Compare front, rear
-and their mix over ordinary rolling, cornering, longitudinal lock/spin, sideways/reverse travel,
-loose-surface changes, loss of support and grip recovery. Keep listening, spectral/transient analysis,
-bounded output, read-only physics and warmed host/device timing as separate evidence. Fixed-gain
-comparisons must not hide level differences with automatic normalization.
-
-Retain the engine baseline and existing gameplay during that investigation. A later intentional model
-replacement may revise model-specific waveform tests explicitly, but must preserve valid mechanical,
-observation, lifecycle and rendering coverage. Do not require a new synthesis method to match the
-old method's waveform merely to satisfy a historical hash.
+The current authorization covers the minimal experiment, not final adoption or the complete design.
+Preserve valid observation, lifetime, physics and rendering coverage. Later intentional model changes
+may supersede model-specific waveform expectations explicitly, but must not weaken the immutable
+mechanics/render oracle or require a new synthesis model to reproduce an old model's PCM.
 
 ## Accepted engine baseline
 

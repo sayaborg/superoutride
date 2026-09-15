@@ -28,7 +28,7 @@ The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable releas
 Focused audio verification after building uses:
 
 ```sh
-node --test tests/audio*.test.mjs tests/exhaust-*.test.mjs tests/tire-synthesis.test.mjs tests/tire-contact*.test.mjs tests/tire-sound-switch.test.mjs
+node --test tests/audio*.test.mjs tests/exhaust-*.test.mjs tests/tire-synthesis.test.mjs tests/tire-contact*.test.mjs tests/tire-sound-switch.test.mjs tests/tire-spectral*.test.mjs
 ```
 
 This is a focused diagnostic, not a replacement for full `npm test`. The [browser audio probe](../tools/audio-browser.html) checks the real worklet graph over HTTP. Acoustic profile switches preserve bounded voice counts. The architecture checks recognize static worker-module URLs. Tire audio subscriptions must preserve the complete physical snapshot; the fixed historical equivalence oracle is unchanged. Presentation-anchor checks permit the optional rival observation argument without changing the anchor requirement.
@@ -63,6 +63,24 @@ HTML or required saved audio assets. [Audio](audio.md#player-tire-synthesis) own
 | CURRENT                  | [tire-browser.html](../tools/tire-browser.html)                 | `node tools/tire-render.mjs /absolute/current.wav`                  |
 | CONTACT                  | [tire-contact-browser.html](../tools/tire-contact-browser.html) | `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
 | CONTACT characterization | Same kernel, no alternate synthesis                             | `node tools/tire-contact-characterize.mjs dist`                     |
+
+The isolated [SPECTRAL page](../tools/tire-spectral-browser.html) is the current one-contact asphalt
+S/Q experiment. It offers manual observations, S-only/Q-only/mix listening and shared diagnostic replays.
+Use `http://localhost:8000/tools/tire-spectral-browser.html` after building. This does not add SPECTRAL
+to the game or publish the diagnostic HTML to Pages.
+
+```sh
+node --test tests/tire-spectral*.test.mjs
+node tools/tire-spectral-render.mjs /absolute/spectral-output 48000
+node tools/tire-spectral-render.mjs /absolute/spectral-output-44100 44100
+```
+
+The [shared SPECTRAL scenarios](../tools/tire-spectral-scenarios.mjs) feed one synthetic macro trace
+into each model's adapter. Outputs include SPECTRAL mix/scrub/squeal, unchanged CURRENT and CONTACT
+friction-only (existing 0.5 listening gain), plus unclipped peak/RMS and per-second measurements.
+There is no automatic gain matching, recorded vehicle trace, new road layer or listening approval.
+Browser automation is k-rate and can quantize scheduled events to native render blocks; saved native
+kernel replays and actual browser/device playback remain distinct verification claims.
 
 Repeat CONTACT rendering at 44100 for native-rate comparison. Its four-tap page solos either axle or
 road/friction component. CONTACT scenarios use representative local-model controls; CURRENT scenarios

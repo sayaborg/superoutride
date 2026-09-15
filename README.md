@@ -36,8 +36,8 @@ Player and nearest-rival engines use the accepted native-rate sample-free wavegu
 TIRES: CURRENT / TIRES: CONTACT switches player tire sound while driving, with independent front/rear
 state and only tire output fading. CURRENT is the reload default. CONTACT adds rolling rumble,
 higher-pitched friction vibration and separate pavement/shoulder/grass/dirt/sand sketches; its mapping
-is provisional, not calibrated local tire physics. Both are retained comparison references. The next
-task is to choose a third method, not assume CONTACT is the final model or merely optimize it; start
+is provisional, not calibrated local tire physics. Both are retained comparison references. SPECTRAL is
+now an isolated one-contact asphalt scrub/squeal trial, not a third gameplay option; start
 from the [specification index and checkpoint](docs/README.md). The
 [development guide](docs/development.md#tire-comparison-tools) distinguishes both audition tools.
 
