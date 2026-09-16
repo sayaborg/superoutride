@@ -2,7 +2,7 @@
 
 This is supporting research, not a runtime specification or a selected third algorithm.
 [Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL implementations;
-[NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns the user's request to reconsider the method.
+[NEXT](NEXT.md#next-work-spectral-tuning) owns the user's request to reconsider the method.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of either existing sound engine.
 
@@ -47,7 +47,7 @@ quantitative verification. These measurements support variable fundamental-plus-
 synthesis, but do not establish universal pitch maps or prove that cornering always has higher
 pitch than braking. See Figures 5–6, Table 2 and the conclusion.
 
-Source: [NOISE-CON 2019, author-posted paper](https://www.researchgate.net/profile/Tan_Li8/publication/338375049_Tire_BrakingCornering_Noise_Analysis_StickSlip_Mechanism/links/5e0f8b6a92851c8364b007e1/Tire-Braking-Cornering-Noise-Analysis-Stick-Slip-Mechanism.pdf).
+Source: [NOISE-CON 2019, author-posted paper](https://www.researchgate.net/profile/Tan_Li8/publication/338375049_Tire_BrakingCornering_Noise_Analysis_StickSlip_Mechanism/links/5e0f8b6a92851c8364b007e1/Tire-BrakingCornering-Noise-Analysis-StickSlip-Mechanism.pdf).
 
 ### Miyashita and Persson, 2026 — Tire Tread Block Dynamics
 
@@ -81,7 +81,7 @@ This explains why increasing the Q of a passively driven noise filter is not its
 self-excitation mechanism. It is an illustrative mechanism, not a claim that velocity weakening
 is the only possible friction-induced instability.
 
-## Limits for method selection
+## Limits for synthesis and tuning
 
 The sources support friction-fed vibration as one possible mechanism; they do not select the current
 Hopf oscillator, CONTACT's one-element law or any third approach. A mechanically consistent surrogate
@@ -99,7 +99,8 @@ squeal, or add thermal/contact physics solely to justify an audio parameter. Dis
 partials, other tonal components and broadband sound when evaluating the user's request for a richer,
 less single-tone result; added oscillators are not themselves evidence of greater realism.
 
-Prepared/precomputed sound is eligible for the new tire investigation; the engine contract is separate.
-SPECTRAL has progressed from audition to game comparison, not been validated by these sources. Use the checkpoint rather
-than creating another proposal/handoff archive. Existing audition tools regenerate both reference
-models; prior chat audio files are unnecessary.
+These sources do not calibrate SPECTRAL's wheel-order rolling bands or excitation-dependent harmonic
+palette. [Audio](audio.md#spectral-game-synthesis) owns that implementation;
+[NEXT](NEXT.md#next-work-spectral-tuning) owns current tuning and listening decisions. Reconsidering the
+method is a separate decision, not the default next task. Keep previous experiments in Git rather than
+another proposal/handoff archive; existing tools regenerate references without prior chat audio files.
