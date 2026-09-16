@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SPECTRAL_SETTINGS, SPECTRAL_BAND_DOMAIN, SPECTRAL_INPUTS } from '../dist/audio/tire-spectral-acoustics.js';
+import { SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
+import { SPECTRAL_BAND_DOMAIN } from '../dist/audio/spectral-noise.js';
+import { TIRE_SOUND_INPUTS } from '../dist/audio/tire-sound-observation.js';
 import { SPECTRAL_RESPONSE_SCENARIOS } from '../tools/tire-spectral-scenarios.mjs';
 
 // Named settings must keep the fixed-band architecture inside its independently defined domain.
@@ -22,7 +24,7 @@ test('authored spectral bands are immutable and fit the declared numerical domai
   assert.ok(widestQ <= d.maximumBandwidthHz);
   assert.ok(4 * (s.squealBaseHz + s.squealSlipHz + s.squealLongitudinalHz) * (1 + s.wanderDepth) < ceiling);
   for (const order of [s.roadLowOrder, s.roadHighOrder]) {
-    const frequency = Math.max(s.roadMinimumHz, (order * SPECTRAL_INPUTS.wheelAngularSpeed.max) / (2 * Math.PI));
+    const frequency = Math.max(s.roadMinimumHz, (order * TIRE_SOUND_INPUTS.wheelAngularSpeed.max) / (2 * Math.PI));
     assert.ok(frequency > 0 && frequency < ceiling);
     assert.ok(Math.max(d.minimumBandwidthHz, frequency * s.roadBandwidthRatio) <= d.maximumBandwidthHz);
   }
@@ -36,8 +38,8 @@ test('shared R/S/Q response scenarios retain complete SI inputs and their explic
   for (const scene of SPECTRAL_RESPONSE_SCENARIOS) {
     for (let frame = 0; frame <= scene.seconds * 60; frame++) {
       const value = scene.observe(frame / 60);
-      assert.deepEqual(Object.keys(value).sort(), Object.keys(SPECTRAL_INPUTS).sort());
-      for (const [key, range] of Object.entries(SPECTRAL_INPUTS))
+      assert.deepEqual(Object.keys(value).sort(), Object.keys(TIRE_SOUND_INPUTS).sort());
+      for (const [key, range] of Object.entries(TIRE_SOUND_INPUTS))
         assert.ok(Number.isFinite(value[key]) && value[key] >= range.min && value[key] <= range.max, key);
       assert.equal(value.wheelAngularSpeed, value.wheelSpeed / 0.3);
     }

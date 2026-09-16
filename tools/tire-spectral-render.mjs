@@ -1,4 +1,5 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
+import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
@@ -7,7 +8,12 @@ import { TireSynthesis, tireParameters } from '../dist/audio/tire-synthesis.js';
 import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
 import { contactTireParameters } from '../dist/audio/tire-sound-controls.js';
 import { CONTACT_ACOUSTICS } from '../dist/audio/tire-contact-acoustics.js';
-import { SPECTRAL_SCENARIOS, spectralScenarioAt, spectralReferenceObservation } from './tire-spectral-scenarios.mjs';
+import {
+  SPECTRAL_SCENARIOS,
+  TIRE_TRANSITION_SCENARIO,
+  spectralScenarioAt,
+  spectralReferenceObservation,
+} from './tire-spectral-scenarios.mjs';
 
 const directory = resolve(process.argv[2] ?? '/tmp/tire-spectral-audition');
 const rate = Number(process.argv[3] ?? 48000);
@@ -50,13 +56,14 @@ const report = {
   observationHz: 60,
   note: 'One asphalt contact; synthetic common trace, not gameplay capture. Fixed gains; no peak/RMS matching.',
   references:
-    'CURRENT raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; HYBRID mix is R+Q, with isolated Q and R taps. Compare Q taps for squeal alone.',
+    'CURRENT raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; primary HYBRID mix is R+S+Q, with isolated rolling, sliding and squeal taps. Compare Q taps for squeal alone.',
   settings: SPECTRAL_SETTINGS,
+  hybridSettings: HYBRID_SETTINGS,
   scenes: [],
 };
-for (const scene of SPECTRAL_SCENARIOS) {
+for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
   const spectral = new TireSpectralSynthesis(rate);
-  const hybrid = new TireHybridSynthesis(rate, SPECTRAL_SETTINGS.seed, CONTACT_ACOUSTICS.frontSeed);
+  const hybrid = new TireHybridSynthesis(rate);
   const current = new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
   const contact = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
   const length = Math.round(scene.seconds * rate);
@@ -68,6 +75,7 @@ for (const scene of SPECTRAL_SCENARIOS) {
       'current',
       'contact-friction',
       'hybrid-squeal',
+      'hybrid-scrub',
       'hybrid-road',
       'hybrid-mix',
     ].map((name) => [name, new Float64Array(length)]),
@@ -82,7 +90,7 @@ for (const scene of SPECTRAL_SCENARIOS) {
       spectral.update(value);
       const reference = spectralReferenceObservation(value);
       current.update(tireParameters(reference));
-      hybrid.update(value, tireParameters(reference));
+      hybrid.update(value);
       const p = contactTireParameters(reference);
       contact.update(p.travelSpeed, p.slipSpeed, p.load, p.surfaceIndex);
     }
@@ -93,6 +101,7 @@ for (const scene of SPECTRAL_SCENARIOS) {
     outputs.current[i] = current.sample();
     outputs['hybrid-mix'][i] = hybrid.sample();
     outputs['hybrid-squeal'][i] = hybrid.squealOutput;
+    outputs['hybrid-scrub'][i] = hybrid.scrubOutput;
     outputs['hybrid-road'][i] = hybrid.roadOutput;
     contact.sample();
     outputs['contact-friction'][i] = contact.frictionOutput * CONTACT_ACOUSTICS.listeningGain;

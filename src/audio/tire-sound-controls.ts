@@ -1,14 +1,14 @@
-import { SPECTRAL_INPUTS, SPECTRAL_TEXTURES, type SpectralObservation } from './tire-spectral-acoustics.js';
+import { TIRE_SOUND_INPUTS, TIRE_SOUND_SURFACES, type TireSoundObservation } from './tire-sound-observation.js';
 import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TEXTURE_KEYS } from './tire-contact-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral', 'hybrid'] as const);
 export type TireSoundModel = (typeof TIRE_SOUND_MODELS)[number];
-export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'current';
+export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'hybrid';
 
 export const TIRE_COMPONENTS = Object.freeze([
   Object.freeze({ key: 'road', label: 'R', description: 'Rolling' }),
-  Object.freeze({ key: 'scrub', label: 'S', description: 'Scrub' }),
+  Object.freeze({ key: 'scrub', label: 'S', description: 'Sliding friction' }),
   Object.freeze({ key: 'squeal', label: 'Q', description: 'Squeal' }),
 ] as const);
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
@@ -16,22 +16,23 @@ const MODEL_COMPONENTS: Readonly<Record<TireSoundModel, readonly TireComponent[]
   current: [],
   contact: [],
   spectral: ['road', 'scrub', 'squeal'],
-  hybrid: ['road', 'squeal'],
+  hybrid: ['road', 'scrub', 'squeal'],
 });
 export function tireComponentAvailable(model: TireSoundModel, component: TireComponent): boolean {
   return MODEL_COMPONENTS[model].includes(component);
 }
 export type TireComponents = Readonly<Record<TireComponent, boolean>>;
+// Authored output-control fade, not a physical contact or vibration time constant.
 export const TIRE_COMPONENT_FADE_SECONDS = 0.005;
 export const TIRE_COMPONENT_RANGE = Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 1 });
 
-const spectralRanges = Object.fromEntries(
-  Object.entries(SPECTRAL_INPUTS).map(([key, range]) => [
-    `spectral_${key}`,
+const observationRanges = Object.fromEntries(
+  Object.entries(TIRE_SOUND_INPUTS).map(([key, range]) => [
+    `tire_${key}`,
     Object.freeze({ minValue: range.min, maxValue: range.max, defaultValue: 0 }),
   ]),
 ) as {
-  readonly [K in keyof SpectralObservation as `spectral_${K}`]: Readonly<{
+  readonly [K in keyof TireSoundObservation as `tire_${K}`]: Readonly<{
     minValue: number;
     maxValue: number;
     defaultValue: number;
@@ -40,8 +41,8 @@ const spectralRanges = Object.fromEntries(
 
 // Transport domains, shared by the voice, worklet and diagnostics. Kernels own smoothing.
 export const TIRE_CONTROL_RANGES = Object.freeze({
-  ...spectralRanges,
-  spectral_surfaceIndex: Object.freeze({ minValue: 0, maxValue: SPECTRAL_TEXTURES.length - 1, defaultValue: 0 }),
+  ...observationRanges,
+  tire_surfaceIndex: Object.freeze({ minValue: 0, maxValue: TIRE_SOUND_SURFACES.length - 1, defaultValue: 0 }),
   squeal: Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 0 }),
   pitch: Object.freeze({ minValue: 400, maxValue: 2400, defaultValue: 900 }),
   travelSpeed: Object.freeze({ minValue: 0, maxValue: CONTACT_INPUTS.travelSpeed.max, defaultValue: 0 }),
@@ -77,7 +78,7 @@ export function contactTireParameters(tire: TireAudioObservation) {
 }
 
 /** Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. */
-export function spectralTireParameters(tire: TireAudioObservation) {
+export function tireSoundParameters(tire: TireAudioObservation) {
   const silent = {
     longitudinalVelocity: 0,
     lateralVelocity: 0,
@@ -89,9 +90,9 @@ export function spectralTireParameters(tire: TireAudioObservation) {
     demand: 0,
     surfaceIndex: 0,
   };
-  if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid spectral load');
+  if (!Number.isFinite(tire.load) || tire.load < 0) throw new RangeError('invalid tire sound load');
   if (tire.load === 0 || tire.surface === 'VOID') return silent;
-  const surfaceIndex = SPECTRAL_TEXTURES.findIndex((texture) => texture.surface === tire.surface);
+  const surfaceIndex = TIRE_SOUND_SURFACES.findIndex((surface) => surface === tire.surface);
   const values = {
     longitudinalVelocity: tire.longitudinalVelocity,
     lateralVelocity: tire.lateralVelocity,
@@ -102,12 +103,12 @@ export function spectralTireParameters(tire: TireAudioObservation) {
     lateralPower: tire.lateralPower,
     demand: tire.utilization,
   };
-  if (surfaceIndex < 0) throw new RangeError('unknown spectral surface');
-  for (const key of Object.keys(values) as (keyof SpectralObservation)[]) {
-    const range = SPECTRAL_INPUTS[key],
+  if (surfaceIndex < 0) throw new RangeError('unknown tire sound surface');
+  for (const key of Object.keys(values) as (keyof TireSoundObservation)[]) {
+    const range = TIRE_SOUND_INPUTS[key],
       value = values[key];
     if (!Number.isFinite(value) || (range.min === 0 && value < 0))
-      throw new RangeError(`invalid spectral observation: ${key}`);
+      throw new RangeError(`invalid tire sound observation: ${key}`);
     values[key] = Math.max(range.min, Math.min(range.max, value));
   }
   return { ...values, surfaceIndex };

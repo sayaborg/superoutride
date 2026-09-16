@@ -7,13 +7,12 @@ utilization; audio owns oscillator, envelope and filter state. Audio imports onl
 acoustic profiles, and browser composition adapts completed physical observations. Audio never writes
 motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
-The engine is the accepted sample-free listening baseline. CURRENT, CONTACT, SPECTRAL and HYBRID remain tire comparison
-references, not calibrated real-tire models or final adoption. CURRENT is the reload default.
-[The checkpoint](NEXT.md#next-work-hybrid-listening) owns current HYBRID listening and listening
-priorities; this specification describes the current runtime, not final method adoption.
-All four tire implementations generate sound without recordings. That fact does not prohibit a
-prepared-sound or hybrid tire candidate. Keep the engine waveform and fixed voice/lifecycle boundaries
-unchanged; actual Android performance, tire timbre and final mix acceptance remain open.
+The engine is the accepted sample-free listening baseline. HYBRID is the adopted primary tire method
+and reload default; CURRENT, CONTACT and SPECTRAL remain comparison references. Adoption accepts the
+squeal approach, not a calibrated real-tire model or the new transition's final listening balance.
+[The checkpoint](NEXT.md#next-work-hybrid-listening) owns feedback and remaining listening priorities.
+All four tire implementations generate sound without recordings. Keep the engine waveform and fixed
+voice/lifecycle boundaries unchanged; actual Android performance and the complete tire mix remain open.
 
 **Interpretation rule:** reference-derived coefficients use the explicit assumptions below; authored
 coefficients, pipe geometry and acoustic output are listening conventions. Neither category represents
@@ -30,14 +29,18 @@ applies to every profile, coefficient and UI readout unless a measurement is exp
 - [Engine voice](../src/audio/engine-voice.ts) and [processor](../src/audio/exhaust-processor.ts): faded
   replacement, k-rate RPM/load transport and native-rate rendering. Changes use explicit tuning-value
   equality; returning to the active values cancels a pending replacement without resetting the kernel.
-- [Tire controls/mapping](../src/audio/tire-sound-controls.ts): model identity, transport domains and
-  the provisional macro-to-representative contact adapter. [Contact acoustics](../src/audio/tire-contact-acoustics.ts)
+- [Tire controls/mapping](../src/audio/tire-sound-controls.ts): model/component identity,
+  `tireSoundParameters` and reference adapters. [Tire observation](../src/audio/tire-sound-observation.ts)
+  owns the model-neutral bounded raw observation. [Contact acoustics](../src/audio/tire-contact-acoustics.ts)
   and [kernel](../src/audio/tire-contact-model.ts) are shared by game and audition.
   [Spectral settings](../src/audio/tire-spectral-acoustics.ts) and
   [kernel](../src/audio/tire-spectral-model.ts) likewise have one shared audio owner, not a DEV copy.
-- [Hybrid generator](../src/audio/tire-hybrid-model.ts): CURRENT state control with spectral Q and R.
-  [Spectral primitives](../src/audio/tire-spectral-primitives.ts) own finite-width bands, seeded streams,
-  validation and material following; [rolling](../src/audio/tire-spectral-rolling.ts) owns the shared R layer.
+- [Hybrid generator](../src/audio/tire-hybrid-model.ts) and
+  [acoustics](../src/audio/tire-hybrid-acoustics.ts): primary R/S/Q composition, energy-state response and
+  explicitly authored settings/materials. [Spectral noise](../src/audio/spectral-noise.ts) owns generic
+  finite-width bands and seeded noise primitives. The SPECTRAL reference retains its own
+  [material/pitch mapping](../src/audio/tire-spectral-primitives.ts) and
+  [rolling](../src/audio/tire-spectral-rolling.ts).
 - [Presentation policy](../src/audio/audio-presentation.ts): shared timing, audible radius and rival mix.
   [Audio engine](../src/audio/audio-engine.ts): fixed voices and master graph.
 - [Browser adapter](../src/browser/vehicle-audio.ts), [lifecycle](../src/browser/audio-lifecycle.ts) and
@@ -120,8 +123,8 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 
 ## Player tire synthesis
 
-Four comparison models are available in the game; CURRENT remains the reload default. The
-[evidence note](tire-squeal-research.md) motivates mechanisms without calibrating either implementation.
+The game offers primary HYBRID and three comparison references. The
+[evidence note](tire-squeal-research.md) motivates mechanisms without calibrating any implementation.
 [Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
 signed contact longitudinal/lateral velocity, effective wheel peripheral and angular speed, tangential travel,
 slip magnitude, directional dissipated slip power, demand rho and surface identity. These are not local rubber properties. Audio state never feeds vehicle mechanics.
@@ -152,13 +155,15 @@ for a successor.
 
 ### Shared comparison and transport
 
-The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame;
-[controls](../src/audio/tire-sound-controls.ts) own transport domains and model identity. CURRENT's
-400–2400 Hz safety pitch domain is wider than its generated range. Invalid controls release forcing.
+The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame.
+[Tire observation](../src/audio/tire-sound-observation.ts) owns the common raw input domain used by
+HYBRID and SPECTRAL; [controls](../src/audio/tire-sound-controls.ts) owns model identity and the retained
+reference adapters. CURRENT's 400–2400 Hz safety pitch domain is wider than its generated range.
+Invalid controls release forcing for the affected axle.
 The [processor](../src/audio/tire-processor.ts) computes only the selected pair of axle kernels.
 
 TIRES: CURRENT / TIRES: CONTACT / TIRES: SPECTRAL / TIRES: HYBRID is available in every course via mouse, touch and native keyboard
-activation. CURRENT is the reload default. Choice survives mute, delayed startup, vehicle replacement,
+activation. HYBRID is the reload default. Choice survives mute, delayed startup, vehicle replacement,
 engine tuning/reset and sound retry. Only tire output fades down for the shared 90 ms transition
 (10 ms decay constant) before replacement, then rises at the shared control rate. Rapid choices
 supersede pending ones; returning to the active choice cancels replacement. One tire worklet remains;
@@ -252,16 +257,16 @@ and four Q finite-width harmonic bands. No PCM playback, microscopic contact sol
 branch exists inside the kernel. [NEXT](NEXT.md#next-work-hybrid-listening) owns listening acceptance;
 [calibration](calibration.md#tire-audio-tuning) maps named settings without redefining their values.
 
-`SPECTRAL_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
+The common `TIRE_SOUND_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
 peripheral speed (m/s), accepted wheel angular speed (rad/s), normal load (N), accepted longitudinal/lateral
 slip work (W), and dimensionless demand rho. Physics publishes accepted omega and
 `effectiveRollingRadius * omega` only for force-transmitting contact with a valid tire frame. The browser
 copies them; audio never infers rotation from car speed, guesses a game radius or re-solves mechanics.
 Unsupported/reset observations clear these output-only values without changing the physical snapshot.
 
-[Spectral mapping](../src/audio/tire-sound-controls.ts) rejects nonfinite/negative load, work and demand;
-finite over-range observations are bounded for acoustic transport only. Separate `spectral_*` AudioParams
-never reuse CONTACT's representative units. Zero load/VOID or invalid controls release only the affected
+[Observation mapping](../src/audio/tire-sound-controls.ts) rejects nonfinite/negative load, work and demand;
+finite over-range observations are bounded for acoustic transport only. The same raw AudioParams feed
+HYBRID or SPECTRAL; they never reuse CONTACT's representative units. Zero load/VOID or invalid controls release only the affected
 axle, retain finite tails and permit recovery. Surface identities are discrete, not interpolated.
 
 Current boundaries: R is rotation-driven, not the retired travel-driven contact layer; Q has an
@@ -277,7 +282,7 @@ Each of eight fixed bands updates two states as `z_next=r*R(theta)*z+A*sqrt(1-r^
 `r=exp(-pi*B/rate)` and independent unit-variance excitation components. Bounded uniform draws are scaled
 analytically, never by measured-output AGC. Seed splitting prevents short-lag shared excitation. Nominal
 positive pole bandwidth contracts unforced state; parameter changes do not reset stored waveforms.
-`SPECTRAL_BAND_DOMAIN` owns numerical support bounds; `SPECTRAL_SETTINGS` owns the authored mapping
+Generic `SPECTRAL_BAND_DOMAIN` owns numerical support bounds; `SPECTRAL_SETTINGS` owns this reference's authored mapping
 coefficients. Four independent Q bands use the shared pitch/width/wander mapping. Two independent S
 bands read `scrubBands` data. Band count, random-stream order and integration math are not tuning knobs.
 
@@ -306,7 +311,7 @@ texture stops. The maximum domain/finest material must remain within one interpo
 step. Pavement weights emphasize the low band. Two road-only 900 Hz low-pass stages reduce hiss without
 filtering S/Q. Road center frequency and amplitude are separate controls, not a universal speed law.
 
-`SPECTRAL_TEXTURES` is the sole authored material catalog: pavement, shoulder, grass, dirt and sand.
+`SPECTRAL_TEXTURES` is this reference's authored material catalog: pavement, shoulder, grass, dirt and sand.
 Its `scaleMeters` is an authored S slip-traversal length and a shared divisor in R's wheel-texture rate;
 it is not a measured road grain size, tread pitch or wheel radius. Texture depth is also shared by R/S.
 Resolved weights/texture scales follow continuously without resetting state. Grass/dirt/sand have zero
@@ -320,8 +325,8 @@ Output gains are fixed. Numerical tests and host timings do not establish phone 
 
 #### R/S/Q output controls
 
-The game exposes `R: ON/OFF`, `S: ON/OFF`, `Q: ON/OFF` for SPECTRAL, initially all on. R is rolling,
-S broad friction scrub, Q tonal squeal. Buttons apply to both independent axles, offer R/Q in HYBRID and are disabled for
+The game exposes `R: ON/OFF`, `S: ON/OFF`, `Q: ON/OFF` for HYBRID and SPECTRAL, initially all on. R is rolling,
+S sliding friction (broad scrub in the SPECTRAL reference), Q tonal squeal. Buttons apply to both independent axles and are disabled for
 CURRENT/CONTACT and unsupported audio, have descriptive labels/ARIA pressed state, and stop keyboard
 propagation to driving controls. Choice survives model changes, loading/retry, engine tuning/reset,
 vehicle replacement and mute; page reload resets it. The browser lifecycle owns session choices.
@@ -339,58 +344,90 @@ for reproducible render/probe commands. CURRENT and CONTACT remain unmodified au
 
 ### HYBRID game synthesis
 
-The user authorized this fourth generator to combine CURRENT response with SPECTRAL timbre, superseding
-the former SPECTRAL-only tuning gate. The [kernel and settings](../src/audio/tire-hybrid-model.ts) are one
-composition per axle: the existing CURRENT state dynamics, four spectral Q bands, and the shared two-band
-[SPECTRAL rolling layer](../src/audio/tire-spectral-rolling.ts). No S bands or scrub texture are constructed.
-CURRENT/CONTACT/SPECTRAL retain their existing waveform contracts and CURRENT remains the reload default.
+HYBRID is the adopted primary generator and reload default. The user's design revision permits modest
+output changes and explicitly supersedes the former CURRENT-default, exact-CURRENT-controller,
+shared-SPECTRAL-R waveform and no-S requirements for HYBRID. CURRENT/CONTACT/SPECTRAL remain unchanged
+acoustic references. The frozen mechanics/rendering oracle and read-only observation/lifecycle boundaries
+remain binding; acoustic adoption does not authorize changing the tire force law.
 
-The voice publishes both the existing CURRENT excitation/pitch and the spectral observations. It does
-not derive CURRENT controls from differently bounded spectral transport or resample the physical solver.
-Each sample advances the same `TireSynthesis.advance()` used by CURRENT. HYBRID takes
-`A = sqrt(x*x+y*y)` and its smoothed pitch, without evaluating CURRENT's periodic output pickup. The
-Hopf state, noise, excitation following and growth/release equation remain shared. In response to the
-user's report of excessive squeal, HYBRID explicitly calibrates the existing equation's onset through
-`HYBRID_SETTINGS.excitationThreshold`: `sigma = 140*(smoothedExcitation - excitationThreshold)`.
-Its threshold is 0.20 rather than CURRENT's retained 0.12. This supersedes exact equality of their
-amplitudes at equal input: mild excitation no longer sustains oscillation, stronger slip still grows,
-and recovery decays continuously. Raising this threshold also slightly reduces settled amplitude and
-shortens radial decay; it is not an independent onset-only gate. No second envelope, hysteresis state,
-raw oscillator feedthrough or signal-dependent normalization is introduced.
+The [kernel](../src/audio/tire-hybrid-model.ts) receives one `TireSoundObservation` and surface identity.
+It neither instantiates CURRENT nor receives a second, precomputed CURRENT excitation/pitch stream.
+[Acoustics](../src/audio/tire-hybrid-acoustics.ts) owns its mappings, material data and named settings;
+only generic [spectral noise primitives](../src/audio/spectral-noise.ts) are shared with the reference.
+Each axle has two rolling bands R, two low/mid sliding bands S and four finite-width harmonic bands Q.
+The output is their sum. No speed/maneuver-specific fallback or arbitrary S-to-Q crossfade is needed:
+friction noise continues as the growing squeal becomes dominant.
 
-At the 1 kHz band coefficient clock, the fundamental center is CURRENT's smoothed pitch plus
-`HYBRID_SETTINGS.pitchOffsetHz`, currently +450 Hz. This preserves its Hz excursions while lifting its
-650 Hz base to 1100 Hz. The four centers remain harmonically related and use the shared spectral random
-wander and slip/wheel-dependent bandwidth. CURRENT's oscillator detuning remains internal to its shared
-dynamics; it is not added again to the spectral pickup. Pitch is not smoothed a second time.
+#### Friction energy and squeal growth
 
-Q band h is excited by `A * squealGain * harmonicWeights[h-1] * c^(h-1)`, with
-`c = min(1, A/harmonicAmplitudeReference)`. The full spectral harmonic palette is retained above the
-reference; weak/recovering oscillation progressively loses upper harmonics. CURRENT already applies
-material susceptibility to its excitation, so HYBRID does not multiply the spectral surface squeal factor
-again. Loose-ground Q therefore follows CURRENT's susceptibility mapping with HYBRID's onset threshold,
-not SPECTRAL's zero-Q material rule.
-Fixed gains and the existing 18 Hz DC removal / 8 kHz output filter complete Q. Its finite-width bands
-add a short response and stochastic level variation; shared dynamics do not guarantee matched perceived
-loudness, audible onset or final waveform.
+Let `P = Px + Py` be accepted dissipated slip power and `s = hypot(wheelSpeed-vx, vy)`.
+Zero support, zero work or zero slip cuts external friction excitation. Positive work is an available-energy cue; it is not
+acoustic watts. Since P already includes accepted force, S/Q never multiply it by load again.
+Demand is the tire model's dimensionless demand, not remaining grip or a measurement of microscopic slip.
 
-Zero support or invalid controls cut R forcing and request zero controller excitation. Its release
-and stored band/filter tails decay; Q does not stop abruptly. Band centers/widths freeze during support
-loss. Valid recontact resumes the same states. Both controls are validated as one axle update; a bad
-CURRENT pitch cannot leave spectral forcing running, and bad spectral load cannot leave Q forced.
+Dimensionless excitation e combines `sqrt(P/(P+referenceWatts))`, smooth authored demand/slip windows,
+a high-slip roll-off and material susceptibility. Susceptibility appears once, in e, rather than again
+in Q's output gain. The threshold is deliberately higher than the previous HYBRID calibration, to make
+mild slip less likely to sustain a squeal. It is not a measured tire instability threshold.
 
-R is the same shared implementation, settings, seed stream and material following as SPECTRAL, with
-sample-exact equality for the same observations/seed, including surfaces, reverse and support transitions.
-Omitting S deliberately leaves locked translation silent when HYBRID is below onset. No ad hoc rubbing
-fallback compensates for that choice. Existing SPECTRAL offers the omitted component for comparison.
+One scalar, dimensionless vibration energy E follows the Hopf radial normal form with a small seed term:
 
-The existing worklet constructs only the selected pair. HYBRID computes six bands per axle plus one
-CURRENT state update; no CONTACT root solve or hidden S processing occurs. R/Q buttons use the same
-output fade and saved session choices as SPECTRAL. S is hidden/disabled in HYBRID and its saved choice
-returns with SPECTRAL. Output-off continues the corresponding state with no boost to other components.
-Kernel, worklet and UI regressions cover shared control fidelity, mild/strong slip onset, R equality,
-band palette, release/recovery, S absence, finite domain output, block partitions and model/component
-lifetime. Host timing is not a phone performance or listening acceptance claim.
+```text
+E' = 2 * growth * (e - threshold) * E - 2 * damping * E² + seedPower * e²
+A = sqrt(E)
+```
+
+E is an acoustic state, not physical tread energy in joules. The seed provides weak background vibration
+and initiation; the threshold marks positive self-excited growth, not mathematical silence below it.
+Nonlinear damping bounds strong excitation. Unlike a second periodic oscillator, this state contains
+only the amplitude needed by the noise bands; no unused phase or duplicate amplitude envelope is kept.
+Raising the threshold also changes sustained amplitude and recovery, rather than imposing a separate
+hard gate. The discrete update preserves nonnegative finite energy across the supported rate/domain.
+
+Q band h is driven by `A * squealGain * harmonicWeights[h-1] * c^(h-1)`, where
+`c = min(1, A/harmonicAmplitudeReference)`. Weak vibration loses upper harmonics progressively; strong
+vibration recovers the accepted four-band palette. Authored slip and directional-work mappings drive
+fundamental pitch; bandwidth and slow random wander give each harmonic finite width. These mappings
+retain the accepted response character without claiming a derived rubber stiffness or resonant mode.
+
+#### Rolling and the approach to squeal
+
+R follows accepted wheel rotation, peripheral speed and normal load. Its two broad centers follow wheel
+orders; its road-only filtering emphasizes low-frequency texture. Locked translation cannot actively
+excite rolling, while supported wheel spin can. Rolling modulation uses
+`f = maximumHz * abs(wheelSpeed) / (abs(wheelSpeed) + maximumHz * textureLengthMeters)`.
+This approaches distance-per-time divided by authored length at low speed and bounds modulation at
+high speed. Units are inverse seconds; wheel angular speed is not divided by metres. Texture lengths and wheel
+orders are sound-design parameters, not measured tread pitch, road grain size or guessed game radii.
+
+S follows accepted slip power through two low/mid broad bands. It can sound below Q's growth threshold,
+including during locked-wheel sliding. Its color and modulation vary continuously with slip and surface;
+it has no event trigger or special understeer/oversteer branch. S does not disappear when Q grows and
+is not an estimate of sound energy diverted from Q. Additive R/S/Q is an authored acoustic decomposition,
+not a conservation equation for total contact power.
+
+Loss of support, invalid input, zero slip or zero power removes external friction excitation and S
+forcing immediately. The scalar vibration state then decays; its `sqrt(E)` continues to drive Q's
+stochastic bands as an acoustic release representation. This does not conserve physical energy or
+require every random output sample to decrease monotonically. Stored band/filter states are not reset.
+Pitch freezes when friction excitation is absent. Recontact resumes stored states. Physical observations
+remain immutable.
+
+#### Ownership, approximation and cost
+
+Every non-derived coefficient in `HYBRID_SETTINGS` and its material catalog is explicitly authored:
+a magic number for listening/calibration, not empirical tire data. This includes power/load references,
+onset windows, threshold, growth/damping/seeding, following times, pitches, widths, harmonic weights,
+texture lengths/depths and output gains/filters. Mathematical constants and numerical support limits
+have separate roles. No added contact solver, temperature state or local tire property is invented to
+justify those choices. [Calibration](calibration.md#tire-audio-tuning) maps tuning responsibilities.
+
+Eight bands per axle run at native rate with a rational control clock; only the selected axle pair is
+constructed. There is no CONTACT root solve or redundant CURRENT oscillator in HYBRID. R/S/Q buttons
+retain the shared output-only fade; all state continues while muted, without boosting other components.
+Regressions cover subthreshold sliding, later Q growth, recovery, zero-work/support release, rotation,
+material transitions, independent seeds, finite-domain output, block partitions and model/component
+lifetime. Host timing is not device performance or listening acceptance evidence.
 
 ### Interpretation and cost limits
 

@@ -294,12 +294,14 @@ test('player tire voice transmits front and rear independently and releases its 
   voice.update(state);
   const node = context.nodes[0];
   assert.equal(node.name, 'vehicle-tires');
-  assert.ok(node.parameters.get('front_squeal').value > 0);
-  assert.equal(node.parameters.get('rear_squeal').value, 0);
+  assert.equal(node.parameters.get('front_tire_longitudinalPower').value, 15000);
+  assert.equal(node.parameters.get('front_tire_load').value, 4000);
+  assert.equal(node.parameters.get('rear_tire_load').value, 0);
   [state.front, state.rear] = [state.rear, state.front];
   voice.update(state);
-  assert.equal(node.parameters.get('front_squeal').value, 0);
-  assert.ok(node.parameters.get('rear_squeal').value > 0);
+  assert.equal(node.parameters.get('front_tire_load').value, 0);
+  assert.equal(node.parameters.get('rear_tire_longitudinalPower').value, 15000);
+  assert.equal(node.parameters.get('rear_tire_load').value, 4000);
   voice.dispose();
   assert.equal(node.finished, true);
   assert.ok(context.nodes.every((node) => node.disconnected));

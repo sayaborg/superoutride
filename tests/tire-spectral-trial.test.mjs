@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
-import { SpectralBand } from '../dist/audio/tire-spectral-primitives.js';
-import { SPECTRAL_INPUTS, SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
+import { SpectralBand } from '../dist/audio/spectral-noise.js';
+import { TIRE_SOUND_INPUTS } from '../dist/audio/tire-sound-observation.js';
+import { SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import {
   SPECTRAL_SCENARIOS,
   spectralScenarioAt,
@@ -94,8 +95,8 @@ test('band and kernel reject unsupported domains without poisoning later finite 
   const kernel = new TireSpectralSynthesis(48000);
   kernel.update(input());
   render(kernel, 4800);
-  for (const key of Object.keys(SPECTRAL_INPUTS)) {
-    for (const value of [NaN, Infinity, SPECTRAL_INPUTS[key].max + 1]) {
+  for (const key of Object.keys(TIRE_SOUND_INPUTS)) {
+    for (const value of [NaN, Infinity, TIRE_SOUND_INPUTS[key].max + 1]) {
       assert.throws(() => kernel.update(input({ [key]: value })), RangeError);
       assert.ok(Number.isFinite(kernel.sample()));
     }
@@ -274,7 +275,7 @@ test('two-tap worklet processor under host stub matches kernel and handles inval
     t.after(() => (previous ? Object.defineProperty(globalThis, name, previous) : delete globalThis[name]));
   }
   await import('../dist/dev/diagnostics/tire-spectral-processor.js');
-  assert.equal(Processor.parameterDescriptors.length, Object.keys(SPECTRAL_INPUTS).length);
+  assert.equal(Processor.parameterDescriptors.length, Object.keys(TIRE_SOUND_INPUTS).length);
   assert.ok(Processor.parameterDescriptors.every((p) => p.automationRate === 'k-rate'));
   const processor = new Processor(),
     kernel = new TireSpectralSynthesis(48000);

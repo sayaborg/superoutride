@@ -4,7 +4,7 @@ This is supporting research, not a runtime specification or numerical calibratio
 [Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID implementations;
 [NEXT](NEXT.md#next-work-hybrid-listening) owns current listening priorities.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
-not the numerical coefficients or realism of either existing sound engine.
+not the numerical coefficients or realism of any existing sound engine.
 
 ## Mechanism supported by the sources
 
@@ -83,8 +83,8 @@ is the only possible friction-induced instability.
 
 ## Limits for synthesis and tuning
 
-The sources support friction-fed vibration as one possible mechanism; they do not select the current
-Hopf oscillator, CONTACT's one-element law or any third approach. A mechanically consistent surrogate
+The sources support friction-fed vibration as one possible mechanism; they do not select HYBRID's scalar
+Hopf energy surrogate, CURRENT's oscillator or CONTACT's one-element law. A mechanically consistent surrogate
 can still omit the structure and statistics responsible for a convincing complete tire sound.
 Passive road excitation and friction-fed vibration may share a vibration primitive without being the
 same excitation mechanism. A successor may separate or combine their audible components explicitly.
@@ -99,8 +99,10 @@ squeal, or add thermal/contact physics solely to justify an audio parameter. Dis
 partials, other tonal components and broadband sound when evaluating the user's request for a richer,
 less single-tone result; added oscillators are not themselves evidence of greater realism.
 
-These sources do not calibrate SPECTRAL's wheel-order rolling bands or excitation-dependent harmonic
-palette. [Audio](audio.md#spectral-game-synthesis) owns that implementation;
+These sources do not calibrate HYBRID's growth threshold, seed energy, sliding bands, wheel-order rolling
+or excitation-dependent harmonic palette. Its dimensionless state is not measured tread energy, and
+additive R/S/Q does not partition mechanical power into calibrated acoustic watts.
+[Audio](audio.md#hybrid-game-synthesis) owns the adopted primary implementation;
 [NEXT](NEXT.md#next-work-hybrid-listening) owns current tuning and listening decisions. Reconsidering the
 method is a separate decision, not the default next task. Keep previous experiments in Git rather than
 another proposal/handoff archive; existing tools regenerate references without prior chat audio files.

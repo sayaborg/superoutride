@@ -2,13 +2,9 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
-import {
-  SPECTRAL_INPUTS,
-  SPECTRAL_INPUT_KEYS,
-  SPECTRAL_SETTINGS,
-  SPECTRAL_TEXTURES,
-} from '../dist/audio/tire-spectral-acoustics.js';
-import { spectralTireParameters } from '../dist/audio/tire-sound-controls.js';
+import { TIRE_SOUND_INPUTS, TIRE_SOUND_INPUT_KEYS } from '../dist/audio/tire-sound-observation.js';
+import { SPECTRAL_SETTINGS, SPECTRAL_TEXTURES } from '../dist/audio/tire-spectral-acoustics.js';
+import { tireSoundParameters } from '../dist/audio/tire-sound-controls.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../dist/browser/vehicle-audio.js';
 import {
   observeVehicleTires,
@@ -164,18 +160,18 @@ test('signed acoustic telemetry uses accepted effective radius and wheel result,
 test('spectral mapping has its own SI transport and does not reuse representative CONTACT load/slip', () => {
   const tire = { ...input(), utilization: 3, surface: 'ASPHALT', referenceLoad: 4000 };
   const original = structuredClone(tire),
-    mapped = spectralTireParameters(tire);
+    mapped = tireSoundParameters(tire);
   assert.equal(mapped.load, 4000);
   assert.equal(mapped.wheelSpeed, 25);
   assert.equal(mapped.demand, 3);
   for (const [index, texture] of SPECTRAL_TEXTURES.entries()) {
-    const value = spectralTireParameters({ ...tire, surface: texture.surface, wheelSpeed: -10000 });
+    const value = tireSoundParameters({ ...tire, surface: texture.surface, wheelSpeed: -10000 });
     assert.equal(value.surfaceIndex, index);
-    assert.equal(value.wheelSpeed, SPECTRAL_INPUTS.wheelSpeed.min);
+    assert.equal(value.wheelSpeed, TIRE_SOUND_INPUTS.wheelSpeed.min);
   }
   for (const unsupported of [{ load: 0 }, { surface: 'VOID' }]) {
-    const value = spectralTireParameters({ ...tire, ...unsupported });
-    for (const key of SPECTRAL_INPUT_KEYS) assert.equal(value[key], 0);
+    const value = tireSoundParameters({ ...tire, ...unsupported });
+    for (const key of TIRE_SOUND_INPUT_KEYS) assert.equal(value[key], 0);
   }
   for (const invalid of [
     { wheelSpeed: NaN },
@@ -183,7 +179,7 @@ test('spectral mapping has its own SI transport and does not reuse representativ
     { utilization: Infinity },
     { surface: 'UNKNOWN' },
   ])
-    assert.throws(() => spectralTireParameters({ ...tire, ...invalid }), RangeError);
+    assert.throws(() => tireSoundParameters({ ...tire, ...invalid }), RangeError);
   assert.deepEqual(tire, original);
 });
 
@@ -202,7 +198,7 @@ test('spectral observation and mapping leave complete nine-vehicle mechanics unc
       readVehicleAudio(a, observation);
       for (const axle of ['front', 'rear']) {
         const tire = observation[axle],
-          mapped = spectralTireParameters(tire);
+          mapped = tireSoundParameters(tire);
         assert.ok(Object.values(mapped).every(Number.isFinite));
         if (tire.surface !== 'VOID') {
           assert.ok(

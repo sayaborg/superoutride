@@ -8,43 +8,39 @@ Inspect exact main, active PRs, CI and Pages before changing source. Preserve un
 use a `codex/` branch. Current repository evidence is the continuation authority.
 
 Use Node.js 24, install dependencies, build and serve over HTTP. In `?mode=circuit`, start audio
-and cycle TIRES three times from CURRENT to HYBRID. Compare at the same vehicle, physical calibration,
+with the default HYBRID selected. Compare at the same vehicle, physical calibration,
 inputs and volume. [Development](development.md#tire-comparison-tools) owns commands and evidence scopes.
 
 ## Next work: HYBRID listening
 
-The user authorized a fourth comparison generator: CURRENT's growth/release and pitch control with
-SPECTRAL's finite-width squeal character, plus SPECTRAL rolling. This explicitly supersedes the earlier
-SPECTRAL-only tuning decision gate. CURRENT remains the reload default; existing references remain.
+The user adopts HYBRID's squeal method as the primary implementation, asks for still less frequent
+squeal and a low/mid sliding sound leading into it, and authorizes an architectural revision with modest
+output changes. The revision prioritizes simple ownership, physical honesty and explicitly named authored
+constants. HYBRID is now the reload default. This supersedes the previous comparison-only, shared-CURRENT
+controller, exact-shared-R and no-S requirements; the three reference models remain available.
 
-| Component | Latest feedback and implemented starting point                                                                                                                                                                                               |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q         | The user found HYBRID promising but squeal too frequent. Its shared Hopf controller now has a higher HYBRID-only excitation threshold. Confirm that mild slip is quieter while strong slip remains responsive; listening acceptance is open. |
-| R         | Use the present rotation-driven SPECTRAL rolling layer, shared without changing its waveform. Earlier feedback about excessive hiss/weak rotation dependence still needs final listening acceptance.                                         |
-| S         | The user questioned its usefulness. HYBRID constructs no scrub bands and offers R/Q only. Original SPECTRAL retains R/S/Q as a comparison. This is a deliberate omission, not proof that sliding has no broadband sound.                     |
+| Component | Current acceptance and next listening question                                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q         | The finite-width squeal method is accepted. Confirm that the later onset and scalar energy response retain useful pitch/transient feedback during strong slip and recovery.                 |
+| S         | New low/mid sliding friction fills the approach to squeal. Assess its level/color below onset and the continuous additive S+Q transition; this new sound is not yet listening-approved.     |
+| R         | Rotation-driven rolling remains the method. Its texture traversal now has consistent distance/time units. Assess low-frequency balance and audible rotation dependence in the complete mix. |
 
-First compare Q alone through mild slip, sustained strong slip and recovery to mild slip. The existing
-Hopf onset is tuned through HYBRID's own setting; CURRENT keeps its original threshold. This deliberate
-calibration supersedes exact equality of the two controllers' amplitudes, while preserving their shared
-equation, excitation following and pitch response. There is no additional gate or envelope.
-HYBRID shifts CURRENT's pitch upward by a fixed offset while retaining its Hz excursions. There is no
-second Q amplitude or pitch envelope. Finite-width bands still add their own short response and random
-variation, so shared control dynamics do not imply identical perceived loudness or audible onset.
+First compare S alone, Q alone and S+Q through mild slip, sustained strong slip and gradual recovery.
+Then compare R alone and the complete R+S+Q mix at fixed playback volume. Include braking/locked sliding,
+supported stationary spin, reverse travel, loose surfaces, support loss/recontact, independent axles
+and model changes/mute/retry. Do not equate a numerical growth threshold or output RMS with audible onset
+or perceived loudness. There is no arbitrary S/Q ducking or automatic loudness compensation.
 
-Then assess R alone and R+Q. Include locked translation, supported stationary spin, reverse travel,
-loose surfaces, support loss/recontact, independent axles and model changes/mute/retry. Without S, locked
-subthreshold sliding can be silent; assess this consequence before deciding whether an S layer is needed.
-Do not add a fallback noise, recovery chirp or automatic loudness compensation to hide it.
+R/S/Q output switches fade without resetting the running states. Choices survive model/vehicle changes
+and retry, but reload restores HYBRID with all components on. Numeric tire controls remain source-owned
+acoustic settings, separate from both the physical calibration and engine tuning panel.
 
-R/Q output switches fade without resetting the running states. S choice remains stored for SPECTRAL;
-its button is hidden/disabled in HYBRID. Choices survive model/vehicle changes and retry, but reload resets
-all choices. Numeric tire controls remain source settings, not the engine tuning panel.
-
-[Audio](audio.md) owns equations and boundaries; [calibration](calibration.md) identifies tuning owners.
-Change one group at a time, and distinguish listening acceptance, spectrum/transient checks, host timing
-and actual phone performance. Keep the fixed mechanics/rendering reference and valid lifecycle/observation
-coverage. Existing CURRENT/CONTACT/SPECTRAL remain waveform-preserving comparison references; a deliberate
-change to them requires an explicit contract revision. Keep only this checkpoint, not new handoff archives.
+[Audio](audio.md#hybrid-game-synthesis) owns the revised equations and boundaries;
+[calibration](calibration.md#tire-audio-tuning) identifies settings and coupling. Change one group at a time
+and distinguish method acceptance, transition/mix listening, spectrum/transient checks, host timing and
+actual phone performance. Keep the fixed mechanics/rendering reference and valid lifecycle/observation
+coverage. CURRENT/CONTACT/SPECTRAL remain waveform-preserving comparison references; changing them
+requires an explicit contract revision. Keep this single checkpoint, not new handoff archives.
 
 ## Remaining limits
 

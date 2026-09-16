@@ -1,7 +1,9 @@
-import { SPECTRAL_SETTINGS, SPECTRAL_BAND_DOMAIN, type SpectralObservation } from './tire-spectral-acoustics.js';
-import { SpectralBand, SmoothRandom, type SpectralMaterial } from './tire-spectral-primitives.js';
+import { SPECTRAL_SETTINGS } from './tire-spectral-acoustics.js';
+import { SpectralBand, SmoothRandom, SPECTRAL_BAND_DOMAIN } from './spectral-noise.js';
+import type { TireSoundObservation } from './tire-sound-observation.js';
+import type { SpectralMaterial } from './tire-spectral-primitives.js';
 
-/** Two rotation-driven bands shared by SPECTRAL and HYBRID. No scrub or squeal work. */
+/** Retained SPECTRAL rolling reference; primary HYBRID owns its revised calibration. */
 export class SpectralRolling {
   private level = 0;
   private targetLevel = 0;
@@ -28,7 +30,7 @@ export class SpectralRolling {
     this.dcPole = Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.dcHz) / rate);
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.roadOutputHz) / rate);
   }
-  update(value: SpectralObservation): void {
+  update(value: TireSoundObservation): void {
     const level = Math.sqrt(value.load / (value.load + SPECTRAL_SETTINGS.loadScaleNewtons));
     const speed = Math.abs(value.wheelSpeed);
     this.targetLevel =
@@ -39,8 +41,10 @@ export class SpectralRolling {
   cutExcitation(): void {
     this.level = 0;
   }
-  control(value: SpectralObservation, material: SpectralMaterial['value']): void {
+  control(value: TireSoundObservation, material: SpectralMaterial['value']): void {
     this.wheelFrequency += this.tone * (Math.abs(value.wheelAngularSpeed) / (2 * Math.PI) - this.wheelFrequency);
+    // Legacy authored ratio: scaleMeters is reused as a numeric texture factor here, not a physical
+    // wavelength. Preserve this comparison waveform; primary rolling uses explicit speed/length.
     const roadHz = (SPECTRAL_SETTINGS.roadTextureOrders * this.wheelFrequency) / material.scaleMeters;
     this.modulation =
       1 +

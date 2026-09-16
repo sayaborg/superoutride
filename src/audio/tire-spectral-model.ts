@@ -1,13 +1,12 @@
-import { SPECTRAL_INPUT_KEYS, SPECTRAL_SETTINGS, type SpectralObservation } from './tire-spectral-acoustics.js';
-
 import {
-  SpectralBand,
-  SmoothRandom,
-  spectralComponentSeeds,
-  spectralSquealBandwidth,
-  SpectralMaterial,
-  validateSpectralObservation,
-} from './tire-spectral-primitives.js';
+  TIRE_SOUND_INPUT_KEYS,
+  validateTireSoundObservation,
+  type TireSoundObservation,
+} from './tire-sound-observation.js';
+import { SPECTRAL_SETTINGS } from './tire-spectral-acoustics.js';
+
+import { SpectralBand, SmoothRandom, spectralComponentSeeds } from './spectral-noise.js';
+import { spectralSquealBandwidth, SpectralMaterial } from './tire-spectral-primitives.js';
 import { SpectralRolling } from './tire-spectral-rolling.js';
 
 const saturate = (x: number, half: number): number => x / (x + half);
@@ -69,14 +68,14 @@ export class TireSpectralSynthesis {
     this.outputFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.outputHz) / rate);
     this.clock = rate; // First sample configures; subsequent ticks use this stream's rational clock.
   }
-  update(value: SpectralObservation, surfaceIndex = 0): void {
+  update(value: TireSoundObservation, surfaceIndex = 0): void {
     try {
-      validateSpectralObservation(value, surfaceIndex);
+      validateTireSoundObservation(value, surfaceIndex);
     } catch (error) {
       this.cutExcitation();
       throw error;
     }
-    for (const key of SPECTRAL_INPUT_KEYS) this.observation[key] = value[key];
+    for (const key of TIRE_SOUND_INPUT_KEYS) this.observation[key] = value[key];
     this.textureMaterial.setSurface(surfaceIndex);
     this.supported = value.load > 0;
     this.rolling.update(value);

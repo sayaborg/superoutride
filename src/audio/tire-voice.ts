@@ -1,10 +1,10 @@
-import { SPECTRAL_INPUT_KEYS } from './tire-spectral-acoustics.js';
+import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { tireParameters } from './tire-synthesis.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_TIMING } from './audio-presentation.js';
 import {
   contactTireParameters,
-  spectralTireParameters,
+  tireSoundParameters,
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_SOUND_MODELS,
   TIRE_COMPONENTS,
@@ -48,15 +48,15 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       const now = context.currentTime;
       // Controls keep tracking while fading. Only the active or immediately requested mapping is needed.
       for (const axle of ['front', 'rear'] as const) {
-        if (desired === 'current' || active === 'current' || desired === 'hybrid' || active === 'hybrid') {
+        if (desired === 'current' || active === 'current') {
           const controls = tireParameters(state[axle]);
           node.parameters.get(`${axle}_squeal`)!.value = controls.squeal;
           node.parameters.get(`${axle}_pitch`)!.value = controls.pitch;
         }
         if (desired === 'spectral' || active === 'spectral' || desired === 'hybrid' || active === 'hybrid') {
-          const controls = spectralTireParameters(state[axle]);
-          for (const key of SPECTRAL_INPUT_KEYS) node.parameters.get(`${axle}_spectral_${key}`)!.value = controls[key];
-          node.parameters.get(`${axle}_spectral_surfaceIndex`)!.value = controls.surfaceIndex;
+          const controls = tireSoundParameters(state[axle]);
+          for (const key of TIRE_SOUND_INPUT_KEYS) node.parameters.get(`${axle}_tire_${key}`)!.value = controls[key];
+          node.parameters.get(`${axle}_tire_surfaceIndex`)!.value = controls.surfaceIndex;
         }
         if (desired === 'contact' || active === 'contact') {
           const controls = contactTireParameters(state[axle]);
@@ -69,7 +69,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       if (active !== null && desired !== active) {
         if (pending?.model !== desired) {
           pending = { model: desired, at: now + AUDIO_TIMING.transitionSeconds };
-          follow(output.gain, 0, now, 0.01);
+          follow(output.gain, 0, now, 0.01); // Authored 10 ms model-switch fade, not tire vibration decay.
         }
         if (now < pending.at) return;
       }

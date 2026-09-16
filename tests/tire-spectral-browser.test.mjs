@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 import test from 'node:test';
-import { SPECTRAL_INPUTS } from '../dist/audio/tire-spectral-acoustics.js';
+import { TIRE_SOUND_INPUTS } from '../dist/audio/tire-sound-observation.js';
 import { SPECTRAL_SCENARIOS, spectralScenarioAt } from '../tools/tire-spectral-scenarios.mjs';
 import { SelectorElement } from './helpers/fake-selector-dom.mjs';
 import { FakeAudioContext, FakeAudioParam, FakeAudioWorkletNode } from './helpers/audio-context.mjs';
@@ -54,7 +54,7 @@ async function install(t) {
     constructor(context, name, options) {
       super(context, name);
       this.options = options;
-      this.parameters = new Map(Object.keys(SPECTRAL_INPUTS).map((key) => [key, new Param()]));
+      this.parameters = new Map(Object.keys(TIRE_SOUND_INPUTS).map((key) => [key, new Param()]));
     }
   }
   const window = new Element();
@@ -69,7 +69,7 @@ async function install(t) {
     window,
     AudioWorkletNode: Worklet,
     URL,
-    SPECTRAL_INPUTS,
+    TIRE_SOUND_INPUTS,
     SPECTRAL_SCENARIOS,
     spectralScenarioAt,
     setTimeout: (callback) => {
@@ -95,7 +95,7 @@ async function install(t) {
 
 test('spectral page shares domains, creates one two-tap graph and preserves it on solo/volume changes', async (t) => {
   const h = await install(t);
-  for (const [key, range] of Object.entries(SPECTRAL_INPUTS)) {
+  for (const [key, range] of Object.entries(TIRE_SOUND_INPUTS)) {
     const field = h.elements.get(key);
     assert.equal(field.valueAsNumber, range.value);
     assert.equal(field.max, range.max);

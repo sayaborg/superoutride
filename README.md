@@ -34,14 +34,14 @@ reset restores defaults, vehicle replacement retains tuning, and page/course rel
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
 TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID cycles player tire sound while driving.
-CURRENT remains the reload default; only tire output fades. HYBRID uses CURRENT's squeal growth/release
-equation with a higher onset threshold and the same pitch response, combined with SPECTRAL's finite-width
-harmonic character and rotation-driven rolling.
-It has R (rolling) and Q (squeal), with no S (broad scrub). SPECTRAL remains available with R/S/Q.
-The component buttons independently fade both axles' outputs without resetting state or boosting other
-layers. S is hidden in HYBRID; its choice is retained for SPECTRAL. All components start ON, session
-choices survive model/vehicle changes and retry, and reload resets them.
-The next task is [HYBRID listening](docs/NEXT.md#next-work-hybrid-listening); listening acceptance is open.
+HYBRID is the primary generator and reload default. It combines rotation-driven rolling (R), low/mid
+sliding friction (S), and self-excited finite-width squeal (Q). The accepted squeal method now has a later
+onset; sliding sound fills the approach to squeal. CURRENT/CONTACT/SPECTRAL remain comparison references.
+HYBRID and SPECTRAL expose R/S/Q buttons. They independently fade both axles' outputs without resetting
+state or boosting other layers. All components start ON, session choices survive model/vehicle changes
+and retry, and reload resets them. Only tire output fades during model replacement.
+The next task is [HYBRID listening](docs/NEXT.md#next-work-hybrid-listening): assess the new transition
+and complete mix. Accepting the squeal method does not calibrate the tire's acoustics.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and
 [comparison tools](docs/development.md#tire-comparison-tools). Numeric tire tuning is source-owned;
 the engine tuning panel does not change tire sound.

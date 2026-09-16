@@ -1,35 +1,43 @@
-import { TireSynthesis, type TireParameters } from './tire-synthesis.js';
-import { SPECTRAL_INPUT_KEYS, SPECTRAL_SETTINGS, type SpectralObservation } from './tire-spectral-acoustics.js';
+import { clamp } from '../core/math.js';
+import { SpectralBand, SmoothRandom, spectralComponentSeeds, SPECTRAL_BAND_DOMAIN } from './spectral-noise.js';
+import { HYBRID_SETTINGS as S, HYBRID_SURFACES } from './tire-hybrid-acoustics.js';
 import {
-  SpectralBand,
-  SmoothRandom,
-  spectralComponentSeeds,
-  spectralSquealBandwidth,
-  SpectralMaterial,
-  validateSpectralObservation,
-} from './tire-spectral-primitives.js';
-import { SpectralRolling } from './tire-spectral-rolling.js';
-import { TIRE_CONTROL_RANGES } from './tire-sound-controls.js';
+  TIRE_SOUND_INPUT_KEYS,
+  TIRE_SOUND_SURFACES,
+  validateTireSoundObservation,
+  type TireSoundObservation,
+} from './tire-sound-observation.js';
 
-/** Listening settings, not measured tire acoustics. The CURRENT dynamics law is shared. */
-export const HYBRID_SETTINGS = Object.freeze({
-  // Require stronger excitation before Hopf growth; CURRENT retains its original threshold.
-  excitationThreshold: 0.2,
-  // Preserve CURRENT's Hz excursions while lifting its 650 Hz base to SPECTRAL's 1100 Hz base.
-  pitchOffsetHz: 450,
-  // A fixed pickup gain, not RMS matching. Strong Hopf vibration uses the full spectral palette.
-  squealGain: SPECTRAL_SETTINGS.squealGain,
-  harmonicAmplitudeReference: 0.5,
-});
+const smoothstep = (value: number, low: number, high: number): number => {
+  const x = clamp((value - low) / (high - low), 0, 1);
+  return x * x * (3 - 2 * x);
+};
+const saturate = (value: number, half: number): number => value / (value + half);
+type Material = { -readonly [K in keyof (typeof HYBRID_SURFACES)['ASPHALT']]: number };
+const MATERIAL_KEYS = Object.keys(HYBRID_SURFACES.ASPHALT) as (keyof Material)[];
 
-/** CURRENT dynamics into four finite-width Q bands, plus shared SPECTRAL R. No S synthesis. */
+/** One read-only axle: rotation-driven R, slip-work-driven S, and friction-fed surrogate Q. */
 export class TireHybridSynthesis {
-  private readonly controller: TireSynthesis;
-  private readonly bands: SpectralBand[];
+  private readonly road: SpectralBand[];
+  private readonly scrub: SpectralBand[];
+  private readonly squeal: SpectralBand[];
+  private readonly roadTexture: SmoothRandom;
+  private readonly scrubTexture: SmoothRandom;
   private readonly wander: SmoothRandom;
-  private readonly rolling: SpectralRolling;
-  private readonly material = new SpectralMaterial();
-  private observation = {
+  private readonly material: Material = { ...HYBRID_SURFACES.ASPHALT };
+  private targetMaterial: Readonly<Material> = HYBRID_SURFACES.ASPHALT;
+  private readonly attack: number;
+  private readonly release: number;
+  private readonly tone: number;
+  private readonly roadAttack: number;
+  private readonly roadRelease: number;
+  private readonly dcPole: number;
+  private readonly outputFollow: readonly number[];
+  private readonly previous = new Float64Array(3);
+  private readonly highpass = new Float64Array(3);
+  private readonly filtered = new Float64Array(3);
+  private roadLowpass = 0;
+  private readonly observation = {
     longitudinalVelocity: 0,
     lateralVelocity: 0,
     wheelSpeed: 0,
@@ -40,95 +48,188 @@ export class TireHybridSynthesis {
     demand: 0,
   };
   private supported = false;
+  private sliding = false;
+  private targetWork = 0;
+  private targetDrive = 0;
+  private targetRoad = 0;
+  private targetPitch: number = S.pitchBaseHz;
+  private work = 0;
+  private drive = 0;
+  private roadLevel = 0;
+  private energy = 0;
+  private pitch: number = S.pitchBaseHz;
+  private wheelFrequency = 0;
+  private slip = 0;
+  private width: number = S.squealBaseBandwidthHz;
+  private roadModulation = 1;
+  private scrubModulation = 1;
   private clock: number;
-  private width: number = SPECTRAL_SETTINGS.squealBaseBandwidthHz;
-  private readonly tone: number;
-  private readonly dcPole: number;
-  private readonly outputFollow: number;
-  private previous = 0;
-  private highpass = 0;
   roadOutput = 0;
+  scrubOutput = 0;
   squealOutput = 0;
+
   constructor(
     private readonly rate: number,
-    seed: number,
-    controlSeed: number,
+    seed: number = S.frontSeed,
   ) {
-    this.controller = new TireSynthesis(rate, controlSeed, HYBRID_SETTINGS.excitationThreshold);
     const seeds = spectralComponentSeeds(seed);
-    this.bands = seeds.squeal.map((value) => new SpectralBand(rate, value));
+    this.road = seeds.road.map((v) => new SpectralBand(rate, v));
+    this.scrub = seeds.scrub.map((v) => new SpectralBand(rate, v));
+    this.squeal = seeds.squeal.map((v) => new SpectralBand(rate, v));
+    this.roadTexture = new SmoothRandom(seeds.roadTexture);
+    this.scrubTexture = new SmoothRandom(seeds.scrubTexture);
     this.wander = new SmoothRandom(seeds.wander);
-    this.rolling = new SpectralRolling(
-      rate,
-      new SpectralBand(rate, seeds.road[0]),
-      new SpectralBand(rate, seeds.road[1]),
-      new SmoothRandom(seeds.roadTexture),
+    this.attack = 1 - Math.exp(-1 / (rate * S.attackSeconds));
+    this.release = 1 - Math.exp(-1 / (rate * S.releaseSeconds));
+    this.roadAttack = 1 - Math.exp(-1 / (rate * S.roadAttackSeconds));
+    this.roadRelease = 1 - Math.exp(-1 / (rate * S.roadReleaseSeconds));
+    this.tone = 1 - Math.exp(-1 / (S.controlHz * S.toneSeconds));
+    this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
+    this.outputFollow = [S.roadOutputHz, S.scrubOutputHz, S.squealOutputHz].map(
+      (hz) => 1 - Math.exp((-2 * Math.PI * hz) / rate),
     );
-    this.tone = 1 - Math.exp(-1 / (SPECTRAL_SETTINGS.controlHz * SPECTRAL_SETTINGS.toneSeconds));
-    this.dcPole = Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * SPECTRAL_SETTINGS.outputHz) / rate);
     this.clock = rate;
   }
-  update(value: SpectralObservation, current: TireParameters, surfaceIndex = 0): void {
+
+  update(value: TireSoundObservation, surfaceIndex = 0): void {
     try {
-      validateSpectralObservation(value, surfaceIndex);
-      for (const key of ['squeal', 'pitch'] as const) {
-        const number = current[key],
-          range = TIRE_CONTROL_RANGES[key];
-        if (!Number.isFinite(number) || number < range.minValue || number > range.maxValue)
-          throw new RangeError(`invalid hybrid ${key}`);
-      }
+      validateTireSoundObservation(value, surfaceIndex);
     } catch (error) {
-      this.release();
+      this.releaseContact();
       throw error;
     }
-    for (const key of SPECTRAL_INPUT_KEYS) this.observation[key] = value[key];
-    this.material.setSurface(surfaceIndex);
+    // Copy the snapshot: worklet and standalone callers reuse inputs. No audio-rate allocation.
+    for (const key of TIRE_SOUND_INPUT_KEYS) this.observation[key] = value[key];
+    this.targetMaterial = HYBRID_SURFACES[TIRE_SOUND_SURFACES[surfaceIndex]!];
     this.supported = value.load > 0;
-    this.rolling.update(value);
-    this.controller.update({ squeal: this.supported ? current.squeal : 0, pitch: current.pitch });
-    if (!this.supported) this.release();
+    if (!this.supported) {
+      this.releaseContact();
+      return;
+    }
+    const slip = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
+    const power = slip > 0 ? value.longitudinalPower + value.lateralPower : 0;
+    this.sliding = power > 0;
+    this.targetWork = Math.sqrt(saturate(power, S.powerReferenceWatts));
+    this.targetDrive =
+      (this.targetWork *
+        smoothstep(value.demand, S.demandStart, S.demandFull) *
+        smoothstep(slip, S.slipStartMps, S.slipFullMps)) /
+      (1 + (slip / S.slipRolloffMps) ** 2);
+    if (this.sliding) {
+      this.targetPitch =
+        S.pitchBaseHz +
+        S.pitchSlipHz * saturate(slip, S.pitchSlipHalfMps) +
+        S.pitchLongitudinalHz * (value.longitudinalPower / power);
+    } else {
+      this.work = this.drive = 0; // Stop friction excitation on grip recovery; preserve vibration tails.
+    }
+    this.targetRoad =
+      value.wheelAngularSpeed !== 0
+        ? Math.sqrt(saturate(value.load, S.roadLoadHalfNewtons)) *
+          saturate(Math.abs(value.wheelSpeed), S.roadSpeedHalfMps) ** S.roadSpeedExponent
+        : 0;
   }
-  private release(): void {
-    this.supported = false;
-    this.rolling.cutExcitation();
-    this.controller.update({ squeal: 0, pitch: this.controller.frequency });
+
+  private releaseContact(): void {
+    this.supported = this.sliding = false;
+    this.work = this.drive = this.roadLevel = 0;
+    this.targetWork = this.targetDrive = this.targetRoad = 0;
   }
+
+  /** Speed/length is Hz. The saturation and authored length are sound-design choices. */
+  private textureRate(speed: number): number {
+    return S.textureMaximumHz * saturate(speed, S.textureMaximumHz * this.material.textureLengthMeters);
+  }
+
   private control(): void {
-    if (!this.supported) return; // Freeze band pitch/width on loss of support; retain finite tails.
+    if (!this.supported) return;
     const v = this.observation;
-    this.material.follow(this.tone);
-    this.rolling.control(v, this.material.value);
+    for (const key of MATERIAL_KEYS) this.material[key] += this.tone * (this.targetMaterial[key] - this.material[key]);
+    this.wheelFrequency += this.tone * (Math.abs(v.wheelAngularSpeed) / (2 * Math.PI) - this.wheelFrequency);
+    this.roadModulation =
+      1 +
+      Math.max(this.material.textureDepth, S.roadTextureMinimumDepth) *
+        this.roadTexture.step(v.wheelAngularSpeed === 0 ? 0 : this.textureRate(Math.abs(v.wheelSpeed)) / S.controlHz);
+    for (let i = 0; i < this.road.length; i++) {
+      const hz = Math.max(S.roadMinimumHz, S.roadOrders[i]! * this.wheelFrequency);
+      this.road[i]!.configure(hz, Math.max(SPECTRAL_BAND_DOMAIN.minimumBandwidthHz, hz * S.roadBandwidthRatio));
+    }
+    if (!this.sliding) return; // Freeze S/Q color on passive release; no artificial down-chirp.
     const slip = Math.hypot(v.wheelSpeed - v.longitudinalVelocity, v.lateralVelocity);
-    const targetWidth = spectralSquealBandwidth(slip, v.wheelSpeed);
+    this.slip += this.tone * (slip - this.slip);
+    this.scrubModulation =
+      1 + this.material.textureDepth * this.scrubTexture.step(this.textureRate(this.slip) / S.controlHz);
+    for (let i = 0; i < this.scrub.length; i++) {
+      const band = S.scrubBands[i]!;
+      this.scrub[i]!.configure(band.baseHz + band.slipHz * saturate(this.slip, S.scrubSlipHalfMps), band.bandwidthHz);
+    }
+    const targetWidth =
+      S.squealBaseBandwidthHz +
+      S.squealSlipBandwidthHz * saturate(slip, S.squealSlipBandwidthHalfMps) +
+      S.squealWheelBandwidthHz * saturate(Math.abs(v.wheelSpeed), S.squealWheelBandwidthHalfMps);
     this.width += this.tone * (targetWidth - this.width);
-    const wander = this.wander.step(1 / (SPECTRAL_SETTINGS.controlHz * SPECTRAL_SETTINGS.wanderSeconds));
-    const frequency =
-      (this.controller.frequency + HYBRID_SETTINGS.pitchOffsetHz) * (1 + SPECTRAL_SETTINGS.wanderDepth * wander);
-    for (let i = 0; i < this.bands.length; i++) this.bands[i]!.configure((i + 1) * frequency, (i + 1) * this.width);
+    const center = this.pitch * (1 + S.wanderDepth * this.wander.step(1 / (S.controlHz * S.wanderSeconds)));
+    for (let i = 0; i < this.squeal.length; i++) this.squeal[i]!.configure((i + 1) * center, (i + 1) * this.width);
   }
+
+  get squealAmplitude(): number {
+    return Math.sqrt(this.energy);
+  }
+  get squealFrequency(): number {
+    return this.pitch;
+  }
+
+  private condition(value: number, tap: number): number {
+    const hp = value - this.previous[tap]! + this.dcPole * this.highpass[tap]!;
+    this.previous[tap] = value;
+    this.highpass[tap] = hp;
+    this.filtered[tap] = this.filtered[tap]! + this.outputFollow[tap]! * (hp - this.filtered[tap]!);
+    return this.filtered[tap]!;
+  }
+
   sample(): number {
-    this.controller.advance();
+    if (this.supported)
+      this.roadLevel +=
+        (this.targetRoad > this.roadLevel ? this.roadAttack : this.roadRelease) * (this.targetRoad - this.roadLevel);
+    if (this.sliding) {
+      this.work += (this.targetWork > this.work ? this.attack : this.release) * (this.targetWork - this.work);
+      this.drive += (this.targetDrive > this.drive ? this.attack : this.release) * (this.targetDrive - this.drive);
+      this.pitch += this.attack * (this.targetPitch - this.pitch);
+    }
     if (this.clock >= this.rate) {
       this.clock -= this.rate;
       this.control();
     }
-    this.clock += SPECTRAL_SETTINGS.controlHz;
-    const amplitude = this.controller.amplitude;
-    const shape = Math.min(1, amplitude / HYBRID_SETTINGS.harmonicAmplitudeReference);
-    let squeal = 0,
+    this.clock += S.controlHz;
+    const excitation = this.sliding ? this.drive * this.material.squeal : 0;
+    // Energy form of the Hopf radial law: E'=2*sigma*E-2*beta*E²+D.
+    // Positive rational step; seed power is authored normalized noise energy, not joules.
+    const injected = this.energy + (S.seedEnergyPerSecond * excitation * excitation) / this.rate;
+    this.energy =
+      (injected * (1 + (2 * S.growthPerSecond * (excitation - S.excitationThreshold)) / this.rate)) /
+      (1 + (2 * S.saturationPerSecond * injected) / this.rate);
+    const a = this.squealAmplitude,
+      shape = Math.min(1, a / S.harmonicAmplitudeReference);
+    let road = 0,
+      scrub = 0,
+      squeal = 0,
       harmonicShape = 1;
-    for (let i = 0; i < this.bands.length; i++) {
-      squeal += this.bands[i]!.sample(
-        amplitude * HYBRID_SETTINGS.squealGain * SPECTRAL_SETTINGS.harmonicWeights[i]! * harmonicShape,
+    for (let i = 0; i < this.road.length; i++)
+      road += this.road[i]!.sample(
+        this.roadLevel * S.roadGain * (i === 0 ? this.material.roadLow : this.material.roadHigh) * this.roadModulation,
       );
+    for (let i = 0; i < this.scrub.length; i++)
+      scrub += this.scrub[i]!.sample(
+        this.work * S.scrubGain * (i === 0 ? this.material.scrubLow : this.material.scrubHigh) * this.scrubModulation,
+      );
+    for (let i = 0; i < this.squeal.length; i++) {
+      squeal += this.squeal[i]!.sample(a * S.squealGain * S.harmonicWeights[i]! * harmonicShape);
       harmonicShape *= shape;
     }
-    const hp = squeal - this.previous + this.dcPole * this.highpass;
-    this.previous = squeal;
-    this.highpass = hp;
-    this.squealOutput += this.outputFollow * (hp - this.squealOutput);
-    this.roadOutput = this.rolling.sample(this.supported, this.material.value);
-    return this.roadOutput + this.squealOutput;
+    this.roadLowpass += this.outputFollow[0]! * (this.condition(road, 0) - this.roadLowpass);
+    this.roadOutput = this.roadLowpass;
+    this.scrubOutput = this.condition(scrub, 1);
+    this.squealOutput = this.condition(squeal, 2);
+    return this.roadOutput + this.scrubOutput + this.squealOutput;
   }
 }

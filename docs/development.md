@@ -8,7 +8,8 @@ Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
 For engine tuning, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
 TUNING minus/plus controls while driving. VOL also uses minus/plus buttons. TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID
-compares the four tire models in all courses; the session choice survives mute and vehicle replacement.
+compares primary HYBRID (the reload default) with three reference models in all courses; the session
+choice survives mute and vehicle replacement.
 CONTACT is experimental and its axle-to-representative mapping remains uncalibrated. The separate audition/verification page is
 `http://localhost:8000/tools/audio-browser.html`. Use the same HTTP server and freshly built
 checkout for both; opening the HTML directly with `file://` is not the supported module/worklet
@@ -55,28 +56,30 @@ The [torque protection probe](../tools/torque-protection-probe.mjs) compares pro
 
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); numeric tire timbre
 settings are source data, not live sliders. [Calibration](calibration.md#tire-audio-tuning) maps their
-owners, [audio](audio.md#spectral-game-synthesis) defines signals, and
+owners, [audio](audio.md#hybrid-game-synthesis) defines primary signals, and
 [NEXT](NEXT.md#next-work-hybrid-listening) records feedback and tuning priorities.
 
-In the game, cycle CURRENT -> CONTACT -> SPECTRAL -> HYBRID and use the component buttons to isolate both axles' rolling, scrub
-and squeal (HYBRID offers R/Q and has no S). The buttons change output only: state continues, other components are not boosted, and
+In the game, start with default HYBRID or cycle the comparison selector. HYBRID and SPECTRAL expose
+R/S/Q buttons to isolate both axles' rolling, sliding friction and squeal. The buttons change output only:
+state continues, other components are not boosted, and
 muted components still cost CPU. Keep physical calibration, engine settings and playback volume fixed
 when diagnosing tire sound. Rebuild/reload after a source tune; reload resets model/component choices.
 
-| Tool                         | Scope                                                                                                         | Command / page                                                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Game                         | Live mechanics, both axles, all surfaces and R/S/Q output controls                                            | `http://localhost:8000/?mode=circuit`                                                                                                |
-| SPECTRAL S/Q audition        | One asphalt contact, manual observations or shared synthetic replays; omits R                                 | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
-| SPECTRAL R/S/Q render        | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                              | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
-| Four-model comparison render | Same synthetic macro trace through all adapters; CURRENT, CONTACT friction-only, SPECTRAL S/Q, HYBRID Q/R/mix | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
-| CURRENT reference            | Original tire audition and regeneration                                                                       | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/current.wav`                                  |
-| CONTACT reference            | Four road/friction/axle taps with representative controls                                                     | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
-| CONTACT characterization     | Steady pitch/harmonics and interference windows                                                               | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
+| Tool                         | Scope                                                                                                           | Command / page                                                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Game                         | Live mechanics, both axles, all surfaces and R/S/Q output controls                                              | `http://localhost:8000/?mode=circuit`                                                                                                |
+| SPECTRAL S/Q audition        | One asphalt contact, manual observations or shared synthetic replays; omits R                                   | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
+| SPECTRAL R/S/Q render        | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                                | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
+| Four-model comparison render | Same synthetic macro trace through all adapters; CURRENT, CONTACT friction-only, SPECTRAL S/Q, HYBRID R/S/Q/mix | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
+| CURRENT reference            | Original tire audition and regeneration                                                                         | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/current.wav`                                  |
+| CONTACT reference            | Four road/friction/axle taps with representative controls                                                       | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
+| CONTACT characterization     | Steady pitch/harmonics and interference windows                                                                 | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
 kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
 Q response changes; earlier WAV approval does not mean it still produces old transient PCM.
-`mix` in the S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R. HYBRID Q/R/mix outputs respectively isolate squeal, rolling and their sum. None is the
+`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R.
+HYBRID R/S/Q/mix outputs isolate rolling, sliding friction, squeal and their sum. None is the
 full game/engine mix. The standalone manual controls are raw observations, not acoustic coefficient sliders.
 
 [Shared scenarios](../tools/tire-spectral-scenarios.mjs) own the synthetic S/Q and R/S/Q traces. Their

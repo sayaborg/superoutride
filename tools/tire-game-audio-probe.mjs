@@ -1,4 +1,5 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
+import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../dist/browser/vehicle-audio.js';
@@ -8,7 +9,7 @@ import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
 import { CONTACT_ACOUSTICS } from '../dist/audio/tire-contact-acoustics.js';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
 import { SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
-import { contactTireParameters, spectralTireParameters, TIRE_SOUND_MODELS } from '../dist/audio/tire-sound-controls.js';
+import { contactTireParameters, tireSoundParameters, TIRE_SOUND_MODELS } from '../dist/audio/tire-sound-controls.js';
 
 // One real, completed mechanics trace is replayed through each adapter. No output matching or altered physics.
 const rate = Number(process.argv[2] ?? 48000);
@@ -31,13 +32,12 @@ for (let tick = 0; tick < 600; tick++) {
     trace.push(structuredClone(observation));
   }
 }
+const observed = trace.map((v) => [tireSoundParameters(v.front), tireSoundParameters(v.rear)]);
 const controls = {
   current: trace.map((v) => [tireParameters(v.front), tireParameters(v.rear)]),
   contact: trace.map((v) => [contactTireParameters(v.front), contactTireParameters(v.rear)]),
-  hybrid: trace.map((v) =>
-    [v.front, v.rear].map((t) => ({ ...spectralTireParameters(t), current: tireParameters(t) })),
-  ),
-  spectral: trace.map((v) => [spectralTireParameters(v.front), spectralTireParameters(v.rear)]),
+  hybrid: observed,
+  spectral: observed,
 };
 function render(model) {
   const pair =
@@ -50,8 +50,8 @@ function render(model) {
           ]
         : model === 'hybrid'
           ? [
-              new TireHybridSynthesis(rate, SPECTRAL_SETTINGS.seed, CONTACT_ACOUSTICS.frontSeed),
-              new TireHybridSynthesis(rate, SPECTRAL_SETTINGS.rearSeed, CONTACT_ACOUSTICS.rearSeed),
+              new TireHybridSynthesis(rate, HYBRID_SETTINGS.frontSeed),
+              new TireHybridSynthesis(rate, HYBRID_SETTINGS.rearSeed),
             ]
           : [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)];
   const gain = model === 'contact' ? CONTACT_ACOUSTICS.listeningGain : 1;
@@ -67,8 +67,7 @@ function render(model) {
         const v = controls[model][frame][axle],
           kernel = pair[axle];
         if (model === 'contact') kernel.update(v.travelSpeed, v.slipSpeed, v.load, v.surfaceIndex);
-        else if (model === 'hybrid') kernel.update(v, v.current, v.surfaceIndex);
-        else if (model === 'spectral') kernel.update(v, v.surfaceIndex);
+        else if (model === 'hybrid' || model === 'spectral') kernel.update(v, v.surfaceIndex);
         else kernel.update(v);
       }
     }

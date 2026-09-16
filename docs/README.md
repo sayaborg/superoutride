@@ -14,7 +14,7 @@ This directory describes the current system. It is not a chronological milestone
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
 
 The [tire sound evidence note](tire-squeal-research.md) supports mechanism discussion, not runtime
-behavior or numerical calibration. [Audio](audio.md) owns CURRENT/CONTACT/SPECTRAL/HYBRID;
+behavior or numerical calibration. [Audio](audio.md) owns primary HYBRID and the CURRENT/CONTACT/SPECTRAL references;
 [calibration](calibration.md#tire-audio-tuning) maps tuning controls;
 [NEXT](NEXT.md#next-work-hybrid-listening) owns user feedback, acceptance and the next tuning task.
 Do not duplicate those responsibilities in another proposal or handoff file.

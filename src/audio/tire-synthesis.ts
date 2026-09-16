@@ -1,6 +1,8 @@
 import { clamp } from '../core/math.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
+// Retained CURRENT reference: embedded coefficients are authored listening choices, not measured
+// rubber parameters. Primary tuning is independently owned by tire-hybrid-acoustics.ts.
 const MATERIAL = {
   ASPHALT: { squeal: 1 },
   SHOULDER: { squeal: 0.45 },
@@ -10,7 +12,7 @@ const MATERIAL = {
   VOID: { squeal: 0 },
 } as const;
 
-export interface TireParameters {
+interface TireParameters {
   /** Dimensionless acoustic excitation; crossing the oscillator threshold permits growth. */
   readonly squeal: number;
   readonly pitch: number;
@@ -53,7 +55,6 @@ export class TireSynthesis {
   constructor(
     rate: number,
     private seed: number,
-    private readonly excitationThreshold = 0.12,
   ) {
     this.oscillatorStep = 1 / rate;
     // Tiny reproducible per-source detuning avoids coherent front/rear tones, not stereo localization.
@@ -65,8 +66,7 @@ export class TireSynthesis {
   update(value: TireParameters): void {
     this.target = value;
   }
-  /** Shared CURRENT dynamics, without constructing its audible periodic waveform. */
-  advance(): void {
+  sample(): number {
     this.squeal += (this.target.squeal > this.squeal ? this.attack : this.release) * (this.target.squeal - this.squeal);
     this.seed ^= this.seed << 13;
     this.seed ^= this.seed >>> 17;
@@ -88,21 +88,10 @@ export class TireSynthesis {
     this.x += 8 * excitation * noise * this.oscillatorStep;
     const radiusSquared = this.x * this.x + this.y * this.y;
     const gain =
-      (1 + 140 * (excitation - this.excitationThreshold) * this.oscillatorStep) /
-      (1 + 150 * radiusSquared * this.oscillatorStep);
+      (1 + 140 * (excitation - 0.12) * this.oscillatorStep) / (1 + 150 * radiusSquared * this.oscillatorStep);
     const x = gain * (this.rotationX * this.x - this.rotationY * this.y);
     this.y = gain * (this.rotationY * this.x + this.rotationX * this.y);
     this.x = x;
-  }
-  get amplitude(): number {
-    return Math.sqrt(this.x * this.x + this.y * this.y);
-  }
-  /** Smoothed authored pitch; the spectral pickup owns its own random band wander. */
-  get frequency(): number {
-    return this.pitch;
-  }
-  sample(): number {
-    this.advance();
     // Phase-locked harmonics grow with oscillation amplitude; no unrelated second whistle.
     const ringing = this.y + 0.32 * (2 * this.x * this.y) + 0.12 * this.y * (3 * this.x * this.x - this.y * this.y);
     const modulation = 1 + 1.5 * this.rough;

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
-import { SPECTRAL_SETTINGS, SPECTRAL_INPUTS, SPECTRAL_TEXTURES } from '../dist/audio/tire-spectral-acoustics.js';
+import { SPECTRAL_SETTINGS, SPECTRAL_TEXTURES } from '../dist/audio/tire-spectral-acoustics.js';
+import { TIRE_SOUND_INPUTS } from '../dist/audio/tire-sound-observation.js';
 
 const input = (changes = {}) => ({
   longitudinalVelocity: 30,
@@ -59,7 +60,7 @@ test('R center bands and texture follow accepted angular speed, not translation 
 test('finest rolling texture and maximum accepted angular speed stay within the interpolation cell domain', () => {
   const smallest = Math.min(...SPECTRAL_TEXTURES.map((t) => t.scaleMeters));
   const cycles =
-    (SPECTRAL_SETTINGS.roadTextureOrders * SPECTRAL_INPUTS.wheelAngularSpeed.max) /
+    (SPECTRAL_SETTINGS.roadTextureOrders * TIRE_SOUND_INPUTS.wheelAngularSpeed.max) /
     (2 * Math.PI * smallest * SPECTRAL_SETTINGS.controlHz);
   assert.ok(cycles < 1);
   const k = new TireSpectralSynthesis(44100);

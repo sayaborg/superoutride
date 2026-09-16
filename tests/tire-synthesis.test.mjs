@@ -134,7 +134,7 @@ test('oscillator remains stable through sustained maximum excitation and abrupt 
   }
 });
 
-test('tire worklet preserves both axle signals across block partitions and handles silence/stop', async (t) => {
+test('CURRENT worklet preserves both axle signals across block partitions and handles silence/stop', async (t) => {
   const old = Object.getOwnPropertyDescriptors(globalThis);
   let Processor;
   globalThis.AudioWorkletProcessor = class {
@@ -154,6 +154,7 @@ test('tire worklet preserves both axle signals across block partitions and handl
   const data = { front: tireParameters(sliding), rear: tireParameters({ ...sliding, lateralPower: 20000 }) };
   const a = new Processor(),
     b = new Processor();
+  for (const node of [a, b]) node.port.onmessage({ data: { model: 'current' } });
   const blank = [[new Float32Array(128)]];
   const params = Object.fromEntries(
     Processor.parameterDescriptors.map((d) => [d.name, new Float32Array([d.defaultValue])]),

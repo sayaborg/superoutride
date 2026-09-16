@@ -43,40 +43,42 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#re
 ## Tire audio tuning
 
 Tire sound is a separate presentation calibration, not the GX/PX/GY/PY/KN physical tire law above.
-The [audio contract](audio.md#spectral-game-synthesis) owns equations and signal paths; the
-[checkpoint](NEXT.md#next-work-hybrid-listening) owns feedback, tuning order and listening acceptance.
-[Development](development.md#tire-comparison-tools) owns reproducible commands. Do not duplicate
-numerical defaults here: [spectral acoustics](../src/audio/tire-spectral-acoustics.ts) is their sole owner.
+The [audio contract](audio.md#hybrid-game-synthesis) owns equations and signal paths; the
+[checkpoint](NEXT.md#next-work-hybrid-listening) owns feedback and listening acceptance.
+[Development](development.md#tire-comparison-tools) owns reproducible commands. HYBRID is the primary
+generator and reload default; CURRENT/CONTACT/SPECTRAL retain separate authored comparison settings.
 
-HYBRID's [settings](../src/audio/tire-hybrid-model.ts) own `excitationThreshold`, `pitchOffsetHz`,
-`squealGain` and `harmonicAmplitudeReference`. Raising the threshold requires stronger excitation for
-Hopf growth, also reducing settled amplitude and speeding radial decay. It tunes the existing shared
-equation, without adding a gate or changing CURRENT's default. Pitch offset changes register, gain
-changes level, and the amplitude reference changes harmonic balance; they are separate controls.
-Excitation/pitch mapping and following still come from [CURRENT](../src/audio/tire-synthesis.ts).
-Changing that shared law rather than HYBRID's threshold would change the reference as well. R settings
-and Q harmonic weights/width/wander remain shared with SPECTRAL. HYBRID omits S instead of changing its
-reference settings.
+[HYBRID acoustics](../src/audio/tire-hybrid-acoustics.ts) is the single owner of primary numeric defaults.
+Every non-derived acoustic coefficient and material value is explicitly an authored magic number,
+not a measured tire property. Units make mappings interpretable; units alone do not establish physical
+validity. The state called energy is dimensionless acoustic vibration strength, and accepted slip work
+is an available-energy cue, not sound power. Do not multiply its S/Q contribution by load a second time.
 
-The following table maps shared SPECTRAL settings; the S-only rows do not apply to HYBRID. SPECTRAL's
-`powerScaleWatts`/`harmonicShapeReference` and its amplitude/pitch envelopes do not drive HYBRID Q.
+| Tuning concern            | Named HYBRID settings                                                                                                                                                                                                          | Coupling and limits                                                                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q onset and recovery      | `powerReferenceWatts`, `demandStart`, `demandFull`, `slipStartMps`, `slipFullMps`, `slipRolloffMps`, `excitationThreshold`, `growthPerSecond`, `saturationPerSecond`, `seedEnergyPerSecond`, `attackSeconds`, `releaseSeconds` | The power reference also affects S. Raising the energy-growth threshold also lowers sustained amplitude and changes recovery; it is not an onset-only gate.    |
+| Q pitch and color         | `pitchBaseHz`, `pitchSlipHz`, `pitchSlipHalfMps`, `pitchLongitudinalHz`, `squeal*Bandwidth*`, `wanderSeconds`, `wanderDepth`, `harmonicWeights`, `harmonicAmplitudeReference`, `squealGain`                                    | Pitch, harmonic balance and level are separate controls. No second CURRENT controller or periodic phase is evaluated.                                          |
+| S approach to Q           | `powerReferenceWatts`, `scrubBands`, `scrubSlipHalfMps`, `scrubGain`, `scrubOutputHz`                                                                                                                                          | Accepted power excites S below Q onset. R/S/Q add; there is no arbitrary S-to-Q crossfade or compensation.                                                     |
+| R rolling                 | `roadOrders`, `roadMinimumHz`, `roadBandwidthRatio`, `roadLoadHalfNewtons`, `roadSpeedHalfMps`, `roadSpeedExponent`, `roadAttackSeconds`, `roadReleaseSeconds`, `roadGain`, `roadOutputHz`                                     | Angular speed sets band centers, peripheral distance sets texture traversal, and load affects R level. Locked translation has no rolling forcing.              |
+| Material and modulation   | `HYBRID_SURFACES`, `roadTextureMinimumDepth`, `textureMaximumHz`, `toneSeconds`                                                                                                                                                | Continuous acoustic following never changes physical grip. Surface squeal susceptibility enters excitation once; texture length is an authored distance scale. |
+| Shared numerical behavior | `controlHz`, `dcHz`, component output filters; generic `SPECTRAL_BAND_DOMAIN`                                                                                                                                                  | Numerical bounds/rates are not ordinary timbre knobs. Revalidate supported-domain behavior and block invariance when changing them.                            |
 
-| Tuning concern                | Named settings / owner                                                                                                                                                      | Coupling and limits                                                                                                                           |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| R pitch and color             | `roadLowOrder`, `roadHighOrder`, `roadMinimumHz`, `roadBandwidthRatio`, `roadOutputHz`                                                                                      | Wheel angular speed drives the broad centers; the two R-only low-pass stages do not filter S/Q.                                               |
-| R level and texture           | `roadGain`, `loadScaleNewtons`, `roadHalfSpeed`, `roadSpeedExponent`, `roadTextureOrders`, `roadTextureDepth`                                                               | Angular speed gates rolling; peripheral speed and load set its level. Neither is inferred from car speed.                                     |
-| S spectrum and texture        | `scrubBands`, `scrubGain`, `scrubTextureMaximumHz`                                                                                                                          | Two broad bands have independent center/slip/width data. Preserve S as a reference when changing Q alone.                                     |
-| Q color and response          | `harmonicWeights`, `harmonicShapeReference`, `squealBaseHz`, `squealSlipHz`, `squealSlipHalfSpeed`, `squealLongitudinalHz`, `squealGain`                                    | Palette/shape alter harmonics; frequency settings alter pitch. They are not interchangeable fixes for loudness.                               |
-| Q width and wander            | `squealBaseBandwidthHz`, `squealSlipBandwidthHz`, `squealBandwidthSlipHalfSpeed`, `squealWheelBandwidthHz`, `squealBandwidthWheelHalfSpeed`, `wanderSeconds`, `wanderDepth` | Finite bandwidth and random wander are sound-design controls, not measured tread geometry or grip state.                                      |
-| Shared excitation / filtering | `powerScaleWatts`, `directionScaleWatts`, `attackSeconds`, `releaseSeconds`, `toneSeconds`, `dcHz`, `outputHz`                                                              | Work scale affects S/Q; following affects more than one component; `outputHz` filters S/Q, not R. Support loss overrides normal following.    |
-| Material balance              | `SPECTRAL_TEXTURES`: `roadLow/High`, `scrubLow/High`, `squeal`, `scaleMeters`, `depth`                                                                                      | Weights are component-specific; texture scale/depth affect R and S. Catalog identities are discrete; coefficients follow without state reset. |
+Start with Q onset, then S level/color and their combined transition; assess R and the full mix afterward.
+Keep the accepted engine, playback volume and physical calibration fixed. Compare mild slip, strong slip
+and recovery so a change in onset is not mistaken for a simple reduction in overall gain. Zero work,
+slip or support cuts external friction excitation. Q's stochastic release follows decaying scalar energy;
+individual waveform samples need not decrease monotonically.
 
-`SPECTRAL_BAND_DOMAIN` owns numerical frequency/bandwidth limits, independently of similarly valued
-sound settings. `SPECTRAL_INPUTS` owns bounded transport and standalone control defaults, not replacement
-physics. Do not widen these domains or change native/control rates as an ordinary timbre adjustment;
-revalidate domain, spectra, modulation traversal and block invariance when revising them.
+The reference [SPECTRAL settings](../src/audio/tire-spectral-acoustics.ts) and `SPECTRAL_TEXTURES` remain
+its sole authored tuning owners; they do not configure primary HYBRID. CURRENT and CONTACT likewise
+retain their own mappings. Only the generic noise-band primitive and bounded raw observation contract
+are shared where applicable, not model-specific acoustic calibration.
+
+[Tire observation](../src/audio/tire-sound-observation.ts) owns bounded transport and audition defaults,
+not replacement physics. [Spectral noise](../src/audio/spectral-noise.ts) owns numerical band support.
+Do not widen these domains or change native/control rates as an ordinary timbre adjustment; revalidate
+domain, spectra, modulation traversal and block invariance when revising them.
 
 R/S/Q output switches are defined by [tire controls](../src/audio/tire-sound-controls.ts) and applied
 by the existing voice/worklet. They are listening selectors, not synthesis coefficients or normalization.
-The UI does not expose numeric tire settings; change source settings, rebuild and reload. Keep the
-accepted engine, playback volume and physical calibration fixed for the first acoustic comparisons.
+The UI does not expose numeric tire settings; change source settings, rebuild and reload.

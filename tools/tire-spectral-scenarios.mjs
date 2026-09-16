@@ -119,3 +119,18 @@ export const SPECTRAL_RESPONSE_SCENARIOS = [
   },
   { id: 'grip-recovery', seconds: grip.seconds, observe: (t) => spectralScenarioAt(grip, t) },
 ];
+
+// Primary transition replay is separate from the pinned comparison fixtures above.
+export const TIRE_TRANSITION_SCENARIO = {
+  id: 'mild-strong-mild',
+  label: 'Low sliding texture / sustained squeal / mild slip recovery',
+  seconds: 7,
+  steps: [
+    [0, observation()],
+    [0.5, observation({ lateralVelocity: 2, lateralPower: 4000, demand: 0.85 }), 'step'],
+    [2, observation({ lateralVelocity: 6, lateralPower: 24000, demand: 1.5 }), 'step'],
+    [4, observation({ lateralVelocity: 2, lateralPower: 4000, demand: 0.85 }), 'step'],
+    [6, observation(), 'step'],
+    [7, observation()],
+  ],
+};
