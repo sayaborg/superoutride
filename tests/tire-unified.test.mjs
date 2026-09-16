@@ -169,6 +169,28 @@ test('locked mild sliding produces Q without R or a separate scrub source; stati
   assert.ok(spin.road > 0 && spin.friction > 1e-5, 'vehicle translation is not a prerequisite for sound');
 });
 
+test('weak-work Q grows linearly rather than with the former square root, without a dead band', () => {
+  for (const rate of [44100, 48000, 96000])
+    for (const seed of [UNIFIED_SETTINGS.frontSeed, UNIFIED_SETTINGS.rearSeed]) {
+      let previous;
+      for (const power of [1, 4, 16]) {
+        const kernel = unified(rate, seed);
+        kernel.update(input({ lateralVelocity: 0.1, lateralPower: power }));
+        const response = measure(kernel, rate);
+        assert.ok(response.friction > 0, 'weak positive work still excites the same friction system');
+        if (previous) {
+          const ratio = response.friction / previous.friction;
+          assert.ok(
+            ratio > 3.9 && ratio < 4.1,
+            'fourfold weak work gives approximately fourfold amplitude, not twofold',
+          );
+          assert.equal(response.road, previous.road, 'R is independent of accepted friction work');
+        }
+        previous = response;
+      }
+    }
+});
+
 test('the shared friction resonator genuinely self-excites: strong feedback survives removal of random forcing', () => {
   for (const rate of [44100, 48000, 96000]) {
     const passive = resonator(rate),

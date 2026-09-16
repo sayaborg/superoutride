@@ -61,10 +61,14 @@ Both modal states receive one nonlinear friction input. Do not create separate r
 extra onset gates or a second amplitude envelope when tuning their continuous transition.
 
 The high-mode default is 1,000 Hz by listening preference; the low mode remains 300 Hz. This is an
-intentional retune of UNIFIED only. Small-work rubbing remains an open calibration issue: the noise
-force uses `sqrt(P/(P+powerReferenceWatts))` without an additional slip factor, while slip shapes
-feedback. Raising `slipHalfMps` therefore does not directly reduce the noise forcing. Forward vehicle
-speed is not another Q control, and mechanical slip work is not calibrated acoustic power.
+intentional retune of UNIFIED only. Quieter Q onset now uses `P/(P+powerReferenceWatts)` directly,
+instead of its square root, for both random forcing and feedback. The response is linear near zero
+and retains the high-work upper bound; no new parameter or gate is added. `powerReferenceWatts`
+remains 12,000 W, now the half-response point for both excitation terms before the slip/surface factors.
+This changes the work-to-excitation mapping, not a measured acoustic efficiency or Q's output gain.
+Slip still shapes feedback, not the noise-force term. Raising `slipHalfMps` therefore does not directly
+reduce the noise forcing. Forward vehicle speed is not another Q control. Numeric defaults, including
+noise force of 1,200, are unchanged by this onset revision; listening acceptance remains open.
 
 | Tuning concern                     | Named settings                                                                          | Coupling and limits                                                                                                                           |
 | ---------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

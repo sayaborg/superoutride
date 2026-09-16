@@ -480,7 +480,7 @@ With feedback and noise removed, the remaining modal loss and cubic term are dis
 
 #### Observation mapping and release
 
-Let `P=Px+Py`, `s=hypot(wheelSpeed-vx,vy)`, and `w=sqrt(P/(P+powerReferenceWatts))`. The
+Let `P=Px+Py`, `s=hypot(wheelSpeed-vx,vy)`, and `w=P/(P+powerReferenceWatts)`. The
 [UNIFIED settings](../src/audio/tire-unified-acoustics.ts) own these authored mappings:
 
 ```text
@@ -496,12 +496,24 @@ squeal gate. Surface roughness and susceptibility affect the same input's forcin
 
 Forward travel speed is not a separate Q control: identical slip, accepted work, surface and seed
 produce identical Q even at different forward speeds. Any positive slip/work can force rubbing;
-`slipHalfMps` shapes feedback, not the noise-force term. The square-root work mapping compresses forcing
-differences, and both the noise bandwidth and passive modes are time-fixed. Ordinary cornering can
+`slipHalfMps` shapes feedback, not the noise-force term. Both the noise bandwidth and passive modes
+are time-fixed. Ordinary cornering can
 produce positive work in the vehicle tire law without a gross skid. Converting that work to audible
 rubbing is uncalibrated; it is not evidence that mild low-speed turns should sound loud. R instead has
 its own peripheral-speed dependence. Diagnose R/Q separately before changing this mapping; do not
 add a vehicle-speed gate that would also suppress supported stationary wheelspin.
+
+The quieter-onset revision replaces the former square-root response with the work fraction itself
+for BOTH forcing and feedback. It is linear near zero and approaches the same upper bound at high work:
+relative to the former excitation it is multiplied by `sqrt(P/(P+powerReferenceWatts))`. Weak work
+therefore receives a larger reduction, while substantial work still supports self-excited squeal.
+This is an authored acoustic response, not a conversion from mechanical watts to acoustic watts.
+No exponent control, positive-work dead band, onset timer, extra state or separate rubbing source is
+added. All scalar settings, output gain, high mode and shared R are unchanged. At a given slip, more work
+is now needed to counter modal loss; both forcing and deterministic instability onset are intentionally
+revised. Spectral tests retain the former strong-slip case as an intermediate response and require
+high-mode dominance at a stronger input, alongside the unchanged low/broad and transition checks.
+Actual audibility and phone acceptance remain listening questions, not consequences of a fixed RMS threshold.
 
 Positive-contact targets follow continuously. Zero support, zero slip, zero work or invalid input
 immediately disables new friction forcing and feedback; stored vibration and output filters decay

@@ -43,20 +43,26 @@ Component switches fade outputs without resetting running states or compensating
 Choices survive model/vehicle changes and retry; reload restores HYBRID with all components on.
 DEV now opens a scrollable overlay with separate ENG/TIRE volume and eleven UNIFIED friction sliders.
 Select UNIFIED to enable its sliders. Validate phone portrait/landscape scrolling, closing, slider
-response and touch-driving isolation. The high-frequency slider/reset follows the new 1,000 Hz default;
-other defaults and numeric ranges are unchanged and remain authored, not measured.
+response and touch-driving isolation. The high-frequency slider/reset follows the 1,000 Hz default;
+numeric defaults and ranges are unchanged by the Q-onset revision and remain authored, not measured.
 Audio tuning remains separate from physical calibration and engine tuning.
 [Audio](audio.md#unified-game-synthesis) owns equations and boundaries;
 [calibration](calibration.md#tire-audio-tuning) maps settings and coupling. Keep numerical/spectral
 checks, synthetic listening, host timing and actual device performance as distinct evidence.
 
-The user reports excessive broad rubbing when turning near 20 km/h. The current Q maps any positive
-slip work through a square-root saturation to fixed-band noise forcing; slip directly shapes feedback,
-not noise force. R has its own wheel-speed scaling. The [input probe](../tools/tire-unified-input-probe.mjs)
-separates mechanics work/slip and R/Q RMS for short coast/steer cases using browser calibration.
-This is not the user's drive or phone playback, and equal perceived loudness is not established by RMS.
-Only the frequency is retuned in this change; review the work-to-excitation mapping before any proposed
-low-speed correction. Preserve stationary wheelspin/locked-slide sound and avoid an ad hoc speed gate.
+The user requests quieter Q onset after reporting excessive broad rubbing near 20 km/h. The common
+work response now uses `P/(P+powerReferenceWatts)` instead of its square root, for both noise forcing
+and feedback. Weak work receives the largest reduction; the high-work upper bound, numeric settings,
+output gain and 1,000 Hz high mode remain unchanged. No new gate, parameter, state or synthesis layer
+is introduced. More work is needed to counter modal loss at the same slip, so the spectral onset
+contract is explicitly revised while retaining the continuous rubbing-to-squeal transition.
+The [input probe](../tools/tire-unified-input-probe.mjs) separates mechanics work/slip and R/Q RMS for
+short coast/steer cases using browser calibration. It is not the user's drive or phone playback,
+and equal perceived loudness is not established by RMS. Check mild turns and gradual rubbing-to-squeal
+transitions on the user's device; preserve stationary wheelspin/locked-slide sound.
+
+The user is considering removing R in favor of a separate wind source in the future. That is not
+implemented or adopted as a default here: shared R and its comparison controls remain unchanged.
 
 Preserve the fixed mechanics/rendering oracle and valid observation/lifecycle coverage. Changing any
 existing comparison waveform requires an explicit revision rather than silently retuning its reference.

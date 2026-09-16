@@ -70,7 +70,8 @@ test('one Q changes from broad low rubbing through resonance to a high squeal, b
     for (const seed of [UNIFIED_SETTINGS.frontSeed, UNIFIED_SETTINGS.rearSeed]) {
       const weak = measure(observation(2, 4000), rate, seed),
         approach = measure(observation(4, 12000), rate, seed),
-        strong = measure(observation(6, 24000), rate, seed);
+        formerStrong = measure(observation(6, 24000), rate, seed),
+        strong = measure(observation(10, 60000), rate, seed);
       assert.ok(weak.peakHz < 700 && weak.ratio < 0.5, 'early friction is low/broad rather than a quiet high squeal');
       assert.ok(
         approach.ratio > weak.ratio && approach.ratio < 1,
@@ -79,6 +80,10 @@ test('one Q changes from broad low rubbing through resonance to a high squeal, b
       assert.ok(
         strong.peakHz > 800 && strong.peakHz < 1200 && strong.ratio > 1,
         'strong friction sustains vibration around the listener-selected 1 kHz mode',
+      );
+      assert.ok(
+        formerStrong.ratio > approach.ratio && formerStrong.ratio < strong.ratio,
+        'the former strong input remains on the same continuous approach after the work-response revision',
       );
       assert.ok(strong.ratio > weak.ratio * 3, 'a uniform volume change cannot satisfy the timbre transition');
       assert.ok(approach.hybridRms > strong.hybridRms * 0.7, 'this approach case already squeals strongly in HYBRID');

@@ -70,7 +70,9 @@ export class TireUnifiedSynthesis {
       return;
     }
     const material = UNIFIED_SURFACES[TIRE_SOUND_SURFACES[surfaceIndex]!];
-    const work = Math.sqrt(saturate(power, S.powerReferenceWatts));
+    // Authored work-to-excitation response, NOT an acoustic-power conversion.
+    // Linear near zero, saturating at high work; one authority for forcing and feedback.
+    const work = saturate(power, S.powerReferenceWatts);
     this.targetForce = S.noiseForcePerSecond * work * material.roughness;
     this.targetFeedback =
       (S.feedbackMaximumPerSecond * material.susceptibility * work * saturate(slip, S.slipHalfMps)) /
