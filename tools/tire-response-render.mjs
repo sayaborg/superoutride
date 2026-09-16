@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
-import { SPECTRAL_SCENARIOS, spectralScenarioAt } from './tire-spectral-scenarios.mjs';
+import { SPECTRAL_RESPONSE_SCENARIOS } from './tire-spectral-scenarios.mjs';
 
 // Reproducible R/S/Q audition. Optional earlier build compares the same SI observation trace.
 // Fixed gains only; no automatic matching, limiters or recorded runtime assets.
@@ -11,39 +11,18 @@ const previous = process.argv[3];
 const rate = Number(process.argv[4] ?? 48000);
 if (![44100, 48000, 96000].includes(rate)) throw new RangeError('rate must be 44100, 48000 or 96000');
 const models = { revised: TireSpectralSynthesis };
-if (previous)
+if (previous && previous !== '-')
   models.previous = (
     await import(pathToFileURL(resolve(previous, 'audio/tire-spectral-model.js')).href)
   ).TireSpectralSynthesis;
 await mkdir(directory, { recursive: true });
-const grip = SPECTRAL_SCENARIOS.find((s) => s.id === 'corner-sweep');
-const scenes = [
-  {
-    id: 'rolling-rpm-sweep',
-    seconds: 10,
-    observe(t) {
-      const speed = t < 1 ? 0 : t < 5 ? (t - 1) * 15 : t < 9 ? (9 - t) * 15 : 0;
-      return {
-        longitudinalVelocity: speed,
-        lateralVelocity: 0,
-        wheelSpeed: speed,
-        wheelAngularSpeed: speed / 0.3,
-        load: 4000,
-        longitudinalPower: 0,
-        lateralPower: 0,
-        demand: 0,
-      };
-    },
-  },
-  { id: 'grip-recovery', seconds: grip.seconds, observe: (t) => spectralScenarioAt(grip, t) },
-];
 const report = {
   rate,
   gain: 1,
   note: 'One synthetic contact, 0.3 m authored radius, fixed gain, not real recorded driving.',
   scenes: [],
 };
-for (const scene of scenes) {
+for (const scene of SPECTRAL_RESPONSE_SCENARIOS) {
   for (const [model, Constructor] of Object.entries(models)) {
     const kernel = new Constructor(rate);
     const taps = Object.fromEntries(['R', 'S', 'Q', 'mix'].map((tap) => [tap, new Float64Array(scene.seconds * rate)]));
