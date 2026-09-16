@@ -7,6 +7,7 @@ import {
   tireSoundParameters,
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_SOUND_MODELS,
+  TIRE_SOUND_CONTROLS,
   TIRE_COMPONENTS,
   type TireComponents,
   type TireSoundModel,
@@ -46,19 +47,21 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       if (disposed) return;
       if (failed) throw new Error('tire sound processor failed');
       const now = context.currentTime;
+      const desiredInput = TIRE_SOUND_CONTROLS[desired].input,
+        activeInput = active === null ? null : TIRE_SOUND_CONTROLS[active].input;
       // Controls keep tracking while fading. Only the active or immediately requested mapping is needed.
       for (const axle of ['front', 'rear'] as const) {
-        if (desired === 'current' || active === 'current') {
+        if (desiredInput === 'current' || activeInput === 'current') {
           const controls = tireParameters(state[axle]);
           node.parameters.get(`${axle}_squeal`)!.value = controls.squeal;
           node.parameters.get(`${axle}_pitch`)!.value = controls.pitch;
         }
-        if (desired === 'spectral' || active === 'spectral' || desired === 'hybrid' || active === 'hybrid') {
+        if (desiredInput === 'observation' || activeInput === 'observation') {
           const controls = tireSoundParameters(state[axle]);
           for (const key of TIRE_SOUND_INPUT_KEYS) node.parameters.get(`${axle}_tire_${key}`)!.value = controls[key];
           node.parameters.get(`${axle}_tire_surfaceIndex`)!.value = controls.surfaceIndex;
         }
-        if (desired === 'contact' || active === 'contact') {
+        if (desiredInput === 'contact' || activeInput === 'contact') {
           const controls = contactTireParameters(state[axle]);
           node.parameters.get(`${axle}_travelSpeed`)!.value = controls.travelSpeed;
           node.parameters.get(`${axle}_slipSpeed`)!.value = controls.slipSpeed;

@@ -33,15 +33,16 @@ ENGINE TUNING shares eight provisional minus/plus controls with the audition pag
 reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
-TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID cycles player tire sound while driving.
-HYBRID is the primary generator and reload default. It combines rotation-driven rolling (R), low/mid
-sliding friction (S), and self-excited finite-width squeal (Q). The accepted squeal method now has a later
-onset; sliding sound fills the approach to squeal. CURRENT/CONTACT/SPECTRAL remain comparison references.
-HYBRID and SPECTRAL expose R/S/Q buttons. They independently fade both axles' outputs without resetting
-state or boosting other layers. All components start ON, session choices survive model/vehicle changes
-and retry, and reload resets them. Only tire output fades during model replacement.
-The next task is [HYBRID listening](docs/NEXT.md#next-work-hybrid-listening): assess the new transition
-and complete mix. Accepting the squeal method does not calibrate the tire's acoustics.
+TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / UNIFIED cycles player tire sound while driving.
+HYBRID remains the accepted squeal method and reload default, combining rolling (R), sliding friction (S)
+and squeal (Q). UNIFIED is a new comparison: the same rolling source plus one friction vibration system
+whose Q output covers rubbing through squeal. It has R/Q buttons; S is hidden for this method.
+HYBRID and SPECTRAL retain R/S/Q buttons. Output switches independently fade both axles without resetting
+state or boosting other components. All components start ON; session choices survive model/vehicle
+changes and retry, and reload resets them. Only tire output fades during model replacement.
+The next task is [UNIFIED listening](docs/NEXT.md#next-work-unified-listening): compare the approach to
+squeal and its onset against HYBRID before choosing a primary method. Numerical checks do not establish
+real-tire calibration or listening acceptance.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and
 [comparison tools](docs/development.md#tire-comparison-tools). Numeric tire tuning is source-owned;
 the engine tuning panel does not change tire sound.

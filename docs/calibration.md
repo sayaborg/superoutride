@@ -42,43 +42,70 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#re
 
 ## Tire audio tuning
 
-Tire sound is a separate presentation calibration, not the GX/PX/GY/PY/KN physical tire law above.
-The [audio contract](audio.md#hybrid-game-synthesis) owns equations and signal paths; the
-[checkpoint](NEXT.md#next-work-hybrid-listening) owns feedback and listening acceptance.
-[Development](development.md#tire-comparison-tools) owns reproducible commands. HYBRID is the primary
-generator and reload default; CURRENT/CONTACT/SPECTRAL retain separate authored comparison settings.
+Tire sound is presentation calibration, separate from the GX/PX/GY/PY/KN physical tire law above.
+The [audio contract](audio.md#player-tire-synthesis) owns equations and signal paths;
+[NEXT](NEXT.md#next-work-unified-listening) owns feedback and listening acceptance;
+[development](development.md#tire-comparison-tools) owns reproducible commands. HYBRID remains the
+accepted/default method. UNIFIED is a new R+Q comparison, not an automatically adopted replacement.
 
-[HYBRID acoustics](../src/audio/tire-hybrid-acoustics.ts) is the single owner of primary numeric defaults.
-Every non-derived acoustic coefficient and material value is explicitly an authored magic number,
-not a measured tire property. Units make mappings interpretable; units alone do not establish physical
-validity. The state called energy is dimensionless acoustic vibration strength, and accepted slip work
-is an available-energy cue, not sound power. Do not multiply its S/Q contribution by load a second time.
+Every non-derived acoustic coefficient and material value is an authored magic number, not a measured
+tire property. Units make a surrogate interpretable without establishing physical validity. Accepted
+slip work is an available-energy cue, not sound power; do not multiply friction excitation by load
+again. Computed UNIFIED modal energy and HYBRID's scalar energy state are diagnostics in their own
+normalized models, not joules or mutually calibrated quantities.
 
-| Tuning concern            | Named HYBRID settings                                                                                                                                                                                                          | Coupling and limits                                                                                                                                            |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q onset and recovery      | `powerReferenceWatts`, `demandStart`, `demandFull`, `slipStartMps`, `slipFullMps`, `slipRolloffMps`, `excitationThreshold`, `growthPerSecond`, `saturationPerSecond`, `seedEnergyPerSecond`, `attackSeconds`, `releaseSeconds` | The power reference also affects S. Raising the energy-growth threshold also lowers sustained amplitude and changes recovery; it is not an onset-only gate.    |
-| Q pitch and color         | `pitchBaseHz`, `pitchSlipHz`, `pitchSlipHalfMps`, `pitchLongitudinalHz`, `squeal*Bandwidth*`, `wanderSeconds`, `wanderDepth`, `harmonicWeights`, `harmonicAmplitudeReference`, `squealGain`                                    | Pitch, harmonic balance and level are separate controls. No second CURRENT controller or periodic phase is evaluated.                                          |
-| S approach to Q           | `powerReferenceWatts`, `scrubBands`, `scrubSlipHalfMps`, `scrubGain`, `scrubOutputHz`                                                                                                                                          | Accepted power excites S below Q onset. R/S/Q add; there is no arbitrary S-to-Q crossfade or compensation.                                                     |
-| R rolling                 | `roadOrders`, `roadMinimumHz`, `roadBandwidthRatio`, `roadLoadHalfNewtons`, `roadSpeedHalfMps`, `roadSpeedExponent`, `roadAttackSeconds`, `roadReleaseSeconds`, `roadGain`, `roadOutputHz`                                     | Angular speed sets band centers, peripheral distance sets texture traversal, and load affects R level. Locked translation has no rolling forcing.              |
-| Material and modulation   | `HYBRID_SURFACES`, `roadTextureMinimumDepth`, `textureMaximumHz`, `toneSeconds`                                                                                                                                                | Continuous acoustic following never changes physical grip. Surface squeal susceptibility enters excitation once; texture length is an authored distance scale. |
-| Shared numerical behavior | `controlHz`, `dcHz`, component output filters; generic `SPECTRAL_BAND_DOMAIN`                                                                                                                                                  | Numerical bounds/rates are not ordinary timbre knobs. Revalidate supported-domain behavior and block invariance when changing them.                            |
+### UNIFIED friction
 
-Start with Q onset, then S level/color and their combined transition; assess R and the full mix afterward.
-Keep the accepted engine, playback volume and physical calibration fixed. Compare mild slip, strong slip
-and recovery so a change in onset is not mistaken for a simple reduction in overall gain. Zero work,
-slip or support cuts external friction excitation. Q's stochastic release follows decaying scalar energy;
-individual waveform samples need not decrease monotonically.
+[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) owns all new friction coefficients.
+Both modal states receive one nonlinear friction input. Do not create separate rubbing/squeal gains,
+extra onset gates or a second amplitude envelope when tuning their continuous transition.
+
+| Tuning concern                     | Named settings                                                                          | Coupling and limits                                                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feedback versus loss               | `feedbackMaximumPerSecond`, `modes[].dampingPerSecond`, `slipHalfMps`, `slipRolloffMps` | Changes instability, subcritical response, saturation level and recovery together; not an onset-only switch.                                  |
+| Accepted work and forcing          | `powerReferenceWatts`, `noiseForcePerSecond`, `noiseBandwidthHz`                        | Work controls both forcing and feedback. Noise enters the same friction port, without direct output feedthrough.                              |
+| Modal color and nonlinear response | `modes[].frequencyHz`, `modes[].participation`, `saturationPerSecond`                   | Fixed modal data and one cubic law produce the response. Participation is normalized once; modes are not S/Q sources.                         |
+| Surfaces and following             | `UNIFIED_SURFACES`, `controlSeconds`                                                    | Roughness changes forcing, susceptibility changes feedback. Zero support/work/slip bypasses following to stop new friction input immediately. |
+| Pickup and output                  | `outputGainPerSecond`, `outputCutoffHz`, `dcHz`                                         | Fixed displacement pickup/filtering changes audibility, not the underlying instability. No automatic normalization.                           |
+
+Compare mild slip, strong slip and recovery before the complete mix. Hold physical calibration, engine
+settings and playback volume fixed. A lower output gain can delay perceived squeal without changing
+instability; distinguish that from the requested change in the rubbing-to-squeal response. Numerical
+thresholds, energy and RMS do not replace listening. Altering fixed modal data requires renewed
+passivity, supported-rate and convergence checks.
+
+### Shared rolling and retained comparisons
+
+[Rolling acoustics](../src/audio/tire-rolling-acoustics.ts) is the sole owner of R for HYBRID and UNIFIED.
+Its extraction preserves HYBRID's waveform; changing these settings later changes both models.
+
+| Tuning concern          | Named shared R settings                                                                       | Coupling and limits                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Rotation and color      | `orders`, `minimumHz`, `bandwidthRatio`, `outputHz`                                           | Angular speed sets band centers; filtering remains road-only.                                                     |
+| Level and response      | `loadHalfNewtons`, `speedHalfMps`, `speedExponent`, `attackSeconds`, `releaseSeconds`, `gain` | Peripheral speed and support set excitation; locked translation has no active rolling forcing.                    |
+| Material and modulation | `ROLLING_SURFACES`, `textureMinimumDepth`, `textureMaximumHz`, `toneSeconds`                  | Peripheral distance sets texture traversal; authored texture lengths and wheel orders are not measured tire data. |
+| Numerical behavior      | `controlHz`, `dcHz`; generic `SPECTRAL_BAND_DOMAIN`                                           | Rate/domain changes require numerical and block-partition validation, not just listening.                         |
+
+[HYBRID acoustics](../src/audio/tire-hybrid-acoustics.ts) continues to own its unchanged S/Q mapping.
+
+| Tuning concern          | Named HYBRID settings                                                                                                                                                                                                          | Coupling and limits                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Q onset and recovery    | `powerReferenceWatts`, `demandStart`, `demandFull`, `slipStartMps`, `slipFullMps`, `slipRolloffMps`, `excitationThreshold`, `growthPerSecond`, `saturationPerSecond`, `seedEnergyPerSecond`, `attackSeconds`, `releaseSeconds` | Power also affects S. Raising the growth threshold changes sustained amplitude and recovery. |
+| Q pitch and color       | `pitchBaseHz`, `pitchSlipHz`, `pitchSlipHalfMps`, `pitchLongitudinalHz`, `squeal*Bandwidth*`, `wanderSeconds`, `wanderDepth`, `harmonicWeights`, `harmonicAmplitudeReference`, `squealGain`, `squealOutputHz`                  | Separate authored pitch, finite-width harmonic palette and gain, retained for comparison.    |
+| S and material response | `powerReferenceWatts`, `scrubBands`, `scrubSlipHalfMps`, `scrubGain`, `scrubOutputHz`, `HYBRID_SURFACES`, `textureMaximumHz`, `toneSeconds`                                                                                    | S and Q add without ducking/crossfade. Its material values configure friction, not shared R. |
+| Numerical behavior      | `controlHz`, `dcHz`                                                                                                                                                                                                            | Revalidate supported-domain behavior and block invariance if revised.                        |
 
 The reference [SPECTRAL settings](../src/audio/tire-spectral-acoustics.ts) and `SPECTRAL_TEXTURES` remain
-its sole authored tuning owners; they do not configure primary HYBRID. CURRENT and CONTACT likewise
-retain their own mappings. Only the generic noise-band primitive and bounded raw observation contract
-are shared where applicable, not model-specific acoustic calibration.
+its sole acoustic owners; CURRENT and CONTACT also retain their own mappings. None configures UNIFIED.
+Existing comparison waveforms are preserved for this addition; retuning them requires a separate,
+explicit revision rather than obscuring the comparison.
 
 [Tire observation](../src/audio/tire-sound-observation.ts) owns bounded transport and audition defaults,
-not replacement physics. [Spectral noise](../src/audio/spectral-noise.ts) owns numerical band support.
-Do not widen these domains or change native/control rates as an ordinary timbre adjustment; revalidate
-domain, spectra, modulation traversal and block invariance when revising them.
+not replacement physics. [Spectral noise](../src/audio/spectral-noise.ts) owns numerical band support;
+UNIFIED's domain and [resonator](../src/audio/friction-resonator.ts) enforce their own rate/modal limits.
+Do not widen domains or alter rates as an ordinary timbre adjustment.
 
-R/S/Q output switches are defined by [tire controls](../src/audio/tire-sound-controls.ts) and applied
-by the existing voice/worklet. They are listening selectors, not synthesis coefficients or normalization.
-The UI does not expose numeric tire settings; change source settings, rebuild and reload.
+Component switches are defined by [tire controls](../src/audio/tire-sound-controls.ts) and applied by
+the existing voice/worklet. HYBRID/SPECTRAL expose R/S/Q; UNIFIED exposes R/Q with S hidden. They change
+output only, not synthesis coefficients or normalization. Numeric tire settings are source-owned;
+rebuild and reload after changing them.

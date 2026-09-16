@@ -1,7 +1,8 @@
 import type { TIRE_SOUND_SURFACES } from './tire-sound-observation.js';
 
 /**
- * Primary tire sound calibration. ALL values below are authored listening choices ("magic numbers"),
+ * HYBRID friction calibration. Shared R settings belong to tire-rolling-acoustics.ts.
+ * ALL values below are authored listening choices ("magic numbers"),
  * not measured rubber properties, acoustic watts, local contact dimensions or instability thresholds.
  * Units name their role in the surrogate; changing these values must not change vehicle mechanics.
  */
@@ -47,18 +48,6 @@ export const HYBRID_SETTINGS = Object.freeze({
   scrubSlipHalfMps: 6,
   scrubGain: 0.045,
   scrubOutputHz: 1800,
-  // Broad wheel-order rolling: rotation is an input, not a claim of measured tread orders.
-  roadOrders: Object.freeze([4, 12]),
-  roadMinimumHz: 35,
-  roadBandwidthRatio: 0.8,
-  roadLoadHalfNewtons: 2000,
-  roadSpeedHalfMps: 15,
-  roadSpeedExponent: 1.5,
-  roadAttackSeconds: 0.015,
-  roadReleaseSeconds: 0.01,
-  roadTextureMinimumDepth: 0.22,
-  roadGain: 0.04,
-  roadOutputHz: 900,
   textureMaximumHz: 160,
   dcHz: 18,
 });
@@ -66,8 +55,6 @@ export const HYBRID_SETTINGS = Object.freeze({
 /** Authored surface palette, not measured friction, texture wavelengths or acoustic efficiencies. */
 export const HYBRID_SURFACES = Object.freeze({
   ASPHALT: Object.freeze({
-    roadLow: 0.9,
-    roadHigh: 0.18,
     scrubLow: 0.9,
     scrubHigh: 0.3,
     squeal: 1,
@@ -75,8 +62,6 @@ export const HYBRID_SURFACES = Object.freeze({
     textureDepth: 0.12,
   }),
   SHOULDER: Object.freeze({
-    roadLow: 0.85,
-    roadHigh: 0.7,
     scrubLow: 0.9,
     scrubHigh: 0.5,
     squeal: 0.45,
@@ -84,8 +69,6 @@ export const HYBRID_SURFACES = Object.freeze({
     textureDepth: 0.4,
   }),
   GRASS: Object.freeze({
-    roadLow: 0.85,
-    roadHigh: 0.12,
     scrubLow: 0.65,
     scrubHigh: 0.15,
     squeal: 0.05,
@@ -93,8 +76,6 @@ export const HYBRID_SURFACES = Object.freeze({
     textureDepth: 0.45,
   }),
   DIRT: Object.freeze({
-    roadLow: 1,
-    roadHigh: 0.55,
     scrubLow: 1,
     scrubHigh: 0.4,
     squeal: 0.15,
@@ -102,8 +83,6 @@ export const HYBRID_SURFACES = Object.freeze({
     textureDepth: 0.8,
   }),
   SAND: Object.freeze({
-    roadLow: 0.3,
-    roadHigh: 0.8,
     scrubLow: 0.7,
     scrubHigh: 0.65,
     squeal: 0.03,

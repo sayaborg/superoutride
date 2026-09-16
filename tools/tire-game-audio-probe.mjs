@@ -1,5 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
+import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
+import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../dist/browser/vehicle-audio.js';
@@ -38,22 +40,29 @@ const controls = {
   contact: trace.map((v) => [contactTireParameters(v.front), contactTireParameters(v.rear)]),
   hybrid: observed,
   spectral: observed,
+  unified: observed,
+};
+const factories = {
+  current: () => [
+    new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
+    new TireSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),
+  ],
+  contact: () => [
+    new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
+    new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),
+  ],
+  hybrid: () => [
+    new TireHybridSynthesis(rate, HYBRID_SETTINGS.frontSeed),
+    new TireHybridSynthesis(rate, HYBRID_SETTINGS.rearSeed),
+  ],
+  spectral: () => [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)],
+  unified: () => [
+    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.frontSeed),
+    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.rearSeed),
+  ],
 };
 function render(model) {
-  const pair =
-    model === 'current'
-      ? [new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed), new TireSynthesis(rate, CONTACT_ACOUSTICS.rearSeed)]
-      : model === 'contact'
-        ? [
-            new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
-            new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),
-          ]
-        : model === 'hybrid'
-          ? [
-              new TireHybridSynthesis(rate, HYBRID_SETTINGS.frontSeed),
-              new TireHybridSynthesis(rate, HYBRID_SETTINGS.rearSeed),
-            ]
-          : [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)];
+  const pair = factories[model]();
   const gain = model === 'contact' ? CONTACT_ACOUSTICS.listeningGain : 1;
   let frame = -1,
     peak = 0,
@@ -67,8 +76,8 @@ function render(model) {
         const v = controls[model][frame][axle],
           kernel = pair[axle];
         if (model === 'contact') kernel.update(v.travelSpeed, v.slipSpeed, v.load, v.surfaceIndex);
-        else if (model === 'hybrid' || model === 'spectral') kernel.update(v, v.surfaceIndex);
-        else kernel.update(v);
+        else if (model === 'current') kernel.update(v);
+        else kernel.update(v, v.surfaceIndex);
       }
     }
     const value = (pair[0].sample() + pair[1].sample()) * gain;

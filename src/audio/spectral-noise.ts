@@ -8,7 +8,7 @@ export const SPECTRAL_BAND_DOMAIN = Object.freeze({
 });
 
 /** Bounded, reproducible stream. Separate seed/state per band and modulation source. */
-class RandomStream {
+export class RandomStream {
   constructor(private state: number) {
     if (!Number.isInteger(state) || state < 1 || state > 0xffffffff) throw new RangeError('invalid spectral seed');
     this.state |= 0;

@@ -3,44 +3,51 @@
 ## Restart
 
 Read [AGENTS](../AGENTS.md), the [index](README.md), [architecture](architecture.md),
-[audio](audio.md#hybrid-game-synthesis) and [calibration](calibration.md#tire-audio-tuning).
+[audio](audio.md#unified-game-synthesis) and [calibration](calibration.md#tire-audio-tuning).
 Inspect exact main, active PRs, CI and Pages before changing source. Preserve unrelated work and
 use a `codex/` branch. Current repository evidence is the continuation authority.
 
 Use Node.js 24, install dependencies, build and serve over HTTP. In `?mode=circuit`, start audio
-with the default HYBRID selected. Compare at the same vehicle, physical calibration,
-inputs and volume. [Development](development.md#tire-comparison-tools) owns commands and evidence scopes.
+and select UNIFIED. HYBRID remains the reload default. Compare at the same vehicle, physical
+calibration, inputs and volume. [Development](development.md#tire-comparison-tools) owns commands
+and evidence scopes.
 
-## Next work: HYBRID listening
+## Next work: UNIFIED listening
 
-The user adopts HYBRID's squeal method as the primary implementation, asks for still less frequent
-squeal and a low/mid sliding sound leading into it, and authorizes an architectural revision with modest
-output changes. The revision prioritizes simple ownership, physical honesty and explicitly named authored
-constants. HYBRID is now the reload default. This supersedes the previous comparison-only, shared-CURRENT
-controller, exact-shared-R and no-S requirements; the three reference models remain available.
+The user requests a new method with later squeal onset and a continuous, convincing rubbing-to-squeal
+transition from one generation mechanism. Architectural simplicity and the absence of ad hoc patches
+are the priority. UNIFIED implements R plus one shared friction system Q; its S button is hidden.
+The friction system uses the same vibration states for noise-driven rubbing and self-excited squeal,
+without a separate amplitude envelope or an S/Q crossfade. Its parameters are authored acoustic choices.
 
-| Component | Current acceptance and next listening question                                                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q         | The finite-width squeal method is accepted. Confirm that the later onset and scalar energy response retain useful pitch/transient feedback during strong slip and recovery.                 |
-| S         | New low/mid sliding friction fills the approach to squeal. Assess its level/color below onset and the continuous additive S+Q transition; this new sound is not yet listening-approved.     |
-| R         | Rotation-driven rolling remains the method. Its texture traversal now has consistent distance/time units. Assess low-frequency balance and audible rotation dependence in the complete mix. |
+HYBRID's squeal method remains accepted, and HYBRID remains the default. Its R/S/Q waveforms are
+preserved while R is extracted into a shared source. UNIFIED has not been listening-approved and is
+not automatically adopted. CURRENT/CONTACT/SPECTRAL also remain unchanged comparison references.
 
-First compare S alone, Q alone and S+Q through mild slip, sustained strong slip and gradual recovery.
-Then compare R alone and the complete R+S+Q mix at fixed playback volume. Include braking/locked sliding,
-supported stationary spin, reverse travel, loose surfaces, support loss/recontact, independent axles
-and model changes/mute/retry. Do not equate a numerical growth threshold or output RMS with audible onset
-or perceived loudness. There is no arbitrary S/Q ducking or automatic loudness compensation.
+| Comparison                               | Listening question                                                                                       |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| UNIFIED Q versus HYBRID S+Q              | Does mild slip remain predominantly rubbing, with a continuous approach to audible squeal?               |
+| UNIFIED Q versus HYBRID Q                | Does clear squeal occur later, while strong slip still gives useful tonal texture and recovery feedback? |
+| UNIFIED R versus HYBRID R                | The shared source is waveform-preserving; use the same input and seed for exact comparison.              |
+| Complete UNIFIED R+Q versus HYBRID R+S+Q | Is the new friction response balanced against rolling and the accepted engine at fixed volume?           |
 
-R/S/Q output switches fade without resetting the running states. Choices survive model/vehicle changes
-and retry, but reload restores HYBRID with all components on. Numeric tire controls remain source-owned
-acoustic settings, separate from both the physical calibration and engine tuning panel.
+First compare friction through mild slip, sustained strong slip and gradual recovery, then the complete
+mix. Include braking/locked sliding, supported stationary spin, reverse travel, loose surfaces, support
+loss/recontact, independent axles and model changes/mute/retry. Distinguish modal instability from the
+point where a listener hears squeal; neither an energy diagnostic nor output RMS proves audible onset
+or realism. Do not add maneuver gates, onset timers, extra amplitude state, pitch maps or compensating
+layers to conceal a failed transition. Revisit the shared mechanism and its authored parameters.
 
-[Audio](audio.md#hybrid-game-synthesis) owns the revised equations and boundaries;
-[calibration](calibration.md#tire-audio-tuning) identifies settings and coupling. Change one group at a time
-and distinguish method acceptance, transition/mix listening, spectrum/transient checks, host timing and
-actual phone performance. Keep the fixed mechanics/rendering reference and valid lifecycle/observation
-coverage. CURRENT/CONTACT/SPECTRAL remain waveform-preserving comparison references; changing them
-requires an explicit contract revision. Keep this single checkpoint, not new handoff archives.
+Component switches fade outputs without resetting running states or compensating other components.
+Choices survive model/vehicle changes and retry; reload restores HYBRID with all components on.
+Numeric tire controls remain source-owned, separate from physical calibration and engine tuning.
+[Audio](audio.md#unified-game-synthesis) owns equations and boundaries;
+[calibration](calibration.md#tire-audio-tuning) maps settings and coupling. Keep numerical/spectral
+checks, synthetic listening, host timing and actual device performance as distinct evidence.
+
+Preserve the fixed mechanics/rendering oracle and valid observation/lifecycle coverage. Changing any
+existing comparison waveform requires an explicit revision rather than silently retuning its reference.
+Keep this single checkpoint, not new handoff archives.
 
 ## Remaining limits
 

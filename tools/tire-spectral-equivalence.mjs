@@ -3,22 +3,45 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
 import { SPECTRAL_SETTINGS, SPECTRAL_TEXTURES } from '../dist/audio/tire-spectral-acoustics.js';
-import { SPECTRAL_SCENARIOS, SPECTRAL_RESPONSE_SCENARIOS, spectralScenarioAt } from './tire-spectral-scenarios.mjs';
+import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
+import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
+import { TIRE_SOUND_SURFACES } from '../dist/audio/tire-sound-observation.js';
+import {
+  SPECTRAL_SCENARIOS,
+  SPECTRAL_RESPONSE_SCENARIOS,
+  TIRE_TRANSITION_SCENARIO,
+  spectralScenarioAt,
+} from './tire-spectral-scenarios.mjs';
 
 // Same-model refactor check, NOT an acceptance test for an intentional tune or a different method.
 // The reference build must have the current eight-input, R/S/Q kernel and surface contract.
 const reference = process.argv[2];
-if (!reference) throw new Error('usage: node tools/tire-spectral-equivalence.mjs REFERENCE_BUILD');
+const model = process.argv[3] ?? 'spectral';
+if (!reference || !['spectral', 'hybrid'].includes(model))
+  throw new Error('usage: node tools/tire-spectral-equivalence.mjs REFERENCE_BUILD [spectral|hybrid]');
 const load = (file) => import(pathToFileURL(resolve(reference, 'audio', file)).href);
-const { TireSpectralSynthesis: Reference } = await load('tire-spectral-model.js');
-const { SPECTRAL_TEXTURES: referenceTextures } = await load('tire-spectral-acoustics.js');
+const Current = model === 'spectral' ? TireSpectralSynthesis : TireHybridSynthesis;
+const Reference = (await load(`tire-${model}-model.js`))[
+  model === 'spectral' ? 'TireSpectralSynthesis' : 'TireHybridSynthesis'
+];
+const referenceSurfaces =
+  model === 'spectral'
+    ? (await load('tire-spectral-acoustics.js')).SPECTRAL_TEXTURES.map((texture) => texture.surface)
+    : (await load('tire-sound-observation.js')).TIRE_SOUND_SURFACES;
 assert.deepEqual(
-  referenceTextures.map((texture) => texture.surface),
-  SPECTRAL_TEXTURES.map((texture) => texture.surface),
+  referenceSurfaces,
+  model === 'spectral' ? SPECTRAL_TEXTURES.map((texture) => texture.surface) : TIRE_SOUND_SURFACES,
   'surface identities differ; this probe must not translate incompatible contracts',
 );
+const seeds =
+  model === 'spectral'
+    ? [SPECTRAL_SETTINGS.seed, SPECTRAL_SETTINGS.rearSeed]
+    : [HYBRID_SETTINGS.frontSeed, HYBRID_SETTINGS.rearSeed];
 const scenes = [
-  ...SPECTRAL_SCENARIOS.map((scene) => ({ ...scene, observe: (t) => spectralScenarioAt(scene, t) })),
+  ...[...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO].map((scene) => ({
+    ...scene,
+    observe: (t) => spectralScenarioAt(scene, t),
+  })),
   ...SPECTRAL_RESPONSE_SCENARIOS,
   {
     id: 'surface-reverse-support',
@@ -41,10 +64,10 @@ const scenes = [
 const rows = [];
 let scalarComparisons = 0;
 for (const rate of [44100, 48000]) {
-  for (const seed of [SPECTRAL_SETTINGS.seed, SPECTRAL_SETTINGS.rearSeed]) {
+  for (const seed of seeds) {
     for (const scene of scenes) {
       const before = new Reference(rate, seed),
-        after = new TireSpectralSynthesis(rate, seed);
+        after = new Current(rate, seed);
       const count = Math.round(scene.seconds * rate);
       let frame = -1;
       for (let i = 0; i < count; i++) {
@@ -73,4 +96,4 @@ for (const rate of [44100, 48000]) {
     }
   }
 }
-console.log(JSON.stringify({ reference: resolve(reference), exact: true, scalarComparisons, rows }, null, 2));
+console.log(JSON.stringify({ reference: resolve(reference), model, exact: true, scalarComparisons, rows }, null, 2));

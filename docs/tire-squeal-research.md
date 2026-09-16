@@ -1,17 +1,17 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This is supporting research, not a runtime specification or numerical calibration.
-[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID implementations;
-[NEXT](NEXT.md#next-work-hybrid-listening) owns current listening priorities.
+[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/UNIFIED implementations;
+[NEXT](NEXT.md#next-work-unified-listening) owns current listening priorities.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of any existing sound engine.
 
 ## Mechanism supported by the sources
 
 Tire squeal can arise from friction-fed self-excited tread vibration. Elastic deformation,
-local slip and material damping determine whether vibration grows or dies away. Broadband
-rolling/scrubbing sound and a sustained tonal squeal should therefore have distinct excitation
-models. The four sources below concern rubber/tire contact; railway-wheel and brake-disc
+local slip and material damping determine whether vibration grows or dies away. Passive roughness
+forcing and friction-fed instability are different energy inputs; they can act through one vibration
+system. This does not require separate synthesized rubbing and squeal outputs. The four sources below concern rubber/tire contact; railway-wheel and brake-disc
 squeal results are not treated as direct tire evidence.
 
 ### Senda, Nakai, Yokoi and Chiba, 1984 — Tire Squeal
@@ -81,28 +81,39 @@ This explains why increasing the Q of a passively driven noise filter is not its
 self-excitation mechanism. It is an illustrative mechanism, not a claim that velocity weakening
 is the only possible friction-induced instability.
 
+## Common friction input as a synthesis precedent
+
+Avanzini and colleagues' 2005 friction-sound synthesis paper couples modal resonating bodies through
+a common friction interactor. A noise term enters the interaction force, rather than requiring a
+separately mixed rubbing soundtrack. This is a structural precedent for sharing vibration states
+between forced friction noise and self-excited sound. It does not validate UNIFIED's cubic normal
+form, two-mode reduction, tire-scale observation mapping, coefficients or perceived realism.
+
+Source: [Avanzini et al., 2005, author-hosted paper](https://avanzini.di.unimi.it/downloads/publications/avanzini_sap05.pdf).
+
 ## Limits for synthesis and tuning
 
-The sources support friction-fed vibration as one possible mechanism; they do not select HYBRID's scalar
-Hopf energy surrogate, CURRENT's oscillator or CONTACT's one-element law. A mechanically consistent surrogate
-can still omit the structure and statistics responsible for a convincing complete tire sound.
-Passive road excitation and friction-fed vibration may share a vibration primitive without being the
-same excitation mechanism. A successor may separate or combine their audible components explicitly.
+The tire sources support friction-fed vibration as one possible mechanism; they do not select
+HYBRID's scalar energy surrogate, CURRENT's oscillator, CONTACT's one-element law or UNIFIED's
+common-port modal system. A mathematically consistent surrogate can still omit the structure and
+statistics responsible for convincing tire sound. The synthesis precedent supports the possibility
+of a shared friction system, not its calibration for this game.
 
-The sources do not validate current onset, pitch, harmonic, roughness or output-gain constants.
-Directional slip power is an available-energy cue, not acoustic power or a complete predictor of
-frequency, onset or loudness. The game has no local rubber stiffness, loss factor, tread temperature
-or contact-pressure field; vehicle-scale coefficients must not be relabeled as those quantities.
+The sources do not validate current onset, modal frequencies, damping, harmonic content, roughness or
+output gains. Directional slip power is an available-energy cue, not acoustic power or a complete
+predictor of frequency, onset or loudness. The game has no local rubber stiffness, loss factor, tread
+temperature or contact-pressure field; vehicle-scale coefficients must not be relabeled as those
+quantities. UNIFIED's computed state norm is not measured tread energy, and HYBRID's additive R/S/Q
+does not partition mechanical power into calibrated acoustic watts.
 
 Do not turn one experiment's speed into a universal axle threshold, require lateral slip for every
 squeal, or add thermal/contact physics solely to justify an audio parameter. Distinguish harmonic
-partials, other tonal components and broadband sound when evaluating the user's request for a richer,
-less single-tone result; added oscillators are not themselves evidence of greater realism.
+partials, other tonal components and broadband sound when evaluating richness. Adding oscillators,
+using a single mechanism or matching one replay does not itself establish greater realism. Likewise,
+a model's instability point and the listener's audible squeal onset are different observations.
 
-These sources do not calibrate HYBRID's growth threshold, seed energy, sliding bands, wheel-order rolling
-or excitation-dependent harmonic palette. Its dimensionless state is not measured tread energy, and
-additive R/S/Q does not partition mechanical power into calibrated acoustic watts.
-[Audio](audio.md#hybrid-game-synthesis) owns the adopted primary implementation;
-[NEXT](NEXT.md#next-work-hybrid-listening) owns current tuning and listening decisions. Reconsidering the
-method is a separate decision, not the default next task. Keep previous experiments in Git rather than
-another proposal/handoff archive; existing tools regenerate references without prior chat audio files.
+[Audio](audio.md#player-tire-synthesis) owns current mechanisms and approximation limits;
+[NEXT](NEXT.md#next-work-unified-listening) owns UNIFIED listening and method acceptance. HYBRID remains
+the accepted/default reference while the new method is evaluated. Keep previous experiments in Git
+rather than another proposal/handoff archive; existing tools regenerate references without prior
+chat audio files.

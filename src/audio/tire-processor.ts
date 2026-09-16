@@ -1,5 +1,7 @@
 import { TireHybridSynthesis } from './tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from './tire-hybrid-acoustics.js';
+import { TireUnifiedSynthesis } from './tire-unified-model.js';
+import { UNIFIED_SETTINGS } from './tire-unified-acoustics.js';
 import { TireSpectralSynthesis } from './tire-spectral-model.js';
 import { TIRE_SOUND_INPUT_KEYS, type TireSoundObservation } from './tire-sound-observation.js';
 import { SPECTRAL_SETTINGS } from './tire-spectral-acoustics.js';
@@ -19,11 +21,13 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-type ObservedSynthesis = TireHybridSynthesis | TireSpectralSynthesis;
+type ObservedSynthesis = TireHybridSynthesis | TireSpectralSynthesis | TireUnifiedSynthesis;
 type TirePair =
   | { model: 'current'; front: TireSynthesis; rear: TireSynthesis }
   | { model: 'contact'; front: TireContactSynthesis; rear: TireContactSynthesis }
-  | { model: 'hybrid' | 'spectral'; front: ObservedSynthesis; rear: ObservedSynthesis };
+  | { model: 'hybrid'; front: TireHybridSynthesis; rear: TireHybridSynthesis }
+  | { model: 'spectral'; front: TireSpectralSynthesis; rear: TireSpectralSynthesis }
+  | { model: 'unified'; front: TireUnifiedSynthesis; rear: TireUnifiedSynthesis };
 
 /** Only the selected model exists; startup and faded model replacement share this constructor. */
 function createPair(model: TireSoundModel): TirePair {
@@ -44,6 +48,12 @@ function createPair(model: TireSoundModel): TirePair {
       model,
       front: new TireHybridSynthesis(sampleRate, HYBRID_SETTINGS.frontSeed),
       rear: new TireHybridSynthesis(sampleRate, HYBRID_SETTINGS.rearSeed),
+    };
+  if (model === 'unified')
+    return {
+      model,
+      front: new TireUnifiedSynthesis(sampleRate, UNIFIED_SETTINGS.frontSeed),
+      rear: new TireUnifiedSynthesis(sampleRate, UNIFIED_SETTINGS.rearSeed),
     };
   return {
     model,
@@ -137,7 +147,7 @@ class TireProcessor extends AudioWorkletProcessor {
     if (valid && Number.isInteger(surface)) kernel.update(observation, surface);
     else {
       for (const key of TIRE_SOUND_INPUT_KEYS) observation[key] = 0;
-      kernel.update(observation); // Release only this axle; preserve finite tails and later recovery.
+      kernel.update(observation, 0); // Release only this axle; preserve finite tails and later recovery.
     }
   }
   private readMix(p: Record<string, Float32Array>, key: string): number {
@@ -172,18 +182,26 @@ class TireProcessor extends AudioWorkletProcessor {
       const road = this.readMix(p, 'mix_road'),
         scrub = this.readMix(p, 'mix_scrub'),
         squeal = this.readMix(p, 'mix_squeal');
-      const { front, rear } = pair;
       for (let i = 0; i < output.length; i++) {
         this.roadMix += this.componentFollow * (road - this.roadMix);
         this.scrubMix += this.componentFollow * (scrub - this.scrubMix);
         this.squealMix += this.componentFollow * (squeal - this.squealMix);
-        front.sample();
-        rear.sample();
-        output[i] =
-          front.scrubOutput * this.scrubMix +
-          front.squealOutput * this.squealMix +
-          front.roadOutput * this.roadMix +
-          (rear.scrubOutput * this.scrubMix + rear.squealOutput * this.squealMix + rear.roadOutput * this.roadMix);
+        pair.front.sample();
+        pair.rear.sample();
+        if (pair.model === 'unified') {
+          const { front, rear } = pair;
+          output[i] =
+            front.roadOutput * this.roadMix +
+            front.frictionOutput * this.squealMix +
+            (rear.roadOutput * this.roadMix + rear.frictionOutput * this.squealMix);
+        } else {
+          const { front, rear } = pair;
+          output[i] =
+            front.scrubOutput * this.scrubMix +
+            front.squealOutput * this.squealMix +
+            front.roadOutput * this.roadMix +
+            (rear.scrubOutput * this.scrubMix + rear.squealOutput * this.squealMix + rear.roadOutput * this.roadMix);
+        }
       }
     }
     return true;

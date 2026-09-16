@@ -2,24 +2,35 @@ import { TIRE_SOUND_INPUTS, TIRE_SOUND_SURFACES, type TireSoundObservation } fro
 import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TEXTURE_KEYS } from './tire-contact-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
-export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral', 'hybrid'] as const);
-export type TireSoundModel = (typeof TIRE_SOUND_MODELS)[number];
-export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'hybrid';
-
 export const TIRE_COMPONENTS = Object.freeze([
   Object.freeze({ key: 'road', label: 'R', description: 'Rolling' }),
   Object.freeze({ key: 'scrub', label: 'S', description: 'Sliding friction' }),
   Object.freeze({ key: 'squeal', label: 'Q', description: 'Squeal' }),
 ] as const);
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
-const MODEL_COMPONENTS: Readonly<Record<TireSoundModel, readonly TireComponent[]>> = Object.freeze({
-  current: [],
-  contact: [],
-  spectral: ['road', 'scrub', 'squeal'],
-  hybrid: ['road', 'scrub', 'squeal'],
+// Composition owns model identity, transport and actual output taps; kernels have no model flags.
+export const TIRE_SOUND_CONTROLS = Object.freeze({
+  current: Object.freeze({ input: 'current', components: Object.freeze([]) }),
+  contact: Object.freeze({ input: 'contact', components: Object.freeze([]) }),
+  spectral: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),
+  hybrid: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),
+  unified: Object.freeze({
+    input: 'observation',
+    components: Object.freeze([
+      TIRE_COMPONENTS[0],
+      Object.freeze({ ...TIRE_COMPONENTS[2], description: 'Friction / squeal' }),
+    ]),
+  }),
 });
+export type TireSoundModel = keyof typeof TIRE_SOUND_CONTROLS;
+export const TIRE_SOUND_MODELS = Object.freeze(Object.keys(TIRE_SOUND_CONTROLS) as TireSoundModel[]);
+export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'hybrid';
+
+export function tireComponentDescription(model: TireSoundModel, component: TireComponent): string | undefined {
+  return TIRE_SOUND_CONTROLS[model].components.find(({ key }) => key === component)?.description;
+}
 export function tireComponentAvailable(model: TireSoundModel, component: TireComponent): boolean {
-  return MODEL_COMPONENTS[model].includes(component);
+  return tireComponentDescription(model, component) !== undefined;
 }
 export type TireComponents = Readonly<Record<TireComponent, boolean>>;
 // Authored output-control fade, not a physical contact or vibration time constant.

@@ -4,8 +4,10 @@ import { createAudioEngine } from '../audio/audio-engine.js';
 import {
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_SOUND_MODELS,
+  TIRE_SOUND_CONTROLS,
   TIRE_COMPONENTS,
   tireComponentAvailable,
+  tireComponentDescription,
   type TireSoundModel,
 } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
@@ -29,12 +31,11 @@ export function createAudioLifecycle() {
   let tireModel: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
   const componentState = { road: true, scrub: true, squeal: true };
   const componentHost = document.getElementById('tire-component-controls');
-  const componentButtons = TIRE_COMPONENTS.map(({ key, label, description }) => {
+  const componentButtons = TIRE_COMPONENTS.map(({ key, label }) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'selector-button';
     button.id = `tire-component-${key}`;
-    button.title = `${label}: ${description}. SPECTRAL/HYBRID; both axles. Other components are not normalized.`;
     const toggle = (): void => {
       if (disposed || !supported || !tireComponentAvailable(tireModel, key)) return;
       componentState[key] = !componentState[key];
@@ -45,7 +46,7 @@ export function createAudioLifecycle() {
     button.addEventListener('click', toggle);
     button.addEventListener('keydown', tireKey);
     componentHost?.appendChild(button);
-    return { key, label, description, button, toggle };
+    return { key, label, button, toggle };
   });
   let context: AudioContext | null = null;
   let engine: Awaited<ReturnType<typeof createAudioEngine>> | null = null;
@@ -103,12 +104,20 @@ export function createAudioLifecycle() {
     button.setAttribute('aria-pressed', String(enabled && supported));
   }
   function showComponents(): void {
-    for (const { key, label, description, button } of componentButtons) {
+    componentHost?.setAttribute(
+      'aria-label',
+      `Tire sound components: ${TIRE_SOUND_CONTROLS[tireModel].components.map(({ label, description }) => `${label} ${description}`).join(', ') || 'none'}`,
+    );
+    for (const { key, label, button } of componentButtons) {
       const on = componentState[key];
+      const description = tireComponentDescription(tireModel, key);
       button.textContent = `${label}: ${on ? 'ON' : 'OFF'}`;
       button.setAttribute('aria-pressed', String(on));
-      button.setAttribute('aria-label', `${description}: ${on ? 'on' : 'off'}. SPECTRAL/HYBRID.`);
-      if (!supported || !tireComponentAvailable(tireModel, key)) button.setAttribute('disabled', '');
+      button.setAttribute('aria-label', `${description ?? label}: ${on ? 'on' : 'off'}. ${tireModel.toUpperCase()}.`);
+      button.title = `${label}: ${description ?? 'Unavailable'}. Both axles. Other components are not normalized.`;
+      if (description === undefined) button.setAttribute('hidden', '');
+      else button.removeAttribute('hidden');
+      if (!supported || description === undefined) button.setAttribute('disabled', '');
       else button.removeAttribute('disabled');
     }
   }

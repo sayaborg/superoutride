@@ -1,5 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
+import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
+import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -246,6 +248,8 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   const button = dom.elements.get('tire-sound-toggle');
   assert.equal(button.textContent, 'TIRES: HYBRID');
   button.click();
+  assert.equal(button.textContent, 'TIRES: UNIFIED');
+  button.click();
   assert.equal(button.textContent, 'TIRES: CURRENT');
   button.click();
   assert.equal(button.textContent, 'TIRES: CONTACT');
@@ -425,41 +429,42 @@ test('material identities travel independently through the real voice and proces
   assert.ok(silence[0][0].slice(-128).every((v) => Math.abs(v) < 1e-8));
 });
 
-test('spectral choice cancels/supersedes pending fades without resetting engines or the current reference', (t) => {
-  install(t);
-  const context = new FakeAudioContext(),
-    voice = createTireVoice(context, context.destination);
-  t.after(() => voice.dispose());
-  const observation = state();
-  Object.assign(observation.front, {
-    longitudinalVelocity: 25,
-    lateralVelocity: 4,
-    wheelSpeed: 25,
-    wheelAngularSpeed: 25 / 0.3,
-    lateralPower: 12000,
+for (const model of ['spectral', 'unified'])
+  test(`${model} choice cancels/supersedes pending fades without resetting engines or the current reference`, (t) => {
+    install(t);
+    const context = new FakeAudioContext(),
+      voice = createTireVoice(context, context.destination);
+    t.after(() => voice.dispose());
+    const observation = state();
+    Object.assign(observation.front, {
+      longitudinalVelocity: 25,
+      lateralVelocity: 4,
+      wheelSpeed: 25,
+      wheelAngularSpeed: 25 / 0.3,
+      lateralPower: 12000,
+    });
+    Object.assign(observation.rear, { ...observation.front, wheelSpeed: 40, surface: 'DIRT' });
+    voice.setModel('current');
+    voice.update(observation);
+    const node = context.nodes.find((n) => n.name === 'vehicle-tires');
+    voice.setModel('contact');
+    voice.update(observation);
+    voice.setModel(model);
+    voice.update(observation);
+    voice.setModel('current');
+    voice.update(observation);
+    assert.deepEqual(node.messages, [{ model: 'current' }]);
+    voice.setModel(model);
+    voice.update(observation);
+    assert.equal(node.messages.length, 1);
+    context.currentTime += AUDIO_TIMING.transitionSeconds + 0.001;
+    voice.update(observation);
+    assert.equal(node.messages.at(-1).model, model);
+    assert.equal(node.parameters.get('front_tire_load').value, 4000);
+    assert.equal(node.parameters.get('rear_tire_wheelSpeed').value, 40);
+    assert.equal(node.parameters.get('rear_tire_surfaceIndex').value, 3);
+    assert.throws(() => voice.setModel('unknown'), RangeError);
   });
-  Object.assign(observation.rear, { ...observation.front, wheelSpeed: 40, surface: 'DIRT' });
-  voice.setModel('current');
-  voice.update(observation);
-  const node = context.nodes.find((n) => n.name === 'vehicle-tires');
-  voice.setModel('contact');
-  voice.update(observation);
-  voice.setModel('spectral');
-  voice.update(observation);
-  voice.setModel('current');
-  voice.update(observation);
-  assert.deepEqual(node.messages, [{ model: 'current' }]);
-  voice.setModel('spectral');
-  voice.update(observation);
-  assert.equal(node.messages.length, 1);
-  context.currentTime += AUDIO_TIMING.transitionSeconds + 0.001;
-  voice.update(observation);
-  assert.equal(node.messages.at(-1).model, 'spectral');
-  assert.equal(node.parameters.get('front_tire_load').value, 4000);
-  assert.equal(node.parameters.get('rear_tire_wheelSpeed').value, 40);
-  assert.equal(node.parameters.get('rear_tire_surfaceIndex').value, 3);
-  assert.throws(() => voice.setModel('unknown'), RangeError);
-});
 
 test('real spectral voice transport and worklet match two independent shared kernels and release invalid axles', async (t) => {
   install(t);
@@ -536,6 +541,9 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
     ['R: ON', 'S: ON', 'Q: ON'],
   );
   assert.ok(host.children.every((b) => b.getAttribute('disabled') === null));
+  dom.elements.get('tire-sound-toggle').click(); // UNIFIED has only R and Q.
+  assert.equal(s.getAttribute('hidden'), '');
+  assert.match(q.getAttribute('aria-label'), /Friction \/ squeal/);
   dom.elements.get('tire-sound-toggle').click(); // CURRENT has no component controls.
   assert.ok(host.children.every((b) => b.getAttribute('disabled') !== null));
   r.click(); // Disabled clicks must not change a setting, even in the minimal DOM host.
@@ -564,6 +572,10 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   const engines = context.nodes.filter((n) => n.name === 'exhaust-waveguide');
   assert.equal(engines.length, 2);
   const messages = engines.map((n) => n.messages.length);
+  dom.elements.get('tire-sound-toggle').click(); // HYBRID.
+  dom.elements.get('tire-sound-toggle').click(); // UNIFIED.
+  assert.equal(s.getAttribute('hidden'), '');
+  assert.equal(s.textContent, 'S: OFF', "UNIFIED preserves the comparison models' S choice");
   dom.elements.get('sound-toggle').click(); // Muted changes are retained.
   q.click();
   for (let i = 0; i < TIRE_SOUND_MODELS.length; i++) dom.elements.get('tire-sound-toggle').click();
@@ -586,6 +598,9 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   life.update(player, []);
   context = FakeAudioContext.instances[1];
   node = context.nodes.find((n) => n.name === 'vehicle-tires');
+  assert.equal(node.messages.at(-1).model, 'unified');
+  assert.equal(s.getAttribute('hidden'), '');
+  assert.match(q.getAttribute('aria-label'), /Friction \/ squeal/);
   for (const { key } of TIRE_COMPONENTS) assert.equal(node.parameters.get(`mix_${key}`).value, 0);
   life.dispose();
   assert.equal(host.children.length, 0);
@@ -794,7 +809,7 @@ test('HYBRID is the default, consumes only physical observations and shares dire
   assert.deepEqual(input, before);
 });
 
-test('default HYBRID exposes R/S/Q and shares retained choices with SPECTRAL', async (t) => {
+test('HYBRID/SPECTRAL retain R/S/Q choices while UNIFIED exposes only rolling and unified friction', async (t) => {
   const dom = install(t),
     life = createAudioLifecycle();
   t.after(() => life.dispose());
@@ -810,6 +825,20 @@ test('default HYBRID exposes R/S/Q and shares retained choices with SPECTRAL', a
   s.click();
   assert.equal(s.textContent, 'S: OFF');
   button.click();
+  assert.equal(button.textContent, 'TIRES: UNIFIED');
+  assert.equal(r.getAttribute('hidden'), null);
+  assert.equal(s.getAttribute('hidden'), '');
+  assert.equal(s.getAttribute('disabled'), '');
+  assert.equal(q.getAttribute('hidden'), null);
+  assert.match(q.getAttribute('aria-label'), /Friction \/ squeal/);
+  assert.match(q.title, /Friction \/ squeal/);
+  assert.equal(
+    dom.elements.get('tire-component-controls').getAttribute('aria-label'),
+    'Tire sound components: R Rolling, Q Friction / squeal',
+  );
+  s.click();
+  assert.equal(s.textContent, 'S: OFF', 'a hidden S control cannot change the comparison setting');
+  button.click();
   assert.equal(button.textContent, 'TIRES: CURRENT');
   assert.ok(components.every((component) => component.getAttribute('disabled') !== null));
   s.click();
@@ -818,6 +847,9 @@ test('default HYBRID exposes R/S/Q and shares retained choices with SPECTRAL', a
   button.click();
   assert.equal(button.textContent, 'TIRES: SPECTRAL');
   assert.equal(s.getAttribute('disabled'), null);
+  assert.equal(s.getAttribute('hidden'), null);
+  assert.match(q.getAttribute('aria-label'), /Squeal/);
+  assert.doesNotMatch(q.getAttribute('aria-label'), /Friction/);
   assert.equal(s.textContent, 'S: OFF');
   s.click();
   button.click();
@@ -831,4 +863,127 @@ test('default HYBRID exposes R/S/Q and shares retained choices with SPECTRAL', a
   assert.equal(node.parameters.get('mix_scrub').value, 1);
   assert.equal(node.parameters.get('mix_squeal').value, 0);
   life.dispose();
+});
+
+test('UNIFIED transports physical observations to independent R/Q kernels with output-only fades and release', async (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createTireVoice(context, context.destination);
+  t.after(() => voice.dispose());
+  const input = state();
+  for (const [i, axle] of ['front', 'rear'].entries())
+    Object.assign(input[axle], {
+      longitudinalVelocity: 25,
+      lateralVelocity: 12 - 4 * i,
+      wheelSpeed: 25 + 10 * i,
+      wheelAngularSpeed: (25 + 10 * i) / 0.3,
+      longitudinalPower: 0,
+      lateralPower: 80000 - 30000 * i,
+      utilization: 2.4,
+    });
+  const before = structuredClone(input);
+  voice.setModel('unified');
+  voice.update(input);
+  const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
+    p = params();
+  assert.deepEqual(worklet.messages, [{ model: 'unified' }]);
+  for (const [key, param] of worklet.parameters) p[key][0] = param.value;
+  assert.equal(p.front_squeal[0], TIRE_CONTROL_RANGES.squeal.defaultValue);
+  assert.equal(p.front_pitch[0], TIRE_CONTROL_RANGES.pitch.defaultValue);
+  assert.equal(p.rear_tire_wheelSpeed[0], 35);
+  const Processor = await processor(t);
+  const a = new Processor(),
+    b = new Processor();
+  for (const node of [a, b]) node.port.onmessage({ data: { model: 'unified' } });
+  const block = (node, count) => {
+    const output = [[new Float32Array(count)]];
+    node.process([], output, p);
+    return output[0][0];
+  };
+  const initial = block(a, 24000),
+    split = new Float32Array(24000);
+  let offset = 0;
+  for (const count of [1, 127, 8128, 15744]) {
+    split.set(block(b, count), offset);
+    offset += count;
+  }
+  assert.deepEqual(initial, split);
+  const { front, rear } = a.pair;
+  assert.equal(a.pair.model, 'unified');
+  assert.ok(front instanceof TireUnifiedSynthesis && rear instanceof TireUnifiedSynthesis);
+  assert.notEqual(front, rear);
+  assert.equal('scrubOutput' in front, false, 'there is no compatibility S source');
+  const kernels = [
+    new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.frontSeed),
+    new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.rearSeed),
+  ];
+  for (const [i, axle] of ['front', 'rear'].entries()) {
+    const observation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, p[`${axle}_tire_${key}`][0]]));
+    kernels[i].update(observation, p[`${axle}_tire_surfaceIndex`][0]);
+  }
+  assert.deepEqual(
+    initial,
+    Float32Array.from({ length: initial.length }, () => kernels[0].sample() + kernels[1].sample()),
+  );
+  a.port.onmessage({ data: { model: 'unified' } });
+  assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
+  // Neither legacy CURRENT controls nor the comparison models' S switch drives this mechanism.
+  p.front_squeal[0] = NaN;
+  p.front_pitch[0] = Infinity;
+  p.mix_scrub[0] = 0;
+  const unrelated = block(a, 4096);
+  p.front_squeal[0] = 1;
+  p.front_pitch[0] = 400;
+  p.mix_scrub[0] = 1;
+  assert.deepEqual(unrelated, block(b, 4096));
+  for (const [r, q] of [
+    [0, 1],
+    [1, 0],
+    [0, 0],
+    [1, 1],
+  ]) {
+    p.mix_road[0] = r;
+    p.mix_squeal[0] = q;
+    const whole = block(a, 12000),
+      parts = new Float32Array(12000);
+    parts.set(block(b, 31));
+    parts.set(block(b, 11969), 31);
+    assert.deepEqual(whole, parts);
+    assert.equal(a.pair.front, front);
+    assert.deepEqual(a.pair, b.pair, 'output isolation never changes synthesis history');
+    const expected = front.roadOutput * r + front.frictionOutput * q + rear.roadOutput * r + rear.frictionOutput * q;
+    assert.ok(Math.abs(whole.at(-1) - expected) < 1e-7, 'no compensation of the remaining output');
+    if (!r && !q) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
+    else assert.ok(whole.slice(-128).some((v) => Math.abs(v) > 1e-9));
+  }
+  p.mix_squeal[0] = 0;
+  block(a, 1);
+  assert.ok(Math.abs(a.squealMix - Math.exp(-1 / (48000 * TIRE_COMPONENT_FADE_SECONDS))) < 1e-12);
+  p.mix_squeal[0] = 1;
+  p.front_tire_load[0] = NaN;
+  const released = block(a, 96000);
+  assert.ok(Math.abs(front.roadOutput) + Math.abs(front.frictionOutput) < 1e-9);
+  assert.ok(
+    released.slice(-128).some((v) => Math.abs(v) > 1e-9),
+    'valid rear survives front release',
+  );
+  p.rear_tire_surfaceIndex[0] = 0.5;
+  assert.ok(
+    block(a, 96000)
+      .slice(-128)
+      .every((v) => Math.abs(v) < 1e-9),
+  );
+  p.front_tire_load[0] = 4000;
+  p.rear_tire_surfaceIndex[0] = 0;
+  assert.ok(
+    block(a, 24000)
+      .slice(-128)
+      .some((v) => Math.abs(v) > 1e-9),
+  );
+  assert.deepEqual(input, before);
+  a.port.onmessage({ data: 'stop' });
+  a.port.onmessage({ data: { model: 'unified' } });
+  const stopped = [[new Float32Array(128).fill(1)]];
+  assert.equal(a.process([], stopped, p), false);
+  assert.ok(stopped[0][0].every((v) => v === 0));
 });
