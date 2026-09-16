@@ -2,72 +2,78 @@
 
 ## Restart
 
-1. Inspect the working tree and fetch exact main from the [repository](https://github.com/sayaborg/superoutride).
-   Check active PRs, CI and Pages. Preserve unrelated local changes; start a `codex/` branch from the
-   inspected main. Follow [AGENTS](../AGENTS.md) for release gates, including documentation-only work.
-2. Read the [specification index](README.md), [architecture](architecture.md), this checkpoint and
-   [audio](audio.md). Audio owns current runtime behavior; this file owns the next decision.
-   The [tire evidence note](tire-squeal-research.md) supplies research and its limits, not a chosen algorithm.
-3. Use Node.js 24 and the [development workflow](development.md). Run `npm ci` and `npm test`.
-   CI builds the immutable physics/render reference pinned in the existing workflow. A local run
-   without that reference checks determinism, not historical equivalence. Do not change the oracle.
-4. Serve the built checkout over HTTP, for example `python3 -m http.server 8000`.
-   Use `http://localhost:8000/?mode=circuit` for in-game CURRENT/CONTACT/SPECTRAL comparison. Audition and
-   regeneration commands are in [development](development.md#tire-comparison-tools).
-   Prior chat attachments, generated WAVs and former machine paths are not required.
-5. Verify any release through exact Git/PR refs, CI and the Pages artifact/version. Local listening,
-   source tests, deployment evidence and actual device playback are separate claims.
+1. Inspect the working tree, fetch exact main from the [repository](https://github.com/sayaborg/superoutride),
+   and check open PRs, CI and Pages. Preserve unrelated changes; start a `codex/` branch from the inspected
+   main. [AGENTS](../AGENTS.md) owns validation and exact-head release gates, including documentation work.
+2. Read the [index](README.md), [architecture](architecture.md), this checkpoint and
+   [audio](audio.md#spectral-game-synthesis). The [tuning map](calibration.md#tire-audio-tuning) identifies
+   parameter owners; [development](development.md#tire-comparison-tools) owns commands and tool scopes.
+3. Use Node.js 24, `npm ci`, a fresh build and HTTP serving. CI supplies the unchanged immutable
+   mechanics/render reference. A local run without that reference is not historical equivalence evidence.
+4. Reproduce the current sound before editing. Use `http://localhost:8000/?mode=circuit`, start sound,
+   and cycle TIRES twice from CURRENT to SPECTRAL. R/S/Q begin ON. Prior WAVs, chat attachments,
+   former machine paths and old feature branches are not prerequisites.
+5. Keep source/build, kernel replays, native browser playback and published artifact/version evidence
+   separate. Do not diagnose stale deployment as a timbre defect or infer phone performance from CI.
 
-## Next decision: a third tire-sound method
+## Next work: SPECTRAL tuning
 
-The user judged SPECTRAL's squeal realistic, but found CURRENT more expressive through handling changes
-and recovery. Asphalt rolling sounded like white noise and not sufficiently tied to rotation; the S
-component was hard to identify. The user authorized improvements and independent R/S/Q buttons.
+The next thread is for **tuning the implemented SPECTRAL model**, not selecting or wiring a fourth
+method. Repository organization is complete; do not repeat migration or add another handoff file.
+The current R/S/Q implementation, component switches and numerical settings are the starting point.
+No further timbre change was made as part of the cleanup.
 
-[Audio](audio.md#spectral-game-synthesis) owns the revised implementation: accepted wheel angular telemetry
-now drives lower rolling bands/texture, while Q's harmonic balance depends on its existing smoothed
-excitation. S is retained as an independent reference. This deliberately supersedes joint S/Q waveform
-identity for weak/transient Q; the strong palette, band mechanism and engine baseline are retained.
-No artificial front/rear timbres or labeled understeer/oversteer effects were introduced.
+### Feedback and acceptance
 
-### Next action: component listening in the game
+| Area                | User feedback and present status                                                                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q timbre            | The earlier SPECTRAL WAVs and in-game squeal sounded realistic. Preserve that useful character.                                                                                    |
+| Q response          | CURRENT conveyed handling changes and grip recovery better; SPECTRAL sounded too much like one sound with changing volume.                                                         |
+| R                   | Asphalt sounded white-noise-like, too high, and insufficiently linked to rotation. The latest implementation lowers R and links it to accepted wheel angular speed.                |
+| S                   | The user could not readily identify the scrub component. It remains a separate, unchanged reference to assess in isolation.                                                        |
+| Latest R/Q revision | Implemented with R/S/Q ON/OFF controls, but no subsequent user listening acceptance is recorded. Earlier Q approval does not approve these revised transients or the complete mix. |
 
-Select SPECTRAL with two TIRES presses from CURRENT. R/S/Q buttons initially read ON, apply to both axles,
-and fade only their own output without resetting synthesis. They are disabled in the other models;
-choices persist for the session without altering the CURRENT reload default.
+[Audio](audio.md#spectral-game-synthesis) describes the actual model and boundaries. CURRENT and CONTACT
+remain audible references; CURRENT is still the reload default. The accepted engine and vehicle
+mechanics are unchanged. R/S/Q switches isolate output without stopping state or boosting other layers;
+OFF is not a CPU-saving mode. There are no live numeric tire-timbre sliders yet: edit the named source
+settings, rebuild and reload. The engine's tuning panel is not the tire calibration panel.
 
-Listen to R alone through acceleration, deceleration, wheel lock and supported wheelspin. It should be
-lower and respond to rotation; locked sliding belongs to S/Q, not R. Compare S alone, Q alone and S+Q
-through growing slip and grip recovery. Q should change harmonic balance rather than only loudness,
-while its strong squeal remains recognizable. Then restore all three and check engine masking,
-pavement/loose transitions, front/rear combination, mute/retry and actual phone play.
+### Tuning order
 
-This is a candidate improvement, not listening acceptance or a measured whole-tire acoustic model.
-Same local observations need not have different sounds just because the car is called understeering
-or oversteering. Keep the observations, dynamics, timbre and output mix diagnoses separate. The low-cost
-mapping does not reproduce CURRENT's entire Hopf dynamics; do not silently transplant its old thresholds
-or add arbitrary recovery chirps to force recognition.
+1. **R alone:** accelerate and decelerate, then test locked translation and supported stationary spin.
+   Judge low rolling character and audible rotation dependence separately from overall level. Use the
+   accepted angular observation, never infer wheel RPM from vehicle speed or a guessed game radius.
+2. **S alone, then S+Q:** establish what the broad scrub adds. Keep S fixed while isolating Q changes;
+   do not erase S merely because its contribution was previously masked by R/Q or the engine.
+3. **Q alone:** compare growing slip, steady slip and recovery against CURRENT on the same observations.
+   Assess harmonic balance separately from common loudness, pitch and bandwidth. Current Q uses its
+   existing smoothed excitation, not the full CURRENT Hopf dynamics or a new hysteresis state.
+4. **Combined game mix:** restore R/S/Q, then check engine masking, both axles, loose surfaces, transitions,
+   loss of support/recontact, mute/retry and target phones. Record vehicle/course, physical calibration,
+   speed/input sequence, model/component selection and volume so comparisons are reproducible.
 
-### Decision gate
+Change one acoustic group at a time using the [tuning map](calibration.md#tire-audio-tuning). In particular,
+shared S/Q work and smoothing, and shared R/S material texture values, are not isolated component knobs.
+Do not retune physical friction, steering or engine loudness to compensate for an acoustic mismatch.
+Same local tire observations need not produce different sounds just because the car is described as
+understeering or oversteering; evaluate real front/rear trajectories before inventing labeled effects.
 
-Retain CURRENT/CONTACT and the default, accepted engine, read-only mechanics and immutable physics/render
-oracle. Use unchanged S, stationary strong Q and dynamic spectral-response regressions instead of
-freezing an obsolete transient PCM requirement. Do not grow a parallel legacy SPECTRAL mode or a new
-history directory. Run complete validation on every candidate; target-device playback and user listening
-remain distinct from synthetic replays, host metrics, CI and deployment evidence.
+### Decision gate and evidence
 
-## Accepted engine baseline
+Retain the finite-width band mechanism and strong Q palette as the current working baseline, not a
+claim of calibrated tire acoustics. No extra oscillators, fixed axle detuning, AGC, phase reset or
+recovery chirp is pre-authorized by this checkpoint. If tuning cannot give a useful response without
+such patches, report the specific failed comparison and discuss a new method instead of silently
+expanding this one.
 
-Preserve the adopted native-rate waveguide, integrated fractional pulses, authored profiles, shared
-tuning and permission/failure lifecycle. The [audio specification](audio.md) owns their details; this
-checkpoint does not restate their coefficients. Engine sound is approved as a listening baseline,
-not a universal device or absolute-loudness calibration. Vehicle-level differences and final tire/engine
-balance remain open; do not silently normalize the engine while changing tires.
-
-## Other implementation areas
-
-Rendering, camera, sprites, tunnel content and race/session rules retain their existing owners in the
-[specification index](README.md). Do not reopen them as part of tire method selection.
+Unchanged S has independent waveform coverage. Q's old joint S/Q transient hash was explicitly
+superseded by the response revision; keep its harmonic/strong-palette/release coverage. A pure cleanup
+must pass the exact pre-edit R/S/Q comparison; an intentional tune may change PCM but must identify
+and explain those differences, not silently regenerate expectations or weaken causal tests. Preserve
+valid observation, component/lifecycle, mechanics/render and immutable-oracle coverage in either case.
+Run full validation; keep listening, spectrum/transients, host timing and real device playback separate.
+Historical results and release evidence belong in Git/PR/CI, not copied into this checkpoint.
 
 ## Remaining limits
 
