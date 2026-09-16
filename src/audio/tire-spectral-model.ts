@@ -1,5 +1,6 @@
 import {
   SPECTRAL_INPUTS,
+  SPECTRAL_BAND_DOMAIN,
   SPECTRAL_INPUT_KEYS,
   SPECTRAL_SETTINGS,
   SPECTRAL_TEXTURES,
@@ -35,16 +36,16 @@ export class SpectralBand {
     if (!Number.isInteger(rate) || rate < SPECTRAL_SETTINGS.minRate || rate > SPECTRAL_SETTINGS.maxRate)
       throw new RangeError('unsupported spectral rate');
     this.random = new RandomStream(seed);
-    this.configure(1000, 50);
+    this.configure(1000, SPECTRAL_BAND_DOMAIN.minimumBandwidthHz);
   }
   configure(frequency: number, bandwidth: number): void {
     if (
       !Number.isFinite(frequency) ||
       frequency <= 0 ||
-      frequency >= 0.4 * this.rate ||
+      frequency >= SPECTRAL_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate ||
       !Number.isFinite(bandwidth) ||
-      bandwidth < 50 ||
-      bandwidth > 6000
+      bandwidth < SPECTRAL_BAND_DOMAIN.minimumBandwidthHz ||
+      bandwidth > SPECTRAL_BAND_DOMAIN.maximumBandwidthHz
     )
       throw new RangeError('invalid spectral band');
     const r = Math.exp((-Math.PI * bandwidth) / this.rate);
@@ -132,8 +133,8 @@ export class TireSpectralSynthesis {
   private targetSqueal = 0;
   private workLevel = 0;
   private squeal = 0;
-  private frequency = 1100;
-  private width = 50;
+  private frequency: number = SPECTRAL_SETTINGS.squealBaseHz;
+  private width: number = SPECTRAL_SETTINGS.squealBaseBandwidthHz;
   private slip = 0;
   private modulation = 1;
   scrubOutput = 0;
@@ -186,7 +187,8 @@ export class TireSpectralSynthesis {
     // R is rotation-driven. A locked translating tire has S (sliding), not rolling excitation.
     const rotating = value.wheelAngularSpeed !== 0;
     this.targetRollingLevel = rotating
-      ? level * saturate(Math.abs(value.wheelSpeed), SPECTRAL_SETTINGS.roadHalfSpeed) ** 1.5
+      ? level *
+        saturate(Math.abs(value.wheelSpeed), SPECTRAL_SETTINGS.roadHalfSpeed) ** SPECTRAL_SETTINGS.roadSpeedExponent
       : 0;
     const s = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
     const power = s > 0 ? value.longitudinalPower + value.lateralPower : 0;
@@ -204,8 +206,15 @@ export class TireSpectralSynthesis {
     const slip = Math.hypot(v.wheelSpeed - v.longitudinalVelocity, v.lateralVelocity);
     const power = v.longitudinalPower + v.lateralPower;
     const direction = v.longitudinalPower / (power + SPECTRAL_SETTINGS.directionScaleWatts);
-    const targetFrequency = 1100 + 300 * saturate(slip, 6) + 120 * direction;
-    const targetWidth = 50 + 20 * saturate(slip, 8) + 35 * saturate(Math.abs(v.wheelSpeed), 30);
+    const targetFrequency =
+      SPECTRAL_SETTINGS.squealBaseHz +
+      SPECTRAL_SETTINGS.squealSlipHz * saturate(slip, SPECTRAL_SETTINGS.squealSlipHalfSpeed) +
+      SPECTRAL_SETTINGS.squealLongitudinalHz * direction;
+    const targetWidth =
+      SPECTRAL_SETTINGS.squealBaseBandwidthHz +
+      SPECTRAL_SETTINGS.squealSlipBandwidthHz * saturate(slip, SPECTRAL_SETTINGS.squealBandwidthSlipHalfSpeed) +
+      SPECTRAL_SETTINGS.squealWheelBandwidthHz *
+        saturate(Math.abs(v.wheelSpeed), SPECTRAL_SETTINGS.squealBandwidthWheelHalfSpeed);
     this.frequency += this.tone * (targetFrequency - this.frequency);
     this.width += this.tone * (targetWidth - this.width);
     this.slip += this.tone * (slip - this.slip);
@@ -219,7 +228,9 @@ export class TireSpectralSynthesis {
     material.squeal += this.tone * (target.squeal - material.squeal);
     material.scaleMeters += this.tone * (target.scaleMeters - material.scaleMeters);
     material.depth += this.tone * (target.depth - material.depth);
-    const textureHz = (160 * this.slip) / (this.slip + 160 * material.scaleMeters);
+    const textureHz =
+      (SPECTRAL_SETTINGS.scrubTextureMaximumHz * this.slip) /
+      (this.slip + SPECTRAL_SETTINGS.scrubTextureMaximumHz * material.scaleMeters);
     this.modulation = 1 + material.depth * this.texture.step(textureHz / SPECTRAL_SETTINGS.controlHz);
     this.wheelFrequency += this.tone * (Math.abs(v.wheelAngularSpeed) / (2 * Math.PI) - this.wheelFrequency);
     // Random amplitude texture traverses wheel angle, not an independent time/vehicle-speed clock.
@@ -231,10 +242,15 @@ export class TireSpectralSynthesis {
     for (let i = 0; i < 2; i++) {
       const order = i === 0 ? SPECTRAL_SETTINGS.roadLowOrder : SPECTRAL_SETTINGS.roadHighOrder;
       const frequency = Math.max(SPECTRAL_SETTINGS.roadMinimumHz, order * this.wheelFrequency);
-      this.bands[i + 6]!.configure(frequency, Math.max(50, frequency * SPECTRAL_SETTINGS.roadBandwidthRatio));
+      this.bands[i + 6]!.configure(
+        frequency,
+        Math.max(SPECTRAL_BAND_DOMAIN.minimumBandwidthHz, frequency * SPECTRAL_SETTINGS.roadBandwidthRatio),
+      );
     }
-    this.bands[0]!.configure(700 + 300 * saturate(this.slip, 6), 900);
-    this.bands[1]!.configure(2600 + 1000 * saturate(this.slip, 10), 2000);
+    for (let i = 0; i < SPECTRAL_SETTINGS.scrubBands.length; i++) {
+      const band = SPECTRAL_SETTINGS.scrubBands[i]!;
+      this.bands[i]!.configure(band.baseHz + band.slipHz * saturate(this.slip, band.slipHalfSpeed), band.bandwidthHz);
+    }
     for (let h = 1; h <= 4; h++)
       this.bands[h + 1]!.configure(h * this.frequency * (1 + SPECTRAL_SETTINGS.wanderDepth * wander), h * this.width);
   }
