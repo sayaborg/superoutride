@@ -467,6 +467,11 @@ of the same equations, not separately selected sounds. Frequencies/damping are f
 following does not inject energy by changing stiffness. Nonlinear timbre arises from this system;
 there is no separately synthesized harmonic bank.
 
+The listener-selected high-mode default is now 1,000 Hz (previously 1,350 Hz); the low mode remains
+300 Hz. This is an intentional UNIFIED calibration revision, not a measured tire frequency or a promise
+that the nonlinear output's peak is exactly 1,000 Hz. The spectral contract follows the revised high
+band while retaining the low/broad-to-resonant transition checks. Shared R and other methods are unchanged.
+
 `E = sum(x_i² + v_i²)/2` is a computed diagnostic, not an independently advanced envelope or energy in
 joules. The continuous surrogate satisfies
 `E' = -sum(d_i*v_i²) + a*u² - beta*u⁴ + sigma*noise*u`. This identifies passive loss and active input
@@ -488,6 +493,15 @@ Accepted work already contains accepted force/load; there is no second load mult
 is transported but unused by this method: it is not another onset authority. Increasing feedback
 relative to damping changes instability and the response leading to it, rather than opening a hard
 squeal gate. Surface roughness and susceptibility affect the same input's forcing and feedback.
+
+Forward travel speed is not a separate Q control: identical slip, accepted work, surface and seed
+produce identical Q even at different forward speeds. Any positive slip/work can force rubbing;
+`slipHalfMps` shapes feedback, not the noise-force term. The square-root work mapping compresses forcing
+differences, and both the noise bandwidth and passive modes are time-fixed. Ordinary cornering can
+produce positive work in the vehicle tire law without a gross skid. Converting that work to audible
+rubbing is uncalibrated; it is not evidence that mild low-speed turns should sound loud. R instead has
+its own peripheral-speed dependence. Diagnose R/Q separately before changing this mapping; do not
+add a vehicle-speed gate that would also suppress supported stationary wheelspin.
 
 Positive-contact targets follow continuously. Zero support, zero slip, zero work or invalid input
 immediately disables new friction forcing and feedback; stored vibration and output filters decay

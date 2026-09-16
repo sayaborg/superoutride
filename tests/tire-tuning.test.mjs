@@ -20,6 +20,7 @@ const input = {
 test('UNIFIED tuning validates every bound, owns its snapshot and retains defaults', () => {
   const defaults = resolveUnifiedTuning();
   assert.ok(Object.isFrozen(defaults));
+  assert.equal(defaults.highFrequencyHz, 1000, 'listener-selected high-mode default, shared with UI/reset');
   for (const [key, range] of Object.entries(UNIFIED_TUNING_RANGES)) {
     assert.equal(defaults[key], range.defaultValue);
     for (const value of [NaN, Infinity, null, range.min - range.step, range.max + range.step])

@@ -60,6 +60,12 @@ normalized models, not joules or mutually calibrated quantities.
 Both modal states receive one nonlinear friction input. Do not create separate rubbing/squeal gains,
 extra onset gates or a second amplitude envelope when tuning their continuous transition.
 
+The high-mode default is 1,000 Hz by listening preference; the low mode remains 300 Hz. This is an
+intentional retune of UNIFIED only. Small-work rubbing remains an open calibration issue: the noise
+force uses `sqrt(P/(P+powerReferenceWatts))` without an additional slip factor, while slip shapes
+feedback. Raising `slipHalfMps` therefore does not directly reduce the noise forcing. Forward vehicle
+speed is not another Q control, and mechanical slip work is not calibrated acoustic power.
+
 | Tuning concern                     | Named settings                                                                          | Coupling and limits                                                                                                                           |
 | ---------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feedback versus loss               | `feedbackMaximumPerSecond`, `modes[].dampingPerSecond`, `slipHalfMps`, `slipRolloffMps` | Changes instability, subcritical response, saturation level and recovery together; not an onset-only switch.                                  |

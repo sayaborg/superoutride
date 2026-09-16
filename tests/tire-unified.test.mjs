@@ -101,6 +101,42 @@ test('UNIFIED shares exact HYBRID rolling through surface, reversal, support and
     }
 });
 
+test('UNIFIED Q follows contact slip/work rather than forward speed; R remains speed-dependent', () => {
+  for (const rate of [44100, 48000]) {
+    const slow = unified(rate),
+      fast = unified(rate);
+    for (const [kernel, kmh] of [
+      [slow, 20],
+      [fast, 100],
+    ]) {
+      kernel.update(
+        input({
+          longitudinalVelocity: kmh / 3.6,
+          wheelSpeed: kmh / 3.6,
+          wheelAngularSpeed: kmh / 3.6 / 0.3,
+          lateralVelocity: 0.1,
+          lateralPower: 100,
+        }),
+      );
+    }
+    let slowRoad = 0,
+      fastRoad = 0,
+      friction = 0;
+    for (let i = 0; i < rate; i++) {
+      slow.sample();
+      fast.sample();
+      assert.equal(slow.frictionOutput, fast.frictionOutput, 'matched slip/work gives identical Q, not a speed gate');
+      if (i >= rate / 2) {
+        slowRoad += slow.roadOutput ** 2;
+        fastRoad += fast.roadOutput ** 2;
+        friction += slow.frictionOutput ** 2;
+      }
+    }
+    assert.ok(friction > 0, 'small positive slip/work already excites rubbing');
+    assert.ok(fastRoad > slowRoad * 4, 'shared rolling independently responds to peripheral speed');
+  }
+});
+
 test('locked mild sliding produces Q without R or a separate scrub source; stationary supported spin remains audible', () => {
   const locked = unified();
   locked.update(

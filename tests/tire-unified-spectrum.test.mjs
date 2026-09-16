@@ -77,8 +77,8 @@ test('one Q changes from broad low rubbing through resonance to a high squeal, b
         'the same output develops resonance before dominance',
       );
       assert.ok(
-        strong.peakHz > 1000 && strong.peakHz < 1700 && strong.ratio > 1,
-        'strong friction sustains high vibration',
+        strong.peakHz > 800 && strong.peakHz < 1200 && strong.ratio > 1,
+        'strong friction sustains vibration around the listener-selected 1 kHz mode',
       );
       assert.ok(strong.ratio > weak.ratio * 3, 'a uniform volume change cannot satisfy the timbre transition');
       assert.ok(approach.hybridRms > strong.hybridRms * 0.7, 'this approach case already squeals strongly in HYBRID');

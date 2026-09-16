@@ -19,7 +19,7 @@ export const UNIFIED_SETTINGS = Object.freeze({
   // Fixed modal data: a shared friction port couples BOTH modes. Neither is a separate S/Q source.
   modes: Object.freeze([
     Object.freeze({ frequencyHz: 300, dampingPerSecond: 2 * Math.PI * 500, participation: 0.45 }),
-    Object.freeze({ frequencyHz: 1350, dampingPerSecond: 2 * Math.PI * 500, participation: Math.sqrt(1 - 0.45 ** 2) }),
+    Object.freeze({ frequencyHz: 1000, dampingPerSecond: 2 * Math.PI * 500, participation: Math.sqrt(1 - 0.45 ** 2) }),
   ] as const),
   // Fixed displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
   outputGainPerSecond: 900,

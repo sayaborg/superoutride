@@ -136,6 +136,17 @@ Focused spectral/response tests are `node --test tests/tire-spectral*.test.mjs t
 They supplement the complete `npm test` and unchanged historical mechanics/render oracle; listening,
 measured spectrum/transients, exact cleanup equality, host throughput and device play remain separate evidence.
 
+### UNIFIED low-speed input probe
+
+`node tools/tire-unified-input-probe.mjs 48000` runs one-second coast/held-steering cases starting at
+20 and 100 km/h. It uses the first catalog vehicle, browser tire/steering calibration and production
+torque protection/observation adapter, with 120 Hz mechanics and 60 Hz sound updates. It reports actual
+final speed, per-axle work/slip, surfaces and separately summed R/Q RMS. This is not a constant-speed
+corner, the user's drive trace or a perceptual loudness test. Mixed-surface cases are explicitly marked.
+Engines, browser compressor and playback are excluded. An optional second argument sets the high mode,
+for example `node tools/tire-unified-input-probe.mjs 48000 1350` for the pre-retune mode. Other probe rates
+are 44100/96000. The matched-slip/work regression separately verifies Q's forward-speed independence.
+
 ## Exact-commit release
 
 Follow the exact-head, fast-forward and CI/Pages gates in [AGENTS](../AGENTS.md). Advance main through the Git reference API with `force=false` after validation; the exact checkout assertion and versioned artifact are implemented in the [workflow](../.github/workflows/pages.yml).
