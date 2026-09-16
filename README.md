@@ -39,9 +39,11 @@ SPECTRAL uses a rotation-linked low rolling texture and finite-width squeal band
 responds to excitation and recovery. For SPECTRAL, R / S / Q buttons independently toggle rolling,
 friction scrub and squeal for both axles. They fade only the selected output; the underlying sound keeps
 running and no remaining layer is boosted. All start ON and survive session changes; reload resets them.
-CURRENT/CONTACT and the engine remain unchanged. The new R/Q response still needs listening and device
-assessment. See the [specification index](docs/README.md) and
-[development guide](docs/development.md#tire-comparison-tools) for reproducible diagnostics.
+CURRENT/CONTACT and the engine remain unchanged. The next task is
+[SPECTRAL tuning](docs/NEXT.md#next-work-spectral-tuning); latest R/Q listening acceptance is still open.
+Use the [tuning map](docs/calibration.md#tire-audio-tuning) for source settings and the
+[development guide](docs/development.md#tire-comparison-tools) for replay/verification commands.
+R/S/Q are output switches, not numeric tire-tuning controls.
 
 See [current calibration values and meanings](docs/calibration.md).
 
