@@ -96,3 +96,26 @@ export function spectralReferenceObservation(v) {
     surface: v.load > 0 ? 'ASPHALT' : 'VOID',
   };
 }
+
+// Component-response replays share the same explicit audition radius and recovery trace.
+const grip = SPECTRAL_SCENARIOS.find((s) => s.id === 'corner-sweep');
+export const SPECTRAL_RESPONSE_SCENARIOS = [
+  {
+    id: 'rolling-rpm-sweep',
+    seconds: 10,
+    observe(t) {
+      const speed = t < 1 ? 0 : t < 5 ? (t - 1) * 15 : t < 9 ? (9 - t) * 15 : 0;
+      return {
+        longitudinalVelocity: speed,
+        lateralVelocity: 0,
+        wheelSpeed: speed,
+        wheelAngularSpeed: speed / 0.3,
+        load: 4000,
+        longitudinalPower: 0,
+        lateralPower: 0,
+        demand: 0,
+      };
+    },
+  },
+  { id: 'grip-recovery', seconds: grip.seconds, observe: (t) => spectralScenarioAt(grip, t) },
+];
