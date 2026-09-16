@@ -1,6 +1,6 @@
-# Vehicle calibration
+# Calibration and tuning ownership
 
-These values are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#remaining-limits) owns handling status and acceptance limits; the values are not a real-vehicle claim.
+The vehicle values below are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#remaining-limits) owns handling status and acceptance limits; the values are not a real-vehicle claim.
 
 ## Current player settings
 
@@ -39,3 +39,31 @@ Before accepting a tune, compare coast, acceleration, braking, held turns, rever
 The available [terrain probe](../tools/torque-protection-terrain-probe.mjs), [braking/yaw probe](../tools/braking-yaw-probe.mjs) and [drift control probe](../tools/drift-control-probe.mjs) use the production solver. Check each tool's arguments in source. Diagnostic probes intentionally omit gameplay recovery when measuring raw model-domain exits. Tests with explicit coefficients are fixed causal fixtures, not assertions that those values are the current browser default.
 
 Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#remaining-limits).
+
+## Tire audio tuning
+
+Tire sound is a separate presentation calibration, not the GX/PX/GY/PY/KN physical tire law above.
+The [audio contract](audio.md#spectral-game-synthesis) owns equations and signal paths; the
+[checkpoint](NEXT.md#next-work-spectral-tuning) owns feedback, tuning order and listening acceptance.
+[Development](development.md#tire-comparison-tools) owns reproducible commands. Do not duplicate
+numerical defaults here: [spectral acoustics](../src/audio/tire-spectral-acoustics.ts) is their sole owner.
+
+| Tuning concern                | Named settings / owner                                                                                                                                                      | Coupling and limits                                                                                                                           |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| R pitch and color             | `roadLowOrder`, `roadHighOrder`, `roadMinimumHz`, `roadBandwidthRatio`, `roadOutputHz`                                                                                      | Wheel angular speed drives the broad centers; the two R-only low-pass stages do not filter S/Q.                                               |
+| R level and texture           | `roadGain`, `loadScaleNewtons`, `roadHalfSpeed`, `roadSpeedExponent`, `roadTextureOrders`, `roadTextureDepth`                                                               | Angular speed gates rolling; peripheral speed and load set its level. Neither is inferred from car speed.                                     |
+| S spectrum and texture        | `scrubBands`, `scrubGain`, `scrubTextureMaximumHz`                                                                                                                          | Two broad bands have independent center/slip/width data. Preserve S as a reference when changing Q alone.                                     |
+| Q color and response          | `harmonicWeights`, `harmonicShapeReference`, `squealBaseHz`, `squealSlipHz`, `squealSlipHalfSpeed`, `squealLongitudinalHz`, `squealGain`                                    | Palette/shape alter harmonics; frequency settings alter pitch. They are not interchangeable fixes for loudness.                               |
+| Q width and wander            | `squealBaseBandwidthHz`, `squealSlipBandwidthHz`, `squealBandwidthSlipHalfSpeed`, `squealWheelBandwidthHz`, `squealBandwidthWheelHalfSpeed`, `wanderSeconds`, `wanderDepth` | Finite bandwidth and random wander are sound-design controls, not measured tread geometry or grip state.                                      |
+| Shared excitation / filtering | `powerScaleWatts`, `directionScaleWatts`, `attackSeconds`, `releaseSeconds`, `toneSeconds`, `dcHz`, `outputHz`                                                              | Work scale affects S/Q; following affects more than one component; `outputHz` filters S/Q, not R. Support loss overrides normal following.    |
+| Material balance              | `SPECTRAL_TEXTURES`: `roadLow/High`, `scrubLow/High`, `squeal`, `scaleMeters`, `depth`                                                                                      | Weights are component-specific; texture scale/depth affect R and S. Catalog identities are discrete; coefficients follow without state reset. |
+
+`SPECTRAL_BAND_DOMAIN` owns numerical frequency/bandwidth limits, independently of similarly valued
+sound settings. `SPECTRAL_INPUTS` owns bounded transport and standalone control defaults, not replacement
+physics. Do not widen these domains or change native/control rates as an ordinary timbre adjustment;
+revalidate domain, spectra, modulation traversal and block invariance when revising them.
+
+R/S/Q output switches are defined by [tire controls](../src/audio/tire-sound-controls.ts) and applied
+by the existing voice/worklet. They are listening selectors, not synthesis coefficients or normalization.
+The UI does not expose numeric tire settings; change source settings, rebuild and reload. Keep the
+accepted engine, playback volume and physical calibration fixed for the first acoustic comparisons.
