@@ -1,5 +1,5 @@
 import { TireSpectralSynthesis } from '../../audio/tire-spectral-model.js';
-import { SPECTRAL_INPUTS, type SpectralObservation } from '../../audio/tire-spectral-acoustics.js';
+import { SPECTRAL_INPUTS, SPECTRAL_INPUT_KEYS, type SpectralObservation } from '../../audio/tire-spectral-acoustics.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
@@ -7,10 +7,9 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 /** Isolated two-tap audition; never imported by the game's processor entry. */
 class TireSpectralProcessor extends AudioWorkletProcessor {
   private kernel: TireSpectralSynthesis | null = new TireSpectralSynthesis(sampleRate);
-  private readonly input = Object.fromEntries(Object.keys(SPECTRAL_INPUTS).map((key) => [key, 0])) as {
+  private readonly input = Object.fromEntries(SPECTRAL_INPUT_KEYS.map((key) => [key, 0])) as {
     -readonly [K in keyof SpectralObservation]: number;
   };
-  private readonly keys = Object.keys(SPECTRAL_INPUTS) as (keyof SpectralObservation)[];
   static get parameterDescriptors() {
     return Object.entries(SPECTRAL_INPUTS).map(([name, range]) => ({
       name,
@@ -37,7 +36,7 @@ class TireSpectralProcessor extends AudioWorkletProcessor {
       for (const output of outputs) for (const channel of output) channel.fill(0);
       return true;
     }
-    for (const key of this.keys) this.input[key] = p[key]?.[0] ?? NaN;
+    for (const key of SPECTRAL_INPUT_KEYS) this.input[key] = p[key]?.[0] ?? NaN;
     try {
       this.kernel.update(this.input);
     } catch (error) {
