@@ -17,6 +17,14 @@ export const SPECTRAL_INPUTS = Object.freeze({
 });
 export type SpectralObservation = { readonly [K in keyof typeof SPECTRAL_INPUTS]: number };
 export const SPECTRAL_INPUT_KEYS = Object.freeze(Object.keys(SPECTRAL_INPUTS) as (keyof SpectralObservation)[]);
+/** Numerical support, not listening controls; expanding it needs domain/aliasing validation. */
+export const SPECTRAL_BAND_DOMAIN = Object.freeze({
+  minimumBandwidthHz: 50,
+  maximumBandwidthHz: 6000,
+  maximumFrequencyRateFraction: 0.4,
+});
+
+/** Sole numeric owner for R/S/Q sound design. Units are explicit; values are provisional. */
 export const SPECTRAL_SETTINGS = Object.freeze({
   minRate: 44100,
   maxRate: 192000,
@@ -26,6 +34,7 @@ export const SPECTRAL_SETTINGS = Object.freeze({
   roadGain: 0.04,
   loadScaleNewtons: 2000,
   roadHalfSpeed: 15,
+  roadSpeedExponent: 1.5,
   // Broad wheel-order envelopes, not physical tread modes or a fixed tone per axle.
   roadLowOrder: 4,
   roadHighOrder: 12,
@@ -36,12 +45,26 @@ export const SPECTRAL_SETTINGS = Object.freeze({
   roadOutputHz: 900,
   // Full accepted harmonic palette at/above this smoothed excitation; weaker states darken.
   harmonicShapeReference: 0.5,
+  squealBaseHz: 1100,
+  squealSlipHz: 300,
+  squealSlipHalfSpeed: 6,
+  squealLongitudinalHz: 120,
+  squealBaseBandwidthHz: 50,
+  squealSlipBandwidthHz: 20,
+  squealBandwidthSlipHalfSpeed: 8,
+  squealWheelBandwidthHz: 35,
+  squealBandwidthWheelHalfSpeed: 30,
+  // S uses the same primitive but broad independent bands, not Q harmonics.
+  scrubBands: Object.freeze([
+    Object.freeze({ baseHz: 700, slipHz: 300, slipHalfSpeed: 6, bandwidthHz: 900 }),
+    Object.freeze({ baseHz: 2600, slipHz: 1000, slipHalfSpeed: 10, bandwidthHz: 2000 }),
+  ]),
+  scrubTextureMaximumHz: 160,
   attackSeconds: 0.015,
   releaseSeconds: 0.01,
   toneSeconds: 0.02,
   wanderSeconds: 0.15,
   wanderDepth: 0.015,
-
   powerScaleWatts: 8000,
   directionScaleWatts: 100,
   scrubGain: 0.04,
