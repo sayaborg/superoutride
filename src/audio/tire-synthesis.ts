@@ -10,7 +10,7 @@ const MATERIAL = {
   VOID: { squeal: 0 },
 } as const;
 
-interface TireParameters {
+export interface TireParameters {
   /** Dimensionless acoustic excitation; crossing the oscillator threshold permits growth. */
   readonly squeal: number;
   readonly pitch: number;
@@ -64,7 +64,8 @@ export class TireSynthesis {
   update(value: TireParameters): void {
     this.target = value;
   }
-  sample(): number {
+  /** Shared CURRENT dynamics, without constructing its audible periodic waveform. */
+  advance(): void {
     this.squeal += (this.target.squeal > this.squeal ? this.attack : this.release) * (this.target.squeal - this.squeal);
     this.seed ^= this.seed << 13;
     this.seed ^= this.seed >>> 17;
@@ -90,6 +91,16 @@ export class TireSynthesis {
     const x = gain * (this.rotationX * this.x - this.rotationY * this.y);
     this.y = gain * (this.rotationY * this.x + this.rotationX * this.y);
     this.x = x;
+  }
+  get amplitude(): number {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+  /** Smoothed authored pitch; the spectral pickup owns its own random band wander. */
+  get frequency(): number {
+    return this.pitch;
+  }
+  sample(): number {
+    this.advance();
     // Phase-locked harmonics grow with oscillation amplitude; no unrelated second whistle.
     const ringing = this.y + 0.32 * (2 * this.x * this.y) + 0.12 * this.y * (3 * this.x * this.x - this.y * this.y);
     const modulation = 1 + 1.5 * this.rough;

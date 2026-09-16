@@ -5,6 +5,7 @@ import {
   DEFAULT_TIRE_SOUND_MODEL,
   TIRE_SOUND_MODELS,
   TIRE_COMPONENTS,
+  tireComponentAvailable,
   type TireSoundModel,
 } from '../audio/tire-sound-controls.js';
 import { AUDIO_TIMING, rivalAudioGain, rivalAudioPan } from '../audio/audio-presentation.js';
@@ -33,9 +34,9 @@ export function createAudioLifecycle() {
     button.type = 'button';
     button.className = 'selector-button';
     button.id = `tire-component-${key}`;
-    button.title = `${label}: ${description}. SPECTRAL only; both axles. Other components are not normalized.`;
+    button.title = `${label}: ${description}. ${key === 'scrub' ? 'SPECTRAL' : 'SPECTRAL/HYBRID'}; both axles. Other components are not normalized.`;
     const toggle = (): void => {
-      if (disposed || !supported || tireModel !== 'spectral') return;
+      if (disposed || !supported || !tireComponentAvailable(tireModel, key)) return;
       componentState[key] = !componentState[key];
       showComponents();
       unlock();
@@ -104,10 +105,15 @@ export function createAudioLifecycle() {
   function showComponents(): void {
     for (const { key, label, description, button } of componentButtons) {
       const on = componentState[key];
+      if (tireModel === 'hybrid' && key === 'scrub') button.setAttribute('hidden', '');
+      else button.removeAttribute('hidden');
       button.textContent = `${label}: ${on ? 'ON' : 'OFF'}`;
       button.setAttribute('aria-pressed', String(on));
-      button.setAttribute('aria-label', `${description}: ${on ? 'on' : 'off'}. SPECTRAL only.`);
-      if (!supported || tireModel !== 'spectral') button.setAttribute('disabled', '');
+      button.setAttribute(
+        'aria-label',
+        `${description}: ${on ? 'on' : 'off'}. ${key === 'scrub' ? 'SPECTRAL' : 'SPECTRAL/HYBRID'}.`,
+      );
+      if (!supported || !tireComponentAvailable(tireModel, key)) button.setAttribute('disabled', '');
       else button.removeAttribute('disabled');
     }
   }

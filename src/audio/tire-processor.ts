@@ -1,3 +1,4 @@
+import { TireHybridSynthesis } from './tire-hybrid-model.js';
 import { TireSpectralSynthesis } from './tire-spectral-model.js';
 import { SPECTRAL_INPUT_KEYS, SPECTRAL_SETTINGS, type SpectralObservation } from './tire-spectral-acoustics.js';
 import { TireSynthesis } from './tire-synthesis.js';
@@ -21,6 +22,8 @@ class TireProcessor extends AudioWorkletProcessor {
   private rear: TireSynthesis | null = new TireSynthesis(sampleRate, CONTACT_ACOUSTICS.rearSeed);
   private frontContact: TireContactSynthesis | null = null;
   private rearContact: TireContactSynthesis | null = null;
+  private frontHybrid: TireHybridSynthesis | null = null;
+  private rearHybrid: TireHybridSynthesis | null = null;
   private frontSpectral: TireSpectralSynthesis | null = null;
   private rearSpectral: TireSpectralSynthesis | null = null;
   private readonly frontSpectralControl = Object.fromEntries(SPECTRAL_INPUT_KEYS.map((key) => [key, 0])) as {
@@ -53,6 +56,7 @@ class TireProcessor extends AudioWorkletProcessor {
     this.port.onmessage = ({ data }) => {
       if (data === 'stop') {
         this.running = false;
+        this.frontHybrid = this.rearHybrid = null;
         this.front = this.rear = this.frontContact = this.rearContact = this.frontSpectral = this.rearSpectral = null;
       } else if (!this.running) return;
       else if (!TIRE_SOUND_MODELS.includes(data?.model)) this.valid = false;
@@ -62,6 +66,7 @@ class TireProcessor extends AudioWorkletProcessor {
         // Called only after the voice fades to silence. Never run the inactive model.
         this.model = data.model;
         this.front = this.rear = null;
+        this.frontHybrid = this.rearHybrid = null;
         this.frontContact = this.rearContact = this.frontSpectral = this.rearSpectral = null;
         if (this.model === 'current') {
           this.front = new TireSynthesis(sampleRate, CONTACT_ACOUSTICS.frontSeed);
@@ -69,6 +74,9 @@ class TireProcessor extends AudioWorkletProcessor {
         } else if (this.model === 'contact') {
           this.frontContact = new TireContactSynthesis(sampleRate, CONTACT_ACOUSTICS.frontSeed);
           this.rearContact = new TireContactSynthesis(sampleRate, CONTACT_ACOUSTICS.rearSeed);
+        } else if (this.model === 'hybrid') {
+          this.frontHybrid = new TireHybridSynthesis(sampleRate, SPECTRAL_SETTINGS.seed, CONTACT_ACOUSTICS.frontSeed);
+          this.rearHybrid = new TireHybridSynthesis(sampleRate, SPECTRAL_SETTINGS.rearSeed, CONTACT_ACOUSTICS.rearSeed);
         } else {
           this.frontSpectral = new TireSpectralSynthesis(sampleRate, SPECTRAL_SETTINGS.seed);
           this.rearSpectral = new TireSpectralSynthesis(sampleRate, SPECTRAL_SETTINGS.rearSeed);
@@ -111,16 +119,44 @@ class TireProcessor extends AudioWorkletProcessor {
     control: typeof this.frontSpectralControl,
     kernel: TireSpectralSynthesis,
   ): void {
-    let valid = this.valid;
-    for (const key of SPECTRAL_INPUT_KEYS) {
-      control[key] = this.read(p, axle, `spectral_${key}`);
-      valid = valid && Number.isFinite(control[key]);
-    }
+    const valid = this.readSpectral(p, axle, control);
     const surface = this.read(p, axle, 'spectral_surfaceIndex');
     if (valid && Number.isInteger(surface)) kernel.update(control, surface);
     else {
       for (const key of SPECTRAL_INPUT_KEYS) control[key] = 0;
       kernel.update(control); // Release only this axle; retain finite tails and permit later recovery.
+    }
+  }
+  private readSpectral(
+    p: Record<string, Float32Array>,
+    axle: string,
+    control: typeof this.frontSpectralControl,
+  ): boolean {
+    let valid = this.valid;
+    for (const key of SPECTRAL_INPUT_KEYS) {
+      control[key] = this.read(p, axle, `spectral_${key}`);
+      valid = valid && Number.isFinite(control[key]);
+    }
+    return valid;
+  }
+  private updateHybrid(
+    p: Record<string, Float32Array>,
+    axle: string,
+    control: typeof this.frontSpectralControl,
+    current: typeof this.frontControl,
+    kernel: TireHybridSynthesis,
+  ): void {
+    const valid = this.readSpectral(p, axle, control);
+    const surface = this.read(p, axle, 'spectral_surfaceIndex');
+    current.squeal = this.read(p, axle, 'squeal');
+    current.pitch = this.read(p, axle, 'pitch');
+    if (valid && Number.isInteger(surface) && Number.isFinite(current.squeal) && Number.isFinite(current.pitch))
+      kernel.update(control, current, surface);
+    else {
+      for (const key of SPECTRAL_INPUT_KEYS) control[key] = 0;
+      current.squeal = 0;
+      current.pitch = TIRE_CONTROL_RANGES.pitch.defaultValue;
+      kernel.update(control, current);
     }
   }
   private readMix(p: Record<string, Float32Array>, key: string): number {
@@ -148,6 +184,23 @@ class TireProcessor extends AudioWorkletProcessor {
       this.updateContact(p, 'rear', this.rearContact!);
       for (let i = 0; i < output.length; i++)
         output[i] = (this.frontContact!.sample() + this.rearContact!.sample()) * CONTACT_ACOUSTICS.listeningGain;
+    } else if (this.model === 'hybrid') {
+      this.updateHybrid(p, 'front', this.frontSpectralControl, this.frontControl, this.frontHybrid!);
+      this.updateHybrid(p, 'rear', this.rearSpectralControl, this.rearControl, this.rearHybrid!);
+      const road = this.readMix(p, 'mix_road'),
+        squeal = this.readMix(p, 'mix_squeal');
+      const front = this.frontHybrid!,
+        rear = this.rearHybrid!;
+      for (let i = 0; i < output.length; i++) {
+        this.roadMix += this.componentFollow * (road - this.roadMix);
+        this.squealMix += this.componentFollow * (squeal - this.squealMix);
+        front.sample();
+        rear.sample();
+        output[i] =
+          front.roadOutput * this.roadMix +
+          front.squealOutput * this.squealMix +
+          (rear.roadOutput * this.roadMix + rear.squealOutput * this.squealMix);
+      }
     } else {
       this.updateSpectral(p, 'front', this.frontSpectralControl, this.frontSpectral!);
       this.updateSpectral(p, 'rear', this.rearSpectralControl, this.rearSpectral!);

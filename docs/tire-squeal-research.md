@@ -1,8 +1,8 @@
 # Tire squeal: physical evidence and synthesis implications
 
-This is supporting research, not a runtime specification or a selected third algorithm.
-[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL implementations;
-[NEXT](NEXT.md#next-work-spectral-tuning) owns the user's request to reconsider the method.
+This is supporting research, not a runtime specification or numerical calibration.
+[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID implementations;
+[NEXT](NEXT.md#next-work-hybrid-listening) owns current listening priorities.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of either existing sound engine.
 
@@ -101,6 +101,6 @@ less single-tone result; added oscillators are not themselves evidence of greate
 
 These sources do not calibrate SPECTRAL's wheel-order rolling bands or excitation-dependent harmonic
 palette. [Audio](audio.md#spectral-game-synthesis) owns that implementation;
-[NEXT](NEXT.md#next-work-spectral-tuning) owns current tuning and listening decisions. Reconsidering the
+[NEXT](NEXT.md#next-work-hybrid-listening) owns current tuning and listening decisions. Reconsidering the
 method is a separate decision, not the default next task. Keep previous experiments in Git rather than
 another proposal/handoff archive; existing tools regenerate references without prior chat audio files.

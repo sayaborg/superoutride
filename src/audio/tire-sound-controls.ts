@@ -2,7 +2,7 @@ import { SPECTRAL_INPUTS, SPECTRAL_TEXTURES, type SpectralObservation } from './
 import { CONTACT_INPUTS, CONTACT_TEXTURES, CONTACT_TEXTURE_KEYS } from './tire-contact-acoustics.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
-export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral'] as const);
+export const TIRE_SOUND_MODELS = Object.freeze(['current', 'contact', 'spectral', 'hybrid'] as const);
 export type TireSoundModel = (typeof TIRE_SOUND_MODELS)[number];
 export const DEFAULT_TIRE_SOUND_MODEL: TireSoundModel = 'current';
 
@@ -12,6 +12,15 @@ export const TIRE_COMPONENTS = Object.freeze([
   Object.freeze({ key: 'squeal', label: 'Q', description: 'Squeal' }),
 ] as const);
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
+const MODEL_COMPONENTS: Readonly<Record<TireSoundModel, readonly TireComponent[]>> = Object.freeze({
+  current: [],
+  contact: [],
+  spectral: ['road', 'scrub', 'squeal'],
+  hybrid: ['road', 'squeal'],
+});
+export function tireComponentAvailable(model: TireSoundModel, component: TireComponent): boolean {
+  return MODEL_COMPONENTS[model].includes(component);
+}
 export type TireComponents = Readonly<Record<TireComponent, boolean>>;
 export const TIRE_COMPONENT_FADE_SECONDS = 0.005;
 export const TIRE_COMPONENT_RANGE = Object.freeze({ minValue: 0, maxValue: 1, defaultValue: 1 });

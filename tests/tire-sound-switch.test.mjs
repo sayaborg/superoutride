@@ -1,3 +1,4 @@
+import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -14,7 +15,7 @@ import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
 import { SPECTRAL_INPUT_KEYS, SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import { TireContactSynthesis } from '../dist/audio/tire-contact-model.js';
 import { CONTACT_ACOUSTICS, CONTACT_INPUTS, CONTACT_TEXTURE_KEYS } from '../dist/audio/tire-contact-acoustics.js';
-import { TireSynthesis } from '../dist/audio/tire-synthesis.js';
+import { TireSynthesis, tireParameters } from '../dist/audio/tire-synthesis.js';
 import { createTireVoice } from '../dist/audio/tire-voice.js';
 import { createAudioEngine } from '../dist/audio/audio-engine.js';
 import { AUDIO_TIMING } from '../dist/audio/audio-presentation.js';
@@ -243,7 +244,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   button.click();
   assert.equal(button.textContent, 'TIRES: CONTACT');
   assert.match(button.getAttribute('aria-label'), /CONTACT/);
-  assert.equal(button.getAttribute('aria-pressed'), null, 'three-way cycle is not a boolean toggle');
+  assert.equal(button.getAttribute('aria-pressed'), null, 'model cycle is not a boolean toggle');
   finish();
   await settle();
   const w = world();
@@ -274,7 +275,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   await settle();
   life.update(player, []);
   node = FakeAudioContext.instances[1].nodes.find((n) => n.name === 'vehicle-tires');
-  assert.equal(node.messages.at(-1).model, 'current');
+  assert.equal(node.messages.at(-1).model, 'hybrid');
   assert.equal(JSON.stringify(player), before);
   let stopped = false;
   button.emit('keydown', {
@@ -556,7 +557,7 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   const messages = engines.map((n) => n.messages.length);
   dom.elements.get('sound-toggle').click(); // Muted changes are retained.
   q.click();
-  for (let i = 0; i < 3; i++) dom.elements.get('tire-sound-toggle').click();
+  for (let i = 0; i < TIRE_SOUND_MODELS.length; i++) dom.elements.get('tire-sound-toggle').click();
   assert.equal(q.textContent, 'Q: OFF');
   assert.equal(context.nodes.length, count);
   assert.deepEqual(
@@ -656,4 +657,123 @@ test('component output fade is block-independent, does not reset bands, normaliz
   const original = block(currentA, 8192);
   for (const { key } of TIRE_COMPONENTS) p[`mix_${key}`][0] = 1;
   assert.deepEqual(original, block(currentB, 8192));
+});
+
+test('HYBRID transports both controls and renders only its pair, independent of blocks and S output controls', async (t) => {
+  install(t);
+  const context = new FakeAudioContext(),
+    voice = createTireVoice(context, context.destination);
+  t.after(() => voice.dispose());
+  const input = state();
+  for (const axle of ['front', 'rear'])
+    Object.assign(input[axle], {
+      longitudinalVelocity: 25,
+      lateralVelocity: 6,
+      wheelSpeed: 25,
+      wheelAngularSpeed: 25 / 0.3,
+      lateralPower: 24000,
+      slipSpeed: 6,
+    });
+  const before = structuredClone(input);
+  voice.setModel('hybrid');
+  voice.update(input);
+  const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
+    p = params();
+  for (const [key, param] of worklet.parameters) p[key][0] = param.value;
+  assert.equal(p.front_squeal[0], Math.fround(tireParameters(input.front).squeal));
+  assert.equal(p.front_spectral_load[0], input.front.load);
+  const Processor = await processor(t);
+  const a = new Processor(),
+    b = new Processor();
+  for (const node of [a, b]) node.port.onmessage({ data: { model: 'hybrid' } });
+  const block = (node, count) => {
+    const output = [[new Float32Array(count)]];
+    node.process([], output, p);
+    return output[0][0];
+  };
+  const initial = block(a, 48000),
+    split = new Float32Array(48000);
+  let offset = 0;
+  for (const count of [1, 127, 8128, 39744]) {
+    split.set(block(b, count), offset);
+    offset += count;
+  }
+  assert.deepEqual(initial, split);
+  const front = a.frontHybrid,
+    rear = a.rearHybrid;
+  assert.ok(front instanceof TireHybridSynthesis && rear instanceof TireHybridSynthesis);
+  assert.equal(a.front, null);
+  assert.equal(a.frontContact, null);
+  assert.equal(a.frontSpectral, null);
+  p.mix_scrub[0] = 0;
+  const noScrub = block(a, 4096);
+  p.mix_scrub[0] = 1;
+  assert.deepEqual(noScrub, block(b, 4096), 'S is absent, not a masked running component');
+  for (const [r, q] of [
+    [0, 1],
+    [1, 0],
+    [0, 0],
+    [1, 1],
+  ]) {
+    p.mix_road[0] = r;
+    p.mix_squeal[0] = q;
+    const whole = block(a, 12000),
+      parts = new Float32Array(12000);
+    parts.set(block(b, 31));
+    parts.set(block(b, 11969), 31);
+    assert.deepEqual(whole, parts);
+    assert.equal(a.frontHybrid, front);
+    assert.deepEqual(a.frontHybrid, b.frontHybrid);
+    const expected = front.roadOutput * r + front.squealOutput * q + rear.roadOutput * r + rear.squealOutput * q;
+    assert.ok(Math.abs(whole.at(-1) - expected) < 1e-7, 'no remaining-layer boost');
+    if (!r && !q) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
+  }
+  p.front_spectral_load[0] = NaN;
+  p.rear_pitch[0] = NaN;
+  const released = block(a, 96000);
+  assert.ok(released.slice(-128).every((v) => Math.abs(v) < 1e-9));
+  p.front_spectral_load[0] = 4000;
+  p.rear_pitch[0] = 1000;
+  assert.ok(block(a, 24000).some((v) => Math.abs(v) > 0.01));
+  a.port.onmessage({ data: 'stop' });
+  assert.ok(block(a, 128).every((v) => v === 0));
+  assert.equal(a.frontHybrid, null);
+  assert.equal(a.rearHybrid, null);
+  assert.deepEqual(input, before);
+});
+
+test('HYBRID UI offers R/Q only and preserves S choice when returning to SPECTRAL', async (t) => {
+  const dom = install(t),
+    life = createAudioLifecycle();
+  t.after(() => life.dispose());
+  const button = dom.elements.get('tire-sound-toggle');
+  const [r, s, q] = dom.elements.get('tire-component-controls').children;
+  button.click();
+  button.click();
+  s.click();
+  assert.equal(s.textContent, 'S: OFF');
+  button.click();
+  assert.equal(button.textContent, 'TIRES: HYBRID');
+  assert.equal(r.getAttribute('disabled'), null);
+  assert.equal(q.getAttribute('disabled'), null);
+  assert.notEqual(s.getAttribute('disabled'), null);
+  assert.notEqual(s.getAttribute('hidden'), null);
+  s.click();
+  r.click();
+  q.click();
+  assert.equal(s.textContent, 'S: OFF');
+  assert.equal(r.textContent, 'R: OFF');
+  assert.equal(q.textContent, 'Q: OFF');
+  await settle();
+  const node = FakeAudioContext.instances[0].nodes.find((n) => n.name === 'vehicle-tires');
+  assert.equal(node.parameters.get('mix_road').value, 0);
+  assert.equal(node.parameters.get('mix_squeal').value, 0);
+  button.click();
+  button.click();
+  button.click();
+  assert.equal(button.textContent, 'TIRES: SPECTRAL');
+  assert.equal(s.getAttribute('hidden'), null);
+  assert.equal(s.getAttribute('disabled'), null);
+  assert.equal(s.textContent, 'S: OFF');
+  life.dispose();
 });

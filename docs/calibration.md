@@ -44,9 +44,19 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#re
 
 Tire sound is a separate presentation calibration, not the GX/PX/GY/PY/KN physical tire law above.
 The [audio contract](audio.md#spectral-game-synthesis) owns equations and signal paths; the
-[checkpoint](NEXT.md#next-work-spectral-tuning) owns feedback, tuning order and listening acceptance.
+[checkpoint](NEXT.md#next-work-hybrid-listening) owns feedback, tuning order and listening acceptance.
 [Development](development.md#tire-comparison-tools) owns reproducible commands. Do not duplicate
 numerical defaults here: [spectral acoustics](../src/audio/tire-spectral-acoustics.ts) is their sole owner.
+
+HYBRID's [settings](../src/audio/tire-hybrid-model.ts) own `pitchOffsetHz`, `squealGain` and
+`harmonicAmplitudeReference`. Pitch offset changes register, gain changes level, and the amplitude
+reference changes harmonic balance; they are separate controls. Its growth/release and pitch mapping
+come directly from [CURRENT](../src/audio/tire-synthesis.ts), so changing that shared law changes the
+reference as well and is not an isolated HYBRID tune. R settings and Q harmonic weights/width/wander
+remain shared with SPECTRAL. HYBRID omits S instead of changing its reference settings.
+
+The following table maps shared SPECTRAL settings; the S-only rows do not apply to HYBRID. SPECTRAL's
+`powerScaleWatts`/`harmonicShapeReference` and its amplitude/pitch envelopes do not drive HYBRID Q.
 
 | Tuning concern                | Named settings / owner                                                                                                                                                      | Coupling and limits                                                                                                                           |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

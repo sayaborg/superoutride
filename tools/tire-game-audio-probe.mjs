@@ -1,3 +1,4 @@
+import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../dist/browser/vehicle-audio.js';
@@ -33,6 +34,9 @@ for (let tick = 0; tick < 600; tick++) {
 const controls = {
   current: trace.map((v) => [tireParameters(v.front), tireParameters(v.rear)]),
   contact: trace.map((v) => [contactTireParameters(v.front), contactTireParameters(v.rear)]),
+  hybrid: trace.map((v) =>
+    [v.front, v.rear].map((t) => ({ ...spectralTireParameters(t), current: tireParameters(t) })),
+  ),
   spectral: trace.map((v) => [spectralTireParameters(v.front), spectralTireParameters(v.rear)]),
 };
 function render(model) {
@@ -44,7 +48,12 @@ function render(model) {
             new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
             new TireContactSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),
           ]
-        : [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)];
+        : model === 'hybrid'
+          ? [
+              new TireHybridSynthesis(rate, SPECTRAL_SETTINGS.seed, CONTACT_ACOUSTICS.frontSeed),
+              new TireHybridSynthesis(rate, SPECTRAL_SETTINGS.rearSeed, CONTACT_ACOUSTICS.rearSeed),
+            ]
+          : [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)];
   const gain = model === 'contact' ? CONTACT_ACOUSTICS.listeningGain : 1;
   let frame = -1,
     peak = 0,
@@ -58,6 +67,7 @@ function render(model) {
         const v = controls[model][frame][axle],
           kernel = pair[axle];
         if (model === 'contact') kernel.update(v.travelSpeed, v.slipSpeed, v.load, v.surfaceIndex);
+        else if (model === 'hybrid') kernel.update(v, v.current, v.surfaceIndex);
         else if (model === 'spectral') kernel.update(v, v.surfaceIndex);
         else kernel.update(v);
       }

@@ -33,17 +33,17 @@ ENGINE TUNING shares eight provisional minus/plus controls with the audition pag
 reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
-TIRES: CURRENT / TIRES: CONTACT / TIRES: SPECTRAL cycles player tire sound while driving.
-CURRENT remains the reload default; only tire output fades, and engines/physics remain unchanged.
-SPECTRAL uses a rotation-linked low rolling texture and finite-width squeal bands whose harmonic balance
-responds to excitation and recovery. For SPECTRAL, R / S / Q buttons independently toggle rolling,
-friction scrub and squeal for both axles. They fade only the selected output; the underlying sound keeps
-running and no remaining layer is boosted. All start ON and survive session changes; reload resets them.
-CURRENT/CONTACT and the engine remain unchanged. The next task is
-[SPECTRAL tuning](docs/NEXT.md#next-work-spectral-tuning); latest R/Q listening acceptance is still open.
-Use the [tuning map](docs/calibration.md#tire-audio-tuning) for source settings and the
-[development guide](docs/development.md#tire-comparison-tools) for replay/verification commands.
-R/S/Q are output switches, not numeric tire-tuning controls.
+TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID cycles player tire sound while driving.
+CURRENT remains the reload default; only tire output fades. HYBRID uses CURRENT's squeal growth/release
+and pitch response with SPECTRAL's finite-width harmonic character, plus the same rotation-driven rolling.
+It has R (rolling) and Q (squeal), with no S (broad scrub). SPECTRAL remains available with R/S/Q.
+The component buttons independently fade both axles' outputs without resetting state or boosting other
+layers. S is hidden in HYBRID; its choice is retained for SPECTRAL. All components start ON, session
+choices survive model/vehicle changes and retry, and reload resets them.
+The next task is [HYBRID listening](docs/NEXT.md#next-work-hybrid-listening); listening acceptance is open.
+See the [tuning map](docs/calibration.md#tire-audio-tuning) and
+[comparison tools](docs/development.md#tire-comparison-tools). Numeric tire tuning is source-owned;
+the engine tuning panel does not change tire sound.
 
 See [current calibration values and meanings](docs/calibration.md).
 

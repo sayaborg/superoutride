@@ -48,12 +48,12 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
       const now = context.currentTime;
       // Controls keep tracking while fading. Only the active or immediately requested mapping is needed.
       for (const axle of ['front', 'rear'] as const) {
-        if (desired === 'current' || active === 'current') {
+        if (desired === 'current' || active === 'current' || desired === 'hybrid' || active === 'hybrid') {
           const controls = tireParameters(state[axle]);
           node.parameters.get(`${axle}_squeal`)!.value = controls.squeal;
           node.parameters.get(`${axle}_pitch`)!.value = controls.pitch;
         }
-        if (desired === 'spectral' || active === 'spectral') {
+        if (desired === 'spectral' || active === 'spectral' || desired === 'hybrid' || active === 'hybrid') {
           const controls = spectralTireParameters(state[axle]);
           for (const key of SPECTRAL_INPUT_KEYS) node.parameters.get(`${axle}_spectral_${key}`)!.value = controls[key];
           node.parameters.get(`${axle}_spectral_surfaceIndex`)!.value = controls.surfaceIndex;

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SpectralBand, TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
+import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
+import { SpectralBand } from '../dist/audio/tire-spectral-primitives.js';
 import { SPECTRAL_INPUTS, SPECTRAL_SETTINGS } from '../dist/audio/tire-spectral-acoustics.js';
 import {
   SPECTRAL_SCENARIOS,
