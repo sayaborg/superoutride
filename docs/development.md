@@ -144,6 +144,12 @@ GitHub Actions checkout logs/artifacts and Git/PR refs are release evidence. Kee
 
 ## Browser delivery
 
+Published HTML also links its stylesheet under `build/<commit>/styles.css`. Staging copies that same
+source CSS into the immutable build and rewrites only the published link; local HTML keeps `styles.css`.
+This prevents a newly deployed DEV layout from reading an independently cached older stylesheet.
+The staging regression executes the actual workflow commands against temporary inputs and checks both
+the versioned CSS link/content and complete ESM/fallback copies. Root CSS remains a legacy fallback.
+
 Pages stages complete ESM builds under `build/<commit>/` and publishes version.txt. Index loads that versioned boot path; all relative imports remain within the same build. The dist path is an explicit fallback for cached index/fetch failure. Each deployment contains only its current SHA under build/, plus the same build under dist/; versioned paths isolate caches and are not a retained rollback history. Preserve this coherent-build design. Do not strip modules based only on direct boot imports: course roots are dynamically selected and assets/diagnostics have separate consumers.
 
 For a reported failure, distinguish source logic, emitted build, deployed artifact and browser/cache state. Do not blame cache without evidence, and do not claim public endpoint verification from local tests alone.

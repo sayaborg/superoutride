@@ -70,6 +70,8 @@ jobs:
           BUILD_ID="${GITHUB_SHA}"
           mkdir -p "_site/build/${BUILD_ID}"
           cp index.html styles.css _site/
+          cp styles.css "_site/build/${BUILD_ID}/styles.css"
+          sed -i "s|href=\"./styles.css\"|href=\"./build/${BUILD_ID}/styles.css\"|" _site/index.html
 
           # Commit-versioned build path is the browser authority. Because every relative
           # ESM import stays under this directory, a new deployment cannot mix old and
