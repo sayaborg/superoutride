@@ -9,14 +9,15 @@ This directory describes the current system. It is not a chronological milestone
 | [vehicle physics](vehicle-physics.md)           | Frozen common mechanics, steering and torque constraints; parameters remain tunable    |
 | [content and gameplay](content-and-gameplay.md) | Authoring, route/race transactions and recovery composition                            |
 | [audio](audio.md)                               | Procedural sound, acoustic observation, fixed voices and browser lifetime              |
-| [calibration](calibration.md)                   | Parameter ownership, present defaults and tuning guidance                              |
+| [calibration](calibration.md)                   | Vehicle defaults and tire-audio tuning ownership                                       |
 | [development](development.md)                   | Build, tests, diagnostics and browser delivery                                         |
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
 
-The [tire sound evidence note](tire-squeal-research.md) is supporting research and records source limits,
-not a runtime contract or a selected algorithm. [Audio](audio.md) owns CURRENT/CONTACT/SPECTRAL
-behavior; [NEXT](NEXT.md#next-decision-a-third-tire-sound-method) owns SPECTRAL game assessment and the listening decision and
-restart. Do not duplicate that brief in another handoff file.
+The [tire sound evidence note](tire-squeal-research.md) supports mechanism discussion, not runtime
+behavior or numerical calibration. [Audio](audio.md) owns CURRENT/CONTACT/SPECTRAL;
+[calibration](calibration.md#tire-audio-tuning) maps tuning controls;
+[NEXT](NEXT.md#next-work-spectral-tuning) owns user feedback, acceptance and the next tuning task.
+Do not duplicate those responsibilities in another proposal or handoff file.
 
 This is the sole specification index. On restart, read the development contract, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.
 
