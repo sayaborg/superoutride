@@ -53,6 +53,7 @@ export class TireSynthesis {
   constructor(
     rate: number,
     private seed: number,
+    private readonly excitationThreshold = 0.12,
   ) {
     this.oscillatorStep = 1 / rate;
     // Tiny reproducible per-source detuning avoids coherent front/rear tones, not stereo localization.
@@ -87,7 +88,8 @@ export class TireSynthesis {
     this.x += 8 * excitation * noise * this.oscillatorStep;
     const radiusSquared = this.x * this.x + this.y * this.y;
     const gain =
-      (1 + 140 * (excitation - 0.12) * this.oscillatorStep) / (1 + 150 * radiusSquared * this.oscillatorStep);
+      (1 + 140 * (excitation - this.excitationThreshold) * this.oscillatorStep) /
+      (1 + 150 * radiusSquared * this.oscillatorStep);
     const x = gain * (this.rotationX * this.x - this.rotationY * this.y);
     this.y = gain * (this.rotationY * this.x + this.rotationX * this.y);
     this.x = x;

@@ -17,16 +17,19 @@ The user authorized a fourth comparison generator: CURRENT's growth/release and 
 SPECTRAL's finite-width squeal character, plus SPECTRAL rolling. This explicitly supersedes the earlier
 SPECTRAL-only tuning decision gate. CURRENT remains the reload default; existing references remain.
 
-| Component | Latest feedback and implemented starting point                                                                                                                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q         | SPECTRAL timbre was preferred; CONTACT response was preferred, with CURRENT also useful. HYBRID uses the actual CURRENT Hopf amplitude and smoothed pitch to excite four spectral harmonic bands. Listening acceptance is open. |
-| R         | Use the present rotation-driven SPECTRAL rolling layer, shared without changing its waveform. Earlier feedback about excessive hiss/weak rotation dependence still needs final listening acceptance.                            |
-| S         | The user questioned its usefulness. HYBRID constructs no scrub bands and offers R/Q only. Original SPECTRAL retains R/S/Q as a comparison. This is a deliberate omission, not proof that sliding has no broadband sound.        |
+| Component | Latest feedback and implemented starting point                                                                                                                                                                                               |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q         | The user found HYBRID promising but squeal too frequent. Its shared Hopf controller now has a higher HYBRID-only excitation threshold. Confirm that mild slip is quieter while strong slip remains responsive; listening acceptance is open. |
+| R         | Use the present rotation-driven SPECTRAL rolling layer, shared without changing its waveform. Earlier feedback about excessive hiss/weak rotation dependence still needs final listening acceptance.                                         |
+| S         | The user questioned its usefulness. HYBRID constructs no scrub bands and offers R/Q only. Original SPECTRAL retains R/S/Q as a comparison. This is a deliberate omission, not proof that sliding has no broadband sound.                     |
 
-First compare Q alone through slip onset, sustained slip, changing slip direction and grip recovery.
+First compare Q alone through mild slip, sustained strong slip and recovery to mild slip. The existing
+Hopf onset is tuned through HYBRID's own setting; CURRENT keeps its original threshold. This deliberate
+calibration supersedes exact equality of the two controllers' amplitudes, while preserving their shared
+equation, excitation following and pitch response. There is no additional gate or envelope.
 HYBRID shifts CURRENT's pitch upward by a fixed offset while retaining its Hz excursions. There is no
 second Q amplitude or pitch envelope. Finite-width bands still add their own short response and random
-variation, so equal control dynamics do not imply identical perceived loudness or audible onset.
+variation, so shared control dynamics do not imply identical perceived loudness or audible onset.
 
 Then assess R alone and R+Q. Include locked translation, supported stationary spin, reverse travel,
 loose surfaces, support loss/recontact, independent axles and model changes/mute/retry. Without S, locked

@@ -349,8 +349,14 @@ The voice publishes both the existing CURRENT excitation/pitch and the spectral 
 not derive CURRENT controls from differently bounded spectral transport or resample the physical solver.
 Each sample advances the same `TireSynthesis.advance()` used by CURRENT. HYBRID takes
 `A = sqrt(x*x+y*y)` and its smoothed pitch, without evaluating CURRENT's periodic output pickup. The
-Hopf state, its noise, onset threshold and growth/release remain shared; there is no second envelope,
-new threshold, hysteresis state, raw oscillator feedthrough or signal-dependent normalization.
+Hopf state, noise, excitation following and growth/release equation remain shared. In response to the
+user's report of excessive squeal, HYBRID explicitly calibrates the existing equation's onset through
+`HYBRID_SETTINGS.excitationThreshold`: `sigma = 140*(smoothedExcitation - excitationThreshold)`.
+Its threshold is 0.20 rather than CURRENT's retained 0.12. This supersedes exact equality of their
+amplitudes at equal input: mild excitation no longer sustains oscillation, stronger slip still grows,
+and recovery decays continuously. Raising this threshold also slightly reduces settled amplitude and
+shortens radial decay; it is not an independent onset-only gate. No second envelope, hysteresis state,
+raw oscillator feedthrough or signal-dependent normalization is introduced.
 
 At the 1 kHz band coefficient clock, the fundamental center is CURRENT's smoothed pitch plus
 `HYBRID_SETTINGS.pitchOffsetHz`, currently +450 Hz. This preserves its Hz excursions while lifting its
@@ -362,28 +368,29 @@ Q band h is excited by `A * squealGain * harmonicWeights[h-1] * c^(h-1)`, with
 `c = min(1, A/harmonicAmplitudeReference)`. The full spectral harmonic palette is retained above the
 reference; weak/recovering oscillation progressively loses upper harmonics. CURRENT already applies
 material susceptibility to its excitation, so HYBRID does not multiply the spectral surface squeal factor
-again. Loose-ground Q therefore follows CURRENT's onset behavior, not SPECTRAL's zero-Q material rule.
+again. Loose-ground Q therefore follows CURRENT's susceptibility mapping with HYBRID's onset threshold,
+not SPECTRAL's zero-Q material rule.
 Fixed gains and the existing 18 Hz DC removal / 8 kHz output filter complete Q. Its finite-width bands
-add a short response and stochastic level variation; matching the controller does not guarantee matched
-perceived loudness, audible onset or final waveform.
+add a short response and stochastic level variation; shared dynamics do not guarantee matched perceived
+loudness, audible onset or final waveform.
 
-Zero support or invalid controls cut R forcing and request zero CURRENT excitation. CURRENT's release
+Zero support or invalid controls cut R forcing and request zero controller excitation. Its release
 and stored band/filter tails decay; Q does not stop abruptly. Band centers/widths freeze during support
 loss. Valid recontact resumes the same states. Both controls are validated as one axle update; a bad
 CURRENT pitch cannot leave spectral forcing running, and bad spectral load cannot leave Q forced.
 
 R is the same shared implementation, settings, seed stream and material following as SPECTRAL, with
 sample-exact equality for the same observations/seed, including surfaces, reverse and support transitions.
-Omitting S deliberately leaves locked translation silent when CURRENT is below onset. No ad hoc rubbing
+Omitting S deliberately leaves locked translation silent when HYBRID is below onset. No ad hoc rubbing
 fallback compensates for that choice. Existing SPECTRAL offers the omitted component for comparison.
 
 The existing worklet constructs only the selected pair. HYBRID computes six bands per axle plus one
 CURRENT state update; no CONTACT root solve or hidden S processing occurs. R/Q buttons use the same
 output fade and saved session choices as SPECTRAL. S is hidden/disabled in HYBRID and its saved choice
 returns with SPECTRAL. Output-off continues the corresponding state with no boost to other components.
-Kernel, worklet and UI regressions cover control fidelity, R equality, band palette, release/recovery,
-S absence, finite domain output, block partitions and model/component lifetime. Host timing is not a
-phone performance or listening acceptance claim.
+Kernel, worklet and UI regressions cover shared control fidelity, mild/strong slip onset, R equality,
+band palette, release/recovery, S absence, finite domain output, block partitions and model/component
+lifetime. Host timing is not a phone performance or listening acceptance claim.
 
 ### Interpretation and cost limits
 

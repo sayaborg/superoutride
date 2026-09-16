@@ -28,9 +28,10 @@ const hybrid = (rate = 48000, seed = SPECTRAL_SETTINGS.seed, controlSeed = CONTA
 const rms = (values) => Math.sqrt(values.reduce((s, v) => s + v * v, 0) / values.length);
 const render = (k, count) => Float64Array.from({ length: count }, () => k.sample());
 
-test('HYBRID advances exactly the CURRENT amplitude and smoothed pitch, including onset and grip recovery', () => {
+test('HYBRID shares CURRENT dynamics with its authored onset and unchanged pitch following', () => {
   for (const rate of [44100, 48000]) {
     const h = hybrid(rate),
+      controller = new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed, HYBRID_SETTINGS.excitationThreshold),
       current = new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
     for (const [excitation, pitch] of [
       [0, 900],
@@ -41,16 +42,56 @@ test('HYBRID advances exactly the CURRENT amplitude and smoothed pitch, includin
       [0.65, 900],
     ]) {
       const controls = { squeal: excitation, pitch };
+      controller.update(controls);
       current.update(controls);
       h.update(input(), controls);
       for (let i = 0; i < rate / 4; i++) {
+        controller.advance();
         current.sample();
         h.sample();
-        assert.equal(h.controller.amplitude, current.amplitude, 'one shared dynamics step per sample');
+        assert.equal(h.controller.amplitude, controller.amplitude, 'one shared dynamics step per sample');
         assert.equal(h.controller.frequency, current.frequency, 'no second pitch envelope');
       }
     }
   }
+});
+
+test('HYBRID suppresses sustained mild-slip squeal while retaining strong-slip growth and smooth recovery', () => {
+  const mild = input({ lateralVelocity: 2, lateralPower: 4000, demand: 0.75 }),
+    strong = input();
+  for (const rate of [44100, 48000])
+    for (const [seed, controlSeed] of [
+      [SPECTRAL_SETTINGS.seed, CONTACT_ACOUSTICS.frontSeed],
+      [SPECTRAL_SETTINGS.rearSeed, CONTACT_ACOUSTICS.rearSeed],
+    ]) {
+      const h = hybrid(rate, seed, controlSeed),
+        current = new TireSynthesis(rate, controlSeed);
+      const hold = (value, seconds) => {
+        const controls = currentControl(value);
+        h.update(value, controls);
+        current.update(controls);
+        let qEnergy = 0;
+        const count = Math.round(rate * seconds);
+        for (let i = 0; i < count; i++) {
+          h.sample();
+          current.sample();
+          if (i >= count / 2) qEnergy += h.squealOutput ** 2;
+        }
+        return Math.sqrt(qEnergy / (count / 2));
+      };
+      const weakLevel = hold(mild, 2);
+      assert.ok(current.amplitude > 0.15, 'the unchanged CURRENT reference sustains this mild slip');
+      assert.ok(h.controller.amplitude < 0.02, 'weak forcing stays below self-sustaining growth');
+      const strongLevel = hold(strong, 1);
+      assert.ok(h.controller.amplitude > 0.9 * current.amplitude, 'strong slip keeps nearly all vibration');
+      assert.ok(strongLevel > 0.015 && weakLevel < strongLevel * 0.05, 'audible Q onset, not a global gain cut');
+      const before = h.controller.amplitude;
+      h.update(mild, currentControl(mild));
+      h.sample();
+      assert.ok(h.controller.amplitude > before * 0.99, 'crossing onset does not hard-gate the state');
+      hold(mild, 2);
+      assert.ok(h.controller.amplitude < 0.02, 'mild slip no longer sustains an earlier strong squeal');
+    }
 });
 
 test('HYBRID preserves every SPECTRAL R sample through rotation, support, reverse and material changes', () => {

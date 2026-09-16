@@ -35,7 +35,8 @@ Player and nearest-rival engines use the accepted native-rate sample-free wavegu
 
 TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID cycles player tire sound while driving.
 CURRENT remains the reload default; only tire output fades. HYBRID uses CURRENT's squeal growth/release
-and pitch response with SPECTRAL's finite-width harmonic character, plus the same rotation-driven rolling.
+equation with a higher onset threshold and the same pitch response, combined with SPECTRAL's finite-width
+harmonic character and rotation-driven rolling.
 It has R (rolling) and Q (squeal), with no S (broad scrub). SPECTRAL remains available with R/S/Q.
 The component buttons independently fade both axles' outputs without resetting state or boosting other
 layers. S is hidden in HYBRID; its choice is retained for SPECTRAL. All components start ON, session

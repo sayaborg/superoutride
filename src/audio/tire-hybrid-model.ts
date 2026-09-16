@@ -11,8 +11,10 @@ import {
 import { SpectralRolling } from './tire-spectral-rolling.js';
 import { TIRE_CONTROL_RANGES } from './tire-sound-controls.js';
 
-/** Listening settings, not measured tire acoustics. CURRENT owns the entire growth/release law. */
+/** Listening settings, not measured tire acoustics. The CURRENT dynamics law is shared. */
 export const HYBRID_SETTINGS = Object.freeze({
+  // Require stronger excitation before Hopf growth; CURRENT retains its original threshold.
+  excitationThreshold: 0.2,
   // Preserve CURRENT's Hz excursions while lifting its 650 Hz base to SPECTRAL's 1100 Hz base.
   pitchOffsetHz: 450,
   // A fixed pickup gain, not RMS matching. Strong Hopf vibration uses the full spectral palette.
@@ -52,7 +54,7 @@ export class TireHybridSynthesis {
     seed: number,
     controlSeed: number,
   ) {
-    this.controller = new TireSynthesis(rate, controlSeed);
+    this.controller = new TireSynthesis(rate, controlSeed, HYBRID_SETTINGS.excitationThreshold);
     const seeds = spectralComponentSeeds(seed);
     this.bands = seeds.squeal.map((value) => new SpectralBand(rate, value));
     this.wander = new SmoothRandom(seeds.wander);
