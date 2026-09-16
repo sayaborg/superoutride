@@ -107,5 +107,6 @@ Do not widen domains or alter rates as an ordinary timbre adjustment.
 
 Component switches are defined by [tire controls](../src/audio/tire-sound-controls.ts) and applied by
 the existing voice/worklet. HYBRID/SPECTRAL expose R/S/Q; UNIFIED exposes R/Q with S hidden. They change
-output only, not synthesis coefficients or normalization. Numeric tire settings are source-owned;
-rebuild and reload after changing them.
+output only, not synthesis coefficients or normalization. Audio owns numeric defaults and ranges. DEV exposes eleven validated UNIFIED friction sliders;
+see [mobile tuning](audio.md#mobile-dev-panel-and-tire-audition-controls) for replacement and session semantics.
+Other numeric settings remain source-only.

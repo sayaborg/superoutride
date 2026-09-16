@@ -2,54 +2,49 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('debug selectors remain device-independent while legacy touch driving panels stay hidden', async () => {
-  const [index, styles] = await Promise.all([
-    readFile(new URL('../index.html', import.meta.url), 'utf8'),
-    readFile(new URL('../styles.css', import.meta.url), 'utf8'),
-  ]);
-
-  for (const group of ['course', 'vehicle', 'camera', 'steering-offset', 'max-steer', 'act', 'tire']) {
-    assert.match(index, new RegExp(`selector-group selector-group-${group}`));
-    assert.match(styles, new RegExp(`\\.selector-group-${group}`));
+test('DEV disclosure replaces permanent selector rows with a bounded scrollable overlay', async () => {
+  const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  assert.ok(index.includes('<details id="dev-panel" data-driving-input="ignore">'));
+  for (const id of [
+    'course-selector-buttons',
+    'vehicle-selector-buttons',
+    'sound-toggle',
+    'sound-volume',
+    'engine-volume',
+    'tire-volume',
+    'tire-tuning',
+    'sound-tuning',
+  ]) {
+    const position = index.indexOf(`id="${id}"`);
+    assert.ok(position > index.indexOf('<details') && position < index.indexOf('</details>'));
   }
-
-  assert.match(styles, /\.mobile-selector-zone\s*\{[^}]*display:\s*grid;[^}]*\}/s);
-  assert.doesNotMatch(styles, /\.mobile-selector-zone\s*\{[^}]*display:\s*none;[^}]*\}/s);
-  assert.match(styles, /\.control-zone\s*\{[^}]*display:\s*none;/s);
-  assert.match(styles, /\.touch-capable \.control-zone\s*\{[^}]*display:\s*none;/s);
-  assert.doesNotMatch(styles, /\.touch-capable \.mobile-selector-zone\s*\{[^}]*display:/s);
-  assert.match(styles, /\.touch-analog-indicator\s*\{[^}]*position:\s*fixed;[^}]*pointer-events:\s*none;/s);
-
-  assert.doesNotMatch(styles, /100dvh\s*-\s*(?:228|409|459)px/);
-  assert.match(styles, /#app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
-  assert.match(styles, /grid-template-columns:\s*repeat\(12, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /\.touch-capable #app\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\);/s);
-  assert.doesNotMatch(styles, /\.touch-capable #app\s*\{[^}]*124px;/s);
+  assert.match(styles, /#dev-panel\s*\{[^}]*position:\s*fixed;/s);
   assert.match(
     styles,
-    /#game\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*object-fit:\s*contain;[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s,
+    /#dev-panel \.mobile-selector-zone\s*\{[^}]*max-height:[^;]*100dvh[^;]*;[^}]*overflow-y:\s*auto;/s,
   );
+  assert.match(styles, /#app\s*\{[^}]*grid-template-rows:\s*minmax\(0, 1fr\);/s);
+  assert.match(styles, /\.game-zone\s*\{[^}]*touch-action:\s*none;/s);
+  assert.match(styles, /#dev-panel\s*\{[^}]*touch-action:\s*pan-y;/s);
+  assert.match(styles, /\.control-zone\s*\{[^}]*display:\s*none;/s);
+  assert.match(styles, /\.touch-analog-indicator\s*\{[^}]*pointer-events:\s*none;/s);
+  assert.match(styles, /#game\s*\{[^}]*object-fit:\s*contain;/s);
 });
 
-test('reference touch viewports have enough selector width for every direct choice', () => {
-  const gridWidth = (width, columns, gap) => (width - gap * (columns - 1)) / columns;
-  const requiredButtonsWidth = (columns, minWidth, gap) => columns * minWidth + gap * (columns - 1);
-
-  const portraitInnerWidth = 390 - 16;
-  const portraitColumnWidth = gridWidth(portraitInnerWidth, 2, 14);
-  assert.ok(requiredButtonsWidth(4, 32, 4) <= portraitColumnWidth);
-  assert.ok(requiredButtonsWidth(9, 32, 4) <= portraitInnerWidth);
-  assert.ok(requiredButtonsWidth(5, 32, 4) <= portraitInnerWidth);
-  assert.ok(requiredButtonsWidth(5, 32, 4) <= portraitInnerWidth);
-  assert.ok(requiredButtonsWidth(3, 32, 4) <= portraitColumnWidth);
-
-  const landscapeInnerWidth = 844 - 12;
-  const landscapeColumnWidth = gridWidth(landscapeInnerWidth, 12, 8);
-  const spanWidth = (columns) => landscapeColumnWidth * columns + 8 * (columns - 1);
-  assert.ok(requiredButtonsWidth(5, 36, 4) <= spanWidth(4));
-  assert.ok(requiredButtonsWidth(5, 36, 4) <= spanWidth(5));
-  assert.ok(requiredButtonsWidth(5, 36, 4) <= spanWidth(3));
-  assert.ok(requiredButtonsWidth(4, 36, 4) <= spanWidth(3));
-  assert.ok(requiredButtonsWidth(3, 36, 4) <= spanWidth(3));
+test('DEV targets and panel fit narrow portrait and short landscape geometry', async () => {
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  assert.match(styles, /#dev-panel \.selector-button\s*\{[^}]*min-height:\s*44px;/s);
+  assert.match(styles, /\.range-control input\s*\{[^}]*height:\s*44px;/s);
+  assert.ok(styles.includes('calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right))'));
+  // Geometry supplements, not replaces, real mobile-browser interaction.
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [667, 375],
+    [844, 390],
+  ]) {
+    assert.ok(Math.min(420, width - 16) - 24 >= 2 * 64 + 4);
+    assert.ok(height - 76 >= 2 * 44);
+  }
 });

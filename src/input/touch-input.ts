@@ -103,6 +103,9 @@ export class TouchInput {
 
   private beginAnalogPointer(event: PointerEvent): void {
     if (event.pointerType !== 'touch') return;
+    // UI-owned gestures remain available for scrolling/sliders, not driving pointers.
+    if (event.composedPath?.().some((target) => (target as Element).getAttribute?.('data-driving-input') === 'ignore'))
+      return;
     const viewportWidth = this.lifecycleTarget.innerWidth;
     const viewportHeight = this.lifecycleTarget.innerHeight;
     const fullScaleDistance = touchAnalogFullScaleDistance(viewportWidth, viewportHeight);

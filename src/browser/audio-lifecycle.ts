@@ -1,4 +1,6 @@
 import { mountAudioTuningControls } from './audio-tuning-controls.js';
+import { mountTireTuningControls } from './tire-tuning-controls.js';
+import { createRangeControl } from './range-control.js';
 import { createNumberStepper } from './number-stepper.js';
 import { createAudioEngine } from '../audio/audio-engine.js';
 import {
@@ -56,6 +58,8 @@ export function createAudioLifecycle() {
     disposed = false;
   let failed = false;
   let volume = 0.35;
+  let engineVolume = 1,
+    tireVolume = 1;
   const playerState = createVehicleAudioObservation(),
     rivalState = createVehicleAudioObservation();
   let nextRival: ArcadeVehicleState | null = null;
@@ -88,6 +92,31 @@ export function createAudioLifecycle() {
       })
     : null;
   if (volumeControl) volumeContainer!.replaceChildren(volumeControl.group);
+  const mixControls = (['engine', 'tire'] as const).flatMap((kind) => {
+    const host = document.getElementById(`${kind}-volume`);
+    if (!host) return [];
+    const control = createRangeControl(
+      `${kind === 'engine' ? 'ENG' : 'TIRE'} 音量`,
+      { min: 0, max: 100, step: 1 },
+      100,
+      (value) => {
+        if (kind === 'engine') engineVolume = value / 100;
+        else tireVolume = value / 100;
+        unlock();
+        sync();
+      },
+      '%',
+    );
+    host.replaceChildren(control.group);
+    return { host, control };
+  });
+  const tireTuningHost = document.getElementById('tire-tuning');
+  const tireTuning = tireTuningHost
+    ? mountTireTuningControls(tireTuningHost, () => {
+        unlock();
+        sync();
+      })
+    : null;
   function showSoundState(): void {
     if (!button || disposed) return;
     button.textContent = !supported
@@ -123,6 +152,7 @@ export function createAudioLifecycle() {
   }
   function showTireModel(): void {
     showComponents();
+    tireTuning?.setEnabled(supported && tireModel === 'unified');
     if (!tireButton) return;
     tireButton.textContent = `TIRES: ${tireModel.toUpperCase()}`;
     tireButton.removeAttribute('aria-pressed'); // Also retire the boolean state on an older cached index.
@@ -183,6 +213,8 @@ export function createAudioLifecycle() {
     try {
       if (tuningControls) engine.setTuning(tuningControls.read());
       engine.setTireModel(tireModel);
+      if (tireTuning) engine.setTireTuning(tireTuning.read());
+      engine.setMix(engineVolume, tireVolume);
       engine.setTireComponents(componentState);
       engine.setVolume(audible() ? volume : 0);
       if (!active || document.hidden || disposed) void context.suspend().catch(() => {});
@@ -280,6 +312,11 @@ export function createAudioLifecycle() {
     volumeControl?.dispose();
     volumeContainer?.replaceChildren();
     tuningControls?.dispose();
+    tireTuning?.dispose();
+    for (const { host, control } of mixControls) {
+      control.dispose();
+      host.replaceChildren();
+    }
     releaseAudio();
   }
   for (const type of GESTURE_EVENTS) window.addEventListener(type, unlock);

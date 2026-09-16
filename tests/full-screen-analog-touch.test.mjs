@@ -239,3 +239,20 @@ test('touch layout hides legacy fixed driving panels while keeping full-screen o
   assert.match(css, /\.touch-analog-steering \.touch-analog-origin-icon/);
   assert.match(css, /\.touch-analog-pedal \.touch-analog-origin-icon/);
 });
+
+test('UI-owned pointer starts do not acquire driving input; game gestures still work', () => {
+  const { lifecycle, touch } = createTouchFixture();
+  const panel = { getAttribute: (name) => (name === 'data-driving-input' ? 'ignore' : null) };
+  for (const x of [100, 300]) {
+    lifecycle.dispatch('pointerdown', { ...pointer(90, x, 300), composedPath: () => [{}, panel, lifecycle] });
+    lifecycle.dispatch('pointermove', pointer(90, x + 64, 236));
+    const sample = touch.sample();
+    assert.equal(sample.steering, 0);
+    assert.equal(normalizedPedalRequest(sample.throttle), 0);
+    assert.equal(normalizedPedalRequest(sample.brake), 0);
+    lifecycle.dispatch('pointerup', pointer(90, x + 64, 236));
+  }
+  lifecycle.dispatch('pointerdown', pointer(91, 100, 300));
+  lifecycle.dispatch('pointermove', pointer(91, 164, 300));
+  assert.equal(touch.sample().steering, 1);
+});

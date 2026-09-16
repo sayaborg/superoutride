@@ -21,8 +21,8 @@ The friction system uses the same vibration states for noise-driven rubbing and 
 without a separate amplitude envelope or an S/Q crossfade. Its parameters are authored acoustic choices.
 
 HYBRID's squeal method remains accepted, and HYBRID remains the default. Its R/S/Q waveforms are
-preserved while R is extracted into a shared source. UNIFIED has not been listening-approved and is
-not automatically adopted. CURRENT/CONTACT/SPECTRAL also remain unchanged comparison references.
+preserved while R is extracted into a shared source. The user considers UNIFIED promising and requests mobile DEV tuning before further calibration.
+It is not automatically adopted as the reload default. CURRENT/CONTACT/SPECTRAL also remain unchanged comparison references.
 
 | Comparison                               | Listening question                                                                                       |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -40,7 +40,10 @@ layers to conceal a failed transition. Revisit the shared mechanism and its auth
 
 Component switches fade outputs without resetting running states or compensating other components.
 Choices survive model/vehicle changes and retry; reload restores HYBRID with all components on.
-Numeric tire controls remain source-owned, separate from physical calibration and engine tuning.
+DEV now opens a scrollable overlay with separate ENG/TIRE volume and eleven UNIFIED friction sliders.
+Select UNIFIED to enable its sliders. Validate phone portrait/landscape scrolling, closing, slider
+response and touch-driving isolation. Defaults remain unchanged; numeric ranges are authored, not measured.
+Audio tuning remains separate from physical calibration and engine tuning.
 [Audio](audio.md#unified-game-synthesis) owns equations and boundaries;
 [calibration](calibration.md#tire-audio-tuning) maps settings and coupling. Keep numerical/spectral
 checks, synthetic listening, host timing and actual device performance as distinct evidence.

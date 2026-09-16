@@ -20,7 +20,7 @@ body {
 body {
   min-height: 100dvh;
   overflow: hidden;
-  touch-action: none;
+  touch-action: auto;
 }
 
 #app {
@@ -32,7 +32,7 @@ body {
   padding-left: env(safe-area-inset-left);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 8px;
   align-items: stretch;
   justify-items: center;
@@ -41,7 +41,7 @@ body {
 
 .game-zone {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 1;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -51,6 +51,7 @@ body {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
+  touch-action: none;
 }
 
 #game {
@@ -303,165 +304,6 @@ body {
   white-space: nowrap;
 }
 
-@media (orientation: landscape) {
-  .mobile-selector-zone {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto auto auto;
-    gap: 6px 8px;
-  }
-
-  .selector-group-course {
-    grid-column: 1 / span 3;
-    grid-row: 1;
-  }
-
-  .selector-group-vehicle {
-    grid-column: 4 / span 4;
-    grid-row: 1;
-  }
-
-  .selector-group-camera {
-    grid-column: 8 / span 5;
-    grid-row: 1;
-  }
-
-  .selector-group-tire {
-    grid-column: 1 / -1;
-    grid-row: 3;
-  }
-
-  .selector-group-steering-offset {
-    grid-column: 1 / span 4;
-    grid-row: 2;
-  }
-
-  .selector-group-max-steer {
-    grid-column: 5 / span 4;
-    grid-row: 2;
-  }
-
-  .selector-group-act {
-    grid-column: 9 / span 4;
-    grid-row: 2;
-  }
-
-  .selector-button {
-    min-width: 30px;
-    min-height: 32px;
-    padding: 2px;
-    font-size: clamp(8px, 1.55vw, 10px);
-  }
-
-  .course-selector-buttons {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .vehicle-selector-buttons {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .camera-selector-buttons {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .touch-capable #app {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 6px;
-    padding-inline: max(6px, env(safe-area-inset-left)) max(6px, env(safe-area-inset-right));
-  }
-
-  .touch-capable .mobile-selector-zone {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .touch-capable .game-zone {
-    grid-column: 1;
-    grid-row: 2;
-  }
-}
-
-@media (orientation: portrait) {
-  .mobile-selector-zone {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-template-rows: repeat(4, auto);
-    gap: 4px 8px;
-  }
-
-  .selector-group-course {
-    grid-column: 1 / span 3;
-    grid-row: 1;
-  }
-
-  .selector-group-camera {
-    grid-column: 4 / span 3;
-    grid-row: 1;
-  }
-
-  .selector-group-vehicle {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
-  .selector-group-steering-offset {
-    grid-column: 1 / span 2;
-    grid-row: 3;
-  }
-
-  .selector-group-max-steer {
-    grid-column: 3 / span 2;
-    grid-row: 3;
-  }
-
-  .selector-group-act {
-    grid-column: 5 / span 2;
-    grid-row: 3;
-  }
-
-  .selector-group-tire {
-    grid-column: 1 / -1;
-    grid-row: 4;
-  }
-
-  .selector-button {
-    min-width: 32px;
-    min-height: 32px;
-    padding: 2px;
-    font-size: clamp(8px, 2.3vw, 10px);
-  }
-
-  .course-selector-buttons {
-    grid-template-columns: repeat(4, minmax(32px, 1fr));
-  }
-
-  .vehicle-selector-buttons {
-    grid-template-columns: repeat(9, minmax(32px, 1fr));
-  }
-
-  .camera-selector-buttons {
-    grid-template-columns: repeat(2, minmax(32px, 1fr));
-  }
-
-  .touch-capable #app {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 8px;
-    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-  }
-
-  .touch-capable .mobile-selector-zone {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .touch-capable .game-zone {
-    grid-column: 1;
-    grid-row: 2;
-  }
-}
-
 /* Calibration steppers share one presentation across steering and tire controls. */
 .tire-friction-selector-buttons {
   grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
@@ -550,4 +392,111 @@ body {
 }
 .audio-tuning-reset {
   justify-self: start;
+}
+
+/* Overlay never consumes game layout; only the DEV body scrolls. */
+#dev-panel {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  z-index: 1100;
+  max-width: calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  touch-action: pan-y;
+}
+.dev-toggle {
+  width: max-content;
+  margin-left: auto;
+  padding: 10px 16px;
+  min-height: 44px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dev-close-label,
+#dev-panel[open] .dev-open-label {
+  display: none;
+}
+#dev-panel[open] .dev-close-label {
+  display: inline;
+}
+#dev-panel .mobile-selector-zone {
+  width: 420px;
+  max-width: 100%;
+  max-height: calc(100dvh - 76px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  gap: 16px;
+  border: 1px solid #49616e;
+  border-radius: 12px;
+  background: #080e15;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+}
+#dev-panel .selector-group {
+  grid-column: 1;
+  grid-row: auto;
+}
+#dev-panel .selector-button {
+  min-height: 44px;
+  font-size: 12px;
+}
+#dev-panel .selector-buttons {
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+}
+#dev-panel .tire-friction-selector-buttons {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+#dev-panel .calibration-control {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+#dev-panel .selector-label,
+#dev-panel .audio-tuning-row {
+  font-size: 12px;
+}
+#dev-panel fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #49616e;
+}
+#dev-panel fieldset:disabled {
+  opacity: 0.5;
+}
+#dev-panel p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.range-control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+}
+.range-control output {
+  color: #ffd08a;
+  font-variant-numeric: tabular-nums;
+}
+.range-control input {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  accent-color: #ffd08a;
+  touch-action: pan-y;
+}
+#engine-volume,
+#tire-volume {
+  width: 100%;
+}
+[hidden] {
+  display: none !important;
+}
+
+.selector-button {
+  min-width: 30px;
+  min-height: 44px;
+  padding: 4px;
+  font-size: 12px;
 }

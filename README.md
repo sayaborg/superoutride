@@ -16,8 +16,7 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. See the documentation index for the complete development workflow.
 
-For engine tuning while driving, open `http://localhost:8000/?mode=circuit` and use ENGINE TUNING
-above the game. `http://localhost:8000/tools/audio-browser.html` is the separate audition page;
+For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio-browser.html` is the separate audition page;
 serve both over HTTP, rather than opening HTML files directly. See the [audio specification](docs/audio.md)
 for the signal path, parameters and approximation limits.
 
@@ -44,8 +43,9 @@ The next task is [UNIFIED listening](docs/NEXT.md#next-work-unified-listening): 
 squeal and its onset against HYBRID before choosing a primary method. Numerical checks do not establish
 real-tire calibration or listening acceptance.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and
-[comparison tools](docs/development.md#tire-comparison-tools). Numeric tire tuning is source-owned;
-the engine tuning panel does not change tire sound.
+[comparison tools](docs/development.md#tire-comparison-tools). DEV provides independent ENG/TIRE volume sliders and eleven UNIFIED friction sliders with reset.
+Select UNIFIED to enable them. They are authored sound settings, not physical tire parameters.
+The panel scrolls on phones and closes without changing the game size; reload restores defaults.
 
 See [current calibration values and meanings](docs/calibration.md).
 

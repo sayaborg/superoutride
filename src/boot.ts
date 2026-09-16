@@ -9,6 +9,20 @@ import { mountMobileCourseSelector } from './browser/mobile-selector-controls.js
 const parameters = new URLSearchParams(location.search);
 const selectedMode = selectBrowserCourseMode(parameters.get('mode'));
 const courseSelector = mustGet<HTMLElement>('course-selector-buttons');
+const devPanel = mustGet<HTMLDetailsElement>('dev-panel');
+devPanel.addEventListener('keydown', (event) => {
+  event.stopPropagation();
+});
+devPanel.addEventListener(
+  'keydown',
+  (event) => {
+    if (event.key === 'Escape') {
+      devPanel.open = false;
+      devPanel.querySelector<HTMLElement>('summary')?.focus();
+    }
+  },
+  true,
+);
 
 mountMobileCourseSelector(courseSelector, selectedMode.query, navigateToCourseMode);
 

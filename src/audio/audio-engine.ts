@@ -2,6 +2,7 @@ import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { ExhaustTuning } from './exhaust-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
+import type { UnifiedTuning } from './tire-unified-acoustics.js';
 import type { TireSoundModel, TireComponents } from './tire-sound-controls.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
@@ -19,11 +20,16 @@ export async function createAudioEngine(context: AudioContext) {
   safety.attack.value = 0.003;
   safety.release.value = 0.12;
   master.connect(safety).connect(context.destination);
-  const player = createEngineVoice(context, master);
+  const engineBus = context.createGain();
+  const tireBus = context.createGain();
+  engineBus.gain.value = tireBus.gain.value = 1;
+  engineBus.connect(master);
+  tireBus.connect(master);
+  const player = createEngineVoice(context, engineBus);
   const rivalPan = context.createStereoPanner();
-  rivalPan.connect(master);
+  rivalPan.connect(engineBus);
   const rival = createEngineVoice(context, rivalPan);
-  const tires = createTireVoice(context, master);
+  const tires = createTireVoice(context, tireBus);
   let disposed = false;
   return {
     update(state: VehicleAudioObservation, profile: VehicleAudioProfile): void {
@@ -44,6 +50,14 @@ export async function createAudioEngine(context: AudioContext) {
     setTireModel(model: TireSoundModel): void {
       tires.setModel(model);
     },
+    setTireTuning(value: UnifiedTuning): void {
+      tires.setTuning(value);
+    },
+    setMix(engine: number, tire: number): void {
+      if (!Number.isFinite(engine + tire)) throw new RangeError('invalid audio mix');
+      follow(engineBus.gain, clamp(engine, 0, 1), context.currentTime, 0.015);
+      follow(tireBus.gain, clamp(tire, 0, 1), context.currentTime, 0.015);
+    },
     setTireComponents(value: TireComponents): void {
       tires.setComponents(value);
     },
@@ -56,7 +70,7 @@ export async function createAudioEngine(context: AudioContext) {
       player.dispose();
       rival.dispose();
       tires.dispose();
-      for (const node of [rivalPan, master, safety]) node.disconnect();
+      for (const node of [rivalPan, engineBus, tireBus, master, safety]) node.disconnect();
     },
   };
 }

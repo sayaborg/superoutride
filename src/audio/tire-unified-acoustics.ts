@@ -20,7 +20,7 @@ export const UNIFIED_SETTINGS = Object.freeze({
   modes: Object.freeze([
     Object.freeze({ frequencyHz: 300, dampingPerSecond: 2 * Math.PI * 500, participation: 0.45 }),
     Object.freeze({ frequencyHz: 1350, dampingPerSecond: 2 * Math.PI * 500, participation: Math.sqrt(1 - 0.45 ** 2) }),
-  ]),
+  ] as const),
   // Fixed displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
   outputGainPerSecond: 900,
   outputCutoffHz: 8000,
@@ -38,3 +38,41 @@ export const UNIFIED_SURFACES = Object.freeze({
 
 /** Numerical support only; no listening threshold or emergency output clamp. */
 export const UNIFIED_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
+
+/** Authored audition bounds, NOT measured tire ranges. All combinations retain passive modes. */
+export const UNIFIED_TUNING_RANGES = Object.freeze({
+  feedbackMaximumPerSecond: {
+    min: 2000,
+    max: 12000,
+    step: 100,
+    defaultValue: UNIFIED_SETTINGS.feedbackMaximumPerSecond,
+  },
+  saturationPerSecond: { min: 3000, max: 12000, step: 100, defaultValue: UNIFIED_SETTINGS.saturationPerSecond },
+  powerReferenceWatts: { min: 3000, max: 30000, step: 500, defaultValue: UNIFIED_SETTINGS.powerReferenceWatts },
+  slipHalfMps: { min: 1, max: 12, step: 0.25, defaultValue: UNIFIED_SETTINGS.slipHalfMps },
+  slipRolloffMps: { min: 20, max: 80, step: 1, defaultValue: UNIFIED_SETTINGS.slipRolloffMps },
+  noiseBandwidthHz: { min: 100, max: 2000, step: 25, defaultValue: UNIFIED_SETTINGS.noiseBandwidthHz },
+  noiseForcePerSecond: { min: 0, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.noiseForcePerSecond },
+  lowFrequencyHz: { min: 275, max: 600, step: 5, defaultValue: UNIFIED_SETTINGS.modes[0].frequencyHz },
+  highFrequencyHz: { min: 800, max: 2400, step: 25, defaultValue: UNIFIED_SETTINGS.modes[1].frequencyHz },
+  outputGainPerSecond: { min: 0, max: 1800, step: 25, defaultValue: UNIFIED_SETTINGS.outputGainPerSecond },
+  outputCutoffHz: { min: 1000, max: 12000, step: 100, defaultValue: UNIFIED_SETTINGS.outputCutoffHz },
+});
+
+export type UnifiedTuning = Readonly<Record<keyof typeof UNIFIED_TUNING_RANGES, number>>;
+
+export function resolveUnifiedTuning(value: Partial<UnifiedTuning> = {}): UnifiedTuning {
+  const result = {} as Record<keyof UnifiedTuning, number>;
+  for (const key of Object.keys(UNIFIED_TUNING_RANGES) as (keyof UnifiedTuning)[]) {
+    const range = UNIFIED_TUNING_RANGES[key];
+    const number = value[key] === undefined ? range.defaultValue : value[key];
+    if (!Number.isFinite(number) || number < range.min || number > range.max)
+      throw new RangeError(`invalid unified tuning: ${key}`);
+    result[key] = number;
+  }
+  return Object.freeze(result);
+}
+
+export function sameUnifiedTuning(a: UnifiedTuning, b: UnifiedTuning): boolean {
+  return (Object.keys(UNIFIED_TUNING_RANGES) as (keyof UnifiedTuning)[]).every((key) => a[key] === b[key]);
+}

@@ -1,6 +1,11 @@
 import { FrictionResonator } from './friction-resonator.js';
 import { TireRollingSynthesis } from './tire-rolling-model.js';
-import { UNIFIED_SETTINGS as S, UNIFIED_SURFACES } from './tire-unified-acoustics.js';
+import {
+  UNIFIED_SETTINGS as S,
+  UNIFIED_SURFACES,
+  resolveUnifiedTuning,
+  type UnifiedTuning,
+} from './tire-unified-acoustics.js';
 import { TIRE_SOUND_SURFACES, type TireSoundObservation } from './tire-sound-observation.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
@@ -12,6 +17,7 @@ export class TireUnifiedSynthesis {
   private readonly follow: number;
   private readonly dcPole: number;
   private readonly outputFollow: number;
+  private readonly settings: UnifiedTuning;
   private active = false;
   private targetForce = 0;
   private targetFeedback = 0;
@@ -23,12 +29,24 @@ export class TireUnifiedSynthesis {
   roadOutput = 0;
   frictionOutput = 0;
 
-  constructor(rate: number, seed: number = S.frontSeed) {
-    this.friction = new FrictionResonator(rate, S, seed);
+  constructor(rate: number, seed: number = S.frontSeed, tuning: Partial<UnifiedTuning> = {}) {
+    this.settings = resolveUnifiedTuning(tuning);
+    const settings = this.settings;
+    this.friction = new FrictionResonator(
+      rate,
+      {
+        ...settings,
+        modes: [
+          { ...S.modes[0], frequencyHz: settings.lowFrequencyHz },
+          { ...S.modes[1], frequencyHz: settings.highFrequencyHz },
+        ],
+      },
+      seed,
+    );
     this.rolling = new TireRollingSynthesis(rate, seed);
     this.follow = 1 - Math.exp(-1 / (rate * S.controlSeconds));
     this.dcPole = Math.exp((-2 * Math.PI * S.dcHz) / rate);
-    this.outputFollow = 1 - Math.exp((-2 * Math.PI * S.outputCutoffHz) / rate);
+    this.outputFollow = 1 - Math.exp((-2 * Math.PI * settings.outputCutoffHz) / rate);
   }
 
   get frictionEnergy(): number {
@@ -36,6 +54,7 @@ export class TireUnifiedSynthesis {
   }
 
   update(value: TireSoundObservation, surfaceIndex = 0): void {
+    const S = this.settings;
     try {
       // The rolling source validates and releases its own forcing on invalid observations.
       this.rolling.update(value, surfaceIndex);
@@ -69,7 +88,7 @@ export class TireUnifiedSynthesis {
       this.force += this.follow * (this.targetForce - this.force);
       this.feedback += this.follow * (this.targetFeedback - this.feedback);
     }
-    const value = this.friction.sample(this.feedback, this.force) * S.outputGainPerSecond;
+    const value = this.friction.sample(this.feedback, this.force) * this.settings.outputGainPerSecond;
     this.highpass = value - this.previous + this.dcPole * this.highpass;
     this.previous = value;
     this.filtered += this.outputFollow * (this.highpass - this.filtered);

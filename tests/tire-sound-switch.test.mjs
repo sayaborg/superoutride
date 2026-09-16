@@ -1,7 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
 import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
-import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
+import { UNIFIED_SETTINGS, resolveUnifiedTuning } from '../dist/audio/tire-unified-acoustics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -52,6 +52,97 @@ const world = () => {
   return { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 };
 const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+test('UNIFIED tuning replacements fade, coalesce and cancel without replacing engines', (t) => {
+  install(t);
+  const context = new FakeAudioContext();
+  const voice = createTireVoice(context, context.destination);
+  const node = context.nodes.find((n) => n.name === 'vehicle-tires');
+  const defaults = resolveUnifiedTuning();
+  const changed = resolveUnifiedTuning({ highFrequencyHz: 1600 });
+  voice.setModel('unified');
+  voice.update(state());
+  assert.equal(node.messages.length, 1);
+  voice.setTuning(changed);
+  voice.update(state());
+  assert.equal(node.messages.length, 1);
+  context.currentTime = 0.04;
+  voice.setTuning(defaults);
+  voice.update(state());
+  context.currentTime = 0.2;
+  voice.update(state());
+  assert.equal(node.messages.length, 1, 'return to active tuning cancels replacement');
+  voice.setTuning(changed);
+  voice.update(state());
+  context.currentTime = 0.24;
+  voice.setTuning(resolveUnifiedTuning({ highFrequencyHz: 1800 }));
+  voice.update(state());
+  context.currentTime = 0.31;
+  voice.update(state());
+  assert.equal(node.messages.length, 1);
+  context.currentTime = 0.35;
+  voice.update(state());
+  assert.equal(node.messages.at(-1).tuning.highFrequencyHz, 1800);
+  assert.equal(node.messages.length, 2);
+  voice.setModel('hybrid');
+  voice.update(state());
+  context.currentTime = 0.5;
+  voice.update(state());
+  const count = node.messages.length;
+  voice.setTuning(defaults);
+  voice.update(state());
+  context.currentTime = 0.7;
+  voice.update(state());
+  assert.equal(node.messages.length, count, 'reference models do not consume UNIFIED edits');
+  voice.dispose();
+});
+
+test('mobile mix and UNIFIED settings survive delayed load and sound retry', async (t) => {
+  let lifecycle;
+  t.after(() => lifecycle?.dispose());
+  const dom = install(t);
+  let finish;
+  FakeAudioContext.load = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  lifecycle = createAudioLifecycle();
+  const eng = dom.elements.get('engine-volume').children[0].children[2];
+  const tire = dom.elements.get('tire-volume').children[0].children[2];
+  eng.value = '25';
+  eng.emit('input');
+  tire.value = '60';
+  tire.emit('input');
+  dom.elements.get('tire-sound-toggle').click(); // default HYBRID -> UNIFIED
+  const row = dom.elements
+    .get('tire-tuning')
+    .children[0].children.find((c) => c.getAttribute('data-tire-tuning-key') === 'highFrequencyHz');
+  row.children[2].value = '1800';
+  row.children[2].emit('input');
+  finish();
+  await settle();
+  const vehicle = createArcadeVehicle(VEHICLE_CATALOG[0].profile, world());
+  // Use the same production fixture constructor as the existing lifecycle scenarios below.
+  lifecycle.update(vehicle, []);
+  const context = FakeAudioContext.instances[0];
+  const worklet = context.nodes.find((n) => n.name === 'vehicle-tires');
+  assert.equal(worklet.messages.at(-1).tuning.highFrequencyHz, 1800);
+  const master = context.nodes[0];
+  const buses = context.nodes.filter((n) => n.connections.includes(master));
+  assert.ok(buses.some((n) => n.gain.value === 0.25));
+  assert.ok(buses.some((n) => n.gain.value === 0.6));
+  worklet.onprocessorerror();
+  lifecycle.update(vehicle, []);
+  assert.equal(context.state, 'closed');
+  FakeAudioContext.load = () => Promise.resolve();
+  dom.elements.get('sound-toggle').click();
+  await settle();
+  lifecycle.update(vehicle, []);
+  const next = FakeAudioContext.instances[1];
+  assert.equal(next.nodes.find((n) => n.name === 'vehicle-tires').messages.at(-1).tuning.highFrequencyHz, 1800);
+  assert.ok(next.nodes.some((n) => n.gain.value === 0.25));
+  assert.ok(next.nodes.some((n) => n.gain.value === 0.6));
+});
 function install(t) {
   const dom = installBrowserDom(t);
   FakeAudioContext.instances = [];
@@ -96,6 +187,45 @@ async function processor(t) {
   await import(`../dist/audio/tire-processor.js?test=${encodeURIComponent(t.name)}`);
   return Processor;
 }
+
+test('worklet installs validated UNIFIED tuning, preserves identical state and recovers after invalid tuning', async (t) => {
+  const Processor = await processor(t);
+  const node = new Processor();
+  const tuning = resolveUnifiedTuning({ highFrequencyHz: 1800, noiseForcePerSecond: 1600 });
+  node.port.onmessage({ data: { model: 'unified', tuning } });
+  const original = node.pair;
+  const p = params();
+  const observation = {
+    longitudinalVelocity: 25,
+    lateralVelocity: 6,
+    wheelSpeed: 25,
+    wheelAngularSpeed: 80,
+    load: 4000,
+    longitudinalPower: 0,
+    lateralPower: 24000,
+    demand: 1.5,
+  };
+  for (const axle of ['front', 'rear'])
+    for (const [key, value] of Object.entries(observation)) p[`${axle}_tire_${key}`][0] = value;
+  const front = new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.frontSeed, tuning);
+  const rear = new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.rearSeed, tuning);
+  front.update(observation);
+  rear.update(observation);
+  const output = [[new Float32Array(4096)]];
+  node.process([], output, p);
+  for (let i = 0; i < 4096; i++) assert.equal(output[0][0][i], Math.fround(front.sample() + rear.sample()));
+  node.port.onmessage({ data: { model: 'unified', tuning: { ...tuning } } });
+  assert.equal(node.pair, original);
+  node.port.onmessage({ data: { model: 'unified', tuning: { highFrequencyHz: NaN } } });
+  assert.equal(node.valid, false);
+  assert.doesNotThrow(() => node.process([], output, p));
+  assert.ok(output[0][0].every(Number.isFinite));
+  node.port.onmessage({ data: { model: 'unified', tuning } });
+  assert.equal(node.valid, true);
+  assert.equal(node.pair, original);
+  node.port.onmessage({ data: { model: 'unified', tuning: resolveUnifiedTuning() } });
+  assert.notEqual(node.pair, original);
+});
 
 test('one bounded contact map preserves zero support, monotone slip and relative axle load', () => {
   const tire = state().front;
@@ -886,7 +1016,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   voice.update(input);
   const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
     p = params();
-  assert.deepEqual(worklet.messages, [{ model: 'unified' }]);
+  assert.deepEqual(worklet.messages, [{ model: 'unified', tuning: resolveUnifiedTuning() }]);
   for (const [key, param] of worklet.parameters) p[key][0] = param.value;
   assert.equal(p.front_squeal[0], TIRE_CONTROL_RANGES.squeal.defaultValue);
   assert.equal(p.front_pitch[0], TIRE_CONTROL_RANGES.pitch.defaultValue);

@@ -6,8 +6,8 @@ Use Node.js 24 (package engines and engine-strict enforce the supported major). 
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
-For engine tuning, open `http://localhost:8000/?mode=circuit` to adjust the eight ENGINE
-TUNING minus/plus controls while driving. VOL also uses minus/plus buttons. TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / UNIFIED
+For engine tuning, open `http://localhost:8000/?mode=circuit` and open DEV to adjust the eight ENGINE
+TUNING minus/plus controls while driving. MASTER also uses minus/plus buttons. TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / UNIFIED
 compares default HYBRID with the new UNIFIED method and three other references in all courses; the session
 choice survives mute and vehicle replacement.
 CONTACT is experimental and its axle-to-representative mapping remains uncalibrated. The separate audition/verification page is
@@ -54,8 +54,8 @@ The [torque protection probe](../tools/torque-protection-probe.mjs) compares pro
 
 ## Tire comparison tools
 
-Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); numeric tire timbre
-settings are source data, not live sliders. [Calibration](calibration.md#tire-audio-tuning) maps their
+Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes eleven UNIFIED friction sliders plus independent ENG/TIRE mix levels.
+Other numeric tire timbre settings remain source data. [Calibration](calibration.md#tire-audio-tuning) maps their
 owners, [audio](audio.md#player-tire-synthesis) defines each method, and
 [NEXT](NEXT.md#next-work-unified-listening) records feedback and tuning priorities.
 
@@ -65,7 +65,8 @@ S is hidden for this method. Compare its Q with HYBRID S+Q for complete friction
 for squeal onset. The buttons change output only:
 state continues, other components are not boosted, and
 muted components still cost CPU. Keep physical calibration, engine settings and playback volume fixed
-when diagnosing tire sound. Rebuild/reload after a source tune; reload resets model/component choices.
+when diagnosing tire sound. Rebuild/reload after a source tune; DEV edits apply through a tire-only fade.
+Reload resets model/component/tuning/mix choices.
 
 | Tool                         | Scope                                                                                                  | Command / page                                                                                                                       |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |

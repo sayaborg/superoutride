@@ -174,7 +174,7 @@ and native keyboard activation. HYBRID is the reload default. Choice survives mu
 engine tuning/reset and sound retry. Only tire output fades down for the shared 90 ms transition
 (10 ms decay constant) before replacement, then rises at the shared control rate. Rapid choices
 supersede pending ones; returning to the active choice cancels replacement. One tire worklet remains;
-inactive models do no sample processing. The port carries model replacement and stop only. Engine
+inactive models do no sample processing. The port carries model/tuning replacement and stop only. Engine
 slots, master gain, physical calibration and context lifetime are unaffected. Processor errors reach
 the existing SOUND RETRY boundary on presentation update. The
 [shared module entry](../src/audio/vehicle-processor.ts) loads engine and tire processors together.
@@ -344,7 +344,7 @@ The voice transports three separate k-rate `mix_*` values to the existing tire w
 follow a shared 5 ms constant, independently of host block partitions. OFF suppresses only that tap;
 all vibration/band/random/filter state continues, so solo comparison does not restart the sound. There is no
 level compensation when a component is disabled. Switching models still fades tires alone; the port
-continues to carry model replacement and stop only. Engine nodes and master lifetime do not change.
+continues to carry model/tuning replacement and stop only. Engine nodes and master lifetime do not change.
 
 The separate two-tap audition still isolates S/Q; its synthetic replays use an explicitly authored
 0.3 m radius solely to supply angular speed. Live gameplay reads the true accepted angular observation.
@@ -581,6 +581,35 @@ this with session overrides or silent media assets. See [WebKit's report](https:
 Module URLs remain relative to import.meta.url inside complete commit-versioned ESM builds.
 
 ## Shared tuning
+
+### Mobile DEV panel and tire audition controls
+
+DEV is a native, initially closed disclosure overlay. Its body scrolls independently within the safe
+viewport; opening it never shrinks the game. All selectors and audio controls remain available in every
+orientation. Controls have touch-size targets. UI-owned pointer starts are excluded from driving;
+keydown stays inside the panel, while keyup can release an already-held driving key. Escape closes
+from any control. This explicitly replaces the former always-visible multi-row selector layout.
+
+MASTER retains its 35% default. Independent ENG and TIRE sliders multiply their buses, from 0 to 100%,
+initially 100%; ENG includes the nearest rival. They do not alter synthesis, voice-switch envelopes,
+component state or each other's level. Ordinary gain following avoids steps; zero does not stop DSP.
+
+UNIFIED alone exposes eleven friction controls in `UNIFIED_TUNING_RANGES`: feedback, saturation,
+work reference, slip half/roll-off, noise bandwidth/force, two fixed modal frequencies, friction pickup
+gain and output cutoff. Audio owns validation, defaults and authored audition bounds. Surfaces,
+modal damping/participation, control timing and shared R remain source-owned. These bounds are not
+measured tire data. Kernels own a frozen tuning snapshot; every permitted frequency remains underdamped
+at supported sample rates. Defaults retain the existing waveform.
+
+An edit uses the existing tire-only replacement fade and installs new kernels at silence; it never
+retunes stiffness on a running vibration state. Rapid edits supersede pending settings, returning to
+active values cancels replacement, and unchanged values preserve states. Non-UNIFIED models do
+not use these settings. Model/vehicle changes, mute and sound retry retain session tuning and mix;
+reload restores defaults. Tire reset changes only UNIFIED settings. Invalid replacement tuning releases
+forcing without crashing the worklet. The port protocol includes a validated UNIFIED tuning snapshot
+on replacement, not per-frame parameter messages. Physics and the immutable render oracle are unchanged.
+
+### Engine controls
 
 [Acoustic settings](../src/audio/exhaust-acoustics.ts) own defaults, validated kernel domains and optional
 narrower UI bounds in `EXHAUST_TUNING_RANGES`. The controls read these values directly. Their presentation

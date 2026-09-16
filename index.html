@@ -9,63 +9,78 @@
   </head>
   <body>
     <main id="app" aria-label="SUPER OUTRIDE driving">
-      <nav class="mobile-selector-zone" aria-label="Course vehicle camera steering tire calibration selection">
-        <section class="selector-group selector-group-course" aria-labelledby="course-selector-label">
-          <span id="course-selector-label" class="selector-label">COURSE</span>
-          <div id="course-selector-buttons" class="selector-buttons course-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-vehicle" aria-labelledby="vehicle-selector-label">
-          <span id="vehicle-selector-label" class="selector-label">VEHICLE</span>
-          <div id="vehicle-selector-buttons" class="selector-buttons vehicle-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-camera" aria-labelledby="camera-selector-label">
-          <span id="camera-selector-label" class="selector-label">CAMERA</span>
-          <div id="camera-selector-buttons" class="selector-buttons camera-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-steering-offset" aria-labelledby="steering-offset-selector-label">
-          <span id="steering-offset-selector-label" class="selector-label">D</span>
-          <div id="steering-offset-selector-buttons" class="selector-buttons steering-offset-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-max-steer" aria-labelledby="max-steer-selector-label">
-          <span id="max-steer-selector-label" class="selector-label">M</span>
-          <div id="max-steer-selector-buttons" class="selector-buttons max-steer-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-act" aria-labelledby="steering-response-selector-label">
-          <span id="steering-response-selector-label" class="selector-label">ACT</span>
-          <div
-            id="steering-response-selector-buttons"
-            class="selector-buttons steering-response-selector-buttons"
-          ></div>
-        </section>
-        <section class="selector-group selector-group-tire" aria-labelledby="tire-friction-selector-label">
-          <span id="tire-friction-selector-label" class="selector-label">TIRE F/R · − / + · H J G L N</span>
-          <div id="tire-friction-selector-buttons" class="selector-buttons tire-friction-selector-buttons"></div>
-        </section>
-        <section class="selector-group selector-group-sound" aria-label="Sound controls">
-          <button id="sound-toggle" class="selector-button" type="button" aria-pressed="true">SOUND START</button>
-          <span>VOL</span>
-          <div id="sound-volume"></div>
-          <button
-            id="tire-sound-toggle"
-            class="selector-button"
-            type="button"
-            title="HYBRID＝既定方式。UNIFIED＝新方式：転がり音（R）と、擦れからスキールまで連続する摩擦音（Q）。CURRENT・CONTACT・SPECTRALとの比較もできます。タイヤ音だけをフェードして切り替えます。"
+      <details id="dev-panel" data-driving-input="ignore">
+        <summary class="selector-button dev-toggle">
+          DEV <span class="dev-open-label">開く</span><span class="dev-close-label">閉じる</span>
+        </summary>
+        <nav class="mobile-selector-zone" aria-label="DEV settings">
+          <section class="selector-group selector-group-sound" aria-label="Audio mix">
+            <div id="engine-volume"></div>
+            <div id="tire-volume"></div>
+          </section>
+          <section class="selector-group selector-group-sound" aria-label="Sound controls">
+            <button id="sound-toggle" class="selector-button" type="button" aria-pressed="true">SOUND START</button>
+            <span>MASTER</span>
+            <div id="sound-volume"></div>
+            <button
+              id="tire-sound-toggle"
+              class="selector-button"
+              type="button"
+              title="HYBRID＝既定方式。UNIFIED＝新方式：転がり音（R）と、擦れからスキールまで連続する摩擦音（Q）。CURRENT・CONTACT・SPECTRALとの比較もできます。タイヤ音だけをフェードして切り替えます。"
+            >
+              TIRES: HYBRID
+            </button>
+            <div
+              id="tire-component-controls"
+              class="selector-buttons"
+              role="group"
+              aria-label="Tire sound components"
+            ></div>
+            <span>ENGINE · WAVEGUIDE</span>
+          </section>
+          <section class="selector-group selector-group-audio-tuning" aria-label="Tire tuning">
+            <div id="tire-tuning"></div>
+          </section>
+          <section class="selector-group selector-group-audio-tuning" aria-label="Engine tuning">
+            <span class="selector-label">ENGINE TUNING · 仮設定 · − / + で調整</span>
+            <div id="sound-tuning"></div>
+          </section>
+          <section class="selector-group selector-group-course" aria-labelledby="course-selector-label">
+            <span id="course-selector-label" class="selector-label">COURSE</span>
+            <div id="course-selector-buttons" class="selector-buttons course-selector-buttons"></div>
+          </section>
+          <section class="selector-group selector-group-vehicle" aria-labelledby="vehicle-selector-label">
+            <span id="vehicle-selector-label" class="selector-label">VEHICLE</span>
+            <div id="vehicle-selector-buttons" class="selector-buttons vehicle-selector-buttons"></div>
+          </section>
+          <section class="selector-group selector-group-camera" aria-labelledby="camera-selector-label">
+            <span id="camera-selector-label" class="selector-label">CAMERA</span>
+            <div id="camera-selector-buttons" class="selector-buttons camera-selector-buttons"></div>
+          </section>
+          <section
+            class="selector-group selector-group-steering-offset"
+            aria-labelledby="steering-offset-selector-label"
           >
-            TIRES: HYBRID
-          </button>
-          <div
-            id="tire-component-controls"
-            class="selector-buttons"
-            role="group"
-            aria-label="Tire sound components"
-          ></div>
-          <span>ENGINE · WAVEGUIDE</span>
-        </section>
-        <section class="selector-group selector-group-audio-tuning" aria-label="Engine tuning">
-          <span class="selector-label">ENGINE TUNING · 仮設定 · − / + で調整</span>
-          <div id="sound-tuning"></div>
-        </section>
-      </nav>
+            <span id="steering-offset-selector-label" class="selector-label">D</span>
+            <div id="steering-offset-selector-buttons" class="selector-buttons steering-offset-selector-buttons"></div>
+          </section>
+          <section class="selector-group selector-group-max-steer" aria-labelledby="max-steer-selector-label">
+            <span id="max-steer-selector-label" class="selector-label">M</span>
+            <div id="max-steer-selector-buttons" class="selector-buttons max-steer-selector-buttons"></div>
+          </section>
+          <section class="selector-group selector-group-act" aria-labelledby="steering-response-selector-label">
+            <span id="steering-response-selector-label" class="selector-label">ACT</span>
+            <div
+              id="steering-response-selector-buttons"
+              class="selector-buttons steering-response-selector-buttons"
+            ></div>
+          </section>
+          <section class="selector-group selector-group-tire" aria-labelledby="tire-friction-selector-label">
+            <span id="tire-friction-selector-label" class="selector-label">TIRE F/R · − / + · H J G L N</span>
+            <div id="tire-friction-selector-buttons" class="selector-buttons tire-friction-selector-buttons"></div>
+          </section>
+        </nav>
+      </details>
 
       <section class="control-zone steering-zone" aria-label="Steering controls">
         <div class="steering-pad" role="group" aria-label="Legacy digital steering buttons">
