@@ -47,7 +47,7 @@ quantitative verification. These measurements support variable fundamental-plus-
 synthesis, but do not establish universal pitch maps or prove that cornering always has higher
 pitch than braking. See Figures 5–6, Table 2 and the conclusion.
 
-Source: [NOISE-CON 2019, author-posted paper](https://www.researchgate.net/profile/Tan_Li8/publication/338375049_Tire_BrakingCornering_Noise_Analysis_StickSlip_Mechanism/links/5e0f8b6a92851c8364b007e1/Tire-BrakingCornering-Noise-Analysis-StickSlip-Mechanism.pdf).
+Source: [NOISE-CON 2019, author-posted paper](https://www.researchgate.net/profile/Tan_Li8/publication/338375049_Tire_BrakingCornering_Noise_Analysis_StickSlip_Mechanism/links/5e0f8b6a92851c8364b007e1/Tire-Braking-Cornering-Noise-Analysis-Stick-Slip-Mechanism.pdf).
 
 ### Miyashita and Persson, 2026 — Tire Tread Block Dynamics
 
