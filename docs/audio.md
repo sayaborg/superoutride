@@ -9,8 +9,8 @@ motion, gearing, recovery or race progress, and never repeats the authoritative 
 
 The engine is the accepted sample-free listening baseline. CURRENT, CONTACT and SPECTRAL remain tire comparison
 references, not calibrated real-tire models or final adoption. CURRENT is the reload default.
-[The checkpoint](NEXT.md#next-decision-a-third-tire-sound-method) owns the requested third-method
-investigation; this specification describes the current runtime, not final method adoption.
+[The checkpoint](NEXT.md#next-work-spectral-tuning) owns current SPECTRAL tuning and listening
+priorities; this specification describes the current runtime, not final method adoption.
 All three tire implementations generate sound without recordings. That fact does not prohibit a
 prepared-sound or hybrid tire candidate. Keep the engine waveform and fixed voice/lifecycle boundaries
 unchanged; actual Android performance, tire timbre and final mix acceptance remain open.
@@ -242,31 +242,31 @@ not weaken the still-valid observation, lifetime or physical/rendering contracts
 
 ### SPECTRAL game synthesis
 
-The user approved the asphalt S/Q WAVs and authorized game integration. The
-[shared kernel](../src/audio/tire-spectral-model.ts) and
-[settings/catalog](../src/audio/tire-spectral-acoustics.ts) now belong to audio, not DEV. Every axle
-has eight fixed noise-driven two-state bands: two rolling, two scrub and four finite-width harmonic
-bands. No recorded/generated PCM playback, microscopic contact solve or model/vehicle branch exists
-inside this kernel. The [checkpoint](NEXT.md#next-decision-a-third-tire-sound-method) owns acceptance.
+The [shared kernel](../src/audio/tire-spectral-model.ts) and
+[settings/catalog](../src/audio/tire-spectral-acoustics.ts) belong to audio; the DEV worklet only auditions
+that same kernel. Every axle has eight fixed two-state noise-driven bands: two R rolling, two S scrub
+and four Q finite-width harmonic bands. No PCM playback, microscopic contact solve or vehicle/maneuver
+branch exists inside the kernel. [NEXT](NEXT.md#next-work-spectral-tuning) owns listening acceptance;
+[calibration](calibration.md#tire-audio-tuning) maps named settings without redefining their values.
 
-`SPECTRAL_INPUTS` owns eight SI controls: signed longitudinal/lateral contact velocity, signed effective
-wheel peripheral speed, accepted wheel angular speed (rad/s), normal load, accepted longitudinal/lateral
-slip work and demand rho. Physics publishes accepted `omega` and `effectiveRollingRadius * omega` only
-when contact transmits force with a valid tire frame. The browser copies them; audio never infers wheel
-rotation from car speed, substitutes a guessed radius, or re-solves mechanics. Unsupported/reset
-observations clear these output-only values. The physical/control snapshot is unchanged.
+`SPECTRAL_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
+peripheral speed (m/s), accepted wheel angular speed (rad/s), normal load (N), accepted longitudinal/lateral
+slip work (W), and dimensionless demand rho. Physics publishes accepted omega and
+`effectiveRollingRadius * omega` only for force-transmitting contact with a valid tire frame. The browser
+copies them; audio never infers rotation from car speed, guesses a game radius or re-solves mechanics.
+Unsupported/reset observations clear these output-only values without changing the physical snapshot.
 
-[Spectral mapping](../src/audio/tire-sound-controls.ts) validates nonfinite/negative load, work and demand;
+[Spectral mapping](../src/audio/tire-sound-controls.ts) rejects nonfinite/negative load, work and demand;
 finite over-range observations are bounded for acoustic transport only. Separate `spectral_*` AudioParams
-never reuse CONTACT's representative units. Zero load/VOID or invalid controls release the affected axle,
-retain finite tails and permit later recovery. Surface identities are discrete, not interpolated.
+never reuse CONTACT's representative units. Zero load/VOID or invalid controls release only the affected
+axle, retain finite tails and permit recovery. Surface identities are discrete, not interpolated.
 
-The user subsequently accepted Q's realistic timbre but found its response to driving/recovery weaker
-than CURRENT, and found asphalt R too hiss-like and insufficiently linked to wheel rotation. This is an
-explicit revision of the prior **joint S/Q PCM preservation** and travel-driven R requirement. Keep S's
-exact baseline replay independently. Replace Q's obsolete whole-replay hash with causal harmonic-response,
-strong-palette, release and transport regressions; do not change the immutable mechanics/render oracle.
-The new R/Q sound still requires user listening. No understeer/oversteer labels select different effects.
+Current boundaries: R is rotation-driven, not the retired travel-driven contact layer; Q has an
+excitation-dependent palette, not the retired fixed-palette transient contract. Unchanged S remains
+pinned independently. Q uses harmonic-response, strong-palette, release and transport coverage instead
+of the superseded joint S/Q replay hash. No understeer/oversteer labels select different effects.
+A structural cleanup preserves all current taps; deliberate tuning must explain waveform changes
+without weakening the immutable mechanics/render oracle or valid lifecycle/observation coverage.
 
 #### Band primitive and Q response
 
@@ -274,8 +274,9 @@ Each of eight fixed bands updates two states as `z_next=r*R(theta)*z+A*sqrt(1-r^
 `r=exp(-pi*B/rate)` and independent unit-variance excitation components. Bounded uniform draws are scaled
 analytically, never by measured-output AGC. Seed splitting prevents short-lag shared excitation. Nominal
 positive pole bandwidth contracts unforced state; parameter changes do not reset stored waveforms.
-Four independently excited harmonic bands retain the established frequency, bandwidth and pitch-wander
-mapping. Two broad S bands retain their earlier mapping, random streams and PCM.
+`SPECTRAL_BAND_DOMAIN` owns numerical support bounds; `SPECTRAL_SETTINGS` owns the authored mapping
+coefficients. Four independent Q bands use the shared pitch/width/wander mapping. Two independent S
+bands read `scrubBands` data. Band count, random-stream order and integration math are not tuning knobs.
 
 With `s=hypot(wheelSpeed-vx,vy)` and `P=Px+Py`, work level follows `sqrt(P/(P+8000))` (zero for zero slip),
 and squeal demand follows `rho^2/(1+rho^2)`. Work already includes force, so S/Q do not multiply by load
@@ -303,6 +304,8 @@ step. Pavement weights emphasize the low band. Two road-only 900 Hz low-pass sta
 filtering S/Q. Road center frequency and amplitude are separate controls, not a universal speed law.
 
 `SPECTRAL_TEXTURES` is the sole authored material catalog: pavement, shoulder, grass, dirt and sand.
+Its `scaleMeters` is an authored S slip-traversal length and a shared divisor in R's wheel-texture rate;
+it is not a measured road grain size, tread pitch or wheel radius. Texture depth is also shared by R/S.
 Resolved weights/texture scales follow continuously without resetting state. Grass/dirt/sand have zero
 steady Q but retain rolling and friction textures. No pressure/temperature/stiffness is inferred.
 
@@ -353,8 +356,8 @@ Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average it
 cost or target-device certification. Do not infer a measured speed ratio from operation counts.
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
-Current construction accepts 44.1–192 kHz. The [next decision](NEXT.md#next-decision-a-third-tire-sound-method)
-is method selection, not presumed adoption of those optimization proposals.
+Current construction accepts 44.1–192 kHz. The [next task](NEXT.md#next-work-spectral-tuning)
+is SPECTRAL tuning, not presumed adoption of those CONTACT optimization proposals.
 
 ## Mixing and lifetime
 
