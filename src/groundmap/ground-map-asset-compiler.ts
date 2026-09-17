@@ -1,6 +1,6 @@
 import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { positiveFinite } from '../core/validation.js';
-import { rgbaToRgb555 } from '../graphics/rgb555.js';
+import { createGroundMapLevelEncoder } from './ground-map-encoding.js';
 import type {
   BakedGroundMapChunkMetadata,
   BakedGroundMapLevelMetadata,
@@ -9,7 +9,7 @@ import type {
   BakedGroundMapStorageFormat,
 } from './baked-ground-map.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
-import { buildGroundMapAnisotropicPyramid, type GroundMapTexelLevel } from './ground-map-prefilter.js';
+import { buildGroundMapAnisotropicPyramid } from './ground-map-prefilter.js';
 import { sampleGroundMap, type GroundMapProfile } from './ground-map.js';
 
 const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
@@ -76,12 +76,8 @@ export async function compileBakedGroundMapAsset(
     kMax,
   );
 
-  const paletteRgba = collectPalette(pyramid[0]!);
-  const levelFormats: BakedGroundMapStorageFormat[] = pyramid.map((_, level) =>
-    level === 0 && paletteRgba.length <= 256 ? 'palette8' : 'rgb555le',
-  );
-  const paletteIndex = new Map<number, number>();
-  paletteRgba.forEach((color, index) => paletteIndex.set(color >>> 0, index));
+  const encoders = pyramid.map((level, index) => createGroundMapLevelEncoder(level, index === 0));
+  const paletteRgba = encoders[0]!.paletteRgba;
 
   const pendingPayloads: PendingPayload[] = [];
   const payloadBuckets = new Map<string, number[]>();
@@ -89,7 +85,8 @@ export async function compileBakedGroundMapAsset(
 
   for (let k = 0; k < pyramid.length; k += 1) {
     const source = pyramid[k]!;
-    const format = levelFormats[k]!;
+    const encoder = encoders[k]!;
+    const format = encoder.format;
     const qLActual = lateralWidth / source.lateralTexels;
     const qSActual = courseLength / source.chainageTexels;
     const targetRows = Math.max(1, Math.round(chunkTargetMeters / qSActual));
@@ -97,7 +94,7 @@ export async function compileBakedGroundMapAsset(
 
     for (let rowStart = 0; rowStart < source.chainageTexels; rowStart += targetRows) {
       const rowCount = Math.min(targetRows, source.chainageTexels - rowStart);
-      const encoded = encodeRows(source, rowStart, rowCount, format, paletteIndex);
+      const encoded = encoder.encodeRows(rowStart, rowCount);
       const sha256 = await sha256Hex(encoded);
       const key = `${format}:${source.lateralTexels}:${rowCount}:${sha256}`;
       const candidates = payloadBuckets.get(key) ?? [];
@@ -171,45 +168,6 @@ export async function compileBakedGroundMapAsset(
     uncompressedRgbaBytes,
   };
   return { metadata, bytes };
-}
-
-function collectPalette(base: GroundMapTexelLevel): number[] {
-  const colors = new Set<number>();
-  for (const color of base.pixels) {
-    colors.add(color >>> 0);
-    if (colors.size > 256) return [];
-  }
-  return [...colors].sort((a, b) => a - b);
-}
-
-function encodeRows(
-  source: GroundMapTexelLevel,
-  rowStart: number,
-  rowCount: number,
-  format: BakedGroundMapStorageFormat,
-  paletteIndex: ReadonlyMap<number, number>,
-): Uint8Array {
-  const texelCount = source.lateralTexels * rowCount;
-  const bytes = new Uint8Array(texelCount * (format === 'palette8' ? 1 : 2));
-  let out = 0;
-  for (let row = 0; row < rowCount; row += 1) {
-    const sourceOffset = (rowStart + row) * source.lateralTexels;
-    for (let column = 0; column < source.lateralTexels; column += 1) {
-      const color = source.pixels[sourceOffset + column]! >>> 0;
-      if (format === 'palette8') {
-        const index = paletteIndex.get(color);
-        if (index === undefined) throw new Error('level-0 GroundMap color missing from palette');
-        bytes[out] = index;
-        out += 1;
-      } else {
-        const packed = rgbaToRgb555(color);
-        bytes[out] = packed & 0xff;
-        bytes[out + 1] = (packed >>> 8) & 0x7f;
-        out += 2;
-      }
-    }
-  }
-  return bytes;
 }
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
