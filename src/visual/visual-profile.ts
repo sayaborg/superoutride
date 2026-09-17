@@ -1,8 +1,15 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
-import { compileGroundBase, type AuthoredGroundBase } from '../course/surface-region.js';
 
-export type GroundBase = AuthoredGroundBase;
+export type GroundBase = { readonly kind: 'color'; readonly color: number } | { readonly kind: 'transparent' };
+
+function compileGroundBase(base: GroundBase): GroundBase {
+  if (base.kind === 'transparent') return Object.freeze({ kind: 'transparent' });
+  if (base.kind !== 'color' || !Number.isInteger(base.color) || base.color < 0 || base.color > 0xffffffff) {
+    throw new RangeError('GroundBase color must be uint32');
+  }
+  return Object.freeze({ kind: 'color', color: base.color });
+}
 
 export interface VisualSection {
   readonly sStart: number;

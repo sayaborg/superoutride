@@ -9,7 +9,7 @@ import { compileAuthoredStageRuntimePackage } from '../../runtime/stage-authorin
 import type { SpriteAssets } from '../../visual/sprite-assets.js';
 import { createChildVisualIdentity } from './child-backgrounds.js';
 import { createChildStageAuthoring } from './child-stage-authoring.js';
-import { CENTER_DASH_MARKINGS } from './stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from './road-markings.js';
 
 const WORLD_FRAME_ID = 'DEV_ROUTE_WORLD_V1';
 const FORK_ROUTE_GATE_S = 195;
@@ -19,10 +19,9 @@ const SECOND_FORK_JUNCTION = Object.freeze({
   sWidenStart: 80,
   sMedianStart: 110,
   sSeparatedStart: 170,
-  parentRoadWidth: 7,
+  parent: { roadLeft: 7 * 0.5, roadRight: 7 * 0.5, shoulderWidth: 1 },
   childRoadWidth: 7,
   finalMedianWidth: 8,
-  shoulderWidth: 1,
 });
 
 interface LiveForkIdentity {

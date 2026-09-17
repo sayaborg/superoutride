@@ -1,10 +1,5 @@
-import type { RouteStageContentManifest } from '../../gameplay/route-stage-content.js';
 import { compileAuthoredStageRuntimePackage } from '../../runtime/stage-authoring-compiler.js';
-import {
-  compileStageRuntimeContentRegistry,
-  type StageRuntimeContentPackage,
-  type StageRuntimeContentRegistry,
-} from '../../runtime/stage-runtime-content.js';
+import type { StageRuntimeContentPackage } from '../../runtime/stage-runtime-content.js';
 import type { SpriteAssets } from '../../visual/sprite-assets.js';
 import { createChildVisualIdentity, type ChildVisualIdentity } from './child-backgrounds.js';
 import { createChildStageAuthoring } from './child-stage-authoring.js';
@@ -12,25 +7,8 @@ import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import type { LiveContinuation, SuccessorRuntimeSource } from './successor-stage-continuation.js';
 
 /**
- * Compile both intermediate child packages and their successor packages from the same
- * reusable stage-local authoring boundary. Each package is compiled against its own Guide.
- */
-export function createSuccessorStageRegistry(
-  manifest: RouteStageContentManifest,
-  continuation: LiveContinuation,
-  parent: SharedRuntimeContent,
-  spriteAssets: SpriteAssets,
-  identity: ChildVisualIdentity = createChildVisualIdentity(),
-): StageRuntimeContentRegistry {
-  return compileStageRuntimeContentRegistry(
-    manifest,
-    createSuccessorStagePackages(continuation, parent, spriteAssets, manifest.worldFrameId, identity),
-  );
-}
-
-/**
  * Expose the complete package objects before route/content binding compilation.
- * Declarative route authoring and registry construction share these stage-owned packages.
+ * Declarative route authoring binds these stage-owned packages.
  */
 export function createSuccessorStagePackages(
   continuation: LiveContinuation,

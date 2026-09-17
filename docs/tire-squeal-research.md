@@ -1,7 +1,7 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This is supporting research, not a runtime specification or numerical calibration.
-[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/MODAL/UNIFIED implementations;
+[Audio](tire-audio.md#player-tire-synthesis) owns the in-game HOPF/CONTACT/SPECTRAL/HYBRID/MODAL/UNIFIED implementations;
 [NEXT](NEXT.md#deferred-tuning) owns deferred listening decisions.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of any existing sound engine.
@@ -95,7 +95,7 @@ Source: [Avanzini et al., 2005, author-hosted paper](https://avanzini.di.unimi.i
 ## Limits for synthesis and tuning
 
 The tire sources support friction-fed vibration as one possible mechanism; they do not select
-HYBRID's scalar energy surrogate, CURRENT's oscillator, CONTACT's one-element law or MODAL's
+HYBRID's scalar energy surrogate, HOPF's oscillator, CONTACT's one-element law or MODAL's
 independent stochastic band system or UNIFIED's common-port system. A mathematically consistent surrogate can still omit the structure and
 statistics responsible for convincing tire sound. The synthesis precedent supports the possibility
 of a shared friction system, not its calibration for this game.
@@ -113,7 +113,7 @@ partials, other tonal components and broadband sound when evaluating richness. A
 using a single mechanism or matching one replay does not itself establish greater realism. Likewise,
 a model's instability point and the listener's audible squeal onset are different observations.
 
-[Audio](audio.md#player-tire-synthesis) owns current mechanisms and approximation limits;
+[Audio](tire-audio.md#player-tire-synthesis) owns current mechanisms and approximation limits;
 [NEXT](NEXT.md#deferred-tuning) owns deferred listening and method acceptance. HYBRID remains
 the default reference; final method selection is undecided. Keep previous experiments in Git
 rather than another proposal/handoff archive; existing tools regenerate references without prior

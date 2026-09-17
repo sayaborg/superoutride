@@ -304,16 +304,16 @@ test('tire voice fades before switching, cancels superseded requests, and does n
   const snapshot = structuredClone(input);
   const node = context.nodes.find((n) => n.name === 'vehicle-tires');
   const output = node.connections[0];
-  voice.setModel('current');
+  voice.setModel('hopf');
   voice.update(input);
-  assert.equal(node.messages.at(-1).model, 'current');
+  assert.equal(node.messages.at(-1).model, 'hopf');
   const count = context.nodes.length;
   voice.setModel('contact');
   voice.update(input);
   assert.equal(output.gain.events.at(-1)[1], 0);
   assert.equal(node.messages.length, 1);
   context.currentTime = AUDIO_TIMING.transitionSeconds / 2;
-  voice.setModel('current');
+  voice.setModel('hopf');
   voice.update(input);
   assert.equal(output.gain.events.at(-1)[1], 1);
   assert.equal(node.messages.length, 1);
@@ -326,7 +326,7 @@ test('tire voice fades before switching, cancels superseded requests, and does n
   assert.equal(node.parameters.get('rear_slipSpeed').value, 0);
   assert.equal(output.gain.events.at(-1)[1], 1);
   for (let i = 0; i < 1000; i++) {
-    voice.setModel(i % 2 ? 'current' : 'contact');
+    voice.setModel(i % 2 ? 'hopf' : 'contact');
     voice.update(input);
     context.currentTime += AUDIO_TIMING.transitionSeconds + 0.001;
     voice.update(input);
@@ -384,7 +384,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   button.click();
   assert.equal(button.textContent, 'TIRES: UNIFIED');
   button.click();
-  assert.equal(button.textContent, 'TIRES: CURRENT');
+  assert.equal(button.textContent, 'TIRES: HOPF');
   button.click();
   assert.equal(button.textContent, 'TIRES: CONTACT');
   assert.match(button.getAttribute('aria-label'), /CONTACT/);
@@ -433,7 +433,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   assert.equal(button.listeners.get('keydown').length, 0);
 });
 
-test('explicit CURRENT remains exactly the reference synthesis for identical k-rate inputs', async (t) => {
+test('explicit HOPF remains exactly the reference synthesis for identical k-rate inputs', async (t) => {
   const Processor = await processor(t);
   const p = params();
   p.front_squeal[0] = 0.7;
@@ -441,7 +441,7 @@ test('explicit CURRENT remains exactly the reference synthesis for identical k-r
   p.front_pitch[0] = 1000;
   p.rear_pitch[0] = 800;
   const node = new Processor();
-  node.port.onmessage({ data: { model: 'current' } });
+  node.port.onmessage({ data: { model: 'hopf' } });
   const front = new TireSynthesis(48000, CONTACT_ACOUSTICS.frontSeed),
     rear = new TireSynthesis(48000, CONTACT_ACOUSTICS.rearSeed);
   front.update({ squeal: p.front_squeal[0], pitch: p.front_pitch[0] });
@@ -469,7 +469,7 @@ test('contact worklet matches the shared kernel and is block-independent after r
       node.process([], out, p);
       result.push(...out[0][0]);
     }
-    node.port.onmessage({ data: { model: 'current' } });
+    node.port.onmessage({ data: { model: 'hopf' } });
     node.port.onmessage({ data: { model: 'contact' } });
     const reset = [[new Float32Array(1024)]];
     node.process([], reset, p);
@@ -578,16 +578,16 @@ for (const model of ['spectral', 'modal'])
       lateralPower: 12000,
     });
     Object.assign(observation.rear, { ...observation.front, wheelSpeed: 40, surface: 'DIRT' });
-    voice.setModel('current');
+    voice.setModel('hopf');
     voice.update(observation);
     const node = context.nodes.find((n) => n.name === 'vehicle-tires');
     voice.setModel('contact');
     voice.update(observation);
     voice.setModel(model);
     voice.update(observation);
-    voice.setModel('current');
+    voice.setModel('hopf');
     voice.update(observation);
-    assert.deepEqual(node.messages, [{ model: 'current' }]);
+    assert.deepEqual(node.messages, [{ model: 'hopf' }]);
     voice.setModel(model);
     voice.update(observation);
     assert.equal(node.messages.length, 1);
@@ -653,7 +653,7 @@ test('real spectral voice transport and worklet match two independent shared ker
   node.process([], resumed, p);
   assert.ok(resumed[0][0].some((v) => Math.abs(v) > 0.01));
   node.port.onmessage({ data: 'stop' });
-  node.port.onmessage({ data: { model: 'current' } });
+  node.port.onmessage({ data: { model: 'hopf' } });
   assert.equal(node.pair, null);
   assert.equal(node.process([], resumed, p), false);
   assert.ok(resumed[0][0].every((v) => v === 0));
@@ -681,7 +681,7 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   dom.elements.get('tire-sound-toggle').click(); // UNIFIED retains R and Q.
   assert.equal(r.getAttribute('hidden'), null);
   assert.equal(s.getAttribute('hidden'), '');
-  dom.elements.get('tire-sound-toggle').click(); // CURRENT has no component controls.
+  dom.elements.get('tire-sound-toggle').click(); // HOPF has no component controls.
   assert.ok(host.children.every((b) => b.getAttribute('disabled') !== null));
   r.click(); // Disabled clicks must not change a setting, even in the minimal DOM host.
   assert.equal(r.textContent, 'R: ON');
@@ -747,7 +747,7 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   }
 });
 
-test('component output fade is block-independent, does not reset bands, normalize other taps or alter CURRENT', async (t) => {
+test('component output fade is block-independent, does not reset bands, normalize other taps or alter HOPF', async (t) => {
   const Processor = await processor(t);
   const p = params();
   const value = {
@@ -812,7 +812,7 @@ test('component output fade is block-independent, does not reset bands, normaliz
   assert.ok(a.scrubMix < 1e-12);
   const currentA = new Processor(),
     currentB = new Processor();
-  for (const node of [currentA, currentB]) node.port.onmessage({ data: { model: 'current' } });
+  for (const node of [currentA, currentB]) node.port.onmessage({ data: { model: 'hopf' } });
   p.front_squeal[0] = 0.6;
   p.rear_squeal[0] = 0.4;
   for (const { key } of TIRE_COMPONENTS) p[`mix_${key}`][0] = 0;
@@ -877,7 +877,7 @@ test('HYBRID is the default, consumes only physical observations and shares dire
     const expected = kernels[0].sample() + kernels[1].sample();
     assert.ok(Math.abs(value - expected) < 1e-7, 'the worklet adds only Float32 output rounding');
   }
-  // Obsolete CURRENT controls cannot silence or drive the primary physical-observation model.
+  // Obsolete HOPF controls cannot silence or drive the primary physical-observation model.
   p.front_squeal[0] = NaN;
   p.front_pitch[0] = NaN;
   p.rear_squeal[0] = 1;
@@ -940,7 +940,7 @@ test('HYBRID is the default, consumes only physical observations and shares dire
   p.rear_tire_surfaceIndex[0] = 0;
   assert.ok(block(a, 24000).some((v) => Math.abs(v) > 1e-5));
   a.port.onmessage({ data: 'stop' });
-  a.port.onmessage({ data: { model: 'current' } });
+  a.port.onmessage({ data: { model: 'hopf' } });
   assert.ok(block(a, 128).every((v) => v === 0));
   assert.equal(a.pair, null);
   assert.deepEqual(input, before);
@@ -979,7 +979,7 @@ test('HYBRID/SPECTRAL retain R/S/Q choices while MODAL exposes Q only', async (t
   button.click();
   assert.equal(button.textContent, 'TIRES: UNIFIED');
   button.click();
-  assert.equal(button.textContent, 'TIRES: CURRENT');
+  assert.equal(button.textContent, 'TIRES: HOPF');
   assert.ok(components.every((component) => component.getAttribute('disabled') !== null));
   s.click();
   assert.equal(s.textContent, 'S: OFF', 'unavailable controls cannot change retained choices');
@@ -1068,7 +1068,7 @@ test('MODAL transports physical observations to independent Q-only kernels with 
   );
   a.port.onmessage({ data: { model: 'modal' } });
   assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
-  // Neither legacy CURRENT controls nor the comparison models' S switch drives this mechanism.
+  // Neither legacy HOPF controls nor the comparison models' S switch drives this mechanism.
   p.front_squeal[0] = NaN;
   p.front_pitch[0] = Infinity;
   p.mix_scrub[0] = 0;
@@ -1191,7 +1191,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   );
   a.port.onmessage({ data: { model: 'unified' } });
   assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
-  // Neither legacy CURRENT controls nor the comparison models' S switch drives this mechanism.
+  // Neither legacy HOPF controls nor the comparison models' S switch drives this mechanism.
   p.front_squeal[0] = NaN;
   p.front_pitch[0] = Infinity;
   p.mix_scrub[0] = 0;

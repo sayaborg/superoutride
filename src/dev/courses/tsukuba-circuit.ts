@@ -1,3 +1,5 @@
+import { compileRoadCrossSection } from '../../course/road-cross-section.js';
+import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import { HeightProfile } from '../../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { compileRasterPath, type RasterPath } from '../../core/raster-path.js';
@@ -179,34 +181,32 @@ const TSUKUBA_EDGE_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze(
   }),
 ]);
 
+const TSUKUBA_ROAD_CROSS_SECTION = compileRoadCrossSection({
+  roadLeft: TSUKUBA_ROAD_HALF_WIDTH_METERS,
+  roadRight: TSUKUBA_ROAD_HALF_WIDTH_METERS,
+  shoulderWidth: SHOULDER_WIDTH_METERS,
+});
+
 export function createTsukubaGroundProfile(): GroundMapProfile {
   return {
     groundLeft: TSUKUBA_GROUND_HALF_WIDTH_METERS,
     groundRight: TSUKUBA_GROUND_HALF_WIDTH_METERS,
-    roadLeft: TSUKUBA_ROAD_HALF_WIDTH_METERS,
-    roadRight: TSUKUBA_ROAD_HALF_WIDTH_METERS,
-    shoulderWidth: SHOULDER_WIDTH_METERS,
+    ...TSUKUBA_ROAD_CROSS_SECTION,
     roadMarkings: TSUKUBA_EDGE_MARKINGS,
   };
 }
 
 function createTsukubaSurfaceMap(courseLength: number): SurfaceMap {
-  const shoulderEdge = TSUKUBA_ROAD_HALF_WIDTH_METERS + SHOULDER_WIDTH_METERS;
   return new SurfaceMap(courseLength, [
     {
       sStart: 0,
       name: 'TSUKUBA COURSE 2000 SURFACE',
-      bands: [
-        { lMin: -TSUKUBA_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
-        { lMin: -shoulderEdge, lMax: -TSUKUBA_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
-        {
-          lMin: -TSUKUBA_ROAD_HALF_WIDTH_METERS,
-          lMax: TSUKUBA_ROAD_HALF_WIDTH_METERS,
-          type: 'ASPHALT',
-        },
-        { lMin: TSUKUBA_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
-        { lMin: shoulderEdge, lMax: TSUKUBA_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
-      ],
+      bands: roadSurfaceBands(TSUKUBA_ROAD_CROSS_SECTION, {
+        left: TSUKUBA_GROUND_HALF_WIDTH_METERS,
+        right: TSUKUBA_GROUND_HALF_WIDTH_METERS,
+        leftType: 'GRASS',
+        rightType: 'GRASS',
+      }),
     },
   ]);
 }

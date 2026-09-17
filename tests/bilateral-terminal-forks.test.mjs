@@ -1,12 +1,11 @@
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createSymmetricSecondLiveForkRuntime } from '../dist/dev/fixtures/right-second-fork.js';
+import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-growth-plan.js';
 
 import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
@@ -22,7 +21,7 @@ import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 
 function setup() {
   const guide = createStadiumGuide();
-  return createSymmetricSecondLiveForkRuntime(guide, parentShared(guide), createSpriteAssets());
+  return createDeclarativeForkGrowthRuntime(guide, parentShared(guide), createSpriteAssets());
 }
 
 function crossing(gate, distance = 2) {
@@ -169,20 +168,4 @@ test('complete RIGHT-B route performs four PENDING/COMMIT handoffs then physical
   const observation = observeRouteBoundaryCrossing(live.route, routeState, live.gates, motion.previous, motion.current);
   assert.equal(updateRouteDag(routeState, live.route, observation.boundary).event, 'FINISHED');
   assert.equal(handoffState.commitCount, 4);
-});
-
-test('remains a direct symmetric-fork fixture beneath the live plan', async () => {
-  const [source, leftSource, stableEntry, main, renderer] = await Promise.all([
-    readFile(new URL('../src/dev/fixtures/right-second-fork.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/fixtures/left-second-fork.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
-  ]);
-  assert.match(source, /createSecondLiveForkAuthoring/);
-  assert.match(source, /compileRasterForkStageRoute/);
-  assert.match(leftSource, /createSecondLiveForkAuthoring/);
-  assert.match(stableEntry, /createDeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(main, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
-  assert.doesNotMatch(renderer, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
 });

@@ -2,17 +2,10 @@ import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import { createSuccessorStageRegistry } from '../dist/dev/courses/successor-stage-content.js';
-import {
-  createLiveContinuation,
-  createLiveGateSet,
-  createLiveHandoffManifest,
-  createLiveRouteDag,
-} from '../dist/dev/courses/successor-stage-continuation.js';
+import { createDeclarativeLiveRouteRuntime } from '../dist/dev/fixtures/declarative-route.js';
 
 import { observeRouteBoundaryCrossing } from '../dist/gameplay/route-boundary-gates.js';
 import { createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
@@ -38,14 +31,8 @@ function crossing(gate, distance = 2) {
 
 function setup() {
   const parent = createStadiumGuide();
-  const route = createLiveRouteDag();
-  const continuation = createLiveContinuation(parent);
-  const gates = createLiveGateSet(route, continuation);
-  const handoffs = createLiveHandoffManifest(route, continuation);
-  const content = createMinimalStageContentManifest(route);
-  const assets = createSpriteAssets();
-  const registry = createSuccessorStageRegistry(content, continuation, parentShared(parent), assets);
-  return { parent, route, continuation, gates, handoffs, content, registry };
+  const live = createDeclarativeLiveRouteRuntime(parent, parentShared(parent), createSpriteAssets());
+  return { parent, ...live };
 }
 
 test('live route is one fork followed by one successor stage on each selected side', () => {
@@ -156,7 +143,6 @@ test('browser/runtime additions stay outside renderer Core while owns continuati
     readFile(new URL('../src/dev/courses/successor-stage-continuation.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
   ]);
-  assert.match(liveSource, /S2L_CONTINUE/);
   assert.match(liveSource, /createRasterStageSuccessor/);
   assert.match(successorFactorySource, /compileStageContinuationLink|StageContinuationLink/);
   assert.doesNotMatch(successorFactorySource, /route-dag|route-boundary|route-stage-handoff|render\//);

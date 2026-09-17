@@ -8,10 +8,9 @@ const authoring = {
   sWidenStart: 100,
   sMedianStart: 130,
   sSeparatedStart: 190,
-  parentRoadWidth: 9,
+  parent: { roadLeft: 9 * 0.5, roadRight: 9 * 0.5, shoulderWidth: 1 },
   childRoadWidth: 9,
   finalMedianWidth: 12,
-  shoulderWidth: 1,
 };
 
 function profile() {

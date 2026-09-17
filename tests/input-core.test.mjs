@@ -9,6 +9,8 @@ import { TouchInput } from '../dist/input/touch-input.js';
 
 class FakeEventTarget {
   listeners = new Map();
+  innerWidth = 400;
+  innerHeight = 800;
 
   addEventListener(type, listener) {
     const listeners = this.listeners.get(type) ?? [];
@@ -21,21 +23,13 @@ class FakeEventTarget {
   }
 }
 
-class FakeElement extends FakeEventTarget {
-  activeClasses = new Set();
-  captureThrows = false;
-  classList = {
-    add: (name) => this.activeClasses.add(name),
-    remove: (name) => this.activeClasses.delete(name),
-  };
-
-  setPointerCapture() {
-    if (this.captureThrows) throw new Error('capture unavailable');
-  }
+function pointerEvent(pointerId, clientX = 100, clientY = 300) {
+  return { pointerId, pointerType: 'touch', clientX, clientY };
 }
 
-function pointerEvent(pointerId) {
-  return { pointerId, preventDefault() {} };
+function steer(lifecycle, pointerId, displacement = 64) {
+  lifecycle.dispatch('pointerdown', pointerEvent(pointerId));
+  lifecycle.dispatch('pointermove', pointerEvent(pointerId, 100 + displacement));
 }
 
 test('clampSteering keeps canonical range', () => {
@@ -133,23 +127,15 @@ test('keyboard throttle resumes after a later touch brake tap through one shared
   visibility.visibilityState = 'visible';
   const pedals = new PedalInputArbiter();
   const keyboard = new KeyboardInput(lifecycle, visibility, pedals);
-  const throttleButton = new FakeElement();
-  const brakeButton = new FakeElement();
-  const touch = new TouchInput(
-    new FakeElement(),
-    new FakeElement(),
-    throttleButton,
-    brakeButton,
-    lifecycle,
-    visibility,
-    pedals,
-  );
+  const touch = new TouchInput(lifecycle, visibility, pedals);
 
   lifecycle.dispatch('keydown', { code: 'KeyX', preventDefault() {} });
   assert.deepEqual(keyboard.sample(), { steering: 0, throttle: true, brake: false });
-  brakeButton.dispatch('pointerdown', pointerEvent(9));
-  assert.deepEqual(touch.sample(), { steering: 0, throttle: false, brake: true });
-  brakeButton.dispatch('pointerup', pointerEvent(9));
+  lifecycle.dispatch('pointerdown', pointerEvent(9, 300, 300));
+  lifecycle.dispatch('pointermove', pointerEvent(9, 300, 364));
+  assert.equal(touch.sample().brake, 1);
+  assert.equal(touch.sample().throttle, false);
+  lifecycle.dispatch('pointerup', pointerEvent(9));
   assert.deepEqual(keyboard.sample(), { steering: 0, throttle: true, brake: false });
 });
 
@@ -157,38 +143,16 @@ test('canonical pedal requests remain exclusive after steering authority is sepa
   assert.throws(() => assertExclusivePedalInput({ throttle: true, brake: true }), /mutually exclusive/);
 });
 
-test('touch steering releases a pointer whose terminal event reaches the window', () => {
-  const lifecycle = new FakeEventTarget();
-  const visibility = new FakeEventTarget();
-  visibility.visibilityState = 'visible';
-  const left = new FakeElement();
-  const right = new FakeElement();
-  const touch = new TouchInput(left, right, new FakeElement(), new FakeElement(), lifecycle, visibility);
-
-  right.dispatch('pointerdown', pointerEvent(7));
-  assert.equal(touch.sample().steering, 1);
-
-  lifecycle.dispatch('pointerup', pointerEvent(7));
-  assert.equal(touch.sample().steering, 0);
-  assert.equal(right.activeClasses.has('active'), false);
-});
-
-test('touch opposite correction supersedes a stale pointer and releases to exact neutral', () => {
-  const lifecycle = new FakeEventTarget();
-  const visibility = new FakeEventTarget();
-  visibility.visibilityState = 'visible';
-  const left = new FakeElement();
-  const right = new FakeElement();
-  right.captureThrows = true;
-  const touch = new TouchInput(left, right, new FakeElement(), new FakeElement(), lifecycle, visibility);
-
-  right.dispatch('pointerdown', pointerEvent(11));
-  assert.equal(touch.sample().steering, 1);
-  left.dispatch('pointerdown', pointerEvent(12));
-  assert.equal(touch.sample().steering, -1);
-  left.dispatch('pointerup', pointerEvent(12));
-  assert.equal(touch.sample().steering, 0);
-  assert.equal(right.activeClasses.has('active'), false);
+test('touch steering terminal events release to neutral', () => {
+  for (const terminal of ['pointerup', 'pointercancel']) {
+    const lifecycle = new FakeEventTarget();
+    const visibility = new FakeEventTarget();
+    const touch = new TouchInput(lifecycle, visibility);
+    steer(lifecycle, 7);
+    assert.equal(touch.sample().steering, 1);
+    lifecycle.dispatch(terminal, pointerEvent(7));
+    assert.equal(touch.sample().steering, 0);
+  }
 });
 
 test('keyboard opposite correction neutralizes a stale key and repeat cannot resurrect it', () => {
@@ -221,19 +185,8 @@ test('keyboard correction supersedes a stale touch source through one shared ste
   visibility.visibilityState = 'visible';
   const steering = new SteeringInputArbiter();
   const keyboard = new KeyboardInput(lifecycle, visibility, new PedalInputArbiter(), steering);
-  const right = new FakeElement();
-  const touch = new TouchInput(
-    new FakeElement(),
-    right,
-    new FakeElement(),
-    new FakeElement(),
-    lifecycle,
-    visibility,
-    new PedalInputArbiter(),
-    steering,
-  );
-
-  right.dispatch('pointerdown', pointerEvent(21));
+  const touch = new TouchInput(lifecycle, visibility, new PedalInputArbiter(), steering);
+  steer(lifecycle, 21);
   assert.equal(touch.sample().steering, 1);
   lifecycle.dispatch('keydown', { code: 'ArrowLeft', repeat: false, preventDefault() {} });
   assert.equal(keyboard.sample().steering, -1);
@@ -256,16 +209,8 @@ test('blur pagehide and hidden visibility reset the active steering source', () 
   const lifecycle = new FakeEventTarget();
   const visibility = new FakeEventTarget();
   visibility.visibilityState = 'visible';
-  const right = new FakeElement();
-  const touchWithRight = new TouchInput(
-    new FakeElement(),
-    right,
-    new FakeElement(),
-    new FakeElement(),
-    lifecycle,
-    visibility,
-  );
-  right.dispatch('pointerdown', pointerEvent(31));
+  const touchWithRight = new TouchInput(lifecycle, visibility);
+  steer(lifecycle, 31);
   assert.equal(touchWithRight.sample().steering, 1);
   visibility.visibilityState = 'hidden';
   visibility.dispatch('visibilitychange');

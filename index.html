@@ -26,7 +26,7 @@
               id="tire-sound-toggle"
               class="selector-button"
               type="button"
-              title="HYBRID＝既定方式。UNIFIED＝新方式：転がり音（R）と、擦れからスキールまで連続する摩擦音（Q）。CURRENT・CONTACT・SPECTRALとの比較もできます。タイヤ音だけをフェードして切り替えます。"
+              title="タイヤ音の比較方式を切り替えます。既定はHYBRID。MODALはQのみ、UNIFIEDはRとQを生成します。"
             >
               TIRES: HYBRID
             </button>
@@ -82,21 +82,8 @@
         </nav>
       </details>
 
-      <section class="control-zone steering-zone" aria-label="Steering controls">
-        <div class="steering-pad" role="group" aria-label="Legacy digital steering buttons">
-          <button id="steer-left-button" class="steer-button" type="button" aria-label="Steer left">◀</button>
-          <span class="steer-center">STEER</span>
-          <button id="steer-right-button" class="steer-button" type="button" aria-label="Steer right">▶</button>
-        </div>
-      </section>
-
       <section class="game-zone">
         <canvas id="game" width="320" height="240" aria-label="SUPER OUTRIDE game screen"></canvas>
-      </section>
-
-      <section class="control-zone pedal-zone" aria-label="Legacy throttle and brake fallback">
-        <button id="brake-button" class="pedal brake" type="button">BRAKE</button>
-        <button id="throttle-button" class="pedal throttle" type="button">THROTTLE</button>
       </section>
     </main>
 

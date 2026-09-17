@@ -1,3 +1,5 @@
+import { compileRoadCrossSection } from '../../course/road-cross-section.js';
+import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import { HeightProfile } from '../../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { compileRasterPath, type RasterPath } from '../../core/raster-path.js';
@@ -61,13 +63,17 @@ const HIGHWAY_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
   }),
 ]);
 
+export const HIGHWAY_ROAD_CROSS_SECTION = compileRoadCrossSection({
+  roadLeft: HIGHWAY_ROAD_HALF_WIDTH_METERS,
+  roadRight: HIGHWAY_ROAD_HALF_WIDTH_METERS,
+  shoulderWidth: HIGHWAY_SHOULDER_WIDTH_METERS,
+});
+
 export function createHighwayGroundProfile(): GroundMapProfile {
   return {
     groundLeft: HIGHWAY_GROUND_HALF_WIDTH_METERS,
     groundRight: HIGHWAY_GROUND_HALF_WIDTH_METERS,
-    roadLeft: HIGHWAY_ROAD_HALF_WIDTH_METERS,
-    roadRight: HIGHWAY_ROAD_HALF_WIDTH_METERS,
-    shoulderWidth: HIGHWAY_SHOULDER_WIDTH_METERS,
+    ...HIGHWAY_ROAD_CROSS_SECTION,
     roadMarkings: HIGHWAY_MARKINGS,
   };
 }
@@ -158,33 +164,12 @@ export function createHighwaySurfaceMap(courseLength: number): SurfaceMap {
     {
       sStart: 0,
       name: 'FOUR-LANE HIGHWAY CALIBRATION SURFACE',
-      bands: [
-        {
-          lMin: -HIGHWAY_GROUND_HALF_WIDTH_METERS,
-          lMax: -(HIGHWAY_ROAD_HALF_WIDTH_METERS + HIGHWAY_SHOULDER_WIDTH_METERS),
-          type: 'GRASS',
-        },
-        {
-          lMin: -(HIGHWAY_ROAD_HALF_WIDTH_METERS + HIGHWAY_SHOULDER_WIDTH_METERS),
-          lMax: -HIGHWAY_ROAD_HALF_WIDTH_METERS,
-          type: 'SHOULDER',
-        },
-        {
-          lMin: -HIGHWAY_ROAD_HALF_WIDTH_METERS,
-          lMax: HIGHWAY_ROAD_HALF_WIDTH_METERS,
-          type: 'ASPHALT',
-        },
-        {
-          lMin: HIGHWAY_ROAD_HALF_WIDTH_METERS,
-          lMax: HIGHWAY_ROAD_HALF_WIDTH_METERS + HIGHWAY_SHOULDER_WIDTH_METERS,
-          type: 'SHOULDER',
-        },
-        {
-          lMin: HIGHWAY_ROAD_HALF_WIDTH_METERS + HIGHWAY_SHOULDER_WIDTH_METERS,
-          lMax: HIGHWAY_GROUND_HALF_WIDTH_METERS,
-          type: 'GRASS',
-        },
-      ],
+      bands: roadSurfaceBands(HIGHWAY_ROAD_CROSS_SECTION, {
+        left: HIGHWAY_GROUND_HALF_WIDTH_METERS,
+        right: HIGHWAY_GROUND_HALF_WIDTH_METERS,
+        leftType: 'GRASS',
+        rightType: 'GRASS',
+      }),
     },
   ]);
 }

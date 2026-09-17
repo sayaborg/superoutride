@@ -1,7 +1,7 @@
 import { clamp } from '../core/math.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
-// Retained CURRENT reference: embedded coefficients are authored listening choices, not measured
+// Retained HOPF reference: embedded coefficients are authored listening choices, not measured
 // rubber parameters. Primary tuning is independently owned by tire-hybrid-acoustics.ts.
 const MATERIAL = {
   ASPHALT: { squeal: 1 },

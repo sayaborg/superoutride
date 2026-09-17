@@ -38,7 +38,7 @@ for (let tick = 0; tick < 600; tick++) {
 }
 const observed = trace.map((v) => [tireSoundParameters(v.front), tireSoundParameters(v.rear)]);
 const controls = {
-  current: trace.map((v) => [tireParameters(v.front), tireParameters(v.rear)]),
+  hopf: trace.map((v) => [tireParameters(v.front), tireParameters(v.rear)]),
   contact: trace.map((v) => [contactTireParameters(v.front), contactTireParameters(v.rear)]),
   hybrid: observed,
   spectral: observed,
@@ -50,7 +50,7 @@ const factories = {
     new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.frontSeed),
     new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.rearSeed),
   ],
-  current: () => [
+  hopf: () => [
     new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
     new TireSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),
   ],
@@ -83,7 +83,7 @@ function render(model) {
         const v = controls[model][frame][axle],
           kernel = pair[axle];
         if (model === 'contact') kernel.update(v.travelSpeed, v.slipSpeed, v.load, v.surfaceIndex);
-        else if (model === 'current') kernel.update(v);
+        else if (model === 'hopf') kernel.update(v);
         else kernel.update(v, v.surfaceIndex);
       }
     }

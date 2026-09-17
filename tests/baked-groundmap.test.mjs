@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../dist/camera/current-camera-profile.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS, CURRENT_RENDER_NEAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { createRoadsideSprites } from '../dist/dev/courses/roadside-scenery.js';
 import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
-import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumEnvironment } from '../dist/dev/fixtures/stadium-environment.js';
 import { createCliffVisualProfile } from '../dist/dev/fixtures/cliff-visual.js';
 import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
 import { createMaterialTransitionSurfaceMap } from '../dist/dev/fixtures/material-transitions.js';
@@ -17,18 +17,19 @@ import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
 import { sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { renderDriving } from '../dist/render/renderer.js';
-import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
-const metadata = JSON.parse(await readFile(new URL('../dist/assets/stadium-ground-map.json', import.meta.url), 'utf8'));
-const binary = new Uint8Array(await readFile(new URL('../dist/assets/stadium-ground-map.bin', import.meta.url)));
+const metadata = JSON.parse(
+  await readFile(new URL('../.test-assets/stadium-ground-map.json', import.meta.url), 'utf8'),
+);
+const binary = new Uint8Array(await readFile(new URL('../.test-assets/stadium-ground-map.bin', import.meta.url)));
 const baked = new BakedGroundMapAsset(metadata, binary);
 const guide = createStadiumGuide();
 const height = createHillDipHeightProfile(guide.length);
 const visual = createCliffVisualProfile(guide.length);
-const compiledSurfaces = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
+const compiledSurfaces = createStadiumEnvironment(guide.length);
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,

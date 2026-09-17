@@ -1,17 +1,16 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { sampleStadiumRightBranchTargetL, STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
-import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumEnvironment } from '../dist/dev/fixtures/stadium-environment.js';
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 
 const guide = createStadiumGuide();
-const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
+const compiled = createStadiumEnvironment(guide.length);
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
@@ -82,7 +81,7 @@ test('DEV rival branch target moves continuously outward instead of snapping wor
 });
 
 test('baked fixture remains historical while current live runtime selects the junction authority', () => {
-  const buildSource = fs.readFileSync(new URL('../tools/build-ground-map.mjs', import.meta.url), 'utf8');
+  const buildSource = fs.readFileSync(new URL('../tools/build-test-ground-map.mjs', import.meta.url), 'utf8');
   const mainSource = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(buildSource, /STADIUM_JUNCTION/);
   assert.match(mainSource, /createDefaultBranchingParent/);

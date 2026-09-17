@@ -1,6 +1,6 @@
 import { deg } from './assert.mjs';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../../dist/core/presentation-scale.js';
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
 import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { createMaterialTransitionSurfaceMap } from '../../dist/dev/fixtures/material-transitions.js';

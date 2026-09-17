@@ -7,7 +7,7 @@ import type { SharedRuntimeContent } from '../courses/shared-runtime-content.js'
 import { createThirdLiveSuccessorAuthoring } from '../courses/third-successor-route.js';
 
 /** Focused left terminal promotion with the other authored stages retained. */
-export function createSecondLiveForkAuthoring(guide: GuidePath, parent: SharedRuntimeContent, assets: SpriteAssets) {
+function createSecondLiveForkAuthoring(guide: GuidePath, parent: SharedRuntimeContent, assets: SpriteAssets) {
   const upstream = createThirdLiveSuccessorAuthoring(guide, parent, assets);
   return compileRasterForkStageRoute({ upstream, ...createSecondForkStep('LEFT', assets) }).authoring;
 }

@@ -3,3 +3,4 @@ dist/
 _site/
 .audit-baseline/
 package-lock.json
+.test-assets/

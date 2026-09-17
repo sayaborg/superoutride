@@ -60,7 +60,7 @@ const report = {
   observationHz: 60,
   note: 'One asphalt contact; synthetic common trace, not gameplay capture. Fixed gains; no peak/RMS matching.',
   references:
-    'CURRENT raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; HYBRID mix is R+S+Q, with isolated rolling, sliding and squeal taps. MODAL is Q only; compare modal-friction with hybrid-squeal for timbre and with hybrid-friction (S+Q) for friction coverage. It has no R/S sources. UNIFIED retains R plus one friction Q; compare unified-friction directly with modal-friction.',
+    'HOPF raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; HYBRID mix is R+S+Q, with isolated rolling, sliding and squeal taps. MODAL is Q only; compare modal-friction with hybrid-squeal for timbre and with hybrid-friction (S+Q) for friction coverage. It has no R/S sources. UNIFIED retains R plus one friction Q; compare unified-friction directly with modal-friction.',
   settings: SPECTRAL_SETTINGS,
   hybridSettings: HYBRID_SETTINGS,
   modalSettings: MODAL_SETTINGS,
@@ -80,7 +80,7 @@ for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
       'spectral-mix',
       'spectral-scrub',
       'spectral-squeal',
-      'current',
+      'hopf',
       'contact-friction',
       'hybrid-squeal',
       'hybrid-scrub',
@@ -113,7 +113,7 @@ for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
     outputs['spectral-mix'][i] = spectral.scrubOutput + spectral.squealOutput;
     outputs['spectral-scrub'][i] = spectral.scrubOutput;
     outputs['spectral-squeal'][i] = spectral.squealOutput;
-    outputs.current[i] = current.sample();
+    outputs.hopf[i] = current.sample();
     outputs['hybrid-mix'][i] = hybrid.sample();
     outputs['hybrid-squeal'][i] = hybrid.squealOutput;
     outputs['hybrid-scrub'][i] = hybrid.scrubOutput;

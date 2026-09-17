@@ -1,3 +1,4 @@
+import { classifyRoadCrossSection, compileRoadCrossSection, type RoadCrossSection } from './road-cross-section.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 type JunctionPhase = 'SINGLE' | 'WIDENING' | 'MEDIAN_GROWTH' | 'SEPARATED';
 export type JunctionSide = 'LEFT' | 'RIGHT';
@@ -14,14 +15,12 @@ export interface JunctionCrossSectionAuthoring {
   readonly sMedianStart: number;
   /** Chainage where the median reaches its authored full width. */
   readonly sSeparatedStart: number;
-  /** Width of the incoming single road. */
-  readonly parentRoadWidth: number;
+  /** Shared incoming road geometry; junctions currently require symmetric road widths. */
+  readonly parent: RoadCrossSection;
   /** Width retained by each outgoing child road after the split. */
   readonly childRoadWidth: number;
   /** Full left-to-right width of the median after separation. */
   readonly finalMedianWidth: number;
-  /** Outer shoulder width on each side. */
-  readonly shoulderWidth: number;
 }
 
 interface JunctionCrossSection {
@@ -50,7 +49,7 @@ interface JunctionScalarSection {
  * A junction remains one chainage-driven lateral cross-section. No second perspective road,
  * camera-space Z or branch-specific depth exists here.
  *
- * Phase A widens one asphalt band from parentRoadWidth to 2*childRoadWidth.
+ * Phase A widens one asphalt band from the parent road width to 2*childRoadWidth.
  * Phase B opens the median while moving both outer edges outward by the same amount, so each
  * outgoing child road keeps exactly childRoadWidth. Boundaries are deliberately linear in s:
  * the GroundMap source therefore needs only straight authored edges and the raster renderer
@@ -63,14 +62,15 @@ export class JunctionCrossSectionProfile {
     return (
       this.authoring.childRoadWidth +
       this.authoring.finalMedianWidth * 0.5 +
-      this.authoring.shoulderWidth +
+      this.authoring.parent.shoulderWidth +
       LATERAL_BOUNDARY_TOLERANCE_METERS
     );
   }
 
   constructor(authoring: JunctionCrossSectionAuthoring) {
-    validateAuthoring(authoring);
-    this.authoring = Object.freeze({ ...authoring });
+    const parent = compileRoadCrossSection(authoring.parent);
+    validateAuthoring({ ...authoring, parent });
+    this.authoring = Object.freeze({ ...authoring, parent });
   }
 
   sample(s: number): JunctionCrossSection {
@@ -87,8 +87,8 @@ export class JunctionCrossSectionProfile {
     const medianBand =
       medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS ? null : { min: -medianHalfWidth, max: medianHalfWidth };
     const shoulderBands: [LateralInterval, LateralInterval] = [
-      { min: -outerHalfWidth - a.shoulderWidth, max: -outerHalfWidth },
-      { min: outerHalfWidth, max: outerHalfWidth + a.shoulderWidth },
+      { min: -outerHalfWidth - a.parent.shoulderWidth, max: -outerHalfWidth },
+      { min: outerHalfWidth, max: outerHalfWidth + a.parent.shoulderWidth },
     ];
     const childCenterL =
       medianHalfWidth <= LATERAL_BOUNDARY_TOLERANCE_METERS
@@ -115,9 +115,14 @@ export class JunctionCrossSectionProfile {
 
   /** Allocation-free lateral classification used by compiler and runtime SurfaceMap sampling. */
   classify(s: number, l: number): JunctionLateralClass {
+    if (!Number.isFinite(s)) throw new RangeError('junction chainage must be finite');
     if (!Number.isFinite(l)) throw new RangeError('junction lateral coordinate must be finite');
+    if (s < this.authoring.sWidenStart) {
+      const value = classifyRoadCrossSection(this.authoring.parent, l, LATERAL_BOUNDARY_TOLERANCE_METERS);
+      return value === 'ROAD' ? 'ASPHALT_SINGLE' : value;
+    }
     const { outerHalfWidth, medianHalfWidth } = sampleScalarSection(this.authoring, s);
-    const shoulderWidth = this.authoring.shoulderWidth;
+    const shoulderWidth = this.authoring.parent.shoulderWidth;
 
     if (
       medianHalfWidth > LATERAL_BOUNDARY_TOLERANCE_METERS &&
@@ -173,13 +178,13 @@ export class JunctionCrossSectionProfile {
 function sampleScalarSection(a: JunctionCrossSectionAuthoring, s: number): JunctionScalarSection {
   if (!Number.isFinite(s)) throw new RangeError('junction chainage must be finite');
   if (s < a.sWidenStart) {
-    return { phase: 'SINGLE', outerHalfWidth: a.parentRoadWidth * 0.5, medianHalfWidth: 0 };
+    return { phase: 'SINGLE', outerHalfWidth: a.parent.roadLeft, medianHalfWidth: 0 };
   }
   if (s < a.sMedianStart) {
     const t = unitInterval((s - a.sWidenStart) / (a.sMedianStart - a.sWidenStart));
     return {
       phase: 'WIDENING',
-      outerHalfWidth: lerp(a.parentRoadWidth * 0.5, a.childRoadWidth, t),
+      outerHalfWidth: lerp(a.parent.roadLeft, a.childRoadWidth, t),
       medianHalfWidth: 0,
     };
   }
@@ -202,17 +207,17 @@ function sampleScalarSection(a: JunctionCrossSectionAuthoring, s: number): Junct
 
 function validateAuthoring(a: JunctionCrossSectionAuthoring): void {
   for (const [name, value] of Object.entries(a)) {
+    if (name === 'parent') continue;
     if (!Number.isFinite(value)) throw new RangeError(`junction ${name} must be finite`);
   }
   if (!(a.sMedianStart > a.sWidenStart)) throw new RangeError('sMedianStart must be after sWidenStart');
   if (!(a.sSeparatedStart > a.sMedianStart)) throw new RangeError('sSeparatedStart must be after sMedianStart');
-  if (!(a.parentRoadWidth > 0)) throw new RangeError('parentRoadWidth must be > 0');
+  if (a.parent.roadLeft !== a.parent.roadRight) throw new RangeError('junction parent must be symmetric');
   if (!(a.childRoadWidth > 0)) throw new RangeError('childRoadWidth must be > 0');
-  if (2 * a.childRoadWidth + LATERAL_BOUNDARY_TOLERANCE_METERS < a.parentRoadWidth) {
+  if (2 * a.childRoadWidth + LATERAL_BOUNDARY_TOLERANCE_METERS < a.parent.roadLeft + a.parent.roadRight) {
     throw new RangeError('junction widening cannot end narrower than the parent road');
   }
   if (!(a.finalMedianWidth > 0)) throw new RangeError('finalMedianWidth must be > 0');
-  if (!(a.shoulderWidth >= 0)) throw new RangeError('shoulderWidth must be >= 0');
 }
 
 function lerp(a: number, b: number, t: number): number {

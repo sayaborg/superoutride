@@ -7,12 +7,13 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "node tools/clean-dist.mjs && tsc -p tsconfig.json && node tools/build-ground-map.mjs",
+    "build": "node tools/clean-dist.mjs && tsc -p tsconfig.json",
     "check": "npm run lint && npm run format:check && tsc -p tsconfig.json --noEmit",
-    "test": "npm run lint && npm run format:check && npm run build && node --test tests/*.test.mjs",
+    "test": "npm run lint && npm run format:check && npm run build && npm run build:test-assets && node --test tests/*.test.mjs",
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:test-assets": "node tools/build-test-ground-map.mjs"
   },
   "devDependencies": {
     "eslint": "10.10.0",

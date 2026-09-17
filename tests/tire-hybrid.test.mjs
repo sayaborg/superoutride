@@ -6,7 +6,7 @@ import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
 import { TIRE_SOUND_SURFACES } from '../dist/audio/tire-sound-observation.js';
 
 // The adopted generator owns raw-observation mapping and scalar vibration energy. The former
-// CURRENT-controller equality, S absence and SPECTRAL R replay constraints are superseded in docs/audio.md.
+// HOPF-controller equality, S absence and SPECTRAL R replay constraints are superseded in docs/audio.md.
 const input = (extra = {}) => ({
   longitudinalVelocity: 25,
   lateralVelocity: 6,

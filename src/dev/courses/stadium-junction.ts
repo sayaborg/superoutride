@@ -1,13 +1,16 @@
 import { JunctionCrossSectionProfile } from '../../course/junction-cross-section.js';
 
+import { compileRoadCrossSection } from '../../course/road-cross-section.js';
+
+export const STADIUM_ROAD_CROSS_SECTION = compileRoadCrossSection({ roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 });
+
 export const STADIUM_JUNCTION = new JunctionCrossSectionProfile({
   sWidenStart: 390,
   sMedianStart: 430,
   sSeparatedStart: 530,
-  parentRoadWidth: 9,
+  parent: STADIUM_ROAD_CROSS_SECTION,
   childRoadWidth: 7,
   finalMedianWidth: 8,
-  shoulderWidth: 1,
 });
 
 /**

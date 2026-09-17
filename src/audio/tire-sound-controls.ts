@@ -10,7 +10,7 @@ export const TIRE_COMPONENTS = Object.freeze([
 type TireComponent = (typeof TIRE_COMPONENTS)[number]['key'];
 // Composition owns model identity, transport and actual output taps; kernels have no model flags.
 export const TIRE_SOUND_CONTROLS = Object.freeze({
-  current: Object.freeze({ input: 'current', components: Object.freeze([]) }),
+  hopf: Object.freeze({ input: 'hopf', components: Object.freeze([]) }),
   contact: Object.freeze({ input: 'contact', components: Object.freeze([]) }),
   spectral: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),
   hybrid: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),

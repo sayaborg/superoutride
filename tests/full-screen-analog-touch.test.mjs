@@ -55,7 +55,6 @@ class FakeElement extends FakeEventTarget {
   children = [];
   attributes = new Map();
 
-  setPointerCapture() {}
   append(...children) {
     this.children.push(...children);
   }
@@ -89,14 +88,7 @@ function pointer(pointerId, clientX, clientY) {
 function createTouchFixture() {
   const lifecycle = new FakeEventTarget();
   const document = new FakeDocument();
-  const touch = new TouchInput(
-    new FakeElement(),
-    new FakeElement(),
-    new FakeElement(),
-    new FakeElement(),
-    lifecycle,
-    document,
-  );
+  const touch = new TouchInput(lifecycle, document);
   return { lifecycle, document, touch };
 }
 
@@ -232,9 +224,8 @@ test('creates steering-wheel and pedal origin indicators and updates the vector 
   assert.equal(pedalIndicator.classList.contains('active'), false);
 });
 
-test('touch layout hides legacy fixed driving panels while keeping full-screen overlay styling', async () => {
+test('touch layout retains full-screen overlay styling', async () => {
   const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
-  assert.match(css, /\.touch-capable \.control-zone\s*\{\s*display:\s*none;/s);
   assert.match(css, /\.touch-analog-indicator/);
   assert.match(css, /\.touch-analog-steering \.touch-analog-origin-icon/);
   assert.match(css, /\.touch-analog-pedal \.touch-analog-origin-icon/);

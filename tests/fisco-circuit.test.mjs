@@ -191,10 +191,10 @@ test('course 4 selects FISCO only at the browser CIRCUIT composition root', asyn
   assert.match(circuitSource, /content: selectedCircuit/);
   assert.match(circuitSource, /createFiscoRuntime\(\)/);
   assert.match(circuitSource, /createTsukubaCourse2000Runtime\(\)/);
-  assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit|query === 'fisco'/);
-  assert.doesNotMatch(linearSource, /m9-6-fisco-circuit|query === 'fisco'/);
+  assert.doesNotMatch(branchingSource, /query === 'fisco'/);
+  assert.doesNotMatch(linearSource, /query === 'fisco'/);
 
   for (const source of [physicsSource, cameraSource, rendererSource, topologySource]) {
-    assert.doesNotMatch(source, /FISCO|m9-6-fisco/i);
+    assert.doesNotMatch(source, /FISCO/i);
   }
 });

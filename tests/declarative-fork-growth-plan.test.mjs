@@ -11,7 +11,6 @@ import {
   createDeclarativeForkGrowthRuntime,
 } from '../dist/dev/courses/fork-growth-plan.js';
 import { createThirdLiveSuccessorAuthoring } from '../dist/dev/courses/third-successor-route.js';
-import { createSymmetricSecondLiveForkRuntime } from '../dist/dev/fixtures/right-second-fork.js';
 
 import { compileRasterForkGrowthPlan } from '../dist/runtime/raster-fork-growth-plan.js';
 
@@ -24,73 +23,24 @@ function setup() {
   return { guide, parent, assets };
 }
 
-function gateRows(live) {
-  return live.gates.gates.map((gate) => ({
-    id: gate.id,
-    kind: gate.kind,
-    stageId: gate.stageId,
-    choiceId: gate.choiceId ?? null,
-    x: gate.center.x,
-    z: gate.center.z,
-    heading: gate.heading,
-    halfWidth: gate.halfWidth,
-  }));
-}
-
-function seamRows(live) {
-  return live.handoffs.seams.map((seam) => ({
-    id: seam.id,
-    choiceId: seam.choiceId,
-    targetChartId: seam.targetChartId,
-    x: seam.center.x,
-    z: seam.center.z,
-    heading: seam.heading,
-    halfWidth: seam.halfWidth,
-  }));
-}
-
-test('two-step fork growth plan reproduces the complete RouteDag exactly', () => {
+test('each plan step preserves the other branch packages and physical boundaries', () => {
   const { guide, parent, assets } = setup();
-  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
-
-  assert.deepEqual(
-    planned.route.stages.map((stage) => [stage.id, stage.kind]),
-    legacy.route.stages.map((stage) => [stage.id, stage.kind]),
-  );
-  assert.deepEqual(
-    planned.route.choices.map((choice) => [choice.id, choice.fromStageId, choice.toStageId]),
-    legacy.route.choices.map((choice) => [choice.id, choice.fromStageId, choice.toStageId]),
-  );
-});
-
-test('preserves package bindings and generated Guide chart identities exactly', () => {
-  const { guide, parent, assets } = setup();
-  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
-
-  assert.deepEqual(
-    planned.content.bindings.map((entry) => [entry.stageId, entry.packageId]),
-    legacy.content.bindings.map((entry) => [entry.stageId, entry.packageId]),
-  );
-  assert.deepEqual(
-    planned.registry.packages.map((entry) => [entry.packageId, entry.coordinateFrame.id]),
-    legacy.registry.packages.map((entry) => [entry.packageId, entry.coordinateFrame.id]),
-  );
-});
-
-test('preserves every physical transition/FINISH gate from exactly', () => {
-  const { guide, parent, assets } = setup();
-  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
-  assert.deepEqual(gateRows(planned), gateRows(legacy));
-});
-
-test('preserves every physical handoff seam from exactly', () => {
-  const { guide, parent, assets } = setup();
-  const legacy = createSymmetricSecondLiveForkRuntime(guide, parent, assets);
-  const planned = createDeclarativeForkGrowthRuntime(guide, parent, assets);
-  assert.deepEqual(seamRows(planned), seamRows(legacy));
+  const plan = createDeclarativeForkGrowthPlan(guide, parent, assets);
+  const first = plan.steps[0].authoring;
+  const final = plan.authoring;
+  const leftStages = first.stages.filter((stage) => /(?:_L|_LA|_LB)$/.test(stage.id) || stage.id === 'STAGE_4_L_FORK');
+  for (const stage of leftStages) {
+    assert.equal(final.stages.find((candidate) => candidate.id === stage.id).runtime, stage.runtime);
+  }
+  for (const transition of first.transitions.filter((row) => row.fromStageId.includes('_L'))) {
+    const retained = final.transitions.find((row) => row.id === transition.id);
+    assert.deepEqual(retained, transition);
+  }
+  const live = createDeclarativeForkGrowthRuntime(guide, parent, assets);
+  assert.equal(live.handoffs.seams.length, live.route.choices.length);
+  for (const binding of live.content.bindings) {
+    assert.ok(live.registry.packages.some((runtime) => runtime.packageId === binding.packageId));
+  }
 });
 
 test('plan is an ordered two-step fold and the generic zero-step plan is identity', () => {
@@ -106,10 +56,9 @@ test('plan is an ordered two-step fold and the generic zero-step plan is identit
   assert.deepEqual(identity.steps, []);
 });
 
-test('removes milestone nesting from live construction while generic plan owns no geometry or renderer logic', async () => {
-  const [planSource, liveSource, stableEntry, main, renderer] = await Promise.all([
+test('generic plan owns composition without geometry or renderer logic', async () => {
+  const [planSource, liveSource, main, renderer] = await Promise.all([
     readFile(new URL('../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/render/renderer.ts', import.meta.url), 'utf8'),
@@ -117,12 +66,11 @@ test('removes milestone nesting from live construction while generic plan owns n
   assert.match(planSource, /compileRasterForkStageRoute/);
   assert.doesNotMatch(
     planSource,
-    /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/M[0-9]+(?:[._][0-9]+)?|camera|car-physics|motorcycle-physics|m6-/i,
+    /compileStageJunction|createRasterForkStageSuccessor|guideChartToWorld|render\/|camera|car-physics|motorcycle-physics/i,
   );
   assert.match(liveSource, /createThirdLiveSuccessorAuthoring/);
   assert.match(liveSource, /compileRasterForkGrowthPlan/);
-  assert.doesNotMatch(liveSource, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
-  assert.match(stableEntry, /createDeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(main, /M[0-9]+(?:[._][0-9]+)?|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
-  assert.doesNotMatch(renderer, /M[0-9]+(?:[._][0-9]+)?|STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
+  assert.match(liveSource, /createDeclarativeForkGrowthRuntime/);
+  assert.doesNotMatch(main, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
+  assert.doesNotMatch(renderer, /STAGE_4_[LR]_FORK|GOAL_[LR][AB]|S4[LR]_FORK/);
 });

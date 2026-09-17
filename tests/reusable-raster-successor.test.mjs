@@ -1,7 +1,7 @@
 import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../dist/core/presentation-scale.js';
 import { createChildStageContinuation } from '../dist/dev/courses/child-stage-continuation.js';
@@ -131,7 +131,7 @@ test('factory refuses a gentle-turn threshold at or above the frozen 10-degree R
 
 test('successor factory is route/renderer/vehicle independent and delegates Raster construction to it', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [factorySource, legacySource] = await Promise.all([
+  const [factorySource, courseSource] = await Promise.all([
     readFile(new URL('../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/courses/successor-stage-continuation.ts', import.meta.url), 'utf8'),
   ]);
@@ -139,6 +139,6 @@ test('successor factory is route/renderer/vehicle independent and delegates Rast
   assert.doesNotMatch(factorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
   assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|camera/);
   assert.doesNotMatch(factorySource, /M[0-9]+|dev\//);
-  assert.match(legacySource, /createRasterStageSuccessor/);
-  assert.doesNotMatch(legacySource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);
+  assert.match(courseSource, /createRasterStageSuccessor/);
+  assert.doesNotMatch(courseSource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);
 });

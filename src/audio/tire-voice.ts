@@ -61,7 +61,7 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
         activeInput = active === null ? null : TIRE_SOUND_CONTROLS[active].input;
       // Controls keep tracking while fading. Only the active or immediately requested mapping is needed.
       for (const axle of ['front', 'rear'] as const) {
-        if (desiredInput === 'current' || activeInput === 'current') {
+        if (desiredInput === 'hopf' || activeInput === 'hopf') {
           const controls = tireParameters(state[axle]);
           node.parameters.get(`${axle}_squeal`)!.value = controls.squeal;
           node.parameters.get(`${axle}_pitch`)!.value = controls.pitch;

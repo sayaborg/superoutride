@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, mkdtemp, rm, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -18,6 +18,8 @@ test('actual Pages staging binds HTML to immutable CSS, retaining the complete b
   await mkdir(join(root, 'dist', 'audio'), { recursive: true });
   await writeFile(join(root, 'dist', 'boot.js'), 'export {};');
   await writeFile(join(root, 'dist', 'audio', 'voice.js'), 'export const voice = 1;');
+  await mkdir(join(root, '.test-assets'));
+  await writeFile(join(root, '.test-assets', 'stadium-ground-map.bin'), 'test-only');
   const stage = workflow
     .split('      - name: Stage static site\n')[1]
     .split('      - name: Setup Pages')[0]
@@ -38,6 +40,8 @@ test('actual Pages staging binds HTML to immutable CSS, retaining the complete b
   );
   assert.equal(await readFile(join(root, '_site', 'dist', 'boot.js'), 'utf8'), 'export {};');
   assert.equal((await readFile(join(root, '_site', 'version.txt'), 'utf8')).trim(), sha);
+  const files = await readdir(join(root, '_site'), { recursive: true });
+  assert.ok(files.every((path) => !path.includes('stadium-ground-map') && !path.includes('.test-assets')));
 });
 
 test('Pages boot resolves all three top-level compositions through one commit-versioned ESM path', async () => {

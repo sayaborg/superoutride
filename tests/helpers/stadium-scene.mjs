@@ -6,7 +6,7 @@ import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../../dist/core/presentation-scale.js';
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
 import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';

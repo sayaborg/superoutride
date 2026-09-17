@@ -6,12 +6,10 @@ import test from 'node:test';
 
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 
-import {
-  createLiveContinuation,
-  createLiveGateSet,
-  createLiveHandoffManifest,
-  createLiveRouteDag,
-} from '../dist/dev/courses/successor-stage-continuation.js';
+import { handoffGuideChart } from '../dist/gameplay/guide-chart.js';
+import { STADIUM_ROUTE_GATE_S } from '../dist/dev/courses/stadium-route-gates.js';
+import { STADIUM_HANDOFF_SEAM_S } from '../dist/dev/courses/stadium-handoff.js';
+import { STADIUM_JUNCTION } from '../dist/dev/courses/stadium-junction.js';
 import { createDeclarativeLiveRouteRuntime } from '../dist/dev/fixtures/declarative-route.js';
 
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
@@ -51,38 +49,55 @@ test('declarative rows compile the same five-stage route with derived package bi
   );
 });
 
-test('declarative compiler reproduces physical gates and handoff seams exactly', () => {
-  const { guide, live } = setup();
-  const legacyRoute = createLiveRouteDag();
-  const legacyContinuation = createLiveContinuation(guide);
-  const legacyGates = createLiveGateSet(legacyRoute, legacyContinuation);
-  const legacyHandoffs = createLiveHandoffManifest(legacyRoute, legacyContinuation);
-
-  assert.deepEqual(
-    live.gates.gates.map((gate) => gate.id),
-    legacyGates.gates.map((gate) => gate.id),
-  );
-  for (const gate of live.gates.gates) {
-    const legacy = legacyGates.gates.find((candidate) => candidate.id === gate.id);
-    assert.ok(legacy);
-    near(gate.center.x, legacy.center.x, 1e-7);
-    near(gate.center.z, legacy.center.z, 1e-7);
-    near(gate.heading, legacy.heading, 1e-7);
-    near(gate.halfWidth, legacy.halfWidth, 1e-7);
-  }
-
-  assert.deepEqual(
-    live.handoffs.seams.map((seam) => seam.id),
-    legacyHandoffs.seams.map((seam) => seam.id),
-  );
-  for (const seam of live.handoffs.seams) {
-    const legacy = legacyHandoffs.seams.find((candidate) => candidate.id === seam.id);
-    assert.ok(legacy);
-    assert.equal(seam.choiceId, legacy.choiceId);
-    assert.equal(seam.targetChartId, legacy.targetChartId);
-    near(seam.center.x, legacy.center.x, 1e-7);
-    near(seam.center.z, legacy.center.z, 1e-7);
-    near(seam.heading, legacy.heading, 1e-7);
+test('physical gates precede handoffs and seams coincide in both owning charts', () => {
+  const { live } = setup();
+  const { continuation } = live;
+  const rows = [
+    [
+      'S1_LEFT',
+      continuation.base.charts.parent,
+      continuation.base.charts.left,
+      STADIUM_ROUTE_GATE_S,
+      STADIUM_HANDOFF_SEAM_S,
+      STADIUM_JUNCTION.separatedChildCenterL('LEFT'),
+      continuation.base.handoffLocalS,
+    ],
+    [
+      'S1_RIGHT',
+      continuation.base.charts.parent,
+      continuation.base.charts.right,
+      STADIUM_ROUTE_GATE_S,
+      STADIUM_HANDOFF_SEAM_S,
+      STADIUM_JUNCTION.separatedChildCenterL('RIGHT'),
+      continuation.base.handoffLocalS,
+    ],
+    ...[continuation.leftSuccessor, continuation.rightSuccessor].map((source, i) => [
+      i === 0 ? 'S2L_CONTINUE' : 'S2R_CONTINUE',
+      source.link.sourceFrame,
+      source.chart,
+      source.sourceTransitionS,
+      source.sourceSeamS,
+      0,
+      source.targetSeamS,
+    ]),
+  ];
+  for (const [choice, source, target, gateS, seamS, lateral, targetS] of rows) {
+    const gate = live.gates.gates.find((entry) => entry.choiceId === choice);
+    const seam = live.handoffs.seams.find((entry) => entry.choiceId === choice);
+    assert.ok(gate && seam);
+    assert.ok(gateS < seamS);
+    const gateLocal = handoffGuideChart(source, gate.center);
+    const sourceLocal = handoffGuideChart(source, seam.center);
+    const targetLocal = handoffGuideChart(target, seam.center);
+    near(gateLocal.s, gateS, 1e-6);
+    near(gateLocal.l, lateral, 1e-6);
+    near(sourceLocal.s, seamS, 1e-6);
+    near(sourceLocal.l, lateral, 1e-6);
+    near(targetLocal.s, targetS, 1e-6);
+    near(targetLocal.l, 0, 1e-6);
+    assert.equal(seam.targetChartId, target.id);
+    assert.equal(gate.halfWidth, 3.5);
+    assert.equal(seam.halfWidth, 3.5);
   }
 });
 
@@ -99,7 +114,7 @@ test('target chart ids are derived from target stage runtime rather than repeate
 
 test('main assembles one declarative fork plan above general topology compilation', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [mainSource, m630Source, m638Source, growthSource, forkSource, fragmentSource] = await Promise.all([
+  const [mainSource, successorSource, planSource, growthSource, forkSource, fragmentSource] = await Promise.all([
     readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/courses/third-successor-route.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
@@ -110,25 +125,21 @@ test('main assembles one declarative fork plan above general topology compilatio
   assert.match(mainSource, /createDeclarativeForkGrowthRuntime/);
   assert.doesNotMatch(
     mainSource,
-    /createDeclarativeLiveRouteRuntime|createLiveRouteDag|createLiveContinuation|createThirdLiveSuccessorRuntime|createSecondLiveForkRuntime|createSymmetricSecondLiveForkRuntime/,
+    /createDeclarativeLiveRouteRuntime|createLiveContinuation|createThirdLiveSuccessorRuntime|createSecondLiveForkRuntime/,
   );
-  assert.match(m638Source, /createThirdLiveSuccessorAuthoring/);
-  assert.match(m638Source, /compileRasterForkGrowthPlan/);
-  assert.doesNotMatch(m638Source, /createM635SecondLiveFork|createM637SymmetricSecondLiveFork/);
+  assert.match(planSource, /createThirdLiveSuccessorAuthoring/);
+  assert.match(planSource, /compileRasterForkGrowthPlan/);
   assert.match(growthSource, /compileRasterForkStageRoute/);
   assert.match(forkSource, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(m630Source, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(m630Source, /compileDeclarativeLiveRoute\s*\(/);
+  assert.match(successorSource, /composeDeclarativeLiveRouteAuthoring/);
+  assert.match(successorSource, /compileDeclarativeLiveRoute\s*\(/);
   assert.match(fragmentSource, /export function composeDeclarativeLiveRouteAuthoring/);
-  assert.doesNotMatch(fragmentSource, /compileDeclarativeRouteFragments/);
-  assert.doesNotMatch(m638Source, /createLiveRouteDag|createLiveGateSet|createLiveHandoffManifest/);
 });
 
-test('generic declarative compiler contains no renderer, camera, vehicle physics or milestone dependency', async () => {
+test('generic declarative compiler contains no renderer, camera or vehicle physics dependency', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /camera/);
   assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
-  assert.doesNotMatch(source, /[678]|m6-2[678]/);
 });

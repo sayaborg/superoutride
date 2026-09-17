@@ -69,10 +69,7 @@ test('browser main consumes one assembly and no longer constructs route pieces',
   const source = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(source, /createDeclarativeForkGrowthRuntime/);
   assert.match(source, /const liveRoute = createDeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(
-    source,
-    /createLiveRouteDag|createLiveContinuation|createLiveGateSet|createLiveHandoffManifest|createSuccessorStageRegistry/,
-  );
+  assert.doesNotMatch(source, /createLiveContinuation/);
   assert.doesNotMatch(source, /createThirdLiveSuccessorRuntime|STAGE_3_L|S3L_CONTINUE/);
 });
 

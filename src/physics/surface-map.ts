@@ -31,7 +31,7 @@ export interface SurfaceBand {
   readonly type: Exclude<SurfaceType, 'VOID'>;
 }
 
-interface SurfaceSection {
+export interface SurfaceSection {
   readonly sStart: number;
   readonly name: string;
   readonly bands: readonly SurfaceBand[];
@@ -130,7 +130,7 @@ function junctionSurfaceType(
 }
 
 /** One physical-band compiler for both region authoring and runtime SurfaceMap sources. */
-export function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly SurfaceBand[] {
+function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly SurfaceBand[] {
   const copied = bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin);
   for (let i = 0; i < copied.length; i += 1) {
     const band = copied[i]!;

@@ -1,3 +1,5 @@
+import { compileRoadCrossSection } from '../../course/road-cross-section.js';
+import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import { HeightProfile } from '../../core/height-profile.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
 import { compileRasterPath, type RasterPath } from '../../core/raster-path.js';
@@ -196,34 +198,32 @@ const FISCO_EDGE_MARKINGS: readonly LongitudinalRoadMarking[] = Object.freeze([
   }),
 ]);
 
+const FISCO_ROAD_CROSS_SECTION = compileRoadCrossSection({
+  roadLeft: FISCO_ROAD_HALF_WIDTH_METERS,
+  roadRight: FISCO_ROAD_HALF_WIDTH_METERS,
+  shoulderWidth: SHOULDER_WIDTH_METERS,
+});
+
 export function createFiscoGroundProfile(): GroundMapProfile {
   return {
     groundLeft: FISCO_GROUND_HALF_WIDTH_METERS,
     groundRight: FISCO_GROUND_HALF_WIDTH_METERS,
-    roadLeft: FISCO_ROAD_HALF_WIDTH_METERS,
-    roadRight: FISCO_ROAD_HALF_WIDTH_METERS,
-    shoulderWidth: SHOULDER_WIDTH_METERS,
+    ...FISCO_ROAD_CROSS_SECTION,
     roadMarkings: FISCO_EDGE_MARKINGS,
   };
 }
 
 function createFiscoSurfaceMap(courseLength: number): SurfaceMap {
-  const shoulderEdge = FISCO_ROAD_HALF_WIDTH_METERS + SHOULDER_WIDTH_METERS;
   return new SurfaceMap(courseLength, [
     {
       sStart: 0,
       name: 'FISCO SURFACE',
-      bands: [
-        { lMin: -FISCO_GROUND_HALF_WIDTH_METERS, lMax: -shoulderEdge, type: 'GRASS' },
-        { lMin: -shoulderEdge, lMax: -FISCO_ROAD_HALF_WIDTH_METERS, type: 'SHOULDER' },
-        {
-          lMin: -FISCO_ROAD_HALF_WIDTH_METERS,
-          lMax: FISCO_ROAD_HALF_WIDTH_METERS,
-          type: 'ASPHALT',
-        },
-        { lMin: FISCO_ROAD_HALF_WIDTH_METERS, lMax: shoulderEdge, type: 'SHOULDER' },
-        { lMin: shoulderEdge, lMax: FISCO_GROUND_HALF_WIDTH_METERS, type: 'GRASS' },
-      ],
+      bands: roadSurfaceBands(FISCO_ROAD_CROSS_SECTION, {
+        left: FISCO_GROUND_HALF_WIDTH_METERS,
+        right: FISCO_GROUND_HALF_WIDTH_METERS,
+        leftType: 'GRASS',
+        rightType: 'GRASS',
+      }),
     },
   ]);
 }

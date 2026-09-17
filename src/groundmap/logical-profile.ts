@@ -1,6 +1,7 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
 import { nonEmptyId } from '../core/validation.js';
-import type { GroundMapMaterial } from '../course/surface-region.js';
+
+type GroundMapMaterial = 'GRASS' | 'ROCK';
 
 export interface GroundMapLogicalSection {
   readonly sStart: number;

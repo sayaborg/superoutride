@@ -22,7 +22,7 @@ import { createChildStageAuthoring } from './child-stage-authoring.js';
 import { PARENT_FORK_GEOMETRY, type ParentForkGeometry } from './child-stage-continuation.js';
 import type { SharedRuntimeContent } from './shared-runtime-content.js';
 import { chartPackage } from './shared-runtime-content.js';
-import { CENTER_DASH_MARKINGS } from './stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from './road-markings.js';
 import { createSuccessorStagePackages } from './successor-stage-content.js';
 import { createLiveContinuation, type LiveContinuation } from './successor-stage-continuation.js';
 

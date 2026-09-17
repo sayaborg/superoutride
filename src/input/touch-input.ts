@@ -1,9 +1,8 @@
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from './driving-input.js';
 import { PedalInputArbiter } from './pedal-input-arbiter.js';
-import { SteeringInputArbiter, type SteeringDirection } from './steering-input-arbiter.js';
+import { SteeringInputArbiter } from './steering-input-arbiter.js';
 
-type MomentaryKey = 'throttle' | 'brake';
 type AnalogRole = 'steering' | 'pedal';
 
 interface AnalogPointer {
@@ -46,36 +45,19 @@ export function touchPedalRequests(startY: number, currentY: number, fullScaleDi
 }
 
 export class TouchInput {
-  private throttlePointers = new Set<number>();
-  private brakePointers = new Set<number>();
-  private readonly steerLeftButton: HTMLElement;
-  private readonly steerRightButton: HTMLElement;
   private steeringPointer: AnalogPointer | null = null;
   private pedalPointer: AnalogPointer | null = null;
   private readonly steeringIndicator: HTMLElement | null;
   private readonly pedalIndicator: HTMLElement | null;
 
   constructor(
-    steerLeftButton: HTMLElement,
-    steerRightButton: HTMLElement,
-    throttleButton: HTMLElement,
-    brakeButton: HTMLElement,
     private readonly lifecycleTarget: Window = window,
     visibilityDocument: Document = document,
     private readonly pedals = new PedalInputArbiter(),
     private readonly steering = new SteeringInputArbiter(),
   ) {
-    this.steerLeftButton = steerLeftButton;
-    this.steerRightButton = steerRightButton;
     this.steeringIndicator = createAnalogIndicator(visibilityDocument, 'steering');
     this.pedalIndicator = createAnalogIndicator(visibilityDocument, 'pedal');
-
-    // Retain the existing non-touch button path for desktop/test fallback. Real touch pointers use
-    // the full-screen relative-displacement path below and never publish the old digital buttons.
-    this.bindSteeringButton(steerLeftButton, 'left', -1);
-    this.bindSteeringButton(steerRightButton, 'right', 1);
-    this.bindMomentary(throttleButton, 'throttle');
-    this.bindMomentary(brakeButton, 'brake');
 
     lifecycleTarget.addEventListener('pointerdown', (event) => this.beginAnalogPointer(event), true);
     lifecycleTarget.addEventListener('pointermove', (event) => this.moveAnalogPointer(event), true);
@@ -92,7 +74,6 @@ export class TouchInput {
     const pedals = this.pedals.sample();
     const steeringSource = this.steering.activeSource();
     const pedalSource = this.pedals.activeSource();
-    this.syncSteeringButtons();
     return {
       steering: this.steering.sample(),
       ...pedals,
@@ -185,62 +166,6 @@ export class TouchInput {
     }
   }
 
-  private bindSteeringButton(element: HTMLElement, side: 'left' | 'right', direction: SteeringDirection): void {
-    element.addEventListener('pointerdown', (event) => {
-      if (event.pointerType === 'touch') return;
-      this.steering.press(touchSteeringSource(side, event.pointerId), direction);
-      try {
-        element.setPointerCapture(event.pointerId);
-      } catch {
-        // The global terminal listeners remain authoritative when capture is unavailable.
-      }
-      this.syncSteeringButtons();
-      event.preventDefault();
-    });
-
-    const release = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
-      this.steering.release(touchSteeringSource(side, event.pointerId));
-      this.syncSteeringButtons();
-      event.preventDefault();
-    };
-
-    element.addEventListener('pointerup', release);
-    element.addEventListener('pointercancel', release);
-    element.addEventListener('lostpointercapture', (event) => {
-      this.releasePointer(event.pointerId);
-    });
-  }
-
-  private bindMomentary(element: HTMLElement, key: MomentaryKey): void {
-    const pointers = key === 'throttle' ? this.throttlePointers : this.brakePointers;
-
-    element.addEventListener('pointerdown', (event) => {
-      if (event.pointerType === 'touch') return;
-      pointers.add(event.pointerId);
-      this.pedals.setSource(touchPedalSource(key, event.pointerId), key, true);
-      try {
-        element.setPointerCapture(event.pointerId);
-      } catch {
-        // See the steering-button path above; window/page lifecycle remains the fallback.
-      }
-      event.preventDefault();
-    });
-
-    const release = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
-      pointers.delete(event.pointerId);
-      this.pedals.setSource(touchPedalSource(key, event.pointerId), key, false);
-      event.preventDefault();
-    };
-
-    element.addEventListener('pointerup', release);
-    element.addEventListener('pointercancel', release);
-    element.addEventListener('lostpointercapture', (event) => {
-      this.releasePointer(event.pointerId);
-    });
-  }
-
   private releasePointer(pointerId: number): void {
     if (this.steeringPointer?.pointerId === pointerId) {
       this.steering.release(touchAnalogSteeringSource(pointerId));
@@ -252,35 +177,15 @@ export class TouchInput {
       this.pedalPointer = null;
       hideIndicator(this.pedalIndicator);
     }
-
-    this.steering.release(touchSteeringSource('left', pointerId));
-    this.steering.release(touchSteeringSource('right', pointerId));
-    this.throttlePointers.delete(pointerId);
-    this.brakePointers.delete(pointerId);
-    this.pedals.setSource(touchPedalSource('throttle', pointerId), 'throttle', false);
-    this.pedals.setSource(touchPedalSource('brake', pointerId), 'brake', false);
-    this.syncSteeringButtons();
   }
 
   private reset(): void {
     this.steering.reset();
     this.steeringPointer = null;
     this.pedalPointer = null;
-    this.throttlePointers.clear();
-    this.brakePointers.clear();
     this.pedals.reset();
-    this.steerLeftButton.classList.remove('active');
-    this.steerRightButton.classList.remove('active');
     hideIndicator(this.steeringIndicator);
     hideIndicator(this.pedalIndicator);
-  }
-
-  private syncSteeringButtons(): void {
-    const source = this.steering.activeSource();
-    this.steerLeftButton.classList.remove('active');
-    this.steerRightButton.classList.remove('active');
-    if (source?.startsWith('touch:left:')) this.steerLeftButton.classList.add('active');
-    if (source?.startsWith('touch:right:')) this.steerRightButton.classList.add('active');
   }
 }
 
@@ -332,12 +237,4 @@ function touchAnalogSteeringSource(pointerId: number): string {
 
 function touchAnalogPedalSource(pointerId: number): string {
   return `touch:analog-pedal:${pointerId}`;
-}
-
-function touchSteeringSource(side: 'left' | 'right', pointerId: number): string {
-  return `touch:${side}:${pointerId}`;
-}
-
-function touchPedalSource(key: MomentaryKey, pointerId: number): string {
-  return `touch:${key}:${pointerId}`;
 }

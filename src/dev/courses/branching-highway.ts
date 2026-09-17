@@ -16,9 +16,10 @@ import {
   HIGHWAY_HIGHWAY_RECOVERY_PROFILE,
   HIGHWAY_HIGHWAY_RIVAL_RECOVERY_PROFILE,
   HIGHWAY_PLAYER_START_L,
+  HIGHWAY_ROAD_CROSS_SECTION,
   HIGHWAY_RIVAL_START_L,
 } from './highway-calibration.js';
-import { CENTER_DASH_MARKINGS } from './stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from './road-markings.js';
 
 export const BRANCHING_FORK_WIDEN_START_S = 5_800;
 const BRANCHING_FORK_MEDIAN_START_S = 5_900;
@@ -30,10 +31,9 @@ export const BRANCHING_DEFAULT_BRANCHING_JUNCTION = new JunctionCrossSectionProf
   sWidenStart: BRANCHING_FORK_WIDEN_START_S,
   sMedianStart: BRANCHING_FORK_MEDIAN_START_S,
   sSeparatedStart: BRANCHING_FORK_SEPARATED_START_S,
-  parentRoadWidth: 14,
+  parent: HIGHWAY_ROAD_CROSS_SECTION,
   childRoadWidth: 7,
   finalMedianWidth: 8,
-  shoulderWidth: 1.5,
 });
 
 export const BRANCHING_DEFAULT_BRANCHING_FORK: Readonly<ParentForkGeometry> = Object.freeze({
@@ -82,6 +82,7 @@ export function createDefaultBranchingParent(): DefaultBranchingParent {
   const surfaceMap = new SurfaceMap(guide.length, baseSurface.sections, BRANCHING_DEFAULT_BRANCHING_JUNCTION);
   const groundProfile: GroundMapProfile = {
     ...createHighwayGroundProfile(),
+    // Visual strip covers the split; physical outside support remains the highway 12 m.
     groundLeft: 13,
     groundRight: 13,
     junction: BRANCHING_DEFAULT_BRANCHING_JUNCTION,

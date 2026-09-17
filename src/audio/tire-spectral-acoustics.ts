@@ -1,5 +1,5 @@
 import { SPECTRAL_BAND_DOMAIN } from './spectral-noise.js';
-/** SPECTRAL acoustic domains and authored settings. NOT measured tire data. Authority: docs/audio.md. */
+/** SPECTRAL acoustic domains and authored settings. NOT measured tire data. Authority: docs/tire-audio.md. */
 /** Sole numeric owner for R/S/Q sound design. Units are explicit; values are provisional. */
 export const SPECTRAL_SETTINGS = Object.freeze({
   minRate: SPECTRAL_BAND_DOMAIN.minRate,

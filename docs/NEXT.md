@@ -27,7 +27,8 @@ it; this checkpoint does not authorize an invented visual redesign or renewed so
 chainage-based pseudo depth, far-to-near Painter order, fixed player metric (2 m = 80 px),
 zero camera roll and no lateral terrain banking. GroundMap appearance and SurfaceMap mechanics
 remain independent. Presentation reads physical state without correcting vehicle motion.
-Course topology belongs above Core. Preserve these boundaries while choosing a visual feature.
+Course topology belongs above Core. Shared road/shoulder geometry and independent material/visual
+profiles follow the [ground authoring boundary](architecture.md#ground-authoring-boundaries). Preserve these boundaries while choosing a visual feature.
 
 The immutable CI reference checks both mechanics and rendered pixels. A visual feature may
 intentionally change pixels; identify its affected contract and causal regression explicitly before
@@ -40,17 +41,17 @@ measurements; full-suite duration is not a frame budget.
 All three areas below remain undecided and are paused, not approved as final defaults. Resume only
 when the user returns to that area. Current numeric defaults remain available for reproducible play.
 
-| Area                             | Preserved state                                                                                        | Decision still open                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Physical tire parameters         | Common mechanics, DEV calibration controls and current provisional values                              | Per-vehicle/front/rear calibration and handling acceptance                |
-| Engine sound parameters          | Native-rate sample-free waveguide, eight DEV controls and independent ENG level                        | Timbre, parameter values and final mix                                    |
-| Tire-noise method and parameters | CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED; HYBRID reload default; independent TIRE level | Final synthesis method, onset, pitch, roughness, parameter values and mix |
+| Area                             | Preserved state                                                                                     | Decision still open                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Physical tire parameters         | Common mechanics, DEV calibration controls and current provisional values                           | Per-vehicle/front/rear calibration and handling acceptance                |
+| Engine sound parameters          | Native-rate sample-free waveguide, eight DEV controls and independent ENG level                     | Timbre, parameter values and final mix                                    |
+| Tire-noise method and parameters | HOPF / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED; HYBRID reload default; independent TIRE level | Final synthesis method, onset, pitch, roughness, parameter values and mix |
 
 UNIFIED must remain available alongside MODAL. UNIFIED retains R+Q, its listener-selected 1,000 Hz
 high mode and work-fraction onset; MODAL retains its Q-only mechanism. Their DEV panels keep separate
 settings and resets. All session tuning resets on reload. HYBRID's squeal received favorable feedback,
 but this does not settle the final tire-noise method. R/S remain in the retained comparison methods;
-wind sound is deferred. [Audio](audio.md) owns mechanisms and limits,
+wind sound is deferred. [Tire audio](tire-audio.md) owns mechanisms and limits,
 [calibration](calibration.md) owns parameter maps, and the [research note](tire-squeal-research.md)
 records physical evidence without claiming measured calibration of game coefficients.
 
@@ -60,6 +61,8 @@ slip, strong cornering/recovery, locked sliding, stationary wheelspin, loose sur
 loss/recovery of contact. Check phone panel scrolling, mute, reset, model switching and sound retry.
 [Comparison tools](development.md#tire-comparison-tools) regenerate references and low-speed probes.
 Synthetic RMS, spectrum and host timing do not establish audible realism or phone performance.
+SPECTRAL rolling still reuses its texture length as an authored numeric ratio, explicitly marked
+in source; reconsider that retained waveform mapping with final method selection, not visual cleanup.
 
 ## Remaining limits
 

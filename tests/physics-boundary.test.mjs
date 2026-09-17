@@ -2,7 +2,7 @@ import { deg } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
 import { guidePathToWorld } from '../dist/core/guide-curve.js';

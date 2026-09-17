@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { createStageRoadView } from '../dist/course/stage-road-view.js';
 import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
@@ -12,10 +12,9 @@ const CROSS_SECTION = Object.freeze({
   sWidenStart: 40,
   sMedianStart: 60,
   sSeparatedStart: 100,
-  parentRoadWidth: 7,
+  parent: { roadLeft: 7 * 0.5, roadRight: 7 * 0.5, shoulderWidth: 1 },
   childRoadWidth: 6,
   finalMedianWidth: 4,
-  shoulderWidth: 1,
 });
 
 function sourceRoadView(overrides = {}) {

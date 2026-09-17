@@ -1,21 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileRouteDag, createRouteDagState, updateRouteDag } from '../dist/gameplay/route-dag.js';
-import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
+import { GroundMapLogicalProfile } from '../dist/groundmap/logical-profile.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 
-test('invalid authored GroundBase colors fail before numeric coercion in either source', () => {
+test('invalid authored GroundBase colors fail before numeric coercion in the visual source', () => {
   for (const color of [NaN, Infinity, -1, 0.5, 0x100000000]) {
     const section = {
       sStart: 0,
       name: 'test',
       groundBaseLeft: { kind: 'color', color },
       groundBaseRight: { kind: 'transparent' },
-      groundMapLeft: 'GRASS',
-      groundMapRight: 'GRASS',
-      surfaceBands: [{ lMin: -10, lMax: 10, type: 'ASPHALT' }],
     };
-    assert.throws(() => compileSurfaceRegions(100, [section]), RangeError);
     assert.throws(() => new VisualProfile(100, [section]), RangeError);
   }
 });
@@ -46,15 +42,12 @@ test('unknown logical GroundMap materials fail authoring rather than rendering a
   for (const groundMapLeft of ['SOIL', 'toString', undefined]) {
     assert.throws(
       () =>
-        compileSurfaceRegions(100, [
+        new GroundMapLogicalProfile(100, [
           {
             sStart: 0,
             name: 'invalid',
-            groundMapLeft,
-            groundMapRight: 'GRASS',
-            groundBaseLeft: { kind: 'transparent' },
-            groundBaseRight: { kind: 'transparent' },
-            surfaceBands: [],
+            left: groundMapLeft,
+            right: 'GRASS',
           },
         ]),
       /unknown GroundMap material/,

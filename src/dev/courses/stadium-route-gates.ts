@@ -64,7 +64,7 @@ export function createStadiumRouteBoundaryGateSet(
       stageId,
       center: { x: finish.x, z: finish.z },
       heading: finish.heading,
-      halfWidth: junction.authoring.parentRoadWidth * 0.5,
+      halfWidth: junction.authoring.parent.roadLeft,
     });
   }
 

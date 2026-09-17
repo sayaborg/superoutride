@@ -1,20 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
-import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumEnvironment } from '../dist/dev/fixtures/stadium-environment.js';
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { createSpriteAsset } from '../dist/graphics/sprite.js';
 import { GROUND_COLORS, sampleGroundMap } from '../dist/groundmap/ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../dist/physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 
 const guide = createStadiumGuide();
-const authored = createStadiumSurfaceRegionAuthoring(guide.length);
-const compiled = compileSurfaceRegions(guide.length, authored);
+const compiled = createStadiumEnvironment(guide.length);
 
-test('Surface Region authoring compiles and coalesces independent runtime profiles', () => {
+test('fixture attributes retain independent authored change points', () => {
   assert.deepEqual(
     compiled.groundMap.sections.map((section) => section.sStart),
     [0, 455, 625],
@@ -55,20 +53,19 @@ test('compiled GroundMap logical material is independent from GroundBase transpa
   assert.equal(compiled.visualSections[1].groundBaseLeft.kind, 'transparent');
 });
 
-test('Surface Region compiler rejects overlapping physical bands', () => {
+test('physical profile rejects overlapping bands', () => {
   const bad = [
     {
-      ...authored[0],
-      surfaceBands: [
+      ...compiled.surfaceSections[0],
+      bands: [
         { lMin: -5, lMax: 1, type: 'ASPHALT' },
         { lMin: 0, lMax: 5, type: 'GRASS' },
       ],
     },
   ];
-  assert.throws(() => compileSurfaceRegions(guide.length, bad), /must not overlap/);
+  assert.throws(() => new SurfaceMap(guide.length, bad), /must not overlap/);
 });
 
-// The old metadata-only validator is superseded by the actual compiled reader/asset boundaries.
 test('compiled support stays strictly inside the Guide chart', () => {
   const map = new SurfaceMap(guide.length, compiled.surfaceSections);
   assert.equal(map.maxSupportedAbsL, 10.5);

@@ -27,7 +27,6 @@ test('DEV disclosure replaces permanent selector rows with a bounded scrollable 
   assert.match(styles, /#app\s*\{[^}]*grid-template-rows:\s*minmax\(0, 1fr\);/s);
   assert.match(styles, /\.game-zone\s*\{[^}]*touch-action:\s*none;/s);
   assert.match(styles, /#dev-panel\s*\{[^}]*touch-action:\s*pan-y;/s);
-  assert.match(styles, /\.control-zone\s*\{[^}]*display:\s*none;/s);
   assert.match(styles, /\.touch-analog-indicator\s*\{[^}]*pointer-events:\s*none;/s);
   assert.match(styles, /#game\s*\{[^}]*object-fit:\s*contain;/s);
 });

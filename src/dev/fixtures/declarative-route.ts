@@ -34,7 +34,7 @@ export function createDeclarativeLiveRouteRuntime(
   parentGuide: GuidePath,
   parentContent: SharedRuntimeContent,
   spriteAssets: SpriteAssets,
-): LiveRouteRuntimeAssembly {
+): LiveRouteRuntimeAssembly & { readonly continuation: LiveContinuation } {
   const continuation = createLiveContinuation(parentGuide);
   const packages = createSuccessorStagePackages(continuation, parentContent, spriteAssets, WORLD_FRAME_ID);
   const byId = new Map(packages.map((runtime) => [runtime.packageId, chartPackage(runtime)]));
@@ -44,7 +44,7 @@ export function createDeclarativeLiveRouteRuntime(
     return found;
   };
 
-  return compileDeclarativeLiveRoute({
+  const live = compileDeclarativeLiveRoute({
     startStageId: 'STAGE_1',
     stages: [
       { id: 'STAGE_1', kind: 'STAGE', runtime: runtime('CONTENT_STAGE_1') },
@@ -88,6 +88,7 @@ export function createDeclarativeLiveRouteRuntime(
       { stageId: 'GOAL_R', gate: successorFinishGeometry(continuation.rightSuccessor, 'G_LIVE_FINISH_R') },
     ],
   });
+  return Object.freeze({ ...live, continuation });
 }
 
 function parentTransitionGeometry(

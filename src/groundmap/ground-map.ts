@@ -1,3 +1,4 @@
+import { classifyRoadCrossSection, type RoadCrossSection } from '../course/road-cross-section.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { rgba } from '../graphics/software-surface.js';
 import type { BakedGroundMapReader } from './baked-ground-map.js';
@@ -23,12 +24,9 @@ export interface LongitudinalRoadMarking {
   readonly phaseS?: number;
 }
 
-export interface GroundMapProfile {
+export interface GroundMapProfile extends RoadCrossSection {
   groundLeft: number;
   groundRight: number;
-  roadLeft: number;
-  roadRight: number;
-  shoulderWidth: number;
   /** Explicit longitudinal paint. Omission means no paint. */
   roadMarkings?: readonly LongitudinalRoadMarking[];
   /** Paint repeated about each junction carriageway center; omission means no paint. */
@@ -58,10 +56,9 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile)
     const roadCenterL = profile.roadCenterL ?? 0;
     const localL = l - roadCenterL;
     if (sampleRoadMarking(sourceS, localL, profile.roadMarkings)) return GROUND_COLORS.marking;
-    if (localL >= -profile.roadLeft && localL <= profile.roadRight) return asphaltColor(sourceS);
-    const leftShoulder = localL >= -profile.roadLeft - profile.shoulderWidth && localL < -profile.roadLeft;
-    const rightShoulder = localL > profile.roadRight && localL <= profile.roadRight + profile.shoulderWidth;
-    if (leftShoulder || rightShoulder) return GROUND_COLORS.shoulder;
+    const lateralClass = classifyRoadCrossSection(profile, localL);
+    if (lateralClass === 'ROAD') return asphaltColor(sourceS);
+    if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
   }
 
   const logical = profile.logical?.sample(sourceS);

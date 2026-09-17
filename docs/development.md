@@ -2,12 +2,12 @@
 
 ## Local workflow
 
-Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist, compiles TypeScript ESM and bakes GroundMap; `npm test` runs lint, formatting, the build and the complete executable suite. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
+Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build, test-asset baking and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
 For engine tuning, open `http://localhost:8000/?mode=circuit` and open DEV to adjust the eight ENGINE
-TUNING minus/plus controls while driving. MASTER also uses minus/plus buttons. TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED
+TUNING minus/plus controls while driving. MASTER also uses minus/plus buttons. TIRES: HOPF / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED
 compares default HYBRID with MODAL, UNIFIED and three other references in all courses; the session
 choice survives mute and vehicle replacement.
 CONTACT is experimental and its axle-to-representative mapping remains uncalibrated. The separate audition/verification page is
@@ -56,10 +56,10 @@ The [torque protection probe](../tools/torque-protection-probe.mjs) compares pro
 
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes ten MODAL or eleven UNIFIED friction sliders plus independent ENG/TIRE mix levels.
 Other numeric tire timbre settings remain source data. [Calibration](calibration.md#tire-audio-tuning) maps their
-owners, [audio](audio.md#player-tire-synthesis) defines each method, and
+owners, [audio](tire-audio.md#player-tire-synthesis) defines each method, and
 [NEXT](NEXT.md#deferred-tuning) records feedback and tuning priorities.
 
-In the game, select MODAL for the new Q-only method or HYBRID for the current default reference.
+In the game, select MODAL for the Q-only method or HYBRID for the current default reference.
 HYBRID and SPECTRAL expose R/S/Q buttons. MODAL exposes only Q; R/S sources are absent. Compare its Q with HYBRID Q (R and S off)
 for timbre and onset. The buttons change output only:
 state continues, other components are not boosted, and
@@ -67,15 +67,15 @@ muted components still cost CPU. Keep physical calibration, engine settings and 
 when diagnosing tire sound. Rebuild/reload after a source tune; DEV edits apply through a tire-only fade.
 Reload resets model/component/tuning/mix choices.
 
-| Tool                        | Scope                                                                                                        | Command / page                                                                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                               | `http://localhost:8000/?mode=circuit`                                                                                                |
-| SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                                | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
-| SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                             | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
-| Six-model comparison render | Same synthetic trace; CURRENT, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
-| CURRENT reference           | Original tire audition and regeneration                                                                      | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/current.wav`                                  |
-| CONTACT reference           | Four road/friction/axle taps with representative controls                                                    | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
-| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                              | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
+| Tool                        | Scope                                                                                                     | Command / page                                                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                            | `http://localhost:8000/?mode=circuit`                                                                                                |
+| SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                             | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
+| SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                          | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
+| Six-model comparison render | Same synthetic trace; HOPF, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
+| HOPF reference              | Original tire audition and regeneration                                                                   | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/hopf.wav`                                     |
+| CONTACT reference           | Four road/friction/axle taps with representative controls                                                 | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
+| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
 kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
@@ -169,3 +169,12 @@ the versioned CSS link/content and complete ESM/fallback copies. Root CSS remain
 Pages stages complete ESM builds under `build/<commit>/` and publishes version.txt. Index loads that versioned boot path; all relative imports remain within the same build. The dist path is an explicit fallback for cached index/fetch failure. Each deployment contains only its current SHA under build/, plus the same build under dist/; versioned paths isolate caches and are not a retained rollback history. Preserve this coherent-build design. Do not strip modules based only on direct boot imports: course roots are dynamically selected and assets/diagnostics have separate consumers.
 
 For a reported failure, distinguish source logic, emitted build, deployed artifact and browser/cache state. Do not blame cache without evidence, and do not claim public endpoint verification from local tests alone.
+
+## Build outputs
+
+`npm run build` cleans and compiles the complete ESM tree into `dist/` for local play and Pages.
+`npm run build:test-assets` separately bakes the stadium GroundMap regression fixture into
+`.test-assets/`; `npm test` runs both steps before the suite. The roughly 43 MB binary is consumed
+only by ground-map/render tests, never by a browser composition root. Pages stages `dist/`, so neither
+copy of the published build contains this fixture. To run individual asset tests after a clean build,
+run `npm run build:test-assets` first. Both output directories are ignored generated files.

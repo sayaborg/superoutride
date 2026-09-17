@@ -1,17 +1,14 @@
 /** Fixed shared parent content for route regressions, independent of current browser defaults. */
 import { STADIUM_JUNCTION } from '../../dist/dev/courses/stadium-junction.js';
-import {
-  CENTER_DASH_MARKINGS,
-  createStadiumSurfaceRegionAuthoring,
-} from '../../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
+import { createStadiumEnvironment } from '../../dist/dev/fixtures/stadium-environment.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { compileSurfaceRegions } from '../../dist/runtime/surface-region-compiler.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 export function parentShared(guide) {
-  const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
+  const compiled = createStadiumEnvironment(guide.length);
   const heightProfile = createHillDipHeightProfile(guide.length);
   const visualProfile = new VisualProfile(guide.length, compiled.visualSections);
   const surfaceMap = new SurfaceMap(guide.length, compiled.surfaceSections, STADIUM_JUNCTION);

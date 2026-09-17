@@ -43,7 +43,7 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#re
 ## Tire audio tuning
 
 Tire sound is presentation calibration, separate from the GX/PX/GY/PY/KN physical tire law above.
-The [audio contract](audio.md#player-tire-synthesis) owns equations and signal paths;
+The [audio contract](tire-audio.md#player-tire-synthesis) owns equations and signal paths;
 [NEXT](NEXT.md#deferred-tuning) owns feedback and listening acceptance;
 [development](development.md#tire-comparison-tools) owns reproducible commands. HYBRID remains the
 current default/reference. MODAL and UNIFIED are separate comparisons, not automatically adopted defaults.
@@ -59,7 +59,7 @@ normalized models, not joules or mutually calibrated quantities.
 [MODAL settings](../src/audio/tire-modal-acoustics.ts) own all coefficients, surface values and ten
 validated DEV sliders. All are authored magic numbers, not measured tire properties. MODAL coexists with
 UNIFIED; its 1,100 Hz base pitch starts from HYBRID, distinct from UNIFIED's 1,000 Hz mode.
-[Audio](audio.md#modal-game-synthesis) owns the equations and numerical limits.
+[Audio](tire-audio.md#modal-game-synthesis) owns the equations and numerical limits.
 
 | Tuning concern       | Settings                                               | Coupling                                                                                                                |
 | -------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
@@ -126,7 +126,7 @@ MODAL does not construct or consume this source.
 | Numerical behavior      | `controlHz`, `dcHz`                                                                                                                                                                                                            | Revalidate supported-domain behavior and block invariance if revised.                        |
 
 The reference [SPECTRAL settings](../src/audio/tire-spectral-acoustics.ts) and `SPECTRAL_TEXTURES` remain
-its sole acoustic owners; CURRENT and CONTACT also retain their own mappings. None configures MODAL.
+its sole acoustic owners; HOPF and CONTACT also retain their own mappings. None configures MODAL.
 Existing comparison waveforms are preserved for this addition; retuning them requires a separate,
 explicit revision rather than obscuring the comparison.
 

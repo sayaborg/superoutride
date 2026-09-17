@@ -26,7 +26,7 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 
 type ObservedSynthesis = TireHybridSynthesis | TireSpectralSynthesis | TireModalSynthesis | TireUnifiedSynthesis;
 type TirePair =
-  | { model: 'current'; front: TireSynthesis; rear: TireSynthesis }
+  | { model: 'hopf'; front: TireSynthesis; rear: TireSynthesis }
   | { model: 'contact'; front: TireContactSynthesis; rear: TireContactSynthesis }
   | { model: 'hybrid'; front: TireHybridSynthesis; rear: TireHybridSynthesis }
   | { model: 'spectral'; front: TireSpectralSynthesis; rear: TireSpectralSynthesis }
@@ -35,7 +35,7 @@ type TirePair =
 
 /** Only the selected model exists; startup and faded model replacement share this constructor. */
 function createPair(model: TireSoundModel, tuning: TireTuning | null = null): TirePair {
-  if (model === 'current')
+  if (model === 'hopf')
     return {
       model,
       front: new TireSynthesis(sampleRate, CONTACT_ACOUSTICS.frontSeed),
@@ -201,7 +201,7 @@ class TireProcessor extends AudioWorkletProcessor {
       return false;
     }
     if (!output) return true;
-    if (pair.model === 'current') {
+    if (pair.model === 'hopf') {
       this.updateCurrent(p, 'front', this.frontControl, pair.front);
       this.updateCurrent(p, 'rear', this.rearControl, pair.rear);
       for (let i = 0; i < output.length; i++) output[i] = pair.front.sample() + pair.rear.sample();

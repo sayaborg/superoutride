@@ -132,7 +132,7 @@ test('terminal route completes only at the real single-road physical FINISH gate
   const expected = guidePathToWorld(guide, STADIUM_FINISH_GATE_S, 0);
   near(finish.center.x, expected.x, 1e-8);
   near(finish.center.z, expected.z, 1e-8);
-  near(finish.halfWidth, STADIUM_JUNCTION.authoring.parentRoadWidth * 0.5, 1e-8);
+  near(finish.halfWidth, STADIUM_JUNCTION.authoring.parent.roadLeft, 1e-8);
 
   const segment = crossingSegment(finish);
   const observation = observeRouteBoundaryCrossing(route, state, gates, segment.previous, segment.current);

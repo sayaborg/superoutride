@@ -3,19 +3,18 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { createCameraRig, updateCamera } from '../dist/camera/camera.js';
-import { createStadiumSurfaceRegionAuthoring } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { createStadiumEnvironment } from '../dist/dev/fixtures/stadium-environment.js';
 import { createTunnelPresentation, selectTunnelBackground } from '../dist/dev/courses/tunnel.js';
 import { createHillDipHeightProfile } from '../dist/dev/fixtures/hill-dip-height.js';
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { compileSurfaceRegions } from '../dist/runtime/surface-region-compiler.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { VisualProfile } from '../dist/visual/visual-profile.js';
 import { createTestBike, createTestCar } from './helpers/vehicle-fixture.mjs';
 
 const guide = createStadiumGuide();
 const height = createHillDipHeightProfile(guide.length);
-const compiled = compileSurfaceRegions(guide.length, createStadiumSurfaceRegionAuthoring(guide.length));
+const compiled = createStadiumEnvironment(guide.length);
 
 const cameraProfile = {
   dCam: 5,

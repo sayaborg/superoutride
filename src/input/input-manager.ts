@@ -9,23 +9,9 @@ export class InputManager {
   private readonly pedals = new PedalInputArbiter();
   private readonly steering = new SteeringInputArbiter();
 
-  constructor(
-    steerLeftButton: HTMLElement,
-    steerRightButton: HTMLElement,
-    throttleButton: HTMLElement,
-    brakeButton: HTMLElement,
-  ) {
+  constructor() {
     new KeyboardInput(window, document, this.pedals, this.steering);
-    this.touch = new TouchInput(
-      steerLeftButton,
-      steerRightButton,
-      throttleButton,
-      brakeButton,
-      window,
-      document,
-      this.pedals,
-      this.steering,
-    );
+    this.touch = new TouchInput(window, document, this.pedals, this.steering);
   }
 
   sample(): DrivingInput {

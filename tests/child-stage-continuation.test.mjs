@@ -1,7 +1,7 @@
 import { near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 import { createMinimalStageContentManifest } from '../dist/dev/fixtures/minimal-stage-manifest.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
@@ -205,7 +205,7 @@ test('fixture stays validated while browser live wiring consumes the assembly th
   assert.match(mainSource, /advanceRouteDrivingTick/);
   assert.match(mainSource, /shell\.present\(/);
   assert.doesNotMatch(mainSource, /camera\.courseLength/);
-  assert.doesNotMatch(mainSource, /createLiveContinuation|createLiveGateSet|createSuccessorStageRegistry/);
+  assert.doesNotMatch(mainSource, /createLiveContinuation/);
   assert.doesNotMatch(mainSource, /createLivePointToPointGateSet|createChildStageContinuation/);
   assert.doesNotMatch(rendererSource, /M[0-9]+(?:[._][0-9]+)?|CONTENT_GOAL_[LR]|S2[LR]_CONTINUE/);
 });

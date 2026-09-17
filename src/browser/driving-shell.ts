@@ -60,12 +60,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
   ctx.imageSmoothingEnabled = false;
   const imageData = ctx.createImageData(LOGICAL_WIDTH, LOGICAL_HEIGHT);
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
-  const inputManager = new InputManager(
-    mustGet('steer-left-button'),
-    mustGet('steer-right-button'),
-    mustGet('throttle-button'),
-    mustGet('brake-button'),
-  );
+  const inputManager = new InputManager();
   let vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
     s: 45,
     l: startL,

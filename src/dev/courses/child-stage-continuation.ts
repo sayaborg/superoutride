@@ -27,7 +27,7 @@ import { VisualProfile } from '../../visual/visual-profile.js';
 import { STADIUM_HANDOFF_SEAM_S } from './stadium-handoff.js';
 import { STADIUM_JUNCTION } from './stadium-junction.js';
 import { STADIUM_ROUTE_GATE_S } from './stadium-route-gates.js';
-import { CENTER_DASH_MARKINGS } from './stadium-surface-authoring.js';
+import { CENTER_DASH_MARKINGS } from './road-markings.js';
 
 export const CHILD_FINISH_S = 250;
 

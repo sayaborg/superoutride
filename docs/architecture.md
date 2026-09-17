@@ -120,7 +120,7 @@ Order is optional clear -> full Far Background -> single far-to-near Terrain + W
 
 ## Layer and computation rules
 
-Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations. Graphics owns framebuffer, color codec, sprite blitting and Painter primitives; visual owns background/sprite assets and visual sections; render assembles the drawing pipeline and projected course/dynamic sprites. GroundMap owns logical/baked readers, baking, filtering and footprint contracts. Cross-domain surface-region compilation belongs to runtime; physical surface/Guide containment belongs to physics. Circuit race compilation consumes a gameplay-owned window reader. Vehicle presentation-family metadata belongs to the vehicle catalog.
+Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations. Graphics owns framebuffer, color codec, sprite blitting and Painter primitives; visual owns background/sprite assets and visual sections; render assembles the drawing pipeline and projected course/dynamic sprites. GroundMap owns logical/baked readers, baking, filtering and footprint contracts. Course owns road/shoulder cross-section geometry. GroundMap and physics independently map that geometry to paint and physical materials; physical surface/Guide containment belongs to physics. Circuit race compilation consumes a gameplay-owned window reader. Vehicle presentation-family metadata belongs to the vehicle catalog.
 
 Audio owns procedural sound and consumer read contracts; vehicle binds authored acoustic profiles and browser adapts physical observations. Audio imports only Core; physics never imports audio. See [audio](audio.md).
 
@@ -135,3 +135,25 @@ Keep painter, metric, physical-gate and local-coordinate regressions executable.
 Surface, logical GroundMap, visual sections and height nodes share immutable ordered construction and binary lookup. Physical-band sorting, overlap rejection and material validation have one compiler used by both region authoring and SurfaceMap. Terrain traversal merges explicit authored boundaries and emits adjacent positive intervals; it never advances coordinates by a nudge. Exact duplicate boundaries are removed, while distinct authored intervals remain represented.
 
 Live envelope checks and `createSpriteAsset` validate consumed content. Sprite construction validates dimensions, buffer length, finite anchors and positive physical width, then freezes metadata so a second scale field cannot be attached. Runtime source reachability, not a test import, establishes whether a production module is used. Regression fixtures and diagnostics have separate DEV directories and must remain consumed by tests or tools.
+
+## Ground authoring boundaries
+
+`RoadCrossSection` is the single authored road/shoulder geometry for ordinary roads and the incoming
+section of a junction. Production highway and circuit authoring feeds the same compiled dimensions
+to GroundMap/terrain and `roadSurfaceBands`; branching highways also pass them to
+`JunctionCrossSectionProfile.parent`. Junctions currently require symmetric incoming road widths.
+A width change therefore reaches both consumers without a second literal or synchronized author edit.
+
+Geometry does not own paint, grip or support. GroundMap materials, GroundBase sections and physical
+surface sections retain independent ordered change points, compiled by their native profile types.
+Visual types belong to visual/GroundMap, physical types to physics; no combined region table owns them.
+The stadium's sand/dirt patches deliberately retain grass-colored diagnostic textures: their
+physical materials are independent fixtures, not evidence of visually matched terrain authoring.
+
+`OUTSIDE` interpretation is explicit: visual ground extents delimit drawing, while physical outside
+bands delimit support and their absence means VOID. For example, branching-highway ground is drawn
+out to 13 m to cover the split, while ordinary physical outside bands end at 12 m. These are separate
+purposes, not competing road-width authorities. Existing shared-edge semantics are retained:
+ordinary visual classification prefers road, ordered physical bands prefer the left inclusive band,
+and junction classification uses its explicit lateral tolerance. Changing those conventions would
+be a separate behavioral revision, not a cleanup.

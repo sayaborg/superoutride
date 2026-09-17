@@ -201,10 +201,7 @@ test('fixture stays validated while browser live authority consumes the route as
 
   assert.match(source, /createDeclarativeForkGrowthRuntime/);
   assert.match(source, /const liveRoute = createDeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(
-    source,
-    /createLiveRouteDag|createLiveContinuation|createLiveGateSet|createSuccessorStageRegistry/,
-  );
+  assert.doesNotMatch(source, /createLiveContinuation/);
   assert.doesNotMatch(source, /createSingleForkRouteDag/);
   assert.doesNotMatch(source, /createChildStageContinuation/);
   assert.match(source, /resolveLiveRouteTravelerRuntime/);

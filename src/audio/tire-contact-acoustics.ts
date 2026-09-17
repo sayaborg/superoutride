@@ -1,4 +1,4 @@
-/** Representative acoustic coefficients, NOT measured tire data. Authority: docs/audio.md. */
+/** Representative acoustic coefficients, NOT measured tire data. Authority: docs/tire-audio.md. */
 export interface ContactModeParameters {
   readonly massKg: number;
   readonly frequencyHz: number;

@@ -48,10 +48,9 @@ test('source and stage junctions repeat the authored paint about carriageway cen
     sWidenStart: 10,
     sMedianStart: 20,
     sSeparatedStart: 40,
-    parentRoadWidth: 9,
+    parent: { roadLeft: 9 * 0.5, roadRight: 9 * 0.5, shoulderWidth: 1 },
     childRoadWidth: 9,
     finalMedianWidth: 2,
-    shoulderWidth: 1,
   });
   const view = createStageRoadView({ id: 'paint', sourceLateralOrigin: 0, ...profile });
   const markings = [{ centerL: 1, width: 0.2, pattern: 'SOLID' }];

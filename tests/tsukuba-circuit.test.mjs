@@ -174,5 +174,4 @@ test('course 3 retains Tsukuba while BRANCHING retains its existing parent', asy
   assert.doesNotMatch(circuitSource, /createLowMidSpeedMountainCircuitRuntime/);
   assert.match(branchingSource, /createHighwayCalibrationLapRaster/);
   assert.doesNotMatch(branchingSource, /m9-3-tsukuba-circuit/);
-  assert.doesNotMatch(branchingSource, /m9-6-fisco-circuit/);
 });

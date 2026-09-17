@@ -41,7 +41,7 @@ export function compileStageJunction(
     throw new RangeError('stage junction courseLength must be finite and > 0');
   }
   const junction = new JunctionCrossSectionProfile(authoring.crossSection);
-  const incomingHalfWidth = authoring.crossSection.parentRoadWidth * 0.5;
+  const incomingHalfWidth = authoring.crossSection.parent.roadLeft;
   if (
     Math.abs(source.roadView.roadLeft - incomingHalfWidth) > LATERAL_BOUNDARY_TOLERANCE_METERS ||
     Math.abs(source.roadView.roadRight - incomingHalfWidth) > LATERAL_BOUNDARY_TOLERANCE_METERS
@@ -52,7 +52,7 @@ export function compileStageJunction(
   const requiredGroundHalfWidth =
     authoring.crossSection.childRoadWidth +
     authoring.crossSection.finalMedianWidth * 0.5 +
-    authoring.crossSection.shoulderWidth;
+    authoring.crossSection.parent.shoulderWidth;
   const roadView = createStageRoadView({
     ...source.roadView,
     id: authoring.roadViewId,
@@ -65,7 +65,7 @@ export function compileStageJunction(
     groundRight: Math.max(source.groundProfile.groundRight, requiredGroundHalfWidth),
     roadLeft: incomingHalfWidth,
     roadRight: incomingHalfWidth,
-    shoulderWidth: authoring.crossSection.shoulderWidth,
+    shoulderWidth: authoring.crossSection.parent.shoulderWidth,
     stageJunction: junction,
   });
   const surfaceMap = new StageJunctionSurfaceMap(

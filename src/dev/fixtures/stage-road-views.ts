@@ -17,7 +17,7 @@ export interface StageRoadViews {
  */
 export function createStageRoadViews(charts: ChildGuideCharts): StageRoadViews {
   const childRoadHalfWidth = STADIUM_JUNCTION.authoring.childRoadWidth * 0.5;
-  const shoulderWidth = STADIUM_JUNCTION.authoring.shoulderWidth;
+  const shoulderWidth = STADIUM_JUNCTION.authoring.parent.shoulderWidth;
   const childGroundHalfWidth = childRoadHalfWidth + shoulderWidth;
 
   return Object.freeze({
