@@ -1,3 +1,5 @@
+import { publishGroundMapPages, verifyGroundMapPages } from './ground-map-pages.mjs';
+import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
 import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
 import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -81,6 +83,9 @@ console.log(
   }),
 );
 
+const pageBindings = {};
+const pageDirectory = fileURLToPath(new URL('../../.test-assets/ground-pages/', import.meta.url));
+
 // Full authored domains at deliberately coarse test density. These are not product assets.
 for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
   const source = createGroundMapCompileSource(
@@ -96,4 +101,30 @@ for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
     32,
   );
   await writeFile(new URL(`../../.test-assets/${id}-ground-map.json`, import.meta.url), JSON.stringify(metadata));
+  const identity = {
+    sourceId: id,
+    compilerId: 'point-source-2x4-rgba-round-v1',
+    targetId: 'test-qL0.25-qS1-k2-v1',
+    inputSha256: await groundMapDigest(
+      new TextEncoder().encode(
+        JSON.stringify({
+          courseLength: source.courseLength,
+          profile: runtime.groundProfile,
+          view: runtime.roadView,
+        }),
+      ),
+    ),
+  };
+  pageBindings[id] = await publishGroundMapPages(
+    pageDirectory,
+    fileURLToPath(new URL(`../../.test-assets/${id}-ground-map.bin`, import.meta.url)),
+    metadata,
+    identity,
+  );
+  await verifyGroundMapPages(pageDirectory, pageBindings[id]);
 }
+
+await writeFile(
+  new URL('../../.test-assets/ground-pages/bindings.json', import.meta.url),
+  JSON.stringify(pageBindings),
+);

@@ -66,17 +66,12 @@ export interface BakedGroundMapReader {
 const RGB555_TO_RGBA = new Uint32Array(0x8000);
 for (let i = 0; i < RGB555_TO_RGBA.length; i += 1) RGB555_TO_RGBA[i] = rgb555ToRgba(i);
 
-/**
- * Runtime view of compiler-baked GroundMap chunks over one open chainage domain.
- * No filtering is performed here: runtime only selects one prefiltered level
- * from Delta_s_eff and performs a nearest texel lookup in that level.
- */
-export class BakedGroundMapAsset implements BakedGroundMapReader {
+/** Validated immutable directory shared by resident frame readers without copying it per frame. */
+export class BakedGroundMapLayout {
   readonly metadata: BakedGroundMapMetadata;
-  readonly #bytes: Uint8Array;
 
-  constructor(metadata: BakedGroundMapMetadata, bytes: Uint8Array) {
-    validateMetadata(metadata, bytes.byteLength);
+  constructor(metadata: BakedGroundMapMetadata) {
+    validateMetadata(metadata, metadata.binaryBytes);
     this.metadata = Object.freeze({
       ...metadata,
       paletteRgba: Object.freeze([...metadata.paletteRgba]),
@@ -90,7 +85,36 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
         ),
       ),
     });
-    this.#bytes = Uint8Array.from(bytes);
+    Object.freeze(this);
+  }
+}
+
+/** Synchronous access to an already resident payload; this boundary must never start I/O. */
+interface GroundMapPayloadBytes {
+  readByte(payloadId: number, offset: number): number;
+}
+
+/**
+ * Runtime view of compiler-baked GroundMap chunks over one open chainage domain.
+ * No filtering is performed here: runtime only selects one prefiltered level
+ * from Delta_s_eff and performs a nearest texel lookup in that level.
+ */
+export class BakedGroundMapAsset implements BakedGroundMapReader {
+  readonly metadata: BakedGroundMapMetadata;
+  readonly #payloadBytes: GroundMapPayloadBytes;
+
+  constructor(metadata: BakedGroundMapMetadata | BakedGroundMapLayout, bytes: Uint8Array | GroundMapPayloadBytes) {
+    this.metadata = (metadata instanceof BakedGroundMapLayout ? metadata : new BakedGroundMapLayout(metadata)).metadata;
+    if (bytes instanceof Uint8Array && bytes.byteLength !== this.metadata.binaryBytes)
+      throw new Error('GroundMap binary byte length mismatch');
+    if (bytes instanceof Uint8Array) {
+      const owned = Uint8Array.from(bytes);
+      this.#payloadBytes = {
+        readByte: (id, offset) => owned[this.metadata.payloads[id]!.offsetBytes + offset]!,
+      };
+    } else {
+      this.#payloadBytes = bytes;
+    }
   }
 
   get kMax(): number {
@@ -127,16 +151,16 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     const texelIndex = localRow * level.lateralTexels + column;
 
     if (payload.format === 'palette8') {
-      const paletteIndex = this.#bytes[payload.offsetBytes + texelIndex];
+      const paletteIndex = this.#payloadBytes.readByte(chunk.payloadId, texelIndex);
       if (paletteIndex === undefined) throw new Error('GroundMap palette texel outside payload');
       const color = this.metadata.paletteRgba[paletteIndex];
       if (color === undefined) throw new Error('GroundMap palette index outside palette');
       return color >>> 0;
     }
 
-    const byteOffset = payload.offsetBytes + texelIndex * 2;
-    const low = this.#bytes[byteOffset];
-    const high = this.#bytes[byteOffset + 1];
+    const byteOffset = texelIndex * 2;
+    const low = this.#payloadBytes.readByte(chunk.payloadId, byteOffset);
+    const high = this.#payloadBytes.readByte(chunk.payloadId, byteOffset + 1);
     if (low === undefined || high === undefined) throw new Error('GroundMap RGB555 texel outside payload');
     return RGB555_TO_RGBA[(low | (high << 8)) & 0x7fff]!;
   }
@@ -209,6 +233,13 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
   }
   if (metadata.binaryBytes !== binaryLength) throw new Error('GroundMap binary byte length mismatch');
 
+  if (!Number.isSafeInteger(binaryLength) || binaryLength <= 0) throw new Error('GroundMap binary length invalid');
+  if (
+    metadata.paletteRgba.length > 256 ||
+    metadata.paletteRgba.some((color) => !Number.isSafeInteger(color) || color < 0 || color > 0xffffffff)
+  )
+    throw new Error('GroundMap palette invalid');
+
   for (let k = 0; k < metadata.levels.length; k += 1) {
     const level = metadata.levels[k]!;
     if (level.level !== k) throw new Error('GroundMap levels must be ordered by level index');
@@ -220,11 +251,34 @@ function validateMetadata(metadata: BakedGroundMapMetadata, binaryLength: number
     ) {
       throw new Error('GroundMap level dimensions invalid');
     }
+    const width = metadata.groundLeft + metadata.groundRight;
+    const expectedQL = width / level.lateralTexels;
+    const expectedQS = metadata.courseLength / level.chainageTexels;
+    if (
+      !Number.isFinite(level.qLActual) ||
+      !Number.isFinite(level.qSActual) ||
+      Math.abs(level.qLActual - expectedQL) > TEXEL_SPACING_TOLERANCE ||
+      Math.abs(level.qSActual - expectedQS) > TEXEL_SPACING_TOLERANCE ||
+      (k === 0 &&
+        (Math.abs(metadata.actualBaseQL - expectedQL) > TEXEL_SPACING_TOLERANCE ||
+          Math.abs(metadata.actualBaseQS - expectedQS) > TEXEL_SPACING_TOLERANCE))
+    )
+      throw new Error('GroundMap lattice spacing mismatch');
+    if (
+      k > 0 &&
+      (metadata.levels[k - 1]!.lateralTexels !== level.lateralTexels * 2 ||
+        metadata.levels[k - 1]!.chainageTexels !== level.chainageTexels * 4)
+    )
+      throw new Error('GroundMap pyramid dimensions mismatch');
+    if (level.format !== 'palette8' && level.format !== 'rgb555le')
+      throw new Error('unsupported GroundMap level format');
+    if (level.format === 'palette8' && metadata.paletteRgba.length === 0) throw new Error('GroundMap palette is empty');
     let nextRow = 0;
     for (const chunk of level.chunks) {
       if (chunk.rowStart !== nextRow || !Number.isInteger(chunk.rowCount) || chunk.rowCount <= 0) {
         throw new Error('GroundMap chunks must cover rows contiguously');
       }
+      if (!Number.isSafeInteger(chunk.payloadId)) throw new Error('GroundMap payload index invalid');
       const payload = metadata.payloads[chunk.payloadId];
       if (
         !payload ||

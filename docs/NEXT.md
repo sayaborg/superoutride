@@ -18,9 +18,11 @@ shoulder dimensions, boundary priorities, pixels, mechanics and acoustic wavefor
 
 1. The bounded file-backed GroundMap compiler and complete stage-local color inputs are implemented.
    Ordinary source v1 bytes remain unchanged; all eleven branching-stage domains are baked at test
-   density with local shoulders/forks included. Next add versioned payload delivery and shared paged
-   residency, following the [migration gates](development.md#groundmap-migration-gates), then
-   integrate a real handoff/circuit fixture. General compilation has no Node dependency.
+   density with local shoulders/forks included. Content-addressed page manifests and bounded shared
+   payload leases are implemented and validated through file delivery. Next bind browser HTTP
+   transport to the selected immutable build, enforce response limits, then integrate ready-frame
+   loading with a real handoff/circuit fixture under the [migration gates](development.md#groundmap-migration-gates).
+   General compilation has no Node dependency.
 2. The [integration design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) separates the completed compiler from pending runtime work. Product cutover requires the new loading lifecycle, explicit pixel revision,
    complete assets for all shipped courses and target-device capacity acceptance. Numeric budgets
    remain open. Use the [capacity probe](development.md#groundmap-capacity-measurement) for host

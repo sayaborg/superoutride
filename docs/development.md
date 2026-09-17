@@ -210,7 +210,8 @@ For a reported failure, distinguish source logic, emitted build, deployed artifa
 `npm run build:test-assets` separately bakes the stadium GroundMap and complete branching-stage
 regression fixtures into `.test-assets/`; `npm test` runs both steps before the suite. The roughly
 43 MB stadium binary and coarse stage assets are consumed only by ground-map/render tests, never
-by a browser composition root. Pages stages `dist/`, so neither
+by a browser composition root. Stage payloads and digest-bound manifests are additionally written
+under `.test-assets/ground-pages/` and read back with the resident reader. Pages stages `dist/`, so neither
 copy of the published build contains this fixture. To run individual asset tests after a clean build,
 run `npm run build:test-assets` first. Both output directories are ignored generated files.
 
@@ -229,7 +230,7 @@ from the suite. Stage depth and child-side names describe actual topology scenar
 
 The [architecture design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) and
 [content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
-implementation targets. Compiler steps 1 and 2 are implemented; remaining steps are pending. Keep these changes separate; do not advance the immutable
+implementation targets. Compiler steps 1 and 2 are implemented. Step 3 has page publication and shared residency; browser transport and integration remain pending. Keep these changes separate; do not advance the immutable
 reference as part of compiler or storage cleanup.
 
 | Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
@@ -253,6 +254,14 @@ the current samplers. Separate exact-edge probes cover fork phase changes, sourc
 endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
 kMax = 2); it does not establish product-density capacity or device acceptance. Existing immutable
 pixel/mechanics comparisons and route regressions remain mandatory. Steps 1-3 need no update to deployed pixels.
+
+Step 3 now publishes content-addressed files and validates shared payload leases with a file transport.
+[Page regressions](../tests/rendering/ground-map-pages.test.mjs) exhaustively compare both later-fork
+assets with the monolithic reader, cover page edges/endpoints/LOD, deterministic publication,
+manifest corruption and palette interpretation, and control delayed loads for shared admission,
+cancellation, eviction, capacity failures and retries. Counters explicitly include old/new pins and
+loading reservations. HTTP response bounds and selected-build URL identity are still open, followed
+by the step 4 ready-frame coordinator. No browser-delivery or smartphone result is claimed by these tests.
 
 A missing numeric device budget does not block compiler parity or ownership work. It does block a
 claim of smartphone acceptance. Choose limits using measured payload working sets and total

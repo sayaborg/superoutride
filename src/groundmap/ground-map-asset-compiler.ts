@@ -1,3 +1,4 @@
+import { groundMapDigest } from './ground-map-digest.js';
 import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { positiveFinite } from '../core/validation.js';
 import { createGroundMapLevelEncoder } from './ground-map-encoding.js';
@@ -101,7 +102,7 @@ export async function compileBakedGroundMapAsset(
         k === 0 ? paletteRgba : null,
       );
       const encoded = encoder.encodeRows(0, rowCount);
-      const sha256 = await sha256Hex(encoded);
+      const sha256 = await groundMapDigest(new Uint8Array(encoded));
       const key = `${format}:${lateralTexels}:${rowCount}:${sha256}`;
       const candidates = payloadBuckets.get(key) ?? [];
       let payloadId = -1;
@@ -191,12 +192,6 @@ export async function compileBakedGroundMapAsset(
 
 function byteView(pixels: Uint32Array): Uint8Array {
   return new Uint8Array(pixels.buffer, pixels.byteOffset, pixels.byteLength);
-}
-
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const copy = new Uint8Array(bytes);
-  const digest = await crypto.subtle.digest('SHA-256', copy.buffer);
-  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('');
 }
 
 function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {

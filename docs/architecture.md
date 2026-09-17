@@ -192,7 +192,8 @@ of HTTP compression. Preserve separate mechanics comparison when intentionally r
 ### GroundMap integration design: compiler implemented, runtime pending
 
 The file-backed row compiler and final stage-local color sources below are implemented for
-build/test assets. Product-density asset delivery, paged browser loading and readiness are still pending. Their executable contracts and migration
+build/test assets. Content-addressed page publication and shared payload residency are also implemented.
+Product-density asset delivery, browser HTTP transport and ready-frame integration are still pending. Their executable contracts and migration
 gates must land before activation. GroundMap owns the image lattice, filtering,
 encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
 owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
@@ -257,6 +258,15 @@ or assume that compressed transfer bytes remain compressed in the reader. The mo
 asset is a regression input during migration, not a second product loading mode. Wire schema,
 transport granularity and actual server compression are validated before deployment.
 
+The implemented `ground-map-pages` transport manifest (version 1) wraps the existing compiler
+directory without redefining its lattice. Directory offsets retain canonical compiler byte ordering;
+they are not HTTP range requests. Source, compiler, target and input digest identify the build.
+The manifest's SHA-256 is the package binding; payload files are named by their encoded-byte digest.
+Build publication checks payload length/hash and writes the manifest after payload completion.
+The test build emits all eleven stage manifests and a bindings index outside deployment artifacts.
+Browser HTTP response limits, immutable-build URL binding and actual delivery encoding remain
+required before product integration; the implemented store accepts an injected bounded transport.
+
 **Resident reads and accounting.** One application-owned immutable payload store shares bytes across
 readers, repeated circuit windows and consumers of the same content. Ground render demand determines
 residency; a physics actor does not acquire image pages merely by occupying a stage. The frame
@@ -269,6 +279,26 @@ the store. Preserve defensive copying at APIs that still accept caller-owned mut
 whole-course copy by loading bounded payloads; remove a copy only where exclusive ownership is proven.
 Concurrent requests for one payload share one load. Eviction releases only unpinned payloads; stale
 requests from an old course selection cannot publish a reader into the new session.
+
+`GroundMapPayloadStore` admits an entire requested set before I/O, sharing in-flight loads by
+digest and evicting only unpinned completed entries in least-recently-used order. `reservedBytes`
+counts admitted payload capacity (including resident bytes); `residentBytes` counts published bytes,
+and `pinnedBytes` counts each required payload once. These overlapping counters are not summed.
+`loadingBytes` conservatively reserves two payload lengths per concurrent transport/hash validation.
+The transport must return an exact-size ArrayBuffer; ownership transfer detaches its aliases before
+hash validation. Network/decompression internals remain transport-owned and separately budgeted.
+No application-owned payload array is exposed. Eviction also clears bytes from released lease
+objects, so retaining an old released reader cannot retain evicted payload buffers.
+
+Cancellation applies to pending acquisitions: it releases that consumer's pins and cannot return
+a stale ready reader. Already admitted loads finish into the bounded shared cache, even if all
+consumers cancel; reservations remain charged until they settle. A successful frame lease instead
+requires explicit release after drawing. Digest/length/transport failures discard the entry and
+allow a new acquisition to retry. A failed multi-payload acquisition releases all its pins.
+Manifest-specific palette index validation completes before exposing a ready reader. Shared bytes
+never share palette interpretation. The immutable directory is shared across frame readers, and
+the existing `BakedGroundMapAsset` owns both monolithic-test and resident-page metric lookup/decoding.
+Sampling outside a lease's resident set or after release fails without I/O or fallback.
 
 The integration profile declares limits for compiler pixel/payload working buffers, resident payload
 bytes and concurrent load/validation buffers. Count shared payloads once, but include simultaneous
