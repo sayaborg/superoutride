@@ -101,7 +101,10 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
           inputManager.setSuspended(suspended);
           audio.setActive(!suspended);
         },
-        (state) => loadingControls?.update(state),
+        (state, error) => {
+          if (state === 'failed') console.error('GroundMap loading failed', error);
+          loadingControls?.update(state);
+        },
       );
       render();
     },

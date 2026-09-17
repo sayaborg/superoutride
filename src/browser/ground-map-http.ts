@@ -145,7 +145,9 @@ export class GroundMapHttpSession {
     };
     signal.addEventListener('abort', cancel, { once: true });
     try {
-      const response = await this.#fetch(url, {
+      // Native Window.fetch rejects a session object as its receiver; keep this a plain call.
+      const fetchResource = this.#fetch;
+      const response = await fetchResource(url, {
         signal,
         redirect: 'error',
         credentials: 'same-origin',

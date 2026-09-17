@@ -33,6 +33,21 @@ async function fileFetch(url, init) {
   });
 }
 
+test('HTTP transport preserves the browser fetch receiver for manifest and payload requests', async () => {
+  const session = new GroundMapHttpSession(options, async function browserFetch(url, init) {
+    assert.equal(this, undefined, 'native Window.fetch must not receive the GroundMap session as its receiver');
+    return fileFetch(url, init);
+  });
+  try {
+    const asset = await session.open(hash);
+    const frame = await session.acquire(asset, demand);
+    frame.reader.sampleAtLevel(0, 0, 0);
+    frame.release();
+  } finally {
+    session.dispose();
+  }
+});
+
 test('HTTP session binds manifests and all payloads to one immutable build, independent of compressed Content-Length', async () => {
   const calls = [];
   const session = new GroundMapHttpSession(options, async (url, init) => {

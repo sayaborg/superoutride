@@ -114,7 +114,8 @@ const sandbox = createContext({
     return sequence;
   },
   cancelAnimationFrame: (id) => animation.delete(id),
-  fetch: async (url, init) => {
+  async fetch(url, init) {
+    assert.equal(this, undefined, 'preserve the native browser fetch receiver');
     init.signal.throwIfAborted();
     calls++;
     assert.ok(String(url).startsWith(prefix + 'ground-pages/'));
