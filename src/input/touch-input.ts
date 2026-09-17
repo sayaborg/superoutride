@@ -45,6 +45,7 @@ export function touchPedalRequests(startY: number, currentY: number, fullScaleDi
 }
 
 export class TouchInput {
+  private suspended = false;
   private steeringPointer: AnalogPointer | null = null;
   private pedalPointer: AnalogPointer | null = null;
   private readonly steeringIndicator: HTMLElement | null;
@@ -70,6 +71,11 @@ export class TouchInput {
     });
   }
 
+  setSuspended(suspended: boolean): void {
+    this.suspended = suspended;
+    if (suspended) this.reset();
+  }
+
   sample(): DrivingInput {
     const pedals = this.pedals.sample();
     const steeringSource = this.steering.activeSource();
@@ -83,7 +89,7 @@ export class TouchInput {
   }
 
   private beginAnalogPointer(event: PointerEvent): void {
-    if (event.pointerType !== 'touch') return;
+    if (this.suspended || event.pointerType !== 'touch') return;
     // UI-owned gestures remain available for scrolling/sliders, not driving pointers.
     if (event.composedPath?.().some((target) => (target as Element).getAttribute?.('data-driving-input') === 'ignore'))
       return;
@@ -118,7 +124,7 @@ export class TouchInput {
   }
 
   private moveAnalogPointer(event: PointerEvent): void {
-    if (event.pointerType !== 'touch') return;
+    if (this.suspended || event.pointerType !== 'touch') return;
 
     if (this.steeringPointer?.pointerId === event.pointerId) {
       const pointer = this.steeringPointer;

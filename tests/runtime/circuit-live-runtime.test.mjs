@@ -10,7 +10,7 @@ import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../
 import { createStadiumCircuitRuntime, STADIUM_CIRCUIT_MODE } from '../../dist/dev/fixtures/stadium-circuit.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';

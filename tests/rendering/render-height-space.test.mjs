@@ -9,7 +9,7 @@ import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-h
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from '../../dist/render/render-height-space.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';

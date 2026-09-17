@@ -1,8 +1,9 @@
+import { productGroundSources } from './product-ground-sources.mjs';
 import { createTsukubaCourse2000Lap, createTsukubaGroundProfile } from '../../dist/dev/courses/tsukuba-circuit.js';
 import { verifyGroundMapHttp } from './verify-ground-map-http.mjs';
 import { publishGroundMapPages, verifyGroundMapPages } from './ground-map-pages.mjs';
 import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
-import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
+import { createBranchingGroundAuthoring } from '../../dist/dev/courses/branching-ground-authoring.js';
 import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -89,7 +90,7 @@ const pageBindings = {};
 const pageDirectory = fileURLToPath(new URL('../../.test-assets/ground-pages/', import.meta.url));
 
 // Full authored domains at deliberately coarse test density. These are not product assets.
-for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
+for (const { id, runtime } of createBranchingGroundAuthoring().stages) {
   const source = createGroundMapCompileSource(
     runtime.heightProfile.courseLength,
     runtime.groundProfile,
@@ -152,4 +153,28 @@ const lapDigest = await publishGroundMapPages(pageDirectory, lapPath, lapMetadat
 await writeFile(
   new URL('../../.test-assets/ground-pages/circuit-binding.json', import.meta.url),
   JSON.stringify(lapDigest),
+);
+
+const otherBindings = {};
+for (const entry of productGroundSources().filter((entry) => entry.id === 'linear' || entry.id === 'fisco')) {
+  const path = fileURLToPath(new URL(`../../.test-assets/${entry.id}-ground-map.bin`, import.meta.url));
+  const metadata = await compileGroundMapFiles(
+    path,
+    createGroundMapCompileSource(entry.length, entry.profile),
+    { qL: 0.25, qS: 1 },
+    2,
+    32,
+  );
+  otherBindings[entry.id] = await publishGroundMapPages(pageDirectory, path, metadata, {
+    sourceId: entry.id,
+    compilerId: 'point-source-2x4-rgba-round-v1',
+    targetId: 'test-qL0.25-qS1-k2-v1',
+    inputSha256: await groundMapDigest(
+      new TextEncoder().encode(JSON.stringify({ length: entry.length, profile: entry.profile })),
+    ),
+  });
+}
+await writeFile(
+  new URL('../../.test-assets/ground-pages/other-bindings.json', import.meta.url),
+  JSON.stringify(otherBindings),
 );

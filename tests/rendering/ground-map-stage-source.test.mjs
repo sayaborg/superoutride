@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
+import { createBranchingGroundAuthoring } from '../../dist/dev/courses/branching-ground-authoring.js';
 import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import { sampleStageGroundMapAtLevel } from '../../dist/groundmap/stage-ground-map-view.js';
 import { sampleGroundMap, GROUND_COLORS } from '../../dist/groundmap/ground-map.js';
@@ -10,7 +10,7 @@ import { downsampleGroundMap2x4 } from '../../dist/groundmap/ground-map-prefilte
 import { rgbaToRgb555, rgb555ToRgba } from '../../dist/graphics/rgb555.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../../dist/core/tolerances.js';
 
-const authoring = createBranchingGroundMapFixture();
+const authoring = createBranchingGroundAuthoring();
 const epsilon = LATERAL_BOUNDARY_TOLERANCE_METERS * 4;
 function rendered(runtime, s, l) {
   return runtime.roadView

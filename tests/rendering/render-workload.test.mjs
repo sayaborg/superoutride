@@ -23,7 +23,7 @@ import { drawScaledSprite } from '../../dist/graphics/sprite.js';
 import { BakedGroundMapAsset } from '../../dist/groundmap/baked-ground-map.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { summarizeRenderWorkloads } from '../../dist/dev/diagnostics/render-workload.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';

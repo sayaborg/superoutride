@@ -11,6 +11,7 @@ Use Node.js 24.
 ```sh
 npm ci
 npm test
+npm run build:ground
 python3 -m http.server 8000
 ```
 

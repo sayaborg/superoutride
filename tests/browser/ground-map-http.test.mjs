@@ -229,3 +229,37 @@ test('disposing a session invalidates pinned readers and rejects pending payload
   delayed.dispose();
   await rejected;
 });
+
+test('product gzip transport is decoded once, bounded and hash-checked; catalog binds its manifest', async () => {
+  const { gzipSync } = await import('node:zlib');
+  const calls = [];
+  let corrupt = false;
+  const session = new GroundMapHttpSession({ ...options, payloadEncoding: 'gzip' }, async (url) => {
+    calls.push(url);
+    const file = url.split('/').at(-1);
+    if (file === 'catalog.json')
+      return response(
+        url,
+        JSON.stringify({ kind: 'ground-map-catalog', version: 1, encoding: 'gzip', bindings: { stage: hash } }),
+      );
+    const body = await readFile(new URL(file.replace(/\.gz$/, ''), directory));
+    return response(url, file.endsWith('.gz') ? gzipSync(corrupt ? new Uint8Array(body.length + 1) : body) : body);
+  });
+  assert.equal((await session.catalog()).stage, hash);
+  const asset = await session.open(hash);
+  const before = calls.length;
+  assert.equal(session.tryAcquire(asset, demand), null);
+  assert.equal(calls.length, before, 'a synchronous miss performs no I/O');
+  corrupt = true;
+  await assert.rejects(session.acquire(asset, demand), /exceeds byte limit/);
+  corrupt = false;
+  const a = await session.acquire(asset, demand);
+  const loaded = calls.length;
+  const b = session.tryAcquire(asset, demand);
+  assert.ok(b);
+  assert.equal(calls.length, loaded, 'a resident frame needs no network or microtask');
+  a.release();
+  b.reader.sampleAtLevel(0, 0, 0);
+  b.release();
+  session.dispose();
+});

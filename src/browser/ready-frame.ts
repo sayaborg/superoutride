@@ -72,6 +72,32 @@ export class ReadyFrameController<T extends ReadyFrame> {
     }
   }
 
+  /** Resident frames are published synchronously without stopping or resetting the running clock. */
+  presentReady(frame: T): void {
+    if (this.#state === 'disposed') {
+      frame.release();
+      throw new Error('ready-frame controller is disposed');
+    }
+    const resume = this.#state !== 'ready';
+    this.#pending?.abort();
+    this.#pending = null;
+    try {
+      this.#present(frame);
+    } catch (error) {
+      frame.release();
+      throw error;
+    }
+    const previous = this.#current;
+    this.#current = frame;
+    previous?.release();
+    this.#error = null;
+    this.#state = 'ready';
+    if (resume) {
+      this.#suspend(false);
+      this.#loop.start();
+    }
+  }
+
   retry(): Promise<boolean> {
     if (this.#state !== 'failed' || !this.#load) throw new Error('no failed ready-frame request to retry');
     return this.replace(this.#load);

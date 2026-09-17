@@ -28,7 +28,7 @@ import { createSharedRouteChoiceState, getSharedRouteChoiceLock } from './gamepl
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from './render/dynamic-vehicle-sprite.js';
-import { renderDriving } from './render/renderer.js';
+import { collectDrivingGroundSamples, renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import {
   createLiveRouteTravelerState,
@@ -181,22 +181,24 @@ function render(): void {
     ];
   });
   const renderWorldSprites = [...runtime.worldSprites, ...rivalSprites];
-  const stats = renderDriving(
-    framebuffer,
-    {
-      background: selectedBackground,
-      guide: guideCoordinateCurve(runtime.coordinateFrame),
-      camera,
-      vehicle: shell.vehicle,
-      terrainProfile: runtime.terrainProfile,
-      groundProfile: runtime.groundProfile,
-      worldSprites: renderWorldSprites,
-      assets: spriteAssets,
-      playerKind: spriteFamily,
+  const scene: Parameters<typeof renderDriving>[1] = {
+    background: selectedBackground,
+    guide: guideCoordinateCurve(runtime.coordinateFrame),
+    camera,
+    vehicle: shell.vehicle,
+    terrainProfile: runtime.terrainProfile,
+    groundProfile: runtime.groundProfile,
+    worldSprites: renderWorldSprites,
+    assets: spriteAssets,
+    playerKind: spriteFamily,
+  };
+  shell.drawGround(
+    { sourceId: runtime.packageId, samples: collectDrivingGroundSamples(scene, runtime.roadView ?? undefined) },
+    (ground) => {
+      const stats = renderDriving(framebuffer, scene, { roadView: runtime.roadView ?? undefined, ground });
+      shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
     },
-    { roadView: runtime.roadView ?? undefined },
   );
-  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
 }
 
 function activeRuntime(): StageRuntimeContentPackage {

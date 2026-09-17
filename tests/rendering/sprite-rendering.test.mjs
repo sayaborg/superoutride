@@ -9,7 +9,7 @@ import { createRoadsideSprites } from '../../dist/dev/courses/roadside-scenery.j
 
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 

@@ -182,7 +182,8 @@ test('source adapters contain no camera, projection or route-DAG decision logic'
   const rendererSource = await readFile(new URL('../../src/render/renderer.ts', import.meta.url), 'utf8');
   const rendererImports = [...rendererSource.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
   assert.match(rendererSource, /applyStageRoadViewToTerrainLine/);
-  assert.match(rendererSource, /sampleStageGroundMapAtLevel/);
+  assert.match(rendererSource, /ground\.sampleAtLevel/);
+  assert.doesNotMatch(rendererSource, /sampleStageGroundMapAtLevel|sampleGroundMap\(/);
   assert.equal(
     rendererImports.some((entry) => entry.includes('/route-dag')),
     false,

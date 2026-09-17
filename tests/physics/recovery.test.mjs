@@ -7,7 +7,7 @@ import { createCameraRig, resetCameraRig, updateCamera } from '../../dist/camera
 import { pseudoProject } from '../../dist/core/projection.js';
 import { createRecoveryState, recoverVehicle, updateRecovery } from '../../dist/gameplay/recovery.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { deriveVehicleLeanRadians } from '../../dist/render/vehicle-presentation.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createTestBike, createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';

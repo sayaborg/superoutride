@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
+import { createBranchingGroundAuthoring } from '../../dist/dev/courses/branching-ground-authoring.js';
 import { guideCoordinateCurve, guideCoordinateToWorld } from '../../dist/core/guide-coordinate-frame.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
@@ -63,7 +63,7 @@ export async function verifyGroundMapHttp(directory, bindings) {
   try {
     const assets = createSpriteAssets();
     const background = createFarBackground();
-    for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
+    for (const { id, runtime } of createBranchingGroundAuthoring().stages) {
       const asset = await session.open(bindings[id]);
       const metadata = JSON.parse(await readFile(join(directory, '..', `${id}-ground-map.json`), 'utf8'));
       const reference = new BakedGroundMapAsset(
@@ -107,8 +107,8 @@ export async function verifyGroundMapHttp(directory, bindings) {
         if (!success) throw controller.error;
         const actual = new SoftwareSurface(320, 240);
         const expected = new SoftwareSurface(320, 240);
-        const observed = renderDriving(actual, scene, { roadView, compiledGround: prepared.reader });
-        renderDriving(expected, scene, { roadView, compiledGround: reference });
+        const observed = renderDriving(actual, scene, { roadView, ground: prepared.reader });
+        renderDriving(expected, scene, { roadView, ground: reference });
         assert.equal(observed.groundMapBaked, true);
         assert.deepEqual(actual.pixels, expected.pixels, `${id} at ${s}: HTTP pages preserve complete framebuffer`);
         // Final stage-local bytes own color. Drawing must never consult procedural paint again.
@@ -121,7 +121,7 @@ export async function verifyGroundMapHttp(directory, bindings) {
             },
           }),
         };
-        renderDriving(actual, poisonedScene, { roadView, compiledGround: prepared.reader });
+        renderDriving(actual, poisonedScene, { roadView, ground: prepared.reader });
         assert.deepEqual(actual.pixels, expected.pixels);
       }
     }

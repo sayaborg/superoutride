@@ -13,6 +13,7 @@ export const DRIVING_KEYS = Object.freeze({
 });
 
 export class KeyboardInput {
+  private suspended = false;
   constructor(
     target: Window = window,
     visibilityDocument: Document = document,
@@ -28,6 +29,11 @@ export class KeyboardInput {
     });
   }
 
+  setSuspended(suspended: boolean): void {
+    this.suspended = suspended;
+    if (suspended) this.reset();
+  }
+
   sample(): DrivingInput {
     const pedals = this.pedals.sample();
     return {
@@ -37,6 +43,7 @@ export class KeyboardInput {
   }
 
   private onKey(event: KeyboardEvent, down: boolean): void {
+    if (this.suspended || (down && event.repeat)) return;
     switch (event.code) {
       case DRIVING_KEYS.left:
       case DRIVING_KEYS.right:

@@ -9,7 +9,7 @@ import { CLIFF_BASE_COLORS } from '../../dist/dev/fixtures/cliff-visual.js';
 
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { generateTerrainLines } from '../../dist/terrain/terrain-line.js';
 import { createFarBackground, drawFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';

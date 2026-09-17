@@ -14,7 +14,7 @@ import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 

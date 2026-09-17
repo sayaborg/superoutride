@@ -3,6 +3,7 @@ import { GroundMapPayloadStore } from '../groundmap/ground-map-payload-store.js'
 
 interface GroundMapHttpOptions {
   readonly buildRoot: string;
+  readonly payloadEncoding?: 'identity' | 'gzip';
   readonly buildSha: string;
   readonly maxManifestBytes: number;
   readonly requestTimeoutMs: number;
@@ -23,9 +24,11 @@ export class GroundMapHttpSession {
   constructor(options: GroundMapHttpOptions, fetchResource: typeof fetch = fetch) {
     const root = new URL(options.buildRoot);
     if (
-      !/^[0-9a-f]{40}$/.test(options.buildSha) ||
+      (!/^[0-9a-f]{40}$/.test(options.buildSha) && options.buildSha !== 'development') ||
       !['http:', 'https:'].includes(root.protocol) ||
-      !root.pathname.endsWith(`/build/${options.buildSha}/`) ||
+      !(options.buildSha === 'development'
+        ? root.pathname.endsWith('/dist/')
+        : root.pathname.endsWith(`/build/${options.buildSha}/`)) ||
       root.pathname.includes('%') ||
       root.search ||
       root.hash ||
@@ -40,7 +43,8 @@ export class GroundMapHttpSession {
     this.#options = Object.freeze({ ...options });
     this.#fetch = fetchResource;
     this.#store = new GroundMapPayloadStore(
-      (identity) => this.#read(identity.sha256, 'bin', identity.byteLength, true),
+      (identity) =>
+        this.#read(identity.sha256, options.payloadEncoding === 'gzip' ? 'bin.gz' : 'bin', identity.byteLength, true),
       options,
     );
   }
@@ -81,6 +85,34 @@ export class GroundMapHttpSession {
     return frame;
   }
 
+  tryAcquire(asset: GroundMapPageAsset, demand: Parameters<GroundMapPageAsset['acquire']>[1]) {
+    this.#lifetime.signal.throwIfAborted();
+    if (!this.#assets.has(asset)) throw new Error('GroundMap asset is not bound to this build session');
+    return asset.tryAcquire(this.#store, demand);
+  }
+
+  /** The catalog is bound to the same selected build; its entries bind immutable manifest digests. */
+  async catalog(): Promise<Readonly<Record<string, string>>> {
+    const bytes = await this.#read('catalog', 'json', this.#options.maxManifestBytes, false);
+    const parsed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    if (
+      parsed.kind !== 'ground-map-catalog' ||
+      parsed.version !== 1 ||
+      parsed.encoding !== this.#options.payloadEncoding ||
+      !parsed.bindings ||
+      typeof parsed.bindings !== 'object' ||
+      Array.isArray(parsed.bindings)
+    )
+      throw new Error('invalid GroundMap product catalog');
+    const entries = Object.entries(parsed.bindings);
+    if (
+      !entries.length ||
+      entries.some(([id, digest]) => !id || typeof digest !== 'string' || !/^[0-9a-f]{64}$/.test(digest))
+    )
+      throw new Error('invalid GroundMap product binding');
+    return Object.freeze(Object.fromEntries(entries)) as Readonly<Record<string, string>>;
+  }
+
   dispose(): void {
     this.#lifetime.abort(new DOMException('GroundMap HTTP session disposed', 'AbortError'));
     this.#store.dispose();
@@ -92,12 +124,13 @@ export class GroundMapHttpSession {
 
   async #read(
     sha256: string,
-    extension: 'bin' | 'json',
+    extension: 'bin' | 'bin.gz' | 'json',
     limit: number,
     exact: boolean,
     consumer?: AbortSignal,
   ): Promise<ArrayBuffer> {
-    if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error('GroundMap resource digest invalid');
+    if (!(sha256 === 'catalog' && extension === 'json') && !/^[0-9a-f]{64}$/.test(sha256))
+      throw new Error('GroundMap resource digest invalid');
     const deadline = new AbortController();
     const signal = AbortSignal.any([this.#signal(consumer), deadline.signal]);
     signal.throwIfAborted();
@@ -122,7 +155,23 @@ export class GroundMapHttpSession {
         void response.body?.cancel().catch(() => {});
         throw new Error('GroundMap HTTP response must be a complete asset at the selected build URL');
       }
-      reader = response.body.getReader();
+      let stream = response.body;
+      if (extension === 'bin.gz') {
+        let encodedBytes = 0;
+        stream = stream
+          .pipeThrough(
+            new TransformStream<Uint8Array<ArrayBuffer>, BufferSource>({
+              transform(chunk, controller) {
+                encodedBytes += chunk.byteLength;
+                if (encodedBytes > Math.max(1024, limit * 2))
+                  throw new RangeError('GroundMap encoded response exceeds byte limit');
+                controller.enqueue(chunk);
+              },
+            }),
+          )
+          .pipeThrough(new DecompressionStream('gzip'));
+      }
+      reader = stream.getReader();
       signal.throwIfAborted();
       const bytes = new Uint8Array(limit);
       let length = 0;

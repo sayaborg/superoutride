@@ -7,7 +7,7 @@ import {
 } from './dev/courses/linear-highway.js';
 import { advanceVehicleWithRecovery } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
-import { renderDriving } from './render/renderer.js';
+import { collectDrivingGroundSamples, renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { createFarBackground } from './visual/far-background.js';
 import { createSpriteAssets } from './visual/sprite-assets.js';
@@ -40,22 +40,21 @@ function tick(dt: number): void {
 function render(): void {
   const { camera } = lifecycle;
   const spriteFamily = deriveVehicleSpriteFamily(shell.presentation);
-  const stats = renderDriving(
-    framebuffer,
-    {
-      background,
-      guide: runtime.guide,
-      camera,
-      vehicle: shell.vehicle,
-      terrainProfile: runtime.terrainProfile,
-      groundProfile: runtime.groundProfile,
-      worldSprites: [],
-      assets: spriteAssets,
-      playerKind: spriteFamily,
-    },
-    {},
-  );
-  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
+  const scene: Parameters<typeof renderDriving>[1] = {
+    background,
+    guide: runtime.guide,
+    camera,
+    vehicle: shell.vehicle,
+    terrainProfile: runtime.terrainProfile,
+    groundProfile: runtime.groundProfile,
+    worldSprites: [],
+    assets: spriteAssets,
+    playerKind: spriteFamily,
+  };
+  shell.drawGround({ sourceId: 'linear', samples: collectDrivingGroundSamples(scene, undefined) }, (ground) => {
+    const stats = renderDriving(framebuffer, scene, { roadView: undefined, ground });
+    shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY);
+  });
 }
 
 shell.start(tick, render);

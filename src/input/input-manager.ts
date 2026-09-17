@@ -6,12 +6,18 @@ import { TouchInput } from './touch-input.js';
 
 export class InputManager {
   private readonly touch: TouchInput;
+  private readonly keyboard: KeyboardInput;
   private readonly pedals = new PedalInputArbiter();
   private readonly steering = new SteeringInputArbiter();
 
   constructor() {
-    new KeyboardInput(window, document, this.pedals, this.steering);
+    this.keyboard = new KeyboardInput(window, document, this.pedals, this.steering);
     this.touch = new TouchInput(window, document, this.pedals, this.steering);
+  }
+
+  setSuspended(suspended: boolean): void {
+    this.keyboard.setSuspended(suspended);
+    this.touch.setSuspended(suspended);
   }
 
   sample(): DrivingInput {

@@ -19,7 +19,7 @@ import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { BakedGroundMapAsset } from '../../dist/groundmap/baked-ground-map.js';
 import { sampleGroundMap } from '../../dist/groundmap/ground-map.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';

@@ -425,3 +425,23 @@ body {
   padding: 4px;
   font-size: 12px;
 }
+
+#ground-loading {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  max-width: min(28rem, 90vw);
+  padding: 1rem;
+  border: 1px solid #8293a7;
+  background: #101820ee;
+  color: #fff;
+  text-align: center;
+}
+#ground-loading[hidden] {
+  display: none;
+}
+#ground-loading button {
+  margin-left: 1rem;
+}

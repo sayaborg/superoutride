@@ -64,6 +64,9 @@ jobs:
           HOT_PATH_BASELINE_BUILD: .audit-baseline/dist
         run: npm test
 
+      - name: Build product GroundMaps
+        run: npm run build:ground
+
       - name: Stage static site
         if: github.event_name != 'pull_request'
         run: |
@@ -106,3 +109,21 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Checkout published source for delivery verification
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Setup delivery verifier
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Verify published GroundMap assets
+        env:
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          npm ci
+          npm run build
+          node tools/build/verify-published-ground.mjs "$PAGES_URL" "$GITHUB_SHA"

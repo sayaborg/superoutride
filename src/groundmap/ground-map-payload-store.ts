@@ -16,7 +16,7 @@ interface PayloadEntry {
   lastUsed: number;
 }
 
-interface GroundMapPayloadLease {
+export interface GroundMapPayloadLease {
   readByte(sha256: string, offset: number): number;
   release(): void;
 }
@@ -140,23 +140,45 @@ export class GroundMapPayloadStore {
     try {
       await Promise.race([Promise.all(entries.map((entry) => entry.ready)), aborted]);
       signal?.throwIfAborted();
-      const permitted = new Map(entries.map((entry) => [entry.identity.sha256, entry]));
-      return Object.freeze({
-        readByte(sha256: string, offset: number): number {
-          const entry = permitted.get(sha256);
-          if (released || !entry?.bytes) throw new Error('GroundMap payload is not pinned by this lease');
-          if (!Number.isSafeInteger(offset) || offset < 0 || offset >= entry.bytes.byteLength)
-            throw new RangeError('GroundMap payload byte outside bounds');
-          return entry.bytes[offset]!;
-        },
-        release,
-      });
+      return createLease(entries, () => released, release);
     } catch (error) {
       release();
       throw error;
     } finally {
       if (onAbort) signal!.removeEventListener('abort', onAbort);
     }
+  }
+
+  /** A synchronous cache hit never starts transport, evicts data or changes the scheduler. */
+  tryAcquire(identities: readonly GroundMapPayloadIdentity[]): GroundMapPayloadLease | null {
+    if (this.#disposed) throw new Error('GroundMap payload store is disposed');
+    const entries: PayloadEntry[] = [];
+    const seen = new Set<string>();
+    for (const identity of identities) {
+      const entry = this.#entries.get(identity.sha256);
+      if (!entry?.bytes) return null;
+      if (entry.identity.byteLength !== identity.byteLength) throw new Error('conflicting GroundMap payload length');
+      if (seen.has(identity.sha256)) continue;
+      seen.add(identity.sha256);
+      entries.push(entry);
+    }
+    for (const entry of entries) {
+      entry.pins++;
+      entry.lastUsed = ++this.#clock;
+    }
+    let released = false;
+    return createLease(
+      entries,
+      () => released,
+      () => {
+        if (released) return;
+        released = true;
+        for (const entry of entries) {
+          entry.pins--;
+          entry.lastUsed = ++this.#clock;
+        }
+      },
+    );
   }
 
   /** Session shutdown invalidates readers and drops cached bytes; active transports settle separately. */
@@ -207,4 +229,22 @@ export class GroundMapPayloadStore {
       entry.reject(error);
     }
   }
+}
+
+function createLease(
+  entries: readonly PayloadEntry[],
+  released: () => boolean,
+  release: () => void,
+): GroundMapPayloadLease {
+  const permitted = new Map(entries.map((entry) => [entry.identity.sha256, entry]));
+  return Object.freeze({
+    readByte(sha256: string, offset: number): number {
+      const entry = permitted.get(sha256);
+      if (released() || !entry?.bytes) throw new Error('GroundMap payload is not pinned by this lease');
+      if (!Number.isSafeInteger(offset) || offset < 0 || offset >= entry.bytes.byteLength)
+        throw new RangeError('GroundMap payload byte outside bounds');
+      return entry.bytes[offset]!;
+    },
+    release,
+  });
 }

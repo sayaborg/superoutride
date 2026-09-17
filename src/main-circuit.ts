@@ -1,3 +1,4 @@
+import { circuitWindowToLapSourceChainage } from './runtime/circuit-runtime-window.js';
 import { composeBrowserCourseContent } from './browser/course-mode-selection.js';
 import { createTerrainVisualProfile } from './runtime/stage-authoring-compiler.js';
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
@@ -26,7 +27,7 @@ import { sampleRivalDrivingInput } from './gameplay/rival-driver.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { createArcadeVehicle } from './physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from './render/dynamic-vehicle-sprite.js';
-import { renderDriving } from './render/renderer.js';
+import { collectDrivingGroundSamples, renderDriving } from './render/renderer.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { advanceCircuitDrivingActor, type CircuitDrivingActor } from './runtime/circuit-driving-tick.js';
 import { createRivalRoster } from './runtime/rival-roster.js';
@@ -153,22 +154,28 @@ function render(): void {
       height,
     ),
   );
-  const stats = renderDriving(
-    framebuffer,
+  const scene: Parameters<typeof renderDriving>[1] = {
+    background,
+    guide,
+    camera,
+    vehicle: shell.vehicle,
+    terrainProfile,
+    groundProfile,
+    worldSprites: rivalSprites,
+    assets: spriteAssets,
+    playerKind: spriteFamily,
+  };
+  shell.drawGround(
     {
-      background,
-      guide,
-      camera,
-      vehicle: shell.vehicle,
-      terrainProfile,
-      groundProfile,
-      worldSprites: rivalSprites,
-      assets: spriteAssets,
-      playerKind: spriteFamily,
+      sourceId: selectedCourseMode.query,
+      samples: collectDrivingGroundSamples(scene, undefined),
+      sourceS: (s) => circuitWindowToLapSourceChainage(windowRuntime, s),
     },
-    {},
+    (ground) => {
+      const stats = renderDriving(framebuffer, scene, { roadView: undefined, ground });
+      shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
+    },
   );
-  shell.present(selectedCourseMode.query, input, camera, stats.playerScreenY, rivals);
 }
 
 function raceSample(): { x: number; z: number; sWindow: number } {

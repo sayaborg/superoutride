@@ -13,7 +13,8 @@
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build:test-assets": "node tools/build/build-test-ground-map.mjs"
+    "build:test-assets": "node tools/build/build-test-ground-map.mjs",
+    "build:ground": "node tools/build/build-product-ground.mjs"
   },
   "devDependencies": {
     "eslint": "10.10.0",

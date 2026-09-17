@@ -12,7 +12,7 @@ import { drivingEnvironment } from '../helpers/driving-environment.mjs';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';

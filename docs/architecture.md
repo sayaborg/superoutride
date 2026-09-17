@@ -101,7 +101,16 @@ GroundMap visual appearance and SurfaceMap physical support/friction are indepen
 
 GroundBase fills outside the finite GroundMap strip on each emitted terrain line. It is not a separate depth layer. Each side independently selects solid color or transparency; transparent pixels leave already-drawn farther content visible. Far Background is a full image with meaningful pixels below its horizon, aligned by a source-horizon anchor. Yaw scrolls the background; no camera roll or alpha blending is introduced. The [background source format](../src/visual/far-background.ts) owns 640×320 pixels, horizon row 126 and yaw density 200 source pixels/radian. Source yaw density and camera focal length have different units and remain independent authoring/presentation quantities despite their equal current numbers.
 
-Production courses currently use procedural GroundMap sampling. The offline compiler and finite baked reader are exercised by regression assets; production integration is planned, not complete. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Terrain lines resolve source/baked/stage sampling once before the pixel loop. Stage pixel-center overshoot is clipped to the authored local strip before its strict local classifier; ordinary source sampling retains its existing outer-material behavior. This is visual edge coverage, not physical lateral clamping. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Loaded assets validate integer payload offsets and encoding, then own immutable metadata and a private byte copy. Source and circuit-window readers share the same integer texel-center metric. Palette/RGB555 encoding belongs to the [compiler encoder](../src/groundmap/ground-map-encoding.ts); chunk addressing and decoding belong to the [baked reader](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
+All shipped courses use precompiled GroundMap pages. Ordinary and stage paint samplers are offline
+compiler inputs and explicit diagnostic preview adapters; the product renderer receives one final-color
+reader and does not classify or repaint ground. `roadMarkings` owns ordinary paint; `junctionMarkings`
+owns paint relative to each junction carriageway center. Omitted paint means no marking. Loaded
+assets validate integer payload offsets, encoding, lengths and digests. The monolithic regression
+reader copies caller-owned bytes; product page loading transfers exclusive buffer ownership.
+Circuit windows use the existing window-to-lap chainage mapping for both page demand and color reads,
+sharing one lap directory and payload store. Palette/RGB555 encoding belongs to the
+[compiler encoder](../src/groundmap/ground-map-encoding.ts); chunk addressing and decoding belong to
+the [baked reader](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
 
 ```
 qL = d0/f
@@ -164,11 +173,11 @@ ordinary visual classification prefers road, ordered physical bands prefer the l
 and junction classification uses its explicit lateral tolerance. Changing those conventions would
 be a separate behavioral revision, not a cleanup.
 
-## Accepted authoring target: pending implementation
+## Accepted authoring target
 
-The current procedural ground path and single-bitmap SpriteAsset remain the deployed implementation.
-The accepted target below requires explicit rendering-contract revisions and causal tests before
-activation; it does not silently advance the immutable mechanics/pixel reference.
+GroundMap compilation, delivery and product sampling are implemented below. SpriteAsset remains a
+single bitmap; sprite LOD and image authoring are pending. Each rendering revision requires explicit
+causal tests and does not silently advance the immutable mechanics/pixel reference.
 
 - Sprite and ground-image source density is 40 texels/m in both authoring axes. Ground source
   density is distinct from the compiled anisotropic GroundMap spacing described above.
@@ -182,7 +191,7 @@ activation; it does not silently advance the immutable mechanics/pixel reference
 - GroundMap and its LOD are generated before game startup. Product runtime loads completed assets,
   selects a level and samples it; it does not composite source imagery or generate prefilters.
   Stage-local shoulders and junction paint must be included in the compiled color field. Loading
-  completed chunks during play is distinct from generating them; residency remains undecided.
+  completed chunks during play is distinct from generating them; the residency contract is below.
 - Vehicles remain SINGLE: one sprite instance per vehicle. Yaw/bank sampling steps and source
   camera projection are undecided; there is no accepted fixed 24-by-5 sampling grid.
 
@@ -191,15 +200,15 @@ load-time copies and transition-time coexistence on representative courses. Curr
 must not be budgeted as if they expanded every texel to RGBA. Archive compression is not evidence
 of HTTP compression. Preserve separate mechanics comparison when intentionally revising pixel output.
 
-### GroundMap integration design: compiler implemented, runtime pending
+### GroundMap compilation and residency
 
-The file-backed row compiler and final stage-local color sources below are implemented for
-build/test assets. Content-addressed page publication and shared payload residency are also implemented.
-Build-bound HTTP transport and ready-frame scheduling are implemented and exercised by integration fixtures.
-Product-density delivery and browser composition activation remain pending; the migration
-gates must pass before activation. GroundMap owns the image lattice, filtering,
-encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
-owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
+The file-backed compiler, content-addressed publication, shared residency and browser readiness
+lifecycle serve LINEAR, BRANCHING, TSUKUBA and FISCO. The product build includes all eleven branching
+stage domains and the three ordinary course/lap domains at the current camera-derived density and
+complete target pyramid. GroundMap owns the image lattice, filtering, encoding and resident reader;
+runtime owns stage/circuit coordinate adapters; browser composition owns asynchronous loading and
+readiness. Topology and physics do not depend on asset availability. Target-device memory and frame
+time acceptance remains separate from this implementation.
 
 **Compiler input and domain.** Compile one immutable final-color source over an explicit finite
 local rectangle. The source supplies its metric domain and a deterministic color evaluator; concrete
@@ -249,7 +258,7 @@ independent of working-buffer sizes. A later paged transport format may change s
 but decoded texels and metric lookup must remain identical to that compiler. Do not combine
 alignment optimization, different filtering or earlier quantization with this refactor.
 
-**Asset identity and delivery.** Introduce a versioned product manifest with a stable source identity,
+**Asset identity and delivery.** The versioned product manifest is published with a stable source identity,
 compiler/target identity, input digest, finite domain, lattice/LOD descriptors, palettes and an ordered
 page-to-payload directory. A page identifies its level and row range; a payload identifies immutable
 encoded bytes, byte length and digest. Palette interpretation belongs to the manifest, even when
@@ -258,23 +267,26 @@ to mutable filenames. All references stay within the selected immutable deployme
 
 Publish completed payloads as separately addressable files; do not depend on HTTP range support
 or assume that compressed transfer bytes remain compressed in the reader. The monolithic v1 test
-asset is a regression input during migration, not a second product loading mode. Wire schema,
-transport granularity and actual server compression are validated before deployment.
+asset is a regression input during migration, not a second product loading mode. The build validates the wire schema and transport granularity; the deployment workflow verifies
+actual public responses after publication.
 
 The implemented `ground-map-pages` transport manifest (version 1) wraps the existing compiler
 directory without redefining its lattice. Directory offsets retain canonical compiler byte ordering;
 they are not HTTP range requests. Source, compiler, target and input digest identify the build.
 The manifest's SHA-256 is the package binding; payload files are named by their encoded-byte digest.
 Build publication checks payload length/hash and writes the manifest after payload completion.
-The test build emits all eleven stage manifests and a bindings index outside deployment artifacts.
-`GroundMapHttpSession` binds every manifest and payload URL to one selected `/build/<commit>/`
-root. It rejects redirects, partial responses, foreign-session assets and mismatched digests.
-It streams decoded response bytes into bounded buffers, checks exact payload lengths, serializes
-manifest reads and enforces request deadlines. Content-Length is not decoded size when delivery
-is compressed. Session disposal aborts transport and invalidates cached readers; consumer
-cancellation alone retains shared admitted loads. Real loopback gzip delivery is tested; this
-does not establish production server headers or smartphone memory. Manifest object retention,
-fetch/decompression internals and renderer buffers remain outside payload accounting.
+`build:ground` writes a versioned `catalog.json` binding each source ID to its manifest digest and
+publishes opaque `.bin.gz` payload files named by the digest of their decoded encoded bytes. Gzip
+reduces stored/downloaded bytes without changing the compiler encoding or reader lattice. Product
+loading explicitly decompresses these files; it does not rely on Pages adding HTTP compression.
+`GroundMapHttpSession` binds URLs to the module's selected `/build/<commit>/` root, or the coherent
+`/dist/` development/compatibility build. It rejects redirects, partial responses, foreign-session
+assets and mismatched digests. It bounds compressed streams, streams decompressed bytes into exact
+payload-sized buffers, serializes manifest reads and enforces request deadlines. Content-Length is
+not decoded size. Session disposal aborts transport and invalidates readers; consumer cancellation
+alone retains shared admitted loads. Loopback tests validate gzip delivery and the deployment
+verifier checks all source bindings, sampled payloads and server headers at the published SHA.
+Manifest objects, fetch/decompression internals and renderer buffers are outside payload accounting.
 
 **Resident reads and accounting.** One application-owned immutable payload store shares bytes across
 readers, repeated circuit windows and consumers of the same content. Ground render demand determines
@@ -314,17 +326,30 @@ bytes and concurrent load/validation buffers. Count shared payloads once, but in
 old/new frame pins and incoming data. Metadata, network/decoder buffers and the rest of the application
 are separate costs. A request that cannot fit must produce explicit capacity failure, not silently
 exceed a limit, drop required pages or select a different LOD. Numeric target-device budgets remain
-unapproved; host RSS and gzip measurements cannot establish those limits.
+unapproved; host RSS and gzip measurements cannot establish those limits. The current application
+limits are 64 MiB resident encoded payloads, 8 MiB concurrent load/validation reservations, 4 MiB
+per manifest/catalog and a 30-second request deadline. These are explicit admission controls, not
+whole-browser memory budgets or smartphone acceptance. Compressed input is limited to twice the
+decoded payload length (at least 1 KiB); network/decoder internals are not counted as owned buffers.
 
 Unavailable data is an explicit readiness result before presentation, never grass substitution,
 procedural fallback or hidden lower-resolution sampling. Browser loading behavior and simulation
-scheduling are governed by the [content integration design](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active).
+scheduling are governed by the [content integration design](content-and-gameplay.md#groundmap-loading-and-handoff).
 
-**Compiled frame rendering contract.** The explicit `compiledGround` renderer input is a complete
-scene-local final-color reader. It takes precedence over legacy profile sampling and never reapplies
-source offsets, local shoulders or junction paint. Geometry still supplies projected ground bounds.
-`collectDrivingGroundSamples` uses the same terrain preparation and chainage footprints as drawing;
-the page asset resolves their levels and rows with the reader's existing selector and endpoint rule.
-Keep scene inputs fixed between demand collection and presentation. This opt-in contract is exercised
-by declared build fixtures; product composition roots still use the unchanged procedural path. The
-existing immutable pixel oracle is retained. A product cutover is a separate explicit rendering revision.
+**Compiled frame rendering contract.** The required `ground` renderer input is a complete scene-local
+final-color reader. It never reapplies source offsets, local shoulders or junction paint. Geometry
+still supplies projected ground bounds. `collectDrivingGroundSamples` uses the same terrain
+preparation and chainage footprints as drawing; page assets resolve levels and rows with the reader's
+existing selector and endpoint rule. Scene inputs remain fixed between collection and presentation.
+A synchronous resident hit never resets the running scheduler. Missing data enters the explicit
+loading lifecycle above before any new frame is presented.
+
+This product cutover explicitly replaces procedural point sampling during drawing with precompiled
+point-sampled L0 and the existing 2-by-4 prefiltered pyramid, nearest texel lookup, RGB555 coarse
+levels and chainage-footprint LOD selection. Changed ground pixels are intentional; geometry,
+projection, physics, source paint and sprite contracts are unchanged. The product build verifies
+44 complete baked frames in [the pixel fixture](../tests/fixtures/product-ground-pixels.json) and
+independently checks L0 texel centers against source color evaluators. The immutable source-rendering
+oracle remains exercised through an input-only [diagnostic adapter](../src/dev/diagnostics/source-ground-render.ts)
+into the same renderer; it is not the product pixel contract. Circuit runtime windows no longer
+copy image directories: tests require the existing finite window-to-lap mapping and shared reader.

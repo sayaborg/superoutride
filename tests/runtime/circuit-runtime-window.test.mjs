@@ -26,7 +26,7 @@ function createGentleCircuit(segmentCount = 72, radius = 120) {
   return compileCircuitTopology('M6_49_DEV_CIRCUIT', compileRasterPath(vertices));
 }
 
-function createSources(topology, ground = undefined) {
+function createSources(topology) {
   const L = topology.lapLength;
   return {
     height: new HeightProfile(L, [
@@ -60,18 +60,17 @@ function createSources(topology, ground = undefined) {
         bands: [{ lMin: -5, lMax: 5, type: 'GRASS' }],
       },
     ]),
-    ground,
   };
 }
 
-function compileWindow({ startWinding = -1, repeatCount = 3, ground } = {}) {
+function compileWindow({ startWinding = -1, repeatCount = 3 } = {}) {
   const topology = createGentleCircuit();
   const window = compileCircuitRuntimeWindow(
     topology,
     startWinding,
     repeatCount,
     { lMax: 6, mMin: 0.72, dCam: 5 },
-    createSources(topology, ground),
+    createSources(topology),
   );
   return { topology, window };
 }
@@ -171,80 +170,13 @@ test('SurfaceMap window resets at internal seam while preserving the final open 
   assert.throws(() => window.surface.sample(2 * L + 1, 0), /outside \[0, courseLength\]/);
 });
 
-test('virtual baked GroundMap repeats metadata rows without duplicating source payload identity', () => {
-  const topology = createGentleCircuit();
+test('ground demand maps internal seams to one lap and retains the finite final endpoint', () => {
+  const { topology, window } = compileWindow({ repeatCount: 2 });
   const L = topology.lapLength;
-  const calls = [];
-  const sourceLevel = {
-    index: 0,
-    lateralTexels: 4,
-    chainageTexels: 8,
-    qLActual: 1,
-    qSActual: L / 8,
-    chunks: [{ rowStart: 0, rowCount: 8, payloadId: 0 }],
-  };
-  const ground = {
-    metadata: {
-      version: 1,
-      courseLength: L,
-      groundLeft: 2,
-      groundRight: 2,
-      qLAuthority: 1,
-      qSAuthority: L / 8,
-      actualBaseQL: 1,
-      actualBaseQS: L / 8,
-      kMax: 0,
-      rowGroup: 8,
-      chunkTargetMeters: L,
-      paletteRgba: [0],
-      levels: [sourceLevel],
-      payloads: [{ id: 0, encoding: 'palette4-rle', width: 4, height: 8, offset: 0, byteLength: 1 }],
-      binaryBytes: 1,
-      uncompressedRgbaBytes: 128,
-    },
-    kMax: 0,
-    selectLevel() {
-      return 0;
-    },
-    sample(s, l, deltaSEffective) {
-      calls.push(['sample', s, l, deltaSEffective]);
-      return { color: Math.round(s), level: 0 };
-    },
-    sampleAtLevel(s, l, levelIndex) {
-      calls.push(['level', s, l, levelIndex]);
-      return Math.round(s * 10 + levelIndex);
-    },
-    texelCenter(levelIndex, row, column) {
-      assert.equal(levelIndex, 0);
-      return {
-        s: ((row + 0.5) * L) / sourceLevel.chainageTexels,
-        l: -2 + (column + 0.5),
-      };
-    },
-  };
-  const window = compileCircuitRuntimeWindow(
-    topology,
-    0,
-    2,
-    { lMax: 6, mMin: 0.72, dCam: 5 },
-    createSources(topology, ground),
-  );
-
-  assert.ok(window.ground);
-  assert.ok(Math.abs(window.ground.metadata.courseLength - 2 * L) < 1e-8);
-  assert.equal(window.ground.metadata.levels[0].chainageTexels, 16);
-  assert.deepEqual(window.ground.metadata.levels[0].chunks, [
-    { rowStart: 0, rowCount: 8, payloadId: 0 },
-    { rowStart: 8, rowCount: 8, payloadId: 0 },
-  ]);
-  assert.equal(window.ground.metadata.payloads, ground.metadata.payloads);
-  assert.equal(window.ground.metadata.binaryBytes, ground.metadata.binaryBytes);
-  assert.equal(window.ground.metadata.uncompressedRgbaBytes, 256);
-
-  window.ground.sampleAtLevel(L, 2, 0);
-  window.ground.sampleAtLevel(2 * L, 2, 0);
-  assert.deepEqual(calls[0], ['level', 0, 2, 0]);
-  assert.ok(Math.abs(calls[1][1] - L) < 1e-8);
+  assert.equal(circuitWindowToLapSourceChainage(window, L), 0);
+  assert.equal(circuitWindowToLapSourceChainage(window, 2 * L), L);
+  assert.throws(() => circuitWindowToLapSourceChainage(window, 2 * L + 1), RangeError);
+  assert.equal('ground' in window, false, 'geometry windows do not own repeated image directories');
 });
 
 test('ordinary TerrainLine generation crosses a circuit seam with open window readers', () => {

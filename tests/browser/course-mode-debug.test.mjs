@@ -46,7 +46,7 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../../dist/core/vector3.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import {
   createLiveRouteTravelerState,
   resolveLiveRouteTravelerRuntime,

@@ -103,20 +103,20 @@ and explicitly defined perspective cameras, lateral displacement versus body yaw
 Model origin, angle labels, pivot, lighting, crop/anchor and angle sampling remain open. Runtime
 chainage projection is unchanged. DUAL/multiple vehicle slices remain deferred.
 
-### GroundMap loading and handoff design: not active
+### GroundMap loading and handoff
 
-This is the integration target for the accepted baked direction. The current synchronous
-procedural browser path remains unchanged until its implementation and rendering revision pass
-the [migration gates](development.md#groundmap-migration-gates).
+All four course modes use this lifecycle through the shared driving shell and GroundPresentation.
+Product assets are generated before startup; no procedural ground renderer is selected by a mode.
 
 Each stage package references its complete stage-local baked color source; source lateral/chainage
 offsets are compiler concerns for that asset. Package geometry, SurfaceMap, road intent, physical
 gates and progress remain independent. A circuit window delegates to one lap reader and shared
 payload store; virtual copies must not multiply payload bytes or require a repeated page directory.
 
-The loading coordinator prefetches image demand for the active presentation and its possible legal
-successors. Prefetch eligibility never chooses a route: physical gate -> PENDING -> seam -> COMMIT
-continues to own selection. Pin the old frame while preparing its replacement, retain shared
+The loading coordinator acquires exact image demand for the active presentation and optionally
+prefetches its adjacent storage chunks using the same residency limits. There is one optional job
+at a time; it does not predict legal successors or promise arrival before travel. Stage changes load
+the actual selected source. Physical gate -> PENDING -> seam -> COMMIT continues to own selection. Pin the old frame while preparing its replacement, retain shared
 payloads once, and release pins only after all consumers finish. Include camera run-in/runout,
 reverse travel, manual recovery, automatic recovery and course switching in demand tests.
 Geometry/physics for other actors must not force all their GroundMaps into memory.
@@ -131,16 +131,19 @@ baking runs in the browser. `ReadyFrameController` now implements the scheduler/
 frame loop, keeps the last completed frame pinned, exposes failures for retry, and releases stale
 arrivals after replacement or disposal. Successful presentation releases the old frame and restarts
 the loop with a fresh clock. Its suspension callback is the composition boundary for input/audio;
-product UI, input/audio wiring and prefetch policy remain to be activated. The presenter must publish
-a complete prepared frame synchronously; it must not expose a partially drawn framebuffer.
+the shell clears and suspends keyboard/touch ownership, silences audio and disables driving
+controls while waiting. The course selector remains available; failures expose Retry. Held keyboard
+repeat does not revive cleared input on resume. A resident hit presents synchronously without
+restarting the clock. Page exit disposes the session; back-forward cache restoration reloads a
+fresh session. The presenter publishes complete prepared frames synchronously.
 
-The first integrated fixture must cross a real stage handoff with distinct shoulder/junction paint,
-then a circuit seam using the same lap payloads. Its completion requires exact compiled-color reads,
-bounded resident bytes, unchanged mechanics and an explicit pixel-contract revision for the baked
-presentation. It does not require Sprite Tool/Course Editor GUI or freeze pending image algorithms.
+The rendering revision is owned by [architecture](architecture.md#groundmap-compilation-and-residency).
+Sprite Tool/Course Editor GUI and pending image algorithms remain separate work.
 
 The integration fixtures cross the default branch's real physical gate and COMMIT for player and
 rival, then delay color delivery without modifying either transaction or accumulating simulation
 time. Reverse/recovery resynchronization remains independent of payload acquisition. The actual
 Tsukuba window-to-lap mapping reuses one directory and shared payloads across its seam and virtual
-laps. These fixtures prove the lifecycle boundaries, not a completed product loading interface.
+laps. The product-root regressions also run all four actual entry modules with simulated DOM, canvas
+and transport boundaries through initial failure, retry, drawing, ticks and page exit. These are
+causal integration checks; real browser/device timing and input acceptance remain separate.

@@ -1,3 +1,4 @@
+import { gzipSync } from 'node:zlib';
 import { mkdir, open, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
@@ -9,7 +10,7 @@ import { GroundMapPayloadStore } from '../../dist/groundmap/ground-map-payload-s
 import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
 
 /** Publish content-addressed payloads, then the manifest. No full binary readback or range transport. */
-export async function publishGroundMapPages(directory, binaryPath, metadata, identity) {
+export async function publishGroundMapPages(directory, binaryPath, metadata, identity, { gzip = false } = {}) {
   const manifest = createGroundMapPageManifest(identity, metadata);
   await mkdir(directory, { recursive: true });
   const binary = await open(binaryPath, 'r');
@@ -24,7 +25,10 @@ export async function publishGroundMapPages(directory, binaryPath, metadata, ide
       }
       if ((await groundMapDigest(bytes)) !== payload.sha256)
         throw new Error('GroundMap compiler output digest mismatch');
-      await writeFile(join(directory, `${payload.sha256}.bin`), bytes);
+      await writeFile(
+        join(directory, `${payload.sha256}.bin${gzip ? '.gz' : ''}`),
+        gzip ? gzipSync(bytes, { level: 9 }) : bytes,
+      );
     }
   } finally {
     await binary.close();

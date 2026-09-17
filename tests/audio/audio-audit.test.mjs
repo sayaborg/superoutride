@@ -15,6 +15,7 @@ import {
 import { ExhaustWaveguide } from '../../dist/audio/exhaust-waveguide.js';
 import { createEngineVoice } from '../../dist/audio/engine-voice.js';
 import { createAudioLifecycle } from '../../dist/browser/audio-lifecycle.js';
+import { createFrameLoop } from '../../dist/browser/frame-loop.js';
 import { createBrowserDrivingShell } from '../../dist/browser/driving-shell.js';
 import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
@@ -150,17 +151,22 @@ test('value-based tuning preserves no-op, supersession and return-to-active fade
 });
 
 test('an audio update and cleanup fault cannot stop canvas frames or corrupt a later retry', async (t) => {
-  let shell;
-  t.after(() => shell?.dispose());
+  let shell, loop;
+  t.after(() => {
+    loop?.stop();
+    shell?.dispose();
+  });
   const dom = install(t);
   shell = createBrowserDrivingShell(world(), 0);
   const before = JSON.stringify(shell.vehicle);
   const camera = { playerScreenX: 160, movementYaw: 0, yaw: 0, yawMode: 'BODY_FIXED' };
   const input = { steering: 0, throttle: 0, brake: 0 };
-  shell.start(
+  // Exercise audio/canvas isolation on the shared scheduler; product loading has separate root coverage.
+  loop = createFrameLoop(
     () => {},
     () => shell.present('linear', input, camera, 190),
   );
+  loop.start();
   dom.win.emit('pointerdown');
   await settle();
   dom.frame(0); // configure the profile before injecting a parameter failure

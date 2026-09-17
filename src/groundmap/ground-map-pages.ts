@@ -6,7 +6,7 @@ import {
   type BakedGroundMapMetadata,
 } from './baked-ground-map.js';
 import { groundMapDigest } from './ground-map-digest.js';
-import type { GroundMapPayloadStore } from './ground-map-payload-store.js';
+import type { GroundMapPayloadLease, GroundMapPayloadStore } from './ground-map-payload-store.js';
 
 interface GroundMapBuildIdentity {
   readonly sourceId: string;
@@ -98,7 +98,7 @@ export class GroundMapPageAsset {
     return demand;
   }
 
-  async acquire(store: GroundMapPayloadStore, demand: readonly GroundMapRowDemand[], signal?: AbortSignal) {
+  #payloadIds(demand: readonly GroundMapRowDemand[]) {
     const metadata = this.#layout.metadata;
     const ids = new Set<number>();
     for (const range of demand) {
@@ -119,10 +119,56 @@ export class GroundMapPageAsset {
         if (chunk.rowStart + chunk.rowCount > range.rowStart) ids.add(chunk.payloadId);
       }
     }
+    return ids;
+  }
+
+  /** Adjacent storage chunks are an optional lookahead, never a predicted route or changed LOD. */
+  adjacentDemand(demand: readonly GroundMapRowDemand[]): GroundMapRowDemand[] {
+    this.#payloadIds(demand); // Apply the same finite-domain validation as required frame demand.
+    const required = new Map<number, Set<number>>();
+    for (const range of demand) {
+      const indices = required.get(range.level) ?? new Set<number>();
+      required.set(range.level, indices);
+      const chunks = this.#layout.metadata.levels[range.level]!.chunks;
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i]!;
+        if (chunk.rowStart >= range.rowStart + range.rowCount) break;
+        if (chunk.rowStart + chunk.rowCount > range.rowStart) indices.add(i);
+      }
+    }
+    const result: GroundMapRowDemand[] = [];
+    for (const [level, indices] of required) {
+      const chunks = this.#layout.metadata.levels[level]!.chunks;
+      const adjacent = new Set<number>();
+      for (const index of indices)
+        for (const neighbor of [index - 1, index + 1]) {
+          if (chunks[neighbor] && !indices.has(neighbor)) adjacent.add(neighbor);
+        }
+      for (const index of [...adjacent].sort((a, b) => a - b)) {
+        const { rowStart, rowCount } = chunks[index]!;
+        result.push({ level, rowStart, rowCount });
+      }
+    }
+    return result;
+  }
+
+  async acquire(store: GroundMapPayloadStore, demand: readonly GroundMapRowDemand[], signal?: AbortSignal) {
+    const ids = this.#payloadIds(demand);
     const lease = await store.acquire(
-      [...ids].map((id) => metadata.payloads[id]!),
+      [...ids].map((id) => this.#layout.metadata.payloads[id]!),
       signal,
     );
+    return this.#frame(ids, lease);
+  }
+
+  tryAcquire(store: GroundMapPayloadStore, demand: readonly GroundMapRowDemand[]) {
+    const ids = this.#payloadIds(demand);
+    const lease = store.tryAcquire([...ids].map((id) => this.#layout.metadata.payloads[id]!));
+    return lease ? this.#frame(ids, lease) : null;
+  }
+
+  #frame(ids: Set<number>, lease: GroundMapPayloadLease) {
+    const metadata = this.#layout.metadata;
     try {
       for (const id of ids) {
         const payload = metadata.payloads[id]!;

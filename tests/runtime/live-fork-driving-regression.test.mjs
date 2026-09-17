@@ -25,7 +25,7 @@ import { LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE } from '../../dist/vehicle/pr
 import { createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';
 
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { resolveActiveStageRuntimeContent } from '../../dist/runtime/stage-runtime-content.js';
 
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';

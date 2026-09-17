@@ -2,7 +2,7 @@
 
 ## Local workflow
 
-Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build, test-asset baking and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
+Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build, test-asset baking and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Run `npm run build:ground` after a clean build before local play. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
@@ -16,7 +16,7 @@ session-local tuning. See [audio](audio.md) for signal order and parameter owner
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The current offline compiler entry is `build:test-assets`; its stadium and stage outputs remain regression fixtures pending production GroundMap integration. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The production offline compiler entry is `build:ground`; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
@@ -77,11 +77,11 @@ Synthetic repeated-16-color and RGB555-noise images exercise the existing prefil
 They are sensitivity bounds, not imported art, complete course bakes or estimates of chunk dedup.
 The stage inventory compares a finite sample grid of actual stage paint with translated source paint,
 and reports authored handoff chainages. A zero mismatch count does not establish full equivalence.
-The current compiler does not consume StageRoadView or its stage-local junction/shoulder overrides;
-no child-stage output or end-to-end transition residency is claimed.
+This older source-profile capacity probe does not bake the child stages; `build:ground` separately
+bakes all product StageRoadView inputs including their local junction/shoulder paint, reports each
+source and validates full-density product delivery.
 
-Before production integration, resolve finite asset domains and stage paint input, avoid duplicate
-circuit/actor readers, and measure completed-asset handoff residency on a target device. Budget the
+Measure completed-asset handoff residency on a target device. Budget the
 whole application separately from GroundMap. Compiler pixel buffers are now bounded and intermediate levels use scratch disk; the reader still
 makes its defensive input copy. Compiler capacity gains do not reduce packed reader residency
 or transfer size. Temporary storage must have room for intermediate levels and the final payloads.
@@ -206,14 +206,20 @@ For a reported failure, distinguish source logic, emitted build, deployed artifa
 
 ## Build outputs
 
-`npm run build` cleans and compiles the complete ESM tree into `dist/` for local play and Pages.
-`npm run build:test-assets` separately bakes the stadium GroundMap and complete branching-stage
-regression fixtures into `.test-assets/`; `npm test` runs both steps before the suite. The roughly
-43 MB stadium binary and coarse stage assets are consumed only by ground-map/render tests, never
-by a browser composition root. Stage payloads and digest-bound manifests are additionally written
-under `.test-assets/ground-pages/` and read back with the resident reader. Pages stages `dist/`, so neither
-copy of the published build contains this fixture. To run individual asset tests after a clean build,
-run `npm run build:test-assets` first. Both output directories are ignored generated files.
+`npm run build` cleans and compiles the complete ESM tree into `dist/`. `npm run build:ground`
+then generates every shipped course's complete camera-density pyramid into `dist/ground-pages/`.
+It publishes only after all sources and the real gzip HTTP/frame verifier succeed; scratch spools
+are deleted on success or failure. Run this command again after a clean build before local play.
+CI runs both the full suite and this product build on PRs and main. Pages stages the complete output
+under both the selected immutable build and its coherent `dist/` fallback. After deployment the
+workflow checks the public version, all source manifests and sampled gzip payloads against that SHA.
+
+`npm run build:test-assets` separately generates the stadium monolithic binary, coarse branching
+and ordinary course/lap regression assets, and raw page manifests under `.test-assets/`. `npm test`
+runs the ESM build and this fixture generation before tests. These fixtures are excluded from Pages.
+Individual asset tests require `build:test-assets` after a clean build. Both output directories are
+ignored generated files. Product build logs report host compilation and resident-store observations;
+they do not certify browser/device memory or frame timing.
 
 ## Tool and test layout
 
@@ -228,10 +234,11 @@ from the suite. Stage depth and child-side names describe actual topology scenar
 
 ## GroundMap migration gates
 
-The [architecture design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) and
-[content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
-implementation targets. Compiler steps 1 and 2 and step 3 transport/storage are implemented. Step 4 has renderer, scheduler and route/circuit integration fixtures; product composition remains pending. Keep these changes separate; do not advance the immutable
-reference as part of compiler or storage cleanup.
+The [architecture design](architecture.md#groundmap-compilation-and-residency) and
+[content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff) describe the implemented compiler, transport and product lifecycle. Steps 1-4 and the complete
+product build/delivery checks in step 5 are implemented. Target-device acceptance in step 5 remains
+open. The baked product pixel revision is explicit; the immutable mechanics/source-rendering
+reference remains unchanged.
 
 | Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
 | ---- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -268,8 +275,12 @@ It rejects procedural paint access during compiled drawing. [Ready-frame regress
 cover retained frames, paused ticks, retry, stale arrivals and no catch-up; [route integration](../tests/browser/ground-map-route-integration.test.mjs)
 covers real two-actor gate/COMMIT, independent recovery and shared Tsukuba lap pages. The additional
 Tsukuba bake also uses coarse test density. These are Node/loopback checks, not production Pages
-delivery or target-browser/device acceptance. Product assets and UI/input/audio integration remain
-step 4/5 work; the test-assets directory remains excluded from deployment.
+delivery or target-browser/device acceptance. Product build verification adds all fourteen full-density
+sources, independent L0 color checks and 44 complete-frame pixel fixtures. Actual product-root tests
+cover the four entry modules with simulated browser boundaries; HTTP tests cover explicit gzip decode
+and resident cache hits. The deployed-asset verifier provides separate public delivery evidence.
+The test-assets directory remains excluded from deployment. The browser performance page uses an
+explicit source-color diagnostic input, so it does not measure product loading or residency.
 
 A missing numeric device budget does not block compiler parity or ownership work. It does block a
 claim of smartphone acceptance. Choose limits using measured payload working sets and total

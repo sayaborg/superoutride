@@ -1,13 +1,10 @@
-import type { BakedGroundMapReader } from '../groundmap/baked-ground-map.js';
 import type { GuidePath } from '../core/guide-curve.js';
-import { clamp, wrapAngle } from '../core/math.js';
+import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
 import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';
 import { SoftwareSurface } from '../graphics/software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from '../graphics/sprite.js';
-import { sampleGroundMap, type GroundMapProfile } from '../groundmap/ground-map.js';
-import { sampleStageGroundMapAtLevel } from '../groundmap/stage-ground-map-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { applyStageRoadViewToTerrainLine } from '../terrain/stage-terrain-view.js';
 import {
@@ -56,13 +53,21 @@ interface RenderWorkload {
   groundMapLevelHistogram: readonly number[];
 }
 
+/** Synchronous color reader. Source evaluation is supplied only by offline diagnostics. */
+export interface GroundColorReader {
+  readonly kind: 'baked' | 'source';
+  readonly kMax: number;
+  selectLevel(deltaSEffective: number): number;
+  sampleAtLevel(s: number, l: number, level: number): number;
+}
+
 interface RenderScene {
   readonly background: FarBackground;
   readonly guide: GuidePath;
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderReadState;
   readonly terrainProfile: TerrainVisualProfile;
-  readonly groundProfile: GroundMapProfile;
+  readonly groundProfile: { readonly groundLeft: number; readonly groundRight: number };
   readonly worldSprites: readonly CourseSprite[];
   readonly assets: SpriteAssets;
   readonly playerKind: PlayerVisualKind;
@@ -72,13 +77,13 @@ interface RenderOptions {
   readonly roadView?: StageRoadView;
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
-  readonly compiledGround?: BakedGroundMapReader;
+  readonly ground: GroundColorReader;
 }
 
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
-  { roadView, observeWorkload = false, compiledGround }: RenderOptions = {},
+  { roadView, observeWorkload = false, ground }: RenderOptions,
 ): RenderResult {
   const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, roadView);
   drawFarBackground(target, background, renderCamera);
@@ -97,7 +102,7 @@ export function renderDriving(
         terrainOutputByRow: new Uint32Array(target.height),
         spriteOutputByScanline: new Uint32Array(target.height),
         spriteWrittenByScanline: new Uint32Array(target.height),
-        groundMapLevelHistogram: new Uint32Array(((compiledGround ?? groundProfile.baked)?.kMax ?? 0) + 1),
+        groundMapLevelHistogram: new Uint32Array(ground.kMax + 1),
       }
     : undefined;
   let terrainOutputPixels = 0;
@@ -117,7 +122,7 @@ export function renderDriving(
     terrain,
     sprites,
     (line) => {
-      const stats = drawTerrainLine(target, line, groundProfile, roadView, compiledGround);
+      const stats = drawTerrainLine(target, line, groundProfile, ground, roadView);
       terrainOutputPixels += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
       if (observation) {
@@ -202,7 +207,7 @@ export function renderDriving(
     playerBankVariant: selected.bankIndex,
     playerRelativeYaw: relativeYaw,
     groundMapMaxLevel,
-    groundMapBaked: compiledGround !== undefined || groundProfile.baked !== undefined,
+    groundMapBaked: ground.kind === 'baked',
     spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
     spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
     workload,
@@ -242,15 +247,14 @@ function prepareTerrain(
 function drawTerrainLine(
   target: SoftwareSurface,
   line: TerrainLine,
-  groundProfile: GroundMapProfile,
+  groundProfile: { readonly groundLeft: number; readonly groundRight: number },
+  ground: GroundColorReader,
   roadView?: StageRoadView,
-  compiledGround?: BakedGroundMapReader,
 ): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
   const rightEdge = Math.floor(line.xGroundR);
-  const baked = compiledGround ?? groundProfile.baked;
-  const groundMapLevel = baked?.selectLevel(line.sourceFootprint.deltaSEffective) ?? 0;
+  const groundMapLevel = ground.selectLevel(line.sourceFootprint.deltaSEffective);
 
   if (line.groundBaseLeft.kind === 'color') {
     const right = Math.min(target.width - 1, leftEdge - 1);
@@ -269,23 +273,10 @@ function drawTerrainLine(
       const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
       let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
-      const sample = compiledGround
-        ? (l: number) => compiledGround.sampleAtLevel(line.s, l, groundMapLevel)
-        : roadView === undefined
-          ? baked
-            ? (l: number) => baked.sampleAtLevel(line.s, l, groundMapLevel)
-            : (l: number) => sampleGroundMap(line.s, l, groundProfile)
-          : (l: number) =>
-              sampleStageGroundMapAtLevel(
-                line.s,
-                clamp(l, -localGroundLeft, localGroundRight),
-                groundMapLevel,
-                roadView,
-                groundProfile,
-              );
+
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        target.pixels[offset + x] = sample(lateral);
+        target.pixels[offset + x] = ground.sampleAtLevel(line.s, lateral, groundMapLevel);
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;

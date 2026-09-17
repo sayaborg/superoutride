@@ -4,14 +4,6 @@ import { openProfileChainage } from '../core/open-profile.js';
 import type { RasterPath } from '../core/raster-path.js';
 import { finite, positiveInteger } from '../core/validation.js';
 import { unfoldCircuitRasterPath, type CircuitTopology } from '../gameplay/circuit-topology.js';
-import type {
-  BakedGroundMapChunkMetadata,
-  BakedGroundMapLevelMetadata,
-  BakedGroundMapMetadata,
-  BakedGroundMapReader,
-  BakedGroundMapSample,
-} from '../groundmap/baked-ground-map.js';
-import { bakedGroundMapTexelCenter } from '../groundmap/baked-ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import type { SurfaceMapReader, SurfaceSample } from '../physics/surface-map.js';
 import { VisualProfile, type VisualProfileReader } from '../visual/visual-profile.js';
@@ -22,7 +14,6 @@ export interface CircuitLapRuntimeSources {
   readonly height: HeightProfileReader;
   readonly visual: VisualProfileReader;
   readonly surface: SurfaceMapReader;
-  readonly ground?: BakedGroundMapReader;
 }
 
 export interface CircuitRuntimeWindow {
@@ -37,7 +28,6 @@ export interface CircuitRuntimeWindow {
   readonly height: HeightProfileReader;
   readonly visual: VisualProfileReader;
   readonly surface: SurfaceMapReader;
-  readonly ground?: BakedGroundMapReader;
 }
 
 interface WindowSourcePosition {
@@ -73,8 +63,6 @@ export function compileCircuitRuntimeWindow(
   );
   const surface = new CircuitSurfaceWindow(topology, repeatCount, sources.surface);
   validateSurfaceGuideEnvelope(guide, surface);
-  const ground =
-    sources.ground === undefined ? undefined : new CircuitBakedGroundMapWindow(topology, repeatCount, sources.ground);
 
   return Object.freeze({
     topology,
@@ -88,7 +76,6 @@ export function compileCircuitRuntimeWindow(
     height,
     visual,
     surface,
-    ground,
   });
 }
 
@@ -178,84 +165,9 @@ class CircuitSurfaceWindow implements SurfaceMapReader {
   }
 }
 
-class CircuitBakedGroundMapWindow implements BakedGroundMapReader {
-  readonly metadata: BakedGroundMapMetadata;
-  readonly courseLength: number;
-
-  constructor(
-    private readonly topology: CircuitTopology,
-    private readonly repeatCount: number,
-    private readonly source: BakedGroundMapReader,
-  ) {
-    this.courseLength = topology.lapLength * repeatCount;
-    this.metadata = repeatBakedGroundMapMetadata(source.metadata, repeatCount, this.courseLength);
-  }
-
-  get kMax(): number {
-    return this.source.kMax;
-  }
-
-  selectLevel(deltaSEffective: number): number {
-    return this.source.selectLevel(deltaSEffective);
-  }
-
-  sample(s: number, l: number, deltaSEffective: number): BakedGroundMapSample {
-    return this.source.sample(this.sourceS(s), l, deltaSEffective);
-  }
-
-  sampleAtLevel(s: number, l: number, levelIndex: number): number {
-    return this.source.sampleAtLevel(this.sourceS(s), l, levelIndex);
-  }
-
-  texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
-    return bakedGroundMapTexelCenter(this.metadata, levelIndex, row, column);
-  }
-
-  private sourceS(s: number): number {
-    return resolveWindowSourcePosition(this.topology, this.repeatCount, this.courseLength, s).sourceS;
-  }
-}
-
-function repeatBakedGroundMapMetadata(
-  source: BakedGroundMapMetadata,
-  repeatCount: number,
-  windowLength: number,
-): BakedGroundMapMetadata {
-  const levels: BakedGroundMapLevelMetadata[] = source.levels.map((level) => {
-    const chunks: BakedGroundMapChunkMetadata[] = [];
-    for (let lap = 0; lap < repeatCount; lap += 1) {
-      const rowOffset = lap * level.chainageTexels;
-      for (const chunk of level.chunks) {
-        chunks.push(
-          Object.freeze({
-            rowStart: rowOffset + chunk.rowStart,
-            rowCount: chunk.rowCount,
-            payloadId: chunk.payloadId,
-          }),
-        );
-      }
-    }
-    return Object.freeze({
-      ...level,
-      chainageTexels: level.chainageTexels * repeatCount,
-      chunks: Object.freeze(chunks),
-    });
-  });
-
-  return Object.freeze({
-    ...source,
-    courseLength: windowLength,
-    levels: Object.freeze(levels),
-    uncompressedRgbaBytes: source.uncompressedRgbaBytes * repeatCount,
-  });
-}
-
 function validateLapSourceLengths(topology: CircuitTopology, sources: CircuitLapRuntimeSources): void {
   assertSameLength(sources.height.courseLength, topology.lapLength, 'height');
   assertSameLength(sources.visual.courseLength, topology.lapLength, 'visual');
-  if (sources.ground) {
-    assertSameLength(sources.ground.metadata.courseLength, topology.lapLength, 'GroundMap');
-  }
 }
 
 function validateHeightSeam(topology: CircuitTopology, height: HeightProfileReader): void {

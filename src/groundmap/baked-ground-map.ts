@@ -49,12 +49,13 @@ export interface BakedGroundMapMetadata {
   readonly uncompressedRgbaBytes: number;
 }
 
-export interface BakedGroundMapSample {
+interface BakedGroundMapSample {
   readonly color: number;
   readonly level: number;
 }
 
 export interface BakedGroundMapReader {
+  readonly kind: 'baked';
   readonly metadata: BakedGroundMapMetadata;
   readonly kMax: number;
   selectLevel(deltaSEffective: number): number;
@@ -100,6 +101,7 @@ interface GroundMapPayloadBytes {
  * from Delta_s_eff and performs a nearest texel lookup in that level.
  */
 export class BakedGroundMapAsset implements BakedGroundMapReader {
+  readonly kind = 'baked' as const;
   readonly metadata: BakedGroundMapMetadata;
   readonly #payloadBytes: GroundMapPayloadBytes;
 
@@ -178,7 +180,7 @@ export function bakedGroundMapRowIndex(metadata: BakedGroundMapMetadata, levelIn
 }
 
 /** One texel metric for source assets and upper-layer virtual windows. */
-export function bakedGroundMapTexelCenter(
+function bakedGroundMapTexelCenter(
   metadata: BakedGroundMapMetadata,
   levelIndex: number,
   row: number,

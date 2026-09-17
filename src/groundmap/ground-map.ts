@@ -42,11 +42,11 @@ export interface GroundMapProfile {
   stageJunction?: JunctionCrossSectionProfile;
   /** Compiler output over the finite source domain. */
   logical?: GroundMapLogicalProfileReader;
-  /** Compiler-baked runtime source over the same finite domain. */
+  /** Optional baked reader for compiler regression previews; product readers are supplied separately. */
   baked?: BakedGroundMapReader;
 }
 
-/** Current production color source, also evaluated by the offline compiler. */
+/** Procedural authoring color source for the offline compiler and explicit diagnostic previews. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);

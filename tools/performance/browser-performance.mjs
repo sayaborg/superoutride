@@ -7,7 +7,7 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { summarizeRenderWorkloads } from '../../dist/dev/diagnostics/render-workload.js';
-import { renderDriving } from '../../dist/render/renderer.js';
+import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../../dist/vehicle/vehicle-catalog.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';

@@ -11,23 +11,23 @@ evidence is the continuation authority; no prior chat attachment or generated au
 ## Next work: authoring foundations
 
 The accepted direction is Sprite Tool and Course Editor, with precompiled GroundMap and octave
-sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-implementation) and
+sprite LOD. [Architecture](architecture.md#accepted-authoring-target) and
 [content](content-and-gameplay.md#accepted-authoring-workflow-pending-implementation) own the target
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
-shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
+shoulder dimensions, boundary priorities, mechanics and acoustic waveforms. The baked ground pixel
+revision is specified separately in architecture; sprite LOD has not been activated.
 
-1. The bounded file-backed GroundMap compiler and complete stage-local color inputs are implemented.
-   Ordinary source v1 bytes remain unchanged; all eleven branching-stage domains are baked at test
-   density with local shoulders/forks included. Content-addressed page manifests and bounded shared
-   payload leases, build-bound bounded HTTP transport and ready-frame scheduling are implemented.
-   Real gzip loopback delivery reproduces complete frames for every stage; real two-actor handoff
-   and Tsukuba lap-sharing fixtures validate lifecycle boundaries. Next wire the product loading
-   interface, input/audio suspension and prefetch policy under the [migration gates](development.md#groundmap-migration-gates).
-   General compilation has no Node dependency.
-2. The [integration design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) separates the completed compiler from pending runtime work. Product cutover requires the new loading lifecycle, explicit pixel revision,
-   complete assets for all shipped courses and target-device capacity acceptance. Numeric budgets
-   remain open. Use the [capacity probe](development.md#groundmap-capacity-measurement) for host
-   evidence; product-density child-stage capacity and target-device transition measurements remain required.
+1. GroundMap B2 product integration is implemented: all four course modes load the fourteen complete
+   baked sources through one bounded page store and synchronous reader. Product builds validate gzip
+   delivery, independent source colors and explicit baked frame fixtures. Loading pauses ticks, input
+   and audio; retry/course exit, adjacent-chunk prefetch and circuit lap sharing are wired into the roots.
+   CI also verifies the selected SHA's public assets after deployment. Inspect current CI for actual
+   release status; source documentation is not evidence that a deployment succeeded.
+2. Complete target-browser/device acceptance under the [migration gates](development.md#groundmap-migration-gates):
+   measure initial load, both branch directions, later forks, lap seams, reverse/recovery and course
+   switching, including simultaneous old/new pins, decoded memory and frame time. Current application
+   admission limits are in [architecture](architecture.md#groundmap-compilation-and-residency), not
+   approved smartphone budgets. Host/Node evidence does not close this remaining acceptance work.
 3. Resolve sprite LOD logical extent, crop/padding, anchors, odd dimensions and level selection.
    Verify synthetic fixtures before changing asset production or the product blitter contract.
 4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic

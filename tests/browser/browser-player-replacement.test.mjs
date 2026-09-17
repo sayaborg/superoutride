@@ -1,27 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { installBrowserDom } from '../helpers/browser-dom.mjs';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 
-for (const [root, mode] of [
-  ['main-linear', 'linear'],
-  ['main', 'branching'],
-  ['main-circuit', 'circuit'],
-  ['main-circuit', 'fisco'],
-]) {
-  test(`${mode}: vehicle replacement renders before the next physics tick`, async (t) => {
-    const browser = installBrowserDom(t, `?mode=${mode}`);
-    await import(`../../dist/${root}.js?replacement=${mode}`);
-    browser.frame();
-    const select = (name) =>
-      browser.elements
-        .get('vehicle-selector-buttons')
-        .children.find((element) => element.textContent === name)
-        .emit('click');
-    for (const name of ['RC30', 'F110']) {
-      select(name);
-      // No elapsed simulation time: rendering must use the recovered player's camera.
-      browser.frame();
-    }
-    assert.equal(browser.calls.filter((call) => call[0] === 'putImageData').length, 3);
+for (const mode of ['linear', 'branching', 'circuit', 'fisco']) {
+  test(`${mode}: loaded product retries failure, replaces vehicles before ticks, draws and shuts down`, async () => {
+    const { stdout } = await promisify(execFile)(
+      process.execPath,
+      ['--experimental-vm-modules', fileURLToPath(new URL('../helpers/product-root-probe.mjs', import.meta.url)), mode],
+      { timeout: 30000 },
+    );
+    const result = JSON.parse(stdout.trim());
+    assert.equal(result.mode, mode);
+    assert.ok(result.frames >= 20);
+    assert.equal(result.disposed, true);
+    assert.deepEqual(result.replacements, ['RC30', 'F110']);
   });
 }

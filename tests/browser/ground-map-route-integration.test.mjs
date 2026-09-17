@@ -6,7 +6,7 @@ import { GroundMapPayloadStore } from '../../dist/groundmap/ground-map-payload-s
 import { BakedGroundMapAsset } from '../../dist/groundmap/baked-ground-map.js';
 import { ReadyFrameController } from '../../dist/browser/ready-frame.js';
 import { createFrameLoop } from '../../dist/browser/frame-loop.js';
-import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
+import { createBranchingGroundAuthoring } from '../../dist/dev/courses/branching-ground-authoring.js';
 import { compileDeclarativeLiveRoute } from '../../dist/runtime/declarative-live-route.js';
 import { createLiveRouteTravelerState, resyncLiveRouteTraveler } from '../../dist/runtime/live-route-traveler.js';
 import { advanceLiveRouteMultiActorTick } from '../../dist/runtime/live-route-multi-actor-tick.js';
@@ -51,7 +51,7 @@ const along = (boundary, d) => ({
 });
 
 test('real branching gate and COMMIT survive delayed color delivery without rollback or catch-up for either actor', async () => {
-  const live = compileDeclarativeLiveRoute(createBranchingGroundMapFixture());
+  const live = compileDeclarativeLiveRoute(createBranchingGroundAuthoring());
   const gate = live.gates.gates.find((g) => g.kind === 'TRANSITION' && g.choiceId === 'S1_RIGHT');
   const seam = live.handoffs.seams.find((s) => s.choiceId === 'S1_RIGHT');
   const actors = ['PLAYER', 'RIVAL'].map((actorId) => ({
