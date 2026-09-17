@@ -1,4 +1,10 @@
-import { BakedGroundMapAsset, BakedGroundMapLayout, type BakedGroundMapMetadata } from './baked-ground-map.js';
+import { selectGroundMapLevel } from './ground-map-lod.js';
+import {
+  BakedGroundMapAsset,
+  BakedGroundMapLayout,
+  bakedGroundMapRowIndex,
+  type BakedGroundMapMetadata,
+} from './baked-ground-map.js';
 import { groundMapDigest } from './ground-map-digest.js';
 import type { GroundMapPayloadStore } from './ground-map-payload-store.js';
 
@@ -63,6 +69,33 @@ export class GroundMapPageAsset {
     const validated = createGroundMapPageManifest(manifest.identity, manifest.layout);
     this.#layout = new BakedGroundMapLayout(validated.layout);
     this.manifest = Object.freeze({ ...validated, layout: this.#layout.metadata });
+  }
+
+  /** Feed the same chainage/footprint samples used for painting; entire lateral rows are stored together. */
+  rowDemand(samples: Iterable<{ readonly s: number; readonly deltaSEffective: number }>): GroundMapRowDemand[] {
+    const metadata = this.#layout.metadata;
+    const levels = new Map<number, Set<number>>();
+    for (const sample of samples) {
+      const level = selectGroundMapLevel(sample.deltaSEffective, metadata.qSAuthority, metadata.kMax);
+      const row = bakedGroundMapRowIndex(metadata, level, sample.s);
+      if (!levels.has(level)) levels.set(level, new Set());
+      levels.get(level)!.add(row);
+    }
+    const demand: GroundMapRowDemand[] = [];
+    for (const [level, rows] of [...levels].sort((a, b) => a[0] - b[0])) {
+      let first = -1;
+      let last = -1;
+      for (const row of [...rows].sort((a, b) => a - b)) {
+        if (row === last + 1 && first >= 0) {
+          last = row;
+          continue;
+        }
+        if (first >= 0) demand.push({ level, rowStart: first, rowCount: last - first + 1 });
+        first = last = row;
+      }
+      if (first >= 0) demand.push({ level, rowStart: first, rowCount: last - first + 1 });
+    }
+    return demand;
   }
 
   async acquire(store: GroundMapPayloadStore, demand: readonly GroundMapRowDemand[], signal?: AbortSignal) {

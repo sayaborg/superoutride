@@ -136,11 +136,7 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
     if (!level || level.level !== levelIndex) throw new RangeError('GroundMap level outside baked pyramid');
 
     finite(l, 'baked GroundMap lateral coordinate');
-    const sLocal = openProfileChainage(s, this.metadata.courseLength, 'baked GroundMap');
-    const row =
-      sLocal === this.metadata.courseLength
-        ? level.chainageTexels - 1
-        : Math.floor((sLocal / this.metadata.courseLength) * level.chainageTexels);
+    const row = bakedGroundMapRowIndex(this.metadata, levelIndex, s);
     const lateralWidth = this.metadata.groundLeft + this.metadata.groundRight;
     const normalizedL = (l + this.metadata.groundLeft) / lateralWidth;
     const column = Math.max(0, Math.min(level.lateralTexels - 1, Math.floor(normalizedL * level.lateralTexels)));
@@ -169,6 +165,16 @@ export class BakedGroundMapAsset implements BakedGroundMapReader {
   texelCenter(levelIndex: number, row: number, column: number): { s: number; l: number } {
     return bakedGroundMapTexelCenter(this.metadata, levelIndex, row, column);
   }
+}
+
+/** Row selection shared by frame demand and the synchronous nearest reader, including the open endpoint. */
+export function bakedGroundMapRowIndex(metadata: BakedGroundMapMetadata, levelIndex: number, s: number): number {
+  const level = metadata.levels[levelIndex];
+  if (!Number.isInteger(levelIndex) || !level) throw new RangeError('GroundMap level outside baked pyramid');
+  const local = openProfileChainage(s, metadata.courseLength, 'baked GroundMap');
+  return local === metadata.courseLength
+    ? level.chainageTexels - 1
+    : Math.floor((local / metadata.courseLength) * level.chainageTexels);
 }
 
 /** One texel metric for source assets and upper-layer virtual windows. */

@@ -230,7 +230,7 @@ from the suite. Stage depth and child-side names describe actual topology scenar
 
 The [architecture design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) and
 [content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
-implementation targets. Compiler steps 1 and 2 are implemented. Step 3 has page publication and shared residency; browser transport and integration remain pending. Keep these changes separate; do not advance the immutable
+implementation targets. Compiler steps 1 and 2 and step 3 transport/storage are implemented. Step 4 has renderer, scheduler and route/circuit integration fixtures; product composition remains pending. Keep these changes separate; do not advance the immutable
 reference as part of compiler or storage cleanup.
 
 | Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
@@ -260,8 +260,16 @@ Step 3 now publishes content-addressed files and validates shared payload leases
 assets with the monolithic reader, cover page edges/endpoints/LOD, deterministic publication,
 manifest corruption and palette interpretation, and control delayed loads for shared admission,
 cancellation, eviction, capacity failures and retries. Counters explicitly include old/new pins and
-loading reservations. HTTP response bounds and selected-build URL identity are still open, followed
-by the step 4 ready-frame coordinator. No browser-delivery or smartphone result is claimed by these tests.
+loading reservations. [HTTP regressions](../tests/browser/ground-map-http.test.mjs) cover immutable
+build URLs, decoded bounds, digest/length failures, deadlines, cancellation, disposal and retry.
+The test build serves the eleven-stage assets over real loopback gzip HTTP and compares complete
+320x240 frames at three positions per stage against the monolithic reader, including later forks.
+It rejects procedural paint access during compiled drawing. [Ready-frame regressions](../tests/browser/ready-frame.test.mjs)
+cover retained frames, paused ticks, retry, stale arrivals and no catch-up; [route integration](../tests/browser/ground-map-route-integration.test.mjs)
+covers real two-actor gate/COMMIT, independent recovery and shared Tsukuba lap pages. The additional
+Tsukuba bake also uses coarse test density. These are Node/loopback checks, not production Pages
+delivery or target-browser/device acceptance. Product assets and UI/input/audio integration remain
+step 4/5 work; the test-assets directory remains excluded from deployment.
 
 A missing numeric device budget does not block compiler parity or ownership work. It does block a
 claim of smartphone acceptance. Choose limits using measured payload working sets and total

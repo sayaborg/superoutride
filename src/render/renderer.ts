@@ -1,3 +1,4 @@
+import type { BakedGroundMapReader } from '../groundmap/baked-ground-map.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
@@ -70,24 +71,17 @@ interface RenderScene {
 interface RenderOptions {
   readonly roadView?: StageRoadView;
   readonly observeWorkload?: boolean;
+  /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
+  readonly compiledGround?: BakedGroundMapReader;
 }
 
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
-  { roadView, observeWorkload = false }: RenderOptions = {},
+  { roadView, observeWorkload = false, compiledGround }: RenderOptions = {},
 ): RenderResult {
-  const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
+  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, roadView);
   drawFarBackground(target, background, renderCamera);
-
-  const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
-  const terrain: TerrainLine[] = roadView === undefined ? baseTerrain : [];
-  if (roadView !== undefined) {
-    for (const line of baseTerrain) {
-      const viewed = applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView);
-      if (viewed !== null) terrain.push(viewed);
-    }
-  }
   const visible = computeForwardVisibleInterval(
     guide,
     renderCamera.yaw,
@@ -103,7 +97,7 @@ export function renderDriving(
         terrainOutputByRow: new Uint32Array(target.height),
         spriteOutputByScanline: new Uint32Array(target.height),
         spriteWrittenByScanline: new Uint32Array(target.height),
-        groundMapLevelHistogram: new Uint32Array((groundProfile.baked?.kMax ?? 0) + 1),
+        groundMapLevelHistogram: new Uint32Array(((compiledGround ?? groundProfile.baked)?.kMax ?? 0) + 1),
       }
     : undefined;
   let terrainOutputPixels = 0;
@@ -123,7 +117,7 @@ export function renderDriving(
     terrain,
     sprites,
     (line) => {
-      const stats = drawTerrainLine(target, line, groundProfile, roadView);
+      const stats = drawTerrainLine(target, line, groundProfile, roadView, compiledGround);
       terrainOutputPixels += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
       if (observation) {
@@ -208,11 +202,41 @@ export function renderDriving(
     playerBankVariant: selected.bankIndex,
     playerRelativeYaw: relativeYaw,
     groundMapMaxLevel,
-    groundMapBaked: groundProfile.baked !== undefined,
+    groundMapBaked: compiledGround !== undefined || groundProfile.baked !== undefined,
     spriteOutputSamplesIncludingPlayer: spriteOutputSamples + playerStats.outputSamples,
     spriteWrittenPixelsIncludingPlayer: spriteWrittenPixels + playerStats.writtenPixels,
     workload,
   };
+}
+
+/** Ground demand and painting share terrain generation and footprint authority. Inputs stay fixed while loading. */
+export function collectDrivingGroundSamples(
+  scene: Pick<RenderScene, 'guide' | 'camera' | 'terrainProfile'>,
+  roadView?: StageRoadView,
+): { s: number; deltaSEffective: number }[] {
+  return prepareTerrain(scene.guide, scene.camera, scene.terrainProfile, roadView).terrain.map((line) => ({
+    s: line.s,
+    deltaSEffective: line.sourceFootprint.deltaSEffective,
+  }));
+}
+
+function prepareTerrain(
+  guide: GuidePath,
+  camera: PseudoCamera,
+  terrainProfile: TerrainVisualProfile,
+  roadView?: StageRoadView,
+) {
+  const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
+
+  const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
+  const terrain: TerrainLine[] = roadView === undefined ? baseTerrain : [];
+  if (roadView !== undefined) {
+    for (const line of baseTerrain) {
+      const viewed = applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView);
+      if (viewed !== null) terrain.push(viewed);
+    }
+  }
+  return { renderCamera, terrain };
 }
 
 function drawTerrainLine(
@@ -220,11 +244,12 @@ function drawTerrainLine(
   line: TerrainLine,
   groundProfile: GroundMapProfile,
   roadView?: StageRoadView,
+  compiledGround?: BakedGroundMapReader,
 ): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
   const rightEdge = Math.floor(line.xGroundR);
-  const baked = groundProfile.baked;
+  const baked = compiledGround ?? groundProfile.baked;
   const groundMapLevel = baked?.selectLevel(line.sourceFootprint.deltaSEffective) ?? 0;
 
   if (line.groundBaseLeft.kind === 'color') {
@@ -244,8 +269,9 @@ function drawTerrainLine(
       const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
       let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
-      const sample =
-        roadView === undefined
+      const sample = compiledGround
+        ? (l: number) => compiledGround.sampleAtLevel(line.s, l, groundMapLevel)
+        : roadView === undefined
           ? baked
             ? (l: number) => baked.sampleAtLevel(line.s, l, groundMapLevel)
             : (l: number) => sampleGroundMap(line.s, l, groundProfile)

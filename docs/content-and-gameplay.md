@@ -105,7 +105,7 @@ chainage projection is unchanged. DUAL/multiple vehicle slices remain deferred.
 
 ### GroundMap loading and handoff design: not active
 
-This is the proposed integration behavior for the accepted baked target. The current synchronous
+This is the integration target for the accepted baked direction. The current synchronous
 procedural browser path remains unchanged until its implementation and rendering revision pass
 the [migration gates](development.md#groundmap-migration-gates).
 
@@ -127,10 +127,20 @@ further ticks through the common scheduler, and resume without accumulating wall
 Do not rewind an already committed physical handoff or alter velocity, forces, gate order or LOD
 to hide a loading delay. Integrate this lifecycle with existing input/audio suspension behavior.
 Failed loading exposes retry/exit while keeping the same immutable content identity; no source
-baking runs in the browser. This loading interaction is new behavior to implement and test, not
-a description of current product behavior.
+baking runs in the browser. `ReadyFrameController` now implements the scheduler/pin transaction: loading stops the common
+frame loop, keeps the last completed frame pinned, exposes failures for retry, and releases stale
+arrivals after replacement or disposal. Successful presentation releases the old frame and restarts
+the loop with a fresh clock. Its suspension callback is the composition boundary for input/audio;
+product UI, input/audio wiring and prefetch policy remain to be activated. The presenter must publish
+a complete prepared frame synchronously; it must not expose a partially drawn framebuffer.
 
 The first integrated fixture must cross a real stage handoff with distinct shoulder/junction paint,
 then a circuit seam using the same lap payloads. Its completion requires exact compiled-color reads,
 bounded resident bytes, unchanged mechanics and an explicit pixel-contract revision for the baked
 presentation. It does not require Sprite Tool/Course Editor GUI or freeze pending image algorithms.
+
+The integration fixtures cross the default branch's real physical gate and COMMIT for player and
+rival, then delay color delivery without modifying either transaction or accumulating simulation
+time. Reverse/recovery resynchronization remains independent of payload acquisition. The actual
+Tsukuba window-to-lap mapping reuses one directory and shared payloads across its seam and virtual
+laps. These fixtures prove the lifecycle boundaries, not a completed product loading interface.

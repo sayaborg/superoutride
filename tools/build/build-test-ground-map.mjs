@@ -1,3 +1,5 @@
+import { createTsukubaCourse2000Lap, createTsukubaGroundProfile } from '../../dist/dev/courses/tsukuba-circuit.js';
+import { verifyGroundMapHttp } from './verify-ground-map-http.mjs';
 import { publishGroundMapPages, verifyGroundMapPages } from './ground-map-pages.mjs';
 import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
 import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
@@ -127,4 +129,27 @@ for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
 await writeFile(
   new URL('../../.test-assets/ground-pages/bindings.json', import.meta.url),
   JSON.stringify(pageBindings),
+);
+
+await verifyGroundMapHttp(pageDirectory, pageBindings);
+
+// One complete lap; runtime tests map repeated windows onto these same immutable pages.
+const lapSource = createGroundMapCompileSource(
+  createTsukubaCourse2000Lap().raster.length,
+  createTsukubaGroundProfile(),
+);
+const lapPath = fileURLToPath(new URL('../../.test-assets/tsukuba-lap.bin', import.meta.url));
+const lapMetadata = await compileGroundMapFiles(lapPath, lapSource, { qL: 0.25, qS: 1 }, 2, 32);
+await writeFile(new URL('../../.test-assets/tsukuba-lap.json', import.meta.url), JSON.stringify(lapMetadata));
+const lapDigest = await publishGroundMapPages(pageDirectory, lapPath, lapMetadata, {
+  sourceId: 'TSUKUBA_LAP',
+  compilerId: 'point-source-2x4-rgba-round-v1',
+  targetId: 'test-qL0.25-qS1-k2-v1',
+  inputSha256: await groundMapDigest(
+    new TextEncoder().encode(JSON.stringify({ length: lapSource.courseLength, profile: createTsukubaGroundProfile() })),
+  ),
+});
+await writeFile(
+  new URL('../../.test-assets/ground-pages/circuit-binding.json', import.meta.url),
+  JSON.stringify(lapDigest),
 );

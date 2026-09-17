@@ -124,6 +124,8 @@ Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations
 
 Audio owns procedural sound and consumer read contracts; vehicle binds authored acoustic profiles and browser adapts physical observations. Audio imports only Core; physics never imports audio. See [audio](audio.md).
 
+Browser owns bounded HTTP delivery and may import GroundMap manifest/residency contracts; GroundMap never imports browser or starts network I/O.
+
 All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/infrastructure/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone does not justify merging it.
 
 General engine modules never import `src/dev`; only the three browser composition roots assemble concrete DEV content. Route/mode choices happen there. Runtime content provides ordinary reader contracts to physics, camera and renderer. Compilers own topology expansion, validation, static geometry and asset preparation; avoid per-pixel geometry, trigonometry or per-object alternative depth rules.
@@ -193,8 +195,9 @@ of HTTP compression. Preserve separate mechanics comparison when intentionally r
 
 The file-backed row compiler and final stage-local color sources below are implemented for
 build/test assets. Content-addressed page publication and shared payload residency are also implemented.
-Product-density asset delivery, browser HTTP transport and ready-frame integration are still pending. Their executable contracts and migration
-gates must land before activation. GroundMap owns the image lattice, filtering,
+Build-bound HTTP transport and ready-frame scheduling are implemented and exercised by integration fixtures.
+Product-density delivery and browser composition activation remain pending; the migration
+gates must pass before activation. GroundMap owns the image lattice, filtering,
 encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
 owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
 
@@ -264,8 +267,14 @@ they are not HTTP range requests. Source, compiler, target and input digest iden
 The manifest's SHA-256 is the package binding; payload files are named by their encoded-byte digest.
 Build publication checks payload length/hash and writes the manifest after payload completion.
 The test build emits all eleven stage manifests and a bindings index outside deployment artifacts.
-Browser HTTP response limits, immutable-build URL binding and actual delivery encoding remain
-required before product integration; the implemented store accepts an injected bounded transport.
+`GroundMapHttpSession` binds every manifest and payload URL to one selected `/build/<commit>/`
+root. It rejects redirects, partial responses, foreign-session assets and mismatched digests.
+It streams decoded response bytes into bounded buffers, checks exact payload lengths, serializes
+manifest reads and enforces request deadlines. Content-Length is not decoded size when delivery
+is compressed. Session disposal aborts transport and invalidates cached readers; consumer
+cancellation alone retains shared admitted loads. Real loopback gzip delivery is tested; this
+does not establish production server headers or smartphone memory. Manifest object retention,
+fetch/decompression internals and renderer buffers remain outside payload accounting.
 
 **Resident reads and accounting.** One application-owned immutable payload store shares bytes across
 readers, repeated circuit windows and consumers of the same content. Ground render demand determines
@@ -310,3 +319,12 @@ unapproved; host RSS and gzip measurements cannot establish those limits.
 Unavailable data is an explicit readiness result before presentation, never grass substitution,
 procedural fallback or hidden lower-resolution sampling. Browser loading behavior and simulation
 scheduling are governed by the [content integration design](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active).
+
+**Compiled frame rendering contract.** The explicit `compiledGround` renderer input is a complete
+scene-local final-color reader. It takes precedence over legacy profile sampling and never reapplies
+source offsets, local shoulders or junction paint. Geometry still supplies projected ground bounds.
+`collectDrivingGroundSamples` uses the same terrain preparation and chainage footprints as drawing;
+the page asset resolves their levels and rows with the reader's existing selector and endpoint rule.
+Keep scene inputs fixed between demand collection and presentation. This opt-in contract is exercised
+by declared build fixtures; product composition roots still use the unchanged procedural path. The
+existing immutable pixel oracle is retained. A product cutover is a separate explicit rendering revision.

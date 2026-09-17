@@ -35,6 +35,7 @@ export class GroundMapPayloadStore {
   #loadingBytes = 0;
   #reservedBytes = 0;
   #clock = 0;
+  #disposed = false;
 
   constructor(
     load: (identity: GroundMapPayloadIdentity) => Promise<ArrayBuffer>,
@@ -64,6 +65,7 @@ export class GroundMapPayloadStore {
   }
 
   async acquire(identities: readonly GroundMapPayloadIdentity[], signal?: AbortSignal): Promise<GroundMapPayloadLease> {
+    if (this.#disposed) throw new Error('GroundMap payload store is disposed');
     signal?.throwIfAborted();
     const unique = new Map<string, GroundMapPayloadIdentity>();
     for (const identity of identities) {
@@ -157,6 +159,23 @@ export class GroundMapPayloadStore {
     }
   }
 
+  /** Session shutdown invalidates readers and drops cached bytes; active transports settle separately. */
+  dispose(): void {
+    if (this.#disposed) return;
+    this.#disposed = true;
+    for (const entry of this.#queue.splice(0)) {
+      this.#entries.delete(entry.identity.sha256);
+      this.#reservedBytes -= entry.identity.byteLength;
+      entry.reject(new Error('GroundMap payload store is disposed'));
+    }
+    for (const entry of this.#entries.values()) {
+      if (!entry.bytes) continue;
+      entry.bytes = null;
+      this.#entries.delete(entry.identity.sha256);
+      this.#reservedBytes -= entry.identity.byteLength;
+    }
+  }
+
   #pump(): void {
     while (this.#queue.length) {
       const entry = this.#queue[0]!;
@@ -179,6 +198,7 @@ export class GroundMapPayloadStore {
       const bytes = new Uint8Array(structuredClone(input, { transfer: [input] }));
       if ((await groundMapDigest(bytes)) !== entry.identity.sha256)
         throw new Error('GroundMap payload digest mismatch');
+      if (this.#disposed) throw new Error('GroundMap payload store is disposed');
       entry.bytes = bytes;
       entry.resolve();
     } catch (error) {
