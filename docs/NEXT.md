@@ -16,12 +16,11 @@ sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-imp
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
 shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
 
-1. Implement the bounded GroundMap compiler first, following the
-   [migration gates](development.md#groundmap-migration-gates). Preserve current output bytes and
-   the global lattice while bounding pixel/payload working memory. Then compile complete
-   stage-local paint, add shared paged residency, and integrate a handoff/circuit fixture.
-2. The [integration design](architecture.md#groundmap-integration-design-not-active) is recorded,
-   not active. Product cutover requires the new loading lifecycle, explicit pixel revision,
+1. The bounded file-backed GroundMap compiler is implemented and retains v1 output bytes.
+   Next compile complete stage-local paint, following the
+   [migration gates](development.md#groundmap-migration-gates), then add shared paged residency
+   and integrate a real handoff/circuit fixture. General compilation has no Node dependency.
+2. The [integration design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) separates the completed compiler from pending runtime work. Product cutover requires the new loading lifecycle, explicit pixel revision,
    complete assets for all shipped courses and target-device capacity acceptance. Numeric budgets
    remain open. Use the [capacity probe](development.md#groundmap-capacity-measurement) for host
    evidence; complete child-stage and target-device transition measurements remain required.

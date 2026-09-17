@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
 
 import {
@@ -14,7 +15,7 @@ import {
 import { STADIUM_JUNCTION, STADIUM_ROAD_CROSS_SECTION } from '../../dist/dev/courses/stadium/junction.js';
 import { createStadiumEnvironment } from '../../dist/dev/fixtures/stadium-environment.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
-import { compileBakedGroundMapAsset } from '../../dist/groundmap/ground-map-asset-compiler.js';
+import { compileGroundMapFiles } from './ground-map-files.mjs';
 import { deriveGroundMapDensity } from '../../dist/groundmap/ground-map-lod.js';
 import { deriveGroundMapTargetEnvelope } from '../../dist/groundmap/ground-map-target-envelope.js';
 
@@ -45,16 +46,21 @@ const target = deriveGroundMapTargetEnvelope({
   qS: density.qS,
   thinSpanScreenRows: 1,
 });
-const asset = await compileBakedGroundMapAsset(guide.length, groundProfile, density, target.kMax, 32);
-
 await mkdir(new URL('../../.test-assets/', import.meta.url), { recursive: true });
-await Promise.all([
-  writeFile(
-    new URL('../../.test-assets/stadium-ground-map.json', import.meta.url),
-    `${JSON.stringify(asset.metadata, null, 2)}\n`,
+const asset = {
+  metadata: await compileGroundMapFiles(
+    fileURLToPath(new URL('../../.test-assets/stadium-ground-map.bin', import.meta.url)),
+    guide.length,
+    groundProfile,
+    density,
+    target.kMax,
+    32,
   ),
-  writeFile(new URL('../../.test-assets/stadium-ground-map.bin', import.meta.url), asset.bytes),
-]);
+};
+await writeFile(
+  new URL('../../.test-assets/stadium-ground-map.json', import.meta.url),
+  JSON.stringify(asset.metadata, null, 2) + '\n',
+);
 
 const chunkRefs = asset.metadata.levels.reduce((sum, level) => sum + level.chunks.length, 0);
 console.log(

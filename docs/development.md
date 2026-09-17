@@ -66,7 +66,7 @@ It writes an incomplete checkpoint after each course and removes temporary binar
 Generated measurements belong outside the source tree.
 
 The report separates packed binary and metadata bytes, encoded bytes before payload sharing,
-alignment overhead, gzip level-9 bytes, compiler time/peak RSS and independent reader-process
+alignment overhead, gzip level-9 bytes, compiler time/peak RSS (including temporary-file I/O, before full binary readback) and independent reader-process
 observations. Peak RSS includes the worker's baseline; ArrayBuffer, external, heap and RSS values
 overlap and must not be added. Reader measurements allow an event-loop turn and GC after releasing
 the input buffer. These are host observations, not smartphone residency or frame-time certification.
@@ -82,9 +82,9 @@ no child-stage output or end-to-end transition residency is claimed.
 
 Before production integration, resolve finite asset domains and stage paint input, avoid duplicate
 circuit/actor readers, and measure completed-asset handoff residency on a target device. Budget the
-whole application separately from GroundMap. Whole-course compiler allocation, prefilter's level-0
-copy and reader's defensive input copy are distinct capacity costs; transfer compression does not
-remove any of them.
+whole application separately from GroundMap. Compiler pixel buffers are now bounded and intermediate levels use scratch disk; the reader still
+makes its defensive input copy. Compiler capacity gains do not reduce packed reader residency
+or transfer size. Temporary storage must have room for intermediate levels and the final payloads.
 
 ## Tire comparison tools
 
@@ -226,9 +226,9 @@ from the suite. Stage depth and child-side names describe actual topology scenar
 
 ## GroundMap migration gates
 
-The [architecture design](architecture.md#groundmap-integration-design-not-active) and
+The [architecture design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) and
 [content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
-implementation targets. Complete the following changes separately; do not advance the immutable
+implementation targets. Compiler step 1 is implemented; remaining steps are pending. Keep these changes separate; do not advance the immutable
 reference as part of compiler or storage cleanup.
 
 | Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
@@ -239,9 +239,12 @@ reference as part of compiler or storage cleanup.
 | 4    | Browser/runtime integration: ready-frame loading, real handoff and circuit reuse  | Delayed/failed loads, retry, reverse/recovery, multiple actors and course replacement; unchanged mechanics; explicit pixel revision with independent image tests; no procedural production paint or runtime prefilter |
 | 5    | Product build and device acceptance                                               | Every shipped course has complete manifests/assets; clean immutable deployment; verified delivery encoding; peak load/transition memory and frame timing on target devices within agreed budgets                      |
 
-Step 1 retains the current whole-source lattice and sequential rounding. Before replacing the old
-compiler implementation, establish exact output fixtures from it and independent boundary tests;
-do not retain a second production compiler merely to compare implementations indefinitely.
+Step 1 retains the current whole-source lattice and sequential rounding. The old eager compiler/pyramid assembly has been removed.
+[Compiler regressions](../tests/rendering/ground-map-compiler.test.mjs) preserve small exact
+pre-refactor outputs and the full stadium digest, compare several batch sizes, independently check
+L0 colors, bound I/O requests as length grows, and exercise capacity/I/O failure cleanup. The shared
+2-by-4 averaging kernel remains the only filter implementation. Do not revive an alternate compiler
+to compare implementations indefinitely.
 Tests for step 2 must include the actual later forks: a coarse sampling grid is diagnostic evidence,
 not proof of all boundary behavior. Steps 1-3 need no update to deployed pixels.
 

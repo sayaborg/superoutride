@@ -7,12 +7,12 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
-import { compileBakedGroundMapAsset } from '../../dist/groundmap/ground-map-asset-compiler.js';
+import { compileGroundMapFiles } from '../build/ground-map-files.mjs';
 import { BakedGroundMapAsset } from '../../dist/groundmap/baked-ground-map.js';
 import { GroundMapLogicalProfile } from '../../dist/groundmap/logical-profile.js';
 import { deriveGroundMapDensity } from '../../dist/groundmap/ground-map-lod.js';
 import { deriveGroundMapTargetEnvelope } from '../../dist/groundmap/ground-map-target-envelope.js';
-import { buildGroundMapAnisotropicPyramid } from '../../dist/groundmap/ground-map-prefilter.js';
+import { downsampleGroundMap2x4 } from '../../dist/groundmap/ground-map-prefilter.js';
 import { createGroundMapLevelEncoder } from '../../dist/groundmap/ground-map-encoding.js';
 import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
@@ -91,20 +91,26 @@ async function bake(name, directory) {
   global.gc();
   const before = snapshot();
   const started = performance.now();
-  const asset = await compileBakedGroundMapAsset(length, { ...profile, logical }, density, target.kMax, 32);
+  const m = await compileGroundMapFiles(
+    join(directory, name + '.bin'),
+    length,
+    { ...profile, logical },
+    density,
+    target.kMax,
+    32,
+  );
   const milliseconds = performance.now() - started;
-  const afterCompile = snapshot(); // Before compression, serialization and file I/O.
-  const metadata = JSON.stringify(asset.metadata);
-  const m = asset.metadata;
+  const afterCompile = snapshot(); // Includes spool I/O; before full output readback/compression.
+  const metadata = JSON.stringify(m);
+  const bytes = await readFile(join(directory, name + '.bin'));
   const unsharedEncodedBytes = m.levels.reduce(
     (n, l) => n + l.lateralTexels * l.chainageTexels * (l.format === 'palette8' ? 1 : 2),
     0,
   );
   assert.ok(m.binaryBytes <= unsharedEncodedBytes);
-  assert.equal(m.binaryBytes, asset.bytes.byteLength);
-  const binaryGzipBytes = gzipSync(asset.bytes, { level: 9 }).byteLength;
+  assert.equal(m.binaryBytes, bytes.byteLength);
+  const binaryGzipBytes = gzipSync(bytes, { level: 9 }).byteLength;
   const metadataGzipBytes = gzipSync(metadata, { level: 9 }).byteLength;
-  await writeFile(join(directory, name + '.bin'), asset.bytes);
   await writeFile(join(directory, name + '.json'), metadata);
   return {
     name,
@@ -119,7 +125,7 @@ async function bake(name, directory) {
     binaryGzipBytes,
     metadataGzipBytes,
     gzipBytes: binaryGzipBytes + metadataGzipBytes,
-    sha256: digest(asset.bytes),
+    sha256: digest(bytes),
     unsharedEncodedBytes,
     dedupSavedFraction: 1 - m.binaryBytes / unsharedEncodedBytes,
     rgbaPyramidBytes: m.uncompressedRgbaBytes,
@@ -183,9 +189,10 @@ function patternStress() {
       const code = kind === 'tile16' ? ((i % 1024) % 16) * 2114 : seed >>> 17;
       pixels[i] = rgb555ToRgba(code);
     }
-    const pyramid = buildGroundMapAnisotropicPyramid({ lateralTexels: 1024, chainageTexels: 4096, pixels }, 6);
+    const pyramid = [{ lateralTexels: 1024, chainageTexels: 4096, pixels }];
+    for (let k = 1; k <= 6; k++) pyramid.push(downsampleGroundMap2x4(pyramid.at(-1)));
     const levels = pyramid.map((level, index) => {
-      const encoder = createGroundMapLevelEncoder(level, index === 0);
+      const encoder = createGroundMapLevelEncoder(level, index === 0 ? undefined : null);
       const bytes = encoder.encodeRows(0, level.chainageTexels);
       return {
         format: encoder.format,

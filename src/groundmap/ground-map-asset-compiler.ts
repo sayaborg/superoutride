@@ -6,45 +6,58 @@ import type {
   BakedGroundMapLevelMetadata,
   BakedGroundMapMetadata,
   BakedGroundMapPayloadMetadata,
-  BakedGroundMapStorageFormat,
 } from './baked-ground-map.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
-import { buildGroundMapAnisotropicPyramid } from './ground-map-prefilter.js';
+import { downsampleGroundMap2x4 } from './ground-map-prefilter.js';
 import { sampleGroundMap, type GroundMapProfile } from './ground-map.js';
 
 const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
 
-interface CompiledBakedGroundMapAsset {
-  readonly metadata: BakedGroundMapMetadata;
-  readonly bytes: Uint8Array;
+interface GroundMapCompileStorage {
+  /** Append must consume the view before resolving; storage must not retain caller buffers. */
+  append(key: string, bytes: Uint8Array): Promise<void>;
+  /** Fill exactly the requested view or reject. */
+  read(key: string, offsetBytes: number, target: Uint8Array): Promise<void>;
+  remove(key: string): Promise<void>;
 }
 
-interface PendingPayload {
-  readonly format: BakedGroundMapStorageFormat;
-  readonly lateralTexels: number;
-  readonly rowCount: number;
-  readonly bytes: Uint8Array;
-  readonly sha256: string;
+interface GroundMapCompileOptions {
+  readonly rowsPerBatch?: number;
+  /** Compiler-owned live pixel/encoded buffers; excludes metadata, I/O internals and GC latency. */
+  readonly maxWorkingBytes?: number;
 }
 
 /**
  * GroundMap offline compiler. Runtime never performs anisotropic filtering.
- * The exact open chainage domain is rasterized once at level 0, prefiltered through kMax,
- * then split into bounded row chunks. Identical encoded chunks share one payload.
+ * Rasterize once to scratch storage, then filter bounded row batches with unchanged rounding.
+ * Payloads are appended in canonical level/row order to storage key 'asset'. Only metadata stays
+ * in memory with course length. The caller owns a fresh workspace and cleanup on success/failure.
  */
 export async function compileBakedGroundMapAsset(
   courseLength: number,
   profile: GroundMapProfile,
   density: Pick<GroundMapDensityProfile, 'qL' | 'qS'>,
   kMax: number,
+  storage: GroundMapCompileStorage,
   chunkTargetMeters = 32,
-): Promise<CompiledBakedGroundMapAsset> {
+  options: GroundMapCompileOptions = {},
+): Promise<BakedGroundMapMetadata> {
   positiveFinite(courseLength, 'courseLength');
   positiveFinite(density.qL, 'qL');
   positiveFinite(density.qS, 'qS');
   positiveFinite(chunkTargetMeters, 'chunkTargetMeters');
   if (!Number.isInteger(kMax) || kMax < 0) throw new RangeError('kMax must be a non-negative integer');
   if (!profile.logical) throw new Error('baked GroundMap requires compiler logical profile');
+  const rowsPerBatch = options.rowsPerBatch ?? 256;
+  const maxWorkingBytes = options.maxWorkingBytes ?? 64 * 1024 * 1024;
+  if (!Number.isSafeInteger(rowsPerBatch) || rowsPerBatch < 4 || rowsPerBatch % 4 !== 0)
+    throw new RangeError('rowsPerBatch must be a positive multiple of four');
+  if (!Number.isSafeInteger(maxWorkingBytes) || maxWorkingBytes <= 0)
+    throw new RangeError('maxWorkingBytes must be a positive safe integer');
+  const checkWorkingBytes = (bytes: number) => {
+    if (!Number.isSafeInteger(bytes) || bytes > maxWorkingBytes)
+      throw new RangeError('GroundMap compiler working buffers exceed maxWorkingBytes');
+  };
 
   const lateralWidth = profile.groundLeft + profile.groundRight;
   positiveFinite(lateralWidth, 'ground width');
@@ -57,99 +70,104 @@ export async function compileBakedGroundMapAsset(
     throw new Error('aligned GroundMap density became coarser than authority');
   }
 
-  const basePixels = new Uint32Array(baseLateralTexels * baseChainageTexels);
-  for (let row = 0; row < baseChainageTexels; row += 1) {
-    const s = (row + 0.5) * actualBaseQS;
-    const offset = row * baseLateralTexels;
-    for (let column = 0; column < baseLateralTexels; column += 1) {
-      const l = -profile.groundLeft + (column + 0.5) * actualBaseQL;
-      basePixels[offset + column] = sampleGroundMap(s, l, profile);
-    }
-  }
-
-  const pyramid = buildGroundMapAnisotropicPyramid(
-    {
-      lateralTexels: baseLateralTexels,
-      chainageTexels: baseChainageTexels,
-      pixels: basePixels,
-    },
-    kMax,
-  );
-
-  const encoders = pyramid.map((level, index) => createGroundMapLevelEncoder(level, index === 0));
-  const paletteRgba = encoders[0]!.paletteRgba;
-
-  const pendingPayloads: PendingPayload[] = [];
+  const paletteRgba = await spoolSource();
+  const payloads: BakedGroundMapPayloadMetadata[] = [];
   const payloadBuckets = new Map<string, number[]>();
   const levels: BakedGroundMapLevelMetadata[] = [];
+  let binaryBytes = 0;
+  let uncompressedRgbaBytes = 0;
+  await storage.append('asset', new Uint8Array(0));
 
-  for (let k = 0; k < pyramid.length; k += 1) {
-    const source = pyramid[k]!;
-    const encoder = encoders[k]!;
-    const format = encoder.format;
-    const qLActual = lateralWidth / source.lateralTexels;
-    const qSActual = courseLength / source.chainageTexels;
+  for (let k = 0; k <= kMax; k += 1) {
+    const lateralTexels = baseLateralTexels / 2 ** k;
+    const chainageTexels = baseChainageTexels / 4 ** k;
+    const qLActual = lateralWidth / lateralTexels;
+    const qSActual = courseLength / chainageTexels;
     const targetRows = Math.max(1, Math.round(chunkTargetMeters / qSActual));
+    const format = k === 0 && paletteRgba !== null ? 'palette8' : 'rgb555le';
     const chunks: BakedGroundMapChunkMetadata[] = [];
+    uncompressedRgbaBytes += lateralTexels * chainageTexels * 4;
 
-    for (let rowStart = 0; rowStart < source.chainageTexels; rowStart += targetRows) {
-      const rowCount = Math.min(targetRows, source.chainageTexels - rowStart);
-      const encoded = encoder.encodeRows(rowStart, rowCount);
+    for (let rowStart = 0; rowStart < chainageTexels; rowStart += targetRows) {
+      const rowCount = Math.min(targetRows, chainageTexels - rowStart);
+      const texels = lateralTexels * rowCount;
+      // Input RGBA + encoded output + digest copy + exact dedup comparison.
+      checkWorkingBytes(texels * (4 + 3 * (format === 'palette8' ? 1 : 2)));
+      const pixels = new Uint32Array(texels);
+      await storage.read(`level-${k}`, rowStart * lateralTexels * 4, byteView(pixels));
+      const encoder = createGroundMapLevelEncoder(
+        { lateralTexels, chainageTexels: rowCount, pixels },
+        k === 0 ? paletteRgba : null,
+      );
+      const encoded = encoder.encodeRows(0, rowCount);
       const sha256 = await sha256Hex(encoded);
-      const key = `${format}:${source.lateralTexels}:${rowCount}:${sha256}`;
+      const key = `${format}:${lateralTexels}:${rowCount}:${sha256}`;
       const candidates = payloadBuckets.get(key) ?? [];
       let payloadId = -1;
       for (const candidate of candidates) {
-        if (bytesEqual(pendingPayloads[candidate]!.bytes, encoded)) {
+        const previous = payloads[candidate]!;
+        const comparison = new Uint8Array(encoded.byteLength);
+        await storage.read('asset', previous.offsetBytes, comparison);
+        if (bytesEqual(comparison, encoded)) {
           payloadId = candidate;
           break;
         }
       }
       if (payloadId < 0) {
-        payloadId = pendingPayloads.length;
-        pendingPayloads.push({
+        payloadId = payloads.length;
+        await storage.append('asset', encoded);
+        payloads.push({
           format,
-          lateralTexels: source.lateralTexels,
+          lateralTexels,
           rowCount,
-          bytes: encoded,
+          offsetBytes: binaryBytes,
+          byteLength: encoded.byteLength,
           sha256,
         });
+        binaryBytes += encoded.byteLength;
         candidates.push(payloadId);
         payloadBuckets.set(key, candidates);
       }
       chunks.push({ rowStart, rowCount, payloadId });
     }
+    levels.push({ level: k, lateralTexels, chainageTexels, qLActual, qSActual, format, chunks });
 
-    levels.push({
-      level: k,
-      lateralTexels: source.lateralTexels,
-      chainageTexels: source.chainageTexels,
-      qLActual,
-      qSActual,
-      format,
-      chunks,
-    });
+    if (k < kMax) {
+      for (let row = 0; row < chainageTexels; row += rowsPerBatch) {
+        const rowCount = Math.min(rowsPerBatch, chainageTexels - row);
+        checkWorkingBytes(lateralTexels * rowCount * 4 * (1 + 1 / 8));
+        const pixels = new Uint32Array(lateralTexels * rowCount);
+        await storage.read(`level-${k}`, row * lateralTexels * 4, byteView(pixels));
+        const next = downsampleGroundMap2x4({ lateralTexels, chainageTexels: rowCount, pixels });
+        await storage.append(`level-${k + 1}`, byteView(next.pixels));
+      }
+    }
+    await storage.remove(`level-${k}`);
   }
 
-  let binaryBytes = 0;
-  for (const payload of pendingPayloads) binaryBytes += payload.bytes.byteLength;
-  const bytes = new Uint8Array(binaryBytes);
-  const payloads: BakedGroundMapPayloadMetadata[] = [];
-  let offsetBytes = 0;
-  for (const payload of pendingPayloads) {
-    bytes.set(payload.bytes, offsetBytes);
-    payloads.push({
-      format: payload.format,
-      lateralTexels: payload.lateralTexels,
-      rowCount: payload.rowCount,
-      offsetBytes,
-      byteLength: payload.bytes.byteLength,
-      sha256: payload.sha256,
-    });
-    offsetBytes += payload.bytes.byteLength;
+  async function spoolSource(): Promise<number[] | null> {
+    checkWorkingBytes(baseLateralTexels * Math.min(rowsPerBatch, baseChainageTexels) * 4);
+    const pixels = new Uint32Array(baseLateralTexels * Math.min(rowsPerBatch, baseChainageTexels));
+    let colors: Set<number> | null = new Set();
+    for (let rowStart = 0; rowStart < baseChainageTexels; rowStart += rowsPerBatch) {
+      const rowCount = Math.min(rowsPerBatch, baseChainageTexels - rowStart);
+      for (let row = 0; row < rowCount; row += 1) {
+        const s = (rowStart + row + 0.5) * actualBaseQS;
+        for (let column = 0; column < baseLateralTexels; column += 1) {
+          const l = -profile.groundLeft + (column + 0.5) * actualBaseQL;
+          const color = sampleGroundMap(s, l, profile) >>> 0;
+          pixels[row * baseLateralTexels + column] = color;
+          if (colors) {
+            colors.add(color);
+            if (colors.size > 256) colors = null;
+          }
+        }
+      }
+      await storage.append('level-0', byteView(pixels.subarray(0, rowCount * baseLateralTexels)));
+    }
+    return colors ? [...colors].sort((a, b) => a - b) : null;
   }
 
-  const uncompressedRgbaBytes = pyramid.reduce((sum, level) => sum + level.pixels.length * 4, 0);
   const metadata: BakedGroundMapMetadata = {
     version: 1,
     courseLength,
@@ -161,13 +179,17 @@ export async function compileBakedGroundMapAsset(
     actualBaseQS,
     kMax,
     chunkTargetMeters,
-    paletteRgba,
+    paletteRgba: paletteRgba ?? [],
     levels,
     payloads,
     binaryBytes,
     uncompressedRgbaBytes,
   };
-  return { metadata, bytes };
+  return metadata;
+}
+
+function byteView(pixels: Uint32Array): Uint8Array {
+  return new Uint8Array(pixels.buffer, pixels.byteOffset, pixels.byteLength);
 }
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
@@ -183,7 +205,7 @@ function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
 }
 
 function alignUp(value: number, alignment: number): number {
-  if (!Number.isInteger(value) || value <= 0 || !Number.isInteger(alignment) || alignment <= 0) {
+  if (!Number.isSafeInteger(value) || value <= 0 || !Number.isSafeInteger(alignment) || alignment <= 0) {
     throw new RangeError('alignUp requires positive integers');
   }
   return Math.ceil(value / alignment) * alignment;

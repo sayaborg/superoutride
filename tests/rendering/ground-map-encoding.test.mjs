@@ -7,7 +7,7 @@ import { rgbaToRgb555, rgb555ToRgba } from '../../dist/graphics/rgb555.js';
 for (const count of [1, 15, 16, 256, 257]) {
   test(`GroundMap ${count}-color encoding round-trips through the runtime reader`, () => {
     const pixels = Uint32Array.from({ length: count }, (_, i) => rgb555ToRgba(i));
-    const encoder = createGroundMapLevelEncoder({ lateralTexels: count, chainageTexels: 1, pixels }, true);
+    const encoder = createGroundMapLevelEncoder({ lateralTexels: count, chainageTexels: 1, pixels });
     assert.equal(encoder.format, count <= 256 ? 'palette8' : 'rgb555le');
     const bytes = encoder.encodeRows(0, 1);
     assert.equal(bytes.length, count * (count <= 256 ? 1 : 2));
@@ -58,9 +58,16 @@ for (const count of [1, 15, 16, 256, 257]) {
 
 test('prefiltered levels always use RGB555 and its defined rounding', () => {
   const pixels = Uint32Array.of(0xff345678, 0xffabcdef);
-  const encoder = createGroundMapLevelEncoder({ lateralTexels: 2, chainageTexels: 1, pixels }, false);
+  const encoder = createGroundMapLevelEncoder({ lateralTexels: 2, chainageTexels: 1, pixels }, null);
   assert.equal(encoder.format, 'rgb555le');
   assert.deepEqual(encoder.paletteRgba, []);
   const bytes = encoder.encodeRows(0, 1);
   for (let i = 0; i < pixels.length; i++) assert.equal(bytes[i * 2] | (bytes[i * 2 + 1] << 8), rgbaToRgb555(pixels[i]));
+});
+
+test('chunk encoding uses the whole-level palette even when the first chunk lacks later colors', () => {
+  const palette = [rgb555ToRgba(0), rgb555ToRgba(31)];
+  const chunk = { lateralTexels: 1, chainageTexels: 1, pixels: Uint32Array.of(palette[1]) };
+  assert.deepEqual([...createGroundMapLevelEncoder(chunk, palette).encodeRows(0, 1)], [1]);
+  assert.equal(createGroundMapLevelEncoder(chunk, null).format, 'rgb555le');
 });

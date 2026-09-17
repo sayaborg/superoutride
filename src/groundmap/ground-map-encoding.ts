@@ -2,9 +2,14 @@ import { rgbaToRgb555 } from '../graphics/rgb555.js';
 import type { BakedGroundMapStorageFormat } from './baked-ground-map.js';
 import type { GroundMapTexelLevel } from './ground-map-prefilter.js';
 
-/** Select a level's storage once; chunk encoding never changes its palette or format. */
-export function createGroundMapLevelEncoder(source: GroundMapTexelLevel, allowPalette: boolean) {
-  const palette = allowPalette ? collectPalette(source) : null;
+/**
+ * Encode with a fixed global palette, or null for RGB555. If omitted, discover the palette
+ * from the supplied complete level. Chunk callers must supply the whole-source selection.
+ */
+export function createGroundMapLevelEncoder(
+  source: GroundMapTexelLevel,
+  palette: readonly number[] | null = collectPalette(source),
+) {
   const paletteRgba = palette ?? [];
   const format: BakedGroundMapStorageFormat = palette !== null ? 'palette8' : 'rgb555le';
   const paletteIndex = new Map(paletteRgba.map((color, index) => [color >>> 0, index]));

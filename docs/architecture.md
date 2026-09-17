@@ -189,11 +189,11 @@ load-time copies and transition-time coexistence on representative courses. Curr
 must not be budgeted as if they expanded every texel to RGBA. Archive compression is not evidence
 of HTTP compression. Preserve separate mechanics comparison when intentionally revising pixel output.
 
-### GroundMap integration design: not active
+### GroundMap integration design: compiler implemented, runtime pending
 
-The following design makes the accepted precompiled target implementable. It is not a claim that
-the current compiler is streaming or that the browser already loads pages. Executable contracts
-and migration gates must land before activation. GroundMap owns the image lattice, filtering,
+The file-backed row compiler below is implemented for build/test assets. Product stage baking,
+paged browser loading and readiness are still pending. Their executable contracts and migration
+gates must land before activation. GroundMap owns the image lattice, filtering,
 encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
 owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
 
@@ -222,11 +222,19 @@ footprints may cross many fine-level storage pages; page size does not limit a f
 First preserve existing alignment, sequential 2-by-4 channel averaging/rounding, L0 palette selection,
 RGB555 encoding and chunk enumeration. Stream source rows through bounded row buffers at each level,
 then encode completed row groups. Never allocate a full L0 plus a copied L0 and all pyramid levels.
-For the current global palette rule, a deterministic palette-discovery pass precedes encoding
-(and may stop after proving overflow); it must not choose a palette independently per page.
+The implemented compiler samples L0 once into a temporary file while discovering its global palette.
+Palette tracking stops after proving overflow; subsequent encoding reads that spool without
+resampling the source. It never chooses a palette independently per chunk.
 A compiler output sink spools completed payloads and supports bounded candidate reads for exact
 dedup comparison. Keeping every encoded payload in RAM would defeat the memory bound.
-Only directory/index metadata may grow with course length; report and budget that growth separately.
+Only directory/index metadata grows in RAM with course length; scratch disk and final output grow
+with image data and are separate costs. The current compiler caps its owned live pixel/encoded
+buffers with `maxWorkingBytes` (64 MiB default) and processes `rowsPerBatch` (256 default, multiples
+of four). These are build controls, not smartphone budgets or guarantees about process RSS,
+metadata, I/O internals or garbage-collection latency. Oversized chunks fail explicitly rather than
+changing output layout. The caller owns a fresh storage workspace and its cleanup on failure.
+[File storage](../tools/build/ground-map-files.mjs) supplies this contract without Node imports in
+the compiler. Build tools publish the resulting binary only after compilation succeeds.
 
 The first compiler refactor must reproduce current finite-source metadata and binary output,
 independent of working-buffer sizes. A later paged transport format may change serialization,

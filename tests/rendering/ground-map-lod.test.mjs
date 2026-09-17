@@ -16,7 +16,7 @@ import {
   requiredPyramidMaxLevel,
   selectGroundMapLevel,
 } from '../../dist/groundmap/ground-map-lod.js';
-import { buildGroundMapAnisotropicPyramid, downsampleGroundMap2x4 } from '../../dist/groundmap/ground-map-prefilter.js';
+import { downsampleGroundMap2x4 } from '../../dist/groundmap/ground-map-prefilter.js';
 
 const current = deriveGroundMapDensity({
   d0: 5,
@@ -75,35 +75,28 @@ test('2x4 compiler prefilter preserves solid lateral materials and reduces dimen
   assert.deepEqual([...level.pixels], [red, blue]);
 });
 
-test('pyramid builder enforces exact compiler padding for requested anisotropic levels', () => {
+test('successive prefilter levels retain exact dimensions and reject indivisible input', () => {
   const color = rgba(90, 100, 110);
-  const good = buildGroundMapAnisotropicPyramid(
-    {
-      lateralTexels: 8,
-      chainageTexels: 16,
-      pixels: new Uint32Array(8 * 16).fill(color),
-    },
-    2,
-  );
+  const base = { lateralTexels: 8, chainageTexels: 16, pixels: new Uint32Array(128).fill(color) };
+  const first = downsampleGroundMap2x4(base);
+  const second = downsampleGroundMap2x4(first);
   assert.deepEqual(
-    good.map((level) => [level.lateralTexels, level.chainageTexels]),
+    [base, first, second].map((l) => [l.lateralTexels, l.chainageTexels]),
     [
       [8, 16],
       [4, 4],
       [2, 1],
     ],
   );
-
   assert.throws(
     () =>
-      buildGroundMapAnisotropicPyramid(
-        {
+      downsampleGroundMap2x4(
+        downsampleGroundMap2x4({
           lateralTexels: 6,
           chainageTexels: 16,
-          pixels: new Uint32Array(6 * 16).fill(color),
-        },
-        2,
+          pixels: new Uint32Array(96).fill(color),
+        }),
       ),
-    /divisible/,
+    /even lateral/,
   );
 });
