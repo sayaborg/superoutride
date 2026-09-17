@@ -1,3 +1,4 @@
+import { advanceTraveler } from './helpers/route-tick.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -16,7 +17,6 @@ import { createTestCar } from './helpers/vehicle-fixture.mjs';
 
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
 import {
-  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
   resolveLiveRouteTravelerRuntime,
   resyncLiveRouteTraveler,
@@ -75,13 +75,13 @@ function handoffSeam(live, choiceId) {
 function crossAndCommitChoice(live, traveler, choiceId) {
   const transition = gate(live, choiceId);
   resyncLiveRouteTraveler(live, traveler, pointAlong(transition, -1));
-  const routeTick = advanceLiveRouteTraveler(live, traveler, pointAlong(transition, 1));
+  const routeTick = advanceTraveler(live, traveler, pointAlong(transition, 1));
   assert.equal(routeTick.routeUpdate?.acceptedChoice?.id, choiceId);
   assert.equal(routeTick.committed, false);
 
   const seam = handoffSeam(live, choiceId);
   resyncLiveRouteTraveler(live, traveler, pointAlong(seam, -1));
-  const handoffTick = advanceLiveRouteTraveler(live, traveler, pointAlong(seam, 1));
+  const handoffTick = advanceTraveler(live, traveler, pointAlong(seam, 1));
   assert.equal(handoffTick.committed, true);
   assert.equal(traveler.handoffState.pending, null);
 }

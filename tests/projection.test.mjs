@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
 import { guidePathToWorld, sampleGuidePath } from '../dist/core/guide-curve.js';
 
-import { pseudoProject, straightRoadScreenX, pseudoDepth } from '../dist/core/projection.js';
+import { pseudoProject, pseudoDepth } from '../dist/core/projection.js';
 import { rasterPathToWorld } from '../dist/core/raster-path.js';
 import { createCircularArcGuide, createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import { renderPose, terrainCamera } from './helpers/render-fixture.mjs';
@@ -64,7 +64,7 @@ describe('open coordinate geometry', () => {
       centerY: 120,
     };
     const projected = pseudoProject({ x: l, y: 0, z: d, s: d }, camera);
-    const expected = straightRoadScreenX(160, f, d, theta, l, lCam);
+    const expected = 160 - f * Math.sin(theta) + (f / d) * (l - lCam) * Math.cos(theta);
     near(projected.x, expected, 1e-10);
   });
 });

@@ -5,7 +5,7 @@ import { CENTER_DASH_MARKINGS } from '../dist/dev/courses/road-markings.js';
 
 import { createStageRoadView } from '../dist/course/stage-road-view.js';
 import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
-import { sampleStageGroundMapRuntime } from '../dist/groundmap/stage-ground-map-view.js';
+import { sampleStageGroundMapAtLevel } from '../dist/groundmap/stage-ground-map-view.js';
 import { compileStageJunction } from '../dist/runtime/stage-junction-compiler.js';
 
 const CROSS_SECTION = Object.freeze({
@@ -69,7 +69,7 @@ test('compiler expands one stage corridor exactly enough for both child roads, m
 
 test('GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
   const compiled = setup();
-  const sample = (l) => sampleStageGroundMapRuntime(120, l, 1, compiled.roadView, compiled.groundProfile).color;
+  const sample = (l) => sampleStageGroundMapAtLevel(120, l, 0, compiled.roadView, compiled.groundProfile);
 
   assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(-4)));
   assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(4)));

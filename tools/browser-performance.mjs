@@ -6,7 +6,7 @@ import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.j
 import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../dist/render/dynamic-vehicle-sprite.js';
-import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
+import { summarizeRenderWorkloads } from '../dist/dev/diagnostics/render-workload.js';
 import { renderDriving } from '../dist/render/renderer.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../dist/vehicle/vehicle-catalog.js';
 import { createFarBackground } from '../dist/visual/far-background.js';

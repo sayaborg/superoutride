@@ -34,7 +34,7 @@ async function pathExists(target) {
 // Regression/diagnostic modules may be outside production reachability, but must have a consumer.
 const isRegressionSource = (file) => /[\/]src[\/]dev[\/](?:fixtures|diagnostics)[\/]/.test(file);
 
-test('every source module is reachable from a composition/build/tool entry or an explicit regression fixture', async () => {
+test('every source module is reachable from a composition or declared compiler entry or an explicit regression fixture', async () => {
   const sourceFiles = await collectFiles(sourceRoot, ['.ts']);
   const toolFiles = await collectFiles(path.join(repositoryRoot, 'tools'), ['.mjs', '.html']);
   const tests = await collectFiles(path.join(repositoryRoot, 'tests'), ['.mjs']);
@@ -84,15 +84,16 @@ test('every source module is reachable from a composition/build/tool entry or an
   for (const relative of ['src/boot.ts', 'src/main.ts', 'src/main-linear.ts', 'src/main-circuit.ts']) {
     visit(path.join(repositoryRoot, relative));
   }
-  for (const tool of toolFiles) visit(tool);
+  visit(path.join(repositoryRoot, 'tools/build-test-ground-map.mjs'));
+  // Audition and diagnostic tools do not make an otherwise dormant general module production code.
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
   assert.deepEqual(
     unreachable.filter((file) => !isRegressionSource(file)).map((file) => path.relative(repositoryRoot, file)),
     [],
     'unreachable source modules',
   );
-  // Test/build consumers must still exercise each fixture and diagnostic.
-  for (const file of tests) visit(file);
+  // Test/tool consumers must still exercise each fixture and diagnostic.
+  for (const file of [...tests, ...toolFiles]) visit(file);
   for (const file of sourceFiles.filter(isRegressionSource)) {
     assert.ok(reached.has(file), `unused regression source: ${path.relative(repositoryRoot, file)}`);
   }

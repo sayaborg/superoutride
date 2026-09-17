@@ -12,7 +12,6 @@ import { createSharedRouteChoiceState } from '../dist/gameplay/shared-route-choi
 
 import { advanceLiveRouteMultiActorTick } from '../dist/runtime/live-route-multi-actor-tick.js';
 import {
-  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
   resolveLiveRouteTravelerRuntime,
   resyncLiveRouteTraveler,
@@ -219,22 +218,18 @@ test('recovery-suppressed actor cannot manufacture route progress while another 
   assert.equal(actorResult(tick, 'MOVING').routeUpdate?.acceptedChoice?.id, 'S1_RIGHT');
 });
 
-test('single-actor INDEPENDENT multi-actor path is state-equivalent to legacy advanceLiveRouteTraveler', () => {
+test('a single actor validates its physical gate and queues the target handoff through the production tick', () => {
   const live = createLiveFixture();
   const right = gate(live, 'S1_RIGHT');
-  const start = pointAlong(right, -1);
-  const legacy = createLiveRouteTravelerState(live, start);
-  const batched = createLiveRouteTravelerState(live, start);
-
-  const legacyUpdate = advanceLiveRouteTraveler(live, legacy, pointAlong(right, 1));
+  const state = createLiveRouteTravelerState(live, pointAlong(right, -1));
   const batch = advanceLiveRouteMultiActorTick(live, createSharedRouteChoiceState('INDEPENDENT'), [
-    { actorId: 'ONLY', state: batched, currentWorldPoint: pointAlong(right, 1) },
+    { actorId: 'ONLY', state, currentWorldPoint: pointAlong(right, 1) },
   ]);
-
-  const batchUpdate = actorResult(batch, 'ONLY');
-  assert.equal(batchUpdate.routeUpdate?.acceptedChoice?.id, legacyUpdate.routeUpdate?.acceptedChoice?.id);
-  assert.equal(batchUpdate.handoffEvent, legacyUpdate.handoffEvent);
-  assert.deepEqual(batched, legacy);
+  const update = actorResult(batch, 'ONLY');
+  assert.equal(update.routeUpdate?.acceptedChoice?.id, 'S1_RIGHT');
+  assert.equal(state.routeState.activeStageId, 'STAGE_2_R');
+  assert.notEqual(state.handoffState.pending, null);
+  assert.equal(update.committed, false);
 });
 
 test('multi-actor tick orchestration owns no vehicle physics, camera or renderer dependency', () => {

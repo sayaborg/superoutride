@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS } from '../dist/camera/current-camera-profile.js';
 
-import { summarizeTerrainFootprints } from '../dist/groundmap/terrain-footprint-analysis.js';
+import { summarizeTerrainFootprints } from '../dist/dev/diagnostics/terrain-footprint-analysis.js';
 import { computeTerrainRowDeltaS } from '../dist/road/terrain-line.js';
 
 const { guide, height, cameraProfile, density, linesAt } = createFootprintScene();

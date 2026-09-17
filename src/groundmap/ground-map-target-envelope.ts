@@ -1,6 +1,5 @@
 import { positiveFinite } from '../core/validation.js';
 import { requiredPyramidMaxLevel } from './ground-map-lod.js';
-import type { TerrainFootprintSummary } from './terrain-footprint-analysis.js';
 
 const LEVEL_CAPACITY_TOLERANCE_METERS = 1e-12;
 const OBSERVED_FOOTPRINT_TOLERANCE_METERS = 1e-9;
@@ -15,7 +14,7 @@ interface GroundMapTargetEnvelopeInput {
   readonly observedMaxDeltaSEffective?: number;
 }
 
-interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeInput {
+export interface GroundMapTargetEnvelopeReport extends GroundMapTargetEnvelopeInput {
   /** Absolute source-chainage bound for any ordinary or collapsed TerrainLine inside the depth clip. */
   readonly maxDeltaSEffectiveUpperBound: number;
   /** Smallest shared-pyramid maximum level that covers the absolute bound. */
@@ -73,17 +72,4 @@ export function deriveGroundMapTargetEnvelope(input: GroundMapTargetEnvelopeInpu
     necessityProven,
     sufficiencyProven,
   };
-}
-
-/** Validate measured Road Generator output against a compiled target envelope. */
-export function validateTerrainFootprintsAgainstTarget(
-  summary: TerrainFootprintSummary,
-  target: GroundMapTargetEnvelopeReport,
-): void {
-  if (summary.maxDeltaSEffective > target.maxDeltaSEffectiveUpperBound + OBSERVED_FOOTPRINT_TOLERANCE_METERS) {
-    throw new Error('TerrainLine Delta_s_eff exceeds compiled target envelope');
-  }
-  if (summary.requiredChainageLevel > target.kMax) {
-    throw new Error('TerrainLine requires GroundMap level above compiled kMax');
-  }
 }

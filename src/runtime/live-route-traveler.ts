@@ -1,22 +1,10 @@
 import { locateWorldOnGuideCoordinateGlobal } from '../core/guide-coordinate-frame.js';
 import type { Vec2 } from '../core/math.js';
 import type { JunctionSide } from '../course/junction-cross-section.js';
-import { observeRouteBoundaryCrossing } from '../gameplay/route-boundary-gates.js';
+import { createRouteDagState, getRouteChoice, getRouteStage, type RouteDagState } from '../gameplay/route-dag.js';
 import {
-  createRouteDagState,
-  getRouteChoice,
-  getRouteStage,
-  updateRouteDag,
-  type RouteDagState,
-  type RouteDagUpdate,
-} from '../gameplay/route-dag.js';
-import {
-  commitRouteStageHandoff,
   createRouteStageHandoffState,
-  observePendingRouteStageHandoff,
-  queueRouteStageHandoff,
   syncRouteStageHandoffCoordinate,
-  type RouteStageHandoffEvent,
   type RouteStageHandoffState,
 } from '../gameplay/route-stage-handoff.js';
 import type { LiveRouteRuntimeAssembly } from './live-route-runtime.js';
@@ -28,12 +16,6 @@ export interface LiveRouteTravelerState {
   readonly routeState: RouteDagState;
   readonly handoffState: RouteStageHandoffState;
   previousWorldPoint: Vec2;
-}
-
-interface LiveRouteTravelerUpdate {
-  readonly routeUpdate: RouteDagUpdate | null;
-  readonly handoffEvent: RouteStageHandoffEvent;
-  readonly committed: boolean;
 }
 
 interface LiveRouteChoicePlanStep {
@@ -59,52 +41,6 @@ export function createLiveRouteTravelerState(live: LiveRouteRuntimeAssembly, wor
     handoffState: createRouteStageHandoffState(live.route, live.content, live.initialChart, world),
     previousWorldPoint: { ...world },
   };
-}
-
-/** Advance route selection and deferred chart handoff from one authoritative world-motion sample. */
-export function advanceLiveRouteTraveler(
-  live: LiveRouteRuntimeAssembly,
-  state: LiveRouteTravelerState,
-  currentWorldPoint: Vec2,
-): LiveRouteTravelerUpdate {
-  let routeUpdate: RouteDagUpdate | null = null;
-
-  if (state.handoffState.pending === null) {
-    const routeObservation = observeRouteBoundaryCrossing(
-      live.route,
-      state.routeState,
-      live.gates,
-      state.previousWorldPoint,
-      currentWorldPoint,
-    );
-    routeUpdate = updateRouteDag(state.routeState, live.route, routeObservation.boundary);
-    queueRouteStageHandoff(state.handoffState, live.handoffs, routeUpdate);
-  }
-
-  const handoffObservation = observePendingRouteStageHandoff(
-    state.handoffState,
-    live.handoffs,
-    state.previousWorldPoint,
-    currentWorldPoint,
-  );
-  const handoffEvent = commitRouteStageHandoff(
-    state.handoffState,
-    state.routeState,
-    live.content,
-    live.charts,
-    handoffObservation.seam,
-    currentWorldPoint,
-  );
-  if (handoffEvent !== 'COMMITTED') {
-    syncRouteStageHandoffCoordinate(state.handoffState, live.charts, currentWorldPoint);
-  }
-  state.previousWorldPoint = { ...currentWorldPoint };
-
-  return Object.freeze({
-    routeUpdate,
-    handoffEvent,
-    committed: handoffEvent === 'COMMITTED',
-  });
 }
 
 /** Recovery/resync changes observation origin only; it does not manufacture a route event. */

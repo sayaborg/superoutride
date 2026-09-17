@@ -20,7 +20,7 @@ import { createStageRoadViews } from '../dist/dev/fixtures/stage-road-views.js';
 import { StageSurfaceMapView } from '../dist/physics/stage-surface-map-view.js';
 
 import { GROUND_COLORS } from '../dist/groundmap/ground-map.js';
-import { sampleStageGroundMapRuntime } from '../dist/groundmap/stage-ground-map-view.js';
+import { sampleStageGroundMapAtLevel } from '../dist/groundmap/stage-ground-map-view.js';
 import { applyStageRoadViewToTerrainLine } from '../dist/road/stage-terrain-view.js';
 
 function setup() {
@@ -77,15 +77,15 @@ test('the unselected child road lies completely outside the committed child loca
 test('GroundMap child-local road reuses parent source while both shoulders are stage-local', () => {
   const { views, ground } = setup();
   for (const child of [views.left, views.right]) {
-    const center = sampleStageGroundMapRuntime(600, 0, 0.1, child, ground).color;
-    const leftShoulder = sampleStageGroundMapRuntime(600, -4.0, 0.1, child, ground).color;
-    const rightShoulder = sampleStageGroundMapRuntime(600, 4.0, 0.1, child, ground).color;
+    const center = sampleStageGroundMapAtLevel(600, 0, 0, child, ground);
+    const leftShoulder = sampleStageGroundMapAtLevel(600, -4.0, 0, child, ground);
+    const rightShoulder = sampleStageGroundMapAtLevel(600, 4.0, 0, child, ground);
     assert.ok(
       center === GROUND_COLORS.asphaltA || center === GROUND_COLORS.asphaltB || center === GROUND_COLORS.marking,
     );
     assert.equal(leftShoulder, GROUND_COLORS.shoulder);
     assert.equal(rightShoulder, GROUND_COLORS.shoulder);
-    assert.throws(() => sampleStageGroundMapRuntime(600, 4.6, 0.1, child, ground), /outside the local ground envelope/);
+    assert.throws(() => sampleStageGroundMapAtLevel(600, 4.6, 0, child, ground), /outside the local ground envelope/);
   }
 });
 

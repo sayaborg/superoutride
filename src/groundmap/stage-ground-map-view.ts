@@ -1,5 +1,4 @@
 import { classifyStageRoadLocalL, stageRoadSourceLateral, type StageRoadView } from '../course/stage-road-view.js';
-import type { BakedGroundMapSample } from './baked-ground-map.js';
 import {
   sampleRoadRegionColor,
   sampleGroundMap,
@@ -14,17 +13,6 @@ import {
  * an ordinary successor road widen and split around active-stage local l=0 while the underlying
  * source `junction`, if any, keeps its original source-coordinate meaning after lateral rebasing.
  */
-export function sampleStageGroundMapRuntime(
-  s: number,
-  localL: number,
-  deltaSEffective: number,
-  view: StageRoadView,
-  profile: GroundMapProfile,
-): BakedGroundMapSample {
-  const level = profile.baked?.selectLevel(deltaSEffective) ?? 0;
-  return { color: sampleStageGroundMapAtLevel(s, localL, level, view, profile), level };
-}
-
 export function sampleStageGroundMapAtLevel(
   s: number,
   localL: number,

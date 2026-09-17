@@ -1,10 +1,11 @@
-import type { TerrainLine } from '../road/terrain-line.js';
-import type { GroundMapDensityProfile } from './ground-map-lod.js';
-import { diagnosticLateralLevel, requiredPyramidMaxLevel } from './ground-map-lod.js';
+import type { GroundMapTargetEnvelopeReport } from '../../groundmap/ground-map-target-envelope.js';
+import type { TerrainLine } from '../../road/terrain-line.js';
+import type { GroundMapDensityProfile } from '../../groundmap/ground-map-lod.js';
+import { diagnosticLateralLevel, requiredPyramidMaxLevel } from '../../groundmap/ground-map-lod.js';
 
 const FOOTPRINT_TOLERANCE_METERS = 1e-12;
 
-export interface TerrainFootprintSummary {
+interface TerrainFootprintSummary {
   readonly lineCount: number;
   readonly collapsedLineCount: number;
   readonly maxDeltaS: number;
@@ -60,5 +61,20 @@ export function summarizeTerrainFootprints(
 function validateFootprint(value: number, name: string, strictlyPositive = false): void {
   if (!Number.isFinite(value) || value < 0 || (strictlyPositive && !(value > 0))) {
     throw new RangeError(`${name} must be ${strictlyPositive ? 'finite and > 0' : 'finite and >= 0'}`);
+  }
+}
+
+const OBSERVED_FOOTPRINT_TOLERANCE_METERS = 1e-9;
+
+/** Validate measured Road Generator output against a compiled target envelope. */
+export function validateTerrainFootprintsAgainstTarget(
+  summary: TerrainFootprintSummary,
+  target: GroundMapTargetEnvelopeReport,
+): void {
+  if (summary.maxDeltaSEffective > target.maxDeltaSEffectiveUpperBound + OBSERVED_FOOTPRINT_TOLERANCE_METERS) {
+    throw new Error('TerrainLine Delta_s_eff exceeds compiled target envelope');
+  }
+  if (summary.requiredChainageLevel > target.kMax) {
+    throw new Error('TerrainLine requires GroundMap level above compiled kMax');
   }
 }

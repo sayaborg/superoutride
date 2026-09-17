@@ -1,3 +1,4 @@
+import { advanceTraveler } from './helpers/route-tick.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -47,7 +48,6 @@ import { sampleSurfaceGeometryAtCoordinate } from '../dist/physics/vehicle-dynam
 import { dot3 } from '../dist/core/vector3.js';
 import { renderDriving } from '../dist/render/renderer.js';
 import {
-  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
   resolveLiveRouteTravelerRuntime,
   resyncLiveRouteTraveler,
@@ -426,7 +426,7 @@ for (const [profile, createVehicle, presentationKind] of [
           resyncLiveRouteTraveler(live, traveler, world);
           continue;
         }
-        const routeUpdate = advanceLiveRouteTraveler(live, traveler, world);
+        const routeUpdate = advanceTraveler(live, traveler, world);
         if (routeUpdate.committed) {
           car.course = { ...traveler.handoffState.coordinate };
           committed = true;

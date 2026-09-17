@@ -1,3 +1,4 @@
+import { advanceTraveler } from './helpers/route-tick.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -20,7 +21,6 @@ import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../dist/ga
 import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs';
 
 import {
-  advanceLiveRouteTraveler,
   createLiveRouteTravelerState,
   resolveLiveRouteTravelerRuntime,
   resyncLiveRouteTraveler,
@@ -102,7 +102,7 @@ test('actual Pages rival physically takes RIGHT first fork, commits child runtim
     }
 
     const progressBeforeRouteTick = fieldProgress.sProgress;
-    const update = advanceLiveRouteTraveler(live, traveler, world);
+    const update = advanceTraveler(live, traveler, world);
     updateFieldRouteProgress(
       fieldProgress,
       live.progress,

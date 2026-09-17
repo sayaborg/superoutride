@@ -1,3 +1,4 @@
+import { HeightProfile } from '../dist/core/height-profile.js';
 import { deg, near } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
@@ -7,7 +8,6 @@ import { pseudoProject } from '../dist/core/projection.js';
 import { createStadiumGuide } from '../dist/dev/fixtures/raster-courses.js';
 import {
   computeForwardVisibleInterval,
-  generateFlatTerrainLines,
   lateralToScreenX,
   screenXToLateral,
   generateTerrainLines,
@@ -41,16 +41,24 @@ describe('flat stadium geometry', () => {
     assert.ok(guide.length > 2 * roadProfile.dMax);
   });
 
-  test('flat TerrainLineGeometry generator emits far-to-near horizontal rows and valid affine spans', () => {
+  test('production flat terrain generator emits far-to-near horizontal rows and valid affine spans', () => {
     const guide = createStadiumGuide();
     const vehicle = renderPose(guide, 80);
     const camera = terrainCamera(guide, null, vehicle, cameraProfile);
-    const lines = generateFlatTerrainLines(guide, camera, roadProfile);
+    const { terrainProfile } = createStadiumScene();
+    const lines = generateTerrainLines(guide, camera, {
+      ...terrainProfile,
+      ...roadProfile,
+      height: new HeightProfile(guide.length, [
+        { s: 0, y: 0 },
+        { s: guide.length, y: 0 },
+      ]),
+    });
 
     assert.ok(lines.length > 100);
     for (let i = 1; i < lines.length; i += 1) {
-      assert.ok(lines[i].y > lines[i - 1].y);
-      assert.ok(lines[i].d < lines[i - 1].d);
+      assert.ok(lines[i].y >= lines[i - 1].y);
+      assert.ok(lines[i].d <= lines[i - 1].d);
     }
     for (const line of lines) {
       assert.ok(line.xGroundL < line.xGroundR);

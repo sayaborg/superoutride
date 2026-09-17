@@ -19,7 +19,7 @@ import { SoftwareSurface } from '../dist/graphics/software-surface.js';
 import { drawScaledSprite } from '../dist/graphics/sprite.js';
 import { BakedGroundMapAsset } from '../dist/groundmap/baked-ground-map.js';
 import { SurfaceMap } from '../dist/physics/surface-map.js';
-import { summarizeRenderWorkloads } from '../dist/render/render-workload.js';
+import { summarizeRenderWorkloads } from '../dist/dev/diagnostics/render-workload.js';
 import { renderDriving } from '../dist/render/renderer.js';
 import { createFarBackground } from '../dist/visual/far-background.js';
 import { createSpriteAssets } from '../dist/visual/sprite-assets.js';

@@ -1,3 +1,4 @@
+import { advanceTraveler } from './helpers/route-tick.mjs';
 import { parentShared } from './helpers/stage-parent-fixture.mjs';
 
 import assert from 'node:assert/strict';
@@ -10,7 +11,6 @@ import { createDeclarativeForkGrowthRuntime } from '../dist/dev/courses/fork-gro
 import { createRivalRouteChoicePlan, RIVAL_ROUTE_CHOICE_IDS } from '../dist/dev/courses/rival-route-plan.js';
 
 import {
-  advanceLiveRouteTraveler,
   compileLiveRouteChoicePlan,
   createLiveRouteTravelerState,
   liveRouteTravelersShareRuntimePackage,
@@ -62,14 +62,14 @@ function handoffSeam(live, choiceId) {
 function crossChoice(live, traveler, choiceId) {
   const gate = transitionGate(live, choiceId);
   resyncLiveRouteTraveler(live, traveler, pointAlongGate(gate, -1));
-  const gateUpdate = advanceLiveRouteTraveler(live, traveler, pointAlongGate(gate, 1));
+  const gateUpdate = advanceTraveler(live, traveler, pointAlongGate(gate, 1));
   assert.equal(gateUpdate.routeUpdate?.acceptedChoice?.id, choiceId);
   assert.equal(gateUpdate.committed, false);
   assert.equal(traveler.handoffState.pending?.choiceId, choiceId);
 
   const seam = handoffSeam(live, choiceId);
   resyncLiveRouteTraveler(live, traveler, pointAlongGate(seam, -1));
-  const seamUpdate = advanceLiveRouteTraveler(live, traveler, pointAlongGate(seam, 1));
+  const seamUpdate = advanceTraveler(live, traveler, pointAlongGate(seam, 1));
   assert.equal(seamUpdate.handoffEvent, 'COMMITTED');
   assert.equal(seamUpdate.committed, true);
   assert.equal(traveler.handoffState.pending, null);
@@ -108,7 +108,7 @@ test('route intent follows authored junction growth instead of steering directly
   // RouteDag advances at the physical gate, but until seam COMMIT the old parent chart is still
   // active and must remain the steering coordinate authority.
   resyncLiveRouteTraveler(live, traveler, pointAlongGate(gate, -1));
-  advanceLiveRouteTraveler(live, traveler, pointAlongGate(gate, 1));
+  advanceTraveler(live, traveler, pointAlongGate(gate, 1));
   assert.equal(traveler.routeState.activeStageId, 'STAGE_2_R');
   assert.equal(traveler.handoffState.activeStageId, 'STAGE_1');
   assert.ok(sampleLiveRouteChoicePlanTargetL(live, traveler, plan, 550) > 7.49);
@@ -200,7 +200,6 @@ test('generic traveler stays renderer/physics independent while browser consumes
   assert.doesNotMatch(source, /render\//);
   assert.doesNotMatch(source, /physics\//);
   assert.doesNotMatch(source, /M5Car|M5Bike|CourseSprite/);
-  assert.match(source, /export function advanceLiveRouteTraveler/);
 
   for (const symbol of [
     'createRivalRouteChoicePlan',

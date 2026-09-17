@@ -14,17 +14,6 @@ const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
 const BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS = 1e-12;
 export const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
 
-interface FlatRoadProfile {
-  screenHeight: number;
-  dMin: number;
-  dMax: number;
-  groundY: number;
-  groundLeft: number;
-  groundRight: number;
-  roadLeft: number;
-  roadRight: number;
-}
-
 interface TerrainLineGeometry {
   d: number;
   s: number;
@@ -86,56 +75,6 @@ export function computeForwardVisibleInterval(
   }
 
   return { dStart: dMin, dEnd };
-}
-
-export function generateFlatTerrainLines(
-  guide: GuidePath,
-  camera: PseudoCamera,
-  profile: FlatRoadProfile,
-): TerrainLineGeometry[] {
-  const visible = computeForwardVisibleInterval(guide, camera.yaw, camera.s, profile.dMin, profile.dMax);
-  if (!visible) return [];
-
-  const h = camera.y - profile.groundY;
-  const numerator = camera.focalLength * h * Math.cos(camera.pitch);
-  if (!(numerator > 0)) throw new Error('flat terrain prototype requires camera above ground');
-
-  const yHorizon = horizonY(camera);
-  const lines: TerrainLineGeometry[] = [];
-
-  for (let y = 0; y < profile.screenHeight; y += 1) {
-    const sampleY = y + 0.5;
-    const denominator = sampleY - yHorizon;
-    if (!(denominator > 0)) continue;
-
-    const d = numerator / denominator;
-    if (d < visible.dStart || d > visible.dEnd) continue;
-
-    const s = camera.s + d;
-    const groundLeft = rasterPathToWorld(guide.raster, s, -profile.groundLeft);
-    const groundRight = rasterPathToWorld(guide.raster, s, profile.groundRight);
-    const projectedLeft = pseudoProject({ ...groundLeft, y: profile.groundY }, camera);
-    const projectedRight = pseudoProject({ ...groundRight, y: profile.groundY }, camera);
-
-    const xGroundL = projectedLeft.x;
-    const xGroundR = projectedRight.x;
-    if (!(xGroundR > xGroundL)) continue;
-
-    const xRoadL = lateralToScreenX(-profile.roadLeft, xGroundL, xGroundR, profile.groundLeft, profile.groundRight);
-    const xRoadR = lateralToScreenX(profile.roadRight, xGroundL, xGroundR, profile.groundLeft, profile.groundRight);
-
-    lines.push({
-      d,
-      s,
-      y,
-      xGroundL,
-      xGroundR,
-      xRoadL,
-      xRoadR,
-    });
-  }
-
-  return lines;
 }
 
 export function lateralToScreenX(

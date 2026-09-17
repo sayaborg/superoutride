@@ -1,4 +1,4 @@
-import type { RenderResult } from './renderer.js';
+import type { RenderResult } from '../../render/renderer.js';
 
 interface RenderWorkloadEnvelope {
   readonly frameCount: number;

@@ -60,14 +60,3 @@ export function pseudoProject(anchor: PseudoAnchor, camera: PseudoCamera): Pseud
     cameraRightDistance: xRight,
   };
 }
-
-export function straightRoadScreenX(
-  centerX: number,
-  focalLength: number,
-  depth: number,
-  theta: number,
-  lateral: number,
-  cameraLateral: number,
-): number {
-  return centerX - focalLength * Math.sin(theta) + (focalLength / depth) * (lateral - cameraLateral) * Math.cos(theta);
-}

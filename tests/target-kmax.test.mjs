@@ -3,11 +3,11 @@ import { deg } from './helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { deriveGroundMapTargetEnvelope } from '../dist/groundmap/ground-map-target-envelope.js';
 import {
-  deriveGroundMapTargetEnvelope,
+  summarizeTerrainFootprints,
   validateTerrainFootprintsAgainstTarget,
-} from '../dist/groundmap/ground-map-target-envelope.js';
-import { summarizeTerrainFootprints } from '../dist/groundmap/terrain-footprint-analysis.js';
+} from '../dist/dev/diagnostics/terrain-footprint-analysis.js';
 import { DEFAULT_THIN_SPAN_SCREEN_ROWS, projectedTerrainSpanRows } from '../dist/road/terrain-line.js';
 
 const { guide, terrainProfile, density, linesAt } = createFootprintScene({
