@@ -2,7 +2,7 @@ import { TIRE_SOUND_INPUT_KEYS } from './tire-sound-observation.js';
 import { tireParameters } from './tire-synthesis.js';
 import { follow } from './audio-parameter.js';
 import { AUDIO_TIMING } from './audio-presentation.js';
-import { resolveModalTuning, sameModalTuning, type ModalTuning } from './tire-modal-acoustics.js';
+import { resolveTireTuning, sameTireTuning, type TireTuning } from './tire-tuning.js';
 import {
   contactTireParameters,
   tireSoundParameters,
@@ -27,17 +27,21 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
   node.connect(output).connect(destination);
   let desired: TireSoundModel = DEFAULT_TIRE_SOUND_MODEL;
   let active: TireSoundModel | null = null;
-  let tuning = resolveModalTuning();
-  let activeTuning = tuning;
-  let pending: { model: TireSoundModel; tuning: ModalTuning; at: number } | null = null;
+  const tunings = { modal: resolveTireTuning('modal'), unified: resolveTireTuning('unified') };
+  let activeTuning: TireTuning | null = null;
+  let pending: { model: TireSoundModel; tuning: TireTuning | null; at: number } | null = null;
   let failed = false,
     disposed = false;
   node.onprocessorerror = () => {
     failed = true;
   };
   return {
-    setTuning(value: ModalTuning): void {
-      if (!sameModalTuning(tuning, value)) tuning = resolveModalTuning(value);
+    setTuning(value: TireTuning): void {
+      if (!sameTireTuning(tunings[value.model], value)) {
+        const next = resolveTireTuning(value.model, value.tuning);
+        if (!next) throw new RangeError('unknown tire tuning model');
+        tunings[value.model] = next;
+      }
     },
     setModel(model: TireSoundModel): void {
       if (!TIRE_SOUND_MODELS.includes(model)) throw new RangeError('unknown tire sound model');
@@ -75,16 +79,17 @@ export function createTireVoice(context: BaseAudioContext, destination: AudioNod
           node.parameters.get(`${axle}_surfaceIndex`)!.value = controls.surfaceIndex;
         }
       }
-      const changed = desired !== active || (desired === 'modal' && !sameModalTuning(tuning, activeTuning));
+      const tuning = desired === 'modal' || desired === 'unified' ? tunings[desired] : null;
+      const changed = desired !== active || !sameTireTuning(tuning, activeTuning);
       if (active !== null && changed) {
-        if (pending?.model !== desired || (desired === 'modal' && !sameModalTuning(pending.tuning, tuning))) {
+        if (pending?.model !== desired || !sameTireTuning(pending.tuning, tuning)) {
           pending = { model: desired, tuning, at: now + AUDIO_TIMING.transitionSeconds };
           follow(output.gain, 0, now, 0.01); // Authored 10 ms model-switch fade, not tire vibration decay.
         }
         if (now < pending.at) return;
       }
       if (changed) {
-        node.port.postMessage(desired === 'modal' ? { model: desired, tuning } : { model: desired });
+        node.port.postMessage(tuning ? { model: desired, tuning: tuning.tuning } : { model: desired });
         active = desired;
         activeTuning = tuning;
         follow(output.gain, 1, now);

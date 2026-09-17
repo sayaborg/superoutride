@@ -32,15 +32,15 @@ ENGINE TUNING shares eight provisional minus/plus controls with the audition pag
 reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
-TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL cycles player tire sound while driving.
-HYBRID remains the accepted squeal reference and reload default. MODAL replaces the former UNIFIED
-in the fifth slot: four noise-driven/self-exciting bands produce Q only, with no rolling R or separate S.
+TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED cycles player tire sound while driving.
+HYBRID remains the accepted squeal reference and reload default. UNIFIED remains available with its R+Q mechanism.
+MODAL is an additional Q-only comparison: four noise-driven/self-exciting bands produce Q only, with no rolling R or separate S.
 Select MODAL in DEV to audition it. HYBRID/SPECTRAL retain R/S/Q controls for reference comparison;
-MODAL exposes only Q. Component choices survive model/vehicle changes and retry; reload resets them.
+MODAL exposes only Q; UNIFIED exposes R/Q. Component choices survive model/vehicle changes and retry; reload resets them.
 Only tire output fades during model or tuning replacement.
 
 DEV opens/closes a scrolling panel on phones, with independent ENG/TIRE volume sliders and ten MODAL
-sound controls plus reset. Select MODAL to enable them. Values are authored listening choices, not
+sound controls plus eleven UNIFIED controls and separate resets. Only the selected model's controls are shown; switching preserves each model's settings. Values are authored listening choices, not
 measured tire parameters. [MODAL listening](docs/NEXT.md#next-work-modal-listening) is the next task:
 compare its Q against HYBRID with R and S off, including onset, pitch, roughness and recovery.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and

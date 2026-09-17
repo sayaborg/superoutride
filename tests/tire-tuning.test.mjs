@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MODAL_SETTINGS, MODAL_TUNING_RANGES, resolveModalTuning } from '../dist/audio/tire-modal-acoustics.js';
 import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
+import { UNIFIED_TUNING_RANGES, resolveUnifiedTuning } from '../dist/audio/tire-unified-acoustics.js';
 import { mountTireTuningControls } from '../dist/browser/tire-tuning-controls.js';
 import { createRangeControl } from '../dist/browser/range-control.js';
 import { installBrowserDom } from './helpers/browser-dom.mjs';
@@ -109,11 +110,49 @@ test('MODAL panel shares numeric authority, enables explicitly and resets only i
     assert.equal(Number(input.max), range.max);
     input.value = String(range.min);
     input.emit('input');
-    assert.equal(controls.read()[key], range.min);
+    assert.equal(controls.read().tuning[key], range.min);
   }
   assert.equal(changes, Object.keys(MODAL_TUNING_RANGES).length);
   fieldset.children.at(-1).click();
-  assert.deepEqual(controls.read(), resolveModalTuning());
+  assert.deepEqual(controls.read(), { model: 'modal', tuning: resolveModalTuning() });
   controls.dispose();
   assert.equal(host.children.length, 0);
+});
+
+test('UNIFIED and MODAL panels retain separate values and reset only the selected model', (t) => {
+  const dom = installBrowserDom(t);
+  const host = dom.elements.get('tire-tuning');
+  const controls = mountTireTuningControls(host, () => {});
+  const [modal, unified] = host.children;
+  const slider = (panel, key) => panel.children.find((c) => c.getAttribute('data-tire-tuning-key') === key).children[2];
+  const set = (panel, key, value) => {
+    const input = slider(panel, key);
+    input.value = String(value);
+    input.emit('input');
+  };
+  set(modal, 'powerReferenceWatts', 8000);
+  controls.setModel('unified');
+  assert.ok(modal.hidden && modal.disabled);
+  assert.equal(unified.hidden, false);
+  assert.equal(unified.disabled, false);
+  assert.deepEqual(controls.read(), { model: 'unified', tuning: resolveUnifiedTuning() });
+  for (const [key, range] of Object.entries(UNIFIED_TUNING_RANGES)) {
+    const input = slider(unified, key);
+    assert.equal(Number(input.min), range.min);
+    assert.equal(Number(input.max), range.max);
+    set(unified, key, range.min);
+    assert.equal(controls.read().tuning[key], range.min);
+  }
+  controls.setModel('modal');
+  assert.equal(controls.read().tuning.powerReferenceWatts, 8000);
+  controls.setModel('unified');
+  assert.equal(controls.read().tuning.powerReferenceWatts, UNIFIED_TUNING_RANGES.powerReferenceWatts.min);
+  unified.children.at(-1).click();
+  assert.deepEqual(controls.read().tuning, resolveUnifiedTuning());
+  controls.setModel('modal');
+  assert.equal(controls.read().tuning.powerReferenceWatts, 8000, 'UNIFIED reset must not change MODAL');
+  controls.setModel('hybrid');
+  assert.equal(controls.read(), null);
+  assert.ok(modal.hidden && unified.hidden && modal.disabled && unified.disabled);
+  controls.dispose();
 });

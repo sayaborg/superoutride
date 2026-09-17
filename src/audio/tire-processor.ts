@@ -1,7 +1,10 @@
 import { TireHybridSynthesis } from './tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from './tire-hybrid-acoustics.js';
 import { TireModalSynthesis } from './tire-modal-model.js';
-import { MODAL_SETTINGS, resolveModalTuning, sameModalTuning, type ModalTuning } from './tire-modal-acoustics.js';
+import { MODAL_SETTINGS } from './tire-modal-acoustics.js';
+import { TireUnifiedSynthesis } from './tire-unified-model.js';
+import { UNIFIED_SETTINGS } from './tire-unified-acoustics.js';
+import { resolveTireTuning, sameTireTuning, type TireTuning } from './tire-tuning.js';
 import { TireSpectralSynthesis } from './tire-spectral-model.js';
 import { TIRE_SOUND_INPUT_KEYS, type TireSoundObservation } from './tire-sound-observation.js';
 import { SPECTRAL_SETTINGS } from './tire-spectral-acoustics.js';
@@ -21,16 +24,17 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-type ObservedSynthesis = TireHybridSynthesis | TireSpectralSynthesis | TireModalSynthesis;
+type ObservedSynthesis = TireHybridSynthesis | TireSpectralSynthesis | TireModalSynthesis | TireUnifiedSynthesis;
 type TirePair =
   | { model: 'current'; front: TireSynthesis; rear: TireSynthesis }
   | { model: 'contact'; front: TireContactSynthesis; rear: TireContactSynthesis }
   | { model: 'hybrid'; front: TireHybridSynthesis; rear: TireHybridSynthesis }
   | { model: 'spectral'; front: TireSpectralSynthesis; rear: TireSpectralSynthesis }
-  | { model: 'modal'; front: TireModalSynthesis; rear: TireModalSynthesis };
+  | { model: 'modal'; front: TireModalSynthesis; rear: TireModalSynthesis }
+  | { model: 'unified'; front: TireUnifiedSynthesis; rear: TireUnifiedSynthesis };
 
 /** Only the selected model exists; startup and faded model replacement share this constructor. */
-function createPair(model: TireSoundModel, tuning?: ModalTuning): TirePair {
+function createPair(model: TireSoundModel, tuning: TireTuning | null = null): TirePair {
   if (model === 'current')
     return {
       model,
@@ -52,8 +56,30 @@ function createPair(model: TireSoundModel, tuning?: ModalTuning): TirePair {
   if (model === 'modal')
     return {
       model,
-      front: new TireModalSynthesis(sampleRate, MODAL_SETTINGS.frontSeed, tuning),
-      rear: new TireModalSynthesis(sampleRate, MODAL_SETTINGS.rearSeed, tuning),
+      front: new TireModalSynthesis(
+        sampleRate,
+        MODAL_SETTINGS.frontSeed,
+        tuning?.model === 'modal' ? tuning.tuning : undefined,
+      ),
+      rear: new TireModalSynthesis(
+        sampleRate,
+        MODAL_SETTINGS.rearSeed,
+        tuning?.model === 'modal' ? tuning.tuning : undefined,
+      ),
+    };
+  if (model === 'unified')
+    return {
+      model,
+      front: new TireUnifiedSynthesis(
+        sampleRate,
+        UNIFIED_SETTINGS.frontSeed,
+        tuning?.model === 'unified' ? tuning.tuning : undefined,
+      ),
+      rear: new TireUnifiedSynthesis(
+        sampleRate,
+        UNIFIED_SETTINGS.rearSeed,
+        tuning?.model === 'unified' ? tuning.tuning : undefined,
+      ),
     };
   return {
     model,
@@ -64,7 +90,7 @@ function createPair(model: TireSoundModel, tuning?: ModalTuning): TirePair {
 
 class TireProcessor extends AudioWorkletProcessor {
   private pair: TirePair | null = createPair(DEFAULT_TIRE_SOUND_MODEL);
-  private tuning = resolveModalTuning();
+  private tuning: TireTuning | null = null;
   private readonly frontObservation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, 0])) as {
     -readonly [K in keyof TireSoundObservation]: number;
   };
@@ -99,9 +125,9 @@ class TireProcessor extends AudioWorkletProcessor {
       else if (!TIRE_SOUND_MODELS.includes(data?.model)) this.valid = false;
       else {
         try {
-          const tuning = data.model === 'modal' ? resolveModalTuning(data.tuning) : this.tuning;
+          const tuning = resolveTireTuning(data.model, data.tuning);
           // Only after the voice fade. Identical settings preserve state; no live stiffness retuning.
-          if (data.model !== this.pair.model || (data.model === 'modal' && !sameModalTuning(tuning, this.tuning)))
+          if (data.model !== this.pair.model || !sameTireTuning(tuning, this.tuning))
             this.pair = createPair(data.model, tuning);
           this.tuning = tuning;
           this.valid = true;
@@ -199,6 +225,12 @@ class TireProcessor extends AudioWorkletProcessor {
         if (pair.model === 'modal') {
           const { front, rear } = pair;
           output[i] = (front.frictionOutput + rear.frictionOutput) * this.squealMix;
+        } else if (pair.model === 'unified') {
+          const { front, rear } = pair;
+          output[i] =
+            front.roadOutput * this.roadMix +
+            front.frictionOutput * this.squealMix +
+            (rear.roadOutput * this.roadMix + rear.frictionOutput * this.squealMix);
         } else {
           const { front, rear } = pair;
           output[i] =

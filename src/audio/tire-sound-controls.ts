@@ -18,6 +18,13 @@ export const TIRE_SOUND_CONTROLS = Object.freeze({
     input: 'observation',
     components: Object.freeze([Object.freeze({ ...TIRE_COMPONENTS[2], description: 'Friction / squeal' })]),
   }),
+  unified: Object.freeze({
+    input: 'observation',
+    components: Object.freeze([
+      TIRE_COMPONENTS[0],
+      Object.freeze({ ...TIRE_COMPONENTS[2], description: 'Friction / squeal' }),
+    ]),
+  }),
 });
 export type TireSoundModel = keyof typeof TIRE_SOUND_CONTROLS;
 export const TIRE_SOUND_MODELS = Object.freeze(Object.keys(TIRE_SOUND_CONTROLS) as TireSoundModel[]);

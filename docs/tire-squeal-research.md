@@ -1,7 +1,7 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This is supporting research, not a runtime specification or numerical calibration.
-[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/MODAL implementations;
+[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/MODAL/UNIFIED implementations;
 [NEXT](NEXT.md#next-work-modal-listening) owns current listening priorities.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of any existing sound engine.
@@ -96,7 +96,7 @@ Source: [Avanzini et al., 2005, author-hosted paper](https://avanzini.di.unimi.i
 
 The tire sources support friction-fed vibration as one possible mechanism; they do not select
 HYBRID's scalar energy surrogate, CURRENT's oscillator, CONTACT's one-element law or MODAL's
-independent stochastic band system. A mathematically consistent surrogate can still omit the structure and
+independent stochastic band system or UNIFIED's common-port system. A mathematically consistent surrogate can still omit the structure and
 statistics responsible for convincing tire sound. The synthesis precedent supports the possibility
 of a shared friction system, not its calibration for this game.
 

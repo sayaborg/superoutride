@@ -2,7 +2,7 @@ import { clamp } from '../core/math.js';
 import { follow } from './audio-parameter.js';
 import type { ExhaustTuning } from './exhaust-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
-import type { ModalTuning } from './tire-modal-acoustics.js';
+import type { TireTuning } from './tire-tuning.js';
 import type { TireSoundModel, TireComponents } from './tire-sound-controls.js';
 import { createEngineVoice } from './engine-voice.js';
 import type { VehicleAudioProfile } from './vehicle-audio-profile.js';
@@ -50,7 +50,7 @@ export async function createAudioEngine(context: AudioContext) {
     setTireModel(model: TireSoundModel): void {
       tires.setModel(model);
     },
-    setTireTuning(value: ModalTuning): void {
+    setTireTuning(value: TireTuning): void {
       tires.setTuning(value);
     },
     setMix(engine: number, tire: number): void {

@@ -1,3 +1,5 @@
+import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
+import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
 import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
@@ -41,8 +43,13 @@ const controls = {
   hybrid: observed,
   spectral: observed,
   modal: observed,
+  unified: observed,
 };
 const factories = {
+  unified: () => [
+    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.frontSeed),
+    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.rearSeed),
+  ],
   current: () => [
     new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed),
     new TireSynthesis(rate, CONTACT_ACOUSTICS.rearSeed),

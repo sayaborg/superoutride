@@ -14,10 +14,11 @@ and evidence scopes.
 
 ## Next work: MODAL listening
 
-The user chooses Q only, with no R or separate S, and prefers HYBRID Q's timbre. MODAL replaces
-UNIFIED in the fifth comparison slot; the four earlier methods remain unchanged references and HYBRID
-remains the reload default. This is an intentional replacement, not a waveform-preserving UNIFIED tune.
-Previous UNIFIED code/calibration is recoverable from Git; do not keep a parallel legacy runtime.
+The user requests that UNIFIED remain available alongside the new Q-only MODAL comparison.
+Both are retained; do not remove either to keep an arbitrary count of models. The selector offers six
+methods, and HYBRID remains the reload default. UNIFIED restores its unchanged R+Q mechanism,
+1,000 Hz high mode and work-fraction onset; MODAL's Q-only mechanism and defaults are unchanged.
+Their DEV panels preserve separate settings and reset only the selected model.
 
 MODAL gives each of four HYBRID-like bands its own stochastic self-exciting vibration state. No
 separate amplitude envelope, S/Q crossfade or rolling source runs. Pitch/slip mapping, harmonic weights
@@ -26,7 +27,7 @@ linear near zero to avoid disproportionately loud weak-work rubbing. All coeffic
 A clearly audible noise stage before squeal is neither compulsory nor evidence of realism.
 
 Select MODAL; compare against HYBRID with R and S OFF at fixed engine/tire volume and physical
-calibration. DEV exposes ten MODAL controls. Check:
+calibration. DEV exposes ten MODAL controls or eleven UNIFIED controls. Compare UNIFIED Q with R off as well. Check:
 
 - Quiet mild turns around 20 km/h, gradual increasing slip, strong cornering and recovery.
 - Pitch motion and irregularity against HYBRID Q, including abrupt onset without a long noise prelude.
@@ -36,7 +37,7 @@ calibration. DEV exposes ten MODAL controls. Check:
 Use the existing renderer for `modal-friction` versus `hybrid-squeal`; the input probe reports Q only.
 Numerical instability, spectral concentration, RMS and host timing are separate evidence from audible
 onset, realistic timbre or actual smartphone performance. Acceptance and final adoption remain open.
-R/S remain only inside retained reference models; wind is deferred. Do not add a replacement rumble
+R remains in UNIFIED and the other retained references; separate S remains in HYBRID/SPECTRAL; wind is deferred. Do not add a replacement rumble
 layer or force a low-noise-to-high-squeal sequence to compensate for an unsatisfactory Q timbre.
 
 [Audio](audio.md#modal-game-synthesis) owns equations, the explicitly superseded invariants and limits;
