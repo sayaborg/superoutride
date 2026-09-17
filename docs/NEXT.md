@@ -16,16 +16,15 @@ sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-imp
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
 shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
 
-1. Use the [capacity probe](development.md#groundmap-capacity-measurement) to reproduce host baking
-   and reader measurements. Stadium, Tsukuba, linear highway and branching parent are covered;
-   complete child-stage baking and target-device transition residency remain open.
-   Include richer-color/pattern fixtures; today's simple patterns do not predict future texture
-   compression. Separate compiler peak memory, payload bytes, transfer bytes, reader residency and
-   load/transition copies. Propose target-device budgets from this evidence before production cutover.
-2. Define product asset identity, finite stage domains, load/residency and seam contracts. Integrate
-   baked GroundMap into every course; remove procedural runtime paint, including stage overrides.
-   Keep procedural source evaluation only in the compiler/editor. Keep completed chunk loading
-   distinct from runtime baking. Do not duplicate a lap's data for virtual circuit copies or actors.
+1. Implement the bounded GroundMap compiler first, following the
+   [migration gates](development.md#groundmap-migration-gates). Preserve current output bytes and
+   the global lattice while bounding pixel/payload working memory. Then compile complete
+   stage-local paint, add shared paged residency, and integrate a handoff/circuit fixture.
+2. The [integration design](architecture.md#groundmap-integration-design-not-active) is recorded,
+   not active. Product cutover requires the new loading lifecycle, explicit pixel revision,
+   complete assets for all shipped courses and target-device capacity acceptance. Numeric budgets
+   remain open. Use the [capacity probe](development.md#groundmap-capacity-measurement) for host
+   evidence; complete child-stage and target-device transition measurements remain required.
 3. Resolve sprite LOD logical extent, crop/padding, anchors, odd dimensions and level selection.
    Verify synthetic fixtures before changing asset production or the product blitter contract.
 4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic

@@ -223,3 +223,29 @@ runtime entry points. Tool-only general implementations belong to explicit diagn
 Tests are grouped by responsibility under `tests/`; helpers and small authored fixtures remain
 separate. `npm test` discovers `tests/**/*.test.mjs` recursively, so grouping does not remove tests
 from the suite. Stage depth and child-side names describe actual topology scenarios, not milestones.
+
+## GroundMap migration gates
+
+The [architecture design](architecture.md#groundmap-integration-design-not-active) and
+[content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
+implementation targets. Complete the following changes separately; do not advance the immutable
+reference as part of compiler or storage cleanup.
+
+| Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
+| ---- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | GroundMap compiler: bounded row generation and output sink                        | Existing source metadata/binary equality; deterministic output for different buffer sizes; measured working memory bounded with increasing length; correct 256/257-color selection and exact dedup                    |
+| 2    | Runtime/course compilation: final stage-local color source                        | Compare ordinary and stage source colors at road/shoulder edges, local fork intervals, source offsets, endpoints and overlap; preserve physical boundaries and all gate traces                                        |
+| 3    | GroundMap storage/browser loader: versioned payload delivery and shared residency | Exact texel-center, endpoint and per-level reads; page-boundary filtering parity; single shared load/buffer; pin/eviction/cancellation/corruption/capacity failures; observed simultaneous buffer accounting          |
+| 4    | Browser/runtime integration: ready-frame loading, real handoff and circuit reuse  | Delayed/failed loads, retry, reverse/recovery, multiple actors and course replacement; unchanged mechanics; explicit pixel revision with independent image tests; no procedural production paint or runtime prefilter |
+| 5    | Product build and device acceptance                                               | Every shipped course has complete manifests/assets; clean immutable deployment; verified delivery encoding; peak load/transition memory and frame timing on target devices within agreed budgets                      |
+
+Step 1 retains the current whole-source lattice and sequential rounding. Before replacing the old
+compiler implementation, establish exact output fixtures from it and independent boundary tests;
+do not retain a second production compiler merely to compare implementations indefinitely.
+Tests for step 2 must include the actual later forks: a coarse sampling grid is diagnostic evidence,
+not proof of all boundary behavior. Steps 1-3 need no update to deployed pixels.
+
+A missing numeric device budget does not block compiler parity or ownership work. It does block a
+claim of smartphone acceptance. Choose limits using measured payload working sets and total
+application headroom, record them in the integration profile, and reject unsupported content
+explicitly. A guessed speed/network lead distance is not a guarantee that future pages will arrive.

@@ -188,3 +188,83 @@ First measure stored/transfer bytes, alignment overhead, compiler peak memory, r
 load-time copies and transition-time coexistence on representative courses. Current packed readers
 must not be budgeted as if they expanded every texel to RGBA. Archive compression is not evidence
 of HTTP compression. Preserve separate mechanics comparison when intentionally revising pixel output.
+
+### GroundMap integration design: not active
+
+The following design makes the accepted precompiled target implementable. It is not a claim that
+the current compiler is streaming or that the browser already loads pages. Executable contracts
+and migration gates must land before activation. GroundMap owns the image lattice, filtering,
+encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
+owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
+
+**Compiler input and domain.** Compile one immutable final-color source over an explicit finite
+local rectangle. The source supplies its metric domain and a deterministic color evaluator; concrete
+course/stage composition supplies geometry, paint and material inputs through existing owners.
+Its initial evaluator reproduces current point-sampled procedural paint. Exact-area composition,
+new material palettes and color-space changes remain separate unresolved image-processing work.
+
+A stage evaluator includes the existing local junction and shoulder precedence, then source
+chainage/lateral transforms, exactly once. Its baked reader consumes stage-local coordinates directly;
+runtime must not apply those transforms or repaint shoulders a second time. Ordinary source and
+stage evaluators are compiler inputs to one baking pipeline, not permanent renderer alternatives.
+Circuit repetition remains a runtime-owned mapping to one lap asset.
+
+Keep the currently authored finite domains initially. A route gate or handoff seam is not an image
+endpoint: camera lookahead, visible terrain, reverse travel and recovery may still require adjacent
+source content. A smaller authored domain requires proof of all supported accesses, including run-in,
+runout and transition overlap. Storage paging alone does not trim or rebase an asset's domain.
+
+**Global lattice, bounded generation.** Derive aligned dimensions, actual spacing, texel centers and
+all LOD grids once for the complete finite source. Storage pages reference integer row ranges on
+those grids. They do not derive a new density or restart marking/material phase. Coarse-level
+footprints may cross many fine-level storage pages; page size does not limit a filter footprint.
+
+First preserve existing alignment, sequential 2-by-4 channel averaging/rounding, L0 palette selection,
+RGB555 encoding and chunk enumeration. Stream source rows through bounded row buffers at each level,
+then encode completed row groups. Never allocate a full L0 plus a copied L0 and all pyramid levels.
+For the current global palette rule, a deterministic palette-discovery pass precedes encoding
+(and may stop after proving overflow); it must not choose a palette independently per page.
+A compiler output sink spools completed payloads and supports bounded candidate reads for exact
+dedup comparison. Keeping every encoded payload in RAM would defeat the memory bound.
+Only directory/index metadata may grow with course length; report and budget that growth separately.
+
+The first compiler refactor must reproduce current finite-source metadata and binary output,
+independent of working-buffer sizes. A later paged transport format may change serialization,
+but decoded texels and metric lookup must remain identical to that compiler. Do not combine
+alignment optimization, different filtering or earlier quantization with this refactor.
+
+**Asset identity and delivery.** Introduce a versioned product manifest with a stable source identity,
+compiler/target identity, input digest, finite domain, lattice/LOD descriptors, palettes and an ordered
+page-to-payload directory. A page identifies its level and row range; a payload identifies immutable
+encoded bytes, byte length and digest. Palette interpretation belongs to the manifest, even when
+two manifests share identical indexed payload bytes. Package IDs bind to a manifest digest, not
+to mutable filenames. All references stay within the selected immutable deployment build.
+
+Publish completed payloads as separately addressable files; do not depend on HTTP range support
+or assume that compressed transfer bytes remain compressed in the reader. The monolithic v1 test
+asset is a regression input during migration, not a second product loading mode. Wire schema,
+transport granularity and actual server compression are validated before deployment.
+
+**Resident reads and accounting.** One application-owned immutable payload store shares bytes across
+readers, repeated circuit windows and consumers of the same content. Ground render demand determines
+residency; a physics actor does not acquire image pages merely by occupying a stage. The frame
+preparation step resolves level/row demand from the same terrain lines and selector used for drawing,
+loads missing payloads asynchronously, then pins the required set for the whole draw. Sampling stays
+synchronous and allocation-free with respect to fetching/decoding; it never starts I/O or filtering.
+
+The loader owns fetched buffers exclusively and exposes no mutable aliases when publishing them to
+the store. Preserve defensive copying at APIs that still accept caller-owned mutable bytes. Avoid a
+whole-course copy by loading bounded payloads; remove a copy only where exclusive ownership is proven.
+Concurrent requests for one payload share one load. Eviction releases only unpinned payloads; stale
+requests from an old course selection cannot publish a reader into the new session.
+
+The integration profile declares limits for compiler pixel/payload working buffers, resident payload
+bytes and concurrent load/validation buffers. Count shared payloads once, but include simultaneous
+old/new frame pins and incoming data. Metadata, network/decoder buffers and the rest of the application
+are separate costs. A request that cannot fit must produce explicit capacity failure, not silently
+exceed a limit, drop required pages or select a different LOD. Numeric target-device budgets remain
+unapproved; host RSS and gzip measurements cannot establish those limits.
+
+Unavailable data is an explicit readiness result before presentation, never grass substitution,
+procedural fallback or hidden lower-resolution sampling. Browser loading behavior and simulation
+scheduling are governed by the [content integration design](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active).

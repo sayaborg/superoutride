@@ -102,3 +102,35 @@ Three-dimensional source capture is a separate experiment until accepted: compar
 and explicitly defined perspective cameras, lateral displacement versus body yaw, distance and bank.
 Model origin, angle labels, pivot, lighting, crop/anchor and angle sampling remain open. Runtime
 chainage projection is unchanged. DUAL/multiple vehicle slices remain deferred.
+
+### GroundMap loading and handoff design: not active
+
+This is the proposed integration behavior for the accepted baked target. The current synchronous
+procedural browser path remains unchanged until its implementation and rendering revision pass
+the [migration gates](development.md#groundmap-migration-gates).
+
+Each stage package references its complete stage-local baked color source; source lateral/chainage
+offsets are compiler concerns for that asset. Package geometry, SurfaceMap, road intent, physical
+gates and progress remain independent. A circuit window delegates to one lap reader and shared
+payload store; virtual copies must not multiply payload bytes or require a repeated page directory.
+
+The loading coordinator prefetches image demand for the active presentation and its possible legal
+successors. Prefetch eligibility never chooses a route: physical gate -> PENDING -> seam -> COMMIT
+continues to own selection. Pin the old frame while preparing its replacement, retain shared
+payloads once, and release pins only after all consumers finish. Include camera run-in/runout,
+reverse travel, manual recovery, automatic recovery and course switching in demand tests.
+Geometry/physics for other actors must not force all their GroundMaps into memory.
+
+A complete ready set is required to present a frame. If required data is unavailable, the browser
+enters an explicit loading state: preserve the last complete frame and simulation state, suspend
+further ticks through the common scheduler, and resume without accumulating wall-clock catch-up.
+Do not rewind an already committed physical handoff or alter velocity, forces, gate order or LOD
+to hide a loading delay. Integrate this lifecycle with existing input/audio suspension behavior.
+Failed loading exposes retry/exit while keeping the same immutable content identity; no source
+baking runs in the browser. This loading interaction is new behavior to implement and test, not
+a description of current product behavior.
+
+The first integrated fixture must cross a real stage handoff with distinct shoulder/junction paint,
+then a circuit seam using the same lap payloads. Its completion requires exact compiled-color reads,
+bounded resident bytes, unchanged mechanics and an explicit pixel-contract revision for the baked
+presentation. It does not require Sprite Tool/Course Editor GUI or freeze pending image algorithms.
