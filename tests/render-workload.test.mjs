@@ -42,11 +42,11 @@ const baked = new BakedGroundMapAsset(metadata, new Uint8Array(binary.buffer, bi
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
+  road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
   roadMarkings: CENTER_DASH_MARKINGS,
   junctionMarkings: CENTER_DASH_MARKINGS,
-  shoulderWidth: 1,
+
   logical: compiled.groundMap,
   baked,
 };

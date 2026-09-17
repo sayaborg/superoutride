@@ -20,7 +20,9 @@ import {
 
 type RasterForkBranchSide = 'LEFT' | 'RIGHT';
 
-type RasterForkBranchSuccessorAuthoring = Omit<RasterSuccessorAuthoring, 'roadHalfWidth'>;
+type RasterForkBranchSuccessorAuthoring = Omit<RasterSuccessorAuthoring, 'road' | 'groundHalfWidth'> & {
+  readonly shoulderWidth: number;
+};
 
 export interface RasterForkStageBranchAuthoring {
   readonly side: RasterForkBranchSide;
@@ -140,7 +142,11 @@ export function compileRasterForkStageRoute(source: RasterForkStageRouteAuthorin
     const sourceLocalL = junction.junction.separatedChildCenterL(branch.side);
     const structural = createRasterForkStageSuccessor(structuralSource, {
       sourceLocalL,
-      successor: Object.freeze({ ...branch.successor, roadHalfWidth: childHalfWidth }),
+      successor: Object.freeze({
+        ...branch.successor,
+        groundHalfWidth: childHalfWidth + branch.successor.shoulderWidth,
+        road: { roadLeft: childHalfWidth, roadRight: childHalfWidth, shoulderWidth: branch.successor.shoulderWidth },
+      }),
     });
     if (!(structural.sourceSeamS > source.routeGateS)) {
       throw new RangeError(`Raster fork handoff seam must follow route selection: ${branch.choiceId}`);

@@ -33,8 +33,7 @@ const authoring = {
   dMax: 200,
   groundMapHalfWidth: 12,
   groundHalfWidth: 4.5,
-  roadHalfWidth: 3.5,
-  shoulderWidth: 1,
+  road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
 };
 
 test('Guide sampling stays at the adjacent fillet across roundoff-size joins', () => {

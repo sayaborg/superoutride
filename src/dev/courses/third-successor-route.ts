@@ -1,3 +1,4 @@
+import type { RoadCrossSection } from '../../course/road-cross-section.js';
 import type { GuidePath } from '../../core/guide-curve.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_RENDER_FAR_DEPTH_METERS } from '../../core/presentation-scale.js';
 import { guideChartToWorld, type GuideChart } from '../../gameplay/guide-chart.js';
@@ -27,7 +28,6 @@ import { createSuccessorStagePackages } from './successor-stage-content.js';
 import { createLiveContinuation, type LiveContinuation } from './successor-stage-continuation.js';
 
 const WORLD_FRAME_ID = 'DEV_ROUTE_WORLD_V1';
-const ROAD_HALF_WIDTH = 3.5;
 const THIRD_SOURCE_SEAM_MIN_S = 340;
 const THIRD_OVERLAP_MARGIN = 30;
 const THIRD_TRANSITION_LEAD = 20;
@@ -44,6 +44,7 @@ export function createThirdLiveSuccessorAuthoring(
   parentFork: ParentForkGeometry = PARENT_FORK_GEOMETRY,
 ): DeclarativeLiveRouteAuthoring {
   const continuation = createLiveContinuation(parentGuide, parentFork);
+  const roadHalfWidth = parentFork.junction.authoring.childRoadWidth * 0.5;
   const identity = createChildVisualIdentity();
   const basePackages = createSuccessorStagePackages(
     continuation,
@@ -70,7 +71,7 @@ export function createThirdLiveSuccessorAuthoring(
     sourceStageId: 'STAGE_3_L',
     sourceRuntime: stage3Left,
     sourceStructural: continuation.leftSuccessor,
-    halfWidth: ROAD_HALF_WIDTH,
+    halfWidth: roadHalfWidth,
     finishGateId: 'G_LIVE_FINISH_L',
     steps: [
       {
@@ -79,7 +80,7 @@ export function createThirdLiveSuccessorAuthoring(
         choiceId: 'S3L_CONTINUE',
         gateId: 'G_LIVE_STAGE3_L',
         handoffId: 'H_S3L_CONTINUE',
-        successor: thirdSuccessorAuthoring('LEFT', -1),
+        successor: thirdSuccessorAuthoring('LEFT', -1, continuation.leftSuccessor.roadView.road),
       },
     ],
     createRuntime: (structural, packageId) =>
@@ -102,7 +103,7 @@ export function createThirdLiveSuccessorAuthoring(
     sourceStageId: 'STAGE_3_R',
     sourceRuntime: stage3Right,
     sourceStructural: continuation.rightSuccessor,
-    halfWidth: ROAD_HALF_WIDTH,
+    halfWidth: roadHalfWidth,
     finishGateId: 'G_LIVE_FINISH_R',
     steps: [
       {
@@ -111,7 +112,7 @@ export function createThirdLiveSuccessorAuthoring(
         choiceId: 'S3R_CONTINUE',
         gateId: 'G_LIVE_STAGE3_R',
         handoffId: 'H_S3R_CONTINUE',
-        successor: thirdSuccessorAuthoring('RIGHT', 1),
+        successor: thirdSuccessorAuthoring('RIGHT', 1, continuation.rightSuccessor.roadView.road),
       },
     ],
     createRuntime: (structural, packageId) =>
@@ -159,7 +160,7 @@ export function createThirdLiveSuccessorAuthoring(
         parentFork.routeGateS,
         parentFork.junction.separatedChildCenterL('LEFT'),
       ),
-      ROAD_HALF_WIDTH,
+      roadHalfWidth,
     ),
     handoff: parentHandoffGeometry(continuation, 'H_S1_LEFT', 'LEFT', parentFork),
   };
@@ -174,7 +175,7 @@ export function createThirdLiveSuccessorAuthoring(
         parentFork.routeGateS,
         parentFork.junction.separatedChildCenterL('RIGHT'),
       ),
-      ROAD_HALF_WIDTH,
+      roadHalfWidth,
     ),
     handoff: parentHandoffGeometry(continuation, 'H_S1_RIGHT', 'RIGHT', parentFork),
   };
@@ -236,7 +237,7 @@ export function createThirdLiveSuccessorRuntime(
   );
 }
 
-function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1) {
+function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -1 | 1, road: RoadCrossSection) {
   return {
     id: `${side}_SUCCESSOR_TO_THIRD`,
     chartId: `${side}_THIRD_SUCCESSOR`,
@@ -253,11 +254,10 @@ function thirdSuccessorAuthoring(side: 'LEFT' | 'RIGHT', deformationDirection: -
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundMapHalfWidth: 12,
-    groundHalfWidth: 4.5,
-    roadHalfWidth: ROAD_HALF_WIDTH,
+    groundHalfWidth: road.roadLeft + road.shoulderWidth,
+    road,
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
   } as const;
 }
 
@@ -266,7 +266,11 @@ function sourceTransitionGeometry(
   sourceChart: GuideChart,
   id: string,
 ): DeclarativeGateGeometry {
-  return pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceTransitionS, 0), ROAD_HALF_WIDTH);
+  return pointGeometry(
+    id,
+    guideChartToWorld(sourceChart, successor.sourceTransitionS, 0),
+    successor.roadView.road.roadLeft,
+  );
 }
 
 function sourceHandoffGeometry(
@@ -275,7 +279,7 @@ function sourceHandoffGeometry(
   id: string,
 ): DeclarativeHandoffGeometry {
   return {
-    ...pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceSeamS, 0), ROAD_HALF_WIDTH),
+    ...pointGeometry(id, guideChartToWorld(sourceChart, successor.sourceSeamS, 0), successor.roadView.road.roadLeft),
     sourceSeamS: successor.link.sourceSeamS,
     targetSeamS: successor.link.targetSeamS,
     sourceLocalL: successor.link.sourceLocalL,
@@ -294,7 +298,7 @@ function parentHandoffGeometry(
     ...pointGeometry(
       id,
       guideChartToWorld(continuation.base.charts.parent, parentFork.handoffSeamS, localL),
-      ROAD_HALF_WIDTH,
+      parentFork.junction.authoring.childRoadWidth * 0.5,
     ),
     sourceSeamS: parentFork.handoffSeamS,
     targetSeamS: continuation.base.handoffLocalS,

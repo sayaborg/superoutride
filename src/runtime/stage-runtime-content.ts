@@ -1,3 +1,4 @@
+import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
@@ -15,6 +16,7 @@ import type { TerrainVisualProfile } from '../road/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
 
 const PACKAGE_GEOMETRY_TOLERANCE_METERS = 1e-7;
+const CENTERED_JUNCTION_ORIGIN_TOLERANCE_METERS = 1e-9;
 
 export interface StageRuntimeContentPackage {
   readonly packageId: string;
@@ -25,6 +27,7 @@ export interface StageRuntimeContentPackage {
   readonly heightProfile: HeightProfileReader;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: GroundMapProfile;
+  readonly roadJunction?: Readonly<{ profile: JunctionCrossSectionProfile; chainageOffsetS: number }>;
   readonly selectFarBackground: (cameraS: number) => FarBackground;
   readonly worldSprites: readonly CourseSprite[];
 }
@@ -118,8 +121,21 @@ function validatePackageGeometry(source: StageRuntimeContentPackage): void {
 }
 
 function freezePackage(source: StageRuntimeContentPackage): StageRuntimeContentPackage {
+  const localJunction = source.groundProfile.stageJunction;
+  const junction =
+    localJunction ??
+    (Math.abs(guideCoordinateLateralOrigin(source.coordinateFrame)) <= CENTERED_JUNCTION_ORIGIN_TOLERANCE_METERS
+      ? source.groundProfile.junction
+      : undefined);
+  const roadJunction = junction
+    ? Object.freeze({
+        profile: junction,
+        chainageOffsetS: localJunction ? 0 : (source.groundProfile.chainageOffsetS ?? 0),
+      })
+    : undefined;
   return Object.freeze({
     ...source,
+    roadJunction,
     worldSprites: Object.freeze([...source.worldSprites]),
   });
 }

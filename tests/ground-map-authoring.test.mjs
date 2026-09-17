@@ -9,9 +9,7 @@ import { sampleStageGroundMapAtLevel } from '../dist/groundmap/stage-ground-map-
 const profile = {
   groundLeft: 12,
   groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  shoulderWidth: 1,
+  road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
 };
 
 test('a road without authored paint does not acquire an implicit center dash', () => {
@@ -120,10 +118,16 @@ test('current browser course and successor paint matches the immutable reference
           if (l < -view.groundLeft || l > view.groundRight) continue;
           assert.equal(
             sampleStageGroundMapAtLevel(s, l, 0, view, ground),
-            referenceStage.sampleStageGroundMapAtLevel(s, l, 0, view, ground),
+            referenceStage.sampleStageGroundMapAtLevel(
+              s,
+              l,
+              0,
+              { ...view, ...view.road },
+              { ...ground, ...ground.road },
+            ),
           );
         } else {
-          assert.equal(sampleGroundMap(s, l, ground), reference.sampleGroundMap(s, l, ground));
+          assert.equal(sampleGroundMap(s, l, ground), reference.sampleGroundMap(s, l, { ...ground, ...ground.road }));
         }
       }
     }

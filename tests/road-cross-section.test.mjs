@@ -8,7 +8,7 @@ import { SurfaceMap } from '../dist/physics/surface-map.js';
 
 function scene(road) {
   const geometry = compileRoadCrossSection(road);
-  const ground = { ...geometry, groundLeft: 12, groundRight: 12 };
+  const ground = { road: geometry, groundLeft: 12, groundRight: 12 };
   const surface = new SurfaceMap(100, [
     {
       sStart: 0,
@@ -79,4 +79,45 @@ test('compiled geometry freezes authored dimensions and rejects invalid domains 
     () => roadSurfaceBands(compiled, { left: 2, right: 8, leftType: 'DIRT', rightType: 'GRASS' }),
     RangeError,
   );
+});
+
+test('stage-local geometry shares road dimensions without changing edge priority or outside semantics', async () => {
+  const { createStageRoadView, classifyStageRoadLocalL } = await import('../dist/course/stage-road-view.js');
+  const { sampleStageGroundMapAtLevel } = await import('../dist/groundmap/stage-ground-map-view.js');
+  const { StageSurfaceMapView } = await import('../dist/physics/stage-surface-map-view.js');
+  for (const width of [2, 4]) {
+    const road = compileRoadCrossSection({ roadLeft: width, roadRight: width + 1, shoulderWidth: 1 });
+    const view = createStageRoadView({
+      id: 'shifted',
+      sourceLateralOrigin: 6,
+      road,
+      groundLeft: width + 2,
+      groundRight: width + 3,
+    });
+    const bands = roadSurfaceBands(road, {
+      left: view.groundLeft,
+      right: view.groundRight,
+      leftType: 'DIRT',
+      rightType: 'SAND',
+    });
+    const physical = new StageSurfaceMapView(
+      new SurfaceMap(100, [
+        { sStart: 0, name: 'road', bands: bands.map((b) => ({ ...b, lMin: b.lMin + 6, lMax: b.lMax + 6 })) },
+      ]),
+      view,
+    );
+    const ground = { road, groundLeft: 20, groundRight: 20, roadCenterL: 6 };
+    assert.equal(classifyStageRoadLocalL(view, -width), 'ROAD');
+    assert.equal(physical.sample(10, -width).type, 'SHOULDER');
+    assert.equal(classifyStageRoadLocalL(view, width + 1), 'ROAD');
+    assert.equal(physical.sample(10, width + 1).type, 'ASPHALT');
+    assert.equal(sampleStageGroundMapAtLevel(10, -width - 0.5, 0, view, ground), GROUND_COLORS.shoulder);
+    assert.equal(physical.sample(10, -width - 0.5).type, 'SHOULDER');
+    assert.equal(classifyStageRoadLocalL(view, -width - 1.5), 'TERRAIN');
+    assert.equal(physical.sample(10, -width - 1.5).type, 'DIRT');
+    assert.equal(classifyStageRoadLocalL(view, -width - 2.001), 'OUTSIDE');
+    assert.equal(physical.sample(10, -width - 2.001).type, 'VOID');
+    assert.equal(classifyStageRoadLocalL(view, -width - 0.5e-9), 'ROAD');
+    assert.equal(classifyStageRoadLocalL(view, -width - 2e-8), 'SHOULDER');
+  }
 });

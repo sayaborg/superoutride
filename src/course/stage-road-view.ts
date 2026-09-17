@@ -1,3 +1,4 @@
+import { classifyRoadCrossSection, compileRoadCrossSection, type RoadCrossSection } from './road-cross-section.js';
 import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from '../core/raster-path.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 
@@ -15,36 +16,21 @@ export interface StageRoadView {
   readonly sourceLateralOrigin: number;
   readonly groundLeft: number;
   readonly groundRight: number;
-  readonly roadLeft: number;
-  readonly roadRight: number;
-  readonly shoulderWidth: number;
+  readonly road: RoadCrossSection;
 }
 
 export function createStageRoadView(source: StageRoadView): StageRoadView {
   if (source.id.trim().length === 0) throw new RangeError('stage road view id must not be empty');
-  const values = [
-    source.sourceLateralOrigin,
-    source.groundLeft,
-    source.groundRight,
-    source.roadLeft,
-    source.roadRight,
-    source.shoulderWidth,
-  ];
-  if (!values.every(Number.isFinite)) throw new RangeError('stage road view geometry must be finite');
-  if (!(source.groundLeft > 0 && source.groundRight > 0)) {
+  const road = compileRoadCrossSection(source.road);
+  if (![source.sourceLateralOrigin, source.groundLeft, source.groundRight].every(Number.isFinite))
+    throw new RangeError('stage road view geometry must be finite');
+  if (!(source.groundLeft > 0 && source.groundRight > 0))
     throw new RangeError('stage road view ground envelope must be positive');
-  }
-  if (!(source.roadLeft > 0 && source.roadRight > 0)) {
-    throw new RangeError('stage road view road envelope must be positive');
-  }
-  if (!(source.shoulderWidth >= 0)) throw new RangeError('stage road view shoulderWidth must be >= 0');
-  if (source.roadLeft + source.shoulderWidth > source.groundLeft + LATERAL_BOUNDARY_TOLERANCE_METERS) {
+  if (road.roadLeft + road.shoulderWidth > source.groundLeft + LATERAL_BOUNDARY_TOLERANCE_METERS)
     throw new RangeError('left road + shoulder must fit inside stage ground envelope');
-  }
-  if (source.roadRight + source.shoulderWidth > source.groundRight + LATERAL_BOUNDARY_TOLERANCE_METERS) {
+  if (road.roadRight + road.shoulderWidth > source.groundRight + LATERAL_BOUNDARY_TOLERANCE_METERS)
     throw new RangeError('right road + shoulder must fit inside stage ground envelope');
-  }
-  return Object.freeze({ ...source });
+  return Object.freeze({ ...source, road });
 }
 
 /** Convert stage-local l to the shared parent-authored source l. */
@@ -68,20 +54,8 @@ export function classifyStageRoadLocalL(view: StageRoadView, localL: number): St
     localL > view.groundRight + LATERAL_BOUNDARY_TOLERANCE_METERS
   )
     return 'OUTSIDE';
-  if (
-    localL >= -view.roadLeft - LATERAL_BOUNDARY_TOLERANCE_METERS &&
-    localL <= view.roadRight + LATERAL_BOUNDARY_TOLERANCE_METERS
-  )
-    return 'ROAD';
-
-  const inLeftShoulder =
-    localL >= -view.roadLeft - view.shoulderWidth - LATERAL_BOUNDARY_TOLERANCE_METERS &&
-    localL < -view.roadLeft + LATERAL_BOUNDARY_TOLERANCE_METERS;
-  const inRightShoulder =
-    localL > view.roadRight - LATERAL_BOUNDARY_TOLERANCE_METERS &&
-    localL <= view.roadRight + view.shoulderWidth + LATERAL_BOUNDARY_TOLERANCE_METERS;
-  if (inLeftShoulder || inRightShoulder) return 'SHOULDER';
-  return 'TERRAIN';
+  const lateralClass = classifyRoadCrossSection(view.road, localL, LATERAL_BOUNDARY_TOLERANCE_METERS);
+  return lateralClass === 'OUTSIDE' ? 'TERRAIN' : lateralClass;
 }
 
 /**

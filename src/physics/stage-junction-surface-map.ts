@@ -2,7 +2,13 @@ import { openProfileChainage } from '../core/open-profile.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 import { classifyStageRoadLocalL, type StageRoadView } from '../course/stage-road-view.js';
-import { SURFACE_MATERIALS, type SurfaceMapReader, type SurfaceSample, type SurfaceType } from './surface-map.js';
+import {
+  junctionSurfaceType,
+  SURFACE_MATERIALS,
+  type SurfaceMapReader,
+  type SurfaceSample,
+  type SurfaceType,
+} from './surface-map.js';
 
 export type StageJunctionOuterSurfaceType = Extract<SurfaceType, 'GRASS' | 'DIRT' | 'SAND' | 'VOID'>;
 
@@ -42,10 +48,9 @@ export class StageJunctionSurfaceMap implements SurfaceMapReader {
     }
 
     const junctionClass = this.junction.classify(local, localL);
-    if (junctionClass === 'ASPHALT_SINGLE' || junctionClass === 'ASPHALT_LEFT' || junctionClass === 'ASPHALT_RIGHT')
-      return sample('ASPHALT', `${this.sectionName} / JUNCTION`);
-    if (junctionClass === 'SHOULDER') return sample('SHOULDER', `${this.sectionName} / JUNCTION`);
-    if (junctionClass === 'MEDIAN') return sample('GRASS', `${this.sectionName} / JUNCTION MEDIAN`);
+    const type = junctionSurfaceType(junctionClass);
+    if (type !== null)
+      return sample(type, `${this.sectionName} / ${junctionClass === 'MEDIAN' ? 'JUNCTION MEDIAN' : 'JUNCTION'}`);
     return sample(this.outerSurfaceType, `${this.sectionName} / TERRAIN`);
   }
 }

@@ -35,9 +35,9 @@ function setup() {
 test('child stage view contains exactly one 7m road plus 1m shoulder on each side', () => {
   const { views } = setup();
   for (const child of [views.left, views.right]) {
-    assert.equal(child.roadLeft, 3.5);
-    assert.equal(child.roadRight, 3.5);
-    assert.equal(child.shoulderWidth, 1);
+    assert.equal(child.road.roadLeft, 3.5);
+    assert.equal(child.road.roadRight, 3.5);
+    assert.equal(child.road.shoulderWidth, 1);
     assert.equal(child.groundLeft, 4.5);
     assert.equal(child.groundRight, 4.5);
     assert.equal(classifyStageRoadLocalL(child, 0), 'ROAD');

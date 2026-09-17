@@ -24,7 +24,8 @@ export interface LongitudinalRoadMarking {
   readonly phaseS?: number;
 }
 
-export interface GroundMapProfile extends RoadCrossSection {
+export interface GroundMapProfile {
+  readonly road: RoadCrossSection;
   groundLeft: number;
   groundRight: number;
   /** Explicit longitudinal paint. Omission means no paint. */
@@ -56,9 +57,9 @@ export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile)
     const roadCenterL = profile.roadCenterL ?? 0;
     const localL = l - roadCenterL;
     if (sampleRoadMarking(sourceS, localL, profile.roadMarkings)) return GROUND_COLORS.marking;
-    const lateralClass = classifyRoadCrossSection(profile, localL);
-    if (lateralClass === 'ROAD') return asphaltColor(sourceS);
-    if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
+    const lateralClass = classifyRoadCrossSection(profile.road, localL);
+    const color = sampleRoadRegionColor(lateralClass, sourceS, l);
+    if (color !== null) return color;
   }
 
   const logical = profile.logical?.sample(sourceS);
@@ -77,21 +78,17 @@ export function sampleJunctionGroundMap(
   markings: readonly LongitudinalRoadMarking[] | undefined,
   patternS = junctionS,
 ): number | null {
-  const checker = checkerAt(patternS, l);
   const lateralClass = junction.classify(junctionS, l);
 
-  if (lateralClass === 'MEDIAN') return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
-  if (lateralClass === 'SHOULDER') return GROUND_COLORS.shoulder;
   if (lateralClass === 'ASPHALT_SINGLE' || lateralClass === 'ASPHALT_LEFT' || lateralClass === 'ASPHALT_RIGHT') {
     const center =
       lateralClass === 'ASPHALT_SINGLE'
         ? 0
         : junction.childCenterLAt(junctionS, lateralClass === 'ASPHALT_LEFT' ? 'LEFT' : 'RIGHT');
     if (center !== null && sampleRoadMarking(patternS, l - center, markings)) return GROUND_COLORS.marking;
-    return asphaltColor(patternS);
   }
 
-  return null;
+  return sampleRoadRegionColor(lateralClass, patternS, l);
 }
 
 function checkerAt(s: number, l: number): number {
@@ -139,4 +136,17 @@ function sampleOuterMaterial(section: GroundMapLogicalSection, l: number, checke
   const material = l < 0 ? section.left : section.right;
   if (material === 'ROCK') return checker ? GROUND_COLORS.rockA : GROUND_COLORS.rockB;
   return checker ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
+}
+
+/** Geometry-to-paint mapping, shared by source and stage-local samplers. */
+export function sampleRoadRegionColor(
+  region: ReturnType<typeof classifyRoadCrossSection> | ReturnType<JunctionCrossSectionProfile['classify']>,
+  s: number,
+  l: number,
+): number | null {
+  if (region === 'SHOULDER') return GROUND_COLORS.shoulder;
+  if (region === 'MEDIAN') return checkerAt(s, l) ? GROUND_COLORS.grassA : GROUND_COLORS.grassB;
+  if (region === 'ROAD' || region === 'ASPHALT_SINGLE' || region === 'ASPHALT_LEFT' || region === 'ASPHALT_RIGHT')
+    return asphaltColor(s);
+  return null;
 }

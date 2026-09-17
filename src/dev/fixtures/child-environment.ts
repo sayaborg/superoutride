@@ -57,7 +57,11 @@ function createCoastEnvironment(source: ChildStageRuntimeSource, assets: SpriteA
       groundBaseRight: { kind: 'color', color: rgba(72, 126, 69) },
     },
   ]);
-  const terrainProfile = createTerrainVisualProfile(source.groundProfile, heightProfile, visual);
+  const terrainProfile = createTerrainVisualProfile(
+    { ...source.groundProfile, ...source.groundProfile.road },
+    heightProfile,
+    visual,
+  );
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
     { name: 'COAST_SIGN_1', s: 82, l: origin + 5.2, asset: assets.sign },
@@ -92,7 +96,11 @@ function createMountainEnvironment(source: ChildStageRuntimeSource, assets: Spri
       groundBaseRight: { kind: 'color', color: rgba(58, 82, 52) },
     },
   ]);
-  const terrainProfile = createTerrainVisualProfile(source.groundProfile, heightProfile, visual);
+  const terrainProfile = createTerrainVisualProfile(
+    { ...source.groundProfile, ...source.groundProfile.road },
+    heightProfile,
+    visual,
+  );
   const origin = source.roadView.sourceLateralOrigin;
   const authoring: CourseSpriteAuthoring[] = [
     { name: 'MOUNTAIN_TREE_1', s: 78, l: origin - 5.3, asset: assets.tree },

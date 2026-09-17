@@ -1,4 +1,4 @@
-import { guideCoordinateLateralOrigin, locateWorldOnGuideCoordinateGlobal } from '../core/guide-coordinate-frame.js';
+import { locateWorldOnGuideCoordinateGlobal } from '../core/guide-coordinate-frame.js';
 import type { Vec2 } from '../core/math.js';
 import type { JunctionSide } from '../course/junction-cross-section.js';
 import { observeRouteBoundaryCrossing } from '../gameplay/route-boundary-gates.js';
@@ -208,15 +208,10 @@ export function sampleLiveRouteChoiceTargetL(
   const finalTargetL = gateCoordinate.l;
   if (Math.abs(finalTargetL) <= LATERAL_INTENT_TOLERANCE_METERS) return 0;
 
-  const stageJunction = runtime.groundProfile.stageJunction;
-  const sourceJunction =
-    Math.abs(guideCoordinateLateralOrigin(runtime.coordinateFrame)) <= LATERAL_INTENT_TOLERANCE_METERS
-      ? runtime.groundProfile.junction
-      : undefined;
-  const junction = stageJunction ?? sourceJunction;
-  if (!junction) return finalTargetL;
-
-  const junctionS = stageJunction === junction ? s : s + (runtime.groundProfile.chainageOffsetS ?? 0);
+  const roadJunction = runtime.roadJunction;
+  if (!roadJunction) return finalTargetL;
+  const junction = roadJunction.profile;
+  const junctionS = s + roadJunction.chainageOffsetS;
   const side: JunctionSide = finalTargetL < 0 ? 'LEFT' : 'RIGHT';
   const sign = side === 'LEFT' ? -1 : 1;
   const authoring = junction.authoring;

@@ -20,8 +20,8 @@ export function applyStageRoadViewToTerrainLine(
 ): TerrainLine | null {
   const groundLeft = stageRoadToWorld(guide.raster, view, line.s, -view.groundLeft);
   const groundRight = stageRoadToWorld(guide.raster, view, line.s, view.groundRight);
-  const roadLeft = stageRoadToWorld(guide.raster, view, line.s, -view.roadLeft);
-  const roadRight = stageRoadToWorld(guide.raster, view, line.s, view.roadRight);
+  const roadLeft = stageRoadToWorld(guide.raster, view, line.s, -view.road.roadLeft);
+  const roadRight = stageRoadToWorld(guide.raster, view, line.s, view.road.roadRight);
 
   const projectedGroundLeft = pseudoProject({ ...groundLeft, y: line.renderHeight }, camera);
   const projectedGroundRight = pseudoProject({ ...groundRight, y: line.renderHeight }, camera);

@@ -70,7 +70,11 @@ export function createLinearHighwayRuntime(): LinearHighwayRuntime {
   const surfaceMap = createHighwaySurfaceMap(guide.length);
   validateSurfaceGuideEnvelope(guide, surfaceMap);
   const groundProfile = createHighwayGroundProfile();
-  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
+  const terrainProfile = createTerrainVisualProfile(
+    { ...groundProfile, ...groundProfile.road },
+    heightProfile,
+    visualProfile,
+  );
 
   return Object.freeze({
     guide,

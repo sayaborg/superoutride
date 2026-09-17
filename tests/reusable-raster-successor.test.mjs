@@ -28,10 +28,9 @@ function authoring(side) {
     dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     groundMapHalfWidth: 12,
     groundHalfWidth: 4.5,
-    roadHalfWidth: 3.5,
+    road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
   };
 }
 

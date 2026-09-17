@@ -137,8 +137,8 @@ test('derives child centers and gate width from the stage-local junction authori
     assert.equal(entry.transition.gate.halfWidth, 3.5);
     assert.equal(entry.transition.handoff.halfWidth, 3.5);
     assert.equal(entry.finish.gate.halfWidth, 3.5);
-    assert.equal(entry.structural.roadView.roadLeft, 3.5);
-    assert.equal(entry.structural.roadView.roadRight, 3.5);
+    assert.equal(entry.structural.roadView.road.roadLeft, 3.5);
+    assert.equal(entry.structural.roadView.road.roadRight, 3.5);
     const expected = guideChartToWorld(compiled.forkRuntime.coordinateFrame, 195, entry.sourceLocalL);
     near(entry.transition.gate.center.x, expected.x, 1e-7);
     near(entry.transition.gate.center.z, expected.z, 1e-7);

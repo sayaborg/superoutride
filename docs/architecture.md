@@ -138,11 +138,15 @@ Live envelope checks and `createSpriteAsset` validate consumed content. Sprite c
 
 ## Ground authoring boundaries
 
-`RoadCrossSection` is the single authored road/shoulder geometry for ordinary roads and the incoming
-section of a junction. Production highway and circuit authoring feeds the same compiled dimensions
-to GroundMap/terrain and `roadSurfaceBands`; branching highways also pass them to
-`JunctionCrossSectionProfile.parent`. Junctions currently require symmetric incoming road widths.
-Stage-local and successor authoring still own separate dimensions; their migration to the shared cross-section is the next cleanup task.
+`RoadCrossSection` owns ordinary road/shoulder dimensions. GroundMap profiles and stage road views
+hold this geometry rather than independently authored width fields. Junctions retain a compiled
+incoming cross-section and derive their outgoing road widths. Stage compilers derive terrain widths
+and physical bands from the same geometry; terrain's flat numeric dimensions are compiled output.
+The child-stage content currently explicitly uses 1 m shoulders, independently of the highway
+parent's 1.5 m shoulders. Changing this content difference or boundary priority requires a separate
+behavioral revision. Display extents and physical support extents remain separate inputs.
+Stage registration exposes the applicable junction geometry and its chainage transform to route
+intent; the runtime route tick does not inspect GroundMap paint or storage data.
 
 Geometry does not own paint, grip or support. GroundMap materials, GroundBase sections and physical
 surface sections retain independent ordered change points, compiled by their native profile types.

@@ -119,7 +119,7 @@ export class SurfaceMap implements SurfaceMapReader {
   }
 }
 
-function junctionSurfaceType(
+export function junctionSurfaceType(
   lateralClass: ReturnType<JunctionCrossSectionProfile['classify']>,
 ): Exclude<SurfaceType, 'VOID'> | null {
   if (lateralClass === 'ASPHALT_SINGLE' || lateralClass === 'ASPHALT_LEFT' || lateralClass === 'ASPHALT_RIGHT')

@@ -73,7 +73,7 @@ export function createHighwayGroundProfile(): GroundMapProfile {
   return {
     groundLeft: HIGHWAY_GROUND_HALF_WIDTH_METERS,
     groundRight: HIGHWAY_GROUND_HALF_WIDTH_METERS,
-    ...HIGHWAY_ROAD_CROSS_SECTION,
+    road: HIGHWAY_ROAD_CROSS_SECTION,
     roadMarkings: HIGHWAY_MARKINGS,
   };
 }

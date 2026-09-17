@@ -21,9 +21,8 @@ const background = createFarBackground(),
 const ground = {
   groundLeft: 12,
   groundRight: 12,
-  roadLeft: 4.5,
-  roadRight: 4.5,
-  shoulderWidth: 1,
+  road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
   roadMarkings: [{ centerL: 0, width: 0.14, pattern: 'DASHED', dashLength: 7, gapLength: 5 }],
 };
 const terrain = { ...ground, screenHeight: 240, dMin: 2.5, dMax: 150, height, visual };

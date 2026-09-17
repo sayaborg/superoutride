@@ -1,3 +1,5 @@
+import { compileRoadCrossSection, type RoadCrossSection } from '../../course/road-cross-section.js';
+import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { compileGuidePath, guidePathToWorld, type GuidePath } from '../../core/guide-curve.js';
 import { HeightProfile } from '../../core/height-profile.js';
@@ -21,7 +23,7 @@ import {
 import { rgba } from '../../graphics/software-surface.js';
 import type { GroundMapProfile } from '../../groundmap/ground-map.js';
 import { StageSurfaceMapView } from '../../physics/stage-surface-map-view.js';
-import { SurfaceMap, type SurfaceBand } from '../../physics/surface-map.js';
+import { SurfaceMap } from '../../physics/surface-map.js';
 import type { TerrainVisualProfile } from '../../road/terrain-line.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
 import { STADIUM_HANDOFF_SEAM_S } from './stadium-handoff.js';
@@ -34,8 +36,6 @@ export const CHILD_FINISH_S = 250;
 const CHILD_OVERLAP_BEHIND_METERS = 10;
 const CHILD_OVERLAP_AHEAD_METERS = 60;
 
-const CHILD_GROUND_HALF_WIDTH = 4.5;
-const CHILD_ROAD_HALF_WIDTH = 3.5;
 const CHILD_SHOULDER_WIDTH = 1;
 
 interface StageGuideCharts {
@@ -112,8 +112,13 @@ export function createChildStageContinuation(
     right: createGuideChart('RIGHT_CHILD', rightGuide, rightOrigin),
   });
 
-  const left = createChildRuntimeSource(leftGuide, charts.left, 'LEFT', leftOrigin, parentSourceStartS);
-  const right = createChildRuntimeSource(rightGuide, charts.right, 'RIGHT', rightOrigin, parentSourceStartS);
+  const road = compileRoadCrossSection({
+    roadLeft: fork.junction.authoring.childRoadWidth * 0.5,
+    roadRight: fork.junction.authoring.childRoadWidth * 0.5,
+    shoulderWidth: CHILD_SHOULDER_WIDTH,
+  });
+  const left = createChildRuntimeSource(leftGuide, charts.left, 'LEFT', leftOrigin, parentSourceStartS, road);
+  const right = createChildRuntimeSource(rightGuide, charts.right, 'RIGHT', rightOrigin, parentSourceStartS, road);
   const handoffLocalS = fork.handoffSeamS - parentSourceStartS;
 
   return Object.freeze({ charts, left, right, parentSourceStartS, handoffLocalS });
@@ -152,8 +157,8 @@ export function createLivePointToPointGateSet(
   return compileRouteBoundaryGateSet(route, [
     transitionGate(parentGuide, 'G_LIVE_LEFT', 'S1_LEFT', 'LEFT', fork),
     transitionGate(parentGuide, 'G_LIVE_RIGHT', 'S1_RIGHT', 'RIGHT', fork),
-    childFinishGate('G_LIVE_FINISH_L', 'GOAL_L', continuation.charts.left),
-    childFinishGate('G_LIVE_FINISH_R', 'GOAL_R', continuation.charts.right),
+    childFinishGate('G_LIVE_FINISH_L', 'GOAL_L', continuation.charts.left, continuation.left.roadView.road.roadLeft),
+    childFinishGate('G_LIVE_FINISH_R', 'GOAL_R', continuation.charts.right, continuation.right.roadView.road.roadRight),
   ]);
 }
 
@@ -200,21 +205,26 @@ function createChildRuntimeSource(
   side: 'LEFT' | 'RIGHT',
   sourceLateralOrigin: number,
   chainageOffsetS: number,
+  road: RoadCrossSection,
 ): ChildStageRuntimeSource {
+  const groundHalfWidth = road.roadLeft + road.shoulderWidth;
   const roadView = createStageRoadView({
     id: `${side}_CHILD_CONTINUATION_VIEW`,
     sourceLateralOrigin,
-    groundLeft: CHILD_GROUND_HALF_WIDTH,
-    groundRight: CHILD_GROUND_HALF_WIDTH,
-    roadLeft: CHILD_ROAD_HALF_WIDTH,
-    roadRight: CHILD_ROAD_HALF_WIDTH,
-    shoulderWidth: CHILD_SHOULDER_WIDTH,
+    groundLeft: groundHalfWidth,
+    groundRight: groundHalfWidth,
+    road,
   });
   const sourceSurfaceMap = new SurfaceMap(guide.length, [
     {
       sStart: 0,
       name: `${side}_CHILD_STAGE`,
-      bands: childSurfaceBands(sourceLateralOrigin),
+      bands: roadSurfaceBands(road, {
+        left: groundHalfWidth,
+        right: groundHalfWidth,
+        leftType: 'SHOULDER',
+        rightType: 'SHOULDER',
+      }).map((band) => ({ ...band, lMin: sourceLateralOrigin + band.lMin, lMax: sourceLateralOrigin + band.lMax })),
     },
   ]);
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
@@ -234,15 +244,19 @@ function createChildRuntimeSource(
   const groundProfile: GroundMapProfile = {
     groundLeft: 12,
     groundRight: 12,
-    roadLeft: CHILD_ROAD_HALF_WIDTH,
-    roadRight: CHILD_ROAD_HALF_WIDTH,
+    road,
+
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: CHILD_SHOULDER_WIDTH,
+
     roadCenterL: sourceLateralOrigin,
     chainageOffsetS,
   };
-  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
+  const terrainProfile = createTerrainVisualProfile(
+    { ...groundProfile, ...groundProfile.road },
+    heightProfile,
+    visualProfile,
+  );
 
   return Object.freeze({
     guide,
@@ -253,14 +267,6 @@ function createChildRuntimeSource(
     terrainProfile,
     groundProfile,
   });
-}
-
-function childSurfaceBands(origin: number): SurfaceBand[] {
-  return [
-    { lMin: origin - CHILD_GROUND_HALF_WIDTH, lMax: origin - CHILD_ROAD_HALF_WIDTH, type: 'SHOULDER' },
-    { lMin: origin - CHILD_ROAD_HALF_WIDTH, lMax: origin + CHILD_ROAD_HALF_WIDTH, type: 'ASPHALT' },
-    { lMin: origin + CHILD_ROAD_HALF_WIDTH, lMax: origin + CHILD_GROUND_HALF_WIDTH, type: 'SHOULDER' },
-  ];
 }
 
 function handoffSeam(
@@ -306,7 +312,12 @@ function transitionGate(
   };
 }
 
-function childFinishGate(id: string, stageId: string, chart: GuideChart): RouteBoundaryGateAuthoring {
+function childFinishGate(
+  id: string,
+  stageId: string,
+  chart: GuideChart,
+  halfWidth: number,
+): RouteBoundaryGateAuthoring {
   const point = guideChartToWorld(chart, CHILD_FINISH_S, 0);
   return {
     id,
@@ -314,7 +325,7 @@ function childFinishGate(id: string, stageId: string, chart: GuideChart): RouteB
     stageId,
     center: { x: point.x, z: point.z },
     heading: point.heading,
-    halfWidth: CHILD_ROAD_HALF_WIDTH,
+    halfWidth,
   };
 }
 

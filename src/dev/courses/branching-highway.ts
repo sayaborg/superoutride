@@ -88,7 +88,11 @@ export function createDefaultBranchingParent(): DefaultBranchingParent {
     junction: BRANCHING_DEFAULT_BRANCHING_JUNCTION,
     junctionMarkings: CENTER_DASH_MARKINGS,
   };
-  const terrainProfile = createTerrainVisualProfile(groundProfile, heightProfile, visualProfile);
+  const terrainProfile = createTerrainVisualProfile(
+    { ...groundProfile, ...groundProfile.road },
+    heightProfile,
+    visualProfile,
+  );
 
   return Object.freeze({
     guide,

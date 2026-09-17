@@ -1,3 +1,5 @@
+import { compileRoadCrossSection, type RoadCrossSection } from '../course/road-cross-section.js';
+import { roadSurfaceBands } from '../physics/road-surface-bands.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
 import { normalFromHeading } from '../core/math.js';
 import { compileRasterPath, type RasterVertex } from '../core/raster-path.js';
@@ -6,7 +8,7 @@ import type { GuideChart } from '../gameplay/guide-chart.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
 import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { StageSurfaceMapView } from '../physics/stage-surface-map-view.js';
-import { SurfaceMap, type SurfaceBand } from '../physics/surface-map.js';
+import { SurfaceMap } from '../physics/surface-map.js';
 import { compileStageContinuationLink, type StageContinuationLink } from './stage-continuation-link.js';
 
 const RUNOUT_TURN_TOLERANCE_DEGREES = 1e-9;
@@ -35,8 +37,7 @@ export interface RasterSuccessorAuthoring {
   readonly dMax: number;
   readonly groundMapHalfWidth: number;
   readonly groundHalfWidth: number;
-  readonly roadHalfWidth: number;
-  readonly shoulderWidth: number;
+  readonly road: RoadCrossSection;
   readonly roadMarkings?: GroundMapProfile['roadMarkings'];
   readonly junctionMarkings?: GroundMapProfile['junctionMarkings'];
 }
@@ -72,6 +73,7 @@ export function createRasterStageSuccessor(
   authoring: RasterSuccessorAuthoring,
 ): RasterSuccessorRuntimeSource {
   assertAuthoring(authoring);
+  const road = compileRoadCrossSection(authoring.road);
   const raster = source.guide.raster;
   const seamIndex = raster.vertexS.findIndex((s) => s >= authoring.sourceSeamMinS);
   if (seamIndex < 0) throw new RangeError(`${authoring.id} source is too short for successor seam`);
@@ -146,15 +148,18 @@ export function createRasterStageSuccessor(
     sourceLateralOrigin: origin,
     groundLeft: authoring.groundHalfWidth,
     groundRight: authoring.groundHalfWidth,
-    roadLeft: authoring.roadHalfWidth,
-    roadRight: authoring.roadHalfWidth,
-    shoulderWidth: authoring.shoulderWidth,
+    road,
   });
   const sourceSurfaceMap = new SurfaceMap(guide.length, [
     {
       sStart: 0,
       name: authoring.surfaceSectionName,
-      bands: singleRoadSurfaceBands(origin, authoring),
+      bands: roadSurfaceBands(road, {
+        left: authoring.groundHalfWidth,
+        right: authoring.groundHalfWidth,
+        leftType: 'SHOULDER',
+        rightType: 'SHOULDER',
+      }).map((band) => ({ ...band, lMin: origin + band.lMin, lMax: origin + band.lMax })),
     },
   ]);
   const surfaceMap = new StageSurfaceMapView(sourceSurfaceMap, roadView);
@@ -162,9 +167,7 @@ export function createRasterStageSuccessor(
   const groundProfile: GroundMapProfile = {
     groundLeft: authoring.groundMapHalfWidth,
     groundRight: authoring.groundMapHalfWidth,
-    roadLeft: authoring.roadHalfWidth,
-    roadRight: authoring.roadHalfWidth,
-    shoulderWidth: authoring.shoulderWidth,
+    road,
     roadMarkings: authoring.roadMarkings,
     junctionMarkings: authoring.junctionMarkings,
     roadCenterL: origin,
@@ -228,10 +231,9 @@ function assertAuthoring(authoring: RasterSuccessorAuthoring): void {
     throw new RangeError('successor depth envelope is invalid');
   if (!(authoring.groundMapHalfWidth >= authoring.groundHalfWidth))
     throw new RangeError('successor GroundMap must cover the local ground span');
-  if (!(authoring.groundHalfWidth > authoring.roadHalfWidth))
+  if (!(authoring.groundHalfWidth > Math.max(authoring.road.roadLeft, authoring.road.roadRight)))
     throw new RangeError('successor ground must extend beyond road');
-  if (!(authoring.roadHalfWidth > 0 && authoring.shoulderWidth >= 0))
-    throw new RangeError('successor road dimensions are invalid');
+  compileRoadCrossSection(authoring.road);
 }
 
 function buildOpenRunout(
@@ -277,14 +279,6 @@ function buildStraightRunout(
     });
   }
   return vertices;
-}
-
-function singleRoadSurfaceBands(origin: number, authoring: RasterSuccessorAuthoring): SurfaceBand[] {
-  return [
-    { lMin: origin - authoring.groundHalfWidth, lMax: origin - authoring.roadHalfWidth, type: 'SHOULDER' },
-    { lMin: origin - authoring.roadHalfWidth, lMax: origin + authoring.roadHalfWidth, type: 'ASPHALT' },
-    { lMin: origin + authoring.roadHalfWidth, lMax: origin + authoring.groundHalfWidth, type: 'SHOULDER' },
-  ];
 }
 
 function findLastVertexAtOrBefore(values: readonly number[], target: number): number {

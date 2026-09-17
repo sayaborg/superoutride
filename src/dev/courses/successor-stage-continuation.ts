@@ -11,10 +11,7 @@ import {
 } from './child-stage-continuation.js';
 import { CENTER_DASH_MARKINGS } from './road-markings.js';
 
-const ROAD_HALF_WIDTH = 3.5;
-const GROUND_HALF_WIDTH = 4.5;
 const GROUND_MAP_HALF_WIDTH = 12;
-const SHOULDER_WIDTH = 1;
 const SUCCESSOR_SOURCE_SEAM_MIN_S = 340;
 const SUCCESSOR_OVERLAP_MARGIN = 30;
 const SUCCESSOR_TRANSITION_LEAD = 20;
@@ -67,11 +64,10 @@ function createSuccessorSource(source: ChildStageRuntimeSource, side: 'LEFT' | '
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
     dMax: SUCCESSOR_D_MAX,
     groundMapHalfWidth: GROUND_MAP_HALF_WIDTH,
-    groundHalfWidth: GROUND_HALF_WIDTH,
-    roadHalfWidth: ROAD_HALF_WIDTH,
+    groundHalfWidth: source.roadView.groundLeft,
+    road: source.roadView.road,
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: SHOULDER_WIDTH,
   });
   if (!(successor.sourceTransitionS > 300)) {
     throw new Error(`${side} transition must occur after child terrain settles`);

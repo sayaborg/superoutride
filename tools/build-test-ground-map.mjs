@@ -27,7 +27,7 @@ const compiledSurfaces = createStadiumEnvironment(guide.length);
 const groundProfile = {
   groundLeft: 12,
   groundRight: 12,
-  ...STADIUM_ROAD_CROSS_SECTION,
+  road: STADIUM_ROAD_CROSS_SECTION,
   roadMarkings: CENTER_DASH_MARKINGS,
   junctionMarkings: CENTER_DASH_MARKINGS,
   junction: STADIUM_JUNCTION,

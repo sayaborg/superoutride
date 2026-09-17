@@ -32,11 +32,10 @@ export function createStadiumScene() {
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
+    road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
   };
   const terrainProfile = {
     screenHeight: 240,
@@ -44,8 +43,8 @@ export function createStadiumScene() {
     dMax: 150,
     groundLeft: groundProfile.groundLeft,
     groundRight: groundProfile.groundRight,
-    roadLeft: groundProfile.roadLeft,
-    roadRight: groundProfile.roadRight,
+    roadLeft: groundProfile.road.roadLeft,
+    roadRight: groundProfile.road.roadRight,
     height,
     visual,
   };

@@ -67,15 +67,19 @@ test('logical GroundMap owns an open interval', () => {
 
 test('stage compiler explicitly extends authored final height to the open Guide endpoint', () => {
   const guide = createStadiumGuide();
-  const environment = compileStageEnvironment(guide, {
-    terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
-    heightNodes: [
-      { s: 0, y: 0 },
-      { s: 60, y: 3 },
-    ],
-    visualSections: [visualSections[0]],
-    farBackground: null,
-  });
+  const environment = compileStageEnvironment(
+    guide,
+    {
+      terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
+      heightNodes: [
+        { s: 0, y: 0 },
+        { s: 60, y: 3 },
+      ],
+      visualSections: [visualSections[0]],
+      farBackground: null,
+    },
+    { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
+  );
 
   const endpoint = environment.heightProfile.nodes.at(-1);
   assert.equal(endpoint.s, guide.length);

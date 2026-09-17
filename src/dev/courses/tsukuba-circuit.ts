@@ -191,7 +191,7 @@ export function createTsukubaGroundProfile(): GroundMapProfile {
   return {
     groundLeft: TSUKUBA_GROUND_HALF_WIDTH_METERS,
     groundRight: TSUKUBA_GROUND_HALF_WIDTH_METERS,
-    ...TSUKUBA_ROAD_CROSS_SECTION,
+    road: TSUKUBA_ROAD_CROSS_SECTION,
     roadMarkings: TSUKUBA_EDGE_MARKINGS,
   };
 }

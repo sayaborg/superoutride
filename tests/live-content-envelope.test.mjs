@@ -55,7 +55,7 @@ test('live authored and registry compilation reject equality, overflow and missi
     worldFrameId: 'world',
     coordinateFrame: guide,
     roadView: null,
-    groundProfile: {},
+    groundProfile: { road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 } },
     surfaceMap: surface(11),
   };
   const valid = compileAuthoredStageRuntimePackage(source, environment);
@@ -65,10 +65,19 @@ test('live authored and registry compilation reject equality, overflow and missi
     assert.throws(() => compileStageRuntimeContentRegistry(manifest, [{ ...valid, surfaceMap: bad }]), /envelope/);
   }
   for (const dMax of [100, 200])
-    compileStageEnvironment(guide, { ...environment, terrain: { ...environment.terrain, dMax } });
+    compileStageEnvironment(
+      guide,
+      { ...environment, terrain: { ...environment.terrain, dMax } },
+      source.groundProfile.road,
+    );
   for (const dMax of [0, -1, NaN, Infinity, 1]) {
     assert.throws(
-      () => compileStageEnvironment(guide, { ...environment, terrain: { ...environment.terrain, dMax } }),
+      () =>
+        compileStageEnvironment(
+          guide,
+          { ...environment, terrain: { ...environment.terrain, dMax } },
+          source.groundProfile.road,
+        ),
       /draw distance/,
     );
   }

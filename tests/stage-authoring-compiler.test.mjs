@@ -40,7 +40,7 @@ test('stage authoring contains child-local l only and no source lateral origin',
 
 test('compiler performs the single lateral rebase when compiling raster-attached sprites', () => {
   const { continuation, authoring } = setup();
-  const environment = compileStageEnvironment(continuation.left.chart, authoring.left);
+  const environment = compileStageEnvironment(continuation.left.chart, authoring.left, continuation.left.roadView.road);
   const sprite = environment.worldSprites.find((entry) => entry.name === 'COAST_SIGN_1');
   assert.ok(sprite);
   const expected = rasterPathToWorld(continuation.left.guide.raster, 82, continuation.left.chart.lateralOrigin + 5.2);
@@ -88,23 +88,26 @@ test('reusable compiler contains no route-side or renderer-core dependency', asy
   );
 });
 
-test('stage environment requires authored terrain widths and snapshots their values', () => {
+test('stage environment takes its road dimensions from the shared cross-section and snapshots values', () => {
   const { continuation, authoring } = setup();
+  const road = { ...continuation.left.roadView.road, roadLeft: 3.25, roadRight: 4.75 };
   const source = { ...authoring.left, terrain: { ...authoring.left.terrain } };
-  const compiled = compileStageEnvironment(continuation.left.chart, source);
-  source.terrain.roadLeft = 100;
-  assert.equal(compiled.terrainProfile.roadLeft, authoring.left.terrain.roadLeft);
+  const compiled = compileStageEnvironment(continuation.left.chart, source, road);
+  road.roadLeft = 100;
+  assert.equal(compiled.terrainProfile.roadLeft, 3.25);
+  assert.equal(compiled.terrainProfile.roadRight, 4.75);
   assert.throws(
-    () => compileStageEnvironment(continuation.left.chart, { ...source, terrain: undefined }),
+    () => compileStageEnvironment(continuation.left.chart, { ...source, terrain: undefined }, road),
     /widths must be authored/,
   );
-  for (const key of ['groundLeft', 'groundRight', 'roadLeft', 'roadRight']) {
+  for (const key of ['groundLeft', 'groundRight']) {
     assert.throws(
       () =>
-        compileStageEnvironment(continuation.left.chart, {
-          ...source,
-          terrain: { ...source.terrain, [key]: undefined },
-        }),
+        compileStageEnvironment(
+          continuation.left.chart,
+          { ...source, terrain: { ...source.terrain, [key]: undefined } },
+          road,
+        ),
       /terrain/,
     );
   }

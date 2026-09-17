@@ -23,9 +23,7 @@ function sourceRoadView(overrides = {}) {
     sourceLateralOrigin: 7.5,
     groundLeft: 4.5,
     groundRight: 4.5,
-    roadLeft: 3.5,
-    roadRight: 3.5,
-    shoulderWidth: 1,
+    road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
     ...overrides,
   });
 }
@@ -38,11 +36,11 @@ function setup() {
       groundProfile: {
         groundLeft: 4.5,
         groundRight: 4.5,
-        roadLeft: 3.5,
-        roadRight: 3.5,
+        road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
+
         roadMarkings: CENTER_DASH_MARKINGS,
         junctionMarkings: CENTER_DASH_MARKINGS,
-        shoulderWidth: 1,
+
         roadCenterL: 7.5,
         chainageOffsetS: 100,
       },
@@ -64,8 +62,8 @@ test('compiler expands one stage corridor exactly enough for both child roads, m
   assert.equal(compiled.groundProfile.groundLeft, 9);
   assert.equal(compiled.groundProfile.groundRight, 9);
   assert.equal(compiled.roadView.sourceLateralOrigin, 7.5);
-  assert.equal(compiled.roadView.roadLeft, 3.5);
-  assert.equal(compiled.roadView.roadRight, 3.5);
+  assert.equal(compiled.roadView.road.roadLeft, 3.5);
+  assert.equal(compiled.roadView.road.roadRight, 3.5);
   assert.equal(compiled.groundProfile.stageJunction, compiled.junction);
 });
 
@@ -103,15 +101,18 @@ test('rejects a junction whose incoming width does not match the active stage ro
       compileStageJunction(
         {
           courseLength: 400,
-          roadView: sourceRoadView({ roadLeft: 4.5, roadRight: 4.5, groundLeft: 6, groundRight: 6 }),
+          roadView: sourceRoadView({
+            road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+            groundLeft: 6,
+            groundRight: 6,
+          }),
           groundProfile: {
             groundLeft: 6,
             groundRight: 6,
-            roadLeft: 4.5,
-            roadRight: 4.5,
+            road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
             roadMarkings: CENTER_DASH_MARKINGS,
             junctionMarkings: CENTER_DASH_MARKINGS,
-            shoulderWidth: 1,
           },
         },
         {

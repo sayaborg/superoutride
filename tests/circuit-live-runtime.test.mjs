@@ -116,11 +116,10 @@ test('unchanged renderer draws a normal frame after the live physics seam crossi
   const ground = {
     groundLeft: 12,
     groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
+    road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
     roadMarkings: CENTER_DASH_MARKINGS,
     junctionMarkings: CENTER_DASH_MARKINGS,
-    shoulderWidth: 1,
   };
   const stats = renderDriving(
     surface,

@@ -70,7 +70,11 @@ const background = createFarBackground();
 const spriteAssets = createSpriteAssets();
 
 const groundProfile = selectedCircuit.groundProfile;
-const terrainProfile = createTerrainVisualProfile(groundProfile, height, windowRuntime.visual);
+const terrainProfile = createTerrainVisualProfile(
+  { ...groundProfile, ...groundProfile.road },
+  height,
+  windowRuntime.visual,
+);
 
 const shell = createBrowserDrivingShell({ guide, height, surfaces }, selectedCircuit.playerStartL);
 const { framebuffer, inputManager } = shell;

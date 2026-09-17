@@ -28,8 +28,8 @@ import { createTestCar, updateTestVehicle } from './helpers/vehicle-fixture.mjs'
 test('default BRANCHING parent is the long four-lane highway rather than the stadium', () => {
   const parent = createDefaultBranchingParent();
   assert.ok(parent.guide.length > 7_000);
-  assert.equal(parent.groundProfile.roadLeft, 7);
-  assert.equal(parent.groundProfile.roadRight, 7);
+  assert.equal(parent.groundProfile.road.roadLeft, 7);
+  assert.equal(parent.groundProfile.road.roadRight, 7);
   assert.equal(parent.surfaceMap.sample(1_000, -6.99).type, 'ASPHALT');
   assert.equal(parent.surfaceMap.sample(1_000, 6.99).type, 'ASPHALT');
   assert.equal(parent.surfaceMap.sample(1_000, 7.5).type, 'SHOULDER');

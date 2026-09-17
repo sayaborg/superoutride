@@ -208,7 +208,7 @@ export function createFiscoGroundProfile(): GroundMapProfile {
   return {
     groundLeft: FISCO_GROUND_HALF_WIDTH_METERS,
     groundRight: FISCO_GROUND_HALF_WIDTH_METERS,
-    ...FISCO_ROAD_CROSS_SECTION,
+    road: FISCO_ROAD_CROSS_SECTION,
     roadMarkings: FISCO_EDGE_MARKINGS,
   };
 }

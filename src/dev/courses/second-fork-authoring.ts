@@ -149,7 +149,6 @@ function liveForkBranch(
       dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
       finishClosureMargin: 20,
       groundMapHalfWidth: 12,
-      groundHalfWidth: 4.5,
       roadMarkings: CENTER_DASH_MARKINGS,
       junctionMarkings: CENTER_DASH_MARKINGS,
       shoulderWidth: 1,

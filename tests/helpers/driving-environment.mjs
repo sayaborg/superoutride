@@ -27,9 +27,8 @@ export function drivingEnvironment() {
   const groundProfile = {
     groundLeft: 12,
     groundRight: 12,
-    roadLeft: 4.5,
-    roadRight: 4.5,
-    shoulderWidth: 1,
+    road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
     roadMarkings: CENTER_DASH_MARKINGS,
   };
   const terrainProfile = {

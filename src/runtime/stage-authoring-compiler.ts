@@ -1,3 +1,4 @@
+import type { RoadCrossSection } from '../course/road-cross-section.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
@@ -36,8 +37,6 @@ export interface StageEnvironmentAuthoring {
     dMax?: number;
     groundLeft: number;
     groundRight: number;
-    roadLeft: number;
-    roadRight: number;
     thinSpanScreenRows?: number;
   }>;
 }
@@ -65,7 +64,7 @@ const DEFAULT_TERRAIN = Object.freeze({
 
 /** Compile one immutable terrain reader from authored widths and source profiles. */
 export function createTerrainVisualProfile(
-  widths: Pick<GroundMapProfile, 'groundLeft' | 'groundRight' | 'roadLeft' | 'roadRight'>,
+  widths: Pick<TerrainVisualProfile, 'groundLeft' | 'groundRight' | 'roadLeft' | 'roadRight'>,
   height: HeightProfileReader,
   visual: VisualProfileReader,
   options: Pick<StageEnvironmentAuthoring['terrain'], 'dMin' | 'dMax' | 'thinSpanScreenRows'> = {},
@@ -105,12 +104,19 @@ export function createTerrainVisualProfile(
 export function compileStageEnvironment(
   coordinateFrame: GuideCoordinateSource,
   authoring: StageEnvironmentAuthoring,
+  road: RoadCrossSection,
 ): CompiledStageEnvironment {
   const guide = guideCoordinateCurve(coordinateFrame);
   const lateralOrigin = guideCoordinateLateralOrigin(coordinateFrame);
   const heightProfile = new HeightProfile(guide.length, compileOpenHeightNodes(guide.length, authoring.heightNodes));
   const visual = new VisualProfile(guide.length, authoring.visualSections);
-  const terrainProfile = createTerrainVisualProfile(authoring.terrain, heightProfile, visual, authoring.terrain);
+  if (!authoring.terrain) throw new RangeError('stage terrain widths must be authored');
+  const terrainProfile = createTerrainVisualProfile(
+    { ...authoring.terrain, roadLeft: road.roadLeft, roadRight: road.roadRight },
+    heightProfile,
+    visual,
+    authoring.terrain,
+  );
   const worldSprites = Object.freeze(
     (authoring.sprites ?? []).map((sprite) =>
       compileCourseSprite(guide, heightProfile, { ...sprite, l: sprite.l + lateralOrigin }),
@@ -129,7 +135,11 @@ export function compileAuthoredStageRuntimePackage(
   authoring: StageEnvironmentAuthoring,
 ): StageRuntimeContentPackage {
   validateSurfaceGuideEnvelope(source.coordinateFrame, source.surfaceMap);
-  const environment = compileStageEnvironment(source.coordinateFrame, authoring);
+  const environment = compileStageEnvironment(
+    source.coordinateFrame,
+    authoring,
+    source.roadView?.road ?? source.groundProfile.road,
+  );
   return Object.freeze({
     packageId: source.packageId,
     worldFrameId: source.worldFrameId,
