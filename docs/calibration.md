@@ -44,9 +44,9 @@ Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#re
 
 Tire sound is presentation calibration, separate from the GX/PX/GY/PY/KN physical tire law above.
 The [audio contract](audio.md#player-tire-synthesis) owns equations and signal paths;
-[NEXT](NEXT.md#next-work-modal-listening) owns feedback and listening acceptance;
+[NEXT](NEXT.md#deferred-tuning) owns feedback and listening acceptance;
 [development](development.md#tire-comparison-tools) owns reproducible commands. HYBRID remains the
-accepted/default method. MODAL and UNIFIED are separate comparisons, not automatically adopted defaults.
+current default/reference. MODAL and UNIFIED are separate comparisons, not automatically adopted defaults.
 
 Every non-derived acoustic coefficient and material value is an authored magic number, not a measured
 tire property. Units make a surrogate interpretable without establishing physical validity. Accepted

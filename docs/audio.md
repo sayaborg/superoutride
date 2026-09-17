@@ -7,11 +7,11 @@ utilization; audio owns oscillator, envelope and filter state. Audio imports onl
 acoustic profiles, and browser composition adapts completed physical observations. Audio never writes
 motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
-The engine is the accepted sample-free listening baseline. HYBRID is the adopted primary tire method
-and reload default. MODAL is a Q-only comparison and UNIFIED retains its R+Q mechanism; neither replaces the other. CURRENT, CONTACT and
-SPECTRAL remain references. Adoption of HYBRID accepts its squeal approach, not a calibrated real-tire
-model or a final mix balance.
-[The checkpoint](NEXT.md#next-work-modal-listening) owns feedback and remaining listening priorities.
+The engine provides the current sample-free listening baseline; its parameters remain provisional.
+HYBRID is the current tire listening reference and reload default; final method and parameter selection remain undecided. MODAL is a Q-only comparison and UNIFIED retains its R+Q mechanism; neither replaces the other. CURRENT, CONTACT and
+SPECTRAL remain references. The favorable HYBRID squeal feedback does not establish a calibrated real-tire
+model, a final method selection or a final mix balance.
+[The checkpoint](NEXT.md#deferred-tuning) owns feedback and remaining listening priorities.
 All six tire implementations generate sound without recordings. Keep the engine waveform and fixed
 voice/lifecycle boundaries unchanged; actual Android performance and the complete tire mix remain open.
 
@@ -262,7 +262,7 @@ The [shared kernel](../src/audio/tire-spectral-model.ts) and
 [settings/catalog](../src/audio/tire-spectral-acoustics.ts) belong to audio; the DEV worklet only auditions
 that same kernel. Every axle has eight fixed two-state noise-driven bands: two R rolling, two S scrub
 and four Q finite-width harmonic bands. No PCM playback, microscopic contact solve or vehicle/maneuver
-branch exists inside the kernel. [NEXT](NEXT.md#next-work-modal-listening) owns listening acceptance;
+branch exists inside the kernel. [NEXT](NEXT.md#deferred-tuning) owns listening acceptance;
 [calibration](calibration.md#tire-audio-tuning) maps named settings without redefining their values.
 
 The common `TIRE_SOUND_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
@@ -469,10 +469,9 @@ of the same equations, not separately selected sounds. Frequencies/damping are f
 following does not inject energy by changing stiffness. Nonlinear timbre arises from this system;
 there is no separately synthesized harmonic bank.
 
-The listener-selected high-mode default is now 1,000 Hz (previously 1,350 Hz); the low mode remains
-300 Hz. This is an intentional UNIFIED calibration revision, not a measured tire frequency or a promise
-that the nonlinear output's peak is exactly 1,000 Hz. The spectral contract follows the revised high
-band while retaining the low/broad-to-resonant transition checks. Shared R and other methods are unchanged.
+The listener-selected high-mode default is 1,000 Hz; the low mode is 300 Hz. These are authored
+settings, not measured tire frequencies or a promise that the nonlinear output peak equals either
+mode frequency. Spectral tests cover both modes and the broad-to-resonant transition.
 
 `E = sum(x_i² + v_i²)/2` is a computed diagnostic, not an independently advanced envelope or energy in
 joules. The continuous surrogate satisfies
@@ -541,7 +540,7 @@ Its modal structure and common friction input have a
 [sound-synthesis precedent](tire-squeal-research.md#common-friction-input-as-a-synthesis-precedent),
 which does not validate its tire calibration. Fixed modes, omitted contact/thermal detail and native-rate
 nonlinearity limit spectral/aliasing fidelity. A later numerical instability point alone does not
-establish later audible squeal. [NEXT](NEXT.md#next-work-modal-listening) owns that listening decision.
+establish later audible squeal. [NEXT](NEXT.md#deferred-tuning) owns that listening decision.
 
 The shared voice/worklet runs only the selected axle pair. UNIFIED's R/Q controls fade output only;
 muted states continue, S is absent, and engine/master lifetime stays unchanged. The fixed mechanics
@@ -551,7 +550,7 @@ and synthetic renders remain separate from phone performance and listening accep
 
 ### MODAL game synthesis
 
-MODAL and UNIFIED coexist as independently selectable comparisons. HYBRID remains the accepted/default
+MODAL and UNIFIED coexist as independently selectable comparisons. HYBRID remains the current default
 reference; CURRENT, CONTACT and SPECTRAL also retain their waveforms. MODAL has Q only and never
 constructs a rolling or separate scrub source. UNIFIED retains its original R+Q topology, 1,000 Hz
 high mode and quieter work-fraction onset. Wind is not implemented.
@@ -651,13 +650,12 @@ endpoint velocity clipped to the new bracket. Road vibration, spatial fields, in
 and filters also run per sample. CURRENT uses a direct oscillator update instead of a root search;
 the comparison selector does not run both models simultaneously.
 
-The host probe can measure a warmed alternating five-model replay; no complete phone audio/game budget is established here.
+The host probe can measure a warmed alternating six-model replay; no complete phone audio/game budget is established here.
 Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average iterations, pure kernel
 cost or target-device certification. Do not infer a measured speed ratio from operation counts.
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
-Current construction accepts 44.1–192 kHz. The [next task](NEXT.md#next-work-modal-listening)
-is MODAL listening; CONTACT optimization is not part of this comparison.
+Current construction accepts 44.1–192 kHz. Sound selection and tuning are [deferred](NEXT.md#deferred-tuning) while visual presentation is developed.
 
 ## Mixing and lifetime
 

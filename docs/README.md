@@ -17,7 +17,7 @@ The [tire sound evidence note](tire-squeal-research.md) supports mechanism discu
 behavior or numerical calibration. [Audio](audio.md) owns default HYBRID, the MODAL and UNIFIED comparisons
 and the CURRENT/CONTACT/SPECTRAL references;
 [calibration](calibration.md#tire-audio-tuning) maps tuning controls;
-[NEXT](NEXT.md#next-work-modal-listening) owns user feedback, acceptance and the next tuning task.
+[NEXT](NEXT.md#deferred-tuning) owns the visual-presentation restart and deferred tuning decisions.
 Do not duplicate those responsibilities in another proposal or handoff file.
 
 This is the sole specification index. On restart, read the development contract, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.

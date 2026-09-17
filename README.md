@@ -41,8 +41,9 @@ Only tire output fades during model or tuning replacement.
 
 DEV opens/closes a scrolling panel on phones, with independent ENG/TIRE volume sliders and ten MODAL
 sound controls plus eleven UNIFIED controls and separate resets. Only the selected model's controls are shown; switching preserves each model's settings. Values are authored listening choices, not
-measured tire parameters. [MODAL listening](docs/NEXT.md#next-work-modal-listening) is the next task:
-compare its Q against HYBRID with R and S off, including onset, pitch, roughness and recovery.
+measured tire parameters. Physical tire calibration, engine sound parameters, and tire-noise method/parameters remain
+[undecided and deferred](docs/NEXT.md#deferred-tuning). The next work is visual presentation;
+current sound choices are retained for later comparison.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and
 [comparison tools](docs/development.md#tire-comparison-tools).
 

@@ -57,9 +57,9 @@ The [torque protection probe](../tools/torque-protection-probe.mjs) compares pro
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes ten MODAL or eleven UNIFIED friction sliders plus independent ENG/TIRE mix levels.
 Other numeric tire timbre settings remain source data. [Calibration](calibration.md#tire-audio-tuning) maps their
 owners, [audio](audio.md#player-tire-synthesis) defines each method, and
-[NEXT](NEXT.md#next-work-modal-listening) records feedback and tuning priorities.
+[NEXT](NEXT.md#deferred-tuning) records feedback and tuning priorities.
 
-In the game, select MODAL for the new Q-only method or HYBRID for the accepted/default reference.
+In the game, select MODAL for the new Q-only method or HYBRID for the current default reference.
 HYBRID and SPECTRAL expose R/S/Q buttons. MODAL exposes only Q; R/S sources are absent. Compare its Q with HYBRID Q (R and S off)
 for timbre and onset. The buttons change output only:
 state continues, other components are not boosted, and
@@ -67,15 +67,15 @@ muted components still cost CPU. Keep physical calibration, engine settings and 
 when diagnosing tire sound. Rebuild/reload after a source tune; DEV edits apply through a tire-only fade.
 Reload resets model/component/tuning/mix choices.
 
-| Tool                        | Scope                                                                                                           | Command / page                                                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                                  | `http://localhost:8000/?mode=circuit`                                                                                                |
-| SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                                   | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
-| SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                                | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
-| Six-model comparison render | Same synthetic trace; CURRENT, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q and MODAL Q and UNIFIED R/Q outputs | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
-| CURRENT reference           | Original tire audition and regeneration                                                                         | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/current.wav`                                  |
-| CONTACT reference           | Four road/friction/axle taps with representative controls                                                       | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
-| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                                 | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
+| Tool                        | Scope                                                                                                        | Command / page                                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                               | `http://localhost:8000/?mode=circuit`                                                                                                |
+| SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                                | [tire-spectral-browser.html](../tools/tire-spectral-browser.html)                                                                    |
+| SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                             | `node tools/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                   |
+| Six-model comparison render | Same synthetic trace; CURRENT, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                      |
+| CURRENT reference           | Original tire audition and regeneration                                                                      | [tire-browser.html](../tools/tire-browser.html); `node tools/tire-render.mjs /absolute/current.wav`                                  |
+| CONTACT reference           | Four road/friction/axle taps with representative controls                                                    | [tire-contact-browser.html](../tools/tire-contact-browser.html); `node tools/tire-contact-render.mjs /absolute/contact-output 48000` |
+| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                              | `node tools/tire-contact-characterize.mjs dist`                                                                                      |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
 kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
@@ -136,19 +136,21 @@ Focused spectral/response tests are `node --test tests/tire-spectral*.test.mjs t
 They supplement the complete `npm test` and unchanged historical mechanics/render oracle; listening,
 measured spectrum/transients, exact cleanup equality, host throughput and device play remain separate evidence.
 
-The retained UNIFIED input probe is `node tools/tire-unified-input-probe.mjs 48000`; it reports R/Q
-separately and accepts an optional high-mode frequency as its second argument.
+### Low-speed input probe
 
-### MODAL low-speed input probe
+`node tools/tire-input-probe.mjs modal 48000` and
+`node tools/tire-input-probe.mjs unified 48000` share the same one-second coast/held-steering
+cases starting at 20 and 100 km/h. They use the first catalog vehicle, browser tire/steering
+calibration and production torque protection/observation adapter, with 120 Hz mechanics and
+60 Hz sound updates. Results include actual final speed, per-axle work/slip, surfaces and summed
+Q RMS; UNIFIED additionally reports R RMS. MODAL does not construct a rolling source.
 
-`node tools/tire-modal-input-probe.mjs 48000` runs one-second coast/held-steering cases starting at
-20 and 100 km/h. It uses the first catalog vehicle, browser tire/steering calibration and production
-torque protection/observation adapter, with 120 Hz mechanics and 60 Hz sound updates. It reports actual
-final speed, per-axle work/slip, surfaces and summed Q RMS. This is not a constant-speed
-corner, the user's drive trace or a perceptual loudness test. Mixed-surface cases are explicitly marked.
-Engines, browser compressor and playback are excluded. An optional second argument sets the base pitch,
-for example `node tools/tire-modal-input-probe.mjs 48000 1000` to audition a lower pitch. Other probe rates
-are 44100/96000. Forward speed is not a separate gate; wheel peripheral speed still colors the HYBRID-derived bandwidth.
+These are not constant-speed corners, the user's drive trace or perceptual loudness tests.
+Mixed-surface cases are explicitly marked. Engines, browser compressor and playback are excluded.
+Rates are 44100/48000/96000. An optional final frequency argument changes MODAL's base pitch or
+UNIFIED's high mode, for example `node tools/tire-input-probe.mjs modal 48000 1000`.
+These are distinct tuning parameters, not matched acoustic frequencies. Forward speed is not a
+separate Q gate; MODAL still uses wheel peripheral speed to color its HYBRID-derived bandwidth.
 
 ## Exact-commit release
 
