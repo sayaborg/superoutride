@@ -50,6 +50,42 @@ The [torque protection probe](../tools/physics/torque-protection-probe.mjs) comp
 
 [Browser performance page](../tools/performance/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. [Workload reduction](../src/dev/diagnostics/render-workload.ts) reports current observations; no copied milestone maxima or arbitrary headroom multiplier establishes a device budget. Enforce actual clipping/accounting invariants and compare reference pixels, then measure on the target device. If device traces show allocation pressure, inspect TerrainLine/source-footprint construction and the per-line sampler closure before choosing a measured optimization; these are candidates, not demonstrated bottlenecks. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
 
+## GroundMap capacity measurement
+
+After building, run:
+
+```sh
+node tools/performance/ground-map-capacity.mjs /tmp/ground-map-capacity.json
+node tools/performance/ground-map-capacity.mjs --inventory
+```
+
+The host-only probe runs stadium, one Tsukuba lap, the linear highway and the branching parent
+through the current compiler in separate Node processes. Absent logical profiles receive the
+existing grass fallback explicitly; road paint, dimensions and density remain unchanged.
+It writes an incomplete checkpoint after each course and removes temporary binary assets afterward.
+Generated measurements belong outside the source tree.
+
+The report separates packed binary and metadata bytes, encoded bytes before payload sharing,
+alignment overhead, gzip level-9 bytes, compiler time/peak RSS and independent reader-process
+observations. Peak RSS includes the worker's baseline; ArrayBuffer, external, heap and RSS values
+overlap and must not be added. Reader measurements allow an event-loop turn and GC after releasing
+the input buffer. These are host observations, not smartphone residency or frame-time certification.
+Gzip sizes assume separately compressed binary and JSON responses; actual Pages response encoding
+must be checked independently.
+
+Synthetic repeated-16-color and RGB555-noise images exercise the existing prefilter/encoder.
+They are sensitivity bounds, not imported art, complete course bakes or estimates of chunk dedup.
+The stage inventory compares a finite sample grid of actual stage paint with translated source paint,
+and reports authored handoff chainages. A zero mismatch count does not establish full equivalence.
+The current compiler does not consume StageRoadView or its stage-local junction/shoulder overrides;
+no child-stage output or end-to-end transition residency is claimed.
+
+Before production integration, resolve finite asset domains and stage paint input, avoid duplicate
+circuit/actor readers, and measure completed-asset handoff residency on a target device. Budget the
+whole application separately from GroundMap. Whole-course compiler allocation, prefilter's level-0
+copy and reader's defensive input copy are distinct capacity costs; transfer compression does not
+remove any of them.
+
 ## Tire comparison tools
 
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes model-specific friction controls plus independent ENG/TIRE mix levels.

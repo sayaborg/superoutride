@@ -16,7 +16,9 @@ sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-imp
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
 shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
 
-1. Measure current baking on stadium, Tsukuba, long highway and branching stage/transition cases.
+1. Use the [capacity probe](development.md#groundmap-capacity-measurement) to reproduce host baking
+   and reader measurements. Stadium, Tsukuba, linear highway and branching parent are covered;
+   complete child-stage baking and target-device transition residency remain open.
    Include richer-color/pattern fixtures; today's simple patterns do not predict future texture
    compression. Separate compiler peak memory, payload bytes, transfer bytes, reader residency and
    load/transition copies. Propose target-device budgets from this evidence before production cutover.
