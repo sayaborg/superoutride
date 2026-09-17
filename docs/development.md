@@ -16,7 +16,7 @@ session-local tuning. See [audio](audio.md) for signal order and parameter owner
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The current offline compiler entry is `build:test-assets`; its stadium output remains a regression fixture pending production GroundMap integration. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The current offline compiler entry is `build:test-assets`; its stadium and stage outputs remain regression fixtures pending production GroundMap integration. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
@@ -207,9 +207,10 @@ For a reported failure, distinguish source logic, emitted build, deployed artifa
 ## Build outputs
 
 `npm run build` cleans and compiles the complete ESM tree into `dist/` for local play and Pages.
-`npm run build:test-assets` separately bakes the stadium GroundMap regression fixture into
-`.test-assets/`; `npm test` runs both steps before the suite. The roughly 43 MB binary is consumed
-only by ground-map/render tests, never by a browser composition root. Pages stages `dist/`, so neither
+`npm run build:test-assets` separately bakes the stadium GroundMap and complete branching-stage
+regression fixtures into `.test-assets/`; `npm test` runs both steps before the suite. The roughly
+43 MB stadium binary and coarse stage assets are consumed only by ground-map/render tests, never
+by a browser composition root. Pages stages `dist/`, so neither
 copy of the published build contains this fixture. To run individual asset tests after a clean build,
 run `npm run build:test-assets` first. Both output directories are ignored generated files.
 
@@ -228,7 +229,7 @@ from the suite. Stage depth and child-side names describe actual topology scenar
 
 The [architecture design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) and
 [content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff-design-not-active) are
-implementation targets. Compiler step 1 is implemented; remaining steps are pending. Keep these changes separate; do not advance the immutable
+implementation targets. Compiler steps 1 and 2 are implemented; remaining steps are pending. Keep these changes separate; do not advance the immutable
 reference as part of compiler or storage cleanup.
 
 | Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
@@ -245,8 +246,13 @@ pre-refactor outputs and the full stadium digest, compare several batch sizes, i
 L0 colors, bound I/O requests as length grows, and exercise capacity/I/O failure cleanup. The shared
 2-by-4 averaging kernel remains the only filter implementation. Do not revive an alternate compiler
 to compare implementations indefinitely.
-Tests for step 2 must include the actual later forks: a coarse sampling grid is diagnostic evidence,
-not proof of all boundary behavior. Steps 1-3 need no update to deployed pixels.
+Step 2 uses the existing stage paint evaluator, including local shoulders and both later forks.
+[Stage-source regressions](../tests/rendering/ground-map-stage-source.test.mjs) compare all texels
+of the complete eleven-stage test bake, sequential filtered levels and storage boundaries against
+the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, finite
+endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
+kMax = 2); it does not establish product-density capacity or device acceptance. Existing immutable
+pixel/mechanics comparisons and route regressions remain mandatory. Steps 1-3 need no update to deployed pixels.
 
 A missing numeric device budget does not block compiler parity or ownership work. It does block a
 claim of smartphone acceptance. Choose limits using measured payload working sets and total

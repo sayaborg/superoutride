@@ -1,3 +1,4 @@
+import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -27,8 +28,7 @@ for (const fixture of fixtures) {
       const path = join(dir, 'asset.bin');
       const metadata = await compileGroundMapFiles(
         path,
-        fixture.length,
-        profile,
+        createGroundMapCompileSource(fixture.length, profile),
         fixture.density,
         fixture.kMax,
         fixture.chunk,
@@ -84,10 +84,17 @@ test('workspace I/O stays bounded as course length grows; only the final payload
       },
     };
     const fixture = { ...fixtures[1], length };
-    await compileBakedGroundMapAsset(length, profileFor(fixture), { qL: 1, qS: 1 }, 2, storage, 4, {
-      rowsPerBatch: 8,
-      maxWorkingBytes: 4096,
-    });
+    await compileBakedGroundMapAsset(
+      createGroundMapCompileSource(length, profileFor(fixture)),
+      { qL: 1, qS: 1 },
+      2,
+      storage,
+      4,
+      {
+        rowsPerBatch: 8,
+        maxWorkingBytes: 4096,
+      },
+    );
     assert.deepEqual([...files.keys()], ['asset']);
     measurements.push([largestRead, largestWrite]);
   }
@@ -105,8 +112,7 @@ test('capacity and invalid-batch failures clean scratch data without replacing e
     await assert.rejects(
       compileGroundMapFiles(
         path,
-        fixture.length,
-        profileFor(fixture),
+        createGroundMapCompileSource(fixture.length, profileFor(fixture)),
         fixture.density,
         fixture.kMax,
         fixture.chunk,
@@ -131,8 +137,7 @@ test('compiler propagates a failed spool read rather than publishing fabricated 
   };
   await assert.rejects(
     compileBakedGroundMapAsset(
-      fixture.length,
-      profileFor(fixture),
+      createGroundMapCompileSource(fixture.length, profileFor(fixture)),
       fixture.density,
       fixture.kMax,
       storage,

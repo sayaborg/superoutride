@@ -1,3 +1,5 @@
+import { createBranchingGroundMapFixture } from '../../dist/dev/fixtures/branching-ground-map.js';
+import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
@@ -50,8 +52,7 @@ await mkdir(new URL('../../.test-assets/', import.meta.url), { recursive: true }
 const asset = {
   metadata: await compileGroundMapFiles(
     fileURLToPath(new URL('../../.test-assets/stadium-ground-map.bin', import.meta.url)),
-    guide.length,
-    groundProfile,
+    createGroundMapCompileSource(guide.length, groundProfile),
     density,
     target.kMax,
     32,
@@ -79,3 +80,20 @@ console.log(
     compressionRatio: asset.metadata.binaryBytes / asset.metadata.uncompressedRgbaBytes,
   }),
 );
+
+// Full authored domains at deliberately coarse test density. These are not product assets.
+for (const { id, runtime } of createBranchingGroundMapFixture().stages) {
+  const source = createGroundMapCompileSource(
+    runtime.heightProfile.courseLength,
+    runtime.groundProfile,
+    runtime.roadView,
+  );
+  const metadata = await compileGroundMapFiles(
+    fileURLToPath(new URL(`../../.test-assets/${id}-ground-map.bin`, import.meta.url)),
+    source,
+    { qL: 0.25, qS: 1 },
+    2,
+    32,
+  );
+  await writeFile(new URL(`../../.test-assets/${id}-ground-map.json`, import.meta.url), JSON.stringify(metadata));
+}

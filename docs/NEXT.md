@@ -16,14 +16,15 @@ sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-imp
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
 shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
 
-1. The bounded file-backed GroundMap compiler is implemented and retains v1 output bytes.
-   Next compile complete stage-local paint, following the
-   [migration gates](development.md#groundmap-migration-gates), then add shared paged residency
-   and integrate a real handoff/circuit fixture. General compilation has no Node dependency.
+1. The bounded file-backed GroundMap compiler and complete stage-local color inputs are implemented.
+   Ordinary source v1 bytes remain unchanged; all eleven branching-stage domains are baked at test
+   density with local shoulders/forks included. Next add versioned payload delivery and shared paged
+   residency, following the [migration gates](development.md#groundmap-migration-gates), then
+   integrate a real handoff/circuit fixture. General compilation has no Node dependency.
 2. The [integration design](architecture.md#groundmap-integration-design-compiler-implemented-runtime-pending) separates the completed compiler from pending runtime work. Product cutover requires the new loading lifecycle, explicit pixel revision,
    complete assets for all shipped courses and target-device capacity acceptance. Numeric budgets
    remain open. Use the [capacity probe](development.md#groundmap-capacity-measurement) for host
-   evidence; complete child-stage and target-device transition measurements remain required.
+   evidence; product-density child-stage capacity and target-device transition measurements remain required.
 3. Resolve sprite LOD logical extent, crop/padding, anchors, odd dimensions and level selection.
    Verify synthetic fixtures before changing asset production or the product blitter contract.
 4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic

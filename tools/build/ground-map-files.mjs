@@ -3,15 +3,7 @@ import { join, dirname } from 'node:path';
 import { compileBakedGroundMapAsset } from '../../dist/groundmap/ground-map-asset-compiler.js';
 
 /** File-backed compiler workspace. Never accumulates source images or output payloads in RAM. */
-export async function compileGroundMapFiles(
-  binaryPath,
-  courseLength,
-  profile,
-  density,
-  kMax,
-  chunkMeters = 32,
-  options,
-) {
+export async function compileGroundMapFiles(binaryPath, source, density, kMax, chunkMeters = 32, options) {
   const directory = await mkdtemp(join(dirname(binaryPath), '.ground-map-'));
   const handles = new Map();
   const sizes = new Map();
@@ -50,15 +42,7 @@ export async function compileGroundMapFiles(
     },
   };
   try {
-    const metadata = await compileBakedGroundMapAsset(
-      courseLength,
-      profile,
-      density,
-      kMax,
-      storage,
-      chunkMeters,
-      options,
-    );
+    const metadata = await compileBakedGroundMapAsset(source, density, kMax, storage, chunkMeters, options);
     await copyFile(join(directory, 'asset'), binaryPath);
     return metadata;
   } finally {

@@ -191,8 +191,8 @@ of HTTP compression. Preserve separate mechanics comparison when intentionally r
 
 ### GroundMap integration design: compiler implemented, runtime pending
 
-The file-backed row compiler below is implemented for build/test assets. Product stage baking,
-paged browser loading and readiness are still pending. Their executable contracts and migration
+The file-backed row compiler and final stage-local color sources below are implemented for
+build/test assets. Product-density asset delivery, paged browser loading and readiness are still pending. Their executable contracts and migration
 gates must land before activation. GroundMap owns the image lattice, filtering,
 encoding and resident reader; runtime owns stage/circuit coordinate adapters; browser composition
 owns asynchronous loading and readiness. Topology and physics do not depend on asset availability.
@@ -200,6 +200,10 @@ owns asynchronous loading and readiness. Topology and physics do not depend on a
 **Compiler input and domain.** Compile one immutable final-color source over an explicit finite
 local rectangle. The source supplies its metric domain and a deterministic color evaluator; concrete
 course/stage composition supplies geometry, paint and material inputs through existing owners.
+`GroundMapCompileSource` owns the finite rectangle and evaluator; `createGroundMapCompileSource`
+adapts ordinary profiles or a StageRoadView through the existing paint samplers. It rejects already
+baked inputs and out-of-domain source access. Callers keep the referenced paint inputs immutable
+throughout compilation. An absent logical profile retains the current grass fallback.
 Its initial evaluator reproduces current point-sampled procedural paint. Exact-area composition,
 new material palettes and color-space changes remain separate unresolved image-processing work.
 

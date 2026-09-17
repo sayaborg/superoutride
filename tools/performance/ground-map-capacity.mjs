@@ -1,3 +1,4 @@
+import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 /** Host-only capacity diagnostic. Does not change compiler, renderer or product asset delivery. */
 import assert from 'node:assert/strict';
 import { fork } from 'node:child_process';
@@ -9,7 +10,6 @@ import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { compileGroundMapFiles } from '../build/ground-map-files.mjs';
 import { BakedGroundMapAsset } from '../../dist/groundmap/baked-ground-map.js';
-import { GroundMapLogicalProfile } from '../../dist/groundmap/logical-profile.js';
 import { deriveGroundMapDensity } from '../../dist/groundmap/ground-map-lod.js';
 import { deriveGroundMapTargetEnvelope } from '../../dist/groundmap/ground-map-target-envelope.js';
 import { downsampleGroundMap2x4 } from '../../dist/groundmap/ground-map-prefilter.js';
@@ -81,20 +81,12 @@ function source(name) {
 
 async function bake(name, directory) {
   const { length, profile } = source(name);
-  // Browser source sampling falls back to GRASS when logical is absent. Express exactly that
-  // existing color field as compiler input; this is not new product material authoring.
-  const logical =
-    profile.logical ??
-    new GroundMapLogicalProfile(length, [
-      { sStart: 0, name: 'Existing grass fallback', left: 'GRASS', right: 'GRASS' },
-    ]);
   global.gc();
   const before = snapshot();
   const started = performance.now();
   const m = await compileGroundMapFiles(
     join(directory, name + '.bin'),
-    length,
-    { ...profile, logical },
+    createGroundMapCompileSource(length, profile),
     density,
     target.kMax,
     32,
@@ -119,7 +111,7 @@ async function bake(name, directory) {
     milliseconds,
     before,
     afterCompile,
-    logicalGrassFallbackAdded: !profile.logical,
+    proceduralGrassFallback: !profile.logical,
     binaryBytes: m.binaryBytes,
     metadataBytes: Buffer.byteLength(metadata),
     binaryGzipBytes,

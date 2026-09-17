@@ -9,7 +9,7 @@ import type {
 } from './baked-ground-map.js';
 import type { GroundMapDensityProfile } from './ground-map-lod.js';
 import { downsampleGroundMap2x4 } from './ground-map-prefilter.js';
-import { sampleGroundMap, type GroundMapProfile } from './ground-map.js';
+import type { GroundMapCompileSource } from './ground-map-compile-source.js';
 
 const TEXEL_COUNT_ROUNDING_TOLERANCE = 1e-12;
 
@@ -34,20 +34,21 @@ interface GroundMapCompileOptions {
  * in memory with course length. The caller owns a fresh workspace and cleanup on success/failure.
  */
 export async function compileBakedGroundMapAsset(
-  courseLength: number,
-  profile: GroundMapProfile,
+  source: GroundMapCompileSource,
   density: Pick<GroundMapDensityProfile, 'qL' | 'qS'>,
   kMax: number,
   storage: GroundMapCompileStorage,
   chunkTargetMeters = 32,
   options: GroundMapCompileOptions = {},
 ): Promise<BakedGroundMapMetadata> {
+  const { courseLength, groundLeft, groundRight } = source;
   positiveFinite(courseLength, 'courseLength');
+  positiveFinite(groundLeft, 'groundLeft');
+  positiveFinite(groundRight, 'groundRight');
   positiveFinite(density.qL, 'qL');
   positiveFinite(density.qS, 'qS');
   positiveFinite(chunkTargetMeters, 'chunkTargetMeters');
   if (!Number.isInteger(kMax) || kMax < 0) throw new RangeError('kMax must be a non-negative integer');
-  if (!profile.logical) throw new Error('baked GroundMap requires compiler logical profile');
   const rowsPerBatch = options.rowsPerBatch ?? 256;
   const maxWorkingBytes = options.maxWorkingBytes ?? 64 * 1024 * 1024;
   if (!Number.isSafeInteger(rowsPerBatch) || rowsPerBatch < 4 || rowsPerBatch % 4 !== 0)
@@ -59,7 +60,7 @@ export async function compileBakedGroundMapAsset(
       throw new RangeError('GroundMap compiler working buffers exceed maxWorkingBytes');
   };
 
-  const lateralWidth = profile.groundLeft + profile.groundRight;
+  const lateralWidth = groundLeft + groundRight;
   positiveFinite(lateralWidth, 'ground width');
 
   const baseLateralTexels = alignUp(Math.ceil(lateralWidth / density.qL - TEXEL_COUNT_ROUNDING_TOLERANCE), 2 ** kMax);
@@ -154,8 +155,8 @@ export async function compileBakedGroundMapAsset(
       for (let row = 0; row < rowCount; row += 1) {
         const s = (rowStart + row + 0.5) * actualBaseQS;
         for (let column = 0; column < baseLateralTexels; column += 1) {
-          const l = -profile.groundLeft + (column + 0.5) * actualBaseQL;
-          const color = sampleGroundMap(s, l, profile) >>> 0;
+          const l = -groundLeft + (column + 0.5) * actualBaseQL;
+          const color = source.sample(s, l) >>> 0;
           pixels[row * baseLateralTexels + column] = color;
           if (colors) {
             colors.add(color);
@@ -171,8 +172,8 @@ export async function compileBakedGroundMapAsset(
   const metadata: BakedGroundMapMetadata = {
     version: 1,
     courseLength,
-    groundLeft: profile.groundLeft,
-    groundRight: profile.groundRight,
+    groundLeft,
+    groundRight,
     qLAuthority: density.qL,
     qSAuthority: density.qS,
     actualBaseQL,
