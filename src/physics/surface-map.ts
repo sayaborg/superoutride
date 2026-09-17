@@ -129,7 +129,7 @@ function junctionSurfaceType(
   return null;
 }
 
-/** One physical-band compiler for both region authoring and runtime SurfaceMap sources. */
+/** One physical-band compiler for both physical authoring and runtime SurfaceMap sources. */
 function compileSurfaceBands(bands: readonly SurfaceBand[]): readonly SurfaceBand[] {
   const copied = bands.map((band) => ({ ...band })).sort((a, b) => a.lMin - b.lMin);
   for (let i = 0; i < copied.length; i += 1) {

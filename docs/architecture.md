@@ -101,7 +101,7 @@ GroundMap visual appearance and SurfaceMap physical support/friction are indepen
 
 GroundBase fills outside the finite GroundMap strip on each emitted terrain line. It is not a separate depth layer. Each side independently selects solid color or transparency; transparent pixels leave already-drawn farther content visible. Far Background is a full image with meaningful pixels below its horizon, aligned by a source-horizon anchor. Yaw scrolls the background; no camera roll or alpha blending is introduced. The [background source format](../src/visual/far-background.ts) owns 640×320 pixels, horizon row 126 and yaw density 200 source pixels/radian. Source yaw density and camera focal length have different units and remain independent authoring/presentation quantities despite their equal current numbers.
 
-GroundMap uses authored logical data and a compiled finite baked representation. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Terrain lines resolve source/baked/stage sampling once before the pixel loop. Stage pixel-center overshoot is clipped to the authored local strip before its strict local classifier; ordinary source sampling retains its existing outer-material behavior. This is visual edge coverage, not physical lateral clamping. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Loaded assets validate integer payload offsets and encoding, then own immutable metadata and a private byte copy. Source and circuit-window readers share the same integer texel-center metric. Palette/RGB555 encoding and chunk addressing live in [visual assets](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
+Production courses currently use procedural GroundMap sampling. The offline compiler and finite baked reader are exercised by regression assets; production integration is planned, not complete. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Terrain lines resolve source/baked/stage sampling once before the pixel loop. Stage pixel-center overshoot is clipped to the authored local strip before its strict local classifier; ordinary source sampling retains its existing outer-material behavior. This is visual edge coverage, not physical lateral clamping. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Loaded assets validate integer payload offsets and encoding, then own immutable metadata and a private byte copy. Source and circuit-window readers share the same integer texel-center metric. Palette/RGB555 encoding and chunk addressing live in [visual assets](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
 
 ```
 qL = d0/f
@@ -132,9 +132,9 @@ Keep painter, metric, physical-gate and local-coordinate regressions executable.
 
 ## Compiled profile and asset boundaries
 
-Surface, logical GroundMap, visual sections and height nodes share immutable ordered construction and binary lookup. Physical-band sorting, overlap rejection and material validation have one compiler used by both region authoring and SurfaceMap. Terrain traversal merges explicit authored boundaries and emits adjacent positive intervals; it never advances coordinates by a nudge. Exact duplicate boundaries are removed, while distinct authored intervals remain represented.
+Surface, logical GroundMap, visual sections and height nodes share immutable ordered construction and binary lookup. SurfaceMap owns physical-band sorting, overlap rejection and material validation. Terrain traversal merges explicit authored boundaries and emits adjacent positive intervals; it never advances coordinates by a nudge. Exact duplicate boundaries are removed, while distinct authored intervals remain represented.
 
-Live envelope checks and `createSpriteAsset` validate consumed content. Sprite construction validates dimensions, buffer length, finite anchors and positive physical width, then freezes metadata so a second scale field cannot be attached. Runtime source reachability, not a test import, establishes whether a production module is used. Regression fixtures and diagnostics have separate DEV directories and must remain consumed by tests or tools.
+Live envelope checks and `createSpriteAsset` validate consumed content. Sprite construction validates dimensions, buffer length, finite anchors and positive physical width, then freezes metadata so a second scale field cannot be attached. Runtime source reachability establishes production use; declared offline compiler reachability establishes build-time use. A test import alone establishes neither. Regression fixtures and diagnostics have separate DEV directories and must remain consumed by tests or tools.
 
 ## Ground authoring boundaries
 
@@ -142,7 +142,7 @@ Live envelope checks and `createSpriteAsset` validate consumed content. Sprite c
 section of a junction. Production highway and circuit authoring feeds the same compiled dimensions
 to GroundMap/terrain and `roadSurfaceBands`; branching highways also pass them to
 `JunctionCrossSectionProfile.parent`. Junctions currently require symmetric incoming road widths.
-A width change therefore reaches both consumers without a second literal or synchronized author edit.
+Stage-local and successor authoring still own separate dimensions; their migration to the shared cross-section is the next cleanup task.
 
 Geometry does not own paint, grip or support. GroundMap materials, GroundBase sections and physical
 surface sections retain independent ordered change points, compiled by their native profile types.
