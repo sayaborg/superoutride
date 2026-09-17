@@ -11,7 +11,7 @@ import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.j
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
 import { deriveGroundMapDensity } from '../../dist/groundmap/ground-map-lod.js';
-import { generateTerrainLines } from '../../dist/road/terrain-line.js';
+import { generateTerrainLines } from '../../dist/terrain/terrain-line.js';
 import { deg } from './assert.mjs';
 import { renderPose, terrainCamera } from './render-fixture.mjs';
 

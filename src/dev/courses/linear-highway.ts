@@ -9,7 +9,7 @@ import { compileSessionConfiguration } from '../../gameplay/session-configuratio
 import { GROUND_COLORS, type GroundMapProfile } from '../../groundmap/ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../../physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../../physics/surface-map.js';
-import type { TerrainVisualProfile } from '../../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../../terrain/terrain-line.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
 import {
   createHighwayGroundProfile,

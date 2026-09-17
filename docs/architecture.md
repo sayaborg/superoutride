@@ -28,9 +28,9 @@ Exact values remain in the linked source owners. Equal numbers do not imply inte
 | [Core tolerances](../src/core/tolerances.ts): pixel edges; texel spacing                                                                                                                                                                                 | screen px; m/texel                                  | Destination coverage and source-sample spacing are different metrics.                                                                 |
 | [RasterPath](../src/core/raster-path.ts): minimum segment, miter denominator, vertex turn                                                                                                                                                                | m; dimensionless; rad                               | Reject degenerate geometry without changing the authored turn limit.                                                                  |
 | [Guide](../src/core/guide-curve.ts): arc center, compilation, zero turn                                                                                                                                                                                  | m; m; rad                                           | Center agreement and compilation validation are distinct from reader join tolerance; positive readable intervals survive compilation. |
-| [Terrain](../src/road/terrain-line.ts): visible/depth intervals                                                                                                                                                                                          | m                                                   | Visibility clipping and finite depth interval construction differ from source endpoint normalization.                                 |
-| [Terrain](../src/road/terrain-line.ts): invertible span, row/boundary denominators, minimum span                                                                                                                                                         | screen px                                           | Projection inversion, row sampling and thin-span collapse have different degeneracies.                                                |
-| [Terrain](../src/road/terrain-line.ts): flat-height coefficient                                                                                                                                                                                          | px·m                                                | This is the depth-dependent projection coefficient, not a height or pixel distance.                                                   |
+| [Terrain](../src/terrain/terrain-line.ts): visible/depth intervals                                                                                                                                                                                       | m                                                   | Visibility clipping and finite depth interval construction differ from source endpoint normalization.                                 |
+| [Terrain](../src/terrain/terrain-line.ts): invertible span, row/boundary denominators, minimum span                                                                                                                                                      | screen px                                           | Projection inversion, row sampling and thin-span collapse have different degeneracies.                                                |
+| [Terrain](../src/terrain/terrain-line.ts): flat-height coefficient                                                                                                                                                                                       | px·m                                                | This is the depth-dependent projection coefficient, not a height or pixel distance.                                                   |
 | [Renderer](../src/render/renderer.ts): minimum texture span                                                                                                                                                                                              | screen px                                           | Guards affine texture inversion, independently of terrain generation.                                                                 |
 | [GroundMap LOD](../src/groundmap/ground-map-lod.ts) and [asset compiler](../src/groundmap/ground-map-asset-compiler.ts): level/texel-count rounding                                                                                                      | dimensionless                                       | Discrete level selection and integer allocation round different quantities.                                                           |
 | [Footprints](../src/dev/diagnostics/terrain-footprint-analysis.ts) and [target envelope](../src/groundmap/ground-map-target-envelope.ts): footprint, level capacity, observed footprint                                                                  | m                                                   | Source-footprint accumulation, compiled capacity and observed-bound checks are separate comparisons.                                  |
@@ -87,7 +87,7 @@ horizonY = cy - f*sin φ
 
 Depth contains no Euclidean distance, camera-space Z, lateral correction, course-length modulo, winding or route state. Same d gives the same scale; same d and height gives the same screen Y. Every terrain chainage maps to one horizontal line. This intentional pseudo-3D distortion must not be “corrected” into normal perspective.
 
-[Projection](../src/core/projection.ts) owns the formula. [Terrain generation](../src/road/terrain-line.ts) uses it, with forward visibility limited by road heading and camera direction. Horizontal mapping along each line is affine; texture mapping is not perspective-correct. Terrain is emitted globally far-to-near, including hills/dips that overdraw the same row. Nearly horizontal/degenerate projected spans collapse to one destination row while preserving their complete source footprint.
+[Projection](../src/core/projection.ts) owns the formula. [Terrain generation](../src/terrain/terrain-line.ts) uses it, with forward visibility limited by road heading and camera direction. Horizontal mapping along each line is affine; texture mapping is not perspective-correct. Terrain is emitted globally far-to-near, including hills/dips that overdraw the same row. Nearly horizontal/degenerate projected spans collapse to one destination row while preserving their complete source footprint.
 
 ## Camera and fixed metric
 
@@ -101,7 +101,7 @@ GroundMap visual appearance and SurfaceMap physical support/friction are indepen
 
 GroundBase fills outside the finite GroundMap strip on each emitted terrain line. It is not a separate depth layer. Each side independently selects solid color or transparency; transparent pixels leave already-drawn farther content visible. Far Background is a full image with meaningful pixels below its horizon, aligned by a source-horizon anchor. Yaw scrolls the background; no camera roll or alpha blending is introduced. The [background source format](../src/visual/far-background.ts) owns 640×320 pixels, horizon row 126 and yaw density 200 source pixels/radian. Source yaw density and camera focal length have different units and remain independent authoring/presentation quantities despite their equal current numbers.
 
-Production courses currently use procedural GroundMap sampling. The offline compiler and finite baked reader are exercised by regression assets; production integration is planned, not complete. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Terrain lines resolve source/baked/stage sampling once before the pixel loop. Stage pixel-center overshoot is clipped to the authored local strip before its strict local classifier; ordinary source sampling retains its existing outer-material behavior. This is visual edge coverage, not physical lateral clamping. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Loaded assets validate integer payload offsets and encoding, then own immutable metadata and a private byte copy. Source and circuit-window readers share the same integer texel-center metric. Palette/RGB555 encoding and chunk addressing live in [visual assets](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
+Production courses currently use procedural GroundMap sampling. The offline compiler and finite baked reader are exercised by regression assets; production integration is planned, not complete. `roadMarkings` owns ordinary road paint; `junctionMarkings` owns paint relative to each junction carriageway center. Omitted paint means no marking. Source and stage samplers use the same paint primitive. Terrain lines resolve source/baked/stage sampling once before the pixel loop. Stage pixel-center overshoot is clipped to the authored local strip before its strict local classifier; ordinary source sampling retains its existing outer-material behavior. This is visual edge coverage, not physical lateral clamping. Logical left/right materials select outer textures; GroundBase transparency never implies rock. Loaded assets validate integer payload offsets and encoding, then own immutable metadata and a private byte copy. Source and circuit-window readers share the same integer texel-center metric. Palette/RGB555 encoding belongs to the [compiler encoder](../src/groundmap/ground-map-encoding.ts); chunk addressing and decoding belong to the [baked reader](../src/groundmap/baked-ground-map.ts). Source texel density at reference depth d0 follows:
 
 ```
 qL = d0/f
@@ -124,7 +124,7 @@ Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations
 
 Audio owns procedural sound and consumer read contracts; vehicle binds authored acoustic profiles and browser adapts physical observations. Audio imports only Core; physics never imports audio. See [audio](audio.md).
 
-All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone does not justify merging it.
+All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/infrastructure/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone does not justify merging it.
 
 General engine modules never import `src/dev`; only the three browser composition roots assemble concrete DEV content. Route/mode choices happen there. Runtime content provides ordinary reader contracts to physics, camera and renderer. Compilers own topology expansion, validation, static geometry and asset preparation; avoid per-pixel geometry, trigonometry or per-object alternative depth rules.
 
@@ -161,3 +161,30 @@ purposes, not competing road-width authorities. Existing shared-edge semantics a
 ordinary visual classification prefers road, ordered physical bands prefer the left inclusive band,
 and junction classification uses its explicit lateral tolerance. Changing those conventions would
 be a separate behavioral revision, not a cleanup.
+
+## Accepted authoring target: pending implementation
+
+The current procedural ground path and single-bitmap SpriteAsset remain the deployed implementation.
+The accepted target below requires explicit rendering-contract revisions and causal tests before
+activation; it does not silently advance the immutable mechanics/pixel reference.
+
+- Sprite and ground-image source density is 40 texels/m in both authoring axes. Ground source
+  density is distinct from the compiled anisotropic GroundMap spacing described above.
+- Ordinary sprite masters and every generated LOD use RGB555, at most 15 opaque colors and one
+  transparent slot, with binary final alpha. Runtime nearest scaling and continuous projected
+  size remain; LOD images are spaced by one octave in linear resolution.
+- Every LOD preserves the master's logical metric extent and anchor. Storage dimensions, crop,
+  padding and texel-center mapping are separate. Odd dimensions and level selection must be
+  resolved before extending SpriteAsset/the blitter. A stored LOD's width never redefines the
+  vehicle's physical dimensions.
+- GroundMap and its LOD are generated before game startup. Product runtime loads completed assets,
+  selects a level and samples it; it does not composite source imagery or generate prefilters.
+  Stage-local shoulders and junction paint must be included in the compiled color field. Loading
+  completed chunks during play is distinct from generating them; residency remains undecided.
+- Vehicles remain SINGLE: one sprite instance per vehicle. Yaw/bank sampling steps and source
+  camera projection are undecided; there is no accepted fixed 24-by-5 sampling grid.
+
+First measure stored/transfer bytes, alignment overhead, compiler peak memory, reader residency,
+load-time copies and transition-time coexistence on representative courses. Current packed readers
+must not be budgeted as if they expanded every texel to RGBA. Archive compression is not evidence
+of HTTP compression. Preserve separate mechanics comparison when intentionally revising pixel output.

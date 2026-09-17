@@ -6,9 +6,9 @@ import {
   type RouteBoundaryGateSet,
 } from '../../gameplay/route-boundary-gates.js';
 import { compileRouteDag, type RouteDag } from '../../gameplay/route-dag.js';
-import { STADIUM_HANDOFF_SEAM_S } from '../courses/stadium-handoff.js';
-import { STADIUM_JUNCTION } from '../courses/stadium-junction.js';
-import { createStadiumTransitionGate, STADIUM_ROUTE_GATE_S } from '../courses/stadium-route-gates.js';
+import { STADIUM_HANDOFF_SEAM_S } from '../courses/stadium/handoff.js';
+import { STADIUM_JUNCTION } from '../courses/stadium/junction.js';
+import { createStadiumTransitionGate, STADIUM_ROUTE_GATE_S } from '../courses/stadium/route-gates.js';
 
 export const SINGLE_FORK_FINISH_GATE_S = 700;
 

@@ -17,7 +17,7 @@ import type { GroundMapProfile } from '../groundmap/ground-map.js';
 import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.js';
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../render/course-sprite.js';
-import { DEFAULT_THIN_SPAN_SCREEN_ROWS, type TerrainVisualProfile } from '../road/terrain-line.js';
+import { DEFAULT_THIN_SPAN_SCREEN_ROWS, type TerrainVisualProfile } from '../terrain/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
 import { VisualProfile, type VisualSection, type VisualProfileReader } from '../visual/visual-profile.js';
 import type { StageRuntimeContentPackage } from './stage-runtime-content.js';

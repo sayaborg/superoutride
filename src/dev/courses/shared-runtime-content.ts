@@ -3,7 +3,7 @@ import type { GuideChart } from '../../gameplay/guide-chart.js';
 import type { GroundMapProfile } from '../../groundmap/ground-map.js';
 import type { SurfaceMap } from '../../physics/surface-map.js';
 import type { CourseSprite } from '../../render/course-sprite.js';
-import type { TerrainVisualProfile } from '../../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../../terrain/terrain-line.js';
 import type { GuideChartRuntimePackage } from '../../runtime/declarative-live-route.js';
 import type { StageRuntimeContentPackage } from '../../runtime/stage-runtime-content.js';
 import type { FarBackground } from '../../visual/far-background.js';

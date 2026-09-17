@@ -3,7 +3,7 @@
 This document owns player tire synthesis mechanisms and their numerical/physical limits.
 [Audio](audio.md) owns the observation, mixing, voice lifetime and shared tuning contracts.
 All retained models remain provisional comparisons; numerical sound-design choices are not measured
-whole-tire acoustics. HOPF is the mechanism name of the former CURRENT comparison; its waveform is unchanged.
+whole-tire acoustics.
 
 ## Source ownership
 
@@ -29,7 +29,7 @@ whole-tire acoustics. HOPF is the mechanism name of the former CURRENT compariso
 
 ## Player tire synthesis
 
-The game offers default HYBRID, comparisons MODAL and UNIFIED, and three other references. The
+The game offers the methods listed under [shared comparison and transport](#shared-comparison-and-transport). The
 [evidence note](tire-squeal-research.md) motivates mechanisms without calibrating any implementation.
 [Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
 signed contact longitudinal/lateral velocity, effective wheel peripheral and angular speed, tangential travel,
@@ -253,7 +253,7 @@ for reproducible render/probe commands. HOPF and CONTACT remain unmodified audib
 
 ### HYBRID game synthesis
 
-HYBRID is the adopted primary generator and reload default. It remains the R/S/Q waveform reference
+HYBRID remains the R/S/Q waveform reference
 for evaluating MODAL. The shared R extraction preserves its sound; this new comparison does not
 retune HYBRID or HOPF/CONTACT/SPECTRAL. The frozen mechanics/rendering oracle and read-only
 observation/lifecycle boundaries remain binding.
@@ -448,10 +448,8 @@ and synthetic renders remain separate from phone performance and listening accep
 
 ### MODAL game synthesis
 
-MODAL and UNIFIED coexist as independently selectable comparisons. HYBRID remains the current default
-reference; HOPF, CONTACT and SPECTRAL also retain their waveforms. MODAL has Q only and never
-constructs a rolling or separate scrub source. UNIFIED retains its original R+Q topology, 1,000 Hz
-high mode and quieter work-fraction onset. Wind is not implemented.
+MODAL and UNIFIED coexist as independently selectable comparisons. HYBRID remains a listening reference; HOPF, CONTACT and SPECTRAL also retain their waveforms. MODAL has Q only and never
+constructs a rolling or separate scrub source. UNIFIED retains its [specified R+Q topology and modes](#unified-game-synthesis) and quieter work-fraction onset. Wind is not implemented.
 
 The [generator](../src/audio/tire-modal-model.ts) composes four
 [stochastic resonators](../src/audio/stochastic-resonator.ts), one output pickup and one filter chain.
@@ -554,3 +552,22 @@ cost or target-device certification. Do not infer a measured speed ratio from op
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
 Current construction accepts 44.1–192 kHz. Sound selection and tuning are [deferred](NEXT.md#deferred-tuning) while visual presentation is developed.
+
+### Session tuning
+
+MODAL exposes friction controls in `MODAL_TUNING_RANGES`: feedback, saturation,
+work reference, slip half/roll-off, noise strength, base pitch, bandwidth, pitch wander and output gain.
+Audio owns validation, defaults and authored audition bounds. Surface values, pitch excursions,
+harmonic weights, timing and output filters remain source-owned. The settings are not measured tire data.
+UNIFIED retains its own controls and acoustic settings. Only the selected
+model's panel is shown. Each panel preserves its own values while hidden, and reset changes that model
+only. Kernels own frozen tuning snapshots. [Tire tuning](../src/audio/tire-tuning.ts) carries model identity
+with values and validates through the corresponding acoustic owner.
+
+An edit uses the existing tire-only replacement fade and installs new kernels at silence; it never
+retunes stiffness on a running vibration state. Rapid edits supersede pending settings, returning to
+active values cancels replacement, and unchanged values preserve states. Edits for an inactive model do not restart the active voice. Other reference models do
+not use these settings. Model/vehicle changes, mute and sound retry retain session tuning and mix;
+reload restores defaults. Tire reset changes only the selected model's settings. Invalid replacement tuning releases
+forcing without crashing the worklet. The port protocol includes a validated model-specific tuning snapshot
+on replacement, not per-frame parameter messages. Physics and the immutable render oracle are unchanged.

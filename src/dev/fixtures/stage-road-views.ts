@@ -1,6 +1,6 @@
 import { createStageRoadView, type StageRoadView } from '../../course/stage-road-view.js';
 import type { ChildGuideCharts } from '../courses/child-guide-charts.js';
-import { STADIUM_JUNCTION } from '../courses/stadium-junction.js';
+import { STADIUM_JUNCTION } from '../courses/stadium/junction.js';
 
 export interface StageRoadViews {
   readonly parent: StageRoadView;

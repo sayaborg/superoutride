@@ -70,3 +70,35 @@ Next work can add visual assets, sound and game flow above these contracts. Read
 ## Concrete visual content
 
 The [tunnel content](../src/dev/courses/tunnel.ts) owns portal/rib assets, placements and the camera-offset background interval. The browser composition assembles it with ordinary course sprites and Far Background. General rendering contains no tunnel location or special projection. Branching child authoring continues forward from the shared finite overlap; it has no alternate return-to-start shape.
+
+## Accepted authoring workflow: pending implementation
+
+Sprite Tool imports external images and normalizes them to metric source assets; it is not a new
+full drawing application. Course Editor owns course geometry, ground appearance, surface physics,
+placements and topology through their separate existing owners. Ground editing belongs in that
+editor rather than an independent whole-course bitmap painter.
+
+Editing projects, normalized source assets and compiled product assets are distinct. Source images
+and course authoring are authoritative; sprite LOD and completed GroundMap data are compiler output.
+The runtime format, asset identity/version rules and editor project schema remain undecided.
+
+Ground Decals represent arrows, text, symbols and surface details. Their authoring density is
+40 texels/m in each axis. Placement supplies position in (s,l), without rotation, scale, skew or
+stretch; the bitmap already contains the required shape. Compile decals into GroundMap, never into
+runtime world-sprite instances. Fractional placement still requires defined resampling. Ground paint
+does not infer or modify SurfaceMap support/friction.
+
+Before image production, resolve filter color space, RGB555 rounding, quantization, binary coverage,
+palette sharing and deterministic ordering. Ground Material's proposed 16 opaque colors, Decal's
+proposed 15+1 limit and the proposed semantic layer order are not yet final contracts. Material
+phase, same-layer overlap order and stage/circuit seams also need explicit decisions.
+
+The first tool slice is image import -> metric/mask/color normalization -> deterministic export ->
+course placement -> offline bake -> preview through product rendering. Establish output contracts
+and pure image/compiler primitives before extending the GUI. Do not introduce a second renderer,
+turtle, physical coordinate system or arbitrary visual scale for preview convenience.
+
+Three-dimensional source capture is a separate experiment until accepted: compare fixed orthographic
+and explicitly defined perspective cameras, lateral displacement versus body yaw, distance and bank.
+Model origin, angle labels, pivot, lighting, crop/anchor and angle sampling remain open. Runtime
+chainage projection is unchanged. DUAL/multiple vehicle slices remain deferred.

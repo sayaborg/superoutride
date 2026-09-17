@@ -8,12 +8,10 @@ acoustic profiles, and browser composition adapts completed physical observation
 motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
 The engine provides the current sample-free listening baseline; its parameters remain provisional.
-HYBRID is the current tire listening reference and reload default; final method and parameter selection remain undecided. MODAL is a Q-only comparison and UNIFIED retains its R+Q mechanism; neither replaces the other. HOPF, CONTACT and
-SPECTRAL remain references. The favorable HYBRID squeal feedback does not establish a calibrated real-tire
-model, a final method selection or a final mix balance.
-[The checkpoint](NEXT.md#deferred-tuning) owns feedback and remaining listening priorities.
-All six tire implementations generate sound without recordings. Keep the engine waveform and fixed
-voice/lifecycle boundaries unchanged; actual Android performance and the complete tire mix remain open.
+[Tire audio](tire-audio.md) owns the selectable synthesis methods, reload default, numerical limits
+and model-specific controls. [The checkpoint](NEXT.md#deferred-tuning) owns listening priorities.
+Keep the engine waveform and fixed voice/lifecycle boundaries unchanged; target-device performance
+and listening acceptance remain separate from automated numerical checks.
 
 **Interpretation rule:** reference-derived coefficients use the explicit assumptions below; authored
 coefficients, pipe geometry and acoustic output are listening conventions. Neither category represents
@@ -159,28 +157,14 @@ DEV is a native, initially closed disclosure overlay. Its body scrolls independe
 viewport; opening it never shrinks the game. All selectors and audio controls remain available in every
 orientation. Controls have touch-size targets. UI-owned pointer starts are excluded from driving;
 keydown stays inside the panel, while keyup can release an already-held driving key. Escape closes
-from any control. This explicitly replaces the former always-visible multi-row selector layout.
+from any control.
 
 MASTER retains its 35% default. Independent ENG and TIRE sliders multiply their buses, from 0 to 100%,
 initially 100%; ENG includes the nearest rival. They do not alter synthesis, voice-switch envelopes,
 component state or each other's level. Ordinary gain following avoids steps; zero does not stop DSP.
 
-MODAL exposes ten friction controls in `MODAL_TUNING_RANGES`: feedback, saturation,
-work reference, slip half/roll-off, noise strength, base pitch, bandwidth, pitch wander and output gain.
-Audio owns validation, defaults and authored audition bounds. Surface values, pitch excursions,
-harmonic weights, timing and output filters remain source-owned. The settings are not measured tire data.
-UNIFIED retains its eleven controls, including the 1,000 Hz high-mode default. Only the selected
-model's panel is shown. Each panel preserves its own values while hidden, and reset changes that model
-only. Kernels own frozen tuning snapshots. [Tire tuning](../src/audio/tire-tuning.ts) carries model identity
-with values and validates through the corresponding acoustic owner.
-
-An edit uses the existing tire-only replacement fade and installs new kernels at silence; it never
-retunes stiffness on a running vibration state. Rapid edits supersede pending settings, returning to
-active values cancels replacement, and unchanged values preserve states. Edits for an inactive model do not restart the active voice. Other reference models do
-not use these settings. Model/vehicle changes, mute and sound retry retain session tuning and mix;
-reload restores defaults. Tire reset changes only the selected model's settings. Invalid replacement tuning releases
-forcing without crashing the worklet. The port protocol includes a validated model-specific tuning snapshot
-on replacement, not per-frame parameter messages. Physics and the immutable render oracle are unchanged.
+[Tire session tuning](tire-audio.md#session-tuning) owns model-specific replacement, reset and
+session semantics. [Calibration](calibration.md#tire-audio-tuning) maps controls to their source owners.
 
 ### Engine controls
 
@@ -245,25 +229,25 @@ presentation choices; none changes mechanical inertia or establishes calibrated 
 ## Verification and limits
 
 Run the full [development workflow](development.md), including the unchanged historical physics/render
-oracle. [Audio tests](../tests/audio.test.mjs), [lifetime tests](../tests/audio-lifecycle.test.mjs),
-[audit regressions](../tests/audio-audit.test.mjs) and [waveguide tests](../tests/exhaust-waveguide.test.mjs)
+oracle. [Audio tests](../tests/audio/audio.test.mjs), [lifetime tests](../tests/audio/audio-lifecycle.test.mjs),
+[audit regressions](../tests/audio/audio-audit.test.mjs) and [waveguide tests](../tests/audio/exhaust-waveguide.test.mjs)
 cover read-only observation, native/fallback control paths, frame survival, retry races, bounded voices,
 profile/tuning replacement, finite sustained feedback and output conditioning. They are not listening
 acceptance or universal device support claims.
 
-Use [engine audition](../tools/audio-browser.html) for all nine profiles at 44.1/48 kHz, steady RPM/load
+Use [engine audition](../tools/audio/audio-browser.html) for all nine profiles at 44.1/48 kHz, steady RPM/load
 and acceleration/coast. Fixed gain evaluates load; optional RMS matching compares timbre only.
-[Level diagnostics](../tools/exhaust-levels.mjs) report kernel RMS/peak with one-second settling and
-measurement, reset seed and default tuning. `node tools/exhaust-levels.mjs [build-directory]` writes JSON;
+[Level diagnostics](../tools/audio/exhaust-levels.mjs) report kernel RMS/peak with one-second settling and
+measurement, reset seed and default tuning. `node tools/audio/exhaust-levels.mjs [build-directory]` writes JSON;
 compare vehicle/RPM/load rows before intentionally revising mix levels. Out-of-profile RPMs are omitted.
 
-[Tire audition](../tools/tire-browser.html), [shared scenarios](../tools/tire-scenarios.mjs) and
-[offline rendering](../tools/tire-render.mjs) compare independent axles, rolling, cornering, wheel lock,
+[Tire audition](../tools/audio/tire-browser.html), [shared scenarios](../tools/audio/tire-scenarios.mjs) and
+[offline rendering](../tools/audio/tire-render.mjs) compare independent axles, rolling, cornering, wheel lock,
 loose surfaces and release. Generated WAVs are review outputs, never production assets.
-`node tools/tire-render.mjs /absolute/output.wav` optionally accepts a prior kernel for comparison.
+`node tools/audio/tire-render.mjs /absolute/output.wav` optionally accepts a prior kernel for comparison.
 
-[Host timing](../tools/exhaust-performance.mjs) uses warmed paired runs, not phone certification.
-[Spectral diagnostics](../tools/exhaust-quality.mjs) inspect coherent source/clip-input/output signals
+[Host timing](../tools/audio/exhaust-performance.mjs) uses warmed paired runs, not phone certification.
+[Spectral diagnostics](../tools/audio/exhaust-quality.mjs) inspect coherent source/clip-input/output signals
 with zero variation. Energy outside true harmonics detects inharmonic aliasing, not folded components
 coincident with genuine harmonics or total aliasing. FFT and independent pulse-integration regressions
 retain their own causal coverage. Actual speaker listening, Safari/iOS/Android behavior and simultaneous
@@ -273,8 +257,8 @@ gameplay CPU budget remain separate checks.
 
 Keep one exhaust waveguide and one delay primitive, with no exhaust method flags or vehicle branches.
 The explicitly requested tire comparison selector belongs to voice/worklet composition, not either sample kernel.
-For a sound-preserving change, run `node tools/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
+For a sound-preserving change, run `node tools/audio/exhaust-equivalence.mjs /absolute/previous/exhaust-waveguide.js`
 after building, also with `--zero-variation`. The reference must share the profile/pulse contract;
-[exact comparison](../tools/exhaust-equivalence.mjs) covers rates, vehicles, overrides and RPM/load transitions.
+[exact comparison](../tools/audio/exhaust-equivalence.mjs) covers rates, vehicles, overrides and RPM/load transitions.
 Do not use equivalence language for an intentional synthesis change. Past experiments and run results
 belong in Git and PR/CI evidence, not an accumulating documentation archive.

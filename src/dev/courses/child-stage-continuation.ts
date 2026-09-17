@@ -24,11 +24,11 @@ import { rgba } from '../../graphics/software-surface.js';
 import type { GroundMapProfile } from '../../groundmap/ground-map.js';
 import { StageSurfaceMapView } from '../../physics/stage-surface-map-view.js';
 import { SurfaceMap } from '../../physics/surface-map.js';
-import type { TerrainVisualProfile } from '../../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../../terrain/terrain-line.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
-import { STADIUM_HANDOFF_SEAM_S } from './stadium-handoff.js';
-import { STADIUM_JUNCTION } from './stadium-junction.js';
-import { STADIUM_ROUTE_GATE_S } from './stadium-route-gates.js';
+import { STADIUM_HANDOFF_SEAM_S } from './stadium/handoff.js';
+import { STADIUM_JUNCTION } from './stadium/junction.js';
+import { STADIUM_ROUTE_GATE_S } from './stadium/route-gates.js';
 import { CENTER_DASH_MARKINGS } from './road-markings.js';
 
 export const CHILD_FINISH_S = 250;

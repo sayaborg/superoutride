@@ -14,11 +14,10 @@ This directory describes the current system. It is not a chronological milestone
 | [development](development.md)                   | Build, tests, diagnostics and browser delivery                                         |
 | [NEXT](NEXT.md)                                 | Single current restart checkpoint and next work                                        |
 
-The [tire sound evidence note](tire-squeal-research.md) supports mechanism discussion, not runtime
-behavior or numerical calibration. [Tire audio](tire-audio.md) owns default HYBRID, the MODAL and UNIFIED comparisons
-and the HOPF/CONTACT/SPECTRAL references;
+The [tire sound evidence note](tire-squeal-research.md) supports mechanism discussion, not runtime behavior or numerical calibration.
+[Tire audio](tire-audio.md) owns synthesis methods and session behavior;
 [calibration](calibration.md#tire-audio-tuning) maps tuning controls;
-[NEXT](NEXT.md#deferred-tuning) owns the visual-presentation restart and deferred tuning decisions.
+[NEXT](NEXT.md#deferred-tuning) owns the restart and deferred decisions.
 Do not duplicate those responsibilities in another proposal or handoff file.
 
 This is the sole specification index. On restart, read the development contract, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.

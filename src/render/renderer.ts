@@ -8,13 +8,13 @@ import { drawScaledSprite, type SpriteScanlineObserver } from '../graphics/sprit
 import { sampleGroundMap, type GroundMapProfile } from '../groundmap/ground-map.js';
 import { sampleStageGroundMapAtLevel } from '../groundmap/stage-ground-map-view.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
-import { applyStageRoadViewToTerrainLine } from '../road/stage-terrain-view.js';
+import { applyStageRoadViewToTerrainLine } from '../terrain/stage-terrain-view.js';
 import {
   computeForwardVisibleInterval,
   generateTerrainLines,
   type TerrainLine,
   type TerrainVisualProfile,
-} from '../road/terrain-line.js';
+} from '../terrain/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
 import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';

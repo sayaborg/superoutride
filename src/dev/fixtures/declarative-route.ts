@@ -12,9 +12,9 @@ import type { SharedRuntimeContent } from '../courses/shared-runtime-content.js'
 import { chartPackage } from '../courses/shared-runtime-content.js';
 
 import type { SpriteAssets } from '../../visual/sprite-assets.js';
-import { STADIUM_HANDOFF_SEAM_S } from '../courses/stadium-handoff.js';
-import { STADIUM_JUNCTION } from '../courses/stadium-junction.js';
-import { STADIUM_ROUTE_GATE_S } from '../courses/stadium-route-gates.js';
+import { STADIUM_HANDOFF_SEAM_S } from '../courses/stadium/handoff.js';
+import { STADIUM_JUNCTION } from '../courses/stadium/junction.js';
+import { STADIUM_ROUTE_GATE_S } from '../courses/stadium/route-gates.js';
 import { createSuccessorStagePackages } from '../courses/successor-stage-content.js';
 import {
   createLiveContinuation,

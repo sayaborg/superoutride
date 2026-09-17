@@ -1,7 +1,7 @@
 import type { GuidePath } from '../../core/guide-curve.js';
 import type { JunctionCrossSectionProfile } from '../../course/junction-cross-section.js';
 import { createGuideChart, type GuideChart } from '../../gameplay/guide-chart.js';
-import { STADIUM_JUNCTION } from './stadium-junction.js';
+import { STADIUM_JUNCTION } from './stadium/junction.js';
 
 export interface ChildGuideCharts {
   readonly parent: GuideChart;

@@ -1,5 +1,5 @@
 import type { GroundMapTargetEnvelopeReport } from '../../groundmap/ground-map-target-envelope.js';
-import type { TerrainLine } from '../../road/terrain-line.js';
+import type { TerrainLine } from '../../terrain/terrain-line.js';
 import type { GroundMapDensityProfile } from '../../groundmap/ground-map-lod.js';
 import { diagnosticLateralLevel, requiredPyramidMaxLevel } from '../../groundmap/ground-map-lod.js';
 

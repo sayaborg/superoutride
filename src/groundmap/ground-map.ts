@@ -46,7 +46,7 @@ export interface GroundMapProfile {
   baked?: BakedGroundMapReader;
 }
 
-/** Procedural authoring/source reference retained for compiler bake and equivalence tests. */
+/** Current production color source, also evaluated by the offline compiler. */
 export function sampleGroundMap(s: number, l: number, profile: GroundMapProfile): number {
   const sourceS = s + (profile.chainageOffsetS ?? 0);
   const checker = checkerAt(sourceS, l);

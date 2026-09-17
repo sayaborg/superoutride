@@ -16,7 +16,7 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. See the documentation index for the complete development workflow.
 
-For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio-browser.html` is the separate audition page;
+For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio/audio-browser.html` is the separate audition page;
 serve both over HTTP, rather than opening HTML files directly. See the [audio specification](docs/audio.md)
 for the signal path, parameters and approximation limits.
 
@@ -46,7 +46,7 @@ Physical tire calibration, engine sound parameters, and tire-noise method/parame
 | `src/gameplay`  | Physical route gates, laps, sessions, rivals and recovery                        |
 | `src/graphics`  | Framebuffer, color codec, sprite blitting and Painter primitives                 |
 | `src/visual`    | Background/sprite assets and visual sections                                     |
-| `src/road`      | Terrain projection and scanline geometry                                         |
+| `src/terrain`   | Terrain projection and scanline geometry                                         |
 | `src/groundmap` | Logical/baked ground readers, baking and filtering                               |
 | `src/render`    | Scene pipeline and projected course/vehicle presentation                         |
 | `src/runtime`   | Course compilation, unfolding and actor/gameplay composition                     |

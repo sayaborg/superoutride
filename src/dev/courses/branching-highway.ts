@@ -6,7 +6,7 @@ import { JunctionCrossSectionProfile } from '../../course/junction-cross-section
 import type { RecoveryProfile } from '../../gameplay/recovery.js';
 import { GROUND_COLORS, type GroundMapProfile } from '../../groundmap/ground-map.js';
 import { SurfaceMap } from '../../physics/surface-map.js';
-import type { TerrainVisualProfile } from '../../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../../terrain/terrain-line.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
 import type { ParentForkGeometry } from './child-stage-continuation.js';
 import {

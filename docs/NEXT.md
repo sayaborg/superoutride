@@ -8,52 +8,53 @@ before changing source. Preserve unrelated work and use a `codex/` branch. Curre
 evidence is the continuation authority; no prior chat attachment or generated audio file is needed.
 [Development](development.md) owns commands and evidence scopes.
 
-## Next work: visual presentation
+## Next work: authoring foundations
 
-The user has moved the active work to visual presentation. The first visual feature and art direction
-are not yet specified. Inspect the existing presentation and define that feature before implementing
-it; this checkpoint does not authorize an invented visual redesign or renewed sound/handling tuning.
+The accepted direction is Sprite Tool and Course Editor, with precompiled GroundMap and octave
+sprite LOD. [Architecture](architecture.md#accepted-authoring-target-pending-implementation) and
+[content](content-and-gameplay.md#accepted-authoring-workflow-pending-implementation) own the target
+contracts and distinguish them from deployed implementation. Cleanup preserves existing road
+shoulder dimensions, boundary priorities, pixels, mechanics and acoustic waveforms.
 
-| Concern                                 | Existing owner / entry point                                                                                                                                                                                        |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scene rendering and Painter composition | [renderer](../src/render/renderer.ts), [Painter merge](../src/graphics/painter-merge.ts)                                                                                                                            |
-| Vehicle and scenery assets              | [sprite assets](../src/visual/sprite-assets.ts), [course sprites](../src/render/course-sprite.ts), [dynamic vehicle sprites](../src/render/dynamic-vehicle-sprite.ts)                                               |
-| Far background and visual sections      | [background](../src/visual/far-background.ts), [visual profile](../src/visual/visual-profile.ts)                                                                                                                    |
-| Road appearance and ground sampling     | [TerrainLine](../src/road/terrain-line.ts), [GroundMap](../src/groundmap/ground-map.ts), [concrete course authoring](../src/dev/courses/)                                                                           |
-| Camera and physical-pose presentation   | [camera](../src/camera/camera.ts), [camera profile](../src/camera/current-camera-profile.ts), [vehicle presentation](../src/render/vehicle-presentation.ts), [height mapping](../src/render/render-height-space.ts) |
-| Browser display and composition         | [driving shell](../src/browser/), [composition roots](../README.md#structure)                                                                                                                                       |
+1. Measure current baking on stadium, Tsukuba, long highway and branching stage/transition cases.
+   Include richer-color/pattern fixtures; today's simple patterns do not predict future texture
+   compression. Separate compiler peak memory, payload bytes, transfer bytes, reader residency and
+   load/transition copies. Propose target-device budgets from this evidence before production cutover.
+2. Define product asset identity, finite stage domains, load/residency and seam contracts. Integrate
+   baked GroundMap into every course; remove procedural runtime paint, including stage overrides.
+   Keep procedural source evaluation only in the compiler/editor. Keep completed chunk loading
+   distinct from runtime baking. Do not duplicate a lap's data for virtual circuit copies or actors.
+3. Resolve sprite LOD logical extent, crop/padding, anchors, odd dimensions and level selection.
+   Verify synthetic fixtures before changing asset production or the product blitter contract.
+4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic
+   core/compiler functions, then the smallest end-to-end Sprite Tool / Course Editor workflow.
 
-[Architecture](architecture.md) remains the sole rendering contract: 320×240 framebuffer,
-chainage-based pseudo depth, far-to-near Painter order, fixed player metric (2 m = 80 px),
-zero camera roll and no lateral terrain banking. GroundMap appearance and SurfaceMap mechanics
-remain independent. Presentation reads physical state without correcting vehicle motion.
-Course topology belongs above Core. Shared road/shoulder geometry and independent material/visual
-profiles follow the [ground authoring boundary](architecture.md#ground-authoring-boundaries). Preserve these boundaries while choosing a visual feature.
+Ground and sprite cutovers are separate rendering revisions. Preserve the immutable mechanics
+reference; revise affected pixel expectations explicitly with independent causal coverage. No
+source-camera projection, yaw/bank count, Material palette rule or layer proposal is implicitly frozen.
+3D capture experiments may precede production integration without adding unaccepted runtime variants.
 
-The immutable CI reference checks both mechanics and rendered pixels. A visual feature may
-intentionally change pixels; identify its affected contract and causal regression explicitly before
-changing that expectation. Do not silently advance the reference or mask output differences.
-Use the existing [browser performance tool](development.md#validation-contracts) for device
-measurements; full-suite duration is not a frame budget.
+The shared road cross-section owns dimensions; visual ground extent and physical support extent
+remain independent. Parent/child coordinate transforms and physical gate -> PENDING -> seam -> COMMIT
+remain unchanged. Source geometry is available to route intent independently of GroundMap storage.
+Use the existing [browser diagnostics](development.md#validation-contracts) for device evidence;
+full-suite duration and host probe timings are not target frame budgets.
 
 ## Deferred tuning
 
 All three areas below remain undecided and are paused, not approved as final defaults. Resume only
 when the user returns to that area. Current numeric defaults remain available for reproducible play.
 
-| Area                             | Preserved state                                                                                     | Decision still open                                                       |
-| -------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Physical tire parameters         | Common mechanics, DEV calibration controls and current provisional values                           | Per-vehicle/front/rear calibration and handling acceptance                |
-| Engine sound parameters          | Native-rate sample-free waveguide, eight DEV controls and independent ENG level                     | Timbre, parameter values and final mix                                    |
-| Tire-noise method and parameters | HOPF / CONTACT / SPECTRAL / HYBRID / MODAL / UNIFIED; HYBRID reload default; independent TIRE level | Final synthesis method, onset, pitch, roughness, parameter values and mix |
+| Area                     | Preserved state                                                         | Decision still open                              |
+| ------------------------ | ----------------------------------------------------------------------- | ------------------------------------------------ |
+| Physical tire parameters | Common mechanics and provisional calibration                            | Vehicle/axle calibration and handling acceptance |
+| Engine sound             | Current synthesis and controls                                          | Timbre, parameter values and mix                 |
+| Tire sound               | All methods and session behavior defined by [tire audio](tire-audio.md) | Final mechanism, onset, pitch, roughness and mix |
 
-UNIFIED must remain available alongside MODAL. UNIFIED retains R+Q, its listener-selected 1,000 Hz
-high mode and work-fraction onset; MODAL retains its Q-only mechanism. Their DEV panels keep separate
-settings and resets. All session tuning resets on reload. HYBRID's squeal received favorable feedback,
-but this does not settle the final tire-noise method. R/S remain in the retained comparison methods;
-wind sound is deferred. [Tire audio](tire-audio.md) owns mechanisms and limits,
-[calibration](calibration.md) owns parameter maps, and the [research note](tire-squeal-research.md)
-records physical evidence without claiming measured calibration of game coefficients.
+UNIFIED and MODAL remain available. Their coexistence is not a final method selection. The user
+favored HYBRID squeal; listening feedback does not settle physical calibration. Wind remains deferred.
+Audio model registry/seed consolidation, `audio/tire/` organization and HOPF/tool renaming belong to
+sound-preserving cleanup when audio work resumes, not the authoring foundations above.
 
 When tire-noise work resumes, compare Q alone at equal physical calibration and playback levels:
 HYBRID with R/S off, UNIFIED with R off, and MODAL. Recheck mild turns around 20 km/h, increasing

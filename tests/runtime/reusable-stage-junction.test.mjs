@@ -1,0 +1,142 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
+
+import { createStageRoadView } from '../../dist/course/stage-road-view.js';
+import { GROUND_COLORS } from '../../dist/groundmap/ground-map.js';
+import { sampleStageGroundMapAtLevel } from '../../dist/groundmap/stage-ground-map-view.js';
+import { compileStageJunction } from '../../dist/runtime/stage-junction-compiler.js';
+
+const CROSS_SECTION = Object.freeze({
+  sWidenStart: 40,
+  sMedianStart: 60,
+  sSeparatedStart: 100,
+  parent: { roadLeft: 7 * 0.5, roadRight: 7 * 0.5, shoulderWidth: 1 },
+  childRoadWidth: 6,
+  finalMedianWidth: 4,
+});
+
+function sourceRoadView(overrides = {}) {
+  return createStageRoadView({
+    id: 'SOURCE_STAGE_VIEW',
+    sourceLateralOrigin: 7.5,
+    groundLeft: 4.5,
+    groundRight: 4.5,
+    road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
+    ...overrides,
+  });
+}
+
+function setup() {
+  return compileStageJunction(
+    {
+      courseLength: 400,
+      roadView: sourceRoadView(),
+      groundProfile: {
+        groundLeft: 4.5,
+        groundRight: 4.5,
+        road: { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
+
+        roadMarkings: CENTER_DASH_MARKINGS,
+        junctionMarkings: CENTER_DASH_MARKINGS,
+
+        roadCenterL: 7.5,
+        chainageOffsetS: 100,
+      },
+    },
+    {
+      roadViewId: 'SECOND_FORK_VIEW',
+      surfaceSectionName: 'SECOND_FORK',
+      crossSection: CROSS_SECTION,
+      outerSurfaceType: 'GRASS',
+    },
+  );
+}
+
+test('compiler expands one stage corridor exactly enough for both child roads, median and shoulders', () => {
+  const compiled = setup();
+  assert.equal(compiled.requiredGroundHalfWidth, 9);
+  assert.equal(compiled.roadView.groundLeft, 9);
+  assert.equal(compiled.roadView.groundRight, 9);
+  assert.equal(compiled.groundProfile.groundLeft, 9);
+  assert.equal(compiled.groundProfile.groundRight, 9);
+  assert.equal(compiled.roadView.sourceLateralOrigin, 7.5);
+  assert.equal(compiled.roadView.road.roadLeft, 3.5);
+  assert.equal(compiled.roadView.road.roadRight, 3.5);
+  assert.equal(compiled.groundProfile.stageJunction, compiled.junction);
+});
+
+test('GroundMap junction is evaluated in stage-local l before source lateral rebasing', () => {
+  const compiled = setup();
+  const sample = (l) => sampleStageGroundMapAtLevel(120, l, 0, compiled.roadView, compiled.groundProfile);
+
+  assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(-4)));
+  assert.ok([GROUND_COLORS.asphaltA, GROUND_COLORS.asphaltB].includes(sample(4)));
+  assert.ok([GROUND_COLORS.grassA, GROUND_COLORS.grassB].includes(sample(0)));
+  assert.equal(sample(8.5), GROUND_COLORS.shoulder);
+  assert.throws(() => sample(9.1), /outside the local ground envelope/);
+});
+
+test('SurfaceMap consumes the same stage-local junction cross-section', () => {
+  const compiled = setup();
+  assert.equal(compiled.surfaceMap.sample(0, 0).type, 'ASPHALT');
+  assert.equal(compiled.surfaceMap.sample(20, 0).type, 'ASPHALT');
+  assert.equal(compiled.surfaceMap.sample(20, 4).type, 'SHOULDER');
+  assert.equal(compiled.surfaceMap.sample(20, 5).type, 'GRASS');
+
+  assert.equal(compiled.surfaceMap.sample(120, -5).type, 'ASPHALT');
+  assert.equal(compiled.surfaceMap.sample(120, 0).type, 'GRASS');
+  assert.equal(compiled.surfaceMap.sample(120, 8.5).type, 'SHOULDER');
+  assert.equal(compiled.surfaceMap.sample(120, 9.1).type, 'VOID');
+  assert.equal(compiled.surfaceMap.sample(400, 0).type, 'GRASS');
+
+  assert.throws(() => compiled.surfaceMap.sample(-1, 0), /outside \[0, courseLength\]/);
+  assert.throws(() => compiled.surfaceMap.sample(401, 0), /outside \[0, courseLength\]/);
+});
+
+test('rejects a junction whose incoming width does not match the active stage road', () => {
+  assert.throws(
+    () =>
+      compileStageJunction(
+        {
+          courseLength: 400,
+          roadView: sourceRoadView({
+            road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+            groundLeft: 6,
+            groundRight: 6,
+          }),
+          groundProfile: {
+            groundLeft: 6,
+            groundRight: 6,
+            road: { roadLeft: 4.5, roadRight: 4.5, shoulderWidth: 1 },
+
+            roadMarkings: CENTER_DASH_MARKINGS,
+            junctionMarkings: CENTER_DASH_MARKINGS,
+          },
+        },
+        {
+          roadViewId: 'BAD_VIEW',
+          surfaceSectionName: 'BAD',
+          crossSection: CROSS_SECTION,
+        },
+      ),
+    /incoming road width/,
+  );
+});
+
+test('reusable junction layer adds no RouteDag, renderer, camera or vehicle-physics dependency', async () => {
+  const [compilerSource, surfaceSource, groundSource] = await Promise.all([
+    readFile(new URL('../../src/runtime/stage-junction-compiler.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../src/physics/stage-junction-surface-map.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../src/groundmap/stage-ground-map-view.ts', import.meta.url), 'utf8'),
+  ]);
+  const implementationImports = `${compilerSource}\n${surfaceSource}`
+    .split('\n')
+    .filter((line) => /^import\b|\bfrom\s+['"]/.test(line))
+    .join('\n');
+  assert.doesNotMatch(implementationImports, /\.\.\/(?:gameplay|render|dev)\//);
+  assert.doesNotMatch(implementationImports, /car-physics|motorcycle-physics|camera/i);
+  assert.doesNotMatch(surfaceSource, /wrapPositive/);
+  assert.doesNotMatch(groundSource, /STAGE_2_[LR]|STAGE_3_[LR]|GOAL_[LR]|S[123][LR]_/);
+});

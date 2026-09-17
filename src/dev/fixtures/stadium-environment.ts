@@ -3,7 +3,7 @@ import { GroundMapLogicalProfile } from '../../groundmap/logical-profile.js';
 import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import type { SurfaceSection, SurfaceBand } from '../../physics/surface-map.js';
 import type { VisualSection } from '../../visual/visual-profile.js';
-import { STADIUM_ROAD_CROSS_SECTION } from '../courses/stadium-junction.js';
+import { STADIUM_ROAD_CROSS_SECTION } from '../courses/stadium/junction.js';
 
 export const STADIUM_SURFACE_BASE_COLORS = {
   grass: rgba(45, 100, 53),

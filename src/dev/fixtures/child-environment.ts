@@ -2,7 +2,7 @@ import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compil
 import { HeightProfile } from '../../core/height-profile.js';
 import { rgba } from '../../graphics/software-surface.js';
 import { compileCourseSprite, type CourseSprite, type CourseSpriteAuthoring } from '../../render/course-sprite.js';
-import type { TerrainVisualProfile } from '../../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../../terrain/terrain-line.js';
 import type { SpriteAssets } from '../../visual/sprite-assets.js';
 import { VisualProfile } from '../../visual/visual-profile.js';
 import type { ChildStageContinuation, ChildStageRuntimeSource } from '../courses/child-stage-continuation.js';

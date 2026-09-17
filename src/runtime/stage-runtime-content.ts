@@ -12,7 +12,7 @@ import { validateSurfaceGuideEnvelope } from '../physics/surface-guide-envelope.
 import type { SurfaceMapReader } from '../physics/surface-map.js';
 import type { VehicleWorld } from '../physics/vehicle-contract.js';
 import type { CourseSprite } from '../render/course-sprite.js';
-import type { TerrainVisualProfile } from '../road/terrain-line.js';
+import type { TerrainVisualProfile } from '../terrain/terrain-line.js';
 import type { FarBackground } from '../visual/far-background.js';
 
 const PACKAGE_GEOMETRY_TOLERANCE_METERS = 1e-7;

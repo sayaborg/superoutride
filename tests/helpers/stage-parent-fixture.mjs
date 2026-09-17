@@ -1,5 +1,5 @@
 /** Fixed shared parent content for route regressions, independent of current browser defaults. */
-import { STADIUM_JUNCTION } from '../../dist/dev/courses/stadium-junction.js';
+import { STADIUM_JUNCTION } from '../../dist/dev/courses/stadium/junction.js';
 import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
 import { createStadiumEnvironment } from '../../dist/dev/fixtures/stadium-environment.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
