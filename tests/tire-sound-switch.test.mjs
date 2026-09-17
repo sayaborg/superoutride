@@ -1,7 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
-import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
-import { UNIFIED_SETTINGS, resolveUnifiedTuning } from '../dist/audio/tire-unified-acoustics.js';
+import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
+import { MODAL_SETTINGS, resolveModalTuning } from '../dist/audio/tire-modal-acoustics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -53,14 +53,14 @@ const world = () => {
 };
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
-test('UNIFIED tuning replacements fade, coalesce and cancel without replacing engines', (t) => {
+test('MODAL tuning replacements fade, coalesce and cancel without replacing engines', (t) => {
   install(t);
   const context = new FakeAudioContext();
   const voice = createTireVoice(context, context.destination);
   const node = context.nodes.find((n) => n.name === 'vehicle-tires');
-  const defaults = resolveUnifiedTuning();
-  const changed = resolveUnifiedTuning({ highFrequencyHz: 1600 });
-  voice.setModel('unified');
+  const defaults = resolveModalTuning();
+  const changed = resolveModalTuning({ pitchBaseHz: 1600 });
+  voice.setModel('modal');
   voice.update(state());
   assert.equal(node.messages.length, 1);
   voice.setTuning(changed);
@@ -75,14 +75,14 @@ test('UNIFIED tuning replacements fade, coalesce and cancel without replacing en
   voice.setTuning(changed);
   voice.update(state());
   context.currentTime = 0.24;
-  voice.setTuning(resolveUnifiedTuning({ highFrequencyHz: 1800 }));
+  voice.setTuning(resolveModalTuning({ pitchBaseHz: 1800 }));
   voice.update(state());
   context.currentTime = 0.31;
   voice.update(state());
   assert.equal(node.messages.length, 1);
   context.currentTime = 0.35;
   voice.update(state());
-  assert.equal(node.messages.at(-1).tuning.highFrequencyHz, 1800);
+  assert.equal(node.messages.at(-1).tuning.pitchBaseHz, 1800);
   assert.equal(node.messages.length, 2);
   voice.setModel('hybrid');
   voice.update(state());
@@ -93,11 +93,11 @@ test('UNIFIED tuning replacements fade, coalesce and cancel without replacing en
   voice.update(state());
   context.currentTime = 0.7;
   voice.update(state());
-  assert.equal(node.messages.length, count, 'reference models do not consume UNIFIED edits');
+  assert.equal(node.messages.length, count, 'reference models do not consume MODAL edits');
   voice.dispose();
 });
 
-test('mobile mix and UNIFIED settings survive delayed load and sound retry', async (t) => {
+test('mobile mix and MODAL settings survive delayed load and sound retry', async (t) => {
   let lifecycle;
   t.after(() => lifecycle?.dispose());
   const dom = install(t);
@@ -113,10 +113,10 @@ test('mobile mix and UNIFIED settings survive delayed load and sound retry', asy
   eng.emit('input');
   tire.value = '60';
   tire.emit('input');
-  dom.elements.get('tire-sound-toggle').click(); // default HYBRID -> UNIFIED
+  dom.elements.get('tire-sound-toggle').click(); // default HYBRID -> MODAL
   const row = dom.elements
     .get('tire-tuning')
-    .children[0].children.find((c) => c.getAttribute('data-tire-tuning-key') === 'highFrequencyHz');
+    .children[0].children.find((c) => c.getAttribute('data-tire-tuning-key') === 'pitchBaseHz');
   row.children[2].value = '1800';
   row.children[2].emit('input');
   finish();
@@ -126,7 +126,7 @@ test('mobile mix and UNIFIED settings survive delayed load and sound retry', asy
   lifecycle.update(vehicle, []);
   const context = FakeAudioContext.instances[0];
   const worklet = context.nodes.find((n) => n.name === 'vehicle-tires');
-  assert.equal(worklet.messages.at(-1).tuning.highFrequencyHz, 1800);
+  assert.equal(worklet.messages.at(-1).tuning.pitchBaseHz, 1800);
   const master = context.nodes[0];
   const buses = context.nodes.filter((n) => n.connections.includes(master));
   assert.ok(buses.some((n) => n.gain.value === 0.25));
@@ -139,7 +139,7 @@ test('mobile mix and UNIFIED settings survive delayed load and sound retry', asy
   await settle();
   lifecycle.update(vehicle, []);
   const next = FakeAudioContext.instances[1];
-  assert.equal(next.nodes.find((n) => n.name === 'vehicle-tires').messages.at(-1).tuning.highFrequencyHz, 1800);
+  assert.equal(next.nodes.find((n) => n.name === 'vehicle-tires').messages.at(-1).tuning.pitchBaseHz, 1800);
   assert.ok(next.nodes.some((n) => n.gain.value === 0.25));
   assert.ok(next.nodes.some((n) => n.gain.value === 0.6));
 });
@@ -188,11 +188,11 @@ async function processor(t) {
   return Processor;
 }
 
-test('worklet installs validated UNIFIED tuning, preserves identical state and recovers after invalid tuning', async (t) => {
+test('worklet installs validated MODAL tuning, preserves identical state and recovers after invalid tuning', async (t) => {
   const Processor = await processor(t);
   const node = new Processor();
-  const tuning = resolveUnifiedTuning({ highFrequencyHz: 1800, noiseForcePerSecond: 1600 });
-  node.port.onmessage({ data: { model: 'unified', tuning } });
+  const tuning = resolveModalTuning({ pitchBaseHz: 1800, noiseRms: 0.2 });
+  node.port.onmessage({ data: { model: 'modal', tuning } });
   const original = node.pair;
   const p = params();
   const observation = {
@@ -207,23 +207,23 @@ test('worklet installs validated UNIFIED tuning, preserves identical state and r
   };
   for (const axle of ['front', 'rear'])
     for (const [key, value] of Object.entries(observation)) p[`${axle}_tire_${key}`][0] = value;
-  const front = new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.frontSeed, tuning);
-  const rear = new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.rearSeed, tuning);
+  const front = new TireModalSynthesis(48000, MODAL_SETTINGS.frontSeed, tuning);
+  const rear = new TireModalSynthesis(48000, MODAL_SETTINGS.rearSeed, tuning);
   front.update(observation);
   rear.update(observation);
   const output = [[new Float32Array(4096)]];
   node.process([], output, p);
   for (let i = 0; i < 4096; i++) assert.equal(output[0][0][i], Math.fround(front.sample() + rear.sample()));
-  node.port.onmessage({ data: { model: 'unified', tuning: { ...tuning } } });
+  node.port.onmessage({ data: { model: 'modal', tuning: { ...tuning } } });
   assert.equal(node.pair, original);
-  node.port.onmessage({ data: { model: 'unified', tuning: { highFrequencyHz: NaN } } });
+  node.port.onmessage({ data: { model: 'modal', tuning: { pitchBaseHz: NaN } } });
   assert.equal(node.valid, false);
   assert.doesNotThrow(() => node.process([], output, p));
   assert.ok(output[0][0].every(Number.isFinite));
-  node.port.onmessage({ data: { model: 'unified', tuning } });
+  node.port.onmessage({ data: { model: 'modal', tuning } });
   assert.equal(node.valid, true);
   assert.equal(node.pair, original);
-  node.port.onmessage({ data: { model: 'unified', tuning: resolveUnifiedTuning() } });
+  node.port.onmessage({ data: { model: 'modal', tuning: resolveModalTuning() } });
   assert.notEqual(node.pair, original);
 });
 
@@ -378,7 +378,7 @@ test('UI choice survives loading, mute, vehicle changes and retry; keyboard/list
   const button = dom.elements.get('tire-sound-toggle');
   assert.equal(button.textContent, 'TIRES: HYBRID');
   button.click();
-  assert.equal(button.textContent, 'TIRES: UNIFIED');
+  assert.equal(button.textContent, 'TIRES: MODAL');
   button.click();
   assert.equal(button.textContent, 'TIRES: CURRENT');
   button.click();
@@ -559,7 +559,7 @@ test('material identities travel independently through the real voice and proces
   assert.ok(silence[0][0].slice(-128).every((v) => Math.abs(v) < 1e-8));
 });
 
-for (const model of ['spectral', 'unified'])
+for (const model of ['spectral', 'modal'])
   test(`${model} choice cancels/supersedes pending fades without resetting engines or the current reference`, (t) => {
     install(t);
     const context = new FakeAudioContext(),
@@ -671,7 +671,7 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
     ['R: ON', 'S: ON', 'Q: ON'],
   );
   assert.ok(host.children.every((b) => b.getAttribute('disabled') === null));
-  dom.elements.get('tire-sound-toggle').click(); // UNIFIED has only R and Q.
+  dom.elements.get('tire-sound-toggle').click(); // MODAL has only R and Q.
   assert.equal(s.getAttribute('hidden'), '');
   assert.match(q.getAttribute('aria-label'), /Friction \/ squeal/);
   dom.elements.get('tire-sound-toggle').click(); // CURRENT has no component controls.
@@ -703,9 +703,9 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   assert.equal(engines.length, 2);
   const messages = engines.map((n) => n.messages.length);
   dom.elements.get('tire-sound-toggle').click(); // HYBRID.
-  dom.elements.get('tire-sound-toggle').click(); // UNIFIED.
+  dom.elements.get('tire-sound-toggle').click(); // MODAL.
   assert.equal(s.getAttribute('hidden'), '');
-  assert.equal(s.textContent, 'S: OFF', "UNIFIED preserves the comparison models' S choice");
+  assert.equal(s.textContent, 'S: OFF', "MODAL preserves the comparison models' S choice");
   dom.elements.get('sound-toggle').click(); // Muted changes are retained.
   q.click();
   for (let i = 0; i < TIRE_SOUND_MODELS.length; i++) dom.elements.get('tire-sound-toggle').click();
@@ -728,7 +728,7 @@ test('R/S/Q choices survive load, mute, model changes and retry without altering
   life.update(player, []);
   context = FakeAudioContext.instances[1];
   node = context.nodes.find((n) => n.name === 'vehicle-tires');
-  assert.equal(node.messages.at(-1).model, 'unified');
+  assert.equal(node.messages.at(-1).model, 'modal');
   assert.equal(s.getAttribute('hidden'), '');
   assert.match(q.getAttribute('aria-label'), /Friction \/ squeal/);
   for (const { key } of TIRE_COMPONENTS) assert.equal(node.parameters.get(`mix_${key}`).value, 0);
@@ -939,7 +939,7 @@ test('HYBRID is the default, consumes only physical observations and shares dire
   assert.deepEqual(input, before);
 });
 
-test('HYBRID/SPECTRAL retain R/S/Q choices while UNIFIED exposes only rolling and unified friction', async (t) => {
+test('HYBRID/SPECTRAL retain R/S/Q choices while MODAL exposes Q only', async (t) => {
   const dom = install(t),
     life = createAudioLifecycle();
   t.after(() => life.dispose());
@@ -955,8 +955,9 @@ test('HYBRID/SPECTRAL retain R/S/Q choices while UNIFIED exposes only rolling an
   s.click();
   assert.equal(s.textContent, 'S: OFF');
   button.click();
-  assert.equal(button.textContent, 'TIRES: UNIFIED');
-  assert.equal(r.getAttribute('hidden'), null);
+  assert.equal(button.textContent, 'TIRES: MODAL');
+  assert.equal(r.getAttribute('hidden'), '');
+  assert.equal(r.getAttribute('disabled'), '');
   assert.equal(s.getAttribute('hidden'), '');
   assert.equal(s.getAttribute('disabled'), '');
   assert.equal(q.getAttribute('hidden'), null);
@@ -964,7 +965,7 @@ test('HYBRID/SPECTRAL retain R/S/Q choices while UNIFIED exposes only rolling an
   assert.match(q.title, /Friction \/ squeal/);
   assert.equal(
     dom.elements.get('tire-component-controls').getAttribute('aria-label'),
-    'Tire sound components: R Rolling, Q Friction / squeal',
+    'Tire sound components: Q Friction / squeal',
   );
   s.click();
   assert.equal(s.textContent, 'S: OFF', 'a hidden S control cannot change the comparison setting');
@@ -995,7 +996,7 @@ test('HYBRID/SPECTRAL retain R/S/Q choices while UNIFIED exposes only rolling an
   life.dispose();
 });
 
-test('UNIFIED transports physical observations to independent R/Q kernels with output-only fades and release', async (t) => {
+test('MODAL transports physical observations to independent Q-only kernels with output-only fades and release', async (t) => {
   install(t);
   const context = new FakeAudioContext(),
     voice = createTireVoice(context, context.destination);
@@ -1012,11 +1013,11 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
       utilization: 2.4,
     });
   const before = structuredClone(input);
-  voice.setModel('unified');
+  voice.setModel('modal');
   voice.update(input);
   const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
     p = params();
-  assert.deepEqual(worklet.messages, [{ model: 'unified', tuning: resolveUnifiedTuning() }]);
+  assert.deepEqual(worklet.messages, [{ model: 'modal', tuning: resolveModalTuning() }]);
   for (const [key, param] of worklet.parameters) p[key][0] = param.value;
   assert.equal(p.front_squeal[0], TIRE_CONTROL_RANGES.squeal.defaultValue);
   assert.equal(p.front_pitch[0], TIRE_CONTROL_RANGES.pitch.defaultValue);
@@ -1024,7 +1025,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   const Processor = await processor(t);
   const a = new Processor(),
     b = new Processor();
-  for (const node of [a, b]) node.port.onmessage({ data: { model: 'unified' } });
+  for (const node of [a, b]) node.port.onmessage({ data: { model: 'modal' } });
   const block = (node, count) => {
     const output = [[new Float32Array(count)]];
     node.process([], output, p);
@@ -1039,13 +1040,14 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   }
   assert.deepEqual(initial, split);
   const { front, rear } = a.pair;
-  assert.equal(a.pair.model, 'unified');
-  assert.ok(front instanceof TireUnifiedSynthesis && rear instanceof TireUnifiedSynthesis);
+  assert.equal(a.pair.model, 'modal');
+  assert.ok(front instanceof TireModalSynthesis && rear instanceof TireModalSynthesis);
   assert.notEqual(front, rear);
   assert.equal('scrubOutput' in front, false, 'there is no compatibility S source');
+  assert.equal('roadOutput' in front, false, 'there is no rolling source');
   const kernels = [
-    new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.frontSeed),
-    new TireUnifiedSynthesis(48000, UNIFIED_SETTINGS.rearSeed),
+    new TireModalSynthesis(48000, MODAL_SETTINGS.frontSeed),
+    new TireModalSynthesis(48000, MODAL_SETTINGS.rearSeed),
   ];
   for (const [i, axle] of ['front', 'rear'].entries()) {
     const observation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, p[`${axle}_tire_${key}`][0]]));
@@ -1055,7 +1057,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
     initial,
     Float32Array.from({ length: initial.length }, () => kernels[0].sample() + kernels[1].sample()),
   );
-  a.port.onmessage({ data: { model: 'unified' } });
+  a.port.onmessage({ data: { model: 'modal' } });
   assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
   // Neither legacy CURRENT controls nor the comparison models' S switch drives this mechanism.
   p.front_squeal[0] = NaN;
@@ -1081,9 +1083,9 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
     assert.deepEqual(whole, parts);
     assert.equal(a.pair.front, front);
     assert.deepEqual(a.pair, b.pair, 'output isolation never changes synthesis history');
-    const expected = front.roadOutput * r + front.frictionOutput * q + rear.roadOutput * r + rear.frictionOutput * q;
+    const expected = (front.frictionOutput + rear.frictionOutput) * q;
     assert.ok(Math.abs(whole.at(-1) - expected) < 1e-7, 'no compensation of the remaining output');
-    if (!r && !q) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
+    if (!q) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
     else assert.ok(whole.slice(-128).some((v) => Math.abs(v) > 1e-9));
   }
   p.mix_squeal[0] = 0;
@@ -1092,7 +1094,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   p.mix_squeal[0] = 1;
   p.front_tire_load[0] = NaN;
   const released = block(a, 96000);
-  assert.ok(Math.abs(front.roadOutput) + Math.abs(front.frictionOutput) < 1e-9);
+  assert.ok(Math.abs(front.frictionOutput) < 1e-9);
   assert.ok(
     released.slice(-128).some((v) => Math.abs(v) > 1e-9),
     'valid rear survives front release',
@@ -1112,7 +1114,7 @@ test('UNIFIED transports physical observations to independent R/Q kernels with o
   );
   assert.deepEqual(input, before);
   a.port.onmessage({ data: 'stop' });
-  a.port.onmessage({ data: { model: 'unified' } });
+  a.port.onmessage({ data: { model: 'modal' } });
   const stopped = [[new Float32Array(128).fill(1)]];
   assert.equal(a.process([], stopped, p), false);
   assert.ok(stopped[0][0].every((v) => v === 0));

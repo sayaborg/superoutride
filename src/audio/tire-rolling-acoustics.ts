@@ -1,9 +1,9 @@
 import type { TIRE_SOUND_SURFACES } from './tire-sound-observation.js';
 
 /**
- * Shared HYBRID/UNIFIED rolling source. Every value is an authored listening choice ("magic number"),
+ * HYBRID reference rolling source. Every value is an authored listening choice ("magic number"),
  * not a measured tread order, texture length, acoustic efficiency or material property.
- * Timing, filtering and texture belong to R independently of either friction implementation.
+ * Timing, filtering and texture belong to R independently of friction synthesis.
  */
 export const ROLLING_SETTINGS = Object.freeze({
   controlHz: 1000,

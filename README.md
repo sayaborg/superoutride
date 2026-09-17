@@ -32,20 +32,19 @@ ENGINE TUNING shares eight provisional minus/plus controls with the audition pag
 reset restores defaults, vehicle replacement retains tuning, and page/course reload resets it.
 Player and nearest-rival engines use the accepted native-rate sample-free waveguide. Wind is deferred.
 
-TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / UNIFIED cycles player tire sound while driving.
-HYBRID remains the accepted squeal method and reload default, combining rolling (R), sliding friction (S)
-and squeal (Q). UNIFIED is a new comparison: the same rolling source plus one friction vibration system
-whose Q output covers rubbing through squeal. It has R/Q buttons; S is hidden for this method.
-HYBRID and SPECTRAL retain R/S/Q buttons. Output switches independently fade both axles without resetting
-state or boosting other components. All components start ON; session choices survive model/vehicle
-changes and retry, and reload resets them. Only tire output fades during model replacement.
-The next task is [UNIFIED listening](docs/NEXT.md#next-work-unified-listening): compare the approach to
-squeal and its onset against HYBRID before choosing a primary method. Numerical checks do not establish
-real-tire calibration or listening acceptance.
+TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL cycles player tire sound while driving.
+HYBRID remains the accepted squeal reference and reload default. MODAL replaces the former UNIFIED
+in the fifth slot: four noise-driven/self-exciting bands produce Q only, with no rolling R or separate S.
+Select MODAL in DEV to audition it. HYBRID/SPECTRAL retain R/S/Q controls for reference comparison;
+MODAL exposes only Q. Component choices survive model/vehicle changes and retry; reload resets them.
+Only tire output fades during model or tuning replacement.
+
+DEV opens/closes a scrolling panel on phones, with independent ENG/TIRE volume sliders and ten MODAL
+sound controls plus reset. Select MODAL to enable them. Values are authored listening choices, not
+measured tire parameters. [MODAL listening](docs/NEXT.md#next-work-modal-listening) is the next task:
+compare its Q against HYBRID with R and S off, including onset, pitch, roughness and recovery.
 See the [tuning map](docs/calibration.md#tire-audio-tuning) and
-[comparison tools](docs/development.md#tire-comparison-tools). DEV provides independent ENG/TIRE volume sliders and eleven UNIFIED friction sliders with reset.
-Select UNIFIED to enable them. They are authored sound settings, not physical tire parameters.
-The panel scrolls on phones and closes without changing the game size; reload restores defaults.
+[comparison tools](docs/development.md#tire-comparison-tools).
 
 See [current calibration values and meanings](docs/calibration.md).
 

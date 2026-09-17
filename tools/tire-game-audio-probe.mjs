@@ -1,7 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
-import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
-import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
+import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
+import { MODAL_SETTINGS } from '../dist/audio/tire-modal-acoustics.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../dist/browser/vehicle-audio.js';
@@ -40,7 +40,7 @@ const controls = {
   contact: trace.map((v) => [contactTireParameters(v.front), contactTireParameters(v.rear)]),
   hybrid: observed,
   spectral: observed,
-  unified: observed,
+  modal: observed,
 };
 const factories = {
   current: () => [
@@ -56,9 +56,9 @@ const factories = {
     new TireHybridSynthesis(rate, HYBRID_SETTINGS.rearSeed),
   ],
   spectral: () => [new TireSpectralSynthesis(rate), new TireSpectralSynthesis(rate, SPECTRAL_SETTINGS.rearSeed)],
-  unified: () => [
-    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.frontSeed),
-    new TireUnifiedSynthesis(rate, UNIFIED_SETTINGS.rearSeed),
+  modal: () => [
+    new TireModalSynthesis(rate, MODAL_SETTINGS.frontSeed),
+    new TireModalSynthesis(rate, MODAL_SETTINGS.rearSeed),
   ],
 };
 function render(model) {

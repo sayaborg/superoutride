@@ -1,5 +1,5 @@
-import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
-import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
+import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
+import { MODAL_SETTINGS } from '../dist/audio/tire-modal-acoustics.js';
 import { tireSoundParameters } from '../dist/audio/tire-sound-controls.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../dist/physics/arcade-vehicle-physics.js';
 import { createLinearHighwayRuntime } from '../dist/dev/courses/linear-highway.js';
@@ -16,7 +16,7 @@ import { VEHICLE_CATALOG } from '../dist/vehicle/vehicle-catalog.js';
 // Fixed gains and independent axle seeds; no engine, master compressor or browser playback.
 const rate = Number(process.argv[2] ?? 48000);
 if (![44100, 48000, 96000].includes(rate)) throw new RangeError('probe rate: 44100, 48000 or 96000');
-const highFrequencyHz = Number(process.argv[3] ?? UNIFIED_SETTINGS.modes[1].frequencyHz);
+const pitchBaseHz = Number(process.argv[3] ?? MODAL_SETTINGS.pitchBaseHz);
 const runtime = createLinearHighwayRuntime();
 const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 const vehicle = VEHICLE_CATALOG[0];
@@ -39,11 +39,10 @@ for (const initialKmh of [20, 100]) {
     });
     const observation = createVehicleAudioObservation();
     readVehicleAudio(player, observation); // Subscribe before the first completed solve.
-    const pair = [UNIFIED_SETTINGS.frontSeed, UNIFIED_SETTINGS.rearSeed].map(
-      (seed) => new TireUnifiedSynthesis(rate, seed, { highFrequencyHz }),
+    const pair = [MODAL_SETTINGS.frontSeed, MODAL_SETTINGS.rearSeed].map(
+      (seed) => new TireModalSynthesis(rate, seed, { pitchBaseHz }),
     );
-    let roadEnergy = 0,
-      frictionEnergy = 0,
+    let frictionEnergy = 0,
       work = 0,
       slip = 0,
       peakAxleWatts = 0;
@@ -63,7 +62,6 @@ for (const initialKmh of [20, 100]) {
       }
       for (let i = Math.floor((frame * rate) / 60); i < Math.floor(((frame + 1) * rate) / 60); i++) {
         for (const kernel of pair) kernel.sample();
-        roadEnergy += (pair[0].roadOutput + pair[1].roadOutput) ** 2;
         frictionEnergy += (pair[0].frictionOutput + pair[1].frictionOutput) ** 2;
       }
     }
@@ -74,7 +72,6 @@ for (const initialKmh of [20, 100]) {
       meanAxleWatts: work / 120,
       peakAxleWatts,
       meanAxleSlipMps: slip / 120,
-      roadRms: Math.sqrt(roadEnergy / rate),
       frictionRms: Math.sqrt(frictionEnergy / rate),
       surfaces: [...surfaces],
     });
@@ -84,7 +81,7 @@ console.log(
   JSON.stringify(
     {
       rate,
-      highFrequencyHz,
+      pitchBaseHz,
       secondsPerCase: 1,
       profile: vehicle.profile.id,
       note: 'Browser calibration; coast and held steering, 120 Hz mechanics / 60 Hz observations. Mixed surfaces are reported, not treated as matched asphalt. RMS is unweighted output, not perceived loudness or phone evidence.',

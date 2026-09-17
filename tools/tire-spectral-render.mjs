@@ -1,7 +1,7 @@
 import { TireHybridSynthesis } from '../dist/audio/tire-hybrid-model.js';
 import { HYBRID_SETTINGS } from '../dist/audio/tire-hybrid-acoustics.js';
-import { TireUnifiedSynthesis } from '../dist/audio/tire-unified-model.js';
-import { UNIFIED_SETTINGS } from '../dist/audio/tire-unified-acoustics.js';
+import { TireModalSynthesis } from '../dist/audio/tire-modal-model.js';
+import { MODAL_SETTINGS } from '../dist/audio/tire-modal-acoustics.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { TireSpectralSynthesis } from '../dist/audio/tire-spectral-model.js';
@@ -58,16 +58,16 @@ const report = {
   observationHz: 60,
   note: 'One asphalt contact; synthetic common trace, not gameplay capture. Fixed gains; no peak/RMS matching.',
   references:
-    'CURRENT raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; HYBRID mix is R+S+Q, with isolated rolling, sliding and squeal taps. UNIFIED mix is R+Q; its friction tap is the entire rubbing-through-squeal mechanism. Compare unified-friction with hybrid-friction (S+Q), or hybrid-squeal for the previous squeal onset. UNIFIED has no separate S tap.',
+    'CURRENT raw kernel; CONTACT friction-only at its existing 0.5 listening gain. SPECTRAL mix is S+Q; HYBRID mix is R+S+Q, with isolated rolling, sliding and squeal taps. MODAL is Q only; compare modal-friction with hybrid-squeal for timbre and with hybrid-friction (S+Q) for friction coverage. It has no R/S sources.',
   settings: SPECTRAL_SETTINGS,
   hybridSettings: HYBRID_SETTINGS,
-  unifiedSettings: UNIFIED_SETTINGS,
+  modalSettings: MODAL_SETTINGS,
   scenes: [],
 };
 for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
   const spectral = new TireSpectralSynthesis(rate);
   const hybrid = new TireHybridSynthesis(rate);
-  const unified = new TireUnifiedSynthesis(rate);
+  const modal = new TireModalSynthesis(rate);
   const current = new TireSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
   const contact = new TireContactSynthesis(rate, CONTACT_ACOUSTICS.frontSeed);
   const length = Math.round(scene.seconds * rate);
@@ -83,9 +83,7 @@ for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
       'hybrid-friction',
       'hybrid-road',
       'hybrid-mix',
-      'unified-friction',
-      'unified-road',
-      'unified-mix',
+      'modal-friction',
     ].map((name) => [name, new Float64Array(length)]),
   );
   let frame = -1;
@@ -99,7 +97,7 @@ for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
       const reference = spectralReferenceObservation(value);
       current.update(tireParameters(reference));
       hybrid.update(value);
-      unified.update(value, 0);
+      modal.update(value, 0);
       const p = contactTireParameters(reference);
       contact.update(p.travelSpeed, p.slipSpeed, p.load, p.surfaceIndex);
     }
@@ -113,9 +111,7 @@ for (const scene of [...SPECTRAL_SCENARIOS, TIRE_TRANSITION_SCENARIO]) {
     outputs['hybrid-scrub'][i] = hybrid.scrubOutput;
     outputs['hybrid-friction'][i] = hybrid.scrubOutput + hybrid.squealOutput;
     outputs['hybrid-road'][i] = hybrid.roadOutput;
-    outputs['unified-mix'][i] = unified.sample();
-    outputs['unified-friction'][i] = unified.frictionOutput;
-    outputs['unified-road'][i] = unified.roadOutput;
+    outputs['modal-friction'][i] = modal.sample();
     contact.sample();
     outputs['contact-friction'][i] = contact.frictionOutput * CONTACT_ACOUSTICS.listeningGain;
   }

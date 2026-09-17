@@ -1,37 +1,35 @@
-import { UNIFIED_TUNING_RANGES, resolveUnifiedTuning, type UnifiedTuning } from '../audio/tire-unified-acoustics.js';
+import { MODAL_TUNING_RANGES, resolveModalTuning, type ModalTuning } from '../audio/tire-modal-acoustics.js';
 import { createRangeControl } from './range-control.js';
 
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
 const LABELS = {
-  feedbackMaximumPerSecond: ['自己励振の強さ', '/s'],
-  saturationPerSecond: ['振幅の飽和', '/s'],
+  feedbackMaximum: ['自己励振の強さ', ''],
+  saturation: ['振幅の飽和', ''],
   powerReferenceWatts: ['摩擦仕事の基準', 'W'],
   slipHalfMps: ['滑り応答の半飽和', 'm/s'],
   slipRolloffMps: ['大きな滑りの抑制尺度', 'm/s'],
-  noiseBandwidthHz: ['入力ノイズの帯域', 'Hz'],
-  noiseForcePerSecond: ['入力ノイズの強さ', '/s'],
-  lowFrequencyHz: ['低域モードの固有周波数', 'Hz'],
-  highFrequencyHz: ['高域モードの固有周波数', 'Hz'],
-  outputGainPerSecond: ['摩擦音Qの出力ゲイン', '/s'],
-  outputCutoffHz: ['摩擦音Qの高域上限', 'Hz'],
-} as const satisfies Record<keyof UnifiedTuning, readonly [string, string]>;
+  noiseRms: ['不規則な励振の強さ', ''],
+  pitchBaseHz: ['基本ピッチ', 'Hz'],
+  bandwidthHz: ['帯域幅・減衰', 'Hz'],
+  wanderDepth: ['ピッチの揺らぎ', ''],
+  outputGain: ['摩擦音Qの出力ゲイン', ''],
+} as const satisfies Record<keyof ModalTuning, readonly [string, string]>;
 
 export function mountTireTuningControls(container: HTMLElement, onChange: () => void) {
-  let tuning = resolveUnifiedTuning();
+  let tuning = resolveModalTuning();
   const fieldset = document.createElement('fieldset');
   const legend = document.createElement('legend');
-  legend.textContent = 'UNIFIED · 摩擦音Q';
+  legend.textContent = 'MODAL · 摩擦音Q';
   const note = document.createElement('p');
-  note.textContent =
-    '実測値ではない音響調整です。UNIFIED選択時のみ有効。変更時はタイヤ音を短くフェードして再生成します。設定は再読み込みで戻ります。';
-  const controls = (Object.keys(LABELS) as (keyof UnifiedTuning)[]).map((key) => {
+  note.textContent = 'MODAL選択時のみ有効。実測値ではない音響調整です。設定は再読み込みで戻ります。';
+  const controls = (Object.keys(LABELS) as (keyof ModalTuning)[]).map((key) => {
     const [label, unit] = LABELS[key];
     const control = createRangeControl(
       label,
-      UNIFIED_TUNING_RANGES[key],
+      MODAL_TUNING_RANGES[key],
       tuning[key],
       (value) => {
-        tuning = resolveUnifiedTuning({ ...tuning, [key]: value });
+        tuning = resolveModalTuning({ ...tuning, [key]: value });
         onChange();
       },
       unit,
@@ -42,9 +40,9 @@ export function mountTireTuningControls(container: HTMLElement, onChange: () => 
   const reset = document.createElement('button');
   reset.type = 'button';
   reset.className = 'selector-button';
-  reset.textContent = 'UNIFIEDを初期値に戻す';
+  reset.textContent = 'MODALを初期値に戻す';
   const restore = (): void => {
-    tuning = resolveUnifiedTuning();
+    tuning = resolveModalTuning();
     for (const control of controls) control.setValue(tuning[control.key]);
     onChange();
   };

@@ -152,7 +152,7 @@ export function createAudioLifecycle() {
   }
   function showTireModel(): void {
     showComponents();
-    tireTuning?.setEnabled(supported && tireModel === 'unified');
+    tireTuning?.setEnabled(supported && tireModel === 'modal');
     if (!tireButton) return;
     tireButton.textContent = `TIRES: ${tireModel.toUpperCase()}`;
     tireButton.removeAttribute('aria-pressed'); // Also retire the boolean state on an older cached index.

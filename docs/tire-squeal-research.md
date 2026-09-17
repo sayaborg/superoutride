@@ -1,8 +1,8 @@
 # Tire squeal: physical evidence and synthesis implications
 
 This is supporting research, not a runtime specification or numerical calibration.
-[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/UNIFIED implementations;
-[NEXT](NEXT.md#next-work-unified-listening) owns current listening priorities.
+[Audio](audio.md#player-tire-synthesis) owns the in-game CURRENT/CONTACT/SPECTRAL/HYBRID/MODAL implementations;
+[NEXT](NEXT.md#next-work-modal-listening) owns current listening priorities.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of any existing sound engine.
 
@@ -86,16 +86,17 @@ is the only possible friction-induced instability.
 Avanzini and colleagues' 2005 friction-sound synthesis paper couples modal resonating bodies through
 a common friction interactor. A noise term enters the interaction force, rather than requiring a
 separately mixed rubbing soundtrack. This is a structural precedent for sharing vibration states
-between forced friction noise and self-excited sound. It does not validate UNIFIED's cubic normal
-form, two-mode reduction, tire-scale observation mapping, coefficients or perceived realism.
+between forced friction noise and self-excited sound. It does not validate MODAL's cubic normal
+form, four independent harmonic bands, tire-scale observation mapping, coefficients or perceived realism.
+MODAL shares the use of forced/self-excited sound states, not this paper's common-port topology.
 
 Source: [Avanzini et al., 2005, author-hosted paper](https://avanzini.di.unimi.it/downloads/publications/avanzini_sap05.pdf).
 
 ## Limits for synthesis and tuning
 
 The tire sources support friction-fed vibration as one possible mechanism; they do not select
-HYBRID's scalar energy surrogate, CURRENT's oscillator, CONTACT's one-element law or UNIFIED's
-common-port modal system. A mathematically consistent surrogate can still omit the structure and
+HYBRID's scalar energy surrogate, CURRENT's oscillator, CONTACT's one-element law or MODAL's
+independent stochastic band system. A mathematically consistent surrogate can still omit the structure and
 statistics responsible for convincing tire sound. The synthesis precedent supports the possibility
 of a shared friction system, not its calibration for this game.
 
@@ -103,7 +104,7 @@ The sources do not validate current onset, modal frequencies, damping, harmonic 
 output gains. Directional slip power is an available-energy cue, not acoustic power or a complete
 predictor of frequency, onset or loudness. The game has no local rubber stiffness, loss factor, tread
 temperature or contact-pressure field; vehicle-scale coefficients must not be relabeled as those
-quantities. UNIFIED's computed state norm is not measured tread energy, and HYBRID's additive R/S/Q
+quantities. MODAL's computed state norm is not measured tread energy, and HYBRID's additive R/S/Q
 does not partition mechanical power into calibrated acoustic watts.
 
 Do not turn one experiment's speed into a universal axle threshold, require lateral slip for every
@@ -113,7 +114,7 @@ using a single mechanism or matching one replay does not itself establish greate
 a model's instability point and the listener's audible squeal onset are different observations.
 
 [Audio](audio.md#player-tire-synthesis) owns current mechanisms and approximation limits;
-[NEXT](NEXT.md#next-work-unified-listening) owns UNIFIED listening and method acceptance. HYBRID remains
+[NEXT](NEXT.md#next-work-modal-listening) owns MODAL listening and method acceptance. HYBRID remains
 the accepted/default reference while the new method is evaluated. Keep previous experiments in Git
 rather than another proposal/handoff archive; existing tools regenerate references without prior
 chat audio files.

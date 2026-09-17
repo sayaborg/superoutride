@@ -14,12 +14,9 @@ export const TIRE_SOUND_CONTROLS = Object.freeze({
   contact: Object.freeze({ input: 'contact', components: Object.freeze([]) }),
   spectral: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),
   hybrid: Object.freeze({ input: 'observation', components: TIRE_COMPONENTS }),
-  unified: Object.freeze({
+  modal: Object.freeze({
     input: 'observation',
-    components: Object.freeze([
-      TIRE_COMPONENTS[0],
-      Object.freeze({ ...TIRE_COMPONENTS[2], description: 'Friction / squeal' }),
-    ]),
+    components: Object.freeze([Object.freeze({ ...TIRE_COMPONENTS[2], description: 'Friction / squeal' })]),
   }),
 });
 export type TireSoundModel = keyof typeof TIRE_SOUND_CONTROLS;

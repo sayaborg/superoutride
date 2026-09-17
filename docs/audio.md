@@ -8,10 +8,10 @@ acoustic profiles, and browser composition adapts completed physical observation
 motion, gearing, recovery or race progress, and never repeats the authoritative vehicle contact or tire solves.
 
 The engine is the accepted sample-free listening baseline. HYBRID is the adopted primary tire method
-and reload default. UNIFIED is a new R+Q comparison, not yet listening-approved; CURRENT, CONTACT and
+and reload default. MODAL is the Q-only fifth comparison, replacing UNIFIED, not yet listening-approved; CURRENT, CONTACT and
 SPECTRAL remain references. Adoption of HYBRID accepts its squeal approach, not a calibrated real-tire
 model or a final mix balance.
-[The checkpoint](NEXT.md#next-work-unified-listening) owns feedback and remaining listening priorities.
+[The checkpoint](NEXT.md#next-work-modal-listening) owns feedback and remaining listening priorities.
 All five tire implementations generate sound without recordings. Keep the engine waveform and fixed
 voice/lifecycle boundaries unchanged; actual Android performance and the complete tire mix remain open.
 
@@ -40,11 +40,10 @@ applies to every profile, coefficient and UI readout unless a measurement is exp
   [acoustics](../src/audio/tire-hybrid-acoustics.ts): primary R/S/Q composition, energy-state response and
   explicitly authored friction settings/materials.
 - [Shared rolling source](../src/audio/tire-rolling-model.ts) and
-  [settings](../src/audio/tire-rolling-acoustics.ts): waveform-preserving R for HYBRID and UNIFIED.
-- [Unified generator](../src/audio/tire-unified-model.ts) and
-  [acoustics](../src/audio/tire-unified-acoustics.ts): R+Q composition and one friction-input mapping.
-  [Friction resonator](../src/audio/friction-resonator.ts) owns the coupled modal vibration state and
-  shared nonlinear friction port. [Spectral noise](../src/audio/spectral-noise.ts) owns generic
+  [settings](../src/audio/tire-rolling-acoustics.ts): waveform-preserving R for HYBRID.
+- [Modal generator](../src/audio/tire-modal-model.ts) and
+  [acoustics](../src/audio/tire-modal-acoustics.ts): Q-only composition and authored work/slip/pitch mapping.
+  [Stochastic resonator](../src/audio/stochastic-resonator.ts) owns each band's forced/self-excited vibration state. [Spectral noise](../src/audio/spectral-noise.ts) owns generic
   finite-width bands and seeded noise primitives. The SPECTRAL reference retains its own
   [material/pitch mapping](../src/audio/tire-spectral-primitives.ts) and
   [rolling](../src/audio/tire-spectral-rolling.ts).
@@ -130,7 +129,7 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 
 ## Player tire synthesis
 
-The game offers default HYBRID, new comparison UNIFIED and three other references. The
+The game offers default HYBRID, new comparison MODAL and three other references. The
 [evidence note](tire-squeal-research.md) motivates mechanisms without calibrating any implementation.
 [Observations](../src/audio/vehicle-audio-observation.ts) contain per-axle load, static reference load,
 signed contact longitudinal/lateral velocity, effective wheel peripheral and angular speed, tangential travel,
@@ -164,12 +163,12 @@ for a successor.
 
 The [voice](../src/audio/tire-voice.ts) publishes scalar k-rate AudioParams once per presented frame.
 [Tire observation](../src/audio/tire-sound-observation.ts) owns the common raw input domain used by
-HYBRID, UNIFIED and SPECTRAL; [controls](../src/audio/tire-sound-controls.ts) owns model identity and the retained
+HYBRID, MODAL and SPECTRAL; [controls](../src/audio/tire-sound-controls.ts) owns model identity and the retained
 reference adapters. CURRENT's 400–2400 Hz safety pitch domain is wider than its generated range.
 Invalid controls release forcing for the affected axle.
 The [processor](../src/audio/tire-processor.ts) computes only the selected pair of axle kernels.
 
-TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / UNIFIED is available in every course via mouse, touch
+TIRES: CURRENT / CONTACT / SPECTRAL / HYBRID / MODAL is available in every course via mouse, touch
 and native keyboard activation. HYBRID is the reload default. Choice survives mute, delayed startup, vehicle replacement,
 engine tuning/reset and sound retry. Only tire output fades down for the shared 90 ms transition
 (10 ms decay constant) before replacement, then rises at the shared control rate. Rapid choices
@@ -261,7 +260,7 @@ The [shared kernel](../src/audio/tire-spectral-model.ts) and
 [settings/catalog](../src/audio/tire-spectral-acoustics.ts) belong to audio; the DEV worklet only auditions
 that same kernel. Every axle has eight fixed two-state noise-driven bands: two R rolling, two S scrub
 and four Q finite-width harmonic bands. No PCM playback, microscopic contact solve or vehicle/maneuver
-branch exists inside the kernel. [NEXT](NEXT.md#next-work-unified-listening) owns listening acceptance;
+branch exists inside the kernel. [NEXT](NEXT.md#next-work-modal-listening) owns listening acceptance;
 [calibration](calibration.md#tire-audio-tuning) maps named settings without redefining their values.
 
 The common `TIRE_SOUND_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
@@ -273,7 +272,7 @@ Unsupported/reset observations clear these output-only values without changing t
 
 [Observation mapping](../src/audio/tire-sound-controls.ts) rejects nonfinite/negative load, work and demand;
 finite over-range observations are bounded for acoustic transport only. The same raw AudioParams feed
-HYBRID, UNIFIED or SPECTRAL; they never reuse CONTACT's representative units. Zero load/VOID or invalid controls release only the affected
+HYBRID, MODAL or SPECTRAL; they never reuse CONTACT's representative units. Zero load/VOID or invalid controls release only the affected
 axle, retain finite tails and permit recovery. Surface identities are discrete, not interpolated.
 
 Current boundaries: R is rotation-driven, not the retired travel-driven contact layer; Q has an
@@ -333,8 +332,8 @@ Output gains are fixed. Numerical tests and host timings do not establish phone 
 #### Component output controls
 
 The game exposes `R: ON/OFF`, `S: ON/OFF`, `Q: ON/OFF` for HYBRID and SPECTRAL, initially all on. R is rolling,
-S sliding friction (broad scrub in the SPECTRAL reference), Q tonal squeal. UNIFIED exposes only R/Q:
-Q includes the entire rubbing-through-squeal response, and S is hidden without changing its saved choice.
+S sliding friction (broad scrub in the SPECTRAL reference), Q tonal squeal. MODAL exposes only Q:
+Q includes forced rubbing and self-excited squeal. R/S are absent; their buttons are hidden without changing saved comparison choices.
 Buttons apply to both independent axles and are disabled for
 CURRENT/CONTACT and unsupported audio, have descriptive labels/ARIA pressed state, and stop keyboard
 propagation to driving controls. Choice survives model changes, loading/retry, engine tuning/reset,
@@ -354,7 +353,7 @@ for reproducible render/probe commands. CURRENT and CONTACT remain unmodified au
 ### HYBRID game synthesis
 
 HYBRID is the adopted primary generator and reload default. It remains the R/S/Q waveform reference
-for evaluating UNIFIED. The shared R extraction preserves its sound; this new comparison does not
+for evaluating MODAL. The shared R extraction preserves its sound; this new comparison does not
 retune HYBRID or CURRENT/CONTACT/SPECTRAL. The frozen mechanics/rendering oracle and read-only
 observation/lifecycle boundaries remain binding.
 
@@ -438,114 +437,91 @@ Regressions cover subthreshold sliding, later Q growth, recovery, zero-work/supp
 material transitions, independent seeds, finite-domain output, block partitions and model/component
 lifetime. Host timing is not device performance or listening acceptance evidence.
 
-### UNIFIED game synthesis
+### MODAL game synthesis
 
-UNIFIED is a new selectable method, not a replacement or retune of HYBRID. Each axle composes the
-same [rolling source](../src/audio/tire-rolling-model.ts) with one
-[friction resonator](../src/audio/friction-resonator.ts). Its Q output covers rubbing, the approach to
-squeal and self-excited vibration. There is no separate S source, amplitude/energy envelope, S/Q blend,
-mode switch, onset timer, authored harmonic palette or slip-dependent stiffness/pitch remap.
+MODAL replaces UNIFIED in the fifth comparison slot. HYBRID remains the accepted/default reference;
+CURRENT, CONTACT and SPECTRAL also retain their waveforms. This explicitly supersedes the two-fixed-mode,
+common-friction-port and shared-R requirements of UNIFIED. Its implementation and specific numerical
+fixtures are removed; release, input causality, independent axles, bounded rates and lifecycle tests remain.
+The new method has Q only: it never constructs a rolling or separate scrub source. Wind is not implemented.
 
-#### One friction port and fixed vibration modes
+The [generator](../src/audio/tire-modal-model.ts) composes four
+[stochastic resonators](../src/audio/stochastic-resonator.ts), one output pickup and one filter chain.
+[Settings](../src/audio/tire-modal-acoustics.ts) own its independent authored calibration. Existing seeded
+random/wander primitives are reused without retuning the HYBRID/SPECTRAL references. Their passive band
+primitive cannot self-excite, so it cannot express this new system unchanged.
 
-Two fixed passive modes receive the same scalar friction force. With normalized coordinates
-`x_i = omega_i*q_i`, modal velocities `v_i` and participation coefficients normalized to `sum(b_i²)=1`:
+#### One equation per band, no amplitude envelope
 
-```text
-x_i' = omega_i*v_i
-v_i' = -omega_i*x_i - d_i*v_i + b_i*F
-u = sum(b_i*v_i)
-F = a*u - beta*u³ + sigma*noise
-pickup = sum(b_i*x_i/omega_i)
-```
-
-The shared velocity `u` couples both modes through one nonlinear friction feedback. Colored noise
-acts at that same input; it is not mixed directly into the output. Below instability, forced vibration
-is damped and produces rubbing. As feedback counteracts modal loss, resonant content becomes more
-prominent; sufficient feedback permits self-excitation, bounded by cubic dissipation. These are regimes
-of the same equations, not separately selected sounds. Frequencies/damping are fixed, so parameter
-following does not inject energy by changing stiffness. Nonlinear timbre arises from this system;
-there is no separately synthesized harmonic bank.
-
-The listener-selected high-mode default is now 1,000 Hz (previously 1,350 Hz); the low mode remains
-300 Hz. This is an intentional UNIFIED calibration revision, not a measured tire frequency or a promise
-that the nonlinear output's peak is exactly 1,000 Hz. The spectral contract follows the revised high
-band while retaining the low/broad-to-resonant transition checks. Shared R and other methods are unchanged.
-
-`E = sum(x_i² + v_i²)/2` is a computed diagnostic, not an independently advanced envelope or energy in
-joules. The continuous surrogate satisfies
-`E' = -sum(d_i*v_i²) + a*u² - beta*u⁴ + sigma*noise*u`. This identifies passive loss and active input
-within the sound model; it does not equate its force, work or pickup to physical tire/acoustic units.
-With feedback and noise removed, the remaining modal loss and cubic term are dissipative.
-
-#### Observation mapping and release
-
-Let `P=Px+Py`, `s=hypot(wheelSpeed-vx,vy)`, and `w=P/(P+powerReferenceWatts)`. The
-[UNIFIED settings](../src/audio/tire-unified-acoustics.ts) own these authored mappings:
+For complex sound state `z_i=x_i+i*y_i`, damping `d_i=pi*B_i`, feedback ratio `a`, saturation `b` and
+noise level `n`, the normalized continuous surrogate is:
 
 ```text
-sigma = noiseForcePerSecond * w * surface.roughness
-a = feedbackMaximumPerSecond * surface.susceptibility * w
-    * s/(s+slipHalfMps) / (1+(s/slipRolloffMps)²)
+dz_i = [d_i*(a-1-b*|z_i|²) + j*2*pi*f_i]*z_i*dt + sqrt(2*d_i)*n*dW_i
+Q = outputGain * sum(harmonicWeight_i * x_i)
 ```
 
-Accepted work already contains accepted force/load; there is no second load multiplier. Demand rho
-is transported but unused by this method: it is not another onset authority. Increasing feedback
-relative to damping changes instability and the response leading to it, rather than opening a hard
-squeal gate. Surface roughness and susceptibility affect the same input's forcing and feedback.
+Each x/y state directly generates the sound. Below `a=1`, random forcing excites a lossy resonance;
+as feedback counters loss, it becomes more pronounced. Above `a=1`, a perturbed state can sustain
+oscillation even without ongoing noise. Cubic dissipation bounds its growth. There is no separate
+energy envelope, S/Q crossfade, onset timer, contact-state switch or compulsory audible-noise prelude.
+`sum(|z_i|²)` is a computed diagnostic, not joules or independently integrated amplitude state.
 
-Forward travel speed is not a separate Q control: identical slip, accepted work, surface and seed
-produce identical Q even at different forward speeds. Any positive slip/work can force rubbing;
-`slipHalfMps` shapes feedback, not the noise-force term. Both the noise bandwidth and passive modes
-are time-fixed. Ordinary cornering can
-produce positive work in the vehicle tire law without a gross skid. Converting that work to audible
-rubbing is uncalibrated; it is not evidence that mild low-speed turns should sound loud. R instead has
-its own peripheral-speed dependence. Diagnose R/Q separately before changing this mapping; do not
-add a vehicle-speed gate that would also suppress supported stationary wheelspin.
+The four independent bands share controls, not a mechanically solved friction port. Frequencies are
+at 1/2/3/4 times the base pitch and pickup weights start at HYBRID's 0.65/1/0.6/0.28. Their phases are
+independent. This is an authored harmonic palette, not four measured tire modes. Unlike HYBRID, no
+amplitude-dependent harmonic envelope is applied. Stochastic forcing remains in the SAME states during
+squeal, preserving irregularity; listening must establish whether this is as convincing as HYBRID Q.
 
-The quieter-onset revision replaces the former square-root response with the work fraction itself
-for BOTH forcing and feedback. It is linear near zero and approaches the same upper bound at high work:
-relative to the former excitation it is multiplied by `sqrt(P/(P+powerReferenceWatts))`. Weak work
-therefore receives a larger reduction, while substantial work still supports self-excited squeal.
-This is an authored acoustic response, not a conversion from mechanical watts to acoustic watts.
-No exponent control, positive-work dead band, onset timer, extra state or separate rubbing source is
-added. All scalar settings, output gain, high mode and shared R are unchanged. At a given slip, more work
-is now needed to counter modal loss; both forcing and deterministic instability onset are intentionally
-revised. Spectral tests retain the former strong-slip case as an intermediate response and require
-high-mode dominance at a stronger input, alongside the unchanged low/broad and transition checks.
-Actual audibility and phone acceptance remain listening questions, not consequences of a fixed RMS threshold.
+#### Observation mapping
 
-Positive-contact targets follow continuously. Zero support, zero slip, zero work or invalid input
-immediately disables new friction forcing and feedback; stored vibration and output filters decay
-without resetting. The colored-noise history continues while its force is zero. R retains its own
-rotation/support behavior: zero friction work does not stop supported rolling. Input smoothing is
-control transport, not an independently authored sound-amplitude envelope.
+With accepted slip work `P=Px+Py`, `s=hypot(wheelSpeed-vx,vy)` and `w=P/(P+powerReferenceWatts)`:
 
-#### Integration and approximation
+```text
+noise = noiseRms * surface.roughness * w
+feedback = feedbackMaximum * surface.susceptibility * w
+           * s/(s+slipHalfMps) / (1+(s/slipRolloffMps)^2)
+f = pitchBaseHz + pitchSlipHz*s/(s+pitchSlipHalfMps) + pitchLongitudinalHz*Px/P
+```
 
-For each native sample, the solver composes an exact passive modal half-step, exact scalar nonlinear
-feedback half-step, colored-force impulse, feedback half-step and passive half-step. The exact scalar
-flow includes the analytic zero-feedback limit. This is split integration of the coupled system, not
-an exact solution of its full stochastic evolution. A variance-normalized first-order colored-noise
-recurrence has analytically normalized stationary variance with uniform innovations; its force impulse
-is multiplied by `dt`, not `sqrt(dt)`.
-No iterative contact solve, emergency output clamp, gain normalization or sample-loop allocation is
-introduced. The displacement pickup receives fixed gain, DC removal and output filtering.
+The work fraction is linear near zero, preserving quiet weak-work excitation without a dead band.
+Support, nonzero slip and positive work are necessary; no additional forward-speed gate, demand gate,
+load multiplier or maneuver classification exists. Stationary wheelspin and locked sliding can sound.
+Work is an acoustic control cue, NOT acoustic watts; instability depends on feedback relative to loss.
 
-Every frequency, damping, participation, excitation scale, power/slip reference, surface value,
-following time and output coefficient is explicitly an authored magic number. The two-mode normal
-form is a synthesis surrogate, not a contact-patch solve or evidence of measured rubber friction.
-Its modal structure and common friction input have a
-[sound-synthesis precedent](tire-squeal-research.md#common-friction-input-as-a-synthesis-precedent),
-which does not validate its tire calibration. Fixed modes, omitted contact/thermal detail and native-rate
-nonlinearity limit spectral/aliasing fidelity. A later numerical instability point alone does not
-establish later audible squeal. [NEXT](NEXT.md#next-work-unified-listening) owns that listening decision.
+The pitch curve, bandwidth response to slip/wheel peripheral speed and slow 1.5% wander start from
+HYBRID. The 1,100 Hz base is the HYBRID reference choice, intentionally superseding UNIFIED's fixed
+1,000 Hz high mode. They are not the same parameter: no assertion that the new output should peak at
+1 kHz is made. Bandwidth is a damping parameter; nonlinear/stochastic output width need not equal it.
+The explicit pitch map is a listening convention, not a prediction of tire stiffness. Changing pitch
+rotates the normalized state without changing its norm. Wheel speed changes color, not a rolling layer.
 
-The shared voice/worklet runs only the selected axle pair. UNIFIED's R/Q controls fade output only;
-muted states continue, S is absent, and engine/master lifetime stays unchanged. The fixed mechanics
-oracle, read-only observations, independent axle histories, release, finite-domain behavior,
-sample-rate convergence and model/component lifetime remain validation boundaries. Timing probes
-and synthetic renders remain separate from phone performance and listening acceptance.
+Targets follow at a rational 1 kHz clock, independent of render block partitions (25 ms rise, 65 ms
+fall for forcing/feedback). Pitch/width follow at 25 ms. Loss of support, zero work/slip or invalid
+input immediately removes forcing/feedback, preserving stored vibration and filter tails with frozen
+pitch/width. Positive-contact material changes follow through the same target controls. Inputs are
+validated without retaining caller-owned observations or writing physics.
+
+#### Numerical and cost contract
+
+For each band, the step first integrates linear rotation/growth with analytic additive-noise covariance,
+then exact cubic dissipation. With `sigma=d*(a-1)`, the linear multiplier is `exp(sigma*dt)`, each real
+noise increment has variance `n²*d*expm1(2*sigma*dt)/sigma` (limit `2*n²*d*dt`), and the cubic step scales
+both coordinates by `1/sqrt(1+2*d*b*dt*|z|²)`. Uniform innovations match the first two moments, not a
+Gaussian process. This is first-order splitting of the full stochastic system, not an exact solver.
+
+Four bands per axle require eight random draws and four square roots per sample. Exponential,
+expm1, sine/cosine and covariance coefficients update at 1 kHz. There is no iterative contact solve,
+audio-rate object allocation, output normalization, hard limiter or inactive R/S computation.
+Only the selected pair runs. Q's button fades output without resetting or stopping its states.
+Integer 44.1–192 kHz is supported; finite-domain, passive release, deterministic/noise-free instability,
+rate convergence and spectral/pitch tests are numerical evidence, not listening or phone certification.
+Output receives fixed 18 Hz DC removal and 8 kHz low-pass filtering.
+
+Every calibration value and surface coefficient is explicitly an authored magic number. This is a
+stochastic normal-form synthesizer, not a measured contact-patch model. Independent bands, simplified
+friction feedback, omitted thermal/contact detail, split integration and native-rate nonlinear aliasing
+remain limitations. HYBRID timbre is a comparison target, not a guaranteed preserved waveform.
 
 ### Interpretation and cost limits
 
@@ -569,8 +545,8 @@ Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average it
 cost or target-device certification. Do not infer a measured speed ratio from operation counts.
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
-Current construction accepts 44.1–192 kHz. The [next task](NEXT.md#next-work-unified-listening)
-is UNIFIED listening; CONTACT optimization is not part of this comparison.
+Current construction accepts 44.1–192 kHz. The [next task](NEXT.md#next-work-modal-listening)
+is MODAL listening; CONTACT optimization is not part of this comparison.
 
 ## Mixing and lifetime
 
@@ -620,19 +596,18 @@ MASTER retains its 35% default. Independent ENG and TIRE sliders multiply their 
 initially 100%; ENG includes the nearest rival. They do not alter synthesis, voice-switch envelopes,
 component state or each other's level. Ordinary gain following avoids steps; zero does not stop DSP.
 
-UNIFIED alone exposes eleven friction controls in `UNIFIED_TUNING_RANGES`: feedback, saturation,
-work reference, slip half/roll-off, noise bandwidth/force, two fixed modal frequencies, friction pickup
-gain and output cutoff. Audio owns validation, defaults and authored audition bounds. Surfaces,
-modal damping/participation, control timing and shared R remain source-owned. These bounds are not
-measured tire data. Kernels own a frozen tuning snapshot; every permitted frequency remains underdamped
-at supported sample rates. Defaults retain the existing waveform.
+MODAL alone exposes ten friction controls in `MODAL_TUNING_RANGES`: feedback, saturation,
+work reference, slip half/roll-off, noise strength, base pitch, bandwidth, pitch wander and output gain.
+Audio owns validation, defaults and authored audition bounds. Surface values, pitch excursions,
+harmonic weights, timing and output filters remain source-owned. The settings are not measured tire data.
+Kernels own a frozen tuning snapshot; defaults reproduce the source-authored candidate.
 
 An edit uses the existing tire-only replacement fade and installs new kernels at silence; it never
 retunes stiffness on a running vibration state. Rapid edits supersede pending settings, returning to
-active values cancels replacement, and unchanged values preserve states. Non-UNIFIED models do
+active values cancels replacement, and unchanged values preserve states. Non-MODAL models do
 not use these settings. Model/vehicle changes, mute and sound retry retain session tuning and mix;
-reload restores defaults. Tire reset changes only UNIFIED settings. Invalid replacement tuning releases
-forcing without crashing the worklet. The port protocol includes a validated UNIFIED tuning snapshot
+reload restores defaults. Tire reset changes only MODAL settings. Invalid replacement tuning releases
+forcing without crashing the worklet. The port protocol includes a validated MODAL tuning snapshot
 on replacement, not per-frame parameter messages. Physics and the immutable render oracle are unchanged.
 
 ### Engine controls

@@ -21,7 +21,7 @@ const input = (extra = {}) => ({
 test('shared rolling has no friction-kernel or friction-settings dependency', async () => {
   for (const file of ['tire-rolling-model.ts', 'tire-rolling-acoustics.ts']) {
     const source = await readFile(new URL(`../src/audio/${file}`, import.meta.url), 'utf8');
-    assert.doesNotMatch(source, /from ['"]\.\/tire-(?:hybrid|unified|spectral|contact|synthesis)/);
+    assert.doesNotMatch(source, /from ['"]\.\/tire-(?:hybrid|modal|spectral|contact|synthesis)/);
   }
 });
 
