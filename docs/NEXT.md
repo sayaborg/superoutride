@@ -25,12 +25,16 @@ work. The audited target is integrated by owner. Review candidate gates before t
 
 ### First implementation slice
 
-Begin Gate 1 with a minimal saved CourseDocument and asset-reference boundary: explicit IDs/version/units,
-parse and semantic diagnostics, draft save/reopen, and deterministic compilation of a small linear input
-through the existing primitives. Confirm round-trip, invalid references, failed-import preservation and
-output invalidation before GUI work. Exact fields and resource limits are chosen in that executable
-contract review. This slice neither activates new Link/ground runtime paths nor resumes deferred tuning.
-The open product choices remain recorded in Product and do not block this independent file/compiler slice.
+Begin Gate 1 with a minimal saved CourseDocument and asset-reference boundary. The
+[plan primitives](content-and-gameplay.md#authored-plan-primitives),
+[cross-section model](content-and-gameplay.md#cross-section-and-variable-width-authoring) and
+[Link/loop semantics](content-and-gameplay.md#sections-ports-and-topology) now define the target inputs.
+Choose exact versioned fields/resource limits, parse and semantic diagnostics, draft save/reopen and
+deterministic compilation of a small linear input through the existing primitives. Implement a stated
+subset first; unsupported bands/Links receive diagnostics, never silent constant-width substitution.
+Confirm round-trip, invalid references, failed-import preservation and dependent-output invalidation
+before GUI work. This slice activates neither new Link/ground runtime paths nor deferred tuning.
+Open product choices and target-device acceptance remain separate from this file/compiler milestone.
 
 ### Next milestones
 
@@ -55,6 +59,25 @@ Current development courses remain executable fixtures; shipped entries retire a
 Separate changed-art expectations from mechanics equivalence. Common entry points may compose multiple
 small modules with distinct responsibilities. Source changes follow accepted contract revisions, not a
 predeclared deletion quota. Tire/audio tuning and speculative lamp/rolling-start work stay deferred.
+
+### Owned migration scope
+
+The target is ready for file/compiler work, not final-product acceptance. Carry the following existing
+course-path limitations into their owning gates rather than treating current helpers as the new schema:
+
+| Gate | Replacement or cleanup boundary                                                                                                                                                                                                   |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Saved authored primitives/boundaries replace prescribed successor excursions and terminal-promotion growth as the product input. Keep the old builders only for still-consumed development content/fixtures.                      |
+| 2    | Explicit frame/geometry bindings replace near-zero-origin junction inference; general bands replace symmetric LEFT/RIGHT junctions. Validate selected-neighbour actor views, transformed loops and new lock arbitration together. |
+| 3    | Separate source paint from completed-image readers instead of extending the optional-field GroundMapProfile bag. Migrate stage reprojection/unused road edges with mapped-band and pixel coverage.                                |
+| 4    | Compose one session lifecycle, authored grid and physical FINISH path, including LINEAR. Retire redundant roots and the product use of old policies only after real-root coverage.                                                |
+
+When touching those owners, remove duplicated identifier words and replace construction-order names
+with content/role names while updating all consumers. Check `qStart/qEnd` and inner clamping APIs
+against actual callers before simplifying; preserve translated-frame clamp coverage. Camera-height
+sampling currently delegates to physical height and is not a second height algorithm. Junction sample
+and classification may share a scalar authority without requiring identical return types or allocation.
+These are scoped cleanup candidates, not permission to alter frozen mechanics or erase causal tests.
 
 ## Deferred tuning
 

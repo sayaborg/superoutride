@@ -6,7 +6,7 @@ Current implementation is described below. The [Course Editor target](#course-ed
 
 [Boot](../src/boot.ts) selects one course query using the [course selector](../src/browser/course-mode-selection.ts). The catalog owns query-to-root membership; its typed content dispatcher requires the builders for that route kind. All roots use that dispatcher, and only the composition roots assemble concrete DEV content:
 
-- [LINEAR](../src/main-linear.ts): finite highway trial.
+- [LINEAR](../src/main-linear.ts): finite highway driving trial; no route graph, FINISH observer or race session.
 - [BRANCHING](../src/main.ts): default open branching highway, field route choice and rivals.
 - [CIRCUIT](../src/main-circuit.ts): Tsukuba or FISCO selection, finite runtime window and lap race.
 
@@ -19,6 +19,20 @@ The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine selectable pr
 `src/dev/courses`, `src/dev/fixtures` and `src/dev/diagnostics` separate shipped course composition, focused regression inputs and read-only telemetry. Fixtures are executable input data, not a second set of engine implementations. Shared [Raster authoring](../src/course/raster-turtle.ts) owns straight/arc subdivision and preserves authored radius provenance; course files own shapes and explicit topology. Focused and multi-step fork fixtures consume the same [second-fork data](../src/dev/courses/second-fork-authoring.ts). [DEV boundary](../src/dev/README.md) explains the allowed dependency direction.
 
 General APIs use role-based names. Vehicle creation, updates and recovery consume `VehicleWorld`; camera updates consume its guide/height readers. Rendering consumes a target, scene and options. General runtime composition modules remain separate where they validate distinct contracts: source geometry, environment, continuation overlap, route graph and physical handoff. Module size alone is not a reason to merge those authorities.
+
+### Current course boundary
+
+Product topology is named `BRANCH`; `BRANCHING` is the existing DEV catalog identifier and
+`?mode=branching` selector. Keep that compatibility mapping at composition, not in new course data.
+The following route transaction describes the branching runtime, not the LINEAR driving trial.
+
+Current [successor generation](../src/runtime/raster-stage-successor.ts) copies an overlap and creates
+a prescribed lateral excursion/runout. Fork growth promotes terminals in the development course.
+These are retained development-content builders, not a general authoring model. Current packages
+share one world frame and the junction compiler accepts symmetric two-way forks. Adjacent actors
+are presented only when their active package matches the player's; cross-seam actor presentation
+is a known missing integration, not an intended visibility rule. Roots still own development grid
+placement. The target below replaces these responsibilities through authored data and local views.
 
 ## Point-to-point route transaction
 
@@ -36,6 +50,11 @@ Compiled stages, choices and gate geometry are immutable. The shared oriented-ga
 [Continuation compilation](../src/runtime/stage-continuation-link.ts) partitions the overlap at both charts' straight/arc boundaries and checks endpoints and interval interiors, so a complete local bend cannot fall between fixed probes. Copied Raster vertices retain circular-source radius provenance. Gameplay Guide charts delegate coordinate arithmetic to the same Core frame primitive.
 
 The field uses `FIRST_PHYSICAL_CROSSING_LOCKS` and `RECOVER_TO_LOCKED_BRANCH`. The first valid physical crossing locks a sibling choice for the field. A losing crossing records a violation and recovers through the legal physical gate's geography without awarding illegal progress. An AI desired branch is never authority. Each actor's chart/content and route progress remain separate; shared route choice is owned once by the field.
+
+The current lock occurs at the separated transition gates. Its arbitration preserves input order
+for fractions within its named tie tolerance; the `INDEPENDENT` policy remains a diagnostic option.
+The target fork policy below changes the lock location, eligibility and exact-tie order together.
+Its acceptance tests, rather than an isolated rename, authorize that behavioural cutover.
 
 Entering a terminal stage is not finishing. A validated physical FINISH is still required.
 
@@ -145,10 +164,78 @@ contain two or three carriageways. Ports lie within authored support/visibility 
 logical boundary is not necessarily the end of an open reader. Checkpoints and environment changes
 are independent landmarks/profiles, rather than reasons to split a Section.
 
-Links connect ports with a transform and matching overlap. Compile finite chains, finite fork/merge
-DAGs, or a closed-lap Section and loop. A merge references the successor source once. The compiler
-checks all possible exits, explicit lap closure, supported starts/goals and legal checkpoint ordering.
-Original game stages identify checkpoint intervals and may also label environmental changes.
+Links connect oriented ports with a compiled transform and matching overlap. Compile finite chains,
+finite fork/merge DAGs, or one lap Section with an exit-to-entry loop. A merge references its successor
+source once. Validate every exit, supported starts/goals and legal checkpoint order. Original game
+stages identify checkpoint intervals and may also label environmental changes.
+
+A loop closes topology, not the Section's source-world coordinates: its endpoints may have different
+positions and headings. The same upright Link transform and common-overlap checks apply to loops,
+merges and continuations. Identity is used only where the port frames already match. Neither endpoint
+snapping, a fitted connector nor stretching the authored path is required to obtain closure. A Link
+cannot conceal incompatible local heights, cross-sections or presentation. Real-circuit fidelity
+remains an authored/reference requirement, separate from the runtime's need for a globally closed map.
+The scored lap span is the positive exit-minus-entry source chainage; guard content is outside it.
+
+The initial resolved Session retains a finite lap target. Unlimited CUSTOM has not been selected.
+The bounded view reuses one lap source regardless of scored lap count; it replaces materialized
+N+1 geometry only after equivalent contact, visibility, progress and recovery coverage exists.
+
+### Authored plan primitives
+
+The first document format uses an ordered sequence of identified straights and circular arcs, with
+one Section start position/heading. A straight stores positive length; an arc stores positive radius
+and nonzero signed turn. Endpoints/headings are derived by the existing Raster authoring compiler;
+they are not independently editable state. Piecewise arcs are an explicit approximation of other
+curves, with departures recorded against the course reference. Spline/clothoid fitting is outside
+this initial format, not a second hidden shape generator or runtime curve system.
+
+Compiled Raster chord chainage is the shared `s` ruler. The analytic arc length `R*abs(turn)` is not
+an alternate coordinate. Primitive-fraction anchors resolve to that primitive's compiled chainage
+interval. Tessellation preserves radius provenance and satisfies the existing turn, Guide and actual
+band-validity constraints. Unsupported primitives produce diagnostics instead of silently fitting or
+replacing the author's shape. A later primitive requires an explicit format/compiler revision.
+
+### Cross-section and variable-width authoring
+
+Course owns one longitudinal boundary geometry. The semantic records below define its authority;
+exact wire spelling and resource limits are established with the versioned reader at Gate 1.
+
+| Record                        | Stored meaning                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| Boundary                      | Stable ID and ordered knots of longitudinal anchor and lateral position in metres.           |
+| Band                          | Stable ID, active longitudinal interval, left/right boundary references and structural role. |
+| Carriageway                   | Stable ID grouping its pavement bands and referencing a fork exit port when applicable.      |
+| Appearance / physical binding | Independent values/change points referencing bands or boundary geometry.                     |
+
+Resolve knot anchors to the shared `s` ruler, then interpolate lateral position linearly between
+successive knots. Intervals have positive chainage length and explicit end coverage; an exact knot
+has one position. Band width is `right(s)-left(s)` and centre is their mean, both derived. Opposite
+sides and different carriageways need not be symmetric or equally wide. Constant widths are simply
+constant boundary profiles. Shared edges reference the same Boundary; material or paint changes do
+not duplicate it. Display extents remain independent from supported extents.
+
+Pavement, shoulders and medians are geometric roles, not implicit colours, friction or support.
+One, two or three carriageways use the same band model; the product fork limit is three, not a
+LEFT/RIGHT type in the geometry. Lanes within a carriageway are subdivisions/markings referencing
+that geometry, not separate roads or implicit traffic behaviour. A fork's port mapping explicitly
+names each positive-width outgoing carriageway.
+
+Within an interval, active bands have positive width and ordered, noncrossing boundaries. A band
+may taper to zero only at an explicitly declared birth/death endpoint; it owns no area at that point.
+A split can change the partition at a shared station when the union of the adjacent pavement and
+median bands joins continuously. No active interval is silently discarded for being narrow. At the
+lock line all candidate carriageways and separating medians have positive width, and authored
+physical bindings provide the required supported crossable median. Gates/grids use positive supported
+regions. Classification on shared edges retains each consumer's explicit boundary convention.
+
+Compile geometry, physical support, paint and route intent from these references through their
+native owners. A varying physical boundary must be evaluated as authored, not approximated by
+constant-width SurfaceMap sections or inferred from image pixels. The compiler checks widths and
+ordering at the union of knots/activation changes and checks the actual world bands for inversion
+or intersection between them. Cross-section knots, path vertices and height boundaries enter the
+geometry rules owned by architecture. Current constant-width classes are not a completed implementation
+of this target. Initial file/compiler slices must reject unsupported features rather than drop them.
 
 ### Occurrences and frame commit
 
@@ -183,6 +270,8 @@ course graph selection stays in composition/gameplay.
 Compatible neighbouring occurrences share a local interaction frame. Rendering and physical contact
 use transformed geometry; race order uses validated progress. Unrelated geographical overlaps do not
 create vehicle interactions. Shared scenery/actors retain stable instance identity across the view.
+An actor in the selected neighbouring occurrence remains visible when its transformed bounds enter
+the normal view; package equality alone is not a visibility test.
 
 ### Seam and overlap
 

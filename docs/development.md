@@ -16,6 +16,20 @@ checkout for both; opening the HTML directly with `file://` is not the supported
 delivery path. Rebuild after TypeScript edits, then reload the target page. Reload resets
 session-local tuning. See [audio](audio.md) for signal order and parameter ownership.
 
+## Numerical regression environment
+
+Run acceptance on the supported Node 24 environment. For a numeric failure record the exact source,
+lockfile, Node/V8 versions, OS/architecture, inputs and sample rate. A Node 22 failure is outside the
+supported envelope, but environment causation remains a hypothesis until matched reproduction.
+A green CI result does not prove bit-identical transcendental arithmetic across every host/runtime.
+
+Fixed Float64 PCM hashes preserve an accepted trace in its reference environment; causal sound tests
+and same-host paired replay establish different evidence. Keep those distinctions when updating the
+execution environment. Reproduce baseline and candidate together before classifying a mismatch;
+retain the failure evidence and review any replacement contract explicitly. Do not refresh a hash,
+round samples or relax a valid assertion merely to make an unsupported run pass. This course-authoring
+preparation neither changes synthesis nor resumes deferred method selection or calibration.
+
 ## Sprite LOD preview
 
 After `npm run build`, serve the checkout and open `tools/graphics/sprite-lod.html`. The same page
@@ -216,16 +230,17 @@ Reload resets model/component/tuning/mix choices.
 | Six-model comparison render | Same synthetic trace; HOPF, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/audio/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                            |
 | HOPF reference              | Original tire audition and regeneration                                                                   | [tire-browser.html](../tools/audio/tire-browser.html); `node tools/audio/tire-render.mjs /absolute/hopf.wav`                                     |
 | CONTACT reference           | Four road/friction/axle taps with representative controls                                                 | [tire-contact-browser.html](../tools/audio/tire-contact-browser.html); `node tools/audio/tire-contact-render.mjs /absolute/contact-output 48000` |
-| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | `node tools/audio/tire-contact-characterize.mjs dist`                                                                                            |
+| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | [tire-contact-characterize.mjs](../tools/audio/tire-contact-characterize.mjs)                                                                 |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
 kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
 Q response changes; earlier WAV approval does not mean it still produces old transient PCM.
-`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R.
+`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer means R+S+Q.
 HYBRID R/S/Q/mix outputs isolate rolling, sliding friction, squeal and their sum. `hybrid-friction`
-is S+Q. `modal-friction` is the entire MODAL Q output; compare it with `hybrid-squeal` for Q-only listening.
-UNIFIED retains `unified-road`, `unified-friction` and `unified-mix` taps.
-There are no MODAL R/S or redundant mix taps. None is the full game/engine mix. The standalone manual controls are raw observations, not acoustic coefficient sliders.
+is S+Q. MODAL emits Q-only `modal-friction`; compare it with `hybrid-squeal`, not `hybrid-friction`,
+for matched Q-only output. UNIFIED emits `unified-road`, `unified-friction` and `unified-mix`.
+A MODAL R/S channel is not synthesized under another name. Offline file names are transport labels,
+not a change to the runtime voice or acoustic observations.
 
 [Shared scenarios](../tools/audio/tire-spectral-scenarios.mjs) own the synthetic S/Q and R/S/Q traces. Their
 explicit 0.3 m audition radius supplies angular speed for these fixtures only; live gameplay uses
@@ -273,7 +288,7 @@ not observation capture, engine, browser graph or rendering cost. Use 44100/9600
 It outputs metrics, not a WAV or a comprehensive understeer/oversteer listening set. No single trajectory,
 renderer elapsed time or iteration ceiling certifies target-device performance or perceived loudness.
 
-Focused spectral/response tests are `node --test tests/tire-spectral*.test.mjs tests/audio/tire-response.test.mjs`.
+Focused spectral/response tests are `node --test 'tests/audio/tire-spectral*.test.mjs' tests/audio/tire-response.test.mjs`.
 They supplement the complete `npm test` and unchanged historical mechanics/render oracle; listening,
 measured spectrum/transients, exact cleanup equality, host throughput and device play remain separate evidence.
 
@@ -287,11 +302,12 @@ calibration and production torque protection/observation adapter, with 120 Hz me
 Q RMS; UNIFIED additionally reports R RMS. MODAL does not construct a rolling source.
 
 These are not constant-speed corners, the user's drive trace or perceptual loudness tests.
-Mixed-surface cases are explicitly marked. Engines, browser compressor and playback are excluded.
+Mixed-surface cases are explicitly marked. Engines, browser graph or rendering cost are excluded.
 Rates are 44100/48000/96000. An optional final frequency argument changes MODAL's base pitch or
 UNIFIED's high mode, for example `node tools/audio/tire-input-probe.mjs modal 48000 1000`.
 These are distinct tuning parameters, not matched acoustic frequencies. Forward speed is not a
 separate Q gate; MODAL still uses wheel peripheral speed to color its HYBRID-derived bandwidth.
+SPECTRAL retains its existing numeric texture-length ratio pending the explicit tuning revision.
 
 ## Exact-commit release
 
@@ -364,8 +380,7 @@ to compare implementations indefinitely.
 Step 2 uses the existing stage paint evaluator, including local shoulders and both later forks.
 [Stage-source regressions](../tests/rendering/ground-map-stage-source.test.mjs) compare all texels
 of the complete eleven-stage test bake, sequential filtered levels and storage boundaries against
-the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, finite
-endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
+the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
 kMax = 2); it does not establish product-density capacity or device acceptance. Existing immutable
 pixel/mechanics comparisons and route regressions remain mandatory. Steps 1-3 need no update to deployed pixels.
 
@@ -384,8 +399,8 @@ covers real two-actor gate/COMMIT, independent recovery and shared Tsukuba lap p
 Tsukuba bake also uses coarse test density. These are Node/loopback checks, not production Pages
 delivery or target-browser/device acceptance. Product build verification adds all fourteen full-density
 sources, independent L0 color checks and 44 complete-frame pixel fixtures. Actual product-root tests
-cover the four entry modules with simulated browser boundaries; HTTP tests cover explicit gzip decode
-and resident cache hits. The deployed-asset verifier provides separate public delivery evidence.
+cover the four entry modules with simulated DOM, canvas and transport boundaries through initial failure,
+retry, drawing, ticks and page exit. The deployed-asset verifier provides separate public delivery evidence.
 The test-assets directory remains excluded from deployment. The browser performance page uses an
 explicit source-color diagnostic input, so it does not measure product loading or residency.
 
@@ -405,7 +420,10 @@ accounting; [NEXT](NEXT.md) alone owns implementation order. No new command or c
 | Boundary         | Required causal evidence                                                                                                                                                                                                                                               |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Documents        | Stable IDs/references, version rejection, units, invalid draft save, reopen and deterministic output.                                                                                                                                                                  |
-| Frames/views     | Source/view mapping, loop reset, actual predecessor at a merge, inverse traversal, straddling contacts and complete consumer ranges.                                                                                                                                   |
+| Plan primitives  | Identified line/arc round-trip, signed turns, compiled chord chainage and primitive anchors; rejected unsupported curves and failed compilation preserve source.                                                                                                       |
+| Cross-section    | Constant/asymmetric/varying widths, one/two/three carriageways, shared edges, taper birth/death, continuous partition changes and invalid crossing/zero-width diagnostics; physical and visual bindings stay independent.                                              |
+| Loop Links       | Noncoincident endpoints/headings align by the compiled transform and common overlap without snapping; one source lap, bounded view, positive lap span and unchanged ordered-gate scoring.                                                                              |
+| Frames/views     | Source/view mapping, actual predecessor at a merge, inverse traversal, straddling contacts, complete consumer ranges and visible neighbouring actors regardless of package identity.                                                                                   |
 | Seams            | Same-pose contact/physical state and continuous camera, ground, background and stable scenery identity.                                                                                                                                                                |
 | Forks            | Two/three exits; 0/1/16 rivals; traffic exclusion; median-centre ties; unsupported crossings; same-tick arbitration; irreversible lock; separate per-actor commit.                                                                                                     |
 | Fork coverage    | Each declared pre-lock consumer range fits common content; closure precedes each exit; each exit satisfies `parentSpecificVisibleEnd <= exit seam`, with no parent-specific pixels at the seam and only matching common overlap; distinct parents reuse one successor. |

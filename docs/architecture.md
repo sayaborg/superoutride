@@ -45,7 +45,7 @@ Exact values remain in the linked source owners. Equal numbers do not imply inte
 | [Wheel](../src/physics/tire-wheel.ts): torque residual                                                                                                                                                                                                   | N·m                                                 | Stops the signed torque solve; cannot replace geometric or control tolerances.                                                        |
 | [Contact](../src/physics/vehicle-dynamics.ts), [steering limiter](../src/physics/steering-input-limiter.ts), [actuator](../src/physics/driving-actuator.ts): projected direction, plane determinant, target                                              | dimensionless                                       | Basis degeneracy, plane solvability and normalized actuator arrival are different numerical checks.                                   |
 | [Camera](../src/camera/camera.ts), [rival](../src/gameplay/rival-driver.ts), [recovery](../src/gameplay/recovery.ts): response minimum, straight curvature/lookahead interval, penetration                                                               | s; 1/m and m; m                                     | These are presentation, driving and recovery policies, not shared source precision.                                                   |
-| [Selector values](../src/browser/selector-values.ts), [tire selector](../src/browser/tire-friction-selection.ts): value equality, grid rounding                                                                                                          | selector value units; dimensionless grid coordinate | UI matching and grid alignment never change physical solver precision.                                                                |
+| [Selector values](../src/browser/selector-values.ts), [tire selector](../src/browser/tire-friction-selection.ts): value equality, grid rounding                                                                                                          | selector value units; dimensionless grid coordinate | UI matching, grid alignment never change physical solver precision.                                                                |
 
 ## Raster and Guide
 
@@ -55,7 +55,11 @@ Current automated compilation covers finite Raster vertices/miters, the turn lim
 
 Guide lookup retains the adjacent segment at a roundoff-size fillet join, using the existing endpoint tolerance. It must never fall through to an unrelated end segment. Compiled coverage and omitted primitive intervals must fit the reader's sampling tolerance even when the author permits a larger dimensional validation tolerance. In particular, a positive straight longer than the sampling tolerance remains a real primitive.
 
-Geometry breaks at the union of heading, render-height, road-width and ground-width changes. Surface/texture/GroundBase changes are paint/material lookups and do not require geometry splits. Interpolate geometry linearly inside a segment.
+Current ordinary `RoadCrossSection` and `TerrainVisualProfile` widths are constant per compiled
+source/view. The specialised junction varies its cross-section, but general longitudinal width
+profiles are not implemented. Current terrain enumerates Raster, render-height and visual-section
+boundaries; a paint/material lookup does not create a new road shape. The target variable-width
+partition is specified under [compiled boundary geometry](#compiled-boundary-geometry).
 
 Guide rounds only the coordinate curve with straight/circular fillets; the rendered road stays Raster. For a turn Δ and radius R:
 
@@ -538,9 +542,13 @@ source-document semantics belong to [content and gameplay](content-and-gameplay.
 
 ### Frame transform and coordinates
 
-A Link stores `destinationFromSource`: translation `t` and a rotation `R` about +Y. For position `p`
-and a vector `v` expressed in the source frame, `p' = R p + t` and `v' = R v`. Identity is a value of
-this one transform, irrespective of Link kind. The inverse uses `Rᵀ` and `−Rᵀt`.
+The compiler derives `destinationFromSource` from oriented source/destination port anchors. `R`
+is the rotation about +Y taking the source forward direction to the destination forward direction;
+`t = pDestination - R*pSource`. Port placement is authoring; the transform is immutable output,
+not a second editable coordinate authority. For a position `p` and vector `v` in the source frame,
+`p' = R p + t` and `v' = R v`. Identity is a value of this transform irrespective of Link kind,
+including a loop. The inverse uses `Rᵀ` and `−Rᵀt`. Matching common overlap is validated under this
+transform; endpoint alignment alone does not certify a seamless connection.
 
 The transform preserves metric length, world up and gravity. Transform world-expressed orientation
 and angular quantities by the same basis change; body-local components, wheel speeds and control
@@ -553,6 +561,27 @@ chainage-based pseudo-projection. Runtime supplies a derived continuous local vi
 Renderer and integration consume that view through ordinary reader contracts. The source Section's
 address and a view address have one explicit mapping; neither is awarded race progress.
 
+### Compiled boundary geometry
+
+The [authoring model](content-and-gameplay.md#cross-section-and-variable-width-authoring) owns knots,
+bands, roles and activation. Course resolves their anchors and produces immutable piecewise-linear
+boundary readers on the same compiled Raster `s` ruler. Width and centre remain derived values.
+Constant and varying widths share this representation in the target; the current constant readers
+remain until the consuming compiler, surfaces and terrain are migrated together.
+
+Partition geometric processing at the union of Raster heading, render-height and relevant boundary
+knots/activation changes. Interpolate authored lateral values within their intervals and apply the
+existing Raster/miter or Guide coordinate mapping at the owning consumer. Validate actual mapped
+bands, including interior degeneracies, instead of treating endpoint widths alone as a world-validity
+proof. Paint/material profile changes do not independently split path geometry. Ground display range
+is not a physical support range, and a baked road marking is not a terrain road-edge authority.
+
+The target terrain path consumes the compiled view's geometric bounds once, projects those bounds
+once, and exposes the source-to-span mapping needed by the final-colour reader. The existing stage
+reprojection and diagnostic `xRoadL/xRoadR` values are migration work, not additional target coordinates.
+Remove them only with consumer and identical-output coverage; a new width feature does not justify
+silently changing existing ground pixels, physical bands or sampling tolerances.
+
 ### Source and completed images
 
 | Representation                  | Colour and alpha                                                             |
@@ -562,16 +591,16 @@ address and a view address have one explicit mapping; neither is awarded race pr
 | Completed ground at every level | Fixed RGB555 colour values, stored as two-byte texels in the initial design. |
 
 RGB555 value zero is opaque black; transparency belongs to the index, not the colour code. A fully
-opaque ground swatch still has at most 15 colours. Source density is 40 texels/m in both authoring
-axes. Reuse the existing PNG adapter, metric/crop/anchor normalization, explicit palette and coverage
-recipes, source admission and RGB555 codec. Ground compilation consumes normalized masters rather
-than sprite LODs. The driving runtime receives completed images.
+opaque ground swatch still has at most 15 colours. Sprite and ground input share PNG validation,
+metric normalization, alpha and colour primitives, rather than separate 16-colour material rules.
 
-The composed ground strip has opaque coverage. Source transparency reveals a lower layer. GroundBase
-retains its independent left/right colour-or-transparent fill outside the strip. Visible unsupported
-terrain and transparent outside fill do not alter the physical support map.
+The source limit does not limit a completed mixed ground tile to 15 colours. Resolve source alpha
+against the lower authored layers, filter the composed colour field and quantize to RGB555 once per
+output texel. Transparent stamps reveal lower content; holes in the stored ground range require an
+explicit opaque underlay. GroundBase outside that range retains its existing separate semantics.
+Completed ground stores colours rather than material palette slots; all levels use one colour codec.
 
-### Source lattice and tile dictionary
+### Ground lattice and records
 
 A source tile covers 64 × 64 source cells, or 1.6 m × 1.6 m in the Section chart. Source origin, phase
 and metric extents are explicit. Partial edge cells are clipped; storage never stretches the course.

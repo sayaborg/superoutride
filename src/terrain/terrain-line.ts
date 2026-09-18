@@ -111,14 +111,14 @@ export interface TerrainVisualProfile {
   roadRight: number;
   height: HeightProfileReader;
   visual: VisualProfileReader;
-  /** Core §64 epsilon_span in destination scanline units. Defaults to one row. */
+  /** Collapse threshold in destination scanline units. Defaults to one row. */
   thinSpanScreenRows?: number;
 }
 
 interface TerrainLineSourceFootprint {
-  /** Core §25 ordinary vertical source footprint for one output scanline. */
+  /** Ordinary vertical source footprint for one output scanline. */
   deltaS: number;
-  /** Core §64 clipped chainage interval represented by a collapsed row. */
+  /** Clipped chainage interval represented by a collapsed row. */
   deltaSCollapse: number;
   /** max(deltaS, deltaSCollapse), authoritative for shared GroundMap LOD. */
   deltaSEffective: number;
@@ -222,7 +222,7 @@ export function generateTerrainLines(
   return lines;
 }
 
-/** Core §64: projected vertical span of one clipped segment in destination-row units. */
+/** Projected vertical span of one clipped segment in destination-row units. */
 export function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
   if (!Number.isFinite(bY)) throw new RangeError('bY must be finite');
   if (!(d0 > 0) || !(d1 > d0) || !Number.isFinite(d0) || !Number.isFinite(d1)) {
@@ -232,8 +232,7 @@ export function projectedTerrainSpanRows(bY: number, d0: number, d1: number): nu
 }
 
 /**
- * Core §25: Delta s = |s(y+0.5)-s(y-0.5)|. For integer row y,
- * those pixel boundaries are screen coordinates y and y+1.
+ * For integer output row y, Delta s = |s(y+1)-s(y)| at its screen boundaries.
  * The footprint is clipped only by the current forward near/far interval.
  */
 export function computeTerrainRowDeltaS(row: number, aY: number, bY: number, dMin: number, dMax: number): number {
