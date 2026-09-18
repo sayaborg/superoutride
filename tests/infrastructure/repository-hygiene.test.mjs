@@ -88,6 +88,8 @@ test('every source module is reachable from a composition or declared compiler e
   visit(path.join(repositoryRoot, 'tools/build/build-product-ground.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-lod.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-source.mjs'));
+  // This authoring entry compiles source/master/LOD before game load; diagnostics do not.
+  visit(path.join(repositoryRoot, 'tools/graphics/sprite-tool.mjs'));
   // Audition and diagnostic tools do not make an otherwise dormant general module production code.
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
   assert.deepEqual(

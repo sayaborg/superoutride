@@ -5,6 +5,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
+import ts from 'typescript';
 import { readSpriteLodAsset } from '../../dist/graphics/sprite.js';
 
 test('built Sprite LOD preview resolves every module within the same complete build', async () => {
@@ -29,6 +30,46 @@ test('built Sprite LOD preview resolves every module within the same complete bu
   );
   assert.deepEqual(samples[0].levels[0].pixels, samples[1].levels[0].pixels);
   assert.notDeepEqual(samples[0].levels[1].pixels, samples[1].levels[1].pixels);
+});
+
+test('published Sprite Tool keeps its transitive modules and decoder in the same complete build', async () => {
+  const root = fileURLToPath(new URL('../../dist/', import.meta.url));
+  const visited = new Set();
+  async function visit(file) {
+    if (visited.has(file)) return;
+    visited.add(file);
+    assert.ok(file.startsWith(root), 'editor import escaped its versioned build');
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(source, /\.\.\/\.\.\/dist\//);
+    const references = [];
+    const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    function imports(node) {
+      const reference =
+        ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
+          ? node.moduleSpecifier
+          : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
+            ? node.arguments[0]
+            : undefined;
+      if (reference) {
+        assert.ok(ts.isStringLiteral(reference), 'editor dependencies must be statically identified');
+        references.push(reference.text);
+      }
+      ts.forEachChild(node, imports);
+    }
+    imports(syntax);
+    for (const reference of references) {
+      assert.ok(reference.startsWith('.'), 'no bare or remote runtime dependency');
+      await visit(resolve(dirname(file), reference));
+    }
+  }
+  const folder = join(root, 'tools/graphics');
+  await visit(join(folder, 'sprite-tool.mjs'));
+  const html = await readFile(join(folder, 'sprite-tool.html'), 'utf8');
+  for (const match of html.matchAll(/(?:src|href)="([^"#]+)"/g))
+    assert.ok((await readFile(resolve(folder, match[1]))).length > 0);
+  assert.ok(visited.has(join(folder, 'png-codec.mjs')));
+  assert.ok((await readFile(join(folder, 'png-codec-LICENSE.txt'), 'utf8')).includes('MIT'));
+  assert.ok((await readFile(join(folder, 'sprite-source-example.png'))).length > 0);
 });
 
 test('actual Pages staging binds HTML to immutable CSS, retaining the complete build and local fallback', async (t) => {

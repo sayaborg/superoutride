@@ -82,7 +82,7 @@ Editing projects, normalized source assets and compiled product assets are disti
 and course authoring are authoritative; sprite LOD and completed GroundMap data are compiler output.
 The [completed sprite LOD interchange](architecture.md#sprite-lod-metric-and-read-contract) has a
 validated runtime reader. Packed product encoding, asset identity/version rules and editor project
-schema remain undecided. Current source art remains single-level; importing completed LODs into the
+schema remain undecided beyond the narrow local Sprite Tool session below. Current source art remains single-level; importing completed LODs into the
 diagnostic preview does not generate them or convert the shipped scenery/vehicle sets.
 
 Ground Decals represent arrows, text, symbols and surface details. Their authoring density is
@@ -95,9 +95,11 @@ An [offline authored-palette recipe](architecture.md#offline-sprite-lod-authorin
 explicit color-space and coverage comparisons from normalized masters. It does not choose the final
 production-art filter. [PNG source normalization](architecture.md#external-sprite-source-normalization)
 now precedes it with explicit crop, metric width, source anchor and authored palette. The file workflow
-preserves source, normalized master and compiled LOD as separate artifacts. Interactive mask editing,
-automatic palette creation, filter/coverage acceptance on real artwork and variant palette sharing
-remain open. Ground Material's proposed 16 opaque colors, Decal's
+preserves source, normalized master and compiled LOD as separate artifacts. The
+[Sprite Tool session](architecture.md#sprite-tool-authoring-session) adds rectangular masking with
+undo/redo, an explicit deterministic candidate palette, editable settings, session save/reopen and
+master/LOD exports. Its preview uses the product blitter. Real-art filter/coverage acceptance and
+final palette/variant-sharing policies remain open. Ground Material's proposed 16 opaque colors, Decal's
 proposed 15+1 limit and the proposed semantic layer order are not yet final contracts. Material
 phase, same-layer overlap order and stage/circuit seams also need explicit decisions.
 

@@ -203,14 +203,14 @@ The shared [area filter](../src/graphics/sprite-area-filter.ts) owns color, cove
 uses the [sRGB transfer function](https://www.w3.org/TR/css-color-4/#color-conversion-code) before
 averaging. Both choose the nearest color from the author's supplied master palette by squared RGB
 distance in the selected space; exactly equal errors choose the lower RGB555 integer. The palette
-and its ordering are retained in every level. No automatic palette creation, dither, alpha blend,
-progressive quantized-level filtering or runtime prefilter is introduced.
+and its ordering are retained in every level. This LOD step does not create palettes, dither, alpha blend, filter progressively quantized levels or
+prefilter during play. The optional palette candidate step below precedes normalization.
 
 The [causal compiler tests](../tests/rendering/sprite-lod-compiler.test.mjs) distinguish the color
 spaces, prove direct-master averaging and transparent-edge behavior, and exercise odd/thin edges,
 tie ordering, repeatability and the file compiler. Build-generated checker/coverage samples provide
 an opt-in visual comparison in the shared preview. Its browser only loads completed JSON; the build
-owns compilation. Filter/coverage acceptance on real artwork, automatic palette reduction and
+owns compilation. Filter/coverage acceptance on real artwork, final palette-reduction policy and
 variant palette sharing remain open; these synthetic samples do not establish final image quality.
 
 ### External sprite source normalization
@@ -220,8 +220,8 @@ The [source compiler](../src/graphics/sprite-source-compiler.ts) accepts decoded
 it does not convert shipped art or change projection, LOD selection, physics or the fixed oracle.
 The PNG command supplies decoded pixels through the shared framebuffer color packing primitive.
 Prepare sRGB input externally: embedded ICC/gamma metadata is not a color conversion instruction.
-JPEG/WebP, animated input, perspective correction and interactive mask editing remain outside this
-first file workflow. The pinned PNG dependency is a build tool, never a driving/runtime dependency.
+JPEG/WebP, animated input and perspective correction remain outside this file workflow. The pinned
+PNG dependency serves offline commands and the authoring tool below, never the driving runtime.
 
 ```text
 { format: "superoutride.sprite-source", version: 1, name,
@@ -247,7 +247,7 @@ binary thresholding. No background color enters through a zero-alpha sample.
 
 The shared explicit filter recipe chooses the encoded/linear color space and threshold. The author
 supplies at most 15 distinct RGB555 colors; the shared nearest-palette rule performs assignment.
-No palette is inferred from a photograph. An empty palette is legal only when the resulting master
+Normalization never silently infers a palette; the separate authoring generator below is opt-in. An empty palette is legal only when the resulting master
 is fully transparent. The output is exactly one normalized level in the completed-image interchange,
 ready for review/editing and the existing LOD compiler. Source-normalization and LOD recipes are
 separate saved inputs: neither inherits the other's threshold silently. This recipe is not an Editor
@@ -259,6 +259,65 @@ adapter additionally admits at most 32 MiB encoded input and 8-bit channels. The
 limits, not runtime format limits or accepted smartphone budgets. [Source regressions](../tests/rendering/sprite-source-compiler.test.mjs)
 cover metric projection, fractional footprints, source alpha, crop/anchor mapping, padding, color
 space, file preservation and the real PNG -> master -> LOD -> product-reader chain.
+
+### Sprite Tool authoring session
+
+The [Sprite Tool](../tools/graphics/sprite-tool.html) is a declared pre-game image compiler entry.
+Graphics owns normalization, palette generation, LOD compilation and drawing. Tool-local code owns
+file adapters, editor state and DOM interactions. The driving roots never import these compilers or
+the PNG dependency. This is a narrow image/session contract extension; it does not change shipped
+art, gameplay, the fixed oracle, source-camera policy or course authoring.
+
+The browser and Node file command share one [PNG adapter](../tools/graphics/sprite-png.mjs) and the
+same pinned decoder. Validate signature, dimensions, 8-bit depth, chunk extents, animation rejection
+and CRC before accepting pixels. The browser build wraps the dependency's bundled browser codec as
+an ESM module and includes its license under the same commit path. No canvas decode, profile
+conversion, external CDN or network upload is involved. The example is a generated PNG decoded by
+the same path, not a bypass supplying an already indexed image.
+
+The [palette generator](../src/graphics/sprite-palette.ts) provides an explicit comparison candidate:
+alpha-weighted median cut in encoded RGB555, independent of the later filter color-space choice.
+Only visible samples inside the current integer crop contribute. Quantize each RGB channel through
+the shared RGB555 codec and accumulate integer alpha weights. If the histogram fits the requested
+1..15 colors, retain its exact codes. Otherwise split the box with the greatest channel range,
+then greatest total alpha, then lowest contained RGB555 code. Choose the widest channel, breaking
+ties R, G, B; sort by that channel then code. Split at the first cumulative weight reaching half,
+clamped to leave both halves nonempty. Continue to the requested number of boxes. Each box's output
+is its weighted RGB555-channel mean, rounded to nearest with upward ties. Deduplicate and sort output
+codes. Fully transparent crops produce an empty palette; coincident centroids may reduce its size.
+There is no dither. The generated palette becomes an ordinary editable recipe value. Subsequent
+mask/crop changes do not regenerate it silently. This deterministic candidate is not acceptance of
+its visual quality on real artwork, nor a final per-variant palette-sharing policy.
+
+The [editor session](../tools/graphics/sprite-session.mjs) retains original straight-alpha pixels,
+a separate binary hidden mask and independent source/LOD recipes. Rectangular hide changes alpha to
+zero; restore retrieves the exact original alpha, including semitransparent and invisible RGB.
+Undo/redo applies only to mask operations, with at most 32 retained operations and 8 MiB of saved
+mask bytes. A new mask edit drops redo; no-op masks consume no history. Source or recipe changes
+invalidate compiled products. The GUI disables export and clears the preview until the next build.
+Failed imports preserve the current session; only the newest pending import may replace it.
+
+```text
+{ format: "superoutride.sprite-session", version: 1,
+  source: { width, height, rgbaBase64 }, hiddenBase64, recipe, lodRecipe }
+```
+
+`rgbaBase64` encodes original row-major R,G,B,A bytes, independent of host endianness.
+`hiddenBase64` encodes one byte per source pixel, strictly 0 or 1. Both use canonical padded base64.
+Unknown/missing fields, malformed bytes or invalid recipes fail before installation. Saving and
+restoring validate by compiling through the shared image functions. Session files preserve editing
+inputs; master and LOD exports contain only completed indexed images. Undo history is not saved.
+This small local session is not the final cross-asset/project/ID format. There is no autosave or
+implicit overwrite of source or compiled output.
+
+Editor admission is 1,048,576 source pixels, at most 4096 per axis, 32 MiB PNG and 16 MiB session JSON.
+The larger Node source admission above remains available. These are authoring limits, not smartphone
+budgets. Imported images require a known crop width and explicit source/LOD color spaces. The
+bottom-center source anchor and 0.5 threshold are visible starting controls; no vehicle dimensions
+or accepted real-art thresholds are inferred. Preview uses the existing scale and product blitter.
+The [authoring regressions](../tests/rendering/sprite-authoring.test.mjs) cover palette tie/alpha rules,
+mask history and product invalidation, portable session restoration, decoder parity and the complete
+PNG -> session -> master/LOD -> product-reader boundary.
 
 ## Layer and computation rules
 

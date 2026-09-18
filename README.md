@@ -17,6 +17,8 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. See the documentation index for the complete development workflow.
 
+The [Sprite Tool](tools/graphics/sprite-tool.html) imports PNGs, edits rectangular masks and palettes,
+and exports metric masters and LODs. See the [authoring workflow](docs/development.md#sprite-tool).
 The [Sprite LOD preview](tools/graphics/sprite-lod.html) compares completed octave images with the
 master through the game blitter. See [usage and scope](docs/development.md#sprite-lod-preview).
 

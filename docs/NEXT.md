@@ -40,8 +40,11 @@ current game art remains single-level.
    filter/coverage and palette-reduction policies before product art conversion. The
    [PNG source compiler](development.md#sprite-png-source-compiler) now supplies crop, metric
    normalization, source-anchor mapping, alpha coverage and authored-palette assignment. Its separate
-   source/master/LOD file workflow is causally tested; interactive mask editing and automatic palette
-   creation remain next, followed by the smallest end-to-end tool workflow.
+   source/master/LOD workflow now has a first [Sprite Tool](development.md#sprite-tool): rectangular
+   masking with undo/redo, candidate palette generation, metric/anchor controls, explicit filters,
+   session save/reopen and master/LOD exports. Browser and Node share the pinned PNG decoder; preview
+   uses the product blitter. Next, evaluate actual source art through this slice before settling
+   filter/coverage or palette policy and extending pixel retouch/variant authoring.
    Ground composition ordering, image Material/Decal composition and Course Editor remain separate.
 
 Ground and sprite cutovers are separate rendering revisions. Preserve the immutable mechanics

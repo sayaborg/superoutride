@@ -49,8 +49,8 @@ product on failure. The command reports the output digest, bytes and level count
 
 `npm run build` also compiles checker/coverage comparison samples for the preview using explicit
 diagnostic recipes. Select either compiled checker in the preview to compare it with its master.
-There is no browser-side image filtering. The LOD compiler starts after the source normalization
-step below. Interactive masking and automatic palette creation remain future work.
+That diagnostic viewer performs no image filtering. The separate Sprite Tool below compiles
+authoring inputs before play through the same source and LOD functions.
 
 ## Sprite PNG source compiler
 
@@ -87,12 +87,41 @@ npm run build:sprite-lod -- master.json lod-recipe.json sprite-lod.json
 Both commands refuse to overwrite input or existing output files and report dimensions, byte count,
 level count and output digest. Review the master before generating derivatives. Load the completed
 JSON in the existing Sprite LOD preview for the product blitter. Reimporting never silently replaces
-manual edits to a prior master. There is no course placement, source painting GUI or automatic
-palette reduction in this file workflow; it provides the image boundary those tools can reuse.
+manual edits to a prior master. This file workflow shares its image boundary with the Sprite Tool
+below; course placement remains a separate responsibility.
+
+## Sprite Tool
+
+After `npm run build`, serve the checkout and open `tools/graphics/sprite-tool.html`. Pages stages
+it at `build/<commit>/tools/graphics/sprite-tool.html`, with all modules, styles, example PNG and
+bundled decoder inside that commit. The existing LOD comparison viewer stays read-only.
+
+1. Open a prepared sRGB PNG or use **Load example PNG**. A new source/session replaces the current
+   edit, so save it first. File opening never uploads the image.
+2. Set the integer crop and its known width in meters. Anchors are source-image texel centers;
+   **Use crop bottom center** sets a visible starting reference without changing physical data.
+3. Drag or enter a rectangular selection, then hide/restore it. Undo/redo retains bounded mask
+   history. Restore means original alpha, not forced opacity.
+4. Generate a candidate palette and edit its RGB555 values as needed. Choose source and LOD color
+   spaces and coverage separately. Generation is explicit; editing the crop/mask does not silently
+   regenerate the palette. [Architecture](architecture.md#sprite-tool-authoring-session) owns the
+   candidate algorithm, session format and admission limits.
+5. Build the master and full LOD series, then inspect depth changes in the product-blitter preview.
+   Any image/recipe edit clears the preview and disables old exports until rebuilding.
+6. Save the editable session and export the master, LOD or either explicit recipe separately.
+   Session reopening restores the original pixels, mask and settings and reproduces the products.
+   Mask history is not serialized. The source recipe describes normalization of the **masked** image;
+   applying it to the unmasked original PNG is not a replay of mask edits. Use the session for that
+   replay, or feed the exported master and LOD recipe to `build:sprite-lod`.
+
+The synthetic color study exercises PNG decoding, palette reduction, partial alpha and thin geometry;
+it is not production art or real-art quality acceptance. The first GUI has rectangle masking, crop,
+metric/anchor controls and palette editing. Freehand retouch, variant sets, course placement, image
+Material/Decal composition and Course Editor are subsequent work, not hidden runtime features.
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
