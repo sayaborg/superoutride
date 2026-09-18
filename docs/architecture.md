@@ -45,7 +45,7 @@ Exact values remain in the linked source owners. Equal numbers do not imply inte
 | [Wheel](../src/physics/tire-wheel.ts): torque residual                                                                                                                                                                                                   | N·m                                                 | Stops the signed torque solve; cannot replace geometric or control tolerances.                                                        |
 | [Contact](../src/physics/vehicle-dynamics.ts), [steering limiter](../src/physics/steering-input-limiter.ts), [actuator](../src/physics/driving-actuator.ts): projected direction, plane determinant, target                                              | dimensionless                                       | Basis degeneracy, plane solvability and normalized actuator arrival are different numerical checks.                                   |
 | [Camera](../src/camera/camera.ts), [rival](../src/gameplay/rival-driver.ts), [recovery](../src/gameplay/recovery.ts): response minimum, straight curvature/lookahead interval, penetration                                                               | s; 1/m and m; m                                     | These are presentation, driving and recovery policies, not shared source precision.                                                   |
-| [Selector values](../src/browser/selector-values.ts), [tire selector](../src/browser/tire-friction-selection.ts): value equality, grid rounding                                                                                                          | selector value units; dimensionless grid coordinate | UI matching, grid alignment never change physical solver precision.                                                                |
+| [Selector values](../src/browser/selector-values.ts), [tire selector](../src/browser/tire-friction-selection.ts): value equality, grid rounding                                                                                                          | selector value units; dimensionless grid coordinate | UI matching and grid alignment never change physical solver precision.                                                                |
 
 ## Raster and Guide
 
@@ -591,16 +591,16 @@ silently changing existing ground pixels, physical bands or sampling tolerances.
 | Completed ground at every level | Fixed RGB555 colour values, stored as two-byte texels in the initial design. |
 
 RGB555 value zero is opaque black; transparency belongs to the index, not the colour code. A fully
-opaque ground swatch still has at most 15 colours. Sprite and ground input share PNG validation,
-metric normalization, alpha and colour primitives, rather than separate 16-colour material rules.
+opaque ground swatch still has at most 15 colours. Source density is 40 texels/m in both authoring
+axes. Reuse the existing PNG adapter, metric/crop/anchor normalization, explicit palette and coverage
+recipes, source admission and RGB555 codec. Ground compilation consumes normalized masters rather
+than sprite LODs. The driving runtime receives completed images.
 
-The source limit does not limit a completed mixed ground tile to 15 colours. Resolve source alpha
-against the lower authored layers, filter the composed colour field and quantize to RGB555 once per
-output texel. Transparent stamps reveal lower content; holes in the stored ground range require an
-explicit opaque underlay. GroundBase outside that range retains its existing separate semantics.
-Completed ground stores colours rather than material palette slots; all levels use one colour codec.
+The composed ground strip has opaque coverage. Source transparency reveals a lower layer. GroundBase
+retains its independent left/right colour-or-transparent fill outside the strip. Visible unsupported
+terrain and transparent outside fill do not alter the physical support map.
 
-### Ground lattice and records
+### Source lattice and tile dictionary
 
 A source tile covers 64 × 64 source cells, or 1.6 m × 1.6 m in the Section chart. Source origin, phase
 and metric extents are explicit. Partial edge cells are clipped; storage never stretches the course.

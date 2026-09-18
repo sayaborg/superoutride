@@ -230,17 +230,16 @@ Reload resets model/component/tuning/mix choices.
 | Six-model comparison render | Same synthetic trace; HOPF, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/audio/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                            |
 | HOPF reference              | Original tire audition and regeneration                                                                   | [tire-browser.html](../tools/audio/tire-browser.html); `node tools/audio/tire-render.mjs /absolute/hopf.wav`                                     |
 | CONTACT reference           | Four road/friction/axle taps with representative controls                                                 | [tire-contact-browser.html](../tools/audio/tire-contact-browser.html); `node tools/audio/tire-contact-render.mjs /absolute/contact-output 48000` |
-| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | [tire-contact-characterize.mjs](../tools/audio/tire-contact-characterize.mjs)                                                                 |
+| CONTACT characterization    | Steady pitch/harmonics and interference windows                                                           | `node tools/audio/tire-contact-characterize.mjs dist`                                                                                            |
 
 The diagnostic HTML pages are local tools, **not published Pages HTML**. They import the same compiled
 kernels as the game, not frozen historical copies. In particular the SPECTRAL S/Q page includes current
 Q response changes; earlier WAV approval does not mean it still produces old transient PCM.
-`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer means R+S+Q.
+`mix` in the SPECTRAL S/Q renderer means S+Q, whereas `mix` in the R/S/Q renderer includes R.
 HYBRID R/S/Q/mix outputs isolate rolling, sliding friction, squeal and their sum. `hybrid-friction`
-is S+Q. MODAL emits Q-only `modal-friction`; compare it with `hybrid-squeal`, not `hybrid-friction`,
-for matched Q-only output. UNIFIED emits `unified-road`, `unified-friction` and `unified-mix`.
-A MODAL R/S channel is not synthesized under another name. Offline file names are transport labels,
-not a change to the runtime voice or acoustic observations.
+is S+Q. `modal-friction` is the entire MODAL Q output; compare it with `hybrid-squeal` for Q-only listening.
+UNIFIED retains `unified-road`, `unified-friction` and `unified-mix` taps.
+There are no MODAL R/S or redundant mix taps. None is the full game/engine mix. The standalone manual controls are raw observations, not acoustic coefficient sliders.
 
 [Shared scenarios](../tools/audio/tire-spectral-scenarios.mjs) own the synthetic S/Q and R/S/Q traces. Their
 explicit 0.3 m audition radius supplies angular speed for these fixtures only; live gameplay uses
@@ -302,12 +301,11 @@ calibration and production torque protection/observation adapter, with 120 Hz me
 Q RMS; UNIFIED additionally reports R RMS. MODAL does not construct a rolling source.
 
 These are not constant-speed corners, the user's drive trace or perceptual loudness tests.
-Mixed-surface cases are explicitly marked. Engines, browser graph or rendering cost are excluded.
+Mixed-surface cases are explicitly marked. Engines, browser compressor and playback are excluded.
 Rates are 44100/48000/96000. An optional final frequency argument changes MODAL's base pitch or
 UNIFIED's high mode, for example `node tools/audio/tire-input-probe.mjs modal 48000 1000`.
 These are distinct tuning parameters, not matched acoustic frequencies. Forward speed is not a
 separate Q gate; MODAL still uses wheel peripheral speed to color its HYBRID-derived bandwidth.
-SPECTRAL retains its existing numeric texture-length ratio pending the explicit tuning revision.
 
 ## Exact-commit release
 
@@ -380,7 +378,8 @@ to compare implementations indefinitely.
 Step 2 uses the existing stage paint evaluator, including local shoulders and both later forks.
 [Stage-source regressions](../tests/rendering/ground-map-stage-source.test.mjs) compare all texels
 of the complete eleven-stage test bake, sequential filtered levels and storage boundaries against
-the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
+the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, finite
+endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
 kMax = 2); it does not establish product-density capacity or device acceptance. Existing immutable
 pixel/mechanics comparisons and route regressions remain mandatory. Steps 1-3 need no update to deployed pixels.
 
@@ -399,8 +398,8 @@ covers real two-actor gate/COMMIT, independent recovery and shared Tsukuba lap p
 Tsukuba bake also uses coarse test density. These are Node/loopback checks, not production Pages
 delivery or target-browser/device acceptance. Product build verification adds all fourteen full-density
 sources, independent L0 color checks and 44 complete-frame pixel fixtures. Actual product-root tests
-cover the four entry modules with simulated DOM, canvas and transport boundaries through initial failure,
-retry, drawing, ticks and page exit. The deployed-asset verifier provides separate public delivery evidence.
+cover the four entry modules with simulated browser boundaries; HTTP tests cover explicit gzip decode
+and resident cache hits. The deployed-asset verifier provides separate public delivery evidence.
 The test-assets directory remains excluded from deployment. The browser performance page uses an
 explicit source-color diagnostic input, so it does not measure product loading or residency.
 
