@@ -5,6 +5,29 @@ import { rgb555ToRgba } from './rgb555.js';
 export const SPRITE_TRANSPARENT = 0;
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
+export interface SpriteLodDocument {
+  readonly format: 'superoutride.sprite-lod';
+  readonly version: 1;
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+  readonly levels: readonly { readonly paletteRgb555: readonly number[]; readonly indices: readonly number[] }[];
+}
+
+/** Shared untrimmed storage lattice for readers, offline compilers and fixture authoring. */
+export function spriteLodLayout(width: number, height: number) {
+  if (!(width > 0 && height > 0 && Number.isInteger(width) && Number.isInteger(height))) {
+    throw new RangeError('sprite dimensions must be positive integers');
+  }
+  if (!Number.isSafeInteger(width * height)) throw new RangeError('sprite extent is too large');
+  return Array.from({ length: Math.ceil(Math.log2(Math.max(width, height))) + 1 }, (_, k) => ({
+    width: Math.ceil(width / 2 ** k),
+    height: Math.ceil(height / 2 ** k),
+  }));
+}
+
 interface SpriteLevel {
   readonly width: number;
   readonly height: number;
@@ -53,17 +76,12 @@ function assembleSpriteAsset(
   anchorY: number | undefined,
   worldWidthMeters: number,
 ): SpriteAsset {
-  if (!(width > 0 && height > 0 && Number.isInteger(width) && Number.isInteger(height))) {
-    throw new RangeError('sprite dimensions must be positive integers');
-  }
-  if (!Number.isSafeInteger(width * height)) throw new RangeError('sprite extent is too large');
-  if (levels.length < 1 || levels.length > Math.ceil(Math.log2(Math.max(width, height))) + 1) {
+  const layout = spriteLodLayout(width, height);
+  if (levels.length < 1 || levels.length > layout.length) {
     throw new RangeError('sprite LOD count exceeds the finite master pyramid');
   }
   const compiledLevels = levels.map((pixels, k) => {
-    const step = 2 ** k;
-    const levelWidth = Math.ceil(width / step);
-    const levelHeight = Math.ceil(height / step);
+    const { width: levelWidth, height: levelHeight } = layout[k]!;
     if (pixels.length !== levelWidth * levelHeight) throw new RangeError('sprite pixel buffer size mismatch');
     return Object.freeze({ width: levelWidth, height: levelHeight, pixels });
   });
@@ -111,11 +129,8 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
   ) {
     throw new RangeError('sprite anchor must be finite');
   }
-  if (
-    !Array.isArray(source.levels) ||
-    source.levels.length < 1 ||
-    source.levels.length > Math.ceil(Math.log2(Math.max(width, height))) + 1
-  ) {
+  const layout = spriteLodLayout(width, height);
+  if (!Array.isArray(source.levels) || source.levels.length < 1 || source.levels.length > layout.length) {
     throw new RangeError('sprite LOD count exceeds the finite master pyramid');
   }
   const levels = Array.from(source.levels, (value: unknown, k: number) => {
@@ -129,7 +144,7 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     ) {
       throw new RangeError('sprite palette must contain at most 15 distinct RGB555 colors');
     }
-    const length = Math.ceil(width / 2 ** k) * Math.ceil(height / 2 ** k);
+    const length = layout[k]!.width * layout[k]!.height;
     if (!Array.isArray(indices) || indices.length !== length || !spriteIntegerArray(indices, paletteRgb555.length)) {
       throw new RangeError('sprite index buffer must match the LOD lattice and palette');
     }

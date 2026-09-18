@@ -34,8 +34,12 @@ current game art remains single-level.
    master anchor and transition contract for completed assets. Product art conversion still needs
    the image-generation decisions below and explicit changed-art pixel fixtures; the fixed oracle
    remains unchanged. Do not mistake the diagnostic level colors for prefilter quality evidence.
-4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic
-   core/compiler functions, then the smallest end-to-end Sprite Tool / Course Editor workflow.
+4. The first [offline sprite image core](development.md#sprite-lod-file-compiler) now generates
+   octave images directly from a normalized master using explicit color-space/coverage recipes and
+   an authored palette. Compare its build-generated checker samples in the preview. Choose real-art
+   filter/coverage and palette-reduction policies before product art conversion; implement external
+   bitmap import, metric normalization and mask editing, then the smallest end-to-end tool workflow.
+   Ground composition ordering, image Material/Decal composition and Course Editor remain separate.
 
 Ground and sprite cutovers are separate rendering revisions. Preserve the immutable mechanics
 reference; revise affected pixel expectations explicitly with independent causal coverage. No

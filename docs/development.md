@@ -31,9 +31,30 @@ the new read/blit contract, including course sprites, dynamic vehicles and the p
 The historical renderer input bridge maps a single level to its original `pixels` field and rejects
 multi-level input. It never changes pixel values, reference outputs or reported workload.
 
+## Sprite LOD file compiler
+
+`build:sprite-lod` is a declared offline compiler entry. After a build, run:
+
+```sh
+npm run build:sprite-lod -- master.json recipe.json output.json
+```
+
+The master uses the completed-image schema with exactly one normalized level. A recipe explicitly
+supplies, for example, `{"colorSpace":"linear-srgb","coverageThreshold":0.5}`. This is a comparison
+example, not an approved default. `encoded-srgb` is the other implemented color-space choice.
+[Architecture](architecture.md#offline-sprite-lod-authoring-recipe) owns the exact integration,
+coverage and authored-palette rules. Save the recipe alongside source art; the runtime artifact
+contains only completed images. Output must be a new path, preserving the source, recipe and prior
+product on failure. The command reports the output digest, bytes and level count.
+
+`npm run build` also compiles checker/coverage comparison samples for the preview using explicit
+diagnostic recipes. Select either compiled checker in the preview to compare it with its master.
+There is no browser-side image filtering. The file compiler currently starts after normalization;
+external bitmap import, metric resize, mask editing and automatic color reduction remain future work.
+
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The production offline compiler entry is `build:ground`; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets and `build:sprite-lod` for completed sprite images; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 

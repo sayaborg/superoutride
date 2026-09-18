@@ -91,7 +91,10 @@ stretch; the bitmap already contains the required shape. Compile decals into Gro
 runtime world-sprite instances. Fractional placement still requires defined resampling. Ground paint
 does not infer or modify SurfaceMap support/friction.
 
-Before image production, resolve filter color space, RGB555 rounding, quantization, binary coverage,
+An [offline authored-palette recipe](architecture.md#offline-sprite-lod-authoring-recipe) now allows
+explicit color-space and coverage comparisons from normalized masters. It does not choose the final
+production-art filter or import external bitmap files. Before image production, resolve RGB555 rounding,
+automatic quantization, filter/coverage acceptance,
 palette sharing and deterministic ordering. Ground Material's proposed 16 opaque colors, Decal's
 proposed 15+1 limit and the proposed semantic layer order are not yet final contracts. Material
 phase, same-layer overlap order and stage/circuit seams also need explicit decisions.

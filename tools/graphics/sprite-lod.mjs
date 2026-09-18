@@ -66,10 +66,21 @@ function render() {
   element('result').textContent =
     `${asset.name}\nLOD ${k}: ${level.width} × ${level.height}; ${ppm.toFixed(3)} screen px/m\nLogical frame: ${asset.worldWidthMeters.toFixed(3)} × ${(asset.height / SPRITE_SOURCE_TEXELS_PER_METER).toFixed(3)} m\nProjected extent: ${(asset.width * scale).toFixed(3)} × ${(asset.height * scale).toFixed(3)} px\nAnchor: ${(160 + phase).toFixed(2)}, ${(200 + phase).toFixed(2)}; samples: ${stats[0].outputSamples} / ${stats[1].outputSamples}`;
 }
-element('fixture').addEventListener('change', () => {
+element('fixture').addEventListener('change', async () => {
   stop();
-  request += 1;
-  load(createSpriteLodFixture(...element('fixture').value.split(',').map(Number)));
+  const current = ++request,
+    value = element('fixture').value;
+  try {
+    if (value.includes(',')) load(createSpriteLodFixture(...value.split(',').map(Number)));
+    else {
+      const response = await fetch(new URL(`../../dist/tools/graphics/sprite-lod-${value}.json`, import.meta.url));
+      if (!response.ok) throw new Error(`Cannot load compiled sample (${response.status})`);
+      const source = await response.json();
+      if (current === request) load(source);
+    }
+  } catch (error) {
+    if (current === request) element('error').textContent = error.message;
+  }
 });
 for (const id of ['depth', 'distance', 'phase'])
   element(id).addEventListener('input', () => {

@@ -183,6 +183,36 @@ packed production ROM encoding. The [causal LOD tests](../tests/rendering/sprite
 cover odd/thin storage, transitions, alpha, clipping, workload and the complete Painter. The
 [preview](../tools/graphics/sprite-lod.html) reads the same format and calls the same blitter.
 
+### Offline sprite LOD authoring recipe
+
+The [sprite compiler](../src/graphics/sprite-lod-compiler.ts) is the first offline image-processing
+core. It accepts exactly one already-normalized indexed master in the completed-image schema and
+produces a full octave series in that same schema. The shared `spriteLodLayout` owns every storage
+dimension for the reader, compiler and fixtures. It leaves the master's pixels, extent and anchor
+unchanged. This is an explicit authored-palette recipe for comparison, not the final production-art
+generation policy or a bitmap importer.
+
+The caller must supply both `colorSpace` (`encoded-srgb` or `linear-srgb`) and `coverageThreshold`
+in (0,1]; there is no implicit recipe. Each level integrates axis-aligned boxes directly from the
+master. Only the intersection with the logical frame contributes to a partial edge cell. Transparent
+texels contribute to area coverage, while color averages include only opaque samples. Coverage
+equal to the threshold is opaque; zero coverage is always transparent. This scalar threshold does
+not preserve total silhouette area or guarantee survival of thin parts.
+
+The encoded recipe averages the shared RGB555 decoder's 8-bit sRGB channel values. The linear recipe
+uses the [sRGB transfer function](https://www.w3.org/TR/css-color-4/#color-conversion-code) before
+averaging. Both choose the nearest color from the author's supplied master palette by squared RGB
+distance in the selected space; exactly equal errors choose the lower RGB555 integer. The palette
+and its ordering are retained in every level. No automatic palette creation, dither, alpha blend,
+progressive quantized-level filtering or runtime prefilter is introduced.
+
+The [causal compiler tests](../tests/rendering/sprite-lod-compiler.test.mjs) distinguish the color
+spaces, prove direct-master averaging and transparent-edge behavior, and exercise odd/thin edges,
+tie ordering, repeatability and the file compiler. Build-generated checker/coverage samples provide
+an opt-in visual comparison in the shared preview. Its browser only loads completed JSON; the build
+owns compilation. Filter/coverage acceptance on real artwork, automatic palette reduction and
+variant palette sharing remain open; these synthetic samples do not establish final image quality.
+
 ## Layer and computation rules
 
 Core owns RasterPath, GuidePath, HeightProfile and open source-domain operations. Graphics owns framebuffer, color codec, sprite blitting and Painter primitives; visual owns background/sprite assets and visual sections; render assembles the drawing pipeline and projected course/dynamic sprites. GroundMap owns logical/baked readers, baking, filtering and footprint contracts. Course owns road/shoulder cross-section geometry. GroundMap and physics independently map that geometry to paint and physical materials; physical surface/Guide containment belongs to physics. Circuit race compilation consumes a gameplay-owned window reader. Vehicle presentation-family metadata belongs to the vehicle catalog.
@@ -232,8 +262,8 @@ be a separate behavioral revision, not a cleanup.
 ## Accepted authoring target
 
 GroundMap compilation, delivery and product sampling are implemented below. Completed sprite LOD
-reading and rendering follow the metric contract above; image generation and product art conversion
-remain pending. Each rendering revision requires explicit
+reading and rendering follow the metric contract above. An explicit offline authored-palette recipe
+is available; final image-generation policy and product art conversion remain pending. Each rendering revision requires explicit
 causal tests and does not silently advance the immutable mechanics/pixel reference.
 
 - Sprite and ground-image source density is 40 texels/m in both authoring axes. Ground source

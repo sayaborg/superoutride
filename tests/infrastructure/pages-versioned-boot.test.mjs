@@ -5,6 +5,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
+import { readSpriteLodAsset } from '../../dist/graphics/sprite.js';
 
 test('built Sprite LOD preview resolves every module within the same complete build', async () => {
   const file = fileURLToPath(new URL('../../dist/tools/graphics/sprite-lod.mjs', import.meta.url));
@@ -18,6 +19,16 @@ test('built Sprite LOD preview resolves every module within the same complete bu
   }
   const html = await readFile(new URL('../../dist/tools/graphics/sprite-lod.html', import.meta.url), 'utf8');
   assert.match(html, /src="sprite-lod\.mjs"/);
+  const samples = await Promise.all(
+    ['encoded', 'linear'].map(async (name) => {
+      const source = JSON.parse(
+        await readFile(new URL(`../../dist/tools/graphics/sprite-lod-${name}.json`, import.meta.url), 'utf8'),
+      );
+      return readSpriteLodAsset(source);
+    }),
+  );
+  assert.deepEqual(samples[0].levels[0].pixels, samples[1].levels[0].pixels);
+  assert.notDeepEqual(samples[0].levels[1].pixels, samples[1].levels[1].pixels);
 });
 
 test('actual Pages staging binds HTML to immutable CSS, retaining the complete build and local fallback', async (t) => {

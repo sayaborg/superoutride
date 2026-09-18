@@ -86,6 +86,7 @@ test('every source module is reachable from a composition or declared compiler e
   }
   visit(path.join(repositoryRoot, 'tools/build/build-test-ground-map.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-product-ground.mjs'));
+  visit(path.join(repositoryRoot, 'tools/build/build-sprite-lod.mjs'));
   // Audition and diagnostic tools do not make an otherwise dormant general module production code.
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
   assert.deepEqual(
