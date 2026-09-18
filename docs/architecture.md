@@ -121,11 +121,67 @@ The shared anisotropic pyramid downsamples lateral by 2^k and chainage by 4^k. R
 
 ## Sprites and Painter
 
-Sprites have a source bitmap, physical width and a texel-center ground anchor. Uniform texel magnification is `(f/d)*worldWidth/sourceWidth`; identical d and size must produce identical scale. Course-attached anchors use render ground height and their known s. Dynamic actor anchors use observed course s and mapped physical height.
+Sprites have one logical master frame, physical width, a texel-center anchor in that frame and a
+finite ordered array of completed bitmap levels. The common [blitter](../src/graphics/sprite.ts)
+owns nearest sampling for single-level and LOD assets. Uniform master-texel magnification is
+`g = (f/d)*worldWidth/masterWidth`; identical d and size produce identical projected extent.
+Course-attached anchors use render ground height and their known s. Dynamic actor anchors use
+observed course s and mapped physical height.
 
 Yaw/bank variants are discrete authored assets. No arbitrary runtime bitmap rotation, z-buffer, alpha blending or extra visualScale. Current assets use at most 15 opaque colors plus transparent; 0 pixels are transparent. Scaling uses nearest-neighbor samples. Bank selection is presentation only; see [vehicle physics](vehicle-physics.md).
 
 Order is optional clear -> full Far Background -> single far-to-near Terrain + World Sprite Painter -> player -> HUD. Equal-depth terrain is painted before sprites. Player is last among world visuals even where pseudo geometry distorts physical distance. [Current renderer](../src/render/renderer.ts) owns this pipeline. Detailed workload arrays are allocated only when instrumentation is requested.
+
+### Sprite LOD metric and read contract
+
+This rendering contract extension selects a top-left aligned, untrimmed octave lattice and
+geometric-mean level transitions. It adds completed-LOD support to the product blitter; current
+programmer art still supplies one level with unchanged pixels and dimensions. Its provisional
+colors/densities and yaw/bank grid are not production source-art requirements. No image generator,
+source filter or vehicle-variant sampling decision is implied by this extension.
+
+For logical master extent W by H, level k stores `ceil(W/2^k)` by `ceil(H/2^k)` texels. Each texel
+has the same nominal step `2^k` in both master axes. Storage starts at the master's top-left
+boundary. A final row/column can extend beyond the logical frame; that partial cell is clipped
+by the original W by H drawing bounds, never stretched to fit. A compiler must account for the
+partial cell explicitly when its filter/coverage policy is selected. Shrinking continues on the
+longer axis when the shorter is already one texel. A finite contiguous prefix is legal; the last
+possible level is `ceil(log2(max(W,H)))`, where both storage dimensions are one.
+
+The anchor remains `(aX,aY)` in L0 texel-center coordinates. Its derived coordinate at level k is
+`((aX+0.5)/2^k-0.5, (aY+0.5)/2^k-0.5)`, not simply the anchor divided by two. Drawing uses the
+original logical bounds and converts each nearest sample to this common lattice. Default
+single-image anchors remain `((W-1)/2,H-1)`; fractional and outside-frame reference points are valid.
+All levels represent `worldWidth` by `worldWidth*H/W` meters. Neither a storage dimension nor an
+opaque bounding box can redefine those dimensions or the physical vehicle profile.
+
+Selection starts at L0 and moves to a coarser level while `g <= 1/(sqrt(2)*2^k)`, clamped to the
+available levels. Equality selects the coarser image. Display extent and anchor still follow the
+continuous projection; neither is rounded to the selected level. Pixel rasterization and changes
+of color/coverage between images can still produce visible steps. No crossfade is introduced.
+
+The completed-image interchange record accepted by `readSpriteLodAsset` is:
+
+```text
+{ format: "superoutride.sprite-lod", version: 1, name,
+  width: W, height: H, anchorX, anchorY,
+  levels: [{ paletteRgb555: [opaque RGB555 integers], indices: [row-major indices] }, ...] }
+```
+
+The master is normalized to `SPRITE_SOURCE_TEXELS_PER_METER` (40); physical width is derived once
+from W. Each level has at most 15 distinct opaque RGB555 colors, each in 0..32767. Index 0 is
+transparent; indices 1..15 address that level's opaque palette. RGB555 zero is opaque black.
+Each index array must exactly cover its derived storage lattice. The reader expands through the
+shared RGB555 codec and owns its decoded buffers; asset and level metadata are frozen. Consumers
+treat the pixel buffers as read-only. Unknown fields, nonfinite anchors, invalid dimensions,
+missing/extra levels and out-of-range palette indices fail before rendering. V1 has no crop,
+per-level anchor/dimensions, rotation or scale fields. Transparent canvas margin is retained.
+
+Per-level palettes can be represented; the image compiler's palette-sharing policy remains open.
+This small completed-image interchange does not settle editor project/ID/version migration or
+packed production ROM encoding. The [causal LOD tests](../tests/rendering/sprite-lod.test.mjs)
+cover odd/thin storage, transitions, alpha, clipping, workload and the complete Painter. The
+[preview](../tools/graphics/sprite-lod.html) reads the same format and calls the same blitter.
 
 ## Layer and computation rules
 
@@ -175,8 +231,9 @@ be a separate behavioral revision, not a cleanup.
 
 ## Accepted authoring target
 
-GroundMap compilation, delivery and product sampling are implemented below. SpriteAsset remains a
-single bitmap; sprite LOD and image authoring are pending. Each rendering revision requires explicit
+GroundMap compilation, delivery and product sampling are implemented below. Completed sprite LOD
+reading and rendering follow the metric contract above; image generation and product art conversion
+remain pending. Each rendering revision requires explicit
 causal tests and does not silently advance the immutable mechanics/pixel reference.
 
 - Sprite and ground-image source density is 40 texels/m in both authoring axes. Ground source
@@ -185,8 +242,8 @@ causal tests and does not silently advance the immutable mechanics/pixel referen
   transparent slot, with binary final alpha. Runtime nearest scaling and continuous projected
   size remain; LOD images are spaced by one octave in linear resolution.
 - Every LOD preserves the master's logical metric extent and anchor. Storage dimensions, crop,
-  padding and texel-center mapping are separate. Odd dimensions and level selection must be
-  resolved before extending SpriteAsset/the blitter. A stored LOD's width never redefines the
+  padding and texel-center mapping are separate. The current untrimmed lattice, partial-edge clipping
+  and level selection are defined above. A stored LOD's width never redefines the
   vehicle's physical dimensions.
 - GroundMap and its LOD are generated before game startup. Product runtime loads completed assets,
   selects a level and samples it; it does not composite source imagery or generate prefilters.

@@ -80,7 +80,10 @@ editor rather than an independent whole-course bitmap painter.
 
 Editing projects, normalized source assets and compiled product assets are distinct. Source images
 and course authoring are authoritative; sprite LOD and completed GroundMap data are compiler output.
-The runtime format, asset identity/version rules and editor project schema remain undecided.
+The [completed sprite LOD interchange](architecture.md#sprite-lod-metric-and-read-contract) has a
+validated runtime reader. Packed product encoding, asset identity/version rules and editor project
+schema remain undecided. Current source art remains single-level; importing completed LODs into the
+diagnostic preview does not generate them or convert the shipped scenery/vehicle sets.
 
 Ground Decals represent arrows, text, symbols and surface details. Their authoring density is
 40 texels/m in each axis. Placement supplies position in (s,l), without rotation, scale, skew or

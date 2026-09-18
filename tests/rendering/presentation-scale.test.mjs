@@ -45,7 +45,7 @@ test('car physical width is 2.0 m and car source asset is authored 80 px wide', 
   let maxX = -1;
   for (let y = 0; y < rear.height; y += 1) {
     for (let x = 0; x < rear.width; x += 1) {
-      if (rear.pixels[y * rear.width + x] !== 0) {
+      if (rear.levels[0].pixels[y * rear.width + x] !== 0) {
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
       }

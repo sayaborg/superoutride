@@ -21,7 +21,7 @@ describe('sprite presentation', () => {
     for (const asset of all) {
       assert.ok(countOpaqueSpriteColors(asset) <= 15, `${asset.name} exceeds 15 opaque colors`);
       assert.ok(
-        [...asset.pixels].some((pixel) => pixel === 0),
+        [...asset.levels[0].pixels].some((pixel) => pixel === 0),
         `${asset.name} has no transparent texel`,
       );
     }

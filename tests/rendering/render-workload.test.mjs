@@ -67,6 +67,19 @@ const terrainProfile = {
 };
 const cameraProfile = CURRENT_CAMERA_PROFILE;
 
+// Input schema bridge only. A multi-level asset cannot be compared by silently dropping its LODs.
+function singleLevelAssetForReference(asset) {
+  const { levels, ...metadata } = asset;
+  assert.equal(levels.length, 1, 'the immutable sprite reference accepts only single-level inputs');
+  assert.equal(levels[0].width, asset.width);
+  assert.equal(levels[0].height, asset.height);
+  return { ...metadata, pixels: levels[0].pixels };
+}
+
+function spriteSetForReference(set) {
+  return { ...set, assets: set.assets.map((row) => row.map(singleLevelAssetForReference)) };
+}
+
 function placeCar(car, s, l, yawOffset) {
   const p = guidePathToWorld(guide, s, l);
   const surface = surfaces.sample(s, l);
@@ -129,10 +142,11 @@ test('sprite scanline observer accounts exactly for the blitter work it observes
   const target = new SoftwareSurface(320, 240);
   const perLineSamples = new Uint32Array(240);
   const perLineWrites = new Uint32Array(240);
-  const stats = drawScaledSprite(target, assets.car.assets[0], 160, 190, 40, (y, samples, writes) => {
+  const stats = drawScaledSprite(target, assets.car.assets[0][0], 160, 190, 40, (y, samples, writes) => {
     perLineSamples[y] += samples;
     perLineWrites[y] += writes;
   });
+  assert.ok(stats.outputSamples > 0);
   assert.equal(
     perLineSamples.reduce((a, b) => a + b, 0),
     stats.outputSamples,
@@ -176,8 +190,15 @@ test('optional diagnostics preserve exact pixels and ordinary results across the
             scene.vehicle,
             scene.terrainProfile,
             scene.groundProfile,
-            scene.worldSprites,
-            scene.assets,
+            scene.worldSprites.map((sprite) => ({ ...sprite, asset: singleLevelAssetForReference(sprite.asset) })),
+            {
+              tree: singleLevelAssetForReference(scene.assets.tree),
+              sign: singleLevelAssetForReference(scene.assets.sign),
+              guardrail: singleLevelAssetForReference(scene.assets.guardrail),
+              building: singleLevelAssetForReference(scene.assets.building),
+              car: spriteSetForReference(scene.assets.car),
+              bike: spriteSetForReference(scene.assets.bike),
+            },
             scene.playerKind,
             options.roadView,
             options.observeWorkload,

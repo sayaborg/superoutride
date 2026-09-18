@@ -1,9 +1,24 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir, mkdtemp, rm, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
+
+test('built Sprite LOD preview resolves every module within the same complete build', async () => {
+  const file = fileURLToPath(new URL('../../dist/tools/graphics/sprite-lod.mjs', import.meta.url));
+  const source = await readFile(file, 'utf8');
+  const build = fileURLToPath(new URL('../../dist/', import.meta.url));
+  assert.doesNotMatch(source, /\.\.\/\.\.\/dist\//);
+  for (const match of source.matchAll(/from '([^']+)'/g)) {
+    const path = resolve(dirname(file), match[1]);
+    assert.ok(path.startsWith(build));
+    assert.ok((await readFile(path, 'utf8')).length > 0);
+  }
+  const html = await readFile(new URL('../../dist/tools/graphics/sprite-lod.html', import.meta.url), 'utf8');
+  assert.match(html, /src="sprite-lod\.mjs"/);
+});
 
 test('actual Pages staging binds HTML to immutable CSS, retaining the complete build and local fallback', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'outride-pages-style-'));

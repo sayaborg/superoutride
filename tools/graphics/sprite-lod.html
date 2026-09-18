@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SUPER OUTRIDE — Sprite LOD preview</title>
+  <style>
+    body {
+      margin: 2rem auto;
+      padding: 0 1rem;
+      max-width: 70rem;
+      background: #101820;
+      color: #eaf1f4;
+      font: 16px system-ui;
+    }
+    h1 {
+      font-size: 1.5rem;
+    }
+    p {
+      max-width: 65ch;
+      line-height: 1.5;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin: 1.5rem 0;
+    }
+    input,
+    button,
+    select {
+      font: inherit;
+    }
+    input[type='number'] {
+      width: 6rem;
+    }
+    input[type='range'] {
+      width: 18rem;
+      max-width: 80vw;
+    }
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 1rem;
+    }
+    figure {
+      margin: 0;
+    }
+    figcaption {
+      margin-bottom: 0.5rem;
+    }
+    canvas {
+      width: 100%;
+      image-rendering: pixelated;
+      display: block;
+    }
+    output {
+      display: block;
+      white-space: pre-wrap;
+      font: 14px/1.6 monospace;
+      margin: 1rem 0;
+    }
+    #error {
+      color: #ffb7a8;
+    }
+  </style>
+  <h1>Sprite LOD preview</h1>
+  <p>
+    Compare completed LOD images with the master using the game's nearest blitter. Colored fixtures reveal level
+    changes; they do not demonstrate image-filter quality. The cross marks the shared anchor.
+  </p>
+  <div class="controls">
+    <label
+      >Fixture
+      <select id="fixture">
+        <option value="80,56">80 × 56</option>
+        <option value="81,57">81 × 57 (odd)</option>
+        <option value="1,65">1 × 65 (thin)</option>
+        <option value="65,1">65 × 1 (wide)</option>
+      </select></label
+    >
+    <label>Depth (m) <input id="depth" type="number" min="2.5" max="200" step="0.01" value="10" /></label>
+    <input id="distance" aria-label="Distance" type="range" min="2.5" max="200" step="0.01" value="10" />
+    <label>Subpixel offset <input id="phase" type="number" min="0" max="1" step="0.05" value="0" /></label>
+    <button id="animate">Animate approach</button>
+  </div>
+  <div class="controls">
+    <label>Load completed LOD JSON <input id="file" type="file" accept="application/json,.json" /></label
+    ><button id="download">Download fixture</button>
+  </div>
+  <div class="frames">
+    <figure>
+      <figcaption>Automatic LOD</figcaption>
+      <canvas id="lod" width="320" height="240"></canvas>
+    </figure>
+    <figure>
+      <figcaption>Master only</figcaption>
+      <canvas id="master" width="320" height="240"></canvas>
+    </figure>
+  </div>
+  <output id="result" aria-live="polite"></output>
+  <p id="error" role="alert"></p>
+  <script type="module" src="sprite-lod.mjs"></script>
+</html>

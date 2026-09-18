@@ -127,13 +127,19 @@ test('portal uses 0/1 transparent aperture and sprite palette remains Core-sized
   assert.equal(tunnel.portalAsset.worldWidthMeters, 12);
   const portal = tunnel.portalAsset;
   const apertureX = Math.floor(portal.width * 0.5);
-  assert.notEqual(portal.pixels[Math.floor(portal.height * 0.15) * portal.width + apertureX], SPRITE_TRANSPARENT);
-  assert.equal(portal.pixels[Math.floor(portal.height * 0.75) * portal.width + apertureX], SPRITE_TRANSPARENT);
+  assert.notEqual(
+    portal.levels[0].pixels[Math.floor(portal.height * 0.15) * portal.width + apertureX],
+    SPRITE_TRANSPARENT,
+  );
+  assert.equal(
+    portal.levels[0].pixels[Math.floor(portal.height * 0.75) * portal.width + apertureX],
+    SPRITE_TRANSPARENT,
+  );
   assert.ok(countOpaqueSpriteColors(tunnel.portalAsset) <= 15);
   assert.ok(countOpaqueSpriteColors(tunnel.ribAsset) <= 15);
   const center = Math.floor(tunnel.portalAsset.width / 2);
   assert.equal(
-    tunnel.portalAsset.pixels[(tunnel.portalAsset.height - 2) * tunnel.portalAsset.width + center],
+    tunnel.portalAsset.levels[0].pixels[(tunnel.portalAsset.height - 2) * tunnel.portalAsset.width + center],
     SPRITE_TRANSPARENT,
   );
 });

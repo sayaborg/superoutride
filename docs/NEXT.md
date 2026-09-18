@@ -15,7 +15,8 @@ sprite LOD. [Architecture](architecture.md#accepted-authoring-target) and
 [content](content-and-gameplay.md#accepted-authoring-workflow-pending-implementation) own the target
 contracts and distinguish them from deployed implementation. Cleanup preserves existing road
 shoulder dimensions, boundary priorities, mechanics and acoustic waveforms. The baked ground pixel
-revision is specified separately in architecture; sprite LOD has not been activated.
+revision is specified separately in architecture. The shared sprite blitter supports completed LODs;
+current game art remains single-level.
 
 1. GroundMap B2 product integration is implemented: all four course modes load the fourteen complete
    baked sources through one bounded page store and synchronous reader. Product builds validate gzip
@@ -28,8 +29,11 @@ revision is specified separately in architecture; sprite LOD has not been activa
    switching, including simultaneous old/new pins, decoded memory and frame time. Current application
    admission limits are in [architecture](architecture.md#groundmap-compilation-and-residency), not
    approved smartphone budgets. Host/Node evidence does not close this remaining acceptance work.
-3. Resolve sprite LOD logical extent, crop/padding, anchors, odd dimensions and level selection.
-   Verify synthetic fixtures before changing asset production or the product blitter contract.
+3. Sprite LOD metric/read integration is implemented with synthetic fixtures and a
+   [shared-blitter preview](development.md#sprite-lod-preview). Use the explicit untrimmed lattice,
+   master anchor and transition contract for completed assets. Product art conversion still needs
+   the image-generation decisions below and explicit changed-art pixel fixtures; the fixed oracle
+   remains unchanged. Do not mistake the diagnostic level colors for prefilter quality evidence.
 4. Resolve image color/filter/coverage rules and Ground composition ordering; build deterministic
    core/compiler functions, then the smallest end-to-end Sprite Tool / Course Editor workflow.
 

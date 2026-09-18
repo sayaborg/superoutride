@@ -14,6 +14,23 @@ checkout for both; opening the HTML directly with `file://` is not the supported
 delivery path. Rebuild after TypeScript edits, then reload the target page. Reload resets
 session-local tuning. See [audio](audio.md) for signal order and parameter ownership.
 
+## Sprite LOD preview
+
+After `npm run build`, serve the checkout and open `tools/graphics/sprite-lod.html`. The same page
+is staged at `build/<commit>/tools/graphics/sprite-lod.html` for Pages; all imports stay within that
+commit's complete build. It compares automatic LOD and master-only drawing through the common
+product blitter, including continuous depth, subpixel anchor offsets and odd/thin synthetic frames.
+It can load a completed LOD JSON and download the currently loaded record. The 8 MiB preview-file
+limit is a local admission policy, not a production asset or smartphone memory budget.
+
+[Architecture](architecture.md#sprite-lod-metric-and-read-contract) owns dimensions, mapping,
+palette/index validation and the interchange schema. The preview neither filters imported images
+nor certifies transition quality. Synthetic colors deliberately identify selected levels. The
+product's current source-art pixels remain covered by the fixed reference; causal LOD tests cover
+the new read/blit contract, including course sprites, dynamic vehicles and the player in one Painter.
+The historical renderer input bridge maps a single level to its original `pixels` field and rejects
+multi-level input. It never changes pixel values, reference outputs or reported workload.
+
 ## Validation contracts
 
 Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The production offline compiler entry is `build:ground`; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
