@@ -93,9 +93,11 @@ does not infer or modify SurfaceMap support/friction.
 
 An [offline authored-palette recipe](architecture.md#offline-sprite-lod-authoring-recipe) now allows
 explicit color-space and coverage comparisons from normalized masters. It does not choose the final
-production-art filter or import external bitmap files. Before image production, resolve RGB555 rounding,
-automatic quantization, filter/coverage acceptance,
-palette sharing and deterministic ordering. Ground Material's proposed 16 opaque colors, Decal's
+production-art filter. [PNG source normalization](architecture.md#external-sprite-source-normalization)
+now precedes it with explicit crop, metric width, source anchor and authored palette. The file workflow
+preserves source, normalized master and compiled LOD as separate artifacts. Interactive mask editing,
+automatic palette creation, filter/coverage acceptance on real artwork and variant palette sharing
+remain open. Ground Material's proposed 16 opaque colors, Decal's
 proposed 15+1 limit and the proposed semantic layer order are not yet final contracts. Material
 phase, same-layer overlap order and stage/circuit seams also need explicit decisions.
 

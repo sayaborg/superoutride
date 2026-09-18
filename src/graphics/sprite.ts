@@ -135,15 +135,8 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
   }
   const levels = Array.from(source.levels, (value: unknown, k: number) => {
     const level = spriteRecord(value, ['paletteRgb555', 'indices']);
-    const { paletteRgb555, indices } = level;
-    if (
-      !Array.isArray(paletteRgb555) ||
-      paletteRgb555.length > 15 ||
-      !spriteIntegerArray(paletteRgb555, 0x7fff) ||
-      new Set(paletteRgb555).size !== paletteRgb555.length
-    ) {
-      throw new RangeError('sprite palette must contain at most 15 distinct RGB555 colors');
-    }
+    const paletteRgb555 = readSpritePaletteRgb555(level.paletteRgb555);
+    const { indices } = level;
     const length = layout[k]!.width * layout[k]!.height;
     if (!Array.isArray(indices) || indices.length !== length || !spriteIntegerArray(indices, paletteRgb555.length)) {
       throw new RangeError('sprite index buffer must match the LOD lattice and palette');
@@ -160,6 +153,18 @@ export function readSpriteLodAsset(value: unknown): SpriteAsset {
     anchorY,
     width / SPRITE_SOURCE_TEXELS_PER_METER,
   );
+}
+
+/** Shared palette contract for completed images and source-image compilation. */
+export function readSpritePaletteRgb555(value: unknown): number[] {
+  if (
+    !Array.isArray(value) ||
+    value.length > 15 ||
+    !spriteIntegerArray(value, 0x7fff) ||
+    new Set(value).size !== value.length
+  )
+    throw new RangeError('sprite palette must contain at most 15 distinct RGB555 colors');
+  return [...value];
 }
 
 function spriteIntegerArray(values: readonly unknown[], maximum: number): boolean {

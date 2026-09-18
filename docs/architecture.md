@@ -190,7 +190,7 @@ core. It accepts exactly one already-normalized indexed master in the completed-
 produces a full octave series in that same schema. The shared `spriteLodLayout` owns every storage
 dimension for the reader, compiler and fixtures. It leaves the master's pixels, extent and anchor
 unchanged. This is an explicit authored-palette recipe for comparison, not the final production-art
-generation policy or a bitmap importer.
+generation policy. External PNG normalization is a separate preceding compiler step below.
 
 The caller must supply both `colorSpace` (`encoded-srgb` or `linear-srgb`) and `coverageThreshold`
 in (0,1]; there is no implicit recipe. Each level integrates axis-aligned boxes directly from the
@@ -199,7 +199,7 @@ texels contribute to area coverage, while color averages include only opaque sam
 equal to the threshold is opaque; zero coverage is always transparent. This scalar threshold does
 not preserve total silhouette area or guarantee survival of thin parts.
 
-The encoded recipe averages the shared RGB555 decoder's 8-bit sRGB channel values. The linear recipe
+The shared [area filter](../src/graphics/sprite-area-filter.ts) owns color, coverage and palette selection for both source normalization and LOD generation. The encoded LOD recipe averages the shared RGB555 decoder's 8-bit sRGB channel values. The linear recipe
 uses the [sRGB transfer function](https://www.w3.org/TR/css-color-4/#color-conversion-code) before
 averaging. Both choose the nearest color from the author's supplied master palette by squared RGB
 distance in the selected space; exactly equal errors choose the lower RGB555 integer. The palette
@@ -212,6 +212,53 @@ tie ordering, repeatability and the file compiler. Build-generated checker/cover
 an opt-in visual comparison in the shared preview. Its browser only loads completed JSON; the build
 owns compilation. Filter/coverage acceptance on real artwork, automatic palette reduction and
 variant palette sharing remain open; these synthetic samples do not establish final image quality.
+
+### External sprite source normalization
+
+The [source compiler](../src/graphics/sprite-source-compiler.ts) accepts decoded straight-alpha
+8-bit sRGB pixels and an explicit versioned recipe. This is an offline authoring contract extension;
+it does not convert shipped art or change projection, LOD selection, physics or the fixed oracle.
+The PNG command supplies decoded pixels through the shared framebuffer color packing primitive.
+Prepare sRGB input externally: embedded ICC/gamma metadata is not a color conversion instruction.
+JPEG/WebP, animated input, perspective correction and interactive mask editing remain outside this
+first file workflow. The pinned PNG dependency is a build tool, never a driving/runtime dependency.
+
+```text
+{ format: "superoutride.sprite-source", version: 1, name,
+  crop: { x, y, width, height }, widthMeters,
+  anchor: { x, y }, paletteRgb555, filter: { colorSpace, coverageThreshold } }
+```
+
+The crop is an integer source-pixel rectangle inside the decoded image. `widthMeters` calibrates
+that entire crop, including transparent margin; it is not necessarily the object's physical width.
+The master width is `round(widthMeters*40)` (positive ties upward), which must be at least one.
+Its actual canvas width is the rounded result divided by 40. One uniform scale, master width divided
+by crop width, applies to both axes. Master height is the ceiling of crop height times that scale;
+a fractional final row adds transparent area instead of stretching the image vertically. This source
+normalization padding belongs to L0. It differs from the later LOD storage padding outside L0's
+logical frame, which the LOD filter clips. Opaque bounds never redefine the frame or vehicle physics.
+
+The anchor is supplied in original-image texel-center coordinates, including the crop offset. Each
+axis maps as `(sourceAnchor + 0.5 - cropOrigin)*scale - 0.5`. Fractional and outside-frame anchors
+remain valid. Integer overlap units represent rational source footprints without epsilon padding or
+opaque edge gaps. Box integration also defines enlargement: source cells have constant color and
+coverage. Transparent area contributes only coverage; straight alpha weights opaque color before
+binary thresholding. No background color enters through a zero-alpha sample.
+
+The shared explicit filter recipe chooses the encoded/linear color space and threshold. The author
+supplies at most 15 distinct RGB555 colors; the shared nearest-palette rule performs assignment.
+No palette is inferred from a photograph. An empty palette is legal only when the resulting master
+is fully transparent. The output is exactly one normalized level in the completed-image interchange,
+ready for review/editing and the existing LOD compiler. Source-normalization and LOD recipes are
+separate saved inputs: neither inherits the other's threshold silently. This recipe is not an Editor
+project format or an accepted real-art quality policy.
+
+Unknown/missing fields, invalid crop/anchor/metric values and malformed palettes fail before output.
+Authoring admission limits are 16,777,216 decoded source pixels and 1,048,576 master texels; the PNG
+adapter additionally admits at most 32 MiB encoded input and 8-bit channels. These are local compiler
+limits, not runtime format limits or accepted smartphone budgets. [Source regressions](../tests/rendering/sprite-source-compiler.test.mjs)
+cover metric projection, fractional footprints, source alpha, crop/anchor mapping, padding, color
+space, file preservation and the real PNG -> master -> LOD -> product-reader chain.
 
 ## Layer and computation rules
 

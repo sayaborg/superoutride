@@ -49,12 +49,50 @@ product on failure. The command reports the output digest, bytes and level count
 
 `npm run build` also compiles checker/coverage comparison samples for the preview using explicit
 diagnostic recipes. Select either compiled checker in the preview to compare it with its master.
-There is no browser-side image filtering. The file compiler currently starts after normalization;
-external bitmap import, metric resize, mask editing and automatic color reduction remain future work.
+There is no browser-side image filtering. The LOD compiler starts after the source normalization
+step below. Interactive masking and automatic palette creation remain future work.
+
+## Sprite PNG source compiler
+
+After building, the declared `build:sprite-source` entry imports a static 8-bit PNG into an editable,
+single-level master. Supply a PNG already prepared in sRGB; this adapter does not convert embedded
+color profiles. The command uses the pinned `pngjs` decoder with checksum validation and checks
+source size/dimensions before decoding. [Architecture](architecture.md#external-sprite-source-normalization)
+owns metric rounding, crop, anchor, alpha, palette and admission rules.
+
+For example, an existing 160 by 100 pixel crop representing 2 m can use this source recipe:
+
+```json
+{
+  "format": "superoutride.sprite-source",
+  "version": 1,
+  "name": "example-object",
+  "crop": { "x": 0, "y": 0, "width": 160, "height": 100 },
+  "widthMeters": 2,
+  "anchor": { "x": 79.5, "y": 99.5 },
+  "paletteRgb555": [0, 32767, 31744],
+  "filter": { "colorSpace": "linear-srgb", "coverageThreshold": 0.5 }
+}
+```
+
+The palette and threshold above are illustrative, not production-art defaults. Choose the palette
+for the actual image, and preserve the PNG and recipe separately from the normalized master.
+Then run the two offline steps, using a separate explicit LOD recipe described above:
+
+```sh
+npm run build:sprite-source -- source.png source-recipe.json master.json
+npm run build:sprite-lod -- master.json lod-recipe.json sprite-lod.json
+```
+
+Both commands refuse to overwrite input or existing output files and report dimensions, byte count,
+level count and output digest. Review the master before generating derivatives. Load the completed
+JSON in the existing Sprite LOD preview for the product blitter. Reimporting never silently replaces
+manual edits to a prior master. There is no course placement, source painting GUI or automatic
+palette reduction in this file workflow; it provides the image boundary those tools can reuse.
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets and `build:sprite-lod` for completed sprite images; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 

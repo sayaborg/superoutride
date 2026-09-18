@@ -15,10 +15,12 @@
     "format:check": "prettier --check .",
     "build:test-assets": "node tools/build/build-test-ground-map.mjs",
     "build:ground": "node tools/build/build-product-ground.mjs",
-    "build:sprite-lod": "node tools/build/build-sprite-lod.mjs"
+    "build:sprite-lod": "node tools/build/build-sprite-lod.mjs",
+    "build:sprite-source": "node tools/build/build-sprite-source.mjs"
   },
   "devDependencies": {
     "eslint": "10.10.0",
+    "pngjs": "7.0.0",
     "prettier": "3.9.6",
     "typescript": "^5.8.3",
     "typescript-eslint": "8.70.0"

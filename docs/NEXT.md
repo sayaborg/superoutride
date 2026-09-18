@@ -37,8 +37,11 @@ current game art remains single-level.
 4. The first [offline sprite image core](development.md#sprite-lod-file-compiler) now generates
    octave images directly from a normalized master using explicit color-space/coverage recipes and
    an authored palette. Compare its build-generated checker samples in the preview. Choose real-art
-   filter/coverage and palette-reduction policies before product art conversion; implement external
-   bitmap import, metric normalization and mask editing, then the smallest end-to-end tool workflow.
+   filter/coverage and palette-reduction policies before product art conversion. The
+   [PNG source compiler](development.md#sprite-png-source-compiler) now supplies crop, metric
+   normalization, source-anchor mapping, alpha coverage and authored-palette assignment. Its separate
+   source/master/LOD file workflow is causally tested; interactive mask editing and automatic palette
+   creation remain next, followed by the smallest end-to-end tool workflow.
    Ground composition ordering, image Material/Decal composition and Course Editor remain separate.
 
 Ground and sprite cutovers are separate rendering revisions. Preserve the immutable mechanics
