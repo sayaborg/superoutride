@@ -1,5 +1,7 @@
 # Development, validation and release
 
+Current implementation is described below. The [Course Editor target](#course-editor-target-validation) is a separately scoped future contract. Activate each change only with its executable coverage; this document does not report that the target is already implemented.
+
 ## Local workflow
 
 Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build, test-asset baking and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Run `npm run build:ground` after a clean build before local play. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
@@ -391,3 +393,107 @@ A missing numeric device budget does not block compiler parity or ownership work
 claim of smartphone acceptance. Choose limits using measured payload working sets and total
 application headroom, record them in the integration profile, and reject unsupported content
 explicitly. A guessed speed/network lead distance is not a guarantee that future pages will arrive.
+
+## Course Editor target validation
+
+This target chapter defines Course Editor validation. The repository's existing full validation and
+exact-head release commands remain mandatory. This chapter defines additional evidence and capacity
+accounting; [NEXT](NEXT.md) alone owns implementation order. No new command or completed test is implied.
+
+### Image and geometry acceptance
+
+| Boundary         | Required causal evidence                                                                                                                                                                                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Documents        | Stable IDs/references, version rejection, units, invalid draft save, reopen and deterministic output.                                                                                                                                                                  |
+| Frames/views     | Source/view mapping, loop reset, actual predecessor at a merge, inverse traversal, straddling contacts and complete consumer ranges.                                                                                                                                   |
+| Seams            | Same-pose contact/physical state and continuous camera, ground, background and stable scenery identity.                                                                                                                                                                |
+| Forks            | Two/three exits; 0/1/16 rivals; traffic exclusion; median-centre ties; unsupported crossings; same-tick arbitration; irreversible lock; separate per-actor commit.                                                                                                     |
+| Fork coverage    | Each declared pre-lock consumer range fits common content; closure precedes each exit; each exit satisfies `parentSpecificVisibleEnd <= exit seam`, with no parent-specific pixels at the seam and only matching common overlap; distinct parents reuse one successor. |
+| Transfer         | Product-physics scenarios for the admitted speed/pose/material/vehicle envelope, including outer-to-outer three-way movement.                                                                                                                                          |
+| Progress/clock   | Physical gate history; no re-awards; exact expiry/checkpoint/finish ties; initial/later-lap budgets; continuous reference identity and invalidation.                                                                                                                   |
+| Ground           | 15+1 source admission, mixed materials, opaque coverage, static A/B recipe, ordered stamps and negative/positive half-cell placement ties.                                                                                                                             |
+| LOD              | Immediately below/at/above each threshold; equality coarsens; full collapsed footprints; direct-source integration; odd/partial edges; tile/Link/lap phase.                                                                                                            |
+| Compilation      | Small whole-image oracle equals bounded output across batch/traversal orders; equality of complete tile records; deterministic publication/failure cleanup.                                                                                                            |
+| Loading          | Whole-course completeness, malformed/digest/length failure, retry/exit, cancellation, stale builds and course-switch peak residency.                                                                                                                                   |
+| Gameplay/quality | Reference-AI qualification, interactions, art review and named-device full-load acceptance as separate results.                                                                                                                                                        |
+
+Check actual bands and supported envelopes, not only centrelines. A geometry pass is not vehicle,
+art or device acceptance. Diagnostics identify the failed rule, location and input/envelope rather
+than silently changing geometry, physics, image quality or progress.
+
+Use small linear, three-way-fork, diamond-merge, loop and authored-overpass inputs for causal tests.
+Include simultaneous and staggered actors around Links, reverse/recovery, diverse camera poses and
+first/last checkpoint conditions. Ground art trials include fine paint/text, A/B seams, repaired
+asphalt, grass boundaries, hills and collapsed crests. The product renderer is the visual oracle.
+
+Keep the immutable mechanics reference. Intentional changed-ground pixels get an explicit rendering
+contract revision and independent causal expectations; neither a rewritten golden image alone nor
+resetting a mechanics baseline proves correctness. The current Sprite Tool and source/LOD tests remain.
+Actual integration tests must cover the real roots/adapters as they are replaced.
+
+### Capacity model
+
+Whole-course residency is evaluated over every distinct stored Section domain, including required
+guards and all alternatives in a BRANCH course. Count a shared successor and one lap source once.
+Summing route lengths duplicates shared Sections; measuring only the driven route omits resident data.
+The largest resident case depends on total domains, width, source diversity and deduplication, not on
+which course has the longest single lap. No selected BRANCH course is claimed to have a measured length here.
+
+For the candidate ground layout, let `U` be unique completed near records and `N` be actual map entries:
+
+```text
+near record bytes = 2 * (64*16 + 32*4 + 16*1) = 2,336
+near dictionary bytes = 2,336 * U
+map bytes = entryBytes * N
+coarse bytes = 2 * sum(actual stored texel counts at all coarse levels)
+ground bytes = map + dictionary + coarse + metadata
+```
+
+The following are arithmetic scenarios using a 30 m rectangular strip, four-byte map references,
+coarse-level area approximations and no metadata/other assets. They are not measured courses or
+accepted device budgets. MB denotes 1,000,000 bytes; exact edge allocations are obtained from compilation.
+
+| Distinct source length                            | Unique records |     Map | Near dictionary | Coarse images | Ground subtotal |
+| ------------------------------------------------- | -------------: | ------: | --------------: | ------------: | --------------: |
+| 20.8 km, earlier illustration                     |          5,000 | 0.99 MB |        11.68 MB |       1.11 MB |         13.8 MB |
+| 70 km, hypothetical multi-Section case with reuse |          5,000 | 3.33 MB |        11.68 MB |       3.75 MB |         18.8 MB |
+| 70 km, same case with U proportional to length    |   About 16,827 | 3.33 MB |        39.31 MB |       3.75 MB |         46.4 MB |
+
+A constant MB/km rate conflates length-dependent map/coarse data and content-dependent dictionary
+size. Unique-record counts must come from actual composition, including stamps and boundary phase.
+Compression and free-stamp area do not determine decoded residency or promise a reduction ratio.
+
+The 2,336-byte RGB555 near record intentionally favours one completed-colour representation over
+4-bit indices plus palettes: its pixel payload is four times the 584-byte indexed payload before
+palette overhead. This avoids mixed-tile palette allocation and near/coarse colour interpretation
+branches. Transport compression remains separate; a packed-palette redesign requires an explicit
+contract revision and measured benefit, rather than changing this budget assumption silently.
+
+For the 20.8 km scenario, the 40 × 40 source lattice has 998,400,000 texels, about 3.99 GB as RGBA.
+Use this to test bounded generation rather than to allocate a whole-course intermediate. Pixel buffers,
+metadata/index growth, scratch storage, codec internals and process peak are measured separately.
+
+### Measurement and admission
+
+The capacity report records actual grids, unique records, encoded/download bytes, resident reader
+bytes, load/decode copies, peak compiler memory and scratch use. Account shared storage once; include
+old/new course coexistence and in-flight data during switching. Report the retained representation
+rather than assuming all texels expand to RGBA, or that RGB555 file size equals total runtime memory.
+
+Qualify at least a long circuit, the highest-footprint authored BRANCH course, and an explicit stress
+input with wide forks, diverse themes, dense stamps and scenery. Before production assets exist, use
+parameterized multi-Section synthetic cases; label them synthetic. Increase total stored length and
+unique-record count independently. Replace the assumed worst case with measured catalog results.
+
+Full-scene device tests include renderer/framebuffer, sprites/backgrounds, 16 rivals, traffic,
+interactions, audio, source metadata and loading transitions. Name device/browser, fixed step, frame
+target, test inputs and separate resident/peak limits. Host throughput and compressed bytes are
+supporting measurements, not smartphone certification. Oversized content receives a capacity error.
+
+### Remaining evidence gates
+
+Exact CourseDocument/wire schema and integer ranges are validated before GUI dependence. Candidate
+LOD/filter/packing choices require real-art and footprint evidence. Seam/consumer/transfer envelopes
+require causal geometry/physics tests. Reference AI and timed presets require their three acceptance
+stages. Interaction/traffic definitions and device budgets remain explicit prerequisites for complete
+product-play acceptance, not blockers to independent file/compiler work.

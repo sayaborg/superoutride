@@ -1,5 +1,7 @@
 # Core architecture and rendering contract
 
+Current implementation is described below. The [Course Editor target](#course-editor-target) is a separately scoped future contract. Activate each change only with its executable coverage; this document does not report that the target is already implemented.
+
 This is the current normative coordinate/rendering specification. [Vehicle physics](vehicle-physics.md) and [content and gameplay](content-and-gameplay.md) own their respective layers.
 
 ## Coordinates and open geometry
@@ -327,7 +329,7 @@ Audio owns procedural sound and consumer read contracts; vehicle binds authored 
 
 Browser owns bounded HTTP delivery and may import GroundMap manifest/residency contracts; GroundMap never imports browser or starts network I/O.
 
-All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/infrastructure/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone does not justify merging it.
+All general directory dependencies, including type imports, follow the acyclic ownership graph enforced by [repository hygiene](../tests/infrastructure/repository-hygiene.test.mjs). A small directory can own a distinct contract; file count alone is not a reason to merge those authorities.
 
 General engine modules never import `src/dev`; only the three browser composition roots assemble concrete DEV content. Route/mode choices happen there. Runtime content provides ordinary reader contracts to physics, camera and renderer. Compilers own topology expansion, validation, static geometry and asset preparation; avoid per-pixel geometry, trigonometry or per-object alternative depth rules.
 
@@ -367,31 +369,11 @@ be a separate behavioral revision, not a cleanup.
 
 ## Accepted authoring target
 
-GroundMap compilation, delivery and product sampling are implemented below. Completed sprite LOD
-reading and rendering follow the metric contract above. An explicit offline authored-palette recipe
-is available; final image-generation policy and product art conversion remain pending. Each rendering revision requires explicit
-causal tests and does not silently advance the immutable mechanics/pixel reference.
-
-- Sprite and ground-image source density is 40 texels/m in both authoring axes. Ground source
-  density is distinct from the compiled anisotropic GroundMap spacing described above.
-- Ordinary sprite masters and every generated LOD use RGB555, at most 15 opaque colors and one
-  transparent slot, with binary final alpha. Runtime nearest scaling and continuous projected
-  size remain; LOD images are spaced by one octave in linear resolution.
-- Every LOD preserves the master's logical metric extent and anchor. Storage dimensions, crop,
-  padding and texel-center mapping are separate. The current untrimmed lattice, partial-edge clipping
-  and level selection are defined above. A stored LOD's width never redefines the
-  vehicle's physical dimensions.
-- GroundMap and its LOD are generated before game startup. Product runtime loads completed assets,
-  selects a level and samples it; it does not composite source imagery or generate prefilters.
-  Stage-local shoulders and junction paint must be included in the compiled color field. Loading
-  completed chunks during play is distinct from generating them; the residency contract is below.
-- Vehicles remain SINGLE: one sprite instance per vehicle. Yaw/bank sampling steps and source
-  camera projection are undecided; there is no accepted fixed 24-by-5 sampling grid.
-
-First measure stored/transfer bytes, alignment overhead, compiler peak memory, reader residency,
-load-time copies and transition-time coexistence on representative courses. Current packed readers
-must not be budgeted as if they expanded every texel to RGBA. Archive compression is not evidence
-of HTTP compression. Preserve separate mechanics comparison when intentionally revising pixel output.
+The [Course Editor target](#course-editor-target) owns the revised future frame/ground contracts.
+The completed sprite reader, normalization, authored-palette compiler and Sprite Tool described above
+are implemented. Real-art filter/coverage acceptance and source-camera/variant sampling remain open.
+Vehicles retain SINGLE presentation. The following residency section describes the current paged
+GroundMap implementation, retained until its replacement passes the target gates.
 
 ### GroundMap compilation and residency
 
@@ -546,3 +528,155 @@ independently checks L0 texel centers against source color evaluators. The immut
 oracle remains exercised through an input-only [diagnostic adapter](../src/dev/diagnostics/source-ground-render.ts)
 into the same renderer; it is not the product pixel contract. Circuit runtime windows no longer
 copy image directories: tests require the existing finite window-to-lap mapping and shared reader.
+
+## Course Editor target
+
+This target chapter defines Course Editor frame and image contracts. Existing current-implementation sections remain
+in force until the corresponding implementation milestone is validated. This chapter owns frame
+mathematics, image/composition rules and completed-ground representation; gameplay transactions and
+source-document semantics belong to [content and gameplay](content-and-gameplay.md).
+
+### Frame transform and coordinates
+
+A Link stores `destinationFromSource`: translation `t` and a rotation `R` about +Y. For position `p`
+and a vector `v` expressed in the source frame, `p' = R p + t` and `v' = R v`. Identity is a value of
+this one transform, irrespective of Link kind. The inverse uses `Rᵀ` and `−Rᵀt`.
+
+The transform preserves metric length, world up and gravity. Transform world-expressed orientation
+and angular quantities by the same basis change; body-local components, wheel speeds and control
+scalars retain their values. Derived caches are rebuilt or transformed from their documented basis.
+This is coordinate re-expression, not a physical impulse. The [commit transaction](content-and-gameplay.md#occurrences-and-frame-commit)
+owns which state changes atomically and when. Horizontal seam geometry is a separate authoring condition.
+
+Core continues to expose finite open readers, the existing Raster/Guide geometry, `Y(s,l)=Y(s)` and
+chainage-based pseudo-projection. Runtime supplies a derived continuous local view across Links.
+Renderer and integration consume that view through ordinary reader contracts. The source Section's
+address and a view address have one explicit mapping; neither is awarded race progress.
+
+### Source and completed images
+
+| Representation                  | Colour and alpha                                                             |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| Normalized sprite/ground source | RGB555; at most 15 distinct opaque colours; transparent index 0.             |
+| Completed sprite LOD            | Existing indexed-image/anchor contract, unchanged.                           |
+| Completed ground at every level | Fixed RGB555 colour values, stored as two-byte texels in the initial design. |
+
+RGB555 value zero is opaque black; transparency belongs to the index, not the colour code. A fully
+opaque ground swatch still has at most 15 colours. Source density is 40 texels/m in both authoring
+axes. Reuse the existing PNG adapter, metric/crop/anchor normalization, explicit palette and coverage
+recipes, source admission and RGB555 codec. Ground compilation consumes normalized masters rather
+than sprite LODs. The driving runtime receives completed images.
+
+The composed ground strip has opaque coverage. Source transparency reveals a lower layer. GroundBase
+retains its independent left/right colour-or-transparent fill outside the strip. Visible unsupported
+terrain and transparent outside fill do not alter the physical support map.
+
+### Source lattice and tile dictionary
+
+A source tile covers 64 × 64 source cells, or 1.6 m × 1.6 m in the Section chart. Source origin, phase
+and metric extents are explicit. Partial edge cells are clipped; storage never stretches the course.
+
+The following anisotropic output lattice is a **candidate**, pending the image/footprint acceptance
+in [development](development.md#image-and-geometry-acceptance):
+
+| Level  | Storage for one near-tile footprint | Density: lateral × chainage, texels/m                        |
+| ------ | ----------------------------------- | ------------------------------------------------------------ |
+| Source | 64 × 64                             | 40 × 40                                                      |
+| L0     | 64 × 16 RGB555                      | 40 × 10                                                      |
+| L1     | 32 × 4 RGB555                       | 20 × 2.5                                                     |
+| L2     | 16 × 1 RGB555                       | 10 × 0.625                                                   |
+| L3+    | Coarse Section RGB555 images        | Lateral density halves; chainage density quarters per level. |
+
+One near-tile record contains all its completed L0–L2 pixels. Exact equality of the complete record
+permits deduplication across the course. Equal L0 with unequal lower levels remains two records.
+Coarse levels use the composed Section field across tile/material boundaries. They share the same
+final-colour read contract as near tiles. Compile enough levels for the declared footprint envelope.
+
+Map rows reference tile records and retain explicit lateral ranges on the source lattice. Source
+variants, orientation and phase are resolved during compilation; map entries carry tile references
+rather than palette IDs or flip controls. Exact packing and integer limits are to be validated with
+the format reader; an illustrative four-byte reference is not a frozen bit layout.
+
+### Ground LOD and filter
+
+The two-axis geometric-mean selector is a **candidate**. For nonnegative actual lateral footprint
+`deltaL` and complete effective chainage footprint `deltaS`, start each axis at L0 and advance while:
+
+```text
+lateral:   deltaL >= sqrt(2) * qL0 * 2^k
+chainage:  deltaS >= 2       * qS0 * 4^k
+selected level = max(lateral level, chainage level), within the available range
+```
+
+Here `qL0` and `qS0` are the metre-per-texel spacings derived from the candidate lattice above.
+Equality selects the coarser level, matching the existing sprite boundary convention. Use the same
+computed thresholds in implementation and boundary tests. Collapsed rows contribute their entire
+source footprint. A chainage-driven coarse level may produce large lateral texels; ordinary-row
+pixel-size estimates are conditional, not an all-terrain guarantee.
+
+Generate every level directly from the composed source by deterministic area integration with an
+explicit colour-space recipe, then quantize through the common RGB555 codec. Storage boundaries
+read the required neighbouring source footprint. Link/loop overlap supplies boundary context; true
+finite source edges use the declared clipped footprint. A storage tile is not a filter boundary.
+Sprite and ground reuse colour/area primitives but retain different output quantization and lattices.
+
+Runtime uses nearest completed-texel sampling. Palette interpolation, crossfades and progressive
+requantization of already filtered levels are outside this pipeline. The filter recipe and selector
+are frozen only after real-art comparisons; synthetic level colours establish addressing, not quality.
+
+### Ground composition and stamp placement
+
+The saved composition order is:
+
+1. Material fills, static A/B patterns and seeded repair scatter from authored boundary geometry.
+2. Boundary treatments and dimensioned paint/markings.
+3. Ordered stamps, with later opaque source pixels covering earlier pixels.
+
+Recipes retain phase origins, seeds, width and ordering. Geometry regenerates procedural content;
+independent stamps remain saved placements. Boundary treatment is offline rasterization along an
+authored curve. Runtime receives one final colour field, not layers or deformed ground sprites.
+
+A stamp's resolved top-left edge is quantized independently in each source axis by
+`gridIndex = floor(40 * coordinateMeters + 0.5)`, with half-cell ties towards the positive axis.
+The displayed/compiled edge is `gridIndex/40` metres. Show this resolved location in the editor.
+The saved anchor retains its meaning after geometry edits. This image-placement rule does not round
+road geometry, vehicle coordinates, physical boundaries or rule landmarks. Bitmap shape supplies
+orientation and extent; ground placement adds no runtime rotation, scaling, skew or stretch.
+
+### Static A/B recipe
+
+A normalized indexed base image A and one saved colour-mapping recipe are the only A/B authoring
+inputs. The recipe maps each of A's opaque slots to an explicit RGB555 value; transparency and the
+index-pattern geometry remain unchanged. The derived B image is reproducible output. Repeated target
+colours can be compacted when exporting B through the shared image validator. B is not another edited
+source. Shape-changing patch variants remain ordinary separate source images, not A/B colour variants.
+
+Pattern phase chooses static A/B colour during composition. Mixed-material or inside-tile stripe
+boundaries resolve to completed colours before filtering. Ground runtime needs neither palette banks
+nor animation, nor a 15-colour restriction on completed mixed tiles. The source-image restriction
+remains unchanged. Saved recipes and bytes, not AI regeneration, establish reproducibility.
+
+### Bounded compilation and resident data
+
+Flattening defines one logical source field. The compiler evaluates bounded tiles/strips and all
+required filter support, rather than allocating a whole-Section source bitmap. Final-colour output
+is independent of batch size and traversal order. Working pixel buffers are bounded; dictionary and
+directory metadata, temporary storage and final output have separately measured growth.
+
+The completed manifest binds format/compiler/input identity, domains, grids, tile records, coarse
+images and byte lengths/digests. Validate content identity and payloads before exposing immutable
+readers. Count shared records once; exact equality, not digest equality alone, establishes compiler
+deduplication. Source geometry and SurfaceMap remain independent of image storage.
+
+A ready course has all ground assets, including all branches and one lap source, resident. Sampling
+is synchronous and performs no acquisition or prefiltering. Row/span setup resolves addresses before
+the inner pixel loop. The [loading transaction](content-and-gameplay.md#course-loading) owns activation,
+retry and replacement; [development](development.md#capacity-model) owns accounting and measurements.
+
+### Remaining technical gates
+
+The output lattice/selector, real-art colour-space/coverage recipes and exact packed format remain
+candidates. Existing camera/source conventions are retained; device budgets are established by measured
+whole-application acceptance. A candidate may be revised explicitly in this owner and its tests.
+Vehicle lamp states remain outside this work: a later design may select immutable SINGLE-sprite
+variants from read-only state without introducing shared mutable palettes or a scheduler.

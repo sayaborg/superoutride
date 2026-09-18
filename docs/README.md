@@ -1,9 +1,17 @@
-# Current implementation
+# Specifications and current implementation
 
-This directory describes the current system. It is not a chronological milestone archive.
+This is the sole specification index. Product defines the intended game; topic documents own
+current contracts and explicitly labelled Course Editor target chapters. Existing behaviour and
+unimplemented targets are separate scopes. Technical candidates stay unfrozen until their named
+gates pass. An unmarked paragraph is not evidence of separate historical approval. Adoption of a
+revision, executable implementation, validation and deployment have distinct evidence.
+
+This directory contains current contracts, their active target revision and one next-work checkpoint,
+not a chronological archive.
 
 | Document                                        | Authority                                                                              |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [Product target](product.md)                    | Shipped-content target, play, visible behaviour and authoring scope                    |
 | [Development contract](../AGENTS.md)            | Development priorities, design questions and branch/release gates                      |
 | [architecture](architecture.md)                 | Frozen coordinates, raster rendering, metric scale, open geometry and layer boundaries |
 | [vehicle physics](vehicle-physics.md)           | Frozen common mechanics, steering and torque constraints; parameters remain tunable    |
@@ -20,8 +28,16 @@ The [tire sound evidence note](tire-squeal-research.md) supports mechanism discu
 [NEXT](NEXT.md#deferred-tuning) owns the restart and deferred decisions.
 Do not duplicate those responsibilities in another proposal or handoff file.
 
-This is the sole specification index. On restart, read the development contract, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.
+On restart, read the development contract, product, architecture and NEXT, then the topic relevant to the task. Types, compilers and causal regressions enforce the implementation.
 
 If code and prose disagree, or two documents make conflicting claims, use this ownership table to identify the responsible contract. Resolve the conflict explicitly in that contract and its executable coverage, and remove the duplicate claim from other documents. A newer date or repeated wording does not establish authority; technical invariants are not independently redefined by the development contract or restart checkpoint.
 
 Previous specifications, experiments, audit reports and release records remain in Git and GitHub Actions. Keep only current contracts and the [restart checkpoint](NEXT.md) here.
+
+## Active target navigation
+
+[Course/gameplay target](content-and-gameplay.md#course-editor-target),
+[frame/image target](architecture.md#course-editor-target) and
+[acceptance target](development.md#course-editor-target-validation) belong to those topic owners.
+[NEXT](NEXT.md) alone owns work order. Retire superseded current descriptions at the validated cutover,
+while preserving still-valid mechanics, image, gate and delivery contracts and their causal tests.

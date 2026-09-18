@@ -1,5 +1,7 @@
 # Content and gameplay
 
+Current implementation is described below. The [Course Editor target](#course-editor-target) is a separately scoped future contract. Activate each change only with its executable coverage; this document does not report that the target is already implemented.
+
 ## Composition and data ownership
 
 [Boot](../src/boot.ts) selects one course query using the [course selector](../src/browser/course-mode-selection.ts). The catalog owns query-to-root membership; its typed content dispatcher requires the builders for that route kind. All roots use that dispatcher, and only the composition roots assemble concrete DEV content:
@@ -73,40 +75,11 @@ The [tunnel content](../src/dev/courses/tunnel.ts) owns portal/rib assets, place
 
 ## Accepted authoring workflow: pending implementation
 
-Sprite Tool imports external images and normalizes them to metric source assets; it is not a new
-full drawing application. Course Editor owns course geometry, ground appearance, surface physics,
-placements and topology through their separate existing owners. Ground editing belongs in that
-editor rather than an independent whole-course bitmap painter.
-
-Editing projects, normalized source assets and compiled product assets are distinct. Source images
-and course authoring are authoritative; sprite LOD and completed GroundMap data are compiler output.
-The [completed sprite LOD interchange](architecture.md#sprite-lod-metric-and-read-contract) has a
-validated runtime reader. Packed product encoding, asset identity/version rules and editor project
-schema remain undecided beyond the narrow local Sprite Tool session below. Current source art remains single-level; importing completed LODs into the
-diagnostic preview does not generate them or convert the shipped scenery/vehicle sets.
-
-Ground Decals represent arrows, text, symbols and surface details. Their authoring density is
-40 texels/m in each axis. Placement supplies position in (s,l), without rotation, scale, skew or
-stretch; the bitmap already contains the required shape. Compile decals into GroundMap, never into
-runtime world-sprite instances. Fractional placement still requires defined resampling. Ground paint
-does not infer or modify SurfaceMap support/friction.
-
-An [offline authored-palette recipe](architecture.md#offline-sprite-lod-authoring-recipe) now allows
-explicit color-space and coverage comparisons from normalized masters. It does not choose the final
-production-art filter. [PNG source normalization](architecture.md#external-sprite-source-normalization)
-now precedes it with explicit crop, metric width, source anchor and authored palette. The file workflow
-preserves source, normalized master and compiled LOD as separate artifacts. The
-[Sprite Tool session](architecture.md#sprite-tool-authoring-session) adds rectangular masking with
-undo/redo, an explicit deterministic candidate palette, editable settings, session save/reopen and
-master/LOD exports. Its preview uses the product blitter. Real-art filter/coverage acceptance and
-final palette/variant-sharing policies remain open. Ground Material's proposed 16 opaque colors, Decal's
-proposed 15+1 limit and the proposed semantic layer order are not yet final contracts. Material
-phase, same-layer overlap order and stage/circuit seams also need explicit decisions.
-
-The first tool slice is image import -> metric/mask/color normalization -> deterministic export ->
-course placement -> offline bake -> preview through product rendering. Establish output contracts
-and pure image/compiler primitives before extending the GUI. Do not introduce a second renderer,
-turtle, physical coordinate system or arbitrary visual scale for preview convenience.
+The [Course Editor target](#course-editor-target) owns the revised future course, session, saved
+project and loading contracts. Current Sprite Tool source normalization, mask/palette editing,
+session save/reopen and master/LOD exports remain implemented as documented in architecture and
+development. Its existing local session is distinct from the proposed CourseDocument.
+The lifecycle below remains the current GroundMap integration until its replacement is validated.
 
 Three-dimensional source capture is a separate experiment until accepted: compare fixed orthographic
 and explicitly defined perspective cameras, lateral displacement versus body yaw, distance and bank.
@@ -157,3 +130,260 @@ Tsukuba window-to-lap mapping reuses one directory and shared payloads across it
 laps. The product-root regressions also run all four actual entry modules with simulated DOM, canvas
 and transport boundaries through initial failure, retry, drawing, ticks and page exit. These are
 causal integration checks; real browser/device timing and input acceptance remain separate.
+
+## Course Editor target
+
+This target chapter owns course, authoring and gameplay transactions for Course Editor development. Current stage frames, finite circuit unfolding and ground-loading
+integration remain the implemented paths until their replacements pass the gates in [NEXT](NEXT.md).
+Frame mathematics and image representation belong to [architecture](architecture.md).
+
+### Sections, ports and topology
+
+A Section owns source geometry, height, cross-section, appearance/physical bindings, environment
+profiles and placements in one chart. Its interior has no graph transition; its terminal fork may
+contain two or three carriageways. Ports lie within authored support/visibility guard domains, so a
+logical boundary is not necessarily the end of an open reader. Checkpoints and environment changes
+are independent landmarks/profiles, rather than reasons to split a Section.
+
+Links connect ports with a transform and matching overlap. Compile finite chains, finite fork/merge
+DAGs, or a closed-lap Section and loop. A merge references the successor source once. The compiler
+checks all possible exits, explicit lap closure, supported starts/goals and legal checkpoint ordering.
+Original game stages identify checkpoint intervals and may also label environmental changes.
+
+### Occurrences and frame commit
+
+Keep source Section identity, traversal occurrence and active coordinate frame distinct. Occurrence
+history identifies the actual incoming Link and lap context; projected local chainage does not award
+progress. Retain the history/coverage required by admitted reverse travel and recovery, including
+through a merge. A reverse traversal uses the inverse of the actual visited Link.
+
+A valid forward oriented seam crossing commits the next occurrence/frame. Prior field route locking
+selects the legal successor but leaves the old frame authoritative until that actor's seam. The commit
+re-expresses frame-dependent pose, velocities, world angular quantities, previous observations,
+contact/projection caches and camera-follow state coherently using the architecture transform.
+Body-local scalars and accepted game progress remain unchanged. Derived observations are recomputed
+from their owners; the basis change itself produces no physical crossing or additional motion.
+
+Recovery is a separate, reported gameplay discontinuity with known supported target coordinates.
+Recovery and vehicle replacement reset observation baselines while preserving accepted gates, route
+locks and lap progress. A crossing in reverse neither erases nor re-awards those events.
+
+### Continuous local view
+
+Runtime composition resolves the visited predecessor and the legal successor neighbourhood into
+bounded ordinary readers for rendering, camera, wheel contact, nearby actors and driver lookahead.
+Its derived chainage remains continuous across Links, even where source addresses reset. A point 5 m
+into the next lap is 15 m ahead of a camera 10 m before the old lap end. One lap's source data is reused.
+
+Each consumer declares the backward/forward extent it needs, including its permitted movement within
+a fixed step. View construction covers that union. Source boundaries and vehicle-centre crossings do
+not truncate front-wheel contact or the camera's required scene. Lower engine layers read the view;
+course graph selection stays in composition/gameplay.
+
+Compatible neighbouring occurrences share a local interaction frame. Rendering and physical contact
+use transformed geometry; race order uses validated progress. Unrelated geographical overlaps do not
+create vehicle interactions. Shared scenery/actors retain stable instance identity across the view.
+
+### Seam and overlap
+
+Seams lie in horizontal straights with matching cross-sections. Validate height and physical
+differentials, road/shoulder/support boundaries, material answers, texture phase, markings, fill,
+scenery identity and background/yaw alignment throughout the required common region. The upright
+frame-transform restriction and this horizontal-geometry restriction are distinct requirements.
+
+Contact overlap and visible/observation coverage have separate extents derived from the admitted
+vehicles, camera and recovery policies. A fixed straight length is not a certificate. At the same
+physical pose, both sides of a rebind must produce matching contact answers and continuous presentation.
+Overlap contains only common content whose answers and presentation match on both sides of the
+Link. Parent-specific content remains owned by its parent and satisfies the exit-visibility rule
+below. A shared successor has the same source data for every incoming Link.
+
+### Fork lock and handoff
+
+Each fork is static parent content: split, supported parallel carriageways/medians, lock line,
+closure point and exit seams. The ordered positions satisfy `lock < closure < exit seam` for every
+candidate exit. Rival count does not select a different rule: the eligible field is the player plus
+its zero-to-sixteen rivals. Traffic is outside that set.
+
+Partition the supported lock-line cross-section at median centre lines. Each interval names one
+carriageway; a shared boundary belongs to the left interval. A crossing outside supported coverage
+is not a choice. Compile this partition from the cross-section, rather than guessing a road from
+steering intent or nearest centre at runtime.
+
+Observe eligible forward physical crossings before shared mutation. Order same-tick candidates by
+intersection fraction `u`, then stable actor ID for an exact tie. The winner creates one immutable
+lock for that fork occurrence. This chooses the field's legal branch, not a checkpoint award or an
+actor's frame commit. Retarget rival intent immediately; each actor later crosses its own legal seam.
+
+Warnings and closure barriers are ordinary state-selected presentation/interaction content. Losing
+roads remain authored static geometry, peeling away within the parent chart; selecting a route does
+not reshape or repaint the GroundMap. An actor unable to transfer uses explicit legal-route recovery
+as a last resort, preserving earned progress. Barrier collision/response must be specified before
+closed-road gameplay is accepted; a warning graphic alone is not a physical barrier.
+
+#### Pre-lock coverage
+
+Before route locking, all required forward queries are answerable from parent/common content. For
+all admitted pre-lock poses and fixed-step advances, let `requiredEnd` be the farthest query in the
+parent-derived view, and `commonEnd` the end of content valid for every exit. Require:
+
+```text
+requiredEnd <= commonEnd <= earliest exit seam
+```
+
+`requiredEnd` includes camera/render demand, contact and driver lookahead, not just display distance.
+Consumers' declared extents make this an interval-coverage check, not a request to prove arbitrary
+branch rendering. After locking, the selected Link extends the view. A failed coverage check reports
+the consumer, pose/envelope and missing extent; content must provide the required common approach.
+
+#### Exit presentation and lateral transfer
+
+Parent-specific content, including departing roads and fork scenery, must leave the admitted visible
+view before the exit seam. For each exit the compiler checks, in that exit's parent approach chainage:
+
+```text
+parentSpecificVisibleEnd <= exit seam
+```
+
+`parentSpecificVisibleEnd` is the exclusive end of the approach positions from which any parent-specific
+content can contribute to the view, evaluated over the admitted camera/vehicle envelope. At the seam
+itself none remains visible; a feature's own chainage or a strip-edge crossing is not this bound.
+
+Authored static geometry, wider approach ground and ordinary foreground scenery or hills provide
+the departure/occlusion. Qualification checks the actual product presentation, including camera offset
+and admitted yaw/height, rather than assuming an occluder works from every pose. Overlap retains only
+the matching common content; the successor stores no parent-dependent road tails or scenery variants.
+The same test applies to every incoming Link of a merge. Inverse traversal uses the actual predecessor
+history under the same visibility envelope; it does not install parent-specific data in the successor.
+
+Independently derive the lock-to-closure distance from the admitted vehicle, speed, initial-state
+and material envelope. Cover the largest transfer, including outer-to-outer movement at a three-way
+fork. The ideal bound for zero initial/final lateral speed is `t = 2*sqrt(D/a)` and `distance = v*t`.
+At D=30 m, a=5 m/s² and v=70 m/s this is about 343 m; D=60 m gives about 485 m. These are conditional
+lower bounds, not universal lengths or a visibility proof.
+
+Qualification also covers steering/response time, bike attitude, combined tire demand, yaw/slip,
+vehicle width and actual median transitions. Deterministic product-physics scenarios document the
+admitted envelope and margins. Geometry may pass coverage while failing transfer, or the reverse.
+Record any required departure from the remastered reference.
+
+### Gates, grade separation and interaction
+
+Known occurrence, local neighbourhood and relevant height select candidate gates/surfaces. An actual
+oriented physical crossing is still required. Grid-release, reverse, recovery, frame rebinds and raw
+chainage changes do not manufacture checkpoints or laps. Overpass topology and vertical separation
+also disambiguate vehicle contacts. Tunnel/background presentation is ordinary authored content.
+
+Actual road, shoulder and support bands must pass local-inversion, nonadjacent-overlap and Guide-domain
+checks. Centreline checks alone are insufficient. Explicit overpasses and intended lap copies are
+classified separately from accidental intersection. Existing mechanics remain shared by player/rivals;
+traffic and barrier contacts use a separately specified gameplay interaction boundary.
+
+### Resolved Session
+
+One resolver maps the selected preset and player settings to immutable execution data. It identifies
+course/vehicle/calibration inputs, roster, traffic/driver policy, deterministic seed, start/finish
+policy, finite lap target, checkpoint table and record eligibility. Course topology is not a substitute
+for rules. Unsupported combinations fail before activation. Roots compose the resulting data rather
+than exporting mode-name switches to renderer or vehicle integration.
+
+Course rules own checkpoint landmarks, order, grid/finish and permitted lap configurations. `classic`
+references those rules and supplies its vehicle/roster/traffic/margin defaults. Start timing, completion,
+record eligibility and results are gameplay responsibilities. Detailed record categories, penalties,
+continue and traffic/collision policies remain product decisions in [product](product.md#6-remaining-product-decisions).
+
+### Reference times and clock
+
+Run each admitted route and start/lap configuration continuously at the product fixed step, with no
+rivals or traffic. Record accepted crossing times including within-step fractions. Each interval is
+a difference between consecutive crossings, not a separately restarted trial. Start/later-lap states
+remain distinguishable. Crashed, recovered, incomplete or unqualified trials cannot certify budgets.
+
+Reference identity covers simulation-relevant course, vehicle, calibration, assist, driver, step,
+start-state and seed inputs. Input changes invalidate the reference. Retain accepted output and
+identity; a deterministic run alone is not evidence of comparable near-limit skill.
+
+For each time-budget state, take the maximum upcoming-interval duration among admitted continuous
+histories sharing that state and its legal next checkpoint/finish alternatives. Keep arrival classes
+separate when required by start/lap conditions. This conservative rule may make shorter alternatives
+easier; this is an intentional difficulty consequence. Enumerate the admitted finite route/lap configurations;
+steering intention is not a budget input.
+
+```text
+budgetMs(state) = ceil(1000 * positiveFiniteMargin(course) * referenceSeconds(state))
+```
+
+The start state supplies initial time. Each newly accepted non-finish checkpoint adds its upcoming
+budget, retaining unused time without a cap. FINISH adds none. Each checkpoint occurrence grants at
+most once. Preserve event-time precision for ordering; only awarded budget quantities round to integer
+milliseconds. Process gates/expiry chronologically; a valid checkpoint/finish wins an exact expiry tie.
+An earlier expiry ends the run. Explicit pause/loading consumes no simulation time or catch-up time.
+
+Reference-driver acceptance separates reproducible completion, comparable capability use and actual
+difficulty. Rival difficulty changes a defined input/planning policy rather than scaling physical
+forces. Timed combinations remain uncertified until their reference driver and content pass acceptance.
+
+### Authoring documents and assets
+
+| Artifact       | Authority                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| CourseDocument | Identity/references, geometry/profiles, Links, anchors, composition, rules and presets.     |
+| Source assets  | Accepted image bytes or edited normalized masters, recipes, stable identity and provenance. |
+| CompiledCourse | Immutable derived data/readers/images and a validated manifest.                             |
+| Editor state   | Selection, panels, view positions and transient undo history.                               |
+
+The schema has explicit format/version, stable Section/primitive/Link/landmark/placement IDs and
+immutable asset references. Names are display values. Save units, seeds, phases, ordered stamps and
+inputs needed by the compiler. Derived geometry, baked pixels and resolved sessions are outputs,
+not parallel editable authorities. The Sprite Tool session remains its existing image-editing format.
+
+One public course compiler composes existing small geometry, surface, image, rule and topology
+compilers. Authoring schema/reader validation is established before the GUI relies on it. Exact
+wire fields, resource limits and packed output are pending executable format review, not an invented
+migration/plugin framework. Revision numbering of this document does not imply a runtime schema version.
+
+Appearance and physical bindings can reference shared boundary geometry while owning separate values
+and change points. Editor conveniences may initialize both; GroundMap and SurfaceMap compile independently.
+Paint/repairs remain visual unless a physical region is explicitly authored. Validation distinguishes
+unintended mismatches from intentional visible unsupported or transparent supported terrain. Source
+colour slots never encode physics. New physical material names require defined mechanics.
+
+### Anchors and saved composition
+
+Placements/landmarks save either absolute Section chainage or a primitive ID plus fraction along that
+primitive. Absolute values stay absolute; fractional anchors follow the same identified primitive.
+Resolve through the existing geometry into `(s,l)`. Missing/deleted anchors are reported as errors.
+Only ground-image placement receives the lattice rounding defined by [architecture](architecture.md#ground-composition-and-stamp-placement).
+
+Saved layers, source phase, deterministic repair scatter and ordered stamps are authoring input.
+Their exact pixel order and A/B derivation belong to architecture. Pattern rows compile to ordinary
+placements with stable identities, including through shared overlaps. Source variants must match
+repeat borders after normalization. `repairDensity` is visual and leaves mechanics/audio unchanged.
+
+### Save, invalidation and preview
+
+Drafts can be saved before semantic compilation succeeds. Parse/version/identity checks remain
+separate from course validity diagnostics. Malformed imports preserve the current project; successful
+save/reopen reproduces inputs and identical products under the same compiler/recipe versions.
+Canonical ordering/digests depend on stored inputs and seeds, not filesystem order or wall-clock time.
+Explicit future migrations preserve the prior source. Accepted bytes, rather than prompts, define replay.
+
+Edits invalidate dependent outputs. Preview identifies its source/build revision, and stale products
+are not exported or played as the edited course. Failed builds preserve source and prior valid products;
+publish a complete successful build atomically. Reimport does not overwrite an edited master implicitly.
+
+A 2D plan is an authoring view. Driving preview compiles before starting and uses the same product
+readers, projection, renderer and vehicle integration. Browser and Node adapters call shared pure
+functions. Source generation may remain external; opening an image does not require network upload.
+
+### Course loading
+
+Before enabling ticks, load and validate the complete compiled ground set for all reachable Sections,
+counting shared sources/records once and reusing one circuit lap. Physics/topology use their own data.
+Course replacement suspends ticking/input/audio, preserves a coherent state or loading display, and
+provides retry/exit for failure. Stale arrivals cannot install into the new selection. Resume with a
+fresh clock and cleared input ownership, without accumulated catch-up.
+
+Required ground-capacity failure is explicit before a run; it does not select streaming, repainting
+or lower-resolution art during play. Keep content identity and failure handling when retiring the
+current page/prefetch implementation. Whole-course and switch-peak acceptance is defined in development.

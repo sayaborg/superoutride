@@ -2,61 +2,59 @@
 
 ## Restart
 
-Read [AGENTS](../AGENTS.md), the [index](README.md), [architecture](architecture.md) and
-[content and gameplay](content-and-gameplay.md). Inspect exact main, active PRs, CI and Pages
+Read [AGENTS](../AGENTS.md), the [index](README.md), [product](product.md),
+[architecture](architecture.md) and [content and gameplay](content-and-gameplay.md). Inspect exact main, active PRs, CI and Pages
 before changing source. Preserve unrelated work and use a `codex/` branch. Current repository
 evidence is the continuation authority; no prior chat attachment or generated audio file is needed.
 [Development](development.md) owns commands and evidence scopes.
 
-## Next work: authoring foundations
+## Next work: Course Editor
 
-The accepted direction is Sprite Tool and Course Editor, with precompiled GroundMap and octave
-sprite LOD. [Architecture](architecture.md#accepted-authoring-target) and
-[content](content-and-gameplay.md#accepted-authoring-workflow-pending-implementation) own the target
-contracts and distinguish them from deployed implementation. Cleanup preserves existing road
-shoulder dimensions, boundary priorities, mechanics and acoustic waveforms. The baked ground pixel
-revision is specified separately in architecture. The shared sprite blitter supports completed LODs;
-current game art remains single-level.
+The [product target](product.md), [course contract](content-and-gameplay.md#course-editor-target),
+[image/frame contract](architecture.md#course-editor-target) and
+[validation](development.md#course-editor-target-validation) define the adopted Course Editor target. This is planned work,
+not an implementation or release report. Current implementations remain authoritative until each
+replacement is validated.
 
-1. GroundMap B2 product integration is implemented: all four course modes load the fourteen complete
-   baked sources through one bounded page store and synchronous reader. Product builds validate gzip
-   delivery, independent source colors and explicit baked frame fixtures. Loading pauses ticks, input
-   and audio; retry/course exit, adjacent-chunk prefetch and circuit lap sharing are wired into the roots.
-   CI also verifies the selected SHA's public assets after deployment. Inspect current CI for actual
-   release status; source documentation is not evidence that a deployment succeeded.
-2. Complete target-browser/device acceptance under the [migration gates](development.md#groundmap-migration-gates):
-   measure initial load, both branch directions, later forks, lap seams, reverse/recovery and course
-   switching, including simultaneous old/new pins, decoded memory and frame time. Current application
-   admission limits are in [architecture](architecture.md#groundmap-compilation-and-residency), not
-   approved smartphone budgets. Host/Node evidence does not close this remaining acceptance work.
-3. Sprite LOD metric/read integration is implemented with synthetic fixtures and a
-   [shared-blitter preview](development.md#sprite-lod-preview). Use the explicit untrimmed lattice,
-   master anchor and transition contract for completed assets. Product art conversion still needs
-   the image-generation decisions below and explicit changed-art pixel fixtures; the fixed oracle
-   remains unchanged. Do not mistake the diagnostic level colors for prefilter quality evidence.
-4. The first [offline sprite image core](development.md#sprite-lod-file-compiler) now generates
-   octave images directly from a normalized master using explicit color-space/coverage recipes and
-   an authored palette. Compare its build-generated checker samples in the preview. Choose real-art
-   filter/coverage and palette-reduction policies before product art conversion. The
-   [PNG source compiler](development.md#sprite-png-source-compiler) now supplies crop, metric
-   normalization, source-anchor mapping, alpha coverage and authored-palette assignment. Its separate
-   source/master/LOD workflow now has a first [Sprite Tool](development.md#sprite-tool): rectangular
-   masking with undo/redo, candidate palette generation, metric/anchor controls, explicit filters,
-   session save/reopen and master/LOD exports. Browser and Node share the pinned PNG decoder; preview
-   uses the product blitter. Next, evaluate actual source art through this slice before settling
-   filter/coverage or palette policy and extending pixel retouch/variant authoring.
-   Ground composition ordering, image Material/Decal composition and Course Editor remain separate.
+### Restart and current boundary
 
-Ground and sprite cutovers are separate rendering revisions. Preserve the immutable mechanics
-reference; revise affected pixel expectations explicitly with independent causal coverage. No
-source-camera projection, yaw/bank count, Material palette rule or layer proposal is implicitly frozen.
-3D capture experiments may precede production integration without adding unaccepted runtime variants.
+Inspect exact main, active PRs, CI and Pages, then follow AGENTS and the documentation index. Work on
+a `codex/` branch. Current ground uses paged compiled assets; circuit geometry uses finite unfolding;
+the first Sprite Tool exists. Resident tiles, per-Section Link frames and Course Editor remain target
+work. The audited target is integrated by owner. Review candidate gates before treating any proposed parameter or file format as final.
 
-The shared road cross-section owns dimensions; visual ground extent and physical support extent
-remain independent. Parent/child coordinate transforms and physical gate -> PENDING -> seam -> COMMIT
-remain unchanged. Source geometry is available to route intent independently of GroundMap storage.
-Use the existing [browser diagnostics](development.md#validation-contracts) for device evidence;
-full-suite duration and host probe timings are not target frame budgets.
+### First implementation slice
+
+Begin Gate 1 with a minimal saved CourseDocument and asset-reference boundary: explicit IDs/version/units,
+parse and semantic diagnostics, draft save/reopen, and deterministic compilation of a small linear input
+through the existing primitives. Confirm round-trip, invalid references, failed-import preservation and
+output invalidation before GUI work. Exact fields and resource limits are chosen in that executable
+contract review. This slice neither activates new Link/ground runtime paths nor resumes deferred tuning.
+The open product choices remain recorded in Product and do not block this independent file/compiler slice.
+
+### Next milestones
+
+| Gate | Work                                                                                    | Completion evidence                                                                                                                                            |
+| ---- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Finalize minimal document/image identities and validators over existing pure compilers. | Versioned file round-trip and pure compiler tests; one authority per requirement.                                                                              |
+| 2    | Establish ordinary local views and legal Link transactions over small causal courses.   | Linear, three-way fork, merge, loop and overpass tests, including pre-lock ranges, parent-specific visibility at every exit and shared-successor independence. |
+| 3    | Compile static source layers, A/B recipes and resident RGB555 tiles.                    | Bounded-bake equivalence, source/LOD acceptance, mixed-tile/seam coverage and whole-course capacity reports.                                                   |
+| 4    | Compose a common resolved-session lifecycle and replace existing implementation paths.  | Real-root integration; loading/retry safety; retained mechanics, gate and recovery coverage.                                                                   |
+| 5    | Add editor GUI over the proven file/compiler contracts; convert art and course inputs.  | Product-path preview, edit invalidation, reproducible save/export and retained fixture coverage.                                                               |
+| 6    | Qualify interactions, reference AI, timed presets and target devices for product play.  | The separate gameplay, difficulty, quality and full-load acceptance in development.                                                                            |
+
+Candidate lattice, filters, schema, envelopes and budgets are finalized at their relevant gates.
+The [validation chapter](development.md) owns test detail; this checkpoint owns work order. Each gate
+requires the repository's complete milestone validation and exact-head release process when released.
+
+### Replacement discipline
+
+Retire materialized lap windows only after their continuous-read replacement preserves causal coverage.
+Retire driving-time ground streaming only after full-course activation and failure handling are proven.
+Current development courses remain executable fixtures; shipped entries retire after replacement content.
+Separate changed-art expectations from mechanics equivalence. Common entry points may compose multiple
+small modules with distinct responsibilities. Source changes follow accepted contract revisions, not a
+predeclared deletion quota. Tire/audio tuning and speculative lamp/rolling-start work stay deferred.
 
 ## Deferred tuning
 
