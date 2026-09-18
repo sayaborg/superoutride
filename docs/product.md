@@ -13,38 +13,38 @@ Thirty master courses: remasters of the selected game courses, and real circuits
 layout unless noted. The following identities and reference notes are production selections,
 not newly verified historical claims.
 
-| ID  | Type    | Course                                      | Source / reference year      | Notes                                         |
-| --- | ------- | ------------------------------------------- | ---------------------------- | --------------------------------------------- |
-| L01 | LINEAR  | Enduro Racer                                | _Enduro Racer_ (1986, SEGA)  | 5 consecutive stages                          |
-| L02 | LINEAR  | Super Hang-On — Africa / Mini Ride-On       | _Super Hang-On_ (1987, SEGA) | 6 stages                                      |
-| L03 | LINEAR  | Super Hang-On — Africa / Sit-Down           | _Super Hang-On_ (1987, SEGA) | Alternate layout                              |
-| L04 | LINEAR  | Super Hang-On — Asia                        | _Super Hang-On_ (1987, SEGA) | 10 stages; subsumes _Hang-On_ (1985)          |
-| L05 | LINEAR  | Super Hang-On — America / Mini Ride-On      | _Super Hang-On_ (1987, SEGA) | 14 stages                                     |
-| L06 | LINEAR  | Super Hang-On — America / Sit-Down          | _Super Hang-On_ (1987, SEGA) | Alternate layout                              |
-| L07 | LINEAR  | Super Hang-On — Europe / Mini Ride-On       | _Super Hang-On_ (1987, SEGA) | 18 stages                                     |
-| L08 | LINEAR  | Super Hang-On — Europe / Sit-Down           | _Super Hang-On_ (1987, SEGA) | Alternate layout                              |
-| L09 | LINEAR  | Turbo OutRun — New York → Los Angeles       | _Turbo OutRun_ (1989, SEGA)  | 16-stage crossing of the USA                  |
-| L10 | LINEAR  | Chase H.Q.                                  | _Chase H.Q._ (1988, Taito)   | Original 5 stages                             |
-| L11 | LINEAR  | Cisco Heat                                  | _Cisco Heat_ (1990, Jaleco)  | San Francisco, 5 urban stages                 |
-| B01 | BRANCH  | OutRun — Original Branch Course             | _OutRun_ (1986, SEGA)        | 15 stage nodes / 16 routes / 5 goals          |
-| B02 | BRANCH  | OutRunners — West Course                    | _OutRunners_ (1993, SEGA)    | San Francisco side                            |
-| B03 | BRANCH  | OutRunners — East Course                    | _OutRunners_ (1993, SEGA)    | Grand Canyon side                             |
-| B04 | BRANCH  | Cool Riders — World Course                  | _Cool Riders_ (1995, SEGA)   | Left / Middle / Right, 50 stage positions     |
-| C01 | CIRCUIT | Nürburgring Nordschleife                    | Germany / 1989               | About 20.8 km                                 |
-| C02 | CIRCUIT | Spa-Francorchamps                           | Belgium / 1989               | 1983–93 layout                                |
-| C03 | CIRCUIT | Circuit de la Sarthe / Le Mans              | France / 1989                | Before the Mulsanne chicanes                  |
-| C04 | CIRCUIT | Autodromo Nazionale Monza                   | Italy / 1989                 | Contemporary GP road course                   |
-| C05 | CIRCUIT | Silverstone Grand Prix Circuit              | UK / 1989                    | 1987–90 layout                                |
-| C06 | CIRCUIT | Laguna Seca                                 | USA / 1989                   | 1988–89 layout                                |
-| C07 | CIRCUIT | Mount Panorama / Bathurst                   | Australia / 1989             | Mountain / public-road character              |
-| C08 | CIRCUIT | Interlagos / Autódromo José Carlos Pace     | Brazil / 1989                | Former 7.874 km long course                   |
-| C09 | CIRCUIT | Monte Carlo / Monaco                        | Monaco / 1989                | Street circuit                                |
-| C10 | CIRCUIT | Phillip Island Grand Prix Circuit           | Australia / 1989             | 1989 layout                                   |
-| C11 | CIRCUIT | Mugello Circuit                             | Italy / 1989                 | 1974–90 family                                |
-| C12 | CIRCUIT | TT Circuit Assen                            | Netherlands / 1989           | Contemporary long GP layout                   |
-| C13 | CIRCUIT | Road America                                | USA / 1989                   | About 6.5 km                                  |
-| C14 | CIRCUIT | Brands Hatch Grand Prix Circuit             | UK / 1989                    | 1988–98 family                                |
-| C15 | CIRCUIT | Suzuka Circuit                              | Japan / 1989                 | Figure eight; lower road drawn as a tunnel    |
+| ID  | Type    | Course                                  | Source / reference year      | Notes                                      |
+| --- | ------- | --------------------------------------- | ---------------------------- | ------------------------------------------ |
+| L01 | LINEAR  | Enduro Racer                            | _Enduro Racer_ (1986, SEGA)  | 5 consecutive stages                       |
+| L02 | LINEAR  | Super Hang-On — Africa / Mini Ride-On   | _Super Hang-On_ (1987, SEGA) | 6 stages                                   |
+| L03 | LINEAR  | Super Hang-On — Africa / Sit-Down       | _Super Hang-On_ (1987, SEGA) | Alternate layout                           |
+| L04 | LINEAR  | Super Hang-On — Asia                    | _Super Hang-On_ (1987, SEGA) | 10 stages; subsumes _Hang-On_ (1985)       |
+| L05 | LINEAR  | Super Hang-On — America / Mini Ride-On  | _Super Hang-On_ (1987, SEGA) | 14 stages                                  |
+| L06 | LINEAR  | Super Hang-On — America / Sit-Down      | _Super Hang-On_ (1987, SEGA) | Alternate layout                           |
+| L07 | LINEAR  | Super Hang-On — Europe / Mini Ride-On   | _Super Hang-On_ (1987, SEGA) | 18 stages                                  |
+| L08 | LINEAR  | Super Hang-On — Europe / Sit-Down       | _Super Hang-On_ (1987, SEGA) | Alternate layout                           |
+| L09 | LINEAR  | Turbo OutRun — New York → Los Angeles   | _Turbo OutRun_ (1989, SEGA)  | 16-stage crossing of the USA               |
+| L10 | LINEAR  | Chase H.Q.                              | _Chase H.Q._ (1988, Taito)   | Original 5 stages                          |
+| L11 | LINEAR  | Cisco Heat                              | _Cisco Heat_ (1990, Jaleco)  | San Francisco, 5 urban stages              |
+| B01 | BRANCH  | OutRun — Original Branch Course         | _OutRun_ (1986, SEGA)        | 15 stage nodes / 16 routes / 5 goals       |
+| B02 | BRANCH  | OutRunners — West Course                | _OutRunners_ (1993, SEGA)    | San Francisco side                         |
+| B03 | BRANCH  | OutRunners — East Course                | _OutRunners_ (1993, SEGA)    | Grand Canyon side                          |
+| B04 | BRANCH  | Cool Riders — World Course              | _Cool Riders_ (1995, SEGA)   | Left / Middle / Right, 50 stage positions  |
+| C01 | CIRCUIT | Nürburgring Nordschleife                | Germany / 1989               | About 20.8 km                              |
+| C02 | CIRCUIT | Spa-Francorchamps                       | Belgium / 1989               | 1983–93 layout                             |
+| C03 | CIRCUIT | Circuit de la Sarthe / Le Mans          | France / 1989                | Before the Mulsanne chicanes               |
+| C04 | CIRCUIT | Autodromo Nazionale Monza               | Italy / 1989                 | Contemporary GP road course                |
+| C05 | CIRCUIT | Silverstone Grand Prix Circuit          | UK / 1989                    | 1987–90 layout                             |
+| C06 | CIRCUIT | Laguna Seca                             | USA / 1989                   | 1988–89 layout                             |
+| C07 | CIRCUIT | Mount Panorama / Bathurst               | Australia / 1989             | Mountain / public-road character           |
+| C08 | CIRCUIT | Interlagos / Autódromo José Carlos Pace | Brazil / 1989                | Former 7.874 km long course                |
+| C09 | CIRCUIT | Monte Carlo / Monaco                    | Monaco / 1989                | Street circuit                             |
+| C10 | CIRCUIT | Phillip Island Grand Prix Circuit       | Australia / 1989             | 1989 layout                                |
+| C11 | CIRCUIT | Mugello Circuit                         | Italy / 1989                 | 1974–90 family                             |
+| C12 | CIRCUIT | TT Circuit Assen                        | Netherlands / 1989           | Contemporary long GP layout                |
+| C13 | CIRCUIT | Road America                            | USA / 1989                   | About 6.5 km                               |
+| C14 | CIRCUIT | Brands Hatch Grand Prix Circuit         | UK / 1989                    | 1988–98 family                             |
+| C15 | CIRCUIT | Suzuka Circuit                          | Japan / 1989                 | Figure eight; lower road drawn as a tunnel |
 
 Totals: LINEAR 11, BRANCH 4, CIRCUIT 15.
 
