@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import { rgba } from '../../dist/graphics/software-surface.js';
-import { normalizeSpriteSource } from '../../dist/graphics/sprite-source-compiler.js';
+import { normalizeSpriteSource, SPRITE_SOURCE_PIXEL_LIMIT } from '../../dist/graphics/sprite-source-compiler.js';
 import { writeSpriteArtifact } from './write-sprite-artifact.mjs';
 
 const [sourcePath, recipePath, outputPath, ...extra] = process.argv.slice(2);
@@ -19,8 +19,8 @@ if (
   throw new RangeError('PNG requires a valid signature and IHDR');
 const width = bytes.readUInt32BE(16),
   height = bytes.readUInt32BE(20);
-if (bytes[24] !== 8 || width < 1 || height < 1 || width * height > 16 * 1024 * 1024)
-  throw new RangeError('PNG must be 8-bit and contain at most 16777216 pixels');
+if (bytes[24] !== 8 || width < 1 || height < 1 || width * height > SPRITE_SOURCE_PIXEL_LIMIT)
+  throw new RangeError(`PNG must be 8-bit and contain at most ${SPRITE_SOURCE_PIXEL_LIMIT} pixels`);
 // pngjs decodes still images; reject animation rather than silently extracting its first image.
 for (let offset = 8; offset + 12 <= bytes.length;) {
   const length = bytes.readUInt32BE(offset);

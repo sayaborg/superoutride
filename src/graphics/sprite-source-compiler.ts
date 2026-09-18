@@ -1,6 +1,9 @@
 import { createSpriteAreaFilter } from './sprite-area-filter.js';
 import { readSpritePaletteRgb555, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from './sprite.js';
 
+/** Shared decoded-image admission, also checked by file adapters before allocation. */
+export const SPRITE_SOURCE_PIXEL_LIMIT = 16 * 1024 * 1024;
+
 interface SourceImage {
   readonly width: number;
   readonly height: number;
@@ -14,7 +17,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     !Number.isSafeInteger(image.height) ||
     image.width < 1 ||
     image.height < 1 ||
-    image.width * image.height > 16 * 1024 * 1024 ||
+    image.width * image.height > SPRITE_SOURCE_PIXEL_LIMIT ||
     !(image.pixels instanceof Uint32Array) ||
     image.pixels.length !== image.width * image.height
   )
