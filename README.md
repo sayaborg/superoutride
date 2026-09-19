@@ -22,8 +22,9 @@ and exports metric masters and LODs. See the [authoring workflow](docs/developme
 The [Sprite LOD preview](tools/graphics/sprite-lod.html) compares completed octave images with the
 master through the game blitter. See [usage and scope](docs/development.md#sprite-lod-preview).
 
-The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved LINEAR
-geometry, including varying shared boundaries, Band activation/tapers and local Guide envelopes, and publishes an immutable
+The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved geometry,
+varying shared boundaries, Band activation/tapers and local Guide envelopes. Oriented Ports and
+geometric Links connect LINEAR chains, BRANCH forks/merges and one-source CIRCUIT loops in an immutable
 reference graph. It is an offline authoring foundation; the
 current game courses still use their existing composition roots.
 

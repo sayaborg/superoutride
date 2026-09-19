@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 1,
+  "version": 2,
   "id": "partition-example",
   "units": {
     "length": "m",
@@ -11,6 +11,8 @@
     "version": 3
   },
   "type": "LINEAR",
+  "entrySectionId": "split-and-rejoin",
+  "links": [],
   "sections": [
     {
       "id": "split-and-rejoin",
@@ -316,6 +318,7 @@
           "bandIds": ["east"]
         }
       ],
+      "ports": [],
       "assetIds": []
     }
   ],

@@ -1,37 +1,33 @@
 import { contentDigest } from '../core/content-digest.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
-import type { RasterPath } from '../core/raster-path.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
-import { readCourseDocument, type CourseAssetReference, type SectionDocument } from '../course/course-document.js';
 import {
-  COURSE_GEOMETRY_RECIPE,
-  compileCourseGeometry,
-  resolveCourseAnchor,
-  type CompiledPlanPrimitive,
-} from '../course/course-geometry.js';
+  readCourseDocument,
+  type CourseAssetReference,
+  type CourseDocument,
+  type SectionDocument,
+} from '../course/course-document.js';
+import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course/course-geometry.js';
 import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
-import type {
-  CompiledBoundary,
-  CompiledBand,
-  CompiledBandPartition,
-  CompiledCarriageway,
-} from '../course/course-bands.js';
+import type { CompiledBoundary, CompiledBand, CompiledCarriageway } from '../course/course-bands.js';
+import type { CompiledSection, CompiledPort, CompiledLink } from '../course/course-graph.js';
+import {
+  COURSE_LINK_RECIPE,
+  compileCoursePort,
+  compileCourseLink,
+  validateCourseTopology,
+} from '../course/course-links.js';
 
-interface CompiledSection {
-  readonly id: string;
-  readonly primitives: readonly CompiledPlanPrimitive[];
-  readonly raster: RasterPath;
-  readonly guide: GuidePath;
-  readonly boundaries: readonly CompiledBoundary[];
-  readonly bandPartition: CompiledBandPartition;
-  readonly carriageways: readonly CompiledCarriageway[];
-  readonly assets: readonly CourseAssetReference[];
+interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
+  readonly ports: CompiledPort[];
+  readonly incoming: CompiledLink[];
+  readonly outgoing: CompiledLink[];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
 export interface CompiledCourse {
   readonly id: string;
-  readonly type: 'LINEAR';
+  readonly type: CourseDocument['type'];
   readonly identity: {
     readonly sourceSha256: string;
     readonly buildSha256: string;
@@ -39,10 +35,12 @@ export interface CompiledCourse {
     readonly geometryRecipe: typeof COURSE_GEOMETRY_RECIPE;
   };
   readonly sections: readonly CompiledSection[];
+  readonly entry: CompiledSection;
+  readonly links: readonly CompiledLink[];
   readonly assets: readonly CourseAssetReference[];
 }
 
-const COURSE_COMPILER = Object.freeze({ id: 'superoutride.course-compiler', version: 3 });
+const COURSE_COMPILER = Object.freeze({ id: 'superoutride.course-compiler', version: 4, links: COURSE_LINK_RECIPE });
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
   const value = table.get(id);
@@ -59,7 +57,7 @@ function compileSection(
   section: SectionDocument,
   assets: ReadonlyMap<string, CourseAssetReference>,
   path: string,
-): CompiledSection {
+): SectionDraft {
   const { raster, primitives } = compileCourseGeometry(section, path);
   const primitiveTable = new Map(primitives.map((primitive) => [primitive.source.id, primitive]));
   const resolve = (anchor: Parameters<typeof resolveCourseAnchor>[0], at: string) =>
@@ -131,7 +129,7 @@ function compileSection(
   }
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
   semantic(new Set(sectionAssets).size === sectionAssets.length, `${path}/assetIds`, 'Asset membership must be unique');
-  return Object.freeze({
+  const result: SectionDraft = {
     id: section.id,
     primitives,
     raster,
@@ -140,7 +138,24 @@ function compileSection(
     bandPartition: partition,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
+    ports: [],
+    incoming: [],
+    outgoing: [],
+  };
+  const carriagewayTable = new Map(carriageways.map((road) => [road.id, road]));
+  section.ports.forEach((port, index) => {
+    const at = `${path}/ports/${index}`;
+    result.ports.push(
+      compileCoursePort(
+        port,
+        result,
+        resolve(port.anchor, `${at}/anchor`),
+        reference(carriagewayTable, port.carriagewayId, `${at}/carriagewayId`),
+        at,
+      ),
+    );
   });
+  return result;
 }
 
 /** Own input before the first await; publish only a fully validated graph, never the construction tables. */
@@ -159,16 +174,35 @@ export async function compileCourseDocument(input: unknown): Promise<CourseResul
         `Supported geometry recipe is ${COURSE_GEOMETRY_RECIPE.id} v${COURSE_GEOMETRY_RECIPE.version}`,
       );
     }
-    if (document.sections.length !== 1)
-      throw new CourseInputError(
-        'unsupported_feature',
-        '/sections',
-        'The current compiler accepts exactly one LINEAR Section; Links are not implemented',
-      );
+    semantic(document.sections.length > 0, '/sections', 'A course requires a Section');
     const assets = new Map(document.assets.map((asset) => [asset.id, asset]));
-    const sections = Object.freeze(
-      document.sections.map((section, index) => compileSection(section, assets, `/sections/${index}`)),
+    const sections = document.sections.map((section, index) => compileSection(section, assets, `/sections/${index}`));
+    const sectionTable = new Map(sections.map((section) => [section.id, section]));
+    const portTables = new Map(
+      sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),
     );
+    const entry = reference(sectionTable, document.entrySectionId, '/entrySectionId');
+    const resolvePort = (endpoint: CourseDocument['links'][number]['source'], path: string) => {
+      const section = reference(sectionTable, endpoint.sectionId, `${path}/sectionId`);
+      return { section, port: reference(portTables.get(section)!, endpoint.portId, `${path}/portId`) };
+    };
+    const links = document.links.map((source, index) => {
+      const path = `/links/${index}`;
+      const from = resolvePort(source.source, `${path}/source`),
+        to = resolvePort(source.destination, `${path}/destination`);
+      const link = compileCourseLink(source.id, from.port, to.port, source.overlap, path);
+      from.section.outgoing.push(link);
+      to.section.incoming.push(link);
+      return link;
+    });
+    validateCourseTopology(document.type, entry, sections, links);
+    // Close every cycle before freezing/publication. No draft or construction table escapes.
+    for (const section of sections) {
+      Object.freeze(section.ports);
+      Object.freeze(section.incoming);
+      Object.freeze(section.outgoing);
+      Object.freeze(section);
+    }
     const sourceSha256 = await contentDigest(new TextEncoder().encode(JSON.stringify(document)));
     const buildSha256 = await contentDigest(
       new TextEncoder().encode(
@@ -185,7 +219,9 @@ export async function compileCourseDocument(input: unknown): Promise<CourseResul
           compiler: COURSE_COMPILER,
           geometryRecipe: COURSE_GEOMETRY_RECIPE,
         }),
-        sections,
+        sections: Object.freeze(sections),
+        entry,
+        links: Object.freeze(links),
         assets: document.assets,
       }),
     );

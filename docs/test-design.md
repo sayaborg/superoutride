@@ -48,6 +48,14 @@ Test unresolved/duplicate references at admission, pointer identity inside one c
 source-mutation isolation, failed publication, and serialization/reload through the same validator.
 Independent compiled products may have equal content identities and different object identities.
 
+Offline Link tests round-trip saved chains and transformed loops, reorder declarations in two/three-way
+fork/merge graphs, and assert shared successor/Port identity and actual cyclic back-references. Test
+the rigid transform and inverse independently on points, vectors and equal frames. Overlap proofs
+must catch short interior edge mismatches, Raster miter disagreement despite matching Guide geometry,
+hidden curves/fillets and partial coverage gaps. Retain a fractional activation endpoint across seam
+offset cancellation; reject distinct ruler stations that collapse to one relative coordinate. These
+geometry tests do not claim physical/image continuity, consumer guard sufficiency or runtime commit.
+
 The [geometry identity](content-and-gameplay.md#geometry-identity-and-anchor-replay) tests distinguish
 recipe changes from unchanged builds. Reopening the same document reproduces its ruler and anchors;
 a changed subdivision recipe invalidates dependent products and requires an explicit source migration.

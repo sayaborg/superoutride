@@ -226,7 +226,7 @@ imports, including types. Composition roots alone import concrete DEV content. R
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [Gate 1 boundary](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary)
 uses `src/runtime/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Its separate offline entry installs no new driving path. Core's shared content digest serves course
 and current GroundMap identities without a dependency from authoring geometry to image transport.
@@ -274,7 +274,8 @@ navigation for existing links; each detailed contract has one owner.
 ## Course Editor target
 
 This section owns target frame and geometric reader contracts. Local Guide envelopes and the offline
-Boundary/active-Band subset are implemented; Link/view and joint physical/visual edge cutovers remain
+Boundary/active-Band and geometric Port/Link subsets are implemented; bounded views and runtime Link
+and joint physical/visual edge cutovers remain
 pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
 records and transactions; [image assets](image-assets.md#course-editor-target) owns image products.
 
@@ -284,6 +285,10 @@ Derive `destinationFromSource` from oriented ports: R is yaw rotation about +Y t
 to destination forward, and `t = pDestination - R*pSource`. Then `p' = R*p+t`, `v' = R*v`.
 The inverse uses `transpose(R)` and `-transpose(R)*t`. Identity is a value for any Link kind,
 including loops. Port anchors are authored; transforms are immutable compiled output.
+
+The ordinary [Core planar transform](../src/core/planar-transform.ts) implements this math without
+course knowledge. Offline Links derive poses and validate their selected Carriageway overlap at the
+[course compiler boundary](content-and-gameplay.md#offline-port-and-link-geometry). World Y is unchanged.
 
 Transform world-expressed orientation/angular quantities and state caches coherently. Body-local
 components, wheel speeds, control scalars and validated progress retain their values. The

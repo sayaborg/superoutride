@@ -1,10 +1,12 @@
 {
   "format": "superoutride.course",
-  "version": 1,
+  "version": 2,
   "id": "narrow-bend-wide-straight",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 3 },
   "type": "LINEAR",
+  "entrySectionId": "asymmetric",
+  "links": [],
   "sections": [
     {
       "id": "asymmetric",
@@ -63,6 +65,7 @@
         }
       ],
       "carriageways": [{ "id": "road", "bandIds": ["east", "west"] }],
+      "ports": [],
       "assetIds": []
     }
   ],

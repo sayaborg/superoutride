@@ -38,21 +38,23 @@ After `npm run build`, run the declared offline entry:
 npm run compile:course -- tests/fixtures/linear.course.json
 npm run compile:course -- tests/fixtures/varying-linear.course.json
 npm run compile:course -- tests/fixtures/partition-linear.course.json
+npm run compile:course -- tests/fixtures/linked-linear.course.json
+npm run compile:course -- tests/fixtures/transformed-loop.course.json
 ```
 
 It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
 the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
 Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
 format; reload the saved source through the compiler to reconstruct canonical references.
-[Content](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) owns the wire schema,
+[Content](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
 [Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
 geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
 imports, stale asynchronous publication and the real command. The complete suite retains its immutable
 mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
-The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Recipe/compiler
-v3 admits partial Bands and zero-width taper endpoints without Link/view or driving integration. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
+The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Geometry recipe
+v3 admits partial Bands and zero-width taper endpoints. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
 and [Guide tests](../tests/geometry/local-guide-envelope.test.mjs) cover local versus global bounds,
 off-center fillet peaks and trim endpoints, constant-input equality, translated clamps, local gate
 widths, conservative global-support containment, half-open ownership and failed/stale publication.
@@ -61,7 +63,16 @@ The partition fixture changes one road into three structural carriageways and ba
 exact switch/edge ownership, taper birth/death, staggered isolated tapers, full-union continuity,
 per-cell carriageway contiguity, arbitrary IDs/order, failed publication and invalidation. Positive-width
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
-Half-open physical/paint/lock classification and transformed Links remain unqualified.
+Half-open physical/paint/lock classification remains unqualified at runtime.
+
+Schema v2 and course compiler v4 add offline Port/Link graphs, retaining geometry recipe v3.
+[Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
+exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
+loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
+rejects hidden mismatches, missing coverage, curved guards and lost numerical station identity.
+The CLI summarizes cyclic graphs by IDs/counts; saved authoring remains the reconstructible source.
+This is selected-Carriageway geometric evidence only. Complete physical/image common-content overlap,
+bounded consumer ranges, views and runtime transition are separate acceptance requirements below.
 
 ## Sprite LOD preview
 

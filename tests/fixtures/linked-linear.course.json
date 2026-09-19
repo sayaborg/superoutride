@@ -1,0 +1,228 @@
+{
+  "format": "superoutride.course",
+  "version": 2,
+  "id": "linked-linear",
+  "units": {
+    "length": "m",
+    "angle": "deg"
+  },
+  "geometryRecipe": {
+    "id": "superoutride.raster-guide",
+    "version": 3
+  },
+  "type": "LINEAR",
+  "entrySectionId": "source",
+  "sections": [
+    {
+      "id": "source",
+      "start": {
+        "x": 10,
+        "z": 20,
+        "heading": 0
+      },
+      "guide": {
+        "margin": 2,
+        "mMin": 0.1
+      },
+      "primitives": [
+        {
+          "id": "line",
+          "kind": "straight",
+          "length": 300
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": -4
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "line",
+                "fraction": 1
+              },
+              "l": -4
+            }
+          ]
+        },
+        {
+          "id": "right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": 6
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "line",
+                "fraction": 1
+              },
+              "l": 6
+            }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "road",
+          "start": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "line",
+            "fraction": 1
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "road",
+          "bandIds": ["road"]
+        }
+      ],
+      "ports": [
+        {
+          "id": "out",
+          "kind": "exit",
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "line",
+            "fraction": 0.6666666666666666
+          },
+          "carriagewayId": "road"
+        }
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "destination",
+      "start": {
+        "x": 400,
+        "z": -200,
+        "heading": 90
+      },
+      "guide": {
+        "margin": 2,
+        "mMin": 0.1
+      },
+      "primitives": [
+        {
+          "id": "line",
+          "kind": "straight",
+          "length": 300
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": -10
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "line",
+                "fraction": 1
+              },
+              "l": -10
+            }
+          ]
+        },
+        {
+          "id": "right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": 0
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "line",
+                "fraction": 1
+              },
+              "l": 0
+            }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "road",
+          "start": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "line",
+            "fraction": 1
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "road",
+          "bandIds": ["road"]
+        }
+      ],
+      "ports": [
+        {
+          "id": "in",
+          "kind": "entry",
+          "anchor": {
+            "kind": "absolute",
+            "s": 60
+          },
+          "carriagewayId": "road"
+        }
+      ],
+      "assetIds": []
+    }
+  ],
+  "links": [
+    {
+      "id": "join",
+      "source": {
+        "sectionId": "source",
+        "portId": "out"
+      },
+      "destination": {
+        "sectionId": "destination",
+        "portId": "in"
+      },
+      "overlap": {
+        "behind": 30,
+        "ahead": 30
+      }
+    }
+  ],
+  "assets": []
+}

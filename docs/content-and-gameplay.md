@@ -56,14 +56,16 @@ The current declarative route compiler derives separate route/content/gate/hando
 then validates their joins. The [target reference graph](#compiled-course-reference-graph) replaces
 that internal representation while retaining input validation and distinct gameplay responsibilities.
 
-## CourseDocument v1: implemented compiler boundary
+## CourseDocument v2: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
 [course compilation](../src/runtime/compiled-course.ts) and
 [project transactions](../src/runtime/course-project.ts) implement Gate 1 independently of the current
 driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
-[varying LINEAR example](../tests/fixtures/varying-linear.course.json) are executable inputs for
+[varying LINEAR example](../tests/fixtures/varying-linear.course.json),
+[linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
+[transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
 the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
 data, not a ready driving Session or loaded image product.
 
@@ -72,29 +74,33 @@ data, not a ready driving Session or loaded image product.
 All fields below are required. Objects reject unknown fields; arrays retain their saved order. The
 reader creates owned frozen records in schema field order and normalizes negative zero to zero.
 Save emits compact UTF-8 JSON. Whitespace and object-property order do not affect source identity;
-array order is saved input, including meaningful primitive and knot order. Display labels, Links,
+array order is saved input, including meaningful primitive and knot order. Display labels,
 height, bindings, placements and rules are not yet wire fields.
 
-| Record           | Exact v1 fields                                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CourseDocument   | `format: "superoutride.course"`, `version: 1`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR"`, `sections`, `assets` |
-| Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `carriageways`, `assetIds`                                           |
-| Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                 |
-| Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                             |
-| Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                            |
-| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                     |
-| Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                  |
-| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role` (`"pavement"`, `"shoulder"` or `"median"`)                                                       |
-| Carriageway      | `id`, `bandIds`                                                                                                                                                    |
-| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                  |
+| Record           | Exact v2 fields                                                                                                                                                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CourseDocument   | `format: "superoutride.course"`, `version: 2`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets` |
+| Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `carriageways`, `ports`, `assetIds`                                                                                      |
+| Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                     |
+| Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                 |
+| Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                                                                                |
+| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                                                                         |
+| Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                                                                      |
+| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role` (`"pavement"`, `"shoulder"` or `"median"`)                                                                                                           |
+| Carriageway      | `id`, `bandIds`                                                                                                                                                                                                        |
+| Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                                                                                                                                             |
+| Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                    |
+| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                      |
 
 IDs are opaque nonblank strings, compared exactly without Unicode/whitespace normalization. Course ID
-is external identity; Section and asset IDs each have a document-wide scope. Primitive, Boundary,
-Band and Carriageway IDs each have a separate Section-local scope. Duplicate declaration IDs fail
+is external identity; Section, Link and asset IDs each have a document-wide scope. Primitive, Boundary,
+Band, Carriageway and Port IDs each have a separate Section-local scope. Duplicate declaration IDs fail
 admission. References resolve within their declared scope, never by array position or naming convention.
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
-with `unsupported_version`. Schema/format and unit mismatches fail admission.
+with `unsupported_version`. Schema/format and unit mismatches fail admission. Schema v1 is explicitly
+unsupported; the checked-in fixtures were migrated to v2 with explicit entry, Link and Port fields.
+There is no implicit root from declaration order or compatibility interpretation.
 
 Asset references bind the exact saved completed-sprite bytes by lowercase SHA-256. Section membership
 resolves to canonical descriptor objects. Gate 1 neither fetches those bytes nor certifies image
@@ -107,16 +113,18 @@ enter this product.
 All numeric inputs must be finite. Length/radius are in `(0, 100000]` m; initial X/Z are within
 plus/minus 1000000 m; initial heading is in `[-360, 360]` degrees. Arc turn is nonzero in the same
 angle range. Absolute anchors are in `[0, 100000]` m and fractions in `[0, 1]`. Lateral positions
-are within plus/minus 1000 m, Guide margin in `(0, 1000]` m, and `0 < mMin < 1`. Recipe version is
+are within plus/minus 1000 m, Guide margin in `(0, 1000]` m, and `0 < mMin < 1`. Link overlap extents
+are each in `(0, 100000]` m and must fit both finite Section domains. Recipe version is
 an integer in `[1, 65535]`. The geometry compiler additionally enforces finite, positive, valid
 compiled intervals and the existing Core metrics; a positive authored length need not survive
 floating-point geometry admission.
 
-`COURSE_DOCUMENT_LIMITS` owns 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections and 256 assets;
-per Section: 256 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways and
+`COURSE_DOCUMENT_LIMITS` owns 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections, 48 Links and 256 assets;
+per Section: 256 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways, 4 Ports and
 256 asset references. Compilation caps each Section at 2048 Raster segments, 4096 mapped-band partition
 cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
-partition size before the quadratic pair checks. These authoring limits bound work
+partition size before the quadratic pair checks. A Link admits at most 8192 overlap cells.
+These authoring limits bound work
 and diagnostics; they are not whole-game or target-device capacity approval.
 
 ### Supported geometry and recipe
@@ -134,7 +142,7 @@ differences in primitive order. Each primitive retains its interval on that rule
 resolves exactly to the interval endpoints; interior fractions use `start + fraction*(end-start)`.
 Absolute anchors keep their authored s and must lie in the finite Section domain.
 
-The current compiler admits exactly one LINEAR Section, with piecewise-linear Boundary profiles and
+Each Section has piecewise-linear Boundary profiles and
 Band intervals within `[0,L]`. Knots remain explicit and strictly increasing. A Boundary may cover
 only part of the Section, but must cover every referencing Band's closed interval; readers never
 extrapolate. Constant profiles use this same representation. Each Band has positive chainage length
@@ -148,7 +156,7 @@ form one contiguous group; successive members need not coexist. The Section has 
 Band in every open cell. At activation changes, both the union of all Bands and the pavement/median
 union must be continuous, comparing every occupied interval rather than only outer bounds. This
 permits positive-width partition replacement and zero-width taper birth/death, including a static
-one-to-two/three-to-one cross-section. It does not compile fork/merge Links. Shoulders/medians remain
+one-to-two/three-to-one cross-section. Connections use the separate Port/Link proof below. Shoulders/medians remain
 structural roles, with no inferred paint, grip or support.
 
 Recipe v3 partitions at Raster vertices, all used Boundary knots and Band activation endpoints.
@@ -183,20 +191,69 @@ Recipes v1/v2 are not silently reinterpreted. Their documents remain saveable bu
 The checked-in constant/varying fixtures explicitly select v3 and retain their rulers and fillet geometry.
 Raster/Guide authoring-domain rejections are RangeError; internal coverage/reader invariants retain Error.
 
+### Offline Port and Link geometry
+
+[Port/Link compilation](../src/course/course-links.ts) resolves a Port to a canonical Section,
+Carriageway and anchor strictly inside its finite domain. The Port pose is derived from the active
+Carriageway's outer-edge center and forward Guide heading. It requires positive pavement width;
+there is no separately authored center or orientation. A Link connects an exit to an entry and owns
+the [upright transform](architecture.md#frame-transform-and-coordinates) between these poses.
+Equal frames produce identity; loops use the same derivation without requiring coincident endpoints.
+
+`superoutride.carriageway-link` v1 pins that frame rule, tolerances and proof. Both guards must lie in
+authored straights, outside Guide fillets, with Raster headings agreeing to 1e-10 radians. Partition
+the common seam-relative interval at both charts' Raster/Guide boundaries, referenced Boundary knots
+and Band activations. Retain the original station in each ruler: subtracting then adding the seam
+offset must not destroy an exact activation endpoint. Distinct stations collapsing to one relative
+coordinate receive a diagnostic. Guard extents must remain representable on both sides of each seam.
+
+Each cell requires positive contiguous Carriageway coverage and continuous outer edges. Internal
+pavement subdivisions may differ. For both Raster and Guide independently, transform the source edges
+and compare them with destination edges. The quadratic difference's Bernstein control hull must lie
+within 1e-7 m throughout each cell. Seam-center matching or a fixed set of probes is insufficient;
+an interior knot, short coverage gap or mismatched Raster miter cannot escape the partition/proof.
+
+This product certifies only the selected Carriageway's pavement geometry. It does not certify other
+roads, shoulders, medians, physical bindings, height, images, material phase or scenery, nor sufficient
+consumer/transfer guards. A compiled Link is **not admission for a driving transition**. Complete
+common-content overlap, parent-specific visibility, bounded views, actual predecessor history and
+atomic runtime commit remain required before cutover. Existing same-world stage continuation and
+runtime readers remain unchanged.
+
+### Offline topology
+
+`entrySectionId` resolves to the graph's explicit entry; it is not a starting grid or race gate.
+A Section has at most one entry Port, shared by incoming merge Links. Each declared exit has exactly
+one outgoing Link. Exit anchors follow the entry anchor with positive chainage span when an entry
+is present. Fork exits use distinct Carriageways. Leaf Sections have no exit Ports.
+
+- LINEAR is a reachable finite chain with at most one incoming/outgoing Link per Section.
+- BRANCH is a reachable finite acyclic graph, allowing two/three outgoing Links and shared successors.
+- CIRCUIT is one reusable Section with one exit-to-entry loop Link and positive source span.
+
+LINEAR/BRANCH entry has no incoming Link; every declared Section must be reachable. Cycle rejection
+belongs to those authored types, not to the graph representation. CIRCUIT keeps one source and one
+cyclic Link, never lap copies. Existing per-Section simple-strip geometry admission still applies;
+this increment does not classify intentional geographic strip intersections.
+
 ### Publication, identity and diagnostics
 
 Compilation builds private scoped Maps, resolves references once and publishes one frozen
 `CompiledCourse`. Sections own canonical primitives, Boundaries, a finite `bandPartition`, Carriageways
 and asset references. The partition owns the Band array; Band edges point to those Boundaries,
 Carriageways to those same Bands, and fraction anchors
-to those primitives. The Guide points to the Section's same Raster. Maps remain private; every exposed
-record/array is frozen and owned. Sections are reusable nodes, not a RouteDag or recursive successor
-tree. Later Link nodes can share/cycle these references without copying Sections. No topology is
-implemented by the current single-Section admission rule.
+to those primitives. The Guide points to the Section's same Raster. Sections also own canonical Ports
+and incoming/outgoing Link references. Each Port points back to its Section and Carriageway; each Link
+points to its canonical source/destination Ports. Merges share the same successor Section and entry
+Port. The course's `entry` and `links` reference those same objects. Construction closes all cycles and
+freezes every owned record/array before publication; Maps and mutable drafts remain private. This is
+one reference graph, not a RouteDag, recursive successor tree or JSON-serializable compiled object.
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 3. All inputs currently conservatively invalidate the complete
+`superoutride.course-compiler` version 4, including the full Link recipe descriptor. The Section
+geometry recipe remains v3: adding topology does not change its ruler arithmetic.
+All inputs currently conservatively invalidate the complete
 product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.

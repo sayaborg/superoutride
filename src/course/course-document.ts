@@ -32,6 +32,20 @@ interface CarriagewayDocument {
   readonly bandIds: readonly string[];
 }
 
+interface PortDocument {
+  readonly id: string;
+  readonly kind: 'entry' | 'exit';
+  readonly anchor: CourseAnchor;
+  readonly carriagewayId: string;
+}
+
+interface LinkDocument {
+  readonly id: string;
+  readonly source: { readonly sectionId: string; readonly portId: string };
+  readonly destination: { readonly sectionId: string; readonly portId: string };
+  readonly overlap: { readonly behind: number; readonly ahead: number };
+}
+
 /** External content identity only; no I/O or claim of payload readiness at this boundary. */
 export interface CourseAssetReference {
   readonly id: string;
@@ -48,17 +62,20 @@ export interface SectionDocument {
   readonly boundaries: readonly BoundaryDocument[];
   readonly bands: readonly BandDocument[];
   readonly carriageways: readonly CarriagewayDocument[];
+  readonly ports: readonly PortDocument[];
   readonly assetIds: readonly string[];
 }
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 1;
+  readonly version: 2;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
-  readonly type: 'LINEAR';
+  readonly type: 'LINEAR' | 'BRANCH' | 'CIRCUIT';
+  readonly entrySectionId: string;
   readonly sections: readonly SectionDocument[];
+  readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
 }
 
@@ -72,12 +89,15 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   knots: 256,
   bands: 32,
   carriageways: 16,
+  ports: 4,
+  links: 48,
   assets: 256,
   coordinateMeters: 1_000_000,
   lengthMeters: 100_000,
   lateralMeters: 1000,
   rasterSegments: 2048,
   bandCells: 4096,
+  linkCells: 8192,
 });
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {
@@ -97,7 +117,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v1`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v2`);
     }
   }
   for (const key of fields) {
@@ -233,6 +253,7 @@ function section(value: unknown, path: string): SectionDocument {
     'boundaries',
     'bands',
     'carriageways',
+    'ports',
     'assetIds',
   ]);
   const start = record(v.start, `${path}/start`, ['x', 'z', 'heading']);
@@ -255,6 +276,17 @@ function section(value: unknown, path: string): SectionDocument {
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     bands: identified(v.bands, `${path}/bands`, COURSE_DOCUMENT_LIMITS.bands, band),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
+    ports: identified(v.ports, `${path}/ports`, COURSE_DOCUMENT_LIMITS.ports, (item, at) => {
+      const p = record(item, at, ['id', 'kind', 'anchor', 'carriagewayId']);
+      if (p.kind !== 'entry' && p.kind !== 'exit')
+        fail('unsupported_feature', `${at}/kind`, 'Port kind must be entry or exit');
+      return Object.freeze({
+        id: id(p.id, `${at}/id`),
+        kind: p.kind,
+        anchor: anchor(p.anchor, `${at}/anchor`),
+        carriagewayId: id(p.carriagewayId, `${at}/carriagewayId`),
+      });
+    }),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
   });
 }
@@ -262,15 +294,30 @@ function section(value: unknown, path: string): SectionDocument {
 /** Own and normalize schema-valid authoring, including semantically incomplete drafts. */
 export function readCourseDocument(input: unknown): CourseResult<CourseDocument> {
   try {
-    const v = record(input, '', ['format', 'version', 'id', 'units', 'geometryRecipe', 'type', 'sections', 'assets']);
+    // Reject an identified older schema before requiring the current schema's fields.
+    if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
+      literal((input as Record<string, unknown>).version, 2, '/version');
+    const v = record(input, '', [
+      'format',
+      'version',
+      'id',
+      'units',
+      'geometryRecipe',
+      'type',
+      'entrySectionId',
+      'sections',
+      'links',
+      'assets',
+    ]);
     const format = literal(v.format, 'superoutride.course', '/format');
-    const version = literal(v.version, 1, '/version');
+    const version = literal(v.version, 2, '/version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
     if (!Number.isInteger(recipeVersion))
       fail('invalid_numeric_domain', '/geometryRecipe/version', 'Recipe version must be an integer');
-    if (v.type !== 'LINEAR') fail('unsupported_feature', '/type', 'Gate 1 supports LINEAR only');
+    if (v.type !== 'LINEAR' && v.type !== 'BRANCH' && v.type !== 'CIRCUIT')
+      fail('unsupported_feature', '/type', 'Supported topology types are LINEAR, BRANCH and CIRCUIT');
     const result: CourseDocument = Object.freeze({
       format,
       version,
@@ -280,8 +327,29 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
         angle: literal(units.angle, 'deg', '/units/angle'),
       }),
       geometryRecipe: Object.freeze({ id: id(recipe.id, '/geometryRecipe/id'), version: recipeVersion }),
-      type: 'LINEAR',
+      type: v.type,
+      entrySectionId: id(v.entrySectionId, '/entrySectionId'),
       sections: identified(v.sections, '/sections', COURSE_DOCUMENT_LIMITS.sections, section),
+      links: identified(v.links, '/links', COURSE_DOCUMENT_LIMITS.links, (item, at) => {
+        const link = record(item, at, ['id', 'source', 'destination', 'overlap']);
+        const endpoint = (value: unknown, path: string) => {
+          const p = record(value, path, ['sectionId', 'portId']);
+          return Object.freeze({
+            sectionId: id(p.sectionId, `${path}/sectionId`),
+            portId: id(p.portId, `${path}/portId`),
+          });
+        };
+        const overlap = record(link.overlap, `${at}/overlap`, ['behind', 'ahead']);
+        return Object.freeze({
+          id: id(link.id, `${at}/id`),
+          source: endpoint(link.source, `${at}/source`),
+          destination: endpoint(link.destination, `${at}/destination`),
+          overlap: Object.freeze({
+            behind: number(overlap.behind, `${at}/overlap/behind`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+            ahead: number(overlap.ahead, `${at}/overlap/ahead`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+          }),
+        });
+      }),
       assets: identified(v.assets, '/assets', COURSE_DOCUMENT_LIMITS.assets, (item, at) => {
         const a = record(item, at, ['id', 'format', 'version', 'sha256']);
         if (typeof a.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(a.sha256))

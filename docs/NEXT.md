@@ -13,28 +13,38 @@ Current driving code uses paged compiled ground, constant Guide inputs, finite c
 composition roots. Sprite Tool exists. Gate 1 now provides a versioned CourseDocument, pinned geometry
 recipe, immutable compiled reference graph and atomic authoring project boundary through a separate
 offline compiler entry. Gate 2 adds local Guide profiles and offline varying/shared Boundary readers,
-partial Band activation, taper birth/death and continuous partition changes. Links/views, the combined physical/visual/lock edge
-cutover and resident images remain targets.
+partial Band activation, taper birth/death and continuous partition changes. Oriented Ports and
+geometric Links now support offline chains, forks, merges and transformed loops. Complete common-content
+overlap, bounded views, runtime Link commit, the combined physical/visual/lock edge cutover and resident
+images remain targets.
 Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
-[CourseDocument v1](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) establishes
-the exact wire fields, limits and supported single-Section LINEAR subset. IDs resolve
+[CourseDocument v2](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary) establishes
+the exact wire fields, limits and supported LINEAR/BRANCH/CIRCUIT geometry subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
 [causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
 Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
 
-Geometry recipe and course compiler v3 include conservative mapped-cell interior validation, local
-fillet envelopes and activation-aware partitioning. The wire schema stays v1; older geometry recipes are explicitly unsupported rather
+Geometry recipe v3 includes conservative mapped-cell interior validation, local
+fillet envelopes and activation-aware partitioning. Older geometry recipes are explicitly unsupported rather
 than silently migrated. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs) cover varying
 asymmetric widths, shared reference identity, three structural carriageways, edge/gap ownership,
 inversion/overlap diagnostics, bounded partitioning and atomic invalidation.
 [Activation tests](../tests/runtime/course-band-activation.test.mjs) add partial domains, exact switch
 ownership, zero-width birth/death, one-to-two/three-to-one static cross-sections, continuous occupied
 unions and per-cell carriageway contiguity. Sections expose a narrow immutable `bandPartition` with
-canonical Band references; no construction cells or ID joins are published. This is not Gate 2 completion.
+canonical Band references; no construction cells or ID joins are published.
+
+Schema v2 adds explicit entry Section, Section-local Ports and document-wide Links; schema v1 receives
+an unsupported-version diagnostic. Course compiler v4 includes the pinned carriageway-Link recipe v1.
+[Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
+forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
+invalidation. Full-cell Raster/Guide edge proof includes partial Band domains and exact ruler stations.
+This certifies selected Carriageway geometry only, not complete content or driving readiness. Gate 2
+remains in progress.
 
 ### Next milestones
 
@@ -42,9 +52,10 @@ canonical Band references; no construction cells or ID joins are published. This
    available without GUI. Asset references are immutable identities, not loaded image payloads.
    Existing successor/growth builders remain consumed development content and fixtures.
 2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
-   varying/shared boundary readers with half-open membership are implemented offline. Next add
-   oriented ports/Links, two/three-way fork connections, merges and transformed loops,
-   followed by bounded views and the joint runtime edge cutover. Replace origin-based
+   varying/shared boundary readers with half-open membership, oriented Ports/geometric Links,
+   two/three-way fork connections, merges and transformed loops are implemented offline. Next add
+   bounded views and complete common-content/consumer-guard qualification, then runtime Link commit
+   and the joint runtime edge cutover. Replace origin-based
    junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
    exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant
    Guide/junction helpers and names with their causal tests.

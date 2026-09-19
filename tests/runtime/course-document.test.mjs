@@ -113,6 +113,7 @@ test('arbitrary IDs and permuted declarations resolve canonical objects, shared 
   ]);
   input.id = 'arbitrary course/~';
   s.id = 'constructor';
+  input.entrySectionId = s.id;
   s.primitives.forEach((p) => {
     p.id = rename.get(p.id);
   });
@@ -232,7 +233,7 @@ test('schema admission reports syntax, format/version, shape and numeric domains
   for (const bad of [null, [], new Date(), 'document']) failure(readCourseDocument(bad), 'invalid_shape', '');
   for (const [key, value] of [
     ['format', 'other'],
-    ['version', 2],
+    ['version', 1],
   ]) {
     const input = fixture();
     input[key] = value;
@@ -325,23 +326,15 @@ test('unfinished semantic drafts save and reopen while unsupported features neve
     ],
     [
       (d) => {
-        d.links = [];
+        d.views = [];
       },
-      '/links',
+      '/views',
     ],
     [
       (d) => {
-        d.type = 'CIRCUIT';
+        d.type = 'NETWORK';
       },
       '/type',
-    ],
-    [
-      (d) => {
-        const next = structuredClone(d.sections[0]);
-        next.id = 'another';
-        d.sections.push(next);
-      },
-      '/sections',
     ],
   ]) {
     const draft = fixture();

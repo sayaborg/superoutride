@@ -14,6 +14,9 @@ if (!result.ok) {
     JSON.stringify(
       {
         id: result.value.id,
+        type: result.value.type,
+        entrySection: result.value.entry.id,
+        links: result.value.links.length,
         identity: result.value.identity,
         sections: result.value.sections.map((section) => ({
           id: section.id,
@@ -21,6 +24,7 @@ if (!result.ok) {
           segments: section.raster.segments.length,
           bands: section.bandPartition.bands.length,
           carriageways: section.carriageways.length,
+          ports: section.ports.length,
         })),
       },
       null,

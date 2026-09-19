@@ -1,7 +1,7 @@
 {
   "format": "superoutride.course",
   "version": 2,
-  "id": "linear-example",
+  "id": "transformed-loop",
   "units": {
     "length": "m",
     "angle": "deg"
@@ -10,16 +10,15 @@
     "id": "superoutride.raster-guide",
     "version": 3
   },
-  "type": "LINEAR",
-  "entrySectionId": "section/coast",
-  "links": [],
+  "type": "CIRCUIT",
+  "entrySectionId": "lap",
   "sections": [
     {
-      "id": "section/coast",
+      "id": "lap",
       "start": {
-        "x": 7,
-        "z": -2,
-        "heading": 0
+        "x": -70,
+        "z": 25,
+        "heading": -20
       },
       "guide": {
         "margin": 2,
@@ -29,18 +28,18 @@
         {
           "id": "approach",
           "kind": "straight",
-          "length": 100
+          "length": 200
         },
         {
           "id": "bend",
           "kind": "arc",
           "radius": 100,
-          "turn": 30
+          "turn": 90
         },
         {
           "id": "runout",
           "kind": "straight",
-          "length": 100
+          "length": 200
         }
       ],
       "boundaries": [
@@ -65,26 +64,6 @@
           ]
         },
         {
-          "id": "shared",
-          "knots": [
-            {
-              "anchor": {
-                "kind": "absolute",
-                "s": 0
-              },
-              "l": 0
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
-                "fraction": 1
-              },
-              "l": 0
-            }
-          ]
-        },
-        {
           "id": "right",
           "knots": [
             {
@@ -92,7 +71,7 @@
                 "kind": "absolute",
                 "s": 0
               },
-              "l": 6
+              "l": 4
             },
             {
               "anchor": {
@@ -100,14 +79,14 @@
                 "primitiveId": "runout",
                 "fraction": 1
               },
-              "l": 6
+              "l": 4
             }
           ]
         }
       ],
       "bands": [
         {
-          "id": "west",
+          "id": "road",
           "start": {
             "kind": "absolute",
             "s": 0
@@ -118,33 +97,55 @@
             "fraction": 1
           },
           "leftBoundaryId": "left",
-          "rightBoundaryId": "shared",
-          "role": "pavement"
-        },
-        {
-          "id": "east",
-          "start": {
-            "kind": "absolute",
-            "s": 0
-          },
-          "end": {
-            "kind": "primitive",
-            "primitiveId": "runout",
-            "fraction": 1
-          },
-          "leftBoundaryId": "shared",
           "rightBoundaryId": "right",
           "role": "pavement"
         }
       ],
       "carriageways": [
         {
-          "id": "main",
-          "bandIds": ["east", "west"]
+          "id": "road",
+          "bandIds": ["road"]
         }
       ],
-      "ports": [],
+      "ports": [
+        {
+          "id": "in",
+          "kind": "entry",
+          "anchor": {
+            "kind": "absolute",
+            "s": 100
+          },
+          "carriagewayId": "road"
+        },
+        {
+          "id": "out",
+          "kind": "exit",
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 0.5
+          },
+          "carriagewayId": "road"
+        }
+      ],
       "assetIds": []
+    }
+  ],
+  "links": [
+    {
+      "id": "lap-loop",
+      "source": {
+        "sectionId": "lap",
+        "portId": "out"
+      },
+      "destination": {
+        "sectionId": "lap",
+        "portId": "in"
+      },
+      "overlap": {
+        "behind": 30,
+        "ahead": 30
+      }
     }
   ],
   "assets": []
