@@ -333,7 +333,7 @@ test('unfinished semantic drafts save and reopen while unsupported features neve
   const input = fixture();
   input.sections[0].bands[0].start.s = 5;
   assert.deepEqual(ok(parseCourseDocument(ok(saveCourseDocument(input)))), input);
-  failure(await compileCourseDocument(input), 'semantic_compile_failure', '/sections/0/bands');
+  failure(await compileCourseDocument(input), 'band_transition_discontinuity', '/sections/0/bands');
   for (const [change, at] of [
     [
       (d) => {
@@ -365,50 +365,83 @@ test('unfinished semantic drafts save and reopen while unsupported features neve
 });
 
 test('invalid widths, coverage, membership, Guide metrics and mapped geometry produce semantic diagnostics', async () => {
-  for (const change of [
-    (s) => {
-      s.bands[0].rightBoundaryId = s.bands[0].leftBoundaryId;
-    },
-    (s) => {
-      s.boundaries[0].knots[1].anchor = { kind: 'absolute', s: 0 };
-    },
-    (s) => {
-      s.bands[0].end = { kind: 'absolute', s: 0 };
-    },
-    (s) => {
-      s.bands[0].end = { kind: 'absolute', s: 999 };
-    },
-    (s) => {
-      s.bands[1].leftBoundaryId = s.bands[0].leftBoundaryId;
-    },
-    (s) => {
-      s.carriageways[0].bandIds.push(s.carriageways[0].bandIds[0]);
-    },
-    (s) => {
-      s.carriageways.length = 0;
-    },
-    (s) => {
-      s.bands[1].role = 'median';
-    },
-    (s) => {
-      s.primitives[1].radius = 2;
-    },
-    (s) => {
-      s.guide.mMin = 0.99;
-    },
-    (s) => {
-      s.primitives[0].length = 1e-12;
-    },
+  for (const [change, code] of [
+    [
+      (s) => {
+        s.bands[0].rightBoundaryId = s.bands[0].leftBoundaryId;
+      },
+      'invalid_band_width',
+    ],
+    [
+      (s) => {
+        s.boundaries[0].knots[1].anchor = { kind: 'absolute', s: 0 };
+      },
+      'invalid_boundary',
+    ],
+    [
+      (s) => {
+        s.bands[0].end = { kind: 'absolute', s: 0 };
+      },
+      'invalid_band_domain',
+    ],
+    [
+      (s) => {
+        s.bands[0].end = { kind: 'absolute', s: 999 };
+      },
+      'invalid_anchor',
+    ],
+    [
+      (s) => {
+        s.bands[1].leftBoundaryId = s.bands[0].leftBoundaryId;
+      },
+      'band_overlap',
+    ],
+    [
+      (s) => {
+        s.carriageways[0].bandIds.push(s.carriageways[0].bandIds[0]);
+      },
+      'invalid_carriageway',
+    ],
+    [
+      (s) => {
+        s.carriageways.length = 0;
+      },
+      'invalid_carriageway',
+    ],
+    [
+      (s) => {
+        s.bands[1].role = 'median';
+      },
+      'invalid_carriageway',
+    ],
+    [
+      (s) => {
+        s.primitives[1].radius = 2;
+      },
+      'mapped_band_inversion',
+    ],
+    [
+      (s) => {
+        s.guide.mMin = 0.99;
+      },
+      'invalid_guide_geometry',
+    ],
+    [
+      (s) => {
+        s.primitives[0].length = 1e-12;
+      },
+      'invalid_raster_geometry',
+    ],
   ]) {
     const input = fixture();
     change(input.sections[0]);
-    failure(await compileCourseDocument(input), 'semantic_compile_failure');
+    failure(await compileCourseDocument(input), code);
   }
   const duplicatedEdge = fixture();
   const s = duplicatedEdge.sections[0];
   s.boundaries.push({ ...structuredClone(s.boundaries[1]), id: 'same-location-different-edge' });
   s.bands[1].leftBoundaryId = 'same-location-different-edge';
-  failure(await compileCourseDocument(duplicatedEdge), 'semantic_compile_failure', '/sections/0/bands');
+  failure(await compileCourseDocument(duplicatedEdge), 'shared_boundary_required', '/sections/0/bands');
 });
 
 test('a positive but unreadably short Guide is an authoring diagnostic and preserves the project', async () => {
@@ -420,7 +453,7 @@ test('a positive but unreadably short Guide is an authoring diagnostic and prese
   input.sections[0].primitives = [{ id: 'runout', kind: 'straight', length: 2e-9 }];
   // This survives Raster's minimum segment, but has no readable Guide interval.
   const saved = ok(saveCourseDocument(input));
-  failure(await project.importDocument(saved), 'semantic_compile_failure', '/sections/0/guide');
+  failure(await project.importDocument(saved), 'invalid_guide_geometry', '/sections/0/guide');
   assert.equal(project.getState(), prior);
 });
 

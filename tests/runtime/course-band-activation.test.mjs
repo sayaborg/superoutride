@@ -13,10 +13,10 @@ const ok = (result) => {
   assert.equal(result.ok, true, JSON.stringify(result));
   return result.value;
 };
-const failure = (result, message, path = '/sections/0/bands') => {
+const failure = (result, message, path = '/sections/0/bands', code) => {
   assert.equal(result.ok, false);
   assert.equal('value' in result, false);
-  assert.equal(result.diagnostics[0].code, 'semantic_compile_failure');
+  assert.equal(result.diagnostics[0].code, code);
   assert.equal(result.diagnostics[0].path, path);
   assert.match(result.diagnostics[0].message, message);
 };
@@ -213,13 +213,14 @@ test('staggered isolated tapers contribute only their closed active extent to th
 });
 
 test('coverage, interior zero width, inverted tapers and temporal overlaps fail with causal diagnostics', async () => {
-  for (const [mutate, message, path] of [
+  for (const [mutate, message, path, code] of [
     [
       (s) => {
         s.boundaries[1].knots[0].anchor.s = 38;
       },
       /cover.*closed interval/,
       '/sections/0/bands/1/rightBoundaryId',
+      'invalid_boundary',
     ],
     [
       (s) => {
@@ -227,30 +228,39 @@ test('coverage, interior zero width, inverted tapers and temporal overlaps fail 
       },
       /cover.*closed interval/,
       '/sections/0/bands/1/rightBoundaryId',
+      'invalid_boundary',
     ],
     [
       (s) => {
         s.boundaries[2].knots[1].l = -4;
       },
       /positive width/,
+      undefined,
+      'invalid_band_width',
     ],
     [
       (s) => {
         s.boundaries[2].knots[1].l = -5;
       },
       /positive width|overlap/,
+      undefined,
+      'band_overlap',
     ],
     [
       (s) => {
         s.bands[0].end.s = 40;
       },
       /overlap/,
+      undefined,
+      'band_overlap',
     ],
     [
       (s) => {
         s.bands.at(-1).start.s = 170;
       },
       /active Bands/,
+      undefined,
+      'band_coverage_gap',
     ],
     [
       (s) => {
@@ -258,6 +268,7 @@ test('coverage, interior zero width, inverted tapers and temporal overlaps fail 
       },
       /positive length/,
       '/sections/0/bands/0',
+      'invalid_band_domain',
     ],
     [
       (s) => {
@@ -266,11 +277,12 @@ test('coverage, interior zero width, inverted tapers and temporal overlaps fail 
       },
       /contiguous/,
       '/sections/0/carriageways/0',
+      'invalid_carriageway',
     ],
   ]) {
     const input = fixture();
     mutate(input.sections[0]);
-    failure(await compileCourseDocument(input), message, path);
+    failure(await compileCourseDocument(input), message, path, code);
   }
   const zero = fixture(),
     source = zero.sections[0];
@@ -281,7 +293,7 @@ test('coverage, interior zero width, inverted tapers and temporal overlaps fail 
     ]),
   );
   source.bands.push(band('empty', 17, 23, 'zero', 'zero'));
-  failure(await compileCourseDocument(zero), /zero width throughout/);
+  failure(await compileCourseDocument(zero), /zero width throughout/, undefined, 'invalid_band_width');
 });
 
 test('transition proof compares complete unions, not only outer edges or occupancy including shoulders', async () => {
@@ -292,7 +304,12 @@ test('transition proof compares complete unions, not only outer edges or occupan
     source.boundaries[2].knots[0].l = -2;
     if (replacement === 'gap') source.bands.splice(2, 1);
     else source.bands[2].role = 'shoulder';
-    failure(await compileCourseDocument(input), replacement === 'gap' ? /Active Band union/ : /Pavement\/median union/);
+    failure(
+      await compileCourseDocument(input),
+      replacement === 'gap' ? /Active Band union/ : /Pavement\/median union/,
+      undefined,
+      'band_transition_discontinuity',
+    );
   }
   const valid = fixture();
   valid.sections[0].boundaries[1].knots[0].l = -4;
@@ -320,7 +337,7 @@ test('a shared edge requires canonical identity even when its only stations are 
     { id: 'a', bandIds: ['a'] },
     { id: 'b', bandIds: ['b'] },
   ];
-  failure(await compileCourseDocument(input), /canonical shared Boundary/);
+  failure(await compileCourseDocument(input), /canonical shared Boundary/, undefined, 'shared_boundary_required');
   source.bands[1].leftBoundaryId = 'edge-1';
   source.height.at(-1).anchor = { kind: 'primitive', primitiveId: 'tiny', fraction: 1 };
   source.physicalBindings = source.bands.map((b) => ({
@@ -337,7 +354,7 @@ test('activation edits invalidate publication and failed replacement preserves t
     state = project.getState();
   const invalid = fixture();
   invalid.sections[0].bands[0].end.s = 38;
-  failure(await project.importDocument(ok(saveCourseDocument(invalid))), /overlap/);
+  failure(await project.importDocument(ok(saveCourseDocument(invalid))), /overlap/, undefined, 'band_overlap');
   assert.equal(project.getState(), state);
   const changed = fixture(),
     source = changed.sections[0];

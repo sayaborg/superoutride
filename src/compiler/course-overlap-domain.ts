@@ -41,7 +41,12 @@ export function courseOverlapRuler(
           for (const edge of [-domain.left, domain.right]) {
             if (!(edge > Math.min(l0, l1) && edge < Math.max(l0, l1))) continue;
             const s = start + (end - start) * ((edge - l0) / (l1 - l0));
-            requireCourse(s > start && s < end, '', 'Domain-edge crossing must remain distinct in the source ruler');
+            requireCourse(
+              s > start && s < end,
+              '',
+              'Domain-edge crossing must remain distinct in the source ruler',
+              'unrepresentable_overlap',
+            );
             crossings.push(s);
           }
         }

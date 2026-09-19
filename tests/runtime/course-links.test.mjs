@@ -226,7 +226,7 @@ test('an interior mismatch cannot hide between matching seam and fixed guard pro
     [74, 0],
     [300, 0],
   ].map(([s, l]) => ({ anchor: anchor(s), l }));
-  failure(await compileCourseDocument(input), 'semantic_compile_failure', '/links/0', /edge.*disagrees/);
+  failure(await compileCourseDocument(input), 'overlap_geometry_mismatch', '/links/0', /edge.*disagrees/);
 });
 
 test('Guide agreement alone cannot certify a mismatched Raster miter inside a straight guard', async () => {
@@ -242,7 +242,7 @@ test('Guide agreement alone cannot certify a mismatched Raster miter inside a st
   source.bands[0].end.primitiveId = 'end';
   source.height.at(-1).anchor.primitiveId = 'end';
   input.links[0].overlap = { behind: 10, ahead: 10 };
-  failure(await compileCourseDocument(input), 'semantic_compile_failure', '/links/0', /raster carriageway edge/);
+  failure(await compileCourseDocument(input), 'overlap_geometry_mismatch', '/links/0', /raster carriageway edge/);
 });
 
 test('overlap rejects distinct stations that collapse in relative coordinates instead of choosing by declaration order', async () => {
@@ -255,7 +255,7 @@ test('overlap rejects distinct stations that collapse in relative coordinates in
     [2e-15, -4],
     [300, -4],
   ].map(([s, l]) => ({ anchor: anchor(s), l }));
-  failure(await compileCourseDocument(input), 'semantic_compile_failure', '/links/0/source', /distinguishable/);
+  failure(await compileCourseDocument(input), 'unrepresentable_overlap', '/links/0/source', /distinguishable/);
 });
 
 test('finite guards reject hidden curves, Guide fillets and lost carriageway coverage', async () => {
@@ -269,7 +269,7 @@ test('finite guards reject hidden curves, Guide fillets and lost carriageway cov
   for (const b of dest.boundaries) b.knots.at(-1).anchor.primitiveId = 'end';
   dest.bands[0].end.primitiveId = 'end';
   dest.height.at(-1).anchor.primitiveId = 'end';
-  failure(await compileCourseDocument(curve), 'semantic_compile_failure', '/links/0/destination', /authored straight/);
+  failure(await compileCourseDocument(curve), 'nonstraight_overlap', '/links/0/destination', /authored straight/);
   const fillet = fixture(),
     s = fillet.sections[1];
   s.primitives = [
@@ -282,20 +282,20 @@ test('finite guards reject hidden curves, Guide fillets and lost carriageway cov
   s.height.at(-1).anchor.primitiveId = 'end';
   s.ports[0].anchor = anchor(150);
   fillet.links[0].overlap.ahead = 49;
-  failure(await compileCourseDocument(fillet), 'semantic_compile_failure', '/links/0/destination', /Guide fillet/);
+  failure(await compileCourseDocument(fillet), 'nonstraight_overlap', '/links/0/destination', /Guide fillet/);
   const gap = fixture(),
     from = gap.sections[0];
   from.bands.push({ ...structuredClone(from.bands[0]), id: 'after', start: anchor(215) });
   from.bands[0].end = anchor(215);
   from.carriageways.push({ id: 'after', bandIds: ['after'] });
   from.physicalBindings.push({ bandId: 'after', sections: [{ anchor: anchor(215), material: 'ASPHALT' }] });
-  failure(await compileCourseDocument(gap), 'semantic_compile_failure', '/links/0', /does not cover/);
+  failure(await compileCourseDocument(gap), 'invalid_carriageway', '/links/0', /does not cover/);
   for (const behind of [61, Number.MIN_VALUE]) {
     const invalid = fixture();
     invalid.links[0].overlap.behind = behind;
     failure(
       await compileCourseDocument(invalid),
-      'semantic_compile_failure',
+      'invalid_overlap',
       behind === 61 ? '/links/0/destination' : '/links/0/source',
       /representable extent/,
     );
@@ -417,27 +417,27 @@ test('course topology rejects disconnected nodes, duplicate exits and cycles out
     extra = structuredClone(disconnected.sections[1]);
   extra.id = 'orphan';
   disconnected.sections.push(extra);
-  failure(await compileCourseDocument(disconnected), 'semantic_compile_failure', '/sections', /reachable/);
+  failure(await compileCourseDocument(disconnected), 'invalid_topology', '/sections', /reachable/);
   const duplicate = fixture();
   duplicate.links.push({ ...structuredClone(duplicate.links[0]), id: 'again' });
-  failure(await compileCourseDocument(duplicate), 'semantic_compile_failure', '/sections/0/ports', /exactly one/);
+  failure(await compileCourseDocument(duplicate), 'invalid_topology', '/sections/0/ports', /exactly one/);
   const wrongType = fork(2);
   wrongType.type = 'LINEAR';
-  failure(await compileCourseDocument(wrongType), 'semantic_compile_failure', '/sections/0/ports', /Too many/);
+  failure(await compileCourseDocument(wrongType), 'invalid_topology', '/sections/0/ports', /Too many/);
   const cycle = fork(2);
   cycle.sections.at(-1).ports.push(port('out', 'exit', 240));
   cycle.links.push(link('cycle', 'shared', 'child-0'));
-  failure(await compileCourseDocument(cycle), 'semantic_compile_failure', '/links', /acyclic/);
+  failure(await compileCourseDocument(cycle), 'invalid_topology', '/links', /acyclic/);
   const backward = fixture(),
     lap = backward.sections[0];
   backward.type = 'CIRCUIT';
   backward.sections = [lap];
   lap.ports = [port('in', 'entry', 200), port('out', 'exit', 60)];
   backward.links = [link('backward', lap.id, lap.id)];
-  failure(await compileCourseDocument(backward), 'semantic_compile_failure', '/sections/0/ports', /positive span/);
+  failure(await compileCourseDocument(backward), 'invalid_topology', '/sections/0/ports', /positive span/);
   const wrongDirection = fixture();
   wrongDirection.sections[0].ports[0].kind = 'entry';
-  failure(await compileCourseDocument(wrongDirection), 'semantic_compile_failure', '/links/0', /exit Port to an entry/);
+  failure(await compileCourseDocument(wrongDirection), 'invalid_link', '/links/0', /exit Port to an entry/);
 });
 
 test('failed imports and stale topology edits preserve prior graphs; caller mutation cannot alter publication', async () => {

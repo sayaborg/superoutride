@@ -47,6 +47,9 @@ It reads a saved CourseDocument through the same admission/compiler/project boun
 the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
 Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
 format; reload the saved source through the compiler to reconstruct canonical references.
+Semantic compilation reports independent failures at each reached dependency phase in declaration order,
+with explicit cause codes and input pointers. Invalid prerequisites stop their dependent work. The same
+result is used by the CLI and authoring project; neither publishes a partial graph.
 [Content](content-and-gameplay.md#coursedocument-v5-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
@@ -78,7 +81,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v5 and course compiler v11 include offline Port/Link graphs and geometry recipe v4.
+Schema v5 and course compiler v12 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison

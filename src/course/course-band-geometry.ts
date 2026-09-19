@@ -67,7 +67,12 @@ export function compileCourseBandGeometry(
           courseBoundaryAt(a.left, sEnd) -
           (courseBoundaryAt(b.left, sStart) + courseBoundaryAt(b.left, sEnd)),
       );
-    requireCourse(ordered.length > 0, path, `Section requires active Bands throughout [${sStart}, ${sEnd}]`);
+    requireCourse(
+      ordered.length > 0,
+      path,
+      `Section requires active Bands throughout [${sStart}, ${sEnd}]`,
+      'band_coverage_gap',
+    );
     for (const s of [sStart, sEnd]) {
       for (let i = 0; i < ordered.length; i += 1) {
         const band = ordered[i]!;
@@ -77,6 +82,7 @@ export function compileCourseBandGeometry(
           right > left || (right === left && (s === band.start.s || s === band.end.s)),
           path,
           `Band ${JSON.stringify(band.id)} needs positive width except at its birth/death endpoint; s=${s}`,
+          'invalid_band_width',
         );
         if (i > 0) {
           const previous = ordered[i - 1]!;
@@ -85,12 +91,14 @@ export function compileCourseBandGeometry(
             edge <= left,
             path,
             `Bands ${JSON.stringify(previous.id)} and ${JSON.stringify(band.id)} overlap at s=${s}`,
+            'band_overlap',
           );
           const endpoint = s === band.start.s || s === band.end.s || s === previous.start.s || s === previous.end.s;
           requireCourse(
             edge !== left || previous.right === band.left || endpoint,
             path,
             `Adjacent Bands must reference the same canonical shared Boundary at s=${s}`,
+            'shared_boundary_required',
           );
         }
       }
@@ -104,6 +112,7 @@ export function compileCourseBandGeometry(
           0,
         path,
         `Band ${JSON.stringify(band.id)} has zero width throughout [${sStart}, ${sEnd}]`,
+        'invalid_band_width',
       );
       if (i > 0) {
         const previous = ordered[i - 1]!;
@@ -112,6 +121,7 @@ export function compileCourseBandGeometry(
             [sStart, sEnd].some((s) => courseBoundaryAt(previous.right, s) !== courseBoundaryAt(band.left, s)),
           path,
           'Adjacent Bands must reference the same canonical shared Boundary',
+          'shared_boundary_required',
         );
       }
     }
@@ -122,6 +132,7 @@ export function compileCourseBandGeometry(
           members[j - 1]!.right === members[j]!.left,
           `${sectionPath}/carriageways/${i}`,
           `Carriageway ${JSON.stringify(carriageway.id)} must be contiguous throughout [${sStart}, ${sEnd}]`,
+          'invalid_carriageway',
         );
     });
     return { sStart, sEnd, ordered };
@@ -130,7 +141,12 @@ export function compileCourseBandGeometry(
     const before = spans[i - 1]!.ordered,
       after = spans[i]!.ordered,
       s = spans[i]!.sStart;
-    requireCourse(sameUnion(before, after, s), path, `Active Band union must be continuous at s=${s}`);
+    requireCourse(
+      sameUnion(before, after, s),
+      path,
+      `Active Band union must be continuous at s=${s}`,
+      'band_transition_discontinuity',
+    );
     requireCourse(
       sameUnion(
         before.filter((b) => b.role !== 'shoulder'),
@@ -139,6 +155,7 @@ export function compileCourseBandGeometry(
       ),
       path,
       `Pavement/median union must be continuous at s=${s}`,
+      'band_transition_discontinuity',
     );
   }
   const envelope = stations.map((s, i) => {
@@ -171,6 +188,7 @@ export function compileCourseBandGeometry(
           cross(m, tangent) + l * cross(m, derivative) > 0,
           path,
           `Mapped band envelope inverts on Raster segment ${segmentIndex} at s=${s}`,
+          'mapped_band_inversion',
         );
       }
     }

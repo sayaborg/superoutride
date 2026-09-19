@@ -19,7 +19,7 @@ const ok = (result) => {
   assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
   return result.value;
 };
-const failure = (result, path, code = 'semantic_compile_failure') => {
+const failure = (result, path, code) => {
   assert.equal(result.ok, false);
   assert.equal('value' in result, false);
   if ('reason' in result) {
@@ -123,7 +123,7 @@ test('malformed height profiles fail as authored diagnostics before Core constru
   ]) {
     const input = fixture();
     input.sections[0].height = height(points);
-    const diagnostic = failure(await compileCourseDocument(input));
+    const diagnostic = failure(await compileCourseDocument(input), undefined, 'invalid_height');
     assert.ok(diagnostic.path.startsWith('/sections/0/height'));
   }
 });
@@ -135,12 +135,14 @@ test('binding admission rejects missing, repeated, unresolved and uncovered auth
         s.physicalBindings = [];
       },
       '/physicalBindings',
+      'physical_binding',
     ],
     [
       (s) => {
         s.physicalBindings.push(structuredClone(s.physicalBindings[0]));
       },
       '/physicalBindings/1/bandId',
+      'physical_binding',
     ],
     [
       (s) => {
@@ -154,6 +156,7 @@ test('binding admission rejects missing, repeated, unresolved and uncovered auth
         s.physicalBindings[0].sections = [];
       },
       '/physicalBindings/0/sections',
+      'invalid_profile',
     ],
     [
       (s) => {
@@ -167,18 +170,21 @@ test('binding admission rejects missing, repeated, unresolved and uncovered auth
         s.physicalBindings[0].sections[0].anchor.s = 1;
       },
       '/physicalBindings/0/sections/0/anchor',
+      'invalid_profile',
     ],
     [
       (s) => {
         s.physicalBindings[0].sections.push({ anchor: anchor(300), material: 'GRASS' });
       },
       '/physicalBindings/0/sections/1/anchor',
+      'invalid_profile',
     ],
     [
       (s) => {
         s.physicalBindings[0].sections.push({ anchor: anchor(0), material: 'GRASS' });
       },
       '/physicalBindings/0/sections/1/anchor',
+      'invalid_profile',
     ],
   ];
   for (const [edit, path, code] of cases) {
@@ -420,7 +426,7 @@ test('material stations lost in seam-relative coordinates fail instead of silent
   input.links[0].overlap.behind = 200;
   input.sections[1].ports[0].anchor = anchor(250);
   input.sections[0].physicalBindings[0].sections.push({ anchor: anchor(1e-15), material: 'ASPHALT' });
-  const diagnostic = qualificationFailure(await qualify(input), 'semantic_compile_failure');
+  const diagnostic = qualificationFailure(await qualify(input), 'unrepresentable_overlap');
   assert.match(diagnostic.message, /distinguishable/);
 });
 
@@ -430,7 +436,11 @@ test('physical edits invalidate identity; failed import preserves the prior immu
   const before = project.getState(),
     input = fixture();
   input.sections[0].physicalBindings = [];
-  failure(await project.importDocument(ok(saveCourseDocument(input))), '/sections/0/physicalBindings');
+  failure(
+    await project.importDocument(ok(saveCourseDocument(input))),
+    '/sections/0/physicalBindings',
+    'physical_binding',
+  );
   assert.equal(project.getState(), before);
   for (const edit of [
     (s) => {

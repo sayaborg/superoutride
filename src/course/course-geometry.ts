@@ -38,11 +38,7 @@ export function compileCourseGeometry(
   readonly primitives: readonly CompiledPlanPrimitive[];
 } {
   if (section.primitives.length === 0)
-    throw new CourseInputError(
-      'semantic_compile_failure',
-      `${path}/primitives`,
-      'A Section requires at least one plan primitive',
-    );
+    throw new CourseInputError('empty_section', `${path}/primitives`, 'A Section requires at least one plan primitive');
   let segmentCount = 0;
   for (const primitive of section.primitives) {
     segmentCount +=
@@ -68,7 +64,7 @@ export function compileCourseGeometry(
     raster = compileRasterPath(turtle.vertices);
   } catch (error) {
     if (error instanceof RangeError)
-      throw new CourseInputError('semantic_compile_failure', `${path}/primitives`, error.message);
+      throw new CourseInputError('invalid_raster_geometry', `${path}/primitives`, error.message);
     throw error;
   }
   if (raster.length > COURSE_DOCUMENT_LIMITS.lengthMeters)
@@ -92,11 +88,7 @@ export function resolveCourseAnchor(
 ): CompiledCourseAnchor {
   if (anchor.kind === 'absolute') {
     if (anchor.s > length)
-      throw new CourseInputError(
-        'semantic_compile_failure',
-        `${path}/s`,
-        `Anchor ${anchor.s} is outside [0, ${length}]`,
-      );
+      throw new CourseInputError('invalid_anchor', `${path}/s`, `Anchor ${anchor.s} is outside [0, ${length}]`);
     return Object.freeze({ kind: 'absolute', s: anchor.s });
   }
   const primitive = primitives.get(anchor.primitiveId);

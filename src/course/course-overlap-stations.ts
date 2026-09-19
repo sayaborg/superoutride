@@ -34,7 +34,7 @@ export function compileCourseOverlapStations(
             : s - ruler.seam;
       if (offsets.has(delta) && offsets.get(delta) !== s)
         throw new CourseInputError(
-          'semantic_compile_failure',
+          'unrepresentable_overlap',
           `${path}/${key}`,
           'Distinct ruler stations must remain distinguishable in overlap coordinates',
         );
@@ -51,6 +51,6 @@ export function compileCourseOverlapStations(
     );
   for (let i = 1; i < stations.length; i += 1)
     if (stations[i]!.source < stations[i - 1]!.source || stations[i]!.destination < stations[i - 1]!.destination)
-      throw new CourseInputError('semantic_compile_failure', path, 'Overlap partition must preserve ruler order');
+      throw new CourseInputError('unrepresentable_overlap', path, 'Overlap partition must preserve ruler order');
   return Object.freeze(stations.map((s) => Object.freeze(s)));
 }

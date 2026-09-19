@@ -9,7 +9,30 @@ type CourseDiagnosticCode =
   | 'invalid_numeric_domain'
   | 'resource_limit'
   | 'unsupported_feature'
-  | 'semantic_compile_failure'
+  | 'empty_course'
+  | 'empty_section'
+  | 'invalid_raster_geometry'
+  | 'invalid_guide_geometry'
+  | 'invalid_anchor'
+  | 'invalid_boundary'
+  | 'invalid_band_domain'
+  | 'invalid_band_width'
+  | 'band_coverage_gap'
+  | 'band_overlap'
+  | 'shared_boundary_required'
+  | 'band_transition_discontinuity'
+  | 'mapped_band_inversion'
+  | 'invalid_carriageway'
+  | 'duplicate_membership'
+  | 'invalid_height'
+  | 'physical_binding'
+  | 'invalid_port'
+  | 'invalid_link'
+  | 'invalid_topology'
+  | 'nonstraight_overlap'
+  | 'invalid_overlap'
+  | 'overlap_geometry_mismatch'
+  | 'unrepresentable_overlap'
   | 'coverage_gap'
   | 'ambiguous_geometry'
   | 'nonhorizontal_overlap'
@@ -151,7 +174,7 @@ export function requireCourse(
   condition: boolean,
   path: string,
   message: string,
-  code: CourseDiagnosticCode = 'semantic_compile_failure',
+  code: CourseDiagnosticCode,
 ): asserts condition {
   if (!condition) throw new CourseInputError(code, path, message);
 }

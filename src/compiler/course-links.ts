@@ -34,6 +34,7 @@ function edges(
     bands.length > 0,
     path,
     `Carriageway ${JSON.stringify(carriageway.id)} does not cover [${start}, ${end}]`,
+    'invalid_carriageway',
   );
   const left = bands[0]!.left,
     right = bands.at(-1)!.right;
@@ -42,6 +43,7 @@ function edges(
       courseBoundaryAt(right, s) > courseBoundaryAt(left, s),
       path,
       `Carriageway ${JSON.stringify(carriageway.id)} needs positive width at s=${s}`,
+      'invalid_carriageway',
     );
   return [left, right];
 }
@@ -68,6 +70,7 @@ export function compileCoursePort(
     anchor.s > 0 && anchor.s < section.raster.length,
     `${path}/anchor`,
     'Port must lie inside the finite Section domain',
+    'invalid_port',
   );
   const l = carriagewayCenter(carriageway, anchor.s, path);
   const { x, z, heading } = guidePathToWorld(section.guide, anchor.s, l);
@@ -91,16 +94,22 @@ export function requireCourseStraightSpan(
 ): void {
   for (const primitive of section.primitives)
     if (primitive.sStart < end && primitive.sEnd > start)
-      requireCourse(primitive.source.kind === 'straight', path, 'Overlap must lie in authored straight primitives');
+      requireCourse(
+        primitive.source.kind === 'straight',
+        path,
+        'Overlap must lie in authored straight primitives',
+        'nonstraight_overlap',
+      );
   for (const segment of section.guide.segments)
     if (segment.sStart < end && segment.sEnd > start)
-      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet');
+      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet', 'nonstraight_overlap');
   for (const segment of section.raster.segments)
     if (segment.sStart < end && segment.sStart + segment.length > start)
       requireCourse(
         Math.abs(wrapAngle(segment.heading - heading)) <= COURSE_LINK_RECIPE.headingToleranceRadians,
         path,
         'Overlap Raster headings must agree with the port forward direction',
+        'nonstraight_overlap',
       );
 }
 
@@ -113,6 +122,7 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
     start >= 0 && start < seam && end > seam && end <= section.raster.length,
     path,
     `Overlap [${start}, ${end}] must fit Section ${JSON.stringify(section.id)} with representable extent on both sides`,
+    'invalid_overlap',
   );
   requireCourseStraightSpan(section, start, end, port.pose.heading, path);
   return [
@@ -138,6 +148,7 @@ export function compileCourseLink(
     source.kind === 'exit' && destination.kind === 'entry',
     path,
     'Link must connect an exit Port to an entry Port',
+    'invalid_link',
   );
   const ruler = (port: CompiledPort, key: string) => ({
     seam: port.anchor.s,
@@ -167,6 +178,7 @@ export function compileCourseLink(
               COURSE_LINK_RECIPE.positionToleranceMeters,
             path,
             `Carriageway geometry is discontinuous in ${JSON.stringify(p.section.id)} at s=${s}`,
+            'overlap_geometry_mismatch',
           );
         }
       });
@@ -195,6 +207,7 @@ export function compileCourseLink(
           [a, control, b].every((v) => Math.hypot(v.x, v.z) <= COURSE_LINK_RECIPE.positionToleranceMeters),
           path,
           `${reader} carriageway edge ${side} disagrees over overlap delta [${start.delta}, ${end.delta}]`,
+          'overlap_geometry_mismatch',
         );
       }
     }
@@ -213,32 +226,41 @@ export function validateCourseTopology(
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}/ports`,
       entries = section.ports.filter((p) => p.kind === 'entry');
-    requireCourse(entries.length <= 1, path, 'A Section has at most one entry Port; merges share it');
+    requireCourse(
+      entries.length <= 1,
+      path,
+      'A Section has at most one entry Port; merges share it',
+      'invalid_topology',
+    );
     const exits = section.ports.filter((p) => p.kind === 'exit');
     for (const port of exits) {
       requireCourse(
         section.outgoing.filter((link) => link.source === port).length === 1,
         path,
         `Exit Port ${JSON.stringify(port.id)} needs exactly one Link`,
+        'invalid_topology',
       );
       if (entries[0])
         requireCourse(
           port.anchor.s > entries[0].anchor.s,
           path,
           'Exit chainage must follow entry chainage with positive span',
+          'invalid_topology',
         );
     }
     requireCourse(
       new Set(exits.map((p) => p.carriageway)).size === exits.length,
       path,
       'Fork exits must name distinct Carriageways',
+      'invalid_topology',
     );
     requireCourse(
       section.outgoing.length <= (type === 'BRANCH' ? 3 : 1),
       path,
       'Too many outgoing Links for the course type',
+      'invalid_topology',
     );
-    if (type === 'LINEAR') requireCourse(section.incoming.length <= 1, path, 'LINEAR cannot merge');
+    if (type === 'LINEAR') requireCourse(section.incoming.length <= 1, path, 'LINEAR cannot merge', 'invalid_topology');
   }
   if (type === 'CIRCUIT') {
     requireCourse(
@@ -248,14 +270,20 @@ export function validateCourseTopology(
         links[0]!.destination.section === entry,
       '/links',
       'CIRCUIT requires one Section and one exit-to-entry loop Link',
+      'invalid_topology',
     );
     return;
   }
-  requireCourse(entry.incoming.length === 0, '/entrySectionId', 'Entry Section cannot have an incoming Link');
+  requireCourse(
+    entry.incoming.length === 0,
+    '/entrySectionId',
+    'Entry Section cannot have an incoming Link',
+    'invalid_topology',
+  );
   const visited = new Set<CompiledSection>(),
     active = new Set<CompiledSection>();
   const visit = (section: CompiledSection): void => {
-    requireCourse(!active.has(section), '/links', 'LINEAR/BRANCH topology must be acyclic');
+    requireCourse(!active.has(section), '/links', 'LINEAR/BRANCH topology must be acyclic', 'invalid_topology');
     if (visited.has(section)) return;
     active.add(section);
     for (const link of section.outgoing) visit(link.destination.section);
@@ -267,5 +295,6 @@ export function validateCourseTopology(
     visited.size === sections.length,
     '/sections',
     'Every Section must be reachable from the entry Section',
+    'invalid_topology',
   );
 }

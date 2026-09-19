@@ -23,8 +23,13 @@ export function compileCoursePhysicalContent(
 ) {
   const heightPath = `${path}/height`;
   const nodes = source.height.map((node, i) => ({ s: resolve(node.anchor, `${heightPath}/${i}/anchor`).s, y: node.y }));
-  requireCourse(nodes.length >= 2, heightPath, 'Height requires at least two nodes');
-  requireCourse(nodes[0]!.s === 0 && nodes.at(-1)!.s === length, heightPath, 'Height must cover [0, Section length]');
+  requireCourse(nodes.length >= 2, heightPath, 'Height requires at least two nodes', 'invalid_height');
+  requireCourse(
+    nodes[0]!.s === 0 && nodes.at(-1)!.s === length,
+    heightPath,
+    'Height must cover [0, Section length]',
+    'invalid_height',
+  );
   for (let i = 1; i < nodes.length; i += 1) {
     const a = nodes[i - 1]!,
       b = nodes[i]!;
@@ -32,6 +37,7 @@ export function compileCoursePhysicalContent(
       b.s > a.s && Number.isFinite(Math.PI / (b.s - a.s)) && Number.isFinite(((b.y - a.y) * Math.PI) / (b.s - a.s)),
       `${heightPath}/${i}`,
       'Height nodes must increase with finite grade',
+      'invalid_height',
     );
   }
   const height = Object.freeze(new HeightProfile(length, nodes));
@@ -41,12 +47,18 @@ export function compileCoursePhysicalContent(
     const at = `${path}/physicalBindings/${i}`,
       band = table.get(binding.bandId);
     if (!band) throw new CourseInputError('unresolved_reference', `${at}/bandId`, 'Unknown physical Band reference');
-    requireCourse(!assigned.has(band), `${at}/bandId`, 'Each Band needs exactly one physical binding');
+    requireCourse(
+      !assigned.has(band),
+      `${at}/bandId`,
+      'Each Band needs exactly one physical binding',
+      'physical_binding',
+    );
     assigned.add(band);
     requireCourse(
       binding.sections.length > 0,
       `${at}/sections`,
       'Physical binding requires an explicit material profile',
+      'invalid_profile',
     );
     const sections = binding.sections.map((section, j) => {
       const nodePath = `${at}/sections/${j}`;
@@ -57,6 +69,7 @@ export function compileCoursePhysicalContent(
         anchor.s >= band.start.s && anchor.s < band.end.s,
         `${nodePath}/anchor`,
         'Material change must lie inside the active Band',
+        'invalid_profile',
       );
       return Object.freeze({ anchor, material: SURFACE_MATERIALS[section.material as SurfaceType] });
     });
@@ -64,12 +77,14 @@ export function compileCoursePhysicalContent(
       sections[0]!.anchor.s === band.start.s,
       `${at}/sections/0/anchor`,
       'Material profile must begin at Band activation',
+      'invalid_profile',
     );
     for (let j = 1; j < sections.length; j += 1)
       requireCourse(
         sections[j]!.anchor.s > sections[j - 1]!.anchor.s,
         `${at}/sections/${j}/anchor`,
         'Material changes must be strictly increasing',
+        'invalid_profile',
       );
     return Object.freeze({ band, sections: Object.freeze(sections) });
   });
@@ -77,6 +92,7 @@ export function compileCoursePhysicalContent(
     assigned.size === bands.length,
     `${path}/physicalBindings`,
     'Every Band requires an explicit physical binding',
+    'physical_binding',
   );
   return Object.freeze({ height, physicalBindings: Object.freeze(physicalBindings) });
 }

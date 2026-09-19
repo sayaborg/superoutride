@@ -121,6 +121,7 @@ function qualify(links: readonly CompiledLink[], demand?: Demand) {
           start === end || (end.source > start.source && end.destination > start.destination),
           path,
           'Physical overlap cells must remain representable in both rulers',
+          'unrepresentable_overlap',
         );
         const a = regions(link.source, start.source, end.source, domain),
           b = regions(link.destination, start.destination, end.destination, domain);

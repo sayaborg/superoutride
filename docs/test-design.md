@@ -48,6 +48,13 @@ Test unresolved/duplicate references at admission, pointer identity inside one c
 source-mutation isolation, failed publication, and serialization/reload through the same validator.
 Independent compiled products may have equal content identities and different object identities.
 
+Authoring diagnostics assert specific cause codes and actual input pointers for the existing invalid
+geometry/content cases. Combine independent defects across boundaries/Sections and Links in one input;
+assert deterministic ordered diagnostics, no dependent topology cascades, no partial product and no
+mutation of the source or prior project publication. Repairing a sibling removes only its failures.
+Unexpected exceptions preserve their identity and propagate. Schema admission remains a prerequisite;
+the compiler does not fabricate products to continue through invalid dependencies.
+
 Saved image tests use actual UTF-8 bytes and their digests, including alias descriptors and input-order
 permutations. Check canonical source sharing, complete nested immutability and mutation during hashing.
 Feed admitted indexed data through the ordinary sprite reader/blitter, distinguishing transparency

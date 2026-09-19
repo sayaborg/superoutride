@@ -614,7 +614,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 11, including the Link recipe v1, physical recipe v2, image-source
+`superoutride.course-compiler` version 12, including the Link recipe v1, physical recipe v2, image-source
 admission recipe v1 and presentation recipe v1 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
@@ -626,12 +626,20 @@ distinct graph objects. Changes to compiler/recipe semantics require a version r
 recipes never silently migrate. Existing numerical-environment limits in Development apply.
 
 Document admission/compilation returns `{ok: true, value}` or `{ok: false, diagnostics}`. Input diagnostics have
-`kind: "input"`, `code`, a JSON Pointer `path` into the submitted input, and a causal `message`. The initial reader
-reports the first failure deterministically. Codes are `parse_failure`, `invalid_shape`,
-`unsupported_version`, `unsupported_format`, `unsupported_units`, `duplicate_id`, `unresolved_reference`,
-`invalid_numeric_domain`, `resource_limit`, `unsupported_feature`, and `semantic_compile_failure`.
-Presentation compilation additionally distinguishes `appearance_binding`, `invalid_image_role`,
-`invalid_profile` and `invalid_placement` at their actual document locations.
+`kind: "input"`, `code`, a JSON Pointer `path` into the submitted input, and a causal `message`.
+Schema admission reports the first malformed shape/value deterministically. After schema and asset
+admission, independent scenery instances, Sections, boundaries/anchors, Bands, Carriageways, Ports,
+Links and fork controls collect expected semantic errors in document/declaration order. Each dependency
+phase completes its independent siblings; failed phases stop dependent construction. No placeholder
+geometry or unresolved object is supplied to generate downstream cascades.
+
+Compiler v12 replaces the former catch-all semantic code with explicit causes: empty course/Section,
+Raster/Guide geometry, anchor/boundary/domain/width, Band overlap/coverage/transition, shared Boundary,
+mapped inversion, Carriageway membership, height/physical binding, Port/Link/topology and unrepresentable
+overlap. Clients use `code` and `path`, without parsing English messages. The diagnostic union in
+`course-diagnostics.ts` enumerates these codes alongside shape/version/reference/resource and supported
+presentation codes. Every validation call supplies its cause explicitly. Existing invalid-input and
+geometry predicates remain in force; this reporting contract supersedes single-error semantic compilation.
 Literal format/unit failures never claim to be version failures. Separate Link qualification diagnostics
 and multi-failure behavior are specified above. Traversal/view failures use their runtime-specific
 reasons, while project `no_source`/`stale_source` outcomes are `{ok: false, reason}` without document

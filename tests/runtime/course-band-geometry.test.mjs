@@ -115,21 +115,21 @@ test('all structural roles, shared edges, gaps and outer edges use exact half-op
 test('interior knots, noncanonical touching boundaries and locally wide bends fail before publication', async () => {
   const crossing = fixture();
   crossing.sections[0].boundaries[0].knots[1].l = 2;
-  failure(await compileCourseDocument(crossing), 'semantic_compile_failure', '/sections/0/bands');
+  failure(await compileCourseDocument(crossing), 'band_overlap', '/sections/0/bands');
   const duplicate = fixture(),
     s = duplicate.sections[0];
   s.boundaries.push({ ...structuredClone(s.boundaries[1]), id: 'same-curve' });
   s.bands[1].leftBoundaryId = 'same-curve';
-  failure(await compileCourseDocument(duplicate), 'semantic_compile_failure', '/sections/0/bands');
+  failure(await compileCourseDocument(duplicate), 'shared_boundary_required', '/sections/0/bands');
   const wide = fixture();
   for (const knot of wide.sections[0].boundaries[2].knots) knot.l = 17;
-  failure(await compileCourseDocument(wide), 'semantic_compile_failure', '/sections/0/guide');
+  failure(await compileCourseDocument(wide), 'invalid_guide_geometry', '/sections/0/guide');
 });
 
 test('mapped envelope detects local inversion and nonadjacent overlap with varying edges', async () => {
   const inverted = fixture();
   for (const knot of inverted.sections[0].boundaries[2].knots) knot.l = 30;
-  const inversion = failure(await compileCourseDocument(inverted), 'semantic_compile_failure', '/sections/0/bands');
+  const inversion = failure(await compileCourseDocument(inverted), 'mapped_band_inversion', '/sections/0/bands');
   assert.match(inversion.message, /inverts/);
   const overlapping = fixture();
   overlapping.sections[0].primitives[1].turn = 360;
@@ -146,7 +146,7 @@ test('boundary edits invalidate derived profiles; invalid import and caller muta
   const prior = project.getState();
   const invalid = fixture();
   invalid.sections[0].boundaries[0].knots[1].l = 100;
-  failure(await project.importDocument(ok(saveCourseDocument(invalid))), 'semantic_compile_failure');
+  failure(await project.importDocument(ok(saveCourseDocument(invalid))), 'band_overlap');
   assert.equal(project.getState(), prior);
   const input = fixture();
   input.sections[0].boundaries[2].knots.at(-1).l = 70;

@@ -50,7 +50,7 @@ These are synthetic host workloads, not named-master acceptance. Recipe identiti
 versions/operative parameters, not explanatory prose.
 
 Schema v5 includes explicit fork controls and presentation alongside entry Section, Section-local Ports and document-wide
-Links/instances; schemas v1/v2/v3/v4 receive an unsupported-version diagnostic. Course compiler v11 includes
+Links/instances; schemas v1/v2/v3/v4 receive an unsupported-version diagnostic. Course compiler v12 includes
 the pinned carriageway-Link recipe v1, physical recipe v2, image-source and presentation recipes v1.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
@@ -131,6 +131,12 @@ the selected seam and retained actual predecessor without actor commits. Source 
 shared and common scenery appears once. The saved-file CLI reproduces the scoped reader admission.
 Its whole window must fit the active source's local geometry proof and neighbor common guard; longer/
 multiple-neighbor windows, full runtime envelopes, transfer dynamics and atomic commits remain pending.
+
+Compiler diagnostics now distinguish authored geometry/content causes without a catch-all semantic
+code. Independent failures at each reached construction phase are collected in declaration order;
+invalid prerequisites stop dependent work. [Diagnostic regressions](../tests/runtime/course-diagnostics.test.mjs)
+preserve input/prior publication, causal locations and exception identity. Schema/image admission,
+runtime outcomes and internal invariant failures retain their separate contracts.
 
 ### Next milestones
 
