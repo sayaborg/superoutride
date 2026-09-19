@@ -13,6 +13,8 @@ export interface FarBackground {
   surface: SoftwareSurface;
   sourceHorizonY: number;
   pixelsPerRadian: number;
+  /** Frame-relative pan origin. Legacy backgrounds retain origin zero. */
+  yawOriginRadians?: number;
 }
 
 export function createFarBackground(): FarBackground {
@@ -48,7 +50,7 @@ export function createFarBackground(): FarBackground {
 
 export function drawFarBackground(target: SoftwareSurface, background: FarBackground, camera: PseudoCamera): void {
   const yH = horizonY(camera);
-  const xPan = Math.round(background.pixelsPerRadian * camera.yaw);
+  const xPan = Math.round(background.pixelsPerRadian * (camera.yaw - (background.yawOriginRadians ?? 0)));
   for (let y = 0; y < target.height; y += 1) {
     const srcY = Math.max(0, Math.min(background.surface.height - 1, Math.round(background.sourceHorizonY + y - yH)));
     for (let x = 0; x < target.width; x += 1) {

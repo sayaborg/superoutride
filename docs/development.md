@@ -144,6 +144,19 @@ missing/expanded consumers, exact guard/domain edges, interior clipping crossing
 failures, immutable references and the actual surface readers. Camera/picture continuity and actual
 product query containment are not certified by this command. Current driving roots remain unchanged.
 
+Presentation qualification accepts `--presentation-domain demand.json` after the document and image
+directory, or `--presentation-camera camera.json` to derive the footprints. The camera request contains
+exactly `pose`, `step`, `camera`, `render`, `maxYawFromPort` and `filter`; all radii and limits are explicit.
+The report uses scope `presentation-query-domain`, separate from physical evidence and runtime readiness.
+[Content](content-and-gameplay.md#declared-presentation-query-domains) owns the envelope and proof.
+The [camera coverage test](../tests/runtime/course-presentation-coverage.test.mjs) constructs a saved
+three-way fork with real image files, exercises the CLI and records actual renderer queries/full frames.
+Run the focused source/projection cases after a build:
+
+```sh
+node --test tests/runtime/course-presentation-overlap.test.mjs tests/runtime/course-presentation-coverage.test.mjs tests/rendering/sprite-frame-observation.test.mjs
+```
+
 ### Course geometry capacity
 
 ```sh

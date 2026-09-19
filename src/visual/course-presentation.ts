@@ -1,10 +1,21 @@
 import type { CompiledBand, CompiledBandPartition } from '../course/course-bands.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
-import type { SpriteLodDocument } from '../graphics/sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../graphics/sprite.js';
 
 /** Ordinary indexed-image facet; a compiler's canonical asset record structurally supplies it. */
 interface IndexedSource {
   readonly source: SpriteLodDocument;
+}
+
+/** Full billboard extent about its anchor, including transparent margins; no opaque-bounds shortcut. */
+export function courseSceneryAnchorReach(presentations: readonly CoursePresentation[]): number {
+  let reach = 0;
+  for (const presentation of presentations)
+    for (const placement of presentation.scenery) {
+      const image = placement.instance.asset.source;
+      reach = Math.max(reach, Math.abs(image.anchorX + 0.5), Math.abs(image.width - image.anchorX - 0.5));
+    }
+  return reach / SPRITE_SOURCE_TEXELS_PER_METER;
 }
 
 export interface CoursePaint {

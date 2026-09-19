@@ -16,8 +16,10 @@ import {
 } from '../../dist/course/course-diagnostics.js';
 import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-window.js';
 import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
+import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
+import { coursePresentationDemand } from '../../dist/runtime/course-presentation-demand.js';
 
-async function physicalQualification(course, arguments_) {
+async function contentQualification(course, arguments_) {
   if (arguments_[0] === '--physical-overlap') return compileCoursePhysicalOverlaps(course.links);
   const text = await readFile(arguments_[1], 'utf8');
   let demand;
@@ -25,8 +27,40 @@ async function physicalQualification(course, arguments_) {
     demand = JSON.parse(text);
   } catch (error) {
     if (!(error instanceof SyntaxError)) throw error;
-    return courseFailure(new CourseInputError('parse_failure', '/demand', 'Physical demand must be JSON'));
+    return courseFailure(new CourseInputError('parse_failure', '/demand', 'Content demand must be JSON'));
   }
+  if (arguments_[0] === '--presentation-camera') {
+    try {
+      if (
+        !demand ||
+        typeof demand !== 'object' ||
+        Array.isArray(demand) ||
+        Object.keys(demand).length !== 6 ||
+        !['pose', 'step', 'camera', 'render', 'maxYawFromPort', 'filter'].every((key) => Object.hasOwn(demand, key))
+      )
+        throw new TypeError('Camera demand requires exactly pose, step, camera, render, maxYawFromPort and filter');
+      demand = coursePresentationDemand(
+        demand.pose,
+        demand.step,
+        demand.camera,
+        demand.render,
+        demand.maxYawFromPort,
+        demand.filter,
+        course.sections.flatMap((s) => (s.presentation ? [s.presentation] : [])),
+      );
+    } catch (error) {
+      if (!(error instanceof TypeError || error instanceof RangeError)) throw error;
+      return courseFailure(
+        new CourseInputError(
+          error instanceof TypeError ? 'invalid_shape' : 'invalid_numeric_domain',
+          '/demand',
+          error.message,
+        ),
+      );
+    }
+  }
+  if (arguments_[0] === '--presentation-domain' || arguments_[0] === '--presentation-camera')
+    return compileCoursePresentationDomains(course.links, demand);
   return compileCoursePhysicalDomains(course.links, demand);
 }
 
@@ -41,10 +75,10 @@ if (
     !(extra.length === 8 && extra[0] === '--driving-view') &&
     !(extra.length === 4 && extra[0] === '--geometry-window') &&
     !(extra.length === 1 && extra[0] === '--physical-overlap') &&
-    !(extra.length === 2 && extra[0] === '--physical-domain'))
+    !(extra.length === 2 && ['--physical-domain', '--presentation-domain', '--presentation-camera'].includes(extra[0])))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
+    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --presentation-domain demand.json | --presentation-camera camera.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
   );
 const project = createCourseProject();
 const sourceText = await readFile(sourcePath, 'utf8');
@@ -82,8 +116,10 @@ if (!result.ok) {
         2,
       ),
     );
-} else if (extra[0] === '--physical-overlap' || extra[0] === '--physical-domain') {
-  const qualification = await physicalQualification(result.value, extra);
+} else if (
+  ['--physical-overlap', '--physical-domain', '--presentation-domain', '--presentation-camera'].includes(extra[0])
+) {
+  const qualification = await contentQualification(result.value, extra);
   if (!qualification.ok) {
     console.error(JSON.stringify(qualification, null, 2));
     process.exitCode = 1;

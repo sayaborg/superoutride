@@ -342,6 +342,43 @@ admission must additionally prove that real queries stay inside the qualified do
 neighbor interactions, reverse/recovery and pre-lock states. Camera/render coverage and presentation
 visibility/continuity remain separate: physical reachability never proves that a road is invisible.
 
+#### Declared presentation query domains
+
+`compileCoursePresentationDomains(links, demand)` separately qualifies the admitted saved presentation
+subset. Demand has the same explicit pose/step/extent form, with `cameraRender`, `groundFilter` and
+`scenery` consumers. Ground filtering includes its complete query footprint and filter halo; scenery
+includes every potentially visible anchor, expanded for the full bitmap and authored anchor. Each
+expanded longitudinal requirement must fit the guard. The complete guard and union lateral domain
+must fit both half-open source strips, including closed query endpoints.
+
+The proof shares the physical qualifier's geometric partition, then compares paint at every profile
+change, complete clipped cell and exact ownership boundary. Pattern equality requires the same
+admitted image source and integer image-period displacement; static A/B spans, palette and parity must
+agree. There is no phase epsilon. Base color, horizontal height, ordered intersecting stamps and their
+source-lattice positions must agree. Environment/background fields and frame-relative pan origins
+agree throughout the guard; angular agreement uses the Link recipe's heading tolerance because derived
+Raster headings retain floating-point roundoff. Common scenery has one placement per canonical
+instance in the domain, with equal mapped chainage, lateral position and render height.
+
+Success owns immutable demand and Link references with scope `presentation-query-domain` and
+presentation-overlap recipe v1. Independent Link failures are collected using qualification diagnostics;
+codes distinguish missing presentation, ground, phase, environment and scenery disagreement. This is
+a conservative source-pattern proof: differently encoded but coincidentally equal images can fail.
+It neither chooses a ground filter nor certifies resident images or runtime transition readiness.
+
+`coursePresentationDemand` derives straight-guard footprints from explicit camera distance, focal
+length, viewport width/center, render depth interval, maximum yaw from the Port, filter radii and saved
+scenery. For horizontal camera coordinates, `xr = cos(yaw)*l - sin(yaw)*ds`; the chase offset cancels.
+The bound uses the farthest viewport edge/depth and the complete yaw interval, with bitmap anchor reach
+expanded by the minimum cosine. Height and pitch change visible rows, not this conservative horizontal
+bound. Runtime admission must still enforce the pose/yaw envelope and straight-guard premise.
+
+The large three-way fork fixture qualifies all six Links for physical and presentation domains without
+VOID holes or copied siblings. Actual ground queries remain inside the derived camera domain, and full
+frames agree across paired transformed observations, including shared scenery and background. This
+does not prove pre-lock coverage, each exit's complete parent-specific visible end, transfer margins,
+general multi-occurrence driving readers or an atomic actor commit.
+
 ### Offline Port and Link geometry
 
 [Port/Link compilation](../src/compiler/course-links.ts) resolves a Port to a canonical Section,

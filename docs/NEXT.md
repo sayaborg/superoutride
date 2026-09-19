@@ -103,9 +103,16 @@ Independent asset diagnostics, input mutation isolation, limits, atomic/stale pr
 ordinary sprite reader/blitter are covered. [Saved presentation](image-assets.md#saved-course-presentation)
 now adds canonical Band paint profiles, static A/B phase, ordered anchored stamps, explicit backgrounds/
 GroundBase and shared scenery instances. Source RGB555 evaluation and authoring failures are tested;
-geometry fixtures explicitly retain absent presentation. This is not complete presentation overlap
-qualification or occurrence-mapped presentation. Marking/boundary/scatter/pattern-row recipes remain
+geometry fixtures explicitly retain absent presentation. Marking/boundary/scatter/pattern-row recipes remain
 unsupported, not filled with inferred defaults.
+
+[Presentation-domain qualification](content-and-gameplay.md#declared-presentation-query-domains) now
+compares complete source-pattern cells, static phase, ordered stamps, environment/background and canonical
+scenery over explicit camera/filter/anchor domains. Camera-derived straight-guard footprints contain
+actual ground queries; complete paired frames agree over three forks and every incoming merge Link.
+An ordinary sprite observation reader preserves screen/depth observations during pure frame changes.
+This is scoped source-domain and renderer evidence, not complete pre-lock/exit visibility, general
+occurrence-mapped presentation or an atomic actor transition. Gate 2 remains in progress.
 
 ### Next milestones
 
@@ -135,10 +142,11 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 
 ### Gate 2 remaining order
 
-1. Qualify the admitted presentation subset against complete common-content requirements; unsupported
-   content recipes stay explicit rather than receiving placeholders. Prove actual
-   query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
-   merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.
+1. Extend scoped physical/presentation proofs to complete common-content requirements; unsupported
+   content recipes stay explicit rather than receiving placeholders. Complete pre-lock coverage,
+   each exit's parent-specific visible end and transfer envelope. Preserve the implemented actual
+   camera-query/full-frame evidence for every incoming merge Link. Physical reachability is not an
+   image-visibility proof. Resident RGB555 remains Gate 3.
    Extend the proven single-Section readers across qualified occurrence mappings; derive full pose/lateral
    envelopes in addition to the implemented longitudinal demand. Selection/history and the seam-free
    LINEAR real-consumer slice are implemented, not evidence that a Link is ready.

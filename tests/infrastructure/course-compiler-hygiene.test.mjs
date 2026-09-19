@@ -17,6 +17,13 @@ for (const [entry, owners, restricted = {}] of [
   ['compiler/course-image-source.ts', ['core', 'course', 'graphics'], { graphics: ['graphics/sprite.js'] }],
   ['compiler/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/course-overlap-domain.ts', ['course', 'compiler']],
+  ['compiler/course-consumer-demand.ts', ['course']],
+  [
+    'compiler/course-presentation-overlap.ts',
+    ['core', 'course', 'compiler', 'graphics', 'visual'],
+    { graphics: ['graphics/sprite.js'], visual: ['visual/course-presentation.js'] },
+  ],
   [
     'compiler/course-graph.ts',
     ['core', 'course', 'compiler', 'physics', 'visual'],

@@ -1,4 +1,4 @@
-import { courseBandAt, courseBoundaryAt } from '../course/course-bands.js';
+import { courseBandAt } from '../course/course-bands.js';
 import {
   courseFailures,
   CourseInputError,
@@ -14,6 +14,12 @@ import { coursePhysicalMaterialAt } from '../course/course-physical-binding.js';
 import { SURFACE_MATERIALS } from '../physics/surface-map.js';
 import { compileCoursePhysicalDemand } from './course-physical-demand.js';
 import { COURSE_PHYSICAL_RECIPE } from './course-physical-content.js';
+import {
+  requireCanonicalCourseLinks,
+  courseOverlapRuler,
+  courseOverlapBandRegions,
+  courseOverlapHeight,
+} from './course-overlap-domain.js';
 
 interface PhysicalOverlapQualification {
   readonly scope: 'physical-overlap';
@@ -24,66 +30,22 @@ type Demand = Extract<ReturnType<typeof compileCoursePhysicalDemand>, { ok: true
 type LateralDomain = Pick<Demand['bounds'], 'left' | 'right'>;
 
 function ruler(port: CompiledPort, overlap: CompiledLink['overlap'], domain?: LateralDomain) {
-  const crossings: number[] = [];
-  if (domain) {
-    const origin = coursePortLateral(port);
-    for (const { band } of port.section.physicalBindings)
-      for (const boundary of [band.left, band.right]) {
-        for (let i = 1; i < boundary.knots.length; i += 1) {
-          const a = boundary.knots[i - 1]!,
-            b = boundary.knots[i]!;
-          const start = Math.max(a.anchor.s, band.start.s, port.anchor.s - overlap.behind);
-          const end = Math.min(b.anchor.s, band.end.s, port.anchor.s + overlap.ahead);
-          if (end <= start) continue;
-          const l0 = courseBoundaryAt(boundary, start) - origin,
-            l1 = courseBoundaryAt(boundary, end) - origin;
-          for (const edge of [-domain.left, domain.right]) {
-            if (!(edge > Math.min(l0, l1) && edge < Math.max(l0, l1))) continue;
-            const s = start + (end - start) * ((edge - l0) / (l1 - l0));
-            requireCourse(s > start && s < end, '', 'Domain-edge crossing must remain distinct in the source ruler');
-            crossings.push(s);
-          }
-        }
-      }
-  }
-  return {
-    seam: port.anchor.s,
-    stations: [
-      ...crossings,
-      ...port.section.physicalBindings.flatMap(({ band, sections }) => [
-        band.start.s,
-        band.end.s,
-        ...[band.left, band.right].flatMap((b) => b.knots.map((k) => k.anchor.s)),
-        ...sections.map((s) => s.anchor.s),
-      ]),
-    ],
-  };
+  return courseOverlapRuler(
+    port,
+    overlap,
+    domain,
+    port.section.physicalBindings.flatMap(({ sections }) => sections.map((s) => s.anchor.s)),
+  );
 }
 
-/** A cell has fixed active bindings/materials and linear edges. Include both closed endpoint limits. */
+/** Geometry cells are shared; supported material equality belongs to the physical proof. */
 function regions(port: CompiledPort, start: number, end: number, domain?: LateralDomain) {
-  const origin = coursePortLateral(port),
-    point = start === end;
-  const clip = (l: number) => (domain ? Math.max(-domain.left, Math.min(domain.right, l)) : l);
-  const result = port.section.physicalBindings
-    .flatMap((binding) => {
-      const band = binding.band;
-      if (
-        band.start.s > start ||
-        band.end.s < end ||
-        (point && start === band.end.s && start !== port.section.bandPartition.length)
-      )
-        return [];
-      const material = coursePhysicalMaterialAt(binding, start);
-      if (!material.supported) return [];
-      const left = clip(courseBoundaryAt(band.left, start) - origin),
-        right = clip(courseBoundaryAt(band.right, start) - origin);
-      const leftEnd = clip(courseBoundaryAt(band.left, end) - origin),
-        rightEnd = clip(courseBoundaryAt(band.right, end) - origin);
-      if (left === right && leftEnd === rightEnd) return [];
-      return [{ left, right, leftEnd, rightEnd, material }];
-    })
-    .sort((a, b) => a.left + a.leftEnd - (b.left + b.leftEnd));
+  const result = courseOverlapBandRegions(port, start, end, domain).flatMap(({ band, ...edges }) => {
+    const binding = port.section.physicalBindings.find((binding) => binding.band === band);
+    if (!binding) throw new Error('Compiled Band has no physical binding');
+    const material = coursePhysicalMaterialAt(binding, start);
+    return material.supported ? [{ ...edges, material }] : [];
+  });
   const merged: typeof result = [];
   for (const region of result) {
     const previous = merged.at(-1);
@@ -100,33 +62,10 @@ function regions(port: CompiledPort, start: number, end: number, domain?: Latera
   return merged;
 }
 
-function horizontalHeight(port: CompiledPort, behind: number, ahead: number, path: string): number {
-  const start = port.anchor.s - behind,
-    end = port.anchor.s + ahead;
-  const nodes = port.section.height.nodes;
-  for (let i = 1; i < nodes.length; i += 1) {
-    const a = nodes[i - 1]!,
-      b = nodes[i]!;
-    if (a.s < end && b.s > start)
-      requireCourse(
-        a.y === b.y,
-        path,
-        'Physical overlap must be horizontal throughout the complete height segments intersecting its guard',
-        'nonhorizontal_overlap',
-      );
-  }
-  return port.section.height.samplePhysics(port.anchor.s);
-}
-
 function qualify(links: readonly CompiledLink[], demand?: Demand) {
-  if (!Array.isArray(links)) throw new TypeError('Qualification requires a canonical Link array');
-  if (new Set(links).size !== links.length) throw new RangeError('Qualification Links must be unique');
+  requireCanonicalCourseLinks(links);
   const errors: CourseQualificationError[] = [];
   links.forEach((link, index) => {
-    if (!link || typeof link !== 'object' || !link.source || !link.destination)
-      throw new TypeError('Qualification requires compiled Link objects');
-    if (!link.source.section.outgoing.includes(link) || !link.destination.section.incoming.includes(link))
-      throw new RangeError('Qualification requires canonical compiled Link references');
     try {
       const path = `/links/${index}/overlap`,
         tolerance = COURSE_LINK_RECIPE.positionToleranceMeters;
@@ -145,13 +84,8 @@ function qualify(links: readonly CompiledLink[], demand?: Demand) {
           );
         if (missing.length) return;
       }
-      const aHeight = horizontalHeight(link.source, link.overlap.behind, link.overlap.ahead, `${path}/source/height`);
-      const bHeight = horizontalHeight(
-        link.destination,
-        link.overlap.behind,
-        link.overlap.ahead,
-        `${path}/destination/height`,
-      );
+      const aHeight = courseOverlapHeight(link.source, link.overlap, `${path}/source/height`);
+      const bHeight = courseOverlapHeight(link.destination, link.overlap, `${path}/destination/height`);
       requireCourse(
         Math.abs(aHeight - bHeight) <= tolerance,
         `${path}/height`,

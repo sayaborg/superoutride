@@ -62,6 +62,14 @@ positive/negative half-cell rounding and anchor replay through geometry edits. P
 change physical materials. Reject missing bindings, bad profiles, unsupported image roles and placements
 without partial publication. These source/data tests do not replace actual view/overlap qualification.
 
+Presentation-domain tests compare whole partitioned cells, exact edges, integer texture cycles and
+static A/B phase. Hide an interior mismatch between agreeing guard endpoints and seam; change stamps,
+environment or canonical scenery independently and assert the causal diagnostic. Expand each consumer
+and exercise all incoming merge Links. Actual camera-derived coverage tests record every ground query
+and compare complete fork/merge framebuffers with transformed world/camera observations. A pure frame
+change retains sprite screen/depth observations; test image/reference sharing and reject stale physical
+camera/depth inputs. These checks do not establish pre-lock visibility or runtime commit readiness.
+
 Offline Link tests round-trip saved chains and transformed loops, reorder declarations in two/three-way
 fork/merge graphs, and assert shared successor/Port identity and actual cyclic back-references. Test
 the rigid transform and inverse independently on points, vectors and equal frames. Overlap proofs

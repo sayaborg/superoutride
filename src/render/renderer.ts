@@ -15,7 +15,7 @@ import {
 } from '../terrain/terrain-line.js';
 import { drawFarBackground, type FarBackground } from '../visual/far-background.js';
 import { selectVehicleSprite, type SpriteAssets } from '../visual/sprite-assets.js';
-import { collectVisibleCourseSprites, type CourseSprite, type VisibleCourseSprite } from './course-sprite.js';
+import { collectVisibleCourseSprites, type CourseSpriteSource, type VisibleCourseSprite } from './course-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from './render-height-space.js';
 import { deriveVehicleNormalizedBank } from './vehicle-presentation.js';
 
@@ -68,7 +68,7 @@ interface RenderScene {
   readonly vehicle: VehicleRenderReadState;
   readonly terrainProfile: TerrainVisualProfile;
   readonly groundProfile: { readonly groundLeft: number; readonly groundRight: number };
-  readonly worldSprites: readonly CourseSprite[];
+  readonly worldSprites: CourseSpriteSource;
   readonly assets: SpriteAssets;
   readonly playerKind: PlayerVisualKind;
 }

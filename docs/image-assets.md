@@ -211,6 +211,12 @@ generate dimensioned markings, boundary treatments, repair scatter or pattern ro
 images, create resident records, or certify common-content overlap. Those unsupported authoring fields
 fail admission. Geometry-only fixtures retain explicit absent presentation rather than guessed art.
 
+The separate [presentation-domain qualifier](content-and-gameplay.md#declared-presentation-query-domains)
+now compares the admitted subset's complete source patterns, static phase, ordered stamps, environments
+and shared scenery over explicit camera/filter/anchor domains. Actual fork/merge renderer comparisons
+use those saved images. This does not select a filtering recipe, publish resident records or qualify
+general occurrence-mapped presentation.
+
 ## Current ground compilation
 
 The file-backed compiler serves all eleven branching stage domains and three ordinary course/lap

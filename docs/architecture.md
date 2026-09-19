@@ -158,6 +158,8 @@ transparency retains farther content. Far Background is a complete image, includ
 aligned by its source-horizon anchor. Yaw scrolls it; camera roll and alpha blending remain absent.
 The [background format](../src/visual/far-background.ts) owns 640x320 pixels, horizon row 126 and yaw
 density 200 source pixels/radian. Yaw density and focal length have different units.
+An explicit background `yawOriginRadians` expresses its pan origin in the current frame; existing
+backgrounds retain origin zero. A frame change transforms that origin with the camera yaw.
 
 Current shipped ground is precompiled. Paint samplers are compiler inputs and explicit diagnostics;
 product rendering receives a complete scene-local final-color reader. Source offsets, shoulders and
@@ -191,6 +193,14 @@ scale, z-buffering and alpha blending are outside this rendering contract.
 Painter order is optional clear, full background, one far-to-near terrain/world-sprite merge, player,
 then HUD. Terrain wins equal depth before sprites. Player is last among world visuals. The
 [renderer](../src/render/renderer.ts) allocates detailed workload arrays only under instrumentation.
+
+Course sprites may also arrive through an ordinary camera/depth observation reader. It owns frozen
+camera, position and projection metadata and borrows decoded image workspaces read-only. A pure upright
+basis/ruler change transforms world positions, camera yaw and chainage while retaining the exact screen
+projection and depth observations. Reprojecting a mathematically unchanged observation can change a
+nearest texel through roundoff. A changed physical camera or depth interval rejects the stale reader;
+normal motion creates a new observation. This cache primitive is not an actor-transition certificate.
+The existing sprite-array path retains its arithmetic.
 
 ### Sprite LOD metric and read contract
 
