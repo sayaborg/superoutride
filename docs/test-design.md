@@ -72,6 +72,13 @@ source addresses and narrow reader outputs across seams, exact Band activation s
 Guide bounds. Exercise each consumer's interval over its complete declared pose/step envelope. These
 geometry checks do not replace product consumer, contact, camera or picture-continuity integration.
 
+Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
+cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,
+each small window qualifies, and a window containing both passages reports ambiguity for Raster and
+Guide. Preserve local inversion failures. Exercise clipped cells, both arc directions, varying widths,
+closed query endpoints, independent mapping diagnostics, exact resource ceilings and no partial results.
+Synthetic long/capacity fixtures prove bounded one-Section admission, not named-master content acceptance.
+
 The [geometry identity](content-and-gameplay.md#geometry-identity-and-anchor-replay) tests distinguish
 recipe changes from unchanged builds. Reopening the same document reproduces its ruler and anchors;
 a changed subdivision recipe invalidates dependent products and requires an explicit source migration.

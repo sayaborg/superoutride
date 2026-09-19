@@ -9,9 +9,7 @@ import { SURFACE_MATERIALS, type SurfaceMaterial, type SurfaceType } from '../ph
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
   version: 2,
-  height: 'Core HeightProfile: linear render; cosine-smooth physics/camera',
   materials: SURFACE_MATERIALS,
-  ownership: 'Band half-open membership; start-inclusive material changes; outside VOID',
   overlap: Object.freeze({ id: 'superoutride.physical-overlap', version: 2 }),
 });
 

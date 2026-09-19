@@ -89,7 +89,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   jsonBytes: 4 * 1024 * 1024,
   idCodeUnits: 128,
   sections: 16,
-  primitives: 256,
+  primitives: 2048,
   boundaries: 32,
   knots: 256,
   bands: 32,
@@ -101,8 +101,8 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lengthMeters: 100_000,
   lateralMeters: 1000,
   heightMeters: 10000,
-  rasterSegments: 2048,
-  bandCells: 4096,
+  rasterSegments: 16384,
+  bandCells: 16384,
   linkCells: 8192,
 });
 

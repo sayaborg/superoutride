@@ -28,7 +28,7 @@ shared references, nested immutability, failure preservation and stale-build exc
 [causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
 Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
 
-Geometry recipe v3 includes conservative mapped-cell interior validation, local
+Geometry recipe v4 includes mapped-cell non-inversion, local
 fillet envelopes and activation-aware partitioning. Older geometry recipes are explicitly unsupported rather
 than silently migrated. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs) cover varying
 asymmetric widths, shared reference identity, three structural carriageways, edge/gap ownership,
@@ -38,8 +38,18 @@ ownership, zero-width birth/death, one-to-two/three-to-one static cross-sections
 unions and per-cell carriageway contiguity. Sections expose a narrow immutable `bandPartition` with
 canonical Band references; no construction cells or ID joins are published.
 
+The [local-window qualifier](content-and-gameplay.md#consumer-local-geometry-qualification) separately
+checks conservative complete-cell Raster/Guide enclosures within an explicit source interval. Repeated
+XZ positions are admitted as distinct chainages; small windows qualify and a window containing both
+passages fails. Seeded Core projection and ordinary physical-height sampling preserve passage identity.
+The former global simple-strip restriction is superseded; actual consumer/multi-occurrence coverage
+remains unqualified. [Capacity cases](development.md#course-geometry-capacity) retain one Section per
+CIRCUIT, exercise 20.8 km with 4760 Raster segments, and exact 2048-primitive/16384-segment ceilings.
+These are synthetic host workloads, not named-master acceptance. Recipe identities contain semantic
+versions/operative parameters, not explanatory prose.
+
 Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
-an unsupported-version diagnostic. Course compiler v6 includes the pinned carriageway-Link recipe v1
+an unsupported-version diagnostic. Course compiler v7 includes the pinned carriageway-Link recipe v1
 and physical recipe v2.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
@@ -98,21 +108,17 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 
 ### Gate 2 remaining order
 
-1. Replace whole-Section geographical separation with consumer-local geometry validity, retaining
-   inversion/ambiguity rejection. Keep Product's one-Section circuit; measure primitive/segment/Band-cell
-   counts, compilation cost and bounded capacity. Synthetic long/curved fixtures are not master-course
-   acceptance. Remove explanatory prose from recipe identity while retaining semantic versions/parameters.
-2. Introduce selected-but-uncommitted occurrences, distinct from actual traversal history and active
+1. Introduce selected-but-uncommitted occurrences, distinct from actual traversal history and active
    frames. Migrate exploration/session failure outcomes away from authoring diagnostics. Connect one
    seam-free LINEAR path through real physics/camera/render readers early; measure actual demands and
    view reconstruction/allocation. Do not manufacture history with forward/reverse for lookahead.
-3. Admit the real presentation inputs required for full common-content qualification. Prove actual
+2. Admit the real presentation inputs required for full common-content qualification. Prove actual
    query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
    merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.
-4. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
+3. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
    cache/camera transformation, and unchanged checkpoint/lap credit. Test straddling contacts, neighboring
    actors, actual merge predecessors, reverse and recovery through the real integration path.
-5. Complete the joint local-Guide/half-open physical, visual and lock edge cutover. Remove only replaced
+4. Complete the joint local-Guide/half-open physical, visual and lock edge cutover. Remove only replaced
    legacy paths after causal/integration coverage exists. Recheck the entire Gate 2 acceptance matrix;
    individual physical, geometry or LINEAR milestones do not establish complete Gate 2 readiness.
 
@@ -143,11 +149,11 @@ in source; reconsider that retained waveform mapping with final method selection
 
 ## Remaining limits
 
-General nonadjacent road-band intersection classification is not implemented. The offline compiler
-proves a bounded simple-strip subset through conservative quadratic-edge hulls; it does not admit
-overpasses or classify intentional topology overlaps. Legacy vertex, fillet and
-supported-envelope checks do not certify complete band geometry; preserve the
-[validity requirement](architecture.md#raster-and-guide) and intentional circuit copies above Core.
+Single-source local-window geometry qualification is implemented; actual consumer containment,
+multi-occurrence window separation, neighboring-actor height selection and overpass presentation remain
+unqualified. Source crossing admission alone does not certify a working Suzuka/grade-separated route.
+Legacy vertex, fillet and supported-envelope checks do not replace the
+[validity requirement](architecture.md#raster-and-guide); existing circuit copies remain above Core until cutover.
 
 Handling is `DEV_UNCALIBRATED`. Combined-control and changing-terrain acceptance, and real smartphone
 performance/input checks remain open. Suspension travel recovery is not proof of physical stability

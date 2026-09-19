@@ -120,17 +120,19 @@ compiled intervals and the existing Core metrics; a positive authored length nee
 floating-point geometry admission.
 
 `COURSE_DOCUMENT_LIMITS` owns 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections, 48 Links and 256 assets;
-per Section: 256 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways, 4 Ports and
+per Section: 2048 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways, 4 Ports and
 256 asset references, 256 height nodes, 32 physical bindings and 256 material changes per binding.
-Compilation caps each Section at 2048 Raster segments, 4096 mapped-band partition
+Compilation caps each Section at 16384 Raster segments, 16384 mapped-band partition
 cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
-partition size before the quadratic pair checks. A Link admits at most 8192 overlap cells.
-These authoring limits bound work
-and diagnostics; they are not whole-game or target-device capacity approval.
+partition size before constructing cells. A Link admits at most 8192 overlap cells.
+These authoring limits bound work and diagnostics. Product's one-Section CIRCUIT is retained:
+the synthetic 20.8 km high-turn workload exceeds the former 2048-segment ceiling, and exact new primitive/
+segment ceilings have executable admission coverage. This is not master-course or target-device approval;
+the [capacity diagnostic](development.md#course-geometry-capacity) measures host cost reproducibly.
 
 ### Supported geometry and recipe
 
-The accepted recipe is `superoutride.raster-guide` version 3. It pins `RasterTurtle` version 1 and
+The accepted recipe is `superoutride.raster-guide` version 4. It pins `RasterTurtle` version 1 and
 the existing Raster arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
 `ceil(abs(turnDegrees)/5)` equal angular steps computed in authored degrees, then convert angles with
 `PI/180`. Initial heading also uses degrees. The retained turtle radian API remains available to
@@ -160,17 +162,16 @@ permits positive-width partition replacement and zero-width taper birth/death, i
 one-to-two/three-to-one cross-section. Connections use the separate Port/Link proof below. Shoulders/medians remain
 structural roles, with no inferred paint, grip or support.
 
-Recipe v3 partitions at Raster vertices, all used Boundary knots and Band activation endpoints.
+Recipe v4 partitions at Raster vertices, all used Boundary knots and Band activation endpoints.
 Each cell uses its own active lateral ordering. Widths and shared-edge references are checked on
 both closed ends; linear interpolation cannot hide an intervening crossing or a zero-width plateau.
 The mapped-strip Jacobian is affine in chainage/lateral position within
 each Raster interval, so its boundary extrema prove local non-inversion. Varying edges under the
-interpolated miter map are quadratic, not straight corner-to-corner lines. Their Bernstein control
-hulls conservatively enclose the complete cell. Nonadjacent Raster intervals must have separated hulls;
-the positive Jacobian separates same/adjacent intervals. Gaps are conservatively included. A failure
-to prove separation is a `semantic_compile_failure` identifying cells, not a claim that sampled
-endpoints suffice. This bounded simple-strip subset rejects overpasses/overlaps and can conservatively
-reject disjoint curved strips whose hulls overlap. It does not classify general topology.
+interpolated miter map are quadratic, not straight corner-to-corner lines. Source admission proves
+local non-inversion, Band ownership and Guide metrics; it does not require global geographical
+injectivity. Repeated/crossing XZ positions at different chainages remain distinct source addresses.
+This explicitly supersedes v3's whole-Section separated-hull requirement. Consumer-window separation
+below replaces that requirement without removing inversion or ambiguity checks.
 
 The derived Guide envelope interpolates the maximum absolute active boundary position plus margin
 at these stations. Both closed incident cells contribute at a transition, including zero-area
@@ -180,17 +181,46 @@ between knots, not another authored width. The Core
 a distant wide straight does not widen a tight bend. The margin covers only the explicitly admitted
 chart domain: no contact/vehicle query envelope or physical binding is inferred here.
 `courseBoundaryAt` and `courseBandAt` expose ordinary canonical data readers. The latter takes the
-Section's `bandPartition` facet (`length`, canonical `bands`), not the whole CompiledCourse. It returns
+Section's `bandPartition` facet (canonical `raster`, `length`, canonical `bands`), not the whole CompiledCourse. It returns
 the owning Band or null for a gap/outside: longitudinal membership is `[start,end)`, except a Band
 ending at Section length includes that terminal; lateral membership is `[left,right)`. At a partition
 switch only starting and continuing Bands own points. Invalid/nonfinite queries throw RangeError.
 No role implies grip, paint or lock eligibility.
 Legacy physical/paint/junction edge classification remains unchanged until the combined runtime cutover.
 
-Recipes v1/v2 are not silently reinterpreted. Their documents remain saveable but compilation reports
-`unsupported_version`; changing to v3 is an explicit source edit that invalidates prior output.
-The checked-in constant/varying fixtures explicitly select v3 and retain their rulers and fillet geometry.
+Recipes v1/v2/v3 are not silently reinterpreted. Their documents remain saveable but compilation reports
+`unsupported_version`; changing to v4 is an explicit source edit that invalidates prior output.
+The checked-in fixtures explicitly select v4 and retain their rulers and fillet geometry.
 Raster/Guide authoring-domain rejections are RangeError; internal coverage/reader invariants retain Error.
+
+### Consumer-local geometry qualification
+
+`compileCourseGeometryWindow` receives only canonical `raster`, `guide` and `bandPartition` facets
+and an explicit positive closed `[sStart,sEnd]` interval inside their shared ruler. It returns an
+immutable `local-geometry` qualification retaining those reader references and its own interval/counts.
+Construction hulls remain private; there is no copied source geometry or independent coordinate table.
+The partition retains the canonical Raster against which its Bands were admitted; equal lengths from
+different compilations cannot substitute for matching reader references.
+Wrong shapes throw TypeError; invalid intervals or mismatched ruler references throw RangeError.
+
+The window partitions Raster Bands at exact vertices, Boundary knots and activation stations, clipping
+to the two query endpoints. Exact quadratic Bernstein hulls enclose each complete outer Band envelope,
+including gaps. Guide windows use the full local envelope maximum within each clipped straight/arc
+interval. Endpoints plus the intersection of endpoint tangents enclose each circular offset arc.
+Positive admitted Jacobians separate incident intervals; nonadjacent intervals must have disjoint
+convex hulls under the existing geometric sampling tolerance. Failure to separate either mapping is
+an `ambiguous_geometry` diagnostic with `mapping` and both source intervals. It is conservative, not
+a claim of exact intersection. These qualification diagnostics are not document JSON Pointers.
+Both mappings are checked independently; no partial qualification is returned.
+
+`COURSE_GEOMETRY_WINDOW_LIMITS` admits at most 1024 cells per mapping before quadratic pair work.
+Exceeding it returns `resource_limit`, not success with a truncated window. It is a work bound, not
+a fixed distance guard. The consumer owner must include its entire candidate/search range and query
+envelope, preserve occurrence and seed identity, and keep queries within the qualified chart domain.
+This offline single-source proof does not yet establish actual driving query containment, multi-occurrence
+window validity, neighboring-actor height selection or presentation visibility. A geographically crossing
+Section can qualify small windows around each passage while a window containing both fails. Height and
+the actual traversal disambiguate grade-separated contacts; global nearest-road fallback is not permitted.
 
 ### Explicit height and physical bindings
 
@@ -323,8 +353,8 @@ is present. Fork exits use distinct Carriageways. Leaf Sections have no exit Por
 
 LINEAR/BRANCH entry has no incoming Link; every declared Section must be reachable. Cycle rejection
 belongs to those authored types, not to the graph representation. CIRCUIT keeps one source and one
-cyclic Link, never lap copies. Existing per-Section simple-strip geometry admission still applies;
-this increment does not classify intentional geographic strip intersections.
+cyclic Link, never lap copies. Per-Section local geometry admission applies; consumer windows, not the
+whole reusable source, own geographical separation qualification.
 
 ### Bounded geometry views and occurrence history
 
@@ -397,10 +427,11 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 6, including the full Link recipe and physical recipe v2 descriptors.
-The physical recipe includes the existing material definitions and height/ownership/overlap rules.
-The Section geometry recipe remains v3 and carriageway-Link recipe v1: physical admission does not
-change their geometry arithmetic. Height/material edits invalidate source and build identity.
+`superoutride.course-compiler` version 7, including the Link recipe v1 and physical recipe v2 descriptors.
+Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
+not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
+the physical descriptor also includes the existing material definitions. Section geometry recipe v4
+revises admission without changing Raster/Guide arithmetic. Height/material edits invalidate source and build identity.
 All inputs currently conservatively invalidate the complete
 product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported

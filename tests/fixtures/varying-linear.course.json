@@ -3,7 +3,7 @@
   "version": 3,
   "id": "narrow-bend-wide-straight",
   "units": { "length": "m", "angle": "deg" },
-  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 3 },
+  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
   "type": "LINEAR",
   "entrySectionId": "asymmetric",
   "links": [],

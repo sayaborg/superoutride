@@ -40,6 +40,7 @@ npm run compile:course -- tests/fixtures/varying-linear.course.json
 npm run compile:course -- tests/fixtures/partition-linear.course.json
 npm run compile:course -- tests/fixtures/linked-linear.course.json
 npm run compile:course -- tests/fixtures/transformed-loop.course.json
+npm run compile:course -- tests/fixtures/transformed-loop.course.json --geometry-window lap 20 150
 ```
 
 It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
@@ -54,7 +55,7 @@ geometry, shared object identity, arbitrary IDs/declaration order, immutability,
 imports, stale asynchronous publication and the real command. The complete suite retains its immutable
 mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
 The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Geometry recipe
-v3 admits partial Bands and zero-width taper endpoints. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
+v4 admits partial Bands, zero-width taper endpoints and geographically crossing source charts. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
 and [Guide tests](../tests/geometry/local-guide-envelope.test.mjs) cover local versus global bounds,
 off-center fillet peaks and trim endpoints, constant-input equality, translated clamps, local gate
 widths, conservative global-support containment, half-open ownership and failed/stale publication.
@@ -65,7 +66,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v3 and course compiler v6 include offline Port/Link graphs, retaining geometry recipe v3.
+Schema v3 and course compiler v7 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
@@ -127,6 +128,25 @@ coverage/content failures are structured diagnostics; file I/O failures retain t
 missing/expanded consumers, exact guard/domain edges, interior clipping crossings, collected merge
 failures, immutable references and the actual surface readers. Camera/picture continuity and actual
 product query containment are not certified by this command. Current driving roots remain unchanged.
+
+### Course geometry capacity
+
+```sh
+npm run build
+node tools/performance/course-capacity.mjs
+```
+
+The diagnostic compiles synthetic single-Section CIRCUIT workloads: approximately 20.8 km with repeated
+curves, the exact primitive ceiling and the exact Raster-segment ceiling. It reports saved bytes,
+primitive/Raster/Guide/Band-cell counts, compilation time, a bounded window's cost and host peak RSS.
+It does not materialize lap copies. Measurements are host observations, not device budgets or evidence
+that imported Nordschleife/Suzuka master geometry has passed; those documents are not present yet.
+Primitive/segment/window exact-limit and over-limit cases are executable regressions.
+
+`--geometry-window Section-ID start end` in the compiler command separately checks Raster Band and Guide
+envelope separation within that source interval. Its `local-geometry` report does not prove that actual
+consumers, multi-occurrence views or physical/presentation overlaps fit the window. See the
+[qualification contract](content-and-gameplay.md#consumer-local-geometry-qualification) for scope and diagnostics.
 
 ## Sprite LOD preview
 

@@ -43,6 +43,12 @@ test('saved linear document reopens with identical input and deterministic immut
   assert.deepEqual(a, b);
   assert.notEqual(a.sections[0], b.sections[0]);
   assert.equal(a.sections[0].guide.raster, a.sections[0].raster);
+  assert.equal(a.sections[0].bandPartition.raster, a.sections[0].raster);
+  assert.deepEqual(a.identity.geometryRecipe, {
+    id: 'superoutride.raster-guide',
+    version: 4,
+    turtle: { id: 'superoutride.raster-turtle', version: 1, straightStepMeters: 50, arcStepDegrees: 5 },
+  });
   assert.equal(a.identity.sourceSha256, sha256(reopened));
   assert.equal(
     a.identity.buildSha256,
@@ -385,9 +391,6 @@ test('invalid widths, coverage, membership, Guide metrics and mapped geometry pr
     (s) => {
       s.primitives[0].length = 1e-12;
     },
-    (s) => {
-      s.primitives[1].turn = 360;
-    },
   ]) {
     const input = fixture();
     change(input.sections[0]);
@@ -472,7 +475,7 @@ test('recipe and asset identity changes invalidate dependent output, and unsuppo
   const project = createCourseProject();
   const original = ok(await project.importDocument(fixtureText));
   assert.equal(original.identity.geometryRecipe, COURSE_GEOMETRY_RECIPE);
-  for (const version of [1, 2]) {
+  for (const version of [1, 2, 3]) {
     const recipeEdit = fixture();
     recipeEdit.geometryRecipe.version = version;
     ok(project.editDocument(recipeEdit));

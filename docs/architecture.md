@@ -58,11 +58,15 @@ are different contracts. Their current values remain in the corresponding source
 Raster is a polyline with `|Delta heading| <= 10 degrees` at every interior vertex. Left/right road
 and ground widths are independent. Edge continuity uses the exact miter basis; the constant-width
 miter ratio is `1/cos(Delta/2)`. Validate actual mapped road/ground bands for finite joins, local
-inversion and unintended intersections/overlaps. Width-versus-radius heuristics are insufficient.
+inversion and unintended intersections/overlaps within the consumer's admitted window.
+Width-versus-radius heuristics are insufficient. A reusable Section is a road chart, not a globally
+injective XZ map; distinct chainages may cross geographically without being the same road address.
 
 Current compilation covers finite vertices/miters, the turn limit, Guide metrics, fillet overlap and
-supported envelopes. [NEXT](NEXT.md#remaining-limits) records the remaining nonadjacent-band check.
-Intentional coincident lap copies are classified separately from accidental authoring intersections.
+supported envelopes. The offline [local-window proof](content-and-gameplay.md#consumer-local-geometry-qualification)
+checks mapped Raster Bands and Guide envelopes. [NEXT](NEXT.md#remaining-limits) records pending actual
+consumer/multi-occurrence qualification. Occurrence, local seed and height distinguish passages;
+world-nearest matching cannot replace those authorities.
 
 At a roundoff-size fillet join, lookup retains the adjacent segment. Omitted intervals and compiled
 coverage fit the reader's sampling tolerance even if dimensional validation permits a larger error.
@@ -320,7 +324,8 @@ varying widths share one target representation. Partition at Raster heading, ren
 boundary knots/activation changes. Use the existing Raster/miter or Guide mapping at the responsible
 consumer. Validate mapped-band interiors as well as endpoints. Paint changes alone do not split shape.
 
-The offline compiler partitions active Bands and proves closed-cell geometry before publication.
+The offline compiler partitions active Bands and proves closed-cell non-inversion before publication.
+Nonadjacent separation belongs to explicitly bounded consumer-window qualification, not whole-Section admission.
 It exposes one narrow finite `bandPartition` facet with canonical Band references; its construction
 cells are private. [Content](content-and-gameplay.md#supported-geometry-and-recipe) owns the current
 activation, transition-continuity and terminal-membership rules. They do not change the current

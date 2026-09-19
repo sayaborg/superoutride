@@ -10,16 +10,8 @@ import { RASTER_TURTLE_RECIPE, RasterTurtle } from './raster-turtle.js';
 
 export const COURSE_GEOMETRY_RECIPE = Object.freeze({
   id: 'superoutride.raster-guide',
-  version: 3,
+  version: 4,
   turtle: RASTER_TURTLE_RECIPE,
-  authoredAngles: 'degrees; heading*(PI/180); appendArcDegrees',
-  ruler: 'RasterPath.vertexS; sequential Math.hypot of emitted endpoint differences',
-  anchors: 'absolute-s-or-primitive-start+fraction*(end-start); exact-fraction-endpoints',
-  guide: 'circular provenance fillets; full-fillet envelope supremum; fallback adjacent-Raster-interval bound',
-  envelope:
-    'linear interpolation of closed-active-union max-abs-boundaries+margin at Raster/boundary/activation stations',
-  bands:
-    'half-open active intervals; terminal included; zero width only at birth/death; continuous total and pavement/median unions',
 });
 
 export interface CompiledPlanPrimitive {
@@ -59,7 +51,11 @@ export function compileCourseGeometry(
         : Math.ceil(Math.abs(primitive.turn) / RASTER_TURTLE_RECIPE.arcStepDegrees);
   }
   if (segmentCount > COURSE_DOCUMENT_LIMITS.rasterSegments)
-    throw new CourseInputError('resource_limit', `${path}/primitives`, 'Section exceeds 2048 Raster segments');
+    throw new CourseInputError(
+      'resource_limit',
+      `${path}/primitives`,
+      `Section exceeds ${COURSE_DOCUMENT_LIMITS.rasterSegments} Raster segments`,
+    );
   const turtle = new RasterTurtle({ x: section.start.x, z: section.start.z }, section.start.heading * (Math.PI / 180));
   const intervals = section.primitives.map((primitive) => {
     const start = turtle.vertices.length - 1;

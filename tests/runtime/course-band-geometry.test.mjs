@@ -5,6 +5,7 @@ import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { guideEnvelopeAt } from '../../dist/core/guide-envelope.js';
 import { courseBoundaryAt, courseBandAt } from '../../dist/course/course-bands.js';
 import { COURSE_DOCUMENT_LIMITS, parseCourseDocument, saveCourseDocument } from '../../dist/course/course-document.js';
+import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-window.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 
@@ -126,8 +127,11 @@ test('mapped envelope detects local inversion and nonadjacent overlap with varyi
   assert.match(inversion.message, /inverts/);
   const overlapping = fixture();
   overlapping.sections[0].primitives[1].turn = 360;
-  const overlap = failure(await compileCourseDocument(overlapping), 'semantic_compile_failure', '/sections/0/bands');
-  assert.match(overlap.message, /separated/);
+  const source = ok(await compileCourseDocument(overlapping)).sections[0];
+  const overlap = compileCourseGeometryWindow(source, { sStart: 0, sEnd: source.raster.length });
+  assert.equal(overlap.ok, false);
+  assert.ok(overlap.diagnostics.every((d) => d.code === 'ambiguous_geometry'));
+  ok(compileCourseGeometryWindow(source, { sStart: 105, sEnd: 115 }));
 });
 
 test('boundary edits invalidate derived profiles; invalid import and caller mutation preserve the last product', async () => {
@@ -160,23 +164,35 @@ test('boundary edits invalidate derived profiles; invalid import and caller muta
 test('generated band partition is bounded independently of saved knot counts', async () => {
   const input = fixture(),
     section = input.sections[0];
-  section.primitives = [{ id: 'runout', kind: 'straight', length: 100 }];
+  section.primitives = [
+    { id: 'approach', kind: 'straight', length: 100 },
+    ...Array.from({ length: Math.floor((COURSE_DOCUMENT_LIMITS.rasterSegments - 4) / 72) }, (_, i) => ({
+      id: `circle-${i}`,
+      kind: 'arc',
+      radius: 20,
+      turn: 360,
+    })),
+    { id: 'runout', kind: 'straight', length: 100 },
+  ];
   section.boundaries = Array.from({ length: 18 }, (_, edge) => ({
     id: `edge-${edge}`,
     knots: Array.from({ length: 256 }, (_, i) => ({
-      anchor: { kind: 'absolute', s: i === 0 ? 0 : i === 255 ? 100 : (i * 18 + edge) / 46 },
+      anchor:
+        i === 255
+          ? { kind: 'primitive', primitiveId: 'runout', fraction: 1 }
+          : { kind: 'absolute', s: i === 0 ? 0 : (i * 18 + edge) / 46 },
       l: edge,
     })),
   }));
   section.bands = Array.from({ length: 17 }, (_, i) => ({
     id: `band-${i}`,
     start: { kind: 'absolute', s: 0 },
-    end: { kind: 'absolute', s: 100 },
+    end: { kind: 'primitive', primitiveId: 'runout', fraction: 1 },
     leftBoundaryId: `edge-${i}`,
     rightBoundaryId: `edge-${i + 1}`,
     role: 'pavement',
   }));
   section.carriageways = [{ id: 'road', bandIds: section.bands.map((b) => b.id) }];
-  assert.ok(18 * 254 > COURSE_DOCUMENT_LIMITS.bandCells);
+  assert.ok(18 * 254 + (section.primitives.length - 2) * 72 > COURSE_DOCUMENT_LIMITS.bandCells);
   failure(await compileCourseDocument(input), 'resource_limit', '/sections/0/bands');
 });

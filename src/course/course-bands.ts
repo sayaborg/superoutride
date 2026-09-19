@@ -1,5 +1,6 @@
 import type { BandDocument } from './course-document.js';
 import type { CompiledCourseAnchor } from './course-geometry.js';
+import type { RasterPath } from '../core/raster-path.js';
 
 export interface CompiledBoundary {
   readonly id: string;
@@ -22,6 +23,8 @@ export interface CompiledCarriageway {
 
 /** Narrow finite-domain facet; no Band is privileged as the Section's domain authority. */
 export interface CompiledBandPartition {
+  /** Canonical geometry against which the mapped Bands were admitted. */
+  readonly raster: RasterPath;
   readonly length: number;
   readonly bands: readonly CompiledBand[];
 }

@@ -14,9 +14,6 @@ export const COURSE_LINK_RECIPE = Object.freeze({
   version: 1,
   positionToleranceMeters: 1e-7,
   headingToleranceRadians: 1e-10,
-  frame: 'forward Guide heading and carriageway center at resolved anchor; upright rigid transform',
-  overlap:
-    'authored/Guide/Raster straight guards; both rulers/boundaries/activations partitioned; quadratic difference Bernstein hull',
 });
 
 function edges(

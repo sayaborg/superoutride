@@ -8,7 +8,7 @@
   },
   "geometryRecipe": {
     "id": "superoutride.raster-guide",
-    "version": 3
+    "version": 4
   },
   "type": "LINEAR",
   "entrySectionId": "section/coast",

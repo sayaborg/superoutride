@@ -7,6 +7,7 @@ import {
 } from '../../dist/compiler/course-physical-overlap.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { courseFailure, CourseInputError } from '../../dist/course/course-diagnostics.js';
+import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-window.js';
 
 async function physicalQualification(course, arguments_) {
   if (arguments_[0] === '--physical-overlap') return compileCoursePhysicalOverlaps(course.links);
@@ -26,17 +27,39 @@ if (
   !sourcePath ||
   (extra.length &&
     extra[0] !== '--view' &&
+    !(extra.length === 4 && extra[0] === '--geometry-window') &&
     !(extra.length === 1 && extra[0] === '--physical-overlap') &&
     !(extra.length === 2 && extra[0] === '--physical-domain'))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ...]',
+    'Usage: npm run compile:course -- CourseDocument.json [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ...]',
   );
 const project = createCourseProject();
 const result = await project.importDocument(await readFile(sourcePath, 'utf8'));
 if (!result.ok) {
   console.error(JSON.stringify(result, null, 2));
   process.exitCode = 1;
+} else if (extra[0] === '--geometry-window') {
+  const section = result.value.sections.find((source) => source.id === extra[1]);
+  if (!section) throw new RangeError('Geometry window must name an existing Section');
+  const qualification = compileCourseGeometryWindow(section, { sStart: Number(extra[2]), sEnd: Number(extra[3]) });
+  if (!qualification.ok) {
+    console.error(JSON.stringify(qualification, null, 2));
+    process.exitCode = 1;
+  } else
+    console.log(
+      JSON.stringify(
+        {
+          scope: qualification.value.scope,
+          section: section.id,
+          interval: qualification.value.interval,
+          cells: qualification.value.cells,
+          identity: result.value.identity,
+        },
+        null,
+        2,
+      ),
+    );
 } else if (extra[0] === '--physical-overlap' || extra[0] === '--physical-domain') {
   const qualification = await physicalQualification(result.value, extra);
   if (!qualification.ok) {
