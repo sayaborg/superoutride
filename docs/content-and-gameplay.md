@@ -12,10 +12,10 @@ compiles the graph, and assembles the [shared scene](../src/runtime/course-scene
 single-Section or occurrence driving readers, saved presentation and the ordinary renderer. The headless CLI uses
 this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link. CIRCUIT uses a
 2 km source lap, a standing start, two required laps and two provisional DEV rivals.
-The original provisional course is a finite 2.8 km LINEAR with 132 row-generated
+The rebuilt provisional course is a finite 2.94 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
-zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains 30 m of source behind the
+zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains at least 30 m of source behind the
 playable entrance. Reverse travel or repeated manual recovery past that entrance uses ordinary
 legal-route recovery to the Port before camera observation, without progress credit.
 
@@ -30,7 +30,7 @@ Product CourseDocuments and image bytes live in `content/`. Regression inputs an
 live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
 owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
 
-## CourseDocument v7: implemented compiler boundary
+## CourseDocument v8: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -53,9 +53,9 @@ array order is saved input, including meaningful primitive, knot and stamp order
 fork lock/closure anchors to the saved presentation/reference subset. Live field/actor state remains
 outside the document.
 
-| Record           | Exact v7 fields                                                                                                                                                                                                                                                   |
+| Record           | Exact v8 fields                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CourseDocument   | `format: "superoutride.course"`, `version: 7`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                        |
+| CourseDocument   | `format: "superoutride.course"`, `version: 8`, `reference`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`           |
 | Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation`, `fork` |
 | Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                                                |
 | Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                                            |
@@ -68,6 +68,13 @@ outside the document.
 | Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                                                               |
 | Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                                                                 |
 | Scenery instance | `id`, `assetId`                                                                                                                                                                                                                                                   |
+
+`reference` is explicit null or `{source: {kind: "video" | "analyzed-data", location, edition},
+observations: {location, sha256}, calibration: {distanceScale, curvatureScale, heightScale},
+remasterDeviations: string[]}`. Distances scale by a positive factor; curvature and height factors
+may be zero. Factors are at most 100. Source and observation locations are provenance text, never
+runtime fetch instructions. The compiler owns frozen copies and includes this reference in source
+identity; it performs no inference. Observation SHA-256 addresses the exact intermediate file bytes.
 
 `presentation` is either explicit `null` (geometry/physical-only source, not ready presentation), or:
 
@@ -94,7 +101,7 @@ admission. References resolve within their declared scope, never by array positi
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
 with `unsupported_version`. Schema/format and unit mismatches fail admission. Earlier schemas are explicitly
-unsupported. Geometry fixtures explicitly select v7 with `presentation: null`, `fork: null` and an empty
+unsupported. Geometry fixtures explicitly select v8 with `presentation: null`, `fork: null` and an empty
 scenery-instance collection; no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
@@ -463,7 +470,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 14, including the Link recipe v1, physical recipe v2, image-source
+`superoutride.course-compiler` version 15, including the Link recipe v1, physical recipe v2, image-source
 admission recipe v1 and presentation recipe v3 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
@@ -572,13 +579,56 @@ Agents edit saved CourseDocuments and asset files, compile structured JSON diagn
 product-renderer PNGs, and iterate. Scenery rows store anchored intervals, spacing, side and offset;
 imports prefer primitive-relative anchors. GUI is reserved for later human inspection and adjustment.
 
-Source observations live in a separate versioned intermediate document: chainage-indexed curvature,
-grade, width, scenery, environment and checkpoint series with source provenance and calibration.
-Deterministic scripts measure scanline centers, horizon and HUD speed from frames. Agents execute and
-verify these scripts, classify scenery/environment, and judge fitting against product previews.
-Offline `tools/course/` fitting owns primitive/knot estimation; compiler/runtime only consume authored
-results. Distance/curvature/height scales are fitting inputs recorded with source edition/calibration
-and remaster departures. Reference video pixels are never extracted as game assets.
+The implemented offline input is `superoutride.course-observations` version 1. It owns `id`,
+`source: {kind: "video" | "analyzed-data", location, edition}`, a `calibration` object describing
+method/units, and these explicit arrays:
+
+| Array                | Records                                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `samples`            | `{s, timeSeconds, curvaturePerMeter, grade, roadWidthMeters, heightMeters}`; time/height may be null; 2–4096 ordered samples from zero to a positive distance |
+| `sceneryRows`        | `{kind, startS, endS, spacingMeters, side, offsetMeters, groundOffsetMeters}`                                                                                 |
+| `environments`       | Ordered `{s, label}`, starting at zero                                                                                                                        |
+| `checkpoints`        | Ordered `{s, name}`; observational markers, independent of race timing                                                                                        |
+| `remasterDeviations` | Nonempty descriptions of departures/assumptions                                                                                                               |
+| `measurements`       | Raw frame provenance and deterministic measurements, or empty for analyzed data                                                                               |
+
+`tools/course/measure.mjs` reads `superoutride.frame-measurement` version 1 with `id`, `source`,
+`environmentLabel`, `frames: [{path, timeSeconds}]` and `calibration`. Frame paths are relative to
+the request; each PNG is at most 16 MiB and 4M pixels. Calibration is explicit:
+
+| Record    | Fields                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `camera`  | `focalLengthPixels`, `centerXPixels`, `heightMeters`, `horizonReferencePixels`                                                                                                       |
+| `horizon` | `columns`, `top`, `bottom`, `palette` (RGB arrays), `tolerance`                                                                                                                      |
+| `road`    | At least three distinct `rows`, `left`, `right`, `maxGapPixels`, `minWidthPixels`, `palette`, `tolerance`                                                                            |
+| `hud`     | `x`, `y`, `digitWidth`, `digitHeight`, `spacing`, `count`, `palette`, `tolerance`, `maxMismatchFraction`, `templates` mapping all digits 0–9 to equal-sized binary-string row arrays |
+
+Matching uses maximum per-channel RGB difference. The horizon is the median first non-sky pixel
+in calibrated columns. Each road row chooses the nearest-center matching run after bridging the
+specified gaps; ties fail. HUD masks use aligned Hamming distance; ties/missing digits fail.
+Known camera height and focal length project road centers into a planar pinhole model; a quadratic
+fit estimates curvature, horizon displacement approximates grade, and trapezoidal HUD-speed
+integration estimates distance. These assumptions require calibration and visual verification;
+this is not general camera-pose recovery. Output retains exact frame SHA-256, raw centers/horizon,
+HUD mismatches and geometric residuals. Agents classify scenery, environments and checkpoints.
+Frames are measurement inputs only; assets are independently saved/generated.
+
+`tools/course/fit.mjs` reads these observations and a `superoutride.course-fit` version 1 recipe:
+`template` (relative path), `curvatureTolerance`, `boundaries: [{id, widthFactor, offsetMeters}]`,
+`ports: [{id, s}]`, `sceneryKinds: [{kind, assetId, leftBoundaryId, rightBoundaryId}]`, and
+`environments: [{label, templateName}]`. The initial fitter owns one LINEAR Section without Links,
+fork, stamps or individual placements; Bands and constant bindings span that Section. Scenery
+rows and saved environment/asset profiles provide presentation. Other topologies remain directly
+authored with the same production CLI. Fitting requires strictly increasing sample distances.
+
+Curvature is held over each sample interval; adjacent intervals within the recipe tolerance merge
+into straight/constant-curvature primitives. Width maps to explicit Boundary factors/offsets;
+heights use observations or integrated grade. Collinear knots compact without changing the profile.
+All generated anchors, including mapped checkpoint annotations in the JSON result, are primitive
+relative. Checkpoint annotations do not silently create a runtime clock. Distance/curvature/height
+scales are explicit fitting inputs and are recorded in CourseDocument `reference` with edition,
+intermediate-file digest and remaster departures. Fitting validates and compiles before atomically
+replacing output. Compiler/runtime consume completed authored data and never estimate or fit it.
 
 ## Course Editor target
 

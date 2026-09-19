@@ -135,8 +135,18 @@ export interface SectionDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 7;
+  readonly version: 8;
   readonly id: string;
+  readonly reference: null | {
+    readonly source: { readonly kind: 'video' | 'analyzed-data'; readonly location: string; readonly edition: string };
+    readonly observations: { readonly location: string; readonly sha256: string };
+    readonly calibration: {
+      readonly distanceScale: number;
+      readonly curvatureScale: number;
+      readonly heightScale: number;
+    };
+    readonly remasterDeviations: readonly string[];
+  };
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
   readonly type: 'LINEAR' | 'BRANCH' | 'CIRCUIT';
@@ -187,7 +197,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v7`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v8`);
     }
   }
   for (const key of fields) {
@@ -202,6 +212,41 @@ function id(value: unknown, path: string): string {
   if (value.length > COURSE_DOCUMENT_LIMITS.idCodeUnits)
     fail('resource_limit', path, 'Stable ID exceeds 128 code units');
   return value;
+}
+
+function referenceText(value: unknown, path: string): string {
+  if (typeof value !== 'string' || !value.trim() || value.length > 4096)
+    fail('invalid_shape', path, 'Reference text must be nonempty and at most 4096 code units');
+  return value;
+}
+
+function courseReference(value: unknown, path: string): CourseDocument['reference'] {
+  if (value === null) return null;
+  const v = record(value, path, ['source', 'observations', 'calibration', 'remasterDeviations']);
+  const source = record(v.source, `${path}/source`, ['kind', 'location', 'edition']);
+  if (source.kind !== 'video' && source.kind !== 'analyzed-data')
+    fail('unsupported_feature', `${path}/source/kind`, 'Reference source is video or analyzed-data');
+  const observations = record(v.observations, `${path}/observations`, ['location', 'sha256']);
+  if (typeof observations.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(observations.sha256))
+    fail('invalid_shape', `${path}/observations/sha256`, 'Expected exact saved observation SHA-256');
+  const c = record(v.calibration, `${path}/calibration`, ['distanceScale', 'curvatureScale', 'heightScale']);
+  return Object.freeze({
+    source: Object.freeze({
+      kind: source.kind,
+      location: referenceText(source.location, `${path}/source/location`),
+      edition: referenceText(source.edition, `${path}/source/edition`),
+    }),
+    observations: Object.freeze({
+      location: referenceText(observations.location, `${path}/observations/location`),
+      sha256: observations.sha256,
+    }),
+    calibration: Object.freeze({
+      distanceScale: number(c.distanceScale, `${path}/calibration/distanceScale`, 0, 100, true),
+      curvatureScale: number(c.curvatureScale, `${path}/calibration/curvatureScale`, 0, 100),
+      heightScale: number(c.heightScale, `${path}/calibration/heightScale`, 0, 100),
+    }),
+    remasterDeviations: array(v.remasterDeviations, `${path}/remasterDeviations`, 64, referenceText),
+  });
 }
 
 function number(value: unknown, path: string, min: number, max: number, exclusiveMin = false): number {
@@ -547,11 +592,12 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 7, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 8, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
       'id',
+      'reference',
       'units',
       'geometryRecipe',
       'type',
@@ -562,7 +608,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 7, '/version', 'unsupported_version');
+    const version = literal(v.version, 8, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
@@ -574,6 +620,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       format,
       version,
       id: id(v.id, '/id'),
+      reference: courseReference(v.reference, '/reference'),
       units: Object.freeze({
         length: literal(units.length, 'm', '/units/length', 'unsupported_units'),
         angle: literal(units.angle, 'deg', '/units/angle', 'unsupported_units'),

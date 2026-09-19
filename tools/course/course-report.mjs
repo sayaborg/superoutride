@@ -1,0 +1,85 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
+import { guideCoordinateMetricsAt } from '../../dist/core/guide-coordinate-frame.js';
+import { courseBoundaryAt } from '../../dist/course/course-bands.js';
+import { atomicWrite, finite, requireInput } from './authoring-io.mjs';
+
+export async function courseReport(course, section, directory, step = 10) {
+  finite(step, '/step', 0.01, 100000);
+  requireInput(Math.ceil(section.raster.length / step) <= 4096, '/step', 'Report is limited to 4096 regular stations');
+  const stations = [
+    ...new Set([
+      0,
+      section.raster.length,
+      ...Array.from({ length: Math.ceil(section.raster.length / step) }, (_, i) => i * step),
+      ...section.height.nodes.map((n) => n.s),
+      ...section.boundaries.flatMap((b) => b.knots.map((k) => k.anchor.s)),
+    ]),
+  ].sort((a, b) => a - b);
+  const samples = stations.map((s) => {
+    const guide = sampleGuidePath(section.guide, s),
+      world = guidePathToWorld(section.guide, s, 0);
+    return {
+      s,
+      curvaturePerMeter: guideCoordinateMetricsAt(section.guide, s, 0, guide.segmentIndex).curvature,
+      heightMeters: section.height.samplePhysics(s),
+      x: world.x,
+      z: world.z,
+      boundaries: section.boundaries.map((b) =>
+        s < b.knots[0].anchor.s || s > b.knots.at(-1).anchor.s ? null : courseBoundaryAt(b, s),
+      ),
+    };
+  });
+  const report = {
+    course: course.id,
+    section: section.id,
+    lengthMeters: section.raster.length,
+    identity: course.identity,
+    reference: course.reference,
+    boundaries: section.boundaries.map((b) => b.id),
+    samples,
+    scenery: section.presentation.scenery.map((p) => ({
+      s: p.anchor.s,
+      l: p.l,
+      asset: p.instance.asset.source.name,
+      state: p.unselected?.id ?? null,
+    })),
+    environments: section.presentation.environments.map((e) => ({ s: e.anchor.s, name: e.name })),
+    primitives: section.primitives.map((p) => ({ id: p.source.id, kind: p.source.kind, start: p.sStart, end: p.sEnd })),
+  };
+  const json = path.join(directory, 'report.json');
+  await atomicWrite(json, JSON.stringify(report, null, 2) + '\n');
+  const text =
+    [
+      `COURSE ${course.id} / ${section.id}`,
+      `Length: ${report.lengthMeters.toFixed(3)} m`,
+      `Source: ${course.identity.sourceSha256}`,
+      `Scenery: ${report.scenery.length} placements; environments: ${report.environments.length}`,
+      '',
+      ['s_m', 'curvature_1_per_m', 'height_m', ...report.boundaries.map((b) => `${b}_m`)].join('\t'),
+      ...samples.map((p) =>
+        [p.s, p.curvaturePerMeter, p.heightMeters, ...p.boundaries]
+          .map((n) => (n === null ? 'NA' : n.toPrecision(9)))
+          .join('\t'),
+      ),
+      '',
+      'SCENERY: s_m l_m asset state',
+      ...report.scenery.map((p) => `${p.s.toFixed(3)} ${p.l.toFixed(3)} ${p.asset} ${p.state ?? 'always'}`),
+      '',
+      'ENVIRONMENTS',
+      ...report.environments.map((e) => `${e.s.toFixed(3)} ${e.name}`),
+    ].join('\n') + '\n';
+  await atomicWrite(path.join(directory, 'report.txt'), text);
+  await promisify(execFile)(
+    process.env.COURSE_REPORT_PYTHON ?? 'python3',
+    [fileURLToPath(new URL('./plot-report.py', import.meta.url)), json, directory],
+    { maxBuffer: 1024 * 1024 },
+  );
+  return {
+    directory,
+    files: ['report.json', 'report.txt', 'bands.png', 'plan.png'].map((f) => path.join(directory, f)),
+  };
+}

@@ -1,6 +1,7 @@
 {
   "format": "superoutride.course",
-  "version": 7,
+  "version": 8,
+  "reference": null,
   "id": "provisional-branch",
   "units": {
     "length": "m",

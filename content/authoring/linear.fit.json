@@ -1,0 +1,72 @@
+{
+  "format": "superoutride.course-fit",
+  "version": 1,
+  "template": "../courses/linear.course.json",
+  "curvatureTolerance": 1e-8,
+  "boundaries": [
+    {
+      "id": "outer-left",
+      "widthFactor": 0,
+      "offsetMeters": -20
+    },
+    {
+      "id": "shoulder-left",
+      "widthFactor": -0.5,
+      "offsetMeters": -2
+    },
+    {
+      "id": "road-left",
+      "widthFactor": -0.5,
+      "offsetMeters": 0
+    },
+    {
+      "id": "center-left",
+      "widthFactor": 0,
+      "offsetMeters": -0.1
+    },
+    {
+      "id": "center-right",
+      "widthFactor": 0,
+      "offsetMeters": 0.1
+    },
+    {
+      "id": "road-right",
+      "widthFactor": 0.5,
+      "offsetMeters": 0
+    },
+    {
+      "id": "shoulder-right",
+      "widthFactor": 0.5,
+      "offsetMeters": 2
+    },
+    {
+      "id": "outer-right",
+      "widthFactor": 0,
+      "offsetMeters": 20
+    }
+  ],
+  "ports": [
+    {
+      "id": "start",
+      "s": 30
+    }
+  ],
+  "sceneryKinds": [
+    {
+      "kind": "tree",
+      "assetId": "tree",
+      "leftBoundaryId": "road-left",
+      "rightBoundaryId": "road-right"
+    }
+  ],
+  "environments": [
+    {
+      "label": "COASTAL TRIAL",
+      "templateName": "COASTAL TRIAL"
+    },
+    {
+      "label": "HIGHLAND TRIAL",
+      "templateName": "HIGHLAND TRIAL"
+    }
+  ]
+}

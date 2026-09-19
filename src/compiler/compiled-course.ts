@@ -36,6 +36,7 @@ interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'out
 export interface CompiledCourse {
   readonly id: string;
   readonly type: CourseDocument['type'];
+  readonly reference: CourseDocument['reference'];
   readonly identity: {
     readonly sourceSha256: string;
     readonly buildSha256: string;
@@ -51,7 +52,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 14,
+  version: 15,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -318,6 +319,7 @@ export async function compileCourseDocument(
       Object.freeze({
         id: document.id,
         type: document.type,
+        reference: document.reference,
         identity: Object.freeze({
           sourceSha256,
           buildSha256,

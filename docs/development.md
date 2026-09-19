@@ -32,27 +32,39 @@ preparation neither changes synthesis nor resumes deferred method selection or c
 
 ## Agent production tools
 
-After `npm run build`, the implemented single-frame slice runs as follows:
+Use Node 24, Python 3.12+ and `python3 -m pip install -r tools/course/requirements.txt`, then
+`npm run build`. The shared scene supplies the same camera/renderer in Node and the browser.
+The current LINEAR can be rebuilt entirely from the saved analyzed-data observations and recipe
+(run `npm run format` before committing generated JSON):
 
 ```sh
+node tools/course/fit.mjs content/authoring/linear.observations.json content/authoring/linear.fit.json --out content/courses/linear.course.json --distance-scale 1.05 --curvature-scale 0.94 --height-scale 0.8
 npm run course -- compile content/courses/linear.course.json
 npm run course -- render content/courses/linear.course.json --s 1200 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+npm run course -- render content/courses/linear.course.json --start 45 --end 2845 --step 400 --vehicle VFR750R --out content/authoring/linear-preview/frames
+npm run course -- report content/courses/linear.course.json --step 25 --out content/authoring/linear-preview
 ```
 
-Open `http://localhost:8000/?mode=linear` for the same scene in the browser. Build validates and stages
-saved content in `dist/content`, with an exact-byte SHA-256 manifest. Pages verifies version.txt,
-versioned boot/root, the manifest and every delivered course/image against the checkout. Sequence
-rendering, reports and fitting remain M5 work.
+`compile`, `render`, `report`, `fit.mjs` and `measure.mjs` return one JSON object on stdout and exit
+nonzero with structured diagnostics on failure. Invoke `node` directly when parsing stdout.
+`--images` overrides the sibling image directory; `--section` selects the canonical source Section.
+Render takes `--s` or all of `--start/--end/--step` (at most 240 frames), plus optional `--l`,
+`--vehicle` and `--exit` (canonical fork Link selection). It writes 320×240 PNGs; no preview renderer
+or dynamics tuning exists. Report writes `report.json`, `report.txt`, five-panel `bands.png` and
+`plan.png`; inactive Boundaries are null/NA. `--step` limits regular sampling to 4096 stations;
+height/Boundary knots are also sampled. `COURSE_REPORT_PYTHON` can select the installed interpreter.
 
-The production CLI uses `compile`, `render` and `report`. Compile emits JSON diagnostics. Render
-selects a Section, s, l and vehicle viewpoint, or an evenly spaced s sequence, and writes PNGs using
-the same scene assembly, camera and renderer as the browser root. Report writes chainage bands for
-curvature, height, Boundaries, scenery and environments plus a supporting plan view and text.
-Keep qualification flags in separate diagnostics. `tools/course/` owns observation measurement and
-primitive/knot fitting; [Content](content-and-gameplay.md#agent-authoring) owns saved semantics.
-Check frame extraction and image inspection at the start of authoring work; record unavailable
-capabilities in NEXT Open decisions. M5 acceptance rebuilds a provisional product course through
-this CLI and inspects its rendered images.
+For a calibrated video, extract PNGs with `ffmpeg -i input.mp4 -vf fps=2 frame-%04d.png`, then run
+`node tools/course/measure.mjs request.json --out observations.json`. Preserve timestamps and source
+edition; [Content](content-and-gameplay.md#agent-authoring) owns request/observation semantics and
+fitting limits. Inspect measurements/residuals, classify scenery/environment/checkpoints, edit the
+intermediate file, fit, compile, render, and compare. Video pixels never become game assets.
+Verify extraction and image inspection in the actual environment; unavailable capabilities belong
+in NEXT Open decisions. The checked-in LINEAR observations are synthetic analyzed data, not a claim
+of video reconstruction. Its current preview directory is reproducible from the commands above.
+
+Open `http://localhost:8000/?mode=linear` for the same assembly. Build stages course/image bytes
+in `dist/content`; Pages verifies version, commit-versioned boot and every content SHA-256 digest.
 
 ## CourseDocument compiler
 
@@ -60,8 +72,8 @@ this CLI and inspects its rendered images.
 bytes through the public admission/compiler boundary. It returns machine-readable identities,
 counts or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
 compiler report for geometry-only inputs, accepting only the source and optional image directory.
-[Content](content-and-gameplay.md#coursedocument-v7-implemented-compiler-boundary) owns schema v7,
-compiler v14, canonical references, admission limits and failure semantics.
+[Content](content-and-gameplay.md#coursedocument-v8-implemented-compiler-boundary) owns schema v8,
+compiler v15, canonical references, admission limits and failure semantics.
 
 The product root's contact/step guard admission and local geometry checks are covered by direct
 causal tests. Source paint is sampled at level zero. Longer view consumers read source-owned spans.

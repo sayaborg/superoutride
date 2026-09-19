@@ -1,7 +1,28 @@
 {
   "format": "superoutride.course",
-  "version": 7,
+  "version": 8,
   "id": "provisional-linear",
+  "reference": {
+    "source": {
+      "kind": "analyzed-data",
+      "location": "https://github.com/sayaborg/superoutride/blob/4ebd1cb1ecf1964b938b7dc00a2dee0b62f168b5/content/courses/linear.course.json",
+      "edition": "M4 provisional LINEAR; original synthetic trial, not a real or game course"
+    },
+    "observations": {
+      "location": "../authoring/linear.observations.json",
+      "sha256": "220fd79fc3fc31216339aef96c18640c35497a9d6a3900f73a75ed143c7f2370"
+    },
+    "calibration": {
+      "distanceScale": 1.05,
+      "curvatureScale": 0.94,
+      "heightScale": 0.8
+    },
+    "remasterDeviations": [
+      "Synthetic provisional course; no claim of reproducing external footage.",
+      "Rebuild uses distance 1.05, curvature 0.94 and height 0.80; width and separately saved assets remain authored.",
+      "Curvature intervals become constant-curvature primitives; the saved Raster recipe discretizes arcs."
+    ]
+  },
   "units": {
     "length": "m",
     "angle": "deg"
@@ -26,42 +47,42 @@
       },
       "primitives": [
         {
-          "id": "start",
+          "id": "fit-001",
           "kind": "straight",
-          "length": 400
+          "length": 420
         },
         {
-          "id": "right",
+          "id": "fit-002",
           "kind": "arc",
-          "radius": 350,
-          "turn": 40
+          "radius": 372.3404255319149,
+          "turn": 39.467473801076466
         },
         {
-          "id": "ridge",
+          "id": "fit-003",
           "kind": "straight",
-          "length": 500
+          "length": 525
         },
         {
-          "id": "left",
+          "id": "fit-004",
           "kind": "arc",
-          "radius": 400,
-          "turn": -65
+          "radius": 425.531914893617,
+          "turn": -64.13464492674932
         },
         {
-          "id": "valley",
+          "id": "fit-005",
           "kind": "straight",
-          "length": 500
+          "length": 524.9999999999998
         },
         {
-          "id": "sweep",
+          "id": "fit-006",
           "kind": "arc",
-          "radius": 350,
-          "turn": 25
+          "radius": 372.3404255319149,
+          "turn": 24.66717112567278
         },
         {
-          "id": "runout",
+          "id": "fit-007",
           "kind": "straight",
-          "length": 550
+          "length": 577.5
         }
       ],
       "boundaries": [
@@ -71,7 +92,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": -20
@@ -79,47 +100,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
-                "fraction": 0
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "ridge",
-                "fraction": 0.4
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "left",
-                "fraction": 0
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "sweep",
-                "fraction": 0
-              },
-              "l": -20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": -20
@@ -132,7 +113,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": -9
@@ -140,7 +121,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
+                "primitiveId": "fit-002",
                 "fraction": 0
               },
               "l": -9
@@ -148,7 +129,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "ridge",
+                "primitiveId": "fit-003",
                 "fraction": 0.4
               },
               "l": -12
@@ -156,7 +137,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "left",
+                "primitiveId": "fit-004",
                 "fraction": 0
               },
               "l": -12
@@ -164,15 +145,15 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
+                "primitiveId": "fit-005",
+                "fraction": 0.4999999999999998
               },
               "l": -8
             },
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "sweep",
+                "primitiveId": "fit-006",
                 "fraction": 0
               },
               "l": -8
@@ -180,7 +161,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": -9
@@ -193,7 +174,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": -7
@@ -201,7 +182,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
+                "primitiveId": "fit-002",
                 "fraction": 0
               },
               "l": -7
@@ -209,7 +190,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "ridge",
+                "primitiveId": "fit-003",
                 "fraction": 0.4
               },
               "l": -10
@@ -217,7 +198,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "left",
+                "primitiveId": "fit-004",
                 "fraction": 0
               },
               "l": -10
@@ -225,15 +206,15 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
+                "primitiveId": "fit-005",
+                "fraction": 0.4999999999999998
               },
               "l": -6
             },
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "sweep",
+                "primitiveId": "fit-006",
                 "fraction": 0
               },
               "l": -6
@@ -241,7 +222,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": -7
@@ -254,7 +235,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": -0.1
@@ -262,47 +243,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
-                "fraction": 0
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "ridge",
-                "fraction": 0.4
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "left",
-                "fraction": 0
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "sweep",
-                "fraction": 0
-              },
-              "l": -0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": -0.1
@@ -315,7 +256,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": 0.1
@@ -323,47 +264,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
-                "fraction": 0
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "ridge",
-                "fraction": 0.4
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "left",
-                "fraction": 0
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "sweep",
-                "fraction": 0
-              },
-              "l": 0.1
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": 0.1
@@ -376,7 +277,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": 7
@@ -384,7 +285,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
+                "primitiveId": "fit-002",
                 "fraction": 0
               },
               "l": 7
@@ -392,7 +293,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "ridge",
+                "primitiveId": "fit-003",
                 "fraction": 0.4
               },
               "l": 10
@@ -400,7 +301,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "left",
+                "primitiveId": "fit-004",
                 "fraction": 0
               },
               "l": 10
@@ -408,15 +309,15 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
+                "primitiveId": "fit-005",
+                "fraction": 0.4999999999999998
               },
               "l": 6
             },
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "sweep",
+                "primitiveId": "fit-006",
                 "fraction": 0
               },
               "l": 6
@@ -424,7 +325,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": 7
@@ -437,7 +338,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": 9
@@ -445,7 +346,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
+                "primitiveId": "fit-002",
                 "fraction": 0
               },
               "l": 9
@@ -453,7 +354,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "ridge",
+                "primitiveId": "fit-003",
                 "fraction": 0.4
               },
               "l": 12
@@ -461,7 +362,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "left",
+                "primitiveId": "fit-004",
                 "fraction": 0
               },
               "l": 12
@@ -469,15 +370,15 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
+                "primitiveId": "fit-005",
+                "fraction": 0.4999999999999998
               },
               "l": 8
             },
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "sweep",
+                "primitiveId": "fit-006",
                 "fraction": 0
               },
               "l": 8
@@ -485,7 +386,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": 9
@@ -498,7 +399,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "l": 20
@@ -506,47 +407,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "right",
-                "fraction": 0
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "ridge",
-                "fraction": 0.4
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "left",
-                "fraction": 0
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "valley",
-                "fraction": 0.5
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "sweep",
-                "fraction": 0
-              },
-              "l": 20
-            },
-            {
-              "anchor": {
-                "kind": "primitive",
-                "primitiveId": "runout",
+                "primitiveId": "fit-007",
                 "fraction": 1
               },
               "l": 20
@@ -559,12 +420,12 @@
           "id": "grass-left",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "outer-left",
@@ -575,12 +436,12 @@
           "id": "kerb-left",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "shoulder-left",
@@ -591,12 +452,12 @@
           "id": "lane-left",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "road-left",
@@ -607,12 +468,12 @@
           "id": "center",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "center-left",
@@ -623,12 +484,12 @@
           "id": "lane-right",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "center-right",
@@ -639,12 +500,12 @@
           "id": "kerb-right",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "road-right",
@@ -655,12 +516,12 @@
           "id": "grass-right",
           "start": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "end": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "leftBoundaryId": "shoulder-right",
@@ -672,7 +533,7 @@
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0
           },
           "y": 0
@@ -680,7 +541,7 @@
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "right",
+            "primitiveId": "fit-002",
             "fraction": 0
           },
           "y": 0
@@ -688,39 +549,39 @@
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "ridge",
+            "primitiveId": "fit-003",
             "fraction": 0.5
           },
-          "y": 14
+          "y": 11.200000000000001
         },
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "left",
+            "primitiveId": "fit-004",
             "fraction": 0
           },
-          "y": 14
+          "y": 11.200000000000001
         },
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "valley",
-            "fraction": 0.6
+            "primitiveId": "fit-005",
+            "fraction": 0.5999999999999999
           },
-          "y": -5
+          "y": -4
         },
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "sweep",
+            "primitiveId": "fit-006",
             "fraction": 0
           },
-          "y": -5
+          "y": -4
         },
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 0.5
           },
           "y": 0
@@ -728,7 +589,7 @@
         {
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "runout",
+            "primitiveId": "fit-007",
             "fraction": 1
           },
           "y": 0
@@ -741,7 +602,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "GRASS"
@@ -754,7 +615,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "ASPHALT"
@@ -767,7 +628,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "ASPHALT"
@@ -780,7 +641,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "ASPHALT"
@@ -793,7 +654,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "ASPHALT"
@@ -806,7 +667,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "ASPHALT"
@@ -819,7 +680,7 @@
             {
               "anchor": {
                 "kind": "primitive",
-                "primitiveId": "start",
+                "primitiveId": "fit-001",
                 "fraction": 0
               },
               "material": "GRASS"
@@ -839,14 +700,13 @@
           "kind": "entry",
           "anchor": {
             "kind": "primitive",
-            "primitiveId": "start",
+            "primitiveId": "fit-001",
             "fraction": 0.075
           },
           "carriagewayId": "road"
         }
       ],
       "assetIds": ["asphalt", "grass", "stripe", "shoulder", "coast-sky", "hill-sky", "tree"],
-      "fork": null,
       "presentation": {
         "ground": {
           "left": 60,
@@ -859,7 +719,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -877,7 +737,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -899,7 +759,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -917,7 +777,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -939,7 +799,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -957,7 +817,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -979,7 +839,7 @@
                 {
                   "anchor": {
                     "kind": "primitive",
-                    "primitiveId": "start",
+                    "primitiveId": "fit-001",
                     "fraction": 0
                   },
                   "paint": {
@@ -998,7 +858,7 @@
           {
             "anchor": {
               "kind": "primitive",
-              "primitiveId": "start",
+              "primitiveId": "fit-001",
               "fraction": 0
             },
             "name": "COASTAL TRIAL",
@@ -1014,7 +874,7 @@
           {
             "anchor": {
               "kind": "primitive",
-              "primitiveId": "left",
+              "primitiveId": "fit-004",
               "fraction": 0
             },
             "name": "HIGHLAND TRIAL",
@@ -1028,48 +888,49 @@
             }
           }
         ],
-        "scenery": [],
         "sceneryRows": [
           {
-            "id": "left-trees",
+            "id": "fit-row-1",
             "assetId": "tree",
             "start": {
               "kind": "primitive",
-              "primitiveId": "start",
+              "primitiveId": "fit-001",
               "fraction": 0.2
             },
             "end": {
               "kind": "primitive",
-              "primitiveId": "runout",
+              "primitiveId": "fit-007",
               "fraction": 0.8
             },
-            "spacing": 40,
+            "spacing": 42,
             "boundaryId": "road-left",
             "side": "left",
             "offset": 5,
             "groundOffset": 0
           },
           {
-            "id": "right-trees",
+            "id": "fit-row-2",
             "assetId": "tree",
             "start": {
               "kind": "primitive",
-              "primitiveId": "start",
+              "primitiveId": "fit-001",
               "fraction": 0.2
             },
             "end": {
               "kind": "primitive",
-              "primitiveId": "runout",
+              "primitiveId": "fit-007",
               "fraction": 0.8
             },
-            "spacing": 40,
+            "spacing": 42,
             "boundaryId": "road-right",
             "side": "right",
             "offset": 5,
             "groundOffset": 0
           }
-        ]
-      }
+        ],
+        "scenery": []
+      },
+      "fork": null
     }
   ],
   "links": [],

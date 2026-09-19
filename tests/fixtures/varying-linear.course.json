@@ -1,6 +1,7 @@
 {
   "format": "superoutride.course",
-  "version": 7,
+  "version": 8,
+  "reference": null,
   "id": "narrow-bend-wide-straight",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },

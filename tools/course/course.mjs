@@ -1,8 +1,5 @@
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { readCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
@@ -10,81 +7,100 @@ import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
 import { deriveVehicleSpriteFamily } from '../../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { readCourseImages } from './read-course-images.mjs';
+import { courseReport } from './course-report.mjs';
+import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.mjs';
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
-  if (!['compile', 'render'].includes(verb) || !file || args.length % 2)
-    throw new Error(
-      'Usage: course.mjs compile|render course.json [--images directory] [--section id] [--s metres] [--l metres] [--vehicle id] [--out frame.png]',
-    );
-  const options = new Map();
-  for (let i = 0; i < args.length; i += 2) {
-    if (!['--images', '--section', '--s', '--l', '--vehicle', '--out'].includes(args[i]) || options.has(args[i]))
-      throw new Error(`Unknown or repeated option: ${args[i]}`);
-    options.set(args[i], args[i + 1]);
-  }
-  const document = readCourseDocument(JSON.parse(await readFile(file, 'utf8')));
-  if (!document.ok) {
-    console.log(JSON.stringify(document));
-    process.exitCode = 1;
-  } else {
-    const images = await readCourseImages(
-      document.value.assets,
-      options.get('--images') ?? path.resolve(path.dirname(file), '../images'),
-    );
-    const compiled = await compileCourseDocument(document.value, images);
-    if (!compiled.ok) {
-      console.log(JSON.stringify(compiled));
-      process.exitCode = 1;
-    } else {
-      const course = compiled.value;
-      const result = {
-        ok: true,
-        course: course.id,
-        identity: course.identity,
-        sections: course.sections.map((s) => ({
-          id: s.id,
-          length: s.raster.length,
-          scenery: s.presentation?.scenery.length ?? 0,
-        })),
-      };
-      if (verb === 'render') {
-        const section = options.has('--section')
-          ? course.sections.find((s) => s.id === options.get('--section'))
-          : course.entry;
-        const entry = options.has('--vehicle')
-          ? VEHICLE_CATALOG.find((e) => e.profile.id === options.get('--vehicle'))
-          : VEHICLE_CATALOG[0];
-        if (!section || !entry) throw new Error('Unknown Section or vehicle');
-        const scene = createCourseScene(section);
-        const vehicle = createArcadeVehicle(entry.profile, scene.world, {
-          s: Number(options.get('--s') ?? 45),
-          l: Number(options.get('--l') ?? 0),
-          initialSpeed: 0,
-          torqueProtection: entry.torqueProtection,
-        });
-        const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
-        const target = new SoftwareSurface(320, 240);
-        const stats = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry));
-        const png = new PNG({ width: target.width, height: target.height });
-        png.data = Buffer.from(target.pixels.buffer);
-        const output = path.resolve(options.get('--out') ?? 'frame.png');
-        await mkdir(path.dirname(output), { recursive: true });
-        await writeFile(output, PNG.sync.write(png));
-        result.render = {
-          output,
-          section: section.id,
-          s: vehicle.course.s,
-          l: vehicle.course.l,
-          vehicle: entry.profile.id,
-          stats,
-        };
-      }
-      console.log(JSON.stringify(result));
+  requireInput(
+    ['compile', 'render', 'report'].includes(verb) && file,
+    '/arguments',
+    'Usage: course.mjs compile|render|report course.json [options]',
+  );
+  const flags =
+    verb === 'compile'
+      ? ['--images']
+      : verb === 'report'
+        ? ['--images', '--section', '--out', '--step']
+        : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step', '--exit'];
+  const opts = options(args, flags),
+    { course } = await loadCourse(file, opts.get('--images'));
+  const result = {
+    ok: true,
+    course: course.id,
+    identity: course.identity,
+    reference: course.reference,
+    sections: course.sections.map((s) => ({
+      id: s.id,
+      length: s.raster.length,
+      scenery: s.presentation?.scenery.length ?? 0,
+    })),
+  };
+  const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
+  requireInput(section, '/section', 'Unknown Section');
+  if (verb === 'render') {
+    const entry = opts.has('--vehicle')
+      ? VEHICLE_CATALOG.find((e) => e.profile.id === opts.get('--vehicle'))
+      : VEHICLE_CATALOG[0];
+    requireInput(entry, '/vehicle', 'Unknown vehicle');
+    const sequence = ['--start', '--end', '--step'].some((f) => opts.has(f));
+    let stations;
+    if (sequence) {
+      requireInput(
+        !opts.has('--s') && ['--start', '--end', '--step'].every((f) => opts.has(f)),
+        '/sequence',
+        'Specify start/end/step together, separately from s',
+      );
+      const start = finite(Number(opts.get('--start')), '/start', 0, section.raster.length),
+        end = finite(Number(opts.get('--end')), '/end', start, section.raster.length),
+        step = finite(Number(opts.get('--step')), '/step', 0.01);
+      const count = Math.floor((end - start) / step + 1e-10) + 1;
+      requireInput(count <= 240, '/sequence', 'At most 240 frames per command');
+      stations = Array.from({ length: count }, (_, i) => start + i * step);
+    } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.raster.length)];
+    const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
+      scene = createCourseScene(section);
+    if (opts.has('--exit')) {
+      const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
+      requireInput(link && 'session' in scene, '/exit', 'Exit must name a canonical outgoing Link');
+      scene.session.prepareChoice(link).commit();
     }
+    const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
+    const frames = [];
+    for (const [i, s] of stations.entries()) {
+      const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+        s,
+        l,
+        initialSpeed: 0,
+        torqueProtection: entry.torqueProtection,
+      });
+      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CURRENT_CAMERA_PROFILE, 1 / 60),
+        target = new SoftwareSurface(320, 240);
+      const stats = scene.render(target, vehicle, camera, deriveVehicleSpriteFamily(entry)),
+        png = new PNG({ width: 320, height: 240 });
+      png.data = Buffer.from(target.pixels.buffer);
+      const output = sequence ? path.join(destination, `${String(i).padStart(4, '0')}.png`) : destination;
+      await atomicWrite(output, PNG.sync.write(png));
+      frames.push({
+        output,
+        section: section.id,
+        s: vehicle.course.s,
+        l: vehicle.course.l,
+        vehicle: entry.profile.id,
+        stats,
+      });
+    }
+    result.render = sequence ? { frames } : frames[0];
+  } else if (verb === 'report') {
+    requireInput(section.presentation, '/section', 'Report needs explicit saved presentation');
+    result.report = await courseReport(
+      course,
+      section,
+      path.resolve(opts.get('--out') ?? 'course-report'),
+      Number(opts.get('--step') ?? 10),
+    );
   }
+  console.log(JSON.stringify(result));
 } catch (error) {
-  console.log(JSON.stringify({ ok: false, diagnostics: [{ kind: 'tool', message: error.message }] }));
-  process.exitCode = 1;
+  reportError(error);
 }

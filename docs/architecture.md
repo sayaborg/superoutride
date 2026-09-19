@@ -222,7 +222,7 @@ imports, including types. Product roots load saved content; fixtures and diagnos
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v7-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v8-implemented-compiler-boundary)
 uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves

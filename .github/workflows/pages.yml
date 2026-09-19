@@ -44,8 +44,15 @@ jobs:
         with:
           node-version: 24
 
+      - name: Setup report Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          python3 -m pip install -r tools/course/requirements.txt
 
       - name: Checkout immutable hot-path reference
         uses: actions/checkout@v5
