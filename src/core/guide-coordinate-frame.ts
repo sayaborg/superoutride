@@ -20,15 +20,56 @@ interface GuideCoordinateFrame {
   readonly lateralOrigin: number;
 }
 
-/** An ordinary GuidePath is the zero-origin coordinate frame. */
-export type GuideCoordinateSource = GuidePath | GuideCoordinateFrame;
+/** Source data used by geometry authoring and legacy constant-origin adapters. */
+export type GuidePathSource = GuidePath | GuideCoordinateFrame;
 
-export function guideCoordinateCurve(source: GuideCoordinateSource): GuidePath {
+interface GuideCoordinateMetrics {
+  readonly curvature: number;
+  readonly metric: number;
+  readonly offsetMetric: number;
+}
+
+/** Ordinary finite reader. No topology, occurrence, source arrays or global-search fallback. */
+export interface GuideCoordinateReader {
+  readonly domain: { readonly start: number; readonly end: number };
+  toWorld(s: number, l: number): GuideSample & { l: number };
+  metricsAt(s: number, l: number, segmentIndex: number): GuideCoordinateMetrics;
+  locateLocal(world: Vec2, previousSegmentIndex: number, searchRadius: number, clampL: boolean): CourseCoordinate;
+}
+
+/** Existing paths keep their exact sampling arithmetic; bounded readers supply the same observations. */
+export type GuideCoordinateSource = GuidePathSource | GuideCoordinateReader;
+
+export function guideCoordinateCurve(source: GuidePathSource): GuidePath {
   return isGuideCoordinateFrame(source) ? source.guide : source;
 }
 
-export function guideCoordinateLateralOrigin(source: GuideCoordinateSource): number {
+export function guideCoordinateLateralOrigin(source: GuidePathSource): number {
   return isGuideCoordinateFrame(source) ? source.lateralOrigin : 0;
+}
+
+export function guideCoordinateDomain(source: GuideCoordinateSource): { readonly start: number; readonly end: number } {
+  return 'toWorld' in source ? source.domain : { start: 0, end: guideCoordinateCurve(source).length };
+}
+
+export function guideCoordinateMetricsAt(
+  source: GuideCoordinateSource,
+  s: number,
+  l: number,
+  segmentIndex: number,
+): GuideCoordinateMetrics {
+  if ('toWorld' in source) return source.metricsAt(s, l, segmentIndex);
+  const curve = guideCoordinateCurve(source),
+    segment = curve.segments[segmentIndex]!;
+  let curvature = 0,
+    metric = 1;
+  if (segment.kind === 'arc') {
+    const corner = curve.corners[segment.cornerIndex]!;
+    curvature = Math.sign(corner.turn) / corner.radius;
+    metric = corner.mu;
+  }
+  const worldL = l + guideCoordinateLateralOrigin(source);
+  return { curvature, metric, offsetMetric: 1 - curvature * worldL };
 }
 
 export function guideCoordinateToWorld(
@@ -36,6 +77,7 @@ export function guideCoordinateToWorld(
   s: number,
   localL: number,
 ): GuideSample & { l: number } {
+  if ('toWorld' in source) return source.toWorld(s, localL);
   const guide = guideCoordinateCurve(source);
   const lateralOrigin = guideCoordinateLateralOrigin(source);
   const world = guidePathToWorld(guide, s, localL + lateralOrigin);
@@ -43,7 +85,7 @@ export function guideCoordinateToWorld(
 }
 
 export function locateWorldOnGuideCoordinateGlobal(
-  source: GuideCoordinateSource,
+  source: GuidePathSource,
   world: Vec2,
   clampL = false,
 ): CourseCoordinate {
@@ -58,6 +100,7 @@ export function locateWorldOnGuideCoordinateLocal(
   searchRadius = 2,
   clampL = false,
 ): CourseCoordinate {
+  if ('toWorld' in source) return source.locateLocal(world, previousSegmentIndex, searchRadius, clampL);
   const guide = guideCoordinateCurve(source);
   return toLocalCoordinate(
     source,
@@ -66,7 +109,7 @@ export function locateWorldOnGuideCoordinateLocal(
   );
 }
 
-function toLocalCoordinate(source: GuideCoordinateSource, base: CourseCoordinate, clampL: boolean): CourseCoordinate {
+function toLocalCoordinate(source: GuidePathSource, base: CourseCoordinate, clampL: boolean): CourseCoordinate {
   const guide = guideCoordinateCurve(source);
   const limit = clampL ? guideEnvelopeAt(guide.envelope, base.s) : 0;
   const sourceL = clampL ? Math.max(-limit, Math.min(limit, base.l)) : base.l;
@@ -79,6 +122,6 @@ function toLocalCoordinate(source: GuideCoordinateSource, base: CourseCoordinate
   };
 }
 
-function isGuideCoordinateFrame(source: GuideCoordinateSource): source is GuideCoordinateFrame {
+function isGuideCoordinateFrame(source: GuidePathSource): source is GuideCoordinateFrame {
   return 'guide' in source;
 }

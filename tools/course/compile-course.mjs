@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { courseViewReport } from './course-view-report.mjs';
+import { courseViewReport, courseDrivingViewReport } from './course-view-report.mjs';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 import {
   compileCoursePhysicalOverlaps,
@@ -27,12 +27,13 @@ if (
   !sourcePath ||
   (extra.length &&
     extra[0] !== '--view' &&
+    !(extra.length === 8 && extra[0] === '--driving-view') &&
     !(extra.length === 4 && extra[0] === '--geometry-window') &&
     !(extra.length === 1 && extra[0] === '--physical-overlap') &&
     !(extra.length === 2 && extra[0] === '--physical-domain'))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ...]',
+    'Usage: npm run compile:course -- CourseDocument.json [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
   );
 const project = createCourseProject();
 const result = await project.importDocument(await readFile(sourcePath, 'utf8'));
@@ -80,7 +81,10 @@ if (!result.ok) {
       ),
     );
 } else if (extra.length) {
-  const view = courseViewReport(result.value, extra.slice(1));
+  const view =
+    extra[0] === '--driving-view'
+      ? courseDrivingViewReport(result.value, extra.slice(1))
+      : courseViewReport(result.value, extra.slice(1));
   if (!view.ok) {
     console.error(JSON.stringify(view, null, 2));
     process.exitCode = 1;

@@ -77,6 +77,15 @@ reject changing a chosen successor, and exercise both distance/count bounds with
 Runtime/project state failures must not contain fabricated authoring pointers. Syntax/schema import
 failure must leave an in-flight current-source compilation publishable.
 
+Single-Section driving comparisons use the actual mechanics, contact projection, recovery, driver,
+camera and renderer, and compare complete state, render statistics and framebuffer against the same
+canonical source readers. Vary window reconstruction frequency without rebasing observations or seeds;
+retain native Raster/height record identity and original height interpolation. An intentionally short
+window must reject both complete projection candidates and real driver lookahead. A selected geometric
+Link remains undrivable. These tests use explicit diagnostic presentation, not missing-content defaults
+or full presentation qualification. Observer dependency checks parse imports; driver steering, total-speed
+control and distance-dependent braking are input/output tests rather than source spelling.
+
 Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
 cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,
 each small window qualifies, and a window containing both passages reports ambiguity for Raster and

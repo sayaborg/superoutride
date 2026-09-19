@@ -385,14 +385,14 @@ same Section readers/assets and never allocate geometry or image copies for a sc
 Snapshots own frozen arrays; callers retaining old snapshots also retain that historical metadata.
 This geometry adapter does not authorize an actor transition or implement route locks/recovery.
 
-[Geometry views](../src/runtime/course-geometry-view.ts) map a retained, explicitly followed itinerary
-and selected itinerary into the still-active occurrence's coordinate basis. Compose the existing Link transforms locally; no global
+[Geometry views](../src/runtime/course-geometry-view.ts) map the retained visited/selected itinerary
+into the still-active occurrence's coordinate basis. Compose the existing Link transforms locally; no global
 unwrapped world coordinates accumulate. Each span owns one source-to-view address mapping: paired
 chainage anchors, a derived lateral origin and an upright rigid transform. Lateral anchors are derived
 from canonical Carriageway boundaries, never reconstructed by projecting rounded world positions.
 The source Section, traversal occurrence and chosen frame remain separate identities even for a loop.
 
-The view uses finite chainage `[0,length]`. At a visited seam the successor owns the point, including
+The inspection view uses finite chainage `[0,length]`. At a selected/visited seam the successor owns the point, including
 when the seam is the view endpoint. Band queries delegate to the canonical half-open partition through
 the same address mapping as Raster/Guide point readers. Lateral membership compares the view point
 with source boundaries shifted by that mapping, preserving exact half-open ownership without a lossy
@@ -401,8 +401,8 @@ stations across ruler offset cancellation; reject distinct classification statio
 the view ruler. Positive visited seam spans must also remain representable; a tiny occurrence cannot
 silently disappear between larger neighbors. Continuous Core geometry retains its existing sampling tolerance. Source readers,
 Boundary references, local Guide envelopes and assets are shared, not retessellated. The `geometry`
-facet exposes ordinary point readers and Guide bounds without graph/occurrence metadata; it is not yet
-an adapter to the existing driving GuidePath, projection, terrain or physical-contact interfaces.
+facet exposes ordinary point readers and Guide bounds without graph/occurrence metadata. The separate
+single-Section adapter below supplies actual driving readers without admitting a Link transition.
 
 Every request explicitly supplies camera/render, contact, driver-lookahead and reverse/recovery
 behind/ahead extents, plus a closed active-source pose interval and maximum fixed-step advance. For
@@ -418,11 +418,43 @@ The result is labelled `geometry-only`. These are declared interval checks, not 
 consumer envelopes, complete common-content overlap, pre-lock visibility or transition qualification.
 Only the selected Carriageway has the Link's existing geometric agreement proof. Other Bands can
 still differ across a seam unless separately qualified. Height and physical bindings now have admitted
-Section facets and a separate overlap proof above, but are not yet mapped through these views. Images/phase,
-scenery/background and product camera state have no admitted CourseDocument fields/readers; none is
-filled with a default or reported as certified. Their admission and separate physical/presentation proofs,
+Section facets and a separate overlap proof above, but are not yet mapped across Links for driving.
+Images/phase and scenery/background have no admitted CourseDocument fields/readers; none is filled
+with a default or reported as certified. Product camera coverage across a transition also remains
+unqualified. Their admission and separate physical/presentation proofs,
 including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
 The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
+
+### Single-Section driving view
+
+`createCourseSectionDrivingSource` prepares the canonical Band/material reader once. `createView`
+accepts that source's active geometry view, requires one active-Section span, and qualifies its complete
+source window. It publishes ordinary immutable `VehicleWorld` and `RasterGeometry` facets; consumers
+receive neither Section nor occurrence/graph metadata. A view touching another occurrence returns
+`unqualified_links`, even when its geometric Link already passes. Local geometry failures retain their
+specific qualification diagnostics under `geometry_qualification_failed`.
+
+Reader coordinates and projection indices remain native to the active source, independent of the
+inspection window's zero. Every query checks the admitted range; local projection checks its complete
+candidate-segment interval before searching. No global fallback or nearest passage selection is added.
+The logical source endpoints remain distinct from the smaller readable window: insufficient coverage
+must not shorten a driver's requested lookahead or change a recovery target. Height delegates to the
+canonical source's original interpolation. Bounded Raster/height metadata retains original record
+references; rebuilding a window creates no new geometry, height curve, image, frame or progress.
+
+`courseSectionDrivingDemand` derives longitudinal demand from the actual camera distance, render far
+depth, driver's query reach, complete physical projection neighborhoods, recovery backtrack/last-safe
+station and an explicit pose/maximum-step envelope. Include both incident projection seeds at a closed
+pose endpoint. Caller-owned pose slack controls reconstruction frequency; it is not a universal guard.
+Runtime query checks and the real-consumer comparison detect an insufficient declaration.
+
+This is the seam-free LINEAR vertical slice, not complete Gate 2 qualification. The comparison drives
+all nine production vehicle profiles through the real contact/recovery/driver/camera/renderer path,
+including reverse, unsupported excursion, moving windows and manual recovery. Its explicit diagnostic
+ground/background/sprites exercise the existing renderer; they are not CourseDocument presentation
+bindings or accepted product art. Multi-occurrence physical readers, lateral/pose admission across Links,
+pre-lock/exit visibility, atomic commits and the joint edge cutover remain required. Browser roots and
+Session composition stay on their existing paths until their separate acceptance gates.
 
 ### Publication, identity and diagnostics
 

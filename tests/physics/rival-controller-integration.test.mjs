@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
@@ -15,7 +14,9 @@ import {
   TSUKUBA_ROAD_HALF_WIDTH_METERS,
 } from '../../dist/dev/courses/tsukuba-circuit.js';
 import { createLowMidSpeedMountainCircuitRuntime } from '../../dist/dev/fixtures/mountain-circuit.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { estimateUpcomingTargetSpeed, sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { compileGuidePath } from '../../dist/core/guide-curve.js';
+import { compileRasterPath } from '../../dist/core/raster-path.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../../dist/vehicle/vehicle-catalog.js';
 
@@ -104,10 +105,49 @@ for (const course of courses) {
   }
 }
 
-test('rival remains one general canonical-input publisher', async () => {
-  const source = await readFile(new URL('../../src/gameplay/rival-driver.ts', import.meta.url), 'utf8');
-  assert.match(source, /MAX_STEERING_REQUEST = 0\.72/);
-  assert.match(source, /Math\.hypot\(car\.longitudinalSpeed, car\.lateralSpeed\)/);
-  assert.match(source, /curveSpeed \* curveSpeed \+ 2 \* BRAKING_DECELERATION_TARGET_MPS2 \* distance/);
-  assert.doesNotMatch(source, /car\.yawRate|profile\.id|routeKind|TSUKUBA|FISCO|BIKE|\bCAR\b/);
+test('rival input has bounded steering, observes total speed, and needs no vehicle or route identity', () => {
+  const guide = compileGuidePath(
+    compileRasterPath([
+      { x: 0, z: 0 },
+      { x: 0, z: 1000 },
+    ]),
+    { lMax: 12, mMin: 0.25 },
+  );
+  const read = (values) => {
+    const vehicle = Object.freeze({
+      x: 0,
+      z: 100,
+      yaw: 0,
+      course: Object.freeze({ s: 100, l: 0 }),
+      longitudinalSpeed: 40,
+      lateralSpeed: 0,
+      ...values,
+    });
+    return sampleRivalDrivingInput(
+      guide,
+      new Proxy(vehicle, {
+        get(target, key) {
+          assert.ok(Object.hasOwn(target, key), `unexpected vehicle read: ${String(key)}`);
+          return target[key];
+        },
+      }),
+    );
+  };
+  assert.equal(read({ x: 100 }).steering, -0.72);
+  assert.equal(read({ x: -100 }).steering, 0.72);
+  assert.equal(read({ x: 100, longitudinalSpeed: -1 }).steering, 0);
+  assert.equal(read({}).throttle, true);
+  assert.equal(read({ lateralSpeed: 40 }).brake, true, '40/40 m/s sideslip is faster than the 56 m/s cruise target');
+});
+
+test('future curvature retains the ordinary distance-dependent braking envelope', () => {
+  const reader = {
+    domain: { start: 0, end: 1000 },
+    toWorld(s, l) {
+      const heading = Math.max(0, Math.min(1, (s - 250) / 10));
+      return { s, l, heading, x: 0, z: s, segmentIndex: 0 };
+    },
+  };
+  for (const s of [100, 150, 190])
+    assert.equal(estimateUpcomingTargetSpeed(reader, s), Math.sqrt(12 ** 2 + 2 * 4 * (250 - s)));
 });

@@ -1,6 +1,6 @@
 import { MIN_TERRAIN_SPAN_PIXELS } from './terrain-line.js';
 
-import type { GuidePath } from '../core/guide-curve.js';
+import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import { stageRoadToWorld, type StageRoadView } from '../course/stage-road-view.js';
 import type { TerrainLine } from './terrain-line.js';
@@ -13,7 +13,7 @@ import type { TerrainLine } from './terrain-line.js';
  * committed child stage to draw one selected road centered on its own local l=0.
  */
 export function applyStageRoadViewToTerrainLine(
-  guide: GuidePath,
+  guide: RasterGeometry,
   camera: PseudoCamera,
   line: TerrainLine,
   view: StageRoadView,

@@ -1,7 +1,6 @@
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import {
-  guideCoordinateCurve,
-  guideCoordinateLateralOrigin,
+  guideCoordinateMetricsAt,
   guideCoordinateToWorld,
   locateWorldOnGuideCoordinateLocal,
   type GuideCoordinateSource,
@@ -28,6 +27,8 @@ const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
 
 export const VEHICLE_GRAVITY = 9.80665;
 export const VEHICLE_SUBSTEPS = 12;
+/** Complete local-projection neighborhood, also used by bounded-reader admission. */
+export const VEHICLE_PROJECTION_SEARCH_RADIUS = 5;
 
 type VehicleContactId = 'FRONT' | 'REAR';
 
@@ -219,7 +220,13 @@ export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, 
 
 export function refreshGuideObservation(guide: GuideCoordinateSource, vehicle: VehicleDynamicsState): void {
   const world = { x: vehicle.x, z: vehicle.z };
-  vehicle.course = locateWorldOnGuideCoordinateLocal(guide, world, vehicle.course.segmentIndex, 5, false);
+  vehicle.course = locateWorldOnGuideCoordinateLocal(
+    guide,
+    world,
+    vehicle.course.segmentIndex,
+    VEHICLE_PROJECTION_SEARCH_RADIUS,
+    false,
+  );
 }
 
 function sampleSurfaceGeometryAtWorld(
@@ -233,7 +240,7 @@ function sampleSurfaceGeometryAtWorld(
     guide,
     { x: point.x, z: point.z },
     previousSegmentIndex,
-    5,
+    VEHICLE_PROJECTION_SEARCH_RADIUS,
     false,
   );
   return sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
@@ -245,18 +252,13 @@ export function sampleSurfaceGeometryAtCoordinate(
   surfaces: SurfaceMapReader,
   coordinate: CourseCoordinate,
 ): SurfaceGeometryObservation {
-  const curve = guideCoordinateCurve(guide);
   const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l);
-  const segment = curve.segments[guideSample.segmentIndex]!;
-  let curvature = 0;
-  let metric = 1;
-  if (segment.kind === 'arc') {
-    const corner = curve.corners[segment.cornerIndex]!;
-    curvature = Math.sign(corner.turn) / corner.radius;
-    metric = corner.mu;
-  }
-  const worldL = coordinate.l + guideCoordinateLateralOrigin(guide);
-  const offsetMetric = 1 - curvature * worldL;
+  const { curvature, metric, offsetMetric } = guideCoordinateMetricsAt(
+    guide,
+    coordinate.s,
+    coordinate.l,
+    guideSample.segmentIndex,
+  );
   if (!(offsetMetric > 0)) {
     throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
   }

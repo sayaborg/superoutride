@@ -1,6 +1,5 @@
 import { deg } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
 
@@ -31,20 +30,6 @@ function makePlainVehicle(guide, height, s = 90) {
     sprungRoll: 0,
   };
 }
-
-test('camera/renderer/rival presentation no longer import concrete car physics', async () => {
-  const paths = [
-    '../../src/camera/camera.ts',
-    '../../src/render/renderer.ts',
-    '../../src/render/dynamic-vehicle-sprite.ts',
-    '../../src/gameplay/rival-driver.ts',
-  ];
-  for (const path of paths) {
-    const source = await readFile(new URL(path, import.meta.url), 'utf8');
-    assert.doesNotMatch(source, /car-physics/);
-    assert.match(source, /vehicle-contract/);
-  }
-});
 
 test('plain world-state object can drive camera, rival input, dynamic sprite and renderer without M5CarState', () => {
   const guide = createStadiumGuide();

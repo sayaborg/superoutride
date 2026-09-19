@@ -1,4 +1,4 @@
-import type { GuidePath } from '../core/guide-curve.js';
+import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
@@ -63,7 +63,7 @@ export interface GroundColorReader {
 
 interface RenderScene {
   readonly background: FarBackground;
-  readonly guide: GuidePath;
+  readonly guide: RasterGeometry;
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderReadState;
   readonly terrainProfile: TerrainVisualProfile;
@@ -226,7 +226,7 @@ export function collectDrivingGroundSamples(
 }
 
 function prepareTerrain(
-  guide: GuidePath,
+  guide: RasterGeometry,
   camera: PseudoCamera,
   terrainProfile: TerrainVisualProfile,
   roadView?: StageRoadView,

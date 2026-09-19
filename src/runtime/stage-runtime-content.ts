@@ -2,7 +2,7 @@ import type { JunctionCrossSectionProfile } from '../course/junction-cross-secti
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
-  type GuideCoordinateSource,
+  type GuidePathSource,
 } from '../core/guide-coordinate-frame.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import type { StageRoadView } from '../course/stage-road-view.js';
@@ -21,7 +21,7 @@ const CENTERED_JUNCTION_ORIGIN_TOLERANCE_METERS = 1e-9;
 export interface StageRuntimeContentPackage {
   readonly packageId: string;
   readonly worldFrameId: string;
-  readonly coordinateFrame: GuideCoordinateSource;
+  readonly coordinateFrame: GuidePathSource;
   readonly roadView: StageRoadView | null;
   readonly surfaceMap: SurfaceMapReader;
   readonly heightProfile: HeightProfileReader;

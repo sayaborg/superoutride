@@ -1,5 +1,6 @@
 import { classifyRoadCrossSection, compileRoadCrossSection, type RoadCrossSection } from './road-cross-section.js';
-import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from '../core/raster-path.js';
+import type { CourseWorldSample } from '../core/raster-path.js';
+import { rasterCoordinateToWorld, type RasterCoordinateSource } from '../core/raster-coordinate-reader.js';
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
 
 /** Stage-local lateral region. Both visual and physical adapters consume this authority. */
@@ -63,12 +64,12 @@ export function classifyStageRoadLocalL(view: StageRoadView, localL: number): St
  * Chainage and raster segment selection are unchanged; only the lateral source origin moves.
  */
 export function stageRoadToWorld(
-  raster: RasterPath,
+  raster: RasterCoordinateSource,
   view: StageRoadView,
   s: number,
   localL: number,
 ): CourseWorldSample {
-  const world = rasterPathToWorld(raster, s, stageRoadSourceLateral(view, localL));
+  const world = rasterCoordinateToWorld(raster, s, stageRoadSourceLateral(view, localL));
   return { ...world, l: localL };
 }
 

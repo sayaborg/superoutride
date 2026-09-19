@@ -1,7 +1,7 @@
-import type { GuidePath } from '../core/guide-curve.js';
+import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
-import { rasterPathToWorld } from '../core/raster-path.js';
+import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
 import type { SpriteAsset } from '../graphics/sprite.js';
 
 export interface CourseSpriteAuthoring {
@@ -28,11 +28,11 @@ export interface VisibleCourseSprite extends CourseSprite {
 }
 
 export function compileCourseSprite(
-  guide: GuidePath,
+  guide: RasterGeometry,
   height: HeightProfileReader,
   source: CourseSpriteAuthoring,
 ): CourseSprite {
-  const plan = rasterPathToWorld(guide.raster, source.s, source.l);
+  const plan = rasterCoordinateToWorld(guide.raster, source.s, source.l);
   const y = source.y ?? height.sampleRender(source.s).y + (source.groundOffset ?? 0);
   return {
     name: source.name,

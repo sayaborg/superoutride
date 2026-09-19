@@ -1,14 +1,10 @@
-import {
-  guideCoordinateCurve,
-  guideCoordinateToWorld,
-  type GuideCoordinateSource,
-} from '../core/guide-coordinate-frame.js';
+import { guideCoordinateCurve, guideCoordinateToWorld, type GuidePathSource } from '../core/guide-coordinate-frame.js';
 import { wrapAngle } from '../core/math.js';
 
 interface StageContinuationLinkAuthoring {
   readonly id: string;
-  readonly sourceFrame: GuideCoordinateSource;
-  readonly targetFrame: GuideCoordinateSource;
+  readonly sourceFrame: GuidePathSource;
+  readonly targetFrame: GuidePathSource;
   readonly sourceSeamS: number;
   readonly targetSeamS: number;
   readonly sourceLocalL: number;
@@ -21,8 +17,8 @@ interface StageContinuationLinkAuthoring {
 
 export interface StageContinuationLink {
   readonly id: string;
-  readonly sourceFrame: GuideCoordinateSource;
-  readonly targetFrame: GuideCoordinateSource;
+  readonly sourceFrame: GuidePathSource;
+  readonly targetFrame: GuidePathSource;
   readonly sourceSeamS: number;
   readonly targetSeamS: number;
   readonly sourceLocalL: number;

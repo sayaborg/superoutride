@@ -1,5 +1,4 @@
-import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
-import { sampleGuidePath } from '../core/guide-curve.js';
+import { guideCoordinateDomain, guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import {
@@ -178,8 +177,8 @@ function sameChartRecoveryTarget(
   profile: RecoveryProfile,
 ): RecoveryTarget {
   const { guide } = world;
-  const curve = guideCoordinateCurve(guide);
-  if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < 0 || state.lastSafeS > curve.length) {
+  const domain = guideCoordinateDomain(guide);
+  if (!Number.isFinite(state.lastSafeS) || state.lastSafeS < domain.start || state.lastSafeS > domain.end) {
     throw new RangeError('recovery lastSafeS must lie within the active Guide domain');
   }
   if (!Number.isFinite(vehicle.course.s)) {
@@ -188,8 +187,8 @@ function sameChartRecoveryTarget(
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal Guide observation, then backtrack once into the ordinary supported reconstruction.
-  const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), 0, curve.length);
-  return { s: Math.max(0, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 };
+  const recoveryBaseS = clamp(Math.max(state.lastSafeS, vehicle.course.s), domain.start, domain.end);
+  return { s: Math.max(domain.start, recoveryBaseS - profile.backtrackDistance), l: profile.targetL ?? 0 };
 }
 
 /**
@@ -207,15 +206,15 @@ export function recoverVehicleToGuideCoordinate(
   }: RecoveryOptions & { target: RecoveryTarget; reason: RecoveryReason },
 ): void {
   const { guide, height, surfaces } = world;
-  const curve = guideCoordinateCurve(guide);
+  const domain = guideCoordinateDomain(guide);
   if (![target.s, target.l].every(Number.isFinite)) throw new RangeError('recovery target coordinate must be finite');
-  if (target.s < 0 || target.s > curve.length)
+  if (target.s < domain.start || target.s > domain.end)
     throw new RangeError('recovery target chainage must lie within the active Guide domain');
 
   const coordinate = {
     s: target.s,
     l: target.l,
-    segmentIndex: sampleGuidePath(curve, target.s).segmentIndex,
+    segmentIndex: guideCoordinateToWorld(guide, target.s, target.l).segmentIndex,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);

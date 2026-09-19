@@ -151,6 +151,30 @@ envelope separation within that source interval. Its `local-geometry` report doe
 consumers, multi-occurrence views or physical/presentation overlaps fit the window. See the
 [qualification contract](content-and-gameplay.md#consumer-local-geometry-qualification) for scope and diagnostics.
 
+### Single-Section driving readers
+
+```sh
+npm run build
+node tools/performance/course-driving-view.mjs
+npm run compile:course -- tests/fixtures/varying-linear.course.json --driving-view 150 160 2 5 200 8 150
+```
+
+`--driving-view` takes pose minimum/maximum, maximum step advance, camera distance, render far depth,
+recovery backtrack and last-safe station. It derives the existing consumers' longitudinal demand and
+reports the same bounded readers used by the live integration probe. It selects no outgoing Link.
+Insufficient source coverage, ambiguous local geometry and unqualified Links fail explicitly.
+
+The probe compares complete vehicle state, recovery, driver inputs, camera, render statistics and
+320x240 pixels against native readers. All nine profiles, both turn signs, reverse and actual unsupported
+excursion/recovery have causal tests. Its ground/background are explicit existing diagnostic presentation,
+not authored-image admission. The browser roots and product GroundMap path are unchanged.
+
+A 600-step host trace measured 146,544 reader observations and 31 complete frames. Rebuilding every
+step constructed 601 views; a caller-declared 64 m pose slack constructed six, with identical state and
+pixels. Maximum retained Raster metadata was 19/21 of 74 source segments and four of five height nodes.
+The command regenerates counts, time and peak RSS; host timing includes paired physics, assertions and
+diagnostic rendering and is not a smartphone frame budget or whole-course capacity acceptance.
+
 ## Sprite LOD preview
 
 After `npm run build`, serve the checkout and open `tools/graphics/sprite-lod.html`. The same page

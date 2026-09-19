@@ -17,7 +17,7 @@ interface Extent {
   readonly behind: number;
   readonly ahead: number;
 }
-interface ViewDemand {
+export interface CourseViewDemand {
   /** Closed admitted source-chainage envelope in the active occurrence, plus maximum forward step. */
   readonly pose: { readonly minS: number; readonly maxS: number; readonly maxAdvance: number };
   readonly consumers: {
@@ -48,7 +48,7 @@ const viewS = (mapping: Mapping, sourceS: number) => mapping.viewAnchorS + (sour
  * Bounded source geometry adapters in the active occurrence's basis. Neither content continuity nor
  * physical transition readiness is implied. History comes from the traversal owner; no ID joins.
  */
-export function createCourseGeometryView(history: CourseOccurrenceHistory, demand: ViewDemand) {
+export function createCourseGeometryView(history: CourseOccurrenceHistory, demand: CourseViewDemand) {
   if (!history || !Array.isArray(history.occurrences) || !Array.isArray(history.selected))
     throw new TypeError('View requires separate visited history and selected occurrences');
   const { active } = history;
@@ -230,6 +230,8 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         scope: 'geometry-only' as const,
         frame: active,
         length,
+        /** Stable active-frame ruler; moving a bounded window does not rebase actor observations. */
+        activeRange: Object.freeze({ start, end }),
         pose: Object.freeze({ minS: minS - start, maxS: maxS - start, maxAdvance }),
         coverage: Object.freeze(
           requirements.map((r) => Object.freeze({ consumer: r.consumer, start: r.start - start, end: r.end - start })),
@@ -264,3 +266,5 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     throw error;
   }
 }
+
+export type CourseGeometryView = Extract<ReturnType<typeof createCourseGeometryView>, { ok: true }>['value'];

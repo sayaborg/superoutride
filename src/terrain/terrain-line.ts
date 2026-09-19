@@ -1,8 +1,8 @@
-import type { GuidePath } from '../core/guide-curve.js';
+import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import { profileIndexAt } from '../core/open-profile.js';
 import { horizonY, pseudoProject, type PseudoCamera } from '../core/projection.js';
-import { rasterPathToWorld } from '../core/raster-path.js';
+import { rasterCoordinateToWorld } from '../core/raster-coordinate-reader.js';
 import { PIXEL_EDGE_TOLERANCE, SOURCE_ENDPOINT_TOLERANCE_METERS } from '../core/tolerances.js';
 import type { GroundBase, VisualProfileReader } from '../visual/visual-profile.js';
 
@@ -40,7 +40,7 @@ export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
  * so this clipping is not an ordinary gameplay special case.
  */
 export function computeForwardVisibleInterval(
-  guide: GuidePath,
+  guide: RasterGeometry,
   cameraYaw: number,
   sCamera: number,
   dMin: number,
@@ -142,7 +142,7 @@ interface VerticalFootprintSetup {
 }
 
 export function generateTerrainLines(
-  guide: GuidePath,
+  guide: RasterGeometry,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
 ): TerrainLine[] {
@@ -258,7 +258,7 @@ function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: nu
 }
 
 function createTerrainLine(
-  guide: GuidePath,
+  guide: RasterGeometry,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
   d: number,
@@ -267,8 +267,8 @@ function createTerrainLine(
 ): TerrainLine | null {
   const s = camera.s + d;
   const renderHeight = profile.height.sampleRender(s).y;
-  const groundLeft = rasterPathToWorld(guide.raster, s, -profile.groundLeft);
-  const groundRight = rasterPathToWorld(guide.raster, s, profile.groundRight);
+  const groundLeft = rasterCoordinateToWorld(guide.raster, s, -profile.groundLeft);
+  const groundRight = rasterCoordinateToWorld(guide.raster, s, profile.groundRight);
   const projectedLeft = pseudoProject({ ...groundLeft, y: renderHeight }, camera);
   const projectedRight = pseudoProject({ ...groundRight, y: renderHeight }, camera);
   const groundSpan = projectedRight.x - projectedLeft.x;

@@ -1,5 +1,7 @@
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
+import { createCourseSectionDrivingSource } from '../../dist/runtime/course-section-driving-view.js';
+import { courseSectionDrivingDemand } from '../../dist/runtime/course-driving-demand.js';
 
 /** Explicit offline itinerary; no successor is guessed and no actor is committed. */
 export function courseViewReport(course, args) {
@@ -17,7 +19,7 @@ export function courseViewReport(course, args) {
     activeIndex < 0 ||
     activeIndex > linkIds.length
   )
-    throw new TypeError('View arguments: <source-s> <behind> <ahead> <active-index> [visited-Link-ID ...]');
+    throw new TypeError('View arguments: <source-s> <behind> <ahead> <active-index> [Link-ID ...]');
   // Retain this finite explicit itinerary. Interactive traversal can use a consumer-derived smaller extent.
   const traversal = createCourseGeometryTraversal(course.entry, {
     retainBehind: Number.MAX_VALUE,
@@ -70,6 +72,48 @@ export function courseViewReport(course, args) {
         viewFromSource: span.viewFromSource,
       })),
       endpoints: [0, view.length].map((position) => view.geometry.guideAt(position, 0)),
+    },
+  };
+}
+
+/** Inspect the same bounded source readers used by the real driving integration probe. */
+export function courseDrivingViewReport(course, args) {
+  if (args.length !== 7)
+    throw new TypeError(
+      'Driving view requires min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s',
+    );
+  const [minS, maxS, maxAdvance, dCam, dMax, backtrackDistance, lastSafeS] = args.map(Number);
+  const demand = courseSectionDrivingDemand(
+    course.entry.guide,
+    { minS, maxS, maxAdvance },
+    { dCam },
+    { dMax },
+    { backtrackDistance, lastSafeS },
+  );
+  const traversal = createCourseGeometryTraversal(course.entry, { retainBehind: 0, selectAhead: 0, maxOccurrences: 2 });
+  const geometry = createCourseGeometryView(traversal.snapshot(), demand);
+  if (!geometry.ok) return geometry;
+  const driving = createCourseSectionDrivingSource(course.entry).createView(geometry.value);
+  if (!driving.ok) return driving;
+  const view = driving.value;
+  return {
+    ok: true,
+    value: {
+      scope: view.scope,
+      section: view.frame.section.id,
+      range: view.range,
+      demand,
+      qualification: {
+        scope: view.qualification.scope,
+        interval: view.qualification.interval,
+        cells: view.qualification.cells,
+      },
+      metadata: view.metadata,
+      observations: [minS, maxS].map((s) => ({
+        guide: view.world.guide.toWorld(s, 0),
+        height: view.world.height.samplePhysicsDifferential(s),
+        surface: view.world.surfaces.sample(s, 0).type,
+      })),
     },
   };
 }

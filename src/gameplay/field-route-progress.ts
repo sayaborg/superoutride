@@ -1,4 +1,4 @@
-import { locateWorldOnGuideCoordinateGlobal, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
+import { locateWorldOnGuideCoordinateGlobal, type GuidePathSource } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import type { RouteBoundaryGateSet } from './route-boundary-gates.js';
 import {
@@ -15,7 +15,7 @@ const ROUTE_PROGRESS_TOLERANCE_METERS = 1e-6;
 
 interface FieldRouteProgressStageSource {
   readonly stageId: string;
-  readonly coordinateFrame: GuideCoordinateSource;
+  readonly coordinateFrame: GuidePathSource;
 }
 
 interface FieldRouteProgressChoiceRule {
@@ -108,7 +108,7 @@ export function compileFieldRouteProgressRules(
   handoffs: RouteStageHandoffManifest,
   stageSources: readonly FieldRouteProgressStageSource[],
 ): FieldRouteProgressRules {
-  const sourceByStage = new Map<string, GuideCoordinateSource>();
+  const sourceByStage = new Map<string, GuidePathSource>();
   for (const source of stageSources) {
     if (sourceByStage.has(source.stageId)) {
       throw new RangeError(`duplicate field route progress stage source: ${source.stageId}`);

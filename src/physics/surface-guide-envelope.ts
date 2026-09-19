@@ -1,13 +1,13 @@
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
-  type GuideCoordinateSource,
+  type GuidePathSource,
 } from '../core/guide-coordinate-frame.js';
 import type { SurfaceMapReader } from './surface-map.js';
 import { guideEnvelopeRange } from '../core/guide-envelope.js';
 
 /** Compile-time containment, including a stage chart's translation into its Guide's basis. */
-export function validateSurfaceGuideEnvelope(frame: GuideCoordinateSource, surface: SurfaceMapReader): void {
+export function validateSurfaceGuideEnvelope(frame: GuidePathSource, surface: SurfaceMapReader): void {
   const extent = surface.maxSupportedAbsL;
   const guide = guideCoordinateCurve(frame);
   if (!Number.isFinite(extent) || extent < 0) {

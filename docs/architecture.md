@@ -25,6 +25,14 @@ fail explicitly, preserving the identity of overlapping circuit copies. Optional
 clamping acts in the underlying Guide basis before subtracting a stage's lateral origin. Ordinary
 physical projection remains unclamped.
 
+Driving consumers accept an ordinary `GuideCoordinateReader`: a finite logical domain, point/metric
+sampling and seeded local projection. Existing `GuidePath`/constant-origin inputs retain their exact
+arithmetic through the same operations. Source-array inspection and explicit global projection remain
+source-authoring capabilities, not bounded-reader fallbacks. Core owns curvature, ruler metric and
+offset metric; physics consumes these geometric observations without opening Guide segment arrays.
+Terrain/rendering consume the narrower `RasterGeometry` facet (finite length, segment stations/headings
+and point mapping), not Guide fillets or the compiled course graph.
+
 RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap have the
 finite domain `[0,L]`. Their source readers share 1e-9 m endpoint normalization through
 `openProfileChainage`, including SurfaceMap and unfolded circuit adapters. Raster/Guide geometric
@@ -236,6 +244,8 @@ Compiler owns the immutable reference graph, Ports/Links and static content qual
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves
 Physics-owned material records once; concrete Section/Port/Link types no longer propagate a material
 parameter through the topology. The narrow Course physical-profile primitive remains reusable.
+Runtime may consume Camera's profile contract to derive consumer coverage; Camera remains independent
+of Runtime and the course graph.
 Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authoring, vehicle, renderer,
 image-delivery or gameplay implementations. Parsed dependency checks enforce these limits.
 The narrow Band surface adapter consumes only
@@ -313,8 +323,13 @@ horizontal seam geometry are separate checks. A port match alone does not certif
 
 Core retains finite open readers, Raster/Guide, `Y(s,l)=Y(s)` and chainage pseudo-projection. The runtime-owned [offline geometry view](content-and-gameplay.md#bounded-geometry-views-and-occurrence-history)
 composes upright transforms and source addresses across a retained itinerary, exposing narrow point
-readers in its active frame. It neither recompiles Raster/Guide nor supplies the current driving
-interfaces. Complete consumer/content qualification remains required. Those addresses are not race credit.
+readers in its active frame. Its derived `activeRange` retains the active-source ruler alongside the
+zero-based inspection window. The single-active-Section driving adapter shares canonical source
+sampling and native projection indices, so moving a window changes neither actor observations nor
+frame. It checks complete seeded-search candidate intervals, and delegates height interpolation to
+the original source rather than resmoothing clipped nodes. Only bounded Raster/height metadata is
+retained; geometry is not retessellated. Multi-occurrence driving still requires complete consumer/
+content qualification. Window addresses are not race credit.
 
 ### Compiled boundary geometry
 

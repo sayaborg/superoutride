@@ -1,6 +1,5 @@
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
-import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
-import { sampleGuidePath } from '../core/guide-curve.js';
+import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import { createAutomaticPowertrainState, updateAutomaticPowertrain } from './automatic-powertrain.js';
@@ -109,7 +108,7 @@ export function createArcadeVehicle(
   const coordinate = {
     s,
     l,
-    segmentIndex: sampleGuidePath(guideCoordinateCurve(guide), s).segmentIndex,
+    segmentIndex: guideCoordinateToWorld(guide, s, l).segmentIndex,
     distanceSquared: 0,
   };
   const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);

@@ -193,7 +193,19 @@ const layerDependencies = {
   terrain: ['core', 'course', 'visual'],
   groundmap: ['core', 'course', 'graphics', 'terrain'],
   render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'terrain', 'vehicle', 'visual'],
-  runtime: ['core', 'course', 'compiler', 'gameplay', 'groundmap', 'input', 'physics', 'render', 'terrain', 'visual'],
+  runtime: [
+    'camera',
+    'core',
+    'course',
+    'compiler',
+    'gameplay',
+    'groundmap',
+    'input',
+    'physics',
+    'render',
+    'terrain',
+    'visual',
+  ],
   browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'groundmap', 'input', 'physics', 'render', 'vehicle'],
 };
 
@@ -233,6 +245,44 @@ test('engine ownership follows an acyclic dependency direction, including type i
     complete.add(layer);
   }
   for (const layer of graph.keys()) visit(layer);
+});
+
+test('presentation observers consume physical read contracts and the driver gravity constant only', async () => {
+  for (const relative of [
+    'camera/camera.ts',
+    'render/renderer.ts',
+    'render/dynamic-vehicle-sprite.ts',
+    'gameplay/rival-driver.ts',
+  ]) {
+    const file = path.join(sourceRoot, relative);
+    const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    function visit(node) {
+      const ref =
+        ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
+          ? node.moduleSpecifier
+          : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword
+            ? node.arguments[0]
+            : undefined;
+      if (ref && ts.isStringLiteral(ref) && ref.text.startsWith('.')) {
+        const target = path.relative(sourceRoot, path.resolve(path.dirname(file), ref.text));
+        if (target.startsWith(`physics${path.sep}`)) {
+          if (target === path.join('physics', 'vehicle-dynamics.js') && relative === 'gameplay/rival-driver.ts') {
+            assert.ok(
+              ts.isImportDeclaration(node) &&
+                node.importClause?.namedBindings &&
+                ts.isNamedImports(node.importClause.namedBindings),
+            );
+            assert.deepEqual(
+              node.importClause.namedBindings.elements.map((e) => (e.propertyName ?? e.name).text),
+              ['VEHICLE_GRAVITY'],
+            );
+          } else assert.equal(target, path.join('physics', 'vehicle-contract.js'), relative);
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(syntax);
+  }
 });
 
 // Resolve JavaScript consumers against source symbols rather than an old dist build or matching name strings.

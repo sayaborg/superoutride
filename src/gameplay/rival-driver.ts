@@ -1,10 +1,9 @@
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 import {
-  guideCoordinateCurve,
+  guideCoordinateDomain,
   guideCoordinateToWorld,
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
-import { sampleGuidePath } from '../core/guide-curve.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import type { VehicleCameraReadState } from '../physics/vehicle-contract.js';
@@ -28,6 +27,8 @@ const CURVATURE_LOOKAHEAD_METERS =
 const MAX_STEERING_REQUEST = 0.72;
 const SPEED_DEADBAND_MPS = 0.25;
 const LOOKAHEAD_INTERVAL_TOLERANCE_METERS = 1e-9;
+/** Maximum actual query reach of this driver, not an independently selected view guard. */
+export const RIVAL_GUIDE_LOOKAHEAD_METERS = Math.max(STEERING_LOOKAHEAD_METERS, CURVATURE_LOOKAHEAD_METERS);
 
 /**
  * Small deterministic DEV rival driver.
@@ -44,9 +45,9 @@ export function sampleRivalDrivingInput(
   car: VehicleCameraReadState,
   targetL = 0,
 ): DrivingInput {
-  const curve = guideCoordinateCurve(guide);
+  const domain = guideCoordinateDomain(guide);
   const targetSpeed = estimateUpcomingTargetSpeed(guide, car.course.s);
-  const targetS = Math.min(curve.length, car.course.s + STEERING_LOOKAHEAD_METERS);
+  const targetS = Math.min(domain.end, car.course.s + STEERING_LOOKAHEAD_METERS);
   const target = guideCoordinateToWorld(guide, targetS, targetL);
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
@@ -66,15 +67,15 @@ export function sampleRivalDrivingInput(
 }
 
 export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: number): number {
-  const curve = guideCoordinateCurve(guide);
+  const domain = guideCoordinateDomain(guide);
   let targetSpeed = STRAIGHT_CRUISE_SPEED_MPS;
   for (let offset = 0; offset < CURVATURE_LOOKAHEAD_METERS; offset += CURVATURE_PROBE_STEP_METERS) {
-    const aS = Math.min(curve.length, s + offset);
-    const bS = Math.min(curve.length, aS + CURVATURE_PROBE_SPAN_METERS);
+    const aS = Math.min(domain.end, s + offset);
+    const bS = Math.min(domain.end, aS + CURVATURE_PROBE_SPAN_METERS);
     if (bS <= aS + LOOKAHEAD_INTERVAL_TOLERANCE_METERS) break;
 
-    const a = sampleGuidePath(curve, aS);
-    const b = sampleGuidePath(curve, bS);
+    const a = guideCoordinateToWorld(guide, aS, 0);
+    const b = guideCoordinateToWorld(guide, bS, 0);
     const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / (bS - aS);
     if (curvature < STRAIGHT_CURVATURE_PER_METER) continue;
 

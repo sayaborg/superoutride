@@ -2,7 +2,7 @@ import type { RoadCrossSection } from '../course/road-cross-section.js';
 import {
   guideCoordinateCurve,
   guideCoordinateLateralOrigin,
-  type GuideCoordinateSource,
+  type GuidePathSource,
 } from '../core/guide-coordinate-frame.js';
 import { HeightProfile, type HeightNode, type HeightProfileReader } from '../core/height-profile.js';
 import {
@@ -44,7 +44,7 @@ export interface StageEnvironmentAuthoring {
 interface StageRuntimeSource {
   readonly packageId: string;
   readonly worldFrameId: string;
-  readonly coordinateFrame: GuideCoordinateSource;
+  readonly coordinateFrame: GuidePathSource;
   readonly roadView: StageRoadView | null;
   readonly surfaceMap: SurfaceMapReader;
   readonly groundProfile: GroundMapProfile;
@@ -102,7 +102,7 @@ export function createTerrainVisualProfile(
  * itself never guesses, clamps, or wraps missing endpoint data.
  */
 export function compileStageEnvironment(
-  coordinateFrame: GuideCoordinateSource,
+  coordinateFrame: GuidePathSource,
   authoring: StageEnvironmentAuthoring,
   road: RoadCrossSection,
 ): CompiledStageEnvironment {

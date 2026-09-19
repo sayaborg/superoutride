@@ -25,7 +25,8 @@ Tire/audio tuning stays deferred.
 the exact wire fields, limits and supported LINEAR/BRANCH/CIRCUIT geometry subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
-[causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
+[causal tests](../tests/runtime/course-document.test.mjs). Shipped browser roots do not consume the new graph yet;
+the single-Section driving adapter below now exercises real consumers offline.
 Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
 
 Geometry recipe v4 includes mapped-cell non-inversion, local
@@ -68,7 +69,16 @@ All four consumer intervals are
 explicit and include the admitted pose interval/step advance; missing history/selection/geometry
 coverage is diagnosed. The [offline entry](development.md#course-document-compiler) can inspect an
 explicit itinerary. This remains geometry-only: current driving reader interfaces and full physical/
-presentation continuity are not qualified, and the traversal operations are not actor seam commits.
+presentation continuity across Links are not qualified, and traversal operations are not actor seam commits.
+
+The [single-Section driving slice](content-and-gameplay.md#single-section-driving-view) connects the graph
+and bounded view to real physics/contact, driver, recovery, camera and renderer readers. Native source
+chainage/seeds survive moving windows, source interpolation and record references are shared, and actual
+longitudinal demand derives from consumer settings/search intervals. [Integration tests](../tests/runtime/course-driving-view.test.mjs)
+compare all nine vehicle profiles, both turn signs, reverse/recovery and complete frames with native
+readers. Rebuilding every step and retaining a window produce identical outputs; the reproducible probe
+measures construction and metadata counts. This is explicit diagnostic presentation, not admitted image
+bindings or full common-content qualification. A view touching another occurrence is rejected for driving.
 
 Explicit height and per-Band material profiles now compile to immutable Core height readers and
 canonical physical bindings. A narrow Physics surface adapter shares the half-open partition, without
@@ -83,8 +93,9 @@ cover every declared physical consumer, domain-edge crossings, half-open endpoin
 interior mismatches, independent multi-Link diagnostics and ordinary surface-reader agreement.
 Compiler now owns the static graph without propagated material type parameters; Authoring owns project
 state. No material ID is rejoined by a consumer. This is not complete common-content qualification:
-presentation sources, actual product envelopes, occurrence-mapped physical readers and runtime integration
-remain absent. The saved demand is a reproducible test envelope, not a product default.
+presentation sources, full product pose/lateral envelopes and occurrence-mapped physical readers remain
+absent. Single-Section consumer integration does not qualify a Link. The saved physical demand is a
+reproducible test envelope, not a product default.
 
 ### Next milestones
 
@@ -113,16 +124,16 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 
 ### Gate 2 remaining order
 
-1. Connect one seam-free LINEAR path through the graph, bounded view and real physics/camera/render
-   readers; measure actual demands and view reconstruction/allocation. Selection/history foundations
-   are implemented, but actual consumer containment and mapped physical readers remain unqualified.
-2. Admit the real presentation inputs required for full common-content qualification. Prove actual
+1. Admit the real presentation inputs required for full common-content qualification. Prove actual
    query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
    merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.
-3. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
+   Extend the proven single-Section readers across qualified occurrence mappings; derive full pose/lateral
+   envelopes in addition to the implemented longitudinal demand. Selection/history and the seam-free
+   LINEAR real-consumer slice are implemented, not evidence that a Link is ready.
+2. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
    cache/camera transformation, and unchanged checkpoint/lap credit. Test straddling contacts, neighboring
    actors, actual merge predecessors, reverse and recovery through the real integration path.
-4. Complete the joint local-Guide/half-open physical, visual and lock edge cutover. Remove only replaced
+3. Complete the joint local-Guide/half-open physical, visual and lock edge cutover. Remove only replaced
    legacy paths after causal/integration coverage exists. Recheck the entire Gate 2 acceptance matrix;
    individual physical, geometry or LINEAR milestones do not establish complete Gate 2 readiness.
 

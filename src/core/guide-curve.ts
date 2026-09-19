@@ -267,6 +267,12 @@ export function locateWorldOnGuideLocal(
   searchRadius = 2,
   clampL = false,
 ): CourseCoordinate {
+  const { first, last } = guideLocalSearchRange(guide, previousSegmentIndex, searchRadius);
+  return bestCandidate(guide, world, first, last, clampL);
+}
+
+/** Exact candidate extent of the ordinary seeded search; usable by bounded-reader admission. */
+export function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: number, searchRadius: number) {
   if (
     !Number.isInteger(previousSegmentIndex) ||
     previousSegmentIndex < 0 ||
@@ -279,7 +285,7 @@ export function locateWorldOnGuideLocal(
 
   const first = Math.max(0, previousSegmentIndex - searchRadius);
   const last = Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius);
-  return bestCandidate(guide, world, first, last, clampL);
+  return { first, last, start: guide.segments[first]!.sStart, end: guide.segments[last]!.sEnd };
 }
 
 export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {

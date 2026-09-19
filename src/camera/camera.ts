@@ -1,5 +1,4 @@
-import { guideCoordinateCurve } from '../core/guide-coordinate-frame.js';
-import { sampleGuidePath } from '../core/guide-curve.js';
+import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
 import type { VehicleCameraReadState, VehicleWorld } from '../physics/vehicle-contract.js';
@@ -124,8 +123,7 @@ export function updateCamera(
     throw new RangeError('camera direction speed minimum must be finite and >= 0');
   }
 
-  const curve = guideCoordinateCurve(guide);
-  const guideAtCar = sampleGuidePath(curve, vehicle.course.s);
+  const guideAtCar = guideCoordinateToWorld(guide, vehicle.course.s, 0);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
   const bodyPitch = vehicle.sprungPitch ?? 0;
 
