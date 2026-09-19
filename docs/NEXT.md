@@ -12,14 +12,14 @@
 
 ## Milestones
 
-| Milestone | Status and completion requirement                                                                                                        |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| M1        | Complete: saved 2.8 km LINEAR, row scenery, shared scene and publicly verified driving.                                                  |
-| M1b       | Complete: old courses/routes/paged ground removed; default root is the saved LINEAR.                                                     |
-| M2        | Release candidate: two-Section LINEAR, 30 m guards, span-composed readers, actor commit, reverse/recovery and car/bike frame invariance. |
-| M3        | Pending: transformed one-source CIRCUIT, finite occurrence history, laps/FINISH and rivals.                                              |
-| M4        | Pending: two-way fork, crossable median, ordered field lock, closure recovery, merge and rival retarget.                                 |
-| M5        | Pending: compile/render/report CLI, source observations and offline fitting; rebuild one provisional course through the CLI loop.        |
+| Milestone | Status and completion requirement                                                                                                 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| M1        | Complete: saved 2.8 km LINEAR, row scenery, shared scene and publicly verified driving.                                           |
+| M1b       | Complete: old courses/routes/paged ground removed; default root is the saved LINEAR.                                              |
+| M2        | Complete: publicly verified two-Section LINEAR, 30 m guards, actor commit, reverse/recovery and car/bike frame invariance.        |
+| M3        | Release candidate: transformed one-source CIRCUIT, finite history, standing start, two laps/FINISH and two rivals.                |
+| M4        | Pending: two-way fork, crossable median, ordered field lock, closure recovery, merge and rival retarget.                          |
+| M5        | Pending: compile/render/report CLI, source observations and offline fitting; rebuild one provisional course through the CLI loop. |
 
 M1–M4 complete only when publicly drivable. M5 completes when an agent edits, compiles and visually
 checks a course using the CLI alone. Afterwards: resident RGB555 → checkpoint clock/Session presets

@@ -7,10 +7,10 @@ import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
 import {
-  createCircuitRaceProgressState,
-  resyncCircuitRaceProgress,
-  updateCircuitRaceProgress,
-} from '../../dist/gameplay/circuit-race-progress.js';
+  createOrderedRaceProgressState,
+  resyncOrderedRaceProgress,
+  updateOrderedRaceProgress,
+} from '../../dist/gameplay/ordered-race-progress.js';
 import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
@@ -30,8 +30,8 @@ for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWo
         { s, l, initialSpeed: speed, torqueProtection: entry.torqueProtection },
       );
     let vehicle = spawn(95, 0, 45);
-    const sample = () => ({ x: vehicle.x, z: vehicle.z, sWindow: vehicle.course.s });
-    const progress = createCircuitRaceProgressState(raceRules, sample());
+    const sample = () => ({ x: vehicle.x, z: vehicle.z, s: vehicle.course.s });
+    const progress = createOrderedRaceProgressState(raceRules, sample());
     const driveTo = (s) => {
       let ticks = 0;
       while (vehicle.course.s < s && ticks++ < 30_000) {
@@ -41,7 +41,7 @@ for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWo
           sampleRivalDrivingInput(w.guide, vehicle, 0),
           SIM_DT,
         );
-        updateCircuitRaceProgress(progress, raceRules, sample());
+        updateOrderedRaceProgress(progress, raceRules, sample());
       }
       assert.ok(vehicle.course.s >= s, `did not physically reach ${s}: ${vehicle.course.s}`);
     };
@@ -66,7 +66,7 @@ for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWo
       Math.abs(vehicle.course.s - target) < 1,
       `recovery lost known copy: target=${target}, actual=${vehicle.course.s}`,
     );
-    resyncCircuitRaceProgress(progress, raceRules, sample());
+    resyncOrderedRaceProgress(progress, raceRules, sample());
     assert.deepEqual(validated(), before);
     const replacementS = vehicle.course.s;
     vehicle = spawn(replacementS, vehicle.course.l, vehicle.longitudinalSpeed);
@@ -74,7 +74,7 @@ for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWo
       Math.abs(vehicle.course.s - replacementS) < 1,
       `replacement lost known copy: target=${replacementS}, actual=${vehicle.course.s}`,
     );
-    resyncCircuitRaceProgress(progress, raceRules, sample());
+    resyncOrderedRaceProgress(progress, raceRules, sample());
     assert.deepEqual(validated(), before);
     driveTo(2 * L + 25);
     assert.equal(progress.acceptedFinishCount, 2);

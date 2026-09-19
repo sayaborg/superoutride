@@ -79,6 +79,7 @@ test('mobile course buttons derive labels and active state from the canonical co
   assert.deepEqual(createMobileCourseSelectorModel('linear'), [
     { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: true },
     { value: 'seam', label: '2', ariaLabel: 'Select SEAM course', active: false },
+    { value: 'circuit', label: '3', ariaLabel: 'Select CIRCUIT course', active: false },
   ]);
 });
 

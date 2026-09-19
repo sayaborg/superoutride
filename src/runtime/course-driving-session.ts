@@ -3,7 +3,13 @@ import type { CompiledSection } from '../compiler/course-graph.js';
 import { coursePortLateral } from '../compiler/course-links.js';
 import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';
-import { transformPlanarPoint, transformPlanarVector } from '../core/planar-transform.js';
+import {
+  compilePlanarTransform,
+  composePlanarTransforms,
+  invertPlanarTransform,
+  transformPlanarPoint,
+  transformPlanarVector,
+} from '../core/planar-transform.js';
 import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from '../gameplay/world-crossing-gate.js';
@@ -24,8 +30,8 @@ function required<T>(result: { readonly ok: true; readonly value: T } | { readon
   return result.value;
 }
 
-/** One actor's finite occurrence history; source geometry and images stay shared. */
-export function createCourseDrivingSession(entry: CompiledSection) {
+/** One static graph reader factory shared by every actor in a scene. */
+export function createCourseDrivingGraph(entry: CompiledSection) {
   const sections = new Set<CompiledSection>();
   const visit = (section: CompiledSection) => {
     if (sections.has(section)) return;
@@ -55,6 +61,16 @@ export function createCourseDrivingSession(entry: CompiledSection) {
       }),
     ),
   );
+  return Object.freeze({ createSession: () => createSession(entry, source, Math.max(pose.left, pose.right)) });
+}
+
+function createSession(
+  entry: CompiledSection,
+  source: ReturnType<typeof createCourseDrivingSource>,
+  gateHalfWidth: number,
+) {
+  let referenceSOffset = 0;
+  let referenceFromFrame = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
   const traversal = createCourseGeometryTraversal(entry, { retainBehind: 500, selectAhead: 500, maxOccurrences: 8 });
   const select = () => {
     for (;;) {
@@ -91,7 +107,7 @@ export function createCourseDrivingSession(entry: CompiledSection) {
   select();
   let view = makeView(traversal.snapshot());
   const reframe = (actor: DrivingActor, direction: 'forward' | 'reverse') => {
-    const movement = required(traversal.prepare(direction));
+    const movement = required(traversal.prepare(direction, { selectUnique: true }));
     const link = direction === 'forward' ? movement.to.incoming! : movement.from.incoming!;
     const from = direction === 'forward' ? link.source : link.destination;
     const to = direction === 'forward' ? link.destination : link.source;
@@ -108,6 +124,8 @@ export function createCourseDrivingSession(entry: CompiledSection) {
       vehicle.course.l + coursePortLateral(to) - coursePortLateral(from),
     );
     const nextSafeS = rebase(recovery.lastSafeS);
+    const nextSOffset = referenceSOffset + from.anchor.s - to.anchor.s;
+    const nextReferenceFromFrame = composePlanarTransforms(referenceFromFrame, invertPlanarTransform(transform));
     // Fallible reader construction precedes this synchronous publication. No force or progress correction.
     required(movement.commit());
     vehicle.x = position.x;
@@ -124,10 +142,18 @@ export function createCourseDrivingSession(entry: CompiledSection) {
     recovery.lastSafeS = nextSafeS;
     cameraRig.yaw = wrapAngle(cameraRig.yaw + yaw);
     cameraRig.movementYaw = wrapAngle(cameraRig.movementYaw + yaw);
+    referenceSOffset = nextSOffset;
+    referenceFromFrame = nextReferenceFromFrame;
     view = next;
     return direction;
   };
   return Object.freeze({
+    get referenceSOffset() {
+      return referenceSOffset;
+    },
+    get referenceFromFrame() {
+      return referenceFromFrame;
+    },
     get view() {
       return view;
     },
@@ -151,7 +177,7 @@ export function createCourseDrivingSession(entry: CompiledSection) {
           id: candidate.successor.incoming!.id,
           center: port.pose,
           heading: port.pose.heading,
-          halfWidth: Math.max(pose.left, pose.right),
+          halfWidth: gateHalfWidth,
         });
         const crossing = recovered ? null : observeWorldCrossingGate(gate, previous, actor.vehicle);
         const crossed = crossing?.direction === (direction === 'forward' ? 'FORWARD' : 'REVERSE');

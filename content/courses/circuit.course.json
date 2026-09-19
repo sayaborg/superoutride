@@ -1,0 +1,753 @@
+{
+  "format": "superoutride.course",
+  "version": 6,
+  "id": "provisional-circuit",
+  "units": {
+    "length": "m",
+    "angle": "deg"
+  },
+  "geometryRecipe": {
+    "id": "superoutride.raster-guide",
+    "version": 4
+  },
+  "type": "CIRCUIT",
+  "entrySectionId": "loop-trial",
+  "sections": [
+    {
+      "id": "loop-trial",
+      "start": {
+        "x": 0,
+        "z": 0,
+        "heading": 0
+      },
+      "guide": {
+        "margin": 4,
+        "mMin": 0.1
+      },
+      "primitives": [
+        {
+          "id": "approach",
+          "kind": "straight",
+          "length": 650
+        },
+        {
+          "id": "bend",
+          "kind": "arc",
+          "radius": 260,
+          "turn": 180
+        },
+        {
+          "id": "runout",
+          "kind": "straight",
+          "length": 633.4450685209101
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": -20
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": -20
+            }
+          ]
+        },
+        {
+          "id": "shoulder-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": -9
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": -9
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": -7
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": -7
+            }
+          ]
+        },
+        {
+          "id": "center-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": -0.1
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": -0.1
+            }
+          ]
+        },
+        {
+          "id": "center-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": 0.1
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 0.1
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": 7
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 7
+            }
+          ]
+        },
+        {
+          "id": "shoulder-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": 9
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 9
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "l": 20
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 20
+            }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "grass-left",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "outer-left",
+          "rightBoundaryId": "shoulder-left",
+          "role": "shoulder"
+        },
+        {
+          "id": "kerb-left",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "shoulder-left",
+          "rightBoundaryId": "road-left",
+          "role": "shoulder"
+        },
+        {
+          "id": "lane-left",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "road-left",
+          "rightBoundaryId": "center-left",
+          "role": "pavement"
+        },
+        {
+          "id": "center",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "center-left",
+          "rightBoundaryId": "center-right",
+          "role": "pavement"
+        },
+        {
+          "id": "lane-right",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "center-right",
+          "rightBoundaryId": "road-right",
+          "role": "pavement"
+        },
+        {
+          "id": "kerb-right",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "road-right",
+          "rightBoundaryId": "shoulder-right",
+          "role": "shoulder"
+        },
+        {
+          "id": "grass-right",
+          "start": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "shoulder-right",
+          "rightBoundaryId": "outer-right",
+          "role": "shoulder"
+        }
+      ],
+      "height": [
+        {
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "approach",
+            "fraction": 0
+          },
+          "y": 0
+        },
+        {
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "y": 0
+        }
+      ],
+      "physicalBindings": [
+        {
+          "bandId": "grass-left",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "GRASS"
+            }
+          ]
+        },
+        {
+          "bandId": "kerb-left",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "lane-left",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "center",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "lane-right",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "kerb-right",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "grass-right",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "approach",
+                "fraction": 0
+              },
+              "material": "GRASS"
+            }
+          ]
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "road",
+          "bandIds": ["lane-left", "center", "lane-right"]
+        }
+      ],
+      "ports": [
+        {
+          "id": "entry",
+          "kind": "entry",
+          "anchor": {
+            "kind": "absolute",
+            "s": 30
+          },
+          "carriagewayId": "road"
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "anchor": {
+            "kind": "absolute",
+            "s": 2030
+          },
+          "carriagewayId": "road"
+        }
+      ],
+      "assetIds": ["asphalt", "grass", "stripe", "shoulder", "coast-sky", "hill-sky", "tree"],
+      "fork": null,
+      "presentation": {
+        "ground": {
+          "left": 60,
+          "right": 60,
+          "baseRgb555": 9799,
+          "bands": [
+            {
+              "bandId": "grass-left",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "grass",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": null
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "kerb-left",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "shoulder",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": {
+                      "paletteRgb555": [24806],
+                      "spanS": 4,
+                      "spanL": 1000
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "lane-left",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "asphalt",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": null
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "center",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "stripe",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": {
+                      "paletteRgb555": [9548],
+                      "spanS": 5,
+                      "spanL": 1000
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "lane-right",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "asphalt",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": null
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "kerb-right",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "shoulder",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": {
+                      "paletteRgb555": [24806],
+                      "spanS": 4,
+                      "spanL": 1000
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "bandId": "grass-right",
+              "sections": [
+                {
+                  "anchor": {
+                    "kind": "primitive",
+                    "primitiveId": "approach",
+                    "fraction": 0
+                  },
+                  "paint": {
+                    "assetId": "grass",
+                    "phaseS": 0,
+                    "phaseL": -500,
+                    "alternate": null
+                  }
+                }
+              ]
+            }
+          ],
+          "stamps": []
+        },
+        "environments": [
+          {
+            "anchor": {
+              "kind": "primitive",
+              "primitiveId": "approach",
+              "fraction": 0
+            },
+            "name": "CIRCUIT TRIAL",
+            "groundBaseLeft": 9799,
+            "groundBaseRight": 9799,
+            "background": {
+              "assetId": "coast-sky",
+              "horizonY": 112,
+              "pixelsPerRadian": 180,
+              "yawOrigin": 0
+            }
+          },
+          {
+            "anchor": {
+              "kind": "primitive",
+              "primitiveId": "runout",
+              "fraction": 0
+            },
+            "name": "CIRCUIT TRIAL",
+            "groundBaseLeft": 9799,
+            "groundBaseRight": 9799,
+            "background": {
+              "assetId": "coast-sky",
+              "horizonY": 112,
+              "pixelsPerRadian": 180,
+              "yawOrigin": 180
+            }
+          }
+        ],
+        "scenery": [],
+        "sceneryRows": [
+          {
+            "id": "left-trees",
+            "assetId": "tree",
+            "start": {
+              "kind": "primitive",
+              "primitiveId": "approach",
+              "fraction": 0.1
+            },
+            "end": {
+              "kind": "absolute",
+              "s": 1990
+            },
+            "spacing": 40,
+            "boundaryId": "road-left",
+            "side": "left",
+            "offset": 5,
+            "groundOffset": 0
+          },
+          {
+            "id": "right-trees",
+            "assetId": "tree",
+            "start": {
+              "kind": "primitive",
+              "primitiveId": "approach",
+              "fraction": 0.1
+            },
+            "end": {
+              "kind": "absolute",
+              "s": 1990
+            },
+            "spacing": 40,
+            "boundaryId": "road-right",
+            "side": "right",
+            "offset": 5,
+            "groundOffset": 0
+          }
+        ]
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "loop",
+      "source": {
+        "sectionId": "loop-trial",
+        "portId": "exit"
+      },
+      "destination": {
+        "sectionId": "loop-trial",
+        "portId": "entry"
+      },
+      "overlap": {
+        "behind": 30,
+        "ahead": 30
+      }
+    }
+  ],
+  "assets": [
+    {
+      "id": "asphalt",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "80f4123dc8bf8915a3bb157f55b9c423750b247cbf57320eb9f495cc1d4023cf"
+    },
+    {
+      "id": "grass",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "cd2b58011652171b2f992916de35c6a2dcd3417595321195ecfcfb83ea56202d"
+    },
+    {
+      "id": "stripe",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "4745c7a855746606aa84aea872886710298c26235edd6a35880e422dc08e5d80"
+    },
+    {
+      "id": "shoulder",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "4d524095692e109ed8ad3252c55ffe75e060f82a25f624af32d2a90667f62f5c"
+    },
+    {
+      "id": "coast-sky",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "fb491676ffca4fe3faff3a98fcdc1cd58c2c591623487b209f6f54b1774c99d7"
+    },
+    {
+      "id": "hill-sky",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "a0b67327be563bfa8b77ca4a13b58216ea061df18a86288d4f9a4be5826021bf"
+    },
+    {
+      "id": "tree",
+      "format": "superoutride.sprite-lod",
+      "version": 1,
+      "sha256": "62855977eee911de53ec4c6e812caef99cea45bad42fd53f6ac575fb435ad71d"
+    }
+  ],
+  "sceneryInstances": []
+}

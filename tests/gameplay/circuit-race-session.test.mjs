@@ -58,7 +58,9 @@ function createFixture() {
       ]),
     },
   );
-  const rules = compileCircuitRaceRules(window, {
+  const rules = compileCircuitRaceRules(window.guide, {
+    entryS: 0,
+    finishS: L,
     id: 'M6_50_TWO_LAP_SESSION',
     lapCount: 2,
     checkpointChainages: [L * 0.5],
@@ -68,19 +70,19 @@ function createFixture() {
 
 function guideSample(window, sWindow) {
   const sample = sampleGuidePath(window.guide, sWindow);
-  return { x: sample.x, z: sample.z, sWindow };
+  return { x: sample.x, z: sample.z, s: sWindow };
 }
 
 function cross(state, rules, gate) {
   const before = {
     x: gate.center.x - gate.tangent.x,
     z: gate.center.z - gate.tangent.z,
-    sWindow: gate.s - 1,
+    s: gate.s - 1,
   };
   const after = {
     x: gate.center.x + gate.tangent.x,
     z: gate.center.z + gate.tangent.z,
-    sWindow: gate.s + 1,
+    s: gate.s + 1,
   };
   resyncCircuitRaceProgress(state, rules, before);
   return updateCircuitRaceProgress(state, rules, after);
@@ -91,7 +93,7 @@ test('generic race session records circuit checkpoint and physical lap-boundary 
   const state = createCircuitRaceProgressState(rules, guideSample(window, 0));
   const session = createRaceSessionState();
 
-  for (const gate of rules.gates.slice(0, 2)) {
+  for (const gate of rules.lap.gates) {
     const update = cross(state, rules, gate);
     advanceRaceSession(session, state, update, 0.25);
   }

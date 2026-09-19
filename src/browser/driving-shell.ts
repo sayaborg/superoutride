@@ -50,7 +50,11 @@ interface BrowserDrivingShell {
 }
 
 /** Shared browser/player wiring only. Route ticks, recovery geography and race state stay in roots. */
-export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number): BrowserDrivingShell {
+export function createBrowserDrivingShell(
+  runtime: VehicleWorld,
+  startL: number,
+  spawn: { readonly initialSpeed?: number } = {},
+): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -64,7 +68,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
   let vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
     s: 45,
     l: startL,
-    initialSpeed: 45,
+    initialSpeed: spawn.initialSpeed ?? 45,
     tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,
     torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
   });

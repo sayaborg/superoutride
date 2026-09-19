@@ -15,7 +15,7 @@ const RACE_PROGRESS_TOLERANCE_METERS = 1e-9;
 
 const GATE_CANDIDATE_PADDING_METERS = 1e-7;
 
-export interface OrderedRaceGateAuthoring {
+interface OrderedRaceGateAuthoring {
   readonly kind: PhysicalRaceGateKind;
   readonly name: string;
   /** Monotonically increasing chainage on one finite open Guide. */
@@ -28,7 +28,7 @@ export interface OrderedRaceGateAuthoring {
  * There is no lap length, modulo rule or topology flag here. A circuit compiler may expand
  * lap-local authoring into this ordinary finite gate sequence before runtime.
  */
-export interface OrderedRaceCourseRules {
+interface OrderedRaceCourseRules {
   readonly guide: GuidePath;
   readonly courseLength: number;
   readonly gates: readonly PhysicalRaceGate[];
@@ -72,7 +72,7 @@ export interface OrderedRaceProgressState {
   previous: OrderedRaceProgressSample;
 }
 
-export interface OrderedRaceProgressUpdate {
+interface OrderedRaceProgressUpdate {
   readonly event: OrderedRaceProgressEvent;
   readonly status: OrderedRaceProgressStatus;
   readonly acceptedGate: PhysicalRaceGate | null;

@@ -37,15 +37,8 @@ const isRegressionSource = (file) => /[\/]src[\/]dev[\/](?:fixtures|diagnostics)
 // General components retained for M3/M4, while the published M1b root is player-only.
 // Remove this explicit reservation when M4 integrates their production consumers.
 const reservedMilestoneComponents = new Map([
-  ['gameplay/circuit-race-progress.ts', 'M3 lap/FINISH scoring'],
-  ['gameplay/ordered-race-progress.ts', 'M3 physical checkpoint order'],
-  ['gameplay/physical-race-gate.ts', 'M3/M4 physical progress gates'],
-  ['gameplay/race-session.ts', 'M3 timing and FINISH state'],
-  ['gameplay/session-configuration.ts', 'M3 rival cardinality'],
   ['gameplay/recovery.ts', 'M3/M4 actor recovery reason contract'],
   ['physics/surface-guide-envelope.ts', 'M3/M4 supported actor spawn/recovery envelope'],
-  ['render/dynamic-vehicle-sprite.ts', 'M3 rival rendering'],
-  ['runtime/rival-roster.ts', 'M3 stable rival identities'],
 ]);
 
 test('every source module is reachable from a composition or declared compiler entry or an explicit regression fixture', async () => {

@@ -12,8 +12,9 @@ import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { renderDriving, type GroundColorReader } from '../render/renderer.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
+import type { CourseSprite } from '../render/course-sprite.js';
 import { createSpriteAssets } from '../visual/sprite-assets.js';
-import { createCourseDrivingSession } from './course-driving-session.js';
+import { createCourseDrivingGraph } from './course-driving-session.js';
 import { createCourseGeometryTraversal } from './course-occurrence.js';
 import { createCourseGeometryView } from './course-geometry-view.js';
 import { createCourseSectionDrivingSource } from './course-section-driving-view.js';
@@ -85,6 +86,7 @@ function createSectionScene(section: CompiledSection) {
       vehicle: VehicleRenderReadState,
       camera: CameraState,
       playerKind: 'car' | 'bike',
+      others: readonly CourseSprite[] = [],
     ) {
       let environment = 0;
       while (
@@ -101,7 +103,7 @@ function createSectionScene(section: CompiledSection) {
           vehicle,
           terrainProfile,
           groundProfile,
-          worldSprites,
+          worldSprites: [...worldSprites, ...others],
           assets,
           playerKind,
         },
@@ -113,12 +115,15 @@ function createSectionScene(section: CompiledSection) {
 
 /** The renderer receives the same ordinary readers in a single source or occurrence frame. */
 function createLinkedScene(section: CompiledSection) {
-  const session = createCourseDrivingSession(section);
+  const graph = createCourseDrivingGraph(section);
+  const session = graph.createSession();
   const entry = section.ports.find((port) => port.kind === 'entry');
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires an entry Port with camera space behind it');
   const assets = createSpriteAssets();
   return Object.freeze({
+    session,
+    createActorSession: graph.createSession,
     get world() {
       return session.view.world;
     },
@@ -140,6 +145,7 @@ function createLinkedScene(section: CompiledSection) {
       vehicle: VehicleRenderReadState,
       camera: CameraState,
       playerKind: 'car' | 'bike',
+      others: readonly CourseSprite[] = [],
     ) {
       const { world, geometry, presentation } = session.view;
       return renderDriving(
@@ -158,7 +164,7 @@ function createLinkedScene(section: CompiledSection) {
             visual: presentation.visual,
           },
           groundProfile: presentation.groundProfile,
-          worldSprites: presentation.worldSprites,
+          worldSprites: [...presentation.worldSprites, ...others],
           assets,
           playerKind,
         },

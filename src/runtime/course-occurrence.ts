@@ -59,7 +59,38 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
     selected: Object.freeze([]),
   });
   const snapshot = () => history;
-  const prepare = (direction: 'forward' | 'reverse') => {
+  const selectFrom = (before: CourseOccurrenceHistory, from: CourseOccurrence, link: CompiledLink) => {
+    const { occurrences, selected, active } = before;
+    const activeIndex = occurrences.indexOf(active);
+    const itinerary = [...occurrences, ...selected],
+      index = itinerary.indexOf(from);
+    if (!from || !link || !link.source || !link.destination)
+      throw new TypeError('Selection requires an occurrence and compiled Link');
+    if (index < activeIndex || !from.section.outgoing.includes(link))
+      throw new RangeError('Selection requires a retained forward occurrence and its canonical outgoing Link');
+    const next = itinerary[index + 1];
+    if (next)
+      return next.incoming === link
+        ? success({ history: before, occurrence: next })
+        : failure('selection_locked', 'An already selected or visited successor cannot be replaced');
+    if (itinerary.length >= maxOccurrences)
+      return failure('occurrence_limit', 'Selection exceeds the admitted occurrence count');
+    let distance = 0;
+    for (let i = activeIndex + 1; i <= index; i += 1) {
+      const outgoing = i === index ? link : itinerary[i + 1]!.incoming!;
+      distance += outgoing.source.anchor.s - itinerary[i]!.incoming!.destination.anchor.s;
+    }
+    if (!Number.isFinite(distance) || distance > selectAhead)
+      return failure('selection_limit', 'Selection exceeds the admitted forward distance');
+    const ordinal = from.ordinal + 1;
+    if (!Number.isSafeInteger(ordinal)) return failure('identity_exhausted', 'Occurrence ordinal is not representable');
+    const to = Object.freeze({ ordinal, section: link.destination.section, incoming: link });
+    return success({
+      history: Object.freeze({ ...before, selected: Object.freeze([...selected, to]) }),
+      occurrence: to,
+    });
+  };
+  const prepare = (direction: 'forward' | 'reverse', options: { readonly selectUnique?: boolean } = {}) => {
     if (typeof direction !== 'string') throw new TypeError('Traversal direction must be a string');
     if (direction !== 'forward' && direction !== 'reverse')
       throw new RangeError('Traversal direction must be forward or reverse');
@@ -86,11 +117,23 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
       }
       retained = Object.freeze(retained.slice(first));
     }
-    const after: CourseOccurrenceHistory = Object.freeze({
+    let after: CourseOccurrenceHistory = Object.freeze({
       occurrences: retained,
       active: to,
       selected: direction === 'forward' && !visited ? Object.freeze(selected.slice(1)) : selected,
     });
+    if (options.selectUnique) {
+      for (;;) {
+        const frontier = after.selected.at(-1) ?? after.occurrences.at(-1)!;
+        if (frontier.section.outgoing.length !== 1) break;
+        const next = selectFrom(after, frontier, frontier.section.outgoing[0]!);
+        if (!next.ok) {
+          if (next.reason === 'selection_limit') break;
+          return next;
+        }
+        after = next.value.history;
+      }
+    }
     const movement = Object.freeze({
       from,
       to,
@@ -115,34 +158,10 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
     snapshot,
     prepare,
     select(from: CourseOccurrence, link: CompiledLink) {
-      const { occurrences, selected, active } = history;
-      const activeIndex = occurrences.indexOf(active);
-      const itinerary = [...occurrences, ...selected],
-        index = itinerary.indexOf(from);
-      if (!from || !link || !link.source || !link.destination)
-        throw new TypeError('Selection requires an occurrence and compiled Link');
-      if (index < activeIndex || !from.section.outgoing.includes(link))
-        throw new RangeError('Selection requires a retained forward occurrence and its canonical outgoing Link');
-      const next = itinerary[index + 1];
-      if (next)
-        return next.incoming === link
-          ? success(next)
-          : failure('selection_locked', 'An already selected or visited successor cannot be replaced');
-      if (itinerary.length >= maxOccurrences)
-        return failure('occurrence_limit', 'Selection exceeds the admitted occurrence count');
-      let distance = 0;
-      for (let i = activeIndex + 1; i <= index; i += 1) {
-        const outgoing = i === index ? link : itinerary[i + 1]!.incoming!;
-        distance += outgoing.source.anchor.s - itinerary[i]!.incoming!.destination.anchor.s;
-      }
-      if (!Number.isFinite(distance) || distance > selectAhead)
-        return failure('selection_limit', 'Selection exceeds the admitted forward distance');
-      const ordinal = from.ordinal + 1;
-      if (!Number.isSafeInteger(ordinal))
-        return failure('identity_exhausted', 'Occurrence ordinal is not representable');
-      const to = Object.freeze({ ordinal, section: link.destination.section, incoming: link });
-      history = Object.freeze({ ...history, selected: Object.freeze([...selected, to]) });
-      return success(to);
+      const result = selectFrom(history, from, link);
+      if (!result.ok) return result;
+      history = result.value.history;
+      return success(result.value.occurrence);
     },
     forward() {
       const prepared = prepare('forward');

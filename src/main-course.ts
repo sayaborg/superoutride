@@ -6,6 +6,8 @@ import { compileCourseDocument } from './compiler/compiled-course.js';
 import { advanceVehicleWithRecovery, RECOVERY_PROFILE } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
+import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
+import { createCourseCircuitRace } from './runtime/course-circuit-race.js';
 import { createCourseScene } from './runtime/course-scene.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -35,13 +37,41 @@ try {
   const compiled = await compileCourseDocument(source.value, images);
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   const scene = createCourseScene(compiled.value.entry);
-  const shell = createBrowserDrivingShell(scene.world, 0);
+  const circuit = source.value.type === 'CIRCUIT';
+  const shell = createBrowserDrivingShell(scene.world, 0, { initialSpeed: circuit ? 0 : 45 });
+  const race =
+    circuit && 'session' in scene
+      ? createCourseCircuitRace({
+          section: compiled.value.entry,
+          player: shell,
+          playerSession: scene.session,
+          createSession: scene.createActorSession,
+          rivalCount: 2,
+          lapCount: 2,
+          rival: {
+            profile: DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
+            torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+            kind: deriveVehicleSpriteFamily(DEFAULT_VEHICLE_CATALOG_ENTRY),
+          },
+        })
+      : null;
+  const raceStatus = race ? document.createElement('output') : null;
+  if (raceStatus) {
+    raceStatus.setAttribute('role', 'status');
+    raceStatus.setAttribute('aria-live', 'off');
+    raceStatus.setAttribute(
+      'style',
+      'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);padding:8px 14px;background:#101820dd;color:#fff;font:700 16px monospace;white-space:nowrap;border-radius:6px;pointer-events:none',
+    );
+    canvas.insertAdjacentElement('afterend', raceStatus);
+  }
   const lifecycle = shell.mountControls({
     world: () => scene.world,
     recoveryProfile: RECOVERY_PROFILE,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      scene.observeStep(shell, shell.vehicle, true);
+      if (race) race.resyncPlayer();
+      else scene.observeStep(shell, shell.vehicle, true);
     },
   });
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -49,6 +79,10 @@ try {
   shell.start(
     (dt) => {
       input = shell.inputManager.sample();
+      if (race) {
+        lifecycle.update(dt, race.advance(input, dt));
+        return;
+      }
       const previous = { x: shell.vehicle.x, z: shell.vehicle.z };
       const recovered = advanceVehicleWithRecovery(scene.world, shell.vehicle, {
         state: shell.recovery,
@@ -61,13 +95,16 @@ try {
       lifecycle.update(dt, recovered !== null || entryRecovered);
     },
     () => {
+      const observations = race?.observe(lifecycle.camera);
       const result = scene.render(
         shell.framebuffer,
         shell.vehicle,
         lifecycle.camera,
         deriveVehicleSpriteFamily(shell.presentation),
+        observations?.sprites,
       );
-      shell.present(mode, input, lifecycle.camera, result.playerScreenY);
+      shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations?.rivals);
+      if (raceStatus && race) raceStatus.textContent = race.label();
     },
   );
 } catch (error) {

@@ -18,7 +18,7 @@ interface CourseBoundaryTiming {
   readonly intervalSeconds: number;
 }
 
-export interface RaceSessionState {
+interface RaceSessionState {
   elapsedSeconds: number;
   lastBoundarySeconds: number;
   readonly gateTimings: ValidatedGateTiming[];

@@ -2,7 +2,7 @@ import { compileRasterPath } from '../../dist/core/raster-path.js';
 import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { compileCircuitRaceRules } from '../../dist/gameplay/circuit-race-progress.js';
+import { compileOrderedRaceCourseRules } from '../../dist/gameplay/ordered-race-progress.js';
 
 /** Explicit coincident geometry solely for seeded-projection and ordered-gate regressions. */
 export function repeatedGuideFixture(topology, startWinding, repeatCount, options) {
@@ -28,10 +28,12 @@ export function createRepeatedReferenceWorld() {
   window.surface = new SurfaceMap(window.length, [
     { sStart: 0, name: 'projection fixture', bands: [{ lMin: -12, lMax: 12, type: 'ASPHALT' }] },
   ]);
-  const raceRules = compileCircuitRaceRules(window, {
-    id: 'ordered-fixture',
-    lapCount: 3,
-    checkpointChainages: [topology.lapLength / 2],
-  });
+  const raceRules = compileOrderedRaceCourseRules(
+    window.guide,
+    Array.from({ length: 3 }, (_, lap) => [
+      { kind: 'checkpoint', name: `L${lap}_CP`, s: (lap + 0.5) * topology.lapLength },
+      { kind: 'finish', name: `L${lap}_FINISH`, s: (lap + 1) * topology.lapLength },
+    ]).flat(),
+  );
   return { window, raceRules };
 }

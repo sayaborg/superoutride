@@ -76,7 +76,7 @@ test('production CLI renders saved car and bike scenes at curves and strip edges
   }
 });
 
-for (const mode of ['linear', 'seam'])
+for (const mode of ['linear', 'seam', 'circuit'])
   test(`actual ${mode} browser root loads saved content and runs input, recovery, vehicle selection and frame rendering`, async (t) => {
     const dom = installBrowserDom(t, `?mode=${mode}`);
     const requests = [];

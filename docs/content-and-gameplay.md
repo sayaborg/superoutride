@@ -10,7 +10,8 @@ image formats and compilation.
 The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
 single-Section or occurrence driving readers, saved presentation and the ordinary renderer. The headless CLI uses
-this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link.
+this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link. CIRCUIT uses a
+2 km source lap, a standing start, two required laps and two provisional DEV rivals.
 The original provisional course is a finite 2.8 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
@@ -507,7 +508,8 @@ The browser root consumes these occurrence readers for the saved two-Section LIN
 
 The traversal owner also exposes `prepare('forward' | 'reverse')`. Preparation returns a frozen
 prospective history and the same compiled/inverse Link transform without changing visited/selected
-state. Build and admit the next consumer view from that history before calling its `commit()`.
+state. Build and admit the next consumer view from that history before calling its `commit()`. The optional `selectUnique` preparation also extends canonical unique continuations in the
+prospective history, so all next-loop reader construction precedes publication.
 Any intervening selection or movement makes the plan stale; an idempotent selection retains it.
 A plan publishes once, including retention pruning. Existing `forward()`/`reverse()` use this same
 path. This is a geometry transaction primitive, not a physical seam observation or actor commit.
@@ -557,8 +559,8 @@ Source readers and images are shared. Mapped metadata and retained history remai
 owns the seam, including a closed endpoint. Scenery belongs to one owning occurrence; ground preserves
 saved image phases and half-open Band edges. Outside the source strip, ordinary environment bases apply.
 
-`createCourseDrivingSession` owns one actor's traversal. Unique successors are selected within the
-forward retention distance. A physical gate observation requests forward or reverse commit; the pure
+`createCourseDrivingGraph` prepares static readers once; `createSession()` owns one actor's traversal. Unique successors are selected within the
+forward retention distance, including prospective successors before a frame commit. A physical gate observation requests forward or reverse commit; the pure
 `createSeamView(...).admitMotion` checks the contact pose and one fixed step independently of consumer
 windows. The prepared destination readers are constructed before publication. The transaction rotates
 world position, velocity, body yaw and camera-rig yaw, rebases course/recovery coordinates and retains
@@ -644,11 +646,21 @@ are separate acceptance gates.
 negative to zero/positive; reverse is positive to zero/negative. Arrival counts once, departure does
 not repeat, and lateral width tolerance is independent of direction.
 
-[Ordered race progress](../src/gameplay/ordered-race-progress.ts),
-[circuit race progress](../src/gameplay/circuit-race-progress.ts),
-[session configuration](../src/gameplay/session-configuration.ts) and
-[race session](../src/gameplay/race-session.ts) remain general components for the circuit/fork milestones.
-Skipped checkpoints, reverse travel, recovery and replacement grant no lap or gate credit.
+[Ordered race progress](../src/gameplay/ordered-race-progress.ts) accepts physical gates in authored order.
+[Circuit race progress](../src/gameplay/circuit-race-progress.ts) compiles one source-local gate set and
+counts accepted finishes. It reuses that set after a loop-frame resync; source geometry and gates are
+never expanded into lap copies. The entry crossing earns no lap. Missing checkpoints, reverse motion,
+recovery and replacement grant no new credit. Completed race progress remains fixed while driving
+continues after FINISH.
+
+The provisional circuit field uses the existing rival driver, mechanics, roster, race timing and
+ranking. Every actor owns a bounded traversal over the same graph reader factory. At most the actual
+predecessor, active occurrence and selected successor are retained on the 2 km source. A cumulative
+rigid frame transform and chainage offset map observations into the player's current frame for
+ordinary rival sprites and positional audio; these mappings grant no progress. The browser shows lap,
+rank, elapsed time and FINISH. Timing starts with the standing-start signal and stops separately for
+each accepted finish. These provisional two-lap/two-rival choices are development content; production
+Session presets and AI reference qualification remain later milestones.
 
 ## Recovery
 
