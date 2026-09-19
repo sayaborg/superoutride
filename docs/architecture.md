@@ -70,8 +70,8 @@ A positive straight longer than the sampling tolerance remains a real primitive.
 
 Current driving `RoadCrossSection` and `TerrainVisualProfile` widths are constant per source/view.
 The specialized junction varies its cross-section. Current terrain enumerates Raster, render-height
-and visual-section boundaries. The offline CourseDocument compiler now implements full-domain varying
-Boundary readers; their terrain/physical integration remains the [target](#compiled-boundary-geometry).
+and visual-section boundaries. The offline CourseDocument compiler implements varying Boundary
+readers and Band activation/tapers; terrain/physical integration remains the [target](#compiled-boundary-geometry).
 
 Guide rounds the coordinate curve with straight/circular fillets; the rendered road stays Raster.
 For turn Delta and radius R:
@@ -274,7 +274,7 @@ navigation for existing links; each detailed contract has one owner.
 ## Course Editor target
 
 This section owns target frame and geometric reader contracts. Local Guide envelopes and the offline
-full-domain Boundary subset are implemented; Link/view and joint physical/visual edge cutovers remain
+Boundary/active-Band subset are implemented; Link/view and joint physical/visual edge cutovers remain
 pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
 records and transactions; [image assets](image-assets.md#course-editor-target) owns image products.
 
@@ -301,6 +301,12 @@ immutable piecewise-linear readers on the one Raster s ruler. Width/center are d
 varying widths share one target representation. Partition at Raster heading, render-height and relevant
 boundary knots/activation changes. Use the existing Raster/miter or Guide mapping at the responsible
 consumer. Validate mapped-band interiors as well as endpoints. Paint changes alone do not split shape.
+
+The offline compiler partitions active Bands and proves closed-cell geometry before publication.
+It exposes one narrow finite `bandPartition` facet with canonical Band references; its construction
+cells are private. [Content](content-and-gameplay.md#supported-geometry-and-recipe) owns the current
+activation, transition-continuity and terminal-membership rules. They do not change the current
+driving readers' finite-endpoint or lateral classification contracts.
 
 Terrain consumes and projects the compiled view's bounds once and exposes source-to-span mapping to
 the final-color reader. Retire stage reprojection and diagnostic road-edge coordinates with consumer

@@ -1,0 +1,323 @@
+{
+  "format": "superoutride.course",
+  "version": 1,
+  "id": "partition-example",
+  "units": {
+    "length": "m",
+    "angle": "deg"
+  },
+  "geometryRecipe": {
+    "id": "superoutride.raster-guide",
+    "version": 3
+  },
+  "type": "LINEAR",
+  "sections": [
+    {
+      "id": "split-and-rejoin",
+      "start": {
+        "x": 0,
+        "z": 0,
+        "heading": 0
+      },
+      "guide": {
+        "margin": 2,
+        "mMin": 0.25
+      },
+      "primitives": [
+        {
+          "id": "straight",
+          "kind": "straight",
+          "length": 200
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": -9
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 200
+              },
+              "l": -9
+            }
+          ]
+        },
+        {
+          "id": "median-a-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 37
+              },
+              "l": -3
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 77
+              },
+              "l": -4
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 123
+              },
+              "l": -4
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 163
+              },
+              "l": -3
+            }
+          ]
+        },
+        {
+          "id": "median-a-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 37
+              },
+              "l": -3
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 77
+              },
+              "l": -2
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 123
+              },
+              "l": -2
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 163
+              },
+              "l": -3
+            }
+          ]
+        },
+        {
+          "id": "median-b-left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 37
+              },
+              "l": 3
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 77
+              },
+              "l": 2
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 123
+              },
+              "l": 2
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 163
+              },
+              "l": 3
+            }
+          ]
+        },
+        {
+          "id": "median-b-right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 37
+              },
+              "l": 3
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 77
+              },
+              "l": 4
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 123
+              },
+              "l": 4
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 163
+              },
+              "l": 3
+            }
+          ]
+        },
+        {
+          "id": "right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": 9
+            },
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 200
+              },
+              "l": 9
+            }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "before",
+          "start": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        },
+        {
+          "id": "west",
+          "start": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "median-a-left",
+          "role": "pavement"
+        },
+        {
+          "id": "median-a",
+          "start": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "leftBoundaryId": "median-a-left",
+          "rightBoundaryId": "median-a-right",
+          "role": "median"
+        },
+        {
+          "id": "center",
+          "start": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "leftBoundaryId": "median-a-right",
+          "rightBoundaryId": "median-b-left",
+          "role": "pavement"
+        },
+        {
+          "id": "median-b",
+          "start": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "leftBoundaryId": "median-b-left",
+          "rightBoundaryId": "median-b-right",
+          "role": "median"
+        },
+        {
+          "id": "east",
+          "start": {
+            "kind": "absolute",
+            "s": 37
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "leftBoundaryId": "median-b-right",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        },
+        {
+          "id": "after",
+          "start": {
+            "kind": "absolute",
+            "s": 163
+          },
+          "end": {
+            "kind": "absolute",
+            "s": 200
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "west-road",
+          "bandIds": ["before", "west", "after"]
+        },
+        {
+          "id": "center-road",
+          "bandIds": ["center"]
+        },
+        {
+          "id": "east-road",
+          "bandIds": ["east"]
+        }
+      ],
+      "assetIds": []
+    }
+  ],
+  "assets": []
+}

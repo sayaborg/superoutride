@@ -37,6 +37,7 @@ After `npm run build`, run the declared offline entry:
 ```sh
 npm run compile:course -- tests/fixtures/linear.course.json
 npm run compile:course -- tests/fixtures/varying-linear.course.json
+npm run compile:course -- tests/fixtures/partition-linear.course.json
 ```
 
 It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
@@ -51,11 +52,16 @@ geometry, shared object identity, arbitrary IDs/declaration order, immutability,
 imports, stale asynchronous publication and the real command. The complete suite retains its immutable
 mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
 The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Recipe/compiler
-v2 adds full-domain varying Bands without Link/view or driving integration. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
+v3 admits partial Bands and zero-width taper endpoints without Link/view or driving integration. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
 and [Guide tests](../tests/geometry/local-guide-envelope.test.mjs) cover local versus global bounds,
 off-center fillet peaks and trim endpoints, constant-input equality, translated clamps, local gate
 widths, conservative global-support containment, half-open ownership and failed/stale publication.
-Half-open physical/paint/lock classification, partial activation and transformed Links remain unqualified.
+The partition fixture changes one road into three structural carriageways and back within one Section.
+[Activation tests](../tests/runtime/course-band-activation.test.mjs) cover partial Boundary domains,
+exact switch/edge ownership, taper birth/death, staggered isolated tapers, full-union continuity,
+per-cell carriageway contiguity, arbitrary IDs/order, failed publication and invalidation. Positive-width
+replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
+Half-open physical/paint/lock classification and transformed Links remain unqualified.
 
 ## Sprite LOD preview
 

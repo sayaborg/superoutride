@@ -19,7 +19,7 @@ if (!result.ok) {
           id: section.id,
           length: section.raster.length,
           segments: section.raster.segments.length,
-          bands: section.bands.length,
+          bands: section.bandPartition.bands.length,
           carriageways: section.carriageways.length,
         })),
       },

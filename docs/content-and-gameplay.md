@@ -121,7 +121,7 @@ and diagnostics; they are not whole-game or target-device capacity approval.
 
 ### Supported geometry and recipe
 
-The accepted recipe is `superoutride.raster-guide` version 2. It pins `RasterTurtle` version 1 and
+The accepted recipe is `superoutride.raster-guide` version 3. It pins `RasterTurtle` version 1 and
 the existing Raster arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
 `ceil(abs(turnDegrees)/5)` equal angular steps computed in authored degrees, then convert angles with
 `PI/180`. Initial heading also uses degrees. The retained turtle radian API remains available to
@@ -135,16 +135,26 @@ resolves exactly to the interval endpoints; interior fractions use `start + frac
 Absolute anchors keep their authored s and must lie in the finite Section domain.
 
 The current compiler admits exactly one LINEAR Section, with piecewise-linear Boundary profiles and
-full-domain Band/Boundary coverage `[0,L]`. Knots remain explicit and strictly increasing. Constant
-profiles use this same representation. Partial activation remains `unsupported_feature`; no width
-approximation is substituted. Bands have strictly positive ordered width, including both endpoints,
-do not overlap, and touching bands share one canonical Boundary. Every pavement Band belongs to
-exactly one Carriageway; its pavement members form a contiguous group. Shoulders/medians are structural
-roles only, with no inferred paint, grip or support.
+Band intervals within `[0,L]`. Knots remain explicit and strictly increasing. A Boundary may cover
+only part of the Section, but must cover every referencing Band's closed interval; readers never
+extrapolate. Constant profiles use this same representation. Each Band has positive chainage length
+and strictly positive width in its interior. Zero width is allowed only at its own start/end, never
+throughout a cell. A zero-width endpoint owns no point. Bands do not overlap. Edges shared over a
+positive-length interval reference one canonical Boundary; distinct edges may meet at an activation
+endpoint before separating. No width approximation is substituted.
 
-Gate 2's first geometry increment partitions at Raster vertices and all used Boundary knots. Ordered
-widths and shared-edge references are checked at every partition station; linear interpolation cannot
-hide an intervening crossing. The mapped-strip Jacobian is affine in chainage/lateral position within
+Every pavement Band belongs to exactly one Carriageway. At each longitudinal cell its active members
+form one contiguous group; successive members need not coexist. The Section has at least one active
+Band in every open cell. At activation changes, both the union of all Bands and the pavement/median
+union must be continuous, comparing every occupied interval rather than only outer bounds. This
+permits positive-width partition replacement and zero-width taper birth/death, including a static
+one-to-two/three-to-one cross-section. It does not compile fork/merge Links. Shoulders/medians remain
+structural roles, with no inferred paint, grip or support.
+
+Recipe v3 partitions at Raster vertices, all used Boundary knots and Band activation endpoints.
+Each cell uses its own active lateral ordering. Widths and shared-edge references are checked on
+both closed ends; linear interpolation cannot hide an intervening crossing or a zero-width plateau.
+The mapped-strip Jacobian is affine in chainage/lateral position within
 each Raster interval, so its boundary extrema prove local non-inversion. Varying edges under the
 interpolated miter map are quadratic, not straight corner-to-corner lines. Their Bernstein control
 hulls conservatively enclose the complete cell. Nonadjacent Raster intervals must have separated hulls;
@@ -153,25 +163,32 @@ to prove separation is a `semantic_compile_failure` identifying cells, not a cla
 endpoints suffice. This bounded simple-strip subset rejects overpasses/overlaps and can conservatively
 reject disjoint curved strips whose hulls overlap. It does not classify general topology.
 
-The derived Guide envelope interpolates `max(abs(outerLeft), abs(outerRight)) + margin` at these stations.
-This is a conservative upper bound between knots, not another authored width. The Core
+The derived Guide envelope interpolates the maximum absolute active boundary position plus margin
+at these stations. Both closed incident cells contribute at a transition, including zero-area
+birth/death points; dormant profile portions do not contribute. This is a conservative upper bound
+between knots, not another authored width. The Core
 [local-envelope contract](architecture.md#target-local-guide-envelope) checks each complete fillet;
 a distant wide straight does not widen a tight bend. The margin covers only the explicitly admitted
 chart domain: no contact/vehicle query envelope or physical binding is inferred here.
-`courseBoundaryAt` and `courseBandAt` expose ordinary canonical data readers; the latter returns the
-half-open owning Band or null for a gap/outside. No role implies grip, paint or lock eligibility.
+`courseBoundaryAt` and `courseBandAt` expose ordinary canonical data readers. The latter takes the
+Section's `bandPartition` facet (`length`, canonical `bands`), not the whole CompiledCourse. It returns
+the owning Band or null for a gap/outside: longitudinal membership is `[start,end)`, except a Band
+ending at Section length includes that terminal; lateral membership is `[left,right)`. At a partition
+switch only starting and continuing Bands own points. Invalid/nonfinite queries throw RangeError.
+No role implies grip, paint or lock eligibility.
 Legacy physical/paint/junction edge classification remains unchanged until the combined runtime cutover.
 
-Recipe v1 is not silently reinterpreted. Its document remains saveable but compilation reports
-`unsupported_version`; changing to v2 is an explicit source edit that invalidates prior output.
-The checked-in constant fixture explicitly selects v2 and retains the same ruler and fillet geometry.
+Recipes v1/v2 are not silently reinterpreted. Their documents remain saveable but compilation reports
+`unsupported_version`; changing to v3 is an explicit source edit that invalidates prior output.
+The checked-in constant/varying fixtures explicitly select v3 and retain their rulers and fillet geometry.
 Raster/Guide authoring-domain rejections are RangeError; internal coverage/reader invariants retain Error.
 
 ### Publication, identity and diagnostics
 
 Compilation builds private scoped Maps, resolves references once and publishes one frozen
-`CompiledCourse`. Sections own canonical primitives, Boundaries, Bands, Carriageways and asset
-references; Band edges point to those Boundaries, Carriageways to those Bands, and fraction anchors
+`CompiledCourse`. Sections own canonical primitives, Boundaries, a finite `bandPartition`, Carriageways
+and asset references. The partition owns the Band array; Band edges point to those Boundaries,
+Carriageways to those same Bands, and fraction anchors
 to those primitives. The Guide points to the Section's same Raster. Maps remain private; every exposed
 record/array is frozen and owned. Sections are reusable nodes, not a RouteDag or recursive successor
 tree. Later Link nodes can share/cycle these references without copying Sections. No topology is
@@ -179,7 +196,7 @@ implemented by the current single-Section admission rule.
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 2. All inputs currently conservatively invalidate the complete
+`superoutride.course-compiler` version 3. All inputs currently conservatively invalidate the complete
 product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.

@@ -10,13 +10,16 @@ import { RASTER_TURTLE_RECIPE, RasterTurtle } from './raster-turtle.js';
 
 export const COURSE_GEOMETRY_RECIPE = Object.freeze({
   id: 'superoutride.raster-guide',
-  version: 2,
+  version: 3,
   turtle: RASTER_TURTLE_RECIPE,
   authoredAngles: 'degrees; heading*(PI/180); appendArcDegrees',
   ruler: 'RasterPath.vertexS; sequential Math.hypot of emitted endpoint differences',
   anchors: 'absolute-s-or-primitive-start+fraction*(end-start); exact-fraction-endpoints',
   guide: 'circular provenance fillets; full-fillet envelope supremum; fallback adjacent-Raster-interval bound',
-  envelope: 'linear interpolation of max-abs-outer-boundaries+margin at Raster/boundary partition stations',
+  envelope:
+    'linear interpolation of closed-active-union max-abs-boundaries+margin at Raster/boundary/activation stations',
+  bands:
+    'half-open active intervals; terminal included; zero width only at birth/death; continuous total and pavement/median unions',
 });
 
 export interface CompiledPlanPrimitive {

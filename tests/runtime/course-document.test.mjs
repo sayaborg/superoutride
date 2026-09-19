@@ -80,7 +80,7 @@ test('geometry recipe preserves authored degree subdivisions, radius provenance 
     assert.notEqual(arc.sEnd - arc.sStart, (100 * Math.abs(turn) * Math.PI) / 180);
     assert.equal(output.boundaries[0].knots[1].anchor.primitive, arc);
     assert.equal(output.boundaries[0].knots[1].anchor.s, arc.sStart + 0.3 * (arc.sEnd - arc.sStart));
-    assert.equal(output.bands[0].end.s, output.raster.length);
+    assert.equal(output.bandPartition.bands[0].end.s, output.raster.length);
     for (let i = 3; i <= 3 + steps; i += 1) assert.equal(output.raster.vertices[i].sourceRadius, 100);
     assert.equal(output.raster.vertices[2].sourceRadius, undefined);
     let accumulated = 0;
@@ -140,7 +140,7 @@ test('arbitrary IDs and permuted declarations resolve canonical objects, shared 
   for (let permutation = 0; permutation < 2; permutation += 1) {
     const product = ok(await compileCourseDocument(input));
     const section = product.sections[0];
-    for (const band of section.bands) {
+    for (const band of section.bandPartition.bands) {
       assert.equal(
         section.boundaries.find((b) => b.id === band.left.id),
         band.left,
@@ -151,12 +151,12 @@ test('arbitrary IDs and permuted declarations resolve canonical objects, shared 
       );
       assert.equal(band.end.primitive, section.primitives.at(-1));
     }
-    const west = section.bands.find((b) => b.id === '舗装 A');
-    const east = section.bands.find((b) => b.id === '舗装 B');
+    const west = section.bandPartition.bands.find((b) => b.id === '舗装 A');
+    const east = section.bandPartition.bands.find((b) => b.id === '舗装 B');
     assert.equal(west.right, east.left);
     for (const band of section.carriageways[0].bands)
       assert.equal(
-        section.bands.find((b) => b.id === band.id),
+        section.bandPartition.bands.find((b) => b.id === band.id),
         band,
       );
     section.assets.forEach((a) =>
@@ -215,9 +215,12 @@ test('caller mutations during digesting and nested publication mutations cannot 
     output.sections[0].raster.vertices[0].x = 80;
   }, TypeError);
   assert.throws(() => {
-    output.sections[0].bands[0].left.knots[0].l = 80;
+    output.sections[0].bandPartition.bands[0].left.knots[0].l = 80;
   }, TypeError);
-  assert.throws(() => output.sections[0].carriageways[0].bands.push(output.sections[0].bands[0]), TypeError);
+  assert.throws(
+    () => output.sections[0].carriageways[0].bands.push(output.sections[0].bandPartition.bands[0]),
+    TypeError,
+  );
   assert.throws(() => {
     output.sections[0].guide.corners[3].center.x = 80;
   }, TypeError);
@@ -312,7 +315,7 @@ test('unfinished semantic drafts save and reopen while unsupported features neve
   const input = fixture();
   input.sections[0].bands[0].start.s = 5;
   assert.deepEqual(ok(parseCourseDocument(ok(saveCourseDocument(input)))), input);
-  failure(await compileCourseDocument(input), 'unsupported_feature', '/sections/0/bands/0');
+  failure(await compileCourseDocument(input), 'semantic_compile_failure', '/sections/0/bands');
   for (const [change, at] of [
     [
       (d) => {
@@ -339,12 +342,6 @@ test('unfinished semantic drafts save and reopen while unsupported features neve
         d.sections.push(next);
       },
       '/sections',
-    ],
-    [
-      (d) => {
-        d.sections[0].bands[0].start.s = 5;
-      },
-      '/sections/0/bands/0',
     ],
   ]) {
     const draft = fixture();
@@ -479,13 +476,15 @@ test('recipe and asset identity changes invalidate dependent output, and unsuppo
   const project = createCourseProject();
   const original = ok(await project.importDocument(fixtureText));
   assert.equal(original.identity.geometryRecipe, COURSE_GEOMETRY_RECIPE);
-  const recipeEdit = fixture();
-  recipeEdit.geometryRecipe.version = 1;
-  ok(project.editDocument(recipeEdit));
-  failure(project.exportCompiled(), 'stale_source');
-  failure(await project.compile(), 'unsupported_version', '/geometryRecipe');
-  assert.equal(project.getState().lastSuccessful, original);
-  assert.deepEqual(ok(parseCourseDocument(ok(project.save()))), recipeEdit);
+  for (const version of [1, 2]) {
+    const recipeEdit = fixture();
+    recipeEdit.geometryRecipe.version = version;
+    ok(project.editDocument(recipeEdit));
+    failure(project.exportCompiled(), 'stale_source');
+    failure(await project.compile(), 'unsupported_version', '/geometryRecipe');
+    assert.equal(project.getState().lastSuccessful, original);
+    assert.deepEqual(ok(parseCourseDocument(ok(project.save()))), recipeEdit);
+  }
   const asset = fixture();
   asset.assets = [{ id: 'sprite', format: 'superoutride.sprite-lod', version: 1, sha256: 'a'.repeat(64) }];
   asset.sections[0].assetIds = ['sprite'];

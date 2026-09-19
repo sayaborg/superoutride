@@ -23,7 +23,7 @@ The [Sprite LOD preview](tools/graphics/sprite-lod.html) compares completed octa
 master through the game blitter. See [usage and scope](docs/development.md#sprite-lod-preview).
 
 The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved LINEAR
-geometry, including varying shared boundaries and local Guide envelopes, and publishes an immutable
+geometry, including varying shared boundaries, Band activation/tapers and local Guide envelopes, and publishes an immutable
 reference graph. It is an offline authoring foundation; the
 current game courses still use their existing composition roots.
 

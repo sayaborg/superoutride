@@ -12,34 +12,38 @@ the continuation authority. [Development](development.md) owns commands and rele
 Current driving code uses paged compiled ground, constant Guide inputs, finite circuit unfolding and three
 composition roots. Sprite Tool exists. Gate 1 now provides a versioned CourseDocument, pinned geometry
 recipe, immutable compiled reference graph and atomic authoring project boundary through a separate
-offline compiler entry. Gate 2's first increment adds local Guide profiles and offline varying/shared
-Boundary readers with half-open Band membership. Links/views, the combined physical/visual/lock edge
+offline compiler entry. Gate 2 adds local Guide profiles and offline varying/shared Boundary readers,
+partial Band activation, taper birth/death and continuous partition changes. Links/views, the combined physical/visual/lock edge
 cutover and resident images remain targets.
 Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
 [CourseDocument v1](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) establishes
-the exact wire fields, limits and supported single-Section LINEAR/full-domain-boundary subset. IDs resolve
+the exact wire fields, limits and supported single-Section LINEAR subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
 [causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
 Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
 
-Geometry recipe and course compiler v2 add conservative mapped-cell interior validation and local
-fillet envelopes. The wire schema stays v1; older geometry recipes are explicitly unsupported rather
+Geometry recipe and course compiler v3 include conservative mapped-cell interior validation, local
+fillet envelopes and activation-aware partitioning. The wire schema stays v1; older geometry recipes are explicitly unsupported rather
 than silently migrated. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs) cover varying
 asymmetric widths, shared reference identity, three structural carriageways, edge/gap ownership,
-inversion/overlap diagnostics, bounded partitioning and atomic invalidation. This is not Gate 2 completion.
+inversion/overlap diagnostics, bounded partitioning and atomic invalidation.
+[Activation tests](../tests/runtime/course-band-activation.test.mjs) add partial domains, exact switch
+ownership, zero-width birth/death, one-to-two/three-to-one static cross-sections, continuous occupied
+unions and per-cell carriageway contiguity. Sections expose a narrow immutable `bandPartition` with
+canonical Band references; no construction cells or ID joins are published. This is not Gate 2 completion.
 
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
    available without GUI. Asset references are immutable identities, not loaded image payloads.
    Existing successor/growth builders remain consumed development content and fixtures.
-2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and full-domain
-   varying/shared boundary readers with half-open membership are implemented offline. Next add Band
-   activation/birth/death, oriented ports/Links, two/three-way forks, merges and transformed loops,
+2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
+   varying/shared boundary readers with half-open membership are implemented offline. Next add
+   oriented ports/Links, two/three-way fork connections, merges and transformed loops,
    followed by bounded views and the joint runtime edge cutover. Replace origin-based
    junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
    exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant

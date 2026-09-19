@@ -15,6 +15,17 @@ export interface CompiledBand {
   readonly role: BandDocument['role'];
 }
 
+export interface CompiledCarriageway {
+  readonly id: string;
+  readonly bands: readonly CompiledBand[];
+}
+
+/** Narrow finite-domain facet; no Band is privileged as the Section's domain authority. */
+export interface CompiledBandPartition {
+  readonly length: number;
+  readonly bands: readonly CompiledBand[];
+}
+
 /** Canonical resolved knots are the authority; neither widths nor centers are independently stored. */
 export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number {
   const knots = boundary.knots;
@@ -36,12 +47,18 @@ export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number 
   return a.l + (b.l - a.l) * ((s - a.anchor.s) / (b.anchor.s - a.anchor.s));
 }
 
-/** Half-open lateral ownership. Outside/gaps return null; roles do not infer physical or visual bindings. */
-export function courseBandAt(bands: readonly CompiledBand[], s: number, l: number): CompiledBand | null {
+/** Half-open longitudinal/lateral ownership, with the finite Section terminal included. */
+export function courseBandAt(partition: CompiledBandPartition, s: number, l: number): CompiledBand | null {
   if (!Number.isFinite(l)) throw new RangeError('Band lateral query must be finite');
-  if (bands.length === 0) throw new RangeError('Band reader requires a nonempty compiled partition');
-  if (!Number.isFinite(s) || s < bands[0]!.start.s || s > bands[0]!.end.s)
+  if (!Number.isFinite(s) || s < 0 || s > partition.length)
     throw new RangeError('Band query must be within its finite Section domain');
-  for (const band of bands) if (l >= courseBoundaryAt(band.left, s) && l < courseBoundaryAt(band.right, s)) return band;
+  for (const band of partition.bands)
+    if (
+      s >= band.start.s &&
+      (s < band.end.s || (s === partition.length && s === band.end.s)) &&
+      l >= courseBoundaryAt(band.left, s) &&
+      l < courseBoundaryAt(band.right, s)
+    )
+      return band;
   return null;
 }

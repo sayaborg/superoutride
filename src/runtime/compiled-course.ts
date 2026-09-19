@@ -9,13 +9,13 @@ import {
   resolveCourseAnchor,
   type CompiledPlanPrimitive,
 } from '../course/course-geometry.js';
-import { compileCourseBandEnvelope } from '../course/course-band-geometry.js';
-import { courseBoundaryAt, type CompiledBoundary, type CompiledBand } from '../course/course-bands.js';
-
-interface CompiledCarriageway {
-  readonly id: string;
-  readonly bands: readonly CompiledBand[];
-}
+import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
+import type {
+  CompiledBoundary,
+  CompiledBand,
+  CompiledBandPartition,
+  CompiledCarriageway,
+} from '../course/course-bands.js';
 
 interface CompiledSection {
   readonly id: string;
@@ -23,7 +23,7 @@ interface CompiledSection {
   readonly raster: RasterPath;
   readonly guide: GuidePath;
   readonly boundaries: readonly CompiledBoundary[];
-  readonly bands: readonly CompiledBand[];
+  readonly bandPartition: CompiledBandPartition;
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CourseAssetReference[];
 }
@@ -42,7 +42,7 @@ export interface CompiledCourse {
   readonly assets: readonly CourseAssetReference[];
 }
 
-const COURSE_COMPILER = Object.freeze({ id: 'superoutride.course-compiler', version: 2 });
+const COURSE_COMPILER = Object.freeze({ id: 'superoutride.course-compiler', version: 3 });
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
   const value = table.get(id);
@@ -53,16 +53,6 @@ function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): 
 
 function semantic(condition: boolean, path: string, message: string): asserts condition {
   if (!condition) throw new CourseInputError('semantic_compile_failure', path, message);
-}
-
-function completeInterval(start: number, end: number, length: number, path: string): void {
-  semantic(end > start, path, 'Interval must have positive length');
-  if (start !== 0 || end !== length)
-    throw new CourseInputError(
-      'unsupported_feature',
-      path,
-      'The current compiler requires complete Section coverage [0, L]',
-    );
 }
 
 function compileSection(
@@ -86,7 +76,6 @@ function compileSection(
         `${at}/knots/${i}`,
         'Resolved knots must be strictly increasing',
       );
-    completeInterval(knots[0]!.anchor.s, knots.at(-1)!.anchor.s, raster.length, `${at}/knots`);
     return Object.freeze({ id: source.id, knots: Object.freeze(knots) });
   });
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
@@ -95,12 +84,20 @@ function compileSection(
     const at = `${path}/bands/${index}`;
     const start = resolve(source.start, `${at}/start`);
     const end = resolve(source.end, `${at}/end`);
-    completeInterval(start.s, end.s, raster.length, at);
+    semantic(end.s > start.s, at, 'Band interval must have positive length');
     const left = reference(boundaryTable, source.leftBoundaryId, `${at}/leftBoundaryId`);
     const right = reference(boundaryTable, source.rightBoundaryId, `${at}/rightBoundaryId`);
+    for (const [key, boundary] of [
+      ['leftBoundaryId', left],
+      ['rightBoundaryId', right],
+    ] as const)
+      semantic(
+        boundary.knots[0]!.anchor.s <= start.s && boundary.knots.at(-1)!.anchor.s >= end.s,
+        `${at}/${key}`,
+        `Boundary ${JSON.stringify(boundary.id)} must cover Band's closed interval [${start.s}, ${end.s}]`,
+      );
     return Object.freeze({ id: source.id, start, end, left, right, role: source.role });
   });
-  const envelope = compileCourseBandEnvelope(raster, bands, section.guide.margin, `${path}/bands`);
   const bandTable = new Map(bands.map((band) => [band.id, band]));
   const assigned = new Set<CompiledBand>();
   const carriageways = section.carriageways.map((source, index): CompiledCarriageway => {
@@ -113,13 +110,6 @@ function compileSection(
       assigned.add(band);
       return band;
     });
-    const lateralOrder = [...members].sort((a, b) => courseBoundaryAt(a.left, 0) - courseBoundaryAt(b.left, 0));
-    for (let i = 1; i < lateralOrder.length; i += 1)
-      semantic(
-        lateralOrder[i - 1]!.right === lateralOrder[i]!.left,
-        at,
-        'Carriageway pavement Bands must be contiguous',
-      );
     return Object.freeze({ id: source.id, bands: Object.freeze(members) });
   });
   semantic(
@@ -127,6 +117,7 @@ function compileSection(
     `${path}/carriageways`,
     'Every pavement Band needs one Carriageway',
   );
+  const { partition, envelope } = compileCourseBandGeometry(raster, bands, carriageways, section.guide.margin, path);
   let guide: GuidePath;
   try {
     guide = compileGuidePath(raster, {
@@ -146,7 +137,7 @@ function compileSection(
     raster,
     guide,
     boundaries: Object.freeze(boundaries),
-    bands: Object.freeze(bands),
+    bandPartition: partition,
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
   });

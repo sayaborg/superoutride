@@ -57,6 +57,12 @@ below, at and above every shared and outer edge, including a median-center lock 
 source classification, physical support and route regions use the same ownership rule; image filtering
 is checked against its own area-coverage contract. Existing current edge behavior remains covered until cutover.
 
+Active-Band tests cross both sides of each longitudinal switch as well as every lateral edge.
+Exercise zero-width birth/death, positive-width partition replacement, staggered partial domains and
+continuous occupied unions including interior gaps. Verify per-cell carriageway contiguity and prove
+that changing declaration order cannot make a partial first Band define the Section domain. Coverage,
+interior-zero, overlap and discontinuity failures must preserve the current project.
+
 The [local Guide envelope](architecture.md#target-local-guide-envelope) is tested on a narrow tight
 curve and a distant wide straight fork in one Section, on a locally invalid wide bend, across envelope
 knots/fillet interiors, and through translated or linked frames. Compare explicit constant-envelope

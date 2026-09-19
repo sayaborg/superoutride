@@ -29,7 +29,7 @@ test('varying saved geometry replays canonical boundaries and keeps a distant wi
   const first = ok(await compileCourseDocument(input));
   assert.deepEqual(ok(await compileCourseDocument(ok(parseCourseDocument(saved)))), first);
   const section = first.sections[0];
-  assert.equal(section.bands[0].right, section.bands[1].left);
+  assert.equal(section.bandPartition.bands[0].right, section.bandPartition.bands[1].left);
   const bend = section.primitives[1],
     runout = section.primitives[2];
   assert.equal(guideEnvelopeAt(section.guide.envelope, (bend.sStart + bend.sEnd) / 2), 6);
@@ -50,7 +50,7 @@ test('varying saved geometry replays canonical boundaries and keeps a distant wi
   const permuted = ok(await compileCourseDocument(input)).sections[0];
   for (const s of [0, halfway, runout.sEnd])
     for (const l of [-20, -1, 0, 3, 20, 70])
-      assert.equal(courseBandAt(permuted.bands, s, l)?.id, courseBandAt(section.bands, s, l)?.id);
+      assert.equal(courseBandAt(permuted.bandPartition, s, l)?.id, courseBandAt(section.bandPartition, s, l)?.id);
   assert.deepEqual(permuted.guide, section.guide, 'declaration order cannot change derived geometry');
 });
 
@@ -81,24 +81,24 @@ test('all structural roles, shared edges, gaps and outer edges use exact half-op
   source.carriageways = [1, 3, 5].map((i) => ({ id: `road-${i}`, bandIds: [`band-${i}`] }));
   const section = ok(await compileCourseDocument(input)).sections[0];
   for (const s of [0, 17, 50, 100]) {
-    for (const band of section.bands) {
+    for (const band of section.bandPartition.bands) {
       const left = courseBoundaryAt(band.left, s),
         right = courseBoundaryAt(band.right, s);
-      assert.notEqual(courseBandAt(section.bands, s, left - 1e-10), band);
-      assert.equal(courseBandAt(section.bands, s, left), band);
-      assert.equal(courseBandAt(section.bands, s, left + 1e-10), band);
-      assert.equal(courseBandAt(section.bands, s, right - 1e-10), band);
-      assert.notEqual(courseBandAt(section.bands, s, right), band);
-      assert.notEqual(courseBandAt(section.bands, s, right + 1e-10), band);
+      assert.notEqual(courseBandAt(section.bandPartition, s, left - 1e-10), band);
+      assert.equal(courseBandAt(section.bandPartition, s, left), band);
+      assert.equal(courseBandAt(section.bandPartition, s, left + 1e-10), band);
+      assert.equal(courseBandAt(section.bandPartition, s, right - 1e-10), band);
+      assert.notEqual(courseBandAt(section.bandPartition, s, right), band);
+      assert.notEqual(courseBandAt(section.bandPartition, s, right + 1e-10), band);
     }
-    assert.equal(courseBandAt(section.bands, s, courseBoundaryAt(section.boundaries[6], s)), null);
-    assert.equal(courseBandAt(section.bands, s, courseBoundaryAt(section.boundaries[8], s)), null);
+    assert.equal(courseBandAt(section.bandPartition, s, courseBoundaryAt(section.boundaries[6], s)), null);
+    assert.equal(courseBandAt(section.bandPartition, s, courseBoundaryAt(section.boundaries[8], s)), null);
   }
   for (const s of [-1, 101, NaN]) {
     assert.throws(() => courseBoundaryAt(section.boundaries[0], s), RangeError);
-    assert.throws(() => courseBandAt(section.bands, s, 0), RangeError);
+    assert.throws(() => courseBandAt(section.bandPartition, s, 0), RangeError);
   }
-  assert.throws(() => courseBandAt(section.bands, 0, Infinity), RangeError);
+  assert.throws(() => courseBandAt(section.bandPartition, 0, Infinity), RangeError);
 });
 
 test('interior knots, noncanonical touching boundaries and locally wide bends fail before publication', async () => {
