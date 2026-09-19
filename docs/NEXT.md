@@ -7,6 +7,70 @@ Read [AGENTS](../AGENTS.md), the [index/glossary](README.md), [Product](product.
 Pages; preserve unrelated work and start a `codex/` branch from that main. Repository evidence is
 the continuation authority. [Development](development.md) owns commands and release evidence.
 
+### Paused implementation checkpoint
+
+Development is paused at the user's request. Resume the existing `codex/course-seam-actor` draft branch
+and inspect its diff before creating another implementation branch. Its released base is
+`b61acd84c4298c6a2f511d834a1580784fcb6c47` ([PR #221](https://github.com/sayaborg/superoutride/pull/221));
+re-fetch main, open PRs, CI and Pages rather than treating this SHA as the latest authority. The draft
+commit/PR is a preservation checkpoint, not a release candidate or Gate 2 acceptance. The implemented
+foundation below describes the released base; the following work remains unreleased and under review.
+
+The draft contains:
+
+- `course-camera-coverage.ts` and seam-view camera admission: actual camera position, independent ruler,
+  yaw, viewport/depth and saved scenery reach produce separate presentation query bounds. This covers
+  saved source evaluation, not Gate 3 resident/filter qualification.
+- `course-seam-actor.ts`: a scoped single-Link actor transaction over existing ordinary driving readers,
+  prepared traversal and physical seam observations. It transforms pose, velocity, camera, recovery and
+  projection observations before publishing a frame; reverse uses the visited Link. Multi-exit source
+  Sections explicitly remain unqualified. This is not a Session or browser-root cutover.
+- `courseOccurrenceDrivingDemand` in `course-driving-demand.ts`: candidate coverage includes actual
+  retained occurrence Guide segments. A merge/reverse test exposed a floating-point endpoint clipping
+  failure; outward representable coverage bounds address it without changing point ownership or adding
+  a fixed guard. Numerical and finite-history boundary coverage still needs review.
+- Shared seam fixtures and focused camera/actor integration tests: all nine vehicle profiles, straddling
+  contacts, failed admission, saved-content frames, every incoming merge, reverse/recovery and independent
+  actor commits. Shared source/assets remain canonical. Independent commits do not yet prove neighboring
+  actors' rendering/contact across different active frames.
+
+Checkpoint validation uses Node 24.19.0: `npm run check`, `npm run build` and these 19 focused tests pass:
+
+```sh
+node --test tests/runtime/course-camera-coverage.test.mjs tests/runtime/course-seam-actor.test.mjs tests/runtime/course-occurrence-driving.test.mjs
+```
+
+The complete `npm test`, product GroundMap build/HTTP validation and immutable mechanics comparison
+have not been run for this draft. The released base passed 1,404 tests, exact-head and main CI, Pages
+and public version/manifest/gzip verification; those results do not validate this draft. Existing
+physics/audio/GroundMap implementations, browser roots and oracle/hash references are unchanged.
+
+Resume in this order:
+
+1. Review the new actor API, live-state ownership, admission failures and atomic publication against
+   AGENTS and the owning specifications before adopting its contract. A rejected observation does not
+   undo the ordinary physics step that the caller already performed; publication/failure handling must
+   be explicit. Review unequal Guide subdivisions, endpoint rounding, finite history and exhausted
+   candidate coverage in the new occurrence-demand helper.
+2. Extend the real-path evidence to repeated transformed loops with shared sources, neighboring actors,
+   and checkpoint/lap non-credit. Existing tests assert the instantaneous rigid transform and subsequent
+   reader/cache consistency, not bit-identical later integration in differently rotated coordinates.
+3. Resolve ordinary camera/driver heading-only reads at chart zero: the prototype currently requires
+   that point inside the physical proof and therefore cannot admit wide offset exit roads. Inspect the
+   existing narrow primitives; do not enlarge the qualified physical domain to hide that mismatch.
+   Qualify actual fork transfer dynamics and enforce pre-lock/exit envelopes before admitting forks.
+   The saved fork visibility fixture is not a drivable transfer certificate.
+4. Continue the Gate 2 remaining order below, including complete consumer/common-content coverage and
+   joint physical/visual/lock ownership cutover. Only then remove replaced legacy paths. Gates 3–6
+   remain subsequent work, and tire/audio tuning remains paused.
+5. For each actual release candidate, run the full Node 24 validation and immutable reference checks,
+   obtain exact-head CI, re-fetch main and verify ahead > 0, behind = 0 and merge base = current main.
+   Fast-forward with `force=false`, verify main = PR head = PR merge, then verify main CI, Pages and
+   public version/manifest/gzip payloads. Do not release this checkpoint merely because focused tests pass.
+
+Preserve unrelated local worktrees. No external handoff file or prior conversation is needed: this
+checkpoint, its draft diff/tests and the topic specifications are the continuation record.
+
 ## Next work: Course Editor
 
 Current driving code uses paged compiled ground, constant Guide inputs, finite circuit unfolding and three

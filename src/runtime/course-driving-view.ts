@@ -19,6 +19,8 @@ import type { GroundColorReader } from '../render/renderer.js';
 import type { VisualProfileReader } from '../visual/visual-profile.js';
 import type { CourseGeometryView } from './course-geometry-view.js';
 import type { CourseOccurrence } from './course-occurrence.js';
+import type { PseudoCamera } from '../core/projection.js';
+import { courseCameraQueryBounds } from './course-camera-coverage.js';
 
 type Physical = Extract<ReturnType<typeof compileCoursePhysicalDomains>, { ok: true }>['value'];
 type Presentation = Extract<ReturnType<typeof compileCoursePresentationDomains>, { ok: true }>['value'];
@@ -240,7 +242,17 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
             start > Math.max(mapping.sourceOwnership.start, segment.sStart) ||
             end < Math.min(mapping.sourceOwnership.end, segment.sEnd)
           )
-            throw new RangeError('Driving window clips a seeded projection candidate');
+            throw new RangeError('Driving window clips a seeded projection candidate', {
+              cause: {
+                start,
+                end,
+                requiredStart: Math.max(mapping.sourceOwnership.start, segment.sStart),
+                requiredEnd: Math.min(mapping.sourceOwnership.end, segment.sEnd),
+                occurrence: mapping.occurrence.ordinal,
+                segmentIndex: segment.index,
+                frameRange: range,
+              },
+            });
           const section = mapping.occurrence.section,
             local = transformPlanarPoint(mapping.sourceFromView, world);
           const p = projectWorldOnGuideInterval(section.guide, segment.index, local, start, end, clampL);
@@ -497,6 +509,35 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
         ok: true as const,
         value: Object.freeze({
           ...result.value,
+          admitCamera(
+            camera: PseudoCamera,
+            render: { readonly width: number; readonly dMin: number; readonly dMax: number },
+          ) {
+            const bounds = courseCameraQueryBounds(port.pose, port.anchor.s, camera, render, [
+              ...new Set(view.spans.map((span) => span.occurrence.section.presentation!)),
+            ]);
+            if (!bounds.ok) return bounds;
+            for (const requirement of presentation.demand.requirements) {
+              const actual = bounds.value[requirement.consumer],
+                expected = requirement.bounds;
+              if (
+                actual.start < -expected.behind ||
+                actual.end > expected.ahead ||
+                actual.left < -expected.left ||
+                actual.right > expected.right ||
+                port.anchor.s + actual.start < view.activeRange.start ||
+                port.anchor.s + actual.end > view.activeRange.end
+              )
+                return Object.freeze({
+                  ok: false as const,
+                  reason: 'camera_domain_exhausted' as const,
+                  consumer: requirement.consumer,
+                  actual,
+                  expected,
+                });
+            }
+            return bounds;
+          },
           /** Pure observation in the actual active frame; no traversal, physical or progress mutation. */
           admitMotion(previous: Vec2, current: Vec2) {
             const a = observe(previous),
