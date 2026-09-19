@@ -404,7 +404,8 @@ function validateFilletOverlap(
 }
 
 function validateGuideCoverage(segments: readonly GuideSegment[], pathLength: number, tolerance: number): void {
-  if (segments.length === 0) throw new Error('guide path contains no segments');
+  // Positive Raster input can still be shorter than every readable Guide interval.
+  if (segments.length === 0) throw new RangeError('guide path contains no segments');
   if (Math.abs(segments[0]!.sStart) > tolerance) throw new Error('guide path does not start at s=0');
 
   let cursor = 0;

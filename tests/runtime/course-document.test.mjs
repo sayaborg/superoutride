@@ -407,6 +407,19 @@ test('invalid widths, coverage, membership, Guide metrics and mapped geometry pr
   failure(await compileCourseDocument(duplicatedEdge), 'semantic_compile_failure', '/sections/0/bands');
 });
 
+test('a positive but unreadably short Guide is an authoring diagnostic and preserves the project', async () => {
+  const project = createCourseProject();
+  ok(await project.importDocument(fixtureText));
+  const prior = project.getState();
+  const input = fixture();
+  input.sections[0].start = { x: 0, z: 0, heading: 0 };
+  input.sections[0].primitives = [{ id: 'runout', kind: 'straight', length: 2e-9 }];
+  // This survives Raster's minimum segment, but has no readable Guide interval.
+  const saved = ok(saveCourseDocument(input));
+  failure(await project.importDocument(saved), 'semantic_compile_failure', '/sections/0/guide');
+  assert.equal(project.getState(), prior);
+});
+
 test('admission and generated-geometry resource limits fail before excessive allocation', async () => {
   const bytes = COURSE_DOCUMENT_LIMITS.jsonBytes;
   failure(parseCourseDocument(' '.repeat(bytes + 1)), 'resource_limit', '');
