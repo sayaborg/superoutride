@@ -78,6 +78,7 @@ test('browser course selector maps 1/2/3/4 and URL modes from one authority', ()
       entryName,
     })),
     [
+      { digitCode: undefined, query: 'trial', routeKind: 'LINEAR', entryName: 'main-course.js' },
       { digitCode: 'Digit1', query: 'linear', routeKind: 'LINEAR', entryName: 'main-linear.js' },
       { digitCode: 'Digit2', query: 'branching', routeKind: 'BRANCHING', entryName: 'main.js' },
       { digitCode: 'Digit3', query: 'circuit', routeKind: 'CIRCUIT', entryName: 'main-circuit.js' },

@@ -51,9 +51,9 @@ Totals: LINEAR 11, BRANCH 4, CIRCUIT 15.
 Excluded: _Hang-On_ (1985) as a separate entry, Rad Mobile, Racing Hero, OutRun 2,
 OutRun 2 SP, Power Drift, Virtua Racing, Daytona USA, Sega Rally, Manx TT and Scud Race.
 
-Tsukuba, FISCO and the development highway/branching courses are not in the product
-master. Retain their causal coverage as fixtures; retire their shipped entries only when replacement
-content and the common product path are validated.
+Tsukuba, FISCO and the old development courses are retired. New provisional CourseDocuments exercise
+product features without attempting to reproduce a master course. Only minimal immutable-oracle worlds
+remain as test fixtures.
 
 ### Reference and remaster scope
 
@@ -138,8 +138,9 @@ vehicle to cross the lock line selects the branch for the field. Eligible vehicl
 and rivals; with zero rivals, the player is the entire field. This rule applies to every mode.
 
 Choice is free before the lock line and fixed after it. Unselected roads warn immediately and close
-later, allowing vehicles to cross the median. Rival intent retargets the selected road. Legal-route
-recovery is the last resort for a vehicle that fails to move across; it grants no progress.
+later, allowing vehicles to cross the median. Rival intent retargets the selected road. At closure, a vehicle still on an unselected road uses legal-route
+recovery to the selected road; it grants no progress. V1 has no wall collision physics. Warning and
+closure visuals are ordinary state-selected presentation.
 
 The lock line is at the start of the parallel zone; closure precedes every exit seam. Unselected roads
 peel away through authored, static geometry, and parent-specific roads/scenery leave view before the
@@ -207,7 +208,9 @@ separate meanings and compiled outputs. Ground colour never determines grip or s
 ## 5. Course Editor scope
 
 Courses are saved data documents compiled through one public entry composed of small domain compilers.
-The editor covers geometry, height, cross-sections, boundaries, ground layers, placements, environments,
+The first authoring interface is files, a small CLI, structured diagnostics and product-renderer previews.
+AI agents create courses; GUI later supports human inspection and small adjustments. The format covers
+geometry, height, cross-sections, boundaries, ground layers, placements, environments,
 Links, checkpoints, starts, goals and presets. It displays actionable diagnostics and actual capacity.
 
 Saved projects reproduce their inputs and compiled outputs, keep source and generated products distinct,

@@ -53,12 +53,12 @@ interface RenderWorkload {
   groundMapLevelHistogram: readonly number[];
 }
 
-/** Synchronous color reader. Source evaluation is supplied only by offline diagnostics. */
+/** Synchronous color reader. Source evaluation supplies saved paint until resident images are compiled. */
 export interface GroundColorReader {
   readonly kind: 'baked' | 'source';
   readonly kMax: number;
   selectLevel(deltaSEffective: number): number;
-  sampleAtLevel(s: number, l: number, level: number): number;
+  sampleAtLevel(s: number, l: number, level: number): number | null;
 }
 
 interface RenderScene {
@@ -276,7 +276,8 @@ function drawTerrainLine(
 
       const offset = line.y * target.width;
       for (let x = x0; x <= x1; x += 1) {
-        target.pixels[offset + x] = ground.sampleAtLevel(line.s, lateral, groundMapLevel);
+        const color = ground.sampleAtLevel(line.s, lateral, groundMapLevel);
+        if (color !== null) target.pixels[offset + x] = color;
         lateral += lateralStep;
       }
       outputPixels += x1 - x0 + 1;

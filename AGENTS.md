@@ -20,7 +20,7 @@ Before any nontrivial change, answer from repository evidence:
 6. Which frozen invariants apply, and are they preserved?
 7. Which causal regression or architecture check proves the behavior and boundary?
 
-An explicit design revision is required to change an invariant. A feature request alone does not authorize silently weakening one. Update the responsible topic document and executable contract together. Historical test names do not establish current authority; preserve their still-valid causal coverage.
+An explicit design revision is required to change an invariant. A feature request alone does not authorize silently weakening one. Update the responsible topic document and executable contract together. Historical test names do not establish current authority. Old development courses, route execution and paged GroundMaps are retired at M1b without compatibility, migration or equivalence requirements. Preserve the exact mechanics/audio oracles and only the minimal world fixtures they require.
 
 ## Construction and review conventions
 
@@ -32,13 +32,28 @@ An explicit design revision is required to change an invariant. A feature reques
 
 Apply these conventions to new or substantively changed interfaces. A spelling-only mass rename or a blanket replacement of numerical guards is not a migration. Immutable publication includes nested ownership: a frozen object exposing a mutable Map, array or buffer still needs an explicit read-only boundary.
 
+## Delivery priorities
+
+Deliver playable vertical milestones in order: M1 single-Section LINEAR, M1b removal of old
+courses/routes/paged ground, M2 two-Section seam, M3 transformed CIRCUIT and rivals,
+M4 fork/merge, M5 agent authoring CLI. M1–M4 require a publicly drivable Pages URL;
+offline qualification alone does not complete them. Use one or two PRs per milestone and an
+independent M1b PR immediately after M1 publication. The older gate-first order is superseded.
+After M5: resident RGB555, checkpoint clock/Session presets, traffic, actual content, then GUI.
+
+Preserve physics, audio, input, camera, sprites and Sprite Tool. Never advance
+`HOT_PATH_REFERENCE_SHA`, alter mechanics/audio hashes or normalize their results. Tuning remains
+paused. Existing certification is subordinate to actual root consumers; add no unused certification
+interfaces and remove unused qualification at M4. Use one or two vehicle profiles for new integration
+coverage; the physics suite owns nine-profile coverage. Keep total test time from increasing.
+
 ## Work and release
 
 Never implement directly on main. Inspect/fetch exact main and active PR/CI before changing code. Preserve unrelated local changes; use a feature branch (`codex/` prefix) from the inspected main SHA. Inspect the final diff for unrelated edits.
 
-Use the validation commands in [development](docs/development.md) for every implementation milestone and release candidate. Bug fixes need a regression of the causal failure. Do not weaken a valid test to pass a redesign; document supersession before replacing an obsolete requirement. Retain reproducible diagnostics rather than copied historical results.
+Run complete Node 24 `npm test` (including lint, format and build) for every release candidate. Browser-reaching and CI/Pages changes additionally require exact immutable mechanics comparison. Offline-only changes require complete tests and exact-head CI. Bug fixes need a regression of the causal failure. Do not weaken a valid test to pass a redesign; document supersession before replacing an obsolete requirement. Retain reproducible diagnostics rather than copied historical results.
 
-Open a PR targeting main. Obtain complete green CI on the exact feature head, including documentation and validation changes. Re-fetch main. Release only when ahead > 0, behind = 0 and merge base is current main. Move main to the validated SHA with `force=false`; never manufacture an extra merge commit. Verify main SHA = PR head SHA = PR merge SHA, then verify main-push CI and Pages on that SHA. Rebase/revalidate if main moved. Never force main or release an unvalidated SHA.
+Open a PR targeting main. Obtain complete green CI on the exact feature head, including documentation and validation changes. Re-fetch main. Release only when ahead > 0, behind = 0 and merge base is current main. Move main to the validated SHA with `force=false`; never manufacture an extra merge commit. Verify main SHA = PR head SHA = PR merge SHA, then verify main-push CI and Pages on that SHA, including version.txt, commit-versioned boot, and delivered CourseDocument/image SHA-256 digests. Rebase/revalidate if main moved. Never force main or release an unvalidated SHA.
 
 CI workflow checkout and artifacts are release evidence. The working tree keeps current specifications and the current restart checkpoint, not an accumulating release archive. A documentation-only follow-up is still a new SHA and needs CI before release. Do not embed a commit's own SHA in its source as a supposed exact-head record.
 

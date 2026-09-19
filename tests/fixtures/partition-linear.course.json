@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 5,
+  "version": 6,
   "id": "partition-example",
   "units": {
     "length": "m",

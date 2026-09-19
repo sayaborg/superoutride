@@ -47,7 +47,7 @@ interface BrowserDrivingShell {
     rivals?: readonly { readonly vehicle: ArcadeVehicleState }[],
   ): void;
   drawGround(...args: Parameters<GroundPresentation['draw']>): void;
-  start(tick: (dt: number) => void, render: () => void): void;
+  start(tick: (dt: number) => void, render: () => void, ready?: boolean): void;
   stop(): void;
   dispose(): void;
 }
@@ -88,11 +88,19 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     if (event.persisted) location.reload();
   });
   return {
-    start(tick, render): void {
+    start(tick, render, ready = false): void {
       ground?.dispose();
       loop?.stop();
       loadingControls?.dispose();
       loop = createFrameLoop(tick, render);
+      if (ready) {
+        waiting = false;
+        inputManager.setSuspended(false);
+        audio.setActive(true);
+        render();
+        loop.start();
+        return;
+      }
       loadingControls = mountGroundLoadingControls(() => ground?.retry());
       ground = new GroundPresentation(
         loop,

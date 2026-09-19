@@ -48,6 +48,7 @@ export async function presentationDocument(name = 'linked-linear') {
           background: { assetId: 'sky', horizonY: 1, pixelsPerRadian: 200, yawOrigin: section.start.heading },
         },
       ],
+      sceneryRows: [],
       scenery: [
         { id: 'near-tree', instanceId: 'shared-tree', anchor: { kind: 'absolute', s: 50 }, l: 8, groundOffset: 1.5 },
       ],

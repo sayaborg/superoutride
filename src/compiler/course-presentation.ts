@@ -1,12 +1,12 @@
-import type { CourseAnchor, PresentationDocument } from '../course/course-document.js';
-import type { CompiledBandPartition } from '../course/course-bands.js';
+import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } from '../course/course-document.js';
+import { courseBoundaryAt, type CompiledBandPartition } from '../course/course-bands.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import type { CoursePresentation, CourseSceneryInstance, CoursePaint } from '../visual/course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 1 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 2 });
 
 /** Resolve saved presentation through canonical geometry/assets; no inferred role-derived paint. */
 export function compileCoursePresentation(
@@ -16,6 +16,7 @@ export function compileCoursePresentation(
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   resolve: (anchor: CourseAnchor, path: string) => CompiledCourseAnchor,
   path: string,
+  sectionId: string,
 ): CoursePresentation | null {
   if (source === null) return null;
   const assetTable = new Map(assets.map((asset) => [asset.id, asset]));
@@ -173,6 +174,42 @@ export function compileCoursePresentation(
       groundOffset: placement.groundOffset,
     });
   });
+  const boundaries = new Map(partition.bands.flatMap((band) => [band.left, band.right]).map((edge) => [edge.id, edge]));
+  for (const [rowIndex, row] of source.sceneryRows.entries()) {
+    const at = `${path}/sceneryRows/${rowIndex}`;
+    const start = resolve(row.start, `${at}/start`),
+      end = resolve(row.end, `${at}/end`);
+    const boundary = boundaries.get(row.boundaryId);
+    if (!boundary) throw new CourseInputError('unresolved_reference', `${at}/boundaryId`, 'Unknown row Boundary');
+    requireCourse(
+      end.s > start.s && start.s >= boundary.knots[0]!.anchor.s && end.s <= boundary.knots.at(-1)!.anchor.s,
+      at,
+      'Row interval must be positive and covered by its Boundary',
+      'invalid_placement',
+    );
+    const count = Math.ceil((end.s - start.s) / row.spacing);
+    requireCourse(
+      Number.isSafeInteger(count) && count + scenery.length <= COURSE_DOCUMENT_LIMITS.placements,
+      at,
+      'Expanded scenery exceeds the Section placement limit',
+      'resource_limit',
+    );
+    const asset = image(row.assetId, `${at}/assetId`);
+    for (let index = 0; index < count; index += 1) {
+      const s = start.s + index * row.spacing;
+      if (s >= end.s) break;
+      const id = JSON.stringify([sectionId, row.id, index]);
+      scenery.push(
+        Object.freeze({
+          id,
+          instance: Object.freeze({ id, asset }),
+          anchor: Object.freeze({ kind: 'absolute' as const, s }),
+          l: courseBoundaryAt(boundary, s) + (row.side === 'left' ? -row.offset : row.offset),
+          groundOffset: row.groundOffset,
+        }),
+      );
+    }
+  }
   return Object.freeze({
     ground: Object.freeze({
       partition,

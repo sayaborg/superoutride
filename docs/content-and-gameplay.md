@@ -7,22 +7,16 @@ image formats/compilation, and [ground delivery](ground-delivery.md) owns curren
 
 ## Composition and data ownership
 
-[Boot](../src/boot.ts) selects a catalog course through the [selector](../src/browser/course-mode-selection.ts).
-The catalog owns query-to-root membership and its typed dispatcher requires the appropriate builders.
-The three composition roots alone assemble concrete DEV content:
+The new [CourseDocument root](../src/main-course.ts), selected as `?mode=trial`, loads saved JSON/images,
+compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
+single-Section driving readers, saved presentation and the ordinary renderer. The headless CLI uses
+this same assembly. The current provisional course is a finite 2.8 km LINEAR with 132 row-generated
+scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
+The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
+zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry.
 
-- [LINEAR](../src/main-linear.ts): a finite highway driving trial without route/FINISH/race observers.
-- [BRANCHING](../src/main.ts): the open branching highway, shared route choice and rivals.
-- [CIRCUIT](../src/main-circuit.ts): Tsukuba/FISCO, a finite lap window and race progress.
-
-The [shell](../src/browser/driving-shell.ts) owns input, scheduling, player replacement, selectors,
-HUD and presentation. The [lifecycle](../src/browser/driving-lifecycle.ts) orders recovery/replacement,
-observer resynchronization and immediate camera reconstruction. Roots supply world, recovery profile
-and resync callback. The [frame loop](../src/browser/frame-loop.ts) owns the accumulator and 0.25 s
-catch-up limit. [Route driving](../src/runtime/route-driving-tick.ts) completes every actor's physics,
-then arbitrates, recovers, rebinds and observes progress once per actor. [Circuit driving](../src/runtime/circuit-driving-tick.ts)
-shares recovery/race/session updates. Results are keyed by actor identity, independent of roster order.
-Rendering, camera and mechanics consume ordinary readers instead of mode names.
+The previous three roots and paged-ground path remain until the separate M1b purge. They establish
+no compatibility requirement for the new course.
 
 The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine production identities and their
 [compiled profiles](../src/vehicle/production-vehicle-profiles.ts). Model, manufacturer, identifier,
@@ -56,7 +50,7 @@ The current declarative route compiler derives separate route/content/gate/hando
 then validates their joins. The [target reference graph](#compiled-course-reference-graph) replaces
 that internal representation while retaining input validation and distinct gameplay responsibilities.
 
-## CourseDocument v5: implemented compiler boundary
+## CourseDocument v6: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -75,13 +69,13 @@ Session or completed resident ground product.
 All fields below are required. Objects reject unknown fields; arrays retain their saved order. The
 reader creates owned frozen records in schema field order and normalizes negative zero to zero.
 Save emits compact UTF-8 JSON. Whitespace and object-property order do not affect source identity;
-array order is saved input, including meaningful primitive, knot and stamp order. V5 adds explicit
+array order is saved input, including meaningful primitive, knot and stamp order. V6 adds compact boundary-relative scenery rows alongside explicit
 fork lock/closure anchors to the saved presentation/reference subset. Live field/actor state remains
 outside the document.
 
-| Record           | Exact v5 fields                                                                                                                                                                                                                                                   |
+| Record           | Exact v6 fields                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CourseDocument   | `format: "superoutride.course"`, `version: 5`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                        |
+| CourseDocument   | `format: "superoutride.course"`, `version: 6`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                        |
 | Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation`, `fork` |
 | Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                                                |
 | Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                                            |
@@ -99,7 +93,7 @@ outside the document.
 
 | Record            | Fields                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------ |
-| Presentation      | `ground`, `environments`, `scenery`                                                  |
+| Presentation      | `ground`, `environments`, `scenery`, `sceneryRows`                                   |
 | Ground            | positive `left`, `right` extents, `baseRgb555`, `bands`, ordered `stamps`            |
 | Appearance Band   | `bandId`, `sections: [{anchor, paint}, ...]`                                         |
 | Paint             | `null` (reveal base), or `{assetId, phaseS, phaseL, alternate}`                      |
@@ -119,8 +113,8 @@ Band, Carriageway and Port IDs each have a separate Section-local scope. Duplica
 admission. References resolve within their declared scope, never by array position or naming convention.
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
-with `unsupported_version`. Schema/format and unit mismatches fail admission. Schemas v1/v2/v3/v4 are explicitly
-unsupported. Geometry fixtures explicitly select v5 with `presentation: null`, `fork: null` and an empty
+with `unsupported_version`. Schema/format and unit mismatches fail admission. Schemas v1/v2/v3/v4/v5 are explicitly
+unsupported. Geometry fixtures explicitly select v6 with `presentation: null`, `fork: null` and an empty
 scenery-instance collection; no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
@@ -130,8 +124,11 @@ at activation and changing strictly before its end. Every present presentation h
 profile beginning at zero. Scenery placements resolve document-wide canonical instances whose assets
 belong to the Section. Shared identity alone does not prove matching placements across a Link.
 Each stamp/scenery collection and the instance collection admit 4096 entries; profiles retain the
-256-node bound and the whole-document byte limit. Unsupported repair scatter, pattern-row authoring
-and dimensioned marking/boundary recipes are diagnosed, not generated from placeholders.
+256-node bound and the whole-document byte limit. Rows store `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side` (left/right), nonnegative
+`offset` and `groundOffset`. The interval is half-open; placements occur at start + index × spacing.
+They follow the referenced varying Boundary on the selected side. Expansion shares canonical assets,
+creates deterministic Section/row/index instances, and is limited to 4096 total Section placements.
+Unsupported repair scatter and dimensioned marking/boundary recipes receive diagnostics.
 
 Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation now requires
 explicit saved bytes for every declared digest and resolves Section membership to canonical descriptors
@@ -569,6 +566,9 @@ Session composition stay on their existing paths until their separate acceptance
 
 ### Common-guard occurrence driving view
 
+This existing diagnostic adapter is scheduled for replacement in M2. Its whole-window restrictions
+below describe its current limitations; the product seam contract is span composition, not expanded guards.
+
 `createCourseDrivingSource` consumes physical and presentation query-domain products over the same
 canonical Links. It admits an active occurrence plus at most one immediate selected/visited neighbor.
 All neighbor samples must stay within that Link's complete qualified guard, and the whole requested
@@ -638,7 +638,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 12, including the Link recipe v1, physical recipe v2, image-source
+`superoutride.course-compiler` version 13, including the Link recipe v1, physical recipe v2, image-source
 admission recipe v1 and presentation recipe v1 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
@@ -759,13 +759,19 @@ contracts and causal tests.
 background interval, composed as ordinary sprites/background. General rendering remains location-neutral.
 Current children continue forward from the shared overlap.
 
-## Accepted authoring workflow: pending implementation
+## Agent authoring
 
-The target below owns future course/session/project/loading semantics. Current Sprite Tool normalization,
-mask/palette editing, saved session and master/LOD exports are implemented under
-[image assets](image-assets.md#sprite-tool-authoring-session) and [development](development.md#sprite-tool).
-Three-dimensional capture remains a separate experiment: camera projection, origin, angle labels,
-pivot, lighting, crop/anchor and sampling are open. SINGLE remains current; DUAL is deferred.
+Agents edit saved CourseDocuments and asset files, compile structured JSON diagnostics, inspect
+product-renderer PNGs, and iterate. Scenery rows store anchored intervals, spacing, side and offset;
+imports prefer primitive-relative anchors. GUI is reserved for later human inspection and adjustment.
+
+Source observations live in a separate versioned intermediate document: chainage-indexed curvature,
+grade, width, scenery, environment and checkpoint series with source provenance and calibration.
+Deterministic scripts measure scanline centers, horizon and HUD speed from frames. Agents execute and
+verify these scripts, classify scenery/environment, and judge fitting against product previews.
+Offline `tools/course/` fitting owns primitive/knot estimation; compiler/runtime only consume authored
+results. Distance/curvature/height scales are fitting inputs recorded with source edition/calibration
+and remaster departures. Reference video pixels are never extracted as game assets.
 
 ### GroundMap loading and handoff
 
@@ -931,21 +937,13 @@ actor is visible when its transformed bounds enter the view, independent of pack
 
 ### Seam and overlap
 
-A seam lies in an authored horizontal straight with compatible cross-section, support/material and
-height on both sides. Guard domains cover straddling contacts, camera, lookahead, reverse and recovery.
-Validate the common region under the port transform, not just one matching point. Source layers,
-marking/texture phase, filter context, scenery identity, background and camera state must be continuous.
-A proposed 25 m guard is not a universal consumer-range guarantee; derive required coverage.
-
-The common region is a bounded consumer domain, not the union of every road anywhere across a Section's
-cross-section. Its extent must contain every query under the admitted pose/step envelope, including
-nonselected content wherever those consumers can observe it. Qualification cannot mask content merely
-because it belongs to a losing branch. Outside-domain query exclusion needs real-consumer evidence;
-image visibility and filter footprints are independent of physical reachability.
-
-Physical agreement and picture continuity are separate evidence. A shared scenery instance appears
-once, and a transform cannot manufacture gate credit. Overlap contains only matching common content;
-parent-specific content is governed by the exit contract below.
+A seam lies in an authored horizontal straight. Its practical common guard (about 30 m) certifies
+physical and presentation agreement at contacts and over one fixed step. Camera/render, driver and
+recovery windows follow concatenated occurrence spans, switching source at the seam; those entire
+windows need not fit the common guard. Increasing fixture overlap to 500 m is not a valid substitute.
+Sources retain matching height, Band/material, paint phase and shared scenery in their common region.
+The transform preserves camera/world state and grants no progress. Parent-specific content uses the
+ordinary span view and the exit-presentation contract below.
 
 ### Fork lock and handoff
 
@@ -963,9 +961,9 @@ then stable actor ID for an exact tie. The winner establishes one irreversible l
 occurrence. Locking grants neither a checkpoint nor an actor's frame commit. Retarget rivals immediately;
 each actor later crosses its own legal seam.
 
-Warnings and barriers are ordinary state-selected presentation/interaction content. Losing roads remain
-static parent geometry. A vehicle unable to transfer uses legal-route recovery as a last resort, retaining
-accepted progress. Define barrier interaction before accepting closed-road gameplay.
+Warnings and closure are ordinary state-selected presentation. V1 has no wall collision physics.
+At and beyond closure, an actor on an unselected carriageway uses legal-route recovery to the selected
+road, preserving accepted progress and resetting crossing observations. Losing roads remain static geometry.
 
 #### Pre-lock coverage
 

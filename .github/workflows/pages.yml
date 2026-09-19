@@ -120,10 +120,10 @@ jobs:
         with:
           node-version: 24
 
-      - name: Verify published GroundMap assets
+      - name: Verify published course content
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           npm ci
           npm run build
-          node tools/build/verify-published-ground.mjs "$PAGES_URL" "$GITHUB_SHA"
+          node tools/build/verify-published-course.mjs "$PAGES_URL" "$GITHUB_SHA"
