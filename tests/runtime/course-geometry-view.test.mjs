@@ -514,3 +514,56 @@ test('a tiny positive visited span cannot silently collapse when mapped between 
   assert.equal(result.ok, false);
   assert.match(result.message, /seam spans must remain representable/);
 });
+
+test('prepared traversal views publish only after successful admission and discard stale candidates', async () => {
+  const c = await compile(),
+    traversal = createTraversal(c.entry, 300);
+  const first = traversal.snapshot();
+  assert.equal(traversal.snapshot(), first);
+  assert.equal(traversal.prepare('forward').reason, 'selection_required');
+  const successor = ok(traversal.select(first.active, c.links[0]));
+  const before = traversal.snapshot(),
+    prepared = ok(traversal.prepare('forward'));
+  assert.equal(traversal.snapshot(), before, 'preparation must not visit the selected occurrence');
+  assert.equal(prepared.history.active, successor);
+  const missing = createCourseGeometryView(prepared.history, demand(50, 1000, 1000));
+  assert.equal(missing.ok, false);
+  assert.equal(traversal.snapshot(), before, 'failed consumer admission preserves the active frame/history');
+  const destination = ok(createCourseGeometryView(prepared.history, demand(60)));
+  assert.equal(destination.frame, successor);
+  frozen(prepared.history);
+  assert.equal(ok(prepared.commit()).to, successor);
+  assert.equal(traversal.snapshot(), prepared.history);
+  assert.equal(prepared.commit().reason, 'stale_transition');
+  const reverse = ok(traversal.prepare('reverse'));
+  assert.equal(reverse.history.active, first.active);
+  assert.equal(traversal.snapshot(), prepared.history);
+  ok(traversal.reverse());
+  assert.equal(reverse.commit().reason, 'stale_transition');
+  assert.equal(traversal.snapshot().active, first.active);
+  assert.throws(() => traversal.prepare(null), TypeError);
+  assert.throws(() => traversal.prepare('sideways'), RangeError);
+});
+
+test('selection changes invalidate pending movement without replacing source or occurrence identity', async () => {
+  const c = await compile(forkCourseDocument(fixture(), 3)),
+    traversal = createTraversal(c.entry, 300);
+  const child = ok(traversal.select(traversal.snapshot().active, c.entry.outgoing[2]));
+  const prepared = ok(traversal.prepare('forward'));
+  ok(traversal.select(child, child.section.outgoing[0]));
+  const before = traversal.snapshot();
+  assert.equal(prepared.commit().reason, 'stale_transition');
+  assert.equal(traversal.snapshot(), before);
+  assert.equal(before.selected[0], child);
+  const current = ok(traversal.prepare('forward'));
+  assert.equal(
+    ok(traversal.select(before.active, child.incoming)),
+    child,
+    'idempotent selection preserves preparation',
+  );
+  ok(current.commit());
+  const merge = ok(traversal.prepare('forward'));
+  ok(merge.commit());
+  const reverse = ok(traversal.prepare('reverse'));
+  assert.equal(reverse.to, child, 'shared successor retains the selected actual predecessor');
+});

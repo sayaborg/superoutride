@@ -163,3 +163,9 @@ input with the existing accepted geometry and preserve out-of-domain/recovery be
 
 These are acceptance requirements for the target milestones. Each implementation PR records which
 cases it actually implements and runs; this document does not report future tests as already passing.
+
+Prepared occurrence transactions are tested through prospective consumer admission, unchanged live
+history on failure, one-time publication, stale selection/movement and actual merge predecessors.
+Seam-reader tests exercise both sides of the Link with ordinary nine-profile physics and full saved
+frames; outside-domain world projection must fail even when clamping was requested. Pose and signed
+step outcomes remain separate from seam crossing, frame commit and progress acceptance.

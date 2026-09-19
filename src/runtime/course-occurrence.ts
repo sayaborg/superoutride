@@ -28,7 +28,8 @@ type TraversalFailureReason =
   | 'history_exhausted'
   | 'selection_limit'
   | 'occurrence_limit'
-  | 'identity_exhausted';
+  | 'identity_exhausted'
+  | 'stale_transition';
 const failure = (reason: TraversalFailureReason, message: string) =>
   Object.freeze({ ok: false as const, reason, message });
 const success = <T>(value: T) => Object.freeze({ ok: true as const, value });
@@ -51,16 +52,71 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
     maxOccurrences < 2
   )
     throw new RangeError('Traversal needs finite nonnegative distances and at least two occurrence slots');
-  let occurrences: readonly CourseOccurrence[] = Object.freeze([
-    Object.freeze({ ordinal: 0, section: entry, incoming: null }),
-  ]);
-  let selected: readonly CourseOccurrence[] = Object.freeze([]);
-  let activeIndex = 0;
-  const snapshot = (): CourseOccurrenceHistory =>
-    Object.freeze({ occurrences, active: occurrences[activeIndex]!, selected });
+  const initial = Object.freeze({ ordinal: 0, section: entry, incoming: null });
+  let history: CourseOccurrenceHistory = Object.freeze({
+    occurrences: Object.freeze([initial]),
+    active: initial,
+    selected: Object.freeze([]),
+  });
+  const snapshot = () => history;
+  const prepare = (direction: 'forward' | 'reverse') => {
+    if (typeof direction !== 'string') throw new TypeError('Traversal direction must be a string');
+    if (direction !== 'forward' && direction !== 'reverse')
+      throw new RangeError('Traversal direction must be forward or reverse');
+    const before = history,
+      { occurrences, selected, active: from } = before,
+      activeIndex = occurrences.indexOf(from);
+    const visited = occurrences[activeIndex + 1];
+    const to = direction === 'forward' ? (visited ?? selected[0]) : occurrences[activeIndex - 1];
+    if (!to)
+      return direction === 'forward'
+        ? failure('selection_required', 'Choose a successor before advancing the frame')
+        : failure('history_exhausted', 'Reverse exceeds retained actual-predecessor history');
+    let retained = occurrences;
+    if (direction === 'forward') {
+      retained = visited ? occurrences : [...occurrences, to];
+      // Retain only the actual predecessor chain required behind the prepared frame.
+      let distance = 0,
+        first = activeIndex + 1;
+      while (first > 0 && distance < retainBehind) {
+        const incoming = retained[first]!.incoming!;
+        first -= 1;
+        const previousEntry = retained[first]!.incoming?.destination.anchor.s ?? 0;
+        distance += incoming.source.anchor.s - previousEntry;
+      }
+      retained = Object.freeze(retained.slice(first));
+    }
+    const after: CourseOccurrenceHistory = Object.freeze({
+      occurrences: retained,
+      active: to,
+      selected: direction === 'forward' && !visited ? Object.freeze(selected.slice(1)) : selected,
+    });
+    const movement = Object.freeze({
+      from,
+      to,
+      destinationFromSource:
+        direction === 'forward'
+          ? to.incoming!.destinationFromSource
+          : invertPlanarTransform(from.incoming!.destinationFromSource),
+    });
+    return success(
+      Object.freeze({
+        ...movement,
+        history: after,
+        commit() {
+          if (history !== before) return failure('stale_transition', 'Traversal changed after transition preparation');
+          history = after;
+          return success(movement);
+        },
+      }),
+    );
+  };
   return Object.freeze({
     snapshot,
+    prepare,
     select(from: CourseOccurrence, link: CompiledLink) {
+      const { occurrences, selected, active } = history;
+      const activeIndex = occurrences.indexOf(active);
       const itinerary = [...occurrences, ...selected],
         index = itinerary.indexOf(from);
       if (!from || !link || !link.source || !link.destination)
@@ -85,39 +141,16 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
       if (!Number.isSafeInteger(ordinal))
         return failure('identity_exhausted', 'Occurrence ordinal is not representable');
       const to = Object.freeze({ ordinal, section: link.destination.section, incoming: link });
-      selected = Object.freeze([...selected, to]);
+      history = Object.freeze({ ...history, selected: Object.freeze([...selected, to]) });
       return success(to);
     },
     forward() {
-      const from = occurrences[activeIndex]!,
-        visited = occurrences[activeIndex + 1],
-        to = visited ?? selected[0];
-      if (!to) return failure('selection_required', 'Choose a successor before advancing the frame');
-      let retained = visited ? occurrences : [...occurrences, to];
-      let index = activeIndex + 1;
-      // Only actual traversal is retained as history. Merges never search another incoming Link.
-      let distance = 0,
-        first = index;
-      while (first > 0 && distance < retainBehind) {
-        const incoming = retained[first]!.incoming!;
-        first -= 1;
-        const previousEntry = retained[first]!.incoming?.destination.anchor.s ?? 0;
-        distance += incoming.source.anchor.s - previousEntry;
-      }
-      retained = Object.freeze(retained.slice(first));
-      index -= first;
-      occurrences = retained;
-      if (!visited) selected = Object.freeze(selected.slice(1));
-      activeIndex = index;
-      return success(Object.freeze({ from, to, destinationFromSource: to.incoming!.destinationFromSource }));
+      const prepared = prepare('forward');
+      return prepared.ok ? prepared.value.commit() : prepared;
     },
     reverse() {
-      if (activeIndex === 0) return failure('history_exhausted', 'Reverse exceeds retained actual-predecessor history');
-      const from = occurrences[activeIndex]!,
-        to = occurrences[activeIndex - 1]!;
-      const destinationFromSource = invertPlanarTransform(from.incoming!.destinationFromSource);
-      activeIndex -= 1;
-      return success(Object.freeze({ from, to, destinationFromSource }));
+      const prepared = prepare('reverse');
+      return prepared.ok ? prepared.value.commit() : prepared;
     },
   });
 }

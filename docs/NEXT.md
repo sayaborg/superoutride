@@ -138,6 +138,13 @@ invalid prerequisites stop dependent work. [Diagnostic regressions](../tests/run
 preserve input/prior publication, causal locations and exception identity. Schema/image admission,
 runtime outcomes and internal invariant failures retain their separate contracts.
 
+Traversal preparation now produces an immutable prospective history without moving the active frame;
+failed view admission preserves state and stale plans cannot publish. Explicit seam views constrain
+both active and neighboring queries to the qualified common guard, observe signed world-motion
+pose/step bounds independently for physics/presentation, and reject projection inputs before clamping.
+Nine-profile driving and complete saved-content frames retain their previous outputs. This supports
+transaction preparation; camera/consumer envelope enforcement and physical actor commits still remain.
+
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is

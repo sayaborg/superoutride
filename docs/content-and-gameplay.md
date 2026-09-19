@@ -529,6 +529,13 @@ remains unqualified. Separate physical/presentation proofs,
 including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
 The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
 
+The traversal owner also exposes `prepare('forward' | 'reverse')`. Preparation returns a frozen
+prospective history and the same compiled/inverse Link transform without changing visited/selected
+state. Build and admit the next consumer view from that history before calling its `commit()`.
+Any intervening selection or movement makes the plan stale; an idempotent selection retains it.
+A plan publishes once, including retention pruning. Existing `forward()`/`reverse()` use this same
+path. This is a geometry transaction primitive, not a physical seam observation or actor commit.
+
 ### Single-Section driving view
 
 `createCourseSectionDrivingSource` prepares the canonical Band/material reader once. `createView`
@@ -598,6 +605,23 @@ and full frames provide separate physical/presentation evidence. These observati
 reader path, not runtime pose/yaw admission, complete fork-transfer dynamics, general multi-neighbor
 geometry or per-actor commit. Source color is an explicit offline level-zero preview; resident RGB555 and
 filtering remain Gate 3. The existing single-Section adapter and browser composition roots are unchanged.
+
+`createSeamView(view, successor)` adds an explicitly bounded seam admission to the same reader
+implementation. The canonical successor occurrence identifies the Link traversal, including source
+reuse; the whole window, its pose interval and forward step must fit both qualified demands and the
+common guard. All active and neighboring physical/paint queries and retained scenery anchors obey
+their respective lateral limits. Projection checks the original world point before optional clamping,
+so a clamp cannot conceal a query outside the physical proof. General `createView` keeps its wider
+active-source contract.
+
+Its pure `admitMotion(previous, current)` observes world points in the active oriented Port basis.
+Both independent qualifications must contain the previous pose, the expanded endpoint and the signed
+longitudinal/lateral step. A rejected pose/step names the physical or presentation domain and leaves
+history and actors unchanged. These are finite-step endpoint bounds, not an integration substep,
+camera-yaw, fork-transfer or actor-commit certificate. Real nine-profile driving steps and complete
+saved-content frames exercise the stricter reader, and prospective destination readers can fail
+without publishing history. Runtime must still derive/enforce the remaining consumer envelopes before
+using this preparation for a physical transition.
 
 ### Publication, identity and diagnostics
 
