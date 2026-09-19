@@ -22,6 +22,16 @@ Before any nontrivial change, answer from repository evidence:
 
 An explicit design revision is required to change an invariant. A feature request alone does not authorize silently weakening one. Update the responsible topic document and executable contract together. Historical test names do not establish current authority; preserve their still-valid causal coverage.
 
+## Construction and review conventions
+
+- Construction: `compileX` transforms authored data into a validated immutable product; `createX` assembles a live instance/session or adapter from products; constructors establish local value/reader invariants. Ownership and input/output semantics, rather than freezing alone, distinguish them.
+- Validation: check untrusted input and cross-object consistency at admission/compilation boundaries, reuse matching domain helpers, and let trusted consumers use the resulting references; changing observations and numerical-solver guards retain their own checks.
+- Exceptions: use `TypeError` for a wrong input shape/type, `RangeError` for a value outside its declared domain, structured diagnostics for expected authored-content errors, and `Error` for an internal invariant failure; preserve I/O causes and existing public error contracts during migration.
+- Tests: assert observable behavior and compiled relationships; use parsed dependency/symbol checks for layer ownership, and replace implementation-spelling assertions with causal coverage when touching the owner. [Test design](docs/test-design.md) defines the replacement procedure.
+- Documentation: state the positive contract and its scope once, keep essential exclusions and failure conditions, and put audit reasoning/results in the PR; NEXT contains current state, ordered work and gates.
+
+Apply these conventions to new or substantively changed interfaces. A spelling-only mass rename or a blanket replacement of numerical guards is not a migration. Immutable publication includes nested ownership: a frozen object exposing a mutable Map, array or buffer still needs an explicit read-only boundary.
+
 ## Work and release
 
 Never implement directly on main. Inspect/fetch exact main and active PR/CI before changing code. Preserve unrelated local changes; use a feature branch (`codex/` prefix) from the inspected main SHA. Inspect the final diff for unrelated edits.

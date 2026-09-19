@@ -2,82 +2,53 @@
 
 ## Restart
 
-Read [AGENTS](../AGENTS.md), the [index](README.md), [product](product.md),
-[architecture](architecture.md) and [content and gameplay](content-and-gameplay.md). Inspect exact main, active PRs, CI and Pages
-before changing source. Preserve unrelated work and use a `codex/` branch. Current repository
-evidence is the continuation authority; no prior chat attachment or generated audio file is needed.
-[Development](development.md) owns commands and evidence scopes.
+Read [AGENTS](../AGENTS.md), the [index/glossary](README.md), [Product](product.md),
+[Architecture](architecture.md) and the topic owning the task. Inspect exact main, open PRs, CI and
+Pages; preserve unrelated work and start a `codex/` branch from that main. Repository evidence is
+the continuation authority. [Development](development.md) owns commands and release evidence.
 
 ## Next work: Course Editor
 
-The [product target](product.md), [course contract](content-and-gameplay.md#course-editor-target),
-[image/frame contract](architecture.md#course-editor-target) and
-[validation](development.md#course-editor-target-validation) define the adopted Course Editor target. This is planned work,
-not an implementation or release report. Current implementations remain authoritative until each
-replacement is validated.
-
-### Restart and current boundary
-
-Inspect exact main, active PRs, CI and Pages, then follow AGENTS and the documentation index. Work on
-a `codex/` branch. Current ground uses paged compiled assets; circuit geometry uses finite unfolding;
-the first Sprite Tool exists. Resident tiles, per-Section Link frames and Course Editor remain target
-work. The audited target is integrated by owner. Review candidate gates before treating any proposed parameter or file format as final.
+Current code uses paged compiled ground, a scalar Guide envelope, finite circuit unfolding and three
+composition roots. Sprite Tool exists. The revised Section/Link/reference-graph, local-envelope,
+half-open-edge and resident-image contracts are implementation targets. Tire/audio tuning stays deferred.
 
 ### First implementation slice
 
-Begin Gate 1 with a minimal saved CourseDocument and asset-reference boundary. The
-[plan primitives](content-and-gameplay.md#authored-plan-primitives),
-[cross-section model](content-and-gameplay.md#cross-section-and-variable-width-authoring) and
-[Link/loop semantics](content-and-gameplay.md#sections-ports-and-topology) now define the target inputs.
-Choose exact versioned fields/resource limits, parse and semantic diagnostics, draft save/reopen and
-deterministic compilation of a small linear input through the existing primitives. Implement a stated
-subset first; unsupported bands/Links receive diagnostics, never silent constant-width substitution.
-Confirm round-trip, invalid references, failed-import preservation and dependent-output invalidation
-before GUI work. This slice activates neither new Link/ground runtime paths nor deferred tuning.
-Open product choices and target-device acceptance remain separate from this file/compiler milestone.
+Begin Gate 1 with a minimal versioned CourseDocument, pinned geometry recipe and asset-reference
+boundary. Use the [authored primitives](content-and-gameplay.md#authored-plan-primitives),
+[boundaries](content-and-gameplay.md#cross-section-and-variable-width-authoring) and
+[compiled reference graph](content-and-gameplay.md#compiled-course-reference-graph) as the input/output model.
+Resolve IDs at admission and publish one immutable product. Establish parse/semantic diagnostics,
+draft save/reopen, invalid-input preservation and dependent-output invalidation over a small linear course.
+Declare the supported subset and reject unsupported features explicitly. Establish exact wire fields
+and resource limits with executable tests before GUI dependence.
 
 ### Next milestones
 
-| Gate | Work                                                                                    | Completion evidence                                                                                                                                            |
-| ---- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Finalize minimal document/image identities and validators over existing pure compilers. | Versioned file round-trip and pure compiler tests; one authority per requirement.                                                                              |
-| 2    | Establish ordinary local views and legal Link transactions over small causal courses.   | Linear, three-way fork, merge, loop and overpass tests, including pre-lock ranges, parent-specific visibility at every exit and shared-successor independence. |
-| 3    | Compile static source layers, A/B recipes and resident RGB555 tiles.                    | Bounded-bake equivalence, source/LOD acceptance, mixed-tile/seam coverage and whole-course capacity reports.                                                   |
-| 4    | Compose a common resolved-session lifecycle and replace existing implementation paths.  | Real-root integration; loading/retry safety; retained mechanics, gate and recovery coverage.                                                                   |
-| 5    | Add editor GUI over the proven file/compiler contracts; convert art and course inputs.  | Product-path preview, edit invalidation, reproducible save/export and retained fixture coverage.                                                               |
-| 6    | Qualify interactions, reference AI, timed presets and target devices for product play.  | The separate gameplay, difficulty, quality and full-load acceptance in development.                                                                            |
+1. **Gate 1 — Documents and compilation.** Implement the first slice, arbitrary-ID reference resolution,
+   geometry-recipe identity and round-trip tests. Use saved primitives/boundaries as the new product
+   input; retain current successor/growth builders only for consumed development content and fixtures.
+2. **Gate 2 — Geometry, Links and views.** Add local Guide envelopes, varying/shared boundary readers,
+   half-open membership, two/three-way forks, merges and transformed loops. Replace origin-based
+   junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
+   exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant
+   Guide/junction helpers and names with their causal tests.
+3. **Gate 3 — Images.** Compile saved layers and static A/B recipes to resident RGB555 records; qualify
+   lattice/filter candidates and whole-course capacity. Separate paint inputs from final-color readers
+   and remove redundant stage reprojection/road-edge outputs under mapped-band/pixel coverage.
+4. **Gate 4 — Session integration.** Compose one lifecycle with authored grids and physical FINISH,
+   including LINEAR. Replace old locking policies/roots after real-root tests pass. Retire source-spelling
+   assertions and construction-order names while preserving behavior and parsed dependency coverage.
+5. **Gate 5 — Editor and content.** Add GUI over the proven file/compiler boundary, product-path preview,
+   stale-output handling and source/art conversion. Keep the old course fixtures' causal coverage.
+6. **Gate 6 — Product acceptance.** Qualify interactions, reference AI, timed presets, production art and
+   named-device full-scene performance. Open Product choices are decided in their own scope.
 
-Candidate lattice, filters, schema, envelopes and budgets are finalized at their relevant gates.
-The [validation chapter](development.md) owns test detail; this checkpoint owns work order. Each gate
-requires the repository's complete milestone validation and exact-head release process when released.
-
-### Replacement discipline
-
-Retire materialized lap windows only after their continuous-read replacement preserves causal coverage.
-Retire driving-time ground streaming only after full-course activation and failure handling are proven.
-Current development courses remain executable fixtures; shipped entries retire after replacement content.
-Separate changed-art expectations from mechanics equivalence. Common entry points may compose multiple
-small modules with distinct responsibilities. Source changes follow accepted contract revisions, not a
-predeclared deletion quota. Tire/audio tuning and speculative lamp/rolling-start work stay deferred.
-
-### Owned migration scope
-
-The target is ready for file/compiler work, not final-product acceptance. Carry the following existing
-course-path limitations into their owning gates rather than treating current helpers as the new schema:
-
-| Gate | Replacement or cleanup boundary                                                                                                                                                                                                   |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Saved authored primitives/boundaries replace prescribed successor excursions and terminal-promotion growth as the product input. Keep the old builders only for still-consumed development content/fixtures.                      |
-| 2    | Explicit frame/geometry bindings replace near-zero-origin junction inference; general bands replace symmetric LEFT/RIGHT junctions. Validate selected-neighbour actor views, transformed loops and new lock arbitration together. |
-| 3    | Separate source paint from completed-image readers instead of extending the optional-field GroundMapProfile bag. Migrate stage reprojection/unused road edges with mapped-band and pixel coverage.                                |
-| 4    | Compose one session lifecycle, authored grid and physical FINISH path, including LINEAR. Retire redundant roots and the product use of old policies only after real-root coverage.                                                |
-
-When touching those owners, remove duplicated identifier words and replace construction-order names
-with content/role names while updating all consumers. Check `qStart/qEnd` and inner clamping APIs
-against actual callers before simplifying; preserve translated-frame clamp coverage. Camera-height
-sampling currently delegates to physical height and is not a second height algorithm. Junction sample
-and classification may share a scalar authority without requiring identical return types or allocation.
-These are scoped cleanup candidates, not permission to alter frozen mechanics or erase causal tests.
+[Test design](test-design.md) owns assertion migration. [Development](development.md#course-editor-target-validation)
+owns acceptance detail. Every released milestone requires complete exact-head CI and Pages verification.
+Retire materialized lap windows and driving-time streaming only after replacement coverage and failure
+handling pass. Separate intentional pixel changes from the immutable mechanics reference.
 
 ## Deferred tuning
 
@@ -114,5 +85,4 @@ Handling is `DEV_UNCALIBRATED`. Combined-control and changing-terrain acceptance
 performance/input checks remain open. Suspension travel recovery is not proof of physical stability
 on arbitrary terrain. These limits are separate from tire sound.
 
-Keep this single checkpoint and current specifications. Historical experiments, superseded files and
-release records remain in Git/PR/CI, not a new report or handoff archive.
+This is the one current work checkpoint. Historical audits and release evidence remain in Git/PR/CI.

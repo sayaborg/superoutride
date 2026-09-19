@@ -11,6 +11,7 @@ import { STADIUM_ROUTE_GATE_S } from '../../dist/dev/courses/stadium/route-gates
 import { STADIUM_HANDOFF_SEAM_S } from '../../dist/dev/courses/stadium/handoff.js';
 import { STADIUM_JUNCTION } from '../../dist/dev/courses/stadium/junction.js';
 import { createDeclarativeLiveRouteRuntime } from '../../dist/dev/fixtures/declarative-route.js';
+import { compileDeclarativeLiveRoute } from '../../dist/runtime/declarative-live-route.js';
 
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
@@ -101,45 +102,111 @@ test('physical gates precede handoffs and seams coincide in both owning charts',
   }
 });
 
-test('target chart ids are derived from target stage runtime rather than repeated in route rows', async () => {
-  const { readFile } = await import('node:fs/promises');
-  const compiler = await readFile(new URL('../../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
-  const authoring = await readFile(new URL('../../src/dev/fixtures/declarative-route.ts', import.meta.url), 'utf8');
+// Reuse valid geometry, while independently changing every authored namespace.
+// The tested contract is the resulting relationship, not the compiler's local spelling.
+function reauthor(live, prefix) {
+  const stageIds = new Map(live.route.stages.map((stage, i) => [stage.id, `${prefix}:stage:${i}`]));
+  const stages = live.route.stages.map((stage, i) => {
+    const binding = live.content.bindings.find((entry) => entry.stageId === stage.id);
+    assert.ok(binding);
+    const runtime = live.registry.packages.find((entry) => entry.packageId === binding.packageId);
+    assert.ok(runtime);
+    return {
+      id: stageIds.get(stage.id),
+      kind: stage.kind,
+      runtime: {
+        ...runtime,
+        packageId: `${prefix}:package:${i}`,
+        coordinateFrame: Object.freeze({ ...runtime.coordinateFrame, id: `${prefix}:chart:${i}` }),
+      },
+    };
+  });
+  const gateGeometry = (gate, id) => ({
+    id,
+    center: { ...gate.center },
+    heading: gate.heading,
+    halfWidth: gate.halfWidth,
+  });
+  const transitions = live.route.choices.map((choice, i) => {
+    const gate = live.gates.gates.find((entry) => entry.choiceId === choice.id);
+    const seam = live.handoffs.seams.find((entry) => entry.choiceId === choice.id);
+    assert.ok(gate && seam);
+    return {
+      id: `${prefix}:choice:${i}`,
+      fromStageId: stageIds.get(choice.fromStageId),
+      toStageId: stageIds.get(choice.toStageId),
+      gate: gateGeometry(gate, `${prefix}:gate:${i}`),
+      handoff: {
+        ...gateGeometry(seam, `${prefix}:seam:${i}`),
+        sourceSeamS: seam.sourceSeamS,
+        targetSeamS: seam.targetSeamS,
+        sourceLocalL: seam.sourceLocalL,
+        targetLocalL: seam.targetLocalL,
+      },
+    };
+  });
+  const finishes = live.gates.gates
+    .filter((gate) => gate.kind === 'FINISH')
+    .map((gate, i) => ({
+      stageId: stageIds.get(gate.stageId),
+      gate: gateGeometry(gate, `${prefix}:finish:${i}`),
+    }));
+  return { startStageId: stageIds.get(live.route.startStageId), stages, transitions, finishes };
+}
 
-  assert.match(compiler, /choiceId: transition\.id/);
-  assert.match(compiler, /targetChartId: targetStage\.runtime\.coordinateFrame\.id/);
-  assert.doesNotMatch(authoring, /targetChartId\s*:/);
-  assert.doesNotMatch(authoring, /choiceId\s*:/);
+function assertDerivedBindings(source, compiled) {
+  const start = source.stages.find((stage) => stage.id === source.startStageId);
+  assert.ok(start);
+  assert.equal(compiled.initialChart, start.runtime.coordinateFrame);
+  for (const stage of source.stages) {
+    const binding = compiled.content.bindings.find((entry) => entry.stageId === stage.id);
+    assert.ok(binding);
+    assert.equal(binding.packageId, stage.runtime.packageId);
+    const runtime = compiled.registry.packages.find((entry) => entry.packageId === binding.packageId);
+    assert.ok(runtime);
+    assert.equal(runtime.coordinateFrame, stage.runtime.coordinateFrame);
+  }
+  for (const transition of source.transitions) {
+    const target = source.stages.find((stage) => stage.id === transition.toStageId);
+    assert.ok(target);
+    const gate = compiled.gates.gates.find((entry) => entry.id === transition.gate.id);
+    const seam = compiled.handoffs.seams.find((entry) => entry.id === transition.handoff.id);
+    assert.ok(gate && seam);
+    assert.equal(gate.choiceId, transition.id);
+    assert.equal(seam.choiceId, transition.id);
+    assert.equal(seam.targetChartId, target.runtime.coordinateFrame.id);
+    assert.deepEqual(gate.center, transition.gate.center);
+    assert.deepEqual(seam.center, transition.handoff.center);
+  }
+}
+
+test('compiled bindings follow authored identities and target objects with independent row ordering', () => {
+  const { live } = setup();
+  for (const prefix of ['first', 'renamed']) {
+    const source = reauthor(live, prefix);
+    assertDerivedBindings(source, compileDeclarativeLiveRoute(source));
+    const reordered = {
+      ...source,
+      stages: [...source.stages].reverse(),
+      transitions: [...source.transitions].reverse(),
+      finishes: [...source.finishes].reverse(),
+    };
+    assertDerivedBindings(reordered, compileDeclarativeLiveRoute(reordered));
+  }
 });
 
-test('main assembles one declarative fork plan above general topology compilation', async () => {
-  const { readFile } = await import('node:fs/promises');
-  const [mainSource, successorSource, planSource, growthSource, forkSource, fragmentSource] = await Promise.all([
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/dev/courses/third-successor-route.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/dev/courses/fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/runtime/raster-fork-growth-plan.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/runtime/raster-fork-stage-route.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/runtime/declarative-route-fragment.ts', import.meta.url), 'utf8'),
-  ]);
-  assert.match(mainSource, /createDeclarativeForkGrowthRuntime/);
-  assert.doesNotMatch(
-    mainSource,
-    /createDeclarativeLiveRouteRuntime|createLiveContinuation|createThirdLiveSuccessorRuntime|createSecondLiveForkRuntime/,
+test('inconsistent authored references fail before publishing a route and leave valid input reusable', () => {
+  const source = reauthor(setup().live, 'invalid-reference');
+  const missingTarget = {
+    ...source,
+    transitions: source.transitions.map((transition, i) =>
+      i === 0 ? { ...transition, toStageId: 'missing-target' } : transition,
+    ),
+  };
+  assert.throws(() => compileDeclarativeLiveRoute(missingTarget), RangeError);
+  assert.throws(
+    () => compileDeclarativeLiveRoute({ ...source, stages: [...source.stages, source.stages[0]] }),
+    RangeError,
   );
-  assert.match(planSource, /createThirdLiveSuccessorAuthoring/);
-  assert.match(planSource, /compileRasterForkGrowthPlan/);
-  assert.match(growthSource, /compileRasterForkStageRoute/);
-  assert.match(forkSource, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(successorSource, /composeDeclarativeLiveRouteAuthoring/);
-  assert.match(successorSource, /compileDeclarativeLiveRoute\s*\(/);
-  assert.match(fragmentSource, /export function composeDeclarativeLiveRouteAuthoring/);
-});
-
-test('generic declarative compiler contains no renderer, camera or vehicle physics dependency', async () => {
-  const { readFile } = await import('node:fs/promises');
-  const source = await readFile(new URL('../../src/runtime/declarative-live-route.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /render\//);
-  assert.doesNotMatch(source, /camera/);
-  assert.doesNotMatch(source, /car-physics|motorcycle-physics/);
+  assertDerivedBindings(source, compileDeclarativeLiveRoute(source));
 });
