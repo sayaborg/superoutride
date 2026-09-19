@@ -226,9 +226,13 @@ imports, including types. Composition roots alone import concrete DEV content. R
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary)
 uses `src/runtime/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
-Its separate offline entry installs no new driving path. Core's shared content digest serves course
+Explicit height uses Core HeightProfile; Course's generic physical-binding records reference canonical
+Bands while Runtime resolves Physics-owned materials. The narrow Band surface adapter consumes only
+partition/bindings, not the course graph. Separate all-Link physical qualification does not certify
+presentation or product-consumer coverage. Its separate offline entry installs no new driving path.
+Core's shared content digest serves course
 and current GroundMap identities without a dependency from authoring geometry to image transport.
 
 ## Compiled profile and asset boundaries

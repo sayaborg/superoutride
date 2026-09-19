@@ -61,6 +61,11 @@ export interface SectionDocument {
   readonly primitives: readonly PlanPrimitive[];
   readonly boundaries: readonly BoundaryDocument[];
   readonly bands: readonly BandDocument[];
+  readonly height: readonly { readonly anchor: CourseAnchor; readonly y: number }[];
+  readonly physicalBindings: readonly {
+    readonly bandId: string;
+    readonly sections: readonly { readonly anchor: CourseAnchor; readonly material: string }[];
+  }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly ports: readonly PortDocument[];
   readonly assetIds: readonly string[];
@@ -68,7 +73,7 @@ export interface SectionDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 2;
+  readonly version: 3;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
@@ -95,6 +100,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   coordinateMeters: 1_000_000,
   lengthMeters: 100_000,
   lateralMeters: 1000,
+  heightMeters: 10000,
   rasterSegments: 2048,
   bandCells: 4096,
   linkCells: 8192,
@@ -117,7 +123,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v2`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v3`);
     }
   }
   for (const key of fields) {
@@ -252,6 +258,8 @@ function section(value: unknown, path: string): SectionDocument {
     'primitives',
     'boundaries',
     'bands',
+    'height',
+    'physicalBindings',
     'carriageways',
     'ports',
     'assetIds',
@@ -275,6 +283,31 @@ function section(value: unknown, path: string): SectionDocument {
     primitives: identified(v.primitives, `${path}/primitives`, COURSE_DOCUMENT_LIMITS.primitives, primitive),
     boundaries: identified(v.boundaries, `${path}/boundaries`, COURSE_DOCUMENT_LIMITS.boundaries, boundary),
     bands: identified(v.bands, `${path}/bands`, COURSE_DOCUMENT_LIMITS.bands, band),
+    height: array(v.height, `${path}/height`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+      const node = record(item, at, ['anchor', 'y']);
+      return Object.freeze({
+        anchor: anchor(node.anchor, `${at}/anchor`),
+        y: number(node.y, `${at}/y`, -COURSE_DOCUMENT_LIMITS.heightMeters, COURSE_DOCUMENT_LIMITS.heightMeters),
+      });
+    }),
+    physicalBindings: array(
+      v.physicalBindings,
+      `${path}/physicalBindings`,
+      COURSE_DOCUMENT_LIMITS.bands,
+      (item, at) => {
+        const binding = record(item, at, ['bandId', 'sections']);
+        return Object.freeze({
+          bandId: id(binding.bandId, `${at}/bandId`),
+          sections: array(binding.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+            const section = record(item, at, ['anchor', 'material']);
+            return Object.freeze({
+              anchor: anchor(section.anchor, `${at}/anchor`),
+              material: id(section.material, `${at}/material`),
+            });
+          }),
+        });
+      },
+    ),
     carriageways: identified(v.carriageways, `${path}/carriageways`, COURSE_DOCUMENT_LIMITS.carriageways, carriageway),
     ports: identified(v.ports, `${path}/ports`, COURSE_DOCUMENT_LIMITS.ports, (item, at) => {
       const p = record(item, at, ['id', 'kind', 'anchor', 'carriagewayId']);
@@ -296,7 +329,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 2, '/version');
+      literal((input as Record<string, unknown>).version, 3, '/version');
     const v = record(input, '', [
       'format',
       'version',
@@ -310,7 +343,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'assets',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format');
-    const version = literal(v.version, 2, '/version');
+    const version = literal(v.version, 3, '/version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);

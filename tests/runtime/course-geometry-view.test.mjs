@@ -266,6 +266,10 @@ test('exact mapped activation stations preserve canonical source ownership despi
     start: { kind: 'absolute', s: station },
   });
   destination.bands[0].end = { kind: 'absolute', s: station };
+  destination.physicalBindings.push({
+    bandId: 'after',
+    sections: [{ anchor: { kind: 'absolute', s: station }, material: 'ASPHALT' }],
+  });
   destination.carriageways[0].bandIds.push('after');
   const course = await compile(input),
     traversal = createCourseGeometryTraversal(course.entry, 300);

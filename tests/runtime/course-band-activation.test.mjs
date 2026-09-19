@@ -98,6 +98,7 @@ test('two-way partition changes and terminal zero-width tapers use the same inte
   source.bands = source.bands.filter((b) => !['median-b', 'east'].includes(b.id));
   source.bands.find((b) => b.id === 'center').rightBoundaryId = 'right';
   source.carriageways.pop();
+  source.physicalBindings = source.physicalBindings.filter((b) => !['median-b', 'east'].includes(b.bandId));
   const section = ok(await compileCourseDocument(input)).sections[0];
   for (const s of [37, 100, 162]) assert.equal(courseBandAt(section.bandPartition, s, 8)?.id, 'center');
   assert.equal(courseBandAt(section.bandPartition, 163, 8)?.id, 'after');
@@ -113,6 +114,7 @@ test('two-way partition changes and terminal zero-width tapers use the same inte
     ]),
   );
   source.bands.push(band('tip', 0, 200, 'tip-left', 'tip-right'));
+  source.physicalBindings.push({ bandId: 'tip', sections: [{ anchor: anchor(0), material: 'ASPHALT' }] });
   const taper = ok(await compileCourseDocument(input)).sections[0].bandPartition;
   assert.equal(courseBandAt(taper, 0, 12), null);
   assert.equal(courseBandAt(taper, 100, 12)?.id, 'tip');
@@ -162,6 +164,7 @@ test('arbitrary IDs and declaration order do not privilege a first Band or join 
     source.bands.map((b, i) => [b.id, ['__proto__', 'constructor', '曲線/~', '0', 'end', 'start', 'else'][i]]),
   );
   for (const b of source.bands) b.id = ids.get(b.id);
+  for (const b of source.physicalBindings) b.bandId = ids.get(b.bandId);
   for (const road of source.carriageways) road.bandIds = road.bandIds.map((id) => ids.get(id)).reverse();
   source.bands.push(source.bands.shift()); // The first Band is now partial, [37,163].
   source.boundaries.reverse();
@@ -195,6 +198,7 @@ test('staggered isolated tapers contribute only their closed active extent to th
     ]),
   );
   source.bands.push(band('island', 23, 177, 'island-left', 'island-right'));
+  source.physicalBindings.push({ bandId: 'island', sections: [{ anchor: anchor(23), material: 'ASPHALT' }] });
   const section = ok(await compileCourseDocument(input)).sections[0];
   for (const s of [0, 200]) assert.equal(guideEnvelopeAt(section.guide.envelope, s), 11);
   for (const s of [23, 177]) {
@@ -318,6 +322,11 @@ test('a shared edge requires canonical identity even when its only stations are 
   ];
   failure(await compileCourseDocument(input), /canonical shared Boundary/);
   source.bands[1].leftBoundaryId = 'edge-1';
+  source.height.at(-1).anchor = { kind: 'primitive', primitiveId: 'tiny', fraction: 1 };
+  source.physicalBindings = source.bands.map((b) => ({
+    bandId: b.id,
+    sections: [{ anchor: b.start, material: 'ASPHALT' }],
+  }));
   const section = ok(await compileCourseDocument(input)).sections[0];
   assert.equal(courseBandAt(section.bandPartition, 5, 0), section.bandPartition.bands[1]);
 });
@@ -335,6 +344,7 @@ test('activation edits invalidate publication and failed replacement preserves t
   source.bands[0].end.s = 36;
   for (const b of source.bands) if (b.start.s === 37) b.start.s = 36;
   for (const b of source.boundaries) if (b.knots[0].anchor.s === 37) b.knots[0].anchor.s = 36;
+  for (const b of source.physicalBindings) if (b.sections[0].anchor.s === 37) b.sections[0].anchor.s = 36;
   ok(project.editDocument(changed));
   assert.equal(project.exportCompiled().diagnostics[0].code, 'stale_source');
   const pending = project.compile();

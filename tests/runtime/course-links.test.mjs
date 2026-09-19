@@ -194,6 +194,7 @@ test('matching varying cross-sections may use different internal pavement subdiv
   b.bands.push({ ...structuredClone(b.bands[0]), id: 'second', leftBoundaryId: 'middle' });
   b.bands[0].rightBoundaryId = 'middle';
   b.carriageways[0].bandIds.push('second');
+  b.physicalBindings.push({ bandId: 'second', sections: [{ anchor: anchor(0), material: 'ASPHALT' }] });
   assert.equal(ok(await compileCourseDocument(input)).links.length, 1);
 });
 
@@ -204,6 +205,7 @@ test('a fractional activation retains its canonical ruler station across offset 
   destination.bands.push({ ...structuredClone(destination.bands[0]), id: 'after', start: anchor(1.23) });
   destination.bands[0].end = anchor(1.23);
   destination.carriageways[0].bandIds.push('after');
+  destination.physicalBindings.push({ bandId: 'after', sections: [{ anchor: anchor(1.23), material: 'ASPHALT' }] });
   assert.notEqual(60 + (1.23 - 60), 1.23, 'the input exercises cancellation at a real activation');
   assert.equal(ok(await compileCourseDocument(input)).links.length, 1);
 });
@@ -232,6 +234,7 @@ test('Guide agreement alone cannot certify a mismatched Raster miter inside a st
   source.ports[0].anchor = anchor(175);
   for (const b of source.boundaries) b.knots.at(-1).anchor.primitiveId = 'end';
   source.bands[0].end.primitiveId = 'end';
+  source.height.at(-1).anchor.primitiveId = 'end';
   input.links[0].overlap = { behind: 10, ahead: 10 };
   failure(await compileCourseDocument(input), 'semantic_compile_failure', '/links/0', /raster carriageway edge/);
 });
@@ -259,6 +262,7 @@ test('finite guards reject hidden curves, Guide fillets and lost carriageway cov
   ];
   for (const b of dest.boundaries) b.knots.at(-1).anchor.primitiveId = 'end';
   dest.bands[0].end.primitiveId = 'end';
+  dest.height.at(-1).anchor.primitiveId = 'end';
   failure(await compileCourseDocument(curve), 'semantic_compile_failure', '/links/0/destination', /authored straight/);
   const fillet = fixture(),
     s = fillet.sections[1];
@@ -269,6 +273,7 @@ test('finite guards reject hidden curves, Guide fillets and lost carriageway cov
   ];
   for (const b of s.boundaries) b.knots.at(-1).anchor.primitiveId = 'end';
   s.bands[0].end.primitiveId = 'end';
+  s.height.at(-1).anchor.primitiveId = 'end';
   s.ports[0].anchor = anchor(150);
   fillet.links[0].overlap.ahead = 49;
   failure(await compileCourseDocument(fillet), 'semantic_compile_failure', '/links/0/destination', /Guide fillet/);
@@ -277,6 +282,7 @@ test('finite guards reject hidden curves, Guide fillets and lost carriageway cov
   from.bands.push({ ...structuredClone(from.bands[0]), id: 'after', start: anchor(215) });
   from.bands[0].end = anchor(215);
   from.carriageways.push({ id: 'after', bandIds: ['after'] });
+  from.physicalBindings.push({ bandId: 'after', sections: [{ anchor: anchor(215), material: 'ASPHALT' }] });
   failure(await compileCourseDocument(gap), 'semantic_compile_failure', '/links/0', /does not cover/);
   for (const behind of [61, Number.MIN_VALUE]) {
     const invalid = fixture();
@@ -365,10 +371,10 @@ test('reference scopes, schema identity, guard domains and resource limits fail 
     ],
     [
       (d) => {
-        d.sections[0].height = [];
+        d.sections[0].scenery = [];
       },
       'unsupported_feature',
-      '/sections/0/height',
+      '/sections/0/scenery',
     ],
     [
       (d) => {

@@ -11,6 +11,8 @@ import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } fr
 import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
 import type { CompiledBoundary, CompiledBand, CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledSection, CompiledPort, CompiledLink } from '../course/course-graph.js';
+import type { SurfaceMaterial } from '../physics/surface-map.js';
+import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {
   COURSE_LINK_RECIPE,
   compileCoursePort,
@@ -18,10 +20,10 @@ import {
   validateCourseTopology,
 } from '../course/course-links.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
-  readonly ports: CompiledPort[];
-  readonly incoming: CompiledLink[];
-  readonly outgoing: CompiledLink[];
+interface SectionDraft extends Omit<CompiledSection<SurfaceMaterial>, 'ports' | 'incoming' | 'outgoing'> {
+  readonly ports: CompiledPort<SurfaceMaterial>[];
+  readonly incoming: CompiledLink<SurfaceMaterial>[];
+  readonly outgoing: CompiledLink<SurfaceMaterial>[];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
@@ -34,13 +36,18 @@ export interface CompiledCourse {
     readonly compiler: typeof COURSE_COMPILER;
     readonly geometryRecipe: typeof COURSE_GEOMETRY_RECIPE;
   };
-  readonly sections: readonly CompiledSection[];
-  readonly entry: CompiledSection;
-  readonly links: readonly CompiledLink[];
+  readonly sections: readonly CompiledSection<SurfaceMaterial>[];
+  readonly entry: CompiledSection<SurfaceMaterial>;
+  readonly links: readonly CompiledLink<SurfaceMaterial>[];
   readonly assets: readonly CourseAssetReference[];
 }
 
-const COURSE_COMPILER = Object.freeze({ id: 'superoutride.course-compiler', version: 4, links: COURSE_LINK_RECIPE });
+const COURSE_COMPILER = Object.freeze({
+  id: 'superoutride.course-compiler',
+  version: 5,
+  links: COURSE_LINK_RECIPE,
+  physical: COURSE_PHYSICAL_RECIPE,
+});
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
   const value = table.get(id);
@@ -136,6 +143,7 @@ function compileSection(
     guide,
     boundaries: Object.freeze(boundaries),
     bandPartition: partition,
+    ...compileCoursePhysicalContent(section, raster.length, bands, resolve, path),
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
     ports: [],

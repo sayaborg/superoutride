@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 2,
+  "version": 3,
   "id": "linked-linear",
   "units": {
     "length": "m",
@@ -88,6 +88,37 @@
           "leftBoundaryId": "left",
           "rightBoundaryId": "right",
           "role": "pavement"
+        }
+      ],
+      "height": [
+        {
+          "anchor": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "y": 0
+        },
+        {
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "line",
+            "fraction": 1
+          },
+          "y": 0
+        }
+      ],
+      "physicalBindings": [
+        {
+          "bandId": "road",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
         }
       ],
       "carriageways": [
@@ -185,6 +216,37 @@
           "leftBoundaryId": "left",
           "rightBoundaryId": "right",
           "role": "pavement"
+        }
+      ],
+      "height": [
+        {
+          "anchor": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "y": 0
+        },
+        {
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "line",
+            "fraction": 1
+          },
+          "y": 0
+        }
+      ],
+      "physicalBindings": [
+        {
+          "bandId": "road",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
         }
       ],
       "carriageways": [

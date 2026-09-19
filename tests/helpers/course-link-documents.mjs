@@ -27,6 +27,7 @@ export function forkCourseDocument(doc, count = 3) {
   parent.ports = [];
   parent.boundaries = [];
   parent.bands = [];
+  parent.physicalBindings = [];
   parent.carriageways = [];
   for (let i = 0; i < count; i++) {
     const road = `road-${i}`,
@@ -49,6 +50,7 @@ export function forkCourseDocument(doc, count = 3) {
       rightBoundaryId: `${road}-right`,
     });
     parent.carriageways.push({ id: road, bandIds: [road] });
+    parent.physicalBindings.push({ bandId: road, sections: [{ anchor: anchor(0), material: 'ASPHALT' }] });
     parent.ports.push(port(`out-${i}`, 'exit', 230, road));
   }
   const children = Array.from({ length: count }, (_, i) => make(`child-${i}`, 35 + i * 37));

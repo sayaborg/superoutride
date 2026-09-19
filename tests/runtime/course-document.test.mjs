@@ -130,6 +130,9 @@ test('arbitrary IDs and permuted declarations resolve canonical objects, shared 
     b.end.primitiveId = rename.get(b.end.primitiveId);
   });
   s.carriageways[0].id = 'unrelated road ID';
+  for (const node of s.height)
+    if (node.anchor.kind === 'primitive') node.anchor.primitiveId = rename.get(node.anchor.primitiveId);
+  for (const binding of s.physicalBindings) binding.bandId = rename.get(binding.bandId);
   s.carriageways[0].bandIds = s.carriageways[0].bandIds.map((id) => rename.get(id));
   input.assets = ['asset/z', 'asset/a'].map((id, i) => ({
     id,

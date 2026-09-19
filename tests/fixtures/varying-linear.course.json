@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 2,
+  "version": 3,
   "id": "narrow-bend-wide-straight",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 3 },
@@ -62,6 +62,49 @@
           "leftBoundaryId": "shared",
           "rightBoundaryId": "right",
           "role": "pavement"
+        }
+      ],
+      "height": [
+        {
+          "anchor": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "y": 0
+        },
+        {
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "y": 0
+        }
+      ],
+      "physicalBindings": [
+        {
+          "bandId": "west",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
+        },
+        {
+          "bandId": "east",
+          "sections": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "material": "ASPHALT"
+            }
+          ]
         }
       ],
       "carriageways": [{ "id": "road", "bandIds": ["east", "west"] }],

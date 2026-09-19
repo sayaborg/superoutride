@@ -46,7 +46,7 @@ It reads a saved CourseDocument through the same admission/compiler/project boun
 the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
 Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
 format; reload the saved source through the compiler to reconstruct canonical references.
-[Content](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary) owns the wire schema,
+[Content](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
 [Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
@@ -65,13 +65,13 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v2 and course compiler v4 add offline Port/Link graphs, retaining geometry recipe v3.
+Schema v3 and course compiler v5 include offline Port/Link graphs, retaining geometry recipe v3.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
 rejects hidden mismatches, missing coverage, curved guards and lost numerical station identity.
 The CLI summarizes cyclic graphs by IDs/counts; saved authoring remains the reconstructible source.
-This is selected-Carriageway geometric evidence only. Complete physical/image common-content overlap,
+CompiledLink is selected-Carriageway geometric evidence only. Complete physical/image common-content overlap,
 bounded product-consumer ranges and runtime transition are separate acceptance requirements below.
 The geometry-only view adapter supplies the narrower foundation described next.
 
@@ -96,6 +96,21 @@ history, 1,000 loop traversals with shared source/assets, multi-seam views, inva
 immutable snapshots, consumer-specific failures and the real offline command. This is not physical
 straddling-contact, neighboring-actor rendering, camera/picture continuity or runtime-commit evidence.
 Those causal integration gates remain below and in NEXT; no current driving path has been removed.
+
+The document now requires explicit height and a material profile for every Band. The normal report
+includes height/binding counts and the narrow surface reader's supported lateral bound. Separately run:
+
+```sh
+npm run compile:course -- tests/fixtures/linked-linear.course.json --physical-overlap
+npm run compile:course -- tests/fixtures/transformed-loop.course.json --physical-overlap
+```
+
+This checks every Link for full-guard horizontal height and the entire all-Band support/material field;
+it reports `physical-overlap`, not presentation or runtime readiness. [Physical-content tests](../tests/runtime/course-physical-content.test.mjs)
+cover explicit admission, canonical materials/Bands, immutable Core height behavior, material/activation
+ownership, support bounds, draft round trips, invalidation, hidden hills/edge knots, endpoint material
+changes, differing subdivisions, unmatched parent roads and every incoming merge Link. Existing
+geometry tests retain their original causes with explicitly authored physical fixture data.
 
 ## Sprite LOD preview
 

@@ -79,6 +79,10 @@ test('all structural roles, shared edges, gaps and outer edges use exact half-op
   source.bands[6].leftBoundaryId = 'edge-7';
   source.bands[6].rightBoundaryId = 'edge-8';
   source.carriageways = [1, 3, 5].map((i) => ({ id: `road-${i}`, bandIds: [`band-${i}`] }));
+  source.physicalBindings = source.bands.map((b) => ({
+    bandId: b.id,
+    sections: [{ anchor: b.start, material: 'ASPHALT' }],
+  }));
   const section = ok(await compileCourseDocument(input)).sections[0];
   for (const s of [0, 17, 50, 100]) {
     for (const band of section.bandPartition.bands) {

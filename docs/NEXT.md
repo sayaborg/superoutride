@@ -21,7 +21,7 @@ Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
-[CourseDocument v2](content-and-gameplay.md#coursedocument-v2-implemented-compiler-boundary) establishes
+[CourseDocument v3](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary) establishes
 the exact wire fields, limits and supported LINEAR/BRANCH/CIRCUIT geometry subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
@@ -38,8 +38,9 @@ ownership, zero-width birth/death, one-to-two/three-to-one static cross-sections
 unions and per-cell carriageway contiguity. Sections expose a narrow immutable `bandPartition` with
 canonical Band references; no construction cells or ID joins are published.
 
-Schema v2 adds explicit entry Section, Section-local Ports and document-wide Links; schema v1 receives
-an unsupported-version diagnostic. Course compiler v4 includes the pinned carriageway-Link recipe v1.
+Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
+an unsupported-version diagnostic. Course compiler v5 includes the pinned carriageway-Link recipe v1
+and physical recipe v1.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
 invalidation. Full-cell Raster/Guide edge proof includes partial Band domains and exact ruler stations.
@@ -54,6 +55,15 @@ coverage is diagnosed. The [offline entry](development.md#course-document-compil
 explicit itinerary. This remains geometry-only: current driving reader interfaces and full physical/
 presentation continuity are not qualified, and the traversal operations are not actor seam commits.
 
+Explicit height and per-Band material profiles now compile to immutable Core height readers and
+canonical physical bindings. A narrow Physics surface adapter shares the half-open partition, without
+changing existing driving readers. [Physical-content tests](../tests/runtime/course-physical-content.test.mjs)
+cover admission, no inferred defaults, canonical references, invalidation and a separate `physical-overlap`
+qualification. The offline entry checks all Links for horizontal full-guard height and all-Band
+support/material agreement. Extra unmatched parent roads correctly fail despite valid pavement geometry.
+This is not complete common-content qualification: presentation sources, actual consumer envelopes,
+occurrence-mapped physical readers and runtime integration remain absent.
+
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
@@ -62,8 +72,9 @@ presentation continuity are not qualified, and the traversal operations are not 
 2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
    varying/shared boundary readers with half-open membership, oriented Ports/geometric Links,
    two/three-way fork connections, merges and transformed loops are implemented offline. Next add
-   the missing height, physical-binding and presentation-source admission needed for complete
-   common-content qualification. Derive actual consumer envelopes and adapt the bounded geometry
+   the missing presentation-source admission needed for complete common-content qualification;
+   height/physical-binding admission and separate all-Link physical overlap proof are implemented offline.
+   Derive actual consumer envelopes and adapt the bounded geometry and physical
    facets to driving readers; prove pre-lock coverage and each incoming merge/exit presentation.
    Only then implement per-actor runtime Link commit and the joint runtime edge cutover. Replace
    origin-based junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
