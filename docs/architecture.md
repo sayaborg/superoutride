@@ -229,7 +229,11 @@ The compiled course graph is an upper-level owner; its lower-level reader facets
 The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary)
 uses `src/runtime/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Explicit height uses Core HeightProfile; Course's generic physical-binding records reference canonical
-Bands while Runtime resolves Physics-owned materials. The narrow Band surface adapter consumes only
+Bands while Runtime resolves Physics-owned materials. The document compiler's former geometry-only
+direct-import boundary now additionally admits only the physical-content compiler and the existing
+Physics surface-material contract. The physical compiler and overlap qualifier cannot import vehicle,
+renderer, image-delivery or gameplay implementations. Parsed dependency checks enforce these limits.
+The narrow Band surface adapter consumes only
 partition/bindings, not the course graph. Separate all-Link physical qualification does not certify
 presentation or product-consumer coverage. Its separate offline entry installs no new driving path.
 Core's shared content digest serves course
