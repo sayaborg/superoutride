@@ -506,7 +506,7 @@ the view ruler. Positive visited seam spans must also remain representable; a ti
 silently disappear between larger neighbors. Continuous Core geometry retains its existing sampling tolerance. Source readers,
 Boundary references, local Guide envelopes and assets are shared, not retessellated. The `geometry`
 facet exposes ordinary point readers and Guide bounds without graph/occurrence metadata. The separate
-single-Section adapter below supplies actual driving readers without admitting a Link transition.
+driving adapters below supply actual readers without admitting an actor transition.
 
 Every request explicitly supplies camera/render, contact, driver-lookahead and reverse/recovery
 behind/ahead extents, plus a closed active-source pose interval and maximum fixed-step advance. For
@@ -522,9 +522,9 @@ The result is labelled `geometry-only`. These are declared interval checks, not 
 consumer envelopes, complete common-content overlap, pre-lock visibility or transition qualification.
 Only the selected Carriageway has the Link's existing geometric agreement proof. Other Bands can
 still differ across a seam unless separately qualified. Height and physical bindings now have admitted
-Section facets and a separate overlap proof above, but are not yet mapped across Links for driving.
+Section facets and a separate overlap proof above; the scoped adapter below maps qualified common guards.
 Saved images, paint/phase and scenery/background now have explicit presentation bindings and source
-evaluation; their Link continuity is not certified. Product camera coverage across a transition also
+evaluation and separate source-domain continuity proofs. Full product camera/pose enforcement across a transition
 remains unqualified. Separate physical/presentation proofs,
 including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
 The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
@@ -556,9 +556,48 @@ This is the seam-free LINEAR vertical slice, not complete Gate 2 qualification. 
 all nine production vehicle profiles through the real contact/recovery/driver/camera/renderer path,
 including reverse, unsupported excursion, moving windows and manual recovery. Its explicit diagnostic
 ground/background/sprites exercise the existing renderer; they are not CourseDocument presentation
-bindings or accepted product art. Multi-occurrence physical readers, lateral/pose admission across Links,
-pre-lock/exit visibility, atomic commits and the joint edge cutover remain required. Browser roots and
+bindings or accepted product art. The common-guard adapter below extends those readers. Full lateral/pose
+admission, pre-lock/exit enforcement, atomic commits and the joint edge cutover remain required. Browser roots and
 Session composition stay on their existing paths until their separate acceptance gates.
+
+### Common-guard occurrence driving view
+
+`createCourseDrivingSource` consumes physical and presentation query-domain products over the same
+canonical Links. It admits an active occurrence plus at most one immediate selected/visited neighbor.
+All neighbor samples must stay within that Link's complete qualified guard, and the whole requested
+interval must fit the active source's separately qualified local geometry window. Longer or multiple
+neighbor windows return `unqualified_window`/`common_guard_exhausted`; a different canonical Link returns
+`unqualified_links`. This conservative first scope is labelled `common-guard-driving`.
+
+All ordinary `VehicleWorld`, Raster, height, visual, ground-color, background and sprite facets derive
+from the same occurrence address mapping. The stable active-source ruler is independent of the
+zero-based inspection window. Preserve exact source classification stations in both representations.
+Each span distinguishes its bounded source range from its complete half-open ownership interval;
+the successor owns the seam, including a closed query endpoint. Guide projection clips a source
+segment only at an ownership seam. A window cutting any requested candidate short fails even when
+the numeric search radius fits its candidate count. Native segment arithmetic and height interpolation
+remain unchanged. Seeds encode occurrence ordinal and native segment index within an exact safe-integer
+domain; rebuilding a window does not reseed observations or rejoin document IDs. Exhaustion fails.
+
+The source prepares physical readers and source-image preview workspaces once; windows retain bounded
+mapping/observation metadata and share those readers/images. Ground point queries use original paint
+phase and half-open Bands. Surface and source-paint adapters classify shifted canonical boundaries directly in the query chart.
+They do not add the lateral origin back before classification; paint phase/stamp grids use the same
+shifted chart. Fractional mapped edges retain exact left-in/right-out ownership without an epsilon.
+Environments use mapped source stations and frame-relative background yaw. Scenery uses owning occurrence
+intervals, so matching common instances appear once. Ground geometry
+projects the common source-strip intersection; physical and presentation lateral query limits are
+checked independently when reading the neighbor. The current conservative scenery admission rejects
+any retained neighbor anchor outside the qualified lateral domain, even if a narrower camera could
+hide it. No unsupported content or transparent placeholder supplies a missing binding.
+
+Real LINEAR comparisons cross a selected seam through contact/driver and saved-content rendering while
+the old occurrence stays active. Reverse driving uses the actual retained predecessor in the destination
+frame. Retained and per-step rebuilt windows preserve complete vehicle state; native source comparisons
+and full frames provide separate physical/presentation evidence. These observations establish the scoped
+reader path, not runtime pose/yaw admission, complete fork-transfer dynamics, general multi-neighbor
+geometry or per-actor commit. Source color is an explicit offline level-zero preview; resident RGB555 and
+filtering remain Gate 3. The existing single-Section adapter and browser composition roots are unchanged.
 
 ### Publication, identity and diagnostics
 

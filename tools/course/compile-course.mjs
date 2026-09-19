@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { courseViewReport, courseDrivingViewReport } from './course-view-report.mjs';
+import { courseViewReport, courseDrivingViewReport, courseOccurrenceDrivingReport } from './course-view-report.mjs';
 import { readCourseImages } from './read-course-images.mjs';
 import { parseCourseDocument } from '../../dist/course/course-document.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
@@ -87,6 +87,7 @@ if (
   (extra.length &&
     extra[0] !== '--view' &&
     !(extra.length === 8 && extra[0] === '--driving-view') &&
+    !(extra.length === 2 && extra[0] === '--occurrence-driving') &&
     !(extra.length === 4 && extra[0] === '--geometry-window') &&
     !(extra.length === 1 && extra[0] === '--physical-overlap') &&
     !(extra.length === 3 && extra[0] === '--pre-lock') &&
@@ -96,7 +97,7 @@ if (
     ))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --presentation-domain demand.json | --presentation-camera camera.json | --pre-lock Section-ID demand.json | --exit-visibility demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
+    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --presentation-domain demand.json | --presentation-camera camera.json | --pre-lock Section-ID demand.json | --exit-visibility demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s | --occurrence-driving request.json]',
   );
 const project = createCourseProject();
 const sourceText = await readFile(sourcePath, 'utf8');
@@ -178,9 +179,11 @@ if (!result.ok) {
     );
 } else if (extra.length) {
   const view =
-    extra[0] === '--driving-view'
-      ? courseDrivingViewReport(result.value, extra.slice(1))
-      : courseViewReport(result.value, extra.slice(1));
+    extra[0] === '--occurrence-driving'
+      ? courseOccurrenceDrivingReport(result.value, JSON.parse(await readFile(extra[1], 'utf8')))
+      : extra[0] === '--driving-view'
+        ? courseDrivingViewReport(result.value, extra.slice(1))
+        : courseViewReport(result.value, extra.slice(1));
   if (!view.ok) {
     console.error(JSON.stringify(view, null, 2));
     process.exitCode = 1;

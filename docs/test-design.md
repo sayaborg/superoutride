@@ -116,6 +116,17 @@ Link remains undrivable. These tests use explicit diagnostic presentation, not m
 or full presentation qualification. Observer dependency checks parse imports; driver steering, total-speed
 control and distance-dependent braking are input/output tests rather than source spelling.
 
+Common-guard occurrence comparisons drive all nine profiles across a selected LINEAR seam, keeping the
+active frame unchanged, and reverse across the actual retained predecessor after offline frame selection.
+Compare native physical outputs and exact complete state across retained/rebuilt views. Compare saved
+ground/background/scenery full frames at multiple seam positions and yaw angles; common scenery appears
+once and decoded assets remain shared. Reject a projection window cut inside a source candidate even
+with radius zero, foreign canonical qualifications, exhausted guards, stale seeds and separate physical/
+presentation lateral escapes. Exercise the saved-file CLI. These tests prove reader integration, not
+atomic actor commits, full runtime envelopes or fork transfer readiness.
+Use a fully qualified fractional-offset case whose inverse lateral round trip crosses an exact Band
+edge; physical support and source paint must both retain half-open ownership in the query chart.
+
 Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
 cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,
 each small window qualifies, and a window containing both passages reports ambiguity for Raster and

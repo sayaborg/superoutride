@@ -344,8 +344,15 @@ zero-based inspection window. The single-active-Section driving adapter shares c
 sampling and native projection indices, so moving a window changes neither actor observations nor
 frame. It checks complete seeded-search candidate intervals, and delegates height interpolation to
 the original source rather than resmoothing clipped nodes. Only bounded Raster/height metadata is
-retained; geometry is not retessellated. Multi-occurrence driving still requires complete consumer/
-content qualification. Window addresses are not race credit.
+retained; geometry is not retessellated. The scoped
+[common-guard adapter](content-and-gameplay.md#common-guard-occurrence-driving-view) adds one qualified
+neighbor, stable occurrence/native-segment seeds and saved presentation through the same mapping.
+Its search distinguishes ownership seams from incomplete window candidates. Complete runtime pose/
+consumer admission and multi-neighbor geometry remain required. Window addresses are not race credit.
+
+Render's source-presentation preview owns image decoding, color conversion and reusable image workspaces.
+It receives ordinary saved presentation, Raster and height facets. Runtime maps its narrow results;
+neither the renderer nor the preview receives a CompiledCourse or occurrence graph.
 
 ### Compiled boundary geometry
 

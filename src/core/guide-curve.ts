@@ -288,6 +288,30 @@ export function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: nu
   return { first, last, start: guide.segments[first]!.sStart, end: guide.segments[last]!.sEnd };
 }
 
+/** Project one admitted source segment clipped to an occurrence interval, retaining its native arithmetic. */
+export function projectWorldOnGuideInterval(
+  guide: GuidePath,
+  segmentIndex: number,
+  world: Vec2,
+  start: number,
+  end: number,
+  clampL = false,
+): CourseCoordinate {
+  if (!world || [world.x, world.z, start, end, segmentIndex].some((v) => typeof v !== 'number'))
+    throw new TypeError('Guide interval projection requires numeric coordinates, segment and bounds');
+  if (!Number.isInteger(segmentIndex) || segmentIndex < 0 || segmentIndex >= guide.segments.length)
+    throw new RangeError('Guide interval projection needs a source segment');
+  const segment = guide.segments[segmentIndex]!;
+  if (
+    ![world.x, world.z, start, end].every(Number.isFinite) ||
+    start < segment.sStart ||
+    end > segment.sEnd ||
+    end <= start
+  )
+    throw new RangeError('Projection interval must have positive extent inside its source segment');
+  return projectWorldToGuideSegment(guide, segment, world, clampL, start, end);
+}
+
 export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {
   const checked = checkedGuideChainage(guide, sLocal);
   if (
@@ -338,31 +362,35 @@ function projectWorldToGuideSegment(
   segment: GuideSegment,
   world: Vec2,
   clampL: boolean,
+  start = segment.sStart,
+  end = segment.sEnd,
 ): CourseCoordinate {
   let sample: GuideSample;
 
   if (segment.kind === 'straight') {
-    const start = sampleGuideSegment(guide, segment, segment.sStart);
-    const tangent = tangentFromHeading(start.heading);
-    const fromStart = subtract(world, start);
+    const origin = sampleGuideSegment(guide, segment, segment.sStart);
+    const tangent = tangentFromHeading(origin.heading);
+    const fromStart = subtract(world, origin);
     const along = dot(fromStart, tangent);
-    const sCandidate = clamp(segment.sStart + along, segment.sStart, segment.sEnd);
+    const sCandidate = clamp(segment.sStart + along, start, end);
     sample = sampleGuideSegment(guide, segment, sCandidate);
   } else {
     const corner = guide.corners[segment.cornerIndex]!;
     if (!corner.center) throw new Error('arc corner missing center');
     const radial = subtract(world, corner.center);
     const radialLength = Math.hypot(radial.x, radial.z);
+    const qStart = start === segment.sStart ? segment.qStart : qForCornerS(corner, start);
+    const qEnd = end === segment.sEnd ? segment.qEnd : qForCornerS(corner, end);
 
     let q: number;
     if (radialLength < ARC_CENTER_TOLERANCE_METERS) {
-      q = (segment.qStart + segment.qEnd) * 0.5;
+      q = (qStart + qEnd) * 0.5;
     } else {
       const sign = Math.sign(corner.turn);
       const n = scale(radial, -sign / radialLength);
       const heading = headingFromDelta(-n.z, n.x);
       const angle = wrapAngle(heading - corner.incomingHeading);
-      q = clamp(angle / corner.turn, segment.qStart, segment.qEnd);
+      q = clamp(angle / corner.turn, qStart, qEnd);
     }
     sample = sampleCornerAtQ(corner, q, segment.index);
   }

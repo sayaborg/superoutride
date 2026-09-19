@@ -145,11 +145,12 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
   }
   try {
     const length = end - start;
-    const cuts = [
+    const frameCuts = [
       availableStart,
       ...mappings.slice(1).map((mapping) => viewS(mapping, mapping.occurrence.incoming!.destination.anchor.s)),
       availableEnd,
-    ].map((s) => s - start);
+    ];
+    const cuts = frameCuts.map((s) => s - start);
     if (cuts.some((s, i) => !Number.isFinite(s) || (i > 0 && s <= cuts[i - 1]!)))
       throw new ViewAdmissionError('Selected/visited seam spans must remain representable in the view ruler');
     const spans = mappings.flatMap((original, i) => {
@@ -166,6 +167,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
       // Preserve classification stations. Continuous Core geometry retains its own sampling tolerance;
       // nearby roundoff-size fillet joins are not extra Band ownership boundaries.
       const stations = new Map<number, number>();
+      const frameStations = new Map<number, number>();
       for (const s of new Set([
         sourceStart,
         sourceEnd,
@@ -178,6 +180,11 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         if (stations.has(mapped) && stations.get(mapped) !== s)
           throw new ViewAdmissionError('Distinct source stations collapse in the view ruler');
         stations.set(mapped, s);
+        const frameStation =
+          s === sourceStart ? frameCuts[i]! : s === sourceEnd ? frameCuts[i + 1]! : viewS(original, s);
+        if (frameStations.has(frameStation) && frameStations.get(frameStation) !== s)
+          throw new ViewAdmissionError('Distinct source stations collapse in the active-frame ruler');
+        frameStations.set(frameStation, s);
       }
       const address = (s: number, l: number) =>
         Object.freeze({
@@ -185,12 +192,23 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           sourceS: stations.get(s) ?? mapping.sourceAnchorS + (s - mapping.viewAnchorS),
           sourceL: l + mapping.sourceLateralOrigin,
         });
+      const addressInFrame = (s: number, l: number) =>
+        Object.freeze({
+          occurrence: mapping.occurrence,
+          sourceS: frameStations.get(s) ?? original.sourceAnchorS + (s - original.viewAnchorS),
+          sourceL: l + original.sourceLateralOrigin,
+        });
       return [
         Object.freeze({
           start: a,
           end: b,
           mapping,
           address,
+          addressInFrame,
+          frameStart: Math.max(start, frameCuts[i]!),
+          frameEnd: Math.min(end, frameCuts[i + 1]!),
+          frameAnchorS: original.viewAnchorS,
+          sourceOwnership: Object.freeze({ start: sourceStart, end: sourceEnd }),
         }),
       ];
     });
@@ -232,12 +250,39 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         length,
         /** Stable active-frame ruler; moving a bounded window does not rebase actor observations. */
         activeRange: Object.freeze({ start, end }),
+        availableRange: Object.freeze({ start: availableStart, end: availableEnd }),
         pose: Object.freeze({ minS: minS - start, maxS: maxS - start, maxAdvance }),
         coverage: Object.freeze(
           requirements.map((r) => Object.freeze({ consumer: r.consumer, start: r.start - start, end: r.end - start })),
         ),
-        spans: Object.freeze(spans.map(({ start, end, mapping }) => Object.freeze({ start, end, ...mapping }))),
+        spans: Object.freeze(
+          spans.map(({ start, end, mapping, addressInFrame, frameStart, frameEnd, frameAnchorS, sourceOwnership }) =>
+            Object.freeze({
+              start,
+              end,
+              ...mapping,
+              frameStart,
+              frameEnd,
+              frameAnchorS,
+              sourceRange: Object.freeze({
+                start: addressInFrame(frameStart, 0).sourceS,
+                end: addressInFrame(frameEnd, 0).sourceS,
+              }),
+              sourceOwnership,
+            }),
+          ),
+        ),
         address: (s: number, l: number) => resolve(s, l).address,
+        addressInFrame(s: number, l: number) {
+          numeric(s, 'Active-frame chainage');
+          numeric(l, 'Active-frame lateral');
+          if (s < start || s > end) throw new RangeError('Query must be inside the active-frame window');
+          let index = spans.length - 1;
+          while (index >= 0 && spans[index]!.frameStart > s) index -= 1;
+          const span = spans[index];
+          if (!span || s > span.frameEnd) throw new Error('Validated frame view has a coverage hole');
+          return span.addressInFrame(s, l);
+        },
         // These ordinary point readers expose no topology, occurrence, assets or CompiledCourse.
         geometry: Object.freeze({
           length,

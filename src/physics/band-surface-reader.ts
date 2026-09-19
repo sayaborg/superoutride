@@ -1,12 +1,12 @@
 import { courseBandAt, courseBoundaryAt, type CompiledBandPartition } from '../course/course-bands.js';
 import { coursePhysicalMaterialAt, type CompiledPhysicalBinding } from '../course/course-physical-binding.js';
-import { SURFACE_MATERIALS, type SurfaceMapReader, type SurfaceMaterial } from './surface-map.js';
+import { SURFACE_MATERIALS, type SurfaceMaterial } from './surface-map.js';
 
 /** Adapter over admitted ordinary facets. No course graph, ID join, role inference or copied geometry. */
 export function createBandSurfaceReader(
   partition: CompiledBandPartition,
   bindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[],
-): SurfaceMapReader {
+) {
   const table = new Map(bindings.map((binding) => [binding.band, binding]));
   if (
     table.size !== bindings.length ||
@@ -26,13 +26,16 @@ export function createBandSurfaceReader(
           maxSupportedAbsL = Math.max(maxSupportedAbsL, Math.abs(courseBoundaryAt(boundary, s)));
     }
   }
+  const sampleInChart = (s: number, l: number, sourceLateralOrigin: number) => {
+    if (typeof s !== 'number' || typeof l !== 'number') throw new TypeError('Surface coordinates must be numeric');
+    const band = courseBandAt(partition, s, l, sourceLateralOrigin);
+    const material = band ? coursePhysicalMaterialAt(table.get(band)!, s) : SURFACE_MATERIALS.VOID;
+    return { sectionName: band?.id ?? 'OUTSIDE', type: material.type, material };
+  };
   return Object.freeze({
     maxSupportedAbsL,
-    sample(s: number, l: number) {
-      if (typeof s !== 'number' || typeof l !== 'number') throw new TypeError('Surface coordinates must be numeric');
-      const band = courseBandAt(partition, s, l);
-      const material = band ? coursePhysicalMaterialAt(table.get(band)!, s) : SURFACE_MATERIALS.VOID;
-      return { sectionName: band?.id ?? 'OUTSIDE', type: material.type, material };
-    },
+    sample: (s: number, l: number) => sampleInChart(s, l, 0),
+    /** Compare shifted boundaries directly; never add the origin back before ownership classification. */
+    sampleInChart,
   });
 }

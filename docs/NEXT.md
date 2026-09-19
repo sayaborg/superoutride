@@ -93,7 +93,7 @@ cover every declared physical consumer, domain-edge crossings, half-open endpoin
 interior mismatches, independent multi-Link diagnostics and ordinary surface-reader agreement.
 Compiler now owns the static graph without propagated material type parameters; Authoring owns project
 state. No material ID is rejoined by a consumer. This is not complete common-content qualification:
-full product pose/lateral envelopes and occurrence-mapped physical readers remain absent.
+full product pose/lateral admission remains absent; scoped occurrence readers are described below.
 Single-Section consumer integration does not qualify a Link. The saved physical demand is a
 reproducible test envelope, not a product default.
 
@@ -112,7 +112,7 @@ scenery over explicit camera/filter/anchor domains. Camera-derived straight-guar
 actual ground queries; complete paired frames agree over three forks and every incoming merge Link.
 An ordinary sprite observation reader preserves screen/depth observations during pure frame changes.
 This is scoped source-domain and renderer evidence, not runtime envelope enforcement, general
-occurrence-mapped presentation or an atomic actor transition. Gate 2 remains in progress.
+unrestricted occurrence-mapped presentation or an atomic actor transition. Gate 2 remains in progress.
 
 [Authored fork controls](content-and-gameplay.md#authored-fork-controls-and-coverage) now resolve lock/
 closure anchors and canonical half-open median-center regions. Scoped pre-lock qualification checks
@@ -122,6 +122,15 @@ selected successor. Actual parent rendering stays in its declared domain; comple
 at each conservative exit clear-interval start. Exit bounds derive from matching full guards and query
 footprints for all incoming Links. This is not a lateral-transfer, runtime lock/pose-admission or actor
 commit certificate. General occurrence readers and final joint consumer cutover remain.
+
+The [common-guard driving adapter](content-and-gameplay.md#common-guard-occurrence-driving-view) now maps
+ordinary physical and saved-presentation readers across one immediate qualified occurrence. Stable active
+chainage/occurrence seeds and exact ownership stations survive moving windows; incomplete projection
+candidates fail. Nine-profile forward/reverse comparisons and complete saved-content frames exercise
+the selected seam and retained actual predecessor without actor commits. Source images/readers remain
+shared and common scenery appears once. The saved-file CLI reproduces the scoped reader admission.
+Its whole window must fit the active source's local geometry proof and neighbor common guard; longer/
+multiple-neighbor windows, full runtime envelopes, transfer dynamics and atomic commits remain pending.
 
 ### Next milestones
 
@@ -156,9 +165,9 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
    exit clear-interval envelopes at runtime, and qualify lateral-transfer dynamics. Preserve the implemented actual
    camera-query/full-frame evidence for every incoming merge Link. Physical reachability is not an
    image-visibility proof. Resident RGB555 remains Gate 3.
-   Extend the proven single-Section readers across qualified occurrence mappings; derive full pose/lateral
-   envelopes in addition to the implemented longitudinal demand. Selection/history and the seam-free
-   LINEAR real-consumer slice are implemented, not evidence that a Link is ready.
+   Extend the implemented one-neighbor common-guard readers to the remaining qualified windows and
+   derive/enforce full pose/lateral envelopes in addition to longitudinal demand. Selection/history and
+   real LINEAR seam-reader integration are implemented, not evidence that an actor commit is ready.
 2. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
    cache/camera transformation, and unchanged checkpoint/lap credit. Test straddling contacts, neighboring
    actors, actual merge predecessors, reverse and recovery through the real integration path.

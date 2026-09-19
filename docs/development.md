@@ -209,6 +209,22 @@ pixels. Maximum retained Raster metadata was 19/21 of 74 source segments and fou
 The command regenerates counts, time and peak RSS; host timing includes paired physics, assertions and
 diagnostic rendering and is not a smartphone frame budget or whole-course capacity acceptance.
 
+### Common-guard occurrence readers
+
+`npm run compile:course -- course.json --images directory --occurrence-driving request.json` compiles
+both explicit content demands and inspects the bounded driving/presentation adapter. The request has
+`physical` and `presentation` demand records (each with `pose`, `step`, `consumers`), an explicit `links`
+array of outgoing Link IDs, `activeIndex` in that itinerary, a `view` demand (`pose`, four longitudinal
+`consumers`), and `observations` containing `{s,l}` points in the active source ruler. IDs resolve once
+at this inspection boundary. The report includes scope, frame, bounded metadata, common scenery count
+and ordinary Guide/height/surface/color observations. It performs no actor commit or field lock.
+
+[Occurrence driving tests](../tests/runtime/course-occurrence-driving.test.mjs) construct saved real
+content and reproduce the command, full frames, nine-profile forward/reverse physics, stable moving
+windows and insufficient-domain failures. The `common-guard-driving` scope admits only one immediate
+neighbor within matching guards and an active-source local geometry proof. Preview source color has
+one level and is separate from resident-image compilation/filter acceptance.
+
 ## Sprite LOD preview
 
 After `npm run build`, serve the checkout and open `tools/graphics/sprite-lod.html`. The same page
