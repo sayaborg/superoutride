@@ -181,6 +181,8 @@ const layerDependencies = {
   core: [],
   graphics: ['core'],
   course: ['core'],
+  compiler: ['core', 'course', 'physics'],
+  authoring: ['course', 'compiler'],
   input: ['core'],
   physics: ['core', 'course', 'input'],
   audio: ['core'],
@@ -191,7 +193,7 @@ const layerDependencies = {
   terrain: ['core', 'course', 'visual'],
   groundmap: ['core', 'course', 'graphics', 'terrain'],
   render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'terrain', 'vehicle', 'visual'],
-  runtime: ['core', 'course', 'gameplay', 'groundmap', 'input', 'physics', 'render', 'terrain', 'visual'],
+  runtime: ['core', 'course', 'compiler', 'gameplay', 'groundmap', 'input', 'physics', 'render', 'terrain', 'visual'],
   browser: ['audio', 'camera', 'core', 'gameplay', 'graphics', 'groundmap', 'input', 'physics', 'render', 'vehicle'],
 };
 

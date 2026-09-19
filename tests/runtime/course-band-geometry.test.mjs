@@ -5,8 +5,8 @@ import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { guideEnvelopeAt } from '../../dist/core/guide-envelope.js';
 import { courseBoundaryAt, courseBandAt } from '../../dist/course/course-bands.js';
 import { COURSE_DOCUMENT_LIMITS, parseCourseDocument, saveCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
-import { createCourseProject } from '../../dist/runtime/course-project.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { createCourseProject } from '../../dist/authoring/course-project.js';
 
 const text = await readFile(new URL('../fixtures/varying-linear.course.json', import.meta.url), 'utf8');
 const fixture = () => JSON.parse(text);

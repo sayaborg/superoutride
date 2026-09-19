@@ -51,6 +51,8 @@ Physical tire calibration, engine sound parameters, and tire-noise method/parame
 | --------------- | -------------------------------------------------------------------------------- |
 | `src/core`      | Open Raster/Guide coordinates, height, projection and shared metrics             |
 | `src/course`    | Authored cross-sections, stage views and Raster authoring                        |
+| `src/compiler`  | Static CourseDocument graph and geometry/content qualification                   |
+| `src/authoring` | Live authoring source/publication sessions                                       |
 | `src/input`     | Keyboard/touch input and arbitration                                             |
 | `src/physics`   | Common vehicle mechanics, surfaces and control                                   |
 | `src/vehicle`   | Production identities and compiled profiles                                      |
@@ -62,7 +64,7 @@ Physical tire calibration, engine sound parameters, and tire-noise method/parame
 | `src/terrain`   | Terrain projection and scanline geometry                                         |
 | `src/groundmap` | Logical/baked ground readers, baking and filtering                               |
 | `src/render`    | Scene pipeline and projected course/vehicle presentation                         |
-| `src/runtime`   | Course compilation, unfolding and actor/gameplay composition                     |
+| `src/runtime`   | Occurrence views, unfolding and actor/gameplay composition                       |
 | `src/browser`   | DOM controls, selectors, scheduling and driving shell                            |
 | `src/dev`       | Concrete courses, regression fixtures and diagnostics in separate subdirectories |
 

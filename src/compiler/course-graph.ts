@@ -2,13 +2,14 @@ import type { GuidePath } from '../core/guide-curve.js';
 import type { RasterPath } from '../core/raster-path.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import type { PlanarPose, PlanarTransform } from '../core/planar-transform.js';
-import type { CourseAssetReference, SectionDocument } from './course-document.js';
-import type { CompiledCourseAnchor, CompiledPlanPrimitive } from './course-geometry.js';
-import type { CompiledBoundary, CompiledBandPartition, CompiledCarriageway } from './course-bands.js';
-import type { CompiledPhysicalBinding } from './course-physical-binding.js';
+import type { CourseAssetReference, SectionDocument } from '../course/course-document.js';
+import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course/course-geometry.js';
+import type { CompiledBoundary, CompiledBandPartition, CompiledCarriageway } from '../course/course-bands.js';
+import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
+import type { SurfaceMaterial } from '../physics/surface-map.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
-export interface CompiledSection<Material = unknown> {
+export interface CompiledSection {
   readonly id: string;
   readonly primitives: readonly CompiledPlanPrimitive[];
   readonly raster: RasterPath;
@@ -16,28 +17,28 @@ export interface CompiledSection<Material = unknown> {
   readonly boundaries: readonly CompiledBoundary[];
   readonly bandPartition: CompiledBandPartition;
   readonly height: HeightProfileReader;
-  readonly physicalBindings: readonly CompiledPhysicalBinding<Material>[];
+  readonly physicalBindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[];
   readonly carriageways: readonly CompiledCarriageway[];
   readonly assets: readonly CourseAssetReference[];
-  readonly ports: readonly CompiledPort<Material>[];
-  readonly incoming: readonly CompiledLink<Material>[];
-  readonly outgoing: readonly CompiledLink<Material>[];
+  readonly ports: readonly CompiledPort[];
+  readonly incoming: readonly CompiledLink[];
+  readonly outgoing: readonly CompiledLink[];
 }
 
-export interface CompiledPort<Material = unknown> {
+export interface CompiledPort {
   readonly id: string;
   readonly kind: SectionDocument['ports'][number]['kind'];
-  readonly section: CompiledSection<Material>;
+  readonly section: CompiledSection;
   readonly anchor: CompiledCourseAnchor;
   readonly carriageway: CompiledCarriageway;
   readonly pose: PlanarPose;
 }
 
 /** Carriageway geometry proof only; not admission for a driving transition. */
-export interface CompiledLink<Material = unknown> {
+export interface CompiledLink {
   readonly id: string;
-  readonly source: CompiledPort<Material>;
-  readonly destination: CompiledPort<Material>;
+  readonly source: CompiledPort;
+  readonly destination: CompiledPort;
   readonly destinationFromSource: PlanarTransform;
   readonly overlap: { readonly behind: number; readonly ahead: number };
 }

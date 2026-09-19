@@ -1,6 +1,12 @@
 import { contentDigest } from '../core/content-digest.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
-import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
+import {
+  CourseInputError,
+  courseFailure,
+  courseSuccess,
+  requireCourse,
+  type CourseResult,
+} from '../course/course-diagnostics.js';
 import {
   readCourseDocument,
   type CourseAssetReference,
@@ -10,20 +16,14 @@ import {
 import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course/course-geometry.js';
 import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
 import type { CompiledBoundary, CompiledBand, CompiledCarriageway } from '../course/course-bands.js';
-import type { CompiledSection, CompiledPort, CompiledLink } from '../course/course-graph.js';
-import type { SurfaceMaterial } from '../physics/surface-map.js';
+import type { CompiledSection, CompiledPort, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
-import {
-  COURSE_LINK_RECIPE,
-  compileCoursePort,
-  compileCourseLink,
-  validateCourseTopology,
-} from '../course/course-links.js';
+import { COURSE_LINK_RECIPE, compileCoursePort, compileCourseLink, validateCourseTopology } from './course-links.js';
 
-interface SectionDraft extends Omit<CompiledSection<SurfaceMaterial>, 'ports' | 'incoming' | 'outgoing'> {
-  readonly ports: CompiledPort<SurfaceMaterial>[];
-  readonly incoming: CompiledLink<SurfaceMaterial>[];
-  readonly outgoing: CompiledLink<SurfaceMaterial>[];
+interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
+  readonly ports: CompiledPort[];
+  readonly incoming: CompiledLink[];
+  readonly outgoing: CompiledLink[];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
@@ -36,15 +36,15 @@ export interface CompiledCourse {
     readonly compiler: typeof COURSE_COMPILER;
     readonly geometryRecipe: typeof COURSE_GEOMETRY_RECIPE;
   };
-  readonly sections: readonly CompiledSection<SurfaceMaterial>[];
-  readonly entry: CompiledSection<SurfaceMaterial>;
-  readonly links: readonly CompiledLink<SurfaceMaterial>[];
+  readonly sections: readonly CompiledSection[];
+  readonly entry: CompiledSection;
+  readonly links: readonly CompiledLink[];
   readonly assets: readonly CourseAssetReference[];
 }
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 5,
+  version: 6,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
 });
@@ -54,10 +54,6 @@ function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): 
   if (value === undefined)
     throw new CourseInputError('unresolved_reference', path, `Unknown reference ${JSON.stringify(id)} in this scope`);
   return value;
-}
-
-function semantic(condition: boolean, path: string, message: string): asserts condition {
-  if (!condition) throw new CourseInputError('semantic_compile_failure', path, message);
 }
 
 function compileSection(
@@ -71,12 +67,12 @@ function compileSection(
     resolveCourseAnchor(anchor, primitiveTable, raster.length, at);
   const boundaries = section.boundaries.map((source, index): CompiledBoundary => {
     const at = `${path}/boundaries/${index}`;
-    semantic(source.knots.length >= 2, `${at}/knots`, 'Boundary needs at least two knots');
+    requireCourse(source.knots.length >= 2, `${at}/knots`, 'Boundary needs at least two knots');
     const knots = source.knots.map((knot, i) =>
       Object.freeze({ anchor: resolve(knot.anchor, `${at}/knots/${i}/anchor`), l: knot.l }),
     );
     for (let i = 1; i < knots.length; i += 1)
-      semantic(
+      requireCourse(
         knots[i]!.anchor.s > knots[i - 1]!.anchor.s,
         `${at}/knots/${i}`,
         'Resolved knots must be strictly increasing',
@@ -84,19 +80,19 @@ function compileSection(
     return Object.freeze({ id: source.id, knots: Object.freeze(knots) });
   });
   const boundaryTable = new Map(boundaries.map((boundary) => [boundary.id, boundary]));
-  semantic(section.bands.length > 0, `${path}/bands`, 'A Section requires bands');
+  requireCourse(section.bands.length > 0, `${path}/bands`, 'A Section requires bands');
   const bands = section.bands.map((source, index): CompiledBand => {
     const at = `${path}/bands/${index}`;
     const start = resolve(source.start, `${at}/start`);
     const end = resolve(source.end, `${at}/end`);
-    semantic(end.s > start.s, at, 'Band interval must have positive length');
+    requireCourse(end.s > start.s, at, 'Band interval must have positive length');
     const left = reference(boundaryTable, source.leftBoundaryId, `${at}/leftBoundaryId`);
     const right = reference(boundaryTable, source.rightBoundaryId, `${at}/rightBoundaryId`);
     for (const [key, boundary] of [
       ['leftBoundaryId', left],
       ['rightBoundaryId', right],
     ] as const)
-      semantic(
+      requireCourse(
         boundary.knots[0]!.anchor.s <= start.s && boundary.knots.at(-1)!.anchor.s >= end.s,
         `${at}/${key}`,
         `Boundary ${JSON.stringify(boundary.id)} must cover Band's closed interval [${start.s}, ${end.s}]`,
@@ -107,17 +103,17 @@ function compileSection(
   const assigned = new Set<CompiledBand>();
   const carriageways = section.carriageways.map((source, index): CompiledCarriageway => {
     const at = `${path}/carriageways/${index}`;
-    semantic(source.bandIds.length > 0, `${at}/bandIds`, 'Carriageway needs at least one pavement Band');
+    requireCourse(source.bandIds.length > 0, `${at}/bandIds`, 'Carriageway needs at least one pavement Band');
     const members = source.bandIds.map((id, i) => {
       const band = reference(bandTable, id, `${at}/bandIds/${i}`);
-      semantic(band.role === 'pavement', `${at}/bandIds/${i}`, 'Carriageways group pavement Bands');
-      semantic(!assigned.has(band), `${at}/bandIds/${i}`, 'Pavement Band must belong to exactly one Carriageway');
+      requireCourse(band.role === 'pavement', `${at}/bandIds/${i}`, 'Carriageways group pavement Bands');
+      requireCourse(!assigned.has(band), `${at}/bandIds/${i}`, 'Pavement Band must belong to exactly one Carriageway');
       assigned.add(band);
       return band;
     });
     return Object.freeze({ id: source.id, bands: Object.freeze(members) });
   });
-  semantic(
+  requireCourse(
     assigned.size > 0 && bands.every((band) => band.role !== 'pavement' || assigned.has(band)),
     `${path}/carriageways`,
     'Every pavement Band needs one Carriageway',
@@ -135,7 +131,11 @@ function compileSection(
     throw error;
   }
   const sectionAssets = section.assetIds.map((id, i) => reference(assets, id, `${path}/assetIds/${i}`));
-  semantic(new Set(sectionAssets).size === sectionAssets.length, `${path}/assetIds`, 'Asset membership must be unique');
+  requireCourse(
+    new Set(sectionAssets).size === sectionAssets.length,
+    `${path}/assetIds`,
+    'Asset membership must be unique',
+  );
   const result: SectionDraft = {
     id: section.id,
     primitives,
@@ -182,7 +182,7 @@ export async function compileCourseDocument(input: unknown): Promise<CourseResul
         `Supported geometry recipe is ${COURSE_GEOMETRY_RECIPE.id} v${COURSE_GEOMETRY_RECIPE.version}`,
       );
     }
-    semantic(document.sections.length > 0, '/sections', 'A course requires a Section');
+    requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section');
     const assets = new Map(document.assets.map((asset) => [asset.id, asset]));
     const sections = document.sections.map((section, index) => compileSection(section, assets, `/sections/${index}`));
     const sectionTable = new Map(sections.map((section) => [section.id, section]));

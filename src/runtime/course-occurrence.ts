@@ -1,6 +1,6 @@
 import { invertPlanarTransform } from '../core/planar-transform.js';
 import { CourseInputError, courseFailure, courseSuccess } from '../course/course-diagnostics.js';
-import type { CompiledLink, CompiledSection } from '../course/course-graph.js';
+import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
 
 /** Traversal identity, not a source copy, coordinate basis or awarded lap. */
 export interface CourseOccurrence {

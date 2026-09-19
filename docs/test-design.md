@@ -56,6 +56,15 @@ hidden curves/fillets and partial coverage gaps. Retain a fractional activation 
 offset cancellation; reject distinct ruler stations that collapse to one relative coordinate. These
 geometry tests do not claim physical/image continuity, consumer guard sufficiency or runtime commit.
 
+Physical domain qualification expands each declared query footprint over the entire pose/step envelope.
+Positive two/three-way fork/merge fixtures retain sibling parent roads without successor copies or VOID
+holes. Expanding any physical consumer into unmatched support must fail. Exercise every incoming merge
+Link and deterministic collection of independent failures. A clipping regression must hide its mismatch
+at both clipped endpoints and the seam, requiring the interior Boundary/domain crossing partition to
+detect it. Check closed domain edges separately from half-open Band ownership and keep whole-field
+negative tests. Ordinary surface-reader agreement supports the physical proof; it is not evidence of
+camera visibility, real consumer containment or runtime readiness.
+
 Occurrence/view regressions preserve actual incoming references at every merge, distinguish repeated
 source identity from traversal/frame identity, and reverse the visited transform. Check bounded history
 and shared sources after many loop traversals; missing history must fail without reconstruction. Assert

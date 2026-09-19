@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
 import { transformPlanarPoint, transformPlanarVector } from '../../dist/core/planar-transform.js';

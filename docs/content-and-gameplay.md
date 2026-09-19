@@ -60,8 +60,8 @@ that internal representation while retaining input validation and distinct gamep
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
-[course compilation](../src/runtime/compiled-course.ts) and
-[project transactions](../src/runtime/course-project.ts) implement Gate 1 independently of the current
+[course compilation](../src/compiler/compiled-course.ts) and
+[project transactions](../src/authoring/course-project.ts) implement Gate 1 independently of the current
 driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
 [varying LINEAR example](../tests/fixtures/varying-linear.course.json),
 [linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
@@ -194,7 +194,7 @@ Raster/Guide authoring-domain rejections are RangeError; internal coverage/reade
 
 ### Explicit height and physical bindings
 
-[Physical compilation](../src/runtime/course-physical-content.ts) resolves height anchors on the same
+[Physical compilation](../src/compiler/course-physical-content.ts) resolves height anchors on the same
 Section ruler. Nodes must be strictly increasing, include exactly 0 and L, and yield finite render
 and smooth-physics grades. The immutable Core `HeightProfile` remains the one implementation:
 piecewise-linear render height and cosine-smoothed physical/camera height, independent of lateral position.
@@ -206,8 +206,8 @@ Physics definitions: ASPHALT, SHOULDER, GRASS, DIRT, SAND or explicit VOID. Unkn
 uncovered bindings receive structured diagnostics. Structural role never supplies a material default.
 Physical and appearance values/change points remain independent; no image content is inferred.
 
-Compiled bindings point to canonical Bands and resolved material records. The graph's material type is
-generic so Course does not import Physics. Runtime composes these records; the Physics
+Compiled bindings point to canonical Bands and resolved material records. Compiler owns the concrete
+graph above Course and Physics; material types do not propagate through Port/Link type parameters. The Physics
 [Band surface adapter](../src/physics/band-surface-reader.ts) receives only the partition and bindings.
 It uses canonical half-open Band ownership, returning VOID outside/in gaps. Its conservative support
 bound includes active supported profile endpoints and interior Boundary knots, not dormant/VOID portions.
@@ -216,7 +216,7 @@ SurfaceMap or adapt occurrence/frame mappings for contact, projection or terrain
 
 ### Offline physical overlap qualification
 
-[Physical qualification](../src/runtime/course-physical-overlap.ts) is a separate all-or-none operation
+[Physical qualification](../src/compiler/course-physical-overlap.ts) is a separate all-or-none operation
 over an explicit canonical Link list. Pass the whole course Link list for course-wide evidence; a subset
 certifies only those Links. The result lists those same references with scope `physical-overlap`.
 It never upgrades CompiledLink itself to a runtime-ready product.
@@ -240,9 +240,50 @@ This proves support/material/height agreement only: it does not prove appearance
 scenery/background identity, product consumer coverage, parent-specific visibility or runtime transition
 readiness. Those prerequisites remain before joint cutover.
 
+#### Declared physical query domains
+
+`compileCoursePhysicalDomains(links, demand)` uses the same physical comparison, restricted to an
+explicit seam-local query domain. The input has exactly `pose`, `step` and `consumers`; the latter
+requires `contact`, `driverLookahead` and `reverseRecovery`. Each record has finite nonnegative metre
+extents `{behind, ahead, left, right}`. Pose encloses all admitted actor reference positions about
+the Port origin; step encloses motion in both directions and laterally before the next observation;
+each consumer supplies its complete query footprint relative to those positions. There are no defaults.
+This is a declared offline envelope, not a measured product limit or a vehicle/contact-size authority.
+
+For each consumer and axis, required extent is `pose + step + footprint`. Every consumer's longitudinal
+requirement must fit the authored common guard. The derived lateral domain is the bounding union of
+all consumers, including reverse/recovery, and has finite positive width. Qualification compares the
+entire guard within that domain, never a caller-chosen matching subset. All contributing Bands count,
+including nonselected roads, medians, shoulders and VOID boundaries. A consumer expansion that reaches
+unmatched sibling support fails; sibling roads outside the domain remain unchanged in the parent.
+
+The partition additionally includes every linear Boundary crossing of either lateral-domain edge in
+both source rulers. Clipped edges are then linear throughout each open cell, so endpoint comparison
+proves the whole clipped field. Exact station and closed lateral-domain endpoint ownership are checked
+separately. A constant-material open edge cell uses one interior witness after all crossings and
+material/activation changes have been partitioned; an unrepresentable crossing/cell fails explicitly.
+This is not sparse sampling of an unpartitioned guard. Full horizontal height checks remain mandatory.
+
+Success freezes the owned demand, derived requirements and original Link references with scope
+`physical-query-domain` and physical-overlap recipe v2. Failure publishes no partial qualification.
+Independent Link failures and consumer coverage failures are collected deterministically in supplied
+order, while dependent checks on an invalid Link stop. Qualification diagnostics have
+`kind: "qualification"`, `code`, `linkIndex`, optional `consumer`, and `message`; they do not pretend
+to be JSON Pointers into CourseDocument. Codes distinguish `coverage_gap`, `nonhorizontal_overlap`,
+`physical_height_mismatch` and `physical_support_mismatch`. Malformed demand data instead has
+`kind: "input"` and a pointer under `/demand` in the qualification request. Canonical-reference API
+misuse raises TypeError/RangeError; internal invariant failures propagate.
+
+The saved three-way fork/merge and declared demand are a positive physical-only fixture. Successor
+Sections contain only their single common road, without copied sibling tails, artificial VOID holes,
+or branch-dependent geometry edits. Whole-field qualification still rejects that fixture. Runtime
+admission must additionally prove that real queries stay inside the qualified domain, including
+neighbor interactions, reverse/recovery and pre-lock states. Camera/render coverage and presentation
+visibility/continuity remain separate: physical reachability never proves that a road is invisible.
+
 ### Offline Port and Link geometry
 
-[Port/Link compilation](../src/course/course-links.ts) resolves a Port to a canonical Section,
+[Port/Link compilation](../src/compiler/course-links.ts) resolves a Port to a canonical Section,
 Carriageway and anchor strictly inside its finite domain. The Port pose is derived from the active
 Carriageway's outer-edge center and forward Guide heading. It requires positive pavement width;
 there is no separately authored center or orientation. A Link connects an exit to an entry and owns
@@ -356,7 +397,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 5, including the full Link recipe and physical recipe v1 descriptors.
+`superoutride.course-compiler` version 6, including the full Link recipe and physical recipe v2 descriptors.
 The physical recipe includes the existing material definitions and height/ownership/overlap rules.
 The Section geometry recipe remains v3 and carriageway-Link recipe v1: physical admission does not
 change their geometry arithmetic. Height/material edits invalidate source and build identity.
@@ -365,12 +406,14 @@ product. Rebuilds on the supported execution contract reproduce values and ident
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.
 
-Public authoring operations return `{ok: true, value}` or `{ok: false, diagnostics}`. A diagnostic has
-`code`, a JSON Pointer `path` into the submitted input, and a causal `message`. The initial reader
+Public authoring operations return `{ok: true, value}` or `{ok: false, diagnostics}`. Input diagnostics have
+`kind: "input"`, `code`, a JSON Pointer `path` into the submitted input, and a causal `message`. The initial reader
 reports the first failure deterministically. Codes are `parse_failure`, `invalid_shape`,
 `unsupported_version`, `duplicate_id`, `unresolved_reference`, `invalid_numeric_domain`,
 `resource_limit`, `unsupported_feature`, `semantic_compile_failure`, and session `stale_source`.
-Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
+The separate Link qualification diagnostics and multi-failure behavior are specified above. Legacy
+exploration/project outcomes still use CourseResult; their runtime/session-specific outcome migration
+is required before the selected-occurrence/live-consumer cutover. Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
 exceptions propagate. Failure returns no partial product.
 
 `createCourseProject` owns live source/publication state. `editDocument` installs an admitted immutable
@@ -632,6 +675,12 @@ height on both sides. Guard domains cover straddling contacts, camera, lookahead
 Validate the common region under the port transform, not just one matching point. Source layers,
 marking/texture phase, filter context, scenery identity, background and camera state must be continuous.
 A proposed 25 m guard is not a universal consumer-range guarantee; derive required coverage.
+
+The common region is a bounded consumer domain, not the union of every road anywhere across a Section's
+cross-section. Its extent must contain every query under the admitted pose/step envelope, including
+nonselected content wherever those consumers can observe it. Qualification cannot mask content merely
+because it belongs to a losing branch. Outside-domain query exclusion needs real-consumer evidence;
+image visibility and filter footprints are independent of physical reachability.
 
 Physical agreement and picture continuity are separate evidence. A shared scenery instance appears
 once, and a transform cannot manufacture gate credit. Overlap contains only matching common content;

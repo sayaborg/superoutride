@@ -39,8 +39,8 @@ unions and per-cell carriageway contiguity. Sections expose a narrow immutable `
 canonical Band references; no construction cells or ID joins are published.
 
 Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
-an unsupported-version diagnostic. Course compiler v5 includes the pinned carriageway-Link recipe v1
-and physical recipe v1.
+an unsupported-version diagnostic. Course compiler v6 includes the pinned carriageway-Link recipe v1
+and physical recipe v2.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
 invalidation. Full-cell Raster/Guide edge proof includes partial Band domains and exact ruler stations.
@@ -61,8 +61,15 @@ changing existing driving readers. [Physical-content tests](../tests/runtime/cou
 cover admission, no inferred defaults, canonical references, invalidation and a separate `physical-overlap`
 qualification. The offline entry checks all Links for horizontal full-guard height and all-Band
 support/material agreement. Extra unmatched parent roads correctly fail despite valid pavement geometry.
-This is not complete common-content qualification: presentation sources, actual consumer envelopes,
-occurrence-mapped physical readers and runtime integration remain absent.
+The same comparison now qualifies an explicit pose/step/physical-query domain. The saved three-way
+fork/merge passes all incoming Links without sibling copies or VOID holes; whole-field qualification
+still rejects its unmatched roads. [Domain tests](../tests/runtime/course-physical-domain.test.mjs)
+cover every declared physical consumer, domain-edge crossings, half-open endpoint ownership, narrow
+interior mismatches, independent multi-Link diagnostics and ordinary surface-reader agreement.
+Compiler now owns the static graph without propagated material type parameters; Authoring owns project
+state. No material ID is rejoined by a consumer. This is not complete common-content qualification:
+presentation sources, actual product envelopes, occurrence-mapped physical readers and runtime integration
+remain absent. The saved demand is a reproducible test envelope, not a product default.
 
 ### Next milestones
 
@@ -71,15 +78,8 @@ occurrence-mapped physical readers and runtime integration remain absent.
    Existing successor/growth builders remain consumed development content and fixtures.
 2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
    varying/shared boundary readers with half-open membership, oriented Ports/geometric Links,
-   two/three-way fork connections, merges and transformed loops are implemented offline. Next add
-   the missing presentation-source admission needed for complete common-content qualification;
-   height/physical-binding admission and separate all-Link physical overlap proof are implemented offline.
-   Derive actual consumer envelopes and adapt the bounded geometry and physical
-   facets to driving readers; prove pre-lock coverage and each incoming merge/exit presentation.
-   Only then implement per-actor runtime Link commit and the joint runtime edge cutover. Replace
-   origin-based junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
-   exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant
-   Guide/junction helpers and names with their causal tests.
+   two/three-way fork connections, merges, transformed loops and scoped physical qualification are implemented
+   offline. Follow the corrective sequence below before claiming Gate 2 acceptance.
 3. **Gate 3 — Images.** Compile saved layers and static A/B recipes to resident RGB555 records; qualify
    lattice/filter candidates and whole-course capacity. Separate paint inputs from final-color readers
    and remove redundant stage reprojection/road-edge outputs under mapped-band/pixel coverage.
@@ -95,6 +95,26 @@ occurrence-mapped physical readers and runtime integration remain absent.
 owns acceptance detail. Every released milestone requires complete exact-head CI and Pages verification.
 Retire materialized lap windows and driving-time streaming only after replacement coverage and failure
 handling pass. Separate intentional pixel changes from the immutable mechanics reference.
+
+### Gate 2 remaining order
+
+1. Replace whole-Section geographical separation with consumer-local geometry validity, retaining
+   inversion/ambiguity rejection. Keep Product's one-Section circuit; measure primitive/segment/Band-cell
+   counts, compilation cost and bounded capacity. Synthetic long/curved fixtures are not master-course
+   acceptance. Remove explanatory prose from recipe identity while retaining semantic versions/parameters.
+2. Introduce selected-but-uncommitted occurrences, distinct from actual traversal history and active
+   frames. Migrate exploration/session failure outcomes away from authoring diagnostics. Connect one
+   seam-free LINEAR path through real physics/camera/render readers early; measure actual demands and
+   view reconstruction/allocation. Do not manufacture history with forward/reverse for lookahead.
+3. Admit the real presentation inputs required for full common-content qualification. Prove actual
+   query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
+   merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.
+4. Only for qualified Links, implement per-actor seam-driven atomic frame commit, coherent world state/
+   cache/camera transformation, and unchanged checkpoint/lap credit. Test straddling contacts, neighboring
+   actors, actual merge predecessors, reverse and recovery through the real integration path.
+5. Complete the joint local-Guide/half-open physical, visual and lock edge cutover. Remove only replaced
+   legacy paths after causal/integration coverage exists. Recheck the entire Gate 2 acceptance matrix;
+   individual physical, geometry or LINEAR milestones do not establish complete Gate 2 readiness.
 
 ## Deferred tuning
 

@@ -3,7 +3,7 @@ import { tangentFromHeading, type Vec2 } from '../core/math.js';
 import { rasterPathToWorld, type RasterPath } from '../core/raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from '../core/tolerances.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-document.js';
-import { CourseInputError } from './course-diagnostics.js';
+import { CourseInputError, requireCourse } from './course-diagnostics.js';
 import {
   courseBoundaryAt,
   type CompiledBand,
@@ -17,10 +17,6 @@ function cross(a: Vec2, b: Vec2): number {
 function turn(a: Vec2, b: Vec2, c: Vec2): number {
   return cross({ x: b.x - a.x, z: b.z - a.z }, { x: c.x - a.x, z: c.z - a.z });
 }
-function semantic(condition: boolean, path: string, message: string): asserts condition {
-  if (!condition) throw new CourseInputError('semantic_compile_failure', path, message);
-}
-
 function convexHull(points: readonly Vec2[]): Vec2[] {
   const ordered = [...points].sort((a, b) => a.x - b.x || a.z - b.z);
   const half = (values: readonly Vec2[]): Vec2[] => {
@@ -97,13 +93,13 @@ export function compileCourseBandGeometry(
           courseBoundaryAt(a.left, sEnd) -
           (courseBoundaryAt(b.left, sStart) + courseBoundaryAt(b.left, sEnd)),
       );
-    semantic(ordered.length > 0, path, `Section requires active Bands throughout [${sStart}, ${sEnd}]`);
+    requireCourse(ordered.length > 0, path, `Section requires active Bands throughout [${sStart}, ${sEnd}]`);
     for (const s of [sStart, sEnd]) {
       for (let i = 0; i < ordered.length; i += 1) {
         const band = ordered[i]!;
         const left = courseBoundaryAt(band.left, s),
           right = courseBoundaryAt(band.right, s);
-        semantic(
+        requireCourse(
           right > left || (right === left && (s === band.start.s || s === band.end.s)),
           path,
           `Band ${JSON.stringify(band.id)} needs positive width except at its birth/death endpoint; s=${s}`,
@@ -111,13 +107,13 @@ export function compileCourseBandGeometry(
         if (i > 0) {
           const previous = ordered[i - 1]!;
           const edge = courseBoundaryAt(previous.right, s);
-          semantic(
+          requireCourse(
             edge <= left,
             path,
             `Bands ${JSON.stringify(previous.id)} and ${JSON.stringify(band.id)} overlap at s=${s}`,
           );
           const endpoint = s === band.start.s || s === band.end.s || s === previous.start.s || s === previous.end.s;
-          semantic(
+          requireCourse(
             edge !== left || previous.right === band.left || endpoint,
             path,
             `Adjacent Bands must reference the same canonical shared Boundary at s=${s}`,
@@ -127,7 +123,7 @@ export function compileCourseBandGeometry(
     }
     for (let i = 0; i < ordered.length; i += 1) {
       const band = ordered[i]!;
-      semantic(
+      requireCourse(
         courseBoundaryAt(band.right, sStart) -
           courseBoundaryAt(band.left, sStart) +
           (courseBoundaryAt(band.right, sEnd) - courseBoundaryAt(band.left, sEnd)) >
@@ -137,7 +133,7 @@ export function compileCourseBandGeometry(
       );
       if (i > 0) {
         const previous = ordered[i - 1]!;
-        semantic(
+        requireCourse(
           previous.right === band.left ||
             [sStart, sEnd].some((s) => courseBoundaryAt(previous.right, s) !== courseBoundaryAt(band.left, s)),
           path,
@@ -148,7 +144,7 @@ export function compileCourseBandGeometry(
     carriageways.forEach((carriageway, i) => {
       const members = ordered.filter((band) => carriageway.bands.includes(band));
       for (let j = 1; j < members.length; j += 1)
-        semantic(
+        requireCourse(
           members[j - 1]!.right === members[j]!.left,
           `${sectionPath}/carriageways/${i}`,
           `Carriageway ${JSON.stringify(carriageway.id)} must be contiguous throughout [${sStart}, ${sEnd}]`,
@@ -160,8 +156,8 @@ export function compileCourseBandGeometry(
     const before = spans[i - 1]!.ordered,
       after = spans[i]!.ordered,
       s = spans[i]!.sStart;
-    semantic(sameUnion(before, after, s), path, `Active Band union must be continuous at s=${s}`);
-    semantic(
+    requireCourse(sameUnion(before, after, s), path, `Active Band union must be continuous at s=${s}`);
+    requireCourse(
       sameUnion(
         before.filter((b) => b.role !== 'shoulder'),
         after.filter((b) => b.role !== 'shoulder'),
@@ -197,7 +193,7 @@ export function compileCourseBandGeometry(
         const t = (s - segment.sStart) / segment.length;
         const m = { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
         // The Raster map's Jacobian is affine in (s,l); linear edges need only these extrema.
-        semantic(
+        requireCourse(
           cross(m, tangent) + l * cross(m, derivative) > 0,
           path,
           `Mapped band envelope inverts on Raster segment ${segmentIndex} at s=${s}`,
@@ -234,7 +230,7 @@ export function compileCourseBandGeometry(
         b.maxZ < a.minZ - tolerance
       )
         continue;
-      semantic(
+      requireCourse(
         separated(a.hull, b.hull) || separated(b.hull, a.hull),
         path,
         `Mapped band envelopes cannot be separated between cells ${i} and ${j}; overpasses/overlapping strips are not supported`,

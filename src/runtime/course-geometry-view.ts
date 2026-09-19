@@ -11,7 +11,7 @@ import {
 } from '../core/planar-transform.js';
 import { courseBandAt } from '../course/course-bands.js';
 import { CourseInputError, courseFailure, courseSuccess } from '../course/course-diagnostics.js';
-import { coursePortLateral } from '../course/course-links.js';
+import { coursePortLateral } from '../compiler/course-links.js';
 import type { CourseOccurrence, CourseOccurrenceHistory } from './course-occurrence.js';
 
 interface Extent {

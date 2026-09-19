@@ -12,8 +12,8 @@ import {
   saveCourseDocument,
 } from '../../dist/course/course-document.js';
 import { COURSE_GEOMETRY_RECIPE } from '../../dist/course/course-geometry.js';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
-import { createCourseProject } from '../../dist/runtime/course-project.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';
 
 const fixtureText = await readFile(new URL('../fixtures/linear.course.json', import.meta.url), 'utf8');

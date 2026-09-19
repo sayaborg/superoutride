@@ -227,15 +227,18 @@ ordinary narrow readers to physics, camera and rendering; compilers own static p
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
 The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary)
-uses `src/runtime/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
-Explicit height uses Core HeightProfile; Course's generic physical-binding records reference canonical
-Bands while Runtime resolves Physics-owned materials. The document compiler's former geometry-only
-direct-import boundary now additionally admits only the physical-content compiler and the existing
-Physics surface-material contract. The physical compiler and overlap qualifier cannot import vehicle,
-renderer, image-delivery or gameplay implementations. Parsed dependency checks enforce these limits.
+uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
+Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
+owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves
+Physics-owned material records once; concrete Section/Port/Link types no longer propagate a material
+parameter through the topology. The narrow Course physical-profile primitive remains reusable.
+Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authoring, vehicle, renderer,
+image-delivery or gameplay implementations. Parsed dependency checks enforce these limits.
 The narrow Band surface adapter consumes only
 partition/bindings, not the course graph. Separate all-Link physical qualification does not certify
-presentation or product-consumer coverage. Its separate offline entry installs no new driving path.
+presentation or product-consumer coverage. A declared physical-query domain adds pose/step/footprint
+coverage, not evidence that actual product callers respect those bounds. Its separate offline entry
+installs no new driving path.
 Core's shared content digest serves course
 and current GroundMap identities without a dependency from authoring geometry to image transport.
 

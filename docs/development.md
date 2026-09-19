@@ -65,7 +65,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v3 and course compiler v5 include offline Port/Link graphs, retaining geometry recipe v3.
+Schema v3 and course compiler v6 include offline Port/Link graphs, retaining geometry recipe v3.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
@@ -111,6 +111,22 @@ cover explicit admission, canonical materials/Bands, immutable Core height behav
 ownership, support bounds, draft round trips, invalidation, hidden hills/edge knots, endpoint material
 changes, differing subdivisions, unmatched parent roads and every incoming merge Link. Existing
 geometry tests retain their original causes with explicitly authored physical fixture data.
+
+To inspect the separate declared physical-query domain, supply the saved demand explicitly:
+
+```sh
+npm run compile:course -- tests/fixtures/fork-merge.course.json --physical-domain tests/fixtures/physical-demand.json
+```
+
+The command qualifies every Link, including all incoming shared-successor Links, and reports
+`physical-query-domain`, its recipe and each expanded consumer requirement. The demand is a test
+envelope, not a product camera/contact/driver/recovery policy. Its shape and proof are owned by
+[Content](content-and-gameplay.md#declared-physical-query-domains). Missing/malformed fields and
+coverage/content failures are structured diagnostics; file I/O failures retain their original causes.
+[Domain tests](../tests/runtime/course-physical-domain.test.mjs) cover positive two/three-way forks,
+missing/expanded consumers, exact guard/domain edges, interior clipping crossings, collected merge
+failures, immutable references and the actual surface readers. Camera/picture continuity and actual
+product query containment are not certified by this command. Current driving roots remain unchanged.
 
 ## Sprite LOD preview
 

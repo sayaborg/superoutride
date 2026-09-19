@@ -5,7 +5,7 @@ import {
   saveCourseDocument,
   type CourseDocument,
 } from '../course/course-document.js';
-import { compileCourseDocument, type CompiledCourse } from './compiled-course.js';
+import { compileCourseDocument, type CompiledCourse } from '../compiler/compiled-course.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;

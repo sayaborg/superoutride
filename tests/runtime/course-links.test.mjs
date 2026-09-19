@@ -9,8 +9,8 @@ import {
   readCourseDocument,
   COURSE_DOCUMENT_LIMITS,
 } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
-import { createCourseProject } from '../../dist/runtime/course-project.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { rasterPathToWorld } from '../../dist/core/raster-path.js';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';
 import {

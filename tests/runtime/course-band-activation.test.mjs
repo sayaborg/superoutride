@@ -4,8 +4,8 @@ import test from 'node:test';
 import { courseBoundaryAt, courseBandAt } from '../../dist/course/course-bands.js';
 import { guideEnvelopeAt } from '../../dist/core/guide-envelope.js';
 import { parseCourseDocument, saveCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
-import { createCourseProject } from '../../dist/runtime/course-project.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { createCourseProject } from '../../dist/authoring/course-project.js';
 
 const text = await readFile(new URL('../fixtures/partition-linear.course.json', import.meta.url), 'utf8');
 const fixture = () => JSON.parse(text);

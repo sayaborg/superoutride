@@ -9,13 +9,12 @@ import ts from 'typescript';
 // Check dependency structure, not helper names, comments or statement spelling.
 for (const [entry, owners, restricted = {}] of [
   ['runtime/declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
-  [
-    'runtime/compiled-course.ts',
-    ['core', 'course', 'physics', 'runtime'],
-    { physics: ['physics/surface-map.js'], runtime: ['runtime/course-physical-content.js'] },
-  ],
-  ['runtime/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
-  ['runtime/course-physical-overlap.ts', ['course', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/compiled-course.ts', ['core', 'course', 'compiler']],
+  ['compiler/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/course-graph.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/course-links.ts', ['core', 'course', 'compiler']],
+  ['authoring/course-project.ts', ['course', 'compiler']],
   [
     'runtime/raster-stage-successor.ts',
     ['core', 'course', 'physics', 'gameplay', 'groundmap', 'runtime'],

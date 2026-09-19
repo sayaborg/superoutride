@@ -3,9 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { readCourseDocument, saveCourseDocument, parseCourseDocument } from '../../dist/course/course-document.js';
-import { compileCourseDocument } from '../../dist/runtime/compiled-course.js';
-import { compileCoursePhysicalOverlaps } from '../../dist/runtime/course-physical-overlap.js';
-import { createCourseProject } from '../../dist/runtime/course-project.js';
+import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
+import { compileCoursePhysicalOverlaps } from '../../dist/compiler/course-physical-overlap.js';
+import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { SURFACE_MATERIALS } from '../../dist/physics/surface-map.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
@@ -27,6 +27,13 @@ const failure = (result, path, code = 'semantic_compile_failure') => {
   return result.diagnostics[0];
 };
 const qualify = async (input) => compileCoursePhysicalOverlaps(ok(await compileCourseDocument(input)).links);
+function qualificationFailure(result, code = 'physical_support_mismatch', index = 0) {
+  const diagnostic = failure(result, undefined, code);
+  assert.equal(diagnostic.kind, 'qualification');
+  assert.equal(diagnostic.linkIndex, index);
+  assert.equal(Object.hasOwn(diagnostic, 'path'), false);
+  return diagnostic;
+}
 
 test('v3 requires explicit height and physical bindings; older schemas are never silently filled', () => {
   for (const version of [1, 2]) {
@@ -302,8 +309,10 @@ test('equal seam heights do not hide an interior hill, slope or vertical offset'
     const input = fixture();
     input.sections[1].height = height(points);
     const result = await qualify(input);
-    const diagnostic = failure(result);
-    assert.ok(diagnostic.path.endsWith('/height'));
+    qualificationFailure(
+      result,
+      points.every((point) => point[1] === points[0][1]) ? 'physical_height_mismatch' : 'nonhorizontal_overlap',
+    );
   }
   const input = fixture();
   for (const section of input.sections)
@@ -318,7 +327,7 @@ test('all material changes including the closed guard endpoint participate in ov
   for (const station of [73, 90]) {
     const input = fixture();
     input.sections[1].physicalBindings[0].sections.push({ anchor: anchor(station), material: 'GRASS' });
-    failure(await qualify(input), '/links/0/overlap/physicalBindings');
+    qualificationFailure(await qualify(input));
     input.sections[0].physicalBindings[0].sections.push({ anchor: anchor(station + 140), material: 'GRASS' });
     ok(await qualify(input));
   }
@@ -354,7 +363,7 @@ test('the full support field includes nonselected shoulder geometry and its inte
       [74, 2],
     ].map(([s, l]) => ({ anchor: anchor(s), l })),
   );
-  failure(await qualify(input), '/links/0/overlap/physicalBindings');
+  qualificationFailure(await qualify(input));
 });
 
 test('same-material subdivisions coalesce while material seams and exact activation points remain observable', async () => {
@@ -373,7 +382,7 @@ test('same-material subdivisions coalesce while material seams and exact activat
   d.physicalBindings.push({ bandId: 'right', sections: [{ anchor: anchor(0), material: 'ASPHALT' }] });
   ok(await qualify(input));
   d.physicalBindings[1].sections[0].material = 'DIRT';
-  failure(await qualify(input), '/links/0/overlap/physicalBindings');
+  qualificationFailure(await qualify(input));
 });
 
 test('fractional longitudinal activation keeps exact original ruler stations in physical qualification', async () => {
@@ -386,18 +395,18 @@ test('fractional longitudinal activation keeps exact original ruler stations in 
   d.physicalBindings.push({ bandId: 'after', sections: [{ anchor: anchor(1.23), material: 'ASPHALT' }] });
   ok(await qualify(input));
   d.physicalBindings[1].sections[0].material = 'DIRT';
-  failure(await qualify(input), '/links/0/overlap/physicalBindings');
+  qualificationFailure(await qualify(input));
 });
 
 test('geometry-only fork fixtures fail complete physical qualification; every merge incoming is checked', async () => {
   const input = forkCourseDocument(fixture());
   const course = ok(await compileCourseDocument(input));
-  failure(compileCoursePhysicalOverlaps(course.links), '/links/0/overlap/physicalBindings');
+  qualificationFailure(compileCoursePhysicalOverlaps(course.links));
   const incoming = course.sections.at(-1).incoming;
   assert.equal(ok(compileCoursePhysicalOverlaps(incoming)).links.length, 3);
   input.sections[3].physicalBindings[0].sections[0].material = 'GRASS';
   const changed = ok(await compileCourseDocument(input));
-  failure(compileCoursePhysicalOverlaps(changed.sections.at(-1).incoming), '/links/2/overlap/physicalBindings');
+  qualificationFailure(compileCoursePhysicalOverlaps(changed.sections.at(-1).incoming), 'physical_support_mismatch', 2);
 });
 
 test('material stations lost in seam-relative coordinates fail instead of silently erasing a profile interval', async () => {
@@ -405,7 +414,7 @@ test('material stations lost in seam-relative coordinates fail instead of silent
   input.links[0].overlap.behind = 200;
   input.sections[1].ports[0].anchor = anchor(250);
   input.sections[0].physicalBindings[0].sections.push({ anchor: anchor(1e-15), material: 'ASPHALT' });
-  const diagnostic = failure(await qualify(input), '/links/0/overlap/source');
+  const diagnostic = qualificationFailure(await qualify(input), 'semantic_compile_failure');
   assert.match(diagnostic.message, /distinguishable/);
 });
 

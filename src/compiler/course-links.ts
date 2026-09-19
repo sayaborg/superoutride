@@ -2,12 +2,12 @@ import { guidePathToWorld } from '../core/guide-curve.js';
 import { rasterPathToWorld } from '../core/raster-path.js';
 import { wrapAngle, type Vec2 } from '../core/math.js';
 import { compilePlanarTransform, transformPlanarPoint } from '../core/planar-transform.js';
-import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from './course-bands.js';
-import { CourseInputError } from './course-diagnostics.js';
-import type { CompiledCourseAnchor } from './course-geometry.js';
+import { courseBoundaryAt, type CompiledBoundary, type CompiledCarriageway } from '../course/course-bands.js';
+import { requireCourse } from '../course/course-diagnostics.js';
+import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import type { CompiledLink, CompiledPort, CompiledSection } from './course-graph.js';
-import type { CourseDocument, SectionDocument } from './course-document.js';
-import { compileCourseOverlapStations } from './course-overlap-stations.js';
+import type { CourseDocument, SectionDocument } from '../course/course-document.js';
+import { compileCourseOverlapStations } from '../course/course-overlap-stations.js';
 
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.carriageway-link',
@@ -18,10 +18,6 @@ export const COURSE_LINK_RECIPE = Object.freeze({
   overlap:
     'authored/Guide/Raster straight guards; both rulers/boundaries/activations partitioned; quadratic difference Bernstein hull',
 });
-
-function semantic(condition: boolean, path: string, message: string): asserts condition {
-  if (!condition) throw new CourseInputError('semantic_compile_failure', path, message);
-}
 
 function edges(
   carriageway: CompiledCarriageway,
@@ -37,11 +33,15 @@ function edges(
         courseBoundaryAt(a.left, end) -
         (courseBoundaryAt(b.left, start) + courseBoundaryAt(b.left, end)),
     );
-  semantic(bands.length > 0, path, `Carriageway ${JSON.stringify(carriageway.id)} does not cover [${start}, ${end}]`);
+  requireCourse(
+    bands.length > 0,
+    path,
+    `Carriageway ${JSON.stringify(carriageway.id)} does not cover [${start}, ${end}]`,
+  );
   const left = bands[0]!.left,
     right = bands.at(-1)!.right;
   for (const s of [start, end])
-    semantic(
+    requireCourse(
       courseBoundaryAt(right, s) > courseBoundaryAt(left, s),
       path,
       `Carriageway ${JSON.stringify(carriageway.id)} needs positive width at s=${s}`,
@@ -60,14 +60,14 @@ export function coursePortLateral(port: CompiledPort): number {
 }
 
 /** Graph construction phase; the owning course compiler closes and freezes Section back-references. */
-export function compileCoursePort<Material>(
+export function compileCoursePort(
   source: SectionDocument['ports'][number],
-  section: CompiledSection<Material>,
+  section: CompiledSection,
   anchor: CompiledCourseAnchor,
   carriageway: CompiledCarriageway,
   path: string,
-): CompiledPort<Material> {
-  semantic(
+): CompiledPort {
+  requireCourse(
     anchor.s > 0 && anchor.s < section.raster.length,
     `${path}/anchor`,
     'Port must lie inside the finite Section domain',
@@ -89,20 +89,20 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
     seam = port.anchor.s,
     start = seam - behind,
     end = seam + ahead;
-  semantic(
+  requireCourse(
     start >= 0 && start < seam && end > seam && end <= section.raster.length,
     path,
     `Overlap [${start}, ${end}] must fit Section ${JSON.stringify(section.id)} with representable extent on both sides`,
   );
   for (const primitive of section.primitives)
     if (primitive.sStart < end && primitive.sEnd > start)
-      semantic(primitive.source.kind === 'straight', path, 'Overlap must lie in authored straight primitives');
+      requireCourse(primitive.source.kind === 'straight', path, 'Overlap must lie in authored straight primitives');
   for (const segment of section.guide.segments)
     if (segment.sStart < end && segment.sEnd > start)
-      semantic(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet');
+      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet');
   for (const segment of section.raster.segments)
     if (segment.sStart < end && segment.sStart + segment.length > start)
-      semantic(
+      requireCourse(
         Math.abs(wrapAngle(segment.heading - port.pose.heading)) <= COURSE_LINK_RECIPE.headingToleranceRadians,
         path,
         'Overlap Raster headings must agree with the port forward direction',
@@ -119,14 +119,14 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
 }
 
 /** Entire matched pavement envelope, for both Raster and Guide, not just seam-center agreement. */
-export function compileCourseLink<Material>(
+export function compileCourseLink(
   id: string,
-  source: CompiledPort<Material>,
-  destination: CompiledPort<Material>,
+  source: CompiledPort,
+  destination: CompiledPort,
   overlap: { readonly behind: number; readonly ahead: number },
   path: string,
-): CompiledLink<Material> {
-  semantic(
+): CompiledLink {
+  requireCourse(
     source.kind === 'exit' && destination.kind === 'entry',
     path,
     'Link must connect an exit Port to an entry Port',
@@ -154,7 +154,7 @@ export function compileCourseLink<Material>(
       [source, destination].forEach((p, index) => {
         for (const side of [0, 1] as const) {
           const s = index === 0 ? start.source : start.destination;
-          semantic(
+          requireCourse(
             Math.abs(courseBoundaryAt(previous![index]![side], s) - courseBoundaryAt(bounds[index]![side], s)) <=
               COURSE_LINK_RECIPE.positionToleranceMeters,
             path,
@@ -183,7 +183,7 @@ export function compileCourseLink<Material>(
           );
         const control = { x: 2 * mid.x - (a.x + b.x) / 2, z: 2 * mid.z - (a.z + b.z) / 2 };
         // A quadratic lies inside its Bernstein control hull; this bounds the full cell error.
-        semantic(
+        requireCourse(
           [a, control, b].every((v) => Math.hypot(v.x, v.z) <= COURSE_LINK_RECIPE.positionToleranceMeters),
           path,
           `${reader} carriageway edge ${side} disagrees over overlap delta [${start.delta}, ${end.delta}]`,
@@ -205,35 +205,35 @@ export function validateCourseTopology(
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}/ports`,
       entries = section.ports.filter((p) => p.kind === 'entry');
-    semantic(entries.length <= 1, path, 'A Section has at most one entry Port; merges share it');
+    requireCourse(entries.length <= 1, path, 'A Section has at most one entry Port; merges share it');
     const exits = section.ports.filter((p) => p.kind === 'exit');
     for (const port of exits) {
-      semantic(
+      requireCourse(
         section.outgoing.filter((link) => link.source === port).length === 1,
         path,
         `Exit Port ${JSON.stringify(port.id)} needs exactly one Link`,
       );
       if (entries[0])
-        semantic(
+        requireCourse(
           port.anchor.s > entries[0].anchor.s,
           path,
           'Exit chainage must follow entry chainage with positive span',
         );
     }
-    semantic(
+    requireCourse(
       new Set(exits.map((p) => p.carriageway)).size === exits.length,
       path,
       'Fork exits must name distinct Carriageways',
     );
-    semantic(
+    requireCourse(
       section.outgoing.length <= (type === 'BRANCH' ? 3 : 1),
       path,
       'Too many outgoing Links for the course type',
     );
-    if (type === 'LINEAR') semantic(section.incoming.length <= 1, path, 'LINEAR cannot merge');
+    if (type === 'LINEAR') requireCourse(section.incoming.length <= 1, path, 'LINEAR cannot merge');
   }
   if (type === 'CIRCUIT') {
-    semantic(
+    requireCourse(
       sections.length === 1 &&
         links.length === 1 &&
         links[0]!.source.section === entry &&
@@ -243,11 +243,11 @@ export function validateCourseTopology(
     );
     return;
   }
-  semantic(entry.incoming.length === 0, '/entrySectionId', 'Entry Section cannot have an incoming Link');
+  requireCourse(entry.incoming.length === 0, '/entrySectionId', 'Entry Section cannot have an incoming Link');
   const visited = new Set<CompiledSection>(),
     active = new Set<CompiledSection>();
   const visit = (section: CompiledSection): void => {
-    semantic(!active.has(section), '/links', 'LINEAR/BRANCH topology must be acyclic');
+    requireCourse(!active.has(section), '/links', 'LINEAR/BRANCH topology must be acyclic');
     if (visited.has(section)) return;
     active.add(section);
     for (const link of section.outgoing) visit(link.destination.section);
@@ -255,5 +255,9 @@ export function validateCourseTopology(
     visited.add(section);
   };
   visit(entry);
-  semantic(visited.size === sections.length, '/sections', 'Every Section must be reachable from the entry Section');
+  requireCourse(
+    visited.size === sections.length,
+    '/sections',
+    'Every Section must be reachable from the entry Section',
+  );
 }
