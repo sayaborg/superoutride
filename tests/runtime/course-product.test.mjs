@@ -102,7 +102,7 @@ test('actual browser root loads saved content and runs input, recovery, vehicle 
     .get('vehicle-selector-buttons')
     .children.find((e) => e.textContent === 'RC30')
     .emit('click');
-  dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
+  for (let i = 0; i < 10; i += 1) dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
   dom.frame(51);
   assert.ok(dom.calls.filter((c) => c[0] === 'putImageData').length >= 4);
 });

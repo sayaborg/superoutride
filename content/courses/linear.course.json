@@ -833,7 +833,18 @@
           "bandIds": ["lane-left", "center", "lane-right"]
         }
       ],
-      "ports": [],
+      "ports": [
+        {
+          "id": "start",
+          "kind": "entry",
+          "anchor": {
+            "kind": "primitive",
+            "primitiveId": "start",
+            "fraction": 0.075
+          },
+          "carriagewayId": "road"
+        }
+      ],
       "assetIds": ["asphalt", "grass", "stripe", "shoulder", "coast-sky", "hill-sky", "tree"],
       "fork": null,
       "presentation": {

@@ -34,7 +34,13 @@ try {
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   const scene = createCourseScene(compiled.value.entry);
   const shell = createBrowserDrivingShell(scene.world, 0);
-  const lifecycle = shell.mountControls({ world: () => scene.world, recoveryProfile: RECOVERY_PROFILE });
+  const lifecycle = shell.mountControls({
+    world: () => scene.world,
+    recoveryProfile: RECOVERY_PROFILE,
+    resync: () => {
+      scene.recoverAtEntry(shell.vehicle, shell.recovery);
+    },
+  });
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   status.remove();
   shell.start(
@@ -46,7 +52,8 @@ try {
         dt,
         profile: RECOVERY_PROFILE,
       });
-      lifecycle.update(dt, recovered !== null);
+      const entryRecovered = scene.recoverAtEntry(shell.vehicle, shell.recovery);
+      lifecycle.update(dt, recovered !== null || entryRecovered);
     },
     () => {
       const result = scene.render(

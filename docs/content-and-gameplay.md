@@ -13,7 +13,9 @@ single-Section driving readers, saved presentation and the ordinary renderer. Th
 this same assembly. The current provisional course is a finite 2.8 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
-zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry.
+zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains 30 m of source behind the
+playable entrance. Reverse travel or repeated manual recovery past that entrance uses ordinary
+legal-route recovery to the Port before camera observation, without progress credit.
 
 The previous three roots and paged-ground path remain until the separate M1b purge. They establish
 no compatibility requirement for the new course.

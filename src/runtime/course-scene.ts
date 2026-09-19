@@ -1,5 +1,9 @@
 import type { CompiledSection } from '../compiler/course-graph.js';
 import type { CameraState } from '../camera/camera.js';
+import { CURRENT_CAMERA_PROFILE } from '../camera/current-camera-profile.js';
+import { coursePortLateral } from '../compiler/course-links.js';
+import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
+import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { renderDriving, type GroundColorReader } from '../render/renderer.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
@@ -11,6 +15,9 @@ import { createCourseSectionDrivingSource } from './course-section-driving-view.
 /** One assembly shared by browser play and offline frames. Lower layers see ordinary readers. */
 export function createCourseScene(section: CompiledSection) {
   if (!section.presentation) throw new RangeError('Driving requires saved Section presentation');
+  const entry = section.ports.find((port) => port.kind === 'entry');
+  if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
+    throw new RangeError('Driving requires an entry Port with camera space behind it');
   const traversal = createCourseGeometryTraversal(section, { retainBehind: 0, selectAhead: 0, maxOccurrences: 2 });
   const extent = { behind: 0, ahead: 0 };
   const view = createCourseGeometryView(traversal.snapshot(), {
@@ -52,6 +59,15 @@ export function createCourseScene(section: CompiledSection) {
   const worldSprites = presentation.sprites.map((placement) => placement.sprite);
   return Object.freeze({
     world,
+    recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
+      if (vehicle.course.s >= entry.anchor.s) return false;
+      recoverVehicleToGuideCoordinate(world, vehicle, {
+        state: recovery,
+        reason: 'wrong-course',
+        target: { s: entry.anchor.s, l: coursePortLateral(entry) },
+      });
+      return true;
+    },
     render(
       target: Parameters<typeof renderDriving>[0],
       vehicle: VehicleRenderReadState,
