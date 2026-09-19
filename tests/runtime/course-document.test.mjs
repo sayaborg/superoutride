@@ -25,6 +25,12 @@ const ok = (result) => {
 function failure(result, code, at) {
   assert.equal(result.ok, false);
   assert.equal(Object.hasOwn(result, 'value'), false, 'failure must not publish a partial product');
+  if ('reason' in result) {
+    assert.equal(result.reason, code);
+    assert.equal('diagnostics' in result, false);
+    assert.equal(at, undefined);
+    return result;
+  }
   assert.equal(result.diagnostics[0].code, code);
   if (at !== undefined) assert.equal(result.diagnostics[0].path, at);
   assert.ok(result.diagnostics[0].message.length > 0);
@@ -246,11 +252,11 @@ test('schema admission reports syntax, format/version, shape and numeric domains
   ]) {
     const input = fixture();
     input[key] = value;
-    failure(readCourseDocument(input), 'unsupported_version', `/${key}`);
+    failure(readCourseDocument(input), key === 'format' ? 'unsupported_format' : 'unsupported_version', `/${key}`);
   }
   const units = fixture();
   units.units.angle = 'rad';
-  failure(readCourseDocument(units), 'unsupported_version', '/units/angle');
+  failure(readCourseDocument(units), 'unsupported_units', '/units/angle');
   const missing = fixture();
   delete missing.sections[0].start.x;
   failure(readCourseDocument(missing), 'invalid_shape', '/sections/0/start/x');
@@ -438,8 +444,8 @@ test('admission and generated-geometry resource limits fail before excessive all
 
 test('project import is atomic and source edits invalidate all dependent output while retaining prior success', async () => {
   const project = createCourseProject();
-  failure(project.save(), 'semantic_compile_failure');
-  failure(await project.compile(), 'semantic_compile_failure');
+  failure(project.save(), 'no_source');
+  failure(await project.compile(), 'no_source');
   const first = ok(await project.importDocument(fixtureText));
   const original = project.getState();
   failure(await project.importDocument('{broken'), 'parse_failure');
@@ -511,6 +517,35 @@ test('late imports/builds cannot overwrite an intervening edit or newer import',
   assert.equal(project.getState().source.sections[0].primitives[0].length, 150);
   const latest = ok(await newer);
   assert.equal(ok(project.exportCompiled()), latest);
+});
+
+test('syntax/schema import rejection does not invalidate an already running compilation', async () => {
+  const project = createCourseProject();
+  ok(await project.importDocument(fixtureText));
+  for (const invalid of ['{broken', JSON.stringify({ format: 'unknown' })]) {
+    const before = project.getState(),
+      pending = project.compile();
+    const rejected = await project.importDocument(invalid);
+    assert.equal(rejected.ok, false);
+    assert.ok(rejected.diagnostics.every((d) => d.kind === 'input'));
+    assert.equal(project.getState(), before);
+    const compiled = ok(await pending);
+    assert.equal(ok(project.exportCompiled()), compiled);
+  }
+});
+
+test('ID admission rejects surrounding whitespace without silently renaming identifiers', () => {
+  for (const id of [' name', 'name ', '\tname', 'name\n', '　name']) {
+    const input = fixture();
+    input.id = id;
+    failure(readCourseDocument(input), 'invalid_shape', '/id');
+    assert.equal(input.id, id);
+  }
+  const input = fixture();
+  input.id = '任意 / name';
+  assert.equal(ok(parseCourseDocument(ok(saveCourseDocument(input)))).id, input.id);
+  input.sections[0].carriageways[0].bandIds[0] = ' left';
+  failure(readCourseDocument(input), 'invalid_shape', '/sections/0/carriageways/0/bandIds/0');
 });
 
 test('unexpected platform failures propagate and cannot replace the valid project', async (t) => {

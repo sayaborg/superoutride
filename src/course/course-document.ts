@@ -133,7 +133,8 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
 }
 
 function id(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim()) fail('invalid_shape', path, 'Expected a nonempty stable ID');
+  if (typeof value !== 'string' || !value.trim() || value !== value.trim())
+    fail('invalid_shape', path, 'Expected a nonempty stable ID without surrounding whitespace');
   if (value.length > COURSE_DOCUMENT_LIMITS.idCodeUnits)
     fail('resource_limit', path, 'Stable ID exceeds 128 code units');
   return value;
@@ -147,8 +148,13 @@ function number(value: unknown, path: string, min: number, max: number, exclusiv
   return Object.is(value, -0) ? 0 : value;
 }
 
-function literal<T extends string | number>(value: unknown, expected: T, path: string): T {
-  if (value !== expected) fail('unsupported_version', path, `Expected ${JSON.stringify(expected)}`);
+function literal<T extends string | number>(
+  value: unknown,
+  expected: T,
+  path: string,
+  code: 'unsupported_version' | 'unsupported_format' | 'unsupported_units',
+): T {
+  if (value !== expected) fail(code, path, `Expected ${JSON.stringify(expected)}`);
   return expected;
 }
 
@@ -329,7 +335,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 3, '/version');
+      literal((input as Record<string, unknown>).version, 3, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
@@ -342,8 +348,8 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'links',
       'assets',
     ]);
-    const format = literal(v.format, 'superoutride.course', '/format');
-    const version = literal(v.version, 3, '/version');
+    const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
+    const version = literal(v.version, 3, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
@@ -356,8 +362,8 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       version,
       id: id(v.id, '/id'),
       units: Object.freeze({
-        length: literal(units.length, 'm', '/units/length'),
-        angle: literal(units.angle, 'deg', '/units/angle'),
+        length: literal(units.length, 'm', '/units/length', 'unsupported_units'),
+        angle: literal(units.angle, 'deg', '/units/angle', 'unsupported_units'),
       }),
       geometryRecipe: Object.freeze({ id: id(recipe.id, '/geometryRecipe/id'), version: recipeVersion }),
       type: v.type,
@@ -389,8 +395,8 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
           fail('invalid_shape', `${at}/sha256`, 'Expected lowercase SHA-256 of saved sprite-lod bytes');
         return Object.freeze({
           id: id(a.id, `${at}/id`),
-          format: literal(a.format, 'superoutride.sprite-lod', `${at}/format`),
-          version: literal(a.version, 1, `${at}/version`),
+          format: literal(a.format, 'superoutride.sprite-lod', `${at}/format`, 'unsupported_format'),
+          version: literal(a.version, 1, `${at}/version`, 'unsupported_version'),
           sha256: a.sha256,
         });
       }),

@@ -49,7 +49,7 @@ These are synthetic host workloads, not named-master acceptance. Recipe identiti
 versions/operative parameters, not explanatory prose.
 
 Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
-an unsupported-version diagnostic. Course compiler v7 includes the pinned carriageway-Link recipe v1
+an unsupported-version diagnostic. Course compiler v8 includes the pinned carriageway-Link recipe v1
 and physical recipe v2.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
@@ -59,7 +59,12 @@ remains in progress.
 
 [Occurrence/view tests](../tests/runtime/course-geometry-view.test.mjs) establish offline canonical
 traversal history, actual merge predecessors, inverse visited-Link traversal, bounded loop history,
-shared source/assets and active-frame Raster/Guide/Band mapping. All four consumer intervals are
+shared source/assets and active-frame Raster/Guide/Band mapping. Explicitly selected unvisited occurrences
+are separate from history and the active frame, support lookahead without forward/reverse, retain identity
+through visits and reverse, and have declared distance/count bounds. Traversal/view and project state
+outcomes no longer pretend to be authoring diagnostics. Failed syntax/schema imports preserve pending
+compilation; format/units have distinct codes, and padded IDs are rejected without renaming.
+All four consumer intervals are
 explicit and include the admitted pose interval/step advance; missing history/selection/geometry
 coverage is diagnosed. The [offline entry](development.md#course-document-compiler) can inspect an
 explicit itinerary. This remains geometry-only: current driving reader interfaces and full physical/
@@ -108,10 +113,9 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 
 ### Gate 2 remaining order
 
-1. Introduce selected-but-uncommitted occurrences, distinct from actual traversal history and active
-   frames. Migrate exploration/session failure outcomes away from authoring diagnostics. Connect one
-   seam-free LINEAR path through real physics/camera/render readers early; measure actual demands and
-   view reconstruction/allocation. Do not manufacture history with forward/reverse for lookahead.
+1. Connect one seam-free LINEAR path through the graph, bounded view and real physics/camera/render
+   readers; measure actual demands and view reconstruction/allocation. Selection/history foundations
+   are implemented, but actual consumer containment and mapped physical readers remain unqualified.
 2. Admit the real presentation inputs required for full common-content qualification. Prove actual
    query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
    merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.

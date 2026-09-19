@@ -2,6 +2,8 @@ type CourseDiagnosticCode =
   | 'parse_failure'
   | 'invalid_shape'
   | 'unsupported_version'
+  | 'unsupported_format'
+  | 'unsupported_units'
   | 'duplicate_id'
   | 'unresolved_reference'
   | 'invalid_numeric_domain'
@@ -11,8 +13,7 @@ type CourseDiagnosticCode =
   | 'coverage_gap'
   | 'nonhorizontal_overlap'
   | 'physical_height_mismatch'
-  | 'physical_support_mismatch'
-  | 'stale_source';
+  | 'physical_support_mismatch';
 
 interface InputDiagnostic {
   readonly kind: 'input';

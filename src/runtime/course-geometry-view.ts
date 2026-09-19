@@ -10,7 +10,6 @@ import {
   type PlanarTransform,
 } from '../core/planar-transform.js';
 import { courseBandAt } from '../course/course-bands.js';
-import { CourseInputError, courseFailure, courseSuccess } from '../course/course-diagnostics.js';
 import { coursePortLateral } from '../compiler/course-links.js';
 import type { CourseOccurrence, CourseOccurrenceHistory } from './course-occurrence.js';
 
@@ -36,6 +35,7 @@ interface Mapping {
   readonly sourceLateralOrigin: number;
 }
 const consumerNames = ['cameraRender', 'contact', 'driverLookahead', 'reverseRecovery'] as const;
+class ViewAdmissionError extends Error {}
 const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
 
 function numeric(value: number, label: string) {
@@ -49,8 +49,11 @@ const viewS = (mapping: Mapping, sourceS: number) => mapping.viewAnchorS + (sour
  * physical transition readiness is implied. History comes from the traversal owner; no ID joins.
  */
 export function createCourseGeometryView(history: CourseOccurrenceHistory, demand: ViewDemand) {
-  const { occurrences, active } = history;
-  const index = occurrences.indexOf(active);
+  if (!history || !Array.isArray(history.occurrences) || !Array.isArray(history.selected))
+    throw new TypeError('View requires separate visited history and selected occurrences');
+  const { active } = history;
+  const occurrences = [...history.occurrences, ...history.selected];
+  const index = history.occurrences.indexOf(active);
   if (index < 0) throw new RangeError('Active occurrence must belong to retained history');
   for (let i = 1; i < occurrences.length; i += 1) {
     const previous = occurrences[i - 1]!,
@@ -131,13 +134,14 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
   );
   for (const required of requirements) {
     if (required.start < availableStart || required.end > availableEnd)
-      return courseFailure<never>(
-        new CourseInputError(
-          'semantic_compile_failure',
-          `/consumers/${required.consumer}`,
-          `${required.consumer} requires [${required.start}, ${required.end}] for pose [${minS}, ${maxS}] + step ${maxAdvance}; retained/selected geometry covers [${availableStart}, ${availableEnd}]`,
-        ),
-      );
+      return Object.freeze({
+        ok: false as const,
+        reason: 'coverage_gap' as const,
+        consumer: required.consumer,
+        required: Object.freeze({ start: required.start, end: required.end }),
+        available: Object.freeze({ start: availableStart, end: availableEnd }),
+        message: `${required.consumer} requires [${required.start}, ${required.end}] for pose [${minS}, ${maxS}] + step ${maxAdvance}; retained/selected geometry covers [${availableStart}, ${availableEnd}]`,
+      });
   }
   try {
     const length = end - start;
@@ -147,11 +151,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
       availableEnd,
     ].map((s) => s - start);
     if (cuts.some((s, i) => !Number.isFinite(s) || (i > 0 && s <= cuts[i - 1]!)))
-      throw new CourseInputError(
-        'semantic_compile_failure',
-        '/view',
-        'Visited seam spans must remain representable in the view ruler',
-      );
+      throw new ViewAdmissionError('Selected/visited seam spans must remain representable in the view ruler');
     const spans = mappings.flatMap((original, i) => {
       const mapping = Object.freeze({ ...original, viewAnchorS: original.viewAnchorS - start });
       const section = mapping.occurrence.section;
@@ -176,11 +176,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         const mapped = s === sourceStart ? cuts[i]! : s === sourceEnd ? cuts[i + 1]! : viewS(mapping, s);
         if (mapped < a || mapped > b) continue;
         if (stations.has(mapped) && stations.get(mapped) !== s)
-          throw new CourseInputError(
-            'semantic_compile_failure',
-            '/view',
-            'Distinct source stations collapse in the view ruler',
-          );
+          throw new ViewAdmissionError('Distinct source stations collapse in the view ruler');
         stations.set(mapped, s);
       }
       const address = (s: number, l: number) =>
@@ -228,8 +224,9 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
         heading: wrapAngle(point.heading + Math.atan2(transform.sine, transform.cosine)),
       };
     };
-    return courseSuccess(
-      Object.freeze({
+    return Object.freeze({
+      ok: true as const,
+      value: Object.freeze({
         scope: 'geometry-only' as const,
         frame: active,
         length,
@@ -260,9 +257,10 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           );
         },
       }),
-    );
+    });
   } catch (error) {
-    if (error instanceof CourseInputError) return courseFailure<never>(error);
+    if (error instanceof ViewAdmissionError)
+      return Object.freeze({ ok: false as const, reason: 'unrepresentable_view' as const, message: error.message });
     throw error;
   }
 }

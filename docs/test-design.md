@@ -71,6 +71,11 @@ and shared sources after many loop traversals; missing history must fail without
 source addresses and narrow reader outputs across seams, exact Band activation stations and local
 Guide bounds. Exercise each consumer's interval over its complete declared pose/step envelope. These
 geometry checks do not replace product consumer, contact, camera or picture-continuity integration.
+Selection tests prove that adjacent/multi-Link lookahead leaves the active frame and visited arrays
+unchanged, then promotes the same instance only on advance. Preserve pending identity across reverse,
+reject changing a chosen successor, and exercise both distance/count bounds without partial mutation.
+Runtime/project state failures must not contain fabricated authoring pointers. Syntax/schema import
+failure must leave an in-flight current-source compilation publishable.
 
 Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
 cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,

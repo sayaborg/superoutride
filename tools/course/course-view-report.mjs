@@ -19,22 +19,28 @@ export function courseViewReport(course, args) {
   )
     throw new TypeError('View arguments: <source-s> <behind> <ahead> <active-index> [visited-Link-ID ...]');
   // Retain this finite explicit itinerary. Interactive traversal can use a consumer-derived smaller extent.
-  const traversal = createCourseGeometryTraversal(course.entry, Number.MAX_VALUE);
-  for (const id of linkIds) {
-    const link = traversal.snapshot().active.section.outgoing.find((value) => value.id === id);
+  const traversal = createCourseGeometryTraversal(course.entry, {
+    retainBehind: Number.MAX_VALUE,
+    selectAhead: Number.MAX_VALUE,
+    maxOccurrences: Math.max(2, linkIds.length + 1),
+  });
+  let cursor = traversal.snapshot().active;
+  for (const [index, id] of linkIds.entries()) {
+    const link = cursor.section.outgoing.find((value) => value.id === id);
     if (!link)
       return {
         ok: false,
-        diagnostics: [
-          { code: 'unresolved_reference', path: '/itinerary', message: `No outgoing Link ${JSON.stringify(id)}` },
-        ],
+        reason: 'unknown_link',
+        index,
+        message: `No outgoing Link ${JSON.stringify(id)}`,
       };
-    const result = traversal.forward(link);
+    const result = traversal.select(cursor, link);
     if (!result.ok) return result;
-  }
-  for (let i = linkIds.length; i > activeIndex; i -= 1) {
-    const result = traversal.reverse();
-    if (!result.ok) return result;
+    cursor = result.value;
+    if (index < activeIndex) {
+      const advanced = traversal.forward();
+      if (!advanced.ok) return advanced;
+    }
   }
   const extent = { behind, ahead };
   const result = createCourseGeometryView(traversal.snapshot(), {
@@ -48,6 +54,8 @@ export function courseViewReport(course, args) {
     value: {
       scope: view.scope,
       frame: { section: view.frame.section.id, occurrence: view.frame.ordinal },
+      visitedOccurrences: traversal.snapshot().occurrences.length,
+      selectedOccurrences: traversal.snapshot().selected.length,
       length: view.length,
       coverage: view.coverage,
       spans: view.spans.map((span) => ({

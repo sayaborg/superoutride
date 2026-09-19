@@ -346,7 +346,7 @@ test('activation edits invalidate publication and failed replacement preserves t
   for (const b of source.boundaries) if (b.knots[0].anchor.s === 37) b.knots[0].anchor.s = 36;
   for (const b of source.physicalBindings) if (b.sections[0].anchor.s === 37) b.sections[0].anchor.s = 36;
   ok(project.editDocument(changed));
-  assert.equal(project.exportCompiled().diagnostics[0].code, 'stale_source');
+  assert.deepEqual(project.exportCompiled(), { ok: false, reason: 'stale_source' });
   const pending = project.compile();
   source.bands[0].end.s = 300;
   const product = ok(await pending);

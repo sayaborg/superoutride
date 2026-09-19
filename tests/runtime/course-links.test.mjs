@@ -31,6 +31,12 @@ const ok = (result) => {
 const failure = (result, code, path, message) => {
   assert.equal(result.ok, false);
   assert.equal('value' in result, false);
+  if ('reason' in result) {
+    assert.equal(result.reason, code);
+    assert.equal('diagnostics' in result, false);
+    assert.equal(path, undefined);
+    return;
+  }
   assert.equal(result.diagnostics[0].code, code);
   if (path) assert.equal(result.diagnostics[0].path, path);
   if (message) assert.match(result.diagnostics[0].message, message);

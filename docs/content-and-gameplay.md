@@ -92,7 +92,8 @@ appearance bindings, placements and rules are not yet wire fields.
 | Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                                       |
 | Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                                         |
 
-IDs are opaque nonblank strings, compared exactly without Unicode/whitespace normalization. Course ID
+IDs are opaque nonblank strings without surrounding whitespace, compared exactly without Unicode/
+whitespace normalization. Admission rejects padded IDs rather than silently renaming them. Course ID
 is external identity; Section, Link and asset IDs each have a document-wide scope. Primitive, Boundary,
 Band, Carriageway and Port IDs each have a separate Section-local scope. Duplicate declaration IDs fail
 admission. References resolve within their declared scope, never by array position or naming convention.
@@ -360,13 +361,23 @@ whole reusable source, own geographical separation qualification.
 
 [Geometry traversal](../src/runtime/course-occurrence.ts) is a live **offline exploration adapter** over
 canonical Section/Link references. Each immutable occurrence has a traversal ordinal, reusable Section
-and actual incoming Link. Its owner retains an ordered history and an active occurrence; none is stored
-inside CompiledCourse. Ordinals establish local instance identity, not checkpoint or lap credit.
-Forward exploration requires an explicit canonical outgoing Link. Reverse uses the inverse of the
+and chosen incoming Link. Its owner separately retains actual visited `occurrences`, their `active`
+frame, and an ordered unvisited `selected` frontier; none is stored inside CompiledCourse. Ordinals
+establish local instance identity, not checkpoint or lap credit. `select(from, link)` requires a canonical
+retained forward occurrence and outgoing Link. It prepares the next instance without changing visited
+history or frame; the same selection is idempotent, and replacing an existing selected/visited successor
+returns `selection_locked`. Explicit selection may extend a pending itinerary without visiting it.
+`forward()` advances only to an already visited or selected successor; without one it returns
+`selection_required`. Visiting moves that same instance from selection to history. Reverse uses the inverse of the
 visited Link and the retained predecessor, including at a merge. Re-entry reuses the same occurrence;
 an already visited successor cannot silently be replaced. Failed operations preserve state.
 
-`retainBehind` declares the reverse-history distance in metres from the latest entered port. Retain
+All traversal construction limits are explicit. `retainBehind` declares the reverse-history distance
+in metres from the latest entered port. `selectAhead` bounds a new selection's distance beyond the
+active exit, retaining complete intersecting occurrences; the directly adjacent occurrence owns the
+seam even for zero ahead distance. `maxOccurrences` bounds total visited/selected metadata and is at
+least two. Exceeding either selection bound returns `selection_limit`/`occurrence_limit` without partial
+mutation. Retained selections survive reverse/re-entry and do not become fictitious visits. Retain
 whole intersecting occurrences, measured along visited seam spans, and discard older references after
 forward traversal. Initial history can be shorter than the request; a view must still prove coverage.
 Reverse beyond retention fails instead of guessing a predecessor or another lap. Occurrences share the
@@ -375,7 +386,7 @@ Snapshots own frozen arrays; callers retaining old snapshots also retain that hi
 This geometry adapter does not authorize an actor transition or implement route locks/recovery.
 
 [Geometry views](../src/runtime/course-geometry-view.ts) map a retained, explicitly followed itinerary
-into the active occurrence's coordinate basis. Compose the existing Link transforms locally; no global
+and selected itinerary into the still-active occurrence's coordinate basis. Compose the existing Link transforms locally; no global
 unwrapped world coordinates accumulate. Each span owns one source-to-view address mapping: paired
 chainage anchors, a derived lateral origin and an upright rigid transform. Lateral anchors are derived
 from canonical Carriageway boundaries, never reconstructed by projecting rounded world positions.
@@ -396,8 +407,9 @@ an adapter to the existing driving GuidePath, projection, terrain or physical-co
 Every request explicitly supplies camera/render, contact, driver-lookahead and reverse/recovery
 behind/ahead extents, plus a closed active-source pose interval and maximum fixed-step advance. For
 each consumer require `[minS-behind, maxS+maxAdvance+ahead]` inside retained/selected geometry. Failure
-identifies the consumer, pose, advance and required/available intervals in structured diagnostics.
-No fixed guard is inferred. Without a followed successor, coverage ends at the earliest exit seam;
+returns a runtime `coverage_gap` outcome with consumer and frozen required/available intervals, not a
+fabricated authoring JSON Pointer. Unrepresentable mapped stations/spans return `unrepresentable_view`.
+No fixed guard is inferred. Without an explicitly selected/visited successor, coverage ends at the earliest exit seam;
 no exit or parent runout is selected implicitly. A retained first occurrence with an incoming Link
 starts at its entry seam, rather than inventing discarded predecessor coverage. View queries outside
 the admitted interval fail explicitly. Malformed API values use TypeError/RangeError as in AGENTS.
@@ -427,7 +439,7 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 7, including the Link recipe v1 and physical recipe v2 descriptors.
+`superoutride.course-compiler` version 8, including the Link recipe v1 and physical recipe v2 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
 the physical descriptor also includes the existing material definitions. Section geometry recipe v4
@@ -437,14 +449,15 @@ product. Rebuilds on the supported execution contract reproduce values and ident
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.
 
-Public authoring operations return `{ok: true, value}` or `{ok: false, diagnostics}`. Input diagnostics have
+Document admission/compilation returns `{ok: true, value}` or `{ok: false, diagnostics}`. Input diagnostics have
 `kind: "input"`, `code`, a JSON Pointer `path` into the submitted input, and a causal `message`. The initial reader
 reports the first failure deterministically. Codes are `parse_failure`, `invalid_shape`,
-`unsupported_version`, `duplicate_id`, `unresolved_reference`, `invalid_numeric_domain`,
-`resource_limit`, `unsupported_feature`, `semantic_compile_failure`, and session `stale_source`.
-The separate Link qualification diagnostics and multi-failure behavior are specified above. Legacy
-exploration/project outcomes still use CourseResult; their runtime/session-specific outcome migration
-is required before the selected-occurrence/live-consumer cutover. Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
+`unsupported_version`, `unsupported_format`, `unsupported_units`, `duplicate_id`, `unresolved_reference`,
+`invalid_numeric_domain`, `resource_limit`, `unsupported_feature`, and `semantic_compile_failure`.
+Literal format/unit failures never claim to be version failures. Separate Link qualification diagnostics
+and multi-failure behavior are specified above. Traversal/view failures use their runtime-specific
+reasons, while project `no_source`/`stale_source` outcomes are `{ok: false, reason}` without document
+diagnostics. Wrong API shapes/domains use TypeError/RangeError. Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
 exceptions propagate. Failure returns no partial product.
 
 `createCourseProject` owns live source/publication state. `editDocument` installs an admitted immutable
@@ -454,6 +467,8 @@ the admitted value. `importDocument` instead parses and compiles off to the side
 and product together only on success. A failed import or build retains the current source and prior
 successful product; that retained product is historical comparison data after an edit and cannot be
 returned by `exportCompiled`. Generation checks discard builds/imports superseded by newer operations.
+Syntax/schema import rejection occurs before advancing the operation generation, preserving an
+already running compilation of the current source.
 
 Core, physics and renderer receive their ordinary readers/data. They do not import the course graph;
 current composition roots remain unchanged. Runtime Link/view, image, session and GUI integration

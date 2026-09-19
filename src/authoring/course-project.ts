@@ -1,4 +1,4 @@
-import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
+import { courseSuccess, type CourseResult } from '../course/course-diagnostics.js';
 import {
   parseCourseDocument,
   readCourseDocument,
@@ -13,17 +13,15 @@ interface CourseProjectState {
   /** Retained for comparison/recovery, never returned by exportCompiled after an edit. */
   readonly lastSuccessful: CompiledCourse | null;
 }
+type ProjectFailure = { readonly ok: false; readonly reason: 'no_source' | 'stale_source' };
+type ProjectResult<T> = CourseResult<T> | ProjectFailure;
 
 /** Live authoring session; documents and published products themselves are immutable snapshots. */
 export function createCourseProject() {
   let state: CourseProjectState = Object.freeze({ source: null, compiled: null, lastSuccessful: null });
   let generation = 0;
-  const noSource = () =>
-    courseFailure<never>(new CourseInputError('semantic_compile_failure', '', 'No CourseDocument is loaded'));
-  const stale = () =>
-    courseFailure<never>(
-      new CourseInputError('stale_source', '', 'Source changed or a newer operation superseded this build'),
-    );
+  const noSource = (): ProjectFailure => Object.freeze({ ok: false, reason: 'no_source' });
+  const stale = (): ProjectFailure => Object.freeze({ ok: false, reason: 'stale_source' });
   return Object.freeze({
     getState: (): CourseProjectState => state,
     editDocument(input: unknown): CourseResult<CourseDocument> {
@@ -35,10 +33,10 @@ export function createCourseProject() {
       }
       return courseSuccess(state.source!);
     },
-    save(): CourseResult<string> {
+    save(): ProjectResult<string> {
       return state.source ? saveCourseDocument(state.source) : noSource();
     },
-    async compile(): Promise<CourseResult<CompiledCourse>> {
+    async compile(): Promise<ProjectResult<CompiledCourse>> {
       if (!state.source) return noSource();
       const ticket = ++generation;
       const result = await compileCourseDocument(state.source);
@@ -47,17 +45,17 @@ export function createCourseProject() {
         state = Object.freeze({ source: state.source, compiled: result.value, lastSuccessful: result.value });
       return result;
     },
-    async importDocument(text: string): Promise<CourseResult<CompiledCourse>> {
-      const ticket = ++generation;
+    async importDocument(text: string): Promise<ProjectResult<CompiledCourse>> {
       const parsed = parseCourseDocument(text);
       if (!parsed.ok) return parsed;
+      const ticket = ++generation;
       const result = await compileCourseDocument(parsed.value);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: parsed.value, compiled: result.value, lastSuccessful: result.value });
       return result;
     },
-    exportCompiled(): CourseResult<CompiledCourse> {
+    exportCompiled(): ProjectResult<CompiledCourse> {
       return state.compiled ? courseSuccess(state.compiled) : stale();
     },
   });

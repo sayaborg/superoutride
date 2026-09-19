@@ -66,7 +66,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v3 and course compiler v7 include offline Port/Link graphs and geometry recipe v4.
+Schema v3 and course compiler v8 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
@@ -84,8 +84,10 @@ npm run compile:course -- tests/fixtures/transformed-loop.course.json --view 100
 ```
 
 After `--view`, arguments are active source s, behind metres, ahead metres, active occurrence index,
-then the visited Link IDs in order from the entry. The command resolves each ID once in its current
-outgoing scope, explores the itinerary and reverses to the requested active occurrence. All four
+then explicit Link IDs in order from the entry. The command resolves each ID once in its outgoing
+scope, visits only the prefix before the requested active occurrence, and selects the remaining
+unvisited suffix. The report separates visited/selected counts; it never fabricates visits and reverses
+to create lookahead. All four
 consumer ranges use the supplied extents in this inspection command; these numbers are not product
 camera/contact/driver/recovery defaults. The programmatic adapter accepts distinct ranges and a pose
 interval/step advance. The report includes geometry-only scope, source/frame mappings and interval
@@ -93,8 +95,9 @@ coverage; missing selection/history/coverage fails rather than extending a sourc
 
 [View tests](../tests/runtime/course-geometry-view.test.mjs) check rotated/translated mappings, exact
 seam and Band ownership, separate active frames, all actual merge predecessors, retained reverse
-history, 1,000 loop traversals with shared source/assets, multi-seam views, invalid-reference isolation,
-immutable snapshots, consumer-specific failures and the real offline command. This is not physical
+history, 1,000 loop traversals and 2,000 bounded select/advance operations with shared source/assets,
+multi-seam views, invalid-reference isolation, immutable snapshots, pending-state preservation,
+consumer-specific runtime outcomes and the real offline command. This is not physical
 straddling-contact, neighboring-actor rendering, camera/picture continuity or runtime-commit evidence.
 Those causal integration gates remain below and in NEXT; no current driving path has been removed.
 
