@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
+import { compileCoursePreLockCoverage, compileCourseExitVisibility } from '../../dist/compiler/course-fork-coverage.js';
 import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
 import { coursePresentationDemand } from '../../dist/runtime/course-presentation-demand.js';
@@ -25,7 +26,7 @@ import {
   createCourseSpriteObservation,
   reframeCourseSpriteObservation,
 } from '../../dist/render/course-sprite.js';
-import { cameraForkDocument } from '../helpers/course-common-presentation.mjs';
+import { cameraForkDocument, authoredForkDocument } from '../helpers/course-common-presentation.mjs';
 import { cameraProfile } from '../helpers/course-driving-probe.mjs';
 import { savedImageInput } from '../helpers/course-image-input.mjs';
 
@@ -187,6 +188,59 @@ function scene(port, deltaS, deltaL, yaw, pixels, assets, bounds, observed, from
   );
   return { ...result, vehicle, camera, observation };
 }
+
+test('pre-lock rendering uses parent content and each exit clear interval retains complete frame continuity', async () => {
+  const f = await authoredForkDocument(),
+    c = ok(await compileCourseDocument(f.document, f.inputs));
+  const d = demand(c),
+    preLock = {
+      ...d,
+      pose: { behind: 20, ahead: 0, left: 14, right: 14 },
+      consumers: {
+        ...d.consumers,
+        contact: { behind: 100, ahead: 100, left: 5, right: 5 },
+        driverLookahead: { behind: 0, ahead: 400, left: 0, right: 0 },
+        reverseRecovery: { behind: 120, ahead: 100, left: 5, right: 5 },
+      },
+    };
+  const q = ok(compileCoursePreLockCoverage(c.entry.fork, preLock));
+  const middle = c.entry.fork.regions[1].link.source;
+  const assets = createSpriteAssets(),
+    pixels = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];
+  const observed = { queries: 0, maxL: 0 };
+  for (const s of [180, 200])
+    for (const l of [-14, 0, 14])
+      for (const yaw of [-7, 7]) {
+        const offset = middle.anchor.s - c.entry.fork.lock.s;
+        const bounds = {
+          ...q.demand.bounds,
+          behind: offset + q.demand.bounds.behind,
+          ahead: q.demand.bounds.ahead - offset,
+        };
+        const output = scene(
+          middle,
+          s - middle.anchor.s,
+          l,
+          (yaw * Math.PI) / 180,
+          pixels[0],
+          assets,
+          bounds,
+          observed,
+        );
+        assert.ok(output.terrainOutputPixels > 1000);
+      }
+  const clear = ok(compileCourseExitVisibility(c.links, d));
+  for (const exit of clear.exits)
+    for (const yaw of [-7, 0, 7]) {
+      const link = exit.link,
+        ds = exit.parentSpecificVisibleEndUpperBound - link.source.anchor.s;
+      const bounds = { ...clear.presentation.demand.bounds, ...link.overlap };
+      const from = scene(link.source, ds, 0.0625, (yaw * Math.PI) / 180, pixels[0], assets, bounds, observed);
+      scene(link.destination, ds, 0.0625, (yaw * Math.PI) / 180, pixels[1], assets, bounds, observed, from, link);
+      assert.deepEqual(pixels[0].pixels, pixels[1].pixels, `${link.id} clear approach start at yaw ${yaw}`);
+    }
+  assert.ok(observed.queries > 100000);
+});
 
 test('derived camera/filter/scenery envelopes qualify every large static fork/merge incoming and contain actual renderer queries', async () => {
   const f = await fixture(),

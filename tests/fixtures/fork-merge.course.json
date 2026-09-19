@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 4,
+  "version": 5,
   "id": "linked-linear",
   "units": {
     "length": "m",
@@ -293,7 +293,8 @@
         }
       ],
       "assetIds": [],
-      "presentation": null
+      "presentation": null,
+      "fork": null
     },
     {
       "id": "child-0",
@@ -430,7 +431,8 @@
         }
       ],
       "assetIds": [],
-      "presentation": null
+      "presentation": null,
+      "fork": null
     },
     {
       "id": "child-1",
@@ -567,7 +569,8 @@
         }
       ],
       "assetIds": [],
-      "presentation": null
+      "presentation": null,
+      "fork": null
     },
     {
       "id": "child-2",
@@ -704,7 +707,8 @@
         }
       ],
       "assetIds": [],
-      "presentation": null
+      "presentation": null,
+      "fork": null
     },
     {
       "id": "shared",
@@ -832,7 +836,8 @@
         }
       ],
       "assetIds": [],
-      "presentation": null
+      "presentation": null,
+      "fork": null
     }
   ],
   "links": [

@@ -47,7 +47,7 @@ It reads a saved CourseDocument through the same admission/compiler/project boun
 the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
 Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
 format; reload the saved source through the compiler to reconstruct canonical references.
-[Content](content-and-gameplay.md#coursedocument-v4-implemented-compiler-boundary) owns the wire schema,
+[Content](content-and-gameplay.md#coursedocument-v5-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
 For documents declaring image assets, pass `--images directory` immediately after the document path,
@@ -78,7 +78,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v4 and course compiler v10 include offline Port/Link graphs and geometry recipe v4.
+Schema v5 and course compiler v11 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
@@ -156,6 +156,15 @@ Run the focused source/projection cases after a build:
 ```sh
 node --test tests/runtime/course-presentation-overlap.test.mjs tests/runtime/course-presentation-coverage.test.mjs tests/rendering/sprite-frame-observation.test.mjs
 ```
+
+Authored fork inspection is available through `--pre-lock Section-ID demand.json` and
+`--exit-visibility presentation-demand.json`, following the saved document and image directory.
+The normal report includes resolved lock/closure anchors and median-center regions. The scoped reports
+include all pre-lock consumer intervals or every Link's conservative clear approach interval, without
+serializing the graph. [Fork tests](../tests/runtime/course-fork-coverage.test.mjs) exercise saved files,
+canonical regions, actual vehicle queries, independent coverage failures and atomic project edits;
+[renderer tests](../tests/runtime/course-presentation-coverage.test.mjs) exercise parent pre-lock views
+and full-frame continuity at exit clear-interval starts. Transfer/actor cutover remains separate.
 
 ### Course geometry capacity
 

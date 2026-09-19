@@ -87,6 +87,14 @@ detect it. Check closed domain edges separately from half-open Band ownership an
 negative tests. Ordinary surface-reader agreement supports the physical proof; it is not evidence of
 camera visibility, real consumer containment or runtime readiness.
 
+Fork tests derive lock regions from saved geometry and canonical exits, preserving declaration-order
+independence and anchor provenance. Interior parallel-zone changes, unsupported medians and bad ordering
+must fail without replacing a project. Each pre-lock consumer can independently exhaust parent coverage;
+actual projection/contact/driver/recovery demand and ordinary parent rendering exercise that boundary
+without selecting a successor. Check every incoming Link's conservative clear interval, with complete
+frame comparisons at its approach start. Keep these proofs distinct from lateral-transfer dynamics and
+runtime envelope enforcement.
+
 Occurrence/view regressions preserve actual incoming references at every merge, distinguish repeated
 source identity from traversal/frame identity, and reverse the visited transform. Check bounded history
 and shared sources after many loop traversals; missing history must fail without reconstruction. Assert

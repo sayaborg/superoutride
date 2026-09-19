@@ -26,6 +26,7 @@ export interface CompiledSection {
   readonly ports: readonly CompiledPort[];
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];
+  readonly fork: CompiledFork | null;
 }
 
 export interface CompiledPort {
@@ -44,4 +45,16 @@ export interface CompiledLink {
   readonly destination: CompiledPort;
   readonly destinationFromSource: PlanarTransform;
   readonly overlap: { readonly behind: number; readonly ahead: number };
+}
+
+/** Static authored parallel-zone controls; no field choice or actor state. */
+export interface CompiledFork {
+  readonly section: CompiledSection;
+  readonly lock: CompiledCourseAnchor;
+  readonly closure: CompiledCourseAnchor;
+  readonly regions: readonly {
+    readonly link: CompiledLink;
+    readonly left: number;
+    readonly right: number;
+  }[];
 }

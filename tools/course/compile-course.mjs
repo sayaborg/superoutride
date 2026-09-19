@@ -18,10 +18,11 @@ import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-w
 import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
 import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
 import { coursePresentationDemand } from '../../dist/runtime/course-presentation-demand.js';
+import { compileCoursePreLockCoverage, compileCourseExitVisibility } from '../../dist/compiler/course-fork-coverage.js';
 
 async function contentQualification(course, arguments_) {
   if (arguments_[0] === '--physical-overlap') return compileCoursePhysicalOverlaps(course.links);
-  const text = await readFile(arguments_[1], 'utf8');
+  const text = await readFile(arguments_[0] === '--pre-lock' ? arguments_[2] : arguments_[1], 'utf8');
   let demand;
   try {
     demand = JSON.parse(text);
@@ -61,6 +62,19 @@ async function contentQualification(course, arguments_) {
   }
   if (arguments_[0] === '--presentation-domain' || arguments_[0] === '--presentation-camera')
     return compileCoursePresentationDomains(course.links, demand);
+  if (arguments_[0] === '--exit-visibility') return compileCourseExitVisibility(course.links, demand);
+  if (arguments_[0] === '--pre-lock') {
+    const section = course.sections.find((s) => s.id === arguments_[1]);
+    if (!section?.fork)
+      return courseFailure(
+        new CourseInputError(
+          'invalid_fork',
+          '/section',
+          'Pre-lock inspection requires an existing authored fork Section',
+        ),
+      );
+    return compileCoursePreLockCoverage(section.fork, demand);
+  }
   return compileCoursePhysicalDomains(course.links, demand);
 }
 
@@ -75,10 +89,14 @@ if (
     !(extra.length === 8 && extra[0] === '--driving-view') &&
     !(extra.length === 4 && extra[0] === '--geometry-window') &&
     !(extra.length === 1 && extra[0] === '--physical-overlap') &&
-    !(extra.length === 2 && ['--physical-domain', '--presentation-domain', '--presentation-camera'].includes(extra[0])))
+    !(extra.length === 3 && extra[0] === '--pre-lock') &&
+    !(
+      extra.length === 2 &&
+      ['--physical-domain', '--presentation-domain', '--presentation-camera', '--exit-visibility'].includes(extra[0])
+    ))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --presentation-domain demand.json | --presentation-camera camera.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
+    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --presentation-domain demand.json | --presentation-camera camera.json | --pre-lock Section-ID demand.json | --exit-visibility demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
   );
 const project = createCourseProject();
 const sourceText = await readFile(sourcePath, 'utf8');
@@ -117,7 +135,14 @@ if (!result.ok) {
       ),
     );
 } else if (
-  ['--physical-overlap', '--physical-domain', '--presentation-domain', '--presentation-camera'].includes(extra[0])
+  [
+    '--physical-overlap',
+    '--physical-domain',
+    '--presentation-domain',
+    '--presentation-camera',
+    '--pre-lock',
+    '--exit-visibility',
+  ].includes(extra[0])
 ) {
   const qualification = await contentQualification(result.value, extra);
   if (!qualification.ok) {
@@ -130,7 +155,21 @@ if (!result.ok) {
           scope: qualification.value.scope,
           demand: qualification.value.demand,
           recipe: qualification.value.recipe,
-          links: qualification.value.links.map((link) => link.id),
+          links: qualification.value.links?.map((link) => link.id),
+          ...(qualification.value.scope === 'pre-lock-query-domain'
+            ? {
+                section: qualification.value.fork.section.id,
+                commonEnd: qualification.value.commonEnd,
+                ranges: qualification.value.ranges,
+                geometry: qualification.value.geometry.interval,
+              }
+            : {}),
+          ...(qualification.value.scope === 'exit-presentation-domain'
+            ? {
+                demand: qualification.value.presentation.demand,
+                exits: qualification.value.exits.map(({ link, ...bounds }) => ({ link: link.id, ...bounds })),
+              }
+            : {}),
           identity: result.value.identity,
         },
         null,
@@ -173,6 +212,14 @@ if (!result.ok) {
           maxSupportedAbsL: createBandSurfaceReader(section.bandPartition, section.physicalBindings).maxSupportedAbsL,
           carriageways: section.carriageways.length,
           ports: section.ports.length,
+          fork:
+            section.fork === null
+              ? null
+              : {
+                  lock: section.fork.lock.s,
+                  closure: section.fork.closure.s,
+                  regions: section.fork.regions.map(({ link, ...region }) => ({ ...region, link: link.id })),
+                },
           presentation:
             section.presentation === null
               ? null

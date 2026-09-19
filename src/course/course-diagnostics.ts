@@ -11,6 +11,7 @@ type CourseDiagnosticCode =
   | 'unsupported_feature'
   | 'semantic_compile_failure'
   | 'coverage_gap'
+  | 'ambiguous_geometry'
   | 'nonhorizontal_overlap'
   | 'physical_height_mismatch'
   | 'physical_support_mismatch'
@@ -22,7 +23,8 @@ type CourseDiagnosticCode =
   | 'appearance_binding'
   | 'invalid_image_role'
   | 'invalid_profile'
-  | 'invalid_placement';
+  | 'invalid_placement'
+  | 'invalid_fork';
 
 interface InputDiagnostic {
   readonly kind: 'input';
@@ -57,7 +59,31 @@ interface AssetDiagnostic {
   readonly message: string;
 }
 
-type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic;
+interface ForkQualificationDiagnostic {
+  readonly kind: 'fork-qualification';
+  readonly code: CourseDiagnosticCode;
+  readonly sectionId: string;
+  readonly consumer?: string;
+  readonly message: string;
+}
+
+type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic | ForkQualificationDiagnostic;
+
+/** A compiled fork coverage failure; Section identity is not an authoring JSON Pointer. */
+export class CourseForkQualificationError extends Error {
+  readonly diagnostic: ForkQualificationDiagnostic;
+
+  constructor(code: CourseDiagnosticCode, sectionId: string, message: string, consumer?: string) {
+    super(message);
+    this.diagnostic = Object.freeze({
+      kind: 'fork-qualification',
+      code,
+      sectionId,
+      message,
+      ...(consumer === undefined ? {} : { consumer }),
+    });
+  }
+}
 
 /** Expected saved-asset admission failure, separately addressed from document JSON pointers. */
 export class CourseAssetError extends Error {

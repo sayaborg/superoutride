@@ -22,11 +22,13 @@ import {
 } from './course-image-source.js';
 import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
 import type { CourseSceneryInstance } from '../visual/course-presentation.js';
+import { compileCourseFork } from './course-fork.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
+interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing' | 'fork'> {
   readonly ports: CompiledPort[];
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
+  fork: CompiledSection['fork'];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
@@ -48,7 +50,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 10,
+  version: 11,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -67,7 +69,7 @@ function compileSection(
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
   instances: ReadonlyMap<string, CourseSceneryInstance>,
   path: string,
-): SectionDraft {
+) {
   const { raster, primitives } = compileCourseGeometry(section, path);
   const primitiveTable = new Map(primitives.map((primitive) => [primitive.source.id, primitive]));
   const resolve = (anchor: Parameters<typeof resolveCourseAnchor>[0], at: string) =>
@@ -164,6 +166,7 @@ function compileSection(
     ports: [],
     incoming: [],
     outgoing: [],
+    fork: null,
   };
   const carriagewayTable = new Map(carriageways.map((road) => [road.id, road]));
   section.ports.forEach((port, index) => {
@@ -178,7 +181,16 @@ function compileSection(
       ),
     );
   });
-  return result;
+  return {
+    section: result,
+    fork:
+      section.fork === null
+        ? null
+        : Object.freeze({
+            lock: resolve(section.fork.lock, `${path}/fork/lock`),
+            closure: resolve(section.fork.closure, `${path}/fork/closure`),
+          }),
+  };
 }
 
 /** Own input before the first await; publish only a fully validated graph, never the construction tables. */
@@ -213,9 +225,10 @@ export async function compileCourseDocument(
       ),
     );
     const instances = new Map(sceneryInstances.map((instance) => [instance.id, instance]));
-    const sections = document.sections.map((section, index) =>
+    const drafts = document.sections.map((section, index) =>
       compileSection(section, assets, instances, `/sections/${index}`),
     );
+    const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const portTables = new Map(
       sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),
@@ -235,6 +248,8 @@ export async function compileCourseDocument(
       return link;
     });
     validateCourseTopology(document.type, entry, sections, links);
+    for (const [index, draft] of drafts.entries())
+      draft.section.fork = compileCourseFork(draft.section, draft.fork, `/sections/${index}/fork`);
     // Close every cycle before freezing/publication. No draft or construction table escapes.
     for (const section of sections) {
       Object.freeze(section.ports);

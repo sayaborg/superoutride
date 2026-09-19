@@ -118,11 +118,12 @@ export interface SectionDocument {
   readonly ports: readonly PortDocument[];
   readonly assetIds: readonly string[];
   readonly presentation: PresentationDocument | null;
+  readonly fork: null | { readonly lock: CourseAnchor; readonly closure: CourseAnchor };
 }
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 4;
+  readonly version: 5;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
@@ -174,7 +175,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v4`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v5`);
     }
   }
   for (const key of fields) {
@@ -426,9 +427,11 @@ function section(value: unknown, path: string): SectionDocument {
     'ports',
     'assetIds',
     'presentation',
+    'fork',
   ]);
   const start = record(v.start, `${path}/start`, ['x', 'z', 'heading']);
   const guide = record(v.guide, `${path}/guide`, ['margin', 'mMin']);
+  const fork = v.fork === null ? null : record(v.fork, `${path}/fork`, ['lock', 'closure']);
   const limit = COURSE_DOCUMENT_LIMITS.coordinateMeters;
   const mMin = number(guide.mMin, `${path}/guide/mMin`, 0, 1, true);
   if (mMin === 1) fail('invalid_numeric_domain', `${path}/guide/mMin`, 'Guide mMin must be less than one');
@@ -485,6 +488,13 @@ function section(value: unknown, path: string): SectionDocument {
     }),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
     presentation: presentation(v.presentation, `${path}/presentation`),
+    fork:
+      fork === null
+        ? null
+        : Object.freeze({
+            lock: anchor(fork.lock, `${path}/fork/lock`),
+            closure: anchor(fork.closure, `${path}/fork/closure`),
+          }),
   });
 }
 
@@ -493,7 +503,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 4, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 5, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
@@ -508,7 +518,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 4, '/version', 'unsupported_version');
+    const version = literal(v.version, 5, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);

@@ -81,6 +81,29 @@ export function compileCoursePort(
   });
 }
 
+/** Shared authored-straight and mapped-heading prerequisite for guards and parallel lock zones. */
+export function requireCourseStraightSpan(
+  section: CompiledSection,
+  start: number,
+  end: number,
+  heading: number,
+  path: string,
+): void {
+  for (const primitive of section.primitives)
+    if (primitive.sStart < end && primitive.sEnd > start)
+      requireCourse(primitive.source.kind === 'straight', path, 'Overlap must lie in authored straight primitives');
+  for (const segment of section.guide.segments)
+    if (segment.sStart < end && segment.sEnd > start)
+      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet');
+  for (const segment of section.raster.segments)
+    if (segment.sStart < end && segment.sStart + segment.length > start)
+      requireCourse(
+        Math.abs(wrapAngle(segment.heading - heading)) <= COURSE_LINK_RECIPE.headingToleranceRadians,
+        path,
+        'Overlap Raster headings must agree with the port forward direction',
+      );
+}
+
 function guard(port: CompiledPort, behind: number, ahead: number, path: string): number[] {
   const section = port.section,
     seam = port.anchor.s,
@@ -91,19 +114,7 @@ function guard(port: CompiledPort, behind: number, ahead: number, path: string):
     path,
     `Overlap [${start}, ${end}] must fit Section ${JSON.stringify(section.id)} with representable extent on both sides`,
   );
-  for (const primitive of section.primitives)
-    if (primitive.sStart < end && primitive.sEnd > start)
-      requireCourse(primitive.source.kind === 'straight', path, 'Overlap must lie in authored straight primitives');
-  for (const segment of section.guide.segments)
-    if (segment.sStart < end && segment.sEnd > start)
-      requireCourse(segment.kind === 'straight', path, 'Overlap intersects a Guide fillet');
-  for (const segment of section.raster.segments)
-    if (segment.sStart < end && segment.sStart + segment.length > start)
-      requireCourse(
-        Math.abs(wrapAngle(segment.heading - port.pose.heading)) <= COURSE_LINK_RECIPE.headingToleranceRadians,
-        path,
-        'Overlap Raster headings must agree with the port forward direction',
-      );
+  requireCourseStraightSpan(section, start, end, port.pose.heading, path);
   return [
     ...section.raster.vertexS,
     ...section.guide.segments.flatMap((s) => [s.sStart, s.sEnd]),

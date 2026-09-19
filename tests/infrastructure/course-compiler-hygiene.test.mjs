@@ -19,6 +19,8 @@ for (const [entry, owners, restricted = {}] of [
   ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-overlap-domain.ts', ['course', 'compiler']],
   ['compiler/course-consumer-demand.ts', ['course']],
+  ['compiler/course-fork.ts', ['core', 'course', 'compiler']],
+  ['compiler/course-fork-coverage.ts', ['course', 'compiler']],
   [
     'compiler/course-presentation-overlap.ts',
     ['core', 'course', 'compiler', 'graphics', 'visual'],

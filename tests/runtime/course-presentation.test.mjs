@@ -26,9 +26,9 @@ const failure = (result, code, location) => {
   if (location) assert.equal(result.diagnostics[0].path, location);
 };
 
-test('v4 distinguishes explicitly absent presentation from complete saved content and rejects implicit migrations', async () => {
+test('current schema distinguishes explicitly absent presentation from complete saved content and rejects implicit migrations', async () => {
   const fixture = await presentationDocument();
-  for (const version of [1, 2, 3]) {
+  for (const version of [1, 2, 3, 4]) {
     const document = structuredClone(fixture.document);
     document.version = version;
     failure(readCourseDocument(document), 'unsupported_version', '/version');

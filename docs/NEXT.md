@@ -21,7 +21,7 @@ Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
-[CourseDocument v4](content-and-gameplay.md#coursedocument-v4-implemented-compiler-boundary) establishes
+[CourseDocument v5](content-and-gameplay.md#coursedocument-v5-implemented-compiler-boundary) establishes
 the exact wire fields, limits and supported LINEAR/BRANCH/CIRCUIT geometry subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
@@ -49,8 +49,8 @@ CIRCUIT, exercise 20.8 km with 4760 Raster segments, and exact 2048-primitive/16
 These are synthetic host workloads, not named-master acceptance. Recipe identities contain semantic
 versions/operative parameters, not explanatory prose.
 
-Schema v4 includes explicit presentation alongside entry Section, Section-local Ports and document-wide
-Links/instances; schemas v1/v2/v3 receive an unsupported-version diagnostic. Course compiler v10 includes
+Schema v5 includes explicit fork controls and presentation alongside entry Section, Section-local Ports and document-wide
+Links/instances; schemas v1/v2/v3/v4 receive an unsupported-version diagnostic. Course compiler v11 includes
 the pinned carriageway-Link recipe v1, physical recipe v2, image-source and presentation recipes v1.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
@@ -111,8 +111,17 @@ compares complete source-pattern cells, static phase, ordered stamps, environmen
 scenery over explicit camera/filter/anchor domains. Camera-derived straight-guard footprints contain
 actual ground queries; complete paired frames agree over three forks and every incoming merge Link.
 An ordinary sprite observation reader preserves screen/depth observations during pure frame changes.
-This is scoped source-domain and renderer evidence, not complete pre-lock/exit visibility, general
+This is scoped source-domain and renderer evidence, not runtime envelope enforcement, general
 occurrence-mapped presentation or an atomic actor transition. Gate 2 remains in progress.
+
+[Authored fork controls](content-and-gameplay.md#authored-fork-controls-and-coverage) now resolve lock/
+closure anchors and canonical half-open median-center regions. Scoped pre-lock qualification checks
+all six consumer intervals in the parent before selection, including actual projection/driver/recovery
+demand. Nine vehicle profiles exercise contact/driver queries in the admitted source view without a
+selected successor. Actual parent rendering stays in its declared domain; complete paired frames agree
+at each conservative exit clear-interval start. Exit bounds derive from matching full guards and query
+footprints for all incoming Links. This is not a lateral-transfer, runtime lock/pose-admission or actor
+commit certificate. General occurrence readers and final joint consumer cutover remain.
 
 ### Next milestones
 
@@ -143,8 +152,8 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 ### Gate 2 remaining order
 
 1. Extend scoped physical/presentation proofs to complete common-content requirements; unsupported
-   content recipes stay explicit rather than receiving placeholders. Complete pre-lock coverage,
-   each exit's parent-specific visible end and transfer envelope. Preserve the implemented actual
+   content recipes stay explicit rather than receiving placeholders. Enforce the scoped pre-lock and
+   exit clear-interval envelopes at runtime, and qualify lateral-transfer dynamics. Preserve the implemented actual
    camera-query/full-frame evidence for every incoming merge Link. Physical reachability is not an
    image-visibility proof. Resident RGB555 remains Gate 3.
    Extend the proven single-Section readers across qualified occurrence mappings; derive full pose/lateral

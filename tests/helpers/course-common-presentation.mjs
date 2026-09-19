@@ -130,3 +130,9 @@ export function presentationDemand() {
     consumers: { cameraRender: { ...footprint }, groundFilter: { ...footprint }, scenery: { ...footprint } },
   };
 }
+
+export async function authoredForkDocument() {
+  const fixture = await cameraForkDocument();
+  fixture.document.sections[0].fork = { lock: anchor(200), closure: anchor(750) };
+  return fixture;
+}
