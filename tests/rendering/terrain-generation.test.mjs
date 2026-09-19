@@ -62,9 +62,6 @@ describe('flat stadium geometry', () => {
     }
     for (const line of lines) {
       assert.ok(line.xGroundL < line.xGroundR);
-      assert.ok(line.xGroundL < line.xRoadL);
-      assert.ok(line.xRoadL < line.xRoadR);
-      assert.ok(line.xRoadR < line.xGroundR);
     }
   });
 

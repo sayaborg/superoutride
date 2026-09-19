@@ -19,7 +19,7 @@ import { createFrameLoop } from '../../dist/browser/frame-loop.js';
 import { createBrowserDrivingShell } from '../../dist/browser/driving-shell.js';
 import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { installBrowserDom } from '../helpers/browser-dom.mjs';
 import { FakeAudioContext, FakeAudioWorkletNode, FakeAudioParam } from '../helpers/audio-context.mjs';
@@ -44,7 +44,7 @@ function install(t) {
 }
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 const world = () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   return { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 };
 

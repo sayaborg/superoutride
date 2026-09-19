@@ -3,7 +3,6 @@
 This document owns coordinates, geometry, projection, metric scale and layer boundaries. Current
 implementation is described first; [Course Editor targets](#course-editor-target) take effect at their
 validated cutover. [Image assets](image-assets.md) owns image formats and compilation,
-[ground delivery](ground-delivery.md) owns current transport/residency, and
 [content and gameplay](content-and-gameplay.md) owns course transactions and authoring semantics.
 
 ## Coordinates and open geometry
@@ -22,7 +21,7 @@ Course `(s,l)` is a derived observation. `s` is the shared plan chainage of Rast
 from physical travel along a sloping/offset path. Local projection uses a known previous segment and
 a finite clipped neighborhood. Known spawn/recovery coordinates seed that same search. Invalid seeds
 fail explicitly, preserving the identity of overlapping circuit copies. Optional explicit lateral
-clamping acts in the underlying Guide basis before subtracting a stage's lateral origin. Ordinary
+clamping acts in the underlying Guide basis before subtracting a frame's lateral origin. Ordinary
 physical projection remains unclamped.
 
 Driving consumers accept an ordinary `GuideCoordinateReader`: a finite logical domain, point/metric
@@ -33,16 +32,15 @@ offset metric; physics consumes these geometric observations without opening Gui
 Terrain/rendering consume the narrower `RasterGeometry` facet (finite length, segment stations/headings
 and point mapping), not Guide fillets or the compiled course graph.
 
-RasterPath, GuidePath, HeightProfile, VisualProfile, logical/baked GroundMap and SurfaceMap have the
+RasterPath, GuidePath, HeightProfile, VisualProfile, SurfaceMap and saved paint have the
 finite domain `[0,L]`. Their source readers share 1e-9 m endpoint normalization through
-`openProfileChainage`, including SurfaceMap and unfolded circuit adapters. Raster/Guide geometric
+`openProfileChainage`, including SurfaceMap. Raster/Guide geometric
 sampling retains its separate 1e-8 m tolerance. Constructors reject nonfinite authoring before endpoint
 normalization and own immutable copies. Tolerances affect sampling, not topology or awarded progress.
 
 Consecutive authored vertices form the path. At endpoints the adjacent segment supplies the basis;
 interior vertices alone own turns and fillets. Terrain visibility clips to the finite domain. Content
-provides run-in/runout for camera, drawing and handoff. Current CIRCUIT unfolds authored topology into
-a finite ordinary open window before constructing these readers. Topology remains above Core.
+provides run-in/runout for camera, drawing and handoff. Occurrence views compose finite source spans. Topology remains above Core.
 
 ## Numerical threshold ownership
 
@@ -53,8 +51,7 @@ identify a threshold; equal numeric values do not make thresholds interchangeabl
 Algorithm-local cutoffs remain named at their owners: [Raster](../src/core/raster-path.ts) for segment,
 miter and turn bounds; [Guide](../src/core/guide-curve.ts) for arc-center, compilation and zero-turn
 checks; [terrain](../src/terrain/terrain-line.ts) for depth/span inversion and thin-row collapse;
-[GroundMap](../src/groundmap/ground-map-lod.ts) for level/texel rounding; and the
-[target envelope](../src/groundmap/ground-map-target-envelope.ts) for footprint capacity.
+saved paint for source-lattice ownership.
 
 Gate direction/width, route arbitration fractions, progress/ranking time, wheel torque residuals,
 contact/steering determinants, camera response, recovery penetration and UI grid matching retain their
@@ -72,7 +69,7 @@ injective XZ map; distinct chainages may cross geographically without being the 
 
 Current compilation covers finite vertices/miters, the turn limit, Guide metrics, fillet overlap and
 supported envelopes. The offline [local-window proof](content-and-gameplay.md#consumer-local-geometry-qualification)
-checks mapped Raster Bands and Guide envelopes. [NEXT](NEXT.md#remaining-limits) records pending actual
+checks mapped Raster Bands and Guide envelopes. [NEXT](NEXT.md#milestones) records pending actual
 consumer/multi-occurrence qualification. Occurrence, local seed and height distinguish passages;
 world-nearest matching cannot replace those authorities.
 
@@ -80,10 +77,8 @@ At a roundoff-size fillet join, lookup retains the adjacent segment. Omitted int
 coverage fit the reader's sampling tolerance even if dimensional validation permits a larger error.
 A positive straight longer than the sampling tolerance remains a real primitive.
 
-Current driving `RoadCrossSection` and `TerrainVisualProfile` widths are constant per source/view.
-The specialized junction varies its cross-section. Current terrain enumerates Raster, render-height
-and visual-section boundaries. The offline CourseDocument compiler implements varying Boundary
-readers and Band activation/tapers; terrain/physical integration remains the [target](#compiled-boundary-geometry).
+CourseDocument Boundaries and Bands supply varying geometry and support. Terrain enumerates Raster,
+height and visual-profile boundaries; it projects the finite ground strip. Paint owns visible road edges.
 
 Guide rounds the coordinate curve with straight/circular fillets; the rendered road stays Raster.
 For turn Delta and radius R:
@@ -105,13 +100,9 @@ R comes from the local chart bound or circular-authoring provenance. `GuidePath.
 owned immutable piecewise-linear profile. Constant `lMax` authoring is compiled to two equal knots;
 explicit profiles use the same reader and fillet algorithm. There is no independently stored scalar
 limit. Explicit projection clamping and physical race-gate width use the bound at their query chainage.
-Current physical readers still expose a global support bound, so containment conservatively requires
-`maxSupportedAbsL + abs(lateralOrigin) < min(L(s))`; the reader's conservative local bound
-includes junction support and boundary tolerance. [Containment](../src/physics/surface-guide-envelope.ts)
-is checked at packages, registries, circuit windows and linear composition. Visual extent is separate.
-Existing successor geometry generators explicitly require a constant source envelope; they do not
-substitute its maximum for a varying profile. These generators are not adapters for CourseDocument
-varying Bands. The chart edge enforces
+Physical readers expose conservative support bounds. The [generic containment check](../src/physics/surface-guide-envelope.ts)
+requires `maxSupportedAbsL + abs(lateralOrigin) < min(L(s))`; compiled Band geometry additionally
+validates the authored varying support envelope. Visual extent remains independent. The chart edge enforces
 `J >= mMin > 0`, not the singularity `J = 0`. Physical local projection remains
 unclamped; ordinary excursion/recovery behavior owns out-of-chart motion.
 
@@ -157,32 +148,14 @@ environment GroundBase for sample centers outside the finite half-open paint str
 GroundBase preserves the background pixel. Camera, terrain projection, coverage and sprite algorithms,
 including their existing framebuffer oracles, remain unchanged.
 
-GroundMap appearance and SurfaceMap support/friction are independent. Each emitted terrain line uses
-GroundBase outside its finite GroundMap strip. Each side selects a solid color or transparency;
+ground appearance and SurfaceMap support/friction are independent. Each emitted terrain line uses
+GroundBase outside its finite ground strip. Each side selects a solid color or transparency;
 transparency retains farther content. Far Background is a complete image, including below its horizon,
 aligned by its source-horizon anchor. Yaw scrolls it; camera roll and alpha blending remain absent.
 The [background format](../src/visual/far-background.ts) owns 640x320 pixels, horizon row 126 and yaw
 density 200 source pixels/radian. Yaw density and focal length have different units.
 An explicit background `yawOriginRadians` expresses its pan origin in the current frame; existing
 backgrounds retain origin zero. A frame change transforms that origin with the camera yaw.
-
-Current shipped ground is precompiled. Paint samplers are compiler inputs and explicit diagnostics;
-product rendering receives a complete scene-local final-color reader. Source offsets, shoulders and
-junction paint are already resolved. `roadMarkings` owns ordinary paint and `junctionMarkings` paint
-relative to carriageway centers; omitted paint means an unmarked road.
-
-Current source spacing at reference depth d0 is:
-
-```text
-qL = d0/f
-qS = d0*d0/(f*h*cos(phi))
-```
-
-The current pyramid reduces lateral density by `2^k` and chainage density by `4^k`. Current selection
-uses `ceil(log4(deltaSEffective/qS))`, bounded by the compiled pyramid; lateral footprint is diagnostic.
-Collapsed rows include the full source interval. `deltaSEffective <= dMax-dMin` bounds coverage.
-[Image assets](image-assets.md#current-ground-compilation) owns encoding/filtering and
-[ground delivery](ground-delivery.md) owns manifests, bytes, admission and leases.
 
 ## Sprites and Painter
 
@@ -240,16 +213,14 @@ The [image session contract](image-assets.md#sprite-tool-authoring-session) owns
 
 Core owns Raster/Guide, height and finite source operations. Course owns shared boundary geometry.
 Graphics owns framebuffer, color codec, blitting and Painter primitives. Visual owns assets and
-visual profiles; Terrain projects geometric bounds; Render assembles the pipeline. GroundMap owns
-image readers, baking, filtering and footprints. Physics owns support/material interpretation and
+visual profiles; Terrain projects geometric bounds; Render assembles the pipeline. The source-paint reader owns saved composition evaluation. Physics owns support/material interpretation and
 Guide containment. The vehicle catalog owns presentation-family metadata.
 
 Audio owns procedural sound and read contracts; vehicle binds acoustic profiles and browser adapts
-physical observations. Audio imports Core; physics stays independent of audio. Browser owns HTTP
-and may consume GroundMap delivery contracts. GroundMap owns no browser/network operations.
+physical observations. Audio imports Core; physics stays independent of audio. The root loads course JSON and image bytes before publishing the scene.
 
 The [hygiene graph](../tests/infrastructure/repository-hygiene.test.mjs) enforces acyclic directory
-imports, including types. Composition roots alone import concrete DEV content. Runtime supplies
+imports, including types. Product roots load saved content; fixtures and diagnostics remain test/tool inputs. Runtime supplies
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
@@ -263,7 +234,7 @@ Compiler also admits saved image sources through Graphics' existing sprite valid
 to concrete immutable indexed-source records without another generic parameter through Ports/Links.
 Image admission uses the Graphics validator; lower Course geometry still has no image dependency.
 Presentation compilation uses the Graphics source metric and Visual's ordinary immutable data
-facets. GroundMap evaluates saved composition over those facets and canonical Bands without importing
+facets. ground evaluates saved composition over those facets and canonical Bands without importing
 the graph. Appearance, outside GroundBase, scenery identity and physical support remain distinct.
 Runtime may consume Camera's profile contract to derive consumer coverage; Camera remains independent
 of Runtime and the course graph.
@@ -275,11 +246,11 @@ presentation or product-consumer coverage. A declared physical-query domain adds
 coverage, not evidence that actual product callers respect those bounds. Its separate offline entry
 installs no new driving path.
 Core's shared content digest serves course
-and current GroundMap identities without a dependency from authoring geometry to image transport.
+and saved image identities without a dependency from authoring geometry to image transport.
 
 ## Compiled profile and asset boundaries
 
-Surface, logical ground, visual and height profiles own ordered immutable inputs and binary lookup.
+Surface, visual and height profiles own ordered immutable inputs and binary lookup.
 SurfaceMap validates physical bands. Terrain merges explicit change points into adjacent positive
 intervals, eliminating exact duplicates while retaining distinct authored intervals. Traversal uses
 those intervals directly, without cursor nudges.
@@ -292,30 +263,16 @@ cost and instrumentation cost are measured separately.
 
 ## Ground authoring boundaries
 
-Current `RoadCrossSection` owns road/shoulder dimensions, shared by paint and stage views. Junctions
-derive outgoing dimensions from their incoming cross-section. Terrain dimensions are compiler output.
-Current child shoulders are 1 m and highway-parent shoulders 1.5 m. Visual extents and physical support
-are independent; route intent consumes geometry and its chainage transform rather than paint storage.
-
-Paint, GroundBase and physical surface profiles keep independent values/change points. The stadium's
-sand/dirt fixtures intentionally retain grass-colored diagnostic paint. Current branching ground is
-drawn to 13 m while ordinary physical outside bands end at 12 m. Missing support is VOID.
-
-Current edge classification remains road-priority for ordinary visual paint, left-inclusive ordered
-physical bands, and the junction's explicit tolerance. The [target partition](#target-lateral-boundary-ownership)
-replaces these together with new reader tests; a documentation move leaves current pixels/physics intact.
+Compiled Boundary/Band geometry, physical material bindings, saved paint and environment GroundBase
+have distinct authority. The source-paint reader evaluates canonical references at level zero; the
+renderer consumes only a synchronous color reader and the finite strip dimensions. Source scenes and
+headless previews use this same assembly. Missing physical support is VOID regardless of paint.
 
 ## Accepted authoring target
 
 The [target geometry](#course-editor-target), [target images](image-assets.md#course-editor-target) and
 [course model](content-and-gameplay.md#course-editor-target) are implemented at the gates in NEXT.
 Source-camera/variant sampling and real-art filter acceptance remain open; SINGLE presentation remains.
-
-### GroundMap compilation and residency
-
-[Current image compilation](image-assets.md#current-ground-compilation) and
-[current delivery](ground-delivery.md) own the existing paged implementation. This section retains
-navigation for existing links; each detailed contract has one owner.
 
 ## Course Editor target
 
@@ -375,8 +332,7 @@ activation, transition-continuity and terminal-membership rules. They do not cha
 driving readers' finite-endpoint or lateral classification contracts.
 
 Terrain consumes and projects the compiled view's bounds once and exposes source-to-span mapping to
-the final-color reader. Retire stage reprojection and diagnostic road-edge coordinates with consumer
-and identical-output tests. A visible marking is paint, not another geometric road-edge authority.
+the final-color reader. A visible marking is paint, not another geometric road-edge authority.
 
 ### Target local Guide envelope
 

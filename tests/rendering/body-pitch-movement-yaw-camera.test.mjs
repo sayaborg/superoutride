@@ -1,6 +1,6 @@
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 
 import { BROWSER_CAMERA_YAW_TOGGLE_CODE, browserRequestsCameraYawToggle } from '../../dist/browser/key-bindings.js';
@@ -154,27 +154,4 @@ test('P is the sole browser camera-yaw toggle key', () => {
   assert.equal(BROWSER_CAMERA_YAW_TOGGLE_CODE, 'KeyP');
   assert.equal(browserRequestsCameraYawToggle('KeyP'), true);
   assert.equal(browserRequestsCameraYawToggle('KeyQ'), false);
-});
-
-test('browser compositions overlay the yaw diagnostic at the renderer player anchor', async () => {
-  const [linear, branching, circuit, cameraSource] = await Promise.all([
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/camera/camera.ts', import.meta.url), 'utf8'),
-  ]);
-
-  for (const source of [linear, branching, circuit]) {
-    assert.match(source, /shell\.present\([^;]*stats\.playerScreenY(?:,\s*rivals)?\)/);
-    assert.match(source, /shell\.mountControls/);
-  }
-  const shell = await readFile(new URL('../../src/browser/driving-shell.ts', import.meta.url), 'utf8');
-  assert.match(
-    shell,
-    /drawVehicleYawDebug\(\s*ctx,\s*camera\.playerScreenX,\s*playerScreenY,\s*vehicle\.yaw,\s*camera\.movementYaw,\s*camera\.yaw,\s*camera\.yawMode,?\s*\)/,
-  );
-  assert.match(shell, /browserRequestsCameraYawToggle\(event\.code\)/);
-  assert.match(shell, /mountMobileCameraYawSelector/);
-  assert.doesNotMatch(cameraSource, /lCamMax|tauLat|thetaLagMax|playerSafeX|lateralG/);
-  assert.doesNotMatch(cameraSource, /rebaseM5CameraRigCoordinateFrame/);
 });

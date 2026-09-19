@@ -2,12 +2,12 @@
 
 This document owns current course transactions and the separately labelled Course Editor target.
 [Architecture](architecture.md) owns coordinates and geometry, [image assets](image-assets.md) owns
-image formats/compilation, and [ground delivery](ground-delivery.md) owns current payload transport.
+image formats and compilation.
 [NEXT](NEXT.md) identifies the implemented boundary and ordered cutovers.
 
 ## Composition and data ownership
 
-The new [CourseDocument root](../src/main-course.ts), selected as `?mode=trial`, loads saved JSON/images,
+The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
 single-Section driving readers, saved presentation and the ordinary renderer. The headless CLI uses
 this same assembly. The current provisional course is a finite 2.8 km LINEAR with 132 row-generated
@@ -17,9 +17,6 @@ zero without filtering; all inputs finish loading before ticks. A failed load/co
 playable entrance. Reverse travel or repeated manual recovery past that entrance uses ordinary
 legal-route recovery to the Port before camera observation, without progress credit.
 
-The previous three roots and paged-ground path remain until the separate M1b purge. They establish
-no compatibility requirement for the new course.
-
 The [vehicle catalog](../src/vehicle/vehicle-catalog.ts) owns nine production identities and their
 [compiled profiles](../src/vehicle/production-vehicle-profiles.ts). Model, manufacturer, identifier,
 specification and period are distinct fields. Presentation uses car/bike metadata. Browser
@@ -27,30 +24,9 @@ specification and period are distinct fields. Presentation uses car/bike metadat
 collisions. Testarossa is the current default player/fixed rival. Shared starting tire calibration is
 not a requirement that finished vehicles have identical tires.
 
-[Stage compilation](../src/runtime/stage-authoring-compiler.ts) builds geometry, height, visuals,
-ground, surfaces, sprites and background into a [runtime package](../src/runtime/stage-runtime-content.ts).
-[StageRoadView](../src/course/stage-road-view.ts) maps lateral/longitudinal coordinates for presentation.
-Visual and physical views share explicit transforms with independent meanings. The shared cross-section
-owns road dimensions; environment owns display extents. The terrain factory derives compiled widths
-from those inputs and receives height/visual readers independently. Image changes do not split shape.
-
-`src/dev/courses`, `src/dev/fixtures` and `src/dev/diagnostics` own shipped development composition,
-regression inputs and read-only probes. [Raster authoring](../src/course/raster-turtle.ts) owns line/arc
-subdivision and radius provenance. Course files own shape/topology. Focused and multi-step fixtures
-share their authored inputs. [DEV](../src/dev/README.md) defines the dependency boundary.
-
-### Current course boundary
-
-[The glossary](README.md#vocabulary) maps current and target terms, including BRANCH/BRANCHING.
-Current [successor generation](../src/runtime/raster-stage-successor.ts) copies overlap and adds a
-prescribed excursion/runout. Growth promotes development terminals to forks. These are retained
-content builders; current packages share one world frame and support symmetric two-way junctions.
-Adjacent actors are drawn only in the player's active package. Roots still supply development grids.
-These limitations are owned migration work, not target authoring or visibility rules.
-
-The current declarative route compiler derives separate route/content/gate/handoff/registry tables,
-then validates their joins. The [target reference graph](#compiled-course-reference-graph) replaces
-that internal representation while retaining input validation and distinct gameplay responsibilities.
+Product CourseDocuments and image bytes live in `content/`. Regression inputs and read-only probes
+live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
+owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
 
 ## CourseDocument v6: implemented compiler boundary
 
@@ -691,45 +667,17 @@ Core, physics and renderer receive their ordinary readers/data. They do not impo
 current composition roots remain unchanged. Runtime Link/view, image, session and GUI integration
 are separate acceptance gates.
 
-## Point-to-point route transaction
+## Gates and race progress
 
-[RouteDag](../src/gameplay/route-dag.ts) owns acyclic legal stage successors. An oriented physical gate
-crossing supplies progression. Its shared sign rule is negative to zero/positive for forward and
-positive to zero/negative for reverse. Arrival counts once; departure from the plane does not repeat.
-Lateral gate-width tolerance is separate from direction, with no crossing dead band.
+[World gates](../src/gameplay/world-crossing-gate.ts) observe oriented physical crossings. Forward is
+negative to zero/positive; reverse is positive to zero/negative. Arrival counts once, departure does
+not repeat, and lateral width tolerance is independent of direction.
 
-1. A forward physical route gate validates a transition and enters PENDING.
-2. The old chart/content stays authoritative through common overlap.
-3. A forward handoff seam commits the target chart/content.
-4. Current COMMIT re-expresses observations while preserving world pose and velocity.
-
-[World gates](../src/gameplay/world-crossing-gate.ts), [handoff](../src/gameplay/route-stage-handoff.ts)
-and the [multi-actor tick](../src/runtime/live-route-multi-actor-tick.ts) implement this order. Authored
-overlap/runout and a valid local projection seed accompany every commit. [Continuation checks](../src/runtime/stage-continuation-link.ts)
-partition at both charts' primitive boundaries and inspect endpoints/interiors, preserving circular
-radius provenance. Guide chart arithmetic delegates to the Core frame primitive.
-
-`FIRST_PHYSICAL_CROSSING_LOCKS` with `RECOVER_TO_LOCKED_BRANCH` owns shared current choice. A losing
-crossing records a violation and recovers via legal gate geography, without awarding illegal progress.
-Actor progress and active chart remain per-actor; route selection is field-owned. Current locking uses
-separated transition gates and preserves input order for fractions within its named tie tolerance.
-`INDEPENDENT` is a diagnostic policy. The target changes location, eligibility and tie ownership together.
-A terminal stage entry still requires a later physical FINISH to complete the run.
-
-## Circuit and race progress
-
-[Circuit topology](../src/gameplay/circuit-topology.ts) authors one closed lap above Core. Current
-[unfolding](../src/runtime/circuit-runtime-window.ts) materializes at least N+1 finite open copies for
-N scored laps, with final runout. General readers/rendering remain topology-neutral.
-
-[Race progress](../src/gameplay/circuit-race-progress.ts) accepts ordered forward checkpoints and FINISH.
-Winding alone, skipped checkpoints, reverse travel, replacement and recovery grant no lap. Observations
-are resynchronized while preserving accepted history. [Session configuration](../src/gameplay/session-configuration.ts),
-[race session](../src/gameplay/race-session.ts) and [objective](../src/gameplay/run-objective.ts) own game rules.
-
-[Tsukuba](../src/dev/courses/tsukuba-circuit.ts) and [FISCO](../src/dev/courses/fisco-circuit.ts) are functional
-simplified courses; source comments distinguish reference dimensions from simplified connectors.
-Their visual profiles use unfolded chainage for both boundaries and sampled section starts.
+[Ordered race progress](../src/gameplay/ordered-race-progress.ts),
+[circuit race progress](../src/gameplay/circuit-race-progress.ts),
+[session configuration](../src/gameplay/session-configuration.ts) and
+[race session](../src/gameplay/race-session.ts) remain general components for the circuit/fork milestones.
+Skipped checkpoints, reverse travel, recovery and replacement grant no lap or gate credit.
 
 ## Recovery
 
@@ -742,7 +690,7 @@ Ordinary same-chart recovery backs off from the farther of current causal chaina
 chainage, avoiding repeated recovery onto the same launch face. Wrong-route recovery uses the legal
 physical-gate approach and the actor's authored backtracking/retained-speed profile.
 
-Route/circuit ticks resync once after recovery and suppress crossing credit for that reset. The browser
+Gameplay observers resync once after recovery and suppress crossing credit for that reset. The browser
 then resets/updates the player's camera. Earned gates, locks and laps remain intact. Known coordinates
 preserve the correct occurrence; global nearest geometry is not a substitute. Vehicle replacement
 reconstructs the camera in the same callback, before any render without a new physics tick.
@@ -754,12 +702,6 @@ lookahead, including a contiguous braking envelope. Driving policy leaves forces
 unchanged. Presentation reads immutable vehicle/telemetry state. Scoring and race state belong to
 gameplay, composed at the roots. Contacts, richer rivals and game effects need explicit interaction
 contracts and causal tests.
-
-## Concrete visual content
-
-[Tunnel content](../src/dev/courses/tunnel.ts) owns portals/ribs, placements and its camera-offset
-background interval, composed as ordinary sprites/background. General rendering remains location-neutral.
-Current children continue forward from the shared overlap.
 
 ## Agent authoring
 
@@ -774,32 +716,6 @@ verify these scripts, classify scenery/environment, and judge fitting against pr
 Offline `tools/course/` fitting owns primitive/knot estimation; compiler/runtime only consume authored
 results. Distance/curvature/height scales are fitting inputs recorded with source edition/calibration
 and remaster departures. Reference video pixels are never extracted as game assets.
-
-### GroundMap loading and handoff
-
-All four current course selections use the shared shell/GroundPresentation lifecycle. Packages refer
-to complete stage-local baked color sources; the compiler owns source offsets. Physics, gates and
-progress remain independent. Circuit windows share one lap reader/directory/payload store.
-
-The coordinator acquires exact frame demand and may prefetch one adjacent-chunk job under the same
-limits. It loads the actually selected source; route gate -> PENDING -> seam -> COMMIT owns selection.
-Pin the old frame through replacement and count shared payloads once. Camera guards, reverse, recovery
-and course switching contribute demand; other actors' physical presence alone does not load images.
-
-`ReadyFrameController` presents only a complete ready set. A miss retains the last complete frame and
-simulation state, suspends ticks/input/audio, and exposes retry/exit on failure. A ready replacement
-publishes synchronously, releases old pins and restarts with a fresh clock, without catch-up. Keep
-physical commits, velocities, forces, event order and selected LOD unchanged during loading.
-
-The shell clears touch/keyboard ownership and disables driving controls while waiting; course selection
-remains available. Repeated held keys do not revive cleared input. Resident hits keep the scheduler
-running. Page exit disposes the session; back-forward restoration reloads a fresh session. Late arrivals
-from superseded requests cannot install. Failures retain immutable content identity for retry.
-
-[Ground delivery](ground-delivery.md) owns bytes/leases. Existing integration fixtures cross real
-player/rival gates and COMMIT, then delay loading without rollback. Circuit tests cover actual lap
-mapping, reverse/recovery and shared directories. Real roots run through simulated DOM/canvas/HTTP
-failure, retry, drawing, ticking and exit; device timing/input acceptance remains separate.
 
 ## Course Editor target
 

@@ -34,6 +34,21 @@ async function pathExists(target) {
 // Regression/diagnostic modules may be outside production reachability, but must have a consumer.
 const isRegressionSource = (file) => /[\/]src[\/]dev[\/](?:fixtures|diagnostics)[\/]/.test(file);
 
+// General components retained for M3/M4, while the published M1b root is player-only.
+// Remove this explicit reservation when M4 integrates their production consumers.
+const reservedMilestoneComponents = new Map([
+  ['gameplay/circuit-race-progress.ts', 'M3 lap/FINISH scoring'],
+  ['gameplay/ordered-race-progress.ts', 'M3 physical checkpoint order'],
+  ['gameplay/physical-race-gate.ts', 'M3/M4 physical progress gates'],
+  ['gameplay/world-crossing-gate.ts', 'M3/M4 seam and route crossings'],
+  ['gameplay/race-session.ts', 'M3 timing and FINISH state'],
+  ['gameplay/session-configuration.ts', 'M3 rival cardinality'],
+  ['gameplay/recovery.ts', 'M3/M4 actor recovery reason contract'],
+  ['physics/surface-guide-envelope.ts', 'M3/M4 supported actor spawn/recovery envelope'],
+  ['render/dynamic-vehicle-sprite.ts', 'M3 rival rendering'],
+  ['runtime/rival-roster.ts', 'M3 stable rival identities'],
+]);
+
 test('every source module is reachable from a composition or declared compiler entry or an explicit regression fixture', async () => {
   const sourceFiles = await collectFiles(sourceRoot, ['.ts']);
   const toolFiles = await collectFiles(path.join(repositoryRoot, 'tools'), ['.mjs', '.html']);
@@ -81,23 +96,16 @@ test('every source module is reachable from a composition or declared compiler e
     for (const dependency of graph.get(file) ?? []) visit(dependency);
   }
   // Dynamic boot selection deliberately assembles exactly these browser roots.
-  for (const relative of [
-    'src/boot.ts',
-    'src/main.ts',
-    'src/main-linear.ts',
-    'src/main-circuit.ts',
-    'src/main-course.ts',
-  ]) {
+  for (const relative of ['src/boot.ts', 'src/main-course.ts']) {
     visit(path.join(repositoryRoot, relative));
   }
-  visit(path.join(repositoryRoot, 'tools/build/build-test-ground-map.mjs'));
-  visit(path.join(repositoryRoot, 'tools/build/build-product-ground.mjs'));
   visit(path.join(repositoryRoot, 'tools/course/compile-course.mjs'));
   visit(path.join(repositoryRoot, 'tools/course/course.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-lod.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-source.mjs'));
   // This authoring entry compiles source/master/LOD before game load; diagnostics do not.
   visit(path.join(repositoryRoot, 'tools/graphics/sprite-tool.mjs'));
+  for (const relative of reservedMilestoneComponents.keys()) visit(path.join(sourceRoot, relative));
   // Audition and diagnostic tools do not make an otherwise dormant general module production code.
   const unreachable = sourceFiles.filter((file) => !reached.has(file));
   assert.deepEqual(
@@ -353,7 +361,8 @@ test('every source export has a named consumer outside its defining module', asy
     const module = checker.getSymbolAtLocation(program.getSourceFile(file));
     if (!module) continue;
     for (const symbol of checker.getExportsOfModule(module)) {
-      if (!consumers.has(unalias(symbol))) unused.push(`${path.relative(repositoryRoot, file)}: ${symbol.name}`);
+      if (!reservedMilestoneComponents.has(path.relative(sourceRoot, file)) && !consumers.has(unalias(symbol)))
+        unused.push(`${path.relative(repositoryRoot, file)}: ${symbol.name}`);
     }
   }
   assert.deepEqual(unused, [], 'keep unconsumed declarations module-local; remove unused implementations');

@@ -11,7 +11,7 @@ export interface RasterCoordinateReader {
   toWorld(s: number, l: number): CourseWorldSample;
 }
 
-export type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
+type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
 
 /** Terrain needs Raster only. Existing GuidePath objects satisfy this structural facet. */
 export interface RasterGeometry {

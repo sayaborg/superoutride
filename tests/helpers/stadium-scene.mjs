@@ -6,11 +6,10 @@ import {
   CURRENT_RENDER_FAR_DEPTH_METERS,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
 } from '../../dist/core/presentation-scale.js';
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/fixtures/reference-paint.js';
 import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
-import { deriveGroundMapDensity } from '../../dist/groundmap/ground-map-lod.js';
 import { generateTerrainLines } from '../../dist/terrain/terrain-line.js';
 import { deg } from './assert.mjs';
 import { renderPose, terrainCamera } from './render-fixture.mjs';
@@ -64,17 +63,11 @@ export function createFootprintScene(terrainOptions = {}) {
     { dMin: CURRENT_RENDER_NEAR_DEPTH_METERS, dMax: CURRENT_RENDER_FAR_DEPTH_METERS },
     terrainOptions,
   );
-  const density = deriveGroundMapDensity({
-    d0: 5,
-    focalLength: 200,
-    cameraHeight: scene.cameraProfile.height,
-    pitchRadians: scene.cameraProfile.pitch,
-  });
   function linesAt(s, yawOffset = 0) {
     const vehicle = renderPose(scene.guide, s);
     vehicle.yaw += yawOffset;
     const camera = terrainCamera(scene.guide, scene.height, vehicle, scene.cameraProfile);
     return generateTerrainLines(scene.guide, camera, scene.terrainProfile);
   }
-  return { ...scene, density, linesAt };
+  return { ...scene, linesAt };
 }

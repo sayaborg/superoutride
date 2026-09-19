@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { guidePathToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../../dist/core/guide-curve.js';
-import { createTsukubaCourse2000Runtime } from '../../dist/dev/courses/tsukuba-circuit.js';
+import { createRepeatedReferenceWorld } from '../helpers/repeated-world.mjs';
 import { evaluateTireForce, solveWheelOmega, wheelRequiredNetTorque } from '../../dist/physics/tire-wheel.js';
 import { limitWheelTorques } from '../../dist/physics/torque-protection.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from '../../dist/vehicle/vehicle-catalog.js';
@@ -59,7 +59,7 @@ test('negative rolling resistance cannot invalidate the bounded wheel equation',
 });
 
 test('range search preserves exact ascending-candidate tie handling on repeated geometry', () => {
-  const guide = createTsukubaCourse2000Runtime().window.guide;
+  const guide = createRepeatedReferenceWorld().window.guide;
   for (const s of [0, 100, 2045, 2145, guide.length]) {
     const world = guidePathToWorld(guide, s, 1);
     const candidates = guide.segments.map((segment) => locateWorldOnGuideLocal(guide, world, segment.index, 0));

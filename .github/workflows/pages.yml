@@ -64,9 +64,6 @@ jobs:
           HOT_PATH_BASELINE_BUILD: .audit-baseline/dist
         run: npm test
 
-      - name: Build product GroundMaps
-        run: npm run build:ground
-
       - name: Stage static site
         if: github.event_name != 'pull_request'
         run: |

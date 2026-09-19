@@ -1,6 +1,6 @@
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import { mountBrowserTireFrictionControls } from '../../dist/browser/tire-friction-controls.js';
 import {
@@ -150,20 +150,4 @@ test('recovery and all-nine vehicle replacement preserve selections without shar
     set(next, seed);
     assert.equal(v.tireFrictionCalibration, c);
   }
-});
-test('all composition roots reuse the same forward-cycle adapter without tire-specific key branches', async () => {
-  for (const name of ['main.ts', 'main-linear.ts', 'main-circuit.ts']) {
-    const src = await readFile(new URL(`../../src/${name}`, import.meta.url), 'utf8');
-    assert.match(src, /shell\.mountControls/);
-    assert.match(src, /lifecycle\.update/);
-  }
-  const src = await readFile(new URL('../../src/browser/driving-shell.ts', import.meta.url), 'utf8');
-  {
-    assert.match(src, /tireFrictionControls\.handleKey\(event\.code\)/);
-    assert.doesNotMatch(src, /tireFrictionControls\.handleKey\(event\.code,\s*event\.shiftKey\)/);
-    assert.match(src, /const tireFrictionCalibration = vehicle\.tireFrictionCalibration/);
-    assert.match(src, /DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION/);
-  }
-  const css = await readFile(new URL('../../styles.css', import.meta.url), 'utf8');
-  assert.match(css, /repeat\(auto-fit, minmax\(108px, 1fr\)\)/);
 });

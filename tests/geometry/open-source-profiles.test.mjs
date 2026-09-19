@@ -2,9 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
-import { GroundMapLogicalProfile } from '../../dist/groundmap/logical-profile.js';
-import { compileStageEnvironment } from '../../dist/runtime/stage-authoring-compiler.js';
+
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 const visualSections = [
@@ -20,11 +18,6 @@ const visualSections = [
     groundBaseLeft: { kind: 'color', color: 0x333333ff },
     groundBaseRight: { kind: 'color', color: 0x444444ff },
   },
-];
-
-const logicalSections = [
-  { sStart: 0, name: 'START', left: 'GRASS', right: 'GRASS' },
-  { sStart: 60, name: 'LATE', left: 'ROCK', right: 'GRASS' },
 ];
 
 test('HeightProfile is open, explicit at both endpoints and never wraps', () => {
@@ -55,35 +48,4 @@ test('VisualProfile owns an open interval', () => {
   assert.equal(open.distanceToNextSection(100), 0);
   assert.throws(() => open.sample(-0.001), RangeError);
   assert.throws(() => open.sample(100.001), RangeError);
-});
-
-test('logical GroundMap owns an open interval', () => {
-  const open = new GroundMapLogicalProfile(100, logicalSections);
-  assert.equal(open.sample(0).name, 'START');
-  assert.equal(open.sample(100).name, 'LATE');
-  assert.throws(() => open.sample(-0.001), RangeError);
-  assert.throws(() => open.sample(100.001), RangeError);
-});
-
-test('stage compiler explicitly extends authored final height to the open Guide endpoint', () => {
-  const guide = createStadiumGuide();
-  const environment = compileStageEnvironment(
-    guide,
-    {
-      terrain: { groundLeft: 12, groundRight: 12, roadLeft: 3.5, roadRight: 3.5 },
-      heightNodes: [
-        { s: 0, y: 0 },
-        { s: 60, y: 3 },
-      ],
-      visualSections: [visualSections[0]],
-      farBackground: null,
-    },
-    { roadLeft: 3.5, roadRight: 3.5, shoulderWidth: 1 },
-  );
-
-  const endpoint = environment.heightProfile.nodes.at(-1);
-  assert.equal(endpoint.s, guide.length);
-  assert.equal(endpoint.y, 3);
-  assert.equal(environment.heightProfile.sampleRender(guide.length).y, 3);
-  assert.throws(() => environment.heightProfile.sampleRender(guide.length + 0.001), RangeError);
 });

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRecoveryState, recoverVehicle } from '../../dist/gameplay/recovery.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { evaluateTireForce, rollingResistanceTorque, solveWheelOmega } from '../../dist/physics/tire-wheel.js';
@@ -15,7 +15,7 @@ import {
   HONDA_VFR750R_VEHICLE_PROFILE,
 } from '../../dist/vehicle/production-vehicle-profiles.js';
 
-const highway = createDefaultBranchingParent();
+const highway = createCurvedReferenceWorld();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },

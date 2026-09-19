@@ -124,26 +124,3 @@ test('Pages boot resolves all three top-level compositions through one commit-ve
   assert.match(workflow, /printf '%s\\n' "\$\{BUILD_ID\}" > _site\/version\.txt/);
   assert.match(workflow, /cp -R dist _site\/dist/);
 });
-
-test('product labels have stable identity independent of package version', async () => {
-  const packageJson = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
-  assert.equal(packageJson.name, 'super-outride');
-  const [index, hud, linear, branching, circuit] = await Promise.all([
-    readFile(new URL('../../index.html', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/browser/vehicle-debug-hud.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-  ]);
-
-  assert.match(index, /<title>SUPER OUTRIDE<\/title>/);
-  assert.match(hud, /SUPER OUTRIDE/);
-  for (const source of [index, hud]) assert.doesNotMatch(source, /M\d+\.\d+/);
-  for (const [name, source] of [
-    ['LINEAR', linear],
-    ['BRANCHING', branching],
-    ['CIRCUIT', circuit],
-  ]) {
-    assert.match(source, /shell\.present\(/, `${name} must use the shared HUD`);
-  }
-});

@@ -1,9 +1,6 @@
 import { rgba } from '../../graphics/software-surface.js';
-import { GroundMapLogicalProfile } from '../../groundmap/logical-profile.js';
-import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import type { SurfaceSection, SurfaceBand } from '../../physics/surface-map.js';
 import type { VisualSection } from '../../visual/visual-profile.js';
-import { STADIUM_ROAD_CROSS_SECTION } from '../courses/stadium/junction.js';
 
 export const STADIUM_SURFACE_BASE_COLORS = {
   grass: rgba(45, 100, 53),
@@ -19,13 +16,6 @@ export function createStadiumEnvironment(courseLength: number) {
   const returnStart = Math.min(625, courseLength - 1);
   // Return to grass only after the cliff; shorter fixtures end in their current section.
   const hasReturn = returnStart > 455;
-  const groundMap = new GroundMapLogicalProfile(courseLength, [
-    { sStart: 0, name: 'GRASSLAND', left: 'GRASS' as const, right: 'GRASS' as const },
-    ...(455 < courseLength
-      ? [{ sStart: 455, name: 'CLIFF / SEA', left: 'ROCK' as const, right: 'GRASS' as const }]
-      : []),
-    ...(hasReturn ? [{ sStart: returnStart, name: 'GRASSLAND', left: 'GRASS' as const, right: 'GRASS' as const }] : []),
-  ]);
   const visualSections: VisualSection[] = [
     { sStart: 0, name: 'GRASSLAND', groundBaseLeft: grass, groundBaseRight: grass },
     ...(455 < courseLength
@@ -40,9 +30,15 @@ export function createStadiumEnvironment(courseLength: number) {
     { sStart: 455, name: 'CLIFF / SEA', bands: bands('DIRT', 'GRASS', 6.5) },
     ...(hasReturn ? [{ sStart: returnStart, name: 'GRASSLAND', bands: bands('GRASS', 'GRASS') }] : []),
   ].filter((section) => section.sStart < courseLength);
-  return { groundMap, visualSections, surfaceSections };
+  return { visualSections, surfaceSections };
 }
 
 function bands(leftType: SurfaceBand['type'], rightType: SurfaceBand['type'], left = 10.5) {
-  return roadSurfaceBands(STADIUM_ROAD_CROSS_SECTION, { left, right: 10.5, leftType, rightType });
+  return [
+    { lMin: -left, lMax: -5.5, type: leftType },
+    { lMin: -5.5, lMax: -4.5, type: 'SHOULDER' as const },
+    { lMin: -4.5, lMax: 4.5, type: 'ASPHALT' as const },
+    { lMin: 4.5, lMax: 5.5, type: 'SHOULDER' as const },
+    { lMin: 5.5, lMax: 10.5, type: rightType },
+  ];
 }

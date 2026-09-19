@@ -1,12 +1,12 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from './open-profile.js';
 import { finite } from './validation.js';
 
-export interface HeightNode {
+interface HeightNode {
   readonly s: number;
   readonly y: number;
 }
 
-export interface HeightSample {
+interface HeightSample {
   y: number;
   grade: number;
   segmentIndex: number;
@@ -15,7 +15,7 @@ export interface HeightSample {
 }
 
 /** Same smooth H authority used by physics plus its analytic dH/ds. */
-export interface PhysicsHeightSample {
+interface PhysicsHeightSample {
   readonly y: number;
   readonly dYdS: number;
 }

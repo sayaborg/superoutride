@@ -4,11 +4,11 @@ Current implementation is described below. The [Course Editor target](#course-ed
 
 ## Local workflow
 
-Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build, test-asset baking and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Run `npm run build:ground` after a clean build before local play. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
+Use Node.js 24 (package engines and engine-strict enforce the supported major). Run `npm install` and complete `npm test` at every implementation milestone and release candidate; CI uses `npm ci` for the lockfile. `npm run check` runs lint, formatting and strict type checks; `npm run format` applies the shared formatting rules. `npm run build` clears dist and compiles TypeScript ESM; `npm test` runs lint, formatting, the build and the complete executable suite. [Build outputs](#build-outputs) separates production modules from generated fixtures. Serve the repository over HTTP, for example `python3 -m http.server 8000`. Generated dist, dependencies and Pages staging are not source files.
 
 Follow [AGENTS](../AGENTS.md) for the branch, architecture and release gates.
 
-For engine tuning, open `http://localhost:8000/?mode=circuit` and open DEV to adjust ENGINE
+For engine tuning, open `http://localhost:8000/?mode=linear` and open DEV to adjust ENGINE
 TUNING controls while driving. MASTER also uses minus/plus buttons. [Tire audio](tire-audio.md#shared-comparison-and-transport) defines the selectable methods and their session behavior.
 The separate audition/verification page is
 `http://localhost:8000/tools/audio/audio-browser.html`. Use the same HTTP server and freshly built
@@ -39,7 +39,7 @@ npm run course -- compile content/courses/linear.course.json
 npm run course -- render content/courses/linear.course.json --s 1200 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 ```
 
-Open `http://localhost:8000/?mode=trial` for the same scene in the browser. Build validates and stages
+Open `http://localhost:8000/?mode=linear` for the same scene in the browser. Build validates and stages
 saved content in `dist/content`, with an exact-byte SHA-256 manifest. Pages verifies version.txt,
 versioned boot/root, the manifest and every delivered course/image against the checkout. Sequence
 rendering, reports and fitting remain M5 work.
@@ -359,13 +359,13 @@ Material/Decal composition and Course Editor are subsequent work, not hidden run
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `compile:course` for CourseDocument graphs, `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The hygiene test explicitly reserves the general race, rival, recovery and gate components for M3/M4; that reservation becomes empty at M4 completion. The declared offline entries are `compile:course` for CourseDocument graphs, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
 Some tests use explicitly fixed calibration fixtures so a failure can be reproduced after player defaults change. That does not make the old values product defaults. Do not rewrite such fixtures merely to improve their outcomes. A removed obsolete renderer or archived-document hash is different: preserve current primitive/integration coverage and delete the superseded implementation/preservation requirement.
 
-The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/performance/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Diagnostic input adapters accept the pinned constructor and update signatures; the renderer comparison similarly adapts the old module/function name and call shape. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only; they are not historical equivalence evidence. The immutable reference pins the accepted vehicle force/control law and renderer output before structural cleanup. It is a regression oracle, not a release archive. Keep its SHA in one workflow variable; advance it only with an explicitly reviewed mechanics/rendering contract revision and independent causal tests for the revision. Refactors, API cleanup and tuning must not silently reset this oracle or normalize away differences.
+The [workflow](../.github/workflows/pages.yml) builds a pinned, immutable released reference on the same Node/host and supplies `HOT_PATH_BASELINE_BUILD` to tests. [Exact-trace comparison](../tools/performance/hot-path-probe.mjs) covers signed wheel solves and nine-profile steering/pedal sequences at 60/120/240 Hz; it compares serialized results without tolerances or schema masking. Diagnostic input adapters accept the pinned constructor and update signatures; the unchanged terrain framebuffer fixture separately preserves projection output. These bridges change inputs only, never reference outputs, state hashes, pixels or result metrics. Local runs without that environment test determinism only; they are not historical equivalence evidence. The immutable reference pins the accepted vehicle force/control law and renderer output before structural cleanup. It is a regression oracle, not a release archive. Keep its SHA fixed in the workflow variable throughout the playable-course milestones. Refactors, API cleanup and tuning must not silently reset this oracle or normalize away differences.
 
 Focused audio verification after building uses:
 
@@ -391,50 +391,12 @@ node tools/physics/steering-input-stop-benchmark.mjs /path/to/reference/dist /tm
 
 The [torque protection probe](../tools/physics/torque-protection-probe.mjs) compares protected and unprotected drive/brake behavior. The [steering limiter benchmark](../tools/physics/steering-input-stop-benchmark.mjs) measures identical input groups against a supplied build. Retain these reproducible tools rather than copying generated reports into documentation.
 
-[Browser performance page](../tools/performance/browser-performance.html) runs target-browser workload diagnostics. Compare warmed paired runs on the same engine. Optional instrumentation and full-suite wall time do not measure ordinary frame cost. [Workload reduction](../src/dev/diagnostics/render-workload.ts) reports current observations; no copied milestone maxima or arbitrary headroom multiplier establishes a device budget. Enforce actual clipping/accounting invariants and compare reference pixels, then measure on the target device. If device traces show allocation pressure, inspect TerrainLine/source-footprint construction and the per-line sampler closure before choosing a measured optimization; these are candidates, not demonstrated bottlenecks. Keep generated reports outside the source tree unless a current test needs a small authored fixture.
-
-## GroundMap capacity measurement
-
-After building, run:
-
-```sh
-node tools/performance/ground-map-capacity.mjs /tmp/ground-map-capacity.json
-node tools/performance/ground-map-capacity.mjs --inventory
-```
-
-The host-only probe runs stadium, one Tsukuba lap, the linear highway and the branching parent
-through the current compiler in separate Node processes. Absent logical profiles receive the
-existing grass fallback explicitly; road paint, dimensions and density remain unchanged.
-It writes an incomplete checkpoint after each course and removes temporary binary assets afterward.
-Generated measurements belong outside the source tree.
-
-The report separates packed binary and metadata bytes, encoded bytes before payload sharing,
-alignment overhead, gzip level-9 bytes, compiler time/peak RSS (including temporary-file I/O, before full binary readback) and independent reader-process
-observations. Peak RSS includes the worker's baseline; ArrayBuffer, external, heap and RSS values
-overlap and must not be added. Reader measurements allow an event-loop turn and GC after releasing
-the input buffer. These are host observations, not smartphone residency or frame-time certification.
-Gzip sizes assume separately compressed binary and JSON responses; actual Pages response encoding
-must be checked independently.
-
-Synthetic repeated-16-color and RGB555-noise images exercise the existing prefilter/encoder.
-They are sensitivity bounds, not imported art, complete course bakes or estimates of chunk dedup.
-The stage inventory compares a finite sample grid of actual stage paint with translated source paint,
-and reports authored handoff chainages. A zero mismatch count does not establish full equivalence.
-This older source-profile capacity probe does not bake the child stages; `build:ground` separately
-bakes all product StageRoadView inputs including their local junction/shoulder paint, reports each
-source and validates full-density product delivery.
-
-Measure completed-asset handoff residency on a target device. Budget the
-whole application separately from GroundMap. Compiler pixel buffers are now bounded and intermediate levels use scratch disk; the reader still
-makes its defensive input copy. Compiler capacity gains do not reduce packed reader residency
-or transfer size. Temporary storage must have room for intermediate levels and the final payloads.
-
 ## Tire comparison tools
 
 Build before listening. Serve over HTTP (for example `python3 -m http.server 8000`); DEV exposes model-specific friction controls plus independent ENG/TIRE mix levels.
 Other numeric tire timbre settings remain source data. [Calibration](calibration.md#tire-audio-tuning) maps their
 owners, [audio](tire-audio.md#player-tire-synthesis) defines each method, and
-[NEXT](NEXT.md#deferred-tuning) records feedback and tuning priorities.
+[NEXT](NEXT.md#current-state) records feedback and tuning priorities.
 
 In the game, select MODAL for the Q-only method or HYBRID for the listening reference.
 HYBRID and SPECTRAL expose R/S/Q buttons. MODAL exposes only Q; R/S sources are absent. Compare its Q with HYBRID Q (R and S off)
@@ -446,7 +408,7 @@ Reload resets model/component/tuning/mix choices.
 
 | Tool                        | Scope                                                                                                     | Command / page                                                                                                                                   |
 | --------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                            | `http://localhost:8000/?mode=circuit`                                                                                                            |
+| Game                        | Live mechanics, both axles, all surfaces and model-specific component controls                            | `http://localhost:8000/?mode=linear`                                                                                                             |
 | SPECTRAL S/Q audition       | One asphalt contact, manual observations or shared synthetic replays; omits R                             | [tire-spectral-browser.html](../tools/audio/tire-spectral-browser.html)                                                                          |
 | SPECTRAL R/S/Q render       | One synthetic contact, rotation sweep and grip recovery, separate R/S/Q/mix WAVs                          | `node tools/audio/tire-response-render.mjs /absolute/rsq-output - 48000`                                                                         |
 | Six-model comparison render | Same synthetic trace; HOPF, CONTACT friction, SPECTRAL S/Q, HYBRID R/S/Q, MODAL Q and UNIFIED R/Q outputs | `node tools/audio/tire-spectral-render.mjs /absolute/sq-output 48000`                                                                            |
@@ -549,20 +511,10 @@ For a reported failure, distinguish source logic, emitted build, deployed artifa
 
 ## Build outputs
 
-`npm run build` cleans and compiles the complete ESM tree into `dist/`. `npm run build:ground`
-then generates every shipped course's complete camera-density pyramid into `dist/ground-pages/`.
-It publishes only after all sources and the real gzip HTTP/frame verifier succeed; scratch spools
-are deleted on success or failure. Run this command again after a clean build before local play.
-CI runs both the full suite and this product build on PRs and main. Pages stages the complete output
-under both the selected immutable build and its coherent `dist/` fallback. After deployment the
-workflow checks the public version, all source manifests and sampled gzip payloads against that SHA.
-
-`npm run build:test-assets` separately generates the stadium monolithic binary, coarse branching
-and ordinary course/lap regression assets, and raw page manifests under `.test-assets/`. `npm test`
-runs the ESM build and this fixture generation before tests. These fixtures are excluded from Pages.
-Individual asset tests require `build:test-assets` after a clean build. Both output directories are
-ignored generated files. Product build logs report host compilation and resident-store observations;
-they do not certify browser/device memory or frame timing.
+`npm run build` clears `dist`, compiles ESM, builds the Sprite Tool/preview and validates/stages saved
+courses and images in `dist/content` with their exact-byte SHA-256 manifest. Pages publishes the
+complete build under its commit version and a coherent local fallback. Deployment verification checks
+version.txt, versioned boot/root and every course/image digest. Fixtures remain test inputs.
 
 ## Tool and test layout
 
@@ -574,61 +526,6 @@ runtime entry points. Tool-only general implementations belong to explicit diagn
 Tests are grouped by responsibility under `tests/`; helpers and small authored fixtures remain
 separate. `npm test` discovers `tests/**/*.test.mjs` recursively, so grouping does not remove tests
 from the suite. Stage depth and child-side names describe actual topology scenarios, not milestones.
-
-## GroundMap migration gates
-
-The [architecture design](architecture.md#groundmap-compilation-and-residency) and
-[content lifecycle](content-and-gameplay.md#groundmap-loading-and-handoff) describe the implemented compiler, transport and product lifecycle. Steps 1-4 and the complete
-product build/delivery checks in step 5 are implemented. Target-device acceptance in step 5 remains
-open. The baked product pixel revision is explicit; the immutable mechanics/source-rendering
-reference remains unchanged.
-
-| Step | Change and owner                                                                  | Required evidence                                                                                                                                                                                                     |
-| ---- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | GroundMap compiler: bounded row generation and output sink                        | Existing source metadata/binary equality; deterministic output for different buffer sizes; measured working memory bounded with increasing length; correct 256/257-color selection and exact dedup                    |
-| 2    | Runtime/course compilation: final stage-local color source                        | Compare ordinary and stage source colors at road/shoulder edges, local fork intervals, source offsets, endpoints and overlap; preserve physical boundaries and all gate traces                                        |
-| 3    | GroundMap storage/browser loader: versioned payload delivery and shared residency | Exact texel-center, endpoint and per-level reads; page-boundary filtering parity; single shared load/buffer; pin/eviction/cancellation/corruption/capacity failures; observed simultaneous buffer accounting          |
-| 4    | Browser/runtime integration: ready-frame loading, real handoff and circuit reuse  | Delayed/failed loads, retry, reverse/recovery, multiple actors and course replacement; unchanged mechanics; explicit pixel revision with independent image tests; no procedural production paint or runtime prefilter |
-| 5    | Product build and device acceptance                                               | Every shipped course has complete manifests/assets; clean immutable deployment; verified delivery encoding; peak load/transition memory and frame timing on target devices within agreed budgets                      |
-
-Step 1 retains the current whole-source lattice and sequential rounding. The old eager compiler/pyramid assembly has been removed.
-[Compiler regressions](../tests/rendering/ground-map-compiler.test.mjs) preserve small exact
-pre-refactor outputs and the full stadium digest, compare several batch sizes, independently check
-L0 colors, bound I/O requests as length grows, and exercise capacity/I/O failure cleanup. The shared
-2-by-4 averaging kernel remains the only filter implementation. Do not revive an alternate compiler
-to compare implementations indefinitely.
-Step 2 uses the existing stage paint evaluator, including local shoulders and both later forks.
-[Stage-source regressions](../tests/rendering/ground-map-stage-source.test.mjs) compare all texels
-of the complete eleven-stage test bake, sequential filtered levels and storage boundaries against
-the current samplers. Separate exact-edge probes cover fork phase changes, source offsets, finite
-endpoints and all ten handoff seams. Test density is deliberately coarse (qL = 0.25 m, qS = 1 m,
-kMax = 2); it does not establish product-density capacity or device acceptance. Existing immutable
-pixel/mechanics comparisons and route regressions remain mandatory. Steps 1-3 need no update to deployed pixels.
-
-Step 3 now publishes content-addressed files and validates shared payload leases with a file transport.
-[Page regressions](../tests/rendering/ground-map-pages.test.mjs) exhaustively compare both later-fork
-assets with the monolithic reader, cover page edges/endpoints/LOD, deterministic publication,
-manifest corruption and palette interpretation, and control delayed loads for shared admission,
-cancellation, eviction, capacity failures and retries. Counters explicitly include old/new pins and
-loading reservations. [HTTP regressions](../tests/browser/ground-map-http.test.mjs) cover immutable
-build URLs, decoded bounds, digest/length failures, deadlines, cancellation, disposal and retry.
-The test build serves the eleven-stage assets over real loopback gzip HTTP and compares complete
-320x240 frames at three positions per stage against the monolithic reader, including later forks.
-It rejects procedural paint access during compiled drawing. [Ready-frame regressions](../tests/browser/ready-frame.test.mjs)
-cover retained frames, paused ticks, retry, stale arrivals and no catch-up; [route integration](../tests/browser/ground-map-route-integration.test.mjs)
-covers real two-actor gate/COMMIT, independent recovery and shared Tsukuba lap pages. The additional
-Tsukuba bake also uses coarse test density. These are Node/loopback checks, not production Pages
-delivery or target-browser/device acceptance. Product build verification adds all fourteen full-density
-sources, independent L0 color checks and 44 complete-frame pixel fixtures. Actual product-root tests
-cover the four entry modules with simulated browser boundaries; HTTP tests cover explicit gzip decode
-and resident cache hits. The deployed-asset verifier provides separate public delivery evidence.
-The test-assets directory remains excluded from deployment. The browser performance page uses an
-explicit source-color diagnostic input, so it does not measure product loading or residency.
-
-A missing numeric device budget does not block compiler parity or ownership work. It does block a
-claim of smartphone acceptance. Choose limits using measured payload working sets and total
-application headroom, record them in the integration profile, and reject unsupported content
-explicitly. A guessed speed/network lead distance is not a guarantee that future pages will arrive.
 
 ## Course Editor target validation
 

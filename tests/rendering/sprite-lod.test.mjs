@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { compileCourseSprite } from '../../dist/render/course-sprite.js';
@@ -251,7 +251,7 @@ test('compiled metadata and decoded pixels are detached from caller-owned source
 });
 
 test('course sprites, dynamic rivals and player use the same LOD blitter inside the full Painter', () => {
-  const runtime = createLinearHighwayRuntime(),
+  const runtime = createStraightReferenceWorld(),
     { guide, heightProfile: height } = runtime;
   const source = createSpriteLodFixture(81, 57),
     asset = readSpriteLodAsset(source);

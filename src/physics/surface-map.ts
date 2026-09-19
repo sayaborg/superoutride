@@ -1,5 +1,4 @@
 import { compileOpenProfile, openProfileChainage, profileIndexAt } from '../core/open-profile.js';
-import type { JunctionCrossSectionProfile } from '../course/junction-cross-section.js';
 
 const BAND_OVERLAP_TOLERANCE_METERS = 1e-9;
 
@@ -37,7 +36,7 @@ export interface SurfaceSection {
   readonly bands: readonly SurfaceBand[];
 }
 
-export interface SurfaceSample {
+interface SurfaceSample {
   readonly sectionName: string;
   readonly type: SurfaceType;
   readonly material: SurfaceMaterial;
@@ -45,15 +44,15 @@ export interface SurfaceSample {
 
 /** Minimal read-only physics contract for SurfaceMap(s,l). */
 export interface SurfaceMapReader {
-  /** Conservative bound in this reader's local lateral frame, including junction support. */
+  /** Conservative bound in this reader's local lateral frame, including all supported bands. */
   readonly maxSupportedAbsL: number;
   sample(s: number, l: number): SurfaceSample;
 }
 
 /**
  * General runtime SurfaceMap(s,l): an open [0, courseLength] chainage domain containing
- * piecewise-constant authored terrain plus an optional continuous junction cross-section.
- * GroundMap pixels and GroundBase paint remain independent.
+ * piecewise-constant authored terrain.
+ * Saved paint pixels and GroundBase paint remain independent.
  */
 export class SurfaceMap implements SurfaceMapReader {
   readonly sections: readonly SurfaceSection[];
@@ -62,7 +61,6 @@ export class SurfaceMap implements SurfaceMapReader {
   constructor(
     readonly courseLength: number,
     sections: readonly SurfaceSection[],
-    readonly junction?: JunctionCrossSectionProfile,
   ) {
     this.sections = compileOpenProfile(
       sections.map((section) => ({
@@ -71,7 +69,7 @@ export class SurfaceMap implements SurfaceMapReader {
       })),
       { length: courseLength, chainage: 'sStart', label: 'surface profile' },
     );
-    let extent = junction?.maxSupportedAbsL ?? 0;
+    let extent = 0;
     for (const section of this.sections)
       for (const band of section.bands) {
         extent = Math.max(extent, Math.abs(band.lMin), Math.abs(band.lMax));
@@ -83,18 +81,6 @@ export class SurfaceMap implements SurfaceMapReader {
     if (!Number.isFinite(l)) throw new RangeError('surface lateral coordinate must be finite');
     const local = this.normalizeChainage(s);
     const section = this.sectionAtLocal(local);
-
-    if (this.junction) {
-      const junctionClass = this.junction.classify(local, l);
-      const type = junctionSurfaceType(junctionClass);
-      if (type !== null) {
-        return {
-          sectionName: `${section.name} / JUNCTION`,
-          type,
-          material: SURFACE_MATERIALS[type],
-        };
-      }
-    }
 
     for (let i = 0; i < section.bands.length; i += 1) {
       const band = section.bands[i]!;
@@ -117,16 +103,6 @@ export class SurfaceMap implements SurfaceMapReader {
   private sectionAtLocal(local: number): SurfaceSection {
     return this.sections[profileIndexAt(this.sections, 'sStart', local)]!;
   }
-}
-
-export function junctionSurfaceType(
-  lateralClass: ReturnType<JunctionCrossSectionProfile['classify']>,
-): Exclude<SurfaceType, 'VOID'> | null {
-  if (lateralClass === 'ASPHALT_SINGLE' || lateralClass === 'ASPHALT_LEFT' || lateralClass === 'ASPHALT_RIGHT')
-    return 'ASPHALT';
-  if (lateralClass === 'SHOULDER') return 'SHOULDER';
-  if (lateralClass === 'MEDIAN') return 'GRASS';
-  return null;
 }
 
 /** One physical-band compiler for both physical authoring and runtime SurfaceMap sources. */

@@ -30,7 +30,7 @@ import { createAudioLifecycle } from '../../dist/browser/audio-lifecycle.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../../dist/browser/vehicle-audio.js';
 import { observeVehicleTires, publishVehicleTireObservation } from '../../dist/physics/vehicle-tire-observation.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { installBrowserDom } from '../helpers/browser-dom.mjs';
 import { FakeAudioContext, FakeAudioWorkletNode } from '../helpers/audio-context.mjs';
@@ -50,7 +50,7 @@ const state = () => {
   return result;
 };
 const world = () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   return { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 };
 const settle = () => new Promise((resolve) => setImmediate(resolve));

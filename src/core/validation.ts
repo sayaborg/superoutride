@@ -22,10 +22,3 @@ export function finitePoint(point: Vec2, label: string): void {
     throw new RangeError(`${label} must be finite`);
   }
 }
-
-/** Validate and register one key while composing a collection. */
-export function uniqueKey(keys: Set<string>, key: string, label: string): void {
-  nonEmptyId(key, label);
-  if (keys.has(key)) throw new RangeError(`duplicate ${label}: ${key}`);
-  keys.add(key);
-}

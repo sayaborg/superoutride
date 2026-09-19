@@ -1,5 +1,3 @@
-import { GroundPresentation } from './ground-presentation.js';
-import { mountGroundLoadingControls } from './ground-loading-controls.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { createDrivingLifecycle, type DrivingLifecycleOptions } from './driving-lifecycle.js';
 import type { CameraRig } from '../camera/camera.js';
@@ -46,8 +44,7 @@ interface BrowserDrivingShell {
     playerScreenY: number,
     rivals?: readonly { readonly vehicle: ArcadeVehicleState }[],
   ): void;
-  drawGround(...args: Parameters<GroundPresentation['draw']>): void;
-  start(tick: (dt: number) => void, render: () => void, ready?: boolean): void;
+  start(tick: (dt: number) => void, render: () => void): void;
   stop(): void;
   dispose(): void;
 }
@@ -76,11 +73,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
 
   const audio = createAudioLifecycle();
   let loop: FrameLoop | null = null;
-  let ground: GroundPresentation | null = null;
-  let waiting = false;
-  let loadingControls: ReturnType<typeof mountGroundLoadingControls> | null = null;
   window.addEventListener('pagehide', () => {
-    ground?.dispose();
     loop?.stop();
     audio.setActive(false);
   });
@@ -88,45 +81,19 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     if (event.persisted) location.reload();
   });
   return {
-    start(tick, render, ready = false): void {
-      ground?.dispose();
+    start(tick, render): void {
       loop?.stop();
-      loadingControls?.dispose();
       loop = createFrameLoop(tick, render);
-      if (ready) {
-        waiting = false;
-        inputManager.setSuspended(false);
-        audio.setActive(true);
-        render();
-        loop.start();
-        return;
-      }
-      loadingControls = mountGroundLoadingControls(() => ground?.retry());
-      ground = new GroundPresentation(
-        loop,
-        (suspended) => {
-          waiting = suspended;
-          inputManager.setSuspended(suspended);
-          audio.setActive(!suspended);
-        },
-        (state, error) => {
-          if (state === 'failed') console.error('GroundMap loading failed', error);
-          loadingControls?.update(state);
-        },
-      );
+      inputManager.setSuspended(false);
+      audio.setActive(true);
       render();
-    },
-    drawGround(...args): void {
-      if (!ground) throw new Error('GroundMap presentation has not started');
-      ground.draw(...args);
+      loop.start();
     },
     stop(): void {
       loop?.stop();
       audio.setActive(false);
     },
     dispose(): void {
-      ground?.dispose();
-      loadingControls?.dispose();
       inputManager.setSuspended(true);
       loop?.stop();
       audio.dispose();
@@ -160,7 +127,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
     mountControls(options: DrivingLifecycleOptions) {
       const lifecycle = createDrivingLifecycle(this, options);
       const selectVehicleProfile = (profile: Readonly<CompiledArcadeVehicleProfile>) => {
-        if (waiting || profile.id === vehicle.profile.id) return;
+        if (profile.id === vehicle.profile.id) return;
         lifecycle.replace(profile);
         vehicleSelector.setActive(vehicle.profile.id);
       };
@@ -173,7 +140,6 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
         mustGet('camera-selector-buttons'),
         cameraRig.yawMode,
         (mode) => {
-          if (waiting) return;
           setCameraYawMode(cameraRig, mode);
           cameraYawSelector.setActive(mode);
         },
@@ -189,7 +155,7 @@ export function createBrowserDrivingShell(runtime: VehicleWorld, startL: number)
       const tireContainer = mustGet('tire-friction-selector-buttons');
       const tireFrictionControls = mountBrowserTireFrictionControls(tireContainer, () => vehicle);
       window.addEventListener('keydown', (event) => {
-        if (event.repeat || waiting) return;
+        if (event.repeat) return;
         if (browserRequestsCameraYawToggle(event.code)) {
           cameraYawSelector.setActive(toggleCameraYawMode(cameraRig));
           return;

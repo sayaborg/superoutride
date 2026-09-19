@@ -1,14 +1,13 @@
 import { createFootprintScene } from '../helpers/stadium-scene.mjs';
-import { deg, near } from '../helpers/assert.mjs';
+import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS } from '../../dist/camera/current-camera-profile.js';
 
-import { summarizeTerrainFootprints } from '../../dist/dev/diagnostics/terrain-footprint-analysis.js';
 import { computeTerrainRowDeltaS } from '../../dist/terrain/terrain-line.js';
 
-const { guide, height, cameraProfile, density, linesAt } = createFootprintScene();
+const { height, cameraProfile, linesAt } = createFootprintScene();
 
 test('Core scanline Delta_s uses y pixel boundaries and visible-depth clipping', () => {
   // y(d) = a + b/d with a=0,b=100. Row 4 spans screen Y 4..5 => d 25..20.
@@ -52,27 +51,4 @@ test('flat-road ordinary Delta_s agrees with the Core d^2/(f h cosPhi) baseline'
   const approximate = line.d ** 2 / (200 * cameraProfile.height * Math.cos(CURRENT_CAMERA_BASE_DOWN_PITCH_RADIANS));
   const relativeError = Math.abs(line.sourceFootprint.deltaS - approximate) / approximate;
   assert.ok(relativeError < 0.08, `relative error ${relativeError}`);
-});
-
-test('high camera yaw increases lateral diagnostic footprint without becoming shared-pyramid authority', () => {
-  const straight = summarizeTerrainFootprints(linesAt(20, 0), density);
-  const yawed = summarizeTerrainFootprints(linesAt(20, deg(75)), density);
-  assert.ok(yawed.maxDeltaL > straight.maxDeltaL * 2);
-  assert.ok(yawed.maxDiagnosticLateralLevel > straight.maxDiagnosticLateralLevel);
-  assert.ok(Number.isInteger(yawed.requiredChainageLevel));
-});
-
-test('current debug-course sweep reports an observed footprint envelope from actual Road Generator output', () => {
-  const allLines = [];
-  const yawOffsets = [deg(-75), deg(-40), 0, deg(40), deg(75)];
-  for (let s = 20; s < guide.length; s += 40) {
-    for (const yawOffset of yawOffsets) allLines.push(...linesAt(s, yawOffset));
-  }
-  const summary = summarizeTerrainFootprints(allLines, density);
-  assert.ok(summary.lineCount > 1000);
-  assert.ok(summary.maxDeltaSEffective > 0);
-  assert.ok(summary.maxDeltaL > 0);
-  assert.ok(Number.isInteger(summary.requiredChainageLevel) && summary.requiredChainageLevel >= 0);
-  assert.ok(Number.isInteger(summary.maxDiagnosticLateralLevel) && summary.maxDiagnosticLateralLevel >= 0);
-  console.log('OBSERVED DEBUG ENVELOPE', JSON.stringify(summary));
 });

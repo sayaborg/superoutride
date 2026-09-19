@@ -2,7 +2,7 @@
 
 This is supporting research, not a runtime specification or numerical calibration.
 [Audio](tire-audio.md#player-tire-synthesis) owns the in-game HOPF/CONTACT/SPECTRAL/HYBRID/MODAL/UNIFIED implementations;
-[NEXT](NEXT.md#deferred-tuning) owns deferred listening decisions.
+[NEXT](NEXT.md#current-state) owns deferred listening decisions.
 The source summaries below retain their stated inspection limits. They motivate possible mechanisms,
 not the numerical coefficients or realism of any existing sound engine.
 
@@ -114,7 +114,7 @@ using a single mechanism or matching one replay does not itself establish greate
 a model's instability point and the listener's audible squeal onset are different observations.
 
 [Audio](tire-audio.md#player-tire-synthesis) owns current mechanisms and approximation limits;
-[NEXT](NEXT.md#deferred-tuning) owns deferred listening and method acceptance. HYBRID remains
+[NEXT](NEXT.md#current-state) owns deferred listening and method acceptance. HYBRID remains
 the default reference; final method selection is undecided. Keep previous experiments in Git
 rather than another proposal/handoff archive; existing tools regenerate references without prior
 chat audio files.

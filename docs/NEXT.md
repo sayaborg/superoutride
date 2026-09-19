@@ -2,8 +2,8 @@
 
 ## Current state
 
-- Main provides CourseDocument/compiler, Band/Link, occurrence/view and single-Section driving foundations.
-- The browser still uses the old courses while M1 is under implementation.
+- CourseDocument/compiler, Band/Link, occurrence/view and single-Section driving foundations are available.
+- The default browser root drives the saved provisional LINEAR through the shared headless/browser scene.
 - New product courses live in `content/courses/`; their saved assets are delivered with each build.
 - Ground uses level-zero source paint until resident RGB555 is implemented.
 - Physics/audio/input/camera/sprites and their immutable reference remain fixed; tuning is paused (DEV_UNCALIBRATED).
@@ -14,8 +14,8 @@
 
 | Milestone | Status and completion requirement                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| M1        | In progress: new 3 km LINEAR, row scenery, shared browser/headless scene, public driving.                                         |
-| M1b       | Pending: independent purge of old courses/routes/paged GroundMaps after M1 publication.                                           |
+| M1        | Complete: saved 2.8 km LINEAR, row scenery, shared scene and publicly verified driving.                                           |
+| M1b       | Release candidate: old courses/routes/paged ground removed; default root is the saved LINEAR.                                     |
 | M2        | Pending: two Sections, 30 m common guards, span-composed camera/contact/reverse/recovery and actor commit.                        |
 | M3        | Pending: transformed one-source CIRCUIT, finite occurrence history, laps/FINISH and rivals.                                       |
 | M4        | Pending: two-way fork, crossable median, ordered field lock, closure recovery, merge and rival retarget.                          |

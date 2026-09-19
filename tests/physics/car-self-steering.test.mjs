@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import { FERRARI_TESTAROSSA_VEHICLE_AUTHORING } from '../../dist/vehicle/production-vehicle-profiles.js';
 
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import {
   createArcadeVehicle,
   stepTravelDirectionSteering,
@@ -22,7 +22,7 @@ import {
 } from '../../dist/vehicle/production-vehicle-profiles.js';
 
 const DT = 1 / 60;
-const highway = createDefaultBranchingParent();
+const highway = createCurvedReferenceWorld();
 const flatHeight = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },
@@ -171,27 +171,4 @@ test('18:1 steering ratio changes only HUD handwheel telemetry, never mechanics'
   assert.deepEqual(physicalSnapshot(standard), physicalSnapshot(presentationVariant));
   assert.equal(standard.control.actualSteerAngle, presentationVariant.control.actualSteerAngle);
   assert.equal(standard.control.handwheelAngle, presentationVariant.control.handwheelAngle * 18);
-});
-
-test('common solver contains pure travel-direction geometry and no yaw steering assist', async () => {
-  const [solver, calibration, linear, branching, circuit] = await Promise.all([
-    readFile(new URL('../../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/physics/vehicle-calibration.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-  ]);
-  assert.doesNotMatch(solver, /usefulLateralCapacity|countersteerMode|steeringOffsetCommand/);
-  assert.match(solver, /const automaticSteer = clamp\(\s*bodyTravelDirection,/s);
-  for (const source of [solver, calibration]) {
-    assert.doesNotMatch(
-      source,
-      /travelDirectionGain|yawTransientGain|yawWashoutTime|yawRateBaseline|steeringAssist|driftMode|driftAssist/i,
-    );
-  }
-  for (const source of [linear, branching, circuit]) {
-    assert.match(source, /createBrowserDrivingShell/);
-    assert.match(source, /advanceVehicleWithRecovery|advanceRouteDrivingTick|advanceCircuitDrivingActor/);
-    assert.doesNotMatch(source, /createM5Car|createM5Bike|updateM5Car|updateM5Bike/);
-  }
 });

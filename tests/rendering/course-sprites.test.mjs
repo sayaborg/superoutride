@@ -5,7 +5,7 @@ import test, { describe } from 'node:test';
 
 import { renderPose, terrainCamera } from '../helpers/render-fixture.mjs';
 import { pseudoDepth } from '../../dist/core/projection.js';
-import { createRoadsideSprites } from '../../dist/dev/courses/roadside-scenery.js';
+import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scenery.js';
 
 import { collectVisibleCourseSprites, compileCourseSprite } from '../../dist/render/course-sprite.js';
 

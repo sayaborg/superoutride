@@ -19,7 +19,7 @@ import { createFlatProbe, directInput, forkProbe, runProbe } from '../../tools/p
 import { runProtectionProbe } from '../../tools/physics/torque-protection-probe.mjs';
 import { withEngineCurveScale } from '../helpers/authored-engine.mjs';
 import { withHighBikeCgEntry } from '../helpers/bike-cg-reference.mjs';
-import { callsTo } from '../helpers/source-contract.mjs';
+
 const car = VEHICLE_CATALOG[0],
   bike = VEHICLE_CATALOG[5],
   R = car.profile.rearStation.rollingRadius;
@@ -286,20 +286,6 @@ test('compression barrier uses fresh geometry, velocity and the retained wrench 
     reachVelocity: { x: contact.reachVelocity.x, y: contact.reachVelocity.y + 1, z: contact.reachVelocity.z },
   };
   assert.ok(supportCompressionMargin(v.profile, body, rising, wrench, 0.08) < a);
-});
-test('every browser actor and vehicle replacement explicitly receives catalog protection', async () => {
-  for (const name of ['main', 'main-linear', 'main-circuit']) {
-    const s = await readFile(new URL(`../../src/${name}.ts`, import.meta.url), 'utf8');
-    assert.match(s, /createBrowserDrivingShell/);
-    assert.match(s, /shell\.mountControls/);
-    const calls = callsTo(s, 'createArcadeVehicle');
-    assert.equal(calls.length, name === 'main-linear' ? 0 : 1);
-    for (const args of calls)
-      assert.match(args[2], /torqueProtection:\s*DEFAULT_VEHICLE_CATALOG_ENTRY\.torqueProtection/);
-  }
-  const shell = await readFile(new URL('../../src/browser/driving-shell.ts', import.meta.url), 'utf8');
-  assert.match(shell, /DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection/);
-  assert.match(shell, /vehicleCatalogEntryForId\(profile.id\).torqueProtection/);
 });
 test('protection adds no vehicle kind, target beta, body overwrite, or duplicated tire law', async () => {
   const s = await readFile(new URL('../../src/physics/torque-protection.ts', import.meta.url), 'utf8');

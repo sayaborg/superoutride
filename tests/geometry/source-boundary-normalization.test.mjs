@@ -7,11 +7,7 @@ import { fileURLToPath } from 'node:url';
 const repositoryRoot = fileURLToPath(new URL('../..', import.meta.url));
 const srcRoot = path.join(repositoryRoot, 'src');
 const devRoot = path.join(srcRoot, 'dev');
-const allowedDevCompositionRoots = new Set([
-  path.join(srcRoot, 'main-linear.ts'),
-  path.join(srcRoot, 'main.ts'),
-  path.join(srcRoot, 'main-circuit.ts'),
-]);
+const allowedDevCompositionRoots = new Set();
 
 const retiredAuthorityPaths = [
   'src/core/debug-course.ts',
@@ -29,10 +25,7 @@ const currentAuthorityPaths = [
   'src/dev/fixtures/raster-courses.ts',
   'src/dev/fixtures/hill-dip-height.ts',
   'src/dev/fixtures/cliff-visual.ts',
-  'src/dev/courses/roadside-scenery.ts',
-  'src/dev/fixtures/minimal-route-gates.ts',
-  'src/dev/fixtures/minimal-route-dag.ts',
-  'src/dev/fixtures/minimal-stage-manifest.ts',
+  'src/dev/fixtures/projection-scenery.ts',
 ];
 
 async function collectTypeScriptFiles(directory) {
@@ -132,33 +125,4 @@ test('source modules do not revive retired authorities as pure re-export shims',
     }
   }
   assert.deepEqual(violations.sort(), []);
-});
-
-test('open-route regression fixtures do not hide endpoint defects behind cyclic profiles', async () => {
-  const openRouteFixtures = [
-    'tests/runtime/live-fork-driving-regression.test.mjs',
-    'tests/runtime/branch-violation-recovery.test.mjs',
-    'tests/gameplay/field-route-progress.test.mjs',
-  ];
-  for (const relativePath of openRouteFixtures) {
-    const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');
-    assert.doesNotMatch(
-      source,
-      /\bnew\s+Cyclic(?:HeightProfile|SurfaceMap|VisualProfile)|\bimport\s+\{\s*Cyclic(?:HeightProfile|SurfaceMap|VisualProfile)/,
-      relativePath,
-    );
-  }
-});
-
-test('general source profiles expose one finite domain without cyclic implementations', async () => {
-  for (const relativePath of [
-    'src/core/height-profile.ts',
-    'src/visual/visual-profile.ts',
-    'src/groundmap/baked-ground-map.ts',
-    'src/groundmap/logical-profile.ts',
-    'src/physics/surface-map.ts',
-  ]) {
-    const source = await readFile(path.join(repositoryRoot, relativePath), 'utf8');
-    assert.doesNotMatch(source, /\bwrapPositive\b|\bclass Cyclic\w*/, relativePath);
-  }
 });

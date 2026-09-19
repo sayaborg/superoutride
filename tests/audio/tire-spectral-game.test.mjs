@@ -12,7 +12,7 @@ import {
   resetVehicleTireObservation,
 } from '../../dist/physics/vehicle-tire-observation.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { SPECTRAL_SCENARIOS, spectralScenarioAt } from '../../tools/audio/tire-spectral-scenarios.mjs';
 
@@ -184,7 +184,7 @@ test('spectral mapping has its own SI transport and does not reuse representativ
 });
 
 test('spectral observation and mapping leave complete nine-vehicle mechanics unchanged', () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
   for (const { profile } of VEHICLE_CATALOG) {
     const a = createArcadeVehicle(profile, world, { s: 45, initialSpeed: 25 });

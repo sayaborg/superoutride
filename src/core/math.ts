@@ -9,7 +9,7 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function wrapPositive(value: number, period: number): number {
+function wrapPositive(value: number, period: number): number {
   if (!(period > 0)) throw new RangeError('period must be > 0');
   const wrapped = value % period;
   return wrapped < 0 ? wrapped + period : wrapped;

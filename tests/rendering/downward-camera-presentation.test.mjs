@@ -1,6 +1,6 @@
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 
 import {
@@ -39,19 +39,4 @@ test('12-degree framing gives the far road more vertical separation than the for
   const oldSpan = 190 - oldFarY;
   const currentSpan = 190 - currentFarY;
   assert.ok(currentSpan > oldSpan * 1.12, `${currentSpan} must materially exceed ${oldSpan}`);
-});
-
-test('all browser compositions consume the single current camera profile authority', async () => {
-  const lifecycle = await readFile(new URL('../../src/browser/driving-lifecycle.ts', import.meta.url), 'utf8');
-  assert.match(lifecycle, /updateCamera\([^;]*CURRENT_CAMERA_PROFILE/);
-  const sources = await Promise.all([
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-  ]);
-  for (const source of sources) {
-    assert.match(source, /shell\.mountControls/);
-    assert.doesNotMatch(source, /baseDownPitch:\s*\(8\s*\*\s*Math\.PI\)/);
-    assert.doesNotMatch(source, /height:\s*2\.469902425419539/);
-  }
 });

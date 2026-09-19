@@ -1,7 +1,7 @@
 import { deg } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/fixtures/reference-paint.js';
 
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';

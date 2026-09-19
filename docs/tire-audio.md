@@ -160,7 +160,7 @@ The [shared kernel](../src/audio/tire-spectral-model.ts) and
 [settings/catalog](../src/audio/tire-spectral-acoustics.ts) belong to audio; the DEV worklet only auditions
 that same kernel. Every axle has eight fixed two-state noise-driven bands: two R rolling, two S scrub
 and four Q finite-width harmonic bands. No PCM playback, microscopic contact solve or vehicle/maneuver
-branch exists inside the kernel. [NEXT](NEXT.md#deferred-tuning) owns listening acceptance;
+branch exists inside the kernel. [NEXT](NEXT.md#current-state) owns listening acceptance;
 [calibration](calibration.md#tire-audio-tuning) maps named settings without redefining their values.
 
 The common `TIRE_SOUND_INPUTS` owns eight controls: signed longitudinal/lateral contact velocity and effective wheel
@@ -438,7 +438,7 @@ Its modal structure and common friction input have a
 [sound-synthesis precedent](tire-squeal-research.md#common-friction-input-as-a-synthesis-precedent),
 which does not validate its tire calibration. Fixed modes, omitted contact/thermal detail and native-rate
 nonlinearity limit spectral/aliasing fidelity. A later numerical instability point alone does not
-establish later audible squeal. [NEXT](NEXT.md#deferred-tuning) owns that listening decision.
+establish later audible squeal. [NEXT](NEXT.md#current-state) owns that listening decision.
 
 The shared voice/worklet runs only the selected axle pair. UNIFIED's R/Q controls fade output only;
 muted states continue, S is absent, and engine/master lifetime stays unchanged. The fixed mechanics
@@ -551,7 +551,7 @@ Offline renderer `elapsedMs` and `maxIterations` are diagnostics, not average it
 cost or target-device certification. Do not infer a measured speed ratio from operation counts.
 Lower-rate stepping or one/two Newton iterations are unvalidated proposals: they require convergence,
 root-domain, spectrum/aliasing and transient checks, not an argument from fundamental pitch alone.
-Current construction accepts 44.1–192 kHz. Sound selection and tuning are [deferred](NEXT.md#deferred-tuning) while visual presentation is developed.
+Current construction accepts 44.1–192 kHz. Sound selection and tuning are [deferred](NEXT.md#current-state) while visual presentation is developed.
 
 ### Session tuning
 

@@ -17,7 +17,7 @@ import {
   formatSteeringResponseSelector,
 } from '../../dist/browser/steering-calibration-selection.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRecoveryState, recoverVehicle, updateRecovery } from '../../dist/gameplay/recovery.js';
 import {
   createArcadeVehicle,
@@ -36,7 +36,7 @@ import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 
 const DEG = Math.PI / 180;
 const DT = 1 / 60;
-const highway = createDefaultBranchingParent();
+const highway = createCurvedReferenceWorld();
 const height = new HeightProfile(highway.guide.length, [
   { s: 0, y: 0 },
   { s: highway.guide.length, y: 0 },

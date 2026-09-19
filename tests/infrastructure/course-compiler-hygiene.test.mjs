@@ -8,7 +8,6 @@ import ts from 'typescript';
 // This module has a narrower direct-import contract than the runtime directory.
 // Check dependency structure, not helper names, comments or statement spelling.
 for (const [entry, owners, restricted = {}] of [
-  ['runtime/declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
   [
     'compiler/compiled-course.ts',
     ['core', 'course', 'compiler', 'visual'],
@@ -38,15 +37,6 @@ for (const [entry, owners, restricted = {}] of [
   ],
   ['compiler/course-links.ts', ['core', 'course', 'compiler']],
   ['authoring/course-project.ts', ['course', 'compiler']],
-  [
-    'runtime/raster-stage-successor.ts',
-    ['core', 'course', 'physics', 'gameplay', 'groundmap', 'runtime'],
-    {
-      gameplay: ['gameplay/guide-chart.js'],
-      runtime: ['runtime/stage-continuation-link.js'],
-      groundmap: ['groundmap/ground-map.js'],
-    },
-  ],
   ['gameplay/physical-race-gate.ts', ['core', 'gameplay'], { gameplay: ['gameplay/world-crossing-gate.js'] }],
 ]) {
   test(`${entry} imports only its declared compiler domain owners`, async () => {

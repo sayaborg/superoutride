@@ -10,10 +10,10 @@ import {
   resyncCircuitRaceProgress,
   updateCircuitRaceProgress,
 } from '../../dist/gameplay/circuit-race-progress.js';
-import { compileCircuitTopology } from '../../dist/gameplay/circuit-topology.js';
+
 import { advanceRaceSession, createRaceSessionState } from '../../dist/gameplay/race-session.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import { compileCircuitRuntimeWindow } from '../../dist/runtime/circuit-runtime-window.js';
+import { repeatedGuideFixture } from '../helpers/repeated-world.mjs';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 function createFixture() {
@@ -25,9 +25,13 @@ function createFixture() {
     vertices.push({ x: radius * Math.cos(angle), z: radius * Math.sin(angle) });
   }
   vertices.push({ ...vertices[0] });
-  const topology = compileCircuitTopology('M6_50_SESSION_CIRCUIT', compileRasterPath(vertices));
+  const topology = {
+    id: 'session-fixture',
+    lapPath: compileRasterPath(vertices),
+    lapLength: compileRasterPath(vertices).length,
+  };
   const L = topology.lapLength;
-  const window = compileCircuitRuntimeWindow(
+  const window = repeatedGuideFixture(
     topology,
     0,
     3,

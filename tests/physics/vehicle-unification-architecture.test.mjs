@@ -1,30 +1,6 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-
-test('has one common solver and no retired vehicle solver import path', async () => {
-  const common = await readFile(new URL('../../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8');
-  const sources = await Promise.all(
-    ['src/main-linear.ts', 'src/main.ts', 'src/main-circuit.ts', 'src/gameplay/recovery.ts'].map((path) =>
-      readFile(new URL(`../../${path}`, import.meta.url), 'utf8'),
-    ),
-  );
-
-  assert.doesNotMatch(
-    common,
-    /kind\s*===|kind\s*!==|case\s+['"](?:FR|MR|RR|AWD|BIKE1|BIKE2)|if\s*\([^)]*(?:FR|MR|RR|AWD|BIKE1|BIKE2)/,
-  );
-  assert.doesNotMatch(common, /routeKind|CourseRouteKind|camera|screen/i);
-  for (const source of sources) {
-    assert.doesNotMatch(source, /physics\/(?:car-physics|motorcycle-physics)/);
-  }
-  for (const path of ['src/physics/car-physics.ts', 'src/physics/motorcycle-physics.ts']) {
-    await assert.rejects(access(new URL(`../../${path}`, import.meta.url)));
-  }
-  for (const path of ['dist/physics/car-physics.js', 'dist/physics/motorcycle-physics.js']) {
-    await assert.rejects(access(new URL(`../../${path}`, import.meta.url)));
-  }
-});
 
 test('the complete derived ESM tree is cleaned before every build', async () => {
   const [packageJson, cleaner] = await Promise.all([

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import { createBrowserDrivingShell } from '../../dist/browser/driving-shell.js';
-import { createLinearHighwayRuntime, LINEAR_RECOVERY_PROFILE } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld, STRAIGHT_RECOVERY_PROFILE } from '../../dist/dev/fixtures/straight-world.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
 import { vehicleCatalogEntryForId } from '../../dist/vehicle/vehicle-catalog.js';
@@ -11,7 +11,7 @@ import { installBrowserDom } from '../helpers/browser-dom.mjs';
 
 test('shared shell routes real selector events to the replaced player and preserves calibration/policy', (t) => {
   const { elements, calls, win } = installBrowserDom(t);
-  const course = createLinearHighwayRuntime();
+  const course = createStraightReferenceWorld();
   const runtime = { guide: course.guide, height: course.heightProfile, surfaces: course.surfaceMap };
   const shell = createBrowserDrivingShell(runtime, 0);
   let resyncs = 0;
@@ -21,7 +21,7 @@ test('shared shell routes real selector events to the replaced player and preser
       order.push('world');
       return runtime;
     },
-    recoveryProfile: LINEAR_RECOVERY_PROFILE,
+    recoveryProfile: STRAIGHT_RECOVERY_PROFILE,
     resync: () => {
       assert.equal(shell.cameraRig.initialized, false, 'camera reset precedes observer resync');
       order.push('resync');
@@ -90,19 +90,4 @@ test('shared shell routes real selector events to the replaced player and preser
   );
   assert.equal(elements.get('game').width, 320);
   assert.equal(elements.get('game').height, 240);
-});
-
-test('all topology roots use one player shell without moving topology/DEV authority into it', async () => {
-  const shell = await readFile(new URL('../../src/browser/driving-shell.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(shell, /from ['"].*(?:dev\/|route-dag|circuit-race|field-route|live-route)/);
-  assert.match(shell, /drawVehicleDebugHud\(/);
-  for (const file of ['main.ts', 'main-linear.ts', 'main-circuit.ts']) {
-    const source = await readFile(new URL(`../../src/${file}`, import.meta.url), 'utf8');
-    assert.match(source, /createBrowserDrivingShell\(/);
-    assert.match(source, /shell\.mountControls\(/);
-    assert.match(source, /lifecycle\.update\(/);
-    assert.doesNotMatch(source, /recoverVehicle\(|updateCamera\(|resetCameraRig\(|shell\.replacePlayer\(/);
-    assert.match(source, /shell\.present\(/);
-    assert.doesNotMatch(source, /new InputManager|mountBrowserTireFrictionControls|let vehicle:/);
-  }
 });

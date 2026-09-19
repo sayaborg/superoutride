@@ -9,12 +9,10 @@
   "scripts": {
     "build": "node tools/build/clean-dist.mjs && tsc -p tsconfig.json && node tools/build/build-sprite-preview.mjs && node tools/build/build-course-content.mjs",
     "check": "npm run lint && npm run format:check && tsc -p tsconfig.json --noEmit",
-    "test": "npm run lint && npm run format:check && npm run build && npm run build:test-assets && node --test 'tests/**/*.test.mjs'",
+    "test": "npm run lint && npm run format:check && npm run build && node --test 'tests/**/*.test.mjs'",
     "lint": "eslint src tests tools",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build:test-assets": "node tools/build/build-test-ground-map.mjs",
-    "build:ground": "node tools/build/build-product-ground.mjs",
     "compile:course": "node tools/course/compile-course.mjs",
     "build:sprite-lod": "node tools/build/build-sprite-lod.mjs",
     "build:sprite-source": "node tools/build/build-sprite-source.mjs",

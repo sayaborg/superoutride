@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMinimalRouteDag } from '../../dist/dev/fixtures/minimal-route-dag.js';
-import { createMinimalRouteBoundaryGateSet } from '../../dist/dev/fixtures/minimal-route-gates.js';
+
 import { detectPhysicalRaceGateCrossing } from '../../dist/gameplay/physical-race-gate.js';
-import { compileRouteBoundaryGateSet, observeRouteBoundaryCrossing } from '../../dist/gameplay/route-boundary-gates.js';
-import { createRouteDagState } from '../../dist/gameplay/route-dag.js';
+
 import { compileWorldCrossingGate, observeWorldCrossingGate } from '../../dist/gameplay/world-crossing-gate.js';
 
 const gate = compileWorldCrossingGate({ id: 'gate', center: { x: 0, z: 0 }, heading: 0, halfWidth: 2 });
@@ -27,27 +25,12 @@ for (const observe of [observeWorldCrossingGate, detectPhysicalRaceGateCrossing]
   });
 }
 
-test('route selection uses the same physical crossing boundary', () => {
-  const route = createMinimalRouteDag();
-  const state = createRouteDagState(route);
-  const gates = createMinimalRouteBoundaryGateSet(route);
-  const points = [9, 10 - 5e-10, 10 + 5e-10, 11].map((z) => ({ x: -3, z }));
-  const crossings = points.slice(1).map((p, i) => observeRouteBoundaryCrossing(route, state, gates, points[i], p));
-  assert.equal(crossings.filter((x) => x.event === 'VALIDATED_TRANSITION').length, 1);
-  assert.deepEqual(crossings[1].boundary, { kind: 'TRANSITION', choiceId: 'S1_LEFT' });
-});
-
-test('compiled world and route gates keep immutable geometry independent of authoring', () => {
+test('compiled world gates keep immutable geometry independent of authoring', () => {
   const source = { id: 'gate', center: { x: 0, z: 0 }, heading: 0, halfWidth: 2 };
   const world = compileWorldCrossingGate(source);
   source.center.z = 100;
   assert.ok(observeWorldCrossingGate(world, { x: 0, z: -1 }, { x: 0, z: 1 }));
-  const route = createMinimalRouteDag();
-  const input = structuredClone(createMinimalRouteBoundaryGateSet(route).gates);
-  const compiled = compileRouteBoundaryGateSet(route, input);
-  input[0].center.z = 100;
-  assert.equal(compiled.gates[0].center.z, 10);
-  for (const gate of [world, ...compiled.gates]) {
+  for (const gate of [world]) {
     for (const vector of [gate.center, gate.tangent, gate.normal]) {
       assert.throws(() => {
         vector.x = 999;

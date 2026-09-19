@@ -16,12 +16,12 @@ import {
 } from '../../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
-import { GROUND_COLORS } from '../../dist/groundmap/ground-map.js';
+import { GROUND_COLORS } from '../../dist/dev/fixtures/reference-paint.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { renderSourceGround } from '../../dist/dev/diagnostics/source-ground-render.js';
-import { CENTER_DASH_MARKINGS } from '../../dist/dev/courses/road-markings.js';
+import { CENTER_DASH_MARKINGS } from '../../dist/dev/fixtures/reference-paint.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 
 export const ok = (result) => {

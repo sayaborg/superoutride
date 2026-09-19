@@ -5,7 +5,7 @@ import { DEFAULT_EXHAUST_TUNING } from '../../dist/audio/exhaust-acoustics.js';
 import { createAudioEngine } from '../../dist/audio/audio-engine.js';
 import { createTireVoice } from '../../dist/audio/tire-voice.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createEngineVoice } from '../../dist/audio/engine-voice.js';
 import { createVehicleAudioObservation } from '../../dist/browser/vehicle-audio.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
@@ -240,7 +240,7 @@ test('game tuning honors late loading and muted changes while preserving vehicle
   step(control, -53);
   finish();
   await settle();
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const player = createArcadeVehicle(VEHICLE_CATALOG[3].profile, {
     guide: runtime.guide,
     height: runtime.heightProfile,
@@ -327,7 +327,7 @@ test('stepped tuning survives mute and profile changes without mutating physics 
   assert.equal(reflection.children[2].disabled, true);
   step(finalCutoff, -63);
   await settle();
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
   const player = createArcadeVehicle(VEHICLE_CATALOG[0].profile, world);
   const before = JSON.stringify(player);

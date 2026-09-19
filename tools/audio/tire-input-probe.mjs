@@ -4,7 +4,7 @@ import { TireUnifiedSynthesis } from '../../dist/audio/tire-unified-model.js';
 import { UNIFIED_SETTINGS } from '../../dist/audio/tire-unified-acoustics.js';
 import { tireSoundParameters } from '../../dist/audio/tire-sound-controls.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../../dist/browser/vehicle-audio.js';
 import { DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION } from '../../dist/browser/tire-friction-selection.js';
 import {
@@ -27,7 +27,7 @@ const frequencyHz = Number(
   process.argv[4] ?? (model === 'modal' ? MODAL_SETTINGS.pitchBaseHz : UNIFIED_SETTINGS.modes[1].frequencyHz),
 );
 const Kernel = model === 'modal' ? TireModalSynthesis : TireUnifiedSynthesis;
-const runtime = createLinearHighwayRuntime();
+const runtime = createStraightReferenceWorld();
 const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 const vehicle = VEHICLE_CATALOG[0];
 const result = [];

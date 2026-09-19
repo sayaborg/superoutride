@@ -1,4 +1,4 @@
-export const FAR_BACKGROUND_SOURCE = Object.freeze({
+const FAR_BACKGROUND_SOURCE = Object.freeze({
   width: 640,
   height: 320,
   sourceHorizonY: 126,

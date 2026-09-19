@@ -10,7 +10,7 @@ import {
   nearestAudibleRival,
 } from '../../dist/browser/vehicle-audio.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createRecoveryState, recoverVehicleToGuideCoordinate } from '../../dist/gameplay/recovery.js';
 
 const base = VEHICLE_CATALOG[0];
@@ -64,7 +64,7 @@ test('tire rolling, slip and support produce distinct acoustic responses', () =>
 });
 
 test('completed wheel slip observations drive sound and recovery clears stale tire sound', () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
   const vehicle = createArcadeVehicle(base.profile, world, { s: 45, initialSpeed: 25 });
   const tires = observeVehicleTires(vehicle);
@@ -104,7 +104,7 @@ test('rival selection uses 3D world distance, bounds range, ignores local chaina
 });
 
 test('subscribing tire presentation preserves the complete physical snapshot across all nine vehicles', () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
   for (const { profile } of VEHICLE_CATALOG) {
     const observed = createArcadeVehicle(profile, world, { s: 45, initialSpeed: 20 });

@@ -5,7 +5,7 @@ import { HYBRID_SETTINGS } from '../../dist/audio/tire-hybrid-acoustics.js';
 import { TireModalSynthesis } from '../../dist/audio/tire-modal-model.js';
 import { MODAL_SETTINGS } from '../../dist/audio/tire-modal-acoustics.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { createLinearHighwayRuntime } from '../../dist/dev/courses/linear-highway.js';
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createVehicleAudioObservation, readVehicleAudio } from '../../dist/browser/vehicle-audio.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { TireSynthesis, tireParameters } from '../../dist/audio/tire-synthesis.js';
@@ -18,7 +18,7 @@ import { contactTireParameters, tireSoundParameters, TIRE_SOUND_MODELS } from '.
 // One real, completed mechanics trace is replayed through each adapter. No output matching or altered physics.
 const rate = Number(process.argv[2] ?? 48000);
 if (![44100, 48000, 96000].includes(rate)) throw new RangeError('probe rate: 44100, 48000 or 96000');
-const runtime = createLinearHighwayRuntime();
+const runtime = createStraightReferenceWorld();
 const world = { guide: runtime.guide, height: runtime.heightProfile, surfaces: runtime.surfaceMap };
 const player = createArcadeVehicle(VEHICLE_CATALOG[0].profile, world, { s: 45, initialSpeed: 35 });
 const observation = createVehicleAudioObservation();

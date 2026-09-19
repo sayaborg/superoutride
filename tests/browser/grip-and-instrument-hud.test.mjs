@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createVehicleDebugHudModel } from '../../dist/browser/vehicle-debug-hud.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { SURFACE_MATERIALS } from '../../dist/physics/surface-map.js';
 import { radialC1Magnitude, usefulLateralCapacity } from '../../dist/physics/tire-wheel.js';
 import {
@@ -95,7 +95,7 @@ test('common preset-1 tire keeps one broad symmetric transition shoulder', () =>
 });
 
 test('one 100 ms digital steering tap remains inside the first paved lane-change response envelope', () => {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const flatHeight = new HeightProfile(parent.guide.length, [
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },
@@ -124,17 +124,12 @@ test('one 100 ms digital steering tap remains inside the first paved lane-change
 });
 
 test('shared compact HUD names speed RPM and selected gear', () => {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 45, -1.75);
   car.powertrain.engineRpm = 4321;
   car.powertrain.gear = 4;
   const hud = createVehicleDebugHudModel('branching', { steering: 0, throttle: false, brake: false }, car);
   assert.equal(hud.instruments, 'SPD 162km/h  RPM  4321  GEAR 4');
-
-  for (const entry of ['main-linear.ts', 'main.ts', 'main-circuit.ts']) {
-    const source = fs.readFileSync(new URL(`../../src/${entry}`, import.meta.url), 'utf8');
-    assert.match(source, /shell\.present\(/);
-  }
 });
 
 test('shared compact HUD omits retired suspension torque slip route and topology overlays', () => {

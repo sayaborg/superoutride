@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import {
   BROWSER_COURSE_MODES,
   browserCourseModeForKey,
   compileBrowserCourseModes,
-  composeBrowserCourseContent,
   selectBrowserCourseMode,
 } from '../../dist/browser/course-mode-selection.js';
 import { BROWSER_VEHICLE_KEYS } from '../../dist/browser/key-bindings.js';
@@ -77,23 +76,19 @@ test('a tenth catalog vehicle without a shortcut remains selectable through the 
 });
 
 test('mobile course buttons derive labels and active state from the canonical course authority', () => {
-  assert.deepEqual(createMobileCourseSelectorModel('circuit'), [
-    { value: 'trial', label: 'COURSE TRIAL', ariaLabel: 'Select COURSE TRIAL course', active: false },
-    { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: false },
-    { value: 'branching', label: '2', ariaLabel: 'Select BRANCHING course', active: false },
-    { value: 'circuit', label: '3', ariaLabel: 'Select TSUKUBA course', active: true },
-    { value: 'fisco', label: '4', ariaLabel: 'Select FISCO course', active: false },
+  assert.deepEqual(createMobileCourseSelectorModel('linear'), [
+    { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: true },
   ]);
 });
 
 test('additional unbound courses use the existing route runner and actual mobile selector', () => {
-  const extra = { query: 'additional-circuit', label: 'EXTRA', routeKind: 'CIRCUIT' };
+  const extra = { query: 'additional', label: 'EXTRA' };
   const choices = compileBrowserCourseModes([...BROWSER_COURSE_MODES, extra]);
-  assert.equal(selectBrowserCourseMode(extra.query, choices).entryName, 'main-circuit.js');
+  assert.equal(selectBrowserCourseMode(extra.query, choices).entryName, 'main-course.js');
   const reordered = compileBrowserCourseModes([extra, ...BROWSER_COURSE_MODES]);
-  assert.equal(selectBrowserCourseMode(null, reordered).query, 'branching');
-  assert.equal(selectBrowserCourseMode('unknown', reordered).query, 'branching');
-  assert.throws(() => selectBrowserCourseMode(null, compileBrowserCourseModes([extra])), /branching default/);
+  assert.equal(selectBrowserCourseMode(null, reordered).query, extra.query);
+  assert.equal(selectBrowserCourseMode('unknown', reordered).query, extra.query);
+  assert.equal(selectBrowserCourseMode(null, compileBrowserCourseModes([extra])).query, extra.query);
   assert.equal(browserCourseModeForKey('Unassigned', choices), null);
   const container = new SelectorElement();
   let selected;
@@ -110,13 +105,12 @@ test('additional unbound courses use the existing route runner and actual mobile
   assert.equal(container.children.at(-1).textContent, 'EXTRA');
   container.children.at(-1).click();
   assert.equal(selected.query, extra.query);
-  assert.equal(selected.entryName, 'main-circuit.js');
+  assert.equal(selected.entryName, 'main-course.js');
   assert.throws(() => compileBrowserCourseModes([extra, extra]), /duplicate course query/);
   assert.throws(
     () => compileBrowserCourseModes([...BROWSER_COURSE_MODES, { ...extra, digitCode: 'Digit1' }]),
     /duplicate course shortcut/,
   );
-  assert.throws(() => compileBrowserCourseModes([{ ...extra, routeKind: 'UNKNOWN' }]), /route kind/);
   assert.throws(() => compileBrowserCourseModes([{ ...extra, query: ' ' }]), /query/);
 });
 
@@ -217,7 +211,7 @@ test('mobile selectors publish canonical choices and numeric steppers display th
   let selectedCourse = null;
   mountMobileCourseSelector(
     courseContainer,
-    'branching',
+    'linear',
     (selection) => {
       selectedCourse = selection;
     },
@@ -225,11 +219,11 @@ test('mobile selectors publish canonical choices and numeric steppers display th
   );
   assert.equal(courseContainer.children.length, BROWSER_COURSE_MODES.length);
   assert.equal(
-    courseContainer.children.find((child) => child.textContent === '2').attributes.get('aria-pressed'),
+    courseContainer.children.find((child) => child.textContent === '1').attributes.get('aria-pressed'),
     'true',
   );
-  courseContainer.children.find((child) => child.textContent === '3').click();
-  assert.equal(selectedCourse.query, 'circuit');
+  courseContainer.children.find((child) => child.textContent === '1').click();
+  assert.equal(selectedCourse.query, 'linear');
 
   const vehicleContainer = new SelectorElement();
   let selectedVehicle = null;
@@ -350,64 +344,4 @@ test('one browser steering adapter owns keyboard touch and the current vehicle M
   assert.ok(Math.abs(vehicle.steeringCalibration.steeringOffsetMax - 20 * DEG) < 1e-12);
   assert.ok(Math.abs(vehicle.steeringCalibration.maxRoadWheelSteer - 65 * DEG) < 1e-12);
   assert.deepEqual(vehicle.steeringCalibration.steeringActuatorResponse, { applyRate: 1 / 0.3, releaseRate: 1 / 0.3 });
-});
-
-test('browser compositions mount shared M D T selectors without duplicating choices in HTML', async () => {
-  const [index, boot, linear, branching, circuit] = await Promise.all([
-    readFile(new URL('../../index.html', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/boot.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-  ]);
-  assert.match(index, /id="course-selector-buttons"/);
-  assert.match(index, /id="vehicle-selector-buttons"/);
-  assert.match(index, /id="camera-selector-buttons"/);
-  assert.match(index, /id="steering-offset-selector-buttons"/);
-  assert.match(index, /id="max-steer-selector-buttons"/);
-  assert.match(index, /id="steering-response-selector-buttons"/);
-  assert.match(index, /id="tire-friction-selector-buttons"/);
-  assert.doesNotMatch(index, /yaw-transient|yaw-washout|self-steer|yaw-preview/i);
-  assert.match(boot, /mountMobileCourseSelector/);
-  for (const source of [linear, branching, circuit]) {
-    assert.match(source, /createBrowserDrivingShell/);
-    assert.match(source, /shell\.mountControls/);
-  }
-  const source = await readFile(new URL('../../src/browser/driving-shell.ts', import.meta.url), 'utf8');
-  {
-    assert.match(source, /mountMobileVehicleSelector/);
-    assert.match(source, /selectVehicleProfile\(selectedProfile\)/);
-    assert.match(source, /mountBrowserSteeringCalibrationControls/);
-    assert.match(source, /steeringCalibrationControls\.handleKey/);
-    assert.match(source, /mountBrowserTireFrictionControls/);
-    assert.match(source, /tireFrictionControls\.handleKey/);
-    assert.match(source, /steeringOffset: mustGet\('steering-offset-selector-buttons'\)/);
-    assert.match(source, /maxRoadWheelSteer: mustGet\('max-steer-selector-buttons'\)/);
-    assert.doesNotMatch(source, /yawTransient|yawWashout/);
-  }
-});
-
-test('one course dispatcher enforces catalog membership for every browser root', () => {
-  for (const mode of BROWSER_COURSE_MODES) {
-    const calls = [];
-    const builders = Object.fromEntries(
-      BROWSER_COURSE_MODES.filter((entry) => entry.routeKind === mode.routeKind).map((entry) => [
-        entry.query,
-        () => {
-          calls.push(entry.query);
-          return entry.label;
-        },
-      ]),
-    );
-    const selected = composeBrowserCourseContent(mode.routeKind, builders, mode.query);
-    assert.equal(selected.mode, mode);
-    assert.equal(selected.content, mode.label);
-    assert.deepEqual(calls, [mode.query]);
-    delete builders[mode.query];
-    assert.throws(() => composeBrowserCourseContent(mode.routeKind, builders, mode.query), /missing course builder/);
-    assert.throws(
-      () => composeBrowserCourseContent(mode.routeKind === 'LINEAR' ? 'CIRCUIT' : 'LINEAR', builders, mode.query),
-      /cannot compose/,
-    );
-  }
 });

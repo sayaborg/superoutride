@@ -1,3 +1,8 @@
+import {
+  LOGICAL_HEIGHT,
+  CURRENT_RENDER_NEAR_DEPTH_METERS,
+  CURRENT_RENDER_FAR_DEPTH_METERS,
+} from '../core/presentation-scale.js';
 import type { CompiledSection } from '../compiler/course-graph.js';
 import type { CameraState } from '../camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../camera/current-camera-profile.js';
@@ -46,12 +51,10 @@ export function createCourseScene(section: CompiledSection) {
     groundRight: section.presentation.ground.right,
   };
   const terrainProfile = {
-    screenHeight: 240,
-    dMin: 2.5,
-    dMax: 400,
+    screenHeight: LOGICAL_HEIGHT,
+    dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+    dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
     ...groundProfile,
-    roadLeft: 0,
-    roadRight: 0,
     height: world.height,
     visual: presentation.visual,
   };

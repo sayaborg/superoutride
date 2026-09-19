@@ -3,13 +3,13 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRecoveryState, recoverVehicle } from '../../dist/gameplay/recovery.js';
 import { evaluateTireForce } from '../../dist/physics/tire-wheel.js';
 import { createTestCar, FERRARI_TESTAROSSA_VEHICLE_PROFILE } from '../helpers/vehicle-fixture.mjs';
 
 function fixture() {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const height = new HeightProfile(parent.guide.length, [
     { s: 0, y: 0 },
     { s: parent.guide.length, y: 0 },

@@ -62,9 +62,8 @@ try {
         lifecycle.camera,
         deriveVehicleSpriteFamily(shell.presentation),
       );
-      shell.present('trial', input, lifecycle.camera, result.playerScreenY);
+      shell.present('linear', input, lifecycle.camera, result.playerScreenY);
     },
-    true,
   );
 } catch (error) {
   console.error('Course could not start', error);

@@ -2,7 +2,7 @@
 
 This document owns implemented image formats/compilers and the separately scoped Course Editor image
 target. [Architecture](architecture.md) owns projection, logical metric extent, anchors and LOD lattices;
-[ground delivery](ground-delivery.md) owns current HTTP/payload admission; [development](development.md)
+[development](development.md)
 owns commands and evidence. Moving these contracts here changes neither current assets nor runtime behavior.
 
 ## Completed sprite images
@@ -217,45 +217,11 @@ and shared scenery over explicit camera/filter/anchor domains. Actual fork/merge
 use those saved images. This does not select a filtering recipe, publish resident records or qualify
 general occurrence-mapped presentation.
 
-## Current ground compilation
+## Current source paint
 
-The file-backed compiler serves all eleven branching stage domains and three ordinary course/lap
-sources at current camera-derived density and complete pyramid. [Architecture](architecture.md#ground-and-background)
-owns those current footprints/lattice equations. GroundMap owns color sources, filtering, encoding
-and reading. Runtime owns stage/circuit mapping; browser owns loading/readiness.
-
-`GroundMapCompileSource` is one immutable final-color evaluator over an explicit finite local rectangle.
-`createGroundMapCompileSource` adapts ordinary profiles or StageRoadView via existing paint samplers.
-It rejects baked inputs and out-of-domain access; callers retain immutable inputs while compiling.
-An absent logical profile retains the existing grass fallback. The current evaluator preserves
-procedural point sampling; exact-area source composition is a target change.
-
-A stage source resolves junction/shoulder precedence and source transforms exactly once. Its baked
-reader accepts stage-local coordinates directly. Circuit composition maps to one lap asset. Authored
-finite domains include required run-in/runout and seam context for camera, reverse and recovery;
-a gate or storage page boundary does not redefine the image endpoint.
-
-Derive alignment, actual spacing, texel centers and all LOD grids once for the finite source. Pages
-reference integer row ranges, preserving phase and density. Coarse footprints may cross multiple
-fine pages. The implemented compiler preserves existing sequential 2-by-4 averaging/rounding, L0
-whole-level palette selection, RGB555 encoding and chunk order. It samples L0 once into a temporary
-file while discovering its palette, stops palette tracking after proving overflow, and encodes from
-that spool without resampling. A palette is not selected independently per chunk.
-
-Bounded row buffers feed the pyramid; an output sink spools payloads and supports bounded reads for
-exact dedup comparison. Directory/index metadata, scratch disk, final output and owned working pixels
-are separate costs. Current controls are `maxWorkingBytes=64 MiB` and `rowsPerBatch=256`, in multiples
-of four. Oversized chunks fail instead of changing layout. The caller owns a fresh workspace and failure
-cleanup. [File storage](../tools/build/ground-map-files.mjs) keeps Node I/O outside the image compiler.
-Publish only after success. Buffer-size changes preserve metadata and binary output. Filtering,
-alignment or quantization changes require an explicit rendering revision.
-
-Current product rendering uses point-sampled L0, the existing 2-by-4 pyramid, nearest texel lookup,
-RGB555 coarse levels and chainage-footprint LOD. [Pixel fixtures](../tests/fixtures/product-ground-pixels.json)
-cover 44 complete baked frames with independent L0 source checks. The immutable source-rendering oracle
-uses its [input-only adapter](../src/dev/diagnostics/source-ground-render.ts) in the same renderer.
-Circuit windows share one lap image directory. [Delivery](ground-delivery.md) specifies manifests,
-compressed payloads, exclusive buffer ownership and synchronous resident reads.
+The product loads and validates saved images before driving. `course-ground-source` evaluates the
+compiled Band bindings and paint recipe at level zero without filtering. Browser and headless scene
+assembly consume this same reader. The resident RGB555 target below follows the playable milestones.
 
 ## Course Editor target
 

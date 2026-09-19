@@ -1,6 +1,6 @@
 # Calibration and tuning ownership
 
-The vehicle values below are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#remaining-limits) owns handling status and acceptance limits; the values are not a real-vehicle claim.
+The vehicle values below are a playtest starting point for the [common vehicle model](vehicle-physics.md). [NEXT](NEXT.md#milestones) owns handling status and acceptance limits; the values are not a real-vehicle claim.
 
 ## Current player settings
 
@@ -38,13 +38,13 @@ Before accepting a tune, compare coast, acceleration, braking, held turns, rever
 
 The available [terrain probe](../tools/physics/torque-protection-terrain-probe.mjs), [braking/yaw probe](../tools/physics/braking-yaw-probe.mjs) and [drift control probe](../tools/physics/drift-control-probe.mjs) use the production solver. Check each tool's arguments in source. Diagnostic probes intentionally omit gameplay recovery when measuring raw model-domain exits. Tests with explicit coefficients are fixed causal fixtures, not assertions that those values are the current browser default.
 
-Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#remaining-limits).
+Open calibration and device acceptance work is tracked only in [NEXT](NEXT.md#milestones).
 
 ## Tire audio tuning
 
 Tire sound is presentation calibration, separate from the GX/PX/GY/PY/KN physical tire law above.
 The [audio contract](tire-audio.md#player-tire-synthesis) owns equations and signal paths;
-[NEXT](NEXT.md#deferred-tuning) owns feedback and listening acceptance;
+[NEXT](NEXT.md#current-state) owns feedback and listening acceptance;
 [development](development.md#tire-comparison-tools) owns reproducible commands. [Tire audio](tire-audio.md#shared-comparison-and-transport) owns method selection and the reload default.
 
 Every non-derived acoustic coefficient and material value is an authored magic number, not a measured

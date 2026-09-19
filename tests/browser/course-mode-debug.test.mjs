@@ -1,16 +1,8 @@
-import { advanceTraveler } from '../helpers/route-tick.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import { BROWSER_VEHICLE_KEYS } from '../../dist/browser/key-bindings.js';
-import { BRANCHING_SESSION_CONFIGURATION } from '../../dist/dev/courses/branching-mode.js';
-import { LINEAR_SESSION_CONFIGURATION } from '../../dist/dev/courses/linear-highway.js';
 
-import {
-  BROWSER_COURSE_MODES,
-  browserCourseModeForKey,
-  selectBrowserCourseMode,
-} from '../../dist/browser/course-mode-selection.js';
 import {
   createVehicleDebugHudModel,
   drawTopDownGSensor,
@@ -25,76 +17,27 @@ import {
   browserVehicleProfileForKey,
   formatVehicleProfileSelector,
 } from '../../dist/browser/vehicle-profile-selection.js';
-import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
-import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
-import { guideCoordinateCurve } from '../../dist/core/guide-coordinate-frame.js';
-import {
-  BRANCHING_DEFAULT_BRANCHING_FORK,
-  createDefaultBranchingParent,
-} from '../../dist/dev/courses/branching-highway.js';
-import { BRANCHING_COURSE_MODE } from '../../dist/dev/courses/branching-mode.js';
-import { createDeclarativeForkGrowthRuntime } from '../../dist/dev/courses/fork-growth-plan.js';
-import {
-  createLinearHighwayRuntime,
-  LINEAR_COURSE_MODE,
-  LINEAR_LENGTH_METERS,
-} from '../../dist/dev/courses/linear-highway.js';
+
+import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createRecoveryState, updateRecovery } from '../../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
-import { pendingRouteStageRecoveryTarget } from '../../dist/gameplay/route-stage-handoff.js';
-import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
+
 import { arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../../dist/physics/vehicle-dynamics.js';
 import { dot3 } from '../../dist/core/vector3.js';
-import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
-import {
-  createLiveRouteTravelerState,
-  resolveLiveRouteTravelerRuntime,
-  resyncLiveRouteTraveler,
-  sampleLiveRouteChoiceTargetL,
-} from '../../dist/runtime/live-route-traveler.js';
+
 import { VOLKSWAGEN_GOLF_GTI_16V_VEHICLE_PROFILE } from '../../dist/vehicle/production-vehicle-profiles.js';
 import { formatVehicleCatalogLine, VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { createFarBackground } from '../../dist/visual/far-background.js';
-import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
+
 import {
   createTestBike,
   createTestCar,
   FERRARI_TESTAROSSA_VEHICLE_PROFILE,
-  HONDA_VFR750R_VEHICLE_PROFILE,
   LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE,
   updateTestVehicle,
 } from '../helpers/vehicle-fixture.mjs';
 
 const DT = 1 / 60;
-const CAMERA_PROFILE = CURRENT_CAMERA_PROFILE;
-
-test('browser course selector maps 1/2/3/4 and URL modes from one authority', () => {
-  assert.deepEqual(
-    BROWSER_COURSE_MODES.map(({ digitCode, query, routeKind, entryName }) => ({
-      digitCode,
-      query,
-      routeKind,
-      entryName,
-    })),
-    [
-      { digitCode: undefined, query: 'trial', routeKind: 'LINEAR', entryName: 'main-course.js' },
-      { digitCode: 'Digit1', query: 'linear', routeKind: 'LINEAR', entryName: 'main-linear.js' },
-      { digitCode: 'Digit2', query: 'branching', routeKind: 'BRANCHING', entryName: 'main.js' },
-      { digitCode: 'Digit3', query: 'circuit', routeKind: 'CIRCUIT', entryName: 'main-circuit.js' },
-      { digitCode: 'Digit4', query: 'fisco', routeKind: 'CIRCUIT', entryName: 'main-circuit.js' },
-    ],
-  );
-  assert.equal(browserCourseModeForKey('Digit1')?.routeKind, 'LINEAR');
-  assert.equal(browserCourseModeForKey('Numpad2')?.routeKind, 'BRANCHING');
-  assert.equal(browserCourseModeForKey('Digit3')?.routeKind, 'CIRCUIT');
-  assert.equal(browserCourseModeForKey('Numpad4')?.query, 'fisco');
-  assert.equal(browserCourseModeForKey('KeyV'), null);
-  assert.equal(selectBrowserCourseMode(null).routeKind, 'BRANCHING');
-  assert.equal(selectBrowserCourseMode('unknown').routeKind, 'BRANCHING');
-  assert.equal(BRANCHING_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(BRANCHING_COURSE_MODE.sharedRouteChoiceMode, 'FIRST_PHYSICAL_CROSSING_LOCKS');
-});
 
 test('browser vehicle selector derives all nine exact keys and profiles from browser bindings and the product catalog', () => {
   assert.deepEqual(
@@ -146,41 +89,8 @@ test('catalog profiles share only the normalized tire law and retain distinct me
   assert.equal(LANCIA_DELTA_HF_INTEGRALE_VEHICLE_PROFILE.frontDriveTorqueFraction, 0.47);
 });
 
-test('LINEAR debug course is one finite ordinary open 8 km highway and renders normally', () => {
-  const runtime = createLinearHighwayRuntime();
-  assert.equal(LINEAR_COURSE_MODE.routeKind, 'LINEAR');
-  assert.equal(LINEAR_SESSION_CONFIGURATION.rivalCount, 0);
-  assert.equal(runtime.guide.length, LINEAR_LENGTH_METERS);
-  assert.equal(runtime.guide.segments.length, 1);
-  const car = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
-  const camera = updateCamera(
-    createCameraRig(),
-    { guide: runtime.guide, height: runtime.heightProfile },
-    car,
-    CAMERA_PROFILE,
-    DT,
-  );
-  const result = renderDriving(
-    new SoftwareSurface(320, 240, new Uint32Array(320 * 240)),
-    {
-      background: createFarBackground(),
-      guide: runtime.guide,
-      camera,
-      vehicle: car,
-      terrainProfile: runtime.terrainProfile,
-      groundProfile: runtime.groundProfile,
-      worldSprites: [],
-      assets: createSpriteAssets(),
-      playerKind: 'car',
-    },
-    {},
-  );
-  assert.ok(result.terrainLineCount > 0);
-  assert.equal(camera.playerScreenX, 160);
-});
-
 test('all nine vehicle profiles integrate on the finite LINEAR course with permitted wheel lift and recovery', () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   for (const { profile, presentationFamily } of VEHICLE_CATALOG) {
     const vehicle =
       presentationFamily === 'BIKE'
@@ -219,7 +129,7 @@ test('all nine vehicle profiles integrate on the finite LINEAR course with permi
 
 // supersedes only pedal actuator-only fields, ON/OFF rounding and the old label count.
 test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handwheel observations', () => {
-  const runtime = createLinearHighwayRuntime();
+  const runtime = createStraightReferenceWorld();
   const vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   vehicle.control.actualSteerAngle = (-12.5 * Math.PI) / 180;
   vehicle.control.handwheelAngle = vehicle.control.actualSteerAngle * vehicle.profile.steeringRatio;
@@ -255,7 +165,7 @@ test('shared HUD exposes M D T plus station pedal output and HUD-only 18:1 handw
 });
 
 test('shared HUD leaves the driving view transparent behind outlined text and control graphics', () => {
-  const runtime = createLinearHighwayRuntime(),
+  const runtime = createStraightReferenceWorld(),
     vehicle = createTestCar(runtime.guide, runtime.heightProfile, runtime.surfaceMap, 45);
   const rectangles = [],
     outlinedText = [];
@@ -362,129 +272,4 @@ test('pedal input graphics show exactly blue accel red brake or no active color'
   assert.equal(neutral.includes(HUD_INPUT_ACCEL_COLOR), false);
   assert.equal(neutral.includes(HUD_INPUT_BRAKE_COLOR), false);
   assert.throws(() => fillColors(1, 1), /mutually exclusive/);
-});
-
-for (const [profile, createVehicle, presentationKind] of [
-  [FERRARI_TESTAROSSA_VEHICLE_PROFILE, createTestCar, 'car'],
-  [HONDA_VFR750R_VEHICLE_PROFILE, createTestBike, 'bike'],
-]) {
-  for (const side of ['LEFT', 'RIGHT']) {
-    test(`${profile.id} commits the current ${side} fork and keeps physics/rendering alive`, () => {
-      const parent = createDefaultBranchingParent(),
-        assets = createSpriteAssets();
-      const live = createDeclarativeForkGrowthRuntime(
-        parent.guide,
-        {
-          heightProfile: parent.heightProfile,
-          surfaceMap: parent.surfaceMap,
-          terrainProfile: parent.terrainProfile,
-          groundProfile: parent.groundProfile,
-          selectFarBackground: () => createFarBackground(),
-          worldSprites: [],
-        },
-        assets,
-        BRANCHING_DEFAULT_BRANCHING_FORK,
-      );
-      const car = createVehicle(
-        parent.guide,
-        parent.heightProfile,
-        parent.surfaceMap,
-        BRANCHING_DEFAULT_BRANCHING_FORK.junction.authoring.sWidenStart - 120,
-      );
-      const traveler = createLiveRouteTravelerState(live, { x: car.x, z: car.z }),
-        recovery = createRecoveryState(car),
-        cameraRig = createCameraRig(),
-        choiceId = `S1_${side}`;
-      let committed = false,
-        renderedAfterCommit = 0,
-        minSpeedAfterCommit = Infinity;
-      for (let tick = 0; tick < 1800; tick++) {
-        const runtimeBefore = resolveLiveRouteTravelerRuntime(live, traveler);
-        const desiredL =
-          runtimeBefore.packageId === 'CONTENT_STAGE_1'
-            ? sampleLiveRouteChoiceTargetL(live, traveler, choiceId, car.course.s)
-            : 0;
-        const input = sampleRivalDrivingInput(runtimeBefore.coordinateFrame, car, desiredL);
-        updateTestVehicle(
-          runtimeBefore.coordinateFrame,
-          runtimeBefore.heightProfile,
-          runtimeBefore.surfaceMap,
-          car,
-          input,
-          DT,
-        );
-        const recovered = updateRecovery(
-          {
-            guide: runtimeBefore.coordinateFrame,
-            height: runtimeBefore.heightProfile,
-            surfaces: runtimeBefore.surfaceMap,
-          },
-          car,
-          { state: recovery, dt: DT, target: pendingRouteStageRecoveryTarget(traveler.handoffState, 8) },
-        );
-        const world = { x: car.x, z: car.z };
-        if (recovered !== null) {
-          resyncLiveRouteTraveler(live, traveler, world);
-          continue;
-        }
-        const routeUpdate = advanceTraveler(live, traveler, world);
-        if (routeUpdate.committed) {
-          car.course = { ...traveler.handoffState.coordinate };
-          committed = true;
-        }
-        const runtimeAfter = resolveLiveRouteTravelerRuntime(live, traveler),
-          camera = updateCamera(
-            cameraRig,
-            { guide: runtimeAfter.coordinateFrame, height: runtimeAfter.heightProfile },
-            car,
-            CAMERA_PROFILE,
-            DT,
-          );
-        if (committed) {
-          minSpeedAfterCommit = Math.min(minSpeedAfterCommit, car.speed);
-          renderDriving(
-            new SoftwareSurface(320, 240, new Uint32Array(320 * 240)),
-            {
-              background: runtimeAfter.selectFarBackground(camera.s),
-              guide: guideCoordinateCurve(runtimeAfter.coordinateFrame),
-              camera,
-              vehicle: car,
-              terrainProfile: runtimeAfter.terrainProfile,
-              groundProfile: runtimeAfter.groundProfile,
-              worldSprites: runtimeAfter.worldSprites,
-              assets,
-              playerKind: presentationKind,
-            },
-            { roadView: runtimeAfter.roadView ?? undefined },
-          );
-          renderedAfterCommit++;
-        }
-        if (committed && car.course.s > 120 && renderedAfterCommit >= 30) break;
-      }
-      assert.equal(committed, true);
-      assert.ok(renderedAfterCommit >= 30);
-      assert.ok(car.course.s > 120);
-      assert.ok(minSpeedAfterCommit > 8, `post-COMMIT speed fell to ${minSpeedAfterCommit}`);
-      assert.equal(
-        recovery.recoveries,
-        0,
-        `${profile.id} ${side} fork must not use recovery as hidden path-following authority`,
-      );
-    });
-  }
-}
-
-test('boot and every course root keep route selection at the composition boundary', async () => {
-  const [boot, linear, branching, circuit] = await Promise.all([
-    readFile(new URL('../../src/boot.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-linear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/main-circuit.ts', import.meta.url), 'utf8'),
-  ]);
-  assert.match(boot, /selectBrowserCourseMode/);
-  assert.match(boot, /browserCourseModeForKey/);
-  assert.match(boot, /location\.assign/);
-  assert.doesNotMatch(linear, /RouteDag|CircuitTopology|routeKind\s*===/);
-  assert.doesNotMatch(branching, /routeKind\s*===/);
-  assert.doesNotMatch(circuit, /routeKind\s*===/);
 });

@@ -12,7 +12,7 @@ import { deriveVehicleLeanRadians } from '../../dist/render/vehicle-presentation
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createTestBike, createTestCar, updateTestVehicle } from '../helpers/vehicle-fixture.mjs';
 
-import { createRoadsideSprites } from '../../dist/dev/courses/roadside-scenery.js';
+import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scenery.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();

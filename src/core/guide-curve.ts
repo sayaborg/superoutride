@@ -16,7 +16,7 @@ import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange, type GuideEn
 
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
-export type GuideCompileOptions = ({ lMax: number; envelope?: never } | { envelope: GuideEnvelope; lMax?: never }) & {
+type GuideCompileOptions = ({ lMax: number; envelope?: never } | { envelope: GuideEnvelope; lMax?: never }) & {
   mMin: number;
   dCam?: number;
   tolerance?: number;

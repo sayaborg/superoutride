@@ -9,7 +9,7 @@ motion, gearing, recovery or race progress, and never repeats the authoritative 
 
 The engine provides the current sample-free listening baseline; its parameters remain provisional.
 [Tire audio](tire-audio.md) owns the selectable synthesis methods, reload default, numerical limits
-and model-specific controls. [The checkpoint](NEXT.md#deferred-tuning) owns listening priorities.
+and model-specific controls. [The checkpoint](NEXT.md#current-state) owns listening priorities.
 Keep the engine waveform and fixed voice/lifecycle boundaries unchanged; target-device performance
 and listening acceptance remain separate from automated numerical checks.
 
@@ -113,7 +113,7 @@ kernel dBFS is not perceptual loudness or the level after the complete game grap
 
 [Tire audio](tire-audio.md) owns the six retained mechanisms, their observation mappings, numerical
 contracts, approximation limits and relative computation. Model selection is provisional; the
-[restart checkpoint](NEXT.md#deferred-tuning) owns deferred acceptance and tuning decisions.
+[restart checkpoint](NEXT.md#current-state) owns deferred acceptance and tuning decisions.
 
 ## Mixing and lifetime
 

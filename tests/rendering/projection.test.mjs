@@ -16,7 +16,7 @@ import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/
 
 import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createTestCar } from '../helpers/vehicle-fixture.mjs';
-import { createRoadsideSprites } from '../../dist/dev/courses/roadside-scenery.js';
+import { createRoadsideSprites } from '../../dist/dev/fixtures/projection-scenery.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 describe('open coordinate geometry', () => {

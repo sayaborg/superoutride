@@ -1,12 +1,10 @@
 import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from '../core/projection.js';
-import type { StageRoadView } from '../course/stage-road-view.js';
 import { mergeTerrainAndSprites } from '../graphics/painter-merge.js';
 import { SoftwareSurface } from '../graphics/software-surface.js';
 import { drawScaledSprite, type SpriteScanlineObserver } from '../graphics/sprite.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
-import { applyStageRoadViewToTerrainLine } from '../terrain/stage-terrain-view.js';
 import {
   computeForwardVisibleInterval,
   generateTerrainLines,
@@ -23,7 +21,7 @@ const MIN_TEXTURE_SPAN_PIXELS = 1e-8;
 
 type PlayerVisualKind = 'car' | 'bike';
 
-export interface RenderResult {
+interface RenderResult {
   terrainLineCount: number;
   terrainOutputPixels: number;
   visibleSpriteCount: number;
@@ -74,7 +72,6 @@ interface RenderScene {
 }
 
 interface RenderOptions {
-  readonly roadView?: StageRoadView;
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: GroundColorReader;
@@ -83,9 +80,9 @@ interface RenderOptions {
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
-  { roadView, observeWorkload = false, ground }: RenderOptions,
+  { observeWorkload = false, ground }: RenderOptions,
 ): RenderResult {
-  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, roadView);
+  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile);
   drawFarBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
@@ -122,7 +119,7 @@ export function renderDriving(
     terrain,
     sprites,
     (line) => {
-      const stats = drawTerrainLine(target, line, groundProfile, ground, roadView);
+      const stats = drawTerrainLine(target, line, groundProfile, ground);
       terrainOutputPixels += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
       if (observation) {
@@ -214,33 +211,10 @@ export function renderDriving(
   };
 }
 
-/** Ground demand and painting share terrain generation and footprint authority. Inputs stay fixed while loading. */
-export function collectDrivingGroundSamples(
-  scene: Pick<RenderScene, 'guide' | 'camera' | 'terrainProfile'>,
-  roadView?: StageRoadView,
-): { s: number; deltaSEffective: number }[] {
-  return prepareTerrain(scene.guide, scene.camera, scene.terrainProfile, roadView).terrain.map((line) => ({
-    s: line.s,
-    deltaSEffective: line.sourceFootprint.deltaSEffective,
-  }));
-}
-
-function prepareTerrain(
-  guide: RasterGeometry,
-  camera: PseudoCamera,
-  terrainProfile: TerrainVisualProfile,
-  roadView?: StageRoadView,
-) {
+function prepareTerrain(guide: RasterGeometry, camera: PseudoCamera, terrainProfile: TerrainVisualProfile) {
   const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
 
-  const baseTerrain = generateTerrainLines(guide, renderCamera, terrainProfile);
-  const terrain: TerrainLine[] = roadView === undefined ? baseTerrain : [];
-  if (roadView !== undefined) {
-    for (const line of baseTerrain) {
-      const viewed = applyStageRoadViewToTerrainLine(guide, renderCamera, line, roadView);
-      if (viewed !== null) terrain.push(viewed);
-    }
-  }
+  const terrain = generateTerrainLines(guide, renderCamera, terrainProfile);
   return { renderCamera, terrain };
 }
 
@@ -249,7 +223,6 @@ function drawTerrainLine(
   line: TerrainLine,
   groundProfile: { readonly groundLeft: number; readonly groundRight: number },
   ground: GroundColorReader,
-  roadView?: StageRoadView,
 ): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
@@ -269,8 +242,8 @@ function drawTerrainLine(
   if (x1 >= x0) {
     const dx = line.xGroundR - line.xGroundL;
     if (Math.abs(dx) >= MIN_TEXTURE_SPAN_PIXELS) {
-      const localGroundLeft = roadView?.groundLeft ?? groundProfile.groundLeft;
-      const localGroundRight = roadView?.groundRight ?? groundProfile.groundRight;
+      const localGroundLeft = groundProfile.groundLeft;
+      const localGroundRight = groundProfile.groundRight;
       let lateral = -localGroundLeft + ((x0 + 0.5 - line.xGroundL) / dx) * (localGroundLeft + localGroundRight);
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
 

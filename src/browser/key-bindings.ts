@@ -13,9 +13,6 @@ export const BROWSER_VEHICLE_KEYS: Readonly<Record<string, string>> = Object.fre
 
 export const BROWSER_COURSE_KEYS = Object.freeze({
   linear: Object.freeze({ digitCode: 'Digit1', numpadCode: 'Numpad1' }),
-  branching: Object.freeze({ digitCode: 'Digit2', numpadCode: 'Numpad2' }),
-  circuit: Object.freeze({ digitCode: 'Digit3', numpadCode: 'Numpad3' }),
-  fisco: Object.freeze({ digitCode: 'Digit4', numpadCode: 'Numpad4' }),
 });
 
 export const BROWSER_CALIBRATION_KEYS = Object.freeze({

@@ -1,3 +1,4 @@
+import { createRepeatedReferenceWorld } from '../helpers/repeated-world.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
@@ -5,8 +6,6 @@ import { locateWorldOnGuideCoordinateGlobal } from '../../dist/core/guide-coordi
 import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
-import { createFiscoRuntime } from '../../dist/dev/courses/fisco-circuit.js';
-import { createTsukubaCourse2000Runtime } from '../../dist/dev/courses/tsukuba-circuit.js';
 import {
   createCircuitRaceProgressState,
   resyncCircuitRaceProgress,
@@ -19,10 +18,7 @@ import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { initializeGuideObservation } from '../../dist/physics/vehicle-dynamics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY, VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 
-for (const [name, createRuntime] of [
-  ['Tsukuba', createTsukubaCourse2000Runtime],
-  ['FISCO', createFiscoRuntime],
-]) {
+for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWorld]]) {
   test(`${name}: physical second lap survives recovery and vehicle replacement`, () => {
     const { window: w, raceRules } = createRuntime();
     const L = w.topology.lapLength;

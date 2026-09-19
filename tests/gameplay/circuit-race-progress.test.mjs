@@ -12,12 +12,9 @@ import {
   resyncCircuitRaceProgress,
   updateCircuitRaceProgress,
 } from '../../dist/gameplay/circuit-race-progress.js';
-import { compileCircuitTopology } from '../../dist/gameplay/circuit-topology.js';
+
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
-import {
-  circuitWindowToUnwrappedChainage,
-  compileCircuitRuntimeWindow,
-} from '../../dist/runtime/circuit-runtime-window.js';
+import { repeatedGuideFixture } from '../helpers/repeated-world.mjs';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
 function createGentleCircuit(segmentCount = 72, radius = 120) {
@@ -27,7 +24,7 @@ function createGentleCircuit(segmentCount = 72, radius = 120) {
     vertices.push({ x: radius * Math.cos(angle), z: radius * Math.sin(angle) });
   }
   vertices.push({ ...vertices[0] });
-  return compileCircuitTopology('M6_50_DEV_CIRCUIT', compileRasterPath(vertices));
+  return { id: 'gate-fixture', lapPath: compileRasterPath(vertices), lapLength: compileRasterPath(vertices).length };
 }
 
 function createSources(topology) {
@@ -58,7 +55,7 @@ function createSources(topology) {
 
 function createFixture({ startWinding = 0, repeatCount = 4, lapCount = 3 } = {}) {
   const topology = createGentleCircuit();
-  const window = compileCircuitRuntimeWindow(
+  const window = repeatedGuideFixture(
     topology,
     startWinding,
     repeatCount,
@@ -130,7 +127,7 @@ test('circuit authoring expands into one finite strictly ordered physical gate s
 test('requires one unscored lookahead lap so final FINISH is an ordinary interior Guide seam', () => {
   const topology = createGentleCircuit();
   const sources = createSources(topology);
-  const tooShort = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, sources);
+  const tooShort = repeatedGuideFixture(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, sources);
 
   assert.throws(
     () =>
@@ -148,7 +145,7 @@ test('requires one unscored lookahead lap so final FINISH is an ordinary interio
 
 test('circuit race compiler rejects missing unordered and out-of-range lap checkpoints', () => {
   const topology = createGentleCircuit();
-  const window = compileCircuitRuntimeWindow(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, createSources(topology));
+  const window = repeatedGuideFixture(topology, 0, 3, { lMax: 6, mMin: 0.72, dCam: 5 }, createSources(topology));
   const base = { id: 'BAD', lapCount: 2 };
 
   assert.throws(
@@ -172,7 +169,7 @@ test('topological startWinding does not seed validated race laps or progress', (
   const state = createCircuitRaceProgressState(rules, start);
 
   assert.equal(rules.startWinding, 137);
-  assert.ok(Math.abs(circuitWindowToUnwrappedChainage(window, 0) - 137 * topology.lapLength) < 1e-8);
+  assert.ok(Math.abs(window.startWinding * topology.lapLength - 137 * topology.lapLength) < 1e-8);
   assert.equal(getValidatedCircuitLapCount(state), 0);
   assert.equal(state.validatedProgressFloor, 0);
   assert.equal(state.sProgress, 0);

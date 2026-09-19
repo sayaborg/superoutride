@@ -62,13 +62,3 @@ export function guideEnvelopeRange(
   }
   return { min, max };
 }
-
-/** Admission for constant-only authoring operations; never approximate a varying profile by its maximum. */
-export function constantGuideEnvelopeWidth(envelope: GuideEnvelope): number {
-  const { min, max } = guideEnvelopeRange(envelope);
-  if (min !== max)
-    throw new RangeError(
-      'This authoring operation requires a constant Guide envelope; varying profiles are unsupported',
-    );
-  return min;
-}

@@ -2,7 +2,8 @@
 
 A 320×240 raster pseudo-3D driving game for the browser. Cars and bikes share world coordinates, suspension contacts, tires and wheel mechanics.
 
-[Current specifications and restart checkpoint](docs/README.md) identify the owner of each technical and development contract. [Play the game](https://sayaborg.github.io/superoutride/).
+[Play the game](https://sayaborg.github.io/superoutride/). The default LINEAR is a provisional 2.8 km saved CourseDocument with curves, hills, variable widths, shoulders, row scenery and two environments.
+[Specifications and restart checkpoint](docs/README.md) identify each contract's owner.
 
 ## Run
 
@@ -11,62 +12,37 @@ Use Node.js 24.
 ```sh
 npm ci
 npm test
-npm run build:ground
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. See the documentation index for the complete development workflow.
-
-The [Sprite Tool](tools/graphics/sprite-tool.html) imports PNGs, edits rectangular masks and palettes,
-and exports metric masters and LODs. See the [authoring workflow](docs/development.md#sprite-tool).
-The [Sprite LOD preview](tools/graphics/sprite-lod.html) compares completed octave images with the
-master through the game blitter. See [usage and scope](docs/development.md#sprite-lod-preview).
-
-The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved geometry,
-varying shared boundaries, Band activation/tapers and local Guide envelopes. Oriented Ports and
-geometric Links connect LINEAR chains, BRANCH forks/merges and one-source CIRCUIT loops in an immutable
-reference graph. An offline bounded geometry view retains actual traversal history and shares source
-readers in an active frame. Complete content/consumer qualification and driving cutover are pending; the
-new provisional LINEAR is playable at `?mode=trial` using the new graph and saved images.
-Its shared scene also supports headless PNGs through `npm run course -- render`.
-
-For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio/audio-browser.html` is the separate audition page;
-serve both over HTTP, rather than opening HTML files directly. See the [audio specification](docs/audio.md)
-for the signal path, parameters and approximation limits.
+Open `http://localhost:8000/`. Build validates and stages the course JSON and images in `dist/content`.
 
 ## Controls
 
-Left/right arrows steer. Up or X accelerates; down or Z brakes. On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels of displacement produces full input. Keyboard and touch share input arbitration.
+Left/right arrows steer. Up or X accelerates; down or Z brakes. Backspace recovers the vehicle.
+On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels gives full input.
 
-Use the selectors for vehicle, course and calibration. D, M and ACT use minus/value/plus controls; each step wraps at its range limit. Course keys 1–4 select LINEAR / BRANCHING / TSUKUBA / FISCO. Their URLs are `?mode=linear`, `?mode=branching`, `?mode=circuit` and `?mode=fisco`; BRANCHING is the default.
+Open DEV for vehicle, camera, calibration and sound controls. Key 1 selects LINEAR. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
 
-SOUND controls playback and DEV opens a scrolling panel with separate ENG/TIRE levels and tuning
-controls. [Development](docs/development.md#local-workflow) owns the detailed browser workflow and
-comparison tools; [calibration](docs/calibration.md) owns parameter meanings.
-Physical tire calibration, engine sound parameters, and tire-noise method/parameters remain
-[undecided and deferred](docs/NEXT.md#deferred-tuning) while work moves to visual presentation.
+## Authoring and tools
+
+The [production CLI](docs/development.md#agent-production-tools) compiles saved CourseDocuments and renders PNGs through the same scene as the browser. Product content lives in `content/courses` and `content/images`.
+The [Sprite Tool](tools/graphics/sprite-tool.html) and [Sprite LOD preview](tools/graphics/sprite-lod.html) retain the existing image authoring workflow.
+[Audio audition](tools/audio/audio-browser.html) uses the same local HTTP server.
 
 ## Structure
 
-| Directory       | Responsibility                                                                   |
-| --------------- | -------------------------------------------------------------------------------- |
-| `src/core`      | Open Raster/Guide coordinates, height, projection and shared metrics             |
-| `src/course`    | Authored cross-sections, stage views and Raster authoring                        |
-| `src/compiler`  | Static CourseDocument graph and geometry/content qualification                   |
-| `src/authoring` | Live authoring source/publication sessions                                       |
-| `src/input`     | Keyboard/touch input and arbitration                                             |
-| `src/physics`   | Common vehicle mechanics, surfaces and control                                   |
-| `src/vehicle`   | Production identities and compiled profiles                                      |
-| `src/audio`     | Procedural audio voices and read-only acoustic contracts                         |
-| `src/camera`    | Camera observation and follow policy                                             |
-| `src/gameplay`  | Physical route gates, laps, sessions, rivals and recovery                        |
-| `src/graphics`  | Framebuffer, color codec, sprite blitting and Painter primitives                 |
-| `src/visual`    | Background/sprite assets and visual sections                                     |
-| `src/terrain`   | Terrain projection and scanline geometry                                         |
-| `src/groundmap` | Logical/baked ground readers, baking and filtering                               |
-| `src/render`    | Scene pipeline and projected course/vehicle presentation                         |
-| `src/runtime`   | Occurrence views, unfolding and actor/gameplay composition                       |
-| `src/browser`   | DOM controls, selectors, scheduling and driving shell                            |
-| `src/dev`       | Concrete courses, regression fixtures and diagnostics in separate subdirectories |
+| Directory                                                 | Responsibility                                          |
+| --------------------------------------------------------- | ------------------------------------------------------- |
+| `src/core`, `src/course`                                  | Finite coordinates, geometry and authored course schema |
+| `src/compiler`, `src/authoring`                           | Immutable course graph and authoring transactions       |
+| `src/runtime`                                             | Occurrences, driving readers and shared scene assembly  |
+| `src/physics`, `src/vehicle`                              | Common mechanics and production vehicle profiles        |
+| `src/input`, `src/camera`, `src/audio`                    | Input, observation and sound                            |
+| `src/gameplay`                                            | Recovery, race progress, gates and drivers              |
+| `src/graphics`, `src/visual`, `src/terrain`, `src/render` | Images, projection and rendering                        |
+| `src/groundmap`                                           | Saved course source-paint evaluation                    |
+| `src/browser`                                             | Controls, scheduling and driving shell                  |
+| `src/dev`                                                 | Regression fixtures and diagnostics                     |
 
-`src/main.ts`, `src/main-linear.ts` and `src/main-circuit.ts` are the browser composition roots selected by boot. The dependency boundary is enforced by repository hygiene tests.
+`src/main-course.ts` is the sole driving composition root. Parsed repository hygiene checks enforce layer boundaries.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { GroundMapLogicalProfile } from '../../dist/groundmap/logical-profile.js';
+
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { VisualProfile } from '../../dist/visual/visual-profile.js';
 
@@ -11,7 +11,6 @@ const visualSection = () => ({
   groundBaseLeft: { kind: 'color', color: 0x123456ff },
   groundBaseRight: { kind: 'transparent' },
 });
-const logicalSection = () => ({ sStart: 0, name: 'ground', left: 'ROCK', right: 'GRASS' });
 const surfaceSection = () => ({
   sStart: 0,
   name: 'road',
@@ -35,7 +34,6 @@ test('nonfinite endpoint authoring is rejected before normalization can hide it'
         ]),
     );
     assert.throws(() => new VisualProfile(100, [{ ...visualSection(), sStart: value }]));
-    assert.throws(() => new GroundMapLogicalProfile(100, [{ ...logicalSection(), sStart: value }]));
     assert.throws(() => new SurfaceMap(100, [{ ...surfaceSection(), sStart: value }]));
   }
 });
@@ -64,26 +62,19 @@ test('source profiles own immutable geometry, paint and material copies', () => 
   const height = new HeightProfile(100, nodes);
   const visualInput = visualSection();
   const visual = new VisualProfile(100, [visualInput]);
-  const logicalInput = logicalSection();
-  const logical = new GroundMapLogicalProfile(100, [logicalInput]);
   const surfaceInput = surfaceSection();
   const surface = new SurfaceMap(100, [surfaceInput]);
   nodes[1].y = 999;
   visualInput.groundBaseLeft.color = 0;
-  logicalInput.left = 'GRASS';
   surfaceInput.bands[0].lMax = -3;
   assert.equal(height.sampleRender(100).y, 10);
   assert.equal(visual.sample(50).groundBaseLeft.color, 0x123456ff);
-  assert.equal(logical.sample(50).left, 'ROCK');
   assert.equal(surface.sample(50, 0).type, 'ASPHALT');
   assert.throws(() => {
     height.nodes[1].y = 999;
   }, TypeError);
   assert.throws(() => {
     visual.sample(50).groundBaseLeft.color = 0;
-  }, TypeError);
-  assert.throws(() => {
-    logical.sample(50).left = 'GRASS';
   }, TypeError);
   assert.throws(() => {
     surface.sectionAt(50).bands[0].lMax = -3;

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 
 import {
@@ -79,20 +79,4 @@ test('Far Background source horizon follows the geometric horizon to raster roun
   }
   assert.ok(firstGroundRow >= 0);
   assert.ok(Math.abs(firstGroundRow - horizonY(flatCamera)) <= 0.5);
-});
-
-test('all current renderer compositions use the shared 200 m far-depth authority', async () => {
-  const compiler = await readFile(new URL('../../src/runtime/stage-authoring-compiler.ts', import.meta.url), 'utf8');
-  assert.match(compiler, /dMax: CURRENT_RENDER_FAR_DEPTH_METERS/);
-  const paths = [
-    '../../src/main-circuit.ts',
-    '../../src/dev/courses/linear-highway.ts',
-    '../../src/dev/courses/branching-highway.ts',
-    '../../src/runtime/stage-authoring-compiler.ts',
-  ];
-  const sources = await Promise.all(paths.map((path) => readFile(new URL(path, import.meta.url), 'utf8')));
-  for (const source of sources) {
-    assert.match(source, /createTerrainVisualProfile/);
-    assert.doesNotMatch(source, /dMax:\s*150\b/);
-  }
 });

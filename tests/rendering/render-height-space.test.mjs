@@ -5,7 +5,7 @@ import test from 'node:test';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_DISTANCE_METERS, CURRENT_FOCAL_LENGTH_PIXELS } from '../../dist/core/presentation-scale.js';
 import { pseudoProject } from '../../dist/core/projection.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { createRenderSpaceCamera, mapPhysicalHeightToRender } from '../../dist/render/render-height-space.js';
@@ -28,7 +28,7 @@ const cameraProfile = {
 };
 
 test('render height adapter removes the public-course 3.37 m physics/render split without losing offsets', () => {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const height = parent.heightProfile;
   const s = 2_298;
   const physicalRoadY = height.samplePhysics(s);
@@ -41,7 +41,7 @@ test('render height adapter removes the public-course 3.37 m physics/render spli
 });
 
 test('player and camera share render height space while suspension displacement remains visible', () => {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const height = parent.heightProfile;
   const car = createTestCar(parent.guide, height, parent.surfaceMap, 2_298, -1.75);
   const camera = updateCamera(createCameraRig(), { guide: parent.guide, height }, car, cameraProfile, 1 / 60);
@@ -75,7 +75,7 @@ test('player and camera share render height space while suspension displacement 
 });
 
 test('dynamic rival adapter maps physical anchors into the same render road space', () => {
-  const parent = createDefaultBranchingParent();
+  const parent = createCurvedReferenceWorld();
   const car = createTestCar(parent.guide, parent.heightProfile, parent.surfaceMap, 2_298, 1.75);
   const sprite = createDynamicVehicleCourseSprite(
     'RIVAL',

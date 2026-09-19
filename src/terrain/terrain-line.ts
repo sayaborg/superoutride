@@ -12,7 +12,7 @@ const ROW_SAMPLE_DENOMINATOR_TOLERANCE_PIXELS = 1e-10;
 const DEPTH_INTERVAL_TOLERANCE_METERS = 1e-7;
 const FLAT_HEIGHT_COEFFICIENT_TOLERANCE_PIXEL_METERS = 1e-12;
 const BOUNDARY_DENOMINATOR_TOLERANCE_PIXELS = 1e-12;
-export const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
+const MIN_TERRAIN_SPAN_PIXELS = 1e-7;
 
 interface TerrainLineGeometry {
   d: number;
@@ -20,8 +20,6 @@ interface TerrainLineGeometry {
   y: number;
   xGroundL: number;
   xGroundR: number;
-  xRoadL: number;
-  xRoadR: number;
 }
 
 interface ForwardVisibleInterval {
@@ -30,7 +28,7 @@ interface ForwardVisibleInterval {
 }
 
 /** Thin-span target rule: a projected segment thinner than one destination row collapses to one row. */
-export const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
+const DEFAULT_THIN_SPAN_SCREEN_ROWS = 1;
 
 /**
  * Determine the ordinary forward renderer interval on one open GuidePath.
@@ -107,8 +105,6 @@ export interface TerrainVisualProfile {
   dMax: number;
   groundLeft: number;
   groundRight: number;
-  roadLeft: number;
-  roadRight: number;
   height: HeightProfileReader;
   visual: VisualProfileReader;
   /** Collapse threshold in destination scanline units. Defaults to one row. */
@@ -223,7 +219,7 @@ export function generateTerrainLines(
 }
 
 /** Projected vertical span of one clipped segment in destination-row units. */
-export function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
+function projectedTerrainSpanRows(bY: number, d0: number, d1: number): number {
   if (!Number.isFinite(bY)) throw new RangeError('bY must be finite');
   if (!(d0 > 0) || !(d1 > d0) || !Number.isFinite(d0) || !Number.isFinite(d1)) {
     throw new RangeError('projected terrain span requires finite 0 < d0 < d1');
@@ -275,20 +271,6 @@ function createTerrainLine(
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
   const section = profile.visual.sample(s);
-  const xRoadL = lateralToScreenX(
-    -profile.roadLeft,
-    projectedLeft.x,
-    projectedRight.x,
-    profile.groundLeft,
-    profile.groundRight,
-  );
-  const xRoadR = lateralToScreenX(
-    profile.roadRight,
-    projectedLeft.x,
-    projectedRight.x,
-    profile.groundLeft,
-    profile.groundRight,
-  );
   const deltaL = (profile.groundLeft + profile.groundRight) / groundSpan;
   const deltaSEffective = Math.max(verticalFootprint.deltaS, verticalFootprint.deltaSCollapse);
 
@@ -298,8 +280,6 @@ function createTerrainLine(
     y,
     xGroundL: projectedLeft.x,
     xGroundR: projectedRight.x,
-    xRoadL,
-    xRoadR,
     groundBaseLeft: section.groundBaseLeft,
     groundBaseRight: section.groundBaseRight,
     sectionName: section.name,

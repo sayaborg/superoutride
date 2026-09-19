@@ -9,8 +9,8 @@ import { withHighBikeCg } from '../helpers/bike-cg-reference.mjs';
 import { compileGuidePath } from '../../dist/core/guide-curve.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
-import { createDefaultBranchingParent } from '../../dist/dev/courses/branching-highway.js';
-import { createTsukubaCourse2000Runtime } from '../../dist/dev/courses/tsukuba-circuit.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
+import { createRisingReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRecoveryState, updateRecovery } from '../../dist/gameplay/recovery.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 import {
@@ -179,7 +179,7 @@ test('upright suspension travel guard is retained rather than clipped or disable
 
 test('VFR loop-out remains possible but ordinary recovery prevents inverted driving at refined steps', () => {
   const historicalProfile = withHighBikeCg(profile);
-  const highway = createDefaultBranchingParent();
+  const highway = createCurvedReferenceWorld();
   const flat = new HeightProfile(highway.guide.length, [
     { s: 0, y: 0 },
     { s: highway.guide.length, y: 0 },
@@ -189,8 +189,8 @@ test('VFR loop-out remains possible but ordinary recovery prevents inverted driv
   ]);
   const rows = [];
   for (const dt of [1 / 60, 1 / 120, 1 / 240]) {
-    for (const kind of ['reversal', 'tsukuba']) {
-      const live = kind === 'tsukuba' ? createTsukubaCourse2000Runtime().window : null;
+    for (const kind of ['reversal', 'rising']) {
+      const live = kind === 'rising' ? createRisingReferenceWorld() : null;
       const g = live?.guide ?? highway.guide,
         h = live?.height ?? flat,
         s = live?.surface ?? wide;
