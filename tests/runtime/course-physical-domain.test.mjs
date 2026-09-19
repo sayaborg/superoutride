@@ -1,14 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
-import {
-  compileCoursePhysicalDomains,
-  compileCoursePhysicalOverlaps,
-} from '../../dist/compiler/course-physical-overlap.js';
+import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
 import { compileCoursePhysicalDemand } from '../../dist/compiler/course-physical-demand.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
@@ -114,7 +108,6 @@ test('two/three-way forks and all incoming shared-successor Links qualify withou
     assert.equal(course.entry.bandPartition.bands.length, count);
     for (const child of course.sections.slice(1)) assert.equal(child.bandPartition.bands.length, 1);
     assert.equal(course.sections.at(-1).incoming.length, count);
-    failures(compileCoursePhysicalOverlaps(course.links), 'physical_support_mismatch');
     assert.deepEqual(input, before);
     frozen(qualification);
   }
@@ -371,33 +364,4 @@ test('arbitrary IDs, declaration order and separately rebuilt graph products pre
     b.links.map((v) => v.id).reverse(),
   );
   assert.notEqual(a.links[0], b.links.at(-1));
-});
-
-test('saved fork and explicit demand pass the real command without claiming picture or transition readiness', async () => {
-  const run = (file) =>
-    spawnSync(
-      process.execPath,
-      ['tools/course/compile-course.mjs', 'tests/fixtures/fork-merge.course.json', '--physical-domain', file],
-      { encoding: 'utf8' },
-    );
-  const result = run('tests/fixtures/physical-demand.json');
-  assert.equal(result.status, 0, result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.equal(report.scope, 'physical-query-domain');
-  assert.equal(report.links.length, 6);
-  assert.deepEqual(report.demand.bounds, { behind: 23, ahead: 26, left: 5, right: 5 });
-  const dir = await mkdtemp(path.join(tmpdir(), 'physical-domain-'));
-  try {
-    const file = path.join(dir, 'demand.json'),
-      input = demand();
-    input.step.ahead = 100;
-    await writeFile(file, JSON.stringify(input));
-    const failure = run(file);
-    assert.equal(failure.status, 1);
-    failures(JSON.parse(failure.stderr), 'coverage_gap');
-    await writeFile(file, '{');
-    failures(JSON.parse(run(file).stderr), 'parse_failure');
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
 });

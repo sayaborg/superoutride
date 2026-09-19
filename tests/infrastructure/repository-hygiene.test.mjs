@@ -34,12 +34,7 @@ async function pathExists(target) {
 // Regression/diagnostic modules may be outside production reachability, but must have a consumer.
 const isRegressionSource = (file) => /[\/]src[\/]dev[\/](?:fixtures|diagnostics)[\/]/.test(file);
 
-// General components retained for M3/M4, while the published M1b root is player-only.
-// Remove this explicit reservation when M4 integrates their production consumers.
-const reservedMilestoneComponents = new Map([
-  ['gameplay/recovery.ts', 'M3/M4 actor recovery reason contract'],
-  ['physics/surface-guide-envelope.ts', 'M3/M4 supported actor spawn/recovery envelope'],
-]);
+const reservedMilestoneComponents = new Map();
 
 test('every source module is reachable from a composition or declared compiler entry or an explicit regression fixture', async () => {
   const sourceFiles = await collectFiles(sourceRoot, ['.ts']);

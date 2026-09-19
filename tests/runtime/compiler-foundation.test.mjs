@@ -5,7 +5,6 @@ import { createStadiumEnvironment } from '../../dist/dev/fixtures/stadium-enviro
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
 import { createSpriteAsset } from '../../dist/graphics/sprite.js';
 
-import { validateSurfaceGuideEnvelope } from '../../dist/physics/surface-guide-envelope.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 
 const guide = createStadiumGuide();
@@ -41,20 +40,6 @@ test('physical profile rejects overlapping bands', () => {
     },
   ];
   assert.throws(() => new SurfaceMap(guide.length, bad), /must not overlap/);
-});
-
-test('compiled support stays strictly inside the Guide chart', () => {
-  const map = new SurfaceMap(guide.length, compiled.surfaceSections);
-  assert.equal(map.maxSupportedAbsL, 10.5);
-  validateSurfaceGuideEnvelope(guide, map);
-  const boundary = {
-    ...guide,
-    envelope: [
-      { s: 0, lMax: 10.5 },
-      { s: guide.length, lMax: 10.5 },
-    ],
-  };
-  assert.throws(() => validateSurfaceGuideEnvelope(boundary, map), /must remain inside Guide chart/);
 });
 
 test('sprite assets require positive physical width and have only physical scale authority', () => {

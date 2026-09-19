@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
+
 import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
@@ -423,27 +423,6 @@ test('the exact view endpoint at a visited seam uses the successor without a pos
   assert.equal(view.address(view.length, 0).occurrence, traversal.snapshot().occurrences[1]);
   assert.equal(view.spans[1].start, view.spans[1].end);
   close(view.geometry.rasterAt(view.length, 1), { x: 11, z: 220 });
-});
-
-test('offline view entry reports explicit transformed itineraries and fails incomplete geometry coverage', () => {
-  const run = (...args) =>
-    spawnSync(
-      process.execPath,
-      ['tools/course/compile-course.mjs', 'tests/fixtures/linked-linear.course.json', '--view', ...args],
-      { encoding: 'utf8' },
-    );
-  const success = run('200', '20', '20', '0', 'join');
-  assert.equal(success.status, 0, success.stderr);
-  const report = JSON.parse(success.stdout);
-  assert.equal(report.scope, 'geometry-only');
-  assert.equal(report.spans.length, 2);
-  assert.equal(report.spans[1].incomingLink, 'join');
-  assert.equal(report.visitedOccurrences, 1);
-  assert.equal(report.selectedOccurrences, 1);
-  const missing = run('200', '20', '20', '0');
-  assert.equal(missing.status, 1);
-  assert.equal(JSON.parse(missing.stderr).reason, 'coverage_gap');
-  assert.equal(JSON.parse(missing.stderr).consumer, 'cameraRender');
 });
 
 test('fractional lateral edges are classified in the view chart without a lossy inverse boundary round trip', async () => {

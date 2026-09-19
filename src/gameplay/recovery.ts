@@ -19,7 +19,7 @@ import {
 import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
 
-export type RecoveryReason =
+type RecoveryReason =
   | 'unsupported-time'
   | 'fall-distance'
   | 'surface-penetration'

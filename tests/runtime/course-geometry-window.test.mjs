@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
+
 import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { COURSE_DOCUMENT_LIMITS, readCourseDocument } from '../../dist/course/course-document.js';
@@ -181,31 +179,5 @@ test('one source circuit admits long-curved content and exact primitive/segment 
       assert.equal(invalid.diagnostics[0].code, 'resource_limit');
       assert.equal(invalid.diagnostics[0].path, '/sections/0/primitives');
     }
-  }
-});
-
-test('offline window command reports precise scope and causal ambiguity without mutating saved content', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'course-window-'));
-  try {
-    const input = crossing(),
-      path = join(directory, 'source.json'),
-      saved = JSON.stringify(input);
-    await writeFile(path, saved);
-    const source = ok(await compileCourseDocument(input)).entry;
-    const run = (start, end) =>
-      spawnSync(
-        process.execPath,
-        ['tools/course/compile-course.mjs', path, '--geometry-window', source.id, String(start), String(end)],
-        { encoding: 'utf8' },
-      );
-    const admitted = run(20, 150);
-    assert.equal(admitted.status, 0, admitted.stderr);
-    assert.equal(JSON.parse(admitted.stdout).scope, 'local-geometry');
-    const rejected = run(0, source.raster.length);
-    assert.equal(rejected.status, 1);
-    assert.equal(JSON.parse(rejected.stderr).diagnostics[0].code, 'ambiguous_geometry');
-    assert.equal(await readFile(path, 'utf8'), saved);
-  } finally {
-    await rm(directory, { recursive: true, force: true });
   }
 });

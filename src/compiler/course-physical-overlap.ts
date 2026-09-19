@@ -5,7 +5,6 @@ import {
   CourseQualificationError,
   courseSuccess,
   requireCourse,
-  type CourseResult,
 } from '../course/course-diagnostics.js';
 import type { CompiledLink, CompiledPort } from './course-graph.js';
 import { COURSE_LINK_RECIPE, coursePortLateral } from './course-links.js';
@@ -20,11 +19,6 @@ import {
   courseOverlapBandRegions,
   courseOverlapHeight,
 } from './course-overlap-domain.js';
-
-interface PhysicalOverlapQualification {
-  readonly scope: 'physical-overlap';
-  readonly links: readonly CompiledLink[];
-}
 
 type Demand = Extract<ReturnType<typeof compileCoursePhysicalDemand>, { ok: true }>['value'];
 type LateralDomain = Pick<Demand['bounds'], 'left' | 'right'>;
@@ -62,7 +56,7 @@ function regions(port: CompiledPort, start: number, end: number, domain?: Latera
   return merged;
 }
 
-function qualify(links: readonly CompiledLink[], demand?: Demand) {
+function qualify(links: readonly CompiledLink[], demand: Demand) {
   requireCanonicalCourseLinks(links);
   const errors: CourseQualificationError[] = [];
   links.forEach((link, index) => {
@@ -169,14 +163,6 @@ function qualify(links: readonly CompiledLink[], demand?: Demand) {
     }
   });
   return errors.length ? courseFailures<never>(errors) : courseSuccess(Object.freeze([...links]));
-}
-
-/** Whole lateral field proof. A subset certifies only its supplied Links, not the entire course. */
-export function compileCoursePhysicalOverlaps(
-  links: readonly CompiledLink[],
-): CourseResult<PhysicalOverlapQualification> {
-  const result = qualify(links);
-  return result.ok ? courseSuccess(Object.freeze({ scope: 'physical-overlap', links: result.value })) : result;
 }
 
 /** Declared physical query coverage only; never a picture, product-envelope or runtime-readiness certificate. */

@@ -30,7 +30,7 @@ Product CourseDocuments and image bytes live in `content/`. Regression inputs an
 live in `src/dev/fixtures` and `src/dev/diagnostics`. [Raster authoring](../src/course/raster-turtle.ts)
 owns line/arc subdivision and radius provenance. [DEV](../src/dev/README.md) owns the fixture boundary.
 
-## CourseDocument v6: implemented compiler boundary
+## CourseDocument v7: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -49,13 +49,13 @@ Session or completed resident ground product.
 All fields below are required. Objects reject unknown fields; arrays retain their saved order. The
 reader creates owned frozen records in schema field order and normalizes negative zero to zero.
 Save emits compact UTF-8 JSON. Whitespace and object-property order do not affect source identity;
-array order is saved input, including meaningful primitive, knot and stamp order. V6 adds compact boundary-relative scenery rows alongside explicit
+array order is saved input, including meaningful primitive, knot and stamp order. The schema includes boundary-relative scenery rows, state-selected placements and explicit
 fork lock/closure anchors to the saved presentation/reference subset. Live field/actor state remains
 outside the document.
 
-| Record           | Exact v6 fields                                                                                                                                                                                                                                                   |
+| Record           | Exact v7 fields                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CourseDocument   | `format: "superoutride.course"`, `version: 6`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                        |
+| CourseDocument   | `format: "superoutride.course"`, `version: 7`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                        |
 | Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation`, `fork` |
 | Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                                                |
 | Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                                            |
@@ -81,7 +81,7 @@ outside the document.
 | Stamp             | `id`, `assetId`, `anchor`, `l`                                                       |
 | Environment       | `anchor`, `name`, `groundBaseLeft`, `groundBaseRight`, `background`                  |
 | Background        | `assetId`, `horizonY`, `pixelsPerRadian`, `yawOrigin` (degrees in the Section frame) |
-| Scenery placement | `id`, `instanceId`, `anchor`, `l`, `groundOffset`                                    |
+| Scenery placement | `id`, `instanceId`, `unselectedCarriagewayId`, `anchor`, `l`, `groundOffset`         |
 
 GroundBase values are explicit RGB555 integers or `null` for transparency. Ground/source composition
 and image roles are specified in [Image assets](image-assets.md#saved-course-presentation).
@@ -93,8 +93,8 @@ Band, Carriageway and Port IDs each have a separate Section-local scope. Duplica
 admission. References resolve within their declared scope, never by array position or naming convention.
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
-with `unsupported_version`. Schema/format and unit mismatches fail admission. Schemas v1/v2/v3/v4/v5 are explicitly
-unsupported. Geometry fixtures explicitly select v6 with `presentation: null`, `fork: null` and an empty
+with `unsupported_version`. Schema/format and unit mismatches fail admission. Earlier schemas are explicitly
+unsupported. Geometry fixtures explicitly select v7 with `presentation: null`, `fork: null` and an empty
 scenery-instance collection; no appearance or fork controls are inferred from physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
@@ -103,6 +103,10 @@ Band and asset references; every Band requires one binding, with a start-inclusi
 at activation and changing strictly before its end. Every present presentation has an environment
 profile beginning at zero. Scenery placements resolve document-wide canonical instances whose assets
 belong to the Section. Shared identity alone does not prove matching placements across a Link.
+`unselectedCarriagewayId` is null for ordinary scenery, or resolves once to a canonical exit
+Carriageway. Its placement lies from lock through closure, before every common exit guard.
+The scene shows it after the field selects a different exit; retained occurrence history supplies
+that state. Warnings and closure signs use the same saved sprite instances and ordinary rendering.
 Each stamp/scenery collection and the instance collection admit 4096 entries; profiles retain the
 256-node bound and the whole-document byte limit. Rows store `id`, `assetId`, `start`, `end`, `spacing`, `boundaryId`, `side` (left/right), nonnegative
 `offset` and `groundOffset`. The interval is half-open; placements occur at start + index × spacing.
@@ -220,7 +224,7 @@ Positive admitted Jacobians separate incident intervals; nonadjacent intervals m
 convex hulls under the existing geometric sampling tolerance. Failure to separate either mapping is
 an `ambiguous_geometry` diagnostic with `mapping` and both source intervals. It is conservative, not
 a claim of exact intersection. These qualification diagnostics are not document JSON Pointers.
-Both mappings are checked independently; no partial qualification is returned.
+Both mappings are checked independently; failed admission publishes no partial view.
 
 `COURSE_GEOMETRY_WINDOW_LIMITS` admits at most 1024 cells per mapping before quadratic pair work.
 Exceeding it returns `resource_limit`, not success with a truncated window. It is a work bound, not
@@ -253,109 +257,14 @@ bound includes active supported profile endpoints and interior Boundary knots, n
 No geometry is copied and no reader resolves an ID. This offline facet does not replace the legacy
 SurfaceMap or adapt occurrence/frame mappings for contact, projection or terrain.
 
-### Offline physical overlap qualification
+### Contact and fixed-step guard admission
 
-[Physical qualification](../src/compiler/course-physical-overlap.ts) is a separate all-or-none operation
-over an explicit canonical Link list. Pass the whole course Link list for course-wide evidence; a subset
-certifies only those Links. The result lists those same references with scope `physical-overlap`.
-It never upgrades CompiledLink itself to a runtime-ready product.
-
-Each guard must be horizontal across every intersecting height segment; this proves both linear render
-height and smooth physical/camera height constant throughout the guard. Heights must agree under the
-upright transform to the Link position tolerance (1e-7 m). Equal seam height cannot hide an interior hill.
-
-Partition both rulers at all physical Band activation endpoints, referenced Boundary knots and material
-changes, using the shared exact-station compiler. Every positive cell must remain representable in both
-rulers. On the straight guards already proved by CompiledLink, compare the entire lateral support/material
-field relative to the derived Port lateral anchors. Omit explicit VOID/outside and coalesce touching
-same-material subdivisions. The ordered material regions and both linear edge endpoints must agree
-to the same position tolerance; endpoint bounds prove the complete cell. Check each exact station too,
-including the closed guard endpoints, so a start-inclusive change cannot escape the proof. This includes
-nonselected roads, shoulders and medians, not just the selected pavement envelope.
-
-The offline command checks every Link, including all incoming merge Links. Geometry-only fork fixtures
-with extra unmatched parent roads fail physical qualification even though their CompiledLinks remain valid.
-This proves support/material/height agreement only: it does not prove appearance, source image/phase,
-scenery/background identity, product consumer coverage, parent-specific visibility or runtime transition
-readiness. Those prerequisites remain before joint cutover.
-
-#### Declared physical query domains
-
-`compileCoursePhysicalDomains(links, demand)` uses the same physical comparison, restricted to an
-explicit seam-local query domain. The input has exactly `pose`, `step` and `consumers`; the latter
-requires `contact`, `driverLookahead` and `reverseRecovery`. Each record has finite nonnegative metre
-extents `{behind, ahead, left, right}`. Pose encloses all admitted actor reference positions about
-the Port origin; step encloses motion in both directions and laterally before the next observation;
-each consumer supplies its complete query footprint relative to those positions. There are no defaults.
-This is a declared offline envelope, not a measured product limit or a vehicle/contact-size authority.
-
-For each consumer and axis, required extent is `pose + step + footprint`. Every consumer's longitudinal
-requirement must fit the authored common guard. The derived lateral domain is the bounding union of
-all consumers, including reverse/recovery, and has finite positive width. Qualification compares the
-entire guard within that domain, never a caller-chosen matching subset. All contributing Bands count,
-including nonselected roads, medians, shoulders and VOID boundaries. A consumer expansion that reaches
-unmatched sibling support fails; sibling roads outside the domain remain unchanged in the parent.
-
-The partition additionally includes every linear Boundary crossing of either lateral-domain edge in
-both source rulers. Clipped edges are then linear throughout each open cell, so endpoint comparison
-proves the whole clipped field. Exact station and closed lateral-domain endpoint ownership are checked
-separately. A constant-material open edge cell uses one interior witness after all crossings and
-material/activation changes have been partitioned; an unrepresentable crossing/cell fails explicitly.
-This is not sparse sampling of an unpartitioned guard. Full horizontal height checks remain mandatory.
-
-Success freezes the owned demand, derived requirements and original Link references with scope
-`physical-query-domain` and physical-overlap recipe v2. Failure publishes no partial qualification.
-Independent Link failures and consumer coverage failures are collected deterministically in supplied
-order, while dependent checks on an invalid Link stop. Qualification diagnostics have
-`kind: "qualification"`, `code`, `linkIndex`, optional `consumer`, and `message`; they do not pretend
-to be JSON Pointers into CourseDocument. Codes distinguish `coverage_gap`, `nonhorizontal_overlap`,
-`physical_height_mismatch` and `physical_support_mismatch`. Malformed demand data instead has
-`kind: "input"` and a pointer under `/demand` in the qualification request. Canonical-reference API
-misuse raises TypeError/RangeError; internal invariant failures propagate.
-
-The saved three-way fork/merge and declared demand are a positive physical-only fixture. Successor
-Sections contain only their single common road, without copied sibling tails, artificial VOID holes,
-or branch-dependent geometry edits. Whole-field qualification still rejects that fixture. Runtime
-admission must additionally prove that real queries stay inside the qualified domain, including
-neighbor interactions, reverse/recovery and pre-lock states. Camera/render coverage and presentation
-visibility/continuity remain separate: physical reachability never proves that a road is invisible.
-
-#### Declared presentation query domains
-
-`compileCoursePresentationDomains(links, demand)` separately qualifies the admitted saved presentation
-subset. Demand has the same explicit pose/step/extent form, with `cameraRender`, `groundFilter` and
-`scenery` consumers. Ground filtering includes its complete query footprint and filter halo; scenery
-includes every potentially visible anchor, expanded for the full bitmap and authored anchor. Each
-expanded longitudinal requirement must fit the guard. The complete guard and union lateral domain
-must fit both half-open source strips, including closed query endpoints.
-
-The proof shares the physical qualifier's geometric partition, then compares paint at every profile
-change, complete clipped cell and exact ownership boundary. Pattern equality requires the same
-admitted image source and integer image-period displacement; static A/B spans, palette and parity must
-agree. There is no phase epsilon. Base color, horizontal height, ordered intersecting stamps and their
-source-lattice positions must agree. Environment/background fields and frame-relative pan origins
-agree throughout the guard; angular agreement uses the Link recipe's heading tolerance because derived
-Raster headings retain floating-point roundoff. Common scenery has one placement per canonical
-instance in the domain, with equal mapped chainage, lateral position and render height.
-
-Success owns immutable demand and Link references with scope `presentation-query-domain` and
-presentation-overlap recipe v1. Independent Link failures are collected using qualification diagnostics;
-codes distinguish missing presentation, ground, phase, environment and scenery disagreement. This is
-a conservative source-pattern proof: differently encoded but coincidentally equal images can fail.
-It neither chooses a ground filter nor certifies resident images or runtime transition readiness.
-
-`coursePresentationDemand` derives straight-guard footprints from explicit camera distance, focal
-length, viewport width/center, render depth interval, maximum yaw from the Port, filter radii and saved
-scenery. For horizontal camera coordinates, `xr = cos(yaw)*l - sin(yaw)*ds`; the chase offset cancels.
-The bound uses the farthest viewport edge/depth and the complete yaw interval, with bitmap anchor reach
-expanded by the minimum cosine. Height and pitch change visible rows, not this conservative horizontal
-bound. Runtime admission must still enforce the pose/yaw envelope and straight-guard premise.
-
-The large three-way fork fixture qualifies all six Links for physical and presentation domains without
-VOID holes or copied siblings. Actual ground queries remain inside the derived camera domain, and full
-frames agree across paired transformed observations, including shared scenery and background. This
-does not prove pre-lock coverage, each exit's complete parent-specific visible end, transfer margins,
-general multi-occurrence driving readers or an atomic actor commit.
+`compileCoursePhysicalDomains` and `compileCoursePresentationDomains` validate the root's explicit
+contact and fixed-step envelopes over canonical Links. Both are required by `createCourseDrivingSource`.
+They compare height, supported materials, Band edges, level-zero paint/phase, background and shared
+scenery throughout the common guard; failures identify the Link and affected consumer. The root
+uses 30 m guards and source-owned occurrence spans for every longer query. Camera, renderer, driver
+and recovery windows concatenate spans and never enlarge the common guard.
 
 #### Authored fork controls and coverage
 
@@ -373,25 +282,17 @@ outer shoulders belong to the outer regions; other active pavement must belong t
 no independently authored region widths, lookup IDs or live field decisions in this product. Invalid
 controls receive `invalid_fork` authoring diagnostics and preserve prior publication.
 
-`compileCoursePreLockCoverage(fork, demand)` requires six explicit consumers: camera/render, ground
-filter, scenery, contact, driver lookahead and reverse/recovery, using their existing demand keys.
-Pose is relative to `(lock.s, 0)` and ends at lock (`ahead=0`); step includes the entire advance before
-choice can take effect. Every expanded source interval must fit `[0, commonEnd]`, where `commonEnd` is
-the earliest outgoing seam. Presentation queries must fit the parent strip and the union window must
-pass local geometry qualification. Success retains canonical fork identity, each interval and the
-owned demand under `pre-lock-query-domain`. Failures identify Section and consumer with
-`kind: "fork-qualification"`, not fabricated authoring pointers. A pending successor cannot repair a
-pre-lock coverage gap. This scoped proof still requires actual runtime pose/query admission.
+The playable field uses the compiled partition directly. Each fixed step first advances ordinary
+vehicle mechanics for every eligible actor, then collects world-plane crossings. The first candidate
+ordered by intersection fraction and stable actor ID prepares canonical successor views for the field.
+Only after preparation succeeds does it publish the irreversible choice. Selection grants no progress;
+each actor crosses its own exit later. The parent supplies pre-lock lookahead, with 1,250 m from
+lock to exit in the provisional course. Its two carriageways separate to 120 m before their seams.
 
-`compileCourseExitVisibility(links, presentationDemand)` first performs full presentation-domain
-qualification for every supplied Link, including shared-successor incoming Links. It derives a
-conservative exclusive upper bound on parent-specific visibility: `source seam - guard.behind +
-max(step.behind + footprint.behind)`. Matching content is guaranteed from that approach position through
-`source seam + guard.ahead - max(step.ahead + footprint.ahead)`, under the same lateral/camera envelope.
-The complete common guard contains all queries there, so parent-specific content cannot contribute.
-This is a conservative bound, not a claim to have measured the exact last visible pixel. It does not
-use physical reachability or a feature's own chainage as a visibility test. Success has scope
-`exit-presentation-domain`; it neither qualifies lateral-transfer dynamics nor commits an actor.
+After lock, rivals follow the selected Carriageway's Boundary-derived center. At and beyond closure,
+actors on a losing pavement use ordinary `wrong-course` recovery at the same chainage on the selected
+road. Progress observers resync without awarding a gate or displacement. Static median support and
+road geometry remain unchanged. The shared merge retains each actor's actual predecessor for reverse.
 
 ### Offline Port and Link geometry
 
@@ -440,7 +341,7 @@ whole reusable source, own geographical separation qualification.
 
 ### Bounded geometry views and occurrence history
 
-[Geometry traversal](../src/runtime/course-occurrence.ts) is a live **offline exploration adapter** over
+[Geometry traversal](../src/runtime/course-occurrence.ts) is a live bounded traversal over
 canonical Section/Link references. Each immutable occurrence has a traversal ordinal, reusable Section
 and chosen incoming Link. Its owner separately retains actual visited `occurrences`, their `active`
 frame, and an ordered unvisited `selected` frontier; none is stored inside CompiledCourse. Ordinals
@@ -495,54 +396,27 @@ no exit or parent runout is selected implicitly. A retained first occurrence wit
 starts at its entry seam, rather than inventing discarded predecessor coverage. View queries outside
 the admitted interval fail explicitly. Malformed API values use TypeError/RangeError as in AGENTS.
 
-The result is labelled `geometry-only`. These are declared interval checks, not measured product
-consumer envelopes, complete common-content overlap, pre-lock visibility or transition qualification.
-Only the selected Carriageway has the Link's existing geometric agreement proof. Other Bands can
-still differ across a seam unless separately qualified. Height and physical bindings now have admitted
-Section facets and a separate overlap proof above; the scoped adapter below maps qualified common guards.
-Saved images, paint/phase and scenery/background now have explicit presentation bindings and source
-evaluation and separate source-domain continuity proofs. Full product camera/pose enforcement across a transition
-remains unqualified. Separate physical/presentation proofs,
-including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
-The browser root consumes these occurrence readers for the saved two-Section LINEAR.
+The geometry view owns source addressing and interval coverage. Driving admission then binds its
+physical and presentation readers to the root's contact/step guard products. Saved SEAM, CIRCUIT and
+BRANCH roots use the same span composition and ordinary camera/renderer. Actual saved-course tests
+cover frame continuity, closure transfer and parent-specific exit visibility.
 
 The traversal owner also exposes `prepare('forward' | 'reverse')`. Preparation returns a frozen
 prospective history and the same compiled/inverse Link transform without changing visited/selected
 state. Build and admit the next consumer view from that history before calling its `commit()`. The optional `selectUnique` preparation also extends canonical unique continuations in the
 prospective history, so all next-loop reader construction precedes publication.
 Any intervening selection or movement makes the plan stale; an idempotent selection retains it.
+`prepareSelection(from, link)` similarly builds a prospective selected itinerary and unique
+continuations. The field prepares all affected views before publishing its choice.
 A plan publishes once, including retention pruning. Existing `forward()`/`reverse()` use this same
 path. This is a geometry transaction primitive, not a physical seam observation or actor commit.
 
 ### Single-Section driving view
 
-`createCourseSectionDrivingSource` prepares the canonical Band/material reader once. `createView`
-accepts that source's active geometry view, requires one active-Section span, and qualifies its complete
-source window. It publishes ordinary immutable `VehicleWorld` and `RasterGeometry` facets; consumers
-receive neither Section nor occurrence/graph metadata. A view touching another occurrence returns
-`unqualified_links`, even when its geometric Link already passes. Local geometry failures retain their
-specific qualification diagnostics under `geometry_qualification_failed`.
-
-Reader coordinates and projection indices remain native to the active source, independent of the
-inspection window's zero. Every query checks the admitted range; local projection checks its complete
-candidate-segment interval before searching. No global fallback or nearest passage selection is added.
-The logical source endpoints remain distinct from the smaller readable window: insufficient coverage
-must not shorten a driver's requested lookahead or change a recovery target. Height delegates to the
-canonical source's original interpolation. Bounded Raster/height metadata retains original record
-references; rebuilding a window creates no new geometry, height curve, image, frame or progress.
-
-`courseSectionDrivingDemand` derives longitudinal demand from the actual camera distance, render far
-depth, driver's query reach, complete physical projection neighborhoods, recovery backtrack/last-safe
-station and an explicit pose/maximum-step envelope. Include both incident projection seeds at a closed
-pose endpoint. Caller-owned pose slack controls reconstruction frequency; it is not a universal guard.
-Runtime query checks and the real-consumer comparison detect an insufficient declaration.
-
-This is the seam-free LINEAR vertical slice, not complete Gate 2 qualification. The comparison drives
-all nine production vehicle profiles through the real contact/recovery/driver/camera/renderer path,
-including reverse, unsupported excursion, moving windows and manual recovery. Its explicit diagnostic
-ground/background/sprites exercise the existing renderer; they are not CourseDocument presentation
-bindings or accepted product art. The common-guard adapter below extends those readers. Full lateral/pose
-admission, pre-lock/exit enforcement, atomic commits and the joint edge cutover remain required. The browser and CLI use the single-Section reader for the saved LINEAR and the occurrence reader for linked courses.
+`createCourseSectionDrivingSource` exposes ordinary geometry, height, material and projection readers
+for a bounded view of one canonical source. Admission checks its actual geometry interval and rejects
+foreign Links. Native segment arithmetic and projection seeds are retained; queries outside the
+admitted interval fail. The shared scene uses the complete finite source interval for saved LINEAR.
 
 ### Occurrence driving and actor commit
 
@@ -589,8 +463,8 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 13, including the Link recipe v1, physical recipe v2, image-source
-admission recipe v1 and presentation recipe v1 descriptors.
+`superoutride.course-compiler` version 14, including the Link recipe v1, physical recipe v2, image-source
+admission recipe v1 and presentation recipe v3 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
 the physical descriptor also includes the existing material definitions. Section geometry recipe v4
@@ -636,8 +510,8 @@ as `compileCourseDocument(document, assetSources)`. Each operation snapshots the
 digest wait. The project does not retain a mutable input-byte cache; callers supply saved bytes on
 each build. Missing/corrupt inputs preserve prior publication and stale generations cannot install.
 
-Core, physics and renderer receive their ordinary readers/data. They do not import the course graph;
-current composition roots remain unchanged. Runtime Link/view, image, session and GUI integration
+Core, physics and renderer receive ordinary readers/data. The shared scene and race composition own
+live graph traversal and session state. Further GUI integration
 are separate acceptance gates.
 
 ## Gates and race progress
@@ -661,6 +535,12 @@ ordinary rival sprites and positional audio; these mappings grant no progress. T
 rank, elapsed time and FINISH. Timing starts with the standing-start signal and stops separately for
 each accepted finish. These provisional two-lap/two-rival choices are development content; production
 Session presets and AI reference qualification remain later milestones.
+
+BRANCH progress composes one shared ordered checkpoint/exit gate set per canonical Section.
+A completed source interval advances to the chosen successor only after the actor changes frame;
+reverse and recovery resync observations while preserving earned progress. The provisional terminal
+goal is 60 m before the final source end. CIRCUIT and BRANCH share field mechanics, observation,
+ranking and timing composition; course presets remain deferred.
 
 ## Recovery
 

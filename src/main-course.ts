@@ -7,7 +7,7 @@ import { advanceVehicleWithRecovery, RECOVERY_PROFILE } from './gameplay/recover
 import type { DrivingInput } from './input/driving-input.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
-import { createCourseCircuitRace } from './runtime/course-circuit-race.js';
+import { createCourseRace } from './runtime/course-race.js';
 import { createCourseScene } from './runtime/course-scene.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -37,12 +37,12 @@ try {
   const compiled = await compileCourseDocument(source.value, images);
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   const scene = createCourseScene(compiled.value.entry);
-  const circuit = source.value.type === 'CIRCUIT';
-  const shell = createBrowserDrivingShell(scene.world, 0, { initialSpeed: circuit ? 0 : 45 });
+  const racing = source.value.type !== 'LINEAR';
+  const shell = createBrowserDrivingShell(scene.world, 0, { initialSpeed: racing ? 0 : 45 });
   const race =
-    circuit && 'session' in scene
-      ? createCourseCircuitRace({
-          section: compiled.value.entry,
+    racing && 'session' in scene
+      ? createCourseRace({
+          course: compiled.value,
           player: shell,
           playerSession: scene.session,
           createSession: scene.createActorSession,
@@ -67,7 +67,14 @@ try {
   }
   const lifecycle = shell.mountControls({
     world: () => scene.world,
-    recoveryProfile: RECOVERY_PROFILE,
+    recoveryProfile: race
+      ? {
+          ...RECOVERY_PROFILE,
+          get targetL() {
+            return race.recoveryL;
+          },
+        }
+      : RECOVERY_PROFILE,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
       if (race) race.resyncPlayer();

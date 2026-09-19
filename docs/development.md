@@ -56,201 +56,25 @@ this CLI and inspects its rendered images.
 
 ## CourseDocument compiler
 
-After `npm run build`, run the declared offline entry:
+`npm run course -- compile content/courses/linear.course.json` reads saved JSON and exact image
+bytes through the public admission/compiler boundary. It returns machine-readable identities,
+counts or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
+compiler report for geometry-only inputs, accepting only the source and optional image directory.
+[Content](content-and-gameplay.md#coursedocument-v7-implemented-compiler-boundary) owns schema v7,
+compiler v14, canonical references, admission limits and failure semantics.
 
-```sh
-npm run compile:course -- tests/fixtures/linear.course.json
-npm run compile:course -- tests/fixtures/varying-linear.course.json
-npm run compile:course -- tests/fixtures/partition-linear.course.json
-npm run compile:course -- tests/fixtures/linked-linear.course.json
-npm run compile:course -- tests/fixtures/transformed-loop.course.json
-npm run compile:course -- tests/fixtures/transformed-loop.course.json --geometry-window lap 20 150
-```
+The product root's contact/step guard admission and local geometry checks are covered by direct
+causal tests. Source paint is sampled at level zero. Longer view consumers read source-owned spans.
+Saved LINEAR/SEAM/CIRCUIT/BRANCH integration tests exercise the shared browser/headless assembly,
+car and bike mechanics, frame commits, reversal, recovery, laps, field choice and merge identity.
+Fork integration observes competing physical crossings, half-open median ownership, ordinary closure
+recovery without progress, state-selected signs and both paths into the same successor. F110 and RC30
+runs cover the provisional 400 m lock-to-closure transfer at ordinary driver speeds; these examples
+are content checks, not production AI or universal lane-change qualification.
 
-It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
-the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
-Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
-format; reload the saved source through the compiler to reconstruct canonical references.
-Semantic compilation reports independent failures at each reached dependency phase in declaration order,
-with explicit cause codes and input pointers. Invalid prerequisites stop their dependent work. The same
-result is used by the CLI and authoring project; neither publishes a partial graph.
-[Content](content-and-gameplay.md#coursedocument-v6-implemented-compiler-boundary) owns the wire schema,
-supported subset, limits and failure semantics. No driving preview is enabled by this command.
-
-For documents declaring image assets, pass `--images directory` immediately after the document path,
-before any optional inspection flag. The directory contains `<sha256>.json` files of the exact saved
-sprite-image bytes. Streaming input enforces the image-source byte limits; the compiler owns digest,
-format and texel admission. No images are fetched or regenerated, files are unchanged, and I/O failures
-retain their causes. Omitting required bytes produces asset diagnostics, not descriptor-only success.
-The report includes each admitted image's dimensions and level count. This is source admission, not
-ground compilation or a complete presentation proof.
-For explicit presentation, the report additionally includes Band/stamp/environment/scenery counts
-and the actual source RGB555 color at `(0,0)`. The geometry-only fixtures explicitly use absent
-presentation. [Saved-presentation tests](../tests/runtime/course-presentation.test.mjs) construct real
-image inputs, exercise the public command, source composition, canonical sharing and failure semantics.
-
-[Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
-geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
-imports, stale asynchronous publication and the real command. The complete suite retains its immutable
-mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
-The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Geometry recipe
-v4 admits partial Bands, zero-width taper endpoints and geographically crossing source charts. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
-and [Guide tests](../tests/geometry/local-guide-envelope.test.mjs) cover local versus global bounds,
-off-center fillet peaks and trim endpoints, constant-input equality, translated clamps, local gate
-widths, conservative global-support containment, half-open ownership and failed/stale publication.
-The partition fixture changes one road into three structural carriageways and back within one Section.
-[Activation tests](../tests/runtime/course-band-activation.test.mjs) cover partial Boundary domains,
-exact switch/edge ownership, taper birth/death, staggered isolated tapers, full-union continuity,
-per-cell carriageway contiguity, arbitrary IDs/order, failed publication and invalidation. Positive-width
-replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
-Half-open physical/paint/lock classification remains unqualified at runtime.
-
-Schema v6 and course compiler v13 include offline Port/Link graphs and geometry recipe v4.
-[Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
-exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
-loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison
-rejects hidden mismatches, missing coverage, curved guards and lost numerical station identity.
-The CLI summarizes cyclic graphs by IDs/counts; saved authoring remains the reconstructible source.
-CompiledLink is selected-Carriageway geometric evidence only. Complete physical/image common-content overlap,
-bounded product-consumer ranges and runtime transition are separate acceptance requirements below.
-The geometry-only view adapter supplies the narrower foundation described next.
-
-The same offline entry can inspect an explicit geometry itinerary:
-
-```sh
-npm run compile:course -- tests/fixtures/linked-linear.course.json --view 200 20 20 0 join
-npm run compile:course -- tests/fixtures/transformed-loop.course.json --view 100 20 20 1 lap-loop
-```
-
-After `--view`, arguments are active source s, behind metres, ahead metres, active occurrence index,
-then explicit Link IDs in order from the entry. The command resolves each ID once in its outgoing
-scope, visits only the prefix before the requested active occurrence, and selects the remaining
-unvisited suffix. The report separates visited/selected counts; it never fabricates visits and reverses
-to create lookahead. All four
-consumer ranges use the supplied extents in this inspection command; these numbers are not product
-camera/contact/driver/recovery defaults. The programmatic adapter accepts distinct ranges and a pose
-interval/step advance. The report includes geometry-only scope, source/frame mappings and interval
-coverage; missing selection/history/coverage fails rather than extending a source implicitly.
-
-[View tests](../tests/runtime/course-geometry-view.test.mjs) check rotated/translated mappings, exact
-seam and Band ownership, separate active frames, all actual merge predecessors, retained reverse
-history, 1,000 loop traversals and 2,000 bounded select/advance operations with shared source/assets,
-multi-seam views, invalid-reference isolation, immutable snapshots, pending-state preservation,
-consumer-specific runtime outcomes and the real offline command. This is not physical
-straddling-contact, neighboring-actor rendering, camera/picture continuity or runtime-commit evidence.
-Those causal integration gates remain below and in NEXT; no current driving path has been removed.
-
-The document now requires explicit height and a material profile for every Band. The normal report
-includes height/binding counts and the narrow surface reader's supported lateral bound. Separately run:
-
-```sh
-npm run compile:course -- tests/fixtures/linked-linear.course.json --physical-overlap
-npm run compile:course -- tests/fixtures/transformed-loop.course.json --physical-overlap
-```
-
-This checks every Link for full-guard horizontal height and the entire all-Band support/material field;
-it reports `physical-overlap`, not presentation or runtime readiness. [Physical-content tests](../tests/runtime/course-physical-content.test.mjs)
-cover explicit admission, canonical materials/Bands, immutable Core height behavior, material/activation
-ownership, support bounds, draft round trips, invalidation, hidden hills/edge knots, endpoint material
-changes, differing subdivisions, unmatched parent roads and every incoming merge Link. Existing
-geometry tests retain their original causes with explicitly authored physical fixture data.
-
-To inspect the separate declared physical-query domain, supply the saved demand explicitly:
-
-```sh
-npm run compile:course -- tests/fixtures/fork-merge.course.json --physical-domain tests/fixtures/physical-demand.json
-```
-
-The command qualifies every Link, including all incoming shared-successor Links, and reports
-`physical-query-domain`, its recipe and each expanded consumer requirement. The demand is a test
-envelope, not a product camera/contact/driver/recovery policy. Its shape and proof are owned by
-[Content](content-and-gameplay.md#declared-physical-query-domains). Missing/malformed fields and
-coverage/content failures are structured diagnostics; file I/O failures retain their original causes.
-[Domain tests](../tests/runtime/course-physical-domain.test.mjs) cover positive two/three-way forks,
-missing/expanded consumers, exact guard/domain edges, interior clipping crossings, collected merge
-failures, immutable references and the actual surface readers. Camera/picture continuity and actual
-product query containment are not certified by this command. Current driving roots remain unchanged.
-
-Presentation qualification accepts `--presentation-domain demand.json` after the document and image
-directory, or `--presentation-camera camera.json` to derive the footprints. The camera request contains
-exactly `pose`, `step`, `camera`, `render`, `maxYawFromPort` and `filter`; all radii and limits are explicit.
-The report uses scope `presentation-query-domain`, separate from physical evidence and runtime readiness.
-[Content](content-and-gameplay.md#declared-presentation-query-domains) owns the envelope and proof.
-The [camera coverage test](../tests/runtime/course-presentation-coverage.test.mjs) constructs a saved
-three-way fork with real image files, exercises the CLI and records actual renderer queries/full frames.
-Run the focused source/projection cases after a build:
-
-```sh
-node --test tests/runtime/course-presentation-overlap.test.mjs tests/runtime/course-presentation-coverage.test.mjs tests/rendering/sprite-frame-observation.test.mjs
-```
-
-Authored fork inspection is available through `--pre-lock Section-ID demand.json` and
-`--exit-visibility presentation-demand.json`, following the saved document and image directory.
-The normal report includes resolved lock/closure anchors and median-center regions. The scoped reports
-include all pre-lock consumer intervals or every Link's conservative clear approach interval, without
-serializing the graph. [Fork tests](../tests/runtime/course-fork-coverage.test.mjs) exercise saved files,
-canonical regions, actual vehicle queries, independent coverage failures and atomic project edits;
-[renderer tests](../tests/runtime/course-presentation-coverage.test.mjs) exercise parent pre-lock views
-and full-frame continuity at exit clear-interval starts. Transfer/actor cutover remains separate.
-
-### Course geometry capacity
-
-```sh
-npm run build
-node tools/performance/course-capacity.mjs
-```
-
-The diagnostic compiles synthetic single-Section CIRCUIT workloads: approximately 20.8 km with repeated
-curves, the exact primitive ceiling and the exact Raster-segment ceiling. It reports saved bytes,
-primitive/Raster/Guide/Band-cell counts, compilation time, a bounded window's cost and host peak RSS.
-It does not materialize lap copies. Measurements are host observations, not device budgets or evidence
-that imported Nordschleife/Suzuka master geometry has passed; those documents are not present yet.
-Primitive/segment/window exact-limit and over-limit cases are executable regressions.
-
-`--geometry-window Section-ID start end` in the compiler command separately checks Raster Band and Guide
-envelope separation within that source interval. Its `local-geometry` report does not prove that actual
-consumers, multi-occurrence views or physical/presentation overlaps fit the window. See the
-[qualification contract](content-and-gameplay.md#consumer-local-geometry-qualification) for scope and diagnostics.
-
-### Single-Section driving readers
-
-```sh
-npm run build
-node tools/performance/course-driving-view.mjs
-npm run compile:course -- tests/fixtures/varying-linear.course.json --driving-view 150 160 2 5 200 8 150
-```
-
-`--driving-view` takes pose minimum/maximum, maximum step advance, camera distance, render far depth,
-recovery backtrack and last-safe station. It derives the existing consumers' longitudinal demand and
-reports the same bounded readers used by the live integration probe. It selects no outgoing Link.
-Insufficient source coverage, ambiguous local geometry and unqualified Links fail explicitly.
-
-The probe compares complete vehicle state, recovery, driver inputs, camera, render statistics and
-320x240 pixels against native readers. All nine profiles, both turn signs, reverse and actual unsupported
-excursion/recovery have causal tests. Its ground/background are explicit existing diagnostic presentation,
-not authored-image admission. The browser roots and product GroundMap path are unchanged.
-
-A 600-step host trace measured 146,544 reader observations and 31 complete frames. Rebuilding every
-step constructed 601 views; a caller-declared 64 m pose slack constructed six, with identical state and
-pixels. Maximum retained Raster metadata was 19/21 of 74 source segments and four of five height nodes.
-The command regenerates counts, time and peak RSS; host timing includes paired physics, assertions and
-diagnostic rendering and is not a smartphone frame budget or whole-course capacity acceptance.
-
-### Common-guard occurrence readers
-
-`npm run compile:course -- course.json --images directory --occurrence-driving request.json` compiles
-both explicit content demands and inspects the bounded driving/presentation adapter. The request has
-`physical` and `presentation` demand records (each with `pose`, `step`, `consumers`), an explicit `links`
-array of outgoing Link IDs, `activeIndex` in that itinerary, a `view` demand (`pose`, four longitudinal
-`consumers`), and `observations` containing `{s,l}` points in the active source ruler. IDs resolve once
-at this inspection boundary. The report includes scope, frame, bounded metadata, common scenery count
-and ordinary Guide/height/surface/color observations. It performs no actor commit or field lock.
-
-[Occurrence driving tests](../tests/runtime/course-occurrence-driving.test.mjs) construct saved real
-content and reproduce the command, full frames, nine-profile forward/reverse physics, stable moving
-windows and insufficient-domain failures. The `common-guard-driving` scope admits only one immediate
-neighbor within matching guards and an active-source local geometry proof. Preview source color has
-one level and is separate from resident-image compilation/filter acceptance.
+Capacity fixtures exercise large source loops and local geometry ambiguity without source copies.
+The [window tests](../tests/runtime/course-geometry-window.test.mjs) cover the finite admitted intervals;
+actual product sessions bound retained and selected occurrence history independently of source size.
 
 ## Sprite LOD preview
 
@@ -359,7 +183,7 @@ Material/Decal composition and Course Editor are subsequent work, not hidden run
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The hygiene test explicitly reserves the general race, rival, recovery and gate components for M3/M4; that reservation becomes empty at M4 completion. The declared offline entries are `compile:course` for CourseDocument graphs, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The M3/M4 reservation is empty; retained general components have actual product consumers. The declared offline entries are `compile:course` for CourseDocument graphs, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 

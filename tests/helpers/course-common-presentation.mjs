@@ -41,6 +41,7 @@ export async function commonPresentationDocument(name = 'linked-linear', configu
       p.scenery.push({
         id,
         instanceId,
+        unselectedCarriagewayId: null,
         anchor: anchor(port.anchor.s + 4),
         l: coursePortLateral(port) + 2,
         groundOffset: 1,
@@ -52,7 +53,7 @@ export async function commonPresentationDocument(name = 'linked-linear', configu
 }
 
 /** One approach, three parallel supported choices and static peel-away; no sibling copies/VOID holes. */
-export function cameraForkDocument() {
+function cameraForkDocument() {
   return commonPresentationDocument('fork-merge', (document) => {
     for (const section of document.sections) {
       section.primitives[0].length = 2000;
@@ -61,7 +62,7 @@ export function cameraForkDocument() {
           if (knot.anchor.kind === 'absolute' && knot.anchor.s === 300) knot.anchor.s = 2000;
       for (const port of section.ports) port.anchor = anchor(port.kind === 'entry' ? 500 : 1400);
     }
-    for (const link of document.links) link.overlap = { behind: 500, ahead: 500 };
+    for (const link of document.links) link.overlap = { behind: 30, ahead: 30 };
     const parent = document.sections[0];
     for (const boundary of parent.boundaries) {
       const initial = boundary.knots[0].l;

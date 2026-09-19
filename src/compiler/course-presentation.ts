@@ -1,12 +1,12 @@
 import { COURSE_DOCUMENT_LIMITS, type CourseAnchor, type PresentationDocument } from '../course/course-document.js';
-import { courseBoundaryAt, type CompiledBandPartition } from '../course/course-bands.js';
+import { courseBoundaryAt, type CompiledBandPartition, type CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledCourseAnchor } from '../course/course-geometry.js';
 import { CourseInputError, requireCourse } from '../course/course-diagnostics.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import type { CoursePresentation, CourseSceneryInstance, CoursePaint } from '../visual/course-presentation.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 2 });
+export const COURSE_PRESENTATION_RECIPE = Object.freeze({ id: 'superoutride.course-presentation', version: 3 });
 
 /** Resolve saved presentation through canonical geometry/assets; no inferred role-derived paint. */
 export function compileCoursePresentation(
@@ -17,6 +17,7 @@ export function compileCoursePresentation(
   resolve: (anchor: CourseAnchor, path: string) => CompiledCourseAnchor,
   path: string,
   sectionId: string,
+  carriageways: readonly CompiledCarriageway[],
 ): CoursePresentation | null {
   if (source === null) return null;
   const assetTable = new Map(assets.map((asset) => [asset.id, asset]));
@@ -166,7 +167,18 @@ export function compileCoursePresentation(
       'Scenery asset must belong to this Section',
       'unresolved_reference',
     );
+    const unselected =
+      placement.unselectedCarriagewayId === null
+        ? null
+        : carriageways.find((c) => c.id === placement.unselectedCarriagewayId);
+    if (unselected === undefined)
+      throw new CourseInputError(
+        'unresolved_reference',
+        `${at}/unselectedCarriagewayId`,
+        'Unknown state-selected carriageway',
+      );
     return Object.freeze({
+      unselected,
       id: placement.id,
       instance,
       anchor: resolve(placement.anchor, `${at}/anchor`),
@@ -203,6 +215,7 @@ export function compileCoursePresentation(
         Object.freeze({
           id,
           instance: Object.freeze({ id, asset }),
+          unselected: null,
           anchor: Object.freeze({ kind: 'absolute' as const, s }),
           l: courseBoundaryAt(boundary, s) + (row.side === 'left' ? -row.offset : row.offset),
           groundOffset: row.groundOffset,

@@ -43,18 +43,23 @@ export const RIVAL_GUIDE_LOOKAHEAD_METERS = Math.max(STEERING_LOOKAHEAD_METERS, 
 export function sampleRivalDrivingInput(
   guide: GuideCoordinateSource,
   car: VehicleCameraReadState,
-  targetL = 0,
+  targetL: number | ((s: number) => number) = 0,
 ): DrivingInput {
   const domain = guideCoordinateDomain(guide);
   const targetSpeed = estimateUpcomingTargetSpeed(guide, car.course.s);
   const targetS = Math.min(domain.end, car.course.s + STEERING_LOOKAHEAD_METERS);
-  const target = guideCoordinateToWorld(guide, targetS, targetL);
+  const lane = (s: number) => (typeof targetL === 'number' ? targetL : targetL(s));
+  const target = guideCoordinateToWorld(guide, targetS, lane(targetS));
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
   // Heading/lateral feedback publishes only an angular-offset request. The DEV rival remains an
   // ordinary input publisher and stays below the full player request.
-  const pathDemand = clamp(yawError * 1.7 - (car.course.l - targetL) * 0.075 - car.lateralSpeed * 0.02, -1, 1);
+  const pathDemand = clamp(
+    yawError * 1.7 - (car.course.l - lane(car.course.s)) * 0.075 - car.lateralSpeed * 0.02,
+    -1,
+    1,
+  );
   const steering =
     car.longitudinalSpeed <= 0 ? 0 : MAX_STEERING_REQUEST * Math.sign(pathDemand) * Math.sqrt(Math.abs(pathDemand));
 

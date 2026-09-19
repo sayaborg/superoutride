@@ -76,7 +76,7 @@ test('production CLI renders saved car and bike scenes at curves and strip edges
   }
 });
 
-for (const mode of ['linear', 'seam', 'circuit'])
+for (const mode of ['linear', 'seam', 'circuit', 'branch'])
   test(`actual ${mode} browser root loads saved content and runs input, recovery, vehicle selection and frame rendering`, async (t) => {
     const dom = installBrowserDom(t, `?mode=${mode}`);
     const requests = [];
@@ -95,7 +95,14 @@ for (const mode of ['linear', 'seam', 'circuit'])
     await import(`../../dist/main-course.js?${mode}`);
     assert.ok(requests.some((url) => url.endsWith(`/courses/${mode}.course.json`)));
     assert.equal(requests.filter((url) => url.endsWith('.course.json')).length, 1);
-    assert.equal(requests.filter((url) => url.includes('/images/')).length, images.length);
+    assert.equal(
+      requests.filter((url) => url.includes('/images/')).length,
+      new Set(
+        JSON.parse(await readFile(new URL(`../../content/courses/${mode}.course.json`, import.meta.url))).assets.map(
+          (asset) => asset.sha256,
+        ),
+      ).size,
+    );
     assert.ok(requests.every((url) => !url.includes('ground-pages')));
     dom.win.emit('keydown', { code: 'ArrowUp', preventDefault() {} });
     dom.frame(17);

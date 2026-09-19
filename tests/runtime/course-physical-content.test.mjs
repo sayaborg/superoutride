@@ -1,15 +1,22 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
+
 import test from 'node:test';
 import { readCourseDocument, saveCourseDocument, parseCourseDocument } from '../../dist/course/course-document.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
-import { compileCoursePhysicalOverlaps } from '../../dist/compiler/course-physical-overlap.js';
+import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
+const qualifyLinks = (links) => {
+  const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
+  return compileCoursePhysicalDomains(links, {
+    pose: { ...zero, left: 34, right: 34 },
+    step: zero,
+    consumers: { contact: zero, driverLookahead: zero, reverseRecovery: zero },
+  });
+};
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { SURFACE_MATERIALS } from '../../dist/physics/surface-map.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
-import { forkCourseDocument } from '../helpers/course-link-documents.mjs';
 
 const text = await readFile(new URL('../fixtures/linked-linear.course.json', import.meta.url), 'utf8');
 const fixture = () => JSON.parse(text);
@@ -32,7 +39,7 @@ const failure = (result, path, code) => {
   if (path) assert.equal(result.diagnostics[0].path, path);
   return result.diagnostics[0];
 };
-const qualify = async (input) => compileCoursePhysicalOverlaps(ok(await compileCourseDocument(input)).links);
+const qualify = async (input) => qualifyLinks(ok(await compileCourseDocument(input)).links);
 function qualificationFailure(result, code = 'physical_support_mismatch', index = 0) {
   const diagnostic = failure(result, undefined, code);
   assert.equal(diagnostic.kind, 'qualification');
@@ -291,11 +298,10 @@ test('physical overlap is a separate immutable qualification with canonical Link
   for (const name of ['linked-linear', 'transformed-loop']) {
     const input = JSON.parse(await readFile(new URL(`../fixtures/${name}.course.json`, import.meta.url), 'utf8'));
     const course = ok(await compileCourseDocument(input));
-    const proof = ok(compileCoursePhysicalOverlaps(course.links));
-    assert.equal(proof.scope, 'physical-overlap');
+    const proof = ok(qualifyLinks(course.links));
+    assert.equal(proof.scope, 'physical-query-domain');
     assert.equal(proof.links[0], course.links[0]);
     assert.throws(() => proof.links.pop(), TypeError);
-    assert.deepEqual(Object.keys(proof), ['scope', 'links']);
   }
 });
 
@@ -345,7 +351,7 @@ test('all material changes including the closed guard endpoint participate in ov
   }
 });
 
-test('the full support field includes nonselected shoulder geometry and its interior knots', async () => {
+test('the contact domain includes nonselected shoulder geometry and its interior knots', async () => {
   const input = fixture();
   for (const [index, s] of input.sections.entries()) {
     const right = index === 0 ? 6 : 0;
@@ -410,17 +416,6 @@ test('fractional longitudinal activation keeps exact original ruler stations in 
   qualificationFailure(await qualify(input));
 });
 
-test('geometry-only fork fixtures fail complete physical qualification; every merge incoming is checked', async () => {
-  const input = forkCourseDocument(fixture());
-  const course = ok(await compileCourseDocument(input));
-  qualificationFailure(compileCoursePhysicalOverlaps(course.links));
-  const incoming = course.sections.at(-1).incoming;
-  assert.equal(ok(compileCoursePhysicalOverlaps(incoming)).links.length, 3);
-  input.sections[3].physicalBindings[0].sections[0].material = 'GRASS';
-  const changed = ok(await compileCourseDocument(input));
-  qualificationFailure(compileCoursePhysicalOverlaps(changed.sections.at(-1).incoming), 'physical_support_mismatch', 2);
-});
-
 test('material stations lost in seam-relative coordinates fail instead of silently erasing a profile interval', async () => {
   const input = fixture();
   input.links[0].overlap.behind = 200;
@@ -458,17 +453,4 @@ test('physical edits invalidate identity; failed import preserves the prior immu
   }
   assert.equal(original.sections[0].height.nodes[0].y, 0);
   assert.equal(original.sections[0].physicalBindings[0].sections[0].material, SURFACE_MATERIALS.ASPHALT);
-});
-
-test('offline entry exposes scoped physical qualification and ordinary surface-reader evidence', () => {
-  const file = 'tests/fixtures/linked-linear.course.json';
-  const report = spawnSync(process.execPath, ['tools/course/compile-course.mjs', file], { encoding: 'utf8' });
-  assert.equal(report.status, 0, report.stderr);
-  assert.equal(JSON.parse(report.stdout).sections[0].maxSupportedAbsL, 6);
-  const proof = spawnSync(process.execPath, ['tools/course/compile-course.mjs', file, '--physical-overlap'], {
-    encoding: 'utf8',
-  });
-  assert.equal(proof.status, 0, proof.stderr);
-  assert.equal(JSON.parse(proof.stdout).scope, 'physical-overlap');
-  assert.equal(JSON.parse(proof.stdout).links.length, 1);
 });

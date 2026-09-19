@@ -1,4 +1,6 @@
-import type { CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledCourse } from '../compiler/compiled-course.js';
+import { createCourseRaceProgress } from './course-race-progress.js';
+import { createCourseForkField } from './course-fork-field.js';
 import { createCameraRig, type CameraRig, type CameraState } from '../camera/camera.js';
 import {
   composePlanarTransforms,
@@ -8,12 +10,6 @@ import {
 } from '../core/planar-transform.js';
 import { wrapAngle } from '../core/math.js';
 import {
-  compileCircuitRaceRules,
-  createCircuitRaceProgressState,
-  updateCircuitRaceProgress,
-  resyncCircuitRaceProgress,
-} from '../gameplay/circuit-race-progress.js';
-import {
   advanceRaceSession,
   createRaceSessionState,
   rankRaceProgress,
@@ -21,6 +17,7 @@ import {
 } from '../gameplay/race-session.js';
 import { compileSessionConfiguration } from '../gameplay/session-configuration.js';
 import {
+  RECOVERY_PROFILE,
   createRecoveryState,
   advanceVehicleWithRecovery,
   recoverVehicleToGuideCoordinate,
@@ -43,9 +40,9 @@ interface Actor {
   readonly cameraRig: CameraRig;
 }
 
-/** Provisional circuit composition. Physics, source readers and ordered gate rules remain ordinary components. */
-export function createCourseCircuitRace(options: {
-  readonly section: CompiledSection;
+/** Provisional race composition. Physics, source readers and ordered gate rules remain ordinary components. */
+export function createCourseRace(options: {
+  readonly course: CompiledCourse;
   readonly player: Actor;
   readonly playerSession: Session;
   readonly createSession: () => Session;
@@ -57,27 +54,21 @@ export function createCourseCircuitRace(options: {
     readonly kind: 'car' | 'bike';
   };
 }) {
-  const { section } = options;
+  const { course } = options;
+  const entryS = course.entry.ports.find((p) => p.kind === 'entry')!.anchor.s;
   const rivalKind = options.rival.kind;
-  const loop = section.outgoing[0];
-  if (section.outgoing.length !== 1 || !loop || loop.destination.section !== section)
-    throw new RangeError('Circuit race requires one canonical source loop');
-  const entryS = loop.destination.anchor.s,
-    finishS = loop.source.anchor.s;
-  const rules = compileCircuitRaceRules(section.guide, {
-    id: 'provisional-race',
-    lapCount: options.lapCount,
-    entryS,
-    finishS,
-    checkpointChainages: [0.25, 0.5, 0.75].map((f) => entryS + (finishS - entryS) * f),
-  });
+  const progress = createCourseRaceProgress(course, options.lapCount);
+  const forks = createCourseForkField();
   const sample = (actor: Actor) => ({ x: actor.vehicle.x, z: actor.vehicle.z, s: actor.vehicle.course.s });
   const competitor = (id: string, actor: Actor, session: Session, targetL: number) => ({
     id,
     actor,
     session,
     targetL,
-    progress: createCircuitRaceProgressState(rules, sample(actor)),
+    observer: progress(session, () => actor.vehicle),
+    get progress() {
+      return this.observer.state;
+    },
     timing: createRaceSessionState(),
     finishElapsedSeconds: null as number | null,
   });
@@ -102,27 +93,37 @@ export function createCourseCircuitRace(options: {
     },
   );
   const assets = createSpriteAssets();
-  const resync = (c: typeof player) => resyncCircuitRaceProgress(c.progress, rules, sample(c.actor));
-  const advance = (c: typeof player, input: DrivingInput, dt: number) => {
+  const resync = (c: typeof player) => c.observer.resync();
+  const lane = (c: typeof player, s: number) => forks.targetL(c.session.history.active.section, s, c.targetL);
+  const move = (c: typeof player, input: DrivingInput, dt: number) => {
     const { actor, session } = c;
     const previous = sample(actor);
     let recovered =
-      advanceVehicleWithRecovery(session.view.world, actor.vehicle, { state: actor.recovery, input, dt }) !== null;
+      advanceVehicleWithRecovery(session.view.world, actor.vehicle, {
+        state: actor.recovery,
+        input,
+        dt,
+        profile: { ...RECOVERY_PROFILE, targetL: lane(c, actor.vehicle.course.s) },
+      }) !== null;
     if (session.history.active.ordinal === 0 && actor.vehicle.course.s < entryS) {
       recoverVehicleToGuideCoordinate(session.view.world, actor.vehicle, {
         state: actor.recovery,
         reason: 'wrong-course',
-        target: { s: entryS, l: c.targetL },
+        target: { s: entryS, l: lane(c, entryS) },
       });
       recovered = true;
     }
-    const update = recovered ? (resync(c), null) : updateCircuitRaceProgress(c.progress, rules, sample(actor));
-    if (c.finishElapsedSeconds === null) {
-      advanceRaceSession(c.timing, c.progress, update, dt);
-      if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
-    }
-    if (session.observeStep(actor, previous, recovered)) resync(c);
-    return recovered;
+    return { c, previous, recovered };
+  };
+  const legalRecovery = (c: typeof player) => {
+    const target = forks.legalTarget(c.session, c.actor.vehicle.course.s, c.actor.vehicle.course.l);
+    if (!target) return false;
+    recoverVehicleToGuideCoordinate(c.session.view.world, c.actor.vehicle, {
+      state: c.actor.recovery,
+      reason: 'wrong-course',
+      target,
+    });
+    return true;
   };
   const observations = () => {
     const playerFromReference = invertPlanarTransform(player.session.referenceFromFrame);
@@ -150,13 +151,44 @@ export function createCourseCircuitRace(options: {
   return Object.freeze({
     player,
     rivals,
+    forks,
+    get recoveryL() {
+      return lane(player, player.actor.vehicle.course.s);
+    },
     advance(input: DrivingInput, dt: number) {
-      const recovered = advance(player, input, dt);
-      for (const rival of rivals)
-        advance(rival, sampleRivalDrivingInput(rival.session.view.world.guide, rival.actor.vehicle, rival.targetL), dt);
-      return recovered;
+      const motions = [
+        move(player, input, dt),
+        ...rivals.map((c) =>
+          move(
+            c,
+            sampleRivalDrivingInput(c.session.view.world.guide, c.actor.vehicle, (s) => lane(c, s)),
+            dt,
+          ),
+        ),
+      ];
+      forks.observe(
+        motions.map(({ c, previous, recovered }) => ({
+          id: c.id,
+          session: c.session,
+          previous,
+          current: c.actor.vehicle,
+          recovered,
+        })),
+      );
+      for (const motion of motions) {
+        const { c, previous } = motion;
+        motion.recovered = legalRecovery(c) || motion.recovered;
+        const update = motion.recovered ? (resync(c), null) : c.observer.update();
+        if (c.finishElapsedSeconds === null) {
+          advanceRaceSession(c.timing, c.progress, update, dt);
+          if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
+        }
+        if (c.session.observeStep(c.actor, previous, motion.recovered)) resync(c);
+      }
+      return motions[0]!.recovered;
     },
     resyncPlayer() {
+      legalRecovery(player);
       player.session.observeStep(player.actor, player.actor.vehicle, true);
       resync(player);
     },
@@ -185,7 +217,7 @@ export function createCourseCircuitRace(options: {
         })),
       );
       const rank = standings.find((s) => s.competitorId === player.id)!.rank;
-      return `${player.timing.elapsedSeconds < 1 ? 'GO · ' : ''}${player.progress.status === 'FINISHED' ? 'FINISH' : `LAP ${Math.min(rules.lapCount, player.progress.acceptedFinishCount + 1)}/${rules.lapCount}`} · P${rank}/${rivals.length + 1} · ${formatRaceTime(player.timing.elapsedSeconds)}`;
+      return `${player.timing.elapsedSeconds < 1 ? 'GO · ' : ''}${player.progress.status === 'FINISHED' ? 'FINISH' : course.type === 'CIRCUIT' ? `LAP ${Math.min(options.lapCount, player.progress.acceptedFinishCount + 1)}/${options.lapCount}` : `ROUTE ${course.entry.fork ? (forks.choice(course.entry.fork)?.source.carriageway.id ?? 'OPEN') : 'GO'}`} · P${rank}/${rivals.length + 1} · ${formatRaceTime(player.timing.elapsedSeconds)}`;
     },
   });
 }

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { readCourseImages } from '../../tools/course/read-course-images.mjs';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
-import { createCourseCircuitRace } from '../../dist/runtime/course-circuit-race.js';
+import { createCourseRace } from '../../dist/runtime/course-race.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY as entry } from '../../dist/vehicle/vehicle-catalog.js';
 import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../../dist/gameplay/recovery.js';
@@ -31,8 +31,8 @@ function fixture() {
 }
 test('standing player and rival physically finish a transformed source lap with shared content and bounded histories', () => {
   const { scene, actor } = fixture();
-  const race = createCourseCircuitRace({
-    section: course.entry,
+  const race = createCourseRace({
+    course,
     player: actor,
     playerSession: scene.session,
     createSession: scene.createActorSession,

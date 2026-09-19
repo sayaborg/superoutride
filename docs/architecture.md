@@ -100,11 +100,9 @@ R comes from the local chart bound or circular-authoring provenance. `GuidePath.
 owned immutable piecewise-linear profile. Constant `lMax` authoring is compiled to two equal knots;
 explicit profiles use the same reader and fillet algorithm. There is no independently stored scalar
 limit. Explicit projection clamping and physical race-gate width use the bound at their query chainage.
-Physical readers expose conservative support bounds. The [generic containment check](../src/physics/surface-guide-envelope.ts)
-requires `maxSupportedAbsL + abs(lateralOrigin) < min(L(s))`; compiled Band geometry additionally
-validates the authored varying support envelope. Visual extent remains independent. The chart edge enforces
-`J >= mMin > 0`, not the singularity `J = 0`. Physical local projection remains
-unclamped; ordinary excursion/recovery behavior owns out-of-chart motion.
+Physical readers expose support bounds. Course Band geometry derives the local Guide envelope from
+its actual active supported intervals, with an explicit margin. Contact projection uses that envelope;
+source-owned view admission checks the intervals consumed by the product scene.
 
 ## Height and projection
 
@@ -224,7 +222,7 @@ imports, including types. Product roots load saved content; fixtures and diagnos
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v6-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v7-implemented-compiler-boundary)
 uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves

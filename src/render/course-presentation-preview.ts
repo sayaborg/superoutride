@@ -70,6 +70,7 @@ export function createCoursePresentationPreview() {
         p.scenery.map((placement) =>
           Object.freeze({
             l: placement.l,
+            unselected: placement.unselected,
             sprite: Object.freeze(
               compileCourseSprite(geometry, height, {
                 name: placement.instance.id,

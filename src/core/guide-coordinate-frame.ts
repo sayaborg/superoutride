@@ -21,7 +21,7 @@ interface GuideCoordinateFrame {
 }
 
 /** Source data used by geometry authoring and legacy constant-origin adapters. */
-export type GuidePathSource = GuidePath | GuideCoordinateFrame;
+type GuidePathSource = GuidePath | GuideCoordinateFrame;
 
 interface GuideCoordinateMetrics {
   readonly curvature: number;
@@ -40,11 +40,11 @@ export interface GuideCoordinateReader {
 /** Existing paths keep their exact sampling arithmetic; bounded readers supply the same observations. */
 export type GuideCoordinateSource = GuidePathSource | GuideCoordinateReader;
 
-export function guideCoordinateCurve(source: GuidePathSource): GuidePath {
+function guideCoordinateCurve(source: GuidePathSource): GuidePath {
   return isGuideCoordinateFrame(source) ? source.guide : source;
 }
 
-export function guideCoordinateLateralOrigin(source: GuidePathSource): number {
+function guideCoordinateLateralOrigin(source: GuidePathSource): number {
   return isGuideCoordinateFrame(source) ? source.lateralOrigin : 0;
 }
 

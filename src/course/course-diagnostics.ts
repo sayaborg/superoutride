@@ -82,31 +82,7 @@ interface AssetDiagnostic {
   readonly message: string;
 }
 
-interface ForkQualificationDiagnostic {
-  readonly kind: 'fork-qualification';
-  readonly code: CourseDiagnosticCode;
-  readonly sectionId: string;
-  readonly consumer?: string;
-  readonly message: string;
-}
-
-type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic | ForkQualificationDiagnostic;
-
-/** A compiled fork coverage failure; Section identity is not an authoring JSON Pointer. */
-export class CourseForkQualificationError extends Error {
-  readonly diagnostic: ForkQualificationDiagnostic;
-
-  constructor(code: CourseDiagnosticCode, sectionId: string, message: string, consumer?: string) {
-    super(message);
-    this.diagnostic = Object.freeze({
-      kind: 'fork-qualification',
-      code,
-      sectionId,
-      message,
-      ...(consumer === undefined ? {} : { consumer }),
-    });
-  }
-}
+type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic;
 
 /** Expected saved-asset admission failure, separately addressed from document JSON pointers. */
 export class CourseAssetError extends Error {

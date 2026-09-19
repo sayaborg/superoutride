@@ -1,5 +1,5 @@
 import type { CameraRig } from '../camera/camera.js';
-import type { CompiledSection } from '../compiler/course-graph.js';
+import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
 import { coursePortLateral } from '../compiler/course-links.js';
 import { compileCoursePhysicalDomains } from '../compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../compiler/course-presentation-overlap.js';
@@ -12,6 +12,8 @@ import {
 } from '../core/planar-transform.js';
 import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { wrapAngle, type Vec2 } from '../core/math.js';
+import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
+import { RIVAL_GUIDE_LOOKAHEAD_METERS } from '../gameplay/rival-driver.js';
 import { compileWorldCrossingGate, observeWorldCrossingGate } from '../gameplay/world-crossing-gate.js';
 import type { RecoveryState } from '../gameplay/recovery.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
@@ -43,6 +45,15 @@ export function createCourseDrivingGraph(entry: CompiledSection) {
   // Guard consumers cover contact plus one fixed step. Render, driver and recovery read spans.
   const pose = { behind: 2, ahead: 2, left: 32, right: 32 };
   const step = { behind: 4, ahead: 4, left: 2, right: 2 };
+  for (const section of sections) {
+    const fork = section.fork;
+    if (
+      fork &&
+      fork.lock.s + Math.max(CURRENT_RENDER_FAR_DEPTH_METERS, RIVAL_GUIDE_LOOKAHEAD_METERS) + step.ahead >
+        Math.min(...section.outgoing.map((link) => link.source.anchor.s))
+    )
+      throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');
+  }
   const contact = { behind: 5, ahead: 5, left: 2, right: 2 };
   const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
   const source = createCourseDrivingSource(
@@ -148,6 +159,30 @@ function createSession(
     return direction;
   };
   return Object.freeze({
+    prepareChoice(link: CompiledLink) {
+      const history = traversal.snapshot();
+      const from = [...history.occurrences, ...history.selected].find(
+        (o) => o.ordinal >= history.active.ordinal && o.section === link.source.section,
+      );
+      if (!from) throw new RangeError('Route choice needs its retained forward occurrence');
+      const choice = required(traversal.prepareSelection(from, link));
+      const next = makeView(choice.history);
+      return Object.freeze({
+        commit() {
+          required(choice.commit());
+          view = next;
+        },
+      });
+    },
+    get closedCarriageways() {
+      const history = traversal.snapshot();
+      return [...history.occurrences, ...history.selected].flatMap((o) => {
+        const link = o.incoming;
+        return link?.source.section.fork
+          ? link.source.section.outgoing.filter((other) => other !== link).map((other) => other.source.carriageway)
+          : [];
+      });
+    },
     get referenceSOffset() {
       return referenceSOffset;
     },

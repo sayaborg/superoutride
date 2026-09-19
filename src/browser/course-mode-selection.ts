@@ -44,6 +44,7 @@ export const BROWSER_COURSE_MODES = compileBrowserCourseModes([
   { ...BROWSER_COURSE_KEYS.linear, label: 'LINEAR', query: 'linear' },
   { digitCode: 'Digit2', numpadCode: 'Numpad2', label: 'SEAM', query: 'seam' },
   { digitCode: 'Digit3', numpadCode: 'Numpad3', label: 'CIRCUIT', query: 'circuit' },
+  { digitCode: 'Digit4', numpadCode: 'Numpad4', label: 'BRANCH', query: 'branch' },
 ]);
 
 export function formatBrowserCourseSelector(activeQuery: BrowserCourseModeQuery): string {

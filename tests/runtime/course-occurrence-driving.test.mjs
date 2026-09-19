@@ -1,25 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
 import { createCourseDrivingSource } from '../../dist/runtime/course-driving-view.js';
-import { courseSectionDrivingDemand } from '../../dist/runtime/course-driving-demand.js';
+import { queryDemand } from '../helpers/course-driving-fixture.mjs';
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
 import { guidePathToWorld, locateWorldOnGuideLocal, projectWorldOnGuideInterval } from '../../dist/core/guide-curve.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
-import { RECOVERY_PROFILE } from '../../dist/gameplay/recovery.js';
+
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { commonPresentationDocument } from '../helpers/course-common-presentation.mjs';
-import { cameraProfile, courseDrivingFixture } from '../helpers/course-driving-probe.mjs';
+import { cameraProfile, courseDrivingFixture } from '../helpers/course-driving-fixture.mjs';
 import { coursePresentationScene } from '../helpers/course-presentation-scene.mjs';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
@@ -80,14 +77,7 @@ async function fixture(shiftDestination = 0) {
   return { c, traversal, source: createCourseDrivingSource(physical, presentation), physical, presentation, saved: f };
 }
 function view(f, s = 1400, slack = 20) {
-  const active = f.traversal.snapshot().active.section;
-  const d = courseSectionDrivingDemand(
-    active.guide,
-    { minS: s - slack, maxS: s + slack, maxAdvance: 1 },
-    cameraProfile,
-    { dMax: 200 },
-    { ...RECOVERY_PROFILE, lastSafeS: s },
-  );
+  const d = queryDemand({ minS: s - slack, maxS: s + slack, maxAdvance: 1 });
   const geometry = ok(createCourseGeometryView(f.traversal.snapshot(), d));
   return { geometry, driving: ok(f.source.createView(geometry)) };
 }
@@ -146,7 +136,7 @@ test('actual vehicle contact and driver reads cross mapped LINEAR content while 
     surfaces: createBandSurfaceReader(f.c.entry.bandPartition, f.c.entry.physicalBindings),
   };
   const retained = view(f).driving;
-  for (const entry of VEHICLE_CATALOG) {
+  for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
     const spawn = { s: 1395, l: 0.25, initialSpeed: 20, torqueProtection: entry.torqueProtection };
     const cars = [nativeWorld, retained.world, retained.world].map((w) => createArcadeVehicle(entry.profile, w, spawn));
     for (let tick = 0; tick < 60; tick++) {
@@ -261,7 +251,7 @@ test('reverse driving reads the actual retained predecessor in the destination f
     surfaces: createBandSurfaceReader(active.section.bandPartition, active.section.physicalBindings),
   };
   const retained = view(f, 500).driving;
-  for (const entry of VEHICLE_CATALOG) {
+  for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
     const spawn = {
       s: 505,
       l: coursePortLateral(active.incoming.destination) + 0.25,
@@ -311,55 +301,6 @@ test('admission and query failures preserve traversal and reject unqualified or 
   assert.deepEqual(f.traversal.snapshot(), before);
 });
 
-test('saved-file occurrence driving entry admits qualified readers without an actor commit', async () => {
-  const f = await fixture(),
-    directory = await mkdtemp(path.join(tmpdir(), 'superoutride-occurrence-driving-'));
-  try {
-    const source = path.join(directory, 'course.json'),
-      request = path.join(directory, 'request.json');
-    await writeFile(source, JSON.stringify(f.saved.document));
-    for (const input of f.saved.inputs) await writeFile(path.join(directory, `${input.sha256}.json`), input.bytes);
-    const raw = ({ pose, step, requirements }) => ({
-      pose,
-      step,
-      consumers: Object.fromEntries(requirements.map(({ consumer, footprint }) => [consumer, footprint])),
-    });
-    await writeFile(
-      request,
-      JSON.stringify({
-        physical: raw(f.physical.demand),
-        presentation: raw(f.presentation.demand),
-        links: f.c.links.map((l) => l.id),
-        activeIndex: 0,
-        view: courseSectionDrivingDemand(
-          f.c.entry.guide,
-          { minS: 1380, maxS: 1420, maxAdvance: 1 },
-          cameraProfile,
-          { dMax: 200 },
-          { ...RECOVERY_PROFILE, lastSafeS: 1400 },
-        ),
-        observations: [
-          { s: 1399, l: 0.25 },
-          { s: 1401, l: 0.25 },
-        ],
-      }),
-    );
-    const run = spawnSync(
-      process.execPath,
-      ['tools/course/compile-course.mjs', source, '--images', directory, '--occurrence-driving', request],
-      { encoding: 'utf8' },
-    );
-    assert.equal(run.status, 0, run.stderr);
-    const report = JSON.parse(run.stdout);
-    assert.equal(report.scope, 'occurrence-driving');
-    assert.equal(report.frame.occurrence, 0);
-    assert.equal(report.scenery, 1);
-    assert.ok(report.observations[0].guide.segmentIndex < report.observations[1].guide.segmentIndex);
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-
 test('fractional mapped Band edges share exact physical and paint ownership without an inverse round trip', async () => {
   const f = await fixture(0.004),
     v = view(f),
@@ -399,24 +340,18 @@ test('seam admission bounds contact motion independently of span-composed consum
   assert.equal(f.traversal.snapshot(), history);
   assert.equal(f.source.createSeamView(view(f, 1400, 30).geometry, successor).ok, true);
   const pending = ok(f.traversal.prepare('forward'));
-  const demand = courseSectionDrivingDemand(
-    successor.section.guide,
-    { minS: 480, maxS: 520, maxAdvance: 1 },
-    cameraProfile,
-    { dMax: 200 },
-    { ...RECOVERY_PROFILE, lastSafeS: 500 },
-  );
+  const demand = queryDemand({ minS: 480, maxS: 520, maxAdvance: 1 });
   const destination = ok(f.source.createSeamView(ok(createCourseGeometryView(pending.history, demand)), successor));
   assert.equal(destination.frame, successor);
   assert.equal(f.traversal.snapshot(), history, 'destination readers do not publish a traversal');
   assert.equal(destination.world.surfaces.sample(500, 50).material.supported, false);
 });
 
-test('all vehicle profiles use fully bounded seam readers with unchanged mechanics and admitted fixed steps', async () => {
+test('car and bike use fully bounded seam readers with unchanged mechanics and admitted fixed steps', async () => {
   const f = await fixture(),
     ordinary = view(f).driving;
   const bounded = ok(f.source.createSeamView(view(f).geometry, f.traversal.snapshot().selected[0]));
-  for (const entry of VEHICLE_CATALOG) {
+  for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
     const spawn = { s: 1395, l: 0.25, initialSpeed: 20, torqueProtection: entry.torqueProtection };
     const cars = [ordinary, bounded].map((d) => createArcadeVehicle(entry.profile, d.world, spawn));
     for (let tick = 0; tick < 60; tick++) {

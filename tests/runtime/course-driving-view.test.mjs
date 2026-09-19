@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+
 import test from 'node:test';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { guidePathToWorld, locateWorldOnGuideLocal } from '../../dist/core/guide-curve.js';
@@ -11,8 +10,8 @@ import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurre
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
 import { createCourseSectionDrivingSource } from '../../dist/runtime/course-section-driving-view.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
-import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
-import { courseDrivingFixture, drivingWindow, compareCourseDriving, ok } from '../helpers/course-driving-probe.mjs';
+
+import { courseDrivingFixture, drivingWindow, ok } from '../helpers/course-driving-fixture.mjs';
 
 test('bounded Section readers share native geometry and height interpolation with stable source observations', async () => {
   const course = await courseDrivingFixture();
@@ -118,67 +117,4 @@ test('closed pose endpoints include the earlier projection seed at a shared Guid
   const expected = locateWorldOnGuideLocal(guide, point, index, 5, false);
   assert.deepEqual(result.world.guide.locateLocal(point, index, 5, false), expected);
   assert.ok(result.range.start <= guide.segments[index - 5].sStart);
-});
-
-test('the public compiler entry constructs bounded driving readers and reports insufficient coverage', () => {
-  const cwd = fileURLToPath(new URL('../..', import.meta.url));
-  const run = (min) =>
-    spawnSync(
-      process.execPath,
-      [
-        'tools/course/compile-course.mjs',
-        'tests/fixtures/varying-linear.course.json',
-        '--driving-view',
-        String(min),
-        String(min + 10),
-        '2',
-        '5',
-        '200',
-        '8',
-        String(min),
-      ],
-      { cwd, encoding: 'utf8' },
-    );
-  const result = run(150);
-  assert.equal(result.status, 0, result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.equal(report.scope, 'single-section-driving');
-  assert.equal(report.demand.consumers.driverLookahead.ahead, 400);
-  assert.equal(report.observations[0].guide.s, 150);
-  assert.equal(report.observations[0].surface, 'ASPHALT');
-  const short = run(210);
-  assert.equal(short.status, 1);
-  assert.equal(JSON.parse(short.stderr).reason, 'coverage_gap');
-});
-
-test('real LINEAR mechanics, contacts, driver, recovery, camera and complete frames agree for all nine vehicles', async () => {
-  const course = await courseDrivingFixture();
-  for (const entry of VEHICLE_CATALOG) {
-    const result = compareCourseDriving(course, { entry });
-    assert.ok(result.constructions < 20);
-    assert.ok(result.maxRasterMetadata < result.sourceRasterSegments);
-    assert.ok(result.measuredQueries > 1000);
-    assert.ok(result.recoveries >= 1);
-    assert.equal(result.frame.section, course.entry);
-    assert.equal(result.frame.ordinal, 0);
-  }
-});
-
-test('rebuilding every frame preserves all state and pixels against a retained bounded window', async () => {
-  const course = await courseDrivingFixture(-30);
-  const cached = compareCourseDriving(course, { frames: 360 });
-  const rebuilt = compareCourseDriving(course, { frames: 360, poseSlack: 0 });
-  assert.equal(rebuilt.constructions, 361);
-  assert.ok(cached.constructions < rebuilt.constructions / 10);
-  assert.deepEqual(rebuilt.vehicle, cached.vehicle);
-  assert.deepEqual(rebuilt.camera, cached.camera);
-  assert.deepEqual(rebuilt.pixels, cached.pixels);
-});
-
-test('actual reverse and unsupported excursion/recovery retain the same source passage and physics', async () => {
-  const course = await courseDrivingFixture();
-  const reverse = compareCourseDriving(course, { frames: 120, initialSpeed: -12, manualRecoveryAt: -1 });
-  assert.ok(reverse.finalS < 940);
-  const excursion = compareCourseDriving(course, { frames: 360, forceExcursion: true, manualRecoveryAt: -1 });
-  assert.ok(excursion.recoveries > 0, 'the real forced excursion must cause recovery');
 });

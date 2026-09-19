@@ -172,8 +172,8 @@ resident RGB555 ground remains Gate 3.
 
 ## Saved course presentation
 
-CourseDocument v6 and presentation recipe v2 admit explicit Band paint profiles, static A/B mappings,
-ordered stamps, environment/background profiles and shared scenery identities. [Content](content-and-gameplay.md#wire-fields-and-scopes)
+CourseDocument v7 and presentation recipe v3 admit explicit Band paint profiles, static A/B mappings,
+ordered stamps, environment/background profiles, shared scenery identities and state-selected road signs. [Content](content-and-gameplay.md#wire-fields-and-scopes)
 owns exact fields/reference scopes. Ground and background bindings require one normalized master;
 sprite LOD pyramids remain scenery inputs. Source assets resolve to the same canonical records as
 Section membership, and scenery placements share a course-wide instance/asset record.

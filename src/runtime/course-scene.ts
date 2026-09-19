@@ -164,7 +164,13 @@ function createLinkedScene(section: CompiledSection) {
             visual: presentation.visual,
           },
           groundProfile: presentation.groundProfile,
-          worldSprites: [...presentation.worldSprites, ...others],
+          worldSprites: [
+            ...presentation.worldSprites,
+            ...presentation.conditionalSprites
+              .filter((p) => session.closedCarriageways.includes(p.unselected))
+              .map((p) => p.sprite),
+            ...others,
+          ],
           assets,
           playerKind,
         },

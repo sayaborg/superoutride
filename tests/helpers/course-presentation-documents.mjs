@@ -50,7 +50,14 @@ export async function presentationDocument(name = 'linked-linear') {
       ],
       sceneryRows: [],
       scenery: [
-        { id: 'near-tree', instanceId: 'shared-tree', anchor: { kind: 'absolute', s: 50 }, l: 8, groundOffset: 1.5 },
+        {
+          id: 'near-tree',
+          instanceId: 'shared-tree',
+          unselectedCarriagewayId: null,
+          anchor: { kind: 'absolute', s: 50 },
+          l: 8,
+          groundOffset: 1.5,
+        },
       ],
     };
   }

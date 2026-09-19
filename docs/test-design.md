@@ -114,25 +114,17 @@ reject changing a chosen successor, and exercise both distance/count bounds with
 Runtime/project state failures must not contain fabricated authoring pointers. Syntax/schema import
 failure must leave an in-flight current-source compilation publishable.
 
-Single-Section driving comparisons use the actual mechanics, contact projection, recovery, driver,
-camera and renderer, and compare complete state, render statistics and framebuffer against the same
-canonical source readers. Vary window reconstruction frequency without rebasing observations or seeds;
-retain native Raster/height record identity and original height interpolation. An intentionally short
-window must reject both complete projection candidates and real driver lookahead. A selected geometric
-Link remains undrivable. These tests use explicit diagnostic presentation, not missing-content defaults
-or full presentation qualification. Observer dependency checks parse imports; driver steering, total-speed
-control and distance-dependent braking are input/output tests rather than source spelling.
+Source reader tests retain native Raster/height record identity, original interpolation and seeded
+projection. A deliberately short window rejects complete projection candidates and driver lookahead.
+Car and bike occurrence comparisons exercise physical reads across a selected seam, retained/rebuilt
+views, reverse history and full saved-presentation frames. Fractional-offset cases preserve exact
+half-open Band ownership without an inverse coordinate round trip.
 
-Common-guard occurrence comparisons drive all nine profiles across a selected LINEAR seam, keeping the
-active frame unchanged, and reverse across the actual retained predecessor after offline frame selection.
-Compare native physical outputs and exact complete state across retained/rebuilt views. Compare saved
-ground/background/scenery full frames at multiple seam positions and yaw angles; common scenery appears
-once and decoded assets remain shared. Reject a projection window cut inside a source candidate even
-with radius zero, foreign canonical qualifications, exhausted guards, stale seeds and separate physical/
-presentation lateral escapes. Exercise the saved-file CLI. These tests prove reader integration, not
-atomic actor commits, full runtime envelopes or fork transfer readiness.
-Use a fully qualified fractional-offset case whose inverse lateral round trip crosses an exact Band
-edge; physical support and source paint must both retain half-open ownership in the query chart.
+Saved product tests run actual browser roots and the shared headless scene. They exercise actor frame
+commits, recovery without progress, finite source-reusing laps, field crossing order, legal-route
+recovery, both fork paths and actual merge predecessors. Exit frames are compared with a successor-only
+scene to prove parent-specific pixels have left the ordinary camera. Physics/audio tests separately
+retain the immutable nine-profile traces and hashes.
 
 Consumer-local geometry tests replace the obsolete whole-Section intersection rejection with paired
 cases: the same XZ reached at two source intervals retains distinct seeded projections/physical height,

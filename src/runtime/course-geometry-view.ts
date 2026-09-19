@@ -17,7 +17,7 @@ interface Extent {
   readonly behind: number;
   readonly ahead: number;
 }
-export interface CourseViewDemand {
+interface CourseViewDemand {
   /** Closed admitted source-chainage envelope in the active occurrence, plus maximum forward step. */
   readonly pose: { readonly minS: number; readonly maxS: number; readonly maxAdvance: number };
   readonly consumers: {

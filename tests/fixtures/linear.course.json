@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 6,
+  "version": 7,
   "id": "linear-example",
   "units": {
     "length": "m",

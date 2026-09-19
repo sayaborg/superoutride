@@ -350,16 +350,18 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           const s = activeS(mapping, sprite.sRender);
           return s >= range.start && s <= range.end && resolve(s, 0).address.occurrence === mapping.occurrence;
         })
-        .map(({ sprite }) => ({ mapping, sprite })),
+        .map(({ sprite, unselected }) => ({ mapping, sprite, unselected })),
     );
     const worldSprites = Object.freeze(
-      scenery.map(({ mapping, sprite }) =>
-        Object.freeze({
-          ...sprite,
-          ...transformPlanarPoint(mapping.viewFromSource, sprite),
-          sRender: activeS(mapping, sprite.sRender),
-        }),
-      ),
+      scenery
+        .filter(({ unselected }) => unselected === null)
+        .map(({ mapping, sprite }) =>
+          Object.freeze({
+            ...sprite,
+            ...transformPlanarPoint(mapping.viewFromSource, sprite),
+            sRender: activeS(mapping, sprite.sRender),
+          }),
+        ),
     );
     const groundProfile = Object.freeze({
       groundLeft: Math.min(...mapped.map((m) => -m.presentation.ground.domain.left + m.sourceLateralOrigin)),
@@ -381,6 +383,20 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           groundProfile,
           visual,
           worldSprites,
+          conditionalSprites: Object.freeze(
+            scenery
+              .filter(({ unselected }) => unselected !== null)
+              .map(({ mapping, sprite, unselected }) =>
+                Object.freeze({
+                  unselected: unselected!,
+                  sprite: Object.freeze({
+                    ...sprite,
+                    ...transformPlanarPoint(mapping.viewFromSource, sprite),
+                    sRender: activeS(mapping, sprite.sRender),
+                  }),
+                }),
+              ),
+          ),
           backgroundAt(s: number) {
             const { address, mapping } = resolve(s, 0),
               source = mapping.presentation,

@@ -90,6 +90,16 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
       occurrence: to,
     });
   };
+  const extendUnique = (before: CourseOccurrenceHistory) => {
+    let after = before;
+    for (;;) {
+      const frontier = after.selected.at(-1) ?? after.occurrences.at(-1)!;
+      if (frontier.section.outgoing.length !== 1) return success(after);
+      const next = selectFrom(after, frontier, frontier.section.outgoing[0]!);
+      if (!next.ok) return next.reason === 'selection_limit' ? success(after) : next;
+      after = next.value.history;
+    }
+  };
   const prepare = (direction: 'forward' | 'reverse', options: { readonly selectUnique?: boolean } = {}) => {
     if (typeof direction !== 'string') throw new TypeError('Traversal direction must be a string');
     if (direction !== 'forward' && direction !== 'reverse')
@@ -123,16 +133,9 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
       selected: direction === 'forward' && !visited ? Object.freeze(selected.slice(1)) : selected,
     });
     if (options.selectUnique) {
-      for (;;) {
-        const frontier = after.selected.at(-1) ?? after.occurrences.at(-1)!;
-        if (frontier.section.outgoing.length !== 1) break;
-        const next = selectFrom(after, frontier, frontier.section.outgoing[0]!);
-        if (!next.ok) {
-          if (next.reason === 'selection_limit') break;
-          return next;
-        }
-        after = next.value.history;
-      }
+      const extended = extendUnique(after);
+      if (!extended.ok) return extended;
+      after = extended.value;
     }
     const movement = Object.freeze({
       from,
@@ -157,6 +160,23 @@ export function createCourseGeometryTraversal(entry: CompiledSection, limits: Tr
   return Object.freeze({
     snapshot,
     prepare,
+    prepareSelection(from: CourseOccurrence, link: CompiledLink) {
+      const before = history;
+      const selected = selectFrom(before, from, link);
+      if (!selected.ok) return selected;
+      const extended = extendUnique(selected.value.history);
+      if (!extended.ok) return extended;
+      return success(
+        Object.freeze({
+          history: extended.value,
+          commit() {
+            if (history !== before) return failure('stale_transition', 'Traversal changed after selection preparation');
+            history = extended.value;
+            return success(selected.value.occurrence);
+          },
+        }),
+      );
+    },
     select(from: CourseOccurrence, link: CompiledLink) {
       const result = selectFrom(history, from, link);
       if (!result.ok) return result;

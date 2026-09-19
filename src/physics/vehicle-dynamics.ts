@@ -28,7 +28,7 @@ const MIN_PROJECTED_TIRE_DIRECTION_LENGTH = 1e-8;
 export const VEHICLE_GRAVITY = 9.80665;
 export const VEHICLE_SUBSTEPS = 12;
 /** Complete local-projection neighborhood, also used by bounded-reader admission. */
-export const VEHICLE_PROJECTION_SEARCH_RADIUS = 5;
+const VEHICLE_PROJECTION_SEARCH_RADIUS = 5;
 
 type VehicleContactId = 'FRONT' | 'REAR';
 

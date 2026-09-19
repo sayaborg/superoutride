@@ -25,8 +25,7 @@ interface OrderedRaceGateAuthoring {
 /**
  * Generic ordered race boundaries on a finite open Guide.
  *
- * There is no lap length, modulo rule or topology flag here. A circuit compiler may expand
- * lap-local authoring into this ordinary finite gate sequence before runtime.
+ * Callers reuse this physical gate sequence and own traversal or finite lap counts.
  */
 interface OrderedRaceCourseRules {
   readonly guide: GuidePath;

@@ -1,3 +1,4 @@
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import { courseBoundaryAt } from '../course/course-bands.js';
 import { requireCourse } from '../course/course-diagnostics.js';
@@ -12,7 +13,11 @@ export function compileCourseFork(
   anchors: { readonly lock: CompiledCourseAnchor; readonly closure: CompiledCourseAnchor } | null,
   path: string,
 ): CompiledFork | null {
-  if (anchors === null) return null;
+  const conditional = section.presentation?.scenery.filter((p) => p.unselected !== null) ?? [];
+  if (anchors === null) {
+    requireCourse(conditional.length === 0, path, 'State-selected road signs require a fork', 'invalid_fork');
+    return null;
+  }
   const { lock, closure } = anchors;
   const check = (condition: boolean, message: string) => requireCourse(condition, path, message, 'invalid_fork');
   check(section.outgoing.length >= 2, 'A fork requires two or three canonical exits');
@@ -24,6 +29,21 @@ export function compileCourseFork(
     section.incoming.every((l) => l.destination.anchor.s < lock.s),
     'Fork lock must follow its entry',
   );
+  for (const placement of conditional) {
+    check(
+      section.outgoing.some((link) => link.source.carriageway === placement.unselected),
+      'Road sign state must name a canonical exit carriageway',
+    );
+    check(placement.anchor.s >= lock.s && placement.anchor.s <= closure.s, 'Road signs lie between lock and closure');
+    check(
+      section.outgoing.every(
+        (link) =>
+          placement.anchor.s + placement.instance.asset.source.width / SPRITE_SOURCE_TEXELS_PER_METER <
+          link.source.anchor.s - link.overlap.behind,
+      ),
+      'State-selected signs must precede common exit guards',
+    );
+  }
   requireCourseStraightSpan(section, lock.s, closure.s, guidePathToWorld(section.guide, lock.s, 0).heading, path);
   const bands = section.bandPartition.bands.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
   check(bands.length > 0, 'Lock line needs supported Bands');

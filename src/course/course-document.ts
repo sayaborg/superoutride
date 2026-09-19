@@ -107,6 +107,7 @@ export interface PresentationDocument {
   readonly scenery: readonly {
     readonly id: string;
     readonly instanceId: string;
+    readonly unselectedCarriagewayId: string | null;
     readonly anchor: CourseAnchor;
     readonly l: number;
     readonly groundOffset: number;
@@ -134,7 +135,7 @@ export interface SectionDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 6;
+  readonly version: 7;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
@@ -186,7 +187,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v6`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v7`);
     }
   }
   for (const key of fields) {
@@ -437,10 +438,12 @@ function presentation(value: unknown, path: string): PresentationDocument | null
       });
     }),
     scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
-      const s = record(item, at, ['id', 'instanceId', 'anchor', 'l', 'groundOffset']);
+      const s = record(item, at, ['id', 'instanceId', 'unselectedCarriagewayId', 'anchor', 'l', 'groundOffset']);
       return Object.freeze({
         id: id(s.id, `${at}/id`),
         instanceId: id(s.instanceId, `${at}/instanceId`),
+        unselectedCarriagewayId:
+          s.unselectedCarriagewayId === null ? null : id(s.unselectedCarriagewayId, `${at}/unselectedCarriagewayId`),
         anchor: anchor(s.anchor, `${at}/anchor`),
         l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
         groundOffset: number(
@@ -544,7 +547,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 6, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 7, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
@@ -559,7 +562,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 6, '/version', 'unsupported_version');
+    const version = literal(v.version, 7, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);

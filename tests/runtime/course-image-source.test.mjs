@@ -319,9 +319,6 @@ test('public compiler reads digest-named saved images, preserves files and repor
     const compiled = run('--images', directory);
     assert.equal(compiled.status, 0, compiled.stderr);
     assert.equal(JSON.parse(compiled.stdout).images[0].sha256, image.reference.sha256);
-    const physical = run('--images', directory, '--physical-overlap');
-    assert.equal(physical.status, 0, physical.stderr);
-    assert.equal(JSON.parse(physical.stdout).scope, 'physical-overlap');
     assert.equal(await readFile(sourcePath, 'utf8'), text);
     assert.deepEqual(new Uint8Array(await readFile(imagePath)), image.input.bytes);
     await writeFile(imagePath, '{}');

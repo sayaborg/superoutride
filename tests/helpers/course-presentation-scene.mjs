@@ -15,7 +15,7 @@ import {
   createCourseSpriteObservation,
   reframeCourseSpriteObservation,
 } from '../../dist/render/course-sprite.js';
-import { cameraProfile } from './course-driving-probe.mjs';
+import { cameraProfile } from './course-driving-fixture.mjs';
 
 /** Ordinary renderer composition from real saved sources; no occurrence/graph is passed to the renderer. */
 export function coursePresentationScene(port, deltaS, deltaL, yaw, pixels, assets, bounds, observed, from, link) {

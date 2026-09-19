@@ -10,7 +10,6 @@ import {
 import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange } from '../../dist/core/guide-envelope.js';
 import { guideCoordinateToWorld, locateWorldOnGuideCoordinateGlobal } from '../../dist/core/guide-coordinate-frame.js';
 import { compilePhysicalRaceGate } from '../../dist/gameplay/physical-race-gate.js';
-import { validateSurfaceGuideEnvelope } from '../../dist/physics/surface-guide-envelope.js';
 
 const straight = () =>
   compileRasterPath([
@@ -95,7 +94,7 @@ test('fallback corners use conservative adjacent intervals followed by full-inte
   );
 });
 
-test('queries, translated clamps, support containment and gate widths use the local envelope', () => {
+test('queries, translated clamps and gate widths use the local envelope', () => {
   const guide = compileGuidePath(straight(), {
     envelope: [
       { s: 0, lMax: 5 },
@@ -118,12 +117,6 @@ test('queries, translated clamps, support containment and gate widths use the lo
     assert.equal(locateWorldOnGuideGlobal(guide, world, true).l, limit);
     assert.equal(compilePhysicalRaceGate(guide, 0, 'checkpoint', 'gate', s).halfWidth, limit);
   }
-  validateSurfaceGuideEnvelope(frame, { maxSupportedAbsL: 1 });
-  assert.throws(
-    () => validateSurfaceGuideEnvelope(frame, { maxSupportedAbsL: 2 }),
-    RangeError,
-    'global maximum cannot excuse a local containment failure',
-  );
   assert.deepEqual(guideEnvelopeRange(guide.envelope, 25, 75), { min: 7.5, max: 15 });
   for (const s of [NaN, Infinity, -1, 101]) assert.throws(() => guideEnvelopeAt(guide.envelope, s), RangeError);
   assert.throws(() => guideEnvelopeRange(guide.envelope, 50, 25), RangeError);
