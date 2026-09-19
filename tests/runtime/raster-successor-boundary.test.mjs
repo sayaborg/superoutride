@@ -70,3 +70,18 @@ test('successor rejects nonfinite dimensions and invalid vertex counts before ge
     assert.throws(() => createRasterStageSuccessor(source, { ...authoring, minDeformationRunVertices }), RangeError);
   }
 });
+
+test('constant-only successor authoring rejects a varying envelope without substituting its maximum', () => {
+  const varying = compileGuidePath(guide.raster, {
+    envelope: [
+      { s: 0, lMax: 12 },
+      { s: guide.length, lMax: 14 },
+    ],
+    mMin: guide.mMin,
+  });
+  assert.throws(
+    () =>
+      createRasterStageSuccessor({ ...source, guide: varying, chart: createGuideChart('varying', varying) }, authoring),
+    /constant Guide envelope/,
+  );
+});

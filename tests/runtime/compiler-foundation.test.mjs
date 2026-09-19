@@ -70,7 +70,14 @@ test('compiled support stays strictly inside the Guide chart', () => {
   const map = new SurfaceMap(guide.length, compiled.surfaceSections);
   assert.equal(map.maxSupportedAbsL, 10.5);
   validateSurfaceGuideEnvelope(guide, map);
-  assert.throws(() => validateSurfaceGuideEnvelope({ ...guide, lMax: 10.5 }, map), /must remain inside Guide chart/);
+  const boundary = {
+    ...guide,
+    envelope: [
+      { s: 0, lMax: 10.5 },
+      { s: guide.length, lMax: 10.5 },
+    ],
+  };
+  assert.throws(() => validateSurfaceGuideEnvelope(boundary, map), /must remain inside Guide chart/);
 });
 
 test('sprite assets require positive physical width and have only physical scale authority', () => {

@@ -1,0 +1,70 @@
+{
+  "format": "superoutride.course",
+  "version": 1,
+  "id": "narrow-bend-wide-straight",
+  "units": { "length": "m", "angle": "deg" },
+  "geometryRecipe": { "id": "superoutride.raster-guide", "version": 2 },
+  "type": "LINEAR",
+  "sections": [
+    {
+      "id": "asymmetric",
+      "start": { "x": 7, "z": -2, "heading": 0 },
+      "guide": { "margin": 2, "mMin": 0.25 },
+      "primitives": [
+        { "id": "approach", "kind": "straight", "length": 100 },
+        { "id": "bend", "kind": "arc", "radius": 20, "turn": 30 },
+        { "id": "runout", "kind": "straight", "length": 500 }
+      ],
+      "boundaries": [
+        {
+          "id": "left",
+          "knots": [
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": -3 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.2 }, "l": -3 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.8 }, "l": -30 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "l": -30 }
+          ]
+        },
+        {
+          "id": "shared",
+          "knots": [
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": 0 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.2 }, "l": 0 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.8 }, "l": 10 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "l": 10 }
+          ]
+        },
+        {
+          "id": "right",
+          "knots": [
+            { "anchor": { "kind": "absolute", "s": 0 }, "l": 4 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.2 }, "l": 4 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 0.8 }, "l": 60 },
+            { "anchor": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 }, "l": 60 }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "west",
+          "start": { "kind": "absolute", "s": 0 },
+          "end": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "shared",
+          "role": "pavement"
+        },
+        {
+          "id": "east",
+          "start": { "kind": "absolute", "s": 0 },
+          "end": { "kind": "primitive", "primitiveId": "runout", "fraction": 1 },
+          "leftBoundaryId": "shared",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        }
+      ],
+      "carriageways": [{ "id": "road", "bandIds": ["east", "west"] }],
+      "assetIds": []
+    }
+  ],
+  "assets": []
+}

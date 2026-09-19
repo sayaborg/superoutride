@@ -23,7 +23,8 @@ The [Sprite LOD preview](tools/graphics/sprite-lod.html) compares completed octa
 master through the game blitter. See [usage and scope](docs/development.md#sprite-lod-preview).
 
 The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved LINEAR
-geometry and publishes an immutable reference graph. It is an offline authoring foundation; the
+geometry, including varying shared boundaries and local Guide envelopes, and publishes an immutable
+reference graph. It is an offline authoring foundation; the
 current game courses still use their existing composition roots.
 
 For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio/audio-browser.html` is the separate audition page;

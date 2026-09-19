@@ -68,9 +68,10 @@ At a roundoff-size fillet join, lookup retains the adjacent segment. Omitted int
 coverage fit the reader's sampling tolerance even if dimensional validation permits a larger error.
 A positive straight longer than the sampling tolerance remains a real primitive.
 
-Current ordinary `RoadCrossSection` and `TerrainVisualProfile` widths are constant per source/view.
+Current driving `RoadCrossSection` and `TerrainVisualProfile` widths are constant per source/view.
 The specialized junction varies its cross-section. Current terrain enumerates Raster, render-height
-and visual-section boundaries. General width profiles are the [target](#compiled-boundary-geometry).
+and visual-section boundaries. The offline CourseDocument compiler now implements full-domain varying
+Boundary readers; their terrain/physical integration remains the [target](#compiled-boundary-geometry).
 
 Guide rounds the coordinate curve with straight/circular fillets; the rendered road stays Raster.
 For turn Delta and radius R:
@@ -79,7 +80,7 @@ For turn Delta and radius R:
 mu = abs(Delta) / (2*tan(abs(Delta)/2))     (mu = 1 at zero turn)
 kappa = sign(Delta)/R
 J = mu*(1 - kappa*l)
-Rmin = lMax/(1 - mMin/mu)
+Rmin = sup(L(s), s in complete fillet)/(1 - mMin/mu)
 trim = R*tan(abs(Delta)/2)
 max Guide/Raster deviation = R*(sec(abs(Delta)/2) - 1)
 ```
@@ -88,11 +89,18 @@ Require `0 < mMin < mu`, `J >= mMin` throughout the chart, and nonoverlapping ad
 Opposite-curvature fillets retain the compiler's intervening-straight requirement. Guide is G1:
 position/tangent are continuous, while parameter speed changes between 1 and mu.
 
-Current R comes from the chart margin or circular-authoring provenance. Current physical support
-satisfies `maxSupportedAbsL + abs(lateralOrigin) < guide.lMax`; the reader's conservative local bound
+R comes from the local chart bound or circular-authoring provenance. `GuidePath.envelope` is one
+owned immutable piecewise-linear profile. Constant `lMax` authoring is compiled to two equal knots;
+explicit profiles use the same reader and fillet algorithm. There is no independently stored scalar
+limit. Explicit projection clamping and physical race-gate width use the bound at their query chainage.
+Current physical readers still expose a global support bound, so containment conservatively requires
+`maxSupportedAbsL + abs(lateralOrigin) < min(L(s))`; the reader's conservative local bound
 includes junction support and boundary tolerance. [Containment](../src/physics/surface-guide-envelope.ts)
 is checked at packages, registries, circuit windows and linear composition. Visual extent is separate.
-The chart edge enforces `J >= mMin > 0`, not the singularity `J = 0`. Physical local projection remains
+Existing successor geometry generators explicitly require a constant source envelope; they do not
+substitute its maximum for a varying profile. These generators are not adapters for CourseDocument
+varying Bands. The chart edge enforces
+`J >= mMin > 0`, not the singularity `J = 0`. Physical local projection remains
 unclamped; ordinary excursion/recovery behavior owns out-of-chart motion.
 
 ## Height and projection
@@ -265,8 +273,9 @@ navigation for existing links; each detailed contract has one owner.
 
 ## Course Editor target
 
-This section owns future frame and geometric reader contracts. Existing code uses the current rules
-above until a tested cutover. [Content](content-and-gameplay.md#course-editor-target) owns authored
+This section owns target frame and geometric reader contracts. Local Guide envelopes and the offline
+full-domain Boundary subset are implemented; Link/view and joint physical/visual edge cutovers remain
+pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
 records and transactions; [image assets](image-assets.md#course-editor-target) owns image products.
 
 ### Frame transform and coordinates
@@ -299,6 +308,11 @@ and identical-output tests. A visible marking is paint, not another geometric ro
 
 ### Target local Guide envelope
 
+The Core profile, full-fillet validation, query clamping and conservative support containment are
+implemented and covered by [local-envelope tests](../tests/geometry/local-guide-envelope.test.mjs).
+Playable source data remains constant. The CourseDocument compiler derives varying profiles offline;
+consumer-specific contact extents and Link-transformed views remain later Gate 2 work.
+
 Use a longitudinal chart envelope `L(s)` in the underlying Guide basis, replacing the Section-wide
 `lMax` constraint at the target cutover. Its immutable conservative profile encloses the supported
 bands and admitted contact/projection queries plus an explicit positive chart margin. Resolve source
@@ -315,8 +329,9 @@ check. Trims, coverage and opposite-turn clearance retain their existing constra
 The envelope is domain metadata, not a force, a new centerline or a lateral clamp. Each reader uses
 the bound at its actual query chainage. Invalid inputs/queries remain explicit; ordinary excursion and
 recovery policy handles vehicle motion. A wide straight fork therefore need not impose its width on a
-distant tight bend, while a wide locally tight bend can still be rejected. Current scalar readers
-remain in force until the local compiler, containment checks and consumers are migrated together.
+distant tight bend, while a wide locally tight bend can still be rejected. For piecewise-linear L(s),
+the complete interval's extrema are its clipped endpoints and interior knots. Existing constant-input
+geometry and ordinary unclamped projection retain their numerical behavior.
 
 ### Target lateral boundary ownership
 

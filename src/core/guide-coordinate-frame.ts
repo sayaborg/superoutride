@@ -7,6 +7,7 @@ import {
   type GuideSample,
 } from './guide-curve.js';
 import type { Vec2 } from './math.js';
+import { guideEnvelopeAt } from './guide-envelope.js';
 
 /**
  * Minimal lateral chart over one GuidePath.
@@ -67,7 +68,8 @@ export function locateWorldOnGuideCoordinateLocal(
 
 function toLocalCoordinate(source: GuideCoordinateSource, base: CourseCoordinate, clampL: boolean): CourseCoordinate {
   const guide = guideCoordinateCurve(source);
-  const sourceL = clampL ? Math.max(-guide.lMax, Math.min(guide.lMax, base.l)) : base.l;
+  const limit = clampL ? guideEnvelopeAt(guide.envelope, base.s) : 0;
+  const sourceL = clampL ? Math.max(-limit, Math.min(limit, base.l)) : base.l;
   const l = sourceL - guideCoordinateLateralOrigin(source);
   return {
     s: base.s,

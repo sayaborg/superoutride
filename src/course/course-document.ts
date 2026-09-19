@@ -77,6 +77,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   lengthMeters: 100_000,
   lateralMeters: 1000,
   rasterSegments: 2048,
+  bandCells: 4096,
 });
 
 function fail(code: ConstructorParameters<typeof CourseInputError>[0], path: string, message: string): never {

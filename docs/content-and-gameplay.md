@@ -62,7 +62,8 @@ that internal representation while retaining input validation and distinct gamep
 [geometry recipe](../src/course/course-geometry.ts),
 [course compilation](../src/runtime/compiled-course.ts) and
 [project transactions](../src/runtime/course-project.ts) implement Gate 1 independently of the current
-driving roots. The [saved LINEAR example](../tests/fixtures/linear.course.json) is executable input for
+driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.json) and
+[varying LINEAR example](../tests/fixtures/varying-linear.course.json) are executable inputs for
 the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
 data, not a ready driving Session or loaded image product.
 
@@ -83,7 +84,7 @@ height, bindings, placements and rules are not yet wire fields.
 | Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                            |
 | Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                     |
 | Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                  |
-| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role: "pavement"                                                                                       | "shoulder" | "median"` |
+| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role` (`"pavement"`, `"shoulder"` or `"median"`)                                                       |
 | Carriageway      | `id`, `bandIds`                                                                                                                                                    |
 | Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                  |
 
@@ -113,14 +114,15 @@ floating-point geometry admission.
 
 `COURSE_DOCUMENT_LIMITS` owns 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections and 256 assets;
 per Section: 256 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways and
-256 asset references. Compilation caps each Section at 2048 Raster segments and 100000 m of compiled
-chainage, checking subdivision counts before emitting vertices. These authoring limits bound work
+256 asset references. Compilation caps each Section at 2048 Raster segments, 4096 mapped-band partition
+cells and 100000 m of compiled chainage, checking subdivision counts before emitting vertices and
+partition size before the quadratic pair checks. These authoring limits bound work
 and diagnostics; they are not whole-game or target-device capacity approval.
 
 ### Supported geometry and recipe
 
-The accepted recipe is `superoutride.raster-guide` version 1. It pins `RasterTurtle` version 1 and
-the existing Raster/Guide arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
+The accepted recipe is `superoutride.raster-guide` version 2. It pins `RasterTurtle` version 1 and
+the existing Raster arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
 `ceil(abs(turnDegrees)/5)` equal angular steps computed in authored degrees, then convert angles with
 `PI/180`. Initial heading also uses degrees. The retained turtle radian API remains available to
 existing development content; it is not a second document interpretation.
@@ -132,21 +134,38 @@ differences in primitive order. Each primitive retains its interval on that rule
 resolves exactly to the interval endpoints; interior fractions use `start + fraction*(end-start)`.
 Absolute anchors keep their authored s and must lie in the finite Section domain.
 
-Successful Gate 1 compilation admits exactly one LINEAR Section, with constant Boundary profiles and
-full-domain Band/Boundary coverage `[0,L]`. Knots remain explicit, strictly increasing, and constant
-profiles may have additional anchors. Varying profiles and partial activation receive
-`unsupported_feature`; no width approximation is substituted. Bands have positive ordered width,
+The current compiler admits exactly one LINEAR Section, with piecewise-linear Boundary profiles and
+full-domain Band/Boundary coverage `[0,L]`. Knots remain explicit and strictly increasing. Constant
+profiles use this same representation. Partial activation remains `unsupported_feature`; no width
+approximation is substituted. Bands have strictly positive ordered width, including both endpoints,
 do not overlap, and touching bands share one canonical Boundary. Every pavement Band belongs to
 exactly one Carriageway; its pavement members form a contiguous group. Shoulders/medians are structural
 roles only, with no inferred paint, grip or support.
 
-The compiler validates convex mapped Raster strip cells and nonadjacent intersections over the
-constant outer-band envelope, conservatively including gaps. This bounded simple-strip subset admits
-no overpass/loop overlap. It does not replace the later varying-band/topology validator. The existing
-Guide compiler receives `lMax = max(abs(outerLeft), abs(outerRight)) + margin` and authored mMin;
-local envelopes and their runtime containment cutover remain Gate 2. No new edge point-classifier is
-installed. Raster/Guide authoring-domain rejections are RangeError; internal Guide coverage/reader
-invariants retain Error. No geometry arithmetic or successful existing output changes.
+Gate 2's first geometry increment partitions at Raster vertices and all used Boundary knots. Ordered
+widths and shared-edge references are checked at every partition station; linear interpolation cannot
+hide an intervening crossing. The mapped-strip Jacobian is affine in chainage/lateral position within
+each Raster interval, so its boundary extrema prove local non-inversion. Varying edges under the
+interpolated miter map are quadratic, not straight corner-to-corner lines. Their Bernstein control
+hulls conservatively enclose the complete cell. Nonadjacent Raster intervals must have separated hulls;
+the positive Jacobian separates same/adjacent intervals. Gaps are conservatively included. A failure
+to prove separation is a `semantic_compile_failure` identifying cells, not a claim that sampled
+endpoints suffice. This bounded simple-strip subset rejects overpasses/overlaps and can conservatively
+reject disjoint curved strips whose hulls overlap. It does not classify general topology.
+
+The derived Guide envelope interpolates `max(abs(outerLeft), abs(outerRight)) + margin` at these stations.
+This is a conservative upper bound between knots, not another authored width. The Core
+[local-envelope contract](architecture.md#target-local-guide-envelope) checks each complete fillet;
+a distant wide straight does not widen a tight bend. The margin covers only the explicitly admitted
+chart domain: no contact/vehicle query envelope or physical binding is inferred here.
+`courseBoundaryAt` and `courseBandAt` expose ordinary canonical data readers; the latter returns the
+half-open owning Band or null for a gap/outside. No role implies grip, paint or lock eligibility.
+Legacy physical/paint/junction edge classification remains unchanged until the combined runtime cutover.
+
+Recipe v1 is not silently reinterpreted. Its document remains saveable but compilation reports
+`unsupported_version`; changing to v2 is an explicit source edit that invalidates prior output.
+The checked-in constant fixture explicitly selects v2 and retains the same ruler and fillet geometry.
+Raster/Guide authoring-domain rejections are RangeError; internal coverage/reader invariants retain Error.
 
 ### Publication, identity and diagnostics
 
@@ -160,7 +179,7 @@ implemented by the current single-Section admission rule.
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 1. All inputs currently conservatively invalidate the complete
+`superoutride.course-compiler` version 2. All inputs currently conservatively invalidate the complete
 product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
 distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
 recipes never silently migrate. Existing numerical-environment limits in Development apply.

@@ -36,6 +36,7 @@ After `npm run build`, run the declared offline entry:
 
 ```sh
 npm run compile:course -- tests/fixtures/linear.course.json
+npm run compile:course -- tests/fixtures/varying-linear.course.json
 ```
 
 It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
@@ -49,6 +50,12 @@ supported subset, limits and failure semantics. No driving preview is enabled by
 geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
 imports, stale asynchronous publication and the real command. The complete suite retains its immutable
 mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
+The varying fixture places a narrow 20 m-radius bend before a wide asymmetric straight. Recipe/compiler
+v2 adds full-domain varying Bands without Link/view or driving integration. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs)
+and [Guide tests](../tests/geometry/local-guide-envelope.test.mjs) cover local versus global bounds,
+off-center fillet peaks and trim endpoints, constant-input equality, translated clamps, local gate
+widths, conservative global-support containment, half-open ownership and failed/stale publication.
+Half-open physical/paint/lock classification, partial activation and transformed Links remain unqualified.
 
 ## Sprite LOD preview
 

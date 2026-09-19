@@ -4,6 +4,7 @@ import {
   type GuideCoordinateSource,
 } from '../core/guide-coordinate-frame.js';
 import type { SurfaceMapReader } from './surface-map.js';
+import { guideEnvelopeRange } from '../core/guide-envelope.js';
 
 /** Compile-time containment, including a stage chart's translation into its Guide's basis. */
 export function validateSurfaceGuideEnvelope(frame: GuideCoordinateSource, surface: SurfaceMapReader): void {
@@ -12,9 +13,10 @@ export function validateSurfaceGuideEnvelope(frame: GuideCoordinateSource, surfa
   if (!Number.isFinite(extent) || extent < 0) {
     throw new RangeError('SurfaceMap supported lateral envelope must be finite and nonnegative');
   }
-  if (!(extent + Math.abs(guideCoordinateLateralOrigin(frame)) < guide.lMax)) {
+  const limit = guideEnvelopeRange(guide.envelope).min;
+  if (!(extent + Math.abs(guideCoordinateLateralOrigin(frame)) < limit)) {
     throw new RangeError(
-      `supported SurfaceMap envelope |l|=${extent}, origin=${guideCoordinateLateralOrigin(frame)} must remain inside Guide chart |l|<${guide.lMax}`,
+      `supported SurfaceMap envelope |l|=${extent}, origin=${guideCoordinateLateralOrigin(frame)} must remain inside Guide chart |l|<${limit} throughout its domain`,
     );
   }
 }

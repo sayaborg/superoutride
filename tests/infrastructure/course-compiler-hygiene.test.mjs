@@ -7,13 +7,23 @@ import ts from 'typescript';
 
 // This module has a narrower direct-import contract than the runtime directory.
 // Check dependency structure, not helper names, comments or statement spelling.
-for (const [entry, owners] of [
-  ['declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
-  ['compiled-course.ts', ['core', 'course']],
+for (const [entry, owners, restricted = {}] of [
+  ['runtime/declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
+  ['runtime/compiled-course.ts', ['core', 'course']],
+  [
+    'runtime/raster-stage-successor.ts',
+    ['core', 'course', 'physics', 'gameplay', 'groundmap', 'runtime'],
+    {
+      gameplay: ['gameplay/guide-chart.js'],
+      runtime: ['runtime/stage-continuation-link.js'],
+      groundmap: ['groundmap/ground-map.js'],
+    },
+  ],
+  ['gameplay/physical-race-gate.ts', ['core', 'gameplay'], { gameplay: ['gameplay/world-crossing-gate.js'] }],
 ]) {
   test(`${entry} imports only its declared compiler domain owners`, async () => {
     const sourceRoot = fileURLToPath(new URL('../../src/', import.meta.url));
-    const file = path.join(sourceRoot, 'runtime', entry);
+    const file = path.join(sourceRoot, entry);
     const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
     const allowed = new Set(owners);
     const dependencies = [];
@@ -35,6 +45,8 @@ for (const [entry, owners] of [
         const target = path.relative(sourceRoot, path.resolve(path.dirname(file), reference.text));
         const layer = target.split(path.sep)[0];
         assert.ok(allowed.has(layer), `course compiler directly imports ${target}`);
+        if (restricted[layer])
+          assert.ok(restricted[layer].includes(target), `${entry} imports forbidden domain ${target}`);
         dependencies.push(target);
       }
       ts.forEachChild(node, visit);

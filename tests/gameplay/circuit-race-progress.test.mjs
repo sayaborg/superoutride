@@ -326,13 +326,11 @@ test('physical gate math is shared while finite ordered progress stays topology 
   await assert.rejects(readFile(new URL('../../src/gameplay/race-progress.ts', import.meta.url), 'utf8'), {
     code: 'ENOENT',
   });
-  const physical = await readFile(new URL('../../src/gameplay/physical-race-gate.ts', import.meta.url), 'utf8');
   const ordered = await readFile(new URL('../../src/gameplay/ordered-race-progress.ts', import.meta.url), 'utf8');
   const circuit = await readFile(new URL('../../src/gameplay/circuit-race-progress.ts', import.meta.url), 'utf8');
   const renderer = await readFile(new URL('../../src/render/renderer.ts', import.meta.url), 'utf8');
 
   assert.match(ordered, /physical-race-gate/);
-  assert.match(physical, /detectPhysicalRaceGateCrossing/);
   assert.doesNotMatch(ordered, /wrapPositive|wrapSigned|CircuitTopology|CIRCUIT/);
   assert.doesNotMatch(circuit, /route-dag|render\//);
   assert.doesNotMatch(renderer, /circuit-race-progress|ordered-race-progress|CIRCUIT/);

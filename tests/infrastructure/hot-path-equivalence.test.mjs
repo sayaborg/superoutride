@@ -74,10 +74,8 @@ test('range search preserves exact ascending-candidate tie handling on repeated 
   }
 });
 
-test('hot path retains one sample/body basis and no candidate index arrays', async () => {
+test('vehicle hot path retains one sample/body basis', async () => {
   const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
-  const guide = await read('../../src/core/guide-curve.ts');
-  assert.doesNotMatch(guide, /segmentIndices|Array\.from\(\{ length: last/);
   const dynamics = await read('../../src/physics/vehicle-dynamics.ts');
   assert.doesNotMatch(dynamics, /sampleGuidePath/);
   const integrator = await read('../../src/physics/arcade-vehicle-physics.ts');

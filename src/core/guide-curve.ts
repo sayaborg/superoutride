@@ -12,15 +12,15 @@ import {
 } from './math.js';
 import { sampleRasterPath, type RasterPath } from './raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
+import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange, type GuideEnvelope } from './guide-envelope.js';
 
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
-export interface GuideCompileOptions {
-  lMax: number;
+export type GuideCompileOptions = ({ lMax: number; envelope?: never } | { envelope: GuideEnvelope; lMax?: never }) & {
   mMin: number;
   dCam?: number;
   tolerance?: number;
-}
+};
 
 interface GuideCorner {
   vertexIndex: number;
@@ -66,7 +66,7 @@ export interface GuidePath {
   readonly segments: readonly Readonly<GuideSegment>[];
   readonly corners: readonly Readonly<GuideCorner>[];
   readonly length: number;
-  readonly lMax: number;
+  readonly envelope: GuideEnvelope;
   readonly mMin: number;
 }
 
@@ -103,8 +103,11 @@ export function minimumGuideRadius(lMax: number, mMin: number, mu: number): numb
 
 export function compileGuidePath(path: RasterPath, options: GuideCompileOptions): GuidePath {
   const tolerance = options.tolerance ?? GUIDE_COMPILATION_TOLERANCE_METERS;
+  if (options.lMax !== undefined && options.envelope !== undefined)
+    throw new TypeError('Author one Guide envelope, not both lMax and envelope');
+  const envelope = compileGuideEnvelope(options.lMax ?? options.envelope!, path.length);
   // The chart contract also applies to straight paths, which never enter the fillet branch.
-  minimumGuideRadius(options.lMax, options.mMin, 1);
+  minimumGuideRadius(envelope[0]!.lMax, options.mMin, 1);
   if (!Number.isFinite(tolerance) || tolerance < 0) throw new RangeError('Guide tolerance must be finite and >= 0');
   if (options.dCam !== undefined && (!Number.isFinite(options.dCam) || options.dCam < 0)) {
     throw new RangeError('Guide camera distance must be finite and >= 0');
@@ -133,16 +136,28 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
       };
     }
 
-    const rMin = minimumGuideRadius(options.lMax, options.mMin, mu);
     const absTurn = Math.abs(turn);
     const sourceRadius = vertex.sourceRadius;
-    const radius = sourceRadius === undefined ? rMin : sourceRadius * Math.cos(absTurn * 0.5);
+    // Fallback construction uses the whole adjacent Raster intervals, not only the corner station.
+    const radius =
+      sourceRadius === undefined
+        ? minimumGuideRadius(
+            guideEnvelopeRange(envelope, path.vertexS[i - 1]!, path.vertexS[i + 1]!).max,
+            options.mMin,
+            mu,
+          )
+        : sourceRadius * Math.cos(absTurn * 0.5);
+    const trim = radius * Math.tan(absTurn * 0.5);
+    const rMin = minimumGuideRadius(
+      guideEnvelopeRange(envelope, path.vertexS[i]! - trim, path.vertexS[i]! + trim).max,
+      options.mMin,
+      mu,
+    );
 
     if (radius + tolerance < rMin) {
       throw new RangeError(`vertex ${i} circular-source guide radius is below Core R_min`);
     }
 
-    const trim = radius * Math.tan(absTurn * 0.5);
     const tangentIn = tangentFromHeading(incoming);
     const normalIn = normalFromHeading(incoming);
     const sign = Math.sign(turn);
@@ -218,7 +233,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
       ),
     ),
     length: path.length,
-    lMax: options.lMax,
+    envelope,
     mMin: options.mMin,
   });
 }
@@ -349,7 +364,8 @@ function projectWorldToGuideSegment(
   const delta = subtract(world, sample);
   const normal = normalFromHeading(sample.heading);
   const rawL = dot(delta, normal);
-  const l = clampL ? clamp(rawL, -guide.lMax, guide.lMax) : rawL;
+  const limit = clampL ? guideEnvelopeAt(guide.envelope, sample.s) : 0;
+  const l = clampL ? clamp(rawL, -limit, limit) : rawL;
   return {
     s: sample.s,
     l,

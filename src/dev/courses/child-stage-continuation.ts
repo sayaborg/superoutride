@@ -2,6 +2,7 @@ import { compileRoadCrossSection, type RoadCrossSection } from '../../course/roa
 import { roadSurfaceBands } from '../../physics/road-surface-bands.js';
 import { createTerrainVisualProfile } from '../../runtime/stage-authoring-compiler.js';
 import { compileGuidePath, guidePathToWorld, type GuidePath } from '../../core/guide-curve.js';
+import { constantGuideEnvelopeWidth } from '../../core/guide-envelope.js';
 import { HeightProfile } from '../../core/height-profile.js';
 import { tangentFromHeading, type Vec2 } from '../../core/math.js';
 import { CURRENT_CAMERA_DISTANCE_METERS } from '../../core/presentation-scale.js';
@@ -192,7 +193,7 @@ function createChildGuide(
 
   const raster = compileRasterPath([...prefix, ...continuation]);
   const guide = compileGuidePath(raster, {
-    lMax: parentGuide.lMax,
+    lMax: constantGuideEnvelopeWidth(parentGuide.envelope),
     mMin: parentGuide.mMin,
     dCam: CURRENT_CAMERA_DISTANCE_METERS,
   });

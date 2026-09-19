@@ -1,6 +1,7 @@
 import { compileRoadCrossSection, type RoadCrossSection } from '../course/road-cross-section.js';
 import { roadSurfaceBands } from '../physics/road-surface-bands.js';
 import { compileGuidePath, type GuidePath } from '../core/guide-curve.js';
+import { constantGuideEnvelopeWidth } from '../core/guide-envelope.js';
 import { normalFromHeading } from '../core/math.js';
 import { compileRasterPath, type RasterVertex } from '../core/raster-path.js';
 import { createStageRoadView, type StageRoadView } from '../course/stage-road-view.js';
@@ -73,6 +74,7 @@ export function createRasterStageSuccessor(
   authoring: RasterSuccessorAuthoring,
 ): RasterSuccessorRuntimeSource {
   assertAuthoring(authoring);
+  const lMax = constantGuideEnvelopeWidth(source.guide.envelope);
   const road = compileRoadCrossSection(authoring.road);
   const raster = source.guide.raster;
   const seamIndex = raster.vertexS.findIndex((s) => s >= authoring.sourceSeamMinS);
@@ -133,7 +135,7 @@ export function createRasterStageSuccessor(
   }
 
   const guide = compileGuidePath(successorRaster, {
-    lMax: source.guide.lMax,
+    lMax,
     mMin: source.guide.mMin,
     dCam: authoring.dCam,
   });

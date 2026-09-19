@@ -310,9 +310,9 @@ test('scoped duplicate identities and every missing reference family fail before
 
 test('unfinished semantic drafts save and reopen while unsupported features never substitute geometry', async () => {
   const input = fixture();
-  input.sections[0].boundaries[0].knots[1].l = -8;
+  input.sections[0].bands[0].start.s = 5;
   assert.deepEqual(ok(parseCourseDocument(ok(saveCourseDocument(input)))), input);
-  failure(await compileCourseDocument(input), 'unsupported_feature', '/sections/0/boundaries/0/knots');
+  failure(await compileCourseDocument(input), 'unsupported_feature', '/sections/0/bands/0');
   for (const [change, at] of [
     [
       (d) => {
@@ -480,7 +480,7 @@ test('recipe and asset identity changes invalidate dependent output, and unsuppo
   const original = ok(await project.importDocument(fixtureText));
   assert.equal(original.identity.geometryRecipe, COURSE_GEOMETRY_RECIPE);
   const recipeEdit = fixture();
-  recipeEdit.geometryRecipe.version = 2;
+  recipeEdit.geometryRecipe.version = 1;
   ok(project.editDocument(recipeEdit));
   failure(project.exportCompiled(), 'stale_source');
   failure(await project.compile(), 'unsupported_version', '/geometryRecipe');

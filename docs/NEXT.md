@@ -9,28 +9,38 @@ the continuation authority. [Development](development.md) owns commands and rele
 
 ## Next work: Course Editor
 
-Current code uses paged compiled ground, a scalar Guide envelope, finite circuit unfolding and three
+Current driving code uses paged compiled ground, constant Guide inputs, finite circuit unfolding and three
 composition roots. Sprite Tool exists. Gate 1 now provides a versioned CourseDocument, pinned geometry
 recipe, immutable compiled reference graph and atomic authoring project boundary through a separate
-offline compiler entry. Links, local envelopes, half-open edges and resident images remain targets.
+offline compiler entry. Gate 2's first increment adds local Guide profiles and offline varying/shared
+Boundary readers with half-open Band membership. Links/views, the combined physical/visual/lock edge
+cutover and resident images remain targets.
 Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
 [CourseDocument v1](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) establishes
-the exact wire fields, limits and supported single-Section LINEAR/constant-boundary subset. IDs resolve
+the exact wire fields, limits and supported single-Section LINEAR/full-domain-boundary subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
 [causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
 Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
+
+Geometry recipe and course compiler v2 add conservative mapped-cell interior validation and local
+fillet envelopes. The wire schema stays v1; older geometry recipes are explicitly unsupported rather
+than silently migrated. [Boundary tests](../tests/runtime/course-band-geometry.test.mjs) cover varying
+asymmetric widths, shared reference identity, three structural carriageways, edge/gap ownership,
+inversion/overlap diagnostics, bounded partitioning and atomic invalidation. This is not Gate 2 completion.
 
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
    available without GUI. Asset references are immutable identities, not loaded image payloads.
    Existing successor/growth builders remain consumed development content and fixtures.
-2. **Gate 2 — Geometry, Links and views.** Add local Guide envelopes, varying/shared boundary readers,
-   half-open membership, two/three-way forks, merges and transformed loops. Replace origin-based
+2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and full-domain
+   varying/shared boundary readers with half-open membership are implemented offline. Next add Band
+   activation/birth/death, oriented ports/Links, two/three-way forks, merges and transformed loops,
+   followed by bounded views and the joint runtime edge cutover. Replace origin-based
    junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
    exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant
    Guide/junction helpers and names with their causal tests.
@@ -77,7 +87,9 @@ in source; reconsider that retained waveform mapping with final method selection
 
 ## Remaining limits
 
-General nonadjacent road-band intersection classification is not implemented. Vertex, fillet and
+General nonadjacent road-band intersection classification is not implemented. The offline compiler
+proves a bounded simple-strip subset through conservative quadratic-edge hulls; it does not admit
+overpasses or classify intentional topology overlaps. Legacy vertex, fillet and
 supported-envelope checks do not certify complete band geometry; preserve the
 [validity requirement](architecture.md#raster-and-guide) and intentional circuit copies above Core.
 

@@ -7,6 +7,7 @@ import {
   locateWorldOnGuideCoordinateGlobal,
 } from '../../dist/core/guide-coordinate-frame.js';
 import { compileGuidePath } from '../../dist/core/guide-curve.js';
+import { guideEnvelopeRange } from '../../dist/core/guide-envelope.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
 import {
@@ -94,7 +95,7 @@ test('shifted chart validation and explicit clamping use the underlying Guide la
 
 test('all shipped courses and every branching successor have strict supported chart margins', () => {
   const linear = createLinearHighwayRuntime();
-  assert.equal(linear.guide.lMax, 13);
+  assert.deepEqual(guideEnvelopeRange(linear.guide.envelope), { min: 13, max: 13 });
   validateSurfaceGuideEnvelope(linear.guide, linear.surfaceMap);
   const parent = createDefaultBranchingParent();
   const live = createDeclarativeForkGrowthRuntime(
@@ -108,7 +109,10 @@ test('all shipped courses and every branching successor have strict supported ch
     const extent =
       content.surfaceMap.maxSupportedAbsL + Math.abs(guideCoordinateLateralOrigin(content.coordinateFrame));
     largest = Math.max(largest, extent);
-    assert.ok(extent < guideCoordinateCurve(content.coordinateFrame).lMax, content.packageId);
+    assert.ok(
+      extent < guideEnvelopeRange(guideCoordinateCurve(content.coordinateFrame).envelope).min,
+      content.packageId,
+    );
   }
   assert.ok(largest > 19.5 && largest < 20, 'second-fork translated support must be included');
   for (const [create, limit] of [
@@ -116,7 +120,7 @@ test('all shipped courses and every branching successor have strict supported ch
     [createFiscoRuntime, 18],
   ]) {
     const { window: w } = create();
-    assert.equal(w.guide.lMax, limit);
+    assert.deepEqual(guideEnvelopeRange(w.guide.envelope), { min: limit, max: limit });
     validateSurfaceGuideEnvelope(w.guide, w.surface);
     const length = w.topology.lapLength;
     const width = w.surface.maxSupportedAbsL;

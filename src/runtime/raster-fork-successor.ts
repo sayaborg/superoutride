@@ -1,4 +1,5 @@
 import { LATERAL_BOUNDARY_TOLERANCE_METERS } from '../core/tolerances.js';
+import { guideEnvelopeRange } from '../core/guide-envelope.js';
 import { createGuideChart } from '../gameplay/guide-chart.js';
 import {
   createRasterStageSuccessor,
@@ -27,7 +28,10 @@ export function createRasterForkStageSuccessor(
   if (!Number.isFinite(authoring.sourceLocalL)) {
     throw new RangeError('fork successor sourceLocalL must be finite');
   }
-  if (Math.abs(authoring.sourceLocalL) > source.guide.lMax + LATERAL_BOUNDARY_TOLERANCE_METERS) {
+  if (
+    Math.abs(authoring.sourceLocalL) >
+    guideEnvelopeRange(source.guide.envelope).min + LATERAL_BOUNDARY_TOLERANCE_METERS
+  ) {
     throw new RangeError('fork successor child center must fit inside the source Guide lateral envelope');
   }
 

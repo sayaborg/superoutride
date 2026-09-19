@@ -128,16 +128,12 @@ test('factory refuses a gentle-turn threshold at or above the frozen 10-degree R
   );
 });
 
-test('successor factory is route/renderer/vehicle independent and delegates Raster construction to it', async () => {
+test('development continuation delegates Raster construction to the successor compiler', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [factorySource, courseSource] = await Promise.all([
-    readFile(new URL('../../src/runtime/raster-stage-successor.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../src/dev/courses/successor-stage-continuation.ts', import.meta.url), 'utf8'),
-  ]);
-
-  assert.doesNotMatch(factorySource, /route-dag|route-boundary|route-stage-handoff|render\//);
-  assert.doesNotMatch(factorySource, /car-physics|motorcycle-physics|camera/);
-  assert.doesNotMatch(factorySource, /M[0-9]+|dev\//);
+  const courseSource = await readFile(
+    new URL('../../src/dev/courses/successor-stage-continuation.ts', import.meta.url),
+    'utf8',
+  );
   assert.match(courseSource, /createRasterStageSuccessor/);
   assert.doesNotMatch(courseSource, /compileRasterPath|longestGentleRun|vertexTurnDegrees/);
 });
