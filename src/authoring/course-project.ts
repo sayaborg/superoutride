@@ -6,6 +6,7 @@ import {
   type CourseDocument,
 } from '../course/course-document.js';
 import { compileCourseDocument, type CompiledCourse } from '../compiler/compiled-course.js';
+import type { CourseAssetBytes } from '../compiler/course-image-source.js';
 
 interface CourseProjectState {
   readonly source: CourseDocument | null;
@@ -36,20 +37,23 @@ export function createCourseProject() {
     save(): ProjectResult<string> {
       return state.source ? saveCourseDocument(state.source) : noSource();
     },
-    async compile(): Promise<ProjectResult<CompiledCourse>> {
+    async compile(assetSources: readonly CourseAssetBytes[] = []): Promise<ProjectResult<CompiledCourse>> {
       if (!state.source) return noSource();
       const ticket = ++generation;
-      const result = await compileCourseDocument(state.source);
+      const result = await compileCourseDocument(state.source, assetSources);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: state.source, compiled: result.value, lastSuccessful: result.value });
       return result;
     },
-    async importDocument(text: string): Promise<ProjectResult<CompiledCourse>> {
+    async importDocument(
+      text: string,
+      assetSources: readonly CourseAssetBytes[] = [],
+    ): Promise<ProjectResult<CompiledCourse>> {
       const parsed = parseCourseDocument(text);
       if (!parsed.ok) return parsed;
       const ticket = ++generation;
-      const result = await compileCourseDocument(parsed.value);
+      const result = await compileCourseDocument(parsed.value, assetSources);
       if (ticket !== generation) return stale();
       if (result.ok)
         state = Object.freeze({ source: parsed.value, compiled: result.value, lastSuccessful: result.value });

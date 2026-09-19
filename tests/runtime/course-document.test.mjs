@@ -15,6 +15,7 @@ import { COURSE_GEOMETRY_RECIPE } from '../../dist/course/course-geometry.js';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';
+import { imageInput } from '../helpers/course-image-input.mjs';
 
 const fixtureText = await readFile(new URL('../fixtures/linear.course.json', import.meta.url), 'utf8');
 const fixture = () => JSON.parse(fixtureText);
@@ -146,15 +147,16 @@ test('arbitrary IDs and permuted declarations resolve canonical objects, shared 
     if (node.anchor.kind === 'primitive') node.anchor.primitiveId = rename.get(node.anchor.primitiveId);
   for (const binding of s.physicalBindings) binding.bandId = rename.get(binding.bandId);
   s.carriageways[0].bandIds = s.carriageways[0].bandIds.map((id) => rename.get(id));
-  input.assets = ['asset/z', 'asset/a'].map((id, i) => ({
-    id,
-    format: 'superoutride.sprite-lod',
-    version: 1,
-    sha256: String(i).repeat(64),
-  }));
+  const images = ['asset/z', 'asset/a'].map((id) => imageInput(id));
+  input.assets = images.map((image) => image.reference);
   s.assetIds = ['asset/a', 'asset/z'];
   for (let permutation = 0; permutation < 2; permutation += 1) {
-    const product = ok(await compileCourseDocument(input));
+    const product = ok(
+      await compileCourseDocument(
+        input,
+        images.map((image) => image.input),
+      ),
+    );
     const section = product.sections[0];
     for (const band of section.bandPartition.bands) {
       assert.equal(
@@ -491,13 +493,15 @@ test('recipe and asset identity changes invalidate dependent output, and unsuppo
     assert.deepEqual(ok(parseCourseDocument(ok(project.save()))), recipeEdit);
   }
   const asset = fixture();
-  asset.assets = [{ id: 'sprite', format: 'superoutride.sprite-lod', version: 1, sha256: 'a'.repeat(64) }];
+  const before = imageInput('sprite'),
+    after = imageInput('sprite', [0, 0x001f, 0x3e0]);
+  asset.assets = [before.reference];
   asset.sections[0].assetIds = ['sprite'];
-  const a = ok(await project.importDocument(JSON.stringify(asset)));
-  asset.assets[0].sha256 = 'b'.repeat(64);
+  const a = ok(await project.importDocument(JSON.stringify(asset), [before.input]));
+  asset.assets[0] = after.reference;
   ok(project.editDocument(asset));
   failure(project.exportCompiled(), 'stale_source');
-  const b = ok(await project.compile());
+  const b = ok(await project.compile([after.input]));
   assert.notEqual(a.identity.buildSha256, b.identity.buildSha256);
 });
 

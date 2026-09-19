@@ -67,7 +67,8 @@ driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.jso
 [linked LINEAR example](../tests/fixtures/linked-linear.course.json) and
 [transformed loop](../tests/fixtures/transformed-loop.course.json) are executable inputs for
 the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
-data with explicit height/physical content, not a ready driving Session or loaded image product.
+data with explicit height/physical content and verified indexed image sources, not a ready driving
+Session or completed resident ground product.
 
 ### Wire fields and scopes
 
@@ -103,11 +104,12 @@ with `unsupported_version`. Schema/format and unit mismatches fail admission. Sc
 unsupported; the checked-in fixtures explicitly author flat height and ASPHALT profiles for their Bands.
 There is no implicit root from declaration order or compatibility interpretation.
 
-Asset references bind the exact saved completed-sprite bytes by lowercase SHA-256. Section membership
-resolves to canonical descriptor objects. Gate 1 neither fetches those bytes nor certifies image
-readiness, placement or integrity; payload admission stays with the existing image reader and future
-course loading. An empty asset list is sufficient for the geometry fixture. No mutable pixel buffers
-enter this product.
+Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation now requires
+explicit saved bytes for every declared digest and resolves Section membership to canonical descriptors
+with deeply frozen indexed sources. Aliased descriptors share one source, including at merges/loops.
+[Image admission](image-assets.md#course-image-source-admission) owns validation, resource limits and
+asset diagnostics. Document drafts still save without bytes. An empty asset list is sufficient for a
+geometry fixture, not a claim of complete presentation. No mutable pixel buffers enter this product.
 
 ### Domains and admission limits
 
@@ -471,7 +473,8 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 8, including the Link recipe v1 and physical recipe v2 descriptors.
+`superoutride.course-compiler` version 9, including the Link recipe v1, physical recipe v2 and image-source
+admission recipe v1 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
 the physical descriptor also includes the existing material definitions. Section geometry recipe v4
@@ -501,6 +504,11 @@ successful product; that retained product is historical comparison data after an
 returned by `exportCompiled`. Generation checks discard builds/imports superseded by newer operations.
 Syntax/schema import rejection occurs before advancing the operation generation, preserving an
 already running compilation of the current source.
+
+`compile(assetSources)` and `importDocument(text, assetSources)` accept the same explicit byte inputs
+as `compileCourseDocument(document, assetSources)`. Each operation snapshots them before its first
+digest wait. The project does not retain a mutable input-byte cache; callers supply saved bytes on
+each build. Missing/corrupt inputs preserve prior publication and stale generations cannot install.
 
 Core, physics and renderer receive their ordinary readers/data. They do not import the course graph;
 current composition roots remain unchanged. Runtime Link/view, image, session and GUI integration

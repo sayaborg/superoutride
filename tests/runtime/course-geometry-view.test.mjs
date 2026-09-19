@@ -8,6 +8,7 @@ import { createCourseGeometryView } from '../../dist/runtime/course-geometry-vie
 import { transformPlanarPoint, transformPlanarVector } from '../../dist/core/planar-transform.js';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';
 import { forkCourseDocument } from '../helpers/course-link-documents.mjs';
+import { imageInput } from '../helpers/course-image-input.mjs';
 
 const saved = await Promise.all(
   ['linked-linear', 'transformed-loop'].map((name) =>
@@ -294,9 +295,10 @@ test('merge reverse follows each actual predecessor, independent of shared succe
 
 test('loop traversal retains only the admitted history while every occurrence shares source readers and assets', async () => {
   const input = fixture(1);
-  input.assets = [{ id: 'shared', format: 'superoutride.sprite-lod', version: 1, sha256: '0'.repeat(64) }];
+  const image = imageInput('shared');
+  input.assets = [image.reference];
   input.sections[0].assetIds = ['shared'];
-  const course = await compile(input),
+  const course = ok(await compileCourseDocument(input, [image.input])),
     link = course.links[0],
     traversal = createTraversal(course.entry, 40);
   for (let i = 0; i < 1000; i++) {

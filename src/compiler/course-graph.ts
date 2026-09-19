@@ -2,7 +2,8 @@ import type { GuidePath } from '../core/guide-curve.js';
 import type { RasterPath } from '../core/raster-path.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import type { PlanarPose, PlanarTransform } from '../core/planar-transform.js';
-import type { CourseAssetReference, SectionDocument } from '../course/course-document.js';
+import type { SectionDocument } from '../course/course-document.js';
+import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CompiledCourseAnchor, CompiledPlanPrimitive } from '../course/course-geometry.js';
 import type { CompiledBoundary, CompiledBandPartition, CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledPhysicalBinding } from '../course/course-physical-binding.js';
@@ -19,7 +20,7 @@ export interface CompiledSection {
   readonly height: HeightProfileReader;
   readonly physicalBindings: readonly CompiledPhysicalBinding<SurfaceMaterial>[];
   readonly carriageways: readonly CompiledCarriageway[];
-  readonly assets: readonly CourseAssetReference[];
+  readonly assets: readonly CompiledCourseImageSource[];
   readonly ports: readonly CompiledPort[];
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];

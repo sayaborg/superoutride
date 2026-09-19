@@ -140,6 +140,36 @@ sizes or approved art policies. Preview uses the product scale/blitter. [Authori
 cover palette ties/alpha, mask history/invalidation, portable sessions, decode parity and the complete
 PNG -> session -> master/LOD -> product reader boundary.
 
+## Course image-source admission
+
+The [course image compiler](../src/compiler/course-image-source.ts) now admits saved image bytes into
+the immutable CourseDocument graph. Each declared lowercase SHA-256 requires one explicit
+`{sha256, bytes: Uint8Array}` input; repeated descriptors may share that input. It snapshots the complete
+bounded input set before asynchronous hashing, verifies the exact bytes, decodes UTF-8 JSON and invokes
+the existing sprite image validator. It performs no I/O, normalization, palette generation or filtering.
+
+Canonical asset descriptors own deeply frozen indexed `SpriteLodDocument` sources. Section membership
+resolves directly to these objects; descriptors sharing a digest share one source. No decoded mutable
+pixel array is published through the graph. An ordinary sprite consumer can decode its own workspace
+through `readSpriteLodAsset`; that workspace cannot alter the source. Ground composition will consume
+the normalized master only, not the sprite's lower levels.
+
+Admission limits are 256 supplied digests, 8 MiB per saved input, 64 MiB total encoded inputs,
+1,048,576 master texels per image and 8,388,608 total level texels across unique saved sources. These
+are offline resource bounds, not runtime/device budgets. The existing validator still owns image
+fields, palettes, anchors, indices and octave layouts; a single normalized master remains valid.
+
+Missing, duplicate and undeclared inputs are collected during preflight. Once the set is admitted,
+independent digest, UTF-8/JSON and image errors are collected in document declaration order, independent
+of input delivery order. Diagnostics have `kind: "asset"`, a specific code, digest, referring document
+asset indices and the supplied input index when applicable. They do not invent JSON pointers into
+CourseDocument. Failure publishes no graph. Wrong API types/domains throw TypeError/RangeError;
+unexpected platform failures propagate.
+
+This verifies source integrity and immutable sharing, not appearance bindings, phase, placement,
+background/scenery continuity or Link readiness. Saved presentation semantics and complete overlap
+qualification remain Gate 2; completed resident RGB555 ground remains Gate 3.
+
 ## Current ground compilation
 
 The file-backed compiler serves all eleven branching stage domains and three ordinary course/lap

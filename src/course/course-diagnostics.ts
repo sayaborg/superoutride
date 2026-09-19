@@ -31,7 +31,47 @@ interface QualificationDiagnostic {
   readonly message: string;
 }
 
-type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic;
+interface AssetDiagnostic {
+  readonly kind: 'asset';
+  readonly code:
+    | 'asset_missing'
+    | 'asset_duplicate'
+    | 'asset_unreferenced'
+    | 'asset_digest_mismatch'
+    | 'asset_parse_failure'
+    | 'asset_invalid_image'
+    | 'resource_limit';
+  readonly sha256: string;
+  /** Document asset declarations sharing this saved source; empty for unreferenced input. */
+  readonly assetIndices: readonly number[];
+  readonly inputIndex?: number;
+  readonly message: string;
+}
+
+type CourseDiagnostic = InputDiagnostic | QualificationDiagnostic | AssetDiagnostic;
+
+/** Expected saved-asset admission failure, separately addressed from document JSON pointers. */
+export class CourseAssetError extends Error {
+  readonly diagnostic: AssetDiagnostic;
+
+  constructor(
+    code: AssetDiagnostic['code'],
+    sha256: string,
+    assetIndices: readonly number[],
+    message: string,
+    inputIndex?: number,
+  ) {
+    super(message);
+    this.diagnostic = Object.freeze({
+      kind: 'asset',
+      code,
+      sha256,
+      assetIndices: Object.freeze([...assetIndices]),
+      message,
+      ...(inputIndex === undefined ? {} : { inputIndex }),
+    });
+  }
+}
 
 export type CourseResult<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly diagnostics: readonly CourseDiagnostic[] };

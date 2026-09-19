@@ -50,8 +50,8 @@ These are synthetic host workloads, not named-master acceptance. Recipe identiti
 versions/operative parameters, not explanatory prose.
 
 Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
-an unsupported-version diagnostic. Course compiler v8 includes the pinned carriageway-Link recipe v1
-and physical recipe v2.
+an unsupported-version diagnostic. Course compiler v9 includes the pinned carriageway-Link recipe v1,
+physical recipe v2 and image-source admission recipe v1.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
 invalidation. Full-cell Raster/Guide edge proof includes partial Band domains and exact ruler stations.
@@ -93,14 +93,21 @@ cover every declared physical consumer, domain-edge crossings, half-open endpoin
 interior mismatches, independent multi-Link diagnostics and ordinary surface-reader agreement.
 Compiler now owns the static graph without propagated material type parameters; Authoring owns project
 state. No material ID is rejoined by a consumer. This is not complete common-content qualification:
-presentation sources, full product pose/lateral envelopes and occurrence-mapped physical readers remain
+presentation bindings, full product pose/lateral envelopes and occurrence-mapped physical readers remain
 absent. Single-Section consumer integration does not qualify a Link. The saved physical demand is a
 reproducible test envelope, not a product default.
+
+[Image-source admission](image-assets.md#course-image-source-admission) now requires and verifies exact
+saved bytes for declared assets, sharing deeply immutable indexed sources through the canonical graph.
+Independent asset diagnostics, input mutation isolation, limits, atomic/stale project behavior and the
+ordinary sprite reader/blitter are covered. This supplies real source data, not appearance bindings,
+phase/placement/background/scenery semantics or complete presentation overlap qualification.
 
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
-   available without GUI. Asset references are immutable identities, not loaded image payloads.
+   available without GUI. Asset references now own admitted immutable indexed image sources; this is
+   not completed resident ground or presentation qualification.
    Existing successor/growth builders remain consumed development content and fixtures.
 2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
    varying/shared boundary readers with half-open membership, oriented Ports/geometric Links,

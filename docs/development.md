@@ -50,6 +50,14 @@ format; reload the saved source through the compiler to reconstruct canonical re
 [Content](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
+For documents declaring image assets, pass `--images directory` immediately after the document path,
+before any optional inspection flag. The directory contains `<sha256>.json` files of the exact saved
+sprite-image bytes. Streaming input enforces the image-source byte limits; the compiler owns digest,
+format and texel admission. No images are fetched or regenerated, files are unchanged, and I/O failures
+retain their causes. Omitting required bytes produces asset diagnostics, not descriptor-only success.
+The report includes each admitted image's dimensions and level count. This is source admission, not
+ground compilation or a complete presentation proof.
+
 [Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
 geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
 imports, stale asynchronous publication and the real command. The complete suite retains its immutable
@@ -66,7 +74,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v3 and course compiler v8 include offline Port/Link graphs and geometry recipe v4.
+Schema v3 and course compiler v9 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison

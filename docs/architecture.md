@@ -244,6 +244,9 @@ Compiler owns the immutable reference graph, Ports/Links and static content qual
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves
 Physics-owned material records once; concrete Section/Port/Link types no longer propagate a material
 parameter through the topology. The narrow Course physical-profile primitive remains reusable.
+Compiler also admits saved image sources through Graphics' existing sprite validator, resolving assets
+to concrete immutable indexed-source records without another generic parameter through Ports/Links.
+Only the image-domain compiler imports Graphics; lower Course geometry still has no image dependency.
 Runtime may consume Camera's profile contract to derive consumer coverage; Camera remains independent
 of Runtime and the course graph.
 Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authoring, vehicle, renderer,

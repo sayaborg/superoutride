@@ -48,6 +48,13 @@ Test unresolved/duplicate references at admission, pointer identity inside one c
 source-mutation isolation, failed publication, and serialization/reload through the same validator.
 Independent compiled products may have equal content identities and different object identities.
 
+Saved image tests use actual UTF-8 bytes and their digests, including alias descriptors and input-order
+permutations. Check canonical source sharing, complete nested immutability and mutation during hashing.
+Feed admitted indexed data through the ordinary sprite reader/blitter, distinguishing transparency
+from opaque RGB555 zero. Missing/duplicate/unreferenced data, digest errors, malformed images and capacity
+failures must publish no graph; independent errors retain scoped asset addresses. Exercise the real
+file-backed compiler and atomic/stale project behavior. Source admission is not presentation continuity.
+
 Offline Link tests round-trip saved chains and transformed loops, reorder declarations in two/three-way
 fork/merge graphs, and assert shared successor/Port identity and actual cyclic back-references. Test
 the rigid transform and inverse independently on points, vectors and equal frames. Overlap proofs

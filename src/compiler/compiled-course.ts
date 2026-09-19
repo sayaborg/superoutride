@@ -7,18 +7,19 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course/course-diagnostics.js';
-import {
-  readCourseDocument,
-  type CourseAssetReference,
-  type CourseDocument,
-  type SectionDocument,
-} from '../course/course-document.js';
+import { readCourseDocument, type CourseDocument, type SectionDocument } from '../course/course-document.js';
 import { COURSE_GEOMETRY_RECIPE, compileCourseGeometry, resolveCourseAnchor } from '../course/course-geometry.js';
 import { compileCourseBandGeometry } from '../course/course-band-geometry.js';
 import type { CompiledBoundary, CompiledBand, CompiledCarriageway } from '../course/course-bands.js';
 import type { CompiledSection, CompiledPort, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import { COURSE_LINK_RECIPE, compileCoursePort, compileCourseLink, validateCourseTopology } from './course-links.js';
+import {
+  COURSE_IMAGE_SOURCE_RECIPE,
+  compileCourseImageSources,
+  type CourseAssetBytes,
+  type CompiledCourseImageSource,
+} from './course-image-source.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
   readonly ports: CompiledPort[];
@@ -39,14 +40,15 @@ export interface CompiledCourse {
   readonly sections: readonly CompiledSection[];
   readonly entry: CompiledSection;
   readonly links: readonly CompiledLink[];
-  readonly assets: readonly CourseAssetReference[];
+  readonly assets: readonly CompiledCourseImageSource[];
 }
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 8,
+  version: 9,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
+  images: COURSE_IMAGE_SOURCE_RECIPE,
 });
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
@@ -58,7 +60,7 @@ function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): 
 
 function compileSection(
   section: SectionDocument,
-  assets: ReadonlyMap<string, CourseAssetReference>,
+  assets: ReadonlyMap<string, CompiledCourseImageSource>,
   path: string,
 ): SectionDraft {
   const { raster, primitives } = compileCourseGeometry(section, path);
@@ -167,7 +169,10 @@ function compileSection(
 }
 
 /** Own input before the first await; publish only a fully validated graph, never the construction tables. */
-export async function compileCourseDocument(input: unknown): Promise<CourseResult<CompiledCourse>> {
+export async function compileCourseDocument(
+  input: unknown,
+  assetSources: readonly CourseAssetBytes[] = [],
+): Promise<CourseResult<CompiledCourse>> {
   const admitted = readCourseDocument(input);
   if (!admitted.ok) return admitted;
   const document = admitted.value;
@@ -183,7 +188,9 @@ export async function compileCourseDocument(input: unknown): Promise<CourseResul
       );
     }
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section');
-    const assets = new Map(document.assets.map((asset) => [asset.id, asset]));
+    const images = await compileCourseImageSources(document.assets, assetSources);
+    if (!images.ok) return images;
+    const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const sections = document.sections.map((section, index) => compileSection(section, assets, `/sections/${index}`));
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const portTables = new Map(
@@ -230,7 +237,7 @@ export async function compileCourseDocument(input: unknown): Promise<CourseResul
         sections: Object.freeze(sections),
         entry,
         links: Object.freeze(links),
-        assets: document.assets,
+        assets: images.value,
       }),
     );
   } catch (error) {

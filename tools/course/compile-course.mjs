@@ -1,12 +1,19 @@
 import { readFile } from 'node:fs/promises';
 import { courseViewReport, courseDrivingViewReport } from './course-view-report.mjs';
+import { readCourseImages } from './read-course-images.mjs';
+import { parseCourseDocument } from '../../dist/course/course-document.js';
 import { createCourseProject } from '../../dist/authoring/course-project.js';
 import {
   compileCoursePhysicalOverlaps,
   compileCoursePhysicalDomains,
 } from '../../dist/compiler/course-physical-overlap.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
-import { courseFailure, CourseInputError } from '../../dist/course/course-diagnostics.js';
+import {
+  courseFailure,
+  courseFailures,
+  CourseInputError,
+  CourseAssetError,
+} from '../../dist/course/course-diagnostics.js';
 import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-window.js';
 
 async function physicalQualification(course, arguments_) {
@@ -22,9 +29,12 @@ async function physicalQualification(course, arguments_) {
   return compileCoursePhysicalDomains(course.links, demand);
 }
 
-const [sourcePath, ...extra] = process.argv.slice(2);
+const [sourcePath, ...arguments_] = process.argv.slice(2);
+const imageDirectory = arguments_[0] === '--images' ? arguments_[1] : undefined;
+const extra = arguments_[0] === '--images' ? arguments_.slice(2) : arguments_;
 if (
   !sourcePath ||
+  (arguments_[0] === '--images' && !imageDirectory) ||
   (extra.length &&
     extra[0] !== '--view' &&
     !(extra.length === 8 && extra[0] === '--driving-view') &&
@@ -33,10 +43,20 @@ if (
     !(extra.length === 2 && extra[0] === '--physical-domain'))
 )
   throw new TypeError(
-    'Usage: npm run compile:course -- CourseDocument.json [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
+    'Usage: npm run compile:course -- CourseDocument.json [--images directory] [--geometry-window Section-ID start end | --physical-overlap | --physical-domain demand.json | --view source-s behind ahead active-index Link-ID ... | --driving-view min-s max-s advance camera-distance render-depth recovery-backtrack last-safe-s]',
   );
 const project = createCourseProject();
-const result = await project.importDocument(await readFile(sourcePath, 'utf8'));
+const sourceText = await readFile(sourcePath, 'utf8');
+let result = parseCourseDocument(sourceText);
+if (result.ok) {
+  try {
+    const inputs = imageDirectory ? await readCourseImages(result.value.assets, imageDirectory) : [];
+    result = await project.importDocument(sourceText, inputs);
+  } catch (error) {
+    if (!(error instanceof CourseAssetError)) throw error;
+    result = courseFailures([error]);
+  }
+}
 if (!result.ok) {
   console.error(JSON.stringify(result, null, 2));
   process.exitCode = 1;
@@ -98,6 +118,13 @@ if (!result.ok) {
         type: result.value.type,
         entrySection: result.value.entry.id,
         links: result.value.links.length,
+        images: result.value.assets.map(({ id, sha256, source }) => ({
+          id,
+          sha256,
+          width: source.width,
+          height: source.height,
+          levels: source.levels.length,
+        })),
         identity: result.value.identity,
         sections: result.value.sections.map((section) => ({
           id: section.id,

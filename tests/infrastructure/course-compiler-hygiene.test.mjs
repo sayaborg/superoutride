@@ -10,9 +10,10 @@ import ts from 'typescript';
 for (const [entry, owners, restricted = {}] of [
   ['runtime/declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
   ['compiler/compiled-course.ts', ['core', 'course', 'compiler']],
+  ['compiler/course-image-source.ts', ['core', 'course', 'graphics'], { graphics: ['graphics/sprite.js'] }],
   ['compiler/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
-  ['compiler/course-graph.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
+  ['compiler/course-graph.ts', ['core', 'course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-links.ts', ['core', 'course', 'compiler']],
   ['authoring/course-project.ts', ['course', 'compiler']],
   [
