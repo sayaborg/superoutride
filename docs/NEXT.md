@@ -14,9 +14,9 @@ composition roots. Sprite Tool exists. Gate 1 now provides a versioned CourseDoc
 recipe, immutable compiled reference graph and atomic authoring project boundary through a separate
 offline compiler entry. Gate 2 adds local Guide profiles and offline varying/shared Boundary readers,
 partial Band activation, taper birth/death and continuous partition changes. Oriented Ports and
-geometric Links now support offline chains, forks, merges and transformed loops. Complete common-content
-overlap, bounded views, runtime Link commit, the combined physical/visual/lock edge cutover and resident
-images remain targets.
+geometric Links now support offline chains, forks, merges and transformed loops. Bounded geometry views
+retain actual occurrence history and expose narrow point readers in an active frame. Complete common-content/consumer qualification, runtime Link commit, the combined
+physical/visual/lock edge cutover and resident images remain targets.
 Tire/audio tuning stays deferred.
 
 ### Implemented foundation
@@ -46,6 +46,14 @@ invalidation. Full-cell Raster/Guide edge proof includes partial Band domains an
 This certifies selected Carriageway geometry only, not complete content or driving readiness. Gate 2
 remains in progress.
 
+[Occurrence/view tests](../tests/runtime/course-geometry-view.test.mjs) establish offline canonical
+traversal history, actual merge predecessors, inverse visited-Link traversal, bounded loop history,
+shared source/assets and active-frame Raster/Guide/Band mapping. All four consumer intervals are
+explicit and include the admitted pose interval/step advance; missing history/selection/geometry
+coverage is diagnosed. The [offline entry](development.md#course-document-compiler) can inspect an
+explicit itinerary. This remains geometry-only: current driving reader interfaces and full physical/
+presentation continuity are not qualified, and the traversal operations are not actor seam commits.
+
 ### Next milestones
 
 1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
@@ -54,9 +62,11 @@ remains in progress.
 2. **Gate 2 — Geometry, Links and views: in progress.** Local Guide envelopes and activation-aware
    varying/shared boundary readers with half-open membership, oriented Ports/geometric Links,
    two/three-way fork connections, merges and transformed loops are implemented offline. Next add
-   bounded views and complete common-content/consumer-guard qualification, then runtime Link commit
-   and the joint runtime edge cutover. Replace origin-based
-   junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
+   the missing height, physical-binding and presentation-source admission needed for complete
+   common-content qualification. Derive actual consumer envelopes and adapt the bounded geometry
+   facets to driving readers; prove pre-lock coverage and each incoming merge/exit presentation.
+   Only then implement per-actor runtime Link commit and the joint runtime edge cutover. Replace
+   origin-based junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific
    exit visibility, actual predecessor history and neighboring-actor presentation. Migrate relevant
    Guide/junction helpers and names with their causal tests.
 3. **Gate 3 — Images.** Compile saved layers and static A/B recipes to resident RGB555 records; qualify

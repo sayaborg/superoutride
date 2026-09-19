@@ -25,7 +25,8 @@ master through the game blitter. See [usage and scope](docs/development.md#sprit
 The [CourseDocument compiler](docs/development.md#course-document-compiler) validates saved geometry,
 varying shared boundaries, Band activation/tapers and local Guide envelopes. Oriented Ports and
 geometric Links connect LINEAR chains, BRANCH forks/merges and one-source CIRCUIT loops in an immutable
-reference graph. It is an offline authoring foundation; the
+reference graph. An offline bounded geometry view retains actual traversal history and shares source
+readers in an active frame. Complete content/consumer qualification and driving cutover are pending; the
 current game courses still use their existing composition roots.
 
 For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio/audio-browser.html` is the separate audition page;

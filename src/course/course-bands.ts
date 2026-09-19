@@ -47,17 +47,24 @@ export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number 
   return a.l + (b.l - a.l) * ((s - a.anchor.s) / (b.anchor.s - a.anchor.s));
 }
 
-/** Half-open longitudinal/lateral ownership, with the finite Section terminal included. */
-export function courseBandAt(partition: CompiledBandPartition, s: number, l: number): CompiledBand | null {
-  if (!Number.isFinite(l)) throw new RangeError('Band lateral query must be finite');
+/** Half-open ownership; l is in the chart whose zero is sourceLateralOrigin in source coordinates. */
+export function courseBandAt(
+  partition: CompiledBandPartition,
+  s: number,
+  l: number,
+  sourceLateralOrigin = 0,
+): CompiledBand | null {
+  if (typeof sourceLateralOrigin !== 'number') throw new TypeError('Band lateral origin must be numeric');
+  if (!Number.isFinite(l) || !Number.isFinite(sourceLateralOrigin))
+    throw new RangeError('Band lateral query and origin must be finite');
   if (!Number.isFinite(s) || s < 0 || s > partition.length)
     throw new RangeError('Band query must be within its finite Section domain');
   for (const band of partition.bands)
     if (
       s >= band.start.s &&
       (s < band.end.s || (s === partition.length && s === band.end.s)) &&
-      l >= courseBoundaryAt(band.left, s) &&
-      l < courseBoundaryAt(band.right, s)
+      l >= courseBoundaryAt(band.left, s) - sourceLateralOrigin &&
+      l < courseBoundaryAt(band.right, s) - sourceLateralOrigin
     )
       return band;
   return null;

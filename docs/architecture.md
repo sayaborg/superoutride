@@ -274,9 +274,9 @@ navigation for existing links; each detailed contract has one owner.
 ## Course Editor target
 
 This section owns target frame and geometric reader contracts. Local Guide envelopes and the offline
-Boundary/active-Band and geometric Port/Link subsets are implemented; bounded views and runtime Link
-and joint physical/visual edge cutovers remain
-pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
+Boundary/active-Band and geometric Port/Link subsets are implemented. Offline bounded geometry views
+now share source readers through occurrence mappings. Complete content/consumer qualification, runtime
+Link commits and joint physical/visual edge cutovers remain pending. [Content](content-and-gameplay.md#course-editor-target) owns authored
 records and transactions; [image assets](image-assets.md#course-editor-target) owns image products.
 
 ### Frame transform and coordinates
@@ -296,8 +296,10 @@ components, wheel speeds, control scalars and validated progress retain their va
 This change of basis preserves metric length, world up and gravity. Matching common overlap and
 horizontal seam geometry are separate checks. A port match alone does not certify continuity.
 
-Core retains finite open readers, Raster/Guide, `Y(s,l)=Y(s)` and chainage pseudo-projection. Runtime
-maps source addresses into a bounded continuous view across Links. Those addresses are not race credit.
+Core retains finite open readers, Raster/Guide, `Y(s,l)=Y(s)` and chainage pseudo-projection. The runtime-owned [offline geometry view](content-and-gameplay.md#bounded-geometry-views-and-occurrence-history)
+composes upright transforms and source addresses across a retained itinerary, exposing narrow point
+readers in its active frame. It neither recompiles Raster/Guide nor supplies the current driving
+interfaces. Complete consumer/content qualification remains required. Those addresses are not race credit.
 
 ### Compiled boundary geometry
 

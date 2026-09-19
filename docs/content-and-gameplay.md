@@ -216,8 +216,8 @@ an interior knot, short coverage gap or mismatched Raster miter cannot escape th
 This product certifies only the selected Carriageway's pavement geometry. It does not certify other
 roads, shoulders, medians, physical bindings, height, images, material phase or scenery, nor sufficient
 consumer/transfer guards. A compiled Link is **not admission for a driving transition**. Complete
-common-content overlap, parent-specific visibility, bounded views, actual predecessor history and
-atomic runtime commit remain required before cutover. Existing same-world stage continuation and
+common-content overlap, parent-specific visibility, consumer/content qualification and atomic runtime commit remain required
+before cutover. The bounded geometry view below provides occurrence/history foundations only. Existing same-world stage continuation and
 runtime readers remain unchanged.
 
 ### Offline topology
@@ -235,6 +235,61 @@ LINEAR/BRANCH entry has no incoming Link; every declared Section must be reachab
 belongs to those authored types, not to the graph representation. CIRCUIT keeps one source and one
 cyclic Link, never lap copies. Existing per-Section simple-strip geometry admission still applies;
 this increment does not classify intentional geographic strip intersections.
+
+### Bounded geometry views and occurrence history
+
+[Geometry traversal](../src/runtime/course-occurrence.ts) is a live **offline exploration adapter** over
+canonical Section/Link references. Each immutable occurrence has a traversal ordinal, reusable Section
+and actual incoming Link. Its owner retains an ordered history and an active occurrence; none is stored
+inside CompiledCourse. Ordinals establish local instance identity, not checkpoint or lap credit.
+Forward exploration requires an explicit canonical outgoing Link. Reverse uses the inverse of the
+visited Link and the retained predecessor, including at a merge. Re-entry reuses the same occurrence;
+an already visited successor cannot silently be replaced. Failed operations preserve state.
+
+`retainBehind` declares the reverse-history distance in metres from the latest entered port. Retain
+whole intersecting occurrences, measured along visited seam spans, and discard older references after
+forward traversal. Initial history can be shorter than the request; a view must still prove coverage.
+Reverse beyond retention fails instead of guessing a predecessor or another lap. Occurrences share the
+same Section readers/assets and never allocate geometry or image copies for a scored lap count.
+Snapshots own frozen arrays; callers retaining old snapshots also retain that historical metadata.
+This geometry adapter does not authorize an actor transition or implement route locks/recovery.
+
+[Geometry views](../src/runtime/course-geometry-view.ts) map a retained, explicitly followed itinerary
+into the active occurrence's coordinate basis. Compose the existing Link transforms locally; no global
+unwrapped world coordinates accumulate. Each span owns one source-to-view address mapping: paired
+chainage anchors, a derived lateral origin and an upright rigid transform. Lateral anchors are derived
+from canonical Carriageway boundaries, never reconstructed by projecting rounded world positions.
+The source Section, traversal occurrence and chosen frame remain separate identities even for a loop.
+
+The view uses finite chainage `[0,length]`. At a visited seam the successor owns the point, including
+when the seam is the view endpoint. Band queries delegate to the canonical half-open partition through
+the same address mapping as Raster/Guide point readers. Lateral membership compares the view point
+with source boundaries shifted by that mapping, preserving exact half-open ownership without a lossy
+inverse boundary round trip. The zero-origin partition query retains its existing behavior. Preserve exact source Boundary/activation
+stations across ruler offset cancellation; reject distinct classification stations that collapse in
+the view ruler. Positive visited seam spans must also remain representable; a tiny occurrence cannot
+silently disappear between larger neighbors. Continuous Core geometry retains its existing sampling tolerance. Source readers,
+Boundary references, local Guide envelopes and assets are shared, not retessellated. The `geometry`
+facet exposes ordinary point readers and Guide bounds without graph/occurrence metadata; it is not yet
+an adapter to the existing driving GuidePath, projection, terrain or physical-contact interfaces.
+
+Every request explicitly supplies camera/render, contact, driver-lookahead and reverse/recovery
+behind/ahead extents, plus a closed active-source pose interval and maximum fixed-step advance. For
+each consumer require `[minS-behind, maxS+maxAdvance+ahead]` inside retained/selected geometry. Failure
+identifies the consumer, pose, advance and required/available intervals in structured diagnostics.
+No fixed guard is inferred. Without a followed successor, coverage ends at the earliest exit seam;
+no exit or parent runout is selected implicitly. A retained first occurrence with an incoming Link
+starts at its entry seam, rather than inventing discarded predecessor coverage. View queries outside
+the admitted interval fail explicitly. Malformed API values use TypeError/RangeError as in AGENTS.
+
+The result is labelled `geometry-only`. These are declared interval checks, not measured product
+consumer envelopes, complete common-content overlap, pre-lock visibility or transition qualification.
+Only the selected Carriageway has the Link's existing geometric agreement proof. Other Bands can
+still differ across a seam. Height, physical bindings, images/phase, scenery/background and product
+camera state have no admitted CourseDocument fields/readers here; none is filled with a default or
+reported as certified. Their source/binding admission and separate physical/presentation proofs,
+including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
+The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
 
 ### Publication, identity and diagnostics
 

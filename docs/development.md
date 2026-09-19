@@ -72,7 +72,30 @@ loops, exact canonical references, frozen cycles and source invalidation. Comple
 rejects hidden mismatches, missing coverage, curved guards and lost numerical station identity.
 The CLI summarizes cyclic graphs by IDs/counts; saved authoring remains the reconstructible source.
 This is selected-Carriageway geometric evidence only. Complete physical/image common-content overlap,
-bounded consumer ranges, views and runtime transition are separate acceptance requirements below.
+bounded product-consumer ranges and runtime transition are separate acceptance requirements below.
+The geometry-only view adapter supplies the narrower foundation described next.
+
+The same offline entry can inspect an explicit geometry itinerary:
+
+```sh
+npm run compile:course -- tests/fixtures/linked-linear.course.json --view 200 20 20 0 join
+npm run compile:course -- tests/fixtures/transformed-loop.course.json --view 100 20 20 1 lap-loop
+```
+
+After `--view`, arguments are active source s, behind metres, ahead metres, active occurrence index,
+then the visited Link IDs in order from the entry. The command resolves each ID once in its current
+outgoing scope, explores the itinerary and reverses to the requested active occurrence. All four
+consumer ranges use the supplied extents in this inspection command; these numbers are not product
+camera/contact/driver/recovery defaults. The programmatic adapter accepts distinct ranges and a pose
+interval/step advance. The report includes geometry-only scope, source/frame mappings and interval
+coverage; missing selection/history/coverage fails rather than extending a source implicitly.
+
+[View tests](../tests/runtime/course-geometry-view.test.mjs) check rotated/translated mappings, exact
+seam and Band ownership, separate active frames, all actual merge predecessors, retained reverse
+history, 1,000 loop traversals with shared source/assets, multi-seam views, invalid-reference isolation,
+immutable snapshots, consumer-specific failures and the real offline command. This is not physical
+straddling-contact, neighboring-actor rendering, camera/picture continuity or runtime-commit evidence.
+Those causal integration gates remain below and in NEXT; no current driving path has been removed.
 
 ## Sprite LOD preview
 

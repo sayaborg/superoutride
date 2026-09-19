@@ -56,6 +56,13 @@ hidden curves/fillets and partial coverage gaps. Retain a fractional activation 
 offset cancellation; reject distinct ruler stations that collapse to one relative coordinate. These
 geometry tests do not claim physical/image continuity, consumer guard sufficiency or runtime commit.
 
+Occurrence/view regressions preserve actual incoming references at every merge, distinguish repeated
+source identity from traversal/frame identity, and reverse the visited transform. Check bounded history
+and shared sources after many loop traversals; missing history must fail without reconstruction. Assert
+source addresses and narrow reader outputs across seams, exact Band activation stations and local
+Guide bounds. Exercise each consumer's interval over its complete declared pose/step envelope. These
+geometry checks do not replace product consumer, contact, camera or picture-continuity integration.
+
 The [geometry identity](content-and-gameplay.md#geometry-identity-and-anchor-replay) tests distinguish
 recipe changes from unchanged builds. Reopening the same document reproduces its ruler and anchors;
 a changed subdivision recipe invalidates dependent products and requires an explicit source migration.

@@ -46,3 +46,24 @@ test('planar construction distinguishes malformed poses, numeric domains and non
   const identity = compilePlanarTransform(pose, pose);
   assert.deepEqual(transformPlanarPoint(identity, { x: 17, z: -3 }), { x: 17, z: -3 });
 });
+
+test('planar composition agrees with ordered point/vector transforms and preserves inverse metric', async () => {
+  const { composePlanarTransforms } = await import('../../dist/core/planar-transform.js');
+  const a = compilePlanarTransform({ x: 13, z: -21, heading: 0.37 }, { x: -5, z: 12, heading: -1.2 });
+  const b = compilePlanarTransform({ x: 8, z: 5, heading: 2.1 }, { x: 27, z: -11, heading: 0.8 });
+  const composed = composePlanarTransforms(b, a);
+  for (const point of [
+    { x: 0, z: 0 },
+    { x: -21, z: 17 },
+    { x: 5.6, z: 3.1 },
+  ]) {
+    for (const apply of [transformPlanarPoint, transformPlanarVector]) {
+      const expected = apply(b, apply(a, point)),
+        actual = apply(composed, point);
+      assert.ok(Math.hypot(actual.x - expected.x, actual.z - expected.z) < 1e-12);
+      const back = apply(invertPlanarTransform(composed), actual);
+      assert.ok(Math.hypot(back.x - point.x, back.z - point.z) < 1e-12);
+    }
+  }
+  assert.ok(Object.isFrozen(composed.translation));
+});

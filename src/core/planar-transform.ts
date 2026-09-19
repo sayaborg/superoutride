@@ -46,3 +46,16 @@ export function invertPlanarTransform(transform: PlanarTransform): PlanarTransfo
   if (![t.x, t.z].every(Number.isFinite)) throw new RangeError('Inverse translation must be representable');
   return Object.freeze({ ...rotation, translation: Object.freeze({ x: -t.x, z: -t.z }) });
 }
+
+/** Apply sourceToMiddle first, then middleToDestination. */
+export function composePlanarTransforms(
+  middleToDestination: PlanarTransform,
+  sourceToMiddle: PlanarTransform,
+): PlanarTransform {
+  const translation = transformPlanarPoint(middleToDestination, sourceToMiddle.translation);
+  const cosine = middleToDestination.cosine * sourceToMiddle.cosine - middleToDestination.sine * sourceToMiddle.sine;
+  const sine = middleToDestination.sine * sourceToMiddle.cosine + middleToDestination.cosine * sourceToMiddle.sine;
+  if (![translation.x, translation.z, cosine, sine].every(Number.isFinite))
+    throw new RangeError('Composed planar transform must be representable');
+  return Object.freeze({ cosine, sine, translation: Object.freeze(translation) });
+}

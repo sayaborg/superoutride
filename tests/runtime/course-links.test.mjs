@@ -1,3 +1,4 @@
+import { forkCourseDocument } from '../helpers/course-link-documents.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -45,63 +46,7 @@ const link = (id, from, to, sourcePort = 'out') => ({
   overlap: { behind: 30, ahead: 30 },
 });
 
-function fork(count = 3) {
-  const doc = fixture(),
-    template = structuredClone(doc.sections[0]);
-  template.start = { x: 0, z: 0, heading: 0 };
-  template.boundaries[0].knots.forEach((k) => {
-    k.l = -4;
-  });
-  template.boundaries[1].knots.forEach((k) => {
-    k.l = 4;
-  });
-  const make = (id, heading) => {
-    const s = structuredClone(template);
-    s.id = id;
-    s.start = { x: heading * 7, z: heading * 3, heading };
-    s.ports = [port('in', 'entry', 60), port('out', 'exit', 240)];
-    return s;
-  };
-  const parent = make('parent', 0);
-  parent.ports = [];
-  parent.boundaries = [];
-  parent.bands = [];
-  parent.carriageways = [];
-  for (let i = 0; i < count; i++) {
-    const road = `road-${i}`,
-      center = (i - 1) * 14;
-    for (const [side, l] of [
-      ['left', center - 4],
-      ['right', center + 4],
-    ])
-      parent.boundaries.push({
-        id: `${road}-${side}`,
-        knots: [
-          { anchor: anchor(0), l },
-          { anchor: anchor(300), l },
-        ],
-      });
-    parent.bands.push({
-      ...structuredClone(template.bands[0]),
-      id: road,
-      leftBoundaryId: `${road}-left`,
-      rightBoundaryId: `${road}-right`,
-    });
-    parent.carriageways.push({ id: road, bandIds: [road] });
-    parent.ports.push(port(`out-${i}`, 'exit', 230, road));
-  }
-  const children = Array.from({ length: count }, (_, i) => make(`child-${i}`, 35 + i * 37));
-  const shared = make('shared', -80);
-  shared.ports.pop();
-  doc.type = 'BRANCH';
-  doc.entrySectionId = parent.id;
-  doc.sections = [parent, ...children, shared];
-  doc.links = children.flatMap((child, i) => [
-    link(`fork-${i}`, parent.id, child.id, `out-${i}`),
-    link(`merge-${i}`, child.id, shared.id),
-  ]);
-  return doc;
-}
+const fork = (count = 3) => forkCourseDocument(fixture(), count);
 
 test('saved Links replay canonical immutable graphs, including actual cyclic Port/Section references', async () => {
   for (let i = 0; i < files.length; i++) {

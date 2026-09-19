@@ -49,6 +49,16 @@ function edges(
   return [left, right];
 }
 
+function carriagewayCenter(carriageway: CompiledCarriageway, s: number, path: string): number {
+  const [left, right] = edges(carriageway, s, s, path);
+  return (courseBoundaryAt(left, s) + courseBoundaryAt(right, s)) / 2;
+}
+
+/** Derive the canonical source lateral anchor without projecting world coordinates back to the chart. */
+export function coursePortLateral(port: CompiledPort): number {
+  return carriagewayCenter(port.carriageway, port.anchor.s, '');
+}
+
 /** Graph construction phase; the owning course compiler closes and freezes Section back-references. */
 export function compileCoursePort(
   source: SectionDocument['ports'][number],
@@ -62,8 +72,7 @@ export function compileCoursePort(
     `${path}/anchor`,
     'Port must lie inside the finite Section domain',
   );
-  const [left, right] = edges(carriageway, anchor.s, anchor.s, path);
-  const l = (courseBoundaryAt(left, anchor.s) + courseBoundaryAt(right, anchor.s)) / 2;
+  const l = carriagewayCenter(carriageway, anchor.s, path);
   const { x, z, heading } = guidePathToWorld(section.guide, anchor.s, l);
   return Object.freeze({
     id: source.id,
