@@ -3,14 +3,14 @@ import { finitePoint } from '../core/validation.js';
 
 const GATE_WIDTH_TOLERANCE_METERS = 1e-9;
 
-export interface WorldCrossingGateAuthoring {
+interface WorldCrossingGateAuthoring {
   readonly id: string;
   readonly center: Vec2;
   readonly heading: number;
   readonly halfWidth: number;
 }
 
-export interface WorldCrossingGate extends WorldCrossingGateAuthoring {
+interface WorldCrossingGate extends WorldCrossingGateAuthoring {
   readonly tangent: Vec2;
   readonly normal: Vec2;
 }

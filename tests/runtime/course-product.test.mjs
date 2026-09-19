@@ -76,33 +76,35 @@ test('production CLI renders saved car and bike scenes at curves and strip edges
   }
 });
 
-test('actual browser root loads saved content and runs input, recovery, vehicle selection and frame rendering', async (t) => {
-  const dom = installBrowserDom(t, '?mode=trial');
-  const requests = [];
-  t.mock.method(globalThis, 'fetch', async (url) => {
-    requests.push(url.pathname);
-    return new Response(await readFile(url));
+for (const mode of ['linear', 'seam'])
+  test(`actual ${mode} browser root loads saved content and runs input, recovery, vehicle selection and frame rendering`, async (t) => {
+    const dom = installBrowserDom(t, `?mode=${mode}`);
+    const requests = [];
+    t.mock.method(globalThis, 'fetch', async (url) => {
+      requests.push(url.pathname);
+      return new Response(await readFile(url));
+    });
+    const create = globalThis.document.createElement;
+    globalThis.document.createElement = (tag) => {
+      const element = create(tag);
+      element.remove = () => {};
+      element.append = (...children) => element.children.push(...children);
+      return element;
+    };
+    dom.elements.get('game').insertAdjacentElement = () => {};
+    await import(`../../dist/main-course.js?${mode}`);
+    assert.ok(requests.some((url) => url.endsWith(`/courses/${mode}.course.json`)));
+    assert.equal(requests.filter((url) => url.endsWith('.course.json')).length, 1);
+    assert.equal(requests.filter((url) => url.includes('/images/')).length, images.length);
+    assert.ok(requests.every((url) => !url.includes('ground-pages')));
+    dom.win.emit('keydown', { code: 'ArrowUp', preventDefault() {} });
+    dom.frame(17);
+    dom.frame(34);
+    dom.elements
+      .get('vehicle-selector-buttons')
+      .children.find((e) => e.textContent === 'RC30')
+      .emit('click');
+    for (let i = 0; i < 10; i += 1) dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
+    dom.frame(51);
+    assert.ok(dom.calls.filter((c) => c[0] === 'putImageData').length >= 4);
   });
-  const create = globalThis.document.createElement;
-  globalThis.document.createElement = (tag) => {
-    const element = create(tag);
-    element.remove = () => {};
-    element.append = (...children) => element.children.push(...children);
-    return element;
-  };
-  dom.elements.get('game').insertAdjacentElement = () => {};
-  await import('../../dist/main-course.js');
-  assert.equal(requests.filter((url) => url.endsWith('.course.json')).length, 1);
-  assert.equal(requests.filter((url) => url.includes('/images/')).length, images.length);
-  assert.ok(requests.every((url) => !url.includes('ground-pages')));
-  dom.win.emit('keydown', { code: 'ArrowUp', preventDefault() {} });
-  dom.frame(17);
-  dom.frame(34);
-  dom.elements
-    .get('vehicle-selector-buttons')
-    .children.find((e) => e.textContent === 'RC30')
-    .emit('click');
-  for (let i = 0; i < 10; i += 1) dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
-  dom.frame(51);
-  assert.ok(dom.calls.filter((c) => c[0] === 'putImageData').length >= 4);
-});

@@ -78,6 +78,7 @@ test('a tenth catalog vehicle without a shortcut remains selectable through the 
 test('mobile course buttons derive labels and active state from the canonical course authority', () => {
   assert.deepEqual(createMobileCourseSelectorModel('linear'), [
     { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: true },
+    { value: 'seam', label: '2', ariaLabel: 'Select SEAM course', active: false },
   ]);
 });
 

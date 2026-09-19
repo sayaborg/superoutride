@@ -13,12 +13,18 @@ import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import { renderDriving, type GroundColorReader } from '../render/renderer.js';
 import { createCoursePresentationPreview } from '../render/course-presentation-preview.js';
 import { createSpriteAssets } from '../visual/sprite-assets.js';
+import { createCourseDrivingSession } from './course-driving-session.js';
 import { createCourseGeometryTraversal } from './course-occurrence.js';
 import { createCourseGeometryView } from './course-geometry-view.js';
 import { createCourseSectionDrivingSource } from './course-section-driving-view.js';
 
 /** One assembly shared by browser play and offline frames. Lower layers see ordinary readers. */
 export function createCourseScene(section: CompiledSection) {
+  if (section.outgoing.length) return createLinkedScene(section);
+  return createSectionScene(section);
+}
+
+function createSectionScene(section: CompiledSection) {
   if (!section.presentation) throw new RangeError('Driving requires saved Section presentation');
   const entry = section.ports.find((port) => port.kind === 'entry');
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
@@ -62,6 +68,9 @@ export function createCourseScene(section: CompiledSection) {
   const worldSprites = presentation.sprites.map((placement) => placement.sprite);
   return Object.freeze({
     world,
+    observeStep() {
+      return null;
+    },
     recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
       if (vehicle.course.s >= entry.anchor.s) return false;
       recoverVehicleToGuideCoordinate(world, vehicle, {
@@ -97,6 +106,63 @@ export function createCourseScene(section: CompiledSection) {
           playerKind,
         },
         { ground },
+      );
+    },
+  });
+}
+
+/** The renderer receives the same ordinary readers in a single source or occurrence frame. */
+function createLinkedScene(section: CompiledSection) {
+  const session = createCourseDrivingSession(section);
+  const entry = section.ports.find((port) => port.kind === 'entry');
+  if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
+    throw new RangeError('Driving requires an entry Port with camera space behind it');
+  const assets = createSpriteAssets();
+  return Object.freeze({
+    get world() {
+      return session.view.world;
+    },
+    get history() {
+      return session.history;
+    },
+    observeStep: session.observeStep,
+    recoverAtEntry(vehicle: ArcadeVehicleState, recovery: RecoveryState): boolean {
+      if (session.history.active.ordinal !== 0 || vehicle.course.s >= entry.anchor.s) return false;
+      recoverVehicleToGuideCoordinate(session.view.world, vehicle, {
+        state: recovery,
+        reason: 'wrong-course',
+        target: { s: entry.anchor.s, l: coursePortLateral(entry) },
+      });
+      return true;
+    },
+    render(
+      target: Parameters<typeof renderDriving>[0],
+      vehicle: VehicleRenderReadState,
+      camera: CameraState,
+      playerKind: 'car' | 'bike',
+    ) {
+      const { world, geometry, presentation } = session.view;
+      return renderDriving(
+        target,
+        {
+          background: presentation.backgroundAt(camera.s),
+          guide: geometry,
+          camera,
+          vehicle,
+          terrainProfile: {
+            screenHeight: LOGICAL_HEIGHT,
+            dMin: CURRENT_RENDER_NEAR_DEPTH_METERS,
+            dMax: CURRENT_RENDER_FAR_DEPTH_METERS,
+            ...presentation.groundProfile,
+            height: world.height,
+            visual: presentation.visual,
+          },
+          groundProfile: presentation.groundProfile,
+          worldSprites: presentation.worldSprites,
+          assets,
+          playerKind,
+        },
+        { ground: presentation.ground },
       );
     },
   });

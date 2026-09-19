@@ -9,8 +9,9 @@ image formats and compilation.
 
 The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
-single-Section driving readers, saved presentation and the ordinary renderer. The headless CLI uses
-this same assembly. The current provisional course is a finite 2.8 km LINEAR with 132 row-generated
+single-Section or occurrence driving readers, saved presentation and the ordinary renderer. The headless CLI uses
+this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link.
+The original provisional course is a finite 2.8 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
 zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains 30 m of source behind the
@@ -502,7 +503,7 @@ Saved images, paint/phase and scenery/background now have explicit presentation 
 evaluation and separate source-domain continuity proofs. Full product camera/pose enforcement across a transition
 remains unqualified. Separate physical/presentation proofs,
 including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
-The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
+The browser root consumes these occurrence readers for the saved two-Section LINEAR.
 
 The traversal owner also exposes `prepare('forward' | 'reverse')`. Preparation returns a frozen
 prospective history and the same compiled/inverse Link transform without changing visited/selected
@@ -539,67 +540,37 @@ all nine production vehicle profiles through the real contact/recovery/driver/ca
 including reverse, unsupported excursion, moving windows and manual recovery. Its explicit diagnostic
 ground/background/sprites exercise the existing renderer; they are not CourseDocument presentation
 bindings or accepted product art. The common-guard adapter below extends those readers. Full lateral/pose
-admission, pre-lock/exit enforcement, atomic commits and the joint edge cutover remain required. Browser roots and
-Session composition stay on their existing paths until their separate acceptance gates.
+admission, pre-lock/exit enforcement, atomic commits and the joint edge cutover remain required. The browser and CLI use the single-Section reader for the saved LINEAR and the occurrence reader for linked courses.
 
-### Common-guard occurrence driving view
+### Occurrence driving and actor commit
 
-This existing diagnostic adapter is scheduled for replacement in M2. Its whole-window restrictions
-below describe its current limitations; the product seam contract is span composition, not expanded guards.
+`createCourseDrivingSource` consumes physical and presentation guard products over canonical Links.
+Each occurrence owns its interval between entry and exit. The driving view composes retained and
+selected spans and qualifies each source interval separately. Camera/render, projection, driver and
+recovery reads cross ownership seams; their windows may extend beyond the 30 m common guard.
+Guard equality covers contact and one fixed step only.
 
-`createCourseDrivingSource` consumes physical and presentation query-domain products over the same
-canonical Links. It admits an active occurrence plus at most one immediate selected/visited neighbor.
-All neighbor samples must stay within that Link's complete qualified guard, and the whole requested
-interval must fit the active source's separately qualified local geometry window. Longer or multiple
-neighbor windows return `unqualified_window`/`common_guard_exhausted`; a different canonical Link returns
-`unqualified_links`. This conservative first scope is labelled `common-guard-driving`.
+Ordinary Guide, Raster, height, surfaces, paint, environment, background and scenery readers use the
+same occurrence mapping. Seeds encode occurrence ordinal and native segment index. Local projection
+retains complete candidate intervals and deterministic tie order; it adds no global-search fallback.
+Source readers and images are shared. Mapped metadata and retained history remain finite. The successor
+owns the seam, including a closed endpoint. Scenery belongs to one owning occurrence; ground preserves
+saved image phases and half-open Band edges. Outside the source strip, ordinary environment bases apply.
 
-All ordinary `VehicleWorld`, Raster, height, visual, ground-color, background and sprite facets derive
-from the same occurrence address mapping. The stable active-source ruler is independent of the
-zero-based inspection window. Preserve exact source classification stations in both representations.
-Each span distinguishes its bounded source range from its complete half-open ownership interval;
-the successor owns the seam, including a closed query endpoint. Guide projection clips a source
-segment only at an ownership seam. A window cutting any requested candidate short fails even when
-the numeric search radius fits its candidate count. Native segment arithmetic and height interpolation
-remain unchanged. Seeds encode occurrence ordinal and native segment index within an exact safe-integer
-domain; rebuilding a window does not reseed observations or rejoin document IDs. Exhaustion fails.
+`createCourseDrivingSession` owns one actor's traversal. Unique successors are selected within the
+forward retention distance. A physical gate observation requests forward or reverse commit; the pure
+`createSeamView(...).admitMotion` checks the contact pose and one fixed step independently of consumer
+windows. The prepared destination readers are constructed before publication. The transaction rotates
+world position, velocity, body yaw and camera-rig yaw, rebases course/recovery coordinates and retains
+all body scalars, contact memory, control state and camera vertical state. The normal camera update
+then observes the destination world. No physical integration or force is repeated or corrected.
+Recovery and vehicle replacement rebase their current observations without awarding a gate crossing.
 
-The source prepares physical readers and source-image preview workspaces once; windows retain bounded
-mapping/observation metadata and share those readers/images. Ground point queries use original paint
-phase and half-open Bands. Surface and source-paint adapters classify shifted canonical boundaries directly in the query chart.
-They do not add the lateral origin back before classification; paint phase/stamp grids use the same
-shifted chart. Fractional mapped edges retain exact left-in/right-out ownership without an epsilon.
-Environments use mapped source stations and frame-relative background yaw. Scenery uses owning occurrence
-intervals, so matching common instances appear once. Ground geometry
-projects the common source-strip intersection; physical and presentation lateral query limits are
-checked independently when reading the neighbor. The current conservative scenery admission rejects
-any retained neighbor anchor outside the qualified lateral domain, even if a narrower camera could
-hide it. No unsupported content or transparent placeholder supplies a missing binding.
-
-Real LINEAR comparisons cross a selected seam through contact/driver and saved-content rendering while
-the old occurrence stays active. Reverse driving uses the actual retained predecessor in the destination
-frame. Retained and per-step rebuilt windows preserve complete vehicle state; native source comparisons
-and full frames provide separate physical/presentation evidence. These observations establish the scoped
-reader path, not runtime pose/yaw admission, complete fork-transfer dynamics, general multi-neighbor
-geometry or per-actor commit. Source color is an explicit offline level-zero preview; resident RGB555 and
-filtering remain Gate 3. The existing single-Section adapter and browser composition roots are unchanged.
-
-`createSeamView(view, successor)` adds an explicitly bounded seam admission to the same reader
-implementation. The canonical successor occurrence identifies the Link traversal, including source
-reuse; the whole window, its pose interval and forward step must fit both qualified demands and the
-common guard. All active and neighboring physical/paint queries and retained scenery anchors obey
-their respective lateral limits. Projection checks the original world point before optional clamping,
-so a clamp cannot conceal a query outside the physical proof. General `createView` keeps its wider
-active-source contract.
-
-Its pure `admitMotion(previous, current)` observes world points in the active oriented Port basis.
-Both independent qualifications must contain the previous pose, the expanded endpoint and the signed
-longitudinal/lateral step. A rejected pose/step names the physical or presentation domain and leaves
-history and actors unchanged. These are finite-step endpoint bounds, not an integration substep,
-camera-yaw, fork-transfer or actor-commit certificate. Real nine-profile driving steps and complete
-saved-content frames exercise the stricter reader, and prospective destination readers can fail
-without publishing history. Runtime must still derive/enforce the remaining consumer envelopes before
-using this preparation for a physical transition.
+The shared `createCourseScene` connects these readers to the unchanged renderer and is used by the
+browser root and PNG CLI. `content/courses/seam.course.json` splits the provisional LINEAR on its flat
+ridge, uses a translated/rotated destination frame and 30 m guards. The browser's SEAM selection drives
+both Sections. Car and bike integration checks cover forward/reverse commit, rigid-frame picture
+invariance, recovery across the seam and exact preservation of stored vehicle state.
 
 ### Publication, identity and diagnostics
 

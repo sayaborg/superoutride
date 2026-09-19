@@ -22,7 +22,7 @@ Open `http://localhost:8000/`. Build validates and stages the course JSON and im
 Left/right arrows steer. Up or X accelerates; down or Z brakes. Backspace recovers the vehicle.
 On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels gives full input.
 
-Open DEV for vehicle, camera, calibration and sound controls. Key 1 selects LINEAR. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
+Open DEV for vehicle, camera, calibration and sound controls. Key 1 selects LINEAR; key 2 selects its two-Section SEAM version. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
 
 ## Authoring and tools
 

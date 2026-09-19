@@ -1,4 +1,5 @@
 import { createBrowserDrivingShell } from './browser/driving-shell.js';
+import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mustGet } from './browser/dom.js';
 import { readCourseDocument } from './course/course-document.js';
 import { compileCourseDocument } from './compiler/compiled-course.js';
@@ -21,7 +22,8 @@ async function fetchBytes(url: URL): Promise<Uint8Array> {
 
 try {
   const root = new URL('./content/', import.meta.url);
-  const bytes = await fetchBytes(new URL('courses/linear.course.json', root));
+  const mode = selectBrowserCourseMode(new URLSearchParams(location.search).get('mode')).query;
+  const bytes = await fetchBytes(new URL(`courses/${mode}.course.json`, root));
   const source = readCourseDocument(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
   if (!source.ok) throw new Error(JSON.stringify(source.diagnostics));
   const images = await Promise.all(
@@ -39,6 +41,7 @@ try {
     recoveryProfile: RECOVERY_PROFILE,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
+      scene.observeStep(shell, shell.vehicle, true);
     },
   });
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
@@ -46,6 +49,7 @@ try {
   shell.start(
     (dt) => {
       input = shell.inputManager.sample();
+      const previous = { x: shell.vehicle.x, z: shell.vehicle.z };
       const recovered = advanceVehicleWithRecovery(scene.world, shell.vehicle, {
         state: shell.recovery,
         input,
@@ -53,6 +57,7 @@ try {
         profile: RECOVERY_PROFILE,
       });
       const entryRecovered = scene.recoverAtEntry(shell.vehicle, shell.recovery);
+      scene.observeStep(shell, previous, recovered !== null || entryRecovered);
       lifecycle.update(dt, recovered !== null || entryRecovered);
     },
     () => {
@@ -62,7 +67,7 @@ try {
         lifecycle.camera,
         deriveVehicleSpriteFamily(shell.presentation),
       );
-      shell.present('linear', input, lifecycle.camera, result.playerScreenY);
+      shell.present(mode, input, lifecycle.camera, result.playerScreenY);
     },
   );
 } catch (error) {

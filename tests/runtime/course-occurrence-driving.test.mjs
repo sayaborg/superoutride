@@ -40,7 +40,7 @@ async function fixture(shiftDestination = 0) {
         for (const k of b.knots) if (k.anchor.kind === 'absolute' && k.anchor.s === 300) k.anchor.s = 2000;
       for (const p of s.ports) p.anchor = { kind: 'absolute', s: p.kind === 'entry' ? 500 : 1400 };
     }
-    for (const l of d.links) l.overlap = { behind: 500, ahead: 500 };
+    for (const l of d.links) l.overlap = { behind: 30, ahead: 30 };
     for (const boundary of d.sections[1].boundaries) for (const knot of boundary.knots) knot.l += shiftDestination;
   });
   for (const s of f.document.sections) {
@@ -57,13 +57,13 @@ async function fixture(shiftDestination = 0) {
       pose,
       step,
       consumers: {
-        contact: { behind: 300, ahead: 300, left: 8, right: 8 },
-        driverLookahead: { behind: 0, ahead: 400, left: 0, right: 0 },
-        reverseRecovery: { behind: 300, ahead: 300, left: 2, right: 2 },
+        contact: { behind: 5, ahead: 5, left: 8, right: 8 },
+        driverLookahead: { behind: 0, ahead: 0, left: 0, right: 0 },
+        reverseRecovery: { behind: 0, ahead: 0, left: 2, right: 2 },
       },
     }),
   );
-  const footprint = { behind: 8, ahead: 198, left: 200, right: 200 };
+  const footprint = { behind: 5, ahead: 5, left: 200, right: 200 };
   const presentation = ok(
     compileCoursePresentationDomains(c.links, {
       pose,
@@ -117,7 +117,7 @@ test('stable frame addresses and occurrence seeds survive moving view origins ac
   const f = await fixture(),
     a = view(f, 1400),
     b = view(f, 1400.123456, 19.1);
-  assert.equal(a.driving.scope, 'common-guard-driving');
+  assert.equal(a.driving.scope, 'occurrence-driving');
   assert.equal(a.driving.frame, f.traversal.snapshot().active);
   for (const s of [1390.25, 1399.875, 1400, 1400.12345, 1404.0625, 1410.5]) {
     assert.deepEqual(a.geometry.addressInFrame(s, 0.25), b.geometry.addressInFrame(s, 0.25));
@@ -133,7 +133,7 @@ test('stable frame addresses and occurrence seeds survive moving view origins ac
   assert.equal(a.geometry.addressInFrame(1400, 0).occurrence, f.traversal.snapshot().selected[0]);
   assert.ok(a.driving.metadata.guideSegments < 30);
   assert.ok(a.driving.metadata.heightNodes < 6);
-  assert.throws(() => a.driving.world.surfaces.sample(1401, 50), RangeError);
+  assert.equal(a.driving.world.surfaces.sample(1401, 50).material.supported, false);
   assert.throws(() => a.driving.world.guide.toWorld(a.driving.range.end + 1, 0), RangeError);
 });
 
@@ -199,7 +199,7 @@ test('saved presentation maps once across a selected seam and actual complete fr
         (yaw * Math.PI) / 180,
         pixels[0],
         assets,
-        f.presentation.demand.bounds,
+        { ...f.presentation.demand.bounds, behind: 10, ahead: 200 },
         observed,
       );
       const moving = view(f, s, 19.1);
@@ -246,7 +246,7 @@ test('saved presentation maps once across a selected seam and actual complete fr
       assert.equal(moving.driving.presentation.worldSprites[0].asset, retained.presentation.worldSprites[0].asset);
     }
   assert.ok(neighborQueries > 10000);
-  assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 500, 0), RangeError);
+  assert.equal(typeof retained.presentation.ground.sampleAtLevel(1404, 500, 0), 'number');
   assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, 1), RangeError);
   assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, '0'), TypeError);
 });
@@ -300,7 +300,7 @@ test('admission and query failures preserve traversal and reject unqualified or 
       consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
     }),
   );
-  assert.equal(f.source.createView(outside).reason, 'common_guard_exhausted');
+  assert.equal(f.source.createView(outside).ok, true, 'consumer span extends past the 30 m guard');
   assert.equal(separate.source.createView(v.geometry).reason, 'unqualified_links');
   const guide = v.driving.world.guide,
     point = guide.toWorld(1404, 0.25);
@@ -351,7 +351,7 @@ test('saved-file occurrence driving entry admits qualified readers without an ac
     );
     assert.equal(run.status, 0, run.stderr);
     const report = JSON.parse(run.stdout);
-    assert.equal(report.scope, 'common-guard-driving');
+    assert.equal(report.scope, 'occurrence-driving');
     assert.equal(report.frame.occurrence, 0);
     assert.equal(report.scenery, 1);
     assert.ok(report.observations[0].guide.segmentIndex < report.observations[1].guide.segmentIndex);
@@ -377,7 +377,7 @@ test('fractional mapped Band edges share exact physical and paint ownership with
     assert.equal(v.driving.presentation.ground.sampleAtLevel(at, right, 0), base);
 });
 
-test('seam admission bounds both source readers and observes real motion without committing history', async () => {
+test('seam admission bounds contact motion independently of span-composed consumer readers', async () => {
   const f = await fixture(),
     history = f.traversal.snapshot(),
     successor = history.selected[0];
@@ -385,16 +385,9 @@ test('seam admission bounds both source readers and observes real motion without
     driving = ok(f.source.createSeamView(geometry, successor));
   assert.equal(driving.seam, successor);
   for (const s of [1399, 1400, 1401]) {
-    assert.throws(() => driving.world.surfaces.sample(s, 50), RangeError);
-    assert.throws(() => driving.world.guide.toWorld(s, 50), RangeError);
-    assert.throws(() => driving.presentation.ground.sampleAtLevel(s, 500, 0), RangeError);
-    const p = driving.world.guide.toWorld(s, 0);
-    const outside = geometry.geometry.guideAt(s - geometry.activeRange.start, 50);
-    assert.throws(
-      () => driving.world.guide.locateLocal(outside, p.segmentIndex, 5, true),
-      RangeError,
-      'clamping cannot hide a query outside the physical proof',
-    );
+    assert.equal(driving.world.surfaces.sample(s, 50).material.supported, false);
+    assert.equal(driving.world.guide.toWorld(s, 50).l, 50);
+    assert.equal(typeof driving.presentation.ground.sampleAtLevel(s, 500, 0), 'number');
   }
   const p = (s, l = 0) => geometry.geometry.guideAt(s - geometry.activeRange.start, l);
   assert.equal(driving.admitMotion(p(1399.8), p(1400.2)).ok, true);
@@ -404,7 +397,7 @@ test('seam admission bounds both source readers and observes real motion without
   assert.throws(() => driving.admitMotion(null, p(1400)), TypeError);
   assert.throws(() => driving.admitMotion({ x: NaN, z: 0 }, p(1400)), RangeError);
   assert.equal(f.traversal.snapshot(), history);
-  assert.equal(f.source.createSeamView(view(f, 1400, 30).geometry, successor).reason, 'pose_domain_exhausted');
+  assert.equal(f.source.createSeamView(view(f, 1400, 30).geometry, successor).ok, true);
   const pending = ok(f.traversal.prepare('forward'));
   const demand = courseSectionDrivingDemand(
     successor.section.guide,
@@ -416,7 +409,7 @@ test('seam admission bounds both source readers and observes real motion without
   const destination = ok(f.source.createSeamView(ok(createCourseGeometryView(pending.history, demand)), successor));
   assert.equal(destination.frame, successor);
   assert.equal(f.traversal.snapshot(), history, 'destination readers do not publish a traversal');
-  assert.throws(() => destination.world.surfaces.sample(500, 50), RangeError);
+  assert.equal(destination.world.surfaces.sample(500, 50).material.supported, false);
 });
 
 test('all vehicle profiles use fully bounded seam readers with unchanged mechanics and admitted fixed steps', async () => {

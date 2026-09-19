@@ -40,7 +40,6 @@ const reservedMilestoneComponents = new Map([
   ['gameplay/circuit-race-progress.ts', 'M3 lap/FINISH scoring'],
   ['gameplay/ordered-race-progress.ts', 'M3 physical checkpoint order'],
   ['gameplay/physical-race-gate.ts', 'M3/M4 physical progress gates'],
-  ['gameplay/world-crossing-gate.ts', 'M3/M4 seam and route crossings'],
   ['gameplay/race-session.ts', 'M3 timing and FINISH state'],
   ['gameplay/session-configuration.ts', 'M3 rival cardinality'],
   ['gameplay/recovery.ts', 'M3/M4 actor recovery reason contract'],
