@@ -54,6 +54,54 @@ export interface CourseAssetReference {
   readonly sha256: string;
 }
 
+interface PaintDocument {
+  readonly assetId: string;
+  readonly phaseS: number;
+  readonly phaseL: number;
+  readonly alternate: null | {
+    readonly paletteRgb555: readonly number[];
+    readonly spanS: number;
+    readonly spanL: number;
+  };
+}
+
+export interface PresentationDocument {
+  readonly ground: {
+    readonly left: number;
+    readonly right: number;
+    readonly baseRgb555: number;
+    readonly bands: readonly {
+      readonly bandId: string;
+      readonly sections: readonly { readonly anchor: CourseAnchor; readonly paint: PaintDocument | null }[];
+    }[];
+    readonly stamps: readonly {
+      readonly id: string;
+      readonly assetId: string;
+      readonly anchor: CourseAnchor;
+      readonly l: number;
+    }[];
+  };
+  readonly environments: readonly {
+    readonly anchor: CourseAnchor;
+    readonly name: string;
+    readonly groundBaseLeft: number | null;
+    readonly groundBaseRight: number | null;
+    readonly background: {
+      readonly assetId: string;
+      readonly horizonY: number;
+      readonly pixelsPerRadian: number;
+      readonly yawOrigin: number;
+    };
+  }[];
+  readonly scenery: readonly {
+    readonly id: string;
+    readonly instanceId: string;
+    readonly anchor: CourseAnchor;
+    readonly l: number;
+    readonly groundOffset: number;
+  }[];
+}
+
 export interface SectionDocument {
   readonly id: string;
   readonly start: { readonly x: number; readonly z: number; readonly heading: number };
@@ -69,11 +117,12 @@ export interface SectionDocument {
   readonly carriageways: readonly CarriagewayDocument[];
   readonly ports: readonly PortDocument[];
   readonly assetIds: readonly string[];
+  readonly presentation: PresentationDocument | null;
 }
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 3;
+  readonly version: 4;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
@@ -82,6 +131,7 @@ export interface CourseDocument {
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
+  readonly sceneryInstances: readonly { readonly id: string; readonly assetId: string }[];
 }
 
 /** Admission limits, independent of eventual game/device content budgets. */
@@ -97,6 +147,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   ports: 4,
   links: 48,
   assets: 256,
+  placements: 4096,
   coordinateMeters: 1_000_000,
   lengthMeters: 100_000,
   lateralMeters: 1000,
@@ -123,7 +174,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v3`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v4`);
     }
   }
   for (const key of fields) {
@@ -256,6 +307,111 @@ function carriageway(value: unknown, path: string): CarriagewayDocument {
   });
 }
 
+function rgb555(value: unknown, path: string): number {
+  const color = number(value, path, 0, 32767);
+  if (!Number.isInteger(color)) fail('invalid_numeric_domain', path, 'RGB555 must be an integer');
+  return color;
+}
+
+function paint(value: unknown, path: string): PaintDocument | null {
+  if (value === null) return null;
+  const v = record(value, path, ['assetId', 'phaseS', 'phaseL', 'alternate']);
+  let alternate: PaintDocument['alternate'] = null;
+  if (v.alternate !== null) {
+    const a = record(v.alternate, `${path}/alternate`, ['paletteRgb555', 'spanS', 'spanL']);
+    alternate = Object.freeze({
+      paletteRgb555: array(a.paletteRgb555, `${path}/alternate/paletteRgb555`, 15, rgb555),
+      spanS: number(a.spanS, `${path}/alternate/spanS`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+      spanL: number(a.spanL, `${path}/alternate/spanL`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
+    });
+  }
+  return Object.freeze({
+    assetId: id(v.assetId, `${path}/assetId`),
+    phaseS: number(
+      v.phaseS,
+      `${path}/phaseS`,
+      -COURSE_DOCUMENT_LIMITS.lengthMeters,
+      COURSE_DOCUMENT_LIMITS.lengthMeters,
+    ),
+    phaseL: number(
+      v.phaseL,
+      `${path}/phaseL`,
+      -COURSE_DOCUMENT_LIMITS.lateralMeters,
+      COURSE_DOCUMENT_LIMITS.lateralMeters,
+    ),
+    alternate,
+  });
+}
+
+function presentation(value: unknown, path: string): PresentationDocument | null {
+  if (value === null) return null;
+  const v = record(value, path, ['ground', 'environments', 'scenery']);
+  const g = record(v.ground, `${path}/ground`, ['left', 'right', 'baseRgb555', 'bands', 'stamps']);
+  return Object.freeze({
+    ground: Object.freeze({
+      left: number(g.left, `${path}/ground/left`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
+      right: number(g.right, `${path}/ground/right`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters, true),
+      baseRgb555: rgb555(g.baseRgb555, `${path}/ground/baseRgb555`),
+      bands: array(g.bands, `${path}/ground/bands`, COURSE_DOCUMENT_LIMITS.bands, (item, at) => {
+        const b = record(item, at, ['bandId', 'sections']);
+        return Object.freeze({
+          bandId: id(b.bandId, `${at}/bandId`),
+          sections: array(b.sections, `${at}/sections`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+            const s = record(item, at, ['anchor', 'paint']);
+            return Object.freeze({ anchor: anchor(s.anchor, `${at}/anchor`), paint: paint(s.paint, `${at}/paint`) });
+          }),
+        });
+      }),
+      stamps: identified(g.stamps, `${path}/ground/stamps`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
+        const s = record(item, at, ['id', 'assetId', 'anchor', 'l']);
+        return Object.freeze({
+          id: id(s.id, `${at}/id`),
+          assetId: id(s.assetId, `${at}/assetId`),
+          anchor: anchor(s.anchor, `${at}/anchor`),
+          l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        });
+      }),
+    }),
+    environments: array(v.environments, `${path}/environments`, COURSE_DOCUMENT_LIMITS.knots, (item, at) => {
+      const e = record(item, at, ['anchor', 'name', 'groundBaseLeft', 'groundBaseRight', 'background']);
+      const b = record(e.background, `${at}/background`, ['assetId', 'horizonY', 'pixelsPerRadian', 'yawOrigin']);
+      return Object.freeze({
+        anchor: anchor(e.anchor, `${at}/anchor`),
+        name: id(e.name, `${at}/name`),
+        groundBaseLeft: e.groundBaseLeft === null ? null : rgb555(e.groundBaseLeft, `${at}/groundBaseLeft`),
+        groundBaseRight: e.groundBaseRight === null ? null : rgb555(e.groundBaseRight, `${at}/groundBaseRight`),
+        background: Object.freeze({
+          assetId: id(b.assetId, `${at}/background/assetId`),
+          horizonY: number(b.horizonY, `${at}/background/horizonY`, 0, Number.MAX_SAFE_INTEGER),
+          pixelsPerRadian: number(
+            b.pixelsPerRadian,
+            `${at}/background/pixelsPerRadian`,
+            0,
+            COURSE_DOCUMENT_LIMITS.coordinateMeters,
+            true,
+          ),
+          yawOrigin: number(b.yawOrigin, `${at}/background/yawOrigin`, -360, 360),
+        }),
+      });
+    }),
+    scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
+      const s = record(item, at, ['id', 'instanceId', 'anchor', 'l', 'groundOffset']);
+      return Object.freeze({
+        id: id(s.id, `${at}/id`),
+        instanceId: id(s.instanceId, `${at}/instanceId`),
+        anchor: anchor(s.anchor, `${at}/anchor`),
+        l: number(s.l, `${at}/l`, -COURSE_DOCUMENT_LIMITS.lateralMeters, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        groundOffset: number(
+          s.groundOffset,
+          `${at}/groundOffset`,
+          -COURSE_DOCUMENT_LIMITS.heightMeters,
+          COURSE_DOCUMENT_LIMITS.heightMeters,
+        ),
+      });
+    }),
+  });
+}
+
 function section(value: unknown, path: string): SectionDocument {
   const v = record(value, path, [
     'id',
@@ -269,6 +425,7 @@ function section(value: unknown, path: string): SectionDocument {
     'carriageways',
     'ports',
     'assetIds',
+    'presentation',
   ]);
   const start = record(v.start, `${path}/start`, ['x', 'z', 'heading']);
   const guide = record(v.guide, `${path}/guide`, ['margin', 'mMin']);
@@ -327,6 +484,7 @@ function section(value: unknown, path: string): SectionDocument {
       });
     }),
     assetIds: array(v.assetIds, `${path}/assetIds`, COURSE_DOCUMENT_LIMITS.assets, id),
+    presentation: presentation(v.presentation, `${path}/presentation`),
   });
 }
 
@@ -335,7 +493,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 3, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 4, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
@@ -347,9 +505,10 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sections',
       'links',
       'assets',
+      'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 3, '/version', 'unsupported_version');
+    const version = literal(v.version, 4, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);
@@ -400,6 +559,15 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
           sha256: a.sha256,
         });
       }),
+      sceneryInstances: identified(
+        v.sceneryInstances,
+        '/sceneryInstances',
+        COURSE_DOCUMENT_LIMITS.placements,
+        (item, at) => {
+          const instance = record(item, at, ['id', 'assetId']);
+          return Object.freeze({ id: id(instance.id, `${at}/id`), assetId: id(instance.assetId, `${at}/assetId`) });
+        },
+      ),
     });
     if (new TextEncoder().encode(JSON.stringify(result)).byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
       fail('resource_limit', '', 'Document exceeds 4 MiB UTF-8');

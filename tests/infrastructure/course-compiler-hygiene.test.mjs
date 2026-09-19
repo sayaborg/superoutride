@@ -9,11 +9,24 @@ import ts from 'typescript';
 // Check dependency structure, not helper names, comments or statement spelling.
 for (const [entry, owners, restricted = {}] of [
   ['runtime/declarative-live-route.ts', ['core', 'gameplay', 'runtime']],
-  ['compiler/compiled-course.ts', ['core', 'course', 'compiler']],
+  [
+    'compiler/compiled-course.ts',
+    ['core', 'course', 'compiler', 'visual'],
+    { visual: ['visual/course-presentation.js'] },
+  ],
   ['compiler/course-image-source.ts', ['core', 'course', 'graphics'], { graphics: ['graphics/sprite.js'] }],
   ['compiler/course-physical-content.ts', ['core', 'course', 'physics'], { physics: ['physics/surface-map.js'] }],
   ['compiler/course-physical-overlap.ts', ['course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
-  ['compiler/course-graph.ts', ['core', 'course', 'compiler', 'physics'], { physics: ['physics/surface-map.js'] }],
+  [
+    'compiler/course-graph.ts',
+    ['core', 'course', 'compiler', 'physics', 'visual'],
+    { physics: ['physics/surface-map.js'], visual: ['visual/course-presentation.js'] },
+  ],
+  [
+    'compiler/course-presentation.ts',
+    ['core', 'course', 'compiler', 'graphics', 'visual'],
+    { graphics: ['graphics/sprite.js'], visual: ['visual/course-presentation.js'] },
+  ],
   ['compiler/course-links.ts', ['core', 'course', 'compiler']],
   ['authoring/course-project.ts', ['course', 'compiler']],
   [

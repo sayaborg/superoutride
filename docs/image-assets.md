@@ -166,9 +166,50 @@ asset indices and the supplied input index when applicable. They do not invent J
 CourseDocument. Failure publishes no graph. Wrong API types/domains throw TypeError/RangeError;
 unexpected platform failures propagate.
 
-This verifies source integrity and immutable sharing, not appearance bindings, phase, placement,
-background/scenery continuity or Link readiness. Saved presentation semantics and complete overlap
-qualification remain Gate 2; completed resident RGB555 ground remains Gate 3.
+This verifies source integrity and immutable sharing. The saved presentation subset below separately
+binds those sources; overlap/picture continuity and Link readiness remain unqualified. Completed
+resident RGB555 ground remains Gate 3.
+
+## Saved course presentation
+
+CourseDocument v4 and presentation recipe v1 admit explicit Band paint profiles, static A/B mappings,
+ordered stamps, environment/background profiles and shared scenery identities. [Content](content-and-gameplay.md#wire-fields-and-scopes)
+owns exact fields/reference scopes. Ground and background bindings require one normalized master;
+sprite LOD pyramids remain scenery inputs. Source assets resolve to the same canonical records as
+Section membership, and scenery placements share a course-wide instance/asset record.
+
+The ordinary [source evaluator](../src/groundmap/course-ground-source.ts) returns RGB555 on the finite
+Section strip, with half-open lateral bounds `[-left, right)`. An explicit opaque `baseRgb555` fills
+the strip. The active canonical Band selects its appearance profile using the shared half-open rule;
+null paint intentionally reveals that base. Structural roles and physical materials infer no colors.
+For image A, x/y indices are the positive-modulo wrap of `floor(40*(l-phaseL))` and
+`floor(40*(s-phaseS))` against master width/height. These numeric metre origins are saved paint phase,
+not geometry anchors. Source row direction is increasing s. Transparent index zero reveals the base;
+RGB555 zero remains opaque black.
+
+An alternate maps every opaque A slot to one explicit RGB555 value, preserving transparent indices
+and geometry. Duplicate mapped colors are permitted. B is selected when the sum of the signed stripe
+indices `floor((s-phaseS)/spanS)` and `floor((l-phaseL)/spanL)` is odd. Positive finite spans retain safe
+integer cell identities throughout the strip. This is a static saved pattern, not runtime palette
+animation; the immutable master is unchanged.
+
+Stamps resolve their anchor to s and retain the authored l. Convert their sprite anchor to top-left
+using `(anchorAxis+0.5)/40`, then apply the target `floor(40*coordinate+0.5)` rule on each axis. Store
+the resulting integer grid position with its resolved anchor provenance. Sample the unrotated master
+at that placement, clipped by the finite strip; later opaque stamp texels overwrite earlier paint or
+stamps, while transparent texels preserve the previous color. GroundBase outside the strip remains a
+separate environment value, not the strip's base or a physical support field.
+
+Background masters must be opaque; the saved horizon is an image row, horizontal pan density is
+positive pixels/radian, and yaw origin is converted from Section-frame degrees once. Environment
+profiles are independent of Band paint/material changes. Scenery retains source anchors, lateral
+position and height offset with canonical instance identity; geometric placement/visibility across
+occurrences is a subsequent view/qualification responsibility.
+
+This supplies complete data for this declared subset and a point-color source evaluator. It does not
+generate dimensioned markings, boundary treatments, repair scatter or pattern rows, filter output
+images, create resident records, or certify common-content overlap. Those unsupported authoring fields
+fail admission. Geometry-only fixtures retain explicit absent presentation rather than guessed art.
 
 ## Current ground compilation
 

@@ -56,7 +56,7 @@ The current declarative route compiler derives separate route/content/gate/hando
 then validates their joins. The [target reference graph](#compiled-course-reference-graph) replaces
 that internal representation while retaining input validation and distinct gameplay responsibilities.
 
-## CourseDocument v3: implemented compiler boundary
+## CourseDocument v4: implemented compiler boundary
 
 [Admission and serialization](../src/course/course-document.ts),
 [geometry recipe](../src/course/course-geometry.ts),
@@ -75,34 +75,62 @@ Session or completed resident ground product.
 All fields below are required. Objects reject unknown fields; arrays retain their saved order. The
 reader creates owned frozen records in schema field order and normalizes negative zero to zero.
 Save emits compact UTF-8 JSON. Whitespace and object-property order do not affect source identity;
-array order is saved input, including meaningful primitive and knot order. Display labels,
-appearance bindings, placements and rules are not yet wire fields.
+array order is saved input, including meaningful primitive, knot and stamp order. V4 adds explicit
+presentation bindings and shared scenery identities; gameplay rules remain outside this wire subset.
 
-| Record           | Exact v3 fields                                                                                                                                                                                                                           |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CourseDocument   | `format: "superoutride.course"`, `version: 3`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`                    |
-| Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds` |
-| Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                        |
-| Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                    |
-| Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                                                                                                   |
-| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                                                                                            |
-| Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                                                                                         |
-| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role` (`"pavement"`, `"shoulder"` or `"median"`)                                                                                                                              |
-| Carriageway      | `id`, `bandIds`                                                                                                                                                                                                                           |
-| Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                                                                                                                                                                |
-| Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                                       |
-| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                                         |
+| Record           | Exact v4 fields                                                                                                                                                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CourseDocument   | `format: "superoutride.course"`, `version: 4`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR" \| "BRANCH" \| "CIRCUIT"`, `entrySectionId`, `sections`, `links`, `assets`, `sceneryInstances`                |
+| Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `height: [{anchor, y}, ...]`, `physicalBindings: [{bandId, sections: [{anchor, material}, ...]}, ...]`, `carriageways`, `ports`, `assetIds`, `presentation` |
+| Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                                                                                                        |
+| Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                                                                                                                    |
+| Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                                                                                                                   |
+| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                                                                                                            |
+| Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                                                                                                         |
+| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role` (`"pavement"`, `"shoulder"` or `"median"`)                                                                                                                                              |
+| Carriageway      | `id`, `bandIds`                                                                                                                                                                                                                                           |
+| Port             | `id`, `kind: "entry" \| "exit"`, `anchor`, `carriagewayId`                                                                                                                                                                                                |
+| Link             | `id`, `source: {sectionId, portId}`, `destination: {sectionId, portId}`, `overlap: {behind, ahead}`                                                                                                                                                       |
+| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                                                                                                         |
+| Scenery instance | `id`, `assetId`                                                                                                                                                                                                                                           |
+
+`presentation` is either explicit `null` (geometry/physical-only source, not ready presentation), or:
+
+| Record            | Fields                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| Presentation      | `ground`, `environments`, `scenery`                                                  |
+| Ground            | positive `left`, `right` extents, `baseRgb555`, `bands`, ordered `stamps`            |
+| Appearance Band   | `bandId`, `sections: [{anchor, paint}, ...]`                                         |
+| Paint             | `null` (reveal base), or `{assetId, phaseS, phaseL, alternate}`                      |
+| Alternate         | `null` (A only), or `{paletteRgb555, spanS, spanL}`                                  |
+| Stamp             | `id`, `assetId`, `anchor`, `l`                                                       |
+| Environment       | `anchor`, `name`, `groundBaseLeft`, `groundBaseRight`, `background`                  |
+| Background        | `assetId`, `horizonY`, `pixelsPerRadian`, `yawOrigin` (degrees in the Section frame) |
+| Scenery placement | `id`, `instanceId`, `anchor`, `l`, `groundOffset`                                    |
+
+GroundBase values are explicit RGB555 integers or `null` for transparency. Ground/source composition
+and image roles are specified in [Image assets](image-assets.md#saved-course-presentation).
 
 IDs are opaque nonblank strings without surrounding whitespace, compared exactly without Unicode/
 whitespace normalization. Admission rejects padded IDs rather than silently renaming them. Course ID
-is external identity; Section, Link and asset IDs each have a document-wide scope. Primitive, Boundary,
+is external identity; Section, Link, asset and scenery-instance IDs each have a document-wide scope. Primitive, Boundary,
 Band, Carriageway and Port IDs each have a separate Section-local scope. Duplicate declaration IDs fail
 admission. References resolve within their declared scope, never by array position or naming convention.
 Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
 semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
-with `unsupported_version`. Schema/format and unit mismatches fail admission. Schemas v1/v2 are explicitly
-unsupported; the checked-in fixtures explicitly author flat height and ASPHALT profiles for their Bands.
+with `unsupported_version`. Schema/format and unit mismatches fail admission. Schemas v1/v2/v3 are explicitly
+unsupported. The geometry fixtures explicitly migrate to v4 with `presentation: null` and an empty
+scenery-instance collection; no appearance is inferred from their physical Bands.
 There is no implicit root from declaration order or compatibility interpretation.
+
+Stamp IDs and scenery-placement IDs have separate Section-local scopes. Appearance resolves canonical
+Band and asset references; every Band requires one binding, with a start-inclusive profile beginning
+at activation and changing strictly before its end. Every present presentation has an environment
+profile beginning at zero. Scenery placements resolve document-wide canonical instances whose assets
+belong to the Section. Shared identity alone does not prove matching placements across a Link.
+Each stamp/scenery collection and the instance collection admit 4096 entries; profiles retain the
+256-node bound and the whole-document byte limit. Unsupported repair scatter, pattern-row authoring
+and dimensioned marking/boundary recipes are diagnosed, not generated from placeholders.
 
 Asset references bind exact saved sprite-image bytes by lowercase SHA-256. Compilation now requires
 explicit saved bytes for every declared digest and resolves Section membership to canonical descriptors
@@ -421,9 +449,9 @@ consumer envelopes, complete common-content overlap, pre-lock visibility or tran
 Only the selected Carriageway has the Link's existing geometric agreement proof. Other Bands can
 still differ across a seam unless separately qualified. Height and physical bindings now have admitted
 Section facets and a separate overlap proof above, but are not yet mapped across Links for driving.
-Images/phase and scenery/background have no admitted CourseDocument fields/readers; none is filled
-with a default or reported as certified. Product camera coverage across a transition also remains
-unqualified. Their admission and separate physical/presentation proofs,
+Saved images, paint/phase and scenery/background now have explicit presentation bindings and source
+evaluation; their Link continuity is not certified. Product camera coverage across a transition also
+remains unqualified. Separate physical/presentation proofs,
 including every merge incoming Link and parent-specific exit visibility, precede runtime cutover.
 The current game roots, materialized circuit windows, contacts, locks, scoring and recovery are unchanged.
 
@@ -473,8 +501,8 @@ one reference graph, not a RouteDag, recursive successor tree or JSON-serializab
 
 `sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
 geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
-`superoutride.course-compiler` version 9, including the Link recipe v1, physical recipe v2 and image-source
-admission recipe v1 descriptors.
+`superoutride.course-compiler` version 10, including the Link recipe v1, physical recipe v2, image-source
+admission recipe v1 and presentation recipe v1 descriptors.
 Recipe descriptors contain stable IDs, integer semantic versions and operative numeric/data parameters,
 not explanatory English. Versions pin the documented height, ownership, geometry and overlap behavior;
 the physical descriptor also includes the existing material definitions. Section geometry recipe v4
@@ -489,6 +517,8 @@ Document admission/compilation returns `{ok: true, value}` or `{ok: false, diagn
 reports the first failure deterministically. Codes are `parse_failure`, `invalid_shape`,
 `unsupported_version`, `unsupported_format`, `unsupported_units`, `duplicate_id`, `unresolved_reference`,
 `invalid_numeric_domain`, `resource_limit`, `unsupported_feature`, and `semantic_compile_failure`.
+Presentation compilation additionally distinguishes `appearance_binding`, `invalid_image_role`,
+`invalid_profile` and `invalid_placement` at their actual document locations.
 Literal format/unit failures never claim to be version failures. Separate Link qualification diagnostics
 and multi-failure behavior are specified above. Traversal/view failures use their runtime-specific
 reasons, while project `no_source`/`stale_source` outcomes are `{ok: false, reason}` without document

@@ -238,7 +238,7 @@ imports, including types. Composition roots alone import concrete DEV content. R
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
-The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary)
+The implemented [document/compiler boundary](content-and-gameplay.md#coursedocument-v4-implemented-compiler-boundary)
 uses `src/compiler/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
 Compiler owns the immutable reference graph, Ports/Links and static content qualification; Authoring
 owns the live project transaction, and Runtime owns mutable traversal/view composition. Compiler resolves
@@ -246,7 +246,10 @@ Physics-owned material records once; concrete Section/Port/Link types no longer 
 parameter through the topology. The narrow Course physical-profile primitive remains reusable.
 Compiler also admits saved image sources through Graphics' existing sprite validator, resolving assets
 to concrete immutable indexed-source records without another generic parameter through Ports/Links.
-Only the image-domain compiler imports Graphics; lower Course geometry still has no image dependency.
+Image admission uses the Graphics validator; lower Course geometry still has no image dependency.
+Presentation compilation uses the Graphics source metric and Visual's ordinary immutable data
+facets. GroundMap evaluates saved composition over those facets and canonical Bands without importing
+the graph. Appearance, outside GroundBase, scenery identity and physical support remain distinct.
 Runtime may consume Camera's profile contract to derive consumer coverage; Camera remains independent
 of Runtime and the course graph.
 Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authoring, vehicle, renderer,

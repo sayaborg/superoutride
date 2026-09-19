@@ -181,7 +181,7 @@ const layerDependencies = {
   core: [],
   graphics: ['core'],
   course: ['core'],
-  compiler: ['core', 'course', 'graphics', 'physics'],
+  compiler: ['core', 'course', 'graphics', 'physics', 'visual'],
   authoring: ['course', 'compiler'],
   input: ['core'],
   physics: ['core', 'course', 'input'],
@@ -191,7 +191,7 @@ const layerDependencies = {
   gameplay: ['core', 'input', 'physics'],
   visual: ['core', 'course', 'graphics'],
   terrain: ['core', 'course', 'visual'],
-  groundmap: ['core', 'course', 'graphics', 'terrain'],
+  groundmap: ['core', 'course', 'graphics', 'terrain', 'visual'],
   render: ['camera', 'core', 'course', 'graphics', 'groundmap', 'physics', 'terrain', 'vehicle', 'visual'],
   runtime: [
     'camera',

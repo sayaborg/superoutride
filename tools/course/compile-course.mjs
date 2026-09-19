@@ -15,6 +15,7 @@ import {
   CourseAssetError,
 } from '../../dist/course/course-diagnostics.js';
 import { compileCourseGeometryWindow } from '../../dist/course/course-geometry-window.js';
+import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
 
 async function physicalQualification(course, arguments_) {
   if (arguments_[0] === '--physical-overlap') return compileCoursePhysicalOverlaps(course.links);
@@ -136,6 +137,16 @@ if (!result.ok) {
           maxSupportedAbsL: createBandSurfaceReader(section.bandPartition, section.physicalBindings).maxSupportedAbsL,
           carriageways: section.carriageways.length,
           ports: section.ports.length,
+          presentation:
+            section.presentation === null
+              ? null
+              : {
+                  bandBindings: section.presentation.ground.bands.length,
+                  stamps: section.presentation.ground.stamps.length,
+                  environments: section.presentation.environments.length,
+                  scenery: section.presentation.scenery.length,
+                  groundOriginRgb555: createCourseGroundSource(section.presentation.ground).sample(0, 0),
+                },
         })),
       },
       null,

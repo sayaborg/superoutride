@@ -47,7 +47,7 @@ It reads a saved CourseDocument through the same admission/compiler/project boun
 the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
 Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
 format; reload the saved source through the compiler to reconstruct canonical references.
-[Content](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary) owns the wire schema,
+[Content](content-and-gameplay.md#coursedocument-v4-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
 For documents declaring image assets, pass `--images directory` immediately after the document path,
@@ -57,6 +57,10 @@ format and texel admission. No images are fetched or regenerated, files are unch
 retain their causes. Omitting required bytes produces asset diagnostics, not descriptor-only success.
 The report includes each admitted image's dimensions and level count. This is source admission, not
 ground compilation or a complete presentation proof.
+For explicit presentation, the report additionally includes Band/stamp/environment/scenery counts
+and the actual source RGB555 color at `(0,0)`. The geometry-only fixtures explicitly use absent
+presentation. [Saved-presentation tests](../tests/runtime/course-presentation.test.mjs) construct real
+image inputs, exercise the public command, source composition, canonical sharing and failure semantics.
 
 [Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
 geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
@@ -74,7 +78,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v3 and course compiler v9 include offline Port/Link graphs and geometry recipe v4.
+Schema v4 and course compiler v10 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison

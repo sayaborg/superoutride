@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 3,
+  "version": 4,
   "id": "linked-linear",
   "units": {
     "length": "m",
@@ -292,7 +292,8 @@
           "carriagewayId": "road-2"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     },
     {
       "id": "child-0",
@@ -428,7 +429,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     },
     {
       "id": "child-1",
@@ -564,7 +566,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     },
     {
       "id": "child-2",
@@ -700,7 +703,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     },
     {
       "id": "shared",
@@ -827,7 +831,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     }
   ],
   "links": [
@@ -922,5 +927,6 @@
       }
     }
   ],
-  "assets": []
+  "assets": [],
+  "sceneryInstances": []
 }

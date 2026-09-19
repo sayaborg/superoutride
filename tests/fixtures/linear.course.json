@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 3,
+  "version": 4,
   "id": "linear-example",
   "units": {
     "length": "m",
@@ -187,8 +187,10 @@
         }
       ],
       "ports": [],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     }
   ],
-  "assets": []
+  "assets": [],
+  "sceneryInstances": []
 }

@@ -55,6 +55,13 @@ from opaque RGB555 zero. Missing/duplicate/unreferenced data, digest errors, mal
 failures must publish no graph; independent errors retain scoped asset addresses. Exercise the real
 file-backed compiler and atomic/stale project behavior. Source admission is not presentation continuity.
 
+Presentation tests distinguish absent presentation from a fully declared supported subset. Verify
+canonical Band/asset/scenery references, profile ownership, actual RGB555 output at shared/outer edges,
+transparent versus opaque-black precedence, signed phase and static A/B mapping. Ordered stamps retain
+positive/negative half-cell rounding and anchor replay through geometry edits. Paint changes must not
+change physical materials. Reject missing bindings, bad profiles, unsupported image roles and placements
+without partial publication. These source/data tests do not replace actual view/overlap qualification.
+
 Offline Link tests round-trip saved chains and transformed loops, reorder declarations in two/three-way
 fork/merge graphs, and assert shared successor/Port identity and actual cyclic back-references. Test
 the rigid transform and inverse independently on points, vectors and equal frames. Overlap proofs

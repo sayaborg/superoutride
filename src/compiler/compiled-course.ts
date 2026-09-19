@@ -20,6 +20,8 @@ import {
   type CourseAssetBytes,
   type CompiledCourseImageSource,
 } from './course-image-source.js';
+import { COURSE_PRESENTATION_RECIPE, compileCoursePresentation } from './course-presentation.js';
+import type { CourseSceneryInstance } from '../visual/course-presentation.js';
 
 interface SectionDraft extends Omit<CompiledSection, 'ports' | 'incoming' | 'outgoing'> {
   readonly ports: CompiledPort[];
@@ -41,14 +43,16 @@ export interface CompiledCourse {
   readonly entry: CompiledSection;
   readonly links: readonly CompiledLink[];
   readonly assets: readonly CompiledCourseImageSource[];
+  readonly sceneryInstances: readonly CourseSceneryInstance[];
 }
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 9,
+  version: 10,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
+  presentation: COURSE_PRESENTATION_RECIPE,
 });
 
 function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
@@ -61,6 +65,7 @@ function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): 
 function compileSection(
   section: SectionDocument,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
+  instances: ReadonlyMap<string, CourseSceneryInstance>,
   path: string,
 ): SectionDraft {
   const { raster, primitives } = compileCourseGeometry(section, path);
@@ -148,6 +153,14 @@ function compileSection(
     ...compileCoursePhysicalContent(section, raster.length, bands, resolve, path),
     carriageways: Object.freeze(carriageways),
     assets: Object.freeze(sectionAssets),
+    presentation: compileCoursePresentation(
+      section.presentation,
+      partition,
+      sectionAssets,
+      instances,
+      resolve,
+      `${path}/presentation`,
+    ),
     ports: [],
     incoming: [],
     outgoing: [],
@@ -191,7 +204,18 @@ export async function compileCourseDocument(
     const images = await compileCourseImageSources(document.assets, assetSources);
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
-    const sections = document.sections.map((section, index) => compileSection(section, assets, `/sections/${index}`));
+    const sceneryInstances = Object.freeze(
+      document.sceneryInstances.map((instance, index) =>
+        Object.freeze({
+          id: instance.id,
+          asset: reference(assets, instance.assetId, `/sceneryInstances/${index}/assetId`),
+        }),
+      ),
+    );
+    const instances = new Map(sceneryInstances.map((instance) => [instance.id, instance]));
+    const sections = document.sections.map((section, index) =>
+      compileSection(section, assets, instances, `/sections/${index}`),
+    );
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const portTables = new Map(
       sections.map((section) => [section, new Map(section.ports.map((port) => [port.id, port]))]),
@@ -238,6 +262,7 @@ export async function compileCourseDocument(
         entry,
         links: Object.freeze(links),
         assets: images.value,
+        sceneryInstances,
       }),
     );
   } catch (error) {

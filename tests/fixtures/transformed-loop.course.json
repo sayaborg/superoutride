@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 3,
+  "version": 4,
   "id": "transformed-loop",
   "units": {
     "length": "m",
@@ -159,7 +159,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     }
   ],
   "links": [
@@ -179,5 +180,6 @@
       }
     }
   ],
-  "assets": []
+  "assets": [],
+  "sceneryInstances": []
 }

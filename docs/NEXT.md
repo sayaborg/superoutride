@@ -21,7 +21,7 @@ Tire/audio tuning stays deferred.
 
 ### Implemented foundation
 
-[CourseDocument v3](content-and-gameplay.md#coursedocument-v3-implemented-compiler-boundary) establishes
+[CourseDocument v4](content-and-gameplay.md#coursedocument-v4-implemented-compiler-boundary) establishes
 the exact wire fields, limits and supported LINEAR/BRANCH/CIRCUIT geometry subset. IDs resolve
 once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
 shared references, nested immutability, failure preservation and stale-build exclusion are covered by
@@ -49,9 +49,9 @@ CIRCUIT, exercise 20.8 km with 4760 Raster segments, and exact 2048-primitive/16
 These are synthetic host workloads, not named-master acceptance. Recipe identities contain semantic
 versions/operative parameters, not explanatory prose.
 
-Schema v3 includes explicit entry Section, Section-local Ports and document-wide Links; schemas v1/v2 receive
-an unsupported-version diagnostic. Course compiler v9 includes the pinned carriageway-Link recipe v1,
-physical recipe v2 and image-source admission recipe v1.
+Schema v4 includes explicit presentation alongside entry Section, Section-local Ports and document-wide
+Links/instances; schemas v1/v2/v3 receive an unsupported-version diagnostic. Course compiler v10 includes
+the pinned carriageway-Link recipe v1, physical recipe v2, image-source and presentation recipes v1.
 [Link tests](../tests/runtime/course-links.test.mjs) prove canonical cyclic references, two/three-way
 forks, shared merge successors, transformed one-source loops, deterministic round trips and atomic
 invalidation. Full-cell Raster/Guide edge proof includes partial Band domains and exact ruler stations.
@@ -93,15 +93,19 @@ cover every declared physical consumer, domain-edge crossings, half-open endpoin
 interior mismatches, independent multi-Link diagnostics and ordinary surface-reader agreement.
 Compiler now owns the static graph without propagated material type parameters; Authoring owns project
 state. No material ID is rejoined by a consumer. This is not complete common-content qualification:
-presentation bindings, full product pose/lateral envelopes and occurrence-mapped physical readers remain
-absent. Single-Section consumer integration does not qualify a Link. The saved physical demand is a
+full product pose/lateral envelopes and occurrence-mapped physical readers remain absent.
+Single-Section consumer integration does not qualify a Link. The saved physical demand is a
 reproducible test envelope, not a product default.
 
 [Image-source admission](image-assets.md#course-image-source-admission) now requires and verifies exact
 saved bytes for declared assets, sharing deeply immutable indexed sources through the canonical graph.
 Independent asset diagnostics, input mutation isolation, limits, atomic/stale project behavior and the
-ordinary sprite reader/blitter are covered. This supplies real source data, not appearance bindings,
-phase/placement/background/scenery semantics or complete presentation overlap qualification.
+ordinary sprite reader/blitter are covered. [Saved presentation](image-assets.md#saved-course-presentation)
+now adds canonical Band paint profiles, static A/B phase, ordered anchored stamps, explicit backgrounds/
+GroundBase and shared scenery instances. Source RGB555 evaluation and authoring failures are tested;
+geometry fixtures explicitly retain absent presentation. This is not complete presentation overlap
+qualification or occurrence-mapped presentation. Marking/boundary/scatter/pattern-row recipes remain
+unsupported, not filled with inferred defaults.
 
 ### Next milestones
 
@@ -131,7 +135,8 @@ handling pass. Separate intentional pixel changes from the immutable mechanics r
 
 ### Gate 2 remaining order
 
-1. Admit the real presentation inputs required for full common-content qualification. Prove actual
+1. Qualify the admitted presentation subset against complete common-content requirements; unsupported
+   content recipes stay explicit rather than receiving placeholders. Prove actual
    query containment, pre-lock coverage, each exit's parent-specific visibility and every incoming
    merge Link. Physical reachability is not an image-visibility proof. Resident RGB555 remains Gate 3.
    Extend the proven single-Section readers across qualified occurrence mappings; derive full pose/lateral

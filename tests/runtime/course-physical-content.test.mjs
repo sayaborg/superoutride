@@ -41,8 +41,8 @@ function qualificationFailure(result, code = 'physical_support_mismatch', index 
   return diagnostic;
 }
 
-test('v3 requires explicit height and physical bindings; older schemas are never silently filled', () => {
-  for (const version of [1, 2]) {
+test('current schema requires explicit height and physical bindings; older schemas are never silently filled', () => {
+  for (const version of [1, 2, 3]) {
     const input = fixture();
     input.version = version;
     failure(readCourseDocument(input), '/version', 'unsupported_version');

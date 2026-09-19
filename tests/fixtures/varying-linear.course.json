@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 3,
+  "version": 4,
   "id": "narrow-bend-wide-straight",
   "units": { "length": "m", "angle": "deg" },
   "geometryRecipe": { "id": "superoutride.raster-guide", "version": 4 },
@@ -109,8 +109,10 @@
       ],
       "carriageways": [{ "id": "road", "bandIds": ["east", "west"] }],
       "ports": [],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     }
   ],
-  "assets": []
+  "assets": [],
+  "sceneryInstances": []
 }

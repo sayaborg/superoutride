@@ -13,7 +13,11 @@ type CourseDiagnosticCode =
   | 'coverage_gap'
   | 'nonhorizontal_overlap'
   | 'physical_height_mismatch'
-  | 'physical_support_mismatch';
+  | 'physical_support_mismatch'
+  | 'appearance_binding'
+  | 'invalid_image_role'
+  | 'invalid_profile'
+  | 'invalid_placement';
 
 interface InputDiagnostic {
   readonly kind: 'input';

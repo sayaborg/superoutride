@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 3,
+  "version": 4,
   "id": "linked-linear",
   "units": {
     "length": "m",
@@ -139,7 +139,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     },
     {
       "id": "destination",
@@ -266,7 +267,8 @@
           "carriagewayId": "road"
         }
       ],
-      "assetIds": []
+      "assetIds": [],
+      "presentation": null
     }
   ],
   "links": [
@@ -286,5 +288,6 @@
       }
     }
   ],
-  "assets": []
+  "assets": [],
+  "sceneryInstances": []
 }
