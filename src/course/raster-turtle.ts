@@ -2,9 +2,19 @@ import type { RasterVertex } from '../core/raster-path.js';
 import { MAX_RASTER_VERTEX_TURN_DEGREES } from '../core/raster-path.js';
 import { finite, positiveFinite } from '../core/validation.js';
 
-const MAX_STRAIGHT_STEP_METERS = 50;
-// Half the compiler's turn limit leaves room at adjoining authored arcs.
-const MAX_ARC_STEP_DEGREES = MAX_RASTER_VERTEX_TURN_DEGREES / 2;
+/** Pinned authoring behavior; a behavior change requires a new recipe version. */
+export const RASTER_TURTLE_RECIPE = Object.freeze({
+  id: 'superoutride.raster-turtle',
+  version: 1,
+  straightStepMeters: 50,
+  // Half the compiler's turn limit leaves room at adjoining authored arcs.
+  arcStepDegrees: MAX_RASTER_VERTEX_TURN_DEGREES / 2,
+  subdivisionCount: 'ceil-in-entry-angle-units',
+  radiusProvenance: 'arc-start-and-every-emitted-vertex; later-arc-wins-at-shared-vertex',
+  accumulation: 'sequential-straight-steps-and-analytic-chords',
+});
+const MAX_STRAIGHT_STEP_METERS = RASTER_TURTLE_RECIPE.straightStepMeters;
+const MAX_ARC_STEP_DEGREES = RASTER_TURTLE_RECIPE.arcStepDegrees;
 const MAX_ARC_STEP_RADIANS = (MAX_ARC_STEP_DEGREES * Math.PI) / 180;
 
 /** Mutable authoring only. Compilation owns validation and immutable geometry; no implicit closure. */

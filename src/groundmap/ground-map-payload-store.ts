@@ -1,4 +1,4 @@
-import { groundMapDigest } from './ground-map-digest.js';
+import { contentDigest } from '../core/content-digest.js';
 
 /** Encoded bytes have global content identity; palettes and geometry belong to each manifest. */
 interface GroundMapPayloadIdentity {
@@ -218,8 +218,7 @@ export class GroundMapPayloadStore {
       if (!(input instanceof ArrayBuffer) || input.byteLength !== entry.identity.byteLength)
         throw new Error('GroundMap payload byte length mismatch');
       const bytes = new Uint8Array(structuredClone(input, { transfer: [input] }));
-      if ((await groundMapDigest(bytes)) !== entry.identity.sha256)
-        throw new Error('GroundMap payload digest mismatch');
+      if ((await contentDigest(bytes)) !== entry.identity.sha256) throw new Error('GroundMap payload digest mismatch');
       if (this.#disposed) throw new Error('GroundMap payload store is disposed');
       entry.bytes = bytes;
       entry.resolve();

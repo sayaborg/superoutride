@@ -1,0 +1,148 @@
+{
+  "format": "superoutride.course",
+  "version": 1,
+  "id": "linear-example",
+  "units": {
+    "length": "m",
+    "angle": "deg"
+  },
+  "geometryRecipe": {
+    "id": "superoutride.raster-guide",
+    "version": 1
+  },
+  "type": "LINEAR",
+  "sections": [
+    {
+      "id": "section/coast",
+      "start": {
+        "x": 7,
+        "z": -2,
+        "heading": 0
+      },
+      "guide": {
+        "margin": 2,
+        "mMin": 0.1
+      },
+      "primitives": [
+        {
+          "id": "approach",
+          "kind": "straight",
+          "length": 100
+        },
+        {
+          "id": "bend",
+          "kind": "arc",
+          "radius": 100,
+          "turn": 30
+        },
+        {
+          "id": "runout",
+          "kind": "straight",
+          "length": 100
+        }
+      ],
+      "boundaries": [
+        {
+          "id": "left",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": -4
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": -4
+            }
+          ]
+        },
+        {
+          "id": "shared",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": 0
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 0
+            }
+          ]
+        },
+        {
+          "id": "right",
+          "knots": [
+            {
+              "anchor": {
+                "kind": "absolute",
+                "s": 0
+              },
+              "l": 6
+            },
+            {
+              "anchor": {
+                "kind": "primitive",
+                "primitiveId": "runout",
+                "fraction": 1
+              },
+              "l": 6
+            }
+          ]
+        }
+      ],
+      "bands": [
+        {
+          "id": "west",
+          "start": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "left",
+          "rightBoundaryId": "shared",
+          "role": "pavement"
+        },
+        {
+          "id": "east",
+          "start": {
+            "kind": "absolute",
+            "s": 0
+          },
+          "end": {
+            "kind": "primitive",
+            "primitiveId": "runout",
+            "fraction": 1
+          },
+          "leftBoundaryId": "shared",
+          "rightBoundaryId": "right",
+          "role": "pavement"
+        }
+      ],
+      "carriageways": [
+        {
+          "id": "main",
+          "bandIds": ["east", "west"]
+        }
+      ],
+      "assetIds": []
+    }
+  ],
+  "assets": []
+}

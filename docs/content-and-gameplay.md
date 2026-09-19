@@ -56,6 +56,135 @@ The current declarative route compiler derives separate route/content/gate/hando
 then validates their joins. The [target reference graph](#compiled-course-reference-graph) replaces
 that internal representation while retaining input validation and distinct gameplay responsibilities.
 
+## CourseDocument v1: implemented compiler boundary
+
+[Admission and serialization](../src/course/course-document.ts),
+[geometry recipe](../src/course/course-geometry.ts),
+[course compilation](../src/runtime/compiled-course.ts) and
+[project transactions](../src/runtime/course-project.ts) implement Gate 1 independently of the current
+driving roots. The [saved LINEAR example](../tests/fixtures/linear.course.json) is executable input for
+the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
+data, not a ready driving Session or loaded image product.
+
+### Wire fields and scopes
+
+All fields below are required. Objects reject unknown fields; arrays retain their saved order. The
+reader creates owned frozen records in schema field order and normalizes negative zero to zero.
+Save emits compact UTF-8 JSON. Whitespace and object-property order do not affect source identity;
+array order is saved input, including meaningful primitive and knot order. Display labels, Links,
+height, bindings, placements and rules are not yet wire fields.
+
+| Record           | Exact v1 fields                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CourseDocument   | `format: "superoutride.course"`, `version: 1`, `id`, `units: {length: "m", angle: "deg"}`, `geometryRecipe: {id, version}`, `type: "LINEAR"`, `sections`, `assets` |
+| Section          | `id`, `start: {x, z, heading}`, `guide: {margin, mMin}`, `primitives`, `boundaries`, `bands`, `carriageways`, `assetIds`                                           |
+| Straight         | `id`, `kind: "straight"`, `length`                                                                                                                                 |
+| Circular arc     | `id`, `kind: "arc"`, `radius`, `turn` (signed degrees)                                                                                                             |
+| Absolute anchor  | `kind: "absolute"`, `s`                                                                                                                                            |
+| Primitive anchor | `kind: "primitive"`, `primitiveId`, `fraction`                                                                                                                     |
+| Boundary         | `id`, `knots: [{anchor, l}, ...]`                                                                                                                                  |
+| Band             | `id`, `start`, `end`, `leftBoundaryId`, `rightBoundaryId`, `role: "pavement"                                                                                       | "shoulder" | "median"` |
+| Carriageway      | `id`, `bandIds`                                                                                                                                                    |
+| Asset reference  | `id`, `format: "superoutride.sprite-lod"`, `version: 1`, `sha256`                                                                                                  |
+
+IDs are opaque nonblank strings, compared exactly without Unicode/whitespace normalization. Course ID
+is external identity; Section and asset IDs each have a document-wide scope. Primitive, Boundary,
+Band and Carriageway IDs each have a separate Section-local scope. Duplicate declaration IDs fail
+admission. References resolve within their declared scope, never by array position or naming convention.
+Empty arrays and unresolved references may be saved as drafts; successful compilation requires complete
+semantic input. A well-formed but unavailable geometry recipe may also be saved, and fails compilation
+with `unsupported_version`. Schema/format and unit mismatches fail admission.
+
+Asset references bind the exact saved completed-sprite bytes by lowercase SHA-256. Section membership
+resolves to canonical descriptor objects. Gate 1 neither fetches those bytes nor certifies image
+readiness, placement or integrity; payload admission stays with the existing image reader and future
+course loading. An empty asset list is sufficient for the geometry fixture. No mutable pixel buffers
+enter this product.
+
+### Domains and admission limits
+
+All numeric inputs must be finite. Length/radius are in `(0, 100000]` m; initial X/Z are within
+plus/minus 1000000 m; initial heading is in `[-360, 360]` degrees. Arc turn is nonzero in the same
+angle range. Absolute anchors are in `[0, 100000]` m and fractions in `[0, 1]`. Lateral positions
+are within plus/minus 1000 m, Guide margin in `(0, 1000]` m, and `0 < mMin < 1`. Recipe version is
+an integer in `[1, 65535]`. The geometry compiler additionally enforces finite, positive, valid
+compiled intervals and the existing Core metrics; a positive authored length need not survive
+floating-point geometry admission.
+
+`COURSE_DOCUMENT_LIMITS` owns 4 MiB UTF-8 JSON, 128 UTF-16 code units per ID, 16 Sections and 256 assets;
+per Section: 256 plan primitives, 32 Boundaries, 256 knots per Boundary, 32 Bands, 16 Carriageways and
+256 asset references. Compilation caps each Section at 2048 Raster segments and 100000 m of compiled
+chainage, checking subdivision counts before emitting vertices. These authoring limits bound work
+and diagnostics; they are not whole-game or target-device capacity approval.
+
+### Supported geometry and recipe
+
+The accepted recipe is `superoutride.raster-guide` version 1. It pins `RasterTurtle` version 1 and
+the existing Raster/Guide arithmetic: straight segments use `ceil(length/50)` equal steps; arcs use
+`ceil(abs(turnDegrees)/5)` equal angular steps computed in authored degrees, then convert angles with
+`PI/180`. Initial heading also uses degrees. The retained turtle radian API remains available to
+existing development content; it is not a second document interpretation.
+
+Arc radius provenance covers its initial and emitted vertices. A following arc overwrites the shared
+vertex's provenance with its own radius. Turtle accumulation remains its sequential analytic chord
+estimate; **the document ruler comes only from RasterPath**: sequential `Math.hypot` of emitted vertex
+differences in primitive order. Each primitive retains its interval on that ruler. Fraction 0/1
+resolves exactly to the interval endpoints; interior fractions use `start + fraction*(end-start)`.
+Absolute anchors keep their authored s and must lie in the finite Section domain.
+
+Successful Gate 1 compilation admits exactly one LINEAR Section, with constant Boundary profiles and
+full-domain Band/Boundary coverage `[0,L]`. Knots remain explicit, strictly increasing, and constant
+profiles may have additional anchors. Varying profiles and partial activation receive
+`unsupported_feature`; no width approximation is substituted. Bands have positive ordered width,
+do not overlap, and touching bands share one canonical Boundary. Every pavement Band belongs to
+exactly one Carriageway; its pavement members form a contiguous group. Shoulders/medians are structural
+roles only, with no inferred paint, grip or support.
+
+The compiler validates convex mapped Raster strip cells and nonadjacent intersections over the
+constant outer-band envelope, conservatively including gaps. This bounded simple-strip subset admits
+no overpass/loop overlap. It does not replace the later varying-band/topology validator. The existing
+Guide compiler receives `lMax = max(abs(outerLeft), abs(outerRight)) + margin` and authored mMin;
+local envelopes and their runtime containment cutover remain Gate 2. No new edge point-classifier is
+installed. Raster/Guide authoring-domain rejections are RangeError; internal Guide coverage/reader
+invariants retain Error. No geometry arithmetic or successful existing output changes.
+
+### Publication, identity and diagnostics
+
+Compilation builds private scoped Maps, resolves references once and publishes one frozen
+`CompiledCourse`. Sections own canonical primitives, Boundaries, Bands, Carriageways and asset
+references; Band edges point to those Boundaries, Carriageways to those Bands, and fraction anchors
+to those primitives. The Guide points to the Section's same Raster. Maps remain private; every exposed
+record/array is frozen and owned. Sections are reusable nodes, not a RouteDag or recursive successor
+tree. Later Link nodes can share/cycle these references without copying Sections. No topology is
+implemented by the current single-Section admission rule.
+
+`sourceSha256` hashes normalized saved input. `buildSha256` hashes `{sourceSha256, compiler,
+geometryRecipe}`, including the full pinned recipe descriptor. The compiler identity is
+`superoutride.course-compiler` version 1. All inputs currently conservatively invalidate the complete
+product. Rebuilds on the supported execution contract reproduce values and identities, but allocate
+distinct graph objects. Changes to compiler/recipe semantics require a version revision; unsupported
+recipes never silently migrate. Existing numerical-environment limits in Development apply.
+
+Public authoring operations return `{ok: true, value}` or `{ok: false, diagnostics}`. A diagnostic has
+`code`, a JSON Pointer `path` into the submitted input, and a causal `message`. The initial reader
+reports the first failure deterministically. Codes are `parse_failure`, `invalid_shape`,
+`unsupported_version`, `duplicate_id`, `unresolved_reference`, `invalid_numeric_domain`,
+`resource_limit`, `unsupported_feature`, `semantic_compile_failure`, and session `stale_source`.
+Compiler adapters translate known geometry RangeErrors only; unexpected platform and invariant
+exceptions propagate. Failure returns no partial product.
+
+`createCourseProject` owns live source/publication state. `editDocument` installs an admitted immutable
+draft and clears current compiled output on a changed normalized input; a no-op retains it. `save`
+does not require semantic success. To reopen an unfinished draft, parse it and explicitly edit with
+the admitted value. `importDocument` instead parses and compiles off to the side, installing source
+and product together only on success. A failed import or build retains the current source and prior
+successful product; that retained product is historical comparison data after an edit and cannot be
+returned by `exportCompiled`. Generation checks discard builds/imports superseded by newer operations.
+
+Core, physics and renderer receive their ordinary readers/data. They do not import the course graph;
+current composition roots remain unchanged. Runtime Link/view, image, session and GUI integration
+are separate acceptance gates.
+
 ## Point-to-point route transaction
 
 [RouteDag](../src/gameplay/route-dag.ts) owns acyclic legal stage successors. An oriented physical gate

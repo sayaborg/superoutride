@@ -218,6 +218,10 @@ imports, including types. Composition roots alone import concrete DEV content. R
 ordinary narrow readers to physics, camera and rendering; compilers own static preparation.
 Course topology and product choices belong in composition/gameplay, not pixel loops or mechanics.
 The compiled course graph is an upper-level owner; its lower-level reader facets preserve this graph.
+The implemented [Gate 1 boundary](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary)
+uses `src/runtime/compiled-course.ts` over Course-owned documents/geometry and existing Core readers.
+Its separate offline entry installs no new driving path. Core's shared content digest serves course
+and current GroundMap identities without a dependency from authoring geometry to image transport.
 
 ## Compiled profile and asset boundaries
 

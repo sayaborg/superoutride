@@ -7,7 +7,7 @@ import {
   GroundMapPageAsset,
 } from '../../dist/groundmap/ground-map-pages.js';
 import { GroundMapPayloadStore } from '../../dist/groundmap/ground-map-payload-store.js';
-import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
+import { contentDigest } from '../../dist/core/content-digest.js';
 
 /** Publish content-addressed payloads, then the manifest. No full binary readback or range transport. */
 export async function publishGroundMapPages(directory, binaryPath, metadata, identity, { gzip = false } = {}) {
@@ -23,8 +23,7 @@ export async function publishGroundMapPages(directory, binaryPath, metadata, ide
         if (bytesRead === 0) throw new Error('GroundMap compiler output ended inside payload');
         offset += bytesRead;
       }
-      if ((await groundMapDigest(bytes)) !== payload.sha256)
-        throw new Error('GroundMap compiler output digest mismatch');
+      if ((await contentDigest(bytes)) !== payload.sha256) throw new Error('GroundMap compiler output digest mismatch');
       await writeFile(
         join(directory, `${payload.sha256}.bin${gzip ? '.gz' : ''}`),
         gzip ? gzipSync(bytes, { level: 9 }) : bytes,
@@ -34,7 +33,7 @@ export async function publishGroundMapPages(directory, binaryPath, metadata, ide
     await binary.close();
   }
   const bytes = new TextEncoder().encode(JSON.stringify(manifest));
-  const sha256 = await groundMapDigest(bytes);
+  const sha256 = await contentDigest(bytes);
   await writeFile(join(directory, `${sha256}.json`), bytes);
   return sha256;
 }

@@ -53,7 +53,7 @@ const MIN_MITER_DENOMINATOR = 1e-9;
 const VERTEX_TURN_TOLERANCE_RADIANS = 1e-8;
 
 export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath {
-  if (vertices.length < 2) throw new Error('open raster path requires at least 2 vertices');
+  if (vertices.length < 2) throw new RangeError('open raster path requires at least 2 vertices');
 
   const copied = vertices.map((vertex) => {
     if (![vertex.x, vertex.z].every(Number.isFinite)) {
@@ -77,7 +77,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     if (!Number.isFinite(length) || !Number.isFinite(s + length)) {
       throw new RangeError('raster path length must be finite');
     }
-    if (!(length > MIN_RASTER_SEGMENT_METERS)) throw new Error(`raster segment ${i} has zero length`);
+    if (!(length > MIN_RASTER_SEGMENT_METERS)) throw new RangeError(`raster segment ${i} has zero length`);
 
     vertexS[i] = s;
     segments.push({
@@ -98,7 +98,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const outgoing = segments[i]!.heading;
     const turn = wrapAngle(outgoing - incoming);
     if (Math.abs(turn) > MAX_VERTEX_TURN + VERTEX_TURN_TOLERANCE_RADIANS) {
-      throw new Error(
+      throw new RangeError(
         `raster vertex ${i} turn ${((Math.abs(turn) * 180) / Math.PI).toFixed(4)}deg exceeds Core 10deg limit`,
       );
     }
@@ -115,7 +115,7 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
     const nOut = normalFromHeading(outgoing);
     const denominator = 1 + nIn.x * nOut.x + nIn.z * nOut.z;
     if (!(denominator > MIN_MITER_DENOMINATOR)) {
-      throw new Error(`raster vertex ${i} has degenerate lateral miter`);
+      throw new RangeError(`raster vertex ${i} has degenerate lateral miter`);
     }
     return {
       x: (nIn.x + nOut.x) / denominator,

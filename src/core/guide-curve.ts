@@ -139,7 +139,7 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
     const radius = sourceRadius === undefined ? rMin : sourceRadius * Math.cos(absTurn * 0.5);
 
     if (radius + tolerance < rMin) {
-      throw new Error(`vertex ${i} circular-source guide radius is below Core R_min`);
+      throw new RangeError(`vertex ${i} circular-source guide radius is below Core R_min`);
     }
 
     const trim = radius * Math.tan(absTurn * 0.5);
@@ -387,7 +387,7 @@ function validateFilletOverlap(
     const b = corners[i + 1]!;
     const required = a.trim + b.trim;
     if (required > segment.length + tolerance) {
-      throw new Error(`Guide fillets overlap on raster segment ${i}`);
+      throw new RangeError(`Guide fillets overlap on raster segment ${i}`);
     }
 
     const opposite =
@@ -397,7 +397,7 @@ function validateFilletOverlap(
     if (opposite && dCam !== undefined) {
       const remaining = segment.length - required;
       if (remaining + tolerance < dCam) {
-        throw new Error(`opposite-sign fillets on segment ${i} require straight >= D_cam`);
+        throw new RangeError(`opposite-sign fillets on segment ${i} require straight >= D_cam`);
       }
     }
   }

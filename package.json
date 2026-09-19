@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "build:test-assets": "node tools/build/build-test-ground-map.mjs",
     "build:ground": "node tools/build/build-product-ground.mjs",
+    "compile:course": "node tools/course/compile-course.mjs",
     "build:sprite-lod": "node tools/build/build-sprite-lod.mjs",
     "build:sprite-source": "node tools/build/build-sprite-source.mjs"
   },

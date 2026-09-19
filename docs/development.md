@@ -30,6 +30,26 @@ retain the failure evidence and review any replacement contract explicitly. Do n
 round samples or relax a valid assertion merely to make an unsupported run pass. This course-authoring
 preparation neither changes synthesis nor resumes deferred method selection or calibration.
 
+## CourseDocument compiler
+
+After `npm run build`, run the declared offline entry:
+
+```sh
+npm run compile:course -- tests/fixtures/linear.course.json
+```
+
+It reads a saved CourseDocument through the same admission/compiler/project boundary intended for
+the editor, reports source/build identities and geometry counts, and leaves the file unchanged.
+Failure writes structured diagnostics and exits nonzero. Its JSON report is not a serialized graph
+format; reload the saved source through the compiler to reconstruct canonical references.
+[Content](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) owns the wire schema,
+supported subset, limits and failure semantics. No driving preview is enabled by this command.
+
+[Document tests](../tests/runtime/course-document.test.mjs) exercise saved input, independent chord
+geometry, shared object identity, arbitrary IDs/declaration order, immutability, invalidation, atomic
+imports, stale asynchronous publication and the real command. The complete suite retains its immutable
+mechanics/audio/image references; the new compiler does not alter current course fixtures or hashes.
+
 ## Sprite LOD preview
 
 After `npm run build`, serve the checkout and open `tools/graphics/sprite-lod.html`. The same page
@@ -137,7 +157,7 @@ Material/Decal composition and Course Editor are subsequent work, not hidden run
 
 ## Validation contracts
 
-Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
+Causal regressions exercise real physics, physical gates, handoffs, recovery, camera, rendering and input lifecycle. Boundary tests enforce the DEV dependency direction and forbidden alternate coordinate authorities. Document hygiene discovers all maintained Markdown files and validates local links. Current specifications are checked, not the preservation of chronological reports. General implementations must be reachable from a browser composition root or a declared asset-compiler entry. The declared offline entries are `compile:course` for CourseDocument graphs, `build:ground` for course assets, `build:sprite-source` for PNG normalization and `build:sprite-lod` for completed sprite images, plus `tools/graphics/sprite-tool.mjs` as the authoring-side image compiler; `build:test-assets` generates separate regression fixtures. Tests do not establish production use. Diagnostics and fixtures belong to their explicit DEV owners and need real test/tool consumers. Independently, exports must have named consumers resolved by TypeScript across source, tests and tools (including inline HTML modules); unused signature types remain module-local. This export check detects unused API but does not authorize a second implementation. Dynamic whole-module enumeration alone does not justify a named public API.
 
 Geometry regressions are organized by projection, terrain generation, Raster/Guide geometry, sprites and key ownership rather than development milestones. Primitive, adapter and full-renderer checks retain their distinct causal scenarios. Shared numerical assertions require explicit tolerances; relative scaling and strict comparison remain call-site choices.
 
@@ -509,7 +529,8 @@ supporting measurements, not smartphone certification. Oversized content receive
 
 ### Remaining evidence gates
 
-Exact CourseDocument/wire schema and integer ranges are validated before GUI dependence. Candidate
+The Gate 1 CourseDocument schema and ranges are implemented and tested in their declared subset;
+future wire additions require matching admission and causal coverage before GUI dependence. Candidate
 LOD/filter/packing choices require real-art and footprint evidence. Seam/consumer/transfer envelopes
 require causal geometry/physics tests. Reference AI and timed presets require their three acceptance
 stages. Interaction/traffic definitions and device budgets remain explicit prerequisites for complete

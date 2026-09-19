@@ -1,4 +1,4 @@
-import { groundMapDigest } from './ground-map-digest.js';
+import { contentDigest } from '../core/content-digest.js';
 import { TEXEL_SPACING_TOLERANCE } from '../core/tolerances.js';
 import { positiveFinite } from '../core/validation.js';
 import { createGroundMapLevelEncoder } from './ground-map-encoding.js';
@@ -102,7 +102,7 @@ export async function compileBakedGroundMapAsset(
         k === 0 ? paletteRgba : null,
       );
       const encoded = encoder.encodeRows(0, rowCount);
-      const sha256 = await groundMapDigest(new Uint8Array(encoded));
+      const sha256 = await contentDigest(new Uint8Array(encoded));
       const key = `${format}:${lateralTexels}:${rowCount}:${sha256}`;
       const candidates = payloadBuckets.get(key) ?? [];
       let payloadId = -1;

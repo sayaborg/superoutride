@@ -4,7 +4,7 @@ import { readFile, mkdtemp, writeFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GroundMapPayloadStore } from '../../dist/groundmap/ground-map-payload-store.js';
-import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
+import { contentDigest } from '../../dist/core/content-digest.js';
 import {
   createGroundMapPageManifest,
   decodeGroundMapPageManifest,
@@ -24,7 +24,7 @@ const deferred = () => {
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 async function payload(values) {
   const bytes = Uint8Array.from(values);
-  return { bytes, identity: { sha256: await groundMapDigest(bytes), byteLength: bytes.length } };
+  return { bytes, identity: { sha256: await contentDigest(bytes), byteLength: bytes.length } };
 }
 const limits = { maxResidentBytes: 8, maxLoadingBytes: 8 };
 
@@ -278,7 +278,7 @@ test('manifests bind source/target/input identity, reject corruption and retain 
   left.release();
   right.release();
   const bytes = new TextEncoder().encode(JSON.stringify(manifest));
-  const sha = await groundMapDigest(bytes);
+  const sha = await contentDigest(bytes);
   assert.deepEqual(await decodeGroundMapPageManifest(bytes, sha), manifest);
   await assert.rejects(decodeGroundMapPageManifest(bytes, '0'.repeat(64)), /digest mismatch/);
   for (const mutate of [
@@ -301,7 +301,7 @@ test('manifests bind source/target/input identity, reject corruption and retain 
     const invalid = structuredClone(manifest);
     mutate(invalid);
     const data = new TextEncoder().encode(JSON.stringify(invalid));
-    await assert.rejects(decodeGroundMapPageManifest(data, await groundMapDigest(data)));
+    await assert.rejects(decodeGroundMapPageManifest(data, await contentDigest(data)));
   }
 });
 

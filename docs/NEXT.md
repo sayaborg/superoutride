@@ -10,25 +10,25 @@ the continuation authority. [Development](development.md) owns commands and rele
 ## Next work: Course Editor
 
 Current code uses paged compiled ground, a scalar Guide envelope, finite circuit unfolding and three
-composition roots. Sprite Tool exists. The revised Section/Link/reference-graph, local-envelope,
-half-open-edge and resident-image contracts are implementation targets. Tire/audio tuning stays deferred.
+composition roots. Sprite Tool exists. Gate 1 now provides a versioned CourseDocument, pinned geometry
+recipe, immutable compiled reference graph and atomic authoring project boundary through a separate
+offline compiler entry. Links, local envelopes, half-open edges and resident images remain targets.
+Tire/audio tuning stays deferred.
 
-### First implementation slice
+### Implemented foundation
 
-Begin Gate 1 with a minimal versioned CourseDocument, pinned geometry recipe and asset-reference
-boundary. Use the [authored primitives](content-and-gameplay.md#authored-plan-primitives),
-[boundaries](content-and-gameplay.md#cross-section-and-variable-width-authoring) and
-[compiled reference graph](content-and-gameplay.md#compiled-course-reference-graph) as the input/output model.
-Resolve IDs at admission and publish one immutable product. Establish parse/semantic diagnostics,
-draft save/reopen, invalid-input preservation and dependent-output invalidation over a small linear course.
-Declare the supported subset and reject unsupported features explicitly. Establish exact wire fields
-and resource limits with executable tests before GUI dependence.
+[CourseDocument v1](content-and-gameplay.md#coursedocument-v1-implemented-compiler-boundary) establishes
+the exact wire fields, limits and supported single-Section LINEAR/constant-boundary subset. IDs resolve
+once to canonical objects. Draft round trips, deterministic Raster/Guide output, source/recipe identity,
+shared references, nested immutability, failure preservation and stale-build exclusion are covered by
+[causal tests](../tests/runtime/course-document.test.mjs). No driving root consumes the new graph yet.
+Use the [offline entry](development.md#course-document-compiler) and saved fixture to reproduce it.
 
 ### Next milestones
 
-1. **Gate 1 — Documents and compilation.** Implement the first slice, arbitrary-ID reference resolution,
-   geometry-recipe identity and round-trip tests. Use saved primitives/boundaries as the new product
-   input; retain current successor/growth builders only for consumed development content and fixtures.
+1. **Gate 1 — Documents and compilation: implemented.** The document/compiler/project boundary is
+   available without GUI. Asset references are immutable identities, not loaded image payloads.
+   Existing successor/growth builders remain consumed development content and fixtures.
 2. **Gate 2 — Geometry, Links and views.** Add local Guide envelopes, varying/shared boundary readers,
    half-open membership, two/three-way forks, merges and transformed loops. Replace origin-based
    junction inference. Prove straddling contact, pre-lock coverage, common-only overlap, parent-specific

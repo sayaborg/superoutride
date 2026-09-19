@@ -2,7 +2,7 @@ import { productGroundSources } from './product-ground-sources.mjs';
 import { createTsukubaCourse2000Lap, createTsukubaGroundProfile } from '../../dist/dev/courses/tsukuba-circuit.js';
 import { verifyGroundMapHttp } from './verify-ground-map-http.mjs';
 import { publishGroundMapPages, verifyGroundMapPages } from './ground-map-pages.mjs';
-import { groundMapDigest } from '../../dist/groundmap/ground-map-digest.js';
+import { contentDigest } from '../../dist/core/content-digest.js';
 import { createBranchingGroundAuthoring } from '../../dist/dev/courses/branching-ground-authoring.js';
 import { createGroundMapCompileSource } from '../../dist/groundmap/ground-map-compile-source.js';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -108,7 +108,7 @@ for (const { id, runtime } of createBranchingGroundAuthoring().stages) {
     sourceId: id,
     compilerId: 'point-source-2x4-rgba-round-v1',
     targetId: 'test-qL0.25-qS1-k2-v1',
-    inputSha256: await groundMapDigest(
+    inputSha256: await contentDigest(
       new TextEncoder().encode(
         JSON.stringify({
           courseLength: source.courseLength,
@@ -146,7 +146,7 @@ const lapDigest = await publishGroundMapPages(pageDirectory, lapPath, lapMetadat
   sourceId: 'TSUKUBA_LAP',
   compilerId: 'point-source-2x4-rgba-round-v1',
   targetId: 'test-qL0.25-qS1-k2-v1',
-  inputSha256: await groundMapDigest(
+  inputSha256: await contentDigest(
     new TextEncoder().encode(JSON.stringify({ length: lapSource.courseLength, profile: createTsukubaGroundProfile() })),
   ),
 });
@@ -169,7 +169,7 @@ for (const entry of productGroundSources().filter((entry) => entry.id === 'linea
     sourceId: entry.id,
     compilerId: 'point-source-2x4-rgba-round-v1',
     targetId: 'test-qL0.25-qS1-k2-v1',
-    inputSha256: await groundMapDigest(
+    inputSha256: await contentDigest(
       new TextEncoder().encode(JSON.stringify({ length: entry.length, profile: entry.profile })),
     ),
   });

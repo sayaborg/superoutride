@@ -5,7 +5,7 @@ import {
   bakedGroundMapRowIndex,
   type BakedGroundMapMetadata,
 } from './baked-ground-map.js';
-import { groundMapDigest } from './ground-map-digest.js';
+import { contentDigest } from '../core/content-digest.js';
 import type { GroundMapPayloadLease, GroundMapPayloadStore } from './ground-map-payload-store.js';
 
 interface GroundMapBuildIdentity {
@@ -50,7 +50,7 @@ export async function decodeGroundMapPageManifest(
 ): Promise<GroundMapPageManifest> {
   // Caller-owned manifest input may change while digesting; validate and parse the same snapshot.
   const owned = Uint8Array.from(bytes);
-  if ((await groundMapDigest(owned)) !== expectedSha256) throw new Error('GroundMap manifest digest mismatch');
+  if ((await contentDigest(owned)) !== expectedSha256) throw new Error('GroundMap manifest digest mismatch');
   const manifest = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(owned)) as GroundMapPageManifest;
   if (manifest.kind !== 'ground-map-pages' || manifest.version !== 1)
     throw new Error('unsupported GroundMap page manifest');
