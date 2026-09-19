@@ -58,7 +58,7 @@ export function compileCourseConsumerDemand<const Name extends string>(input: un
       step = extent(value.step, '/demand/step');
     const authored = record(value.consumers, consumers, '/demand/consumers');
     const requirements = Object.freeze(
-      consumers.map((consumer) => {
+      consumers.map((consumer: Name) => {
         const footprint = extent(authored[consumer], `/demand/consumers/${consumer}`);
         const sum = (key: (typeof axes)[number]) => {
           const n = pose[key] + step[key] + footprint[key];
