@@ -15,12 +15,14 @@ export interface BrowserCourseModeSelection {
   readonly label: string;
   readonly query: BrowserCourseModeQuery;
   readonly routeKind: CourseRouteKind;
-  readonly entryName: (typeof COURSE_RUNNERS)[CourseRouteKind];
+  readonly entryName: (typeof COURSE_RUNNERS)[CourseRouteKind] | 'main-course.js';
 }
 
-export function compileBrowserCourseModes<const Entry extends Omit<BrowserCourseModeSelection, 'entryName'>>(
-  entries: readonly Entry[],
-): readonly (Entry & Pick<BrowserCourseModeSelection, 'entryName'>)[] {
+export function compileBrowserCourseModes<
+  const Entry extends Omit<BrowserCourseModeSelection, 'entryName'> & {
+    readonly entryName?: BrowserCourseModeSelection['entryName'];
+  },
+>(entries: readonly Entry[]): readonly (Entry & BrowserCourseModeSelection)[] {
   const queries = new Set<string>();
   const keys = new Set<string>();
   return Object.freeze(
@@ -44,12 +46,13 @@ export function compileBrowserCourseModes<const Entry extends Omit<BrowserCourse
         }
         keys.add(code);
       }
-      return Object.freeze({ ...entry, entryName: COURSE_RUNNERS[entry.routeKind] });
+      return Object.freeze({ ...entry, entryName: entry.entryName ?? COURSE_RUNNERS[entry.routeKind] });
     }),
   );
 }
 
 export const BROWSER_COURSE_MODES = compileBrowserCourseModes([
+  Object.freeze({ label: 'COURSE TRIAL', query: 'trial', routeKind: 'LINEAR', entryName: 'main-course.js' }),
   Object.freeze({
     ...BROWSER_COURSE_KEYS.linear,
     label: 'LINEAR',
@@ -103,8 +106,7 @@ export function browserCourseModeForKey(
 /** The catalog owns root membership; composition supplies only the builders for that membership. */
 export function composeBrowserCourseContent<Kind extends CourseRouteKind, Content>(
   kind: Kind,
-  builders: Readonly<Record<string, () => Content>> &
-    Record<Extract<(typeof BROWSER_COURSE_MODES)[number], { routeKind: NoInfer<Kind> }>['query'], () => Content>,
+  builders: Readonly<Record<string, () => Content>>,
   query: string | null,
 ): { mode: BrowserCourseModeSelection; content: Content } {
   const mode = selectBrowserCourseMode(query);

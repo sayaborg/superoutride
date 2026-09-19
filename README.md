@@ -27,7 +27,8 @@ varying shared boundaries, Band activation/tapers and local Guide envelopes. Ori
 geometric Links connect LINEAR chains, BRANCH forks/merges and one-source CIRCUIT loops in an immutable
 reference graph. An offline bounded geometry view retains actual traversal history and shares source
 readers in an active frame. Complete content/consumer qualification and driving cutover are pending; the
-current game courses still use their existing composition roots.
+new provisional LINEAR is playable at `?mode=trial` using the new graph and saved images.
+Its shared scene also supports headless PNGs through `npm run course -- render`.
 
 For tuning while driving, open `http://localhost:8000/?mode=circuit` and open DEV. `http://localhost:8000/tools/audio/audio-browser.html` is the separate audition page;
 serve both over HTTP, rather than opening HTML files directly. See the [audio specification](docs/audio.md)

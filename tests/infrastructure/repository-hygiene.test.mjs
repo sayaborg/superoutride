@@ -81,12 +81,19 @@ test('every source module is reachable from a composition or declared compiler e
     for (const dependency of graph.get(file) ?? []) visit(dependency);
   }
   // Dynamic boot selection deliberately assembles exactly these browser roots.
-  for (const relative of ['src/boot.ts', 'src/main.ts', 'src/main-linear.ts', 'src/main-circuit.ts']) {
+  for (const relative of [
+    'src/boot.ts',
+    'src/main.ts',
+    'src/main-linear.ts',
+    'src/main-circuit.ts',
+    'src/main-course.ts',
+  ]) {
     visit(path.join(repositoryRoot, relative));
   }
   visit(path.join(repositoryRoot, 'tools/build/build-test-ground-map.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-product-ground.mjs'));
   visit(path.join(repositoryRoot, 'tools/course/compile-course.mjs'));
+  visit(path.join(repositoryRoot, 'tools/course/course.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-lod.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-source.mjs'));
   // This authoring entry compiles source/master/LOD before game load; diagnostics do not.

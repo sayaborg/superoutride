@@ -30,6 +30,30 @@ retain the failure evidence and review any replacement contract explicitly. Do n
 round samples or relax a valid assertion merely to make an unsupported run pass. This course-authoring
 preparation neither changes synthesis nor resumes deferred method selection or calibration.
 
+## Agent production tools
+
+After `npm run build`, the implemented single-frame slice runs as follows:
+
+```sh
+npm run course -- compile content/courses/linear.course.json
+npm run course -- render content/courses/linear.course.json --s 1200 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+```
+
+Open `http://localhost:8000/?mode=trial` for the same scene in the browser. Build validates and stages
+saved content in `dist/content`, with an exact-byte SHA-256 manifest. Pages verifies version.txt,
+versioned boot/root, the manifest and every delivered course/image against the checkout. Sequence
+rendering, reports and fitting remain M5 work.
+
+The production CLI uses `compile`, `render` and `report`. Compile emits JSON diagnostics. Render
+selects a Section, s, l and vehicle viewpoint, or an evenly spaced s sequence, and writes PNGs using
+the same scene assembly, camera and renderer as the browser root. Report writes chainage bands for
+curvature, height, Boundaries, scenery and environments plus a supporting plan view and text.
+Keep qualification flags in separate diagnostics. `tools/course/` owns observation measurement and
+primitive/knot fitting; [Content](content-and-gameplay.md#agent-authoring) owns saved semantics.
+Check frame extraction and image inspection at the start of authoring work; record unavailable
+capabilities in NEXT Open decisions. M5 acceptance rebuilds a provisional product course through
+this CLI and inspects its rendered images.
+
 ## CourseDocument compiler
 
 After `npm run build`, run the declared offline entry:
@@ -50,7 +74,7 @@ format; reload the saved source through the compiler to reconstruct canonical re
 Semantic compilation reports independent failures at each reached dependency phase in declaration order,
 with explicit cause codes and input pointers. Invalid prerequisites stop their dependent work. The same
 result is used by the CLI and authoring project; neither publishes a partial graph.
-[Content](content-and-gameplay.md#coursedocument-v5-implemented-compiler-boundary) owns the wire schema,
+[Content](content-and-gameplay.md#coursedocument-v6-implemented-compiler-boundary) owns the wire schema,
 supported subset, limits and failure semantics. No driving preview is enabled by this command.
 
 For documents declaring image assets, pass `--images directory` immediately after the document path,
@@ -81,7 +105,7 @@ per-cell carriageway contiguity, arbitrary IDs/order, failed publication and inv
 replacement must preserve occupied intervals; outer bounds alone do not prove continuity.
 Half-open physical/paint/lock classification remains unqualified at runtime.
 
-Schema v5 and course compiler v12 include offline Port/Link graphs and geometry recipe v4.
+Schema v6 and course compiler v13 include offline Port/Link graphs and geometry recipe v4.
 [Link tests](../tests/runtime/course-links.test.mjs) and [transform tests](../tests/geometry/planar-transform.test.mjs)
 exercise translated/rotated chains, two/three-way forks sharing a successor, one-source transformed
 loops, exact canonical references, frozen cycles and source invalidation. Complete-cell edge comparison

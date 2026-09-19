@@ -51,7 +51,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 12,
+  version: 13,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -207,6 +207,7 @@ function compileSection(
       instances,
       resolve,
       `${path}/presentation`,
+      section.id,
     ),
     ports: [],
     incoming: [],
@@ -326,7 +327,14 @@ export async function compileCourseDocument(
         entry,
         links: Object.freeze(links),
         assets: images.value,
-        sceneryInstances,
+        sceneryInstances: Object.freeze([
+          ...new Set([
+            ...sceneryInstances,
+            ...sections.flatMap(
+              (section) => section.presentation?.scenery.map((placement) => placement.instance) ?? [],
+            ),
+          ]),
+        ]),
       }),
     );
   } catch (error) {

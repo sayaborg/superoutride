@@ -78,6 +78,7 @@ test('a tenth catalog vehicle without a shortcut remains selectable through the 
 
 test('mobile course buttons derive labels and active state from the canonical course authority', () => {
   assert.deepEqual(createMobileCourseSelectorModel('circuit'), [
+    { value: 'trial', label: 'COURSE TRIAL', ariaLabel: 'Select COURSE TRIAL course', active: false },
     { value: 'linear', label: '1', ariaLabel: 'Select LINEAR course', active: false },
     { value: 'branching', label: '2', ariaLabel: 'Select BRANCHING course', active: false },
     { value: 'circuit', label: '3', ariaLabel: 'Select TSUKUBA course', active: true },
@@ -105,9 +106,9 @@ test('additional unbound courses use the existing route runner and actual mobile
     selectorDocument,
     choices,
   );
-  assert.equal(container.children.length, 5);
-  assert.equal(container.children[4].textContent, 'EXTRA');
-  container.children[4].click();
+  assert.equal(container.children.length, choices.length);
+  assert.equal(container.children.at(-1).textContent, 'EXTRA');
+  container.children.at(-1).click();
   assert.equal(selected.query, extra.query);
   assert.equal(selected.entryName, 'main-circuit.js');
   assert.throws(() => compileBrowserCourseModes([extra, extra]), /duplicate course query/);
@@ -222,9 +223,12 @@ test('mobile selectors publish canonical choices and numeric steppers display th
     },
     fakeDocument,
   );
-  assert.equal(courseContainer.children.length, 4);
-  assert.equal(courseContainer.children[1].attributes.get('aria-pressed'), 'true');
-  courseContainer.children[2].click();
+  assert.equal(courseContainer.children.length, BROWSER_COURSE_MODES.length);
+  assert.equal(
+    courseContainer.children.find((child) => child.textContent === '2').attributes.get('aria-pressed'),
+    'true',
+  );
+  courseContainer.children.find((child) => child.textContent === '3').click();
   assert.equal(selectedCourse.query, 'circuit');
 
   const vehicleContainer = new SelectorElement();

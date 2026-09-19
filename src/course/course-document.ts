@@ -93,6 +93,17 @@ export interface PresentationDocument {
       readonly yawOrigin: number;
     };
   }[];
+  readonly sceneryRows: readonly {
+    readonly id: string;
+    readonly assetId: string;
+    readonly start: CourseAnchor;
+    readonly end: CourseAnchor;
+    readonly spacing: number;
+    readonly boundaryId: string;
+    readonly side: 'left' | 'right';
+    readonly offset: number;
+    readonly groundOffset: number;
+  }[];
   readonly scenery: readonly {
     readonly id: string;
     readonly instanceId: string;
@@ -123,7 +134,7 @@ export interface SectionDocument {
 
 export interface CourseDocument {
   readonly format: 'superoutride.course';
-  readonly version: 5;
+  readonly version: 6;
   readonly id: string;
   readonly units: { readonly length: 'm'; readonly angle: 'deg' };
   readonly geometryRecipe: GeometryRecipeIdentity;
@@ -175,7 +186,7 @@ function record(value: unknown, path: string, fields: readonly string[]): Record
   for (const key of Object.keys(result)) {
     if (!fields.includes(key)) {
       const escaped = key.replaceAll('~', '~0').replaceAll('/', '~1');
-      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v5`);
+      fail('unsupported_feature', `${path}/${escaped}`, `Field ${key} is not supported by CourseDocument v6`);
     }
   }
   for (const key of fields) {
@@ -346,7 +357,7 @@ function paint(value: unknown, path: string): PaintDocument | null {
 
 function presentation(value: unknown, path: string): PresentationDocument | null {
   if (value === null) return null;
-  const v = record(value, path, ['ground', 'environments', 'scenery']);
+  const v = record(value, path, ['ground', 'environments', 'scenery', 'sceneryRows']);
   const g = record(v.ground, `${path}/ground`, ['left', 'right', 'baseRgb555', 'bands', 'stamps']);
   return Object.freeze({
     ground: Object.freeze({
@@ -393,6 +404,36 @@ function presentation(value: unknown, path: string): PresentationDocument | null
           ),
           yawOrigin: number(b.yawOrigin, `${at}/background/yawOrigin`, -360, 360),
         }),
+      });
+    }),
+    sceneryRows: identified(v.sceneryRows, `${path}/sceneryRows`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
+      const row = record(item, at, [
+        'id',
+        'assetId',
+        'start',
+        'end',
+        'spacing',
+        'boundaryId',
+        'side',
+        'offset',
+        'groundOffset',
+      ]);
+      if (row.side !== 'left' && row.side !== 'right') fail('invalid_shape', `${at}/side`, 'Expected left or right');
+      return Object.freeze({
+        id: id(row.id, `${at}/id`),
+        assetId: id(row.assetId, `${at}/assetId`),
+        start: anchor(row.start, `${at}/start`),
+        end: anchor(row.end, `${at}/end`),
+        spacing: number(row.spacing, `${at}/spacing`, 0, COURSE_DOCUMENT_LIMITS.lengthMeters, true),
+        boundaryId: id(row.boundaryId, `${at}/boundaryId`),
+        side: row.side,
+        offset: number(row.offset, `${at}/offset`, 0, COURSE_DOCUMENT_LIMITS.lateralMeters),
+        groundOffset: number(
+          row.groundOffset,
+          `${at}/groundOffset`,
+          -COURSE_DOCUMENT_LIMITS.heightMeters,
+          COURSE_DOCUMENT_LIMITS.heightMeters,
+        ),
       });
     }),
     scenery: identified(v.scenery, `${path}/scenery`, COURSE_DOCUMENT_LIMITS.placements, (item, at) => {
@@ -503,7 +544,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
   try {
     // Reject an identified older schema before requiring the current schema's fields.
     if (input && typeof input === 'object' && Object.hasOwn(input, 'version'))
-      literal((input as Record<string, unknown>).version, 5, '/version', 'unsupported_version');
+      literal((input as Record<string, unknown>).version, 6, '/version', 'unsupported_version');
     const v = record(input, '', [
       'format',
       'version',
@@ -518,7 +559,7 @@ export function readCourseDocument(input: unknown): CourseResult<CourseDocument>
       'sceneryInstances',
     ]);
     const format = literal(v.format, 'superoutride.course', '/format', 'unsupported_format');
-    const version = literal(v.version, 5, '/version', 'unsupported_version');
+    const version = literal(v.version, 6, '/version', 'unsupported_version');
     const units = record(v.units, '/units', ['length', 'angle']);
     const recipe = record(v.geometryRecipe, '/geometryRecipe', ['id', 'version']);
     const recipeVersion = number(recipe.version, '/geometryRecipe/version', 1, 65535);

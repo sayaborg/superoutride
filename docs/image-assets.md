@@ -172,7 +172,7 @@ resident RGB555 ground remains Gate 3.
 
 ## Saved course presentation
 
-CourseDocument v5 and presentation recipe v1 admit explicit Band paint profiles, static A/B mappings,
+CourseDocument v6 and presentation recipe v2 admit explicit Band paint profiles, static A/B mappings,
 ordered stamps, environment/background profiles and shared scenery identities. [Content](content-and-gameplay.md#wire-fields-and-scopes)
 owns exact fields/reference scopes. Ground and background bindings require one normalized master;
 sprite LOD pyramids remain scenery inputs. Source assets resolve to the same canonical records as
@@ -207,7 +207,7 @@ position and height offset with canonical instance identity; geometric placement
 occurrences is a subsequent view/qualification responsibility.
 
 This supplies complete data for this declared subset and a point-color source evaluator. It does not
-generate dimensioned markings, boundary treatments, repair scatter or pattern rows, filter output
+generate dimensioned markings, boundary treatments or repair scatter, filter output
 images, create resident records, or certify common-content overlap. Those unsupported authoring fields
 fail admission. Geometry-only fixtures retain explicit absent presentation rather than guessed art.
 
