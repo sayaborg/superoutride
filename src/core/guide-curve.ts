@@ -297,7 +297,11 @@ export function projectWorldOnGuideInterval(
   end: number,
   clampL = false,
 ): CourseCoordinate {
-  if (!world || [world.x, world.z, start, end, segmentIndex].some((v) => typeof v !== 'number'))
+  if (
+    !world ||
+    [world.x, world.z, start, end, segmentIndex].some((v) => typeof v !== 'number') ||
+    typeof clampL !== 'boolean'
+  )
     throw new TypeError('Guide interval projection requires numeric coordinates, segment and bounds');
   if (!Number.isInteger(segmentIndex) || segmentIndex < 0 || segmentIndex >= guide.segments.length)
     throw new RangeError('Guide interval projection needs a source segment');

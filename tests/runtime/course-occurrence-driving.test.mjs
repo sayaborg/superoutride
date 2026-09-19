@@ -110,6 +110,7 @@ test('clipped Guide projection retains native full-segment arithmetic and bounds
     assert.ok(Math.abs(projectWorldOnGuideInterval(g, segment.index, after, start, end).s - end) < 1e-8);
   }
   assert.throws(() => projectWorldOnGuideInterval(g, 0, { x: 0, z: 0 }, 10, 10), RangeError);
+  assert.throws(() => projectWorldOnGuideInterval(g, 0, { x: 0, z: 0 }, 10, 20, 'false'), TypeError);
 });
 
 test('stable frame addresses and occurrence seeds survive moving view origins across a selected Link', async () => {
@@ -247,6 +248,7 @@ test('saved presentation maps once across a selected seam and actual complete fr
   assert.ok(neighborQueries > 10000);
   assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 500, 0), RangeError);
   assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, 1), RangeError);
+  assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, '0'), TypeError);
 });
 
 test('reverse driving reads the actual retained predecessor in the destination frame', async () => {
@@ -304,6 +306,7 @@ test('admission and query failures preserve traversal and reject unqualified or 
     point = guide.toWorld(1404, 0.25);
   assert.throws(() => guide.locateLocal(point, 999999, 5, false), RangeError);
   assert.throws(() => guide.locateLocal(point, point.segmentIndex, '5', false), TypeError);
+  assert.throws(() => guide.metricsAt(1404, 0.25, String(point.segmentIndex)), TypeError);
   assert.throws(() => guide.locateLocal(point, point.segmentIndex, 100, false), RangeError);
   assert.deepEqual(f.traversal.snapshot(), before);
 });

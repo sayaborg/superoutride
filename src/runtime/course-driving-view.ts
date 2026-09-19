@@ -160,6 +160,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           };
         },
         metricsAt(s: number, l: number, segmentIndex: number) {
+          if (typeof segmentIndex !== 'number') throw new TypeError('Projection seed must be numeric');
           const { address, section, mapping } = resolve(s, l);
           queryDomain(mapping, l, physical.demand.bounds, 'Physical');
           const index = segmentIndex - mapping.occurrence.ordinal * seedStride;
@@ -349,6 +350,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
         kMax: 0,
         selectLevel: () => 0,
         sampleAtLevel(s: number, l: number, level: number) {
+          if (typeof level !== 'number') throw new TypeError('Source preview level must be numeric');
           if (level !== 0) throw new RangeError('Source preview has only level zero');
           const { address, mapping } = resolve(s, l);
           queryDomain(mapping, l, presentation.demand.bounds, 'Presentation');
