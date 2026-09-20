@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -29,8 +30,8 @@ const terrain = { ...ground, screenHeight: 240, dMin: 2.5, dMax: 150, height, vi
 const samples = [];
 for (const s of [25, 45, 80, 105, 120, 155, 230, 275, 350, 440, 500, 520, 610, 650])
   for (const pitch of [0, (8 * Math.PI) / 180]) {
-    const p = guidePathToWorld(guide, s, 0),
-      c = guidePathToWorld(guide, s - 20, 0);
+    const p = guidePathToWorld(guide, s, 0, createPlanarCoordinateSample()),
+      c = guidePathToWorld(guide, s - 20, 0, createPlanarCoordinateSample());
     const vehicle = {
       x: p.x,
       y: height.samplePhysics(s),

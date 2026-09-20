@@ -1,3 +1,5 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createVehicleDebugHudModel, drawVehicleControlGraphics } from '../../dist/browser/vehicle-debug-hud.js';
@@ -19,7 +21,7 @@ function fixture(speed = 30, lateral = 0, pitch = 0) {
   v.velocityX = lateral;
   v.velocityY = 0;
   v.velocityZ = speed;
-  const body = arcadeBodyKinematics(v);
+  const body = arcadeBodyKinematics(v, createBodyKinematicsWorkspace());
   const contact = deriveContactObservation(
     p.guide,
     p.height,
@@ -28,6 +30,7 @@ function fixture(speed = 30, lateral = 0, pitch = 0) {
     v.profile.frontStation,
     0,
     v.course.segmentIndex,
+    createContactWorkspace(v.profile.frontStation),
   );
   return { body, contact: { ...contact, normalLoad: 4000, forceTransmitting: true } };
 }
@@ -43,10 +46,20 @@ test('frame reorientation exactly matches full contact observation without anoth
       v.profile.frontStation,
       0,
       v.course.segmentIndex,
+      createContactWorkspace(v.profile.frontStation),
     );
     assert.deepEqual(
-      reorientContactObservation(before, body, d),
-      deriveContactObservation(p.guide, p.height, p.surface, body, v.profile.frontStation, d, v.course.segmentIndex),
+      reorientContactObservation(before, body, d, createContactWorkspace(before.profile)),
+      deriveContactObservation(
+        p.guide,
+        p.height,
+        p.surface,
+        body,
+        v.profile.frontStation,
+        d,
+        v.course.segmentIndex,
+        createContactWorkspace(v.profile.frontStation),
+      ),
     );
   }
 });

@@ -1,3 +1,6 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createTireForceScratch, createWheelSolveResult } from '../../dist/physics/tire-wheel.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -69,12 +72,12 @@ test('inverse torque equals the existing signed wheel equation and is strictly i
       driveTorque: 2000 * random(),
       dt: 1 / (60 + 1000 * random()),
     });
-    const a = wheelRequiredNetTorque(i, -20),
-      b = wheelRequiredNetTorque(i, 0),
-      c = wheelRequiredNetTorque(i, 20);
+    const a = wheelRequiredNetTorque(i, -20, createTireForceScratch(), new Float64Array(1)),
+      b = wheelRequiredNetTorque(i, 0, createTireForceScratch(), new Float64Array(1)),
+      c = wheelRequiredNetTorque(i, 20, createTireForceScratch(), new Float64Array(1));
     assert.ok(a < b && b < c);
-    const o = solveWheelOmega(i);
-    close(wheelRequiredNetTorque(i, o.omega), i.driveTorque, 2e-7);
+    const o = solveWheelOmega(i, createWheelSolveResult(), new Float64Array(1), createTireForceScratch());
+    close(wheelRequiredNetTorque(i, o.omega, createTireForceScratch(), new Float64Array(1)), i.driveTorque, 2e-7);
   }
 });
 test('TCS and ABS project simultaneous requested torques into feasible local bounds', () => {
@@ -94,13 +97,13 @@ test('TCS and ABS project simultaneous requested torques into feasible local bou
       brakeTorque: 30000 * random(),
     });
     const original = { ...i },
-      p = limitWheelTorques(i),
-      o = solveWheelOmega(p);
+      p = limitWheelTorques(i, { ...i }, createTireForceScratch(), new Float64Array(1)),
+      o = solveWheelOmega(p, createWheelSolveResult(), new Float64Array(1), createTireForceScratch());
     assert.deepEqual(i, original);
     assert.ok(p.driveTorque >= 0 && p.driveTorque <= i.driveTorque);
     assert.ok(p.brakeTorque >= 0 && p.brakeTorque <= i.brakeTorque);
-    const lo = wheelRequiredNetTorque(i, (vx - slip * ref) / R),
-      hi = wheelRequiredNetTorque(i, (vx + slip * ref) / R);
+    const lo = wheelRequiredNetTorque(i, (vx - slip * ref) / R, createTireForceScratch(), new Float64Array(1)),
+      hi = wheelRequiredNetTorque(i, (vx + slip * ref) / R, createTireForceScratch(), new Float64Array(1));
     // Torque reduction cannot repair arbitrary outside states; assert the bound only when reachable.
     if (lo <= i.driveTorque && hi >= -i.brakeTorque) {
       assert.ok(o.tire.sx <= slip + 1e-10 && o.tire.sx >= -slip - 1e-10, JSON.stringify({ sx: o.tire.sx, slip }));
@@ -116,8 +119,8 @@ test('independent AWD reduction changes actual split without reallocating remove
     omegaPrevious: (30 + 0.08 * Math.hypot(30, 1)) / R,
   });
   const rear = wheel({ normalLoad: 12000, driveTorque: request * (1 - f) });
-  const a = limitWheelTorques(front),
-    b = limitWheelTorques(rear);
+  const a = limitWheelTorques(front, { ...front }, createTireForceScratch(), new Float64Array(1)),
+    b = limitWheelTorques(rear, { ...rear }, createTireForceScratch(), new Float64Array(1));
   assert.ok(a.driveTorque < front.driveTorque);
   assert.equal(b.driveTorque, rear.driveTorque);
   assert.ok(a.driveTorque / (a.driveTorque + b.driveTorque) < f);
@@ -126,32 +129,65 @@ test('independent AWD reduction changes actual split without reallocating remove
 test('independent ABS releases the overloaded station without reducing the other', () => {
   const a = limitWheelTorques(
     wheel({ normalLoad: 500, brakeTorque: 2500, omegaPrevious: (30 - 0.08 * Math.hypot(30, 1)) / R }),
+    { ...wheel({ normalLoad: 500, brakeTorque: 2500, omegaPrevious: (30 - 0.08 * Math.hypot(30, 1)) / R }) },
+    createTireForceScratch(),
+    new Float64Array(1),
   );
-  const b = limitWheelTorques(wheel({ normalLoad: 10000, brakeTorque: 2500 }));
+  const b = limitWheelTorques(
+    wheel({ normalLoad: 10000, brakeTorque: 2500 }),
+    { ...wheel({ normalLoad: 10000, brakeTorque: 2500 }) },
+    createTireForceScratch(),
+    new Float64Array(1),
+  );
   assert.ok(a.brakeTorque < 2500);
   assert.equal(b.brakeTorque, 2500);
-  assert.ok(solveWheelOmega(a).tire.sx >= -0.080000001);
+  assert.ok(
+    solveWheelOmega(a, createWheelSolveResult(), new Float64Array(1), createTireForceScratch()).tire.sx >= -0.080000001,
+  );
 });
 test('brake release handles reverse, while low-speed stopping and zero-contact wheels stay physical', () => {
   for (const vx of [-30, 30]) {
     const i = wheel({ omegaPrevious: vx / R, longitudinalVelocity: vx, brakeTorque: 50000 });
-    const p = limitWheelTorques(i),
-      o = solveWheelOmega(p);
+    const p = limitWheelTorques(i, { ...i }, createTireForceScratch(), new Float64Array(1)),
+      o = solveWheelOmega(p, createWheelSolveResult(), new Float64Array(1), createTireForceScratch());
     assert.ok(Math.sign(o.omega) === Math.sign(vx));
     assert.ok(Math.abs(o.tire.sx) < 0.080000001);
   }
   const stationary = wheel({ omegaPrevious: 0, longitudinalVelocity: 0, driveTorque: 0, brakeTorque: 1000 });
-  assert.equal(limitWheelTorques(stationary).brakeTorque, 1000);
-  assert.equal(solveWheelOmega(limitWheelTorques(stationary)).omega, 0);
+  assert.equal(
+    limitWheelTorques(stationary, { ...stationary }, createTireForceScratch(), new Float64Array(1)).brakeTorque,
+    1000,
+  );
+  assert.equal(
+    solveWheelOmega(
+      limitWheelTorques(stationary, { ...stationary }, createTireForceScratch(), new Float64Array(1)),
+      createWheelSolveResult(),
+      new Float64Array(1),
+      createTireForceScratch(),
+    ).omega,
+    0,
+  );
   const airborne = wheel({ normalLoad: 0, driveTorque: 5000 });
-  assert.equal(limitWheelTorques(airborne), airborne);
-  close(solveWheelOmega(airborne).omega, airborne.omegaPrevious + (5000 * airborne.dt) / airborne.inertia, 1e-8);
-  for (const bad of [NaN, Infinity]) assert.throws(() => limitWheelTorques(wheel({ normalLoad: bad })));
+  assert.equal(limitWheelTorques(airborne, { ...airborne }, createTireForceScratch(), new Float64Array(1)), airborne);
+  close(
+    solveWheelOmega(airborne, createWheelSolveResult(), new Float64Array(1), createTireForceScratch()).omega,
+    airborne.omegaPrevious + (5000 * airborne.dt) / airborne.inertia,
+    1e-8,
+  );
+  for (const bad of [NaN, Infinity])
+    assert.throws(() =>
+      limitWheelTorques(
+        wheel({ normalLoad: bad }),
+        { ...wheel({ normalLoad: bad }) },
+        createTireForceScratch(),
+        new Float64Array(1),
+      ),
+    );
 });
 test('already overspinning wheel is not snapped to the target or given an unrequested brake', () => {
   const i = wheel({ omegaPrevious: 180 / R, driveTorque: 10000 });
-  const p = limitWheelTorques(i),
-    o = solveWheelOmega(p);
+  const p = limitWheelTorques(i, { ...i }, createTireForceScratch(), new Float64Array(1)),
+    o = solveWheelOmega(p, createWheelSolveResult(), new Float64Array(1), createTireForceScratch());
   assert.equal(p.driveTorque, 0);
   assert.equal(p.brakeTorque, 0);
   assert.ok(o.tire.sx > 0.08);
@@ -225,7 +261,7 @@ test('all nine protected profiles launch, brake, switch pedals and recover witho
         1 / 120,
       );
       assert.ok([v.speed, v.pitch, v.frontWheelOmega, v.rearWheelOmega].every(Number.isFinite));
-      assert.ok(arcadeBodyKinematics(v).up.y > 0, e.profile.id);
+      assert.ok(arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up.y > 0, e.profile.id);
     }
     assert.ok(v.speed < 1, e.profile.id);
     recoverVehicle({ guide: p.guide, height: p.height, surfaces: p.surface }, v, { state: createRecoveryState(v) });
@@ -258,7 +294,7 @@ test('compression barrier uses fresh geometry, velocity and the retained wrench 
   runProbe(q, 0.2, () => directInput(0, 1));
   close(p.vehicle.pitch, q.vehicle.pitch);
   close(p.vehicle.speed, q.vehicle.speed);
-  const body = arcadeBodyKinematics(p.vehicle),
+  const body = arcadeBodyKinematics(p.vehicle, createBodyKinematicsWorkspace()),
     v = p.vehicle;
   const contact = deriveContactObservation(
     p.guide,
@@ -268,6 +304,7 @@ test('compression barrier uses fresh geometry, velocity and the retained wrench 
     v.profile.frontStation,
     v.frontSteerAngle,
     v.course.segmentIndex,
+    createContactWorkspace(v.profile.frontStation),
   );
   const r = deriveContactObservation(
     p.guide,
@@ -277,6 +314,7 @@ test('compression barrier uses fresh geometry, velocity and the retained wrench 
     v.profile.rearStation,
     0,
     v.course.segmentIndex,
+    createContactWorkspace(v.profile.rearStation),
   );
   const zero = { omega: 0, omegaDot: 0, tire: { fx: 0, fy: 0 } };
   const wrench = evaluateVehicleWrench(v.profile, body, contact, r, zero, zero);

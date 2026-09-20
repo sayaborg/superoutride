@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateToWorld, type GuideCoordinateSource } from '../core/guide-coordinate-frame.js';
 import { wrapAngle } from '../core/math.js';
 import { transformPlanarPoint, transformPlanarVector, type PlanarTransform } from '../core/planar-transform.js';
@@ -11,7 +12,7 @@ export function reframeVehicle(
   s: number,
   l: number,
 ): void {
-  const coordinate = guideCoordinateToWorld(guide, s, l);
+  const coordinate = guideCoordinateToWorld(guide, s, l, createPlanarCoordinateSample());
   const position = transformPlanarPoint(transform, vehicle);
   const velocity = transformPlanarVector(transform, { x: vehicle.velocityX, z: vehicle.velocityZ });
   vehicle.x = position.x;

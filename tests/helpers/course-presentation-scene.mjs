@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import { coursePortLateral } from '../../dist/compiler/course-links.js';
 import { createCourseGroundSource } from '../../dist/groundmap/course-ground-source.js';
@@ -35,7 +36,7 @@ export function coursePresentationScene(
     p = section.presentation;
   const s = port.anchor.s + deltaS,
     l = coursePortLateral(port) + deltaL;
-  const point = guidePathToWorld(section.guide, s, l);
+  const point = guidePathToWorld(section.guide, s, l, createPlanarCoordinateSample());
   let vehicle = {
     ...point,
     y: 1,

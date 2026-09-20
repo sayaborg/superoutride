@@ -68,8 +68,16 @@ export function runProtectionProbe(
       f.longitudinalVelocity,
       f.lateralVelocity,
       1,
+      { sx: 0, sy: 0, referenceSpeed: 0 },
     );
-    const rs = deriveTireSlip(v.rearWheelOmega, r.effectiveRollingRadius, r.longitudinalVelocity, r.lateralVelocity, 1);
+    const rs = deriveTireSlip(
+      v.rearWheelOmega,
+      r.effectiveRollingRadius,
+      r.longitudinalVelocity,
+      r.lateralVelocity,
+      1,
+      { sx: 0, sy: 0, referenceSpeed: 0 },
+    );
     const c = v.control;
     out.seconds = (tick + 1) / hz;
     out.distance += v.speed / hz;

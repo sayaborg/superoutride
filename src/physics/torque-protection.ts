@@ -52,9 +52,9 @@ export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): R
  */
 export function limitWheelTorques(
   input: WheelSolveInput,
-  out?: Writable<WheelSolveInput>,
-  scratch = createTireForceScratch(),
-  residual: Float64Array = new Float64Array(1),
+  out: Writable<WheelSolveInput>,
+  scratch: ReturnType<typeof createTireForceScratch>,
+  residual: Float64Array,
 ): WheelSolveInput {
   validateWheelSolveInput(input);
   let drive = input.driveTorque,
@@ -87,7 +87,7 @@ export function limitWheelTorques(
     drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
   if (drive === input.driveTorque && brake === input.brakeTorque) return input;
-  const result = out ?? { ...input };
+  const result = out;
   if (result !== input) Object.assign(result, input);
   result.driveTorque = drive;
   result.brakeTorque = brake;
@@ -215,7 +215,7 @@ export function solveProtectedWheelPair(
   frontRequest: WheelSolveInput,
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
-  workspace = createProtectedWheelPairWorkspace(frontRequest, rearRequest),
+  workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
 ): ProtectedWheelPair {
   let acceptedSlot = workspace.first,
     trialSlot = workspace.second;

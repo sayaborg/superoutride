@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateDomain, guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
@@ -226,10 +227,16 @@ export function recoverVehicleToGuideCoordinate(
   const coordinate = {
     s: target.s,
     l: target.l,
-    segmentIndex: guideCoordinateToWorld(guide, target.s, target.l).segmentIndex,
+    segmentIndex: guideCoordinateToWorld(guide, target.s, target.l, createPlanarCoordinateSample()).segmentIndex,
     distanceSquared: 0,
   };
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
+  const surface = sampleSurfaceGeometryAtCoordinate(
+    guide,
+    height,
+    surfaces,
+    coordinate,
+    createSurfaceGeometryWorkspace(),
+  );
   if (!surface.material.supported) throw new Error('recovery target must be physically supported');
   const speed = clamp(
     Math.max(0, vehicle.longitudinalSpeed) * profile.speedRetention,

@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg, near } from '../helpers/assert.mjs';
 import { drivingEnvironment } from '../helpers/driving-environment.mjs';
 
@@ -19,7 +20,7 @@ import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 const { guide, height, surfaces, cameraProfile } = drivingEnvironment();
 
 function placeCar(car, s, l, speed = 30) {
-  const p = guidePathToWorld(guide, s, l);
+  const p = guidePathToWorld(guide, s, l, createPlanarCoordinateSample());
   car.x = p.x;
   car.z = p.z;
   car.y = height.samplePhysics(s) + 0.55;

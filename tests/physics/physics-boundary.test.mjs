@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -18,7 +19,7 @@ import { createFarBackground } from '../../dist/visual/far-background.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 
 function makePlainVehicle(guide, height, s = 90) {
-  const p = guidePathToWorld(guide, s, 0);
+  const p = guidePathToWorld(guide, s, 0, createPlanarCoordinateSample());
   return {
     x: p.x,
     y: height.samplePhysics(p.s),
@@ -31,7 +32,7 @@ function makePlainVehicle(guide, height, s = 90) {
   };
 }
 
-test('plain world-state object can drive camera, rival input, dynamic sprite and renderer without M5CarState', () => {
+test('plain world-state object supplies camera, rival input, dynamic sprite and renderer observations', () => {
   const guide = createStadiumGuide();
   const height = createHillDipHeightProfile(guide.length);
   const visual = createCliffVisualProfile(guide.length);

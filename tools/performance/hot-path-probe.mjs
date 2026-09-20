@@ -17,7 +17,11 @@ export async function runHotPathProbe(buildPath = 'dist') {
   );
   const { SurfaceMap } = await load('physics/surface-map.js');
   const { createArcadeVehicle, updateArcadeVehicle } = await load('physics/arcade-vehicle-physics.js');
-  const { solveWheelOmega } = await load('physics/tire-wheel.js');
+  const wheel = await load('physics/tire-wheel.js');
+  const wheelResult = wheel.createWheelSolveResult?.();
+  const wheelScratch = wheel.createTireForceScratch?.();
+  const wheelResidual = new Float64Array(1);
+  const solveWheelOmega = (input) => wheel.solveWheelOmega(input, wheelResult, wheelResidual, wheelScratch);
   if (![2, 4].includes(createArcadeVehicle.length)) throw new Error('unknown vehicle constructor contract');
   const spawnProbeVehicle = (entry) =>
     createArcadeVehicle.length === 4

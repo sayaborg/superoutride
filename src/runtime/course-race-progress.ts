@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { CompiledCourse } from '../compiler/compiled-course.js';
 import type { CompiledSection } from '../compiler/course-graph.js';
 import type { CompiledCourseLandmark } from '../compiler/course-rules.js';
@@ -165,7 +166,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
           base += local.validatedProgressFloor - entryS(expected);
           expected = active.section;
           const s = entryS(expected),
-            p = guidePathToWorld(expected.guide, s, 0);
+            p = guidePathToWorld(expected.guide, s, 0, createPlanarCoordinateSample());
           local = createOrderedRaceProgressState(rules.get(expected)!.lap, { ...p, s });
           local.sProgress = s;
         }

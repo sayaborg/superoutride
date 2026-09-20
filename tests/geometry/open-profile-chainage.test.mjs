@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 
 import test from 'node:test';
@@ -51,6 +52,6 @@ test('profile consumers share snapping including physical surfaces while retaini
     { x: 0, z: 1 },
   ]);
   const guide = compileGuidePath(raster, { lMax: 10, mMin: 0.25, dCam: 5 });
-  assert.equal(sampleRasterPath(raster, 5e-10).s, 5e-10);
-  assert.equal(sampleGuidePath(guide, 5e-10).s, 5e-10);
+  assert.equal(sampleRasterPath(raster, 5e-10, createPlanarCoordinateSample()).s, 5e-10);
+  assert.equal(sampleGuidePath(guide, 5e-10, createPlanarCoordinateSample()).s, 5e-10);
 });

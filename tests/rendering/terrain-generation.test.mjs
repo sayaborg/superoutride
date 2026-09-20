@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { HeightProfile } from '../../dist/core/height-profile.js';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
@@ -82,7 +83,7 @@ describe('flat stadium geometry', () => {
   test('forward-only visibility becomes empty when camera faces more than 90 degrees away', () => {
     const guide = createStadiumGuide();
     const sCamera = 40;
-    const road = sampleGuidePath(guide, sCamera + roadProfile.dMin);
+    const road = sampleGuidePath(guide, sCamera + roadProfile.dMin, createPlanarCoordinateSample());
     const visible = computeForwardVisibleInterval(
       guide,
       road.heading + deg(100),

@@ -1,3 +1,4 @@
+import { createGuideProjectionWorkspace } from '../core/guide-curve.js';
 import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { hypot2 } from '../core/norm.js';
 import { type Writable } from '../core/writable.js';
@@ -222,7 +223,11 @@ export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, 
   };
 }
 
-export function refreshGuideObservation(guide: GuideCoordinateSource, vehicle: VehicleDynamicsState): void {
+export function refreshGuideObservation(
+  guide: GuideCoordinateSource,
+  vehicle: VehicleDynamicsState,
+  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
+): void {
   vehicle.course = locateWorldOnGuideCoordinateLocal(
     guide,
     vehicle,
@@ -230,6 +235,7 @@ export function refreshGuideObservation(guide: GuideCoordinateSource, vehicle: V
     VEHICLE_PROJECTION_SEARCH_RADIUS,
     false,
     vehicle.course,
+    workspace,
   );
 }
 
@@ -254,6 +260,7 @@ export function createSurfaceGeometryWorkspace() {
       surfaceType: 'VOID' as SurfaceType,
     },
     guide: createPlanarCoordinateSample(),
+    projection: createGuideProjectionWorkspace(),
     height: { y: 0, dYdS: 0 },
     metrics: { curvature: 0, metric: 1, offsetMetric: 1 },
     a: vector(),
@@ -266,7 +273,7 @@ export function sampleSurfaceGeometryAtCoordinate(
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   coordinate: CourseCoordinate,
-  workspace = createSurfaceGeometryWorkspace(),
+  workspace: ReturnType<typeof createSurfaceGeometryWorkspace>,
 ): SurfaceGeometryObservation {
   const out = workspace.value;
   const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l, workspace.guide);
@@ -362,7 +369,7 @@ export function deriveContactObservation(
   station: ContactStationProfile,
   steerAngle: number,
   previousSegmentIndex: number,
-  workspace = createContactWorkspace(station),
+  workspace: ContactWorkspace,
 ): ContactObservation {
   const { value: out, a, b, freeOffset } = workspace;
   add3(scale3(body.forward, station.forwardOffset, a), scale3(body.up, -station.freeReachDown, b), freeOffset);
@@ -374,6 +381,7 @@ export function deriveContactObservation(
     VEHICLE_PROJECTION_SEARCH_RADIUS,
     false,
     workspace.surface.value.coordinate,
+    workspace.surface.projection,
   );
   sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate, workspace.surface);
   const surface = workspace.surface.value;
@@ -404,20 +412,14 @@ export function deriveContactObservation(
   return out;
 }
 
-/** Optional output must belong to this contact's consumer. */
+/** Output belongs to this contact's consumer. */
 export function reorientContactObservation(
   contact: ContactObservation,
   body: BodyKinematics,
   steerAngle: number,
-  workspace?: ContactWorkspace,
+  workspace: ContactWorkspace,
 ): ContactObservation {
-  const out = workspace?.value ?? {
-    ...contact,
-    wheelForward: vector(),
-    wheelAxis: vector(),
-    tireForward: vector(),
-    tireRight: vector(),
-  };
+  const out = workspace.value;
   if (out !== contact)
     Object.assign(out, contact, {
       wheelForward: out.wheelForward,
@@ -425,15 +427,7 @@ export function reorientContactObservation(
       tireForward: out.tireForward,
       tireRight: out.tireRight,
     });
-  contactTireFrame(
-    body,
-    contact.profile,
-    steerAngle,
-    contact.surface,
-    contact.reachVelocity,
-    out,
-    workspace?.a ?? vector(),
-  );
+  contactTireFrame(body, contact.profile, steerAngle, contact.surface, contact.reachVelocity, out, workspace.a);
   return out;
 }
 
@@ -551,7 +545,15 @@ export function initializeGuideObservation(
   z: number,
   segmentIndex: number,
 ): CourseCoordinate {
-  return locateWorldOnGuideCoordinateLocal(guide, { x, z }, segmentIndex, 2, false);
+  return locateWorldOnGuideCoordinateLocal(
+    guide,
+    { x, z },
+    segmentIndex,
+    2,
+    false,
+    { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+    createGuideProjectionWorkspace(),
+  );
 }
 
 function bumpStopForce(q: number, suspension: SuspensionStationProfile): number {

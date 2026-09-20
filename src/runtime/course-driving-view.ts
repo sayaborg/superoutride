@@ -1,4 +1,6 @@
-import { createPlanarCoordinateSample, createPlanarSampleBuffer } from '../core/planar-sample.js';
+import type { Writable } from '../core/writable.js';
+import type { CourseCoordinate } from '../core/guide-curve.js';
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { CourseGround } from '../compiler/course-ground.js';
 import { selectGroundLevel } from '../groundmap/resident-ground.js';
 import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../core/guide-coordinate-frame.js';
@@ -163,7 +165,12 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
                 seed: seed(mapping.occurrence.ordinal, segment.index),
                 origin:
                   segment.kind === 'straight'
-                    ? sampleGuideSegment(mapping.occurrence.section.guide, segment, segment.sStart)
+                    ? sampleGuideSegment(
+                        mapping.occurrence.section.guide,
+                        segment,
+                        segment.sStart,
+                        createPlanarCoordinateSample(),
+                      )
                     : undefined,
               },
             ]
@@ -172,13 +179,13 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
     );
     const candidateIndices = new Map(candidates.map((c, i) => [c.seed, i]));
     const sourceSample = createPlanarCoordinateSample();
-    const projectionSample = createPlanarSampleBuffer();
+    const projectionSample = createPlanarCoordinateSample();
     const projected = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 };
     const local = { x: 0, z: 0 };
     const projectionValues = new Float64Array(4);
     const guide: GuideCoordinateReader = Object.freeze({
       domain: view.availableRange,
-      toWorld(s: number, l: number, out = createPlanarCoordinateSample()) {
+      toWorld(s: number, l: number, out: ReturnType<typeof createPlanarCoordinateSample>) {
         const mapping = mappingAt(s);
         const p = guidePathToWorld(
           mapping.occurrence.section.guide,
@@ -195,7 +202,12 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         out.segmentIndex = seed(mapping.occurrence.ordinal, p.segmentIndex);
         return out;
       },
-      metricsAt(s: number, l: number, segmentIndex: number, out = { curvature: 0, metric: 1, offsetMetric: 1 }) {
+      metricsAt(
+        s: number,
+        l: number,
+        segmentIndex: number,
+        out: Writable<ReturnType<typeof guideCoordinateMetricsAt>>,
+      ) {
         if (typeof segmentIndex !== 'number') throw new TypeError('Projection seed must be numeric');
         const mapping = mappingAt(s),
           section = mapping.occurrence.section;
@@ -215,7 +227,7 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         previousSegmentIndex: number,
         searchRadius: number,
         clampL: boolean,
-        out = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        out: CourseCoordinate,
       ) {
         if (
           !world ||
@@ -376,7 +388,7 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
           }),
         ),
       ),
-      toWorld(s: number, l: number, out = createPlanarCoordinateSample()) {
+      toWorld(s: number, l: number, out: ReturnType<typeof createPlanarCoordinateSample>) {
         const m = mappingAt(s);
         rasterPathToWorld(m.occurrence.section.raster, m.sourceChainageInFrame(s), l + m.sourceLateralOrigin, out);
         const t = m.viewFromSource;

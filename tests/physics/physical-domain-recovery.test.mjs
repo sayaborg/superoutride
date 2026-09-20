@@ -1,3 +1,4 @@
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { advanceVehicleWithRecovery, createRecoveryState, updateRecovery } from '../../dist/gameplay/recovery.js';
@@ -73,7 +74,7 @@ test('invalid coordinate seeds and unrelated reader failures remain errors, not 
   const original = vehicle.course;
   for (const segmentIndex of [-1, NaN, Infinity, 0.5, guide.segments.length]) {
     vehicle.course = { ...original, segmentIndex };
-    assert.throws(() => refreshGuideObservation(guide, vehicle), RangeError);
+    assert.throws(() => refreshGuideObservation(guide, vehicle, createGuideProjectionWorkspace()), RangeError);
   }
   vehicle.course = original;
   const fault = new Error('broken surface reader');
@@ -114,7 +115,29 @@ test('invalid geometry cannot become a fabricated unit axis or a NaN Guide obser
   for (const coordinate of ['x', 'z'])
     for (const bad of [NaN, Infinity, -Infinity]) {
       const point = { x: 0, z: 1000, [coordinate]: bad };
-      assert.throws(() => locateWorldOnGuideGlobal(guide, point), RangeError);
-      assert.throws(() => locateWorldOnGuideLocal(guide, point, 0), RangeError);
+      assert.throws(
+        () =>
+          locateWorldOnGuideGlobal(
+            guide,
+            point,
+            false,
+            { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+            createGuideProjectionWorkspace(),
+          ),
+        RangeError,
+      );
+      assert.throws(
+        () =>
+          locateWorldOnGuideLocal(
+            guide,
+            point,
+            0,
+            2,
+            false,
+            { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+            createGuideProjectionWorkspace(),
+          ),
+        RangeError,
+      );
     }
 });

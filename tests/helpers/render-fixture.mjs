@@ -1,9 +1,10 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 /** Static poses for renderer geometry tests; no simulated vehicle or camera dynamics. */
 import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
 import { clamp, wrapAngle } from '../../dist/core/math.js';
 
 export function renderPose(guide, s = 45) {
-  const p = guidePathToWorld(guide, s, 0);
+  const p = guidePathToWorld(guide, s, 0, createPlanarCoordinateSample());
   return {
     x: p.x,
     y: 0,
@@ -15,11 +16,11 @@ export function renderPose(guide, s = 45) {
 }
 
 export function terrainCamera(guide, height, pose, profile) {
-  const heading = sampleGuidePath(guide, pose.course.s).heading;
+  const heading = sampleGuidePath(guide, pose.course.s, createPlanarCoordinateSample()).heading;
   const delta = wrapAngle(pose.yaw - heading);
   const l = clamp(pose.course.l - profile.dCam * Math.sin(delta), -profile.lCamMax, profile.lCamMax);
   const s = pose.course.s - profile.dCam;
-  const p = guidePathToWorld(guide, s, l);
+  const p = guidePathToWorld(guide, s, l, createPlanarCoordinateSample());
   return {
     x: p.x,
     y: (height?.sampleCamera(s) ?? 0) + profile.height,

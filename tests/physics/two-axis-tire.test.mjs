@@ -1,3 +1,8 @@
+import {
+  createTireForceResult,
+  createTireForceScratch,
+  createWheelSolveResult,
+} from '../../dist/physics/tire-wheel.js';
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -32,7 +37,7 @@ const tire = car.rearStation.tire,
 
 function at(c, sx, sy, N = 10000, m = 1, vx = 30) {
   const ref = Math.hypot(vx, tire.lowSpeedRegularization);
-  return force((vx + sx * ref) / R, R, vx, -sy * ref, N, m, tire, c);
+  return force((vx + sx * ref) / R, R, vx, -sy * ref, N, m, tire, c, createTireForceResult(), createTireForceScratch());
 }
 function legacyH(r, a) {
   if (r <= a) return r;
@@ -116,7 +121,18 @@ test('all nine stock references retain old non-dropping capacities and initial r
       ]) {
         const N = 4321,
           ref = Math.hypot(30, t.lowSpeedRegularization),
-          f = force((30 + sx * ref) / R, R, 30, -sy * ref, N, 1, t);
+          f = force(
+            (30 + sx * ref) / R,
+            R,
+            30,
+            -sy * ref,
+            N,
+            1,
+            t,
+            t,
+            createTireForceResult(),
+            createTireForceScratch(),
+          );
         const d = Math.hypot(sx, sy),
           gain = (N * 1.35 * legacyH((9.75 * d) / 1.35, 0.74)) / d;
         near(f.fx, sx * gain, 1e-10, { relative: true });
@@ -125,7 +141,7 @@ test('all nine stock references retain old non-dropping capacities and initial r
     }
 });
 for (const a of [0.1, 0.5, 0.74, 0.9, 0.95])
-  test(`H at knee ${a} equals the former Hermite shoulder`, () => {
+  test(`H at knee ${a} equals the Hermite shoulder`, () => {
     let previous = 0;
     for (let i = 0; i <= 1000; i++) {
       const r = (i * 2) / 1000,
@@ -170,7 +186,7 @@ test('independent small-slip longitudinal and lateral demand scales with actual 
     f = at(c, 0.001, 0.001, 7000);
   near(f.fx, 7000 * c.kX * 0.001, 1e-10, { relative: true });
   near(f.fy, 7000 * c.kY * 0.001, 1e-10, { relative: true });
-  const d = tireLinearDemand(110, R, 30, -5, 7000, tire, c);
+  const d = tireLinearDemand(110, R, 30, -5, 7000, tire, c, { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0 });
   near(d.dx, 7000 * c.kX * d.sx, 1e-10, { relative: true });
   near(d.dy, 7000 * c.kY * d.sy, 1e-10, { relative: true });
 });
@@ -238,13 +254,13 @@ test('invalid slip/load/material inputs reject instead of manufacturing finite f
   for (const bad of [NaN, Infinity]) {
     assert.throws(() => at(compile(seed), 0.1, 0.2, bad));
     assert.throws(() => at(compile(seed), 0.1, 0.2, 100, bad));
-    assert.throws(() => deriveTireSlip(bad, R, 30, 0, 1));
-    assert.throws(() => deriveTireSlip(1, 0, 30, 0, 1));
+    assert.throws(() => deriveTireSlip(bad, R, 30, 0, 1, { sx: 0, sy: 0, referenceSpeed: 0 }));
+    assert.throws(() => deriveTireSlip(1, 0, 30, 0, 1, { sx: 0, sy: 0, referenceSpeed: 0 }));
   }
 });
 test('shared slip observation is finite at zero and signed forward/reverse velocity', () => {
   for (const vx of [-30, 0, 30]) {
-    const s = deriveTireSlip(10, R, vx, -2, 1);
+    const s = deriveTireSlip(10, R, vx, -2, 1, { sx: 0, sy: 0, referenceSpeed: 0 });
     near(s.sx, (R * 10 - vx) / Math.hypot(vx, 1), 1e-10, { relative: true });
     near(s.sy, 2 / Math.hypot(vx, 1), 1e-10, { relative: true });
   }
@@ -278,13 +294,21 @@ test('signed wheel roots balance actual delivered torque and the elliptical tire
             dt,
             tire,
           };
-          const out = solveWheelOmega(i),
+          const out = solveWheelOmega(i, createWheelSolveResult(), new Float64Array(1), createTireForceScratch()),
             res =
               i.inertia * out.omegaDot - drive + R * out.tire.fx + rollingResistanceTorque(out.omega, R, N, 0.015, 1);
           near(res, 0, 2e-7, { relative: true });
           const snapshot = structuredClone(out);
-          assert.deepEqual(out, solveWheelOmega(i));
-          solveWheelOmega({ ...i, driveTorque: drive + 3000, normalLoad: N + 100 });
+          assert.deepEqual(
+            out,
+            solveWheelOmega(i, createWheelSolveResult(), new Float64Array(1), createTireForceScratch()),
+          );
+          solveWheelOmega(
+            { ...i, driveTorque: drive + 3000, normalLoad: N + 100 },
+            createWheelSolveResult(),
+            new Float64Array(1),
+            createTireForceScratch(),
+          );
           assert.deepEqual(out, snapshot, 'later solves must not reuse an earlier result object');
         }
 });
@@ -304,10 +328,15 @@ test('Coulomb brake atom and free airborne wheel rotation remain ordinary wheel 
     dt: 0.01,
     tire,
   };
-  const locked = solveWheelOmega(i);
+  const locked = solveWheelOmega(i, createWheelSolveResult(), new Float64Array(1), createTireForceScratch());
   assert.equal(locked.omega, 0);
   assert.equal(locked.locked, true);
-  const free = solveWheelOmega({ ...i, brakeTorque: 0 });
+  const free = solveWheelOmega(
+    { ...i, brakeTorque: 0 },
+    createWheelSolveResult(),
+    new Float64Array(1),
+    createTireForceScratch(),
+  );
   near(free.omega, (100 * 0.01) / 3.4, 1e-10, { relative: true });
   assert.equal(free.tire.fx, 0);
 });
@@ -334,6 +363,8 @@ test('accepted wheel observations use each station calibration independently', (
         1,
         tire,
         calibration[station],
+        createTireForceResult(),
+        createTireForceScratch(),
       );
       near(sample.longitudinalPower, Math.max(0, expected.fx * expected.sx * expected.referenceSpeed), 1e-10, {
         relative: true,

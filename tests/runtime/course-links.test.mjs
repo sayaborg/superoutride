@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { forkCourseDocument } from '../helpers/course-link-documents.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -112,8 +113,18 @@ test('transformed LINEAR overlap aligns both edges and forward vectors, with a c
     for (const offset of [-5, 0, 5])
       for (const reader of ['raster', 'guide']) {
         const read = reader === 'raster' ? rasterPathToWorld : guidePathToWorld;
-        const a = read(joined.source.section[reader], joined.source.anchor.s + delta, 1 + offset);
-        const b = read(joined.destination.section[reader], joined.destination.anchor.s + delta, -5 + offset);
+        const a = read(
+          joined.source.section[reader],
+          joined.source.anchor.s + delta,
+          1 + offset,
+          createPlanarCoordinateSample(),
+        );
+        const b = read(
+          joined.destination.section[reader],
+          joined.destination.anchor.s + delta,
+          -5 + offset,
+          createPlanarCoordinateSample(),
+        );
         close(transformPlanarPoint(joined.destinationFromSource, a), b);
         close(transformPlanarPoint(inverse, b), a);
       }

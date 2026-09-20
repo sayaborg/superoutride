@@ -8,9 +8,10 @@ qualification. [Image assets](image-assets.md) owns image formats and compilatio
 ## Coordinates and open geometry
 
 Core owns shared 2D/3D vector arithmetic. Vec2 and Vec3 are readonly value contracts; authoring
-replaces values instead of mutating coordinate observations. Hot readers additionally accept an
-explicit caller-owned output; that borrowed result is valid until the caller reuses it. Omitted outputs
-remain independent snapshots. Per-actor physics/progress and per-renderer terrain workspaces own mutable
+replaces values instead of mutating coordinate observations. Hot Guide/Raster readers require explicit caller-owned outputs and numerical workspaces; borrowed
+results remain valid until that caller reuses them. Callers needing independent observations supply
+separate outputs. Sampling and projection never allocate omitted workspaces or attach scratch to
+compiled curves. Per-actor physics/progress and per-renderer terrain workspaces own mutable
 scratch; the static compiled graph contains no actor, lock or session state. Private numeric buffers
 avoid intermediate allocation while public observations retain ordinary named fields.
 

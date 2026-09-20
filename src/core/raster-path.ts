@@ -1,4 +1,4 @@
-import { createPlanarSampleBuffer, PlanarSampleSlot as P, readPlanarSample } from './planar-sample.js';
+import type { Writable } from './writable.js';
 import { headingFromDelta, normalFromHeading, wrapAngle, type Vec2 } from './math.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 
@@ -134,24 +134,14 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
   });
 }
 
-const sampleBuffers = new WeakMap<RasterPath, Float64Array>();
-export function sampleRasterPath(
-  path: RasterPath,
-  s: number,
-  out = { x: 0, z: 0, s: 0, segmentIndex: -1, heading: 0 },
-): RasterSample {
-  let buffer = sampleBuffers.get(path);
-  if (!buffer) {
-    buffer = createPlanarSampleBuffer();
-    sampleBuffers.set(path, buffer);
-  }
-  sampleRasterPathInto(path, s, buffer);
-  return readPlanarSample(buffer, out);
+export function sampleRasterPath(path: RasterPath, s: number, out: Writable<RasterSample>): RasterSample {
+  sampleRasterPathInto(path, s, out);
+  return out;
 }
 
-export function sampleRasterPathInto(path: RasterPath, s: number, out: Float64Array): void {
+export function sampleRasterPathInto(path: RasterPath, s: number, out: Writable<RasterSample>): void {
   const sLocal = checkedPathChainage(path, s);
-  const previous = path.segments[out[P.segmentIndex]!];
+  const previous = path.segments[out.segmentIndex];
   const segmentIndex =
     previous &&
     sLocal > previous.sStart + GEOMETRY_SAMPLING_TOLERANCE_METERS &&
@@ -162,11 +152,11 @@ export function sampleRasterPathInto(path: RasterPath, s: number, out: Float64Ar
   const start = path.vertices[segment.startVertexIndex]!;
   const ds = sLocal - segment.sStart;
 
-  out[P.x] = start.x + Math.sin(segment.heading) * ds;
-  out[P.z] = start.z + Math.cos(segment.heading) * ds;
-  out[P.s] = sLocal;
-  out[P.segmentIndex] = segmentIndex;
-  out[P.heading] = segment.heading;
+  out.x = start.x + Math.sin(segment.heading) * ds;
+  out.z = start.z + Math.cos(segment.heading) * ds;
+  out.s = sLocal;
+  out.segmentIndex = segmentIndex;
+  out.heading = segment.heading;
 }
 
 /**
@@ -183,7 +173,7 @@ export function rasterPathToWorld(
   path: RasterPath,
   s: number,
   l: number,
-  out = { x: 0, z: 0, s: 0, segmentIndex: -1, heading: 0, l: 0 },
+  out: Writable<CourseWorldSample>,
 ): CourseWorldSample {
   if (!Number.isFinite(l)) throw new RangeError('raster lateral coordinate must be finite');
   const center = sampleRasterPath(path, s, out);

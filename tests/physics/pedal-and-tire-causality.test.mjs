@@ -1,3 +1,4 @@
+import { createTireForceResult, createTireForceScratch } from '../../dist/physics/tire-wheel.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -127,20 +128,75 @@ test('common vehicle boundary rejects contradictory canonical pedals before actu
   assert.deepEqual(vehicle.actuator, { steering: 0, throttle: 0, brake: 0 });
 });
 
-test('one-k tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {
+test('tire has symmetric longitudinal plateau, no post-peak drop and combined-slip allocation', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
   const radius = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.rollingRadius;
   const normalLoad = 6_000;
-  const positive = evaluateTireForce(300, radius, 30, 0, normalLoad, 1, tire);
-  const morePositive = evaluateTireForce(600, radius, 30, 0, normalLoad, 1, tire);
-  const negative = evaluateTireForce(-300, radius, 30, 0, normalLoad, 1, tire);
+  const positive = evaluateTireForce(
+    300,
+    radius,
+    30,
+    0,
+    normalLoad,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  const morePositive = evaluateTireForce(
+    600,
+    radius,
+    30,
+    0,
+    normalLoad,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  const negative = evaluateTireForce(
+    -300,
+    radius,
+    30,
+    0,
+    normalLoad,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
   assert.ok(Math.abs(positive.fx - positive.capacityX) < 1e-9);
   assert.ok(Math.abs(negative.fx + negative.capacityX) < 1e-9);
   assert.ok(Math.abs(Math.abs(positive.fx) - Math.abs(negative.fx)) < 1e-9);
   assert.ok(Math.abs(morePositive.fx) >= Math.abs(positive.fx) - 1e-9);
 
-  const pureLateral = evaluateTireForce(30 / radius, radius, 30, 5, normalLoad, 1, tire);
-  const combined = evaluateTireForce(300, radius, 30, 5, normalLoad, 1, tire);
+  const pureLateral = evaluateTireForce(
+    30 / radius,
+    radius,
+    30,
+    5,
+    normalLoad,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  const combined = evaluateTireForce(
+    300,
+    radius,
+    30,
+    5,
+    normalLoad,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
   assert.ok(Math.abs(combined.fy) < Math.abs(pureLateral.fy));
   assert.ok(Math.abs(combined.fx) > 0);
 });

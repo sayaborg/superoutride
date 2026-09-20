@@ -1,3 +1,5 @@
+import { createSurfaceGeometryWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 
 import test from 'node:test';
@@ -119,8 +121,12 @@ test('all nine vehicle profiles integrate on the finite LINEAR course with permi
         runtime.heightProfile,
         runtime.surfaceMap,
         vehicle.course,
+        createSurfaceGeometryWorkspace(),
       );
-      assert.ok(dot3(arcadeBodyKinematics(vehicle).up, surface.normal) > 0, profile.id);
+      assert.ok(
+        dot3(arcadeBodyKinematics(vehicle, createBodyKinematicsWorkspace()).up, surface.normal) > 0,
+        profile.id,
+      );
     }
     assert.ok(vehicle.course.s > 100, `${profile.id} stalled at s=${vehicle.course.s}`);
     assert.ok(Math.abs(vehicle.course.l) < 4.5, `${profile.id} left LINEAR asphalt`);

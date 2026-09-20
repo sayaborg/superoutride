@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
@@ -30,7 +32,7 @@ describe('open coordinate geometry', () => {
 
     assert.equal(guide.corners[0].trim, 0);
     assert.equal(guide.corners.at(-1).trim, 0);
-    near(sampleGuidePath(guide, 0).heading, guide.raster.segments[0].heading, 1e-10);
+    near(sampleGuidePath(guide, 0, createPlanarCoordinateSample()).heading, guide.raster.segments[0].heading, 1e-10);
   });
 
   test('Guide segments are G1 at every compiled interior boundary without a synthetic seam', () => {
@@ -39,8 +41,8 @@ describe('open coordinate geometry', () => {
       const a = guide.segments[i];
       const b = guide.segments[i + 1];
       near(a.sEnd, b.sStart, 1e-8);
-      const left = sampleGuideSegment(guide, a, a.sEnd);
-      const right = sampleGuideSegment(guide, b, b.sStart);
+      const left = sampleGuideSegment(guide, a, a.sEnd, createPlanarCoordinateSample());
+      const right = sampleGuideSegment(guide, b, b.sStart, createPlanarCoordinateSample());
       near(left.x, right.x, 1e-7);
       near(left.z, right.z, 1e-7);
       near(Math.sin(left.heading), Math.sin(right.heading), 1e-8);
@@ -50,20 +52,34 @@ describe('open coordinate geometry', () => {
     near(guide.segments[0].sStart, 0, 1e-8);
     near(guide.segments.at(-1).sEnd, guide.length, 1e-8);
     assert.notDeepEqual(
-      sampleGuidePath(guide, 0),
-      sampleGuidePath(guide, guide.length),
+      sampleGuidePath(guide, 0, createPlanarCoordinateSample()),
+      sampleGuidePath(guide, guide.length, createPlanarCoordinateSample()),
       'open Guide endpoints must not be treated as one cyclic seam',
     );
   });
 
   test('world to Guide coordinate recovers signed lateral position', () => {
     const guide = createCircularArcGuide();
-    const world = guidePathToWorld(guide, 42, 6.5);
-    const global = locateWorldOnGuideGlobal(guide, world);
+    const world = guidePathToWorld(guide, 42, 6.5, createPlanarCoordinateSample());
+    const global = locateWorldOnGuideGlobal(
+      guide,
+      world,
+      false,
+      { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      createGuideProjectionWorkspace(),
+    );
     near(global.s - 42, 0, 1e-7);
     near(global.l, 6.5, 1e-7);
 
-    const local = locateWorldOnGuideLocal(guide, world, world.segmentIndex, 2);
+    const local = locateWorldOnGuideLocal(
+      guide,
+      world,
+      world.segmentIndex,
+      2,
+      false,
+      { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      createGuideProjectionWorkspace(),
+    );
     near(local.s - 42, 0, 1e-7);
     near(local.l, 6.5, 1e-7);
   });
@@ -71,7 +87,16 @@ describe('open coordinate geometry', () => {
   test('local Guide search requires explicit initialization instead of silently going global', () => {
     const guide = createCircularArcGuide();
     assert.throws(
-      () => locateWorldOnGuideLocal(guide, { x: 0, z: 0 }, -1),
+      () =>
+        locateWorldOnGuideLocal(
+          guide,
+          { x: 0, z: 0 },
+          -1,
+          2,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createGuideProjectionWorkspace(),
+        ),
       /previousSegmentIndex must identify a segment/,
     );
   });
@@ -81,8 +106,16 @@ describe('open coordinate geometry', () => {
     const laterals = [-12, -6, 0, 6, 12];
     for (let s = 0; s < guide.length; s += 5) {
       for (const l of laterals) {
-        const world = guidePathToWorld(guide, s, l);
-        const local = locateWorldOnGuideLocal(guide, world, world.segmentIndex, 2);
+        const world = guidePathToWorld(guide, s, l, createPlanarCoordinateSample());
+        const local = locateWorldOnGuideLocal(
+          guide,
+          world,
+          world.segmentIndex,
+          2,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createGuideProjectionWorkspace(),
+        );
         near(local.s - s, 0, 2e-6);
         near(local.l, l, 2e-6);
       }
@@ -93,14 +126,22 @@ describe('open coordinate geometry', () => {
 describe('flat stadium geometry', () => {
   test('free world motion on the long straight produces simultaneous s and l change', () => {
     const guide = createStadiumGuide();
-    const start = guidePathToWorld(guide, 60, 0);
+    const start = guidePathToWorld(guide, 60, 0, createPlanarCoordinateSample());
     const yaw = start.heading + deg(20);
     const travel = 10;
     const moved = {
       x: start.x + Math.sin(yaw) * travel,
       z: start.z + Math.cos(yaw) * travel,
     };
-    const located = locateWorldOnGuideLocal(guide, moved, start.segmentIndex, 3);
+    const located = locateWorldOnGuideLocal(
+      guide,
+      moved,
+      start.segmentIndex,
+      3,
+      false,
+      { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      createGuideProjectionWorkspace(),
+    );
 
     near(located.s - 60, Math.cos(deg(20)) * travel, 0.02);
     near(located.l, Math.sin(deg(20)) * travel, 0.02);
@@ -126,7 +167,7 @@ describe('authored boundary regressions', () => {
       v.push({ x: v[2].x + Math.sin(2 * turn) * 10, z: v[2].z + Math.cos(2 * turn) * 10 });
       const guide = compileGuidePath(compileRasterPath(v), { lMax: 1, mMin: 0.25 });
       for (const fraction of [0, 0.1, 0.5, 0.9, 1]) {
-        const sample = sampleGuidePath(guide, 10 + trim + fraction * gap);
+        const sample = sampleGuidePath(guide, 10 + trim + fraction * gap, createPlanarCoordinateSample());
         assert.ok([sample.x, sample.z, sample.s, sample.heading].every(Number.isFinite));
         assert.ok(Math.abs(sample.heading - turn) < 1e-8);
       }

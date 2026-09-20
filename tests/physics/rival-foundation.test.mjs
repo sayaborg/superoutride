@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -25,7 +26,7 @@ test('rival presentation uses supplied metadata and the same presentation-only b
 });
 
 function fakeCar(guide, s, l = 0, speed = 45) {
-  const sample = guidePathToWorld(guide, s, l);
+  const sample = guidePathToWorld(guide, s, l, createPlanarCoordinateSample());
   return {
     x: sample.x,
     y: 0,

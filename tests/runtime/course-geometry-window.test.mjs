@@ -1,3 +1,6 @@
+import { createSurfaceGeometryWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
@@ -38,7 +41,7 @@ test('geographically repeated geometry admits distinct source intervals and qual
   const course = ok(await compileCourseDocument(crossing())),
     source = course.entry;
   const positions = source.primitives.slice(1, 3).map((p) => p.sStart + (p.sEnd - p.sStart) / 4);
-  const samples = positions.map((s) => guidePathToWorld(source.guide, s, 1));
+  const samples = positions.map((s) => guidePathToWorld(source.guide, s, 1, createPlanarCoordinateSample()));
   close(samples[0].x, samples[1].x);
   close(samples[0].z, samples[1].z);
   const surfaces = createBandSurfaceReader(source.bandPartition, source.physicalBindings);
@@ -48,10 +51,24 @@ test('geographically repeated geometry admits distinct source intervals and qual
     assert.equal(qualified.source.raster, source.raster);
     assert.equal(qualified.source.guide, source.guide);
     assert.equal(qualified.source.bandPartition, source.bandPartition);
-    const located = locateWorldOnGuideLocal(source.guide, sample, sample.segmentIndex, 5);
+    const located = locateWorldOnGuideLocal(
+      source.guide,
+      sample,
+      sample.segmentIndex,
+      5,
+      false,
+      { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      createGuideProjectionWorkspace(),
+    );
     close(located.s, positions[i]);
     close(located.l, 1);
-    return sampleSurfaceGeometryAtCoordinate(source.guide, source.height, surfaces, located);
+    return sampleSurfaceGeometryAtCoordinate(
+      source.guide,
+      source.height,
+      surfaces,
+      located,
+      createSurfaceGeometryWorkspace(),
+    );
   });
   assert.ok(observations[1].point.y > observations[0].point.y + 1);
   assert.equal(observations[0].material, observations[1].material);

@@ -1,3 +1,8 @@
+import {
+  createTireForceResult,
+  createTireForceScratch,
+  createWheelSolveResult,
+} from '../../dist/physics/tire-wheel.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -36,28 +41,50 @@ test('profiles compile to the same two-station contact and wheel contract', () =
   assert.notEqual(FERRARI_TESTAROSSA_VEHICLE_PROFILE.yawInertia, HONDA_VFR750R_VEHICLE_PROFILE.yawInertia);
 });
 
-test('one-k tire and wheel solve remains immediate deterministic contact physics', () => {
+test('tire and wheel solve remains immediate deterministic contact physics', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
-  const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
-  assert.deepEqual(evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire), loaded);
+  const loaded = evaluateTireForce(
+    100,
+    0.33,
+    30,
+    2,
+    6500,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  assert.deepEqual(
+    evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire, tire, createTireForceResult(), createTireForceScratch()),
+    loaded,
+  );
   assert.notEqual(loaded.fy, 0);
-  assert.equal(evaluateTireForce(30 / 0.33, 0.33, 30, 0, 0, 1, tire).fy, 0);
+  assert.equal(
+    evaluateTireForce(30 / 0.33, 0.33, 30, 0, 0, 1, tire, tire, createTireForceResult(), createTireForceScratch()).fy,
+    0,
+  );
   assert.ok(rollingResistanceTorque(100, 0.33, 6500, 0.015, 1) > 0);
 
-  const wheel = solveWheelOmega({
-    omegaPrevious: 30 / 0.33,
-    inertia: 2.2,
-    rollingRadius: 0.33,
-    longitudinalVelocity: 30,
-    lateralVelocity: 0,
-    normalLoad: 6500,
-    gripFactor: 1,
-    rollingResistance: 0.015,
-    driveTorque: 200,
-    brakeTorque: 0,
-    dt: 1 / 720,
-    tire,
-  });
+  const wheel = solveWheelOmega(
+    {
+      omegaPrevious: 30 / 0.33,
+      inertia: 2.2,
+      rollingRadius: 0.33,
+      longitudinalVelocity: 30,
+      lateralVelocity: 0,
+      normalLoad: 6500,
+      gripFactor: 1,
+      rollingResistance: 0.015,
+      driveTorque: 200,
+      brakeTorque: 0,
+      dt: 1 / 720,
+      tire,
+    },
+    createWheelSolveResult(),
+    new Float64Array(1),
+    createTireForceScratch(),
+  );
   assert.ok(Number.isFinite(wheel.omega));
   assert.ok(Number.isFinite(wheel.tire.fx));
 });

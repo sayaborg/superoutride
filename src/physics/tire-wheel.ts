@@ -1,3 +1,4 @@
+import type { Writable } from '../core/writable.js';
 import { hypot2 } from '../core/norm.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
@@ -50,38 +51,25 @@ export interface WheelSolveResult {
   readonly locked: boolean;
 }
 
-// Fixed numerical workspaces stay private to a solve; published results retain named fields.
-const enum ForceSlot {
-  sx,
-  sy,
-  referenceSpeed,
-  dx,
-  dy,
-  fx,
-  fy,
-  capacityX,
-  capacityY,
-  rho,
-  omega,
+// One caller-owned numerical trial; published results retain their existing fields.
+type TireForceScratch = ReturnType<typeof createTireForceScratch>;
+export function createTireForceScratch() {
+  return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0, omega: 0 };
 }
-type TireForceScratch = Float64Array;
-export function createTireForceScratch(): TireForceScratch {
-  return new Float64Array(11);
-}
-function createTireForceResult() {
+export function createTireForceResult() {
   return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0 };
 }
-function readTireForce(s: TireForceScratch, out = createTireForceResult()): TireForceResult {
-  out.sx = s[ForceSlot.sx]!;
-  out.sy = s[ForceSlot.sy]!;
-  out.referenceSpeed = s[ForceSlot.referenceSpeed]!;
-  out.dx = s[ForceSlot.dx]!;
-  out.dy = s[ForceSlot.dy]!;
-  out.fx = s[ForceSlot.fx]!;
-  out.fy = s[ForceSlot.fy]!;
-  out.capacityX = s[ForceSlot.capacityX]!;
-  out.capacityY = s[ForceSlot.capacityY]!;
-  out.rho = s[ForceSlot.rho]!;
+function readTireForce(s: TireForceScratch, out: Writable<TireForceResult>): TireForceResult {
+  out.sx = s.sx;
+  out.sy = s.sy;
+  out.referenceSpeed = s.referenceSpeed;
+  out.dx = s.dx;
+  out.dy = s.dy;
+  out.fx = s.fx;
+  out.fy = s.fy;
+  out.capacityX = s.capacityX;
+  out.capacityY = s.capacityY;
+  out.rho = s.rho;
   return out;
 }
 function writeSlip(
@@ -90,16 +78,20 @@ function writeSlip(
   vx: number,
   vy: number,
   referenceSpeed: number,
-  out: TireForceScratch,
+  out: Writable<TireSlip>,
 ): void {
-  out[ForceSlot.sx] = (rollingRadius * omega - vx) / referenceSpeed;
-  out[ForceSlot.sy] = -vy / referenceSpeed;
-  out[ForceSlot.referenceSpeed] = referenceSpeed;
+  out.sx = (rollingRadius * omega - vx) / referenceSpeed;
+  out.sy = -vy / referenceSpeed;
+  out.referenceSpeed = referenceSpeed;
 }
-function writeDemand(out: TireForceScratch, normalLoad: number, characteristics: CompiledTireCharacteristics): void {
+function writeDemand(
+  out: Writable<TireDemand>,
+  normalLoad: number,
+  characteristics: CompiledTireCharacteristics,
+): void {
   const load = Math.max(0, normalLoad);
-  out[ForceSlot.dx] = load * characteristics.kX * out[ForceSlot.sx]!;
-  out[ForceSlot.dy] = load * characteristics.kY * out[ForceSlot.sy]!;
+  out.dx = load * characteristics.kX * out.sx;
+  out.dy = load * characteristics.kY * out.sy;
 }
 function tireReferenceSpeed(vx: number, v0: number): number {
   if (!Number.isFinite(vx) || !Number.isFinite(v0) || !(v0 > 0))
@@ -112,6 +104,7 @@ export function deriveTireSlip(
   longitudinalVelocity: number,
   lateralVelocity: number,
   lowSpeedRegularization: number,
+  out: Writable<TireSlip>,
 ): TireSlip {
   const referenceSpeed = tireReferenceSpeed(longitudinalVelocity, lowSpeedRegularization);
   if (
@@ -121,9 +114,8 @@ export function deriveTireSlip(
     !(rollingRadius > 0)
   )
     throw new RangeError('tire motion must be finite and rolling radius > 0');
-  const out = createTireForceScratch();
   writeSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity, referenceSpeed, out);
-  return { sx: out[ForceSlot.sx]!, sy: out[ForceSlot.sy]!, referenceSpeed };
+  return out;
 }
 export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
   if (!Number.isFinite(vy)) throw new RangeError('tire lateral velocity must be finite');
@@ -136,15 +128,13 @@ export function tireLinearDemand(
   lateralVelocity: number,
   normalLoad: number,
   tire: CompiledTireProfile,
-  characteristics: CompiledTireCharacteristics = tire,
+  characteristics: CompiledTireCharacteristics,
+  out: Writable<TireDemand>,
 ): TireDemand {
   if (!Number.isFinite(normalLoad)) throw new RangeError('tire normal load must be finite');
-  const slip = deriveTireSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity, tire.lowSpeedRegularization);
-  const out = createTireForceScratch();
-  out[ForceSlot.sx] = slip.sx;
-  out[ForceSlot.sy] = slip.sy;
+  deriveTireSlip(omega, rollingRadius, longitudinalVelocity, lateralVelocity, tire.lowSpeedRegularization, out);
   writeDemand(out, normalLoad, characteristics);
-  return { ...slip, dx: out[ForceSlot.dx]!, dy: out[ForceSlot.dy]! };
+  return out;
 }
 /** One load-homogeneous, dissipative two-axis force. */
 export function evaluateTireForce(
@@ -155,7 +145,9 @@ export function evaluateTireForce(
   normalLoad: number,
   gripFactor: number,
   tire: CompiledTireProfile,
-  characteristics: CompiledTireCharacteristics = tire,
+  characteristics: CompiledTireCharacteristics,
+  result: Writable<TireForceResult>,
+  out: TireForceScratch,
 ): TireForceResult {
   validateTireCharacteristics(characteristics);
   if (!Number.isFinite(gripFactor)) throw new RangeError('surface grip must be finite');
@@ -167,19 +159,19 @@ export function evaluateTireForce(
     normalLoad,
     tire,
     characteristics,
+    result,
   );
-  const out = createTireForceScratch();
-  out[ForceSlot.sx] = demand.sx;
-  out[ForceSlot.sy] = demand.sy;
-  out[ForceSlot.referenceSpeed] = demand.referenceSpeed;
-  out[ForceSlot.dx] = demand.dx;
-  out[ForceSlot.dy] = demand.dy;
+  out.sx = demand.sx;
+  out.sy = demand.sy;
+  out.referenceSpeed = demand.referenceSpeed;
+  out.dx = demand.dx;
+  out.dy = demand.dy;
   forceFromDemand(out, normalLoad, gripFactor, characteristics);
-  return readTireForce(out);
+  return readTireForce(out, result);
 }
 function evaluateTireForceValidated(input: WheelSolveInput, out: TireForceScratch): void {
-  const omega = out[ForceSlot.omega]!,
-    referenceSpeed = out[ForceSlot.referenceSpeed]!;
+  const omega = out.omega,
+    referenceSpeed = out.referenceSpeed;
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
   const characteristics = input.characteristics ?? input.tire;
   writeSlip(omega, input.rollingRadius, input.longitudinalVelocity, input.lateralVelocity, referenceSpeed, out);
@@ -194,26 +186,26 @@ function forceFromDemand(
 ): void {
   const capacityX = tireForceCapacity(normalLoad, gripFactor, characteristics.muX),
     capacityY = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
-  out[ForceSlot.capacityX] = capacityX;
-  out[ForceSlot.capacityY] = capacityY;
-  out[ForceSlot.fx] = 0;
-  out[ForceSlot.fy] = 0;
-  out[ForceSlot.rho] = 0;
+  out.capacityX = capacityX;
+  out.capacityY = capacityY;
+  out.fx = 0;
+  out.fy = 0;
+  out.rho = 0;
   if (!(capacityX > 0) || !(capacityY > 0)) return;
-  const x = (characteristics.kX * out[ForceSlot.sx]!) / characteristics.muX;
-  const y = (characteristics.kY * out[ForceSlot.sy]!) / characteristics.muY;
+  const x = (characteristics.kX * out.sx) / characteristics.muX;
+  const y = (characteristics.kY * out.sy) / characteristics.muY;
   const length = hypot2(x, y),
     rho = length / gripFactor;
   if (length === 0) return;
-  out[ForceSlot.rho] = rho;
+  out.rho = rho;
   if (rho <= characteristics.rhoKnee) {
-    out[ForceSlot.fx] = out[ForceSlot.dx]!;
-    out[ForceSlot.fy] = out[ForceSlot.dy]!;
+    out.fx = out.dx;
+    out.fy = out.dy;
     return;
   }
   const h = radialC1Magnitude(rho, characteristics.rhoKnee);
-  out[ForceSlot.fx] = capacityX * h * (x / length);
-  out[ForceSlot.fy] = capacityY * h * (y / length);
+  out.fx = capacityX * h * (x / length);
+  out.fy = capacityY * h * (y / length);
 }
 
 /** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
@@ -252,9 +244,9 @@ export function createWheelSolveResult() {
 
 export function solveWheelOmega(
   input: WheelSolveInput,
-  out = createWheelSolveResult(),
-  residual: Float64Array = new Float64Array(1),
-  scratch = createTireForceScratch(),
+  out: ReturnType<typeof createWheelSolveResult>,
+  residual: Float64Array,
+  scratch: TireForceScratch,
 ): WheelSolveResult {
   validateWheelSolveInput(input);
   const {
@@ -270,8 +262,8 @@ export function solveWheelOmega(
     dt,
   } = input;
   // Contact velocity is fixed throughout the scalar solve, including its final force evaluation.
-  scratch[ForceSlot.referenceSpeed] = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
-  scratch[ForceSlot.omega] = 0;
+  scratch.referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.omega = 0;
   netTorqueAtOmega(input, scratch, residual);
   const atZero = residual[0]! - driveTorque;
   let omega: number;
@@ -294,7 +286,7 @@ export function solveWheelOmega(
     }
   }
 
-  scratch[ForceSlot.omega] = omega;
+  scratch.omega = omega;
   evaluateTireForceValidated(input, scratch);
   readTireForce(scratch, out.tire);
   out.omega = omega;
@@ -309,23 +301,23 @@ export function solveWheelOmega(
 export function wheelRequiredNetTorque(
   input: WheelSolveInput,
   omega: number,
-  scratch = createTireForceScratch(),
-  residual: Float64Array = new Float64Array(1),
+  scratch: TireForceScratch,
+  residual: Float64Array,
 ): number {
   validateWheelSolveInput(input);
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  scratch[ForceSlot.omega] = omega;
-  scratch[ForceSlot.referenceSpeed] = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
+  scratch.omega = omega;
+  scratch.referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   netTorqueAtOmega(input, scratch, residual);
   return residual[0]!;
 }
 
 function netTorqueAtOmega(input: WheelSolveInput, scratch: TireForceScratch, residual: Float64Array): void {
-  const omega = scratch[ForceSlot.omega]!;
+  const omega = scratch.omega;
   evaluateTireForceValidated(input, scratch);
   residual[0]! =
     (input.inertia / input.dt) * (omega - input.omegaPrevious) +
-    input.rollingRadius * scratch[ForceSlot.fx]! +
+    input.rollingRadius * scratch.fx +
     rollingResistanceTorque(
       omega,
       input.rollingRadius,
@@ -372,10 +364,10 @@ function bisectMonotone(
 ): number {
   let lower = lowerInput;
   let upper = upperInput;
-  scratch[ForceSlot.omega] = lower;
+  scratch.omega = lower;
   wheelResidual(input, scratch, positive, residual);
   const fLower = residual[0]!;
-  scratch[ForceSlot.omega] = upper;
+  scratch.omega = upper;
   wheelResidual(input, scratch, positive, residual);
   const fUpper = residual[0]!;
   if (fLower > 0 || fUpper < 0) {
@@ -383,7 +375,7 @@ function bisectMonotone(
   }
   for (let i = 0; i < WHEEL_BISECTION_ITERATIONS; i += 1) {
     const mid = (lower + upper) * 0.5;
-    scratch[ForceSlot.omega] = mid;
+    scratch.omega = mid;
     wheelResidual(input, scratch, positive, residual);
     const fMid = residual[0]!;
     if (Math.abs(fMid) < WHEEL_TORQUE_RESIDUAL_NEWTON_METERS) return mid;

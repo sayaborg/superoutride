@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileGuidePath, guidePathToWorld, locateWorldOnGuideLocal } from '../../dist/core/guide-curve.js';
@@ -45,7 +47,7 @@ test('compiled Raster and Guide cannot acquire conflicting geometry through nest
   const authored = vertices();
   const raster = compileRasterPath(authored);
   const guide = compileGuidePath(raster, options);
-  const before = guidePathToWorld(guide, 100, 4);
+  const before = guidePathToWorld(guide, 100, 4, createPlanarCoordinateSample());
   authored[1].x = 99;
   const objects = [
     raster.vertices[1],
@@ -61,8 +63,16 @@ test('compiled Raster and Guide cannot acquire conflicting geometry through nest
       object[key] += 1;
     }, TypeError);
   }
-  assert.deepEqual(guidePathToWorld(guide, 100, 4), before);
-  const observed = locateWorldOnGuideLocal(guide, before, before.segmentIndex);
+  assert.deepEqual(guidePathToWorld(guide, 100, 4, createPlanarCoordinateSample()), before);
+  const observed = locateWorldOnGuideLocal(
+    guide,
+    before,
+    before.segmentIndex,
+    2,
+    false,
+    { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+    createGuideProjectionWorkspace(),
+  );
   assert.ok(Math.abs(observed.s - 100) < 1e-8);
   assert.ok(Math.abs(observed.l - 4) < 1e-8);
 });
@@ -71,7 +81,7 @@ test('nonfinite lateral queries fail at the shared world-coordinate boundary', (
   const raster = compileRasterPath(vertices());
   const guide = compileGuidePath(raster, options);
   for (const l of [NaN, Infinity, -Infinity]) {
-    assert.throws(() => rasterPathToWorld(raster, 50, l), RangeError);
-    assert.throws(() => guidePathToWorld(guide, 50, l), RangeError);
+    assert.throws(() => rasterPathToWorld(raster, 50, l, createPlanarCoordinateSample()), RangeError);
+    assert.throws(() => guidePathToWorld(guide, 50, l, createPlanarCoordinateSample()), RangeError);
   }
 });

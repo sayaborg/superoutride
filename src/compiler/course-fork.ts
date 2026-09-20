@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../graphics/sprite.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import { courseBoundaryAt } from '../course/course-bands.js';
@@ -44,7 +45,13 @@ export function compileCourseFork(
       'State-selected signs must precede common exit guards',
     );
   }
-  requireCourseStraightSpan(section, lock.s, closure.s, guidePathToWorld(section.guide, lock.s, 0).heading, path);
+  requireCourseStraightSpan(
+    section,
+    lock.s,
+    closure.s,
+    guidePathToWorld(section.guide, lock.s, 0, createPlanarCoordinateSample()).heading,
+    path,
+  );
   const bands = section.bandPartition.bands.filter((b) => b.start.s <= lock.s && b.end.s > lock.s);
   check(bands.length > 0, 'Lock line needs supported Bands');
   for (const band of bands) {

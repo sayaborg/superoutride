@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from '../core/projection.js';
@@ -53,6 +54,8 @@ interface BodyPitchMovementYaw {
   readonly lateralSpeed: number;
   readonly inPlaneSpeed: number;
 }
+
+const guideWorkspaces = new WeakMap<CameraRig, { point: ReturnType<typeof createPlanarCoordinateSample> }>();
 
 export function createCameraRig(yawMode: CameraYawMode = DEFAULT_CAMERA_YAW_MODE): CameraRig {
   return { yawMode, yaw: 0, movementYaw: 0, verticalCorrection: 0, initialized: false };
@@ -123,7 +126,12 @@ export function updateCamera(
     throw new RangeError('camera direction speed minimum must be finite and >= 0');
   }
 
-  const guideAtCar = guideCoordinateToWorld(guide, vehicle.course.s, 0);
+  let workspace = guideWorkspaces.get(rig);
+  if (!workspace) {
+    workspace = { point: createPlanarCoordinateSample() };
+    guideWorkspaces.set(rig, workspace);
+  }
+  const guideAtCar = guideCoordinateToWorld(guide, vehicle.course.s, 0, workspace.point);
   const vehicleGuideYawDelta = wrapAngle(vehicle.yaw - guideAtCar.heading);
   const bodyPitch = vehicle.sprungPitch ?? 0;
 

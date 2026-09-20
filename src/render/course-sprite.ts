@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { RasterGeometry } from '../core/raster-coordinate-reader.js';
 import type { HeightProfileReader } from '../core/height-profile.js';
 import { pseudoDepth, pseudoProject, type PseudoCamera, type PseudoProjection } from '../core/projection.js';
@@ -40,7 +41,7 @@ export function compileCourseSprite(
   height: HeightProfileReader,
   source: CourseSpriteAuthoring,
 ): CourseSprite {
-  const plan = rasterCoordinateToWorld(guide.raster, source.s, source.l);
+  const plan = rasterCoordinateToWorld(guide.raster, source.s, source.l, createPlanarCoordinateSample());
   const y = source.y ?? height.sampleRender(source.s).y + (source.groundOffset ?? 0);
   return {
     name: source.name,

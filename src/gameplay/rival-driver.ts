@@ -80,7 +80,12 @@ export function sampleRivalDrivingInput(
 
 export function createRivalDriverWorkspace() {
   const point = () => createPlanarCoordinateSample();
-  return { input: { steering: 0, throttle: false, brake: false }, target: point(), a: point(), b: point() };
+  return {
+    input: { steering: 0, throttle: false, brake: false },
+    target: point(),
+    a: point(),
+    b: point(),
+  };
 }
 
 export function estimateUpcomingTargetSpeed(

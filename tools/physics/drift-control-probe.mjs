@@ -1,3 +1,4 @@
+import { createTireForceResult, createTireForceScratch } from '../../dist/physics/tire-wheel.js';
 import { observeProbeContacts, runProbeCli, createProbeVehicle } from '../helpers/probe-harness.mjs';
 /** Read-only mechanics diagnostic. All motion uses the production solver; constants are test inputs. */
 import { writeFile } from 'node:fs/promises';
@@ -120,6 +121,8 @@ export function observeProbe(probe, t) {
       c.surface.material.gripFactor,
       station.tire,
       characteristics,
+      createTireForceResult(),
+      createTireForceScratch(),
     );
   };
   const f = wheel(front, p.frontStation, v.frontWheelOmega, v.tireFrictionCalibration.front);

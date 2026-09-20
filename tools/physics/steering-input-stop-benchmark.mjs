@@ -1,3 +1,5 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 /** Same-input microbenchmark of two builds exposing the current limiter contract. */
 import { performance } from 'node:perf_hooks';
 import { writeFileSync } from 'node:fs';
@@ -15,7 +17,7 @@ const { limitSteeringInput: baseline } = await import(
 import { limitSteeringInput as current } from '../../dist/physics/steering-input-limiter.js';
 
 const p = createFlatProbe({ initialSpeed: 30 }),
-  body = arcadeBodyKinematics(p.vehicle),
+  body = arcadeBodyKinematics(p.vehicle, createBodyKinematicsWorkspace()),
   tire = p.vehicle.tireFrictionCalibration.front;
 const c = deriveContactObservation(
   p.guide,
@@ -25,6 +27,7 @@ const c = deriveContactObservation(
   p.vehicle.profile.frontStation,
   0,
   p.vehicle.course.segmentIndex,
+  createContactWorkspace(p.vehicle.profile.frontStation),
 );
 let seed = 73423;
 const rng = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32;

@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
@@ -106,7 +107,12 @@ test('geometry recipe preserves authored degree subdivisions, radius provenance 
       assert.equal(segment.sStart, output.raster.vertexS[i]);
     });
     assert.equal(accumulated, output.raster.length);
-    const world = guidePathToWorld(output.guide, arc.sStart + (arc.sEnd - arc.sStart) / 2, 0);
+    const world = guidePathToWorld(
+      output.guide,
+      arc.sStart + (arc.sEnd - arc.sStart) / 2,
+      0,
+      createPlanarCoordinateSample(),
+    );
     assert.ok(Number.isFinite(world.x) && Number.isFinite(world.z));
   }
 });

@@ -1,3 +1,5 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -64,7 +66,7 @@ test('read-only contact yaw attribution sums existing contact moment without fee
     );
   const before = brakingStateFingerprint(v),
     row = observeBrakingState(p, 0),
-    body = arcadeBodyKinematics(v);
+    body = arcadeBodyKinematics(v, createBodyKinematicsWorkspace());
   for (const side of ['front', 'rear']) {
     const station = v.profile[side + 'Station'];
     const c = deriveContactObservation(
@@ -75,6 +77,7 @@ test('read-only contact yaw attribution sums existing contact moment without fee
       station,
       side === 'front' ? v.frontSteerAngle : 0,
       v.course.segmentIndex,
+      createContactWorkspace(station),
     );
     close(row[side].yawContact, momentAboutCg(c, body.position, contactForceWorld(c, row[side].fx, row[side].fy)).y);
   }

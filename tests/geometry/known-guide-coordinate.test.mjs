@@ -1,3 +1,4 @@
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import { createRepeatedReferenceWorld } from '../helpers/repeated-world.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -120,7 +121,13 @@ test('known placement reprojects the actual elevated CG in a nonzero lateral fra
     { s: 500, l: 2, initialSpeed: 0 },
   );
   const assertProjection = (targetS) => {
-    const projected = locateWorldOnGuideCoordinateGlobal(frame, { x: v.x, z: v.z });
+    const projected = locateWorldOnGuideCoordinateGlobal(
+      frame,
+      { x: v.x, z: v.z },
+      false,
+      { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      createGuideProjectionWorkspace(),
+    );
     assert.deepEqual(v.course, projected);
     assert.ok(v.course.s < targetS - 0.01, 'CG normal offset must not be replaced by the placement coordinate');
     assert.equal(v.course.l, 2);

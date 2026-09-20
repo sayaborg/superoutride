@@ -1,3 +1,4 @@
+import { createTireForceResult, createTireForceScratch } from '../../dist/physics/tire-wheel.js';
 import { observeProbeContacts, runProbeCli, createProbeVehicle } from '../helpers/probe-harness.mjs';
 /** Input-only finite terrain probes of the production solver. No recovery or state correction. */
 import { writeFile } from 'node:fs/promises';
@@ -269,6 +270,8 @@ export function runTerrainProbe(entry, options = {}) {
           contact.surface.material.gripFactor,
           contact.profile.tire,
           i ? v.tireFrictionCalibration.rear : v.tireFrictionCalibration.front,
+          createTireForceResult(),
+          createTireForceScratch(),
         );
         if (force.capacityX > 0 && force.capacityY > 0)
           out.maxEllipse = Math.max(

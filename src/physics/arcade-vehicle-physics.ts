@@ -1,3 +1,6 @@
+import { createSurfaceGeometryWorkspace } from './vehicle-dynamics.js';
+import { createGuideProjectionWorkspace } from '../core/guide-curve.js';
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { type Writable } from '../core/writable.js';
 import { publishVehicleTireObservation } from './vehicle-tire-observation.js';
 import { guideCoordinateToWorld } from '../core/guide-coordinate-frame.js';
@@ -111,10 +114,16 @@ export function createArcadeVehicle(
   const coordinate = {
     s,
     l,
-    segmentIndex: guideCoordinateToWorld(guide, s, l).segmentIndex,
+    segmentIndex: guideCoordinateToWorld(guide, s, l, createPlanarCoordinateSample()).segmentIndex,
     distanceSquared: 0,
   };
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
+  const surface = sampleSurfaceGeometryAtCoordinate(
+    guide,
+    height,
+    surfaces,
+    coordinate,
+    createSurfaceGeometryWorkspace(),
+  );
   if (!surface.material.supported) throw new Error('vehicle spawn requires supported surface');
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
   const pitch = surface.gradeAngle;
@@ -299,7 +308,7 @@ export function updateArcadeVehicle(
     vehicle.z += vehicle.velocityZ * substep;
     vehicle.yaw = wrapAngle(vehicle.yaw + vehicle.yawRate * substep);
     vehicle.pitch = wrapAngle(vehicle.pitch + vehicle.pitchRate * substep);
-    refreshGuideObservation(guide, vehicle);
+    refreshGuideObservation(guide, vehicle, workspace.projection);
 
     // Output-only cache: observers consume one completed outer update, never an inner trial.
     if (step === VEHICLE_SUBSTEPS - 1) {
@@ -411,7 +420,7 @@ export function createBodyKinematicsWorkspace() {
 }
 export function arcadeBodyKinematics(
   vehicle: ArcadeVehicleState,
-  out = createBodyKinematicsWorkspace(),
+  out: ReturnType<typeof createBodyKinematicsWorkspace>,
 ): BodyKinematics {
   const sinYaw = Math.sin(vehicle.yaw),
     cosYaw = Math.cos(vehicle.yaw);
@@ -459,6 +468,7 @@ function createStepWorkspace(vehicle: ArcadeVehicleState) {
   const frontRequest = request(vehicle.profile.frontStation.tire),
     rearRequest = request(vehicle.profile.rearStation.tire);
   return {
+    projection: createGuideProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
     body: createBodyKinematicsWorkspace(),
     steering: createSteeringLimitWorkspace(),

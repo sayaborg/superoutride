@@ -1,3 +1,5 @@
+import { createContactWorkspace, createSurfaceGeometryWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -40,7 +42,16 @@ const surfaces = new SurfaceMap(guide.length, [
 ]);
 
 function observe(v, station) {
-  return deriveContactObservation(guide, height, surfaces, arcadeBodyKinematics(v), station, 0, v.course.segmentIndex);
+  return deriveContactObservation(
+    guide,
+    height,
+    surfaces,
+    arcadeBodyKinematics(v, createBodyKinematicsWorkspace()),
+    station,
+    0,
+    v.course.segmentIndex,
+    createContactWorkspace(station),
+  );
 }
 
 function assertFinite(v) {
@@ -160,9 +171,15 @@ test('overturned criterion is relative to surface normal rather than a world-pit
   v.pitch = Math.atan(slope) + 80 * DEG;
   v.frontNormalLoad = 0;
   v.rearNormalLoad = 1000;
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, uphill, surfaces, v.course);
+  const surface = sampleSurfaceGeometryAtCoordinate(
+    guide,
+    uphill,
+    surfaces,
+    v.course,
+    createSurfaceGeometryWorkspace(),
+  );
   assert.ok(v.pitch > Math.PI / 2);
-  assert.ok(dot3(arcadeBodyKinematics(v).up, surface.normal) > 0);
+  assert.ok(dot3(arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up, surface.normal) > 0);
   assert.equal(updateRecovery({ guide, height: uphill, surfaces }, v, { state, dt: 1 / 60 }), null);
   v.pitch = Math.atan(slope) + 100 * DEG;
   assert.equal(updateRecovery({ guide, height: uphill, surfaces }, v, { state, dt: 1 / 60 }), 'overturned');
@@ -220,14 +237,22 @@ test('VFR loop-out remains possible but ordinary recovery prevents inverted driv
         updateArcadeVehicle({ guide: g, height: h, surfaces: s }, v, input, dt);
         assertFinite(v);
         if (v.frontNormalLoad > 0 !== v.rearNormalLoad > 0) oneWheelTime += dt;
-        const before = dot3(arcadeBodyKinematics(v).up, sampleSurfaceGeometryAtCoordinate(g, h, s, v.course).normal);
+        const before = dot3(
+          arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up,
+          sampleSurfaceGeometryAtCoordinate(g, h, s, v.course, createSurfaceGeometryWorkspace()).normal,
+        );
         const reason = updateRecovery({ guide: g, height: h, surfaces: s }, v, { state, dt });
         if (reason !== null) {
           assert.equal(reason, 'overturned');
           assert.ok(before <= 0, 'no early anti-wheelie recovery');
           events.push((tick + 1) * dt);
         }
-        assert.ok(dot3(arcadeBodyKinematics(v).up, sampleSurfaceGeometryAtCoordinate(g, h, s, v.course).normal) > 0);
+        assert.ok(
+          dot3(
+            arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up,
+            sampleSurfaceGeometryAtCoordinate(g, h, s, v.course, createSurfaceGeometryWorkspace()).normal,
+          ) > 0,
+        );
       }
       assert.ok(oneWheelTime > 0.5, 'wheel lift was preserved, not suppressed');
       assert.equal(events.length, 1, 'no repeated recovery loop');

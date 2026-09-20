@@ -35,9 +35,15 @@ const wideSurface = new SurfaceMap(highway.guide.length, [
   },
 ]);
 
-test('regularized front slip observation matches the one-k lateral denominator', () => {
+test('regularized front slip observation matches the tire lateral denominator', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
-  const demand = tireLinearDemand(100, 0.33, 24, -2.4, 6500, tire);
+  const demand = tireLinearDemand(100, 0.33, 24, -2.4, 6500, tire, tire, {
+    sx: 0,
+    sy: 0,
+    referenceSpeed: 0,
+    dx: 0,
+    dy: 0,
+  });
   const angle = regularizedTireSlipAngle(24, -2.4, tire.lowSpeedRegularization);
   assert.ok(Math.abs(Math.tan(angle) - demand.sy) < 1e-12);
   assert.equal(Math.abs(regularizedTireSlipAngle(0, 0, tire.lowSpeedRegularization)), 0);

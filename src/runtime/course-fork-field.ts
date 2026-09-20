@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import type { CompiledFork, CompiledLink, CompiledSection } from '../compiler/course-graph.js';
 import { courseBandAt, courseBoundaryAt, type CompiledCarriageway } from '../course/course-bands.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
@@ -24,7 +25,7 @@ export function createCourseForkField(sections: readonly CompiledSection[]) {
   for (const section of sections) {
     const fork = section.fork;
     if (!fork) continue;
-    const pose = guidePathToWorld(section.guide, fork.lock.s, 0);
+    const pose = guidePathToWorld(section.guide, fork.lock.s, 0, createPlanarCoordinateSample());
     gates.set(
       fork,
       compileWorldCrossingGate({

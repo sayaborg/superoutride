@@ -1,3 +1,4 @@
+import { createTireForceResult, createTireForceScratch } from '../../dist/physics/tire-wheel.js';
 import { observeProbeContacts, runProbeCli } from '../helpers/probe-harness.mjs';
 /** Same-reached-state input forks. Read-only force attribution, NOT a yaw controller. */
 import { writeFile } from 'node:fs/promises';
@@ -81,6 +82,8 @@ export function observeBrakingState(probe, t) {
       c.surface.material.gripFactor,
       profile.tire,
       v.tireFrictionCalibration[side],
+      createTireForceResult(),
+      createTireForceScratch(),
     );
     const yawX = momentAboutCg(c, body.position, scale3(c.tireForward, f.fx)).y;
     const yawY = momentAboutCg(c, body.position, scale3(c.tireRight, f.fy)).y;

@@ -1,3 +1,5 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
@@ -23,9 +25,18 @@ export function createProbeVehicle(profile, world, options) {
 
 /** Fresh outer-tick contacts, never a second integration or a previous-substep force ledger. */
 export function observeProbeContacts({ vehicle, guide, height, surface }) {
-  const body = arcadeBodyKinematics(vehicle);
+  const body = arcadeBodyKinematics(vehicle, createBodyKinematicsWorkspace());
   const contact = (station, steer) =>
-    deriveContactObservation(guide, height, surface, body, station, steer, vehicle.course.segmentIndex);
+    deriveContactObservation(
+      guide,
+      height,
+      surface,
+      body,
+      station,
+      steer,
+      vehicle.course.segmentIndex,
+      createContactWorkspace(station),
+    );
   return {
     body,
     front: contact(vehicle.profile.frontStation, vehicle.frontSteerAngle),

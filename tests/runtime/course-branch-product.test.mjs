@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { testGround } from '../helpers/resident-ground.mjs';
@@ -31,7 +32,7 @@ assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
 const course = result.value,
   fork = course.entry.fork;
 const ground = await testGround(course, 'branch');
-const point = (s, l) => guidePathToWorld(course.entry.guide, s, l);
+const point = (s, l) => guidePathToWorld(course.entry.guide, s, l, createPlanarCoordinateSample());
 function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
   const scene = createCourseScene(course.entry, ground);
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {

@@ -1,3 +1,5 @@
+import { createContactWorkspace } from '../../dist/physics/vehicle-dynamics.js';
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -13,7 +15,7 @@ const rad = Math.PI / 180,
 function fixture(speed = 30, beta = 0, pitch = 0) {
   p.vehicle.y = 2;
   p.vehicle.pitch = pitch;
-  const body = arcadeBodyKinematics(p.vehicle);
+  const body = arcadeBodyKinematics(p.vehicle, createBodyKinematicsWorkspace());
   const c = deriveContactObservation(
     p.guide,
     p.height,
@@ -22,6 +24,7 @@ function fixture(speed = 30, beta = 0, pitch = 0) {
     p.vehicle.profile.frontStation,
     0,
     p.vehicle.course.segmentIndex,
+    createContactWorkspace(p.vehicle.profile.frontStation),
   );
   return {
     body,
@@ -35,7 +38,7 @@ function fixture(speed = 30, beta = 0, pitch = 0) {
 }
 // Independent frame projection: q is squared slip inequality after multiplying by |projected heading|².
 function excess(body, c, angle) {
-  const f = reorientContactObservation(c, body, angle),
+  const f = reorientContactObservation(c, body, angle, createContactWorkspace(c.profile)),
     n = c.surface.normal;
   const h = {
     x: body.forward.x * Math.cos(angle) + body.right.x * Math.sin(angle),
@@ -67,7 +70,7 @@ test('ordinary stop retains small input, approaches onset conservatively and pas
   const { body, c } = fixture();
   assert.equal(limit(0, 0.01, body, c, tire), 0.01);
   const e = limit(0, 20 * rad, body, c, tire);
-  const f = reorientContactObservation(c, body, e);
+  const f = reorientContactObservation(c, body, e, createContactWorkspace(c.profile));
   const slip = Math.abs(f.lateralVelocity) / Math.hypot(f.longitudinalVelocity, c.profile.tire.lowSpeedRegularization);
   assert.ok(slip > 0.079 && slip < 0.08);
 });
@@ -83,7 +86,7 @@ test('outside baseline stops farther input, passes partial correction, and stops
     assert.ok(Math.abs(b + e) < Math.atan(0.08) + 1e-4);
   }
 });
-test('former 0-to-20-degree tangent release is continuous and does not inflate onset', () => {
+test('0-to-20-degree tangent release is continuous and does not inflate onset', () => {
   const values = [];
   for (const beta of [-129.99, -129.9999, -130, -130.0001, -130.01]) {
     const { body, c } = fixture(30, beta * rad);

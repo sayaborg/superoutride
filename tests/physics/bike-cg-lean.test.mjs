@@ -1,3 +1,4 @@
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -99,7 +100,7 @@ test('real sideslip acceleration and world sprite bank share the observed outer-
     { steering: 0, throttle: 0, brake: 0 },
     dt,
   );
-  const right = arcadeBodyKinematics(v).right;
+  const right = arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).right;
   const a =
     ((v.velocityX - before.x) * right.x + (v.velocityY - before.y) * right.y + (v.velocityZ - before.z) * right.z) / dt;
   assert.ok(Math.abs(a) > 1);

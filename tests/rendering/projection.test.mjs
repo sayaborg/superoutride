@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
@@ -22,7 +23,7 @@ import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 describe('open coordinate geometry', () => {
   test('pseudo projection keeps same-s same-height anchors at identical depth, scale and Y', () => {
     const guide = createCircularArcGuide();
-    const camPlan = guidePathToWorld(guide, 0, 0);
+    const camPlan = guidePathToWorld(guide, 0, 0, createPlanarCoordinateSample());
     const camera = {
       x: camPlan.x,
       y: 2,
@@ -35,8 +36,8 @@ describe('open coordinate geometry', () => {
       centerY: 120,
     };
 
-    const leftPlan = rasterPathToWorld(guide.raster, 40, -10);
-    const rightPlan = rasterPathToWorld(guide.raster, 40, 10);
+    const leftPlan = rasterPathToWorld(guide.raster, 40, -10, createPlanarCoordinateSample());
+    const rightPlan = rasterPathToWorld(guide.raster, 40, 10, createPlanarCoordinateSample());
     const left = pseudoProject({ ...leftPlan, y: 0 }, camera);
     const right = pseudoProject({ ...rightPlan, y: 0 }, camera);
 
@@ -94,8 +95,8 @@ describe('flat stadium geometry', () => {
     const guide = createStadiumGuide();
     const vehicle = renderPose(guide, 80);
     vehicle.course.l = 10;
-    const roadAtCar = sampleGuidePath(guide, vehicle.course.s);
-    const displaced = guidePathToWorld(guide, vehicle.course.s, 10);
+    const roadAtCar = sampleGuidePath(guide, vehicle.course.s, createPlanarCoordinateSample());
+    const displaced = guidePathToWorld(guide, vehicle.course.s, 10, createPlanarCoordinateSample());
     vehicle.x = displaced.x;
     vehicle.z = displaced.z;
     vehicle.yaw = roadAtCar.heading + deg(15);
@@ -111,7 +112,7 @@ describe('physical player projection', () => {
   const { guide, height, surfaces, cameraProfile, groundProfile, terrainProfile } = drivingEnvironment();
 
   function placeCar(car, s, l, speed = 30) {
-    const p = guidePathToWorld(guide, s, l);
+    const p = guidePathToWorld(guide, s, l, createPlanarCoordinateSample());
     car.x = p.x;
     car.z = p.z;
     car.y = height.samplePhysics(s) + 0.55;

@@ -1,3 +1,4 @@
+import { createBodyKinematicsWorkspace } from '../../dist/physics/arcade-vehicle-physics.js';
 import { createFlatProbe } from '../physics/drift-control-probe.mjs';
 import { updateArcadeVehicle, arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
@@ -64,7 +65,7 @@ export function measureVehicleEnvelope(entry) {
           velocity += v.speed;
           count++;
           maxBeta = Math.max(maxBeta, Math.abs(Math.atan2(v.lateralSpeed, v.longitudinalSpeed)));
-          minimumUp = Math.min(minimumUp, arcadeBodyKinematics(v).up.y);
+          minimumUp = Math.min(minimumUp, arcadeBodyKinematics(v, createBodyKinematicsWorkspace()).up.y);
         }
         heading = next;
       }

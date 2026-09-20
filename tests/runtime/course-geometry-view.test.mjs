@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
@@ -316,7 +317,7 @@ test('loop traversal retains only the admitted history while every occurrence sh
   assert.notEqual(view.spans[0].occurrence, view.spans[1].occurrence);
   assert.equal(view.spans[0].occurrence.section, view.spans[1].occurrence.section);
   for (const s of [0, 19.99999, 20, 20.00001, 40])
-    close(view.geometry.guideAt(s, 0), guidePathToWorld(course.entry.guide, 80 + s, 0));
+    close(view.geometry.guideAt(s, 0), guidePathToWorld(course.entry.guide, 80 + s, 0, createPlanarCoordinateSample()));
   const last = traversal.snapshot().active;
   ok(traversal.reverse());
   assert.equal(traversal.reverse().ok, false, 'discarded history is not reconstructed from the loop source');

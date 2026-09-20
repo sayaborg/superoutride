@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compileRasterPath } from '../../dist/core/raster-path.js';
@@ -41,7 +43,11 @@ test('constant scalar and explicit profiles have identical fillets, ruler and wo
     assert.equal(corner.radius, expectedRadius);
     assert.equal(corner.trim, expectedRadius * Math.tan(Math.abs(corner.turn) / 2));
     for (const s of [0, 99, 100, 101, raster.length])
-      for (const l of [-6, 0, 6]) assert.deepEqual(guidePathToWorld(explicit, s, l), guidePathToWorld(constant, s, l));
+      for (const l of [-6, 0, 6])
+        assert.deepEqual(
+          guidePathToWorld(explicit, s, l, createPlanarCoordinateSample()),
+          guidePathToWorld(constant, s, l, createPlanarCoordinateSample()),
+        );
   }
 });
 
@@ -111,10 +117,37 @@ test('queries, translated clamps and gate widths use the local envelope', () => 
     [75, 15],
     [100, 20],
   ]) {
-    const world = guideCoordinateToWorld(frame, s, 30);
-    assert.equal(locateWorldOnGuideCoordinateGlobal(frame, world, false).l, 30);
-    assert.equal(locateWorldOnGuideCoordinateGlobal(frame, world, true).l, limit - 3);
-    assert.equal(locateWorldOnGuideGlobal(guide, world, true).l, limit);
+    const world = guideCoordinateToWorld(frame, s, 30, createPlanarCoordinateSample());
+    assert.equal(
+      locateWorldOnGuideCoordinateGlobal(
+        frame,
+        world,
+        false,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createGuideProjectionWorkspace(),
+      ).l,
+      30,
+    );
+    assert.equal(
+      locateWorldOnGuideCoordinateGlobal(
+        frame,
+        world,
+        true,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createGuideProjectionWorkspace(),
+      ).l,
+      limit - 3,
+    );
+    assert.equal(
+      locateWorldOnGuideGlobal(
+        guide,
+        world,
+        true,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createGuideProjectionWorkspace(),
+      ).l,
+      limit,
+    );
     assert.equal(compilePhysicalRaceGate(guide, 0, 'checkpoint', 'gate', s).halfWidth, limit);
   }
   assert.deepEqual(guideEnvelopeRange(guide.envelope, 25, 75), { min: 7.5, max: 15 });

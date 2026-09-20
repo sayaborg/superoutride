@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -69,7 +70,7 @@ function createFixture() {
 }
 
 function guideSample(window, sWindow) {
-  const sample = sampleGuidePath(window.guide, sWindow);
+  const sample = sampleGuidePath(window.guide, sWindow, createPlanarCoordinateSample());
   return { x: sample.x, z: sample.z, s: sWindow };
 }
 
@@ -88,7 +89,7 @@ function cross(state, rules, gate) {
   return updateCircuitRaceProgress(state, rules, after);
 }
 
-test('generic race session records circuit checkpoint and physical lap-boundary timings without legacy race-progress dependency', () => {
+test('race session records circuit checkpoint and physical lap-boundary timings through its progress reader', () => {
   const { window, rules } = createFixture();
   const state = createCircuitRaceProgressState(rules, guideSample(window, 0));
   const session = createRaceSessionState();

@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -97,20 +99,89 @@ test('clipped Guide projection retains native full-segment arithmetic and bounds
     g = c.entry.guide;
   for (const segment of g.segments) {
     const s = (segment.sStart + segment.sEnd) / 2,
-      point = guidePathToWorld(g, s, 0.75);
+      point = guidePathToWorld(g, s, 0.75, createPlanarCoordinateSample());
     assert.deepEqual(
-      projectWorldOnGuideInterval(g, segment.index, point, segment.sStart, segment.sEnd),
-      locateWorldOnGuideLocal(g, point, segment.index, 0),
+      projectWorldOnGuideInterval(
+        g,
+        segment.index,
+        point,
+        segment.sStart,
+        segment.sEnd,
+        false,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createPlanarCoordinateSample(),
+      ),
+      locateWorldOnGuideLocal(
+        g,
+        point,
+        segment.index,
+        0,
+        false,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createGuideProjectionWorkspace(),
+      ),
     );
     const start = segment.sStart + (segment.sEnd - segment.sStart) * 0.2,
       end = segment.sStart + (segment.sEnd - segment.sStart) * 0.8;
-    const before = guidePathToWorld(g, segment.sStart, 0.75),
-      after = guidePathToWorld(g, segment.sEnd, 0.75);
-    assert.ok(Math.abs(projectWorldOnGuideInterval(g, segment.index, before, start, end).s - start) < 1e-8);
-    assert.ok(Math.abs(projectWorldOnGuideInterval(g, segment.index, after, start, end).s - end) < 1e-8);
+    const before = guidePathToWorld(g, segment.sStart, 0.75, createPlanarCoordinateSample()),
+      after = guidePathToWorld(g, segment.sEnd, 0.75, createPlanarCoordinateSample());
+    assert.ok(
+      Math.abs(
+        projectWorldOnGuideInterval(
+          g,
+          segment.index,
+          before,
+          start,
+          end,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createPlanarCoordinateSample(),
+        ).s - start,
+      ) < 1e-8,
+    );
+    assert.ok(
+      Math.abs(
+        projectWorldOnGuideInterval(
+          g,
+          segment.index,
+          after,
+          start,
+          end,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createPlanarCoordinateSample(),
+        ).s - end,
+      ) < 1e-8,
+    );
   }
-  assert.throws(() => projectWorldOnGuideInterval(g, 0, { x: 0, z: 0 }, 10, 10), RangeError);
-  assert.throws(() => projectWorldOnGuideInterval(g, 0, { x: 0, z: 0 }, 10, 20, 'false'), TypeError);
+  assert.throws(
+    () =>
+      projectWorldOnGuideInterval(
+        g,
+        0,
+        { x: 0, z: 0 },
+        10,
+        10,
+        false,
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createPlanarCoordinateSample(),
+      ),
+    RangeError,
+  );
+  assert.throws(
+    () =>
+      projectWorldOnGuideInterval(
+        g,
+        0,
+        { x: 0, z: 0 },
+        10,
+        20,
+        'false',
+        { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+        createPlanarCoordinateSample(),
+      ),
+    TypeError,
+  );
 });
 
 test('stable frame addresses and occurrence seeds survive moving view origins across a selected Link', async () => {
@@ -121,12 +192,22 @@ test('stable frame addresses and occurrence seeds survive moving view origins ac
   assert.equal(a.driving.frame, f.traversal.snapshot().active);
   for (const s of [1390.25, 1399.875, 1400, 1400.12345, 1404.0625, 1410.5]) {
     assert.deepEqual(a.geometry.addressInFrame(s, 0.25), b.geometry.addressInFrame(s, 0.25));
-    const p = a.driving.world.guide.toWorld(s, 0.25),
-      q = b.driving.world.guide.toWorld(s, 0.25);
+    const p = a.driving.world.guide.toWorld(s, 0.25, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }),
+      q = b.driving.world.guide.toWorld(s, 0.25, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
     assert.deepEqual(p, q);
     assert.deepEqual(
-      a.driving.world.guide.locateLocal(p, p.segmentIndex, 5, false),
-      b.driving.world.guide.locateLocal(p, p.segmentIndex, 5, false),
+      a.driving.world.guide.locateLocal(p, p.segmentIndex, 5, false, {
+        s: 0,
+        l: 0,
+        segmentIndex: -1,
+        distanceSquared: 0,
+      }),
+      b.driving.world.guide.locateLocal(p, p.segmentIndex, 5, false, {
+        s: 0,
+        l: 0,
+        segmentIndex: -1,
+        distanceSquared: 0,
+      }),
     );
     assert.deepEqual(a.driving.world.surfaces.sample(s, 0.25), b.driving.world.surfaces.sample(s, 0.25));
   }
@@ -134,7 +215,18 @@ test('stable frame addresses and occurrence seeds survive moving view origins ac
   assert.ok(a.driving.metadata.guideSegments < 30);
   assert.ok(a.driving.metadata.heightNodes < 6);
   assert.equal(a.driving.world.surfaces.sample(1401, 50).material.supported, false);
-  assert.throws(() => a.driving.world.guide.toWorld(a.driving.range.end + 1, 0), RangeError);
+  assert.throws(
+    () =>
+      a.driving.world.guide.toWorld(a.driving.range.end + 1, 0, {
+        x: 0,
+        z: 0,
+        s: 0,
+        l: 0,
+        heading: 0,
+        segmentIndex: -1,
+      }),
+    RangeError,
+  );
 });
 
 test('actual vehicle contact and driver reads cross mapped LINEAR content while the active occurrence stays unchanged', async () => {
@@ -175,11 +267,20 @@ test('projection rejects a window clipped inside a candidate even when the seed 
     }),
   );
   const driving = ok(f.source.createView(geometry));
-  const point = driving.world.guide.toWorld(1402, 0);
-  assert.throws(() => driving.world.guide.locateLocal(point, point.segmentIndex, 0, false), {
-    name: 'RangeError',
-    message: 'Driving window clips a seeded projection candidate',
-  });
+  const point = driving.world.guide.toWorld(1402, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
+  assert.throws(
+    () =>
+      driving.world.guide.locateLocal(point, point.segmentIndex, 0, false, {
+        s: 0,
+        l: 0,
+        segmentIndex: -1,
+        distanceSquared: 0,
+      }),
+    {
+      name: 'RangeError',
+      message: 'Driving window clips a seeded projection candidate',
+    },
+  );
 });
 
 test('saved presentation maps once across a selected seam and actual complete frames survive moving windows', async () => {
@@ -306,8 +407,8 @@ test('reverse driving reads the actual retained predecessor in the destination f
     assert.ok(cars[1].course.s < 500);
   }
   const l = coursePortLateral(active.incoming.destination) + 0.25;
-  const native = guidePathToWorld(active.section.guide, 499, l);
-  const mapped = retained.world.guide.toWorld(499, l);
+  const native = guidePathToWorld(active.section.guide, 499, l, createPlanarCoordinateSample());
+  const mapped = retained.world.guide.toWorld(499, l, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
   assert.ok(Math.hypot(native.x - mapped.x, native.z - mapped.z) < 1e-8);
   assert.equal(f.traversal.snapshot().active, active);
 });
@@ -329,11 +430,25 @@ test('admission and query failures preserve traversal and reject unqualified or 
   assert.equal(f.source.createView(outside).ok, true, 'consumer span extends past the 30 m guard');
   assert.equal(separate.source.createView(v.geometry).reason, 'unqualified_links');
   const guide = v.driving.world.guide,
-    point = guide.toWorld(1404, 0.25);
-  assert.throws(() => guide.locateLocal(point, 999999, 5, false), RangeError);
-  assert.throws(() => guide.locateLocal(point, point.segmentIndex, '5', false), TypeError);
-  assert.throws(() => guide.metricsAt(1404, 0.25, String(point.segmentIndex)), TypeError);
-  assert.throws(() => guide.locateLocal(point, point.segmentIndex, 100, false), RangeError);
+    point = guide.toWorld(1404, 0.25, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
+  assert.throws(
+    () => guide.locateLocal(point, 999999, 5, false, { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 }),
+    RangeError,
+  );
+  assert.throws(
+    () =>
+      guide.locateLocal(point, point.segmentIndex, '5', false, { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 }),
+    TypeError,
+  );
+  assert.throws(
+    () => guide.metricsAt(1404, 0.25, String(point.segmentIndex), { curvature: 0, metric: 1, offsetMetric: 1 }),
+    TypeError,
+  );
+  assert.throws(
+    () =>
+      guide.locateLocal(point, point.segmentIndex, 100, false, { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 }),
+    RangeError,
+  );
   assert.deepEqual(f.traversal.snapshot(), before);
 });
 
@@ -367,7 +482,7 @@ test('seam admission bounds contact motion independently of span-composed consum
     guard = ok(f.source.createMotionGuard(history.active, successor));
   for (const s of [1399, 1400, 1401]) {
     assert.equal(driving.world.surfaces.sample(s, 50).material.supported, false);
-    assert.equal(driving.world.guide.toWorld(s, 50).l, 50);
+    assert.equal(driving.world.guide.toWorld(s, 50, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }).l, 50);
     assert.equal(typeof driving.presentation.ground.sampleAtLevel(s, 200, 0), 'number');
   }
   const p = (s, l = 0) => geometry.geometry.guideAt(s - geometry.activeRange.start, l);

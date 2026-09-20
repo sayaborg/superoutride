@@ -120,8 +120,22 @@ test('sixteen actors share immutable readers while occurrence state and recovery
     [0.5, 40],
     [5, 0],
   ]) {
-    const previous = scene.world.guide.toWorld(course.links[0].source.anchor.s - offset, lateral);
-    const current = scene.world.guide.toWorld(course.links[0].source.anchor.s + offset, lateral);
+    const previous = scene.world.guide.toWorld(course.links[0].source.anchor.s - offset, lateral, {
+      x: 0,
+      z: 0,
+      s: 0,
+      l: 0,
+      heading: 0,
+      segmentIndex: -1,
+    });
+    const current = scene.world.guide.toWorld(course.links[0].source.anchor.s + offset, lateral, {
+      x: 0,
+      z: 0,
+      s: 0,
+      l: 0,
+      heading: 0,
+      segmentIndex: -1,
+    });
     actor.vehicle.x = current.x;
     actor.vehicle.z = current.z;
     actor.vehicle.course = { s: current.s, l: current.l, segmentIndex: current.segmentIndex, distanceSquared: 0 };

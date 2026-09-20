@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import { deg, near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
@@ -29,9 +30,9 @@ describe('open coordinate geometry', () => {
     for (let i = 1; i < course.vertices.length - 1; i += 1) {
       const sVertex = course.vertexS[i];
       for (const l of [-12, -4.5, 0, 4.5, 12]) {
-        const before = rasterPathToWorld(course, sVertex - epsilonS, l);
-        const at = rasterPathToWorld(course, sVertex, l);
-        const after = rasterPathToWorld(course, sVertex + epsilonS, l);
+        const before = rasterPathToWorld(course, sVertex - epsilonS, l, createPlanarCoordinateSample());
+        const at = rasterPathToWorld(course, sVertex, l, createPlanarCoordinateSample());
+        const after = rasterPathToWorld(course, sVertex + epsilonS, l, createPlanarCoordinateSample());
         assert.ok(Math.hypot(before.x - at.x, before.z - at.z) < 2e-6);
         assert.ok(Math.hypot(after.x - at.x, after.z - at.z) < 2e-6);
       }

@@ -9,7 +9,7 @@ export interface RasterCoordinateReader {
     readonly length: number;
     readonly heading: number;
   }[];
-  toWorld(s: number, l: number, out?: Writable<CourseWorldSample>): CourseWorldSample;
+  toWorld(s: number, l: number, out: Writable<CourseWorldSample>): CourseWorldSample;
 }
 
 type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
@@ -24,7 +24,7 @@ export function rasterCoordinateToWorld(
   source: RasterCoordinateSource,
   s: number,
   l: number,
-  out?: Writable<CourseWorldSample>,
+  out: Writable<CourseWorldSample>,
 ): CourseWorldSample {
   return 'toWorld' in source ? source.toWorld(s, l, out) : rasterPathToWorld(source, s, l, out);
 }

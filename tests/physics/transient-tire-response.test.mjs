@@ -1,3 +1,4 @@
+import { createTireForceResult, createTireForceScratch } from '../../dist/physics/tire-wheel.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -29,11 +30,44 @@ test('tire force is an algebraic observation with no model-specific memory state
   assert.doesNotMatch(common, /LateralRelaxationLength|frontLateralForce|rearLateralForce/);
 });
 
-test('one-k tire response is immediate deterministic and releases with zero demand', () => {
+test('tire response is immediate deterministic and releases with zero demand', () => {
   const tire = FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire;
-  const loaded = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
-  const repeated = evaluateTireForce(100, 0.33, 30, 2, 6500, 1, tire);
-  const released = evaluateTireForce(30 / 0.33, 0.33, 30, 0, 6500, 1, tire);
+  const loaded = evaluateTireForce(
+    100,
+    0.33,
+    30,
+    2,
+    6500,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  const repeated = evaluateTireForce(
+    100,
+    0.33,
+    30,
+    2,
+    6500,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
+  const released = evaluateTireForce(
+    30 / 0.33,
+    0.33,
+    30,
+    0,
+    6500,
+    1,
+    tire,
+    tire,
+    createTireForceResult(),
+    createTireForceScratch(),
+  );
   assert.deepEqual(repeated, loaded);
   assert.notEqual(loaded.fy, 0);
   assert.equal(released.fx, 0);
@@ -49,6 +83,9 @@ test('zero normal load cannot retain or manufacture tire force', () => {
     0,
     1,
     FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire,
+    FERRARI_TESTAROSSA_VEHICLE_PROFILE.frontStation.tire,
+    createTireForceResult(),
+    createTireForceScratch(),
   );
   assert.equal(force.fx, 0);
   assert.equal(force.fy, 0);

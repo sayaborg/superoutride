@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import { rasterPathToWorld } from '../core/raster-path.js';
 import { wrapAngle, type Vec2 } from '../core/math.js';
@@ -73,7 +74,7 @@ export function compileCoursePort(
     'invalid_port',
   );
   const l = carriagewayCenter(carriageway, anchor.s, path);
-  const { x, z, heading } = guidePathToWorld(section.guide, anchor.s, l);
+  const { x, z, heading } = guidePathToWorld(section.guide, anchor.s, l, createPlanarCoordinateSample());
   return Object.freeze({
     id: source.id,
     kind: source.kind,
@@ -187,8 +188,8 @@ export function compileCourseLink(
         const point = (p: CompiledPort, b: CompiledBoundary, s: number): Vec2 => {
           const l = courseBoundaryAt(b, s);
           return reader === 'raster'
-            ? rasterPathToWorld(p.section.raster, s, l)
-            : guidePathToWorld(p.section.guide, s, l);
+            ? rasterPathToWorld(p.section.raster, s, l, createPlanarCoordinateSample())
+            : guidePathToWorld(p.section.guide, s, l, createPlanarCoordinateSample());
         };
         const difference = (sourceS: number, destinationS: number): Vec2 => {
           const a = transformPlanarPoint(destinationFromSource, point(source, bounds[0]![side], sourceS));

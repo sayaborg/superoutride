@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guidePathToWorld } from '../core/guide-curve.js';
 import { guideEnvelopeAt } from '../core/guide-envelope.js';
 import { rasterPathToWorld } from '../core/raster-path.js';
@@ -249,8 +250,8 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
       const section = address.occurrence.section;
       const point =
         kind === 'guide'
-          ? guidePathToWorld(section.guide, address.sourceS, address.sourceL)
-          : rasterPathToWorld(section.raster, address.sourceS, address.sourceL);
+          ? guidePathToWorld(section.guide, address.sourceS, address.sourceL, createPlanarCoordinateSample())
+          : rasterPathToWorld(section.raster, address.sourceS, address.sourceL, createPlanarCoordinateSample());
       const transform = span.mapping.viewFromSource;
       return {
         ...transformPlanarPoint(transform, point),

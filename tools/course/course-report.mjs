@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
 import path from 'node:path';
 import { plotCourseReport } from './plot-report.mjs';
 import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
@@ -18,11 +19,15 @@ export async function courseReport(course, section, directory, step = 10) {
     ]),
   ].sort((a, b) => a - b);
   const samples = stations.map((s) => {
-    const guide = sampleGuidePath(section.guide, s),
-      world = guidePathToWorld(section.guide, s, 0);
+    const guide = sampleGuidePath(section.guide, s, createPlanarCoordinateSample()),
+      world = guidePathToWorld(section.guide, s, 0, createPlanarCoordinateSample());
     return {
       s,
-      curvaturePerMeter: guideCoordinateMetricsAt(section.guide, s, 0, guide.segmentIndex).curvature,
+      curvaturePerMeter: guideCoordinateMetricsAt(section.guide, s, 0, guide.segmentIndex, {
+        curvature: 0,
+        metric: 1,
+        offsetMetric: 1,
+      }).curvature,
       heightMeters: section.height.samplePhysics(s),
       x: world.x,
       z: world.z,

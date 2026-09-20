@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { guidePathToWorld, sampleGuidePath, type GuidePath } from '../core/guide-curve.js';
 import { guideEnvelopeAt } from '../core/guide-envelope.js';
 import { dot, subtract, tangentFromHeading, type Vec2 } from '../core/math.js';
@@ -60,7 +61,12 @@ export function compilePhysicalRaceGate(
 
   if (bounds && (![bounds.left, bounds.right].every(Number.isFinite) || bounds.right <= bounds.left))
     throw new RangeError('Gate bounds require finite positive width');
-  const centerSample = guidePathToWorld(guide, s, bounds ? (bounds.left + bounds.right) / 2 : 0);
+  const centerSample = guidePathToWorld(
+    guide,
+    s,
+    bounds ? (bounds.left + bounds.right) / 2 : 0,
+    createPlanarCoordinateSample(),
+  );
   const geometry = compileWorldCrossingGate({
     id: name,
     center: centerSample,
@@ -93,7 +99,7 @@ export function classifyPhysicalRaceMotionDirection(
     throw new RangeError('race motion chainage must be within the Guide [0,length] domain');
   }
   const movement = subtract(current, previous);
-  const guideSample = sampleGuidePath(guide, currentS);
+  const guideSample = sampleGuidePath(guide, currentS, createPlanarCoordinateSample());
   const tangent = tangentFromHeading(guideSample.heading);
   const longitudinal = dot(movement, tangent);
   if (longitudinal > MOTION_DIRECTION_TOLERANCE_METERS) return 'FORWARD';

@@ -1,9 +1,4 @@
-import {
-  createPlanarCoordinateSample,
-  createPlanarSampleBuffer,
-  PlanarSampleSlot as P,
-  readPlanarSample,
-} from './planar-sample.js';
+import { createPlanarCoordinateSample } from './planar-sample.js';
 import { hypot2 } from './norm.js';
 import type { Writable } from './writable.js';
 import { clamp, headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
@@ -235,27 +230,20 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
   });
 }
 
-function createGuideSample(): Writable<GuideSample> {
-  return { x: 0, z: 0, s: 0, heading: 0, segmentIndex: -1 };
+/** Mutable numerical search storage belongs to a consumer, never to the compiled curve. */
+export function createGuideProjectionWorkspace() {
+  return {
+    sample: createPlanarCoordinateSample(),
+    candidate: { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+  };
 }
-
-const sampleBuffers = new WeakMap<GuidePath, Float64Array>();
-function sampleBuffer(guide: GuidePath) {
-  let out = sampleBuffers.get(guide);
-  if (!out) {
-    out = createPlanarSampleBuffer();
-    sampleBuffers.set(guide, out);
-  }
+export function sampleGuidePath(guide: GuidePath, s: number, out: Writable<GuideSample>): GuideSample {
+  sampleGuidePathInto(guide, s, out);
   return out;
 }
-export function sampleGuidePath(guide: GuidePath, s: number, out = createGuideSample()): GuideSample {
-  const buffer = sampleBuffer(guide);
-  sampleGuidePathInto(guide, s, buffer);
-  return readPlanarSample(buffer, out);
-}
-function sampleGuidePathInto(guide: GuidePath, s: number, out: Float64Array): void {
+function sampleGuidePathInto(guide: GuidePath, s: number, out: Writable<GuideSample>): void {
   const sLocal = checkedGuideChainage(guide, s);
-  const previous = guide.segments[out[P.segmentIndex]!];
+  const previous = guide.segments[out.segmentIndex];
   const index =
     previous &&
     sLocal > previous.sStart + GEOMETRY_SAMPLING_TOLERANCE_METERS &&
@@ -269,7 +257,7 @@ export function guidePathToWorld(
   guide: GuidePath,
   s: number,
   l: number,
-  out = createPlanarCoordinateSample(),
+  out: ReturnType<typeof createPlanarCoordinateSample>,
 ): GuideSample & { l: number } {
   if (!Number.isFinite(l)) throw new RangeError('Guide lateral coordinate must be finite');
   sampleGuidePath(guide, s, out);
@@ -279,23 +267,39 @@ export function guidePathToWorld(
   return out;
 }
 
-export function locateWorldOnGuideGlobal(guide: GuidePath, world: Vec2, clampL = false): CourseCoordinate {
-  return bestCandidate(guide, world, 0, guide.segments.length - 1, clampL);
+export function locateWorldOnGuideGlobal(
+  guide: GuidePath,
+  world: Vec2,
+  clampL: boolean,
+  out: CourseCoordinate,
+  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
+): CourseCoordinate {
+  return bestCandidate(guide, world, 0, guide.segments.length - 1, clampL, out, workspace);
 }
 
 export function locateWorldOnGuideLocal(
   guide: GuidePath,
   world: Vec2,
   previousSegmentIndex: number,
-  searchRadius = 2,
-  clampL = false,
+  searchRadius: number,
+  clampL: boolean,
+  out: CourseCoordinate,
+  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
 ): CourseCoordinate {
-  const { first, last } = guideLocalSearchRange(guide, previousSegmentIndex, searchRadius);
-  return bestCandidate(guide, world, first, last, clampL);
+  checkGuideLocalSearch(guide, previousSegmentIndex, searchRadius);
+  return bestCandidate(
+    guide,
+    world,
+    Math.max(0, previousSegmentIndex - searchRadius),
+    Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius),
+    clampL,
+    out,
+    workspace,
+  );
 }
 
-/** Exact candidate extent of the ordinary seeded search; usable by bounded-reader admission. */
-function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: number, searchRadius: number) {
+/** Reject invalid seeds and radii before inspecting the local candidate range. */
+function checkGuideLocalSearch(guide: GuidePath, previousSegmentIndex: number, searchRadius: number) {
   if (
     !Number.isInteger(previousSegmentIndex) ||
     previousSegmentIndex < 0 ||
@@ -305,10 +309,6 @@ function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: number, s
   }
   if (!Number.isInteger(searchRadius) || searchRadius < 0)
     throw new RangeError('searchRadius must be a non-negative integer');
-
-  const first = Math.max(0, previousSegmentIndex - searchRadius);
-  const last = Math.min(guide.segments.length - 1, previousSegmentIndex + searchRadius);
-  return { first, last, start: guide.segments[first]!.sStart, end: guide.segments[last]!.sEnd };
 }
 
 /** Project one admitted source segment clipped to an occurrence interval, retaining its native arithmetic. */
@@ -318,9 +318,9 @@ export function projectWorldOnGuideInterval(
   world: Vec2,
   start: number,
   end: number,
-  clampL = false,
-  out: CourseCoordinate = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
-  sample = sampleBuffer(guide),
+  clampL: boolean,
+  out: CourseCoordinate,
+  sample: ReturnType<typeof createPlanarCoordinateSample>,
   straightOrigin?: GuideSample,
   buffer?: Float64Array,
 ): CourseCoordinate {
@@ -354,13 +354,17 @@ export function sampleGuideSegment(
   guide: GuidePath,
   segment: GuideSegment,
   sLocal: number,
-  out = createGuideSample(),
+  out: Writable<GuideSample>,
 ): GuideSample {
-  const buffer = sampleBuffer(guide);
-  sampleGuideSegmentInto(guide, segment, sLocal, buffer);
-  return readPlanarSample(buffer, out);
+  sampleGuideSegmentInto(guide, segment, sLocal, out);
+  return out;
 }
-function sampleGuideSegmentInto(guide: GuidePath, segment: GuideSegment, sLocal: number, out: Float64Array): void {
+function sampleGuideSegmentInto(
+  guide: GuidePath,
+  segment: GuideSegment,
+  sLocal: number,
+  out: Writable<GuideSample>,
+): void {
   const checked = checkedGuideChainage(guide, sLocal);
   if (
     checked < segment.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS ||
@@ -368,9 +372,9 @@ function sampleGuideSegmentInto(guide: GuidePath, segment: GuideSegment, sLocal:
   )
     throw new RangeError('guide segment sample is outside the segment interval');
   if (segment.kind === 'straight') {
-    out[P.segmentIndex] = segment.rasterSegmentIndex;
+    out.segmentIndex = segment.rasterSegmentIndex;
     sampleRasterPathInto(guide.raster, checked, out);
-    out[P.segmentIndex] = segment.index;
+    out.segmentIndex = segment.index;
     return;
   }
   const corner = guide.corners[segment.cornerIndex]!;
@@ -384,23 +388,41 @@ function bestCandidate(
   firstIndex: number,
   lastIndex: number,
   clampL: boolean,
+  out: CourseCoordinate,
+  workspace: ReturnType<typeof createGuideProjectionWorkspace>,
 ): CourseCoordinate {
   if (!Number.isFinite(world.x) || !Number.isFinite(world.z)) {
     throw new RangeError('world projection coordinates must be finite');
   }
-  let best: CourseCoordinate | null = null;
+  let found = false;
   for (let index = firstIndex; index <= lastIndex; index += 1) {
-    const candidate = projectWorldToGuideSegment(guide, guide.segments[index]!, world, clampL);
-    if (!best || candidate.distanceSquared < best.distanceSquared) best = candidate;
+    const segment = guide.segments[index]!;
+    const candidate = projectWorldToGuideSegment(
+      guide,
+      segment,
+      world,
+      clampL,
+      segment.sStart,
+      segment.sEnd,
+      workspace.candidate,
+      workspace.sample,
+    );
+    if (!found || candidate.distanceSquared < out.distanceSquared) {
+      out.s = candidate.s;
+      out.l = candidate.l;
+      out.segmentIndex = candidate.segmentIndex;
+      out.distanceSquared = candidate.distanceSquared;
+      found = true;
+    }
   }
-  if (!best) throw new Error('no guide segment candidates');
-  return best;
+  if (!found) throw new Error('no guide segment candidates');
+  return out;
 }
 
 /** Conservative source-space bounds for rejecting farther projection candidates. */
 export function guideSegmentBounds(guide: GuidePath, segment: GuideSegment, start: number, end: number) {
-  const a = sampleGuideSegment(guide, segment, start),
-    b = sampleGuideSegment(guide, segment, end);
+  const a = sampleGuideSegment(guide, segment, start, createPlanarCoordinateSample()),
+    b = sampleGuideSegment(guide, segment, end, createPlanarCoordinateSample());
   let left = Math.min(a.x, b.x),
     right = Math.max(a.x, b.x),
     back = Math.min(a.z, b.z),
@@ -431,10 +453,10 @@ function projectWorldToGuideSegment(
   segment: GuideSegment,
   world: Vec2,
   clampL: boolean,
-  start = segment.sStart,
-  end = segment.sEnd,
-  out: CourseCoordinate = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
-  sample = sampleBuffer(guide),
+  start: number,
+  end: number,
+  out: CourseCoordinate,
+  sample: ReturnType<typeof createPlanarCoordinateSample>,
   straightOrigin?: GuideSample,
   buffer?: Float64Array,
 ): CourseCoordinate {
@@ -446,9 +468,9 @@ function projectWorldToGuideSegment(
       heading = straightOrigin.heading;
     } else {
       sampleGuideSegmentInto(guide, segment, segment.sStart, sample);
-      originX = sample[P.x]!;
-      originZ = sample[P.z]!;
-      heading = sample[P.heading]!;
+      originX = sample.x;
+      originZ = sample.z;
+      heading = sample.heading;
     }
     const along = (world.x - originX) * Math.sin(heading) + (world.z - originZ) * Math.cos(heading);
     const sCandidate = clamp(segment.sStart + along, start, end);
@@ -470,10 +492,10 @@ function projectWorldToGuideSegment(
     }
     sampleCornerAtQ(corner, q, segment.index, sample);
   }
-  const dx = world.x - sample[P.x]!,
-    dz = world.z - sample[P.z]!;
-  const rawL = dx * Math.cos(sample[P.heading]!) + dz * -Math.sin(sample[P.heading]!);
-  const s = sample[P.s]!;
+  const dx = world.x - sample.x,
+    dz = world.z - sample.z;
+  const rawL = dx * Math.cos(sample.heading) + dz * -Math.sin(sample.heading);
+  const s = sample.s;
   const limit = clampL ? guideEnvelopeAt(guide.envelope, s) : 0;
   const l = clampL ? clamp(rawL, -limit, limit) : rawL;
   const distance = dx * dx + dz * dz;
@@ -491,16 +513,16 @@ function projectWorldToGuideSegment(
   return out;
 }
 
-function sampleCornerAtQ(corner: GuideCorner, qInput: number, segmentIndex: number, out: Float64Array): void {
+function sampleCornerAtQ(corner: GuideCorner, qInput: number, segmentIndex: number, out: Writable<GuideSample>): void {
   if (!corner.center) throw new Error('corner has no arc');
   const q = clamp(qInput, 0, 1);
   const heading = corner.incomingHeading + corner.turn * q;
   const sign = Math.sign(corner.turn);
-  out[P.x] = corner.center.x - sign * corner.radius * Math.cos(heading);
-  out[P.z] = corner.center.z - sign * corner.radius * -Math.sin(heading);
-  out[P.s] = corner.sVertex - corner.trim + 2 * corner.trim * q;
-  out[P.heading] = heading;
-  out[P.segmentIndex] = segmentIndex;
+  out.x = corner.center.x - sign * corner.radius * Math.cos(heading);
+  out.z = corner.center.z - sign * corner.radius * -Math.sin(heading);
+  out.s = corner.sVertex - corner.trim + 2 * corner.trim * q;
+  out.heading = heading;
+  out.segmentIndex = segmentIndex;
 }
 
 function qForCornerS(corner: GuideCorner, s: number): number {

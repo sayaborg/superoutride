@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from '../../dist/core/planar-sample.js';
+import { createGuideProjectionWorkspace } from '../../dist/core/guide-curve.js';
 import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -48,32 +50,66 @@ test('bounded Section readers share native geometry and height interpolation wit
   assert.ok(result.metadata.rasterSegments < course.entry.raster.segments.length);
   for (const s of [1100, 1199.25, 1200, 1230.5, 1330]) {
     for (const l of [-3, 0, 5]) {
-      const native = guidePathToWorld(course.entry.guide, s, l);
-      assert.deepEqual(result.world.guide.toWorld(s, l), native);
+      const native = guidePathToWorld(course.entry.guide, s, l, createPlanarCoordinateSample());
       assert.deepEqual(
-        result.world.guide.metricsAt(s, l, native.segmentIndex),
-        guideCoordinateMetricsAt(course.entry.guide, s, l, native.segmentIndex),
+        result.world.guide.toWorld(s, l, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }),
+        native,
       );
-      assert.deepEqual(result.geometry.raster.toWorld(s, l), rasterPathToWorld(course.entry.raster, s, l));
+      assert.deepEqual(
+        result.world.guide.metricsAt(s, l, native.segmentIndex, { curvature: 0, metric: 1, offsetMetric: 1 }),
+        guideCoordinateMetricsAt(course.entry.guide, s, l, native.segmentIndex, {
+          curvature: 0,
+          metric: 1,
+          offsetMetric: 1,
+        }),
+      );
+      assert.deepEqual(
+        result.geometry.raster.toWorld(s, l, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }),
+        rasterPathToWorld(course.entry.raster, s, l, createPlanarCoordinateSample()),
+      );
       assert.deepEqual(
         result.world.height.samplePhysicsDifferential(s),
         course.entry.height.samplePhysicsDifferential(s),
       );
       assert.equal(result.world.height.sampleRender(s).y, course.entry.height.sampleRender(s).y);
       assert.deepEqual(
-        result.world.guide.locateLocal(native, native.segmentIndex, 2, false),
-        locateWorldOnGuideLocal(course.entry.guide, native, native.segmentIndex, 2, false),
+        result.world.guide.locateLocal(native, native.segmentIndex, 2, false, {
+          s: 0,
+          l: 0,
+          segmentIndex: -1,
+          distanceSquared: 0,
+        }),
+        locateWorldOnGuideLocal(
+          course.entry.guide,
+          native,
+          native.segmentIndex,
+          2,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createGuideProjectionWorkspace(),
+        ),
       );
     }
   }
-  const position = result.world.guide.toWorld(1200, 2),
+  const position = result.world.guide.toWorld(1200, 2, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }),
     savedPosition = structuredClone(position);
   const output = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 };
   for (let s = 1100; s < 1200; s += 0.791)
     for (const lateral of [-15, -1, 0, 8, 30]) {
-      const native = guidePathToWorld(course.entry.guide, s, lateral);
+      const native = guidePathToWorld(course.entry.guide, s, lateral, createPlanarCoordinateSample());
       assert.equal(result.world.guide.locateLocal(native, native.segmentIndex, 2, false, output), output);
-      assert.deepEqual(output, locateWorldOnGuideLocal(course.entry.guide, native, native.segmentIndex, 2, false));
+      assert.deepEqual(
+        output,
+        locateWorldOnGuideLocal(
+          course.entry.guide,
+          native,
+          native.segmentIndex,
+          2,
+          false,
+          { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+          createGuideProjectionWorkspace(),
+        ),
+      );
       result.world.guide.toWorld(s, lateral, native);
     }
   assert.deepEqual(position, savedPosition, 'borrowed work does not mutate previously published snapshots');
@@ -101,8 +137,12 @@ test('insufficient windows reject projection candidates and real driver lookahea
     }),
   );
   const result = ok(singleSource(await testGround(course)).createView(view));
-  const p = guidePathToWorld(course.entry.guide, 950, 0);
-  assert.throws(() => result.world.guide.locateLocal(p, p.segmentIndex, 5, false), RangeError);
+  const p = guidePathToWorld(course.entry.guide, 950, 0, createPlanarCoordinateSample());
+  assert.throws(
+    () =>
+      result.world.guide.locateLocal(p, p.segmentIndex, 5, false, { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 }),
+    RangeError,
+  );
   assert.throws(
     () =>
       sampleRivalDrivingInput(result.world.guide, {
@@ -115,7 +155,10 @@ test('insufficient windows reject projection candidates and real driver lookahea
     RangeError,
   );
   assert.throws(() => result.world.height.samplePhysics(961), RangeError);
-  assert.throws(() => result.geometry.raster.toWorld(939, 0), RangeError);
+  assert.throws(
+    () => result.geometry.raster.toWorld(939, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 }),
+    RangeError,
+  );
 });
 
 test('a selected Link remains undrivable without full common-content qualification', async () => {
@@ -145,8 +188,19 @@ test('closed pose endpoints include the earlier projection seed at a shared Guid
     s = guide.segments[index].sEnd;
   const { view } = drivingWindow(course, { minS: s, maxS: s, maxAdvance: 0 }, s);
   const result = ok(singleSource(await testGround(course)).createView(view));
-  const point = guidePathToWorld(guide, s, 0);
-  const expected = locateWorldOnGuideLocal(guide, point, index, 5, false);
-  assert.deepEqual(result.world.guide.locateLocal(point, index, 5, false), expected);
+  const point = guidePathToWorld(guide, s, 0, createPlanarCoordinateSample());
+  const expected = locateWorldOnGuideLocal(
+    guide,
+    point,
+    index,
+    5,
+    false,
+    { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+    createGuideProjectionWorkspace(),
+  );
+  assert.deepEqual(
+    result.world.guide.locateLocal(point, index, 5, false, { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 }),
+    expected,
+  );
   assert.ok(result.range.start <= guide.segments[index - 5].sStart);
 });

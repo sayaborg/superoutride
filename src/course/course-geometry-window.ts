@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { sampleGuideSegment, type GuidePath } from '../core/guide-curve.js';
 import { guideEnvelopeRange } from '../core/guide-envelope.js';
 import { normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
@@ -135,9 +136,9 @@ function rasterCells(source: GeometrySource, interval: Interval): Cell[] | null 
     const edge = (boundary: CompiledBoundary): Vec2[] => {
       const l0 = courseBoundaryAt(boundary, start),
         l1 = courseBoundaryAt(boundary, end);
-      const p = rasterPathToWorld(raster, start, l0),
-        q = rasterPathToWorld(raster, end, l1);
-      const mid = rasterPathToWorld(raster, (start + end) / 2, (l0 + l1) / 2);
+      const p = rasterPathToWorld(raster, start, l0, createPlanarCoordinateSample()),
+        q = rasterPathToWorld(raster, end, l1, createPlanarCoordinateSample());
+      const mid = rasterPathToWorld(raster, (start + end) / 2, (l0 + l1) / 2, createPlanarCoordinateSample());
       // Exact quadratic Bernstein enclosure, not a sampled-corner approximation.
       return [p, { x: 2 * mid.x - (p.x + q.x) / 2, z: 2 * mid.z - (p.z + q.z) / 2 }, q];
     };
@@ -152,8 +153,8 @@ function guideCells(guide: GuidePath, interval: Interval): Cell[] | null {
     const start = Math.max(interval.sStart, segment.sStart),
       end = Math.min(interval.sEnd, segment.sEnd);
     const extent = guideEnvelopeRange(guide.envelope, start, end).max;
-    const a = sampleGuideSegment(guide, segment, start),
-      b = sampleGuideSegment(guide, segment, end);
+    const a = sampleGuideSegment(guide, segment, start, createPlanarCoordinateSample()),
+      b = sampleGuideSegment(guide, segment, end, createPlanarCoordinateSample());
     const edge = (l: number): Vec2[] => {
       const na = normalFromHeading(a.heading),
         nb = normalFromHeading(b.heading);
