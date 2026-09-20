@@ -51,9 +51,8 @@ Totals: LINEAR 11, BRANCH 4, CIRCUIT 15.
 Excluded: _Hang-On_ (1985) as a separate entry, Rad Mobile, Racing Hero, OutRun 2,
 OutRun 2 SP, Power Drift, Virtua Racing, Daytona USA, Sega Rally, Manx TT and Scud Race.
 
-Tsukuba, FISCO and the old development courses are retired. New provisional CourseDocuments exercise
-product features without attempting to reproduce a master course. Only minimal immutable-oracle worlds
-remain as test fixtures.
+Provisional CourseDocuments exercise product features without attempting to reproduce a master
+course. Minimal immutable-oracle worlds remain as test fixtures.
 
 ### Reference and remaster scope
 
@@ -84,7 +83,7 @@ configuration; identical visible settings alone do not equate a CUSTOM run with 
 
 ### Starts, goals and timing
 
-The first implementation uses standing starts. Timing begins at the start signal. LINEAR and BRANCH
+Sessions use standing starts. Timing begins at the start signal. LINEAR and BRANCH
 finish at an accepted terminal goal; CIRCUIT finishes after the configured finite number of valid laps.
 The grid-release crossing is not a completed lap. Recovery and reverse travel preserve earned progress.
 
@@ -169,7 +168,7 @@ colours plus transparent index 0, and 40 source texels per metre in both axes. T
 each normalized image, not the completed course. Existing screen and player-scale contracts remain.
 
 Completed ground uses the static colour representation defined by the
-[image contract](architecture.md#source-and-completed-images).
+[image contract](image-assets.md#source-and-completed-images).
 
 ### Ground residency and variation
 
@@ -178,7 +177,7 @@ branch and the single source lap. During a run, ground is sampled from completed
 Course selection/loading remains an explicit, failure-safe transaction. Content must fit a measured
 whole-course budget; there is no hidden switch to streaming or lower-quality runtime art.
 
-Static A/B variation follows the single [saved-recipe workflow](architecture.md#static-ab-recipe).
+Static A/B variation follows the single [saved-recipe workflow](image-assets.md#static-ab-recipe).
 Ground palette animation, cycling and driving-time theme recolouring are outside this revision.
 Tail/brake lamps remain a possible later vehicle visual state, not a general palette-animation project.
 
