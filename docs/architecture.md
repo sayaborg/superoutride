@@ -230,9 +230,8 @@ Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authori
 gameplay implementations. Parsed dependency checks enforce these limits.
 The narrow Band surface adapter consumes only
 partition/bindings, not the course graph. Separate all-Link physical qualification does not certify
-presentation or product-consumer coverage. A declared physical-query domain adds pose/step/footprint
-coverage, not evidence that actual product callers respect those bounds. Its separate offline entry
-installs no new driving path.
+presentation or product-consumer coverage. Root admission binds the product's contact/step domains and
+composed consumer readers separately from source compilation.
 Core's shared content digest serves course
 and saved image identities without a dependency from authoring geometry to image transport.
 
@@ -288,9 +287,9 @@ zero-based inspection window. The common occurrence driving adapter shares canon
 indices with occurrence ordinals. Moving a window changes neither actor observations nor frame.
 It checks complete seeded-search candidate intervals and delegates height interpolation to the
 original source rather than resmoothing clipped nodes. Only bounded Raster/height metadata is
-retained; geometry is not retessellated. The scoped
-[common-guard adapter](content-and-gameplay.md#common-guard-occurrence-driving-view) adds one qualified
-neighbor, stable occurrence/native-segment seeds and saved presentation through the same mapping.
+retained; geometry is not retessellated. The
+[occurrence driving adapter](content-and-gameplay.md#occurrence-driving-and-actor-commit) supplies
+qualified source spans, stable occurrence/native-segment seeds and saved presentation through the same mapping.
 Its search distinguishes ownership seams from incomplete window candidates. Runtime pose/consumer
 admission and multi-neighbor geometry have separate qualification requirements. Window addresses are not race credit.
 
@@ -355,8 +354,8 @@ right-hand zone. Source classification, support and gate membership require belo
 
 ## Course Editor target
 
-Source-camera/variant sampling and real-art filter acceptance remain open; SINGLE presentation remains
-implemented. [Image acceptance](image-assets.md#remaining-technical-gates),
+Source-camera/variant sampling and real-art filter acceptance remain open.
+[Image acceptance](image-assets.md#remaining-technical-gates),
 [test design](test-design.md#course-editor-acceptance-additions) and
 [development](development.md#course-editor-target-validation) define the outstanding quality and
 consumer evidence. [NEXT](NEXT.md#milestones) orders the remaining playable content gates.
