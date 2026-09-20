@@ -13,8 +13,14 @@ import { DEFAULT_VEHICLE_CATALOG_ENTRY as vehicle } from '../../dist/vehicle/veh
 import * as rivalDriver from '../../dist/gameplay/rival-driver.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { summarizeSceneProfile } from './scene-profile.mjs';
+import { createCourseBandTrial } from './band-ground-prototype.mjs';
+import { withBandTrialRendering } from './band-trial-scene.mjs';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { PNG } from 'pngjs';
 
-const flags = options(process.argv.slice(2), ['--frames', '--rivals', '--mode', '--compare']);
+const flags = options(process.argv.slice(2), ['--frames', '--rivals', '--mode', '--compare', '--ground', '--stills']);
+const groundKind = flags.get('--ground') ?? 'resident';
+if (!['resident', 'bands'].includes(groundKind)) throw new RangeError('Unknown ground trial');
 const frames = finite(Number(flags.get('--frames') ?? 300), '/frames', 60, 10000);
 const rivalCount = finite(Number(flags.get('--rivals') ?? 16), '/rivals', 0, 16);
 const modes = flags.has('--mode') ? [flags.get('--mode')] : ['linear', 'seam', 'circuit', 'branch'];
@@ -35,7 +41,9 @@ for (const mode of modes)
     const { course } = await loadCourse(`content/courses/${mode}.course.json`);
     const ground = await loadCourseGround(course, `content/courses/${mode}.course.json`);
     const started = performance.now();
-    const scene = createCourseScene(course.entry, ground);
+    const trial = groundKind === 'bands' ? createCourseBandTrial(course, ground) : null;
+    const productScene = createCourseScene(course.entry, trial?.ground ?? ground);
+    const scene = trial ? withBandTrialRendering(productScene, trial.footprint) : productScene;
     const player = {
       vehicle: createArcadeVehicle(vehicle.profile, scene.world, {
         s: 45,
@@ -91,6 +99,15 @@ for (const mode of modes)
       const observations = race.observe(camera);
       scene.render(target, player.vehicle, camera, 'car', observations.sprites);
       const end = performance.now();
+      if (i === 30 && flags.has('--stills')) {
+        const directory = flags.get('--stills');
+        await mkdir(directory, { recursive: true });
+        const png = new PNG({ width: target.width, height: target.height });
+        png.data.set(new Uint8Array(target.pixels.buffer));
+        await writeFile(`${directory}/${mode}-${groundKind}.png`, PNG.sync.write(png));
+        if (trial)
+          await writeFile(`${directory}/${mode}-footprints.json`, JSON.stringify(scene.footprintRows(), null, 2));
+      }
       if (i >= 30) {
         frameBounds[(i - 30) * 2] = begin;
         frameBounds[(i - 30) * 2 + 1] = end;
@@ -153,6 +170,8 @@ for (const mode of modes)
       frames,
       setupMilliseconds,
       ground: scene.groundMetrics,
+      groundKind,
+      bandTrial: trial?.report(),
       fixedStepMilliseconds: statistics(step),
       renderMilliseconds: statistics(render),
       frameMilliseconds: statistics(frame),
