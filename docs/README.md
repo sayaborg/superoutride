@@ -12,7 +12,7 @@ acceptance gates. Adoption, executable implementation, validation and deployment
 | [Image assets](image-assets.md)                 | Sprite/ground source formats, image compilation, Sprite Tool sessions and ground tiles |
 | [Vehicle physics](vehicle-physics.md)           | Common mechanics, steering and torque constraints                                      |
 | [Content and gameplay](content-and-gameplay.md) | Course compilation, authoring semantics, route/race transactions and recovery          |
-| [Browser](browser.md)                           | Boot/shell composition, scheduling, URL settings, HUD and keyboard/touch adaptation     |
+| [Browser](browser.md)                           | Boot/shell composition, scheduling, URL settings, HUD and keyboard/touch adaptation    |
 | [Audio](audio.md)                               | Procedural sound, observations, fixed voices and browser lifetime                      |
 | [Tire audio](tire-audio.md)                     | Tire synthesis mechanisms, primitives and numerical/physical limits                    |
 | [Calibration](calibration.md)                   | Vehicle defaults and tire-audio tuning ownership                                       |
