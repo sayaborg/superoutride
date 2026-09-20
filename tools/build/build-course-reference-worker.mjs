@@ -20,7 +20,8 @@ const envelope = await cachedReference(
   referenceCacheKey(null, vehicleSha256, REFERENCE_DRIVER.version, physicsSha256),
   () => measureVehicleEnvelope(entry),
 );
-envelope.hit ? hits++ : misses++;
+if (envelope.hit) hits++;
+else misses++;
 const products = [{ path: `envelopes/${vehicleId}.json`, value: { vehicleSha256, envelope: envelope.value } }],
   references = [];
 for (const stem of stems) {
@@ -33,7 +34,8 @@ for (const stem of stems) {
       runCourseReference(course, ground, entry, envelope.value, route, course.rules.maxLaps),
     );
   });
-  cached.hit ? hits++ : misses++;
+  if (cached.hit) hits++;
+  else misses++;
   const candidate = { vehicleId, vehicleSha256, runs: cached.value };
   const reference = {
     format: 'superoutride.course-reference',

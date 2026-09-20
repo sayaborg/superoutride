@@ -9,6 +9,7 @@ export default [
     files,
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+      'prefer-const': ['error', { ignoreReadBeforeAssign: true }],
       'no-constant-binary-expression': 'error',
       'no-unsafe-optional-chaining': 'error',
       'no-loss-of-precision': 'error',

@@ -138,8 +138,8 @@ test('stamp placement rounds positive and negative half cells toward positive an
     anchor: at(10 + i),
     l,
   }));
-  let product = await compile(fixture),
-    stamps = product.entry.presentation.ground.stamps;
+  let product = await compile(fixture);
+  const stamps = product.entry.presentation.ground.stamps;
   assert.deepEqual(
     stamps.map((stamp) => stamp.gridL),
     [-1, 0, 1, 2],

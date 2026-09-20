@@ -121,7 +121,7 @@ export function runProtectionProbe(
 async function main() {
   const args = process.argv.slice(2),
     get = (key, fallback) => {
-      let i = args.indexOf(key);
+      const i = args.indexOf(key);
       return i < 0 ? fallback : args[i + 1];
     };
   const hz = Number(get('--hz', 120)),
