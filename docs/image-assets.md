@@ -209,9 +209,9 @@ generate dimensioned markings, boundary treatments or repair scatter, filter out
 images, create resident records, or certify common-content overlap. Those unsupported authoring fields
 fail admission. Geometry-only fixtures retain explicit absent presentation rather than guessed art.
 
-The separate [presentation-domain qualifier](content-and-gameplay.md#declared-presentation-query-domains)
+The separate [presentation-domain qualifier](content-and-gameplay.md#contact-and-fixed-step-guard-admission)
 compares the admitted subset's complete source patterns, static phase, ordered stamps, environments
-and shared scenery over explicit camera/filter/anchor domains. Actual fork/merge renderer comparisons
+and shared scenery over explicit query domains. Actual fork/merge renderer comparisons
 use those saved images. This source-domain qualification does not select a filtering recipe, publish
 resident records or qualify general occurrence-mapped presentation.
 
