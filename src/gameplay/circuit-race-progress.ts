@@ -6,6 +6,7 @@ import {
   createOrderedRaceProgressState,
   resyncOrderedRaceProgress,
   updateOrderedRaceProgress,
+  createOrderedRaceProgressWorkspace,
   type OrderedRaceProgressState,
 } from './ordered-race-progress.js';
 
@@ -70,8 +71,9 @@ export function updateCircuitRaceProgress(
   rules: CircuitRaceRules,
   current: Sample,
   accept?: Parameters<typeof updateOrderedRaceProgress>[3],
+  workspace = createOrderedRaceProgressWorkspace(),
 ) {
-  const update = updateOrderedRaceProgress(state.lap, rules.lap, current, accept);
+  const update = updateOrderedRaceProgress(state.lap, rules.lap, current, accept, workspace);
   const justFinishedLap = update.justFinished;
   if (justFinishedLap) state.acceptedFinishCount += 1;
   if (state.acceptedFinishCount >= rules.lapCount) state.status = 'FINISHED';
@@ -79,7 +81,9 @@ export function updateCircuitRaceProgress(
   const base = (state.acceptedFinishCount - (complete ? 1 : 0)) * rules.lapLength;
   state.validatedProgressFloor = base + Math.max(0, state.lap.validatedProgressFloor - rules.entryS);
   state.sProgress = base + Math.max(0, state.lap.sProgress - rules.entryS);
-  return { ...update, status: state.status, justFinished: justFinishedLap && state.status === 'FINISHED' };
+  workspace.update.status = state.status;
+  workspace.update.justFinished = justFinishedLap && state.status === 'FINISHED';
+  return workspace.update;
 }
 
 /** Frame change, recovery or replacement resets observations while preserving all accepted gates. */

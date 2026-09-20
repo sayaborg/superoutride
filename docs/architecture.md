@@ -8,7 +8,11 @@ validated cutover. [Image assets](image-assets.md) owns image formats and compil
 ## Coordinates and open geometry
 
 Core owns shared 2D/3D vector arithmetic. Vec2 and Vec3 are readonly value contracts; authoring
-replaces values instead of mutating coordinate observations.
+replaces values instead of mutating coordinate observations. Hot readers additionally accept an
+explicit caller-owned output; that borrowed result is valid until the caller reuses it. Omitted outputs
+remain independent snapshots. Per-actor physics/progress and per-renderer terrain workspaces own mutable
+scratch; the static compiled graph contains no actor, lock or session state. Private numeric buffers
+avoid intermediate allocation while public observations retain ordinary named fields.
 
 World X/Y/Z is authoritative. +Y is up, yaw 0 faces +Z; positive yaw rotates toward +X. Positive
 lateral `l` is right. For heading psi:

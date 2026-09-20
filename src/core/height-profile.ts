@@ -16,22 +16,23 @@ interface HeightSample {
 
 /** Same smooth H authority used by physics plus its analytic dH/ds. */
 interface PhysicsHeightSample {
-  readonly y: number;
-  readonly dYdS: number;
+  y: number;
+  dYdS: number;
 }
 
 export interface HeightProfileReader {
   readonly courseLength: number;
   readonly nodes: readonly HeightNode[];
-  sampleRender(s: number): HeightSample;
+  sampleRender(s: number, out?: HeightSample): HeightSample;
   samplePhysics(s: number): number;
-  samplePhysicsDifferential(s: number): PhysicsHeightSample;
+  samplePhysicsDifferential(s: number, out?: PhysicsHeightSample): PhysicsHeightSample;
   sampleCamera(s: number): number;
   distanceToNextRenderNode(s: number): number;
 }
 
 /** General stage height source. Chainage is the open interval [0, courseLength]. */
 export class HeightProfile implements HeightProfileReader {
+  readonly #physicsScratch = { y: 0, dYdS: 0 };
   readonly nodes: readonly HeightNode[];
 
   constructor(
@@ -47,32 +48,31 @@ export class HeightProfile implements HeightProfileReader {
     });
   }
 
-  sampleRender(s: number): HeightSample {
+  sampleRender(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }): HeightSample {
     const local = openProfileChainage(s, this.courseLength, 'height profile');
     const i = this.findSegment(local);
     const a = this.nodes[i]!;
     const b = this.nodes[i + 1]!;
     const length = b.s - a.s;
     const grade = (b.y - a.y) / length;
-    return {
-      y: a.y + grade * (local - a.s),
-      grade,
-      segmentIndex: i,
-      sStart: a.s,
-      sEnd: b.s,
-    };
+    out.y = a.y + grade * (local - a.s);
+    out.grade = grade;
+    out.segmentIndex = i;
+    out.sStart = a.s;
+    out.sEnd = b.s;
+    return out;
   }
 
   samplePhysics(s: number): number {
-    return this.samplePhysicsDifferential(s).y;
+    return this.samplePhysicsDifferential(s, this.#physicsScratch).y;
   }
 
-  samplePhysicsDifferential(s: number): PhysicsHeightSample {
+  samplePhysicsDifferential(s: number, out = { y: 0, dYdS: 0 }): PhysicsHeightSample {
     const local = openProfileChainage(s, this.courseLength, 'height profile');
     const i = this.findSegment(local);
     const a = this.nodes[i]!;
     const b = this.nodes[i + 1]!;
-    return smoothPhysicsSample(a, b, local);
+    return smoothPhysicsSample(a, b, local, out);
   }
 
   sampleCamera(s: number): number {
@@ -91,14 +91,13 @@ export class HeightProfile implements HeightProfileReader {
   }
 }
 
-function smoothPhysicsSample(a: HeightNode, b: HeightNode, s: number): PhysicsHeightSample {
+function smoothPhysicsSample(a: HeightNode, b: HeightNode, s: number, out: PhysicsHeightSample): PhysicsHeightSample {
   const length = b.s - a.s;
   const t = (s - a.s) / length;
   const angle = Math.PI * t;
   const smooth = 0.5 - 0.5 * Math.cos(angle);
   const dSmoothDs = (0.5 * Math.PI * Math.sin(angle)) / length;
-  return {
-    y: a.y + (b.y - a.y) * smooth,
-    dYdS: (b.y - a.y) * dSmoothDs,
-  };
+  out.y = a.y + (b.y - a.y) * smooth;
+  out.dYdS = (b.y - a.y) * dSmoothDs;
+  return out;
 }

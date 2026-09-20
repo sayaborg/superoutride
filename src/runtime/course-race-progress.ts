@@ -11,6 +11,7 @@ import {
   compileOrderedRaceCourseRules,
   createOrderedRaceProgressState,
   updateOrderedRaceProgress,
+  createOrderedRaceProgressWorkspace,
   resyncOrderedRaceProgress,
 } from '../gameplay/ordered-race-progress.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
@@ -53,16 +54,19 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       return [section, { lap, landmarks }] as const;
     }),
   );
+  const noEvents: readonly CourseRaceEvent[] = Object.freeze([]);
   const events = (
     update: ReturnType<typeof updateOrderedRaceProgress>,
     section: CompiledSection,
     lap: number,
     terminal: boolean,
   ): readonly CourseRaceEvent[] =>
-    update.acceptedCrossings.flatMap(({ gate, u }) => {
-      const landmark = rules.get(section)!.landmarks.get(gate);
-      return landmark ? [{ landmark, lap, u, finish: terminal && gate.kind === 'finish' }] : [];
-    });
+    update.acceptedCrossings.length === 0
+      ? noEvents
+      : update.acceptedCrossings.flatMap(({ gate, u }) => {
+          const landmark = rules.get(section)!.landmarks.get(gate);
+          return landmark ? [{ landmark, lap, u, finish: terminal && gate.kind === 'finish' }] : [];
+        });
   if (course.type === 'CIRCUIT') {
     const section = course.entry,
       loop = section.outgoing[0]!;
@@ -74,6 +78,8 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       lap: rules.get(section)!.lap,
     };
     return (_session: Session, vehicle: () => ArcadeVehicleState) => {
+      const workspace = createOrderedRaceProgressWorkspace();
+      const result = { ...workspace.update, events: [] as readonly CourseRaceEvent[] };
       const state = createCircuitRaceProgressState(circuit, sample(vehicle()));
       return {
         state,
@@ -92,14 +98,19 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
                 u: crossing.u,
                 finish: crossing.gate.kind === 'finish' && lap === lapCount,
               }),
+            workspace,
           );
-          return { ...update, events: events(update, section, lap, lap === lapCount) };
+          Object.assign(result, update);
+          result.events = events(update, section, lap, lap === lapCount);
+          return result;
         },
         resync: () => resyncCircuitRaceProgress(state, circuit, sample(vehicle())),
       };
     };
   }
   return (session: Session, vehicle: () => ArcadeVehicleState) => {
+    const workspace = createOrderedRaceProgressWorkspace();
+    const result = { ...workspace.update, events: [] as readonly CourseRaceEvent[] };
     let expected = course.entry,
       base = 0;
     let local = createOrderedRaceProgressState(rules.get(expected)!.lap, sample(vehicle()));
@@ -134,14 +145,14 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
               u: crossing.u,
               finish: crossing.gate.kind === 'finish' && expected.outgoing.length === 0,
             }),
+          workspace,
         );
         publish();
-        return {
-          ...update,
-          status: state.status,
-          justFinished: update.justFinished && expected.outgoing.length === 0,
-          events: events(update, section, 1, expected.outgoing.length === 0),
-        };
+        Object.assign(result, update);
+        result.status = state.status;
+        result.justFinished = update.justFinished && expected.outgoing.length === 0;
+        result.events = events(update, section, 1, expected.outgoing.length === 0);
+        return result;
       },
       resync() {
         if (state.status === 'FINISHED') return;

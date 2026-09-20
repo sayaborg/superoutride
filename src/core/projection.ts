@@ -1,5 +1,3 @@
-import { normalFromHeading } from './math.js';
-
 /**
  * Renderer-facing camera. Chainage is already expressed on the active render
  * axis by the caller; renderer topology is intentionally absent.
@@ -40,23 +38,25 @@ export function horizonY(camera: Pick<PseudoCamera, 'centerY' | 'focalLength' | 
   return camera.centerY - camera.focalLength * Math.sin(camera.pitch);
 }
 
-export function pseudoProject(anchor: PseudoAnchor, camera: PseudoCamera): PseudoProjection {
+export function pseudoProject(
+  anchor: PseudoAnchor,
+  camera: PseudoCamera,
+  out: PseudoProjection = { x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 },
+): PseudoProjection {
   const depth = pseudoDepth(anchor.s, camera.s);
   if (!(depth > 0)) throw new RangeError('pseudoProject requires a forward anchor with d > 0');
 
-  const cameraRight = normalFromHeading(camera.yaw);
   const dx = anchor.x - camera.x;
   const dz = anchor.z - camera.z;
-  const xRight = dx * cameraRight.x + dz * cameraRight.z;
+  const xRight = dx * Math.cos(camera.yaw) + dz * -Math.sin(camera.yaw);
   const invDepth = 1 / depth;
   const scale = camera.focalLength * invDepth;
   const vertical = anchor.y - camera.y;
 
-  return {
-    x: camera.centerX + scale * xRight,
-    y: horizonY(camera) - scale * vertical * Math.cos(camera.pitch),
-    scale,
-    depth,
-    cameraRightDistance: xRight,
-  };
+  out.x = camera.centerX + scale * xRight;
+  out.y = horizonY(camera) - scale * vertical * Math.cos(camera.pitch);
+  out.scale = scale;
+  out.depth = depth;
+  out.cameraRightDistance = xRight;
+  return out;
 }

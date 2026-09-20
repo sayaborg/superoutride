@@ -1,9 +1,14 @@
+import { hypot2 } from '../core/norm.js';
 import { clamp } from '../core/math.js';
 import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
 import type { BodyKinematics, ContactObservation } from './vehicle-dynamics.js';
 import { cross3, dot3, scale3, sub3 } from '../core/vector3.js';
 
 const MIN_STEERING_PLANE_DETERMINANT = 1e-8;
+
+export function createSteeringLimitWorkspace() {
+  return { a: { x: 0, y: 0, z: 0 }, b: { x: 0, y: 0, z: 0 }, cross: { x: 0, y: 0, z: 0 } };
+}
 
 /** Stateless input reduction. Automatic alignment is an immutable baseline, not a target to optimize. */
 export function limitSteeringInput(
@@ -12,6 +17,7 @@ export function limitSteeringInput(
   body: BodyKinematics,
   contact: ContactObservation,
   tire: CompiledTireCharacteristics,
+  workspace = createSteeringLimitWorkspace(),
 ): number {
   if (
     requestedOffset === 0 ||
@@ -23,14 +29,14 @@ export function limitSteeringInput(
   const n = contact.surface.normal;
   // The projection from the body steering plane must have a valid inverse on the contact plane.
   if (!(dot3(body.up, n) > MIN_STEERING_PLANE_DETERMINANT)) return requestedOffset;
-  const a = sub3(body.forward, scale3(n, dot3(body.forward, n)));
-  const b = sub3(body.right, scale3(n, dot3(body.right, n)));
+  const a = sub3(body.forward, scale3(n, dot3(body.forward, n), workspace.a), workspace.a);
+  const b = sub3(body.right, scale3(n, dot3(body.right, n), workspace.b), workspace.b);
   const v = contact.reachVelocity,
     v0 = contact.profile.tire.lowSpeedRegularization;
   const ax = dot3(v, a),
     bx = dot3(v, b);
-  const ay = dot3(v, cross3(n, a)),
-    by = dot3(v, cross3(n, b));
+  const ay = dot3(v, cross3(n, a, workspace.cross)),
+    by = dot3(v, cross3(n, b, workspace.cross));
   const aa = dot3(a, a),
     ab = dot3(a, b),
     bb = dot3(b, b);
@@ -50,7 +56,7 @@ export function limitSteeringInput(
   const c0 = (A / scale + B / scale) / 2;
   const cc = (A / scale - B / scale) / 2,
     cs = C / scale;
-  const radius = Math.hypot(cc, cs);
+  const radius = hypot2(cc, cs);
   if (radius === 0) return requestedOffset;
   const cos2 = ca * ca - sa * sa,
     sin2 = 2 * ca * sa;

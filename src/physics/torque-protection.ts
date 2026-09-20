@@ -1,7 +1,10 @@
+import { hypot2 } from '../core/norm.js';
+import { type Writable } from '../core/writable.js';
 const SUPPORT_BISECTION_ITERATIONS = 12;
 
 import {
-  deriveTireSlip,
+  createTireForceScratch,
+  createWheelSolveResult,
   solveWheelOmega,
   validateWheelSolveInput,
   wheelRequiredNetTorque,
@@ -11,7 +14,7 @@ import {
 import { VEHICLE_GRAVITY, type BodyKinematics, type ContactObservation } from './vehicle-dynamics.js';
 import { add3, cross3, dot3, scale3, sub3, WORLD_UP } from '../core/vector3.js';
 import type { CompiledArcadeVehicleProfile } from './vehicle-profiles.js';
-import { evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
+import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
 /** Composition policy, not controller memory and not a tire coefficient. */
 export interface TorqueProtectionPolicy {
@@ -47,7 +50,12 @@ export function resolveTorqueProtectionPolicy(policy: TorqueProtectionPolicy): R
  * P is an explicitly selected control boundary (not a claim of a universal optimal slip).
  * Below tire v0 ABS leaves the ordinary signed brake atom responsible for stopping/holding.
  */
-export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
+export function limitWheelTorques(
+  input: WheelSolveInput,
+  out?: Writable<WheelSolveInput>,
+  scratch = createTireForceScratch(),
+  residual: Float64Array = new Float64Array(1),
+): WheelSolveInput {
   validateWheelSolveInput(input);
   let drive = input.driveTorque,
     brake = input.brakeTorque;
@@ -56,27 +64,21 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
   }
   if (!(input.normalLoad > 0) || !(input.gripFactor > 0)) return input;
   const tire = input.characteristics ?? input.tire;
-  const { referenceSpeed } = deriveTireSlip(
-    input.omegaPrevious,
-    input.rollingRadius,
-    input.longitudinalVelocity,
-    input.lateralVelocity,
-    input.tire.lowSpeedRegularization,
-  );
+  const referenceSpeed = hypot2(input.longitudinalVelocity, input.tire.lowSpeedRegularization);
   const slip = (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
   const vx = input.longitudinalVelocity,
     radius = input.rollingRadius;
   let torqueUpper = 0;
   if (vx >= 0) {
     const upper = (vx + slip * referenceSpeed) / radius;
-    torqueUpper = wheelRequiredNetTorque(input, upper);
+    torqueUpper = wheelRequiredNetTorque(input, upper, scratch, residual);
     drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
   if (Math.abs(vx) > input.tire.lowSpeedRegularization) {
     const minimumRolling = (Math.abs(vx) - slip * referenceSpeed) / radius;
     if (minimumRolling > 0) {
       const direction = Math.sign(vx);
-      const boundary = wheelRequiredNetTorque(input, direction * minimumRolling);
+      const boundary = wheelRequiredNetTorque(input, direction * minimumRolling, scratch, residual);
       brake = Math.max(0, Math.min(brake, direction * (drive - boundary)));
     }
   }
@@ -84,9 +86,12 @@ export function limitWheelTorques(input: WheelSolveInput): WheelSolveInput {
   if (vx >= 0 && drive > 0) {
     drive = Math.max(0, Math.min(drive, torqueUpper + brake));
   }
-  return drive === input.driveTorque && brake === input.brakeTorque
-    ? input
-    : { ...input, driveTorque: drive, brakeTorque: brake };
+  if (drive === input.driveTorque && brake === input.brakeTorque) return input;
+  const result = out ?? { ...input };
+  if (result !== input) Object.assign(result, input);
+  result.driveTorque = drive;
+  result.brakeTorque = brake;
+  return result;
 }
 
 interface ProtectedWheelPair {
@@ -131,7 +136,77 @@ export function supportCompressionMargin(
   return qAcceleration + 2 * frequency * qVelocity + frequency * frequency * (-contact.gap - reserve * qStatic);
 }
 
-/** One delivered-torque owner. The lower tire/wheel law never branches on vehicle identity. */
+export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: WheelSolveInput) {
+  const candidate = () => ({
+    value: {
+      frontInput: front,
+      rearInput: rear,
+      frontWheel: createWheelSolveResult(),
+      rearWheel: createWheelSolveResult(),
+      wrench: createWrenchWorkspace().value,
+      supportScale: 1,
+      supportFeasible: true,
+    },
+    frontInput: { ...front },
+    rearInput: { ...rear },
+    wrench: createWrenchWorkspace(),
+    tire: createTireForceScratch(),
+    residual: new Float64Array(1),
+  });
+  return { first: candidate(), second: candidate() };
+}
+type PairCandidate = ReturnType<typeof createProtectedWheelPairWorkspace>['first'];
+function prepareWheel(
+  input: WheelSolveInput,
+  scale: number,
+  policy: TorqueProtectionPolicy,
+  out: Writable<WheelSolveInput>,
+  scratch: ReturnType<typeof createTireForceScratch>,
+  residual: Float64Array,
+) {
+  out.omegaPrevious = input.omegaPrevious;
+  out.inertia = input.inertia;
+  out.rollingRadius = input.rollingRadius;
+  out.longitudinalVelocity = input.longitudinalVelocity;
+  out.lateralVelocity = input.lateralVelocity;
+  out.normalLoad = input.normalLoad;
+  out.gripFactor = input.gripFactor;
+  out.characteristics = input.characteristics;
+  out.rollingResistance = input.rollingResistance;
+  out.driveTorque = input.driveTorque;
+  out.brakeTorque = input.brakeTorque;
+  out.dt = input.dt;
+  out.tire = input.tire;
+  if (scale !== 1) {
+    out.driveTorque = input.driveTorque * scale;
+    out.brakeTorque = input.brakeTorque * scale;
+  }
+  return policy.wheelSlip ? limitWheelTorques(out, out, scratch, residual) : out;
+}
+function evaluatePair(
+  profile: CompiledArcadeVehicleProfile,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  policy: TorqueProtectionPolicy,
+  scale: number,
+  candidate: PairCandidate,
+) {
+  const out = candidate.value;
+  out.frontInput = prepareWheel(frontRequest, scale, policy, candidate.frontInput, candidate.tire, candidate.residual);
+  out.rearInput = prepareWheel(rearRequest, scale, policy, candidate.rearInput, candidate.tire, candidate.residual);
+  solveWheelOmega(out.frontInput, out.frontWheel, candidate.residual, candidate.tire);
+  solveWheelOmega(out.rearInput, out.rearWheel, candidate.residual, candidate.tire);
+  evaluateVehicleWrench(profile, body, front, rear, out.frontWheel, out.rearWheel, candidate.wrench);
+  out.wrench = candidate.wrench.value;
+  out.supportScale = scale;
+  out.supportFeasible = true;
+  return out;
+}
+
+/** One delivered-torque owner. Every trial uses the unchanged solve and wrench. */
 export function solveProtectedWheelPair(
   profile: CompiledArcadeVehicleProfile,
   body: BodyKinematics,
@@ -140,33 +215,13 @@ export function solveProtectedWheelPair(
   frontRequest: WheelSolveInput,
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
+  workspace = createProtectedWheelPairWorkspace(frontRequest, rearRequest),
 ): ProtectedWheelPair {
-  const evaluate = (scale: number): ProtectedWheelPair => {
-    const prepare = (input: WheelSolveInput) => {
-      const request =
-        scale === 1
-          ? input
-          : { ...input, driveTorque: input.driveTorque * scale, brakeTorque: input.brakeTorque * scale };
-      return policy.wheelSlip ? limitWheelTorques(request) : request;
-    };
-    const frontInput = prepare(frontRequest),
-      rearInput = prepare(rearRequest);
-    const frontWheel = solveWheelOmega(frontInput),
-      rearWheel = solveWheelOmega(rearInput);
-    return {
-      frontInput,
-      rearInput,
-      frontWheel,
-      rearWheel,
-      wrench: evaluateVehicleWrench(profile, body, front, rear, frontWheel, rearWheel),
-      supportScale: scale,
-      supportFeasible: true,
-    };
-  };
-  const requested = evaluate(1);
+  let acceptedSlot = workspace.first,
+    trialSlot = workspace.second;
+  const requested = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, 1, acceptedSlot);
   const reserve = policy.supportReserve;
   if (reserve === null) return requested;
-  // No artificial attachment through a crest or VOID. A grounded opposite station is necessary.
   const checkFront =
     frontRequest.driveTorque + rearRequest.driveTorque > 0 &&
     front.supportAvailable &&
@@ -183,18 +238,22 @@ export function solveProtectedWheelPair(
     (!checkFront || supportCompressionMargin(profile, body, front, value.wrench, reserve) >= 0) &&
     (!checkRear || supportCompressionMargin(profile, body, rear, value.wrench, reserve) >= 0);
   if (safe(requested)) return requested;
-  let accepted = evaluate(0);
-  if (!safe(accepted)) return { ...accepted, supportFeasible: false };
-  // Keep a feasible sampled lower endpoint; unsampled torque intervals need not be feasible.
+  const accepted = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, 0, acceptedSlot);
+  if (!safe(accepted)) {
+    accepted.supportFeasible = false;
+    return accepted;
+  }
   let lower = 0,
     upper = 1;
-  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i += 1) {
+  for (let i = 0; i < SUPPORT_BISECTION_ITERATIONS; i++) {
     const scale = (lower + upper) * 0.5;
-    const candidate = evaluate(scale);
+    const candidate = evaluatePair(profile, body, front, rear, frontRequest, rearRequest, policy, scale, trialSlot);
     if (safe(candidate)) {
       lower = scale;
-      accepted = candidate;
+      const swap = acceptedSlot;
+      acceptedSlot = trialSlot;
+      trialSlot = swap;
     } else upper = scale;
   }
-  return accepted;
+  return acceptedSlot.value;
 }

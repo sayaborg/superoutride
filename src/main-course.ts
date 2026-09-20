@@ -11,7 +11,7 @@ import { VEHICLE_CATALOG } from './vehicle/vehicle-catalog.js';
 import { createCourseRace } from './runtime/course-race.js';
 import { createCoursePerformanceHud } from './browser/course-performance-hud.js';
 import { resolveCourseSession } from './runtime/course-session.js';
-import { readCourseReference } from './runtime/course-reference.js';
+import { readCourseTimeBudgets } from './runtime/course-time-budgets.js';
 import { browserSessionVehicle } from './browser/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './browser/course-session-controls.js';
 import { createCourseScene } from './runtime/course-scene.js';
@@ -60,12 +60,12 @@ try {
   const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry);
   const budgets = settings.countdown
-    ? await readCourseReference(
+    ? await readCourseTimeBudgets(
         course,
         vehicle,
         JSON.parse(
           new TextDecoder('utf-8', { fatal: true }).decode(
-            await fetchBytes(new URL('reference/' + mode + '.json', root)),
+            await fetchBytes(new URL(`budgets/${mode}/${vehicle.profile.id}.json`, root)),
           ),
         ),
       )

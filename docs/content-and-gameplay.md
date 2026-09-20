@@ -590,7 +590,7 @@ ranking, timing and resolved Session composition. Continuation gates award no cl
 
 The browser implements CLASSIC and CUSTOM. CLASSIC resolves its saved vehicle, rivals, laps and
 checkpoint clock. CUSTOM selects a catalog vehicle, 0–16 rivals, 1 through the authored maximum laps,
-and clock on/off. Traffic and TIME ATTACK remain outside this slice. Saved reference runs cover every
+and clock on/off. Traffic and TIME ATTACK remain outside this slice. Build-generated reference runs cover every
 catalog vehicle and admitted route/lap prefix before a timed Session can activate. All starting
 calibration and protection values come from the unchanged browser defaults; player and rivals share
 that resolved vehicle configuration. DEV vehicle/physics controls are locked for the Session.
@@ -662,15 +662,26 @@ wrong-route selection, timeout or unsupported FINISH. Output contains precise la
 optional 10 Hz speed/position/utilization trace. The envelope and driver are offline fitting/validation
 inputs; course compilation and runtime perform no tuning or fitting.
 
-Saved numeric reference products in `content/reference` bind course/compiler build identity, a digest
-of simulation/planning/traversal sources, the full resolved vehicle/calibration/assist identity and driver
-policy. Build checks the source digest and admits all catalog entries; browser admission checks the
-course, vehicle and driver identities, finite positive intervals, complete ordered landmarks, every
-route and every lap prefix. Publication rejects incomplete, stale or recovered products. Consumers
-resolve landmark IDs once to canonical references. A continuous maximum-lap run supplies exact prefixes;
-no independently restarted sectors or synthesized steady laps are substituted. Reference generation is
-explicit offline work, not a build-time or browser simulation. Reproducible car/bike replay and measured
-capability use are executable evidence; human difficulty acceptance remains separate.
+Build generates envelopes, continuous runs and time budgets from current vehicle parameters; browser
+startup performs no measurement or simulation. Cache keys comprise course build hash, the resolved
+per-vehicle hash (profile/calibration/assist), driver version/policy and relevant mechanics/traversal-code
+hash. Vehicle value sources are excluded from the common code hash, so tuning one vehicle recomputes
+only that vehicle. One envelope belongs to each vehicle, independently of courses. Cache entries,
+reference runs, traces and preview images/reports are generated products and are never committed.
+
+Build validates complete ordered landmarks, every admitted route and every maximum-lap run, rejecting
+recovery and incomplete products. It derives compact integer-millisecond budgets for the browser;
+loading resolves landmark IDs once against the current course and vehicle identities. Full runs and
+optional traces remain offline products. Continuous maximum-lap runs supply exact prefixes; independently
+restarted sectors and synthesized steady laps cannot substitute. Reproducible car/bike replay remains
+executable evidence. K will reconsider reference difficulty, the provisional 1.35 time margin and rival
+speed together after real courses exist; agents retain their current values without tuning.
+
+The P1 driver cutover uses one performance-envelope policy for reference and rivals. Its inputs are
+vehicle envelope, utilization, speed cap and target lane. Reference utilization remains 0.9; rivals use
+one lower provisional default, with no per-course or vehicle speed tuning. The old fixed-speed rival
+policy is removed at that cutover. View windows derive their reach from the shared driver's actual
+lookahead; planning scratch storage belongs to each actor and obeys the scene allocation budget.
 
 ## Recovery
 
@@ -705,8 +716,7 @@ imports prefer primitive-relative anchors. GUI is reserved for later human inspe
 External reference videos, extracted frames and all pixel-bearing reference data stay in ignored
 `reference-media/` directories (or outside the checkout). This includes pixel arrays, masks and crops
 stored in JSON or other non-image containers. Only numeric observations, scalar calibration and
-source/edition descriptions may be committed as reference evidence. Game assets and product-renderer
-outputs are independently authored products. `.gitignore` protects reference directories and video
+source/edition descriptions may be committed as reference evidence. Independently authored game assets are source inputs; product-renderer previews and reports are disposable outputs. `.gitignore` protects reference directories and video
 extensions; raw reference pixels never become committed game assets.
 
 ### Time-based remaster target
@@ -719,7 +729,7 @@ Observations record interval start/duration, direction, speed ratio `r` and head
 
 Offline vehicle envelopes come from the unchanged product physics: maximum speed, acceleration,
 braking and speed-dependent lateral acceleration limit. Map headroom to a saved utilization default
-`u`; use `v = r * maximumSpeed`, `R = v² / (u * lateralLimit(v))`, and arc length `v * duration`.
+`u` (initial relaxed/fast/limit values 0.55/0.75/0.95); use `v = r * maximumSpeed`, `R = v² / (u * lateralLimit(v))`, and arc length `v * duration`.
 Fit observations, this envelope and explicit section/material/environment defaults into a new
 CourseDocument without requiring a template. Fitting and its iteration remain outside compiler/runtime.
 

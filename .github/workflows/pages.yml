@@ -59,6 +59,13 @@ jobs:
           npm ci --prefix .audit-baseline
           npm run build --prefix .audit-baseline
 
+      - name: Restore generated reference cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/course-reference
+          key: course-reference-${{ runner.os }}-node24-${{ github.sha }}
+          restore-keys: course-reference-${{ runner.os }}-node24-
+
       - name: Test and build
         env:
           HOT_PATH_BASELINE_BUILD: .audit-baseline/dist
@@ -83,6 +90,7 @@ jobs:
           # already-cached older index can still boot if the authoritative versioned
           # entry has not propagated or cannot be resolved.
           cp -R dist _site/dist
+          rm -rf "_site/build/${BUILD_ID}/offline" _site/dist/offline
           touch _site/.nojekyll
 
       - name: Setup Pages
@@ -116,6 +124,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24
+
+      - name: Restore generated reference cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/course-reference
+          key: course-reference-${{ runner.os }}-node24-${{ github.sha }}
+          restore-keys: course-reference-${{ runner.os }}-node24-
 
       - name: Verify published course content
         env:

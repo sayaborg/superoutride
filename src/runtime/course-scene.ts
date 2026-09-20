@@ -11,7 +11,7 @@ import { coursePortLateral } from '../compiler/course-links.js';
 import { recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
-import { renderDriving } from '../render/renderer.js';
+import { createRenderWorkspace, renderDriving } from '../render/renderer.js';
 import type { CourseSprite } from '../render/course-sprite.js';
 import { createSpriteAssets } from '../visual/sprite-assets.js';
 import { createCourseDrivingGraph } from './course-driving-session.js';
@@ -24,6 +24,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
     throw new RangeError('Driving requires an entry Port with camera space behind it');
   const assets = createSpriteAssets();
+  const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   let lastView: typeof session.view | null = null;
   let lastClosed: typeof session.closedCarriageways | null = null;
@@ -92,7 +93,7 @@ export function createCourseScene(section: CompiledSection, ground: CourseGround
           assets,
           playerKind,
         },
-        { ground: presentation.ground },
+        { ground: presentation.ground, workspace: renderWorkspace },
       );
     },
   });

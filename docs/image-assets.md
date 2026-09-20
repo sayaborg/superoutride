@@ -264,6 +264,11 @@ then each Section's row-major Uint32 directory followed by its row-major Uint16 
 order. Section order is the compiled graph's validated declaration order. Manifest grids and build
 identity bind that order at admission; consumers receive canonical Section references.
 
+The P1 paint cutover quantizes each Band boundary to one lateral source-texel offset per 1.6 m
+chainage tile row. Only paint changes: physical Band boundaries, Guide and classifications remain exact.
+Boundary tiles therefore belong to a finite offset/material vocabulary. Repairs and stamps follow the
+same finite vocabulary on the 1.6 m grid; exceptional stamps receive a measured unique-tile budget.
+
 ### Ground LOD and filter
 
 The resident reader adopts the renderer's existing `selectLevel(deltaSEffective)` contract. Start at

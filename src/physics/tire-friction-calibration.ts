@@ -38,7 +38,14 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
 
 export function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
   if (
-    ![tire.muX, tire.muY, tire.kX, tire.kY].every((v) => Number.isFinite(v) && v > 0) ||
+    !(tire.muX > 0) ||
+    !Number.isFinite(tire.muX) ||
+    !(tire.muY > 0) ||
+    !Number.isFinite(tire.muY) ||
+    !(tire.kX > 0) ||
+    !Number.isFinite(tire.kX) ||
+    !(tire.kY > 0) ||
+    !Number.isFinite(tire.kY) ||
     !Number.isFinite(tire.rhoKnee) ||
     !(tire.rhoKnee > 0 && tire.rhoKnee < 1)
   ) {

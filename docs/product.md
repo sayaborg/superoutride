@@ -101,9 +101,12 @@ Rivals use the same vehicle mechanics as the player and differ through driving p
 qualification requires reproducible completion, comparable use of different vehicles' capabilities,
 and acceptable checkpoint difficulty. Existing DEV AI is not presumed qualified.
 
-Traffic uses inexpensive lane following with a separately specified interaction model. Traffic is
-excluded from competitive route decisions. The 16-rival configuration is a product envelope, subject
-to full-scene device acceptance with traffic, graphics and audio.
+Collision and interaction design is deferred as one milestone covering traffic vehicles, rivals,
+movable road objects (including physically displaced cones) and fixed off-road objects. Traffic itself
+will be designed in that milestone. Current vehicles and roadside objects remain pass-through; no
+provisional contact response or contact-dependent structure is introduced. Traffic never votes on
+competitive route decisions. The 16-rival configuration requires full-scene device acceptance with
+graphics and audio.
 
 ## 3. Course structure and route choice
 
@@ -216,7 +219,7 @@ Links, checkpoints, starts, goals and presets. It displays actionable diagnostic
 Saved projects reproduce their inputs and compiled outputs, keep source and generated products distinct,
 and expose stale previews after an edit. Failed operations preserve prior source. Driving preview uses
 the product compiler, readers, camera, renderer and mechanics. A 2D editing plan is a separate authoring
-view, not a second driving engine. Reference-time runs are explicit offline work.
+view, not a second driving engine. Reference-time runs are build-generated offline products.
 
 The [authoring contract](content-and-gameplay.md#authoring-documents-and-assets) owns formats and saved
 semantics; [validation](development.md) owns evidence. Work order belongs only to [NEXT](NEXT.md).

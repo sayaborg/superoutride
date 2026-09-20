@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 
-/** Saved reference results bind the actual mechanics, planning and traversal implementation. */
+/** Code identity excludes vehicle value sources: their resolved per-vehicle digest is a separate key. */
 export async function referenceModelIdentity() {
   const root = new URL('../../', import.meta.url),
     files = [];
@@ -11,8 +11,7 @@ export async function referenceModelIdentity() {
       else if (e.name.endsWith('.ts')) files.push(path + e.name);
     }
   };
-  for (const path of ['src/core/', 'src/physics/', 'src/vehicle/', 'src/gameplay/', 'src/runtime/'])
-    await collect(path);
+  for (const path of ['src/core/', 'src/course/', 'src/physics/', 'src/gameplay/', 'src/runtime/']) await collect(path);
   files.push(
     'src/browser/frame-loop.ts',
     'src/browser/session-vehicle.ts',
@@ -20,6 +19,7 @@ export async function referenceModelIdentity() {
     'src/browser/tire-friction-selection.ts',
     'tools/course/reference-run.mjs',
     'tools/course/vehicle-envelope.mjs',
+    'tools/build/build-course-reference-worker.mjs',
   );
   const hash = createHash('sha256');
   for (const file of files.sort()) hash.update(file + '\0').update(await readFile(new URL(file, root)));

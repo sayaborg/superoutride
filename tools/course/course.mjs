@@ -21,7 +21,7 @@ import {
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
-  if (['envelope', 'reference', 'reference-build'].includes(verb)) {
+  if (['envelope', 'reference'].includes(verb)) {
     console.log(JSON.stringify(await referenceCommand(verb, file, args)));
   } else {
     requireInput(

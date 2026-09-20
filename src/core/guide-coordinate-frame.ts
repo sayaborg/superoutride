@@ -1,3 +1,5 @@
+import { createPlanarCoordinateSample } from './planar-sample.js';
+import type { Writable } from './writable.js';
 import {
   guidePathToWorld,
   locateWorldOnGuideGlobal,
@@ -32,9 +34,15 @@ interface GuideCoordinateMetrics {
 /** Ordinary finite reader. No topology, occurrence, source arrays or global-search fallback. */
 export interface GuideCoordinateReader {
   readonly domain: { readonly start: number; readonly end: number };
-  toWorld(s: number, l: number): GuideSample & { l: number };
-  metricsAt(s: number, l: number, segmentIndex: number): GuideCoordinateMetrics;
-  locateLocal(world: Vec2, previousSegmentIndex: number, searchRadius: number, clampL: boolean): CourseCoordinate;
+  toWorld(s: number, l: number, out?: Writable<GuideSample> & { l: number }): GuideSample & { l: number };
+  metricsAt(s: number, l: number, segmentIndex: number, out?: Writable<GuideCoordinateMetrics>): GuideCoordinateMetrics;
+  locateLocal(
+    world: Vec2,
+    previousSegmentIndex: number,
+    searchRadius: number,
+    clampL: boolean,
+    out?: CourseCoordinate,
+  ): CourseCoordinate;
 }
 
 /** Existing paths keep their exact sampling arithmetic; bounded readers supply the same observations. */
@@ -57,8 +65,9 @@ export function guideCoordinateMetricsAt(
   s: number,
   l: number,
   segmentIndex: number,
+  out = { curvature: 0, metric: 1, offsetMetric: 1 },
 ): GuideCoordinateMetrics {
-  if ('toWorld' in source) return source.metricsAt(s, l, segmentIndex);
+  if ('toWorld' in source) return source.metricsAt(s, l, segmentIndex, out);
   const curve = guideCoordinateCurve(source),
     segment = curve.segments[segmentIndex]!;
   let curvature = 0,
@@ -69,19 +78,24 @@ export function guideCoordinateMetricsAt(
     metric = corner.mu;
   }
   const worldL = l + guideCoordinateLateralOrigin(source);
-  return { curvature, metric, offsetMetric: 1 - curvature * worldL };
+  out.curvature = curvature;
+  out.metric = metric;
+  out.offsetMetric = 1 - curvature * worldL;
+  return out;
 }
 
 export function guideCoordinateToWorld(
   source: GuideCoordinateSource,
   s: number,
   localL: number,
+  out = createPlanarCoordinateSample(),
 ): GuideSample & { l: number } {
-  if ('toWorld' in source) return source.toWorld(s, localL);
+  if ('toWorld' in source) return source.toWorld(s, localL, out);
   const guide = guideCoordinateCurve(source);
   const lateralOrigin = guideCoordinateLateralOrigin(source);
-  const world = guidePathToWorld(guide, s, localL + lateralOrigin);
-  return { ...world, l: localL };
+  guidePathToWorld(guide, s, localL + lateralOrigin, out);
+  out.l = localL;
+  return out;
 }
 
 export function locateWorldOnGuideCoordinateGlobal(
@@ -99,8 +113,9 @@ export function locateWorldOnGuideCoordinateLocal(
   previousSegmentIndex: number,
   searchRadius = 2,
   clampL = false,
+  out?: CourseCoordinate,
 ): CourseCoordinate {
-  if ('toWorld' in source) return source.locateLocal(world, previousSegmentIndex, searchRadius, clampL);
+  if ('toWorld' in source) return source.locateLocal(world, previousSegmentIndex, searchRadius, clampL, out);
   const guide = guideCoordinateCurve(source);
   return toLocalCoordinate(
     source,

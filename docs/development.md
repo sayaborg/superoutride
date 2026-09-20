@@ -67,24 +67,25 @@ in `dist/content`; Pages verifies version, commit-versioned boot and every conte
 
 ## Offline Session references
 
-Compile the current modules, then use the product physics without a browser. A stale reference can
-make a complete build fail until this explicit regeneration is performed:
+`npm run build` measures current catalog vehicles and generates every admitted continuous reference
+run and checkpoint budget automatically. `.cache/course-reference/` stores disposable, digest-checked
+per-vehicle envelope and per-course/vehicle run entries; CI restores that directory with `actions/cache`.
+A changed vehicle invalidates only its own products. Warm builds reuse measurements, and an empty cache
+recomputes them without a manual regeneration or stale-source failure. Vehicle jobs use at most four
+workers (bounded by host parallelism); each simulation retains the ordinary fixed step and all substeps.
+
+`dist/content/envelopes/<vehicle>.json` holds one envelope per vehicle. Browsers fetch only
+`dist/content/budgets/<course>/<vehicle>.json` for the selected timed Session. Full run evidence in
+`dist/offline/reference/` is excluded from Pages. The source tree contains authored inputs only.
+For an optional offline trace or an isolated measurement after building:
 
 ```sh
-npx tsc -p tsconfig.json
 node tools/course/course.mjs envelope TESTAROSSA --out /tmp/testarossa-envelope.json
 node tools/course/course.mjs reference content/courses/linear.course.json --vehicle VFR750R --laps 1 --route 0 --out /tmp/reference-run.json
-node tools/course/course.mjs reference-build content/courses/circuit.course.json --out content/reference/circuit.json
 ```
 
-`envelope` writes numeric acceleration/braking observations and a speed-indexed lateral envelope.
-`reference` runs one selected finite route/lap configuration and writes accepted interval times plus a
-10 Hz speed/position trace. `reference-build` explicitly measures all catalog vehicles and continuously
-runs every route through the authored maximum laps; it publishes only a complete successful product.
-This potentially long offline job is never part of `npm test` or browser loading. Run it again after
-simulation-relevant inputs change. Build rejects stale source/vehicle/course identity and stages the
-numeric products with all other delivered content hashes. [Content](content-and-gameplay.md#offline-envelopes-and-reference-driving)
-owns measurement, timing aggregation and qualification semantics.
+These diagnostic exports are disposable. [Content](content-and-gameplay.md#offline-envelopes-and-reference-driving)
+owns measurement, cache identities, timing aggregation and qualification semantics.
 
 Reference validation adds representative Testarossa/VFR750R continuous replay and adversarial clock,
 landmark/order, stale-input and coverage checks. Existing field integrations use the actual 60 Hz
@@ -116,12 +117,16 @@ actual product sessions bound retained and selected occurrence history independe
 ## Course scene performance
 
 After building, run `node tools/performance/course-scene.mjs --frames 300 --rivals 16`.
-Optional `--mode linear|seam|circuit|branch` selects one scene. The probe uses the actual scene,
+Optional `--mode linear|seam|circuit|branch` selects one scene; `--compare 1` also measures zero rivals and reports per-rival category differences. The probe uses the actual scene,
 field, mechanics and renderer with a car profile, 30 warmup frames, then measured 60 Hz steps.
 It reports setup, median/p95/max frame and fixed-step times, maximum successful seam commit time,
 and V8 sampled allocation bytes in a separate 30-frame pass (including collected objects; 16 KiB sampling interval).
-Allocation is an estimate, not retained heap growth. Setup and explicit repositioning are excluded.
+Function and exclusive physics/view/driver/progress/render categories use separate heap and CPU passes.
+GC events are correlated with measured frame intervals, including the slowest frame. Allocation is an estimate, not retained heap growth. Setup and explicit repositioning are excluded.
 This Node host measurement excludes browser, audio and compositor work and cannot certify a phone.
+`npm test` runs scene budget checks after its parallel suite. The P1 goals are 0.2 MB/frame, 3 ms
+median fixed step and 10 ms frame p95. A separate 0.65 MB allocation regression ceiling protects the
+measured reduction while the remaining target gap is an Open decision; it does not certify P1 completion.
 
 The browser HUD displays FPS, maximum CPU frame/step time and frame interval over each half-second,
 plus the scene's lifetime maximum seam commit. Check LINEAR curves/hills, SEAM forward/reverse,

@@ -1,7 +1,14 @@
+import { createPlanarCoordinateSample, createPlanarSampleBuffer } from '../core/planar-sample.js';
 import type { CourseGround } from '../compiler/course-ground.js';
 import { selectGroundLevel } from '../groundmap/resident-ground.js';
 import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../core/guide-coordinate-frame.js';
-import { guidePathToWorld, projectWorldOnGuideInterval, sampleGuidePath } from '../core/guide-curve.js';
+import {
+  guideSegmentBounds,
+  sampleGuideSegment,
+  guidePathToWorld,
+  projectWorldOnGuideInterval,
+  sampleGuidePath,
+} from '../core/guide-curve.js';
 import { dot, subtract, tangentFromHeading, normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
 import { invertPlanarTransform, transformPlanarPoint } from '../core/planar-transform.js';
 import { rasterPathToWorld } from '../core/raster-path.js';
@@ -146,33 +153,70 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         const start = Math.max(mapping.sourceRange.start, segment.sStart),
           end = Math.min(mapping.sourceRange.end, segment.sEnd);
         return end > start
-          ? [{ mapping, segment, start, end, seed: seed(mapping.occurrence.ordinal, segment.index) }]
+          ? [
+              {
+                mapping,
+                segment,
+                start,
+                end,
+                bounds: guideSegmentBounds(mapping.occurrence.section.guide, segment, start, end),
+                seed: seed(mapping.occurrence.ordinal, segment.index),
+                origin:
+                  segment.kind === 'straight'
+                    ? sampleGuideSegment(mapping.occurrence.section.guide, segment, segment.sStart)
+                    : undefined,
+              },
+            ]
           : [];
       }),
     );
+    const candidateIndices = new Map(candidates.map((c, i) => [c.seed, i]));
+    const sourceSample = createPlanarCoordinateSample();
+    const projectionSample = createPlanarSampleBuffer();
+    const projected = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 };
+    const local = { x: 0, z: 0 };
+    const projectionValues = new Float64Array(4);
     const guide: GuideCoordinateReader = Object.freeze({
       domain: view.availableRange,
-      toWorld(s: number, l: number) {
-        const { address, mapping, section } = resolve(s, l);
-        const p = guidePathToWorld(section.guide, address.sourceS, address.sourceL);
-        return {
-          ...p,
-          ...transformPlanarPoint(mapping.viewFromSource, p),
-          s,
-          l,
-          heading: headingInFrame(mapping, p.heading),
-          segmentIndex: seed(mapping.occurrence.ordinal, p.segmentIndex),
-        };
+      toWorld(s: number, l: number, out = createPlanarCoordinateSample()) {
+        const mapping = mappingAt(s);
+        const p = guidePathToWorld(
+          mapping.occurrence.section.guide,
+          mapping.sourceChainageInFrame(s),
+          l + mapping.sourceLateralOrigin,
+          sourceSample,
+        );
+        const t = mapping.viewFromSource;
+        out.x = t.cosine * p.x + t.sine * p.z + t.translation.x;
+        out.z = -t.sine * p.x + t.cosine * p.z + t.translation.z;
+        out.s = s;
+        out.l = l;
+        out.heading = headingInFrame(mapping, p.heading);
+        out.segmentIndex = seed(mapping.occurrence.ordinal, p.segmentIndex);
+        return out;
       },
-      metricsAt(s: number, l: number, segmentIndex: number) {
+      metricsAt(s: number, l: number, segmentIndex: number, out = { curvature: 0, metric: 1, offsetMetric: 1 }) {
         if (typeof segmentIndex !== 'number') throw new TypeError('Projection seed must be numeric');
-        const { address, section, mapping } = resolve(s, l);
+        const mapping = mappingAt(s),
+          section = mapping.occurrence.section;
         const index = segmentIndex - mapping.occurrence.ordinal * seedStride;
         if (!Number.isInteger(index) || index < 0 || index >= section.guide.segments.length)
           throw new RangeError('Projection seed does not belong to the addressed occurrence');
-        return guideCoordinateMetricsAt(section.guide, address.sourceS, address.sourceL, index);
+        return guideCoordinateMetricsAt(
+          section.guide,
+          mapping.sourceChainageInFrame(s),
+          l + mapping.sourceLateralOrigin,
+          index,
+          out,
+        );
       },
-      locateLocal(world: Vec2, previousSegmentIndex: number, searchRadius: number, clampL: boolean) {
+      locateLocal(
+        world: Vec2,
+        previousSegmentIndex: number,
+        searchRadius: number,
+        clampL: boolean,
+        out = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      ) {
         if (
           !world ||
           typeof world.x !== 'number' ||
@@ -184,15 +228,25 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
           throw new TypeError('Projection requires numeric world position, seed/radius and boolean clamping');
         if (!Number.isSafeInteger(previousSegmentIndex) || !Number.isSafeInteger(searchRadius) || searchRadius < 0)
           throw new RangeError('Projection requires an exact seed and nonnegative search radius');
-        const at = candidates.findIndex((c) => c.seed === previousSegmentIndex);
-        if (at < 0) throw new RangeError('Projection seed is outside the retained occurrence window');
+        const at = candidateIndices.get(previousSegmentIndex);
+        if (at === undefined) throw new RangeError('Projection seed is outside the retained occurrence window');
         if (
           (at - searchRadius < 0 && range.start > view.availableRange.start) ||
           (at + searchRadius >= candidates.length && range.end < view.availableRange.end)
         )
           throw new RangeError('Driving window does not cover the complete seeded search');
-        let best: { s: number; l: number; segmentIndex: number; distanceSquared: number } | null = null;
-        for (let i = Math.max(0, at - searchRadius); i < Math.min(candidates.length, at + searchRadius + 1); i += 1) {
+        let best: (typeof candidates)[number] | null = null;
+        let bestS = 0,
+          bestL = 0,
+          bestDistance = Infinity;
+        let previousMapping: (typeof mapped)[number] | null = null;
+        const first = Math.max(0, at - searchRadius),
+          last = Math.min(candidates.length - 1, at + searchRadius);
+        let bestIndex = -1;
+        // The retained seed is usually nearest. Remaining ties still prefer the original source order.
+        for (let cursor = first - 1; cursor <= last; cursor += 1) {
+          const i = cursor < first ? at : cursor;
+          if (cursor === at) continue;
           const candidate = candidates[i]!;
           const { mapping, segment, start, end } = candidate;
           if (
@@ -200,36 +254,68 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
             end < Math.min(mapping.sourceOwnership.end, segment.sEnd)
           )
             throw new RangeError('Driving window clips a seeded projection candidate');
-          const section = mapping.occurrence.section,
-            local = transformPlanarPoint(mapping.sourceFromView, world);
-          const p = projectWorldOnGuideInterval(section.guide, segment.index, local, start, end, clampL);
-          // Compare the same view-chart zero, not different source centerlines at a lateral Link offset.
-          const center = sampleGuidePath(section.guide, p.s),
-            n = normalFromHeading(center.heading),
-            origin = mapping.sourceLateralOrigin;
-          const distanceSquared =
-            origin === 0
-              ? p.distanceSquared
-              : (local.x - center.x - n.x * origin) ** 2 + (local.z - center.z - n.z * origin) ** 2;
-          if (best && distanceSquared >= best.distanceSquared) continue;
-          const s = activeS(mapping, p.s),
-            l = p.l - origin;
-          const canonical = resolve(s, l);
-          const sample = sampleGuidePath(canonical.section.guide, canonical.address.sourceS);
-          best = {
-            s,
-            l,
-            segmentIndex:
-              canonical.mapping.occurrence === mapping.occurrence
-                ? candidate.seed
-                : seed(canonical.mapping.occurrence.ordinal, sample.segmentIndex),
-            distanceSquared,
-          };
+          const section = mapping.occurrence.section;
+          if (previousMapping !== mapping) {
+            const t = mapping.sourceFromView;
+            local.x = t.cosine * world.x + t.sine * world.z + t.translation.x;
+            local.z = -t.sine * world.x + t.cosine * world.z + t.translation.z;
+            previousMapping = mapping;
+          }
+          if (best && mapping.sourceLateralOrigin === 0) {
+            const bounds = candidate.bounds;
+            const dx = Math.max(bounds.left - local.x, 0, local.x - bounds.right);
+            const dz = Math.max(bounds.back - local.z, 0, local.z - bounds.front);
+            if (dx * dx + dz * dz > bestDistance) continue;
+          }
+          projectWorldOnGuideInterval(
+            section.guide,
+            segment.index,
+            local,
+            start,
+            end,
+            clampL,
+            projected,
+            projectionSample,
+            candidate.origin,
+            projectionValues,
+          );
+          const projectedS = projectionValues[0]!,
+            projectedL = projectionValues[1]!;
+          const origin = mapping.sourceLateralOrigin;
+          let distanceSquared = projectionValues[3]!;
+          if (origin !== 0) {
+            const center = sampleGuidePath(section.guide, projectedS, sourceSample);
+            distanceSquared =
+              (local.x - center.x - Math.cos(center.heading) * origin) ** 2 +
+              (local.z - center.z - -Math.sin(center.heading) * origin) ** 2;
+          }
+          if (best && (distanceSquared > bestDistance || (distanceSquared === bestDistance && i > bestIndex))) continue;
+          best = candidate;
+          bestIndex = i;
+          bestS = activeS(mapping, projectedS);
+          bestL = projectedL - origin;
+          bestDistance = distanceSquared;
         }
         if (!best) throw new Error('Admitted driving projection lost its candidates');
-        return best;
+        out.s = bestS;
+        out.l = bestL;
+        out.distanceSquared = bestDistance;
+        const canonical = mappingAt(out.s);
+        out.segmentIndex =
+          canonical.occurrence === best.mapping.occurrence
+            ? best.seed
+            : seed(
+                canonical.occurrence.ordinal,
+                sampleGuidePath(
+                  canonical.occurrence.section.guide,
+                  canonical.sourceChainageInFrame(out.s),
+                  sourceSample,
+                ).segmentIndex,
+              );
+        return out;
       },
     });
+
     const nodes = mapped
       .flatMap((mapping) => {
         const section = mapping.occurrence.section;
@@ -247,26 +333,24 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
     const height: HeightProfileReader = Object.freeze({
       courseLength: view.availableRange.end,
       nodes: Object.freeze(nodes),
-      sampleRender(s: number) {
-        const { address, mapping, section } = resolve(s, 0),
-          p = section.height.sampleRender(address.sourceS);
-        return {
-          ...p,
-          sStart: activeS(mapping, Math.max(mapping.sourceRange.start, p.sStart)),
-          sEnd: activeS(mapping, Math.min(mapping.sourceRange.end, p.sEnd)),
-        };
+      sampleRender(s: number, out = { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 }) {
+        const m = mappingAt(s);
+        m.occurrence.section.height.sampleRender(m.sourceChainageInFrame(s), out);
+        out.sStart = activeS(m, Math.max(m.sourceRange.start, out.sStart));
+        out.sEnd = activeS(m, Math.min(m.sourceRange.end, out.sEnd));
+        return out;
       },
       samplePhysics(s: number) {
-        const { address, section } = resolve(s, 0);
-        return section.height.samplePhysics(address.sourceS);
+        const m = mappingAt(s);
+        return m.occurrence.section.height.samplePhysics(m.sourceChainageInFrame(s));
       },
-      samplePhysicsDifferential(s: number) {
-        const { address, section } = resolve(s, 0);
-        return section.height.samplePhysicsDifferential(address.sourceS);
+      samplePhysicsDifferential(s: number, out = { y: 0, dYdS: 0 }) {
+        const m = mappingAt(s);
+        return m.occurrence.section.height.samplePhysicsDifferential(m.sourceChainageInFrame(s), out);
       },
       sampleCamera(s: number) {
-        const { address, section } = resolve(s, 0);
-        return section.height.sampleCamera(address.sourceS);
+        const m = mappingAt(s);
+        return m.occurrence.section.height.sampleCamera(m.sourceChainageInFrame(s));
       },
       distanceToNextRenderNode(s: number) {
         const { address, mapping, section } = resolve(s, 0);
@@ -292,16 +376,17 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
           }),
         ),
       ),
-      toWorld(s: number, l: number) {
-        const { address, mapping, section } = resolve(s, l),
-          p = rasterPathToWorld(section.raster, address.sourceS, address.sourceL);
-        return {
-          ...p,
-          ...transformPlanarPoint(mapping.viewFromSource, p),
-          s,
-          l,
-          heading: headingInFrame(mapping, p.heading),
-        };
+      toWorld(s: number, l: number, out = createPlanarCoordinateSample()) {
+        const m = mappingAt(s);
+        rasterPathToWorld(m.occurrence.section.raster, m.sourceChainageInFrame(s), l + m.sourceLateralOrigin, out);
+        const t = m.viewFromSource;
+        const x = t.cosine * out.x + t.sine * out.z + t.translation.x;
+        out.z = -t.sine * out.x + t.cosine * out.z + t.translation.z;
+        out.x = x;
+        out.s = s;
+        out.l = l;
+        out.heading = headingInFrame(m, out.heading);
+        return out;
       },
     });
     const world: VehicleWorld = Object.freeze({
@@ -310,8 +395,8 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
       surfaces: Object.freeze({
         maxSupportedAbsL: Math.max(...mapped.map((m) => m.surface.maxSupportedAbsL + Math.abs(m.sourceLateralOrigin))),
         sample(s: number, l: number) {
-          const { address, mapping } = resolve(s, l);
-          return mapping.surface.sampleInChart(address.sourceS, l, mapping.sourceLateralOrigin);
+          const m = mappingAt(s);
+          return m.surface.sampleInChart(m.sourceChainageInFrame(s), l, m.sourceLateralOrigin);
         },
       }),
     });
@@ -357,6 +442,31 @@ export function createCourseDrivingSource(resident: CourseGround, physical: Phys
         const environment = mapping.presentation.visual.sample(sourceS);
         const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
         return base.kind === 'color' ? base.color : null;
+      },
+      sampleSpan(
+        pixels: Uint32Array,
+        offset: number,
+        count: number,
+        s: number,
+        l: number,
+        stepL: number,
+        level: number,
+      ) {
+        const mapping = mappingAt(s),
+          sourceS = mapping.sourceChainageInFrame(s);
+        const environment = mapping.presentation.visual.sample(sourceS);
+        mapping.ground.sampleSpan(
+          pixels,
+          offset,
+          count,
+          sourceS,
+          l,
+          stepL,
+          level,
+          mapping.sourceLateralOrigin,
+          environment.groundBaseLeft.kind === 'color' ? environment.groundBaseLeft.color : null,
+          environment.groundBaseRight.kind === 'color' ? environment.groundBaseRight.color : null,
+        );
       },
     });
     const scenery = mapped.flatMap((mapping) =>

@@ -2,31 +2,28 @@
 
 ## Current state
 
-- M1–M5 are complete: saved graph courses, legacy removal, seams, circuit/rivals, branch/merge and the agent CLI.
-- The browser and offline preview use one graph scene for LINEAR, SEAM, CIRCUIT and BRANCH.
-- Static driving readers are shared across actors; occurrence, field and race state remain separate.
-- N1 preserves mechanics/audio/input/camera/sprites and their immutable reference; tuning remains paused (DEV_UNCALIBRATED).
-- All Sections use precompiled, deduplicated resident RGB555; N2 CI/Pages and delivered hashes passed, with device acceptance pending.
-- Node reports SVG profiles/plans and course-scene timing/allocation; the browser exposes performance timing.
-- Current courses and analyzed observations are development inputs, not reconstructed master content.
-- Authored Session rules, exact checkpoint timing and offline physics-derived reference runs are integrated.
+- N1–N3 are published; K accepted the standing-start-to-results flow on device.
+- One graph scene serves LINEAR, SEAM, CIRCUIT and BRANCH, with all-Section resident RGB555.
+- Static compiled readers are shared; occurrences, actors, field locks and Session state remain separate.
+- P1 reuses physics/projection/progress/terrain storage and batches completed-ground scanlines.
+- Vehicle values, audio, input, camera, sprites and immutable mechanics/image references remain preserved.
+- Build generates per-vehicle envelopes, continuous reference runs and compact Session budgets in disposable outputs.
+- DEV_UNCALIBRATED courses and numeric observations are tool inputs, not reconstructed master content.
 
 ## Milestones
 
-| Milestone | Status and completion requirement                                                                                                                                                                                                                  |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| N1        | Published: unified scene/readers, bounded sharing, recovery-safe seams, centralized settings, performance HUD/probe and Node SVG reports. Node 24, immutable reference, exact-head/main CI and Pages passed; human device timing remains required. |
-| N2        | Published: all-Section resident RGB555, 40×10 L0, exact dictionary, filtered LOD and capacity admission. Exact-head/main CI, Pages and public payloads passed; device 60 fps remains required for Gate 3.                                          |
-| N3        | Published implementation: authored grid/checkpoints/FINISH, CLASSIC/CUSTOM standing starts, clock/results, deterministic reference driver, numeric timings and vehicle envelopes. Human start-to-result play and difficulty acceptance remain.     |
-| N4        | Pending: Cool Riders-style Left/Middle/Right fork and traffic with an explicit interaction policy.                                                                                                                                                 |
-| N5        | Pending: time-based observations, template-free fit and reference-driver validation, then one video-derived saved/public course with timing table and same-time comparison images. Synthetic tool work may precede footage.                        |
+| Milestone | Status and completion requirement                                                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| N1–N3     | Published and flow accepted: shared scene, resident ground, authored Sessions, checkpoint clocks and reference driving.                                                                                             |
+| P1 (1)    | First release candidate: host step-median/frame-p95 targets met; allocation and GC-spike acceptance remain open. Public CUSTOM with 16 rivals still requires K's device HUD check.                                  |
+| P1 (4)    | Included with the first performance PR because the former source-hash check blocked exact-preserving refactors: automatic cached references, one envelope per vehicle, compact browser budgets, untracked previews. |
+| P1 (2–3)  | Next PR: finite paint-boundary tiles, whole-master capacity estimate, and one envelope-based driver with provisional rival utilization. Keep the performance regression gate.                                       |
+| N4        | Pending after P1: a Left/Middle/Right fork course using ordinary lock, median, closure recovery, exit, merge and retarget rules; publicly drive start to results.                                                   |
+| N5        | Pending: timeline observations, template-free fit and current-envelope validation; synthetic tools first if footage is absent, then a public video-derived course with timing tables and same-time images.          |
 
-Playable milestones require a publicly drivable Pages URL. After N5: actual content production, then GUI for inspection and small adjustments.
+Playable completion requires a publicly drivable Pages URL and human driving. After N5: real content production → K reviews reference difficulty/time margins/rival speed → collisions/interactions and traffic → inspection/fine-adjustment GUI.
 
 ## Open decisions
 
-- Ground variation: finite tile vocabulary aligned to the 1.6 m grid, or arbitrary patches with a unique-tile budget. Recommend the finite vocabulary plus a measured budget for exceptional stamps; decide before N2 art policy.
-- Video waiting: no 30–90 second gameplay clip has been supplied for N5. K supplies a clip/edition; meanwhile complete the time-based tools with synthetic observations.
-- Headroom utilization: choose relaxed/fast/limit defaults for K7 fitting. Recommend 0.55/0.75/0.95, saved as fitting inputs and verified by the reference driver.
-- Traffic interaction: collision response, slowdown or legal-route recovery need a product decision before N4. Recommend an explicit lightweight contact policy, retaining player/rival mechanics.
-- Reference difficulty: accept the development margin of 1.35 for production presets, or author course-specific margins after play tests. Recommend course-specific acceptance using the saved continuous reference runs.
+- P1 allocation/GC: measured 0.42–0.64 MB/frame with 16 rivals versus 0.20 MB, about 2 ms steps, and one 20.7 ms GC overlap at the slowest LINEAR frame. Choose wider numeric-buffer reader/state APIs or a higher temporary allocation limit; recommend retaining the target and using K's device evidence to scope further storage changes. The 0.65 MB regression ceiling is not acceptance; absence of GC spikes remains unconfirmed.
+- N5 footage: K supplies a 30–90 second clip and edition information; complete timeline/fit tools with synthetic observations meanwhile.

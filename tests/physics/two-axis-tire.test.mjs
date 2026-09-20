@@ -1,6 +1,5 @@
 import { near } from '../helpers/assert.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   compileTireCharacteristics as compile,
@@ -23,6 +22,10 @@ import {
   FERRARI_TESTAROSSA_VEHICLE_AUTHORING,
 } from '../../dist/vehicle/production-vehicle-profiles.js';
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
+import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
+import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
+import { observeVehicleTires } from '../../dist/physics/vehicle-tire-observation.js';
+
 const seed = { gripX: 2.5, peakSlipX: 0.08, gripY: 2.2, peakSlipY: 0.1, knee: 0.74 };
 const tire = car.rearStation.tire,
   R = car.rearStation.rollingRadius;
@@ -308,17 +311,38 @@ test('Coulomb brake atom and free airborne wheel rotation remain ordinary wheel 
   near(free.omega, (100 * 0.01) / 3.4, 1e-10, { relative: true });
   assert.equal(free.tire.fx, 0);
 });
-test('tire authority remains per-station while owns delivered torque separately', async () => {
-  const src = await readFile(new URL('../../src/physics/tire-wheel.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(
-    src,
-    /lateralPostPeakScale|slidingFrictionRatio|referenceFrictionMultiplier|linearStiffnessMultiplier|driftMode|targetBeta|sCut|TCS_GAIN/,
-  );
-  const body = await readFile(new URL('../../src/physics/arcade-vehicle-physics.ts', import.meta.url), 'utf8');
-  assert.match(body, /characteristics: vehicle\.tireFrictionCalibration\.front/);
-  assert.match(body, /characteristics: vehicle\.tireFrictionCalibration\.rear/);
-  assert.match(body, /solveProtectedWheelPair/);
-  assert.match(body, /resolved\.frontInput\.driveTorque/);
-  assert.match(body, /resolved\.rearInput\.driveTorque/);
-  assert.doesNotMatch(body, /sCut|TCS_GAIN|torqueScale|gripX.*brake/);
+test('accepted wheel observations use each station calibration independently', () => {
+  const fixture = createCurvedReferenceWorld();
+  const world = { guide: fixture.guide, height: fixture.heightProfile, surfaces: fixture.surfaceMap };
+  const calibration = pair(compile({ ...seed, gripX: 0.7 }), compile({ ...seed, gripX: 2.3 }));
+  const vehicle = createArcadeVehicle(car, world, { s: 200, initialSpeed: 30, tireFrictionCalibration: calibration });
+  const observed = observeVehicleTires(vehicle);
+  for (let tick = 0; tick < 20; tick++) {
+    updateArcadeVehicle(world, vehicle, { steering: 0.3, throttle: false, brake: true }, 1 / 60);
+    for (const station of ['front', 'rear']) {
+      const sample = observed[station];
+      assert.equal(sample.surface, 'ASPHALT');
+      const radius = car[`${station}Station`].rollingRadius;
+      const load = vehicle[`${station}NormalLoad`];
+      const tire = car[`${station}Station`].tire;
+      const expected = force(
+        sample.wheelAngularSpeed,
+        radius,
+        sample.longitudinalVelocity,
+        sample.lateralVelocity,
+        load,
+        1,
+        tire,
+        calibration[station],
+      );
+      near(sample.longitudinalPower, Math.max(0, expected.fx * expected.sx * expected.referenceSpeed), 1e-10, {
+        relative: true,
+      });
+      near(sample.lateralPower, Math.max(0, expected.fy * expected.sy * expected.referenceSpeed), 1e-10, {
+        relative: true,
+      });
+    }
+  }
+  assert.ok(observed.front.longitudinalPower > 1);
+  assert.ok(observed.rear.longitudinalPower > 1);
 });

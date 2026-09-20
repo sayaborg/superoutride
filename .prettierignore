@@ -7,3 +7,5 @@ package-lock.json
 
 # Exact saved bytes are addressed by SHA-256.
 content/images/
+
+.cache/

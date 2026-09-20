@@ -1,4 +1,5 @@
-import { headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
+import { createPlanarSampleBuffer, PlanarSampleSlot as P, readPlanarSample } from './planar-sample.js';
+import { headingFromDelta, normalFromHeading, wrapAngle, type Vec2 } from './math.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 
 export interface RasterVertex extends Vec2 {
@@ -133,21 +134,39 @@ export function compileRasterPath(vertices: readonly RasterVertex[]): RasterPath
   });
 }
 
-export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
+const sampleBuffers = new WeakMap<RasterPath, Float64Array>();
+export function sampleRasterPath(
+  path: RasterPath,
+  s: number,
+  out = { x: 0, z: 0, s: 0, segmentIndex: -1, heading: 0 },
+): RasterSample {
+  let buffer = sampleBuffers.get(path);
+  if (!buffer) {
+    buffer = createPlanarSampleBuffer();
+    sampleBuffers.set(path, buffer);
+  }
+  sampleRasterPathInto(path, s, buffer);
+  return readPlanarSample(buffer, out);
+}
+
+export function sampleRasterPathInto(path: RasterPath, s: number, out: Float64Array): void {
   const sLocal = checkedPathChainage(path, s);
-  const segmentIndex = findRasterSegmentIndex(path, sLocal);
+  const previous = path.segments[out[P.segmentIndex]!];
+  const segmentIndex =
+    previous &&
+    sLocal > previous.sStart + GEOMETRY_SAMPLING_TOLERANCE_METERS &&
+    sLocal < previous.sStart + previous.length - GEOMETRY_SAMPLING_TOLERANCE_METERS
+      ? previous.index
+      : findRasterSegmentIndex(path, sLocal);
   const segment = path.segments[segmentIndex]!;
   const start = path.vertices[segment.startVertexIndex]!;
-  const tangent = tangentFromHeading(segment.heading);
   const ds = sLocal - segment.sStart;
 
-  return {
-    x: start.x + tangent.x * ds,
-    z: start.z + tangent.z * ds,
-    s: sLocal,
-    segmentIndex,
-    heading: segment.heading,
-  };
+  out[P.x] = start.x + Math.sin(segment.heading) * ds;
+  out[P.z] = start.z + Math.cos(segment.heading) * ds;
+  out[P.s] = sLocal;
+  out[P.segmentIndex] = segmentIndex;
+  out[P.heading] = segment.heading;
 }
 
 /**
@@ -160,9 +179,14 @@ export function sampleRasterPath(path: RasterPath, s: number): RasterSample {
  * normal. Linear interpolation between endpoint bases remains on the current
  * segment's offset line.
  */
-export function rasterPathToWorld(path: RasterPath, s: number, l: number): CourseWorldSample {
+export function rasterPathToWorld(
+  path: RasterPath,
+  s: number,
+  l: number,
+  out = { x: 0, z: 0, s: 0, segmentIndex: -1, heading: 0, l: 0 },
+): CourseWorldSample {
   if (!Number.isFinite(l)) throw new RangeError('raster lateral coordinate must be finite');
-  const center = sampleRasterPath(path, s);
+  const center = sampleRasterPath(path, s, out);
   const segment = path.segments[center.segmentIndex]!;
   const ds = center.s - segment.sStart;
   const t = Math.max(0, Math.min(1, ds / segment.length));
@@ -171,12 +195,10 @@ export function rasterPathToWorld(path: RasterPath, s: number, l: number): Cours
   const lateralX = m0.x + (m1.x - m0.x) * t;
   const lateralZ = m0.z + (m1.z - m0.z) * t;
 
-  return {
-    ...center,
-    x: center.x + lateralX * l,
-    z: center.z + lateralZ * l,
-    l,
-  };
+  out.x = center.x + lateralX * l;
+  out.z = center.z + lateralZ * l;
+  out.l = l;
+  return out;
 }
 
 function checkedPathChainage(path: RasterPath, s: number): number {

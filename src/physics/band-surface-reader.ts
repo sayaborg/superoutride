@@ -26,11 +26,27 @@ export function createBandSurfaceReader(
           maxSupportedAbsL = Math.max(maxSupportedAbsL, Math.abs(courseBoundaryAt(boundary, s)));
     }
   }
+  const samples = new Map(
+    bindings.map((binding) => [
+      binding.band,
+      new Map(
+        binding.sections.map((node) => [
+          node.material,
+          Object.freeze({ sectionName: binding.band.id, type: node.material.type, material: node.material }),
+        ]),
+      ),
+    ]),
+  );
+  const outside = Object.freeze({
+    sectionName: 'OUTSIDE',
+    type: SURFACE_MATERIALS.VOID.type,
+    material: SURFACE_MATERIALS.VOID,
+  });
   const sampleInChart = (s: number, l: number, sourceLateralOrigin: number) => {
     if (typeof s !== 'number' || typeof l !== 'number') throw new TypeError('Surface coordinates must be numeric');
     const band = courseBandAt(partition, s, l, sourceLateralOrigin);
     const material = band ? coursePhysicalMaterialAt(table.get(band)!, s) : SURFACE_MATERIALS.VOID;
-    return { sectionName: band?.id ?? 'OUTSIDE', type: material.type, material };
+    return band ? samples.get(band)!.get(material)! : outside;
   };
   return Object.freeze({
     maxSupportedAbsL,

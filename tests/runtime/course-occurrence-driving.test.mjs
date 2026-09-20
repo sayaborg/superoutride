@@ -253,6 +253,10 @@ test('saved presentation maps once across a selected seam and actual complete fr
                 if (moving.geometry.addressInFrame(s, l).occurrence !== d.frame) neighborQueries += 1;
                 return p.ground.sampleAtLevel(s, l, level);
               },
+              sampleSpan(target, offset, count, s, lateral, lateralStep, level) {
+                if (moving.geometry.addressInFrame(s, lateral).occurrence !== d.frame) neighborQueries += count;
+                return p.ground.sampleSpan(target, offset, count, s, lateral, lateralStep, level);
+              },
             },
           },
         );

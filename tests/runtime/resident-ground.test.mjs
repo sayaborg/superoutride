@@ -107,6 +107,30 @@ test('resident levels equal independent direct-source area integration at partia
     groundByteLength(compiled.manifest.grids, compiled.manifest.uniqueTiles, compiled.manifest.kMax),
     compiled.payload.length,
   );
+  for (let k = 0; k <= compiled.manifest.kMax; k++)
+    for (const origin of [-0.37, 0, 0.41]) {
+      const pixels = new Uint32Array(37).fill(123),
+        expected = pixels.slice();
+      let l = -1.7;
+      const s = data.partition.length - 0.001,
+        step = 0.173;
+      for (let i = 2; i < 35; i++, l += step) {
+        const sourceL = l + origin;
+        const color =
+          sourceL < reader.domain.left
+            ? null
+            : sourceL >= reader.domain.right
+              ? 777
+              : reader.sampleAtLevel(s, sourceL, k);
+        if (color !== null) expected[i] = color;
+      }
+      reader.sampleSpan(pixels, 2, 33, s, -1.7, step, k, origin, null, 777);
+      assert.deepEqual(
+        pixels,
+        expected,
+        'affine batch preserves scalar addition order, finite edges and transparent outside',
+      );
+    }
   const saved = reader.sampleAtLevel(0.1, 0.1, 0);
   compiled.payload.fill(0);
   assert.equal(reader.sampleAtLevel(0.1, 0.1, 0), saved, 'reader owns immutable bytes');

@@ -44,16 +44,6 @@ export function dot(a: Vec2, b: Vec2): number {
   return a.x * b.x + a.z * b.z;
 }
 
-export function distanceSquared(a: Vec2, b: Vec2): number {
-  const dx = a.x - b.x;
-  const dz = a.z - b.z;
-  return dx * dx + dz * dz;
-}
-
 export function subtract(a: Vec2, b: Vec2): Vec2 {
   return { x: a.x - b.x, z: a.z - b.z };
-}
-
-export function scale(v: Vec2, scalar: number): Vec2 {
-  return { x: v.x * scalar, z: v.z * scalar };
 }

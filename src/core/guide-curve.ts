@@ -1,16 +1,13 @@
 import {
-  clamp,
-  distanceSquared,
-  dot,
-  headingFromDelta,
-  normalFromHeading,
-  scale,
-  subtract,
-  tangentFromHeading,
-  wrapAngle,
-  type Vec2,
-} from './math.js';
-import { sampleRasterPath, type RasterPath } from './raster-path.js';
+  createPlanarCoordinateSample,
+  createPlanarSampleBuffer,
+  PlanarSampleSlot as P,
+  readPlanarSample,
+} from './planar-sample.js';
+import { hypot2 } from './norm.js';
+import type { Writable } from './writable.js';
+import { clamp, headingFromDelta, normalFromHeading, tangentFromHeading, wrapAngle, type Vec2 } from './math.js';
+import { sampleRasterPathInto, type RasterPath } from './raster-path.js';
 import { GEOMETRY_SAMPLING_TOLERANCE_METERS } from './tolerances.js';
 import { compileGuideEnvelope, guideEnvelopeAt, guideEnvelopeRange, type GuideEnvelope } from './guide-envelope.js';
 
@@ -238,22 +235,48 @@ export function compileGuidePath(path: RasterPath, options: GuideCompileOptions)
   });
 }
 
-export function sampleGuidePath(guide: GuidePath, s: number): GuideSample {
-  const sLocal = checkedGuideChainage(guide, s);
-  const segmentIndex = findGuideSegmentIndex(guide, sLocal);
-  return sampleGuideSegment(guide, guide.segments[segmentIndex]!, sLocal);
+function createGuideSample(): Writable<GuideSample> {
+  return { x: 0, z: 0, s: 0, heading: 0, segmentIndex: -1 };
 }
 
-export function guidePathToWorld(guide: GuidePath, s: number, l: number): GuideSample & { l: number } {
+const sampleBuffers = new WeakMap<GuidePath, Float64Array>();
+function sampleBuffer(guide: GuidePath) {
+  let out = sampleBuffers.get(guide);
+  if (!out) {
+    out = createPlanarSampleBuffer();
+    sampleBuffers.set(guide, out);
+  }
+  return out;
+}
+export function sampleGuidePath(guide: GuidePath, s: number, out = createGuideSample()): GuideSample {
+  const buffer = sampleBuffer(guide);
+  sampleGuidePathInto(guide, s, buffer);
+  return readPlanarSample(buffer, out);
+}
+function sampleGuidePathInto(guide: GuidePath, s: number, out: Float64Array): void {
+  const sLocal = checkedGuideChainage(guide, s);
+  const previous = guide.segments[out[P.segmentIndex]!];
+  const index =
+    previous &&
+    sLocal > previous.sStart + GEOMETRY_SAMPLING_TOLERANCE_METERS &&
+    sLocal < previous.sEnd - GEOMETRY_SAMPLING_TOLERANCE_METERS
+      ? previous.index
+      : findGuideSegmentIndex(guide, sLocal);
+  sampleGuideSegmentInto(guide, guide.segments[index]!, sLocal, out);
+}
+
+export function guidePathToWorld(
+  guide: GuidePath,
+  s: number,
+  l: number,
+  out = createPlanarCoordinateSample(),
+): GuideSample & { l: number } {
   if (!Number.isFinite(l)) throw new RangeError('Guide lateral coordinate must be finite');
-  const center = sampleGuidePath(guide, s);
-  const normal = normalFromHeading(center.heading);
-  return {
-    ...center,
-    x: center.x + normal.x * l,
-    z: center.z + normal.z * l,
-    l,
-  };
+  sampleGuidePath(guide, s, out);
+  out.x = out.x + Math.cos(out.heading) * l;
+  out.z = out.z + -Math.sin(out.heading) * l;
+  out.l = l;
+  return out;
 }
 
 export function locateWorldOnGuideGlobal(guide: GuidePath, world: Vec2, clampL = false): CourseCoordinate {
@@ -296,10 +319,18 @@ export function projectWorldOnGuideInterval(
   start: number,
   end: number,
   clampL = false,
+  out: CourseCoordinate = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+  sample = sampleBuffer(guide),
+  straightOrigin?: GuideSample,
+  buffer?: Float64Array,
 ): CourseCoordinate {
   if (
     !world ||
-    [world.x, world.z, start, end, segmentIndex].some((v) => typeof v !== 'number') ||
+    typeof world.x !== 'number' ||
+    typeof world.z !== 'number' ||
+    typeof start !== 'number' ||
+    typeof end !== 'number' ||
+    typeof segmentIndex !== 'number' ||
     typeof clampL !== 'boolean'
   )
     throw new TypeError('Guide interval projection requires numeric coordinates, segment and bounds');
@@ -307,39 +338,44 @@ export function projectWorldOnGuideInterval(
     throw new RangeError('Guide interval projection needs a source segment');
   const segment = guide.segments[segmentIndex]!;
   if (
-    ![world.x, world.z, start, end].every(Number.isFinite) ||
+    !Number.isFinite(world.x) ||
+    !Number.isFinite(world.z) ||
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
     start < segment.sStart ||
     end > segment.sEnd ||
     end <= start
   )
     throw new RangeError('Projection interval must have positive extent inside its source segment');
-  return projectWorldToGuideSegment(guide, segment, world, clampL, start, end);
+  return projectWorldToGuideSegment(guide, segment, world, clampL, start, end, out, sample, straightOrigin, buffer);
 }
 
-export function sampleGuideSegment(guide: GuidePath, segment: GuideSegment, sLocal: number): GuideSample {
+export function sampleGuideSegment(
+  guide: GuidePath,
+  segment: GuideSegment,
+  sLocal: number,
+  out = createGuideSample(),
+): GuideSample {
+  const buffer = sampleBuffer(guide);
+  sampleGuideSegmentInto(guide, segment, sLocal, buffer);
+  return readPlanarSample(buffer, out);
+}
+function sampleGuideSegmentInto(guide: GuidePath, segment: GuideSegment, sLocal: number, out: Float64Array): void {
   const checked = checkedGuideChainage(guide, sLocal);
   if (
     checked < segment.sStart - GEOMETRY_SAMPLING_TOLERANCE_METERS ||
     checked > segment.sEnd + GEOMETRY_SAMPLING_TOLERANCE_METERS
-  ) {
+  )
     throw new RangeError('guide segment sample is outside the segment interval');
-  }
-
   if (segment.kind === 'straight') {
-    const raster = sampleRasterPath(guide.raster, checked);
-    return {
-      x: raster.x,
-      z: raster.z,
-      s: checked,
-      heading: raster.heading,
-      segmentIndex: segment.index,
-    };
+    out[P.segmentIndex] = segment.rasterSegmentIndex;
+    sampleRasterPathInto(guide.raster, checked, out);
+    out[P.segmentIndex] = segment.index;
+    return;
   }
-
   const corner = guide.corners[segment.cornerIndex]!;
   if (!corner.center || !Number.isFinite(corner.radius)) throw new Error('invalid arc corner');
-  const q = qForCornerS(corner, checked);
-  return sampleCornerAtQ(corner, q, segment.index);
+  sampleCornerAtQ(corner, qForCornerS(corner, checked), segment.index, out);
 }
 
 function bestCandidate(
@@ -361,6 +397,35 @@ function bestCandidate(
   return best;
 }
 
+/** Conservative source-space bounds for rejecting farther projection candidates. */
+export function guideSegmentBounds(guide: GuidePath, segment: GuideSegment, start: number, end: number) {
+  const a = sampleGuideSegment(guide, segment, start),
+    b = sampleGuideSegment(guide, segment, end);
+  let left = Math.min(a.x, b.x),
+    right = Math.max(a.x, b.x),
+    back = Math.min(a.z, b.z),
+    front = Math.max(a.z, b.z);
+  if (segment.kind === 'arc') {
+    const corner = guide.corners[segment.cornerIndex]!;
+    const low = Math.min(a.heading, b.heading),
+      high = Math.max(a.heading, b.heading);
+    for (let quadrant = Math.ceil(low / (Math.PI / 2)); quadrant * (Math.PI / 2) <= high; quadrant++) {
+      const heading = quadrant * (Math.PI / 2),
+        sign = Math.sign(corner.turn);
+      const x = corner.center!.x - sign * corner.radius * Math.cos(heading);
+      const z = corner.center!.z - sign * corner.radius * -Math.sin(heading);
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+      back = Math.min(back, z);
+      front = Math.max(front, z);
+    }
+  }
+  // Expand generously relative to coordinate magnitude: rejection must never decide a roundoff tie.
+  const padding =
+    GEOMETRY_SAMPLING_TOLERANCE_METERS * Math.max(1, Math.abs(left), Math.abs(right), Math.abs(back), Math.abs(front));
+  return { left: left - padding, right: right + padding, back: back - padding, front: front + padding };
+}
+
 function projectWorldToGuideSegment(
   guide: GuidePath,
   segment: GuideSegment,
@@ -368,60 +433,74 @@ function projectWorldToGuideSegment(
   clampL: boolean,
   start = segment.sStart,
   end = segment.sEnd,
+  out: CourseCoordinate = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+  sample = sampleBuffer(guide),
+  straightOrigin?: GuideSample,
+  buffer?: Float64Array,
 ): CourseCoordinate {
-  let sample: GuideSample;
-
   if (segment.kind === 'straight') {
-    const origin = sampleGuideSegment(guide, segment, segment.sStart);
-    const tangent = tangentFromHeading(origin.heading);
-    const fromStart = subtract(world, origin);
-    const along = dot(fromStart, tangent);
+    let originX: number, originZ: number, heading: number;
+    if (straightOrigin) {
+      originX = straightOrigin.x;
+      originZ = straightOrigin.z;
+      heading = straightOrigin.heading;
+    } else {
+      sampleGuideSegmentInto(guide, segment, segment.sStart, sample);
+      originX = sample[P.x]!;
+      originZ = sample[P.z]!;
+      heading = sample[P.heading]!;
+    }
+    const along = (world.x - originX) * Math.sin(heading) + (world.z - originZ) * Math.cos(heading);
     const sCandidate = clamp(segment.sStart + along, start, end);
-    sample = sampleGuideSegment(guide, segment, sCandidate);
+    sampleGuideSegmentInto(guide, segment, sCandidate, sample);
   } else {
     const corner = guide.corners[segment.cornerIndex]!;
     if (!corner.center) throw new Error('arc corner missing center');
-    const radial = subtract(world, corner.center);
-    const radialLength = Math.hypot(radial.x, radial.z);
+    const radialX = world.x - corner.center.x,
+      radialZ = world.z - corner.center.z;
+    const radialLength = hypot2(radialX, radialZ);
     const qStart = start === segment.sStart ? segment.qStart : qForCornerS(corner, start);
     const qEnd = end === segment.sEnd ? segment.qEnd : qForCornerS(corner, end);
-
     let q: number;
-    if (radialLength < ARC_CENTER_TOLERANCE_METERS) {
-      q = (qStart + qEnd) * 0.5;
-    } else {
-      const sign = Math.sign(corner.turn);
-      const n = scale(radial, -sign / radialLength);
-      const heading = headingFromDelta(-n.z, n.x);
-      const angle = wrapAngle(heading - corner.incomingHeading);
-      q = clamp(angle / corner.turn, qStart, qEnd);
+    if (radialLength < ARC_CENTER_TOLERANCE_METERS) q = (qStart + qEnd) * 0.5;
+    else {
+      const factor = -Math.sign(corner.turn) / radialLength;
+      const heading = headingFromDelta(-(radialZ * factor), radialX * factor);
+      q = clamp(wrapAngle(heading - corner.incomingHeading) / corner.turn, qStart, qEnd);
     }
-    sample = sampleCornerAtQ(corner, q, segment.index);
+    sampleCornerAtQ(corner, q, segment.index, sample);
   }
-
-  const delta = subtract(world, sample);
-  const normal = normalFromHeading(sample.heading);
-  const rawL = dot(delta, normal);
-  const limit = clampL ? guideEnvelopeAt(guide.envelope, sample.s) : 0;
+  const dx = world.x - sample[P.x]!,
+    dz = world.z - sample[P.z]!;
+  const rawL = dx * Math.cos(sample[P.heading]!) + dz * -Math.sin(sample[P.heading]!);
+  const s = sample[P.s]!;
+  const limit = clampL ? guideEnvelopeAt(guide.envelope, s) : 0;
   const l = clampL ? clamp(rawL, -limit, limit) : rawL;
-  return {
-    s: sample.s,
-    l,
-    segmentIndex: segment.index,
-    distanceSquared: distanceSquared(world, sample),
-  };
+  const distance = dx * dx + dz * dz;
+  if (buffer) {
+    buffer[0] = s;
+    buffer[1] = l;
+    buffer[2] = segment.index;
+    buffer[3] = distance;
+  } else {
+    out.s = s;
+    out.l = l;
+    out.segmentIndex = segment.index;
+    out.distanceSquared = distance;
+  }
+  return out;
 }
 
-function sampleCornerAtQ(corner: GuideCorner, qInput: number, segmentIndex: number): GuideSample {
+function sampleCornerAtQ(corner: GuideCorner, qInput: number, segmentIndex: number, out: Float64Array): void {
   if (!corner.center) throw new Error('corner has no arc');
   const q = clamp(qInput, 0, 1);
   const heading = corner.incomingHeading + corner.turn * q;
-  const normal = normalFromHeading(heading);
   const sign = Math.sign(corner.turn);
-  const x = corner.center.x - sign * corner.radius * normal.x;
-  const z = corner.center.z - sign * corner.radius * normal.z;
-  const s = corner.sVertex - corner.trim + 2 * corner.trim * q;
-  return { x, z, s, heading, segmentIndex };
+  out[P.x] = corner.center.x - sign * corner.radius * Math.cos(heading);
+  out[P.z] = corner.center.z - sign * corner.radius * -Math.sin(heading);
+  out[P.s] = corner.sVertex - corner.trim + 2 * corner.trim * q;
+  out[P.heading] = heading;
+  out[P.segmentIndex] = segmentIndex;
 }
 
 function qForCornerS(corner: GuideCorner, s: number): number {

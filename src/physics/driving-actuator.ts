@@ -83,7 +83,13 @@ export function stepNormalizedActuator(
   if (!(dt > 0) || !Number.isFinite(dt)) {
     throw new RangeError('actuator dt must be finite and > 0');
   }
-  if (![current, target, minimum, maximum].every(Number.isFinite) || minimum >= maximum) {
+  if (
+    !Number.isFinite(current) ||
+    !Number.isFinite(target) ||
+    !Number.isFinite(minimum) ||
+    !Number.isFinite(maximum) ||
+    minimum >= maximum
+  ) {
     throw new RangeError('actuator state, target and bounds must be finite and ordered');
   }
   if (

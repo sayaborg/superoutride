@@ -8,6 +8,7 @@ import type { VehicleRenderReadState } from '../physics/vehicle-contract.js';
 import {
   computeForwardVisibleInterval,
   generateTerrainLines,
+  createTerrainWorkspace,
   type TerrainLine,
   type TerrainVisualProfile,
 } from '../terrain/terrain-line.js';
@@ -57,6 +58,16 @@ export interface GroundColorReader {
   readonly kMax: number;
   selectLevel(deltaSEffective: number): number;
   sampleAtLevel(s: number, l: number, level: number): number | null;
+  /** Batch an affine scanline without changing per-pixel sampling or accumulation order. */
+  sampleSpan?(
+    pixels: Uint32Array,
+    offset: number,
+    count: number,
+    s: number,
+    l: number,
+    stepL: number,
+    level: number,
+  ): void;
 }
 
 interface RenderScene {
@@ -71,7 +82,12 @@ interface RenderScene {
   readonly playerKind: PlayerVisualKind;
 }
 
+export function createRenderWorkspace() {
+  return { terrain: createTerrainWorkspace(), terrainStats: { outputPixels: 0, groundMapLevel: 0 } };
+}
+
 interface RenderOptions {
+  readonly workspace?: ReturnType<typeof createRenderWorkspace>;
   readonly observeWorkload?: boolean;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: GroundColorReader;
@@ -80,9 +96,9 @@ interface RenderOptions {
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, vehicle, terrainProfile, groundProfile, worldSprites, assets, playerKind }: RenderScene,
-  { observeWorkload = false, ground }: RenderOptions,
+  { observeWorkload = false, ground, workspace = createRenderWorkspace() }: RenderOptions,
 ): RenderResult {
-  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile);
+  const { renderCamera, terrain } = prepareTerrain(guide, camera, terrainProfile, workspace);
   drawFarBackground(target, background, renderCamera);
   const visible = computeForwardVisibleInterval(
     guide,
@@ -119,7 +135,7 @@ export function renderDriving(
     terrain,
     sprites,
     (line) => {
-      const stats = drawTerrainLine(target, line, groundProfile, ground);
+      const stats = drawTerrainLine(target, line, groundProfile, ground, workspace.terrainStats);
       terrainOutputPixels += stats.outputPixels;
       groundMapMaxLevel = Math.max(groundMapMaxLevel, stats.groundMapLevel);
       if (observation) {
@@ -211,10 +227,15 @@ export function renderDriving(
   };
 }
 
-function prepareTerrain(guide: RasterGeometry, camera: PseudoCamera, terrainProfile: TerrainVisualProfile) {
+function prepareTerrain(
+  guide: RasterGeometry,
+  camera: PseudoCamera,
+  terrainProfile: TerrainVisualProfile,
+  workspace: ReturnType<typeof createRenderWorkspace>,
+) {
   const renderCamera = createRenderSpaceCamera(terrainProfile.height, camera);
 
-  const terrain = generateTerrainLines(guide, renderCamera, terrainProfile);
+  const terrain = generateTerrainLines(guide, renderCamera, terrainProfile, workspace.terrain);
   return { renderCamera, terrain };
 }
 
@@ -223,6 +244,7 @@ function drawTerrainLine(
   line: TerrainLine,
   groundProfile: { readonly groundLeft: number; readonly groundRight: number },
   ground: GroundColorReader,
+  out: { outputPixels: number; groundMapLevel: number },
 ): { outputPixels: number; groundMapLevel: number } {
   let outputPixels = 0;
   const leftEdge = Math.ceil(line.xGroundL);
@@ -248,11 +270,14 @@ function drawTerrainLine(
       const lateralStep = (localGroundLeft + localGroundRight) / dx;
 
       const offset = line.y * target.width;
-      for (let x = x0; x <= x1; x += 1) {
-        const color = ground.sampleAtLevel(line.s, lateral, groundMapLevel);
-        if (color !== null) target.pixels[offset + x] = color;
-        lateral += lateralStep;
-      }
+      if (ground.sampleSpan)
+        ground.sampleSpan(target.pixels, offset + x0, x1 - x0 + 1, line.s, lateral, lateralStep, groundMapLevel);
+      else
+        for (let x = x0; x <= x1; x += 1) {
+          const color = ground.sampleAtLevel(line.s, lateral, groundMapLevel);
+          if (color !== null) target.pixels[offset + x] = color;
+          lateral += lateralStep;
+        }
       outputPixels += x1 - x0 + 1;
     }
   }
@@ -265,7 +290,9 @@ function drawTerrainLine(
     }
   }
 
-  return { outputPixels, groundMapLevel };
+  out.outputPixels = outputPixels;
+  out.groundMapLevel = groundMapLevel;
+  return out;
 }
 
 function drawWorldSprite(

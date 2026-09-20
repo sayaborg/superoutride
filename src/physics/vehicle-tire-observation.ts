@@ -1,3 +1,4 @@
+import { hypot2 } from '../core/norm.js';
 import type { SurfaceType } from './surface-map.js';
 import type { WheelSolveResult } from './tire-wheel.js';
 import type { ContactObservation } from './vehicle-dynamics.js';
@@ -87,8 +88,8 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   result.wheelSpeed = loaded ? contact.effectiveRollingRadius * wheel.omega : 0;
   result.wheelAngularSpeed = loaded ? wheel.omega : 0;
   result.rollingSpeed = loaded ? Math.abs(contact.longitudinalVelocity) : 0;
-  result.travelSpeed = loaded ? Math.hypot(contact.longitudinalVelocity, contact.lateralVelocity) : 0;
-  result.slipSpeed = loaded ? Math.hypot(wheel.tire.sx, wheel.tire.sy) * wheel.tire.referenceSpeed : 0;
+  result.travelSpeed = loaded ? hypot2(contact.longitudinalVelocity, contact.lateralVelocity) : 0;
+  result.slipSpeed = loaded ? hypot2(wheel.tire.sx, wheel.tire.sy) * wheel.tire.referenceSpeed : 0;
   // sx/sy use the force direction convention, so these products are nonnegative.
   result.longitudinalPower = loaded ? Math.max(0, wheel.tire.fx * wheel.tire.sx * wheel.tire.referenceSpeed) : 0;
   result.lateralPower = loaded ? Math.max(0, wheel.tire.fy * wheel.tire.sy * wheel.tire.referenceSpeed) : 0;

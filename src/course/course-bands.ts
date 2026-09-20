@@ -62,7 +62,8 @@ export function courseBandAt(
     throw new RangeError('Band lateral query and origin must be finite');
   if (!Number.isFinite(s) || s < 0 || s > partition.length)
     throw new RangeError('Band query must be within its finite Section domain');
-  for (const band of partition.bands)
+  for (let i = 0; i < partition.bands.length; i++) {
+    const band = partition.bands[i]!;
     if (
       s >= band.start.s &&
       (s < band.end.s || (s === partition.length && s === band.end.s)) &&
@@ -70,5 +71,6 @@ export function courseBandAt(
       l < courseBoundaryAt(band.right, s) - sourceLateralOrigin
     )
       return band;
+  }
   return null;
 }

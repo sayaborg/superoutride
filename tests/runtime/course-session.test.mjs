@@ -17,7 +17,7 @@ import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 const file = new URL('../../content/courses/linear.course.json', import.meta.url).pathname;
 const loaded = await loadCourse(file),
   { course } = loaded;
-const reference = JSON.parse(await readFile(new URL('../../content/reference/linear.json', import.meta.url)));
+const reference = JSON.parse(await readFile(new URL('../../dist/offline/reference/linear.json', import.meta.url)));
 const ground = await loadCourseGround(course, file);
 const settings = { mode: 'CUSTOM', rivalCount: 0, lapCount: 1, countdown: true };
 
@@ -112,7 +112,7 @@ test('branch budgets take the maximum next interval over continuous histories sh
   const { course: branch } = await loadCourse(
     new URL('../../content/courses/branch.course.json', import.meta.url).pathname,
   );
-  const saved = JSON.parse(await readFile(new URL('../../content/reference/branch.json', import.meta.url)));
+  const saved = JSON.parse(await readFile(new URL('../../dist/offline/reference/branch.json', import.meta.url)));
   const budgets = await readCourseReference(branch, browserSessionVehicle(VEHICLE_CATALOG[0]), saved);
   const runs = saved.vehicles[0].runs;
   const ms = (seconds) => Math.ceil(1000 * branch.rules.classic.timeMargin * seconds);
@@ -158,12 +158,85 @@ test('expired physical crossing cannot award progress or checkpoint time', () =>
 });
 
 for (const index of [0, 5])
-  test(`continuous ${VEHICLE_CATALOG[index].profile.id} replay reproduces saved accepted times with production inputs`, () => {
+  test(`continuous ${VEHICLE_CATALOG[index].profile.id} replay reproduces saved accepted times with production inputs`, async () => {
     const entry = VEHICLE_CATALOG[index],
       saved = reference.vehicles.find((v) => v.vehicleId === entry.profile.id);
-    const run = runCourseReference(course, ground, entry, saved.envelope, [], 1);
+    const { envelope } = JSON.parse(
+      await readFile(new URL(`../../dist/content/envelopes/${entry.profile.id}.json`, import.meta.url)),
+    );
+    const run = runCourseReference(course, ground, entry, envelope, [], 1);
     assert.deepEqual(run.events, saved.runs[0].events);
     assert.equal(run.elapsedSeconds, saved.runs[0].elapsedSeconds);
     assert.equal(run.metrics.recoveries, 0);
-    assert.ok(run.metrics.maximumSpeed > saved.envelope.maximumSpeed * 0.9);
+    assert.ok(run.metrics.maximumSpeed > envelope.maximumSpeed * 0.9);
   });
+
+test('browser budgets equal admitted continuous runs and reject incomplete, duplicate or foreign intervals', async () => {
+  const { readCourseTimeBudgets, courseBudgetLandmarks } = await import('../../dist/runtime/course-time-budgets.js');
+  const vehicle = browserSessionVehicle(VEHICLE_CATALOG[0]);
+  const bytes = await readFile(
+    new URL(`../../dist/content/budgets/linear/${vehicle.profile.id}.json`, import.meta.url),
+  );
+  assert.ok(bytes.length < 4096);
+  const circuitBytes = await readFile(
+    new URL(`../../dist/content/budgets/circuit/${vehicle.profile.id}.json`, import.meta.url),
+  );
+  assert.ok(circuitBytes.length < 4096, 'maximum-lap budgets remain a few KB');
+  const { course: circuit } = await loadCourse(
+    new URL('../../content/courses/circuit.course.json', import.meta.url).pathname,
+  );
+  const circuitBudgets = await readCourseTimeBudgets(circuit, vehicle, JSON.parse(circuitBytes));
+  const continuous = await readCourseReference(
+    circuit,
+    vehicle,
+    JSON.parse(await readFile(new URL('../../dist/offline/reference/circuit.json', import.meta.url))),
+  );
+  for (const { gate, laps } of courseBudgetLandmarks(circuit))
+    for (let lap = 1; lap <= laps; lap++) assert.equal(circuitBudgets.after(gate, lap), continuous.after(gate, lap));
+
+  const saved = JSON.parse(bytes),
+    budgets = await readCourseTimeBudgets(course, vehicle, saved);
+  const expected = await readCourseReference(course, vehicle, reference);
+  assert.equal(budgets.initialMs, expected.initialMs);
+  const repeated = JSON.parse(circuitBytes);
+  repeated.after[1] = structuredClone(repeated.after[0]);
+  await assert.rejects(readCourseTimeBudgets(circuit, vehicle, repeated), /duplicate/);
+
+  for (const { gate, laps } of courseBudgetLandmarks(course))
+    for (let lap = 1; lap <= laps; lap++) assert.equal(budgets.after(gate, lap), expected.after(gate, lap));
+  for (const mutate of [
+    (v) => {
+      v.after.pop();
+    },
+    (v) => {
+      v.after[0] = ['foreign', [1000]];
+    },
+    (v) => {
+      v.after[0][1][0] = Infinity;
+    },
+    (v) => {
+      v.vehicleSha256 = '0'.repeat(64);
+    },
+    (v) => {
+      v.courseBuildSha256 = '0'.repeat(64);
+    },
+    (v) => {
+      v.initialMs = 0;
+    },
+    (v) => {
+      v.after[0][1].push(1000);
+    },
+    (v) => {
+      delete v.after[0][1][0];
+    },
+  ]) {
+    const changed = structuredClone(saved);
+    mutate(changed);
+    await assert.rejects(readCourseTimeBudgets(course, vehicle, changed));
+  }
+  assert.throws(() => budgets.after({ ...course.rules.intervals[0].checkpoints[0] }, 1), /No admitted/);
+  const copied = structuredClone(saved),
+    pending = readCourseTimeBudgets(course, vehicle, copied);
+  copied.after.length = 0;
+  assert.equal((await pending).initialMs, budgets.initialMs);
+});

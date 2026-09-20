@@ -3,12 +3,7 @@ import { createCheckpointClock } from '../gameplay/checkpoint-clock.js';
 import { createCourseRaceProgress, type CourseRaceEvent, type CourseRaceAdmission } from './course-race-progress.js';
 import { createCourseForkField } from './course-fork-field.js';
 import { createCameraRig, type CameraRig, type CameraState } from '../camera/camera.js';
-import {
-  composePlanarTransforms,
-  invertPlanarTransform,
-  transformPlanarPoint,
-  transformPlanarVector,
-} from '../core/planar-transform.js';
+import { composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { wrapAngle } from '../core/math.js';
 import {
   advanceRaceSession,
@@ -23,7 +18,7 @@ import {
   recoverVehicleToGuideCoordinate,
   type RecoveryState,
 } from '../gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../gameplay/rival-driver.js';
+import { createRivalDriverWorkspace, sampleRivalDrivingInput } from '../gameplay/rival-driver.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
@@ -99,6 +94,13 @@ export function createCourseRace(options: {
     previous: { x: 0, z: 0, s: 0 },
     current: c.actor.vehicle,
     recovered: false,
+    driverWorkspace: createRivalDriverWorkspace(),
+    step: {
+      state: c.actor.recovery,
+      input: { steering: 0, throttle: false, brake: false } as DrivingInput,
+      dt: 0,
+      profile: c.recoveryProfile,
+    },
     input: (s: number) => lane(c, s),
   }));
   const move = (motion: (typeof motions)[number], input: DrivingInput, dt: number) => {
@@ -109,13 +111,9 @@ export function createCourseRace(options: {
     previous.s = actor.vehicle.course.s;
     motion.current = actor.vehicle;
     c.recoveryProfile.targetL = lane(c, actor.vehicle.course.s);
-    let recovered =
-      advanceVehicleWithRecovery(session.view.world, actor.vehicle, {
-        state: actor.recovery,
-        input,
-        dt,
-        profile: c.recoveryProfile,
-      }) !== null;
+    motion.step.input = input;
+    motion.step.dt = dt;
+    let recovered = advanceVehicleWithRecovery(session.view.world, actor.vehicle, motion.step) !== null;
     if (session.history.active.ordinal === 0 && actor.vehicle.course.s < entryS) {
       recoverVehicleToGuideCoordinate(session.view.world, actor.vehicle, {
         state: actor.recovery,
@@ -141,31 +139,54 @@ export function createCourseRace(options: {
   const pool = rivals.map((c) => ({
     id: c.id,
     vehicle: { ...c.actor.vehicle, course: { ...c.actor.vehicle.course } },
+    playerFrame: player.session.referenceFromFrame,
+    rivalFrame: c.session.referenceFromFrame,
+    transform: composePlanarTransforms(
+      invertPlanarTransform(player.session.referenceFromFrame),
+      c.session.referenceFromFrame,
+    ),
   }));
   const observations = () => {
     visible.length = 0;
-    const playerFromReference = invertPlanarTransform(player.session.referenceFromFrame);
     for (let i = 0; i < rivals.length; i += 1) {
       const c = rivals[i]!;
       const vehicle = c.actor.vehicle;
       const s = vehicle.course.s + c.session.referenceSOffset - player.session.referenceSOffset;
       if (s < player.session.view.range.start || s > player.session.view.range.end) continue;
-      const transform = composePlanarTransforms(playerFromReference, c.session.referenceFromFrame);
-      const velocity = transformPlanarVector(transform, { x: vehicle.velocityX, z: vehicle.velocityZ });
       const observation = pool[i]!;
+      if (
+        observation.playerFrame !== player.session.referenceFromFrame ||
+        observation.rivalFrame !== c.session.referenceFromFrame
+      ) {
+        observation.playerFrame = player.session.referenceFromFrame;
+        observation.rivalFrame = c.session.referenceFromFrame;
+        observation.transform = composePlanarTransforms(
+          invertPlanarTransform(observation.playerFrame),
+          observation.rivalFrame,
+        );
+      }
+      const transform = observation.transform;
       const coordinate = observation.vehicle.course;
-      Object.assign(observation.vehicle, vehicle, transformPlanarPoint(transform, vehicle));
-      Object.assign(coordinate, vehicle.course, { s });
+      Object.assign(observation.vehicle, vehicle);
+      observation.vehicle.x = transform.cosine * vehicle.x + transform.sine * vehicle.z + transform.translation.x;
+      observation.vehicle.z = -transform.sine * vehicle.x + transform.cosine * vehicle.z + transform.translation.z;
+      coordinate.s = s;
+      coordinate.l = vehicle.course.l;
+      coordinate.segmentIndex = vehicle.course.segmentIndex;
+      coordinate.distanceSquared = vehicle.course.distanceSquared;
       observation.vehicle.course = coordinate;
-      observation.vehicle.velocityX = velocity.x;
-      observation.vehicle.velocityZ = velocity.z;
+      observation.vehicle.velocityX = transform.cosine * vehicle.velocityX + transform.sine * vehicle.velocityZ;
+      observation.vehicle.velocityZ = -transform.sine * vehicle.velocityX + transform.cosine * vehicle.velocityZ;
       observation.vehicle.yaw = wrapAngle(vehicle.yaw + Math.atan2(transform.sine, transform.cosine));
       visible.push(observation);
     }
   };
   const current = { x: 0, z: 0, s: 0 };
   const observed = { rivals: visible, sprites };
-  let events: readonly CourseRaceEvent[] = [];
+  const noEvents: readonly CourseRaceEvent[] = Object.freeze([]);
+  let events = noEvents;
+  const clockEvents: { gate: CourseRaceEvent['landmark']; lap: number; u: number; finish: boolean; awardMs: number }[] =
+    [];
   let pendingExpiry = Infinity,
     stepStart = 0;
   const admitPlayer: CourseRaceAdmission = (event) => {
@@ -197,7 +218,12 @@ export function createCourseRace(options: {
         const motion = motions[i]!;
         move(
           motion,
-          sampleRivalDrivingInput(motion.session.view.world.guide, motion.c.actor.vehicle, motion.input),
+          sampleRivalDrivingInput(
+            motion.session.view.world.guide,
+            motion.c.actor.vehicle,
+            motion.input,
+            motion.driverWorkspace,
+          ),
           dt,
         );
       }
@@ -219,17 +245,17 @@ export function createCourseRace(options: {
           if (update?.justFinished) c.finishElapsedSeconds = c.timing.elapsedSeconds;
         }
         if (c === player) {
-          events = update?.events ?? [];
-          clock.advance(
-            dt,
-            events.map((event) => ({
+          events = update?.events ?? noEvents;
+          clockEvents.length = 0;
+          for (const event of events)
+            clockEvents.push({
               gate: event.landmark,
               lap: event.lap,
               u: event.u,
               finish: event.finish,
               awardMs: event.finish ? 0 : (budgets?.after(event.landmark, event.lap) ?? 0),
-            })),
-          );
+            });
+          clock.advance(dt, clockEvents);
         }
         if (transition) resync(c);
       }

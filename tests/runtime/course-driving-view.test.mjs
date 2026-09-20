@@ -66,6 +66,17 @@ test('bounded Section readers share native geometry and height interpolation wit
       );
     }
   }
+  const position = result.world.guide.toWorld(1200, 2),
+    savedPosition = structuredClone(position);
+  const output = { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 };
+  for (let s = 1100; s < 1200; s += 0.791)
+    for (const lateral of [-15, -1, 0, 8, 30]) {
+      const native = guidePathToWorld(course.entry.guide, s, lateral);
+      assert.equal(result.world.guide.locateLocal(native, native.segmentIndex, 2, false, output), output);
+      assert.deepEqual(output, locateWorldOnGuideLocal(course.entry.guide, native, native.segmentIndex, 2, false));
+      result.world.guide.toWorld(s, lateral, native);
+    }
+  assert.deepEqual(position, savedPosition, 'borrowed work does not mutate previously published snapshots');
   assert.equal('sections' in result.world, false);
   assert.equal('segments' in result.world.guide, false);
   assert.equal('vertices' in result.geometry.raster, false);

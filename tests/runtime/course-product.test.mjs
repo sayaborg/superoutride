@@ -105,7 +105,7 @@ for (const mode of ['linear', 'seam', 'circuit', 'branch'])
       ).size,
     );
     assert.equal(requests.filter((url) => url.includes('/ground/')).length, 2);
-    assert.equal(requests.filter((url) => url.includes('/reference/')).length, 1);
+    assert.equal(requests.filter((url) => url.includes('/budgets/')).length, 1);
     const startupRequests = requests.length;
     const setup = panels.find((p) => p.getAttribute('aria-label') === 'Session setup');
     assert.ok(setup);

@@ -4,7 +4,11 @@ import { resolveCourseSession } from '../../dist/runtime/course-session.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { createRecoveryState } from '../../dist/gameplay/recovery.js';
-import { sampleReferenceDrivingInput, envelopeAt } from '../../dist/gameplay/reference-driver.js';
+import {
+  createReferenceDriverWorkspace,
+  sampleReferenceDrivingInput,
+  envelopeAt,
+} from '../../dist/gameplay/reference-driver.js';
 import { createCameraRig } from '../../dist/camera/camera.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
@@ -62,20 +66,22 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
       link && section.fork ? (section.fork.regions.findIndex((r) => r.link === link) === 0 ? -1 : 1) : slot.l;
     return race.forks.targetL(section, s, fallback);
   };
+  const workspace = createReferenceDriverWorkspace();
   race.start();
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
     const section = scene.history.active.section,
       startSeconds = race.clock.elapsedSeconds;
-    const input = sampleReferenceDrivingInput(scene.world.guide, vehicle, envelope, lane);
+    const input = sampleReferenceDrivingInput(scene.world.guide, vehicle, envelope, lane, workspace);
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.profile.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
     distance += vehicle.speed * SIM_DT;
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
     const utilization =
-      Math.abs(vehicle.yawRate * vehicle.longitudinalSpeed) / envelopeAt(envelope, vehicle.speed).lateral;
+      Math.abs(vehicle.yawRate * vehicle.longitudinalSpeed) /
+      envelopeAt(envelope, vehicle.speed, workspace.envelope).lateral;
     maximumLateralUtilization = Math.max(maximumLateralUtilization, utilization);
     for (const event of race.events) {
       const timeSeconds = startSeconds + event.u * SIM_DT;

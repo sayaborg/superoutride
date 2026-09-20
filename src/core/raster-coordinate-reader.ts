@@ -1,3 +1,4 @@
+import type { Writable } from './writable.js';
 import { rasterPathToWorld, type CourseWorldSample, type RasterPath } from './raster-path.js';
 
 /** Read-only segment metadata and point mapping, without source vertices or topology. */
@@ -8,7 +9,7 @@ export interface RasterCoordinateReader {
     readonly length: number;
     readonly heading: number;
   }[];
-  toWorld(s: number, l: number): CourseWorldSample;
+  toWorld(s: number, l: number, out?: Writable<CourseWorldSample>): CourseWorldSample;
 }
 
 type RasterCoordinateSource = RasterPath | RasterCoordinateReader;
@@ -19,6 +20,11 @@ export interface RasterGeometry {
   readonly raster: RasterCoordinateSource;
 }
 
-export function rasterCoordinateToWorld(source: RasterCoordinateSource, s: number, l: number): CourseWorldSample {
-  return 'toWorld' in source ? source.toWorld(s, l) : rasterPathToWorld(source, s, l);
+export function rasterCoordinateToWorld(
+  source: RasterCoordinateSource,
+  s: number,
+  l: number,
+  out?: Writable<CourseWorldSample>,
+): CourseWorldSample {
+  return 'toWorld' in source ? source.toWorld(s, l, out) : rasterPathToWorld(source, s, l, out);
 }

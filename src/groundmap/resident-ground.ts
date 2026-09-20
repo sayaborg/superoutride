@@ -180,58 +180,76 @@ export async function readResidentGround(
       offset += count * 2;
       coarse.push(Object.freeze({ ...shape, offset: start, scaleL: 40 / 2 ** k, scaleS: 10 / 4 ** k }));
     }
-    // Row/span addressing is retained across the renderer's pixel loop, without changing its API.
+    // Resolve one longitudinal/LOD row, then share it across scalar or affine-span reads.
     let lastS = NaN,
       lastK = -1,
       rowOffset = 0,
-      rowY = 0;
+      rowY = 0,
+      width = 0,
+      levelOffset = 0,
+      scaleL = 1;
+    const prepare = (s: number, k: number) => {
+      if (typeof s !== 'number' || typeof k !== 'number')
+        throw new TypeError('Resident ground coordinates and level must be numeric');
+      if (!Number.isFinite(s) || s < 0 || s > grid.length || !Number.isInteger(k) || k < 0 || k > m.kMax)
+        throw new RangeError('Resident ground query outside admitted domain');
+      if (s === lastS && k === lastK) return;
+      if (k < 3) {
+        width = 64 >> k;
+        const y = Math.min(Math.floor(s * 40), Math.ceil(grid.length * 40) - 1);
+        rowOffset = directoryOffset + Math.floor(y / 64) * grid.columns * 4;
+        rowY = Math.floor((y % 64) / (4 * 4 ** k)) * width;
+        levelOffset = k === 0 ? 0 : k === 1 ? 1024 : 1152;
+        scaleL = 64 / width;
+      } else {
+        const level = coarse[k - 3]!;
+        rowOffset = level.offset + Math.min(Math.floor(s * level.scaleS), level.height - 1) * level.width * 2;
+        scaleL = 2 ** k;
+      }
+      lastS = s;
+      lastK = k;
+    };
+    const sampleSpan = (
+      pixels: Uint32Array,
+      offset: number,
+      count: number,
+      s: number,
+      l: number,
+      stepL: number,
+      k: number,
+      lateralOrigin: number,
+      leftColor: number | null,
+      rightColor: number | null,
+    ) => {
+      prepare(s, k);
+      for (let i = 0; i < count; i++) {
+        const sourceL = l + lateralOrigin;
+        if (sourceL >= grid.left && sourceL < grid.right) {
+          const x = sourceL * 40 - grid.originCell;
+          if (k < 3) {
+            const tile = bytes.getUint32(rowOffset + Math.floor(x / 64) * 4, true);
+            const index = tile * GROUND_RECIPE.nearTexels + levelOffset + rowY + Math.floor((x % 64) / scaleL);
+            pixels[offset + i] = rgbaColors[bytes.getUint16(index * 2, true)]!;
+          } else pixels[offset + i] = rgbaColors[bytes.getUint16(rowOffset + Math.floor(x / scaleL) * 2, true)]!;
+        } else {
+          const color = sourceL < grid.left ? leftColor : rightColor;
+          if (color !== null) pixels[offset + i] = color;
+        }
+        l += stepL;
+      }
+    };
+    const scalarPixel = new Uint32Array(1);
     return Object.freeze({
       domain: Object.freeze({ start: 0, end: grid.length, left: grid.left, right: grid.right }),
       kMax: m.kMax,
       sampleAtLevel(s: number, l: number, k: number) {
-        if (typeof s !== 'number' || typeof l !== 'number' || typeof k !== 'number')
-          throw new TypeError('Resident ground coordinates and level must be numeric');
-        if (
-          s < 0 ||
-          s > grid.length ||
-          l < grid.left ||
-          l >= grid.right ||
-          !Number.isFinite(s) ||
-          !Number.isFinite(l) ||
-          !Number.isInteger(k) ||
-          k < 0 ||
-          k > m.kMax
-        )
+        if (typeof l !== 'number') throw new TypeError('Resident ground coordinates and level must be numeric');
+        if (!Number.isFinite(l) || l < grid.left || l >= grid.right)
           throw new RangeError('Resident ground query outside admitted domain');
-        const x = l * 40 - grid.originCell;
-        let index;
-        if (k < 3) {
-          const width = 64 >> k;
-          if (s !== lastS || k !== lastK) {
-            const y = Math.min(Math.floor(s * 40), Math.ceil(grid.length * 40) - 1);
-            rowOffset = directoryOffset + Math.floor(y / 64) * grid.columns * 4;
-            rowY = Math.floor((y % 64) / (4 * 4 ** k)) * width;
-            lastS = s;
-            lastK = k;
-          }
-          const column = Math.floor(x / 64);
-          const tile = bytes.getUint32(rowOffset + column * 4, true);
-          index =
-            tile * GROUND_RECIPE.nearTexels +
-            (k === 0 ? 0 : k === 1 ? 1024 : 1152) +
-            rowY +
-            Math.floor((x % 64) / (64 / width));
-          return rgbaColors[bytes.getUint16(index * 2, true)]!;
-        }
-        const level = coarse[k - 3]!;
-        if (s !== lastS || k !== lastK) {
-          rowOffset = level.offset + Math.min(Math.floor(s * level.scaleS), level.height - 1) * level.width * 2;
-          lastS = s;
-          lastK = k;
-        }
-        index = Math.floor(x / 2 ** k);
-        return rgbaColors[bytes.getUint16(rowOffset + index * 2, true)]!;
+        sampleSpan(scalarPixel, 0, 1, s, l, 0, k, 0, null, null);
+        return scalarPixel[0]!;
       },
+      sampleSpan,
     });
   });
   return Object.freeze({

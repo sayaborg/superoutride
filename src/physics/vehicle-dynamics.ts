@@ -1,3 +1,7 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
+import { hypot2 } from '../core/norm.js';
+import { type Writable } from '../core/writable.js';
+import { SURFACE_MATERIALS } from './surface-map.js';
 import { resetVehicleTireObservation } from './vehicle-tire-observation.js';
 import {
   guideCoordinateMetricsAt,
@@ -206,7 +210,7 @@ export function resetVehicleControlState(vehicle: VehicleDynamicsState): void {
 }
 
 export function vehicleSpeed(vehicle: VehicleDynamicsState): number {
-  return Math.hypot(vehicle.velocityX, vehicle.velocityZ);
+  return hypot2(vehicle.velocityX, vehicle.velocityZ);
 }
 
 export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, right: Vec3): BodyFrameVelocity {
@@ -219,31 +223,42 @@ export function bodyFrameVelocity(vehicle: VehicleDynamicsState, forward: Vec3, 
 }
 
 export function refreshGuideObservation(guide: GuideCoordinateSource, vehicle: VehicleDynamicsState): void {
-  const world = { x: vehicle.x, z: vehicle.z };
   vehicle.course = locateWorldOnGuideCoordinateLocal(
     guide,
-    world,
+    vehicle,
     vehicle.course.segmentIndex,
     VEHICLE_PROJECTION_SEARCH_RADIUS,
     false,
+    vehicle.course,
   );
 }
 
-function sampleSurfaceGeometryAtWorld(
-  guide: GuideCoordinateSource,
-  height: HeightProfileReader,
-  surfaces: SurfaceMapReader,
-  point: Vec3,
-  previousSegmentIndex: number,
-): SurfaceGeometryObservation {
-  const coordinate = locateWorldOnGuideCoordinateLocal(
-    guide,
-    { x: point.x, z: point.z },
-    previousSegmentIndex,
-    VEHICLE_PROJECTION_SEARCH_RADIUS,
-    false,
-  );
-  return sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate);
+const vector = () => ({ x: 0, y: 0, z: 0 });
+
+/** Private per-consumer temporaries; only value is the ordinary observation. */
+export function createSurfaceGeometryWorkspace() {
+  return {
+    value: {
+      coordinate: { s: 0, l: 0, segmentIndex: -1, distanceSquared: 0 },
+      point: vector(),
+      horizontalTangent: vector(),
+      right: vector(),
+      tangent: vector(),
+      normal: vector(),
+      curvature: 0,
+      metric: 1,
+      offsetMetric: 1,
+      heightDerivativeByPlanArc: 0,
+      gradeAngle: 0,
+      material: SURFACE_MATERIALS.VOID,
+      surfaceType: 'VOID' as SurfaceType,
+    },
+    guide: createPlanarCoordinateSample(),
+    height: { y: 0, dYdS: 0 },
+    metrics: { curvature: 0, metric: 1, offsetMetric: 1 },
+    a: vector(),
+    b: vector(),
+  };
 }
 
 export function sampleSurfaceGeometryAtCoordinate(
@@ -251,57 +266,94 @@ export function sampleSurfaceGeometryAtCoordinate(
   height: HeightProfileReader,
   surfaces: SurfaceMapReader,
   coordinate: CourseCoordinate,
+  workspace = createSurfaceGeometryWorkspace(),
 ): SurfaceGeometryObservation {
-  const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l);
+  const out = workspace.value;
+  const guideSample = guideCoordinateToWorld(guide, coordinate.s, coordinate.l, workspace.guide);
   const { curvature, metric, offsetMetric } = guideCoordinateMetricsAt(
     guide,
     coordinate.s,
     coordinate.l,
     guideSample.segmentIndex,
+    workspace.metrics,
   );
-  if (!(offsetMetric > 0)) {
-    throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
-  }
-  const heightSample = height.samplePhysicsDifferential(coordinate.s);
+  if (!(offsetMetric > 0)) throw new RangeError('surface offset metric A=1-kappa*l must remain > 0');
+  const heightSample = height.samplePhysicsDifferential(coordinate.s, workspace.height);
   const heightDerivativeByPlanArc = heightSample.dYdS / metric;
-  const horizontalTangent = {
-    x: Math.sin(guideSample.heading),
-    y: 0,
-    z: Math.cos(guideSample.heading),
-  };
-  const right = {
-    x: Math.cos(guideSample.heading),
-    y: 0,
-    z: -Math.sin(guideSample.heading),
-  };
-  const tangent = normalize3(
-    add3(scale3(horizontalTangent, offsetMetric), scale3(WORLD_UP, heightDerivativeByPlanArc)),
+  const horizontalTangent = out.horizontalTangent,
+    right = out.right;
+  horizontalTangent.x = Math.sin(guideSample.heading);
+  horizontalTangent.y = 0;
+  horizontalTangent.z = Math.cos(guideSample.heading);
+  right.x = Math.cos(guideSample.heading);
+  right.y = 0;
+  right.z = -Math.sin(guideSample.heading);
+  normalize3(
+    add3(
+      scale3(horizontalTangent, offsetMetric, workspace.a),
+      scale3(WORLD_UP, heightDerivativeByPlanArc, workspace.b),
+      workspace.a,
+    ),
+    out.tangent,
   );
-  const normal = normalize3(
-    add3(scale3(horizontalTangent, -heightDerivativeByPlanArc), scale3(WORLD_UP, offsetMetric)),
+  normalize3(
+    add3(
+      scale3(horizontalTangent, -heightDerivativeByPlanArc, workspace.a),
+      scale3(WORLD_UP, offsetMetric, workspace.b),
+      workspace.a,
+    ),
+    out.normal,
   );
   const sample = surfaces.sample(coordinate.s, coordinate.l);
-  return {
-    coordinate,
-    point: { x: guideSample.x, y: heightSample.y, z: guideSample.z },
-    horizontalTangent,
-    right,
-    tangent,
-    normal,
-    curvature,
-    metric,
-    offsetMetric,
-    heightDerivativeByPlanArc,
-    gradeAngle: Math.atan2(heightDerivativeByPlanArc, offsetMetric),
-    material: sample.material,
-    surfaceType: sample.type,
-  };
+  out.coordinate = coordinate;
+  out.point.x = guideSample.x;
+  out.point.y = heightSample.y;
+  out.point.z = guideSample.z;
+  out.curvature = curvature;
+  out.metric = metric;
+  out.offsetMetric = offsetMetric;
+  out.heightDerivativeByPlanArc = heightDerivativeByPlanArc;
+  out.gradeAngle = Math.atan2(heightDerivativeByPlanArc, offsetMetric);
+  out.material = sample.material;
+  out.surfaceType = sample.type;
+  return out;
 }
 
-/**
- * One ordinary derived contact solve for every vehicle profile. Surface normal is frozen within
- * the substep and both stations use their authored rolling radius directly.
- */
+export function createContactWorkspace(station: ContactStationProfile) {
+  const surface = createSurfaceGeometryWorkspace();
+  return {
+    surface,
+    a: vector(),
+    b: vector(),
+    freeOffset: vector(),
+    value: {
+      id: station.id,
+      profile: station,
+      surface: surface.value,
+      supportAvailable: false,
+      withinReach: false,
+      forceTransmitting: false,
+      tireFrameValid: false,
+      wheelForward: vector(),
+      wheelAxis: vector(),
+      reachPoint: vector(),
+      contactPoint: vector(),
+      reachVelocity: vector(),
+      gap: 0,
+      q: 0,
+      qDot: 0,
+      normalLoad: 0,
+      effectiveRollingRadius: station.rollingRadius,
+      tireForward: vector(),
+      tireRight: vector(),
+      longitudinalVelocity: 0,
+      lateralVelocity: 0,
+    },
+  };
+}
+type ContactWorkspace = ReturnType<typeof createContactWorkspace>;
+
+/** One ordinary contact solve; reusable storage changes no physical operation. */
 export function deriveContactObservation(
   guide: GuideCoordinateSource,
   height: HeightProfileReader,
@@ -310,56 +362,79 @@ export function deriveContactObservation(
   station: ContactStationProfile,
   steerAngle: number,
   previousSegmentIndex: number,
+  workspace = createContactWorkspace(station),
 ): ContactObservation {
-  const freeOffset = add3(scale3(body.forward, station.forwardOffset), scale3(body.up, -station.freeReachDown));
-  const freePoint = add3(body.position, freeOffset);
-  const surface = sampleSurfaceGeometryAtWorld(guide, height, surfaces, freePoint, previousSegmentIndex);
-
-  const reachPoint = freePoint;
-  const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset));
-  const gap = dot3(sub3(reachPoint, surface.point), surface.normal);
+  const { value: out, a, b, freeOffset } = workspace;
+  add3(scale3(body.forward, station.forwardOffset, a), scale3(body.up, -station.freeReachDown, b), freeOffset);
+  const reachPoint = add3(body.position, freeOffset, out.reachPoint);
+  const coordinate = locateWorldOnGuideCoordinateLocal(
+    guide,
+    reachPoint,
+    previousSegmentIndex,
+    VEHICLE_PROJECTION_SEARCH_RADIUS,
+    false,
+    workspace.surface.value.coordinate,
+  );
+  sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, coordinate, workspace.surface);
+  const surface = workspace.surface.value;
+  const reachVelocity = add3(body.velocity, cross3(body.omegaWorld, freeOffset, a), out.reachVelocity);
+  const gap = dot3(sub3(reachPoint, surface.point, a), surface.normal);
   const supportAvailable = surface.material.supported;
-  // Wheel support is one-sided. A flipped body cannot stand on its inverted suspension rays.
   const withinReach = supportAvailable && dot3(body.up, surface.normal) > 0 && gap <= 0;
   const q = withinReach ? -gap : 0;
-  if (q >= station.suspension.qTravel) {
-    throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);
-  }
+  if (q >= station.suspension.qTravel) throw new VehicleOutsideModelError(station.id, q, station.suspension.qTravel);
   const qDot = withinReach ? -dot3(reachVelocity, surface.normal) : 0;
   const bumpForce = bumpStopForce(q, station.suspension);
   const normalLoad = withinReach
     ? Math.max(0, station.suspension.springRate * q + station.suspension.damping * qDot + bumpForce)
     : 0;
-  const contactPoint = sub3(reachPoint, scale3(surface.normal, gap));
-
-  const frame = contactTireFrame(body, station, steerAngle, surface, reachVelocity);
-
-  return {
-    id: station.id,
-    profile: station,
-    surface,
-    supportAvailable,
-    withinReach,
-    forceTransmitting: normalLoad > 0,
-    ...frame,
-    reachPoint,
-    contactPoint,
-    reachVelocity,
-    gap,
-    q,
-    qDot,
-    normalLoad,
-    effectiveRollingRadius: station.rollingRadius,
-  };
+  sub3(reachPoint, scale3(surface.normal, gap, a), out.contactPoint);
+  out.id = station.id;
+  out.profile = station;
+  out.surface = surface;
+  out.supportAvailable = supportAvailable;
+  out.withinReach = withinReach;
+  out.forceTransmitting = normalLoad > 0;
+  out.gap = gap;
+  out.q = q;
+  out.qDot = qDot;
+  out.normalLoad = normalLoad;
+  out.effectiveRollingRadius = station.rollingRadius;
+  contactTireFrame(body, station, steerAngle, surface, reachVelocity, out, a);
+  return out;
 }
 
-/** Reuse the same sampled contact geometry/load after changing only the steering orientation. */
+/** Optional output must belong to this contact's consumer. */
 export function reorientContactObservation(
   contact: ContactObservation,
   body: BodyKinematics,
   steerAngle: number,
+  workspace?: ContactWorkspace,
 ): ContactObservation {
-  return { ...contact, ...contactTireFrame(body, contact.profile, steerAngle, contact.surface, contact.reachVelocity) };
+  const out = workspace?.value ?? {
+    ...contact,
+    wheelForward: vector(),
+    wheelAxis: vector(),
+    tireForward: vector(),
+    tireRight: vector(),
+  };
+  if (out !== contact)
+    Object.assign(out, contact, {
+      wheelForward: out.wheelForward,
+      wheelAxis: out.wheelAxis,
+      tireForward: out.tireForward,
+      tireRight: out.tireRight,
+    });
+  contactTireFrame(
+    body,
+    contact.profile,
+    steerAngle,
+    contact.surface,
+    contact.reachVelocity,
+    out,
+    workspace?.a ?? vector(),
+  );
+  return out;
 }
 
 function contactTireFrame(
@@ -368,19 +443,47 @@ function contactTireFrame(
   steerAngle: number,
   surface: SurfaceGeometryObservation,
   reachVelocity: Vec3,
+  out: Pick<
+    ContactWorkspace['value'],
+    | 'wheelForward'
+    | 'wheelAxis'
+    | 'tireFrameValid'
+    | 'tireForward'
+    | 'tireRight'
+    | 'longitudinalVelocity'
+    | 'lateralVelocity'
+  >,
+  scratch: Writable<Vec3>,
 ) {
-  const isFront = station.id === 'FRONT';
-  const wheelForward = isFront ? normalize3(rotateAroundAxis(body.forward, body.up, steerAngle)) : body.forward;
-  const wheelAxis = normalize3(cross3(body.up, wheelForward));
-
-  const tireForwardRaw = sub3(wheelForward, scale3(surface.normal, dot3(wheelForward, surface.normal)));
+  if (station.id === 'FRONT')
+    normalize3(rotateAroundAxis(body.forward, body.up, steerAngle, out.wheelForward), out.wheelForward);
+  else {
+    out.wheelForward.x = body.forward.x;
+    out.wheelForward.y = body.forward.y;
+    out.wheelForward.z = body.forward.z;
+  }
+  const wheelForward = out.wheelForward;
+  normalize3(cross3(body.up, wheelForward, out.wheelAxis), out.wheelAxis);
+  const tireForwardRaw = sub3(
+    wheelForward,
+    scale3(surface.normal, dot3(wheelForward, surface.normal), scratch),
+    scratch,
+  );
   const tireFrameValid = magnitude3(tireForwardRaw) > MIN_PROJECTED_TIRE_DIRECTION_LENGTH;
-  const tireForward = tireFrameValid ? normalize3(tireForwardRaw) : surface.tangent;
-  const tireRight = tireFrameValid ? normalize3(cross3(surface.normal, tireForward)) : surface.right;
-  const longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, tireForward) : 0;
-  const lateralVelocity = tireFrameValid ? dot3(reachVelocity, tireRight) : 0;
-
-  return { wheelForward, wheelAxis, tireFrameValid, tireForward, tireRight, longitudinalVelocity, lateralVelocity };
+  if (tireFrameValid) {
+    normalize3(tireForwardRaw, out.tireForward);
+    normalize3(cross3(surface.normal, out.tireForward, out.tireRight), out.tireRight);
+  } else {
+    out.tireForward.x = surface.tangent.x;
+    out.tireForward.y = surface.tangent.y;
+    out.tireForward.z = surface.tangent.z;
+    out.tireRight.x = surface.right.x;
+    out.tireRight.y = surface.right.y;
+    out.tireRight.z = surface.right.z;
+  }
+  out.tireFrameValid = tireFrameValid;
+  out.longitudinalVelocity = tireFrameValid ? dot3(reachVelocity, out.tireForward) : 0;
+  out.lateralVelocity = tireFrameValid ? dot3(reachVelocity, out.tireRight) : 0;
 }
 
 export function compileSuspensionStation(
@@ -409,25 +512,36 @@ export function compileSuspensionStation(
   return Object.freeze({ springRate, damping, qStatic, qBump, qTravel, bumpForceMax });
 }
 
-export function contactForceWorld(contact: ContactObservation, tireFx: number, tireFy: number): Vec3 {
-  if (!contact.forceTransmitting) return { x: 0, y: 0, z: 0 };
-  return add3(
-    scale3(contact.surface.normal, contact.normalLoad),
-    add3(scale3(contact.tireForward, tireFx), scale3(contact.tireRight, tireFy)),
-  );
+export function contactForceWorld(contact: ContactObservation, tireFx: number, tireFy: number, out = vector()): Vec3 {
+  if (!contact.forceTransmitting) {
+    out.x = 0;
+    out.y = 0;
+    out.z = 0;
+    return out;
+  }
+  out.x =
+    contact.surface.normal.x * contact.normalLoad + (contact.tireForward.x * tireFx + contact.tireRight.x * tireFy);
+  out.y =
+    contact.surface.normal.y * contact.normalLoad + (contact.tireForward.y * tireFx + contact.tireRight.y * tireFy);
+  out.z =
+    contact.surface.normal.z * contact.normalLoad + (contact.tireForward.z * tireFx + contact.tireRight.z * tireFy);
+  return out;
 }
 
-export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3): Vec3 {
-  return cross3(sub3(contact.contactPoint, cg), force);
+export function momentAboutCg(contact: ContactObservation, cg: Vec3, force: Vec3, out = vector()): Vec3 {
+  sub3(contact.contactPoint, cg, out);
+  return cross3(out, force, out);
 }
 
 export function representativeSurfaceType(contacts: readonly ContactObservation[]): SurfaceType {
-  const loaded = contacts.filter((contact) => contact.forceTransmitting);
-  if (loaded.length === 0) return 'VOID';
-  return loaded.reduce(
-    (worst, contact) => (contact.surface.material.gripFactor < worst.surface.material.gripFactor ? contact : worst),
-    loaded[0]!,
-  ).surface.surfaceType;
+  let worst: ContactObservation | null = null;
+  for (const contact of contacts)
+    if (
+      contact.forceTransmitting &&
+      (!worst || contact.surface.material.gripFactor < worst.surface.material.gripFactor)
+    )
+      worst = contact;
+  return worst?.surface.surfaceType ?? 'VOID';
 }
 
 /** Reproject the reconstructed CG near its known placement; overlapping charts are not interchangeable. */

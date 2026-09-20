@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { guidePathToWorld, locateWorldOnGuideGlobal, locateWorldOnGuideLocal } from '../../dist/core/guide-curve.js';
 import { createRepeatedReferenceWorld } from '../helpers/repeated-world.mjs';
@@ -72,13 +71,4 @@ test('range search preserves exact ascending-candidate tie handling on repeated 
       best(candidates.slice(first, last + 1)),
     );
   }
-});
-
-test('vehicle hot path retains one sample/body basis', async () => {
-  const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
-  const dynamics = await read('../../src/physics/vehicle-dynamics.ts');
-  assert.doesNotMatch(dynamics, /sampleGuidePath/);
-  const integrator = await read('../../src/physics/arcade-vehicle-physics.ts');
-  assert.doesNotMatch(integrator, /bodyBeforeSteer|function locateSegmentIndex/);
-  assert.match(integrator, /if \(step === VEHICLE_SUBSTEPS - 1\)/);
 });

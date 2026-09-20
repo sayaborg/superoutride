@@ -43,6 +43,7 @@ export function computeForwardVisibleInterval(
   sCamera: number,
   dMin: number,
   dMax: number,
+  out = { dStart: 0, dEnd: 0 },
 ): ForwardVisibleInterval | null {
   if (!(dMin > 0 && dMax > dMin) || !Number.isFinite(dMin) || !Number.isFinite(dMax)) {
     throw new RangeError('renderer requires finite 0 < dMin < dMax');
@@ -68,11 +69,16 @@ export function computeForwardVisibleInterval(
     const facing = Math.cos(segment.heading - cameraYaw);
     if (facing <= 0) {
       const facingEnd = Math.max(start, segment.sStart) - sCamera;
-      return facingEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS ? null : { dStart: dMin, dEnd: facingEnd };
+      if (facingEnd <= dMin + VISIBLE_INTERVAL_TOLERANCE_METERS) return null;
+      out.dStart = dMin;
+      out.dEnd = facingEnd;
+      return out;
     }
   }
 
-  return { dStart: dMin, dEnd };
+  out.dStart = dMin;
+  out.dEnd = dEnd;
+  return out;
 }
 
 export function lateralToScreenX(
@@ -131,19 +137,44 @@ export interface TerrainLine extends TerrainLineGeometry {
   sourceFootprint: TerrainLineSourceFootprint;
 }
 
-interface VerticalFootprintSetup {
-  deltaS: number;
-  deltaSCollapse: number;
-  collapsed: boolean;
+/** Reused by one renderer; outputs are borrowed until its next render. */
+export function createTerrainWorkspace() {
+  const point = () => ({ x: 0, z: 0, y: 0, s: 0, l: 0, heading: 0, segmentIndex: -1 });
+  const projection = () => ({ x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 });
+  return {
+    lines: [] as TerrainLine[],
+    pool: [] as TerrainLine[],
+    boundaries: [] as number[],
+    visible: { dStart: 0, dEnd: 0 },
+    height: { y: 0, grade: 0, segmentIndex: 0, sStart: 0, sEnd: 0 },
+    left: point(),
+    right: point(),
+    projectedLeft: projection(),
+    projectedRight: projection(),
+  };
 }
+type TerrainWorkspace = ReturnType<typeof createTerrainWorkspace>;
+const ascending = (a: number, b: number) => a - b;
+const painterOrder = (a: TerrainLine, b: TerrainLine) => b.d - a.d || a.y - b.y;
 
 export function generateTerrainLines(
   guide: RasterGeometry,
   camera: PseudoCamera,
   profile: TerrainVisualProfile,
+  workspace = createTerrainWorkspace(),
 ): TerrainLine[] {
-  const visible = computeForwardVisibleInterval(guide, camera.yaw, camera.s, profile.dMin, profile.dMax);
-  if (!visible) return [];
+  const { lines, boundaries } = workspace;
+  lines.length = 0;
+  boundaries.length = 0;
+  const visible = computeForwardVisibleInterval(
+    guide,
+    camera.yaw,
+    camera.s,
+    profile.dMin,
+    profile.dMax,
+    workspace.visible,
+  );
+  if (!visible) return lines;
 
   const thinSpanScreenRows = profile.thinSpanScreenRows ?? DEFAULT_THIN_SPAN_SCREEN_ROWS;
   if (!(thinSpanScreenRows > 0) || !Number.isFinite(thinSpanScreenRows)) {
@@ -153,23 +184,26 @@ export function generateTerrainLines(
   const yH = horizonY(camera);
   const cosPitch = Math.cos(camera.pitch);
   const f = camera.focalLength;
-  const lines: TerrainLine[] = [];
   const start = camera.s + visible.dStart;
   const end = camera.s + visible.dEnd;
   // Use authored boundaries directly: rounding cannot strand a cursor before a vertex.
-  const boundaries = [start, end];
+  boundaries.push(start, end);
   appendVisibleBoundaries(boundaries, guide.raster.segments, 'sStart', start, end);
   appendVisibleBoundaries(boundaries, profile.height.nodes, 's', start, end);
   appendVisibleBoundaries(boundaries, profile.visual.sections, 'sStart', start, end);
-  boundaries.sort((a, b) => a - b);
-  const distinct = boundaries.filter((s, index) => index === 0 || s > boundaries[index - 1]!);
+  boundaries.sort(ascending);
+  let count = 0;
+  for (let i = 0; i < boundaries.length; i++)
+    if (count === 0 || boundaries[i]! > boundaries[count - 1]!) boundaries[count++] = boundaries[i]!;
+  boundaries.length = count;
+  const distinct = boundaries;
   for (let index = 0; index + 1 < distinct.length; index += 1) {
     const local = distinct[index]!;
     const intervalEnd = distinct[index + 1]!;
     const intervalLength = intervalEnd - local;
     const d0 = local - camera.s;
     const d1 = intervalEnd - camera.s;
-    const heightStart = profile.height.sampleRender(local);
+    const heightStart = profile.height.sampleRender(local, workspace.height);
     const grade = heightStart.grade;
     const yIntercept = heightStart.y - grade * d0;
     const aY = yH - f * grade * cosPitch;
@@ -185,11 +219,7 @@ export function generateTerrainLines(
       const y = Math.floor(representativeY);
       if (y >= 0 && y < profile.screenHeight) {
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, profile, d, y, {
-          deltaS,
-          deltaSCollapse: intervalLength,
-          collapsed: true,
-        });
+        const line = createTerrainLine(guide, camera, profile, d, y, deltaS, intervalLength, true, workspace);
         if (line) lines.push(line);
       }
     } else {
@@ -207,14 +237,14 @@ export function generateTerrainLines(
         if (d < visible.dStart - DEPTH_INTERVAL_TOLERANCE_METERS || d > visible.dEnd + DEPTH_INTERVAL_TOLERANCE_METERS)
           continue;
         const deltaS = computeTerrainRowDeltaS(y, aY, bY, visible.dStart, visible.dEnd);
-        const line = createTerrainLine(guide, camera, profile, d, y, { deltaS, deltaSCollapse: 0, collapsed: false });
+        const line = createTerrainLine(guide, camera, profile, d, y, deltaS, 0, false, workspace);
         if (line) lines.push(line);
       }
     }
   }
 
   // Core Painter order. Hills/dips may produce multiple TerrainLines on the same output row.
-  lines.sort((a, b) => b.d - a.d || a.y - b.y);
+  lines.sort(painterOrder);
   return lines;
 }
 
@@ -259,39 +289,55 @@ function createTerrainLine(
   profile: TerrainVisualProfile,
   d: number,
   y: number,
-  verticalFootprint: VerticalFootprintSetup,
+  deltaS: number,
+  deltaSCollapse: number,
+  collapsed: boolean,
+  workspace: TerrainWorkspace,
 ): TerrainLine | null {
   const s = camera.s + d;
-  const renderHeight = profile.height.sampleRender(s).y;
-  const groundLeft = rasterCoordinateToWorld(guide.raster, s, -profile.groundLeft);
-  const groundRight = rasterCoordinateToWorld(guide.raster, s, profile.groundRight);
-  const projectedLeft = pseudoProject({ ...groundLeft, y: renderHeight }, camera);
-  const projectedRight = pseudoProject({ ...groundRight, y: renderHeight }, camera);
+  const renderHeight = profile.height.sampleRender(s, workspace.height).y;
+  rasterCoordinateToWorld(guide.raster, s, -profile.groundLeft, workspace.left);
+  rasterCoordinateToWorld(guide.raster, s, profile.groundRight, workspace.right);
+  workspace.left.y = renderHeight;
+  workspace.right.y = renderHeight;
+  const projectedLeft = pseudoProject(workspace.left, camera, workspace.projectedLeft);
+  const projectedRight = pseudoProject(workspace.right, camera, workspace.projectedRight);
   const groundSpan = projectedRight.x - projectedLeft.x;
   if (!(groundSpan > MIN_TERRAIN_SPAN_PIXELS)) return null;
 
   const section = profile.visual.sample(s);
   const deltaL = (profile.groundLeft + profile.groundRight) / groundSpan;
-  const deltaSEffective = Math.max(verticalFootprint.deltaS, verticalFootprint.deltaSCollapse);
-
-  return {
-    d,
-    s,
-    y,
-    xGroundL: projectedLeft.x,
-    xGroundR: projectedRight.x,
-    groundBaseLeft: section.groundBaseLeft,
-    groundBaseRight: section.groundBaseRight,
-    sectionName: section.name,
-    renderHeight,
-    sourceFootprint: {
-      deltaS: verticalFootprint.deltaS,
-      deltaSCollapse: verticalFootprint.deltaSCollapse,
-      deltaSEffective,
-      deltaL,
-      collapsed: verticalFootprint.collapsed,
-    },
-  };
+  let line = workspace.pool[workspace.lines.length];
+  if (!line) {
+    line = {
+      d: 0,
+      s: 0,
+      y: 0,
+      xGroundL: 0,
+      xGroundR: 0,
+      groundBaseLeft: section.groundBaseLeft,
+      groundBaseRight: section.groundBaseRight,
+      sectionName: '',
+      renderHeight: 0,
+      sourceFootprint: { deltaS: 0, deltaSCollapse: 0, deltaSEffective: 0, deltaL: 0, collapsed: false },
+    };
+    workspace.pool.push(line);
+  }
+  line.d = d;
+  line.s = s;
+  line.y = y;
+  line.xGroundL = projectedLeft.x;
+  line.xGroundR = projectedRight.x;
+  line.groundBaseLeft = section.groundBaseLeft;
+  line.groundBaseRight = section.groundBaseRight;
+  line.sectionName = section.name;
+  line.renderHeight = renderHeight;
+  line.sourceFootprint.deltaS = deltaS;
+  line.sourceFootprint.deltaSCollapse = deltaSCollapse;
+  line.sourceFootprint.deltaSEffective = Math.max(deltaS, deltaSCollapse);
+  line.sourceFootprint.deltaL = deltaL;
+  line.sourceFootprint.collapsed = collapsed;
+  return line;
 }
 
 /** Binary entry lookup bounds work by visible intervals, not total course length. */

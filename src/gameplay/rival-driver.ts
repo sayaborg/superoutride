@@ -1,3 +1,4 @@
+import { createPlanarCoordinateSample } from '../core/planar-sample.js';
 import { VEHICLE_GRAVITY } from '../physics/vehicle-dynamics.js';
 import {
   guideCoordinateDomain,
@@ -44,19 +45,26 @@ export function sampleRivalDrivingInput(
   guide: GuideCoordinateSource,
   car: VehicleCameraReadState,
   targetL: number | ((s: number) => number) = 0,
+  workspace = createRivalDriverWorkspace(),
 ): DrivingInput {
   const domain = guideCoordinateDomain(guide);
-  const targetSpeed = estimateUpcomingTargetSpeed(guide, car.course.s);
+  const targetSpeed = estimateUpcomingTargetSpeed(guide, car.course.s, workspace);
   const targetS = Math.min(domain.end, car.course.s + STEERING_LOOKAHEAD_METERS);
-  const lane = (s: number) => (typeof targetL === 'number' ? targetL : targetL(s));
-  const target = guideCoordinateToWorld(guide, targetS, lane(targetS));
+  const target = guideCoordinateToWorld(
+    guide,
+    targetS,
+    typeof targetL === 'number' ? targetL : targetL(targetS),
+    workspace.target,
+  );
   const desiredYaw = Math.atan2(target.x - car.x, target.z - car.z);
   const yawError = wrapAngle(desiredYaw - car.yaw);
 
   // Heading/lateral feedback publishes only an angular-offset request. The DEV rival remains an
   // ordinary input publisher and stays below the full player request.
   const pathDemand = clamp(
-    yawError * 1.7 - (car.course.l - lane(car.course.s)) * 0.075 - car.lateralSpeed * 0.02,
+    yawError * 1.7 -
+      (car.course.l - (typeof targetL === 'number' ? targetL : targetL(car.course.s))) * 0.075 -
+      car.lateralSpeed * 0.02,
     -1,
     1,
   );
@@ -64,24 +72,36 @@ export function sampleRivalDrivingInput(
     car.longitudinalSpeed <= 0 ? 0 : MAX_STEERING_REQUEST * Math.sign(pathDemand) * Math.sqrt(Math.abs(pathDemand));
 
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  return {
-    steering,
-    throttle: speed < targetSpeed - SPEED_DEADBAND_MPS,
-    brake: speed > targetSpeed + SPEED_DEADBAND_MPS,
-  };
+  workspace.input.steering = steering;
+  workspace.input.throttle = speed < targetSpeed - SPEED_DEADBAND_MPS;
+  workspace.input.brake = speed > targetSpeed + SPEED_DEADBAND_MPS;
+  return workspace.input;
 }
 
-export function estimateUpcomingTargetSpeed(guide: GuideCoordinateSource, s: number): number {
+export function createRivalDriverWorkspace() {
+  const point = () => createPlanarCoordinateSample();
+  return { input: { steering: 0, throttle: false, brake: false }, target: point(), a: point(), b: point() };
+}
+
+export function estimateUpcomingTargetSpeed(
+  guide: GuideCoordinateSource,
+  s: number,
+  workspace = createRivalDriverWorkspace(),
+): number {
   const domain = guideCoordinateDomain(guide);
   let targetSpeed = STRAIGHT_CRUISE_SPEED_MPS;
+  let previousS = NaN,
+    previousHeading = 0;
   for (let offset = 0; offset < CURVATURE_LOOKAHEAD_METERS; offset += CURVATURE_PROBE_STEP_METERS) {
     const aS = Math.min(domain.end, s + offset);
     const bS = Math.min(domain.end, aS + CURVATURE_PROBE_SPAN_METERS);
     if (bS <= aS + LOOKAHEAD_INTERVAL_TOLERANCE_METERS) break;
 
-    const a = guideCoordinateToWorld(guide, aS, 0);
-    const b = guideCoordinateToWorld(guide, bS, 0);
-    const curvature = Math.abs(wrapAngle(b.heading - a.heading)) / (bS - aS);
+    const aHeading = aS === previousS ? previousHeading : guideCoordinateToWorld(guide, aS, 0, workspace.a).heading;
+    const b = guideCoordinateToWorld(guide, bS, 0, workspace.b);
+    const curvature = Math.abs(wrapAngle(b.heading - aHeading)) / (bS - aS);
+    previousS = bS;
+    previousHeading = b.heading;
     if (curvature < STRAIGHT_CURVATURE_PER_METER) continue;
 
     const curveSpeed = clamp(

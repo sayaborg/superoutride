@@ -1,3 +1,4 @@
+import type { Writable } from '../core/writable.js';
 import type { GuidePath } from '../core/guide-curve.js';
 import { clamp, type Vec2 } from '../core/math.js';
 import { openProfileChainage } from '../core/open-profile.js';
@@ -146,17 +147,44 @@ export function createOrderedRaceProgressState(
 function getOrderedRaceProgressWindow(
   state: OrderedRaceProgressState,
   rules: OrderedRaceCourseRules,
+  out = { floor: 0, ceiling: 0 },
 ): OrderedRaceProgressWindow {
   if (state.status === 'FINISHED') {
-    return { floor: state.validatedProgressFloor, ceiling: state.validatedProgressFloor };
+    out.floor = state.validatedProgressFloor;
+    out.ceiling = state.validatedProgressFloor;
+    return out;
   }
   const nextGate = rules.gates[state.nextGateIndex];
   if (!nextGate) throw new Error('ordered race next gate is missing');
   if (nextGate.s + RACE_PROGRESS_TOLERANCE_METERS < state.validatedProgressFloor) {
     throw new Error('ordered race progress window is inverted');
   }
-  return { floor: state.validatedProgressFloor, ceiling: nextGate.s };
+  out.floor = state.validatedProgressFloor;
+  out.ceiling = nextGate.s;
+  return out;
 }
+
+export function createOrderedRaceProgressWorkspace() {
+  const acceptedCrossings: PhysicalRaceGateCrossing[] = [];
+  const window = { floor: 0, ceiling: 0 };
+  const update: Writable<OrderedRaceProgressUpdate> = {
+    event: 'NONE',
+    status: 'RUNNING',
+    acceptedGate: null,
+    acceptedCrossings,
+    direction: 'STATIONARY',
+    window,
+    justFinished: false,
+  };
+  return {
+    current: { x: 0, z: 0, s: 0 },
+    window,
+    update,
+    acceptedCrossings,
+    crossings: [] as PhysicalRaceGateCrossing[],
+  };
+}
+const crossingOrder = (a: PhysicalRaceGateCrossing, b: PhysicalRaceGateCrossing) => a.u - b.u;
 
 /**
  * Advance finite open race progress.
@@ -173,23 +201,25 @@ export function updateOrderedRaceProgress(
   rules: OrderedRaceCourseRules,
   currentSample: OrderedRaceProgressSample,
   accept?: (crossing: PhysicalRaceGateCrossing) => boolean,
+  workspace = createOrderedRaceProgressWorkspace(),
 ): OrderedRaceProgressUpdate {
-  const current = checkedSample(currentSample, rules.courseLength);
+  const current = checkedSample(currentSample, rules.courseLength, workspace.current);
+  const previous = state.previous;
+  const result = workspace.update;
+  workspace.acceptedCrossings.length = 0;
   state.direction = classifyPhysicalRaceMotionDirection(rules.guide, current.s, state.previous, current);
 
   if (state.status === 'FINISHED') {
     state.previous = current;
     state.lastEvent = 'IGNORED_AFTER_FINISH';
-    const window = getOrderedRaceProgressWindow(state, rules);
-    return {
-      event: state.lastEvent,
-      status: state.status,
-      acceptedGate: null,
-      acceptedCrossings: [],
-      direction: state.direction,
-      window,
-      justFinished: false,
-    };
+    getOrderedRaceProgressWindow(state, rules, workspace.window);
+    result.event = state.lastEvent;
+    result.status = state.status;
+    result.acceptedGate = null;
+    result.direction = state.direction;
+    result.justFinished = false;
+    workspace.current = previous;
+    return result;
   }
 
   const rawDeltaS = current.s - state.previous.s;
@@ -197,13 +227,19 @@ export function updateOrderedRaceProgress(
     state.direction === 'FORWARD' ? Math.max(0, rawDeltaS) : state.direction === 'REVERSE' ? Math.min(0, rawDeltaS) : 0;
   state.lastEvent = 'NONE';
 
-  const crossings = candidateGates(rules.gates, state.previous, current)
-    .map((gate) => detectPhysicalRaceGateCrossing(gate, state.previous, current))
-    .filter((crossing): crossing is PhysicalRaceGateCrossing => crossing !== null)
-    .sort((a, b) => a.u - b.u);
-
+  const crossings = workspace.crossings;
+  crossings.length = 0;
+  const pad = Math.hypot(current.x - previous.x, current.z - previous.z) + GATE_CANDIDATE_PADDING_METERS;
+  const low = Math.min(previous.s, current.s) - pad,
+    high = Math.max(previous.s, current.s) + pad;
+  for (const gate of rules.gates)
+    if (gate.s >= low && gate.s <= high) {
+      const crossing = detectPhysicalRaceGateCrossing(gate, previous, current);
+      if (crossing) crossings.push(crossing);
+    }
+  crossings.sort(crossingOrder);
   let acceptedCrossing: PhysicalRaceGateCrossing | null = null;
-  const acceptedCrossings: PhysicalRaceGateCrossing[] = [];
+  const acceptedCrossings = workspace.acceptedCrossings;
   let justFinished = false;
 
   for (const crossing of crossings) {
@@ -240,7 +276,7 @@ export function updateOrderedRaceProgress(
     }
   }
 
-  const window = getOrderedRaceProgressWindow(state, rules);
+  const window = getOrderedRaceProgressWindow(state, rules, workspace.window);
   if (state.status === 'FINISHED') {
     state.sProgress = state.validatedProgressFloor;
   } else if (acceptedCrossing) {
@@ -251,15 +287,13 @@ export function updateOrderedRaceProgress(
   }
 
   state.previous = current;
-  return {
-    event: state.lastEvent,
-    status: state.status,
-    acceptedGate: acceptedCrossing?.gate ?? null,
-    acceptedCrossings,
-    direction: state.direction,
-    window,
-    justFinished,
-  };
+  workspace.current = previous;
+  result.event = state.lastEvent;
+  result.status = state.status;
+  result.acceptedGate = acceptedCrossing?.gate ?? null;
+  result.direction = state.direction;
+  result.justFinished = justFinished;
+  return result;
 }
 
 /** Recovery/teleport changes observation origin only; no gate or progress is awarded. */
@@ -273,24 +307,17 @@ export function resyncOrderedRaceProgress(
   state.lastEvent = 'RESYNC';
 }
 
-function candidateGates(
-  gates: readonly PhysicalRaceGate[],
-  previous: OrderedRaceProgressSample,
-  current: OrderedRaceProgressSample,
-): PhysicalRaceGate[] {
-  // Window chainage identifies the logical copy of repeated world geometry. Expand the
-  // interval by actual world travel so a small Guide projection lag cannot hide a real gate.
-  const worldTravel = Math.hypot(current.x - previous.x, current.z - previous.z);
-  const pad = worldTravel + GATE_CANDIDATE_PADDING_METERS;
-  const low = Math.min(previous.s, current.s) - pad;
-  const high = Math.max(previous.s, current.s) + pad;
-  return gates.filter((gate) => gate.s >= low && gate.s <= high);
-}
-
-function checkedSample(sample: OrderedRaceProgressSample, courseLength: number): OrderedRaceProgressSample {
-  if (![sample.x, sample.z, sample.s].every(Number.isFinite)) {
+function checkedSample(
+  sample: OrderedRaceProgressSample,
+  courseLength: number,
+  out = { x: 0, z: 0, s: 0 },
+): OrderedRaceProgressSample {
+  if (!Number.isFinite(sample.x) || !Number.isFinite(sample.z) || !Number.isFinite(sample.s)) {
     throw new RangeError('ordered race progress sample must be finite');
   }
   const s = openProfileChainage(sample.s, courseLength, 'ordered race progress');
-  return { x: sample.x, z: sample.z, s };
+  out.x = sample.x;
+  out.z = sample.z;
+  out.s = s;
+  return out;
 }

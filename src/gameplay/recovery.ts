@@ -3,6 +3,7 @@ import { clamp } from '../core/math.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import {
   arcadeBodyKinematics,
+  createBodyKinematicsWorkspace,
   updateArcadeVehicle,
   type ArcadeVehicleState,
 } from '../physics/arcade-vehicle-physics.js';
@@ -15,6 +16,7 @@ import {
   initializeGuideObservation,
   resetVehicleControlState,
   sampleSurfaceGeometryAtCoordinate,
+  createSurfaceGeometryWorkspace,
 } from '../physics/vehicle-dynamics.js';
 import { add3, dot3, scale3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../physics/vehicle-profiles.js';
@@ -106,6 +108,11 @@ export function advanceVehicleWithRecovery(
   });
 }
 
+const observationWorkspaces = new WeakMap<
+  ArcadeVehicleState,
+  { surface: ReturnType<typeof createSurfaceGeometryWorkspace>; body: ReturnType<typeof createBodyKinematicsWorkspace> }
+>();
+
 /** Gameplay observes derived load/support facts; it never changes the ordinary physics law. */
 export function updateRecovery(
   world: VehicleWorld,
@@ -118,10 +125,15 @@ export function updateRecovery(
   }: RecoveryOptions & { dt: number; target?: RecoveryTarget | null },
 ): RecoveryReason | null {
   const { guide, height, surfaces } = world;
-  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course);
+  let workspace = observationWorkspaces.get(vehicle);
+  if (!workspace) {
+    workspace = { surface: createSurfaceGeometryWorkspace(), body: createBodyKinematicsWorkspace() };
+    observationWorkspaces.set(vehicle, workspace);
+  }
+  const surface = sampleSurfaceGeometryAtCoordinate(guide, height, surfaces, vehicle.course, workspace.surface);
   // Single-wheel support is allowed. Only an overturned pose bypasses the ordinary support check;
   // stale contact telemetry must not make an inverted vehicle a new safe recovery checkpoint.
-  const overturned = dot3(arcadeBodyKinematics(vehicle).up, surface.normal) <= 0;
+  const overturned = dot3(arcadeBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
   if (!overturned && vehicle.supported) {
     state.lastSafeS = vehicle.course.s;
     state.unsupportedTime = 0;

@@ -59,9 +59,14 @@ test('every source module is reachable from a composition or declared compiler e
         node.arguments?.length === 2 &&
         node.arguments[1].getText(syntax) === 'import.meta.url' &&
         ts.isStringLiteral(node.arguments[0]) &&
-        node.arguments[0].text.endsWith('.js')
+        /\.(?:js|mjs)$/.test(node.arguments[0].text)
       ) {
-        dependencies.push(path.resolve(path.dirname(file), node.arguments[0].text).replace(/\.js$/, '.ts'));
+        dependencies.push(
+          path
+            .resolve(path.dirname(file), node.arguments[0].text)
+            .replace(`${path.sep}dist${path.sep}`, `${path.sep}src${path.sep}`)
+            .replace(/\.js$/, '.ts'),
+        );
       }
       if (reference && ts.isStringLiteral(reference) && reference.text.startsWith('.')) {
         dependencies.push(
@@ -88,6 +93,7 @@ test('every source module is reachable from a composition or declared compiler e
   }
   visit(path.join(repositoryRoot, 'tools/course/compile-course.mjs'));
   visit(path.join(repositoryRoot, 'tools/course/course.mjs'));
+  visit(path.join(repositoryRoot, 'tools/build/build-course-content.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-lod.mjs'));
   visit(path.join(repositoryRoot, 'tools/build/build-sprite-source.mjs'));
   // This authoring entry compiles source/master/LOD before game load; diagnostics do not.
