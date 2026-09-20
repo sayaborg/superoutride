@@ -4,8 +4,8 @@
 
 - LINEAR, SEAM, CIRCUIT and BRANCH share one graph scene with all-Section resident RGB555.
 - Static compiled readers are shared; occurrences, actors, field locks and Session state are separate.
-- Main CI fails the allocation regression gate; complete functional tests pass. Releases remain blocked.
-- Caller-owned Guide/Raster/tire workspaces are being qualified against the unchanged mechanics reference.
+- Caller-owned Guide/Raster/tire workspaces preserve the exact immutable mechanics reference.
+- All four modes meet the unchanged 650,000-byte regression ceiling; the 200,000-byte product target remains open.
 - The measured-envelope driver integration remains unmerged in #236 and has no device acceptance yet.
 - DEV_UNCALIBRATED vehicle values, physics results, audio, input, camera, sprites and their immutable references remain frozen.
 - Build generates disposable per-vehicle envelopes, continuous references and compact Session budgets.
@@ -13,11 +13,9 @@
 
 ## Milestones
 
-- **Allocation reduction — In progress:** explicit outputs/workspaces in hot APIs, owned by actors/views;
-  preserve exact mechanics. Report all four CI modes before enforcing the unchanged 650,000-byte ceiling.
-  If it remains unreachable, use a separate explicit baseline revision from main-source CI measurements;
-  retain 200,000 bytes/frame, 3 ms fixed-step median and 10 ms frame p95 as product targets.
-- **Envelope driver — Waiting for the allocation gate:** rebase #236 without redesigning it, rerun complete
+- **Allocation reduction — Complete:** caller-owned outputs/workspaces pass the unchanged regression gate; no rebaseline.
+  Product targets remain 200,000 bytes/frame, 3 ms fixed-step median and 10 ms frame p95; allocation remains open.
+- **Envelope driver — Ready for integration:** rebase #236 without redesigning it, rerun complete
   Node 24 tests and exact-head CI, publish and ask K to compete against Testarossa rivals in CIRCUIT.
 - **Ground feasibility — Blocked on the prerequisites above:** extend the offline Band trial with a
   cross-section pyramid before changing product formats. Compare resident, direct Band and filtered Band
