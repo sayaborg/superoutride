@@ -47,6 +47,14 @@ Consecutive authored vertices form the path. At endpoints the adjacent segment s
 interior vertices alone own turns and fillets. Terrain visibility clips to the finite domain. Content
 provides run-in/runout for camera, drawing and handoff. Occurrence views compose finite source spans. Topology remains above Core.
 
+## Numerical norm convention
+
+Core's `hypot2`/`hypot3` own fixed-arity distance and speed norms in the physics/gameplay hot path.
+They retain the supported Node runtime's bit-exact `Math.hypot` oracle. Compilation, authored ruler
+construction and offline diagnostics use `Math.hypot`; frozen camera/audio algorithms retain their
+existing arithmetic. Numerical owner changes require exact regression evidence, not a blanket
+replacement. The envelope driver uses `hypot2` for planar speed and distance.
+
 ## Numerical threshold ownership
 
 [Core tolerances](../src/core/tolerances.ts) owns shared source endpoints, geometric sampling,

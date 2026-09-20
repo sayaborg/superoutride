@@ -18,7 +18,12 @@ import {
   recoverVehicleToGuideCoordinate,
   type RecoveryState,
 } from '../gameplay/recovery.js';
-import { createRivalDriverWorkspace, sampleRivalDrivingInput } from '../gameplay/rival-driver.js';
+import {
+  compileEnvelopeDriver,
+  createEnvelopeDriverWorkspace,
+  sampleEnvelopeDrivingInput,
+  type VehicleEnvelope,
+} from '../gameplay/envelope-driver.js';
 import type { DrivingInput } from '../input/driving-input.js';
 import { createArcadeVehicle, type ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
 import { createDynamicVehicleCourseSprite } from '../render/dynamic-vehicle-sprite.js';
@@ -42,8 +47,14 @@ export function createCourseRace(options: {
   readonly playerSession: Session;
   readonly createSession: () => Session;
   readonly rival: SessionVehicle;
+  readonly rivalEnvelope?: VehicleEnvelope;
 }) {
   const { course, configuration, grid, initialSpeed, budgets } = options.session;
+  if (configuration.rivalCount && !options.rivalEnvelope)
+    throw new RangeError('Rivals require a current vehicle envelope');
+  const driver = options.rivalEnvelope
+    ? compileEnvelopeDriver(options.rivalEnvelope, options.session.rivalUtilization, options.rivalEnvelope.maximumSpeed)
+    : null;
   const clock = createCheckpointClock(budgets?.initialMs ?? null);
   const entryS = course.entry.ports.find((p) => p.kind === 'entry')!.anchor.s;
   const rivalKind = options.rival.kind;
@@ -94,7 +105,7 @@ export function createCourseRace(options: {
     previous: { x: 0, z: 0, s: 0 },
     current: c.actor.vehicle,
     recovered: false,
-    driverWorkspace: createRivalDriverWorkspace(),
+    driverWorkspace: createEnvelopeDriverWorkspace(),
     step: {
       state: c.actor.recovery,
       input: { steering: 0, throttle: false, brake: false } as DrivingInput,
@@ -218,9 +229,10 @@ export function createCourseRace(options: {
         const motion = motions[i]!;
         move(
           motion,
-          sampleRivalDrivingInput(
+          sampleEnvelopeDrivingInput(
             motion.session.view.world.guide,
             motion.c.actor.vehicle,
+            driver!,
             motion.input,
             motion.driverWorkspace,
           ),

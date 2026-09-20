@@ -14,7 +14,7 @@ import { createCourseGeometryView } from '../../dist/runtime/course-geometry-vie
 import { createCourseDrivingSource } from '../../dist/runtime/course-driving-view.js';
 import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
 import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 
 import { courseDrivingFixture, drivingWindow, ok } from '../helpers/course-driving-fixture.mjs';
 
@@ -145,7 +145,7 @@ test('insufficient windows reject projection candidates and real driver lookahea
   );
   assert.throws(
     () =>
-      sampleRivalDrivingInput(result.world.guide, {
+      driveMeasuredVehicle(result.world.guide, {
         course: { s: 950, l: 0 },
         ...p,
         yaw: p.heading,

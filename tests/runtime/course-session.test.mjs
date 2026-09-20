@@ -1,3 +1,4 @@
+import { testEnvelope } from '../helpers/envelope-driving.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -145,6 +146,7 @@ test('expired physical crossing cannot award progress or checkpoint time', () =>
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: vehicle,
+    rivalEnvelope: testEnvelope(vehicle.profile.id),
   });
   race.start();
   race.advance({ steering: 0, throttle: false, brake: false }, 1 / 60);

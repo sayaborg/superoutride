@@ -560,7 +560,7 @@ never expanded into lap copies. The entry crossing earns no lap. Missing checkpo
 recovery and replacement grant no new credit. Accepted progress remains fixed after FINISH. The Session stops the field after the player reaches
 GOAL or GAME OVER; results retain the final validated ranking and precise event time.
 
-The circuit field uses the existing rival driver, mechanics, roster, race timing and
+The circuit field uses the shared envelope driver, mechanics, roster, race timing and
 ranking. Every actor owns a bounded traversal over the same graph reader factory. At most the actual
 predecessor, active occurrence and selected successor are retained on the 2 km source. A cumulative
 rigid frame transform and chainage offset map observations into the player's current frame for
@@ -644,17 +644,25 @@ Their planar velocity turning acceleration is measured directly. Accepted trials
 mean is the operational lateral envelope, not an analytic tire-force claim. Small-input gain supplies
 the steering controller. Envelope output preserves numeric measurement data and exact inputs.
 
-The deterministic reference driver uses a contiguous 5 m curvature lattice over 480 m, a braking
-constraint from measured deceleration, 90% lateral-envelope utilization and full-throttle straights.
-A speed-dependent pursuit controller outputs canonical steering/throttle/brake only. It never alters
-pose, forces or calibration. All runs begin at the player grid without rivals/traffic, traverse their
+One envelope driver serves reference runs and live rivals with a measured envelope, utilization,
+speed cap and target lane as explicit inputs. Session owns the provisional rival utilization 0.75;
+reference composition owns 0.9. Vehicle/course-specific speed tuning is deferred. A contiguous 5 m
+lattice covers at most 480 m; windows derive from this actual query limit, including pursuit steering.
+Each actor retains a bounded ring of curvature speed limits. Adjacent new cells share Guide samples;
+repeated ticks reuse cells and the precomputed minimum braking bound. Changing the immutable Guide,
+lane selection or compiled policy invalidates the ring. A functional lane must be stable for the
+lifetime of its Guide; fork choice publishes a new view before the next input sample. Reframing and
+recovery retain ordinary physical state transitions. A speed-dependent pursuit controller emits only
+canonical steering/throttle/brake and never changes pose, forces or calibration.
+
+All runs begin at the player grid without rivals/traffic, traverse their
 chosen route physically through the same field lock and occurrence commits, and reject recovery,
 wrong-route selection, timeout or unsupported FINISH. Output contains precise landmark times and an
-optional 10 Hz speed/position/utilization trace. The envelope and driver are offline fitting/validation
-inputs; course compilation and runtime perform no tuning or fitting.
+optional 10 Hz speed/position/utilization trace. The same driver is also used for offline fitting/validation; course compilation and runtime perform no tuning or fitting.
 
 Build generates envelopes, continuous runs and time budgets from current vehicle parameters; browser
-startup performs no measurement or simulation. Cache keys comprise course build hash, the resolved
+startup performs no measurement or simulation. It admits current vehicle/calibration identity and
+immutable numeric envelope rows before constructing rivals; measurement traces are not live driver state. Cache keys comprise course build hash, the resolved
 per-vehicle hash (profile/calibration/assist), driver version/policy and relevant mechanics/traversal-code
 hash. Vehicle value sources are excluded from the common code hash, so tuning one vehicle recomputes
 only that vehicle. One envelope belongs to each vehicle, independently of courses. Cache entries,
@@ -686,7 +694,7 @@ reconstructs the camera in the same callback, before any render without a new ph
 
 ## Rivals and future game systems
 
-The [driver](../src/gameplay/rival-driver.ts) publishes canonical input from physical travel and Guide
+The [driver](../src/gameplay/envelope-driver.ts) publishes canonical input from physical travel and Guide
 lookahead, including a contiguous braking envelope. Driving policy leaves forces and route authority
 unchanged. Presentation reads immutable vehicle/telemetry state. Scoring and race state belong to
 gameplay, composed at the roots. Contacts, richer rivals and game effects need explicit interaction
@@ -1022,14 +1030,6 @@ without a hidden switch to streaming or lower-quality art. Retain content identi
 through the current full-page course switch. [Development](development.md#capacity-model) owns residency/switch peaks.
 
 ## Course Editor target
-
-### Shared reference and rival driver
-
-Unimplemented target: one performance-envelope policy serves reference and rivals, taking vehicle
-envelope, utilization, speed cap and target lane as inputs. Reference utilization remains 0.9; rivals
-use one lower provisional default, with no per-course or vehicle speed tuning. View windows derive
-their reach from the shared driver's actual lookahead. Planning scratch storage belongs to each actor
-and obeys the scene allocation budget. Current reference and rival implementations remain separate.
 
 ### Inspection and authoring
 

@@ -37,6 +37,7 @@ export function resolveCourseSession(
     vehicle,
     grid: course.rules.grid,
     initialSpeed: 0,
+    rivalUtilization: 0.75,
     budgets: configuration.countdown ? budgets : null,
   });
 }

@@ -1,3 +1,4 @@
+import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
 import { createCourseRace } from '../../dist/runtime/course-race.js';
 import { resolveCourseSession } from '../../dist/runtime/course-session.js';
@@ -5,10 +6,11 @@ import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { createRecoveryState } from '../../dist/gameplay/recovery.js';
 import {
-  createReferenceDriverWorkspace,
-  sampleReferenceDrivingInput,
+  createEnvelopeDriverWorkspace,
+  sampleEnvelopeDrivingInput,
   envelopeAt,
-} from '../../dist/gameplay/reference-driver.js';
+  compileEnvelopeDriver,
+} from '../../dist/gameplay/envelope-driver.js';
 import { createCameraRig } from '../../dist/camera/camera.js';
 import { SIM_DT } from '../../dist/browser/frame-loop.js';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
@@ -66,14 +68,15 @@ export function runCourseReference(course, ground, entry, envelope, route, lapCo
       link && section.fork ? (section.fork.regions.findIndex((r) => r.link === link) === 0 ? -1 : 1) : slot.l;
     return race.forks.targetL(section, s, fallback);
   };
-  const workspace = createReferenceDriverWorkspace();
+  const workspace = createEnvelopeDriverWorkspace();
+  const driver = compileEnvelopeDriver(envelope, REFERENCE_DRIVER.utilization, envelope.maximumSpeed);
   race.start();
   // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
   const maxTicks = Math.ceil((3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
     const section = scene.history.active.section,
       startSeconds = race.clock.elapsedSeconds;
-    const input = sampleReferenceDrivingInput(scene.world.guide, vehicle, envelope, lane, workspace);
+    const input = sampleEnvelopeDrivingInput(scene.world.guide, vehicle, driver, lane, workspace);
     race.advance(input, SIM_DT);
     if (actor.recovery.recoveries)
       throw new RangeError(`${entry.profile.id}: reference recovered at ${section.id}:${vehicle.course.s}`);

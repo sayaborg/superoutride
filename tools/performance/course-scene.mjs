@@ -10,7 +10,13 @@ import { createRecoveryState, recoverVehicleToGuideCoordinate } from '../../dist
 import { createCameraRig, updateCamera, resetCameraRig } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY as vehicle } from '../../dist/vehicle/vehicle-catalog.js';
-import * as rivalDriver from '../../dist/gameplay/rival-driver.js';
+import {
+  compileEnvelopeDriver,
+  createEnvelopeDriverWorkspace,
+  sampleEnvelopeDrivingInput,
+} from '../../dist/gameplay/envelope-driver.js';
+import { readVehicleEnvelope } from '../../dist/runtime/vehicle-envelope.js';
+import { readFile } from 'node:fs/promises';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { summarizeSceneProfile } from './scene-profile.mjs';
 
@@ -34,10 +40,16 @@ for (const mode of modes)
     if (!['linear', 'seam', 'circuit', 'branch'].includes(mode)) throw new RangeError('Unknown course mode');
     const { course } = await loadCourse(`content/courses/${mode}.course.json`);
     const ground = await loadCourseGround(course, `content/courses/${mode}.course.json`);
+    const sessionVehicle = browserSessionVehicle(vehicle);
+    const envelope = await readVehicleEnvelope(
+      sessionVehicle,
+      JSON.parse(await readFile(`dist/content/envelopes/${vehicle.profile.id}.json`, 'utf8')),
+    );
     const started = performance.now();
     const scene = createCourseScene(course.entry, ground);
     const player = {
       vehicle: createArcadeVehicle(vehicle.profile, scene.world, {
+        ...sessionVehicle,
         s: 45,
         l: 0,
         initialSpeed: 45,
@@ -46,16 +58,19 @@ for (const mode of modes)
       cameraRig: createCameraRig(),
     };
     player.recovery = createRecoveryState(player.vehicle);
+    const session = resolveCourseSession(
+      course,
+      { mode: 'CUSTOM', rivalCount: rivals, lapCount: course.rules.maxLaps, countdown: false },
+      browserSessionVehicle(vehicle),
+    );
+    const driver = compileEnvelopeDriver(envelope, session.rivalUtilization, envelope.maximumSpeed);
     const race = createCourseRace({
-      session: resolveCourseSession(
-        course,
-        { mode: 'CUSTOM', rivalCount: rivals, lapCount: course.rules.maxLaps, countdown: false },
-        browserSessionVehicle(vehicle),
-      ),
+      session,
       player,
       playerSession: scene.session,
       createSession: scene.createActorSession,
-      rival: browserSessionVehicle(vehicle),
+      rival: sessionVehicle,
+      rivalEnvelope: envelope,
     });
     race.start();
     const setupMilliseconds = performance.now() - started;
@@ -72,7 +87,7 @@ for (const mode of modes)
       c.observer.resync();
     }
     const target = new SoftwareSurface(320, 240);
-    const driverWorkspace = rivalDriver.createRivalDriverWorkspace?.();
+    const driverWorkspace = createEnvelopeDriverWorkspace();
     const gcEntries = [],
       frameBounds = new Float64Array(frames * 2);
     const observer = new PerformanceObserver((list) => gcEntries.push(...list.getEntries()));
@@ -83,7 +98,7 @@ for (const mode of modes)
     for (let i = 0; i < frames + 30; i += 1) {
       const begin = performance.now();
       const recovered = race.advance(
-        rivalDriver.sampleRivalDrivingInput(scene.world.guide, player.vehicle, 0, driverWorkspace),
+        sampleEnvelopeDrivingInput(scene.world.guide, player.vehicle, driver, 0, driverWorkspace),
         1 / 60,
       );
       const camera = updateCamera(player.cameraRig, scene.world, player.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
@@ -125,7 +140,7 @@ for (const mode of modes)
     const allocationFrames = 30;
     for (let i = 0; i < allocationFrames; i += 1) {
       if (
-        race.advance(rivalDriver.sampleRivalDrivingInput(scene.world.guide, player.vehicle, 0, driverWorkspace), 1 / 60)
+        race.advance(sampleEnvelopeDrivingInput(scene.world.guide, player.vehicle, driver, 0, driverWorkspace), 1 / 60)
       )
         resetCameraRig(player.cameraRig);
       const camera = updateCamera(player.cameraRig, scene.world, player.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
@@ -137,7 +152,7 @@ for (const mode of modes)
     await inspector.post('Profiler.start');
     for (let i = 0; i < 60; i += 1) {
       if (
-        race.advance(rivalDriver.sampleRivalDrivingInput(scene.world.guide, player.vehicle, 0, driverWorkspace), 1 / 60)
+        race.advance(sampleEnvelopeDrivingInput(scene.world.guide, player.vehicle, driver, 0, driverWorkspace), 1 / 60)
       )
         resetCameraRig(player.cameraRig);
       const camera = updateCamera(player.cameraRig, scene.world, player.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);

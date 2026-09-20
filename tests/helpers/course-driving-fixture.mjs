@@ -1,3 +1,4 @@
+import { ENVELOPE_DRIVER } from '../../dist/gameplay/envelope-driver.js';
 import assert from 'node:assert/strict';
 import { presentationDocument } from './course-presentation-documents.mjs';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
@@ -43,7 +44,12 @@ export function queryDemand(pose) {
   const extent = { behind: 300, ahead: 400 };
   return {
     pose,
-    consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
+    consumers: {
+      cameraRender: extent,
+      contact: extent,
+      driverLookahead: { behind: ENVELOPE_DRIVER.spacing, ahead: ENVELOPE_DRIVER.lookahead },
+      reverseRecovery: extent,
+    },
   };
 }
 export function drivingWindow(course, pose) {

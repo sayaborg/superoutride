@@ -15,7 +15,7 @@ import { createCourseGeometryView } from '../../dist/runtime/course-geometry-vie
 import { guidePathToWorld, locateWorldOnGuideLocal, projectWorldOnGuideInterval } from '../../dist/core/guide-curve.js';
 import { createBandSurfaceReader } from '../../dist/physics/band-surface-reader.js';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { commonPresentationDocument } from '../helpers/course-common-presentation.mjs';
@@ -244,7 +244,7 @@ test('actual vehicle contact and driver reads cross mapped LINEAR content while 
     for (let tick = 0; tick < 60; tick++) {
       const moving = view(f, cars[2].course.s, 2).driving;
       for (const [i, world] of [nativeWorld, retained.world, moving.world].entries()) {
-        const input = sampleRivalDrivingInput(world.guide, cars[i]);
+        const input = driveMeasuredVehicle(world.guide, cars[i]);
         updateArcadeVehicle(world, cars[i], input, 1 / 60);
       }
       for (const key of ['x', 'y', 'z', 'yaw', 'velocityX', 'velocityY', 'velocityZ'])
@@ -513,7 +513,7 @@ test('car and bike use fully bounded seam readers with unchanged mechanics and a
     for (let tick = 0; tick < 60; tick++) {
       const previous = { x: cars[1].x, z: cars[1].z };
       for (const [i, d] of [ordinary, bounded].entries())
-        updateArcadeVehicle(d.world, cars[i], sampleRivalDrivingInput(d.world.guide, cars[i]), 1 / 60);
+        updateArcadeVehicle(d.world, cars[i], driveMeasuredVehicle(d.world.guide, cars[i]), 1 / 60);
       assert.deepEqual(cars[1], cars[0], entry.id);
       assert.equal(guard.admitMotion(previous, cars[1]).ok, true, entry.id);
     }

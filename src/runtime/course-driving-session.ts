@@ -8,7 +8,7 @@ import { compileCoursePresentationDomains } from '../compiler/course-presentatio
 import { compilePlanarTransform, composePlanarTransforms, invertPlanarTransform } from '../core/planar-transform.js';
 import { clamp, wrapAngle, type Vec2 } from '../core/math.js';
 import { CURRENT_RENDER_FAR_DEPTH_METERS } from '../core/presentation-scale.js';
-import { RIVAL_GUIDE_LOOKAHEAD_METERS } from '../gameplay/rival-driver.js';
+import { ENVELOPE_DRIVER } from '../gameplay/envelope-driver.js';
 import { compileWorldCrossingGate, observeWorldCrossingPlane } from '../gameplay/world-crossing-gate.js';
 import { RECOVERY_PROFILE, recoverVehicleToGuideCoordinate, type RecoveryState } from '../gameplay/recovery.js';
 import type { ArcadeVehicleState } from '../physics/arcade-vehicle-physics.js';
@@ -53,7 +53,7 @@ export function createCourseDrivingGraph(entry: CompiledSection, ground: CourseG
   for (const section of sections) {
     if (
       section.fork &&
-      section.fork.lock.s + Math.max(CURRENT_RENDER_FAR_DEPTH_METERS, RIVAL_GUIDE_LOOKAHEAD_METERS) + step.ahead >
+      section.fork.lock.s + Math.max(CURRENT_RENDER_FAR_DEPTH_METERS, ENVELOPE_DRIVER.lookahead) + step.ahead >
         Math.min(...section.outgoing.map((link) => link.source.anchor.s))
     )
       throw new RangeError('Fork parent must cover pre-lock render and driver queries through one fixed step');

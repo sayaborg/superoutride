@@ -11,7 +11,7 @@ import { pseudoDepth } from '../../dist/core/projection.js';
 import { createCliffVisualProfile } from '../../dist/dev/fixtures/cliff-visual.js';
 import { createHillDipHeightProfile } from '../../dist/dev/fixtures/hill-dip-height.js';
 import { createStadiumGuide } from '../../dist/dev/fixtures/raster-courses.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createDynamicVehicleCourseSprite } from '../../dist/render/dynamic-vehicle-sprite.js';
 import { renderSourceGround as renderDriving } from '../../dist/dev/diagnostics/source-ground-render.js';
@@ -55,7 +55,7 @@ test('plain world-state object supplies camera, rival input, dynamic sprite and 
   assert.ok(Number.isFinite(camera.x) && Number.isFinite(camera.y) && Number.isFinite(camera.z));
   assert.ok(Math.abs(pseudoDepth(vehicle.course.s, camera.s, guide.length) - CURRENT_CAMERA_DISTANCE_METERS) < 1e-9);
 
-  const input = sampleRivalDrivingInput(guide, vehicle);
+  const input = driveMeasuredVehicle(guide, vehicle);
   assert.ok(input.steering >= -1 && input.steering <= 1);
   assert.equal(typeof input.throttle, 'boolean');
   assert.equal(typeof input.brake, 'boolean');

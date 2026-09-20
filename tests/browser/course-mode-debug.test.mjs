@@ -22,7 +22,7 @@ import {
 
 import { createStraightReferenceWorld } from '../../dist/dev/fixtures/straight-world.js';
 import { createRecoveryState, updateRecovery } from '../../dist/gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 
 import { arcadeBodyKinematics } from '../../dist/physics/arcade-vehicle-physics.js';
 import { sampleSurfaceGeometryAtCoordinate } from '../../dist/physics/vehicle-dynamics.js';
@@ -105,7 +105,7 @@ test('all nine vehicle profiles integrate on the finite LINEAR course with permi
         runtime.heightProfile,
         runtime.surfaceMap,
         vehicle,
-        sampleRivalDrivingInput(runtime.guide, vehicle, 0),
+        driveMeasuredVehicle(runtime.guide, vehicle, 0),
         DT,
       );
       for (const value of [vehicle.x, vehicle.y, vehicle.z, vehicle.speed, vehicle.pitch, vehicle.pitchRate])

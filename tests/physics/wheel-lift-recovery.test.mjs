@@ -14,7 +14,7 @@ import { compileRasterPath } from '../../dist/core/raster-path.js';
 import { createCurvedReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRisingReferenceWorld } from '../../dist/dev/fixtures/curved-world.js';
 import { createRecoveryState, updateRecovery } from '../../dist/gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 import {
   arcadeBodyKinematics,
   createArcadeVehicle,
@@ -232,7 +232,7 @@ test('VFR loop-out remains possible but ordinary recovery prevents inverted driv
       const events = [];
       for (let tick = 0; tick < Math.round(3 / dt); tick++) {
         const input = live
-          ? sampleRivalDrivingInput(g, v, 0)
+          ? driveMeasuredVehicle(g, v, 0)
           : { steering: tick * dt < 1.5 ? 1 : -1, throttle: true, brake: false };
         updateArcadeVehicle({ guide: g, height: h, surfaces: s }, v, input, dt);
         assertFinite(v);

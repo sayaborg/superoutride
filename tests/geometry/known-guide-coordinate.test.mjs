@@ -13,7 +13,7 @@ import {
   updateOrderedRaceProgress,
 } from '../../dist/gameplay/ordered-race-progress.js';
 import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../../dist/gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle } from '../helpers/envelope-driving.mjs';
 import { createArcadeVehicle, updateArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { SurfaceMap } from '../../dist/physics/surface-map.js';
 import { initializeGuideObservation } from '../../dist/physics/vehicle-dynamics.js';
@@ -39,7 +39,7 @@ for (const [name, createRuntime] of [['Repeated ring', createRepeatedReferenceWo
         updateArcadeVehicle(
           { guide: w.guide, height: w.height, surfaces: w.surface },
           vehicle,
-          sampleRivalDrivingInput(w.guide, vehicle, 0),
+          driveMeasuredVehicle(w.guide, vehicle, 0),
           SIM_DT,
         );
         updateOrderedRaceProgress(progress, raceRules, sample());

@@ -18,7 +18,7 @@ import {
   recoverVehicleToGuideCoordinate,
   advanceVehicleWithRecovery,
 } from '../../dist/gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle, testEnvelope } from '../helpers/envelope-driving.mjs';
 import { guidePathToWorld } from '../../dist/core/guide-curve.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
@@ -36,6 +36,7 @@ const point = (s, l) => guidePathToWorld(course.entry.guide, s, l, createPlanarC
 function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
   const scene = createCourseScene(course.entry, ground);
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+    ...browserSessionVehicle(entry),
     s: 45,
     l: 0,
     initialSpeed: 0,
@@ -53,6 +54,7 @@ function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: browserSessionVehicle(rival),
+    rivalEnvelope: testEnvelope(rival.profile.id),
   });
   race.start();
   return { scene, actor, race };
@@ -142,7 +144,7 @@ for (const [entry, side, rivalCount] of [
       seenLocked = false;
     for (let tick = 0; tick < 6000; tick++) {
       race.advance(
-        sampleRivalDrivingInput(scene.world.guide, actor.vehicle, (s) =>
+        driveMeasuredVehicle(scene.world.guide, actor.vehicle, (s) =>
           race.forks.targetL(scene.history.active.section, s, side),
         ),
         1 / 60,
@@ -232,6 +234,7 @@ test('every fork exit and merge seam keeps a 30 m guard and clears parent-specif
           )
           .reduce((a, b) => a + b, 0) / 2;
       const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+        ...browserSessionVehicle(entry),
         s: link.source.anchor.s - 0.4,
         l: lateral + offset,
         initialSpeed: 30,

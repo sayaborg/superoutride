@@ -6,7 +6,8 @@
 - Static compiled readers are shared; occurrences, actors, field locks and Session state are separate.
 - Caller-owned Guide/Raster/tire workspaces preserve the exact immutable mechanics reference.
 - All four modes meet the unchanged 650,000-byte regression ceiling; the 200,000-byte product target remains open.
-- The measured-envelope driver integration remains unmerged in #236 and has no device acceptance yet.
+- Fixed-step median and frame p95 meet the 3 ms and 10 ms targets in CI; device performance is unqualified.
+- The measured-envelope driver supplies reference and rival inputs; K's CIRCUIT device acceptance is pending.
 - DEV_UNCALIBRATED vehicle values, physics results, audio, input, camera, sprites and their immutable references remain frozen.
 - Build generates disposable per-vehicle envelopes, continuous references and compact Session budgets.
 - The existing standing-start-to-results flow was accepted by K; phone performance remains unqualified.
@@ -14,9 +15,8 @@
 ## Milestones
 
 - **Allocation reduction — Complete:** caller-owned outputs/workspaces pass the unchanged regression gate; no rebaseline.
-  Product targets remain 200,000 bytes/frame, 3 ms fixed-step median and 10 ms frame p95; allocation remains open.
-- **Envelope driver — Ready for integration:** rebase #236 without redesigning it, rerun complete
-  Node 24 tests and exact-head CI, publish and ask K to compete against Testarossa rivals in CIRCUIT.
+- **Envelope driver — Awaiting device acceptance:** K competes against Testarossa rivals in public CIRCUIT;
+  Session utilization is 0.75 and reference utilization is 0.9. The shared driver retains its 5 m rolling cache.
 - **Ground feasibility — Blocked on the prerequisites above:** extend the offline Band trial with a
   cross-section pyramid before changing product formats. Compare resident, direct Band and filtered Band
   rendering in three uncontended repetitions. All four modes must equal or improve current render
@@ -76,8 +76,8 @@ Direct Band trial (#235, host evidence; prototype code is not merged):
 | BRANCH  |                   2.943 / 3.314 |               3.708 / 4.251 |                   0.102 → 0.921 |
 
 Point-active maximum was 7; one distant footprint crossed 82 longitudinal intervals. A point-active
-budget alone cannot bound far-row cost. Retire #235 without merging its trial after these observations
-are preserved on main; use its Git history for the later independent filtered trial.
+budget alone cannot bound far-row cost. The trial is retired without merging; use its Git history for
+the later independent filtered trial.
 
 Playable completion requires public Pages and K's device check. After reconstruction: real content →
 K reviews time margins/rival speed → traffic, collisions and movable/fixed object interactions → GUI.

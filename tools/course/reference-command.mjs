@@ -1,6 +1,6 @@
 import { VEHICLE_CATALOG } from '../../dist/vehicle/vehicle-catalog.js';
 import { browserSessionVehicle } from '../../dist/browser/session-vehicle.js';
-import { REFERENCE_DRIVER } from '../../dist/gameplay/reference-driver.js';
+import { REFERENCE_DRIVER } from '../../dist/runtime/reference-driving-policy.js';
 import { measureVehicleEnvelope } from './vehicle-envelope.mjs';
 import { courseReferenceRoutes, runCourseReference } from './reference-run.mjs';
 import { referenceModelIdentity } from './reference-identity.mjs';

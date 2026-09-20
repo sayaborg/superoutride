@@ -3,7 +3,7 @@ function category(stack) {
   if (stack.some((f) => /\/render\/|\/terrain\/|\/graphics\/|\/groundmap\//.test(f.url))) return 'render';
   if (stack.some((f) => /course-driving-view|guide-curve|guide-coordinate-frame/.test(f.url))) return 'view';
   if (stack.some((f) => /\/physics\//.test(f.url))) return 'physics';
-  if (stack.some((f) => /(?:rival|reference)-driver/.test(f.url))) return 'driver';
+  if (stack.some((f) => /envelope-driver/.test(f.url))) return 'driver';
   if (
     stack.some((f) =>
       /(?:race-progress|crossing-gate|checkpoint-clock|course-fork-field|course-driving-session)/.test(f.url),

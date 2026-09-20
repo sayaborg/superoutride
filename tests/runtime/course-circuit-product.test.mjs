@@ -11,7 +11,7 @@ import { createCourseRace } from '../../dist/runtime/course-race.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY as entry } from '../../dist/vehicle/vehicle-catalog.js';
 import { createRecoveryState, recoverVehicle, recoverVehicleToGuideCoordinate } from '../../dist/gameplay/recovery.js';
-import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
+import { driveMeasuredVehicle, testEnvelope } from '../helpers/envelope-driving.mjs';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
 import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
@@ -26,6 +26,7 @@ const ground = await testGround(course, 'circuit');
 function fixture() {
   const scene = createCourseScene(course.entry, ground);
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
+    ...browserSessionVehicle(entry),
     s: 45,
     l: 0,
     initialSpeed: 0,
@@ -45,6 +46,7 @@ test('standing player and rival physically finish a transformed source lap with 
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: browserSessionVehicle(entry),
+    rivalEnvelope: testEnvelope(entry.profile.id),
   });
   race.start();
   assert.equal(actor.vehicle.longitudinalSpeed, 0);
@@ -56,7 +58,7 @@ test('standing player and rival physically finish a transformed source lap with 
   const target = new SoftwareSurface(320, 240);
   let visibleRival = false;
   for (let tick = 0; tick < 4000; tick++) {
-    race.advance(sampleRivalDrivingInput(scene.world.guide, actor.vehicle), 1 / 60);
+    race.advance(driveMeasuredVehicle(scene.world.guide, actor.vehicle), 1 / 60);
     const camera = updateCamera(actor.cameraRig, scene.world, actor.vehicle, CURRENT_CAMERA_PROFILE, 1 / 60);
     if (tick % 600 === 0) {
       const observation = race.observe(camera);

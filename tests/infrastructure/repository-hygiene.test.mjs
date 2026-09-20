@@ -258,12 +258,12 @@ test('engine ownership follows an acyclic dependency direction, including type i
   for (const layer of graph.keys()) visit(layer);
 });
 
-test('presentation observers consume physical read contracts and the driver gravity constant only', async () => {
+test('presentation observers and driving policy consume only physical read contracts', async () => {
   for (const relative of [
     'camera/camera.ts',
     'render/renderer.ts',
     'render/dynamic-vehicle-sprite.ts',
-    'gameplay/rival-driver.ts',
+    'gameplay/envelope-driver.ts',
   ]) {
     const file = path.join(sourceRoot, relative);
     const syntax = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
@@ -277,17 +277,7 @@ test('presentation observers consume physical read contracts and the driver grav
       if (ref && ts.isStringLiteral(ref) && ref.text.startsWith('.')) {
         const target = path.relative(sourceRoot, path.resolve(path.dirname(file), ref.text));
         if (target.startsWith(`physics${path.sep}`)) {
-          if (target === path.join('physics', 'vehicle-dynamics.js') && relative === 'gameplay/rival-driver.ts') {
-            assert.ok(
-              ts.isImportDeclaration(node) &&
-                node.importClause?.namedBindings &&
-                ts.isNamedImports(node.importClause.namedBindings),
-            );
-            assert.deepEqual(
-              node.importClause.namedBindings.elements.map((e) => (e.propertyName ?? e.name).text),
-              ['VEHICLE_GRAVITY'],
-            );
-          } else assert.equal(target, path.join('physics', 'vehicle-contract.js'), relative);
+          assert.equal(target, path.join('physics', 'vehicle-contract.js'), relative);
         }
       }
       ts.forEachChild(node, visit);

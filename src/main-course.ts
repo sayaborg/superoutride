@@ -15,6 +15,7 @@ import { readCourseTimeBudgets } from './runtime/course-time-budgets.js';
 import { browserSessionVehicle } from './browser/session-vehicle.js';
 import { readBrowserSessionSettings, mountCourseSessionControls } from './browser/course-session-controls.js';
 import { createCourseScene } from './runtime/course-scene.js';
+import { readVehicleEnvelope } from './runtime/vehicle-envelope.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
 const status = document.createElement('p');
@@ -59,6 +60,16 @@ try {
   const preset = readBrowserSessionSettings(new URLSearchParams(), course.rules.classic);
   const entry = VEHICLE_CATALOG.find((v) => v.profile.id === settings.vehicleId)!;
   const vehicle = browserSessionVehicle(entry);
+  const rivalEnvelope = settings.rivalCount
+    ? await readVehicleEnvelope(
+        vehicle,
+        JSON.parse(
+          new TextDecoder('utf-8', { fatal: true }).decode(
+            await fetchBytes(new URL(`envelopes/${vehicle.profile.id}.json`, root)),
+          ),
+        ),
+      )
+    : undefined;
   const budgets = settings.countdown
     ? await readCourseTimeBudgets(
         course,
@@ -84,6 +95,7 @@ try {
     playerSession: scene.session,
     createSession: scene.createActorSession,
     rival: vehicle,
+    rivalEnvelope,
   });
   const raceStatus = document.createElement('output');
   raceStatus.setAttribute('role', 'status');
