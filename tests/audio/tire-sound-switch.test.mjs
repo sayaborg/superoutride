@@ -1023,134 +1023,132 @@ for (const { model, components, Synthesis, settings, resolveTuning, hasRoad } of
     hasRoad: true,
   },
 ]) {
-  test(
-    `${model.toUpperCase()} transports physical observations to independent ${components} kernels with output-only fades and release`,
-    async (t) => {
-      install(t);
-      const context = new FakeAudioContext(),
-        voice = createTireVoice(context, context.destination);
-      t.after(() => voice.dispose());
-      const input = state();
-      for (const [i, axle] of ['front', 'rear'].entries())
-        Object.assign(input[axle], {
-          longitudinalVelocity: 25,
-          lateralVelocity: 12 - 4 * i,
-          wheelSpeed: 25 + 10 * i,
-          wheelAngularSpeed: (25 + 10 * i) / 0.3,
-          longitudinalPower: 0,
-          lateralPower: 80000 - 30000 * i,
-          utilization: 2.4,
-        });
-      const before = structuredClone(input);
-      voice.setModel(model);
-      voice.update(input);
-      const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
-        p = params();
-      assert.deepEqual(worklet.messages, [{ model, tuning: resolveTuning() }]);
-      for (const [key, param] of worklet.parameters) p[key][0] = param.value;
-      assert.equal(p.front_squeal[0], TIRE_CONTROL_RANGES.squeal.defaultValue);
-      assert.equal(p.front_pitch[0], TIRE_CONTROL_RANGES.pitch.defaultValue);
-      assert.equal(p.rear_tire_wheelSpeed[0], 35);
-      const Processor = await processor(t);
-      const a = new Processor(),
-        b = new Processor();
-      for (const node of [a, b]) node.port.onmessage({ data: { model } });
-      const block = (node, count) => {
-        const output = [[new Float32Array(count)]];
-        node.process([], output, p);
-        return output[0][0];
-      };
-      const initial = block(a, 24000),
-        split = new Float32Array(24000);
-      let offset = 0;
-      for (const count of [1, 127, 8128, 15744]) {
-        split.set(block(b, count), offset);
-        offset += count;
-      }
-      assert.deepEqual(initial, split);
-      const { front, rear } = a.pair;
-      assert.equal(a.pair.model, model);
-      assert.ok(front instanceof Synthesis && rear instanceof Synthesis);
-      assert.notEqual(front, rear);
-      assert.equal('scrubOutput' in front, false, 'there is no compatibility S source');
-      if (!hasRoad) assert.equal('roadOutput' in front, false, 'there is no rolling source');
-      const kernels = [new Synthesis(48000, settings.frontSeed), new Synthesis(48000, settings.rearSeed)];
-      for (const [i, axle] of ['front', 'rear'].entries()) {
-        const observation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, p[`${axle}_tire_${key}`][0]]));
-        kernels[i].update(observation, p[`${axle}_tire_surfaceIndex`][0]);
-      }
-      assert.deepEqual(
-        initial,
-        Float32Array.from({ length: initial.length }, () => kernels[0].sample() + kernels[1].sample()),
-      );
-      a.port.onmessage({ data: { model } });
-      assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
-      // Neither legacy HOPF controls nor the comparison models' S switch drives this mechanism.
-      p.front_squeal[0] = NaN;
-      p.front_pitch[0] = Infinity;
-      p.mix_scrub[0] = 0;
-      const unrelated = block(a, 4096);
-      p.front_squeal[0] = 1;
-      p.front_pitch[0] = 400;
-      p.mix_scrub[0] = 1;
-      assert.deepEqual(unrelated, block(b, 4096));
-      for (const [r, q] of [
-        [0, 1],
-        [1, 0],
-        [0, 0],
-        [1, 1],
-      ]) {
-        p.mix_road[0] = r;
-        p.mix_squeal[0] = q;
-        const whole = block(a, 12000),
-          parts = new Float32Array(12000);
-        parts.set(block(b, 31));
-        parts.set(block(b, 11969), 31);
-        assert.deepEqual(whole, parts);
-        assert.equal(a.pair.front, front);
-        assert.deepEqual(a.pair, b.pair, 'output isolation never changes synthesis history');
-        const expected = hasRoad
-          ? front.roadOutput * r + front.frictionOutput * q + rear.roadOutput * r + rear.frictionOutput * q
-          : (front.frictionOutput + rear.frictionOutput) * q;
-        assert.ok(Math.abs(whole.at(-1) - expected) < 1e-7, 'no compensation of the remaining output');
-        if (!q && (!hasRoad || !r)) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
-        else assert.ok(whole.slice(-128).some((v) => Math.abs(v) > 1e-9));
-      }
-      p.mix_squeal[0] = 0;
-      block(a, 1);
-      assert.ok(Math.abs(a.squealMix - Math.exp(-1 / (48000 * TIRE_COMPONENT_FADE_SECONDS))) < 1e-12);
-      p.mix_squeal[0] = 1;
-      p.front_tire_load[0] = NaN;
-      const released = block(a, 96000);
-      const releasedMagnitude = hasRoad
-        ? Math.abs(front.roadOutput) + Math.abs(front.frictionOutput)
-        : Math.abs(front.frictionOutput);
-      assert.ok(releasedMagnitude < 1e-9);
-      assert.ok(
-        released.slice(-128).some((v) => Math.abs(v) > 1e-9),
-        'valid rear survives front release',
-      );
-      p.rear_tire_surfaceIndex[0] = 0.5;
-      assert.ok(
-        block(a, 96000)
-          .slice(-128)
-          .every((v) => Math.abs(v) < 1e-9),
-      );
-      p.front_tire_load[0] = 4000;
-      p.rear_tire_surfaceIndex[0] = 0;
-      assert.ok(
-        block(a, 24000)
-          .slice(-128)
-          .some((v) => Math.abs(v) > 1e-9),
-      );
-      assert.deepEqual(input, before);
-      a.port.onmessage({ data: 'stop' });
-      a.port.onmessage({ data: { model } });
-      const stopped = [[new Float32Array(128).fill(1)]];
-      assert.equal(a.process([], stopped, p), false);
-      assert.ok(stopped[0][0].every((v) => v === 0));
-    },
-  );
+  const name = `${model.toUpperCase()} transports physical observations to independent ${components} kernels`;
+  test(`${name} with output-only fades and release`, async (t) => {
+    install(t);
+    const context = new FakeAudioContext(),
+      voice = createTireVoice(context, context.destination);
+    t.after(() => voice.dispose());
+    const input = state();
+    for (const [i, axle] of ['front', 'rear'].entries())
+      Object.assign(input[axle], {
+        longitudinalVelocity: 25,
+        lateralVelocity: 12 - 4 * i,
+        wheelSpeed: 25 + 10 * i,
+        wheelAngularSpeed: (25 + 10 * i) / 0.3,
+        longitudinalPower: 0,
+        lateralPower: 80000 - 30000 * i,
+        utilization: 2.4,
+      });
+    const before = structuredClone(input);
+    voice.setModel(model);
+    voice.update(input);
+    const worklet = context.nodes.find((n) => n.name === 'vehicle-tires'),
+      p = params();
+    assert.deepEqual(worklet.messages, [{ model, tuning: resolveTuning() }]);
+    for (const [key, param] of worklet.parameters) p[key][0] = param.value;
+    assert.equal(p.front_squeal[0], TIRE_CONTROL_RANGES.squeal.defaultValue);
+    assert.equal(p.front_pitch[0], TIRE_CONTROL_RANGES.pitch.defaultValue);
+    assert.equal(p.rear_tire_wheelSpeed[0], 35);
+    const Processor = await processor(t);
+    const a = new Processor(),
+      b = new Processor();
+    for (const node of [a, b]) node.port.onmessage({ data: { model } });
+    const block = (node, count) => {
+      const output = [[new Float32Array(count)]];
+      node.process([], output, p);
+      return output[0][0];
+    };
+    const initial = block(a, 24000),
+      split = new Float32Array(24000);
+    let offset = 0;
+    for (const count of [1, 127, 8128, 15744]) {
+      split.set(block(b, count), offset);
+      offset += count;
+    }
+    assert.deepEqual(initial, split);
+    const { front, rear } = a.pair;
+    assert.equal(a.pair.model, model);
+    assert.ok(front instanceof Synthesis && rear instanceof Synthesis);
+    assert.notEqual(front, rear);
+    assert.equal('scrubOutput' in front, false, 'there is no compatibility S source');
+    if (!hasRoad) assert.equal('roadOutput' in front, false, 'there is no rolling source');
+    const kernels = [new Synthesis(48000, settings.frontSeed), new Synthesis(48000, settings.rearSeed)];
+    for (const [i, axle] of ['front', 'rear'].entries()) {
+      const observation = Object.fromEntries(TIRE_SOUND_INPUT_KEYS.map((key) => [key, p[`${axle}_tire_${key}`][0]]));
+      kernels[i].update(observation, p[`${axle}_tire_surfaceIndex`][0]);
+    }
+    assert.deepEqual(
+      initial,
+      Float32Array.from({ length: initial.length }, () => kernels[0].sample() + kernels[1].sample()),
+    );
+    a.port.onmessage({ data: { model } });
+    assert.equal(a.pair.front, front, 'same-model requests preserve vibration history');
+    // Neither legacy HOPF controls nor the comparison models' S switch drives this mechanism.
+    p.front_squeal[0] = NaN;
+    p.front_pitch[0] = Infinity;
+    p.mix_scrub[0] = 0;
+    const unrelated = block(a, 4096);
+    p.front_squeal[0] = 1;
+    p.front_pitch[0] = 400;
+    p.mix_scrub[0] = 1;
+    assert.deepEqual(unrelated, block(b, 4096));
+    for (const [r, q] of [
+      [0, 1],
+      [1, 0],
+      [0, 0],
+      [1, 1],
+    ]) {
+      p.mix_road[0] = r;
+      p.mix_squeal[0] = q;
+      const whole = block(a, 12000),
+        parts = new Float32Array(12000);
+      parts.set(block(b, 31));
+      parts.set(block(b, 11969), 31);
+      assert.deepEqual(whole, parts);
+      assert.equal(a.pair.front, front);
+      assert.deepEqual(a.pair, b.pair, 'output isolation never changes synthesis history');
+      const expected = hasRoad
+        ? front.roadOutput * r + front.frictionOutput * q + rear.roadOutput * r + rear.frictionOutput * q
+        : (front.frictionOutput + rear.frictionOutput) * q;
+      assert.ok(Math.abs(whole.at(-1) - expected) < 1e-7, 'no compensation of the remaining output');
+      if (!q && (!hasRoad || !r)) assert.ok(whole.slice(-128).every((v) => Math.abs(v) < 1e-12));
+      else assert.ok(whole.slice(-128).some((v) => Math.abs(v) > 1e-9));
+    }
+    p.mix_squeal[0] = 0;
+    block(a, 1);
+    assert.ok(Math.abs(a.squealMix - Math.exp(-1 / (48000 * TIRE_COMPONENT_FADE_SECONDS))) < 1e-12);
+    p.mix_squeal[0] = 1;
+    p.front_tire_load[0] = NaN;
+    const released = block(a, 96000);
+    const releasedMagnitude = hasRoad
+      ? Math.abs(front.roadOutput) + Math.abs(front.frictionOutput)
+      : Math.abs(front.frictionOutput);
+    assert.ok(releasedMagnitude < 1e-9);
+    assert.ok(
+      released.slice(-128).some((v) => Math.abs(v) > 1e-9),
+      'valid rear survives front release',
+    );
+    p.rear_tire_surfaceIndex[0] = 0.5;
+    assert.ok(
+      block(a, 96000)
+        .slice(-128)
+        .every((v) => Math.abs(v) < 1e-9),
+    );
+    p.front_tire_load[0] = 4000;
+    p.rear_tire_surfaceIndex[0] = 0;
+    assert.ok(
+      block(a, 24000)
+        .slice(-128)
+        .some((v) => Math.abs(v) > 1e-9),
+    );
+    assert.deepEqual(input, before);
+    a.port.onmessage({ data: 'stop' });
+    a.port.onmessage({ data: { model } });
+    const stopped = [[new Float32Array(128).fill(1)]];
+    assert.equal(a.process([], stopped, p), false);
+    assert.ok(stopped[0][0].every((v) => v === 0));
+  });
 }
 
 test('voice retains both tuning banks and ignores edits to the inactive model', (t) => {
