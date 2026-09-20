@@ -43,6 +43,16 @@ export function observeWorldCrossingGate(
   previous: Vec2,
   current: Vec2,
 ): WorldGateCrossing | null {
+  const crossing = observeWorldCrossingPlane(gate, previous, current);
+  return crossing && Math.abs(crossing.lateral) <= gate.halfWidth + GATE_WIDTH_TOLERANCE_METERS ? crossing : null;
+}
+
+/** A chart handoff observes the entire oriented plane; lateral admission belongs to its contact guard. */
+export function observeWorldCrossingPlane(
+  gate: Pick<WorldCrossingGate, 'center' | 'tangent' | 'normal'>,
+  previous: Vec2,
+  current: Vec2,
+): WorldGateCrossing | null {
   finitePoint(previous, 'previous world-gate point');
   finitePoint(current, 'current world-gate point');
 
@@ -67,7 +77,6 @@ export function observeWorldCrossingGate(
     z: previous.z + (current.z - previous.z) * u,
   };
   const lateral = dot(subtract(crossingPoint, gate.center), gate.normal);
-  if (Math.abs(lateral) > gate.halfWidth + GATE_WIDTH_TOLERANCE_METERS) return null;
 
   return Object.freeze({ direction, u, lateral });
 }

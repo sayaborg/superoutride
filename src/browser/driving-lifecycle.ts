@@ -16,6 +16,7 @@ interface DrivingPlayer {
 export interface DrivingLifecycleOptions {
   readonly world: () => VehicleWorld;
   readonly recoveryProfile: Readonly<RecoveryProfile>;
+  readonly recoveryL?: () => number;
   /** Replaces observation baselines after a manual discontinuity without awarding progress. */
   readonly resync?: () => void;
 }
@@ -32,7 +33,9 @@ export function createDrivingLifecycle(player: DrivingPlayer, options: DrivingLi
     recoverVehicle(world, player.vehicle, {
       state: player.recovery,
       reason: 'manual',
-      profile: options.recoveryProfile,
+      profile: options.recoveryL
+        ? { ...options.recoveryProfile, targetL: options.recoveryL() }
+        : options.recoveryProfile,
     });
     if (profile !== undefined) player.replacePlayer(profile, world);
     resetCameraRig(player.cameraRig);

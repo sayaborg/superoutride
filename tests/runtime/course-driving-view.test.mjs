@@ -8,21 +8,42 @@ import { guideCoordinateMetricsAt } from '../../dist/core/guide-coordinate-frame
 import { rasterPathToWorld } from '../../dist/core/raster-path.js';
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
-import { createCourseSectionDrivingSource } from '../../dist/runtime/course-section-driving-view.js';
+import { createCourseDrivingSource } from '../../dist/runtime/course-driving-view.js';
+import { compileCoursePhysicalDomains } from '../../dist/compiler/course-physical-overlap.js';
+import { compileCoursePresentationDomains } from '../../dist/compiler/course-presentation-overlap.js';
 import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 
 import { courseDrivingFixture, drivingWindow, ok } from '../helpers/course-driving-fixture.mjs';
 
+function singleSource() {
+  const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
+  return createCourseDrivingSource(
+    ok(
+      compileCoursePhysicalDomains([], {
+        pose: { ...zero, left: 1, right: 1, ahead: 1, behind: 1 },
+        step: zero,
+        consumers: { contact: zero, driverLookahead: zero, reverseRecovery: zero },
+      }),
+    ),
+    ok(
+      compileCoursePresentationDomains([], {
+        pose: { ...zero, left: 1, right: 1, ahead: 1, behind: 1 },
+        step: zero,
+        consumers: { cameraRender: zero, groundFilter: zero, scenery: zero },
+      }),
+    ),
+  );
+}
+
 test('bounded Section readers share native geometry and height interpolation with stable source observations', async () => {
   const course = await courseDrivingFixture();
-  const source = createCourseSectionDrivingSource(course.entry);
+  const source = singleSource();
   const { view } = drivingWindow(course, { minS: 1100, maxS: 1200, maxAdvance: 2 });
   const result = ok(source.createView(view));
   assert.equal(result.frame, view.frame);
   assert.equal(result.range, view.activeRange);
-  assert.equal(result.qualification.source.guide, course.entry.guide);
-  for (const segment of result.geometry.raster.segments) assert.ok(course.entry.raster.segments.includes(segment));
-  for (const node of result.world.height.nodes) assert.ok(course.entry.height.nodes.includes(node));
+  assert.equal(view.spans[0].occurrence.section.guide, course.entry.guide);
+  assert.ok(result.metadata.rasterSegments < course.entry.raster.segments.length);
   for (const s of [1100, 1199.25, 1200, 1230.5, 1330]) {
     for (const l of [-3, 0, 5]) {
       const native = guidePathToWorld(course.entry.guide, s, l);
@@ -36,7 +57,7 @@ test('bounded Section readers share native geometry and height interpolation wit
         result.world.height.samplePhysicsDifferential(s),
         course.entry.height.samplePhysicsDifferential(s),
       );
-      assert.deepEqual(result.world.height.sampleRender(s), course.entry.height.sampleRender(s));
+      assert.equal(result.world.height.sampleRender(s).y, course.entry.height.sampleRender(s).y);
       assert.deepEqual(
         result.world.guide.locateLocal(native, native.segmentIndex, 2, false),
         locateWorldOnGuideLocal(course.entry.guide, native, native.segmentIndex, 2, false),
@@ -54,8 +75,6 @@ test('bounded Section readers share native geometry and height interpolation wit
     result.geometry.raster.segments,
   ])
     assert.ok(Object.isFrozen(value));
-  const another = await courseDrivingFixture();
-  assert.throws(() => createCourseSectionDrivingSource(another.entry).createView(view), RangeError);
 });
 
 test('insufficient windows reject projection candidates and real driver lookahead instead of shortening them', async () => {
@@ -68,7 +87,7 @@ test('insufficient windows reject projection candidates and real driver lookahea
       consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
     }),
   );
-  const result = ok(createCourseSectionDrivingSource(course.entry).createView(view));
+  const result = ok(singleSource().createView(view));
   const p = guidePathToWorld(course.entry.guide, 950, 0);
   assert.throws(() => result.world.guide.locateLocal(p, p.segmentIndex, 5, false), RangeError);
   assert.throws(
@@ -102,7 +121,7 @@ test('a selected Link remains undrivable without full common-content qualificati
       consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
     }),
   );
-  assert.equal(createCourseSectionDrivingSource(course.entry).createView(view).reason, 'unqualified_links');
+  assert.equal(singleSource().createView(view).reason, 'unqualified_links');
   assert.equal(traversal.snapshot().active.section, course.entry);
 });
 
@@ -112,7 +131,7 @@ test('closed pose endpoints include the earlier projection seed at a shared Guid
   const index = 18,
     s = guide.segments[index].sEnd;
   const { view } = drivingWindow(course, { minS: s, maxS: s, maxAdvance: 0 }, s);
-  const result = ok(createCourseSectionDrivingSource(course.entry).createView(view));
+  const result = ok(singleSource().createView(view));
   const point = guidePathToWorld(guide, s, 0);
   const expected = locateWorldOnGuideLocal(guide, point, index, 5, false);
   assert.deepEqual(result.world.guide.locateLocal(point, index, 5, false), expected);

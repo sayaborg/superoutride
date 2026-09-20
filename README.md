@@ -2,7 +2,7 @@
 
 A 320×240 raster pseudo-3D driving game for the browser. Cars and bikes share world coordinates, suspension contacts, tires and wheel mechanics.
 
-[Play the game](https://sayaborg.github.io/superoutride/). The default LINEAR is a provisional 2.94 km saved CourseDocument with curves, hills, variable widths, shoulders, row scenery and two environments.
+[Play the game](https://sayaborg.github.io/superoutride/). The default LINEAR is a development 2.94 km saved CourseDocument with curves, hills, variable widths, shoulders, row scenery and two environments.
 [Specifications and restart checkpoint](docs/README.md) identify each contract's owner.
 
 ## Run
@@ -11,7 +11,6 @@ Use Node.js 24.
 
 ```sh
 npm ci
-python3 -m pip install -r tools/course/requirements.txt
 npm test
 python3 -m http.server 8000
 ```
@@ -23,7 +22,7 @@ Open `http://localhost:8000/`. Build validates and stages the course JSON and im
 Left/right arrows steer. Up or X accelerates; down or Z brakes. Backspace recovers the vehicle.
 On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels gives full input.
 
-Open DEV for vehicle, camera, calibration and sound controls. Key 1 selects LINEAR; key 2 selects the two-Section SEAM trial; key 3 selects the two-lap CIRCUIT with two rivals; key 4 selects BRANCH with two paths and a shared finish. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
+Open DEV for vehicle, camera, calibration and sound controls. The performance HUD shows FPS, frame/step time and the maximum seam commit time. Key 1 selects LINEAR; key 2 selects the two-Section SEAM trial; key 3 selects the two-lap CIRCUIT with two rivals; key 4 selects BRANCH with two paths and a shared finish. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
 
 ## Authoring and tools
 

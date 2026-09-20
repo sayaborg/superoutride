@@ -177,7 +177,7 @@ test('saved presentation maps once across a selected seam and actual complete fr
     port = f.c.links[0].source;
   const assets = createSpriteAssets(),
     pixels = [new SoftwareSurface(320, 240), new SoftwareSurface(320, 240), new SoftwareSurface(320, 240)];
-  const retained = ok(f.source.createSeamView(view(f).geometry, f.traversal.snapshot().selected[0]));
+  const retained = ok(f.source.createView(view(f).geometry));
   const observed = { queries: 0, maxL: 0 };
   let neighborQueries = 0;
   for (const s of [1398, 1400, 1402])
@@ -323,25 +323,25 @@ test('seam admission bounds contact motion independently of span-composed consum
     history = f.traversal.snapshot(),
     successor = history.selected[0];
   const geometry = view(f).geometry,
-    driving = ok(f.source.createSeamView(geometry, successor));
-  assert.equal(driving.seam, successor);
+    driving = ok(f.source.createView(geometry)),
+    guard = ok(f.source.createMotionGuard(history.active, successor));
   for (const s of [1399, 1400, 1401]) {
     assert.equal(driving.world.surfaces.sample(s, 50).material.supported, false);
     assert.equal(driving.world.guide.toWorld(s, 50).l, 50);
     assert.equal(typeof driving.presentation.ground.sampleAtLevel(s, 500, 0), 'number');
   }
   const p = (s, l = 0) => geometry.geometry.guideAt(s - geometry.activeRange.start, l);
-  assert.equal(driving.admitMotion(p(1399.8), p(1400.2)).ok, true);
-  assert.equal(driving.admitMotion(p(1400.2), p(1399.8)).ok, true);
-  assert.equal(driving.admitMotion(p(1399), p(1401)).reason, 'step_domain_exhausted');
-  assert.equal(driving.admitMotion(p(1399, 3), p(1399.1, 3)).reason, 'pose_domain_exhausted');
-  assert.throws(() => driving.admitMotion(null, p(1400)), TypeError);
-  assert.throws(() => driving.admitMotion({ x: NaN, z: 0 }, p(1400)), RangeError);
+  assert.equal(guard.admitMotion(p(1399.8), p(1400.2)).ok, true);
+  assert.equal(guard.admitMotion(p(1400.2), p(1399.8)).ok, true);
+  assert.equal(guard.admitMotion(p(1399), p(1401)).reason, 'step_domain_exhausted');
+  assert.equal(guard.admitMotion(p(1399, 3), p(1399.1, 3)).reason, 'pose_domain_exhausted');
+  assert.throws(() => guard.admitMotion(null, p(1400)), TypeError);
+  assert.throws(() => guard.admitMotion({ x: NaN, z: 0 }, p(1400)), RangeError);
   assert.equal(f.traversal.snapshot(), history);
-  assert.equal(f.source.createSeamView(view(f, 1400, 30).geometry, successor).ok, true);
+  assert.equal(f.source.createView(view(f, 1400, 30).geometry).ok, true);
   const pending = ok(f.traversal.prepare('forward'));
   const demand = queryDemand({ minS: 480, maxS: 520, maxAdvance: 1 });
-  const destination = ok(f.source.createSeamView(ok(createCourseGeometryView(pending.history, demand)), successor));
+  const destination = ok(f.source.createView(ok(createCourseGeometryView(pending.history, demand))));
   assert.equal(destination.frame, successor);
   assert.equal(f.traversal.snapshot(), history, 'destination readers do not publish a traversal');
   assert.equal(destination.world.surfaces.sample(500, 50).material.supported, false);
@@ -350,7 +350,8 @@ test('seam admission bounds contact motion independently of span-composed consum
 test('car and bike use fully bounded seam readers with unchanged mechanics and admitted fixed steps', async () => {
   const f = await fixture(),
     ordinary = view(f).driving;
-  const bounded = ok(f.source.createSeamView(view(f).geometry, f.traversal.snapshot().selected[0]));
+  const bounded = ok(f.source.createView(view(f).geometry));
+  const guard = ok(f.source.createMotionGuard(f.traversal.snapshot().active, f.traversal.snapshot().selected[0]));
   for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG[5]]) {
     const spawn = { s: 1395, l: 0.25, initialSpeed: 20, torqueProtection: entry.torqueProtection };
     const cars = [ordinary, bounded].map((d) => createArcadeVehicle(entry.profile, d.world, spawn));
@@ -359,7 +360,7 @@ test('car and bike use fully bounded seam readers with unchanged mechanics and a
       for (const [i, d] of [ordinary, bounded].entries())
         updateArcadeVehicle(d.world, cars[i], sampleRivalDrivingInput(d.world.guide, cars[i]), 1 / 60);
       assert.deepEqual(cars[1], cars[0], entry.id);
-      assert.equal(bounded.admitMotion(previous, cars[1]).ok, true, entry.id);
+      assert.equal(guard.admitMotion(previous, cars[1]).ok, true, entry.id);
     }
     assert.ok(cars[1].course.s > 1400);
   }

@@ -9,10 +9,10 @@ image formats and compilation.
 
 The new [CourseDocument root](../src/main-course.ts), the default `?mode=linear` selection, loads saved JSON/images,
 compiles the graph, and assembles the [shared scene](../src/runtime/course-scene.ts). The scene creates
-single-Section or occurrence driving readers, saved presentation and the ordinary renderer. The headless CLI uses
+occurrence driving readers (a single Section is a graph with no Links), saved presentation and the ordinary renderer. The headless CLI uses
 this same assembly. The SEAM selection drives the two-Section split through a rotated/translated Link. CIRCUIT uses a
-2 km source lap, a standing start, two required laps and two provisional DEV rivals.
-The rebuilt provisional course is a finite 2.94 km LINEAR with 132 row-generated
+2 km source lap, a standing start, two required laps and two development rivals.
+The development course is a finite 2.94 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
 The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
 zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains at least 30 m of source behind the
@@ -43,6 +43,10 @@ driving roots. The [constant LINEAR example](../tests/fixtures/linear.course.jso
 the [offline entry](development.md#course-document-compiler). A compiled document is geometry/reference
 data with explicit height/physical content and verified indexed image sources, not a ready driving
 Session or completed resident ground product.
+
+Until actual master-course content production begins, CourseDocument and compiler versions may be
+advanced freely. Replace development inputs with the new version; migration code and compatibility
+readers are not required. Saved identities still pin the exact recipe used by each accepted build.
 
 ### Wire fields and scopes
 
@@ -418,13 +422,6 @@ continuations. The field prepares all affected views before publishing its choic
 A plan publishes once, including retention pruning. Existing `forward()`/`reverse()` use this same
 path. This is a geometry transaction primitive, not a physical seam observation or actor commit.
 
-### Single-Section driving view
-
-`createCourseSectionDrivingSource` exposes ordinary geometry, height, material and projection readers
-for a bounded view of one canonical source. Admission checks its actual geometry interval and rejects
-foreign Links. Native segment arithmetic and projection seeds are retained; queries outside the
-admitted interval fail. The shared scene uses the complete finite source interval for saved LINEAR.
-
 ### Occurrence driving and actor commit
 
 `createCourseDrivingSource` consumes physical and presentation guard products over canonical Links.
@@ -436,18 +433,34 @@ Guard equality covers contact and one fixed step only.
 Ordinary Guide, Raster, height, surfaces, paint, environment, background and scenery readers use the
 same occurrence mapping. Seeds encode occurrence ordinal and native segment index. Local projection
 retains complete candidate intervals and deterministic tie order; it adds no global-search fallback.
-Source readers and images are shared. Mapped metadata and retained history remain finite. The successor
+Source readers and images are shared. A bounded graph-owned cache shares identical immutable reader
+layouts among the player and sixteen rivals. Actor wrappers retain their own occurrence identity;
+matching uses canonical Section/Link references and ordinal, never an ID join. Source interval geometry
+is qualified once per canonical interval. Mapped metadata and retained history remain finite. The successor
 owns the seam, including a closed endpoint. Scenery belongs to one owning occurrence; ground preserves
 saved image phases and half-open Band edges. Outside the source strip, ordinary environment bases apply.
 
 `createCourseDrivingGraph` prepares static readers once; `createSession()` owns one actor's traversal. Unique successors are selected within the
 forward retention distance, including prospective successors before a frame commit. A physical gate observation requests forward or reverse commit; the pure
-`createSeamView(...).admitMotion` checks the contact pose and one fixed step independently of consumer
+`createMotionGuard(...).admitMotion` checks the contact pose and one fixed step independently of consumer
 windows. The prepared destination readers are constructed before publication. The transaction rotates
 world position, velocity, body yaw and camera-rig yaw, rebases course/recovery coordinates and retains
-all body scalars, contact memory, control state and camera vertical state. The normal camera update
+all body scalars, contact memory, control state and camera vertical state. Physics owns the single
+`reframeVehicle` state mutation; Runtime supplies the transform and destination coordinate. The normal camera update
 then observes the destination world. No physical integration or force is repeated or corrected.
 Recovery and vehicle replacement rebase their current observations without awarding a gate crossing.
+
+`course-driving-policy.ts` owns the named contact pose/step bounds, traversal retention/count and
+reader-cache budget. These are admission settings, not vehicle tuning. Actual camera/render depth and
+driver lookahead determine pre-lock coverage. A `retained` geometry-view request admits its complete
+available span in one construction. Traversal snapshots are stable until mutation; seam gates and
+closed-carriageway sets are rebuilt only with an occurrence/choice change. The scene reuses its
+sprite list and terrain profile, and the field reuses motion and visible-actor arrays.
+
+A seam observes the entire world plane, including lateral excursions beyond its contact admission.
+An exhausted motion guard or rejected prepared destination causes ordinary legal-route recovery on
+the retained selected approach, with no frame publication or progress award. The player camera and
+race observations resync as for closure recovery. Unrelated internal faults remain visible.
 
 The shared `createCourseScene` connects these readers to the unchanged renderer and is used by the
 browser root and PNG CLI. `content/courses/seam.course.json` splits the provisional LINEAR on its flat
@@ -534,18 +547,18 @@ never expanded into lap copies. The entry crossing earns no lap. Missing checkpo
 recovery and replacement grant no new credit. Completed race progress remains fixed while driving
 continues after FINISH.
 
-The provisional circuit field uses the existing rival driver, mechanics, roster, race timing and
+The circuit field uses the existing rival driver, mechanics, roster, race timing and
 ranking. Every actor owns a bounded traversal over the same graph reader factory. At most the actual
 predecessor, active occurrence and selected successor are retained on the 2 km source. A cumulative
 rigid frame transform and chainage offset map observations into the player's current frame for
 ordinary rival sprites and positional audio; these mappings grant no progress. The browser shows lap,
 rank, elapsed time and FINISH. Timing starts with the standing-start signal and stops separately for
-each accepted finish. These provisional two-lap/two-rival choices are development content; production
+each accepted finish. `COURSE_PLAY_SETTINGS` owns rival/lap counts, initial speed, grid and lateral targets; production
 Session presets and AI reference qualification remain later milestones.
 
 BRANCH progress composes one shared ordered checkpoint/exit gate set per canonical Section.
 A completed source interval advances to the chosen successor only after the actor changes frame;
-reverse and recovery resync observations while preserving earned progress. The provisional terminal
+reverse and recovery resync observations while preserving earned progress. The development terminal
 goal is 60 m before the final source end. CIRCUIT and BRANCH share field mechanics, observation,
 ranking and timing composition; course presets remain deferred.
 
@@ -578,6 +591,36 @@ contracts and causal tests.
 Agents edit saved CourseDocuments and asset files, compile structured JSON diagnostics, inspect
 product-renderer PNGs, and iterate. Scenery rows store anchored intervals, spacing, side and offset;
 imports prefer primitive-relative anchors. GUI is reserved for later human inspection and adjustment.
+
+External reference videos, extracted frames and all pixel-bearing reference data stay in ignored
+`reference-media/` directories (or outside the checkout). This includes pixel arrays, masks and crops
+stored in JSON or other non-image containers. Only numeric observations, scalar calibration and
+source/edition descriptions may be committed as reference evidence. Game assets and product-renderer
+outputs are independently authored products. `.gitignore` protects reference directories and video
+extensions; raw reference pixels never become committed game assets.
+
+### Time-based remaster target
+
+The reference video's timeline is authoritative for perceived course pacing, not its physical scale.
+For the intended vehicle profile, preserve each interval's duration, turn direction/order, speed ratio
+to maximum speed, corner severity, and the times of hills, environments, scenery and checkpoints.
+Observations record interval start/duration, direction, speed ratio `r` and headroom class
+(relaxed / fast / limit); landmark observations use timestamps.
+
+Offline vehicle envelopes come from the unchanged product physics: maximum speed, acceleration,
+braking and speed-dependent lateral acceleration limit. Map headroom to a saved utilization default
+`u`; use `v = r * maximumSpeed`, `R = v² / (u * lateralLimit(v))`, and arc length `v * duration`.
+Fit observations, this envelope and explicit section/material/environment defaults into a new
+CourseDocument without requiring a template. Fitting and its iteration remain outside compiler/runtime.
+
+A deterministic near-limit reference driver verifies interval crossing times and speed traces offline.
+Initial acceptance is ±10% per interval and ±3% overall. Iterate the explicit `r`, `u` and interval
+length inputs for failing intervals. Report the crossing-time table and same-time reference/render
+comparisons; distinguish measurement, headroom classification, fit and physical-limit errors. Geometric
+or vehicle-infeasible intervals are recorded as remaster deviations. Missing footage/profile choices
+belong in NEXT Open decisions. Synthetic inputs qualify tools while footage is unavailable.
+
+### Current distance-based authoring tools
 
 The implemented offline input is `superoutride.course-observations` version 1. It owns `id`,
 `source: {kind: "video" | "analyzed-data", location, edition}`, a `calibration` object describing
@@ -700,9 +743,8 @@ current turtle's 50 m straight steps, maximum 5-degree arc steps and degree/radi
 part of its recipe, not invisible defaults that may change under the same identity.
 
 Changing that recipe invalidates geometry, anchored placements/landmarks, ground and reference-time
-outputs that depend on it. Reopen with the saved recipe or report an unsupported version. Recompiling
-with a different tessellation is an explicit migration producing new source/build identity, preserving
-the previous source and reporting anchor displacement. Absolute s values otherwise retain their numeric
+outputs that depend on it. Reopen with the saved recipe or report an unsupported version. Recompiling with a different tessellation produces a new source/build identity and reports anchor
+displacement. The current pre-production version policy above requires no migration implementation. Absolute s values otherwise retain their numeric
 value; primitive-fraction anchors follow the named primitive. Neither silently guarantees an unchanged
 world point after a ruler change. Exact wire fields are established by the versioned reader at Gate 1.
 
@@ -905,7 +947,7 @@ variants match repeat borders after normalization. `repairDensity` changes visua
 Draft saving requires a valid parse/schema/identity boundary, independently of semantic compilation.
 Malformed imports preserve the project. Save/reopen reproduces inputs and products under the pinned
 compiler/recipe and supported execution contract. Ordering/digests depend on saved input, not clocks
-or filesystem enumeration. Explicit migrations preserve previous source; saved bytes define replay.
+or filesystem enumeration. Saved bytes define replay under the pinned supported version; the pre-production policy above owns version changes.
 
 Edits invalidate dependent products. Preview shows its source/build identity; stale products cannot be
 exported or played as the edited course. Failed builds preserve source and prior valid products. Publish

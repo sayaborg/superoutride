@@ -272,7 +272,7 @@ export function locateWorldOnGuideLocal(
 }
 
 /** Exact candidate extent of the ordinary seeded search; usable by bounded-reader admission. */
-export function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: number, searchRadius: number) {
+function guideLocalSearchRange(guide: GuidePath, previousSegmentIndex: number, searchRadius: number) {
   if (
     !Number.isInteger(previousSegmentIndex) ||
     previousSegmentIndex < 0 ||

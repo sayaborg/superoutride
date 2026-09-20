@@ -8,6 +8,8 @@ import type { DrivingInput } from './input/driving-input.js';
 import { deriveVehicleSpriteFamily } from './render/vehicle-presentation.js';
 import { DEFAULT_VEHICLE_CATALOG_ENTRY } from './vehicle/vehicle-catalog.js';
 import { createCourseRace } from './runtime/course-race.js';
+import { createCoursePerformanceHud } from './browser/course-performance-hud.js';
+import { COURSE_PLAY_SETTINGS } from './runtime/course-driving-policy.js';
 import { createCourseScene } from './runtime/course-scene.js';
 
 const canvas = mustGet<HTMLCanvasElement>('game');
@@ -38,59 +40,57 @@ try {
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
   const scene = createCourseScene(compiled.value.entry);
   const racing = source.value.type !== 'LINEAR';
-  const shell = createBrowserDrivingShell(scene.world, 0, { initialSpeed: racing ? 0 : 45 });
-  const race =
-    racing && 'session' in scene
-      ? createCourseRace({
-          course: compiled.value,
-          player: shell,
-          playerSession: scene.session,
-          createSession: scene.createActorSession,
-          rivalCount: 2,
-          lapCount: 2,
-          rival: {
-            profile: DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
-            torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
-            kind: deriveVehicleSpriteFamily(DEFAULT_VEHICLE_CATALOG_ENTRY),
-          },
-        })
-      : null;
+  const shell = createBrowserDrivingShell(scene.world, COURSE_PLAY_SETTINGS.playerL, {
+    s: COURSE_PLAY_SETTINGS.playerS,
+    initialSpeed: racing ? COURSE_PLAY_SETTINGS.standingSpeed : COURSE_PLAY_SETTINGS.touringSpeed,
+  });
+  const race = racing
+    ? createCourseRace({
+        course: compiled.value,
+        player: shell,
+        playerSession: scene.session,
+        createSession: scene.createActorSession,
+        rivalCount: COURSE_PLAY_SETTINGS.rivalCount,
+        lapCount: COURSE_PLAY_SETTINGS.lapCount,
+        rival: {
+          profile: DEFAULT_VEHICLE_CATALOG_ENTRY.profile,
+          torqueProtection: DEFAULT_VEHICLE_CATALOG_ENTRY.torqueProtection,
+          kind: deriveVehicleSpriteFamily(DEFAULT_VEHICLE_CATALOG_ENTRY),
+        },
+      })
+    : null;
   const raceStatus = race ? document.createElement('output') : null;
   if (raceStatus) {
     raceStatus.setAttribute('role', 'status');
     raceStatus.setAttribute('aria-live', 'off');
-    raceStatus.setAttribute(
-      'style',
-      'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);padding:8px 14px;background:#101820dd;color:#fff;font:700 16px monospace;white-space:nowrap;border-radius:6px;pointer-events:none',
-    );
+    raceStatus.className = 'course-status';
     canvas.insertAdjacentElement('afterend', raceStatus);
   }
   const lifecycle = shell.mountControls({
     world: () => scene.world,
-    recoveryProfile: race
-      ? {
-          ...RECOVERY_PROFILE,
-          get targetL() {
-            return race.recoveryL;
-          },
-        }
-      : RECOVERY_PROFILE,
+    recoveryProfile: RECOVERY_PROFILE,
+    recoveryL: race ? () => race.recoveryL : undefined,
     resync: () => {
       scene.recoverAtEntry(shell.vehicle, shell.recovery);
       if (race) race.resyncPlayer();
       else scene.observeStep(shell, shell.vehicle, true);
     },
   });
+  const performanceHud = createCoursePerformanceHud(canvas, scene.metrics);
+  const previous = { x: 0, z: 0 };
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   status.remove();
   shell.start(
     (dt) => {
+      const started = performance.now();
       input = shell.inputManager.sample();
       if (race) {
         lifecycle.update(dt, race.advance(input, dt));
+        performanceHud.step(performance.now() - started);
         return;
       }
-      const previous = { x: shell.vehicle.x, z: shell.vehicle.z };
+      previous.x = shell.vehicle.x;
+      previous.z = shell.vehicle.z;
       const recovered = advanceVehicleWithRecovery(scene.world, shell.vehicle, {
         state: shell.recovery,
         input,
@@ -98,10 +98,12 @@ try {
         profile: RECOVERY_PROFILE,
       });
       const entryRecovered = scene.recoverAtEntry(shell.vehicle, shell.recovery);
-      scene.observeStep(shell, previous, recovered !== null || entryRecovered);
-      lifecycle.update(dt, recovered !== null || entryRecovered);
+      const transition = scene.observeStep(shell, previous, recovered !== null || entryRecovered);
+      lifecycle.update(dt, recovered !== null || entryRecovered || transition === 'recovered');
+      performanceHud.step(performance.now() - started);
     },
     () => {
+      const started = performance.now();
       const observations = race?.observe(lifecycle.camera);
       const result = scene.render(
         shell.framebuffer,
@@ -112,6 +114,7 @@ try {
       );
       shell.present(mode, input, lifecycle.camera, result.playerScreenY, observations?.rivals);
       if (raceStatus && race) raceStatus.textContent = race.label();
+      performanceHud.frame(started);
     },
   );
 } catch (error) {

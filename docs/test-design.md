@@ -114,7 +114,7 @@ reject changing a chosen successor, and exercise both distance/count bounds with
 Runtime/project state failures must not contain fabricated authoring pointers. Syntax/schema import
 failure must leave an in-flight current-source compilation publishable.
 
-Source reader tests retain native Raster/height record identity, original interpolation and seeded
+Source reader tests retain canonical source references, original interpolation and seeded
 projection. A deliberately short window rejects complete projection candidates and driver lookahead.
 Car and bike occurrence comparisons exercise physical reads across a selected seam, retained/rebuilt
 views, reverse history and full saved-presentation frames. Fractional-offset cases preserve exact
@@ -135,7 +135,7 @@ Synthetic long/capacity fixtures prove bounded one-Section admission, not named-
 
 The [geometry identity](content-and-gameplay.md#geometry-identity-and-anchor-replay) tests distinguish
 recipe changes from unchanged builds. Reopening the same document reproduces its ruler and anchors;
-a changed subdivision recipe invalidates dependent products and requires an explicit source migration.
+a changed subdivision recipe invalidates dependent products and requires a new identity under the pre-production version policy.
 
 The [target lateral partition](architecture.md#target-lateral-boundary-ownership) is tested immediately
 below, at and above every shared and outer edge, including a median-center lock boundary. Rendering

@@ -62,7 +62,7 @@ try {
       scene = createCourseScene(section);
     if (opts.has('--exit')) {
       const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
-      requireInput(link && 'session' in scene, '/exit', 'Exit must name a canonical outgoing Link');
+      requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');
       scene.session.prepareChoice(link).commit();
     }
     const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));

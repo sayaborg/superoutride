@@ -70,7 +70,7 @@ test('all eligible world crossings choose once by u then stable ID, including th
     [[['PLAYER', 251, 249, 5]], null],
   ]) {
     const scene = createCourseScene(course.entry),
-      field = createCourseForkField();
+      field = createCourseForkField(course.sections);
     const entries = motions.map(([id, start, end, l]) => ({
       id,
       session: scene.createActorSession(),
@@ -89,7 +89,7 @@ test('all eligible world crossings choose once by u then stable ID, including th
     }
   }
   const { scene } = fixture();
-  const field = createCourseForkField();
+  const field = createCourseForkField(course.sections);
   field.observe([
     { id: 'PLAYER', session: scene.session, previous: point(249, -5), current: point(251, -5), recovered: true },
   ]);

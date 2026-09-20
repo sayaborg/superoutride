@@ -37,7 +37,7 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
       const state = createCircuitRaceProgressState(rules, sample(vehicle()));
       return {
         state,
-        update: () => updateCircuitRaceProgress(state, rules, sample(vehicle())),
+        update: (current = sample(vehicle())) => updateCircuitRaceProgress(state, rules, current),
         resync: () => resyncCircuitRaceProgress(state, rules, sample(vehicle())),
       };
     };
@@ -77,9 +77,9 @@ export function createCourseRaceProgress(course: CompiledCourse, lapCount: numbe
     publish();
     return {
       state,
-      update() {
-        if (session.history.active.section !== expected || state.status === 'FINISHED') return null;
-        const update = updateOrderedRaceProgress(local, rules.get(expected)!, sample(vehicle()));
+      update(current = sample(vehicle()), section = session.history.active.section) {
+        if (section !== expected || state.status === 'FINISHED') return null;
+        const update = updateOrderedRaceProgress(local, rules.get(expected)!, current);
         publish();
         return { ...update, status: state.status, justFinished: update.justFinished && expected.outgoing.length === 0 };
       },

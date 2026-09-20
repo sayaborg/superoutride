@@ -7,17 +7,35 @@ import type { createCourseDrivingGraph } from './course-driving-session.js';
 type Session = ReturnType<ReturnType<typeof createCourseDrivingGraph>['createSession']>;
 
 function center(road: CompiledCarriageway, s: number) {
-  const bands = road.bands.filter((b) => b.start.s <= s && b.end.s >= s);
-  return (
-    (Math.min(...bands.map((b) => courseBoundaryAt(b.left, s))) +
-      Math.max(...bands.map((b) => courseBoundaryAt(b.right, s)))) /
-    2
-  );
+  let left = Infinity,
+    right = -Infinity;
+  for (const band of road.bands)
+    if (band.start.s <= s && band.end.s >= s) {
+      left = Math.min(left, courseBoundaryAt(band.left, s));
+      right = Math.max(right, courseBoundaryAt(band.right, s));
+    }
+  return (left + right) / 2;
 }
 
 /** One field authority observes every eligible motion before publishing any irreversible choice. */
-export function createCourseForkField() {
+export function createCourseForkField(sections: readonly CompiledSection[]) {
   const locks = new Map<CompiledFork, CompiledLink>();
+  const gates = new Map<CompiledFork, ReturnType<typeof compileWorldCrossingGate>>();
+  for (const section of sections) {
+    const fork = section.fork;
+    if (!fork) continue;
+    const pose = guidePathToWorld(section.guide, fork.lock.s, 0);
+    gates.set(
+      fork,
+      compileWorldCrossingGate({
+        id: section.id,
+        center: pose,
+        heading: pose.heading,
+        halfWidth: Math.max(...fork.regions.flatMap((r) => [Math.abs(r.left), Math.abs(r.right)])),
+      }),
+    );
+  }
+  const candidates: { fork: CompiledFork; link: CompiledLink; u: number; id: string }[] = [];
   return Object.freeze({
     choice: (fork: CompiledFork) => locks.get(fork) ?? null,
     observe(
@@ -29,23 +47,18 @@ export function createCourseForkField() {
         readonly recovered: boolean;
       }[],
     ) {
-      const candidates = motions
-        .flatMap((motion) => {
-          const fork = motion.session.history.active.section.fork;
-          if (!fork || locks.has(fork) || motion.recovered) return [];
-          const pose = guidePathToWorld(fork.section.guide, fork.lock.s, 0);
-          const gate = compileWorldCrossingGate({
-            id: fork.section.id,
-            center: pose,
-            heading: pose.heading,
-            halfWidth: Math.max(...fork.regions.flatMap((r) => [Math.abs(r.left), Math.abs(r.right)])),
-          });
-          const crossing = observeWorldCrossingGate(gate, motion.previous, motion.current);
-          if (crossing?.direction !== 'FORWARD') return [];
-          const region = fork.regions.find((r) => crossing.lateral >= r.left && crossing.lateral < r.right);
-          return region ? [{ fork, link: region.link, u: crossing.u, id: motion.id }] : [];
-        })
-        .sort((a, b) => a.u - b.u || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+      candidates.length = 0;
+      for (const motion of motions) {
+        const fork = motion.session.history.active.section.fork;
+        if (!fork || locks.has(fork) || motion.recovered) continue;
+        const gate = gates.get(fork);
+        if (!gate) throw new Error('Field motion must belong to its compiled course');
+        const crossing = observeWorldCrossingGate(gate, motion.previous, motion.current);
+        if (crossing?.direction !== 'FORWARD') continue;
+        const region = fork.regions.find((r) => crossing.lateral >= r.left && crossing.lateral < r.right);
+        if (region) candidates.push({ fork, link: region.link, u: crossing.u, id: motion.id });
+      }
+      candidates.sort((a, b) => a.u - b.u || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       for (const candidate of candidates) {
         if (locks.has(candidate.fork)) continue;
         const prepared = motions

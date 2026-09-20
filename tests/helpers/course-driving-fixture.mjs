@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { presentationDocument } from './course-presentation-documents.mjs';
 import { compileCourseDocument } from '../../dist/compiler/compiled-course.js';
 import { createCourseGeometryTraversal } from '../../dist/runtime/course-occurrence.js';
 import { createCourseGeometryView } from '../../dist/runtime/course-geometry-view.js';
@@ -22,7 +22,7 @@ export const cameraProfile = Object.freeze({
 
 /** Explicit diagnostic course/presentation, not authored-image admission or product art acceptance. */
 export async function courseDrivingFixture(turn = 30) {
-  const document = JSON.parse(await readFile(new URL('../fixtures/linear.course.json', import.meta.url), 'utf8'));
+  const { document, inputs } = await presentationDocument('linear');
   const source = document.sections[0];
   source.start.heading = 27;
   source.primitives[0].length = 1200;
@@ -36,7 +36,7 @@ export async function courseDrivingFixture(turn = 30) {
     { anchor: { kind: 'primitive', primitiveId: 'approach', fraction: 1 }, y: 0 },
     { anchor: { kind: 'primitive', primitiveId: 'bend', fraction: 1 }, y: 2 },
   );
-  return ok(await compileCourseDocument(document));
+  return ok(await compileCourseDocument(document, inputs));
 }
 
 export function queryDemand(pose) {

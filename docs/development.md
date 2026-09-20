@@ -32,8 +32,7 @@ preparation neither changes synthesis nor resumes deferred method selection or c
 
 ## Agent production tools
 
-Use Node 24, Python 3.12+ and `python3 -m pip install -r tools/course/requirements.txt`, then
-`npm run build`. The shared scene supplies the same camera/renderer in Node and the browser.
+Use Node 24 and `npm run build`. The shared scene supplies the same camera/renderer in Node and the browser.
 The current LINEAR can be rebuilt entirely from the saved analyzed-data observations and recipe
 (run `npm run format` before committing generated JSON):
 
@@ -50,9 +49,9 @@ nonzero with structured diagnostics on failure. Invoke `node` directly when pars
 `--images` overrides the sibling image directory; `--section` selects the canonical source Section.
 Render takes `--s` or all of `--start/--end/--step` (at most 240 frames), plus optional `--l`,
 `--vehicle` and `--exit` (canonical fork Link selection). It writes 320×240 PNGs; no preview renderer
-or dynamics tuning exists. Report writes `report.json`, `report.txt`, five-panel `bands.png` and
-`plan.png`; inactive Boundaries are null/NA. `--step` limits regular sampling to 4096 stations;
-height/Boundary knots are also sampled. `COURSE_REPORT_PYTHON` can select the installed interpreter.
+or dynamics tuning exists. Report writes `report.json`, `report.txt`, five-panel `bands.svg` and
+`plan.svg`; inactive Boundaries are null/NA. `--step` limits regular sampling to 4096 stations;
+height/Boundary knots are also sampled. Node writes deterministic, self-contained SVG; report generation has no Python dependency.
 
 For a calibrated video, extract PNGs with `ffmpeg -i input.mp4 -vf fps=2 frame-%04d.png`, then run
 `node tools/course/measure.mjs request.json --out observations.json`. Preserve timestamps and source
@@ -87,6 +86,22 @@ are content checks, not production AI or universal lane-change qualification.
 Capacity fixtures exercise large source loops and local geometry ambiguity without source copies.
 The [window tests](../tests/runtime/course-geometry-window.test.mjs) cover the finite admitted intervals;
 actual product sessions bound retained and selected occurrence history independently of source size.
+
+## Course scene performance
+
+After building, run `node tools/performance/course-scene.mjs --frames 300 --rivals 16`.
+Optional `--mode linear|seam|circuit|branch` selects one scene. The probe uses the actual scene,
+field, mechanics and renderer with a car profile, 30 warmup frames, then measured 60 Hz steps.
+It reports setup, median/p95/max frame and fixed-step times, maximum successful seam commit time,
+and V8 sampled allocation bytes in a separate 30-frame pass (including collected objects; 16 KiB sampling interval).
+Allocation is an estimate, not retained heap growth. Setup and explicit repositioning are excluded.
+This Node host measurement excludes browser, audio and compositor work and cannot certify a phone.
+
+The browser HUD displays FPS, maximum CPU frame/step time and frame interval over each half-second,
+plus the scene's lifetime maximum seam commit. Check LINEAR curves/hills, SEAM forward/reverse,
+CIRCUIT lap seams and BRANCH lock/closure on an iPhone-class device. Acceptance requires sustained
+60 fps and each seam commit within 16.67 ms, with actual browser/audio work included. Report host
+measurements and human device evidence separately; an unmeasured device remains unqualified.
 
 ## Sprite LOD preview
 

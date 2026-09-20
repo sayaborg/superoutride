@@ -64,10 +64,11 @@ test('report includes finite fork Boundary domains, compiled geometry, scenery a
   assert.ok(report.scenery.some((s) => s.state !== null));
   assert.ok(report.environments.length);
   assert.match(await readFile(path.join(dir, 'report.txt'), 'utf8'), /NA/);
-  for (const file of ['bands.png', 'plan.png']) {
-    const png = PNG.sync.read(await readFile(path.join(dir, file)));
-    assert.ok(png.width >= 800 && png.height >= 1000);
-    assert.ok(new Set(png.data).size > 100);
+  for (const file of ['bands.svg', 'plan.svg']) {
+    const svg = await readFile(path.join(dir, file), 'utf8');
+    assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"'));
+    assert.ok(svg.includes('<path d="M'));
+    assert.ok(!svg.includes('NaN') && !svg.includes('Infinity'));
   }
   assert.equal(cli('course', ['report', source, '--step', '0.01', '--out', dir], false).diagnostics[0].path, '/step');
 });

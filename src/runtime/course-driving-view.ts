@@ -68,32 +68,23 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
     }
     return value;
   };
-  const createView = (view: CourseGeometryView, successor?: CourseOccurrence) => {
+  const qualified = new Map<CompiledSection, Set<string>>();
+  const createView = (view: CourseGeometryView) => {
     if (!view || !Array.isArray(view.spans) || !view.activeRange || !view.availableRange)
       throw new TypeError('Driving admission requires an occurrence geometry view');
     const active = view.frame,
       range = view.activeRange;
     const spans: CourseGeometryView['spans'] = view.spans;
-    const seam = successor?.incoming;
-    if (successor && (!seam || !physical.links.includes(seam)))
-      return Object.freeze({ ok: false as const, reason: 'unqualified_links' as const });
-    if (
-      successor &&
-      (!spans.some((span) => span.occurrence === successor) ||
-        !(
-          active === successor ||
-          (active.ordinal === successor.ordinal - 1 && active.section === seam!.source.section)
-        ))
-    )
-      return Object.freeze({ ok: false as const, reason: 'unqualified_window' as const });
-    if (spans.some((span) => !span.occurrence.section.presentation))
-      return Object.freeze({ ok: false as const, reason: 'presentation_unavailable' as const });
     // Each occurrence owns its interval. Only contact and the crossing step share the guard.
     for (const span of spans) {
       const link = span.occurrence.incoming;
       if (link && !physical.links.includes(link))
         return Object.freeze({ ok: false as const, reason: 'unqualified_links' as const });
-      const proof = compileCourseGeometryWindow(span.occurrence.section, {
+      const section = span.occurrence.section;
+      const intervals = qualified.get(section) ?? new Set<string>();
+      const interval = `${span.sourceRange.start}:${span.sourceRange.end}`;
+      if (intervals.has(interval)) continue;
+      const proof = compileCourseGeometryWindow(section, {
         sStart: span.sourceRange.start,
         sEnd: span.sourceRange.end,
       });
@@ -103,12 +94,23 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           reason: 'geometry_qualification_failed' as const,
           diagnostics: proof.diagnostics,
         });
+      intervals.add(interval);
+      qualified.set(section, intervals);
     }
+    if (spans.some((span) => !span.occurrence.section.presentation))
+      return Object.freeze({ ok: false as const, reason: 'presentation_unavailable' as const });
     const mapped = spans.map((span) => ({
       ...span,
       sourceFromView: invertPlanarTransform(span.viewFromSource),
       surface: surface(span.occurrence.section),
       presentation: sourcePresentation(span.occurrence.section),
+      backgrounds: sourcePresentation(span.occurrence.section).backgrounds.map((background) =>
+        Object.freeze({
+          ...background,
+          yawOriginRadians:
+            background.yawOriginRadians + Math.atan2(span.viewFromSource.sine, span.viewFromSource.cosine),
+        }),
+      ),
     }));
     const check = (s: number) => {
       if (typeof s !== 'number') throw new TypeError('Driving chainage must be numeric');
@@ -116,14 +118,26 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
         throw new RangeError('Driving query exceeds its admitted window');
       return s;
     };
+    const mappingAt = (s: number) => {
+      check(s);
+      let i = mapped.length - 1;
+      while (i > 0 && mapped[i]!.frameStart > s) i -= 1;
+      return mapped[i]!;
+    };
     const resolve = (s: number, l: number) => {
-      const local = check(s),
-        address = view.addressInFrame(local, l);
-      const mapping = mapped.find((m) => m.occurrence === address.occurrence);
-      if (!mapping) throw new Error('Admitted driving view lost its source mapping');
-      return { address, mapping, section: address.occurrence.section };
+      const mapping = mappingAt(s);
+      const address = {
+        occurrence: mapping.occurrence,
+        sourceS: mapping.sourceChainageInFrame(s),
+        sourceL: l + mapping.sourceLateralOrigin,
+      };
+      return { address, mapping, section: mapping.occurrence.section };
     };
     const activeS = (mapping: (typeof mapped)[number], s: number) => mapping.frameAnchorS + (s - mapping.sourceAnchorS);
+    const headingInFrame = (mapping: (typeof mapped)[number], heading: number) =>
+      mapping.occurrence === active
+        ? heading
+        : wrapAngle(heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine));
     const candidates = mapped.flatMap((mapping) =>
       mapping.occurrence.section.guide.segments.flatMap((segment) => {
         const start = Math.max(mapping.sourceRange.start, segment.sStart),
@@ -143,7 +157,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           ...transformPlanarPoint(mapping.viewFromSource, p),
           s,
           l,
-          heading: wrapAngle(p.heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine)),
+          heading: headingInFrame(mapping, p.heading),
           segmentIndex: seed(mapping.occurrence.ordinal, p.segmentIndex),
         };
       },
@@ -175,7 +189,8 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
         )
           throw new RangeError('Driving window does not cover the complete seeded search');
         let best: { s: number; l: number; segmentIndex: number; distanceSquared: number } | null = null;
-        for (const candidate of candidates.slice(Math.max(0, at - searchRadius), at + searchRadius + 1)) {
+        for (let i = Math.max(0, at - searchRadius); i < Math.min(candidates.length, at + searchRadius + 1); i += 1) {
+          const candidate = candidates[i]!;
           const { mapping, segment, start, end } = candidate;
           if (
             start > Math.max(mapping.sourceOwnership.start, segment.sStart) ||
@@ -267,9 +282,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
                   Object.freeze({
                     sStart: activeS(mapping, start),
                     length: end - start,
-                    heading: wrapAngle(
-                      segment.heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine),
-                    ),
+                    heading: headingInFrame(mapping, segment.heading),
                   }),
                 ]
               : [];
@@ -284,7 +297,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
           ...transformPlanarPoint(mapping.viewFromSource, p),
           s,
           l,
-          heading: wrapAngle(p.heading + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine)),
+          heading: headingInFrame(mapping, p.heading),
         };
       },
     });
@@ -335,12 +348,14 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
       sampleAtLevel(s: number, l: number, level: number) {
         if (typeof level !== 'number') throw new TypeError('Source preview level must be numeric');
         if (level !== 0) throw new RangeError('Source preview has only level zero');
-        const { address, mapping } = resolve(s, l);
+        const mapping = mappingAt(s);
+        const sourceS = mapping.sourceChainageInFrame(s);
+        const sourceL = l + mapping.sourceLateralOrigin;
         const { left, right } = mapping.presentation.ground.domain;
-        if (address.sourceL >= left && address.sourceL < right)
-          return mapping.presentation.ground.sampleInChart(address.sourceS, l, mapping.sourceLateralOrigin);
-        const environment = mapping.presentation.visual.sample(address.sourceS);
-        const base = address.sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
+        if (sourceL >= left && sourceL < right)
+          return mapping.presentation.ground.sampleInChart(sourceS, l, mapping.sourceLateralOrigin);
+        const environment = mapping.presentation.visual.sample(sourceS);
+        const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
         return base.kind === 'color' ? base.color : null;
       },
     });
@@ -373,7 +388,6 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
       ok: true as const,
       value: Object.freeze({
         scope: 'occurrence-driving' as const,
-        seam: successor ?? null,
         frame: active,
         range,
         world,
@@ -401,11 +415,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
             const { address, mapping } = resolve(s, 0),
               source = mapping.presentation,
               background = source.backgrounds[profileIndexAt(source.visual.sections, 'sStart', address.sourceS)]!;
-            return Object.freeze({
-              ...background,
-              yawOriginRadians:
-                background.yawOriginRadians + Math.atan2(mapping.viewFromSource.sine, mapping.viewFromSource.cosine),
-            });
+            return mapping.backgrounds[source.backgrounds.indexOf(background)]!;
           },
         }),
         metadata: Object.freeze({
@@ -418,14 +428,17 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
   };
   return Object.freeze({
     createView: (view: CourseGeometryView) => createView(view),
-    /** Contact/step admission is separate from the span-composed consumer windows. */
-    createSeamView(view: CourseGeometryView, successor: CourseOccurrence) {
-      if (!successor || typeof successor.ordinal !== 'number' || !successor.section)
-        throw new TypeError('Seam admission requires the selected or visited successor occurrence');
-      const result = createView(view, successor);
-      if (!result.ok) return result;
+    /** Contact/step admission needs the canonical seam and active frame, not another rendering view. */
+    createMotionGuard(frame: CourseOccurrence, successor: CourseOccurrence) {
+      if (!successor?.incoming || !physical.links.includes(successor.incoming))
+        return Object.freeze({ ok: false as const, reason: 'unqualified_links' as const });
+      if (
+        frame !== successor &&
+        !(frame.ordinal === successor.ordinal - 1 && frame.section === successor.incoming.source.section)
+      )
+        return Object.freeze({ ok: false as const, reason: 'unqualified_window' as const });
       const link = successor.incoming!,
-        port = view.frame === successor ? link.destination : link.source;
+        port = frame === successor ? link.destination : link.source;
       const observe = (point: Vec2) => {
         if (!point || typeof point.x !== 'number' || typeof point.z !== 'number')
           throw new TypeError('Seam motion requires numeric world points');
@@ -439,7 +452,6 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
       return Object.freeze({
         ok: true as const,
         value: Object.freeze({
-          ...result.value,
           /** Pure observation in the actual active frame; no traversal, physical or progress mutation. */
           admitMotion(previous: Vec2, current: Vec2) {
             const a = observe(previous),

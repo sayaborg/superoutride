@@ -31,10 +31,12 @@ export function createCourseGroundSource(data: CourseGroundSourceData) {
     throw new TypeError('Ground source requires compiled composition data');
   const bindings = new Map(data.bands.map((binding) => [binding.band, binding]));
   const sampleInChart = (s: number, l: number, sourceLateralOrigin: number): number => {
-    if ([s, l, sourceLateralOrigin].some((v) => typeof v !== 'number'))
+    if (typeof s !== 'number' || typeof l !== 'number' || typeof sourceLateralOrigin !== 'number')
       throw new TypeError('Ground coordinates and origin must be numeric');
     if (
-      ![s, l, sourceLateralOrigin].every(Number.isFinite) ||
+      !Number.isFinite(s) ||
+      !Number.isFinite(l) ||
+      !Number.isFinite(sourceLateralOrigin) ||
       s < 0 ||
       s > data.partition.length ||
       l < -data.left - sourceLateralOrigin ||

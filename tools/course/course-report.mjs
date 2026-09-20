@@ -1,7 +1,5 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { plotCourseReport } from './plot-report.mjs';
 import { guidePathToWorld, sampleGuidePath } from '../../dist/core/guide-curve.js';
 import { guideCoordinateMetricsAt } from '../../dist/core/guide-coordinate-frame.js';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
@@ -73,13 +71,11 @@ export async function courseReport(course, section, directory, step = 10) {
       ...report.environments.map((e) => `${e.s.toFixed(3)} ${e.name}`),
     ].join('\n') + '\n';
   await atomicWrite(path.join(directory, 'report.txt'), text);
-  await promisify(execFile)(
-    process.env.COURSE_REPORT_PYTHON ?? 'python3',
-    [fileURLToPath(new URL('./plot-report.py', import.meta.url)), json, directory],
-    { maxBuffer: 1024 * 1024 },
-  );
+  const plots = plotCourseReport(report);
+  await atomicWrite(path.join(directory, 'bands.svg'), plots.bands);
+  await atomicWrite(path.join(directory, 'plan.svg'), plots.plan);
   return {
     directory,
-    files: ['report.json', 'report.txt', 'bands.png', 'plan.png'].map((f) => path.join(directory, f)),
+    files: ['report.json', 'report.txt', 'bands.svg', 'plan.svg'].map((f) => path.join(directory, f)),
   };
 }

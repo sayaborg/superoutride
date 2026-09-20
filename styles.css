@@ -445,3 +445,30 @@ body {
 #ground-loading button {
   margin-left: 1rem;
 }
+
+.course-status {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  background: #101820dd;
+  color: #fff;
+  font: 700 16px monospace;
+  white-space: nowrap;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.course-performance {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #101820dd;
+  color: #fff;
+  font: 11px monospace;
+  white-space: nowrap;
+  padding: 3px 6px;
+  pointer-events: none;
+}

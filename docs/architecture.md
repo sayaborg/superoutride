@@ -300,10 +300,10 @@ horizontal seam geometry are separate checks. A port match alone does not certif
 Core retains finite open readers, Raster/Guide, `Y(s,l)=Y(s)` and chainage pseudo-projection. The runtime-owned [offline geometry view](content-and-gameplay.md#bounded-geometry-views-and-occurrence-history)
 composes upright transforms and source addresses across a retained itinerary, exposing narrow point
 readers in its active frame. Its derived `activeRange` retains the active-source ruler alongside the
-zero-based inspection window. The single-active-Section driving adapter shares canonical source
-sampling and native projection indices, so moving a window changes neither actor observations nor
-frame. It checks complete seeded-search candidate intervals, and delegates height interpolation to
-the original source rather than resmoothing clipped nodes. Only bounded Raster/height metadata is
+zero-based inspection window. The common occurrence driving adapter shares canonical source sampling and encodes native projection
+indices with occurrence ordinals. Moving a window changes neither actor observations nor frame.
+It checks complete seeded-search candidate intervals and delegates height interpolation to the
+original source rather than resmoothing clipped nodes. Only bounded Raster/height metadata is
 retained; geometry is not retessellated. The scoped
 [common-guard adapter](content-and-gameplay.md#common-guard-occurrence-driving-view) adds one qualified
 neighbor, stable occurrence/native-segment seeds and saved presentation through the same mapping.

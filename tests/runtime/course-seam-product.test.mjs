@@ -94,3 +94,41 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
     scene.render(afterPixels, actor.vehicle, camera, entry.profile.id === 'VFR750R' ? 'bike' : 'car');
   });
 }
+
+test('sixteen actors share immutable readers while occurrence state and recovery remain independent', () => {
+  const scene = createCourseScene(course.entry);
+  const sessions = Array.from({ length: 16 }, () => scene.createActorSession());
+  for (const session of sessions) {
+    assert.equal(session.view.world, scene.world);
+    assert.equal(session.view.presentation, scene.session.view.presentation);
+    assert.notEqual(session.history.active, scene.history.active);
+    assert.equal(session.history, session.history);
+    assert.equal(session.closedCarriageways, session.closedCarriageways);
+  }
+  const entry = VEHICLE_CATALOG[0];
+  const actor = {
+    vehicle: createArcadeVehicle(entry.profile, scene.world, {
+      s: course.links[0].source.anchor.s - 1,
+      initialSpeed: 20,
+    }),
+    cameraRig: createCameraRig(),
+  };
+  actor.recovery = createRecoveryState(actor.vehicle);
+  for (const [offset, lateral] of [
+    [0.5, 40],
+    [5, 0],
+  ]) {
+    const previous = scene.world.guide.toWorld(course.links[0].source.anchor.s - offset, lateral);
+    const current = scene.world.guide.toWorld(course.links[0].source.anchor.s + offset, lateral);
+    actor.vehicle.x = current.x;
+    actor.vehicle.z = current.z;
+    actor.vehicle.course = { s: current.s, l: current.l, segmentIndex: current.segmentIndex, distanceSquared: 0 };
+    assert.equal(scene.observeStep(actor, previous, false), 'recovered');
+    assert.equal(scene.history.active.ordinal, 0);
+    assert.equal(actor.recovery.lastReason, 'wrong-course');
+    assert.ok(actor.vehicle.course.s < course.links[0].source.anchor.s);
+    assert.equal(scene.world.surfaces.sample(actor.vehicle.course.s, actor.vehicle.course.l).material.supported, true);
+  }
+  assert.equal(actor.recovery.recoveries, 2);
+  for (const session of sessions) assert.equal(session.history.active.ordinal, 0);
+});

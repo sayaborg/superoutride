@@ -53,7 +53,7 @@ interface BrowserDrivingShell {
 export function createBrowserDrivingShell(
   runtime: VehicleWorld,
   startL: number,
-  spawn: { readonly initialSpeed?: number } = {},
+  spawn: { readonly initialSpeed?: number; readonly s?: number } = {},
 ): BrowserDrivingShell {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
@@ -66,7 +66,7 @@ export function createBrowserDrivingShell(
   const framebuffer = new SoftwareSurface(LOGICAL_WIDTH, LOGICAL_HEIGHT, new Uint32Array(imageData.data.buffer));
   const inputManager = new InputManager();
   let vehicle = createArcadeVehicle(DEFAULT_VEHICLE_CATALOG_ENTRY.profile, runtime, {
-    s: 45,
+    s: spawn.s ?? 45,
     l: startL,
     initialSpeed: spawn.initialSpeed ?? 45,
     tireFrictionCalibration: DEFAULT_BROWSER_TIRE_FRICTION_CALIBRATION,

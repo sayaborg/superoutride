@@ -20,7 +20,7 @@ Before any nontrivial change, answer from repository evidence:
 6. Which frozen invariants apply, and are they preserved?
 7. Which causal regression or architecture check proves the behavior and boundary?
 
-An explicit design revision is required to change an invariant. A feature request alone does not authorize silently weakening one. Update the responsible topic document and executable contract together. Historical test names do not establish current authority. Old development courses, route execution and paged GroundMaps are retired at M1b without compatibility, migration or equivalence requirements. Preserve the exact mechanics/audio oracles and only the minimal world fixtures they require.
+An explicit design revision is required to change an invariant. A feature request alone does not authorize silently weakening one. Update the responsible topic document and executable contract together. Historical test names do not establish current authority. Old development courses, route execution and paged GroundMaps are retired without compatibility, migration or equivalence requirements. Preserve the exact mechanics/audio oracles and only the minimal world fixtures they require.
 
 ## Construction and review conventions
 
@@ -32,19 +32,15 @@ An explicit design revision is required to change an invariant. A feature reques
 
 Apply these conventions to new or substantively changed interfaces. A spelling-only mass rename or a blanket replacement of numerical guards is not a migration. Immutable publication includes nested ownership: a frozen object exposing a mutable Map, array or buffer still needs an explicit read-only boundary.
 
-## Delivery priorities
+## Product preservation
 
-Deliver playable vertical milestones in order: M1 single-Section LINEAR, M1b removal of old
-courses/routes/paged ground, M2 two-Section seam, M3 transformed CIRCUIT and rivals,
-M4 fork/merge, M5 agent authoring CLI. M1–M4 require a publicly drivable Pages URL;
-offline qualification alone does not complete them. Use one or two PRs per milestone and an
-independent M1b PR immediately after M1 publication. The older gate-first order is superseded.
-After M5: resident RGB555, checkpoint clock/Session presets, traffic, actual content, then GUI.
+Playable changes require a publicly drivable Pages URL. Offline qualification alone does not
+complete a playable milestone. [NEXT](docs/NEXT.md) alone owns the current work order.
 
 Preserve physics, audio, input, camera, sprites and Sprite Tool. Never advance
 `HOT_PATH_REFERENCE_SHA`, alter mechanics/audio hashes or normalize their results. Tuning remains
 paused. Existing certification is subordinate to actual root consumers; add no unused certification
-interfaces and remove unused qualification at M4. Use one or two vehicle profiles for new integration
+interfaces and remove unused qualification when their root consumer is retired. Use one or two vehicle profiles for new integration
 coverage; the physics suite owns nine-profile coverage. Keep total test time from increasing.
 
 ## Work and release

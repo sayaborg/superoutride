@@ -48,7 +48,7 @@ const viewS = (mapping: Mapping, sourceS: number) => mapping.viewAnchorS + (sour
  * Bounded source geometry adapters in the active occurrence's basis. Neither content continuity nor
  * physical transition readiness is implied. History comes from the traversal owner; no ID joins.
  */
-export function createCourseGeometryView(history: CourseOccurrenceHistory, demand: CourseViewDemand) {
+export function createCourseGeometryView(history: CourseOccurrenceHistory, demand: CourseViewDemand | 'retained') {
   if (!history || !Array.isArray(history.occurrences) || !Array.isArray(history.selected))
     throw new TypeError('View requires separate visited history and selected occurrences');
   const { active } = history;
@@ -66,6 +66,14 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     )
       throw new RangeError('History must preserve canonical visited Link references and occurrence order');
   }
+  const retained = demand === 'retained';
+  if (demand === 'retained') {
+    const zero = { behind: 0, ahead: 0 };
+    demand = {
+      pose: { minS: 0, maxS: active.section.raster.length, maxAdvance: 0 },
+      consumers: { cameraRender: zero, contact: zero, driverLookahead: zero, reverseRecovery: zero },
+    };
+  }
   const { minS, maxS, maxAdvance } = demand.pose;
   for (const key of ['minS', 'maxS', 'maxAdvance'] as const) numeric(demand.pose[key], key);
   if (!(minS >= 0 && maxS >= minS && maxS <= active.section.raster.length && maxAdvance >= 0))
@@ -81,7 +89,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
     if (![start, end].every(Number.isFinite)) throw new RangeError('Consumer interval must be representable');
     return Object.freeze({ consumer, start, end });
   });
-  const start = Math.min(...requirements.map((r) => r.start)),
+  let start = Math.min(...requirements.map((r) => r.start)),
     end = Math.max(...requirements.map((r) => r.end));
   if (!(end > start)) throw new RangeError('A view must have positive extent');
   const mappings: Mapping[] = new Array(occurrences.length);
@@ -132,6 +140,12 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
       ...last.occurrence.section.outgoing.map((link) => link.source.anchor.s),
     ),
   );
+  if (retained) {
+    start = availableStart;
+    end = availableEnd;
+    for (let i = 0; i < requirements.length; i += 1)
+      requirements[i] = Object.freeze({ consumer: consumerNames[i]!, start, end });
+  }
   for (const required of requirements) {
     if (required.start < availableStart || required.end > availableEnd)
       return Object.freeze({
@@ -192,10 +206,12 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           sourceS: stations.get(s) ?? mapping.sourceAnchorS + (s - mapping.viewAnchorS),
           sourceL: l + mapping.sourceLateralOrigin,
         });
+      const sourceChainageInFrame = (s: number) =>
+        frameStations.get(s) ?? original.sourceAnchorS + (s - original.viewAnchorS);
       const addressInFrame = (s: number, l: number) =>
         Object.freeze({
           occurrence: mapping.occurrence,
-          sourceS: frameStations.get(s) ?? original.sourceAnchorS + (s - original.viewAnchorS),
+          sourceS: sourceChainageInFrame(s),
           sourceL: l + original.sourceLateralOrigin,
         });
       return [
@@ -205,6 +221,7 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           mapping,
           address,
           addressInFrame,
+          sourceChainageInFrame,
           frameStart: Math.max(start, frameCuts[i]!),
           frameEnd: Math.min(end, frameCuts[i + 1]!),
           frameAnchorS: original.viewAnchorS,
@@ -256,20 +273,32 @@ export function createCourseGeometryView(history: CourseOccurrenceHistory, deman
           requirements.map((r) => Object.freeze({ consumer: r.consumer, start: r.start - start, end: r.end - start })),
         ),
         spans: Object.freeze(
-          spans.map(({ start, end, mapping, addressInFrame, frameStart, frameEnd, frameAnchorS, sourceOwnership }) =>
-            Object.freeze({
+          spans.map(
+            ({
               start,
               end,
-              ...mapping,
+              mapping,
+              addressInFrame,
+              sourceChainageInFrame,
               frameStart,
               frameEnd,
               frameAnchorS,
-              sourceRange: Object.freeze({
-                start: addressInFrame(frameStart, 0).sourceS,
-                end: addressInFrame(frameEnd, 0).sourceS,
-              }),
               sourceOwnership,
-            }),
+            }) =>
+              Object.freeze({
+                start,
+                end,
+                ...mapping,
+                frameStart,
+                frameEnd,
+                frameAnchorS,
+                sourceRange: Object.freeze({
+                  start: addressInFrame(frameStart, 0).sourceS,
+                  end: addressInFrame(frameEnd, 0).sourceS,
+                }),
+                sourceOwnership,
+                sourceChainageInFrame,
+              }),
           ),
         ),
         address: (s: number, l: number) => resolve(s, l).address,

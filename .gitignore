@@ -4,3 +4,15 @@
 .DS_Store
 /.audit-baseline/
 /.test-assets/
+
+# External course references: videos, extracted frames and any pixel-bearing measurements.
+/reference-media/
+/content/references/
+**/reference-media/
+**/reference-frames/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.m4v
