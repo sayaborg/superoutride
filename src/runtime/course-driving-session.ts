@@ -1,3 +1,4 @@
+import type { CourseGround } from '../compiler/course-ground.js';
 import type { CameraRig } from '../camera/camera.js';
 import type { CompiledLink, CompiledSection } from '../compiler/course-graph.js';
 import type { CompiledCarriageway } from '../course/course-bands.js';
@@ -39,7 +40,7 @@ function sameLayout(a: CourseOccurrenceHistory, b: CourseOccurrenceHistory) {
 }
 
 /** Static readers are shared across the field; actors own only traversal and observation state. */
-export function createCourseDrivingGraph(entry: CompiledSection) {
+export function createCourseDrivingGraph(entry: CompiledSection, ground: CourseGround) {
   const sections = new Set<CompiledSection>();
   const visit = (section: CompiledSection) => {
     if (sections.has(section)) return;
@@ -59,6 +60,7 @@ export function createCourseDrivingGraph(entry: CompiledSection) {
   }
   const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
   const source = createCourseDrivingSource(
+    ground,
     required(
       compileCoursePhysicalDomains(links, {
         pose,

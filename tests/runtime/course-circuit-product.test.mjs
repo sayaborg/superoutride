@@ -1,3 +1,4 @@
+import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -19,8 +20,9 @@ const result = await compileCourseDocument(
 );
 assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
 const course = result.value;
+const ground = await testGround(course, 'circuit');
 function fixture() {
-  const scene = createCourseScene(course.entry);
+  const scene = createCourseScene(course.entry, ground);
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     s: 45,
     l: 0,

@@ -1,3 +1,4 @@
+import type { CourseGround } from '../compiler/course-ground.js';
 import {
   LOGICAL_HEIGHT,
   CURRENT_RENDER_NEAR_DEPTH_METERS,
@@ -16,8 +17,8 @@ import { createSpriteAssets } from '../visual/sprite-assets.js';
 import { createCourseDrivingGraph } from './course-driving-session.js';
 
 /** One graph assembly for every course, including a single Section without Links. */
-export function createCourseScene(section: CompiledSection) {
-  const graph = createCourseDrivingGraph(section);
+export function createCourseScene(section: CompiledSection, ground: CourseGround) {
+  const graph = createCourseDrivingGraph(section, ground);
   const session = graph.createSession();
   const entry = section.ports.find((port) => port.kind === 'entry');
   if (!entry || entry.anchor.s < CURRENT_CAMERA_PROFILE.dCam)
@@ -31,6 +32,7 @@ export function createCourseScene(section: CompiledSection) {
   return Object.freeze({
     session,
     metrics: graph.metrics,
+    groundMetrics: ground.metrics,
     createActorSession: graph.createSession,
     get world() {
       return session.view.world;

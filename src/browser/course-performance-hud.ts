@@ -2,6 +2,7 @@
 export function createCoursePerformanceHud(
   canvas: HTMLCanvasElement,
   metrics: { readonly seamCommits: number; readonly seamCommitMaxMilliseconds: number },
+  ground: { readonly residentBytes: number; readonly uniqueTiles: number; readonly sectionCount: number },
 ) {
   const output = document.createElement('output');
   output.className = 'course-performance';
@@ -29,7 +30,7 @@ export function createCoursePerformanceHud(
       frames += 1;
       if (now - first < 500 && frames > 1) return;
       const fps = (frames * 1000) / Math.max(1, now - first);
-      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · seam ${metrics.seamCommitMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms`;
+      output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · seam ${metrics.seamCommitMaxMilliseconds.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ground ${(ground.residentBytes / 1048576).toFixed(1)} MiB / ${ground.uniqueTiles} tiles / ${ground.sectionCount} sections · loaded once`;
       first = now;
       frames = 0;
       frameMax = stepMax = intervalMax = 0;

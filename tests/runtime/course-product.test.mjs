@@ -68,8 +68,8 @@ test('production CLI renders saved car and bike scenes at curves and strip edges
       ),
     );
     assert.equal(report.ok, true);
-    assert.equal(report.render.stats.groundMapBaked, false);
-    assert.equal(report.render.stats.groundMapMaxLevel, 0);
+    assert.equal(report.render.stats.groundMapBaked, true);
+    assert.ok(report.render.stats.groundMapMaxLevel >= 3);
     const png = PNG.sync.read(await readFile(output));
     assert.deepEqual([png.width, png.height], [320, 240]);
     assert.ok(new Set(png.data).size > 10);
@@ -103,7 +103,8 @@ for (const mode of ['linear', 'seam', 'circuit', 'branch'])
         ),
       ).size,
     );
-    assert.ok(requests.every((url) => !url.includes('ground-pages')));
+    assert.equal(requests.filter((url) => url.includes('/ground/')).length, 2);
+    const startupRequests = requests.length;
     dom.win.emit('keydown', { code: 'ArrowUp', preventDefault() {} });
     dom.frame(17);
     dom.frame(34);
@@ -114,4 +115,36 @@ for (const mode of ['linear', 'seam', 'circuit', 'branch'])
     for (let i = 0; i < 10; i += 1) dom.win.emit('keydown', { code: 'Backspace', preventDefault() {} });
     dom.frame(51);
     assert.ok(dom.calls.filter((c) => c[0] === 'putImageData').length >= 4);
+    assert.equal(requests.length, startupRequests, 'fixed steps/rendering/recovery never fetch ground');
   });
+
+test('browser rejects capacity before ground acquisition and exposes retry without starting ticks', async (t) => {
+  const { groundByteLength, GROUND_LIMITS } = await import('../../dist/groundmap/resident-ground.js');
+  const dom = installBrowserDom(t, '?mode=linear');
+  const requests = [],
+    status = [];
+  const create = globalThis.document.createElement;
+  globalThis.document.createElement = (tag) => {
+    const element = create(tag);
+    element.remove = () => {};
+    element.append = (...children) => element.children.push(...children);
+    return element;
+  };
+  dom.elements.get('game').insertAdjacentElement = (_, element) => status.push(element);
+  t.mock.method(console, 'error', () => {});
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    requests.push(url.pathname);
+    if (url.pathname.endsWith('/ground/linear.json')) {
+      const manifest = JSON.parse(await readFile(url));
+      manifest.uniqueTiles = Math.ceil(GROUND_LIMITS.residentBytes / 2336) + 1;
+      manifest.byteLength = groundByteLength(manifest.grids, manifest.uniqueTiles, manifest.kMax);
+      return new Response(JSON.stringify(manifest));
+    }
+    return new Response(await readFile(url));
+  });
+  await import('../../dist/main-course.js?capacity-rejection');
+  assert.ok(!requests.some((url) => url.endsWith('/ground/linear.bin')));
+  assert.throws(() => dom.frame(17), /did not schedule/);
+  assert.match(status[0].textContent, /limit/);
+  assert.equal(status[0].children.at(-1).textContent, 'Retry');
+});

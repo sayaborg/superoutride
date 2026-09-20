@@ -167,8 +167,7 @@ CourseDocument. Failure publishes no graph. Wrong API types/domains throw TypeEr
 unexpected platform failures propagate.
 
 This verifies source integrity and immutable sharing. The saved presentation subset below separately
-binds those sources; overlap/picture continuity and Link readiness remain unqualified. Completed
-resident RGB555 ground remains Gate 3.
+binds those sources; overlap/picture continuity and Link readiness remain unqualified. Completed ground uses the separate resident compiler below.
 
 ## Saved course presentation
 
@@ -217,17 +216,18 @@ and shared scenery over explicit camera/filter/anchor domains. Actual fork/merge
 use those saved images. This does not select a filtering recipe, publish resident records or qualify
 general occurrence-mapped presentation.
 
-## Current source paint
+## Resident ground
 
-The product loads and validates saved images before driving. `course-ground-source` evaluates the
-compiled Band bindings and paint recipe at level zero without filtering. Browser and headless scene
-assembly consume this same reader. The resident RGB555 target below follows the playable milestones.
+Build compiles all saved Section ground into a completed RGB555 payload and a manifest. The browser
+validates the manifest before acquiring the payload, then validates and owns the complete bytes before
+starting ticks. The headless driving scene uses the same resident readers. `course-ground-source`
+remains the independent offline point-field oracle; driving performs no source-paint evaluation.
 
 ## Course Editor target
 
-This target supersedes current ground image generation only after the image/footprint and capacity
-gates in [development](development.md#course-editor-target-validation). Geometry and physical materials
-remain separately owned. Existing sprite metric and image-reader contracts remain valid.
+The completed-ground lattice, filter and wire layout below are implemented. Broader authoring features
+remain targets; real-art review and named-device capacity/performance remain separate acceptance gates.
+Geometry, physical materials, sprite metrics and sprite image-reader contracts retain their owners.
 
 ### Source and completed images
 
@@ -247,10 +247,11 @@ GroundBase retains separate color-or-transparent fills outside the strip. Neithe
 A source tile covers 64x64 cells: 1.6 m by 1.6 m in the Section chart. Origin, phase and metric extent
 are explicit. Partial edge cells are clipped, preserving dimensions.
 
-The candidate anisotropic outputs for one near-tile footprint are L0 64x16 (40x10 texels/m),
+The completed anisotropic outputs for one near-tile footprint are L0 64x16 (40x10 texels/m),
 L1 32x4 (20x2.5), and L2 16x1 (10x0.625), all RGB555. L3 onward uses coarse Section RGB555 images,
-with lateral density halved and chainage density quartered per level. This lattice requires the
-[image/footprint gate](development.md#image-and-geometry-acceptance).
+with lateral density halved and chainage density quartered per level. All Sections share kMax, the
+first level (at least 3) at which every Section fits one coarse texel in each axis. Lateral grid origin
+is `floor(-left*40/64)*64` source cells; chainage origin is zero. Clipped final cells retain their area.
 
 A near record contains completed L0-L2 pixels. Deduplication compares the whole record exactly;
 equal L0 with unequal lower levels remains distinct. Coarse levels use the composed Section field
@@ -258,34 +259,32 @@ across tile/material boundaries. Generate enough levels for the declared footpri
 
 Map rows reference records and retain lateral ranges on the source lattice. Resolve variants,
 orientation and phase during compilation. Entries contain tile references, without palette IDs or
-flip controls. Exact integer packing is validated with the reader; four-byte references are currently
-an accounting example, not a frozen wire layout.
+flip controls. The payload is little-endian: the shared dictionary of 1,168 Uint16 colors per record,
+then each Section's row-major Uint32 directory followed by its row-major Uint16 coarse images in level
+order. Section order is the compiled graph's validated declaration order. Manifest grids and build
+identity bind that order at admission; consumers receive canonical Section references.
 
 ### Ground LOD and filter
 
-The candidate two-axis selector starts each axis at L0. For nonnegative actual lateral footprint
-deltaL and complete effective chainage footprint deltaS, advance while:
+The resident reader adopts the renderer's existing `selectLevel(deltaSEffective)` contract. Start at
+L0 and advance while `deltaSEffective >= 0.2 * 4^k`, clamped to available levels. Equality coarsens.
+Collapsed rows contribute their complete effective chainage footprint. The earlier two-axis selector
+candidate is superseded by this actual consumer contract; camera and renderer stay unchanged.
 
-```text
-lateral:   deltaL >= sqrt(2)*qL0*2^k
-chainage:  deltaS >= 2*qS0*4^k
-selected level = max(lateral level, chainage level), clamped to available levels
-```
+Recipe `superoutride.resident-rgb555` v1 composes source cells on the 40x40 texel/m lattice. Cell centres
+select the half-open Band and saved image texel; finite edges clip area, and the last chainage cell uses
+its clipped centre. Static A/B and ordered stamps retain the saved source rules above. Area integration
+averages the RGB555 codec's decoded 8-bit encoded-sRGB channels, then rounds through the shared framebuffer
+and RGB555 codecs. This deliberately changes source-preview pixels; mechanics and renderer oracles are unchanged.
 
-qL0/qS0 are the meter-per-texel spacings from the candidate lattice. Equality coarsens, matching
-sprites. Tests and implementation use the same computed thresholds. Collapsed rows contribute their
-entire footprint. A chainage-driven coarse level can create large lateral texels; ordinary-row
-pixel-size estimates apply only under their stated conditions.
+Every level integrates the original composed cells. Near filters use tile-local summed areas; coarse
+filters use rolling rows of unquantized channel/area sums, crossing tile and material boundaries.
+No level filters previously quantized output. The finite Section source includes its authored Link/lap
+guards; filtering clips only at its outer domain. These filters do not enlarge the common seam guard.
 
-Generate every level directly from the composed source with deterministic area integration and an
-explicit color-space recipe, then quantize through the shared RGB555 codec. Neighboring source samples
-cross storage boundaries; Link/loop common overlap supplies context, while true finite edges clip the
-footprint. Source classification uses the [target partition](architecture.md#target-lateral-boundary-ownership).
-Sprite and ground share color/area primitives but retain their distinct lattices/output quantization.
-
-Runtime samples completed texels by nearest lookup. Real-art comparisons qualify the filter and
-selector; diagnostic level colors demonstrate addressing only. Palette interpolation, crossfades and
-filtering already-quantized previous levels are outside this pipeline.
+Runtime performs nearest completed-texel lookup. It retains row addresses across each scanline through
+the existing reader API and shares one immutable RGB555-to-framebuffer lookup. Real-art and motion review
+remain required for the chosen filter. No interpolation or acquisition occurs in a pixel query.
 
 ### Ground composition and stamp placement
 
@@ -315,8 +314,10 @@ or dynamic theme recoloring. Saved bytes/recipes establish replay; AI provenance
 ### Bounded compilation and resident data
 
 Flattening defines one logical source field. Evaluate bounded tiles/strips with required filter
-support, independent of batch size/traversal order. Working pixel buffers remain bounded; dictionary,
-directory metadata, scratch and final output are measured separately.
+support, independent of batch size/traversal order. Working pixels use a 64-row source strip, one tile prefix buffer and one unquantized accumulator row
+per coarse level. Source/template caches each retain at most 4 MiB (or one row); chunk and completed-tile
+caches retain at most 4,096 and 2,048 keys. Dictionary/directory/final output grow only within admission
+limits. Neither a whole-source image nor a whole-Section floating-point image is allocated.
 
 The completed manifest binds format/compiler/input identity, finite domains, grids, tile records,
 coarse images and lengths/digests. Include the course geometry identity in dependent image identities.
@@ -331,8 +332,9 @@ RGB555-versus-indexed storage tradeoff.
 
 ### Remaining technical gates
 
-Output lattice/selector, real-art color-space/coverage recipes and exact packed layout remain candidates.
-Existing camera/source metrics stay fixed; whole-application measurements establish device budgets.
-Revise candidates explicitly in this owner and causal tests. Vehicle lamp states remain deferred:
+The lattice, selector, encoded-sRGB area recipe and packed layout are implemented. Real-art review,
+whole-application measurements and named-device acceptance remain open. Existing camera/source metrics
+stay fixed; whole-application measurements establish device budgets.
+Revise contracts explicitly in this owner and causal tests. Vehicle lamp states remain deferred:
 a later design may select immutable SINGLE-sprite variants from observations, without a shared mutable
 palette or a general animation scheduler.

@@ -141,12 +141,12 @@ vertical-follow time constant 0.22 s and correction bound 4 m. These are present
 
 ## Ground and background
 
-Saved source paint uses level zero without filtering until resident RGB555. Its reader returns the
+Completed resident RGB555 supplies prefiltered levels through the existing ground reader. It returns the
 environment GroundBase for sample centers outside the finite half-open paint strip. Transparent
 GroundBase preserves the background pixel. Camera, terrain projection, coverage and sprite algorithms,
 including their existing framebuffer oracles, remain unchanged.
 
-ground appearance and SurfaceMap support/friction are independent. Each emitted terrain line uses
+Ground appearance and SurfaceMap support/friction are independent. Each emitted terrain line uses
 GroundBase outside its finite ground strip. Each side selects a solid color or transparency;
 transparency retains farther content. Far Background is a complete image, including below its horizon,
 aligned by its source-horizon anchor. Yaw scrolls it; camera roll and alpha blending remain absent.
@@ -211,11 +211,11 @@ The [image session contract](image-assets.md#sprite-tool-authoring-session) owns
 
 Core owns Raster/Guide, height and finite source operations. Course owns shared boundary geometry.
 Graphics owns framebuffer, color codec, blitting and Painter primitives. Visual owns assets and
-visual profiles; Terrain projects geometric bounds; Render assembles the pipeline. The source-paint reader owns saved composition evaluation. Physics owns support/material interpretation and
+visual profiles; Terrain projects geometric bounds; Render assembles the pipeline. Groundmap owns offline source composition, completed-image compilation and resident readers. Physics owns support/material interpretation and
 Guide containment. The vehicle catalog owns presentation-family metadata.
 
 Audio owns procedural sound and read contracts; vehicle binds acoustic profiles and browser adapts
-physical observations. Audio imports Core; physics stays independent of audio. The root loads course JSON and image bytes before publishing the scene.
+physical observations. Audio imports Core; physics stays independent of audio. The root loads course JSON, source images and completed ground before publishing the scene.
 
 The [hygiene graph](../tests/infrastructure/repository-hygiene.test.mjs) enforces acyclic directory
 imports, including types. Product roots load saved content; fixtures and diagnostics remain test/tool inputs. Runtime supplies
@@ -232,12 +232,12 @@ Compiler also admits saved image sources through Graphics' existing sprite valid
 to concrete immutable indexed-source records without another generic parameter through Ports/Links.
 Image admission uses the Graphics validator; lower Course geometry still has no image dependency.
 Presentation compilation uses the Graphics source metric and Visual's ordinary immutable data
-facets. ground evaluates saved composition over those facets and canonical Bands without importing
-the graph. Appearance, outside GroundBase, scenery identity and physical support remain distinct.
+facets. Compiler binds Groundmap products to canonical Section references once; Groundmap consumes
+ordinary source facets without importing the graph. Appearance, outside GroundBase, scenery identity and physical support remain distinct.
 Runtime may consume Camera's profile contract to derive consumer coverage; Camera remains independent
 of Runtime and the course graph.
 Explicit height uses Core HeightProfile. Compiler cannot import Runtime, Authoring, vehicle, renderer,
-image-delivery or gameplay implementations. Parsed dependency checks enforce these limits.
+gameplay implementations. Parsed dependency checks enforce these limits.
 The narrow Band surface adapter consumes only
 partition/bindings, not the course graph. Separate all-Link physical qualification does not certify
 presentation or product-consumer coverage. A declared physical-query domain adds pose/step/footprint
@@ -262,9 +262,9 @@ cost and instrumentation cost are measured separately.
 ## Ground authoring boundaries
 
 Compiled Boundary/Band geometry, physical material bindings, saved paint and environment GroundBase
-have distinct authority. The source-paint reader evaluates canonical references at level zero; the
-renderer consumes only a synchronous color reader and the finite strip dimensions. Source scenes and
-headless previews use this same assembly. Missing physical support is VOID regardless of paint.
+have distinct authority. The offline source-paint reader evaluates canonical references; the
+renderer consumes only a synchronous resident color reader and finite strip dimensions. Browser scenes
+and headless previews use the same completed-ground assembly. Missing physical support is VOID regardless of paint.
 
 ## Accepted authoring target
 
@@ -382,7 +382,7 @@ explicit behavior revision with below/at/above-edge tests; retain the current ru
 
 ### Source lattice and tile dictionary
 
-[Image assets](image-assets.md#source-lattice-and-tile-dictionary) owns the candidate output lattice.
+[Image assets](image-assets.md#source-lattice-and-tile-dictionary) owns the completed output lattice.
 
 ### Ground LOD and filter
 

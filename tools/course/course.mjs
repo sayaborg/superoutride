@@ -8,7 +8,15 @@ import { CURRENT_CAMERA_PROFILE } from '../../dist/camera/current-camera-profile
 import { deriveVehicleSpriteFamily } from '../../dist/render/vehicle-presentation.js';
 import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { courseReport } from './course-report.mjs';
-import { options, loadCourse, requireInput, finite, atomicWrite, reportError } from './authoring-io.mjs';
+import {
+  options,
+  loadCourse,
+  loadCourseGround,
+  requireInput,
+  finite,
+  atomicWrite,
+  reportError,
+} from './authoring-io.mjs';
 
 const [verb, file, ...args] = process.argv.slice(2);
 try {
@@ -38,7 +46,9 @@ try {
   };
   const section = opts.has('--section') ? course.sections.find((s) => s.id === opts.get('--section')) : course.entry;
   requireInput(section, '/section', 'Unknown Section');
-  if (verb === 'render') {
+  if (verb === 'compile') {
+    result.ground = (await loadCourseGround(course, file)).metrics;
+  } else if (verb === 'render') {
     const entry = opts.has('--vehicle')
       ? VEHICLE_CATALOG.find((e) => e.profile.id === opts.get('--vehicle'))
       : VEHICLE_CATALOG[0];
@@ -59,7 +69,7 @@ try {
       stations = Array.from({ length: count }, (_, i) => start + i * step);
     } else stations = [finite(Number(opts.get('--s') ?? 45), '/s', 0, section.raster.length)];
     const l = finite(Number(opts.get('--l') ?? 0), '/l', -1000, 1000),
-      scene = createCourseScene(section);
+      scene = createCourseScene(section, await loadCourseGround(course, file));
     if (opts.has('--exit')) {
       const link = section.outgoing.find((l) => l.id === opts.get('--exit'));
       requireInput(link, '/exit', 'Exit must name a canonical outgoing Link');

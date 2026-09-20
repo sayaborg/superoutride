@@ -1,3 +1,4 @@
+import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
@@ -15,9 +16,10 @@ import { sampleRivalDrivingInput } from '../../dist/gameplay/rival-driver.js';
 
 import { courseDrivingFixture, drivingWindow, ok } from '../helpers/course-driving-fixture.mjs';
 
-function singleSource() {
+function singleSource(ground) {
   const zero = { behind: 0, ahead: 0, left: 0, right: 0 };
   return createCourseDrivingSource(
+    ground,
     ok(
       compileCoursePhysicalDomains([], {
         pose: { ...zero, left: 1, right: 1, ahead: 1, behind: 1 },
@@ -37,7 +39,7 @@ function singleSource() {
 
 test('bounded Section readers share native geometry and height interpolation with stable source observations', async () => {
   const course = await courseDrivingFixture();
-  const source = singleSource();
+  const source = singleSource(await testGround(course));
   const { view } = drivingWindow(course, { minS: 1100, maxS: 1200, maxAdvance: 2 });
   const result = ok(source.createView(view));
   assert.equal(result.frame, view.frame);
@@ -87,7 +89,7 @@ test('insufficient windows reject projection candidates and real driver lookahea
       consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
     }),
   );
-  const result = ok(singleSource().createView(view));
+  const result = ok(singleSource(await testGround(course)).createView(view));
   const p = guidePathToWorld(course.entry.guide, 950, 0);
   assert.throws(() => result.world.guide.locateLocal(p, p.segmentIndex, 5, false), RangeError);
   assert.throws(
@@ -121,7 +123,7 @@ test('a selected Link remains undrivable without full common-content qualificati
       consumers: { cameraRender: extent, contact: extent, driverLookahead: extent, reverseRecovery: extent },
     }),
   );
-  assert.equal(singleSource().createView(view).reason, 'unqualified_links');
+  assert.equal(singleSource(null).createView(view).reason, 'unqualified_links');
   assert.equal(traversal.snapshot().active.section, course.entry);
 });
 
@@ -131,7 +133,7 @@ test('closed pose endpoints include the earlier projection seed at a shared Guid
   const index = 18,
     s = guide.segments[index].sEnd;
   const { view } = drivingWindow(course, { minS: s, maxS: s, maxAdvance: 0 }, s);
-  const result = ok(singleSource().createView(view));
+  const result = ok(singleSource(await testGround(course)).createView(view));
   const point = guidePathToWorld(guide, s, 0);
   const expected = locateWorldOnGuideLocal(guide, point, index, 5, false);
   assert.deepEqual(result.world.guide.locateLocal(point, index, 5, false), expected);

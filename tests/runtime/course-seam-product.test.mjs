@@ -1,3 +1,4 @@
+import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -19,13 +20,14 @@ const compiled = await compileCourseDocument(
 );
 assert.equal(compiled.ok, true, JSON.stringify(compiled.diagnostics));
 const course = compiled.value;
+const ground = await testGround(course, 'seam');
 const dt = 1 / 120;
 const input = { steering: 0, throttle: false, brake: false };
 
 for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.id === 'VFR750R')]) {
   test(`saved two-Section ${entry.profile.id} commits once with invariant mechanics and picture, reverses and recovers`, () => {
     assert.deepEqual(course.links[0].overlap, { behind: 30, ahead: 30 });
-    const scene = createCourseScene(course.entry);
+    const scene = createCourseScene(course.entry, ground);
     const spawn = (s, initialSpeed, l = 0) =>
       createArcadeVehicle(entry.profile, scene.world, { s, l, initialSpeed, torqueProtection: entry.torqueProtection });
     const actor = { vehicle: spawn(course.links[0].source.anchor.s - 2, 20), cameraRig: createCameraRig() };
@@ -96,7 +98,7 @@ for (const entry of [VEHICLE_CATALOG[0], VEHICLE_CATALOG.find((e) => e.profile.i
 }
 
 test('sixteen actors share immutable readers while occurrence state and recovery remain independent', () => {
-  const scene = createCourseScene(course.entry);
+  const scene = createCourseScene(course.entry, ground);
   const sessions = Array.from({ length: 16 }, () => scene.createActorSession());
   for (const session of sessions) {
     assert.equal(session.view.world, scene.world);

@@ -1,3 +1,4 @@
+import { testGround } from '../helpers/resident-ground.mjs';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -27,9 +28,10 @@ const result = await compileCourseDocument(
 assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
 const course = result.value,
   fork = course.entry.fork;
+const ground = await testGround(course, 'branch');
 const point = (s, l) => guidePathToWorld(course.entry.guide, s, l);
 function fixture(entry = VEHICLE_CATALOG[0], rivalCount = 1) {
-  const scene = createCourseScene(course.entry);
+  const scene = createCourseScene(course.entry, ground);
   const vehicle = createArcadeVehicle(entry.profile, scene.world, {
     s: 45,
     l: 0,
@@ -69,7 +71,7 @@ test('all eligible world crossings choose once by u then stable ID, including th
     [[['PLAYER', 249, 251, 131]], null],
     [[['PLAYER', 251, 249, 5]], null],
   ]) {
-    const scene = createCourseScene(course.entry),
+    const scene = createCourseScene(course.entry, ground),
       field = createCourseForkField(course.sections);
     const entries = motions.map(([id, start, end, l]) => ({
       id,
@@ -200,7 +202,7 @@ test('every fork exit and merge seam keeps a 30 m guard and clears parent-specif
   const entry = VEHICLE_CATALOG[0];
   for (const link of course.links)
     for (const offset of [-1, 1]) {
-      const scene = createCourseScene(link.source.section);
+      const scene = createCourseScene(link.source.section, ground);
       if (link.source.section.fork) scene.session.prepareChoice(link).commit();
       const lateral =
         link.source.carriageway.bands
@@ -243,7 +245,7 @@ test('every fork exit and merge seam keeps a 30 m guard and clears parent-specif
         committed = true;
         assert.deepEqual(link.overlap, { behind: 30, ahead: 30 });
         scene.render(after, vehicle, camera, 'car');
-        createCourseScene(link.destination.section).render(successorOnly, vehicle, camera, 'car');
+        createCourseScene(link.destination.section, ground).render(successorOnly, vehicle, camera, 'car');
         for (const [pixels, reason] of [
           [before, 'rigid frame commit'],
           [successorOnly, 'parent-specific pixels cleared'],
@@ -266,5 +268,5 @@ test('the actual driving graph rejects a fork whose undecided approach cannot su
     await readCourseImages(source.assets, new URL('../../content/images/', import.meta.url).pathname),
   );
   assert.equal(compiled.ok, true, JSON.stringify(compiled.diagnostics));
-  assert.throws(() => createCourseScene(compiled.value.entry), /pre-lock render and driver/);
+  assert.throws(() => createCourseScene(compiled.value.entry, ground), /pre-lock render and driver/);
 });

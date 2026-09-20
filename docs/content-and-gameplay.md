@@ -14,8 +14,8 @@ this same assembly. The SEAM selection drives the two-Section split through a ro
 2 km source lap, a standing start, two required laps and two development rivals.
 The development course is a finite 2.94 km LINEAR with 132 row-generated
 scenery instances, two environments, varying widths, shoulders, left/right turns and height changes.
-The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Source paint samples level
-zero without filtering; all inputs finish loading before ticks. A failed load/compile offers retry. An authored entry Port retains at least 30 m of source behind the
+The shell retains vehicle selection, input, camera lifecycle, audio and HUD. Completed resident ground
+supplies filtered levels; all inputs finish loading and validation before ticks. A failed load/compile offers retry. An authored entry Port retains at least 30 m of source behind the
 playable entrance. Reverse travel or repeated manual recovery past that entrance uses ordinary
 legal-route recovery to the Port before camera observation, without progress credit.
 
@@ -959,9 +959,12 @@ opening a saved image does not upload it.
 
 ### Course loading
 
-Before ticks, load and validate complete ground for all reachable Sections, counting shared records once
+Before ticks, preflight the ground manifest against the compiled build identity and finite Section grids,
+then acquire its single binary payload and verify length, SHA-256, RGB555 colors and all tile references.
+A failed admission publishes no reader and starts no ticks. Capacity failures occur before pixel acquisition.
+Load complete ground for all reachable Sections, counting shared records once
 and reusing one lap source. Physics/topology have their own data. Replacement suspends input/audio/ticks,
 preserves coherent state or a loading display, and offers retry/exit. Stale arrivals cannot install.
 Resume with a fresh clock and cleared input ownership. Capacity failures are explicit before play,
 without a hidden switch to streaming or lower-quality art. Retain content identity and failure handling
-when retiring current pages/prefetch. [Development](development.md#capacity-model) owns residency/switch peaks.
+through the current full-page course switch. [Development](development.md#capacity-model) owns residency/switch peaks.

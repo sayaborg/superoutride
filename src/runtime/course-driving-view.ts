@@ -1,3 +1,5 @@
+import type { CourseGround } from '../compiler/course-ground.js';
+import { selectGroundLevel } from '../groundmap/resident-ground.js';
 import { guideCoordinateMetricsAt, type GuideCoordinateReader } from '../core/guide-coordinate-frame.js';
 import { guidePathToWorld, projectWorldOnGuideInterval, sampleGuidePath } from '../core/guide-curve.js';
 import { dot, subtract, tangentFromHeading, normalFromHeading, wrapAngle, type Vec2 } from '../core/math.js';
@@ -31,7 +33,7 @@ const seed = (ordinal: number, index: number) => {
 };
 
 /** Native source readers are shared; only bounded mapping/observation metadata is constructed per view. */
-export function createCourseDrivingSource(physical: Physical, presentation: Presentation) {
+export function createCourseDrivingSource(resident: CourseGround, physical: Physical, presentation: Presentation) {
   if (
     !physical ||
     physical.scope !== 'physical-query-domain' ||
@@ -103,6 +105,7 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
       ...span,
       sourceFromView: invertPlanarTransform(span.viewFromSource),
       surface: surface(span.occurrence.section),
+      ground: resident.forSection(span.occurrence.section),
       presentation: sourcePresentation(span.occurrence.section),
       backgrounds: sourcePresentation(span.occurrence.section).backgrounds.map((background) =>
         Object.freeze({
@@ -342,18 +345,15 @@ export function createCourseDrivingSource(physical: Physical, presentation: Pres
       },
     });
     const ground: GroundColorReader = Object.freeze({
-      kind: 'source',
-      kMax: 0,
-      selectLevel: () => 0,
+      kind: 'baked',
+      kMax: resident.kMax,
+      selectLevel: (deltaS: number) => selectGroundLevel(deltaS, resident.kMax),
       sampleAtLevel(s: number, l: number, level: number) {
-        if (typeof level !== 'number') throw new TypeError('Source preview level must be numeric');
-        if (level !== 0) throw new RangeError('Source preview has only level zero');
         const mapping = mappingAt(s);
         const sourceS = mapping.sourceChainageInFrame(s);
         const sourceL = l + mapping.sourceLateralOrigin;
-        const { left, right } = mapping.presentation.ground.domain;
-        if (sourceL >= left && sourceL < right)
-          return mapping.presentation.ground.sampleInChart(sourceS, l, mapping.sourceLateralOrigin);
+        const { left, right } = mapping.ground.domain;
+        if (sourceL >= left && sourceL < right) return mapping.ground.sampleAtLevel(sourceS, sourceL, level);
         const environment = mapping.presentation.visual.sample(sourceS);
         const base = sourceL < left ? environment.groundBaseLeft : environment.groundBaseRight;
         return base.kind === 'color' ? base.color : null;

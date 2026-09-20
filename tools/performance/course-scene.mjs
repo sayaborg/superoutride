@@ -1,5 +1,5 @@
 import { Session } from 'node:inspector/promises';
-import { loadCourse, options, finite } from '../course/authoring-io.mjs';
+import { loadCourse, loadCourseGround, options, finite } from '../course/authoring-io.mjs';
 import { createCourseScene } from '../../dist/runtime/course-scene.js';
 import { createCourseRace } from '../../dist/runtime/course-race.js';
 import { createArcadeVehicle } from '../../dist/physics/arcade-vehicle-physics.js';
@@ -28,8 +28,9 @@ const reports = [];
 for (const mode of modes) {
   if (!['linear', 'seam', 'circuit', 'branch'].includes(mode)) throw new RangeError('Unknown course mode');
   const { course } = await loadCourse(`content/courses/${mode}.course.json`);
+  const ground = await loadCourseGround(course, `content/courses/${mode}.course.json`);
   const started = performance.now();
-  const scene = createCourseScene(course.entry);
+  const scene = createCourseScene(course.entry, ground);
   const player = {
     vehicle: createArcadeVehicle(vehicle.profile, scene.world, {
       s: 45,
@@ -100,6 +101,7 @@ for (const mode of modes) {
     rivalCount,
     frames,
     setupMilliseconds,
+    ground: scene.groundMetrics,
     fixedStepMilliseconds: statistics(step),
     renderMilliseconds: statistics(render),
     frameMilliseconds: statistics(frame),

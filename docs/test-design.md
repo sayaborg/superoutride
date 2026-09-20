@@ -161,3 +161,9 @@ history on failure, one-time publication, stale selection/movement and actual me
 Seam-reader tests exercise both sides of the Link with ordinary nine-profile physics and full saved
 frames; outside-domain world projection must fail even when clamping was requested. Pose and signed
 step outcomes remain separate from seam crossing, frame commit and progress acceptance.
+
+Resident-ground integration compares fixed and moving occurrence views against independently composed
+Section/link readers. Its image contract is filtered RGB555; the point-source oracle separately checks
+area integration. Point-color equality at an exact physical Band edge is not a filtered-pixel contract.
+The mapped-view fixture retains its 200 m camera envelope in a 440 m paint strip; queries at 500 m
+exercise the ordinary outside GroundBase. Physics/Guide assertions and forward/reverse seam images remain.

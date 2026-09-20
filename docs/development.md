@@ -62,20 +62,20 @@ Verify extraction and image inspection in the actual environment; unavailable ca
 in NEXT Open decisions. The checked-in LINEAR observations are synthetic analyzed data, not a claim
 of video reconstruction. Its current preview directory is reproducible from the commands above.
 
-Open `http://localhost:8000/?mode=linear` for the same assembly. Build stages course/image bytes
+Open `http://localhost:8000/?mode=linear` for the same assembly. Build stages course/image and completed-ground bytes
 in `dist/content`; Pages verifies version, commit-versioned boot and every content SHA-256 digest.
 
 ## CourseDocument compiler
 
 `npm run course -- compile content/courses/linear.course.json` reads saved JSON and exact image
 bytes through the public admission/compiler boundary. It returns machine-readable identities,
-counts or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
+counts, resident-ground capacity accounting or structured diagnostics and leaves source unchanged. `compile:course` remains a basic
 compiler report for geometry-only inputs, accepting only the source and optional image directory.
 [Content](content-and-gameplay.md#coursedocument-v8-implemented-compiler-boundary) owns schema v8,
 compiler v15, canonical references, admission limits and failure semantics.
 
 The product root's contact/step guard admission and local geometry checks are covered by direct
-causal tests. Source paint is sampled at level zero. Longer view consumers read source-owned spans.
+causal tests. Ground samples prefiltered resident images. Longer view consumers read source-owned spans.
 Saved LINEAR/SEAM/CIRCUIT/BRANCH integration tests exercise the shared browser/headless assembly,
 car and bike mechanics, frame commits, reversal, recovery, laps, field choice and merge identity.
 Fork integration observes competing physical crossings, half-open median ownership, ordinary closure
@@ -426,7 +426,7 @@ Summing route lengths duplicates shared Sections; measuring only the driven rout
 The largest resident case depends on total domains, width, source diversity and deduplication, not on
 which course has the longest single lap. No selected BRANCH course is claimed to have a measured length here.
 
-For the candidate ground layout, let `U` be unique completed near records and `N` be actual map entries:
+For the implemented ground layout, let `U` be unique completed near records and `N` be actual map entries:
 
 ```text
 near record bytes = 2 * (64*16 + 32*4 + 16*1) = 2,336
@@ -475,13 +475,24 @@ unique-record count independently. Replace the assumed worst case with measured 
 Full-scene device tests include renderer/framebuffer, sprites/backgrounds, 16 rivals, traffic,
 interactions, audio, source metadata and loading transitions. Name device/browser, fixed step, frame
 target, test inputs and separate resident/peak limits. Host throughput and compressed bytes are
-supporting measurements, not smartphone certification. Oversized content receives a capacity error.
+supporting measurements, not smartphone certification. Oversized content receives a capacity error. `GROUND_LIMITS` admits at most 64 MiB of resident ground
+buffers/encoded metadata and 128 MiB of load buffers. The accounting includes the shared 128 KiB color
+lookup, payload bytes, UTF-8 manifest size and three payload copies during acquisition/ownership/digest.
+These are engineering admission ceilings, not qualified phone budgets. VM object headers, browser HTTP
+buffers and the rest of the application require process/device measurements. A full-page course switch
+retires the old instance; it does not keep two live courses or stream ground during play.
+
+`node tools/performance/course-scene.mjs --frames 180 --rivals 16` reports payload/resident/load accounting,
+unique tiles and Section count alongside frame/step/seam timing and sampled allocations. The browser HUD
+shows the admitted resident set. Build stages `ground/<course>.json` and `.bin`; the published-content
+verifier hashes both along with source documents/images. The small independent source-area oracle,
+actual browser root, and car/bike seam tests qualify this cutover. Named-device 60 fps remains separate.
 
 ### Remaining evidence gates
 
 The Gate 1 CourseDocument schema and ranges are implemented and tested in their declared subset;
-future wire additions require matching admission and causal coverage before GUI dependence. Candidate
-LOD/filter/packing choices require real-art and footprint evidence. Seam/consumer/transfer envelopes
+future wire additions require matching admission and causal coverage before GUI dependence. Implemented
+LOD/filter/packing choices retain a separate real-art and device acceptance gate. Seam/consumer/transfer envelopes
 require causal geometry/physics tests. Reference AI and timed presets require their three acceptance
 stages. Interaction/traffic definitions and device budgets remain explicit prerequisites for complete
 product-play acceptance, not blockers to independent file/compiler work.

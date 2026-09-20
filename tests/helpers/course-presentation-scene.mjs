@@ -18,7 +18,19 @@ import {
 import { cameraProfile } from './course-driving-fixture.mjs';
 
 /** Ordinary renderer composition from real saved sources; no occurrence/graph is passed to the renderer. */
-export function coursePresentationScene(port, deltaS, deltaL, yaw, pixels, assets, bounds, observed, from, link) {
+export function coursePresentationScene(
+  port,
+  deltaS,
+  deltaL,
+  yaw,
+  pixels,
+  assets,
+  bounds,
+  observed,
+  from,
+  link,
+  completedGround,
+) {
   const section = port.section,
     p = section.presentation;
   const s = port.anchor.s + deltaS,
@@ -122,10 +134,10 @@ export function coursePresentationScene(port, deltaS, deltaL, yaw, pixels, asset
     },
     {
       ground: {
-        kind: 'source',
-        kMax: 0,
-        selectLevel: () => 0,
-        sampleAtLevel(s, l) {
+        kind: completedGround ? 'baked' : 'source',
+        kMax: completedGround?.kMax ?? 0,
+        selectLevel: completedGround?.selectLevel ?? (() => 0),
+        sampleAtLevel(s, l, level) {
           const ds = s - port.anchor.s,
             dl = l - coursePortLateral(port);
           assert.ok(
@@ -134,7 +146,9 @@ export function coursePresentationScene(port, deltaS, deltaL, yaw, pixels, asset
           );
           observed.queries += 1;
           observed.maxL = Math.max(observed.maxL, Math.abs(dl));
-          const color = rgb555ToRgba(source.sample(s, l));
+          const color = completedGround
+            ? completedGround.sampleAtLevel(s, l, level)
+            : rgb555ToRgba(source.sample(s, l));
           return color;
         },
       },

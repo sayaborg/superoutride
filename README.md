@@ -15,14 +15,14 @@ npm test
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. Build validates and stages the course JSON and images in `dist/content`.
+Open `http://localhost:8000/`. Build validates and stages course JSON, images and completed resident RGB555 in `dist/content`. Ground loads once before driving.
 
 ## Controls
 
 Left/right arrows steer. Up or X accelerates; down or Z brakes. Backspace recovers the vehicle.
 On touchscreens, the left half controls steering and the right half controls throttle (up) and brake (down). Each finger's initial position is its origin; 64 CSS pixels gives full input.
 
-Open DEV for vehicle, camera, calibration and sound controls. The performance HUD shows FPS, frame/step time and the maximum seam commit time. Key 1 selects LINEAR; key 2 selects the two-Section SEAM trial; key 3 selects the two-lap CIRCUIT with two rivals; key 4 selects BRANCH with two paths and a shared finish. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
+Open DEV for vehicle, camera, calibration and sound controls. The performance HUD shows FPS, frame/step time and the maximum seam commit time, plus resident ground bytes/tiles/Sections. Key 1 selects LINEAR; key 2 selects the two-Section SEAM trial; key 3 selects the two-lap CIRCUIT with two rivals; key 4 selects BRANCH with two paths and a shared finish. D, M and ACT use minus/value/plus controls; steps wrap at their limits. Physics and audio tuning remain deferred (DEV_UNCALIBRATED).
 
 ## Authoring and tools
 
@@ -41,7 +41,7 @@ The [Sprite Tool](tools/graphics/sprite-tool.html) and [Sprite LOD preview](tool
 | `src/input`, `src/camera`, `src/audio`                    | Input, observation and sound                            |
 | `src/gameplay`                                            | Recovery, race progress, gates and drivers              |
 | `src/graphics`, `src/visual`, `src/terrain`, `src/render` | Images, projection and rendering                        |
-| `src/groundmap`                                           | Saved course source-paint evaluation                    |
+| `src/groundmap`                                           | Offline ground compilation and resident RGB555 readers  |
 | `src/browser`                                             | Controls, scheduling and driving shell                  |
 | `src/dev`                                                 | Regression fixtures and diagnostics                     |
 

@@ -1,3 +1,4 @@
+import { testGround } from '../helpers/resident-ground.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -22,7 +23,7 @@ import { SoftwareSurface } from '../../dist/graphics/software-surface.js';
 import { createSpriteAssets } from '../../dist/visual/sprite-assets.js';
 import { renderDriving } from '../../dist/render/renderer.js';
 import { createCameraRig, updateCamera } from '../../dist/camera/camera.js';
-import { rgb555ToRgba } from '../../dist/graphics/rgb555.js';
+import { selectGroundLevel } from '../../dist/groundmap/resident-ground.js';
 import { courseBoundaryAt } from '../../dist/course/course-bands.js';
 
 const ok = (r) => {
@@ -41,8 +42,8 @@ async function fixture(shiftDestination = 0) {
     for (const boundary of d.sections[1].boundaries) for (const knot of boundary.knots) knot.l += shiftDestination;
   });
   for (const s of f.document.sections) {
-    s.presentation.ground.left = 1000;
-    s.presentation.ground.right = 1000;
+    s.presentation.ground.left = 220;
+    s.presentation.ground.right = 220;
     // This edge case has no stamps: a fractional chart offset is not a shared stamp texel lattice.
     if (shiftDestination !== 0) s.presentation.ground.stamps = [];
   }
@@ -74,7 +75,16 @@ async function fixture(shiftDestination = 0) {
     maxOccurrences: 4,
   });
   ok(traversal.select(traversal.snapshot().active, c.links[0]));
-  return { c, traversal, source: createCourseDrivingSource(physical, presentation), physical, presentation, saved: f };
+  const ground = await testGround(c);
+  return {
+    c,
+    ground,
+    traversal,
+    source: createCourseDrivingSource(ground, physical, presentation),
+    physical,
+    presentation,
+    saved: f,
+  };
 }
 function view(f, s = 1400, slack = 20) {
   const d = queryDemand({ minS: s - slack, maxS: s + slack, maxAdvance: 1 });
@@ -191,6 +201,23 @@ test('saved presentation maps once across a selected seam and actual complete fr
         assets,
         { ...f.presentation.demand.bounds, behind: 10, ahead: 200 },
         observed,
+        undefined,
+        undefined,
+        {
+          kMax: f.ground.kMax,
+          selectLevel: (deltaS) => selectGroundLevel(deltaS, f.ground.kMax),
+          sampleAtLevel(s, l, k) {
+            const link = f.c.links[0];
+            if (s < link.source.anchor.s) return f.ground.forSection(link.source.section).sampleAtLevel(s, l, k);
+            return f.ground
+              .forSection(link.destination.section)
+              .sampleAtLevel(
+                s - link.source.anchor.s + link.destination.anchor.s,
+                l - coursePortLateral(link.source) + coursePortLateral(link.destination),
+                k,
+              );
+          },
+        },
       );
       const moving = view(f, s, 19.1);
       for (const [i, d] of [retained, moving.driving].entries()) {
@@ -230,14 +257,19 @@ test('saved presentation maps once across a selected seam and actual complete fr
           },
         );
         assert.ok(result.terrainOutputPixels > 1000);
-        assert.deepEqual(pixels[i + 1].pixels, pixels[0].pixels, `saved frame s=${s} yaw=${yaw} reader=${i}`);
+        assert.equal(
+          pixels[i + 1].pixels.every((value, index) => value === pixels[0].pixels[index]),
+          true,
+          `saved frame s=${s} yaw=${yaw} reader=${i}`,
+        );
       }
       assert.equal(retained.presentation.worldSprites.length, 1, 'common scenery is owned once at the seam');
       assert.equal(moving.driving.presentation.worldSprites[0].asset, retained.presentation.worldSprites[0].asset);
     }
   assert.ok(neighborQueries > 10000);
-  assert.equal(typeof retained.presentation.ground.sampleAtLevel(1404, 500, 0), 'number');
-  assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, 1), RangeError);
+  assert.equal(typeof retained.presentation.ground.sampleAtLevel(1404, 200, 0), 'number');
+  assert.equal(retained.presentation.ground.sampleAtLevel(1404, 500, 0), null);
+  assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, f.ground.kMax + 1), RangeError);
   assert.throws(() => retained.presentation.ground.sampleAtLevel(1404, 0, '0'), TypeError);
 });
 
@@ -280,9 +312,9 @@ test('admission and query failures preserve traversal and reject unqualified or 
   const f = await fixture(),
     before = f.traversal.snapshot(),
     v = view(f);
-  assert.throws(() => createCourseDrivingSource(null, f.presentation), TypeError);
+  assert.throws(() => createCourseDrivingSource(null, null, f.presentation), TypeError);
   const separate = await fixture();
-  assert.throws(() => createCourseDrivingSource(f.physical, separate.presentation), RangeError);
+  assert.throws(() => createCourseDrivingSource(null, f.physical, separate.presentation), RangeError);
   const extent = { behind: 10, ahead: 501 };
   const outside = ok(
     createCourseGeometryView(before, {
@@ -301,7 +333,7 @@ test('admission and query failures preserve traversal and reject unqualified or 
   assert.deepEqual(f.traversal.snapshot(), before);
 });
 
-test('fractional mapped Band edges share exact physical and paint ownership without an inverse round trip', async () => {
+test('fractional mapped Band edges preserve exact physical ownership and resident source-cell addressing', async () => {
   const f = await fixture(0.004),
     v = view(f),
     span = v.geometry.spans[1],
@@ -313,9 +345,13 @@ test('fractional mapped Band edges share exact physical and paint ownership with
   assert.equal(v.driving.world.surfaces.sample(s, right - 1e-10).type, 'ASPHALT');
   assert.equal(v.driving.world.surfaces.sample(s, right).type, 'VOID');
   assert.equal(v.driving.world.surfaces.sample(s, right + 1e-10).type, 'VOID');
-  const base = rgb555ToRgba(span.occurrence.section.presentation.ground.baseRgb555);
-  for (const at of [1401.001, 1404.0625, 1406.4375])
-    assert.equal(v.driving.presentation.ground.sampleAtLevel(at, right, 0), base);
+  for (const at of [1401.001, 1404.0625, 1406.4375]) {
+    const address = v.geometry.addressInFrame(at, right);
+    assert.equal(
+      v.driving.presentation.ground.sampleAtLevel(at, right, 0),
+      f.ground.forSection(address.occurrence.section).sampleAtLevel(address.sourceS, address.sourceL, 0),
+    );
+  }
 });
 
 test('seam admission bounds contact motion independently of span-composed consumer readers', async () => {
@@ -328,7 +364,7 @@ test('seam admission bounds contact motion independently of span-composed consum
   for (const s of [1399, 1400, 1401]) {
     assert.equal(driving.world.surfaces.sample(s, 50).material.supported, false);
     assert.equal(driving.world.guide.toWorld(s, 50).l, 50);
-    assert.equal(typeof driving.presentation.ground.sampleAtLevel(s, 500, 0), 'number');
+    assert.equal(typeof driving.presentation.ground.sampleAtLevel(s, 200, 0), 'number');
   }
   const p = (s, l = 0) => geometry.geometry.guideAt(s - geometry.activeRange.start, l);
   assert.equal(guard.admitMotion(p(1399.8), p(1400.2)).ok, true);

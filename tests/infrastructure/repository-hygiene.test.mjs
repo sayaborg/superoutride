@@ -183,7 +183,7 @@ const layerDependencies = {
   core: [],
   graphics: ['core'],
   course: ['core'],
-  compiler: ['core', 'course', 'graphics', 'physics', 'visual'],
+  compiler: ['core', 'course', 'graphics', 'groundmap', 'physics', 'visual'],
   authoring: ['course', 'compiler'],
   input: ['core'],
   physics: ['core', 'course', 'input'],

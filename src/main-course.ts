@@ -2,6 +2,7 @@ import { createBrowserDrivingShell } from './browser/driving-shell.js';
 import { selectBrowserCourseMode } from './browser/course-mode-selection.js';
 import { mustGet } from './browser/dom.js';
 import { readCourseDocument } from './course/course-document.js';
+import { courseGroundPreflight, readCourseGround } from './compiler/course-ground.js';
 import { compileCourseDocument } from './compiler/compiled-course.js';
 import { advanceVehicleWithRecovery, RECOVERY_PROFILE } from './gameplay/recovery.js';
 import type { DrivingInput } from './input/driving-input.js';
@@ -18,7 +19,7 @@ status.setAttribute('role', 'status');
 status.textContent = 'Loading course…';
 canvas.insertAdjacentElement('afterend', status);
 
-async function fetchBytes(url: URL): Promise<Uint8Array> {
+async function fetchBytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Course request failed (${response.status}): ${url.pathname}`);
   return new Uint8Array(await response.arrayBuffer());
@@ -38,7 +39,17 @@ try {
   );
   const compiled = await compileCourseDocument(source.value, images);
   if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
-  const scene = createCourseScene(compiled.value.entry);
+  const groundManifest = await fetchBytes(new URL(`ground/${mode}.json`, root));
+  const { manifest } = courseGroundPreflight(
+    compiled.value,
+    JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(groundManifest)),
+  );
+  const ground = await readCourseGround(
+    compiled.value,
+    manifest,
+    await fetchBytes(new URL(`ground/${mode}.bin`, root)),
+  );
+  const scene = createCourseScene(compiled.value.entry, ground);
   const racing = source.value.type !== 'LINEAR';
   const shell = createBrowserDrivingShell(scene.world, COURSE_PLAY_SETTINGS.playerL, {
     s: COURSE_PLAY_SETTINGS.playerS,
@@ -76,7 +87,7 @@ try {
       else scene.observeStep(shell, shell.vehicle, true);
     },
   });
-  const performanceHud = createCoursePerformanceHud(canvas, scene.metrics);
+  const performanceHud = createCoursePerformanceHud(canvas, scene.metrics, scene.groundMetrics);
   const previous = { x: 0, z: 0 };
   let input: DrivingInput = { steering: 0, throttle: false, brake: false };
   status.remove();
